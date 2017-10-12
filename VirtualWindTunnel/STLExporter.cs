@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.IO;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 using System.Text;
@@ -33,8 +33,8 @@ namespace WindTunnel
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddBrepParameter("b", "b", "", GH_ParamAccess.list);
-            pManager.AddTextParameter("File", "File", "", GH_ParamAccess.item);
+            pManager.AddBrepParameter("Breps", "B", "Add Breps", GH_ParamAccess.list);
+            pManager.AddTextParameter("File", "F", "Provide a file path", GH_ParamAccess.item);
 
         }
 
@@ -75,13 +75,11 @@ namespace WindTunnel
             
 
             StringBuilder sb = new StringBuilder();
-            int counter = 0;
-            
+            sb.AppendLine("solid OBJECT");
 
             foreach (Mesh m in meshObjects) {
 
-                sb.AppendLine("solid OBJECT"+counter);
-                counter++;
+               
                 m.Faces.ConvertQuadsToTriangles();
 
                 m.FaceNormals.ComputeFaceNormals();
@@ -114,14 +112,12 @@ namespace WindTunnel
                  
 
                         sb.AppendLine("\tfacet normal " + m.FaceNormals[i].X + " " + m.FaceNormals[i].Y + " " + m.FaceNormals[i].Z);
-                        sb.AppendLine("\t\touter loop"); 
-                        sb.AppendLine("\t\t\tvertex " + pt3.X + " " + pt3.Y + " " + pt3.Z);
-                        sb.AppendLine("\t\t\tvertex " + pt2.X + " " + pt2.Y + " " + pt2.Z);
+                        sb.AppendLine("\t\touter loop");
                         sb.AppendLine("\t\t\tvertex " + pt1.X + " " + pt1.Y + " " + pt1.Z);
+                        sb.AppendLine("\t\t\tvertex " + pt2.X + " " + pt2.Y + " " + pt2.Z);
+                        sb.AppendLine("\t\t\tvertex " + pt3.X + " " + pt3.Y + " " + pt3.Z);
                         sb.AppendLine("\t\tendloop");
                         sb.AppendLine("\tendfacet");
-
-
 
                     //}
 
@@ -131,9 +127,11 @@ namespace WindTunnel
 
             }
 
+            sb.AppendLine("endsolid OBJECT");
 
-
-            System.IO.File.WriteAllText(filepath, sb.ToString()); 
+            var dir = Path.GetDirectoryName(filepath);
+            if (dir != null && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
+            File.WriteAllText(filepath, sb.ToString()); 
 
 
 

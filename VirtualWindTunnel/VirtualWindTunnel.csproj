@@ -53,8 +53,8 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="UrbanToolCollectionComponent.cs" />
-    <Compile Include="UrbanToolCollectionInfo.cs" />
+    <Compile Include="STLExporter.cs" />
+    <Compile Include="VirtualWindTunnelInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
