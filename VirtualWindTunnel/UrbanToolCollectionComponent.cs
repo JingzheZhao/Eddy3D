@@ -33,7 +33,7 @@ namespace WindTunnel
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddBrepParameter("b", "b", "", GH_ParamAccess.item);
+            pManager.AddBrepParameter("b", "b", "", GH_ParamAccess.list);
             pManager.AddTextParameter("File", "File", "", GH_ParamAccess.item);
 
         }
@@ -54,9 +54,9 @@ namespace WindTunnel
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             string filepath = "";
-            Brep geo = null;
+            List<Brep> geo = new List<Brep>();
 
-            DA.GetData(0, ref geo);
+            DA.GetDataList(0,  geo);
             DA.GetData(1, ref filepath);
 
 
@@ -65,56 +65,65 @@ namespace WindTunnel
 
             MeshingParameters mps = MeshingParameters.Smooth;
 
+            List<Mesh> meshObjects = new List<Mesh>();
+            
+            foreach (Brep b in geo)
+            {
+                meshObjects.AddRange(Mesh.CreateFromBrep( b , mp) );
 
-            Mesh[] meshArray = Mesh.CreateFromBrep(geo, mp) ;
+            }
+            
 
             StringBuilder sb = new StringBuilder();
+            int counter = 0;
+            
 
-            sb.AppendLine("solid xxxxx");
+            foreach (Mesh m in meshObjects) {
 
-            foreach (Mesh m in meshArray) {
+                sb.AppendLine("solid OBJECT"+counter);
+                counter++;
+                m.Faces.ConvertQuadsToTriangles();
 
                 m.FaceNormals.ComputeFaceNormals();
 
                 for (int i = 0; i < m.Faces.Count; i++) {
 
 
-                    if (m.Faces[i].IsQuad)
-                    {
-                        var pt1 = m.Vertices[m.Faces[i].A];
-                        var pt2 = m.Vertices[m.Faces[i].B];
-                        var pt3 = m.Vertices[m.Faces[i].C];
-                        var pt4 = m.Vertices[m.Faces[i].D];
+                    //if (m.Faces[i].IsQuad)
+                    //{
+                    //    var pt1 = m.Vertices[m.Faces[i].A];
+                    //    var pt2 = m.Vertices[m.Faces[i].B];
+                    //    var pt3 = m.Vertices[m.Faces[i].C];
+                    //    var pt4 = m.Vertices[m.Faces[i].D];
 
-                        sb.AppendLine("facet normal " + m.FaceNormals[i].X + " " + m.FaceNormals[i].Y + " " + m.FaceNormals[i].Z);
-                        sb.AppendLine("outer loop");
-                        sb.AppendLine("vertex " + pt1.X + " " + pt1.Y + " " + pt1.Z);
-                        sb.AppendLine("vertex " + pt2.X + " " + pt2.Y + " " + pt2.Z);
-                        sb.AppendLine("vertex " + pt3.X + " " + pt3.Y + " " + pt3.Z);
-                        sb.AppendLine("vertex " + pt4.X + " " + pt4.Y + " " + pt4.Z);
-                        sb.AppendLine("endloop");
-                        sb.AppendLine("endfacet");
+                    //    sb.AppendLine("\tfacet normal " + m.FaceNormals[i].X + " " + m.FaceNormals[i].Y + " " + m.FaceNormals[i].Z);
+                    //    sb.AppendLine("\t\touter loop");
+                    //    sb.AppendLine("\t\t\tvertex " + pt1.X + " " + pt1.Y + " " + pt1.Z);
+                    //    sb.AppendLine("\t\t\tvertex " + pt2.X + " " + pt2.Y + " " + pt2.Z);
+                    //    sb.AppendLine("\t\t\tvertex " + pt3.X + " " + pt3.Y + " " + pt3.Z);
+                    //    sb.AppendLine("\t\t\tvertex " + pt4.X + " " + pt4.Y + " " + pt4.Z);
+                    //    sb.AppendLine("\t\tendloop");
+                    //    sb.AppendLine("\tendfacet");
 
-                    }
+                    //}
 
-                    else {
+                    //else {
                         var pt1 = m.Vertices[m.Faces[i].A];
                         var pt2 = m.Vertices[m.Faces[i].B];
                         var pt3 = m.Vertices[m.Faces[i].C];
                  
 
-                        sb.AppendLine("facet normal " + m.FaceNormals[i].X + " " + m.FaceNormals[i].Y + " " + m.FaceNormals[i].Z);
-                        sb.AppendLine("outer loop");
-                        sb.AppendLine("vertex " + pt1.X + " " + pt1.Y + " " + pt1.Z);
-                        sb.AppendLine("vertex " + pt2.X + " " + pt2.Y + " " + pt2.Z);
-                        sb.AppendLine("vertex " + pt3.X + " " + pt3.Y + " " + pt3.Z);
-               
-                        sb.AppendLine("endloop");
-                        sb.AppendLine("endfacet");
+                        sb.AppendLine("\tfacet normal " + m.FaceNormals[i].X + " " + m.FaceNormals[i].Y + " " + m.FaceNormals[i].Z);
+                        sb.AppendLine("\t\touter loop"); 
+                        sb.AppendLine("\t\t\tvertex " + pt3.X + " " + pt3.Y + " " + pt3.Z);
+                        sb.AppendLine("\t\t\tvertex " + pt2.X + " " + pt2.Y + " " + pt2.Z);
+                        sb.AppendLine("\t\t\tvertex " + pt1.X + " " + pt1.Y + " " + pt1.Z);
+                        sb.AppendLine("\t\tendloop");
+                        sb.AppendLine("\tendfacet");
 
 
 
-                    }
+                    //}
 
                 }
 
