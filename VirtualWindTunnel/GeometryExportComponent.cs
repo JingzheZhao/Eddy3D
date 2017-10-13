@@ -4,6 +4,7 @@ using System.IO;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 using System.Text;
+using Grasshopper.Kernel.Parameters;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -36,6 +37,15 @@ namespace WindTunnel
             pManager.AddBrepParameter("Breps", "B", "Add Breps", GH_ParamAccess.list);
             pManager.AddTextParameter("File", "F", "Provide a file path", GH_ParamAccess.item);
 
+            pManager.AddIntegerParameter("Mode", "M", "Output mode: Binary = 0, ASCI = 1", GH_ParamAccess.item, 0);
+
+
+            Param_Integer param = pManager[2] as Param_Integer;
+
+            param.AddNamedValue("Binary", 0);
+            param.AddNamedValue("ASCI", 1);
+
+
         }
 
         /// <summary>
@@ -59,7 +69,8 @@ namespace WindTunnel
             DA.GetDataList(0,  geo);
             DA.GetData(1, ref filepath);
 
-
+            int MODE = 0;
+            DA.GetData(2, ref MODE);
 
             MeshingParameters mp = new MeshingParameters();
 
@@ -73,11 +84,10 @@ namespace WindTunnel
 
             }
 
-            string sb = STLExport.ExportASCI(meshObjects);
 
-            var dir = Path.GetDirectoryName(filepath);
-            if (dir != null && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
-            File.WriteAllText(filepath, sb.ToString()); 
+            if (MODE == 0) { STLExport.ExportBinary(filepath, meshObjects); }
+            else { STLExport.ExportASCI(filepath, meshObjects); }
+
 
 
 

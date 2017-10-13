@@ -11,7 +11,7 @@ namespace WindTunnel
     class STLExport
     {
 
-        public static string ExportASCI(List<Mesh> meshObjects)
+        public static void ExportASCI(string filePath, List<Mesh> meshObjects)
         {
 
             StringBuilder sb = new StringBuilder();
@@ -69,7 +69,9 @@ namespace WindTunnel
 
             sb.AppendLine("endsolid OBJECT");
 
-            return sb.ToString();
+            var dir = Path.GetDirectoryName(filePath);
+            if (dir != null && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
+            File.WriteAllText(filePath, sb.ToString());
         }
 
 
