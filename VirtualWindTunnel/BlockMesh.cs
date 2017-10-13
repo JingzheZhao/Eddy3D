@@ -13,7 +13,7 @@ using Grasshopper.Kernel.Parameters;
 
 namespace WindTunnel
 {
-    public class GeometryExportComponent : GH_Component
+    public class BlockMesh : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -22,9 +22,9 @@ namespace WindTunnel
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public GeometryExportComponent()
-          : base("STLExporter", "STLExporter",
-              "STLExporter",
+        public BlockMesh()
+          : base("blockMesh", "blockMesh",
+              "blockMesh",
               "CFDTool", "Meshing")
         {
         }
@@ -34,15 +34,13 @@ namespace WindTunnel
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddBrepParameter("Breps", "B", "Add Breps", GH_ParamAccess.list);
-            pManager.AddTextParameter("File", "F", "Provide a file path", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("Mode", "M", "Output mode: Binary = 0, ASCI = 1", GH_ParamAccess.item, 0);
+            pManager.AddBrepParameter("Domain", "Domain", "Add the volume for the virtual wind tunnel", GH_ParamAccess.item);
+            //pManager.AddTextParameter("File", "", "Provide a file path", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Run", "Run", "Run the blockMesh component", GH_ParamAccess.item, 0);
 
+            Param_Integer param = pManager[1] as Param_Integer;
+            
 
-            Param_Integer param = pManager[2] as Param_Integer;
-
-            param.AddNamedValue("Binary", 0);
-            param.AddNamedValue("ASCI", 1);
 
 
         }
@@ -52,7 +50,7 @@ namespace WindTunnel
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-         //   pManager.AddGenericParameter("DateTime", "Dt", "System Date Time Object", GH_ParamAccess.item);
+            //pManager.AddGenericParameter("blockMeshDict", "blockMeshDict", "blockMesh Dictionary", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -62,31 +60,28 @@ namespace WindTunnel
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            string filepath = "";
-            int MODE = 0;
-            List<Brep> geo = new List<Brep>();
+            string filepath = @"C:\OF\";
+            int Run = 0;
+            string command = "blockMesh";
 
-            DA.GetDataList(0,  geo);
-            DA.GetData(1, ref filepath);
-            DA.GetData(2, ref MODE);
 
-            
-            
+            //public Box DomainBoundaryBox;
+            Brep domain = new Brep();
 
-            MeshingParameters mp = new MeshingParameters();
-            MeshingParameters mps = MeshingParameters.Smooth;
 
-            List<Mesh> meshObjects = new List<Mesh>();
-            
-            foreach (Brep b in geo)
+            DA.GetData(0, ref domain);
+            //DA.GetData(1, ref filepath);            
+            DA.GetData(1, ref Run);
+
+
+            if (Run == 1)
             {
-                meshObjects.AddRange(Mesh.CreateFromBrep( b , mp) );
-
+                OFLaunch.Run(command, filepath);
             }
-
-
-            if (MODE == 0) { STLExport.ExportBinary(filepath, meshObjects); }
-            else { STLExport.ExportASCI(filepath, meshObjects); }
+            else
+            {
+                return;
+            }
 
 
 
@@ -114,7 +109,7 @@ namespace WindTunnel
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("{D63D8BF0-E745-4452-A250-23F02666EA70}"); }
+            get { return new Guid("{0AD4BDF7-33AC-492D-ABF0-622A5488C8E2}"); }
         }
     }
 }
