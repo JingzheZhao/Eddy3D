@@ -60,6 +60,7 @@
     <Compile Include="OFLaunch.cs" />
     <Compile Include="STLExport.cs" />
     <Compile Include="GeometryExportComponent.cs" />
+    <Compile Include="StringTemplates.cs" />
     <Compile Include="VirtualWindTunnelInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

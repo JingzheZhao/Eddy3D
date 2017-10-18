@@ -60,9 +60,9 @@ namespace WindTunnel
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            string filepath = @"C:\OF\";
+            //string filepath = @"C:\OF\";
             int Run = 0;
-            string command = "blockMesh";
+            string command = "blockMesh > log";
 
 
             //public Box DomainBoundaryBox;
@@ -76,7 +76,7 @@ namespace WindTunnel
 
             if (Run == 1)
             {
-                OFLaunch.Run(command, filepath);
+                OFLaunch.Run(command, StringTemplates.filePath);
             }
             else
             {
