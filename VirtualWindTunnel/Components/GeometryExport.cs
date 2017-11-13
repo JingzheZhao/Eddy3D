@@ -36,7 +36,7 @@ namespace WindTunnel
         {
             pManager.AddBrepParameter("Breps", "B", "Add Breps", GH_ParamAccess.list);
             pManager.AddTextParameter("File", "F", "Provide a file path", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("Mode", "M", "Output mode: Binary = 0, ASCI = 1", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("Mode", "Mode", "Output mode: Binary = 0, ASCI = 1", GH_ParamAccess.item, 0);
 
 
             Param_Integer param = pManager[2] as Param_Integer;
@@ -62,12 +62,12 @@ namespace WindTunnel
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            string filepath = "";
+            string filePath = "";
             int MODE = 0;
             List<Brep> geo = new List<Brep>();
 
             DA.GetDataList(0,  geo);
-            DA.GetData(1, ref filepath);
+            DA.GetData(1, ref filePath);
             DA.GetData(2, ref MODE);
 
             
@@ -85,8 +85,12 @@ namespace WindTunnel
             }
 
 
-            if (MODE == 0) { STLExport.ExportBinary(filepath, meshObjects); }
-            else { STLExport.ExportASCI(filepath, meshObjects); }
+            if (MODE == 0) {
+                STLExport.ExportBinary(filePath, meshObjects);
+            }
+            else {
+                STLExport.ExportASCI(filePath, meshObjects);
+            }
 
 
 

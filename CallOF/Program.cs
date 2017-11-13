@@ -1,0 +1,138 @@
+﻿using CommandLine;
+using CommandLine.Text;
+using SlavaGu.ConsoleAppLauncher;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace CallOF
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var options = new Options();
+            if (CommandLine.Parser.Default.ParseArguments(args, options))
+            {
+                StringBuilder errorLog = new StringBuilder();
+
+                if (options.CPUs == -1 || options.CPUs > Environment.ProcessorCount)
+                {
+                    options.CPUs = Environment.ProcessorCount;
+                }
+                // Values are available here
+                if (options.Verbose)
+                {
+                    Console.WriteLine("File path: {0}", options.filePath);
+                    //Console.WriteLine("Output: {0}", options.OutputFile);
+                    Console.WriteLine("Executable: {0}", options.command);
+                    //Console.WriteLine("Viscosity: {0}", options.Visc);
+                    //Console.WriteLine("Processors used: {0}", options.CPUs);
+                    //Console.WriteLine("Abort if error smaller than: {0}", options.MaxErr);
+
+                    errorLog.AppendLine(String.Format("File path: {0}", options.filePath));
+                    //errorLog.AppendLine(String.Format("Output: {0}", options.OutputFile));
+                    errorLog.AppendLine(String.Format("Executable: {0}", options.command));
+                    //errorLog.AppendLine(String.Format("Viscosity: {0}", options.Visc));
+                    //errorLog.AppendLine(String.Format("Processors used: {0}", options.CPUs));
+                    //errorLog.AppendLine(String.Format("Abort if error smaller than: {0}", options.MaxErr));
+                }
+
+
+                string app = "docker";
+                //string filepath = "/c/OF/";
+                string volumeDocker = "/home/openfoam/";
+                string entryPoint = @"--entrypoint=""""";
+                string container = "hfdresearch/swak4foamandpyfoam:latest-v4.1 ";
+                string sourceEnvironment = @"source /opt/openfoam4/etc/bashrc; cd /home/openfoam; ";
+                //string command = "blockMesh";
+                var app_argument = string.Format("run -v {0}:{1} {2} {3} bash -c \"{4}{5}\"", options.filePath, volumeDocker, entryPoint, container, sourceEnvironment, options.command);
+                //Environment.SetEnvironmentVariable("PATH", @"C:\Program Files\Docker\Docker\Resources\bin");
+
+                Console.WriteLine(ConsoleApp.Run(app, app_argument).Output.Trim());
+               
+                
+                //Console.ReadKey();
+                //ConsoleApp.Result
+
+                
+
+
+
+                //// Prog
+                //Stopwatch stopwatch = new Stopwatch();
+                //stopwatch.Start();
+
+                //Console.WriteLine("Reading file...");
+                //errorLog.AppendLine("Reading file...");
+
+
+
+                //Console.WriteLine("Finished. ( Time elapsed: {0} )", stopwatch.Elapsed);
+                //errorLog.AppendLine(String.Format("Finished. ( Time elapsed: {0} )", stopwatch.Elapsed));
+                //File.WriteAllText(Path.Combine(options.OutputFile + ".log"), errorLog.ToString());
+
+
+
+                Console.ReadLine();
+
+                ////
+            }
+
+
+        }
+        }
+
+
+    // Define a class to receive parsed values
+    class Options
+    {
+        [Option('f', "filePath", Required = true,
+        HelpText = "File path.")]
+        public string filePath { get; set; }
+
+        //[Option('o', "output", Required = true,
+        //HelpText = "Output file to be generated.")]
+        //public string OutputFile { get; set; }
+
+        [Option('e', "executable", Required = true,
+        HelpText = "Binary to be executed.")]
+        public string command { get; set; }
+
+        [Option('p', "parallel processes", DefaultValue = -1,
+        HelpText = "Number of parallel processes allowed.")]
+        public int CPUs { get; set; }
+
+        //[Option('e', "abortion criterion", DefaultValue = 1e-4,
+        //HelpText = "Relative error monitored at probes as abortion criterion.")]
+        //public double MaxErr { get; set; }
+
+        //[Option('v', "viscosity", DefaultValue = 0.015,
+        //HelpText = "Sets the viscosity of the fluid.")]
+        //public double Visc { get; set; }
+
+        [Option('l', "loud", DefaultValue = true,
+        HelpText = "Prints all messages to standard output.")]
+        public bool Verbose { get; set; }
+
+
+
+        [ParserState]
+        public IParserState LastParserState { get; set; }
+
+        [HelpOption]
+        public string GetUsage()
+        {
+            return HelpText.AutoBuild(this,
+              (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current));
+        }
+    }
+
+
+
+
+}
