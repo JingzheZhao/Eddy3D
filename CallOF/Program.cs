@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CallOF
@@ -54,12 +55,13 @@ namespace CallOF
                 //Environment.SetEnvironmentVariable("PATH", @"C:\Program Files\Docker\Docker\Resources\bin");
 
                 Console.WriteLine(ConsoleApp.Run(app, app_argument).Output.Trim());
-               
+
+
                 
                 //Console.ReadKey();
                 //ConsoleApp.Result
 
-                
+
 
 
 
@@ -78,7 +80,7 @@ namespace CallOF
 
 
 
-                Console.ReadLine();
+                //Console.ReadLine();
 
                 ////
             }

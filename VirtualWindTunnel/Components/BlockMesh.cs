@@ -6,6 +6,7 @@ using Rhino.Geometry;
 using System.Text;
 using Grasshopper.Kernel.Parameters;
 using System.Diagnostics;
+using System.Threading;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -24,9 +25,9 @@ namespace WindTunnel
         /// new tabs/panels will automatically be created.
         /// </summary>
         public BlockMesh()
-          : base("blockMesh", "blockMesh",
-              "blockMesh",
-              "CFDTool", "Meshing")
+          : base("Domain", "Domain",
+              "Domain",
+              "CFDTool", "Domain")
         {
         }
 
@@ -48,6 +49,8 @@ namespace WindTunnel
             param.AddNamedValue("Box", 0);
             param.AddNamedValue("Cyl", 1);
 
+            pManager.AddIntegerParameter("baseMesh", "baseMesh", "baseMesh", GH_ParamAccess.item, 20);
+            pManager.AddIntegerParameter("blockingRatio", "blockingRatio", "blockingRatio", GH_ParamAccess.item, 3);
             pManager.AddBooleanParameter("Run", "Run", "Run the blockMesh component", GH_ParamAccess.item, false);
 
         }
@@ -82,14 +85,18 @@ namespace WindTunnel
             DA.GetData(1, ref workingDirectory);
 
             int mode = 0;
+            int baseMesh = 0;
+            int blockingRatio = 0;
 
             DA.GetData(2, ref mode);
-            DA.GetData(3, ref Run);
+            DA.GetData(3, ref baseMesh);
+            DA.GetData(4, ref blockingRatio);
+            DA.GetData(5, ref Run);
 
-            OFDomainBuilder DOM = new OFDomainBuilder(domain, workingDirectory);
+            OFDomainBuilder DOM = new OFDomainBuilder(domain, workingDirectory, baseMesh, blockingRatio);
             //DOM = OFDomainBuilder(domain, workingDirectory);
 
-            double xnew = DOM.xMax;
+            
 
 
             if (Run == true)
@@ -117,7 +124,7 @@ namespace WindTunnel
 
                 if (mode == 0)
                 {
-                    STLExport.ExportBinary(stlFilenameGround,  DOM.boxGround);
+                    STLExport.ExportBinary(stlFilenameGround,  DOM.newBoxGround);
                 }
                 else {
                     STLExport.ExportBinary(stlFilenameGround, DOM.cylGround);
@@ -134,15 +141,18 @@ namespace WindTunnel
                 File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), StringTemplates.blockMeshDict(DOM));
 
                 
-                ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\CallOF\bin\CallOF.exe", "-e " + command + "-f " + DOM.workingDirectory);
-               
+                ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\CallOF\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
+                //ProcessStartInfo psi = new ProcessStartInfo(@"C:\Windows\notepad.exe");
+
                 Process p = new Process();
                 p.StartInfo = psi;
                 p.Start();
                 p.WaitForExit();
+                //Thread.Sleep(500);
 
 
-               // OFLaunch.Run(command, StringTemplates.filePath);
+
+                // OFLaunch.Run(command, StringTemplates.filePath);
             }
             //else
             //{
@@ -151,10 +161,10 @@ namespace WindTunnel
 
             DA.SetData(0, DOM);
             if (mode == 0) {
-                DA.SetData(1, DOM.boxGround);
+                DA.SetData(1, DOM.newBoxDomain);
             }
             else {
-                DA.SetData(1, DOM.cylGround);
+                DA.SetData(1, DOM.newCylindricalDomain);
             }
 
 
