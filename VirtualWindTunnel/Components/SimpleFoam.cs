@@ -63,7 +63,9 @@ namespace WindTunnel
         {
             //string filepath = @"C:\OF\";
             bool Run = false;
-            string command = "simpleFoam >> log";
+            string SingleCPU = @"simpleFoam >> log ";
+            string MultipleCPU = @"pyFoamRunner.py --autosense-parallel simpleFoam >> log ";
+            
             // workingDirectory = "";
 
             //public Box DomainBoundaryBox;
@@ -108,7 +110,7 @@ namespace WindTunnel
 
                 File.WriteAllText(Path.Combine(systemDir + "controlDict"), StringTemplates.controlDict(iter, keepTimeSteps, writeInterval));
 
-                
+                string command = DOM.CPU > 1 ? MultipleCPU : SingleCPU;
                 ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\CallOF\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
                
                 Process p = new Process();

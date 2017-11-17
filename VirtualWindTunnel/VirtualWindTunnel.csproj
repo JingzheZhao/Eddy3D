@@ -53,9 +53,10 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\BlockMesh.cs" />
     <Compile Include="Components\SimpleFoam.cs" />
     <Compile Include="Components\SnappyHexMesh.cs" />
-    <Compile Include="Components\BlockMesh.cs" />
+    <Compile Include="Components\Clean.cs" />
     <Compile Include="OFLaunch.cs" />
     <Compile Include="OFDomain.cs" />
     <Compile Include="STLExport.cs" />

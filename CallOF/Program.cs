@@ -21,10 +21,10 @@ namespace CallOF
             {
                 StringBuilder errorLog = new StringBuilder();
 
-                if (options.CPUs == -1 || options.CPUs > Environment.ProcessorCount)
-                {
-                    options.CPUs = Environment.ProcessorCount;
-                }
+                //if (options.CPUs == -1 || options.CPUs > Environment.ProcessorCount)
+                //{
+                //    options.CPUs = Environment.ProcessorCount;
+                //}
                 // Values are available here
                 if (options.Verbose)
                 {
@@ -50,14 +50,14 @@ namespace CallOF
                 string entryPoint = @"--entrypoint=""""";
                 string container = "hfdresearch/swak4foamandpyfoam:latest-v4.1 ";
                 string sourceEnvironment = @"source /opt/openfoam4/etc/bashrc; cd /home/openfoam; ";
+                string logging = @"";
                 //string command = "blockMesh";
-                var app_argument = string.Format("run -v {0}:{1} {2} {3} bash -c \"{4}{5}\"", options.filePath, volumeDocker, entryPoint, container, sourceEnvironment, options.command);
+                var app_argument = string.Format("run -v {0}:{1} {2} {3} bash -c \"{4}{5}{6}\"", options.filePath, volumeDocker, entryPoint, container, sourceEnvironment, options.command, logging);
                 //Environment.SetEnvironmentVariable("PATH", @"C:\Program Files\Docker\Docker\Resources\bin");
 
                 Console.WriteLine(ConsoleApp.Run(app, app_argument).Output.Trim());
 
-
-                
+                                
                 //Console.ReadKey();
                 //ConsoleApp.Result
 
@@ -101,13 +101,17 @@ namespace CallOF
         //HelpText = "Output file to be generated.")]
         //public string OutputFile { get; set; }
 
+        //[Option('e', "executable", Required = true,
+        //HelpText = "Binary to be executed.")]
+        //public string command { get; set; }
+
         [Option('e', "executable", Required = true,
         HelpText = "Binary to be executed.")]
         public string command { get; set; }
 
-        [Option('p', "parallel processes", DefaultValue = -1,
-        HelpText = "Number of parallel processes allowed.")]
-        public int CPUs { get; set; }
+        //[Option('p', "parallel processes", DefaultValue = -1,
+        //HelpText = "Number of parallel processes allowed.")]
+        //public int CPUs { get; set; }
 
         //[Option('e', "abortion criterion", DefaultValue = 1e-4,
         //HelpText = "Relative error monitored at probes as abortion criterion.")]

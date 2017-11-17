@@ -39,7 +39,6 @@ namespace WindTunnel
         {
             pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
             pManager.AddIntegerParameter("Accuracy", "acc", "Specify accuracy of mesh", GH_ParamAccess.item);
-            pManager.AddPointParameter("locationInMesh", "locationInMesh", "Specify location in mesh that represents the inner volume to be meshed.", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Run", "Run", "Create the mesh.", GH_ParamAccess.item, false);
 
         }
@@ -49,6 +48,7 @@ namespace WindTunnel
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
+            pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.item);
             pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
             //pManager.AddGenericParameter("Cyl", "C", "Domain", GH_ParamAccess.item);
         }
@@ -64,8 +64,7 @@ namespace WindTunnel
         {
             //string filepath = @"C:\OF\";
             bool Run = false;
-            string commandSingleCPU = "snappyHexMesh -overwrite >> log";
-            string commandMultipleCPU = "foamJob -parallel -screen snappyHexMesh -overwrite >> log";
+            
 
             //string workingDirectory = "";
 
@@ -75,14 +74,21 @@ namespace WindTunnel
             OFDomainBuilder DOM = null;
             if (!DA.GetData(0, ref DOM)) { return; }
             if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
-           
+
+
+            //string command = "";
+            string SingleCPU = "surfaceFeatureExtract;snappyHexMesh"; //-overwrite
+            string MultipleCPU = @"surfaceFeatureExtract; pyFoamDecompose.py --clear . " + DOM.CPU + @"; foamJob -parallel -screen snappyHexMesh -overwrite";
+
+
+
 
             int acc = 3;
-            Point3d locationInMesh = new Point3d();
+            
             
             DA.GetData(1, ref acc);
-            DA.GetData(2, ref locationInMesh);
-            DA.GetData(3, ref Run);
+            
+            DA.GetData(2, ref Run);
 
 
 
@@ -105,25 +111,59 @@ namespace WindTunnel
                     Directory.CreateDirectory(systemDir);
                 }
 
+                Point3d locationInMesh = new Point3d();
+                locationInMesh = DOM.locationInMesh;
+
                 File.WriteAllText(Path.Combine(systemDir + "snappyHexMeshDict"), StringTemplates.snappyHexMeshDict(acc, locationInMesh));
 
                 
-                ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\CallOF\bin\CallOF.exe", " -e " + commandSingleCPU + " -f " + DOM.workingDirectory);
-               
+                string command = DOM.CPU > 1 ? MultipleCPU: SingleCPU;
+
+                
+                ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\CallOF\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
+
+                psi.UseShellExecute = false;
+                psi.WorkingDirectory = DOM.workingDirectory;
+
+
                 Process p = new Process();
                 p.StartInfo = psi;
                 p.Start();
                 p.WaitForExit();
 
 
-               // OFLaunch.Run(command, StringTemplates.filePath);
+
+                string logFile = "";
+
+                using (FileStream stream = File.Open(DOM.workingDirectory + @"\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    using (StreamReader reader = new StreamReader(stream))
+                    {
+                        logFile = reader.ReadToEnd();
+                        //while (!reader.EndOfStream)
+                        //{
+
+                        //}
+
+                    }
+                }
+
+                DA.SetData(0, logFile);
+
+                if (logFile.Contains("End")) {      AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Super!!"); }
+               // else if (logFile.Contains("End")) { AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Fast Super!!"); }
+                else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Nicht Super!!"); }
+
+
+                DA.SetData(1, DOM);
+
             }
             //else
             //{
             //    return;
             //}
 
-            
+
         }
 
         /// <summary>

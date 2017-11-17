@@ -50,7 +50,10 @@ namespace WindTunnel
             param.AddNamedValue("Cyl", 1);
 
             pManager.AddIntegerParameter("baseMesh", "baseMesh", "baseMesh", GH_ParamAccess.item, 20);
-            pManager.AddIntegerParameter("blockingRatio", "blockingRatio", "blockingRatio", GH_ParamAccess.item, 3);
+
+            pManager.AddGenericParameter("RAM", "RAM", "RAM", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("CPUs", "CPUs", "CPUs", GH_ParamAccess.item, 1);
+            
             pManager.AddBooleanParameter("Run", "Run", "Run the blockMesh component", GH_ParamAccess.item, false);
 
         }
@@ -60,6 +63,7 @@ namespace WindTunnel
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
+            pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.item);
             pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
             pManager.AddGenericParameter("Cyl", "C", "Domain", GH_ParamAccess.item);
         }
@@ -75,7 +79,7 @@ namespace WindTunnel
         {
             //string filepath = @"C:\OF\";
             bool Run = false;
-            string command = "blockMesh >> log";
+            string command = @"blockMesh";
             string workingDirectory = "";
 
             //public Box DomainBoundaryBox;
@@ -86,21 +90,49 @@ namespace WindTunnel
 
             int mode = 0;
             int baseMesh = 0;
-            int blockingRatio = 0;
+            double RAM = 0;
+            int CPUs = 1;
 
             DA.GetData(2, ref mode);
             DA.GetData(3, ref baseMesh);
-            DA.GetData(4, ref blockingRatio);
-            DA.GetData(5, ref Run);
 
-            OFDomainBuilder DOM = new OFDomainBuilder(domain, workingDirectory, baseMesh, blockingRatio);
+            DA.GetData(4, ref RAM);
+            DA.GetData(5, ref CPUs);
+            DA.GetData(6, ref Run);
+
+            OFDomainBuilder DOM = new OFDomainBuilder(domain, workingDirectory, baseMesh);
             //DOM = OFDomainBuilder(domain, workingDirectory);
 
             
 
+            if (CPUs == -1 || CPUs > Environment.ProcessorCount)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that many CPUs.");
+            }
+
+
+            
+
+
 
             if (Run == true)
             {
+
+                if (RAM != 0)
+                {
+                    string newRAM = "Set-VM -StaticMemory -Name MobyLinuxVM -MemoryStartupBytes " + RAM+"GB";
+
+                    ProcessStartInfo psiRAM = new ProcessStartInfo(@"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe");
+                    psiRAM.Verb = "runas";
+                    psiRAM.Arguments = newRAM;
+
+                    Process pRAM = new Process();
+                    pRAM.StartInfo = psiRAM;
+                    pRAM.Start();
+                    pRAM.WaitForExit();
+                    
+                }
+
                 MeshingParameters mp = new MeshingParameters();
                 MeshingParameters mps = MeshingParameters.Smooth;
                 List<Mesh> meshObjects = new List<Mesh>();
@@ -127,7 +159,7 @@ namespace WindTunnel
                     STLExport.ExportBinary(stlFilenameGround,  DOM.newBoxGround);
                 }
                 else {
-                    STLExport.ExportBinary(stlFilenameGround, DOM.cylGround);
+                    STLExport.ExportBinary(stlFilenameGround, DOM.newCylGround);
                 }
 
                 
@@ -138,19 +170,45 @@ namespace WindTunnel
                     Directory.CreateDirectory(systemDir);
                 }
 
-                File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), StringTemplates.blockMeshDict(DOM));
+                
+
+                if (mode == 1)
+                {
+                    File.WriteAllText(Path.Combine(systemDir + "blockMeshDictCirc"), StringTemplates.circularDomainM4(DOM));
+                    ProcessStartInfo m4 = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\CallOF\bin\CallOF.exe", @" -e m4 ./system/blockMeshDictCirc > ./system/blockMeshDict -f " + DOM.workingDirectory);
+                    //File.Delete(workingDirectory+@"\system\blockMeshDictCirc");
+                }
+                else
+                {
+                    File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), StringTemplates.blockMeshDict(DOM));
+                }
+
 
                 
                 ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\CallOF\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
-                //ProcessStartInfo psi = new ProcessStartInfo(@"C:\Windows\notepad.exe");
-
                 Process p = new Process();
                 p.StartInfo = psi;
                 p.Start();
                 p.WaitForExit();
                 //Thread.Sleep(500);
 
+                string logFile = "";
 
+                using (FileStream stream = File.Open(workingDirectory+@"\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    using (StreamReader reader = new StreamReader(stream))
+                    {
+                        logFile = reader.ReadToEnd();
+                        //while (!reader.EndOfStream)
+                        //{
+
+                        //}
+                        
+                    }
+                }
+
+                DA.SetData(0, logFile);
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Super!!");
 
                 // OFLaunch.Run(command, StringTemplates.filePath);
             }
@@ -159,12 +217,12 @@ namespace WindTunnel
             //    return;
             //}
 
-            DA.SetData(0, DOM);
+            DA.SetData(1, DOM);
             if (mode == 0) {
-                DA.SetData(1, DOM.newBoxDomain);
+                DA.SetData(2, DOM.newBoxDomain);
             }
             else {
-                DA.SetData(1, DOM.newCylindricalDomain);
+                DA.SetData(2, DOM.newCylindricalDomain);
             }
 
 

@@ -22,6 +22,7 @@ namespace WindTunnel
         public double dimX;
         public double dimY;
         public double dimZ;
+        public double dim;
 
         //Calculated boundary
         public Point3d newMin;
@@ -40,15 +41,17 @@ namespace WindTunnel
         public Circle circ;
         public Cylinder newCylindricalDomain;
         public Mesh newBoxGround;
-        public Mesh cylGround;
+        public Mesh newCylGround;
         public Box newBoxDomain;
+        public Point3d locationInMesh;
 
         public Rectangle3d plGround;
 
         public double diameter;
         public string workingDirectory;
         public double baseMesh;
-        public int blockingRatio;
+        
+        public int CPU;
 
         public Point3d newMinGroundPlane1;
         public Point3d newMaxGroundPlane2;
@@ -91,14 +94,13 @@ namespace WindTunnel
         }
 
 
-        public OFDomainBuilder(List<Brep> geometry, string _workingDirectory, double _baseMesh, int _blockingRatio)
+        public OFDomainBuilder(List<Brep> geometry, string _workingDirectory, double _baseMesh)
         {
             workingDirectory = _workingDirectory;
             baseMesh = _baseMesh;
-            blockingRatio = _blockingRatio;
+            
             //BoundingBox bb = domain.GetBoundingBox(true);
-
-
+            
             BBox = geometry[0].GetBoundingBox(true);
             if (geometry.Count > 1)
             {
@@ -131,30 +133,36 @@ namespace WindTunnel
             dimX = xMax - xMin;
             dimY = yMax - yMin;
             dimZ = zMax - zMin;
+
             
 
-
             //Create ground plane of BBox
-            centerGroundBBox = BBox.Center + 0.5 * (vecMinusZ * dimZ);
+            centerGroundBBox = BBox.Center + 0.5 * vecMinusZ * dimZ;
+
+            
+            locationInMesh = centerGroundBBox + 4 * vecPlusZ * dimZ;
 
             //Create Circular Domain
-            var dim = dimX > dimY ? dimX : dimY;
-            circ = new Circle(centerGroundBBox, 16 * dim);
-            newCylindricalDomain = new Cylinder(circ, dimZ);
+            dim = dimX > dimY ? dimX : dimY;
+            circ = new Circle(centerGroundBBox, 16.5 * dim);
+            newCylindricalDomain = new Cylinder(circ, 6* dimZ);
             MeshingParameters mpGround = MeshingParameters.Default;
-            cylGround = Mesh.CreateFromPlanarBoundary(circ.ToNurbsCurve(), mpGround);
+            newCylGround = Mesh.CreateFromPlanarBoundary(circ.ToNurbsCurve(), mpGround);
 
+
+
+            //Create Box Domain
             //Find frontfacing areas in wind direction
             double pj;
             double projectedAreaZX = FindFacades(Plane.WorldZX, geometry, out pj);
 
             //New Dimensions in Y
-            double scaleRectDomainYUpstream = - 10.5 * dimX;
+            double scaleRectDomainYUpstream = - 10.5 * dimY;
             double scaleRectDomainYDownstream = 16.5 * dimY;
             double scaleRectDomainZ = 6* dimZ;
 
             // New Dimensions in X; take blocking ratio into account
-            var scaleRectDomainX  = projectedAreaZX * 100 / blockingRatio / scaleRectDomainZ / 2;
+            var scaleRectDomainX  = projectedAreaZX * 100 / 3 / scaleRectDomainZ / 2;
 
          
 
