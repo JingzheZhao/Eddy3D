@@ -145,7 +145,7 @@ FoamFile
     {
         features
         (
-            {file ""building.eMesh""; level " + (acc+1) + @";}
+            {file ""building.eMesh""; level " + (acc + 1) + @";}
         );
         refinementSurfaces
         {
@@ -173,7 +173,7 @@ FoamFile
 
         }
 
-        locationInMesh ( " + locationInMesh.X + " " + locationInMesh.Y + " "+ locationInMesh.Z + @" );
+        locationInMesh ( " + locationInMesh.X + " " + locationInMesh.Y + " " + locationInMesh.Z + @" );
         maxLocalCells 5000000;
         maxGlobalCells 15000000;
         minRefinementCells 5;
@@ -280,17 +280,70 @@ FoamFile
   // Generic mesh quality settings. At any undoable phase these determine
   // where to undo.
   meshQualityControls
-  {
-      #include ""meshQualityDict""
+{
+    //- Maximum non-orthogonality allowed. Set to 180 to disable.
+    maxNonOrtho 65;
+
+    //- Max skewness allowed. Set to <0 to disable.
+    maxBoundarySkewness 20;
+    maxInternalSkewness 4;
+
+    //- Max concaveness allowed. Is angle (in degrees) below which concavity
+    //  is allowed. 0 is straight face, <0 would be convex face.
+    //  Set to 180 to disable.
+    maxConcave 80;
+
+    //- Minimum pyramid volume. Is absolute volume of cell pyramid.
+    //  Set to a sensible fraction of the smallest cell volume expected.
+    //  Set to very negative number (e.g. -1E30) to disable.
+    minVol 1e-16;
+
+    //- Minimum quality of the tet formed by the face-centre
+    //  and variable base point minimum decomposition triangles and
+    //  the cell centre. This has to be a positive number for tracking
+    //  to work. Set to very negative number (e.g. -1E30) to
+    //  disable.
+    //     <0 = inside out tet,
+    //      0 = flat tet
+    //      1 = regular tet
+    minTetQuality -1e+30; // 1e-30;
+
+    //- Minimum face area. Set to <0 to disable.
+    minArea 1e-13;
+
+    //- Minimum face twist. Set to <-1 to disable. dot product of face normal
+    //  and face centre triangles normal
+    minTwist 0.02;
+
+    //- Minimum normalised cell determinant
+    //  1 = hex, <= 0 = folded or flattened illegal cell
+    minDeterminant 0.001;
+
+    //- minFaceWeight (0 -> 0.5)
+    minFaceWeight 0.02;
+
+    //- minVolRatio (0 -> 1)
+    minVolRatio 0.01;
+
+    //must be >0 for Fluent compatibility
+    minTriangleTwist -1;
 
 
-      // Advanced
+    // Advanced
 
-      //- Number of error distribution iterations
-      nSmoothScale 4;
-      //- Amount to scale back displacement at error points
-      errorReduction 0.75;
-  }
+    //- Number of error distribution iterations
+    nSmoothScale 4;
+    //- Amount to scale back displacement at error points
+    errorReduction 0.75;
+
+    // Optional : some meshing phases allow usage of relaxed rules.
+    // See e.g. addLayersControls::nRelaxedIter.
+    relaxed
+    {
+        //- Maximum non-orthogonality allowed. Set to 180 to disable.
+        maxNonOrtho 75;
+    }
+}
 
   // Write flags
   writeFlags
@@ -351,9 +404,9 @@ libs
 }
             ";
         }
-            public static string circularDomainM4(OFDomainBuilder DOM)
-            {
-                return @"/*--------------------------------*- C++ -*----------------------------------*\
+        public static string circularDomainM4(OFDomainBuilder DOM)
+        {
+            return @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
 |  \\    /   O peration     | Version:  2.1.0                                  |
@@ -383,16 +436,16 @@ define(pip180, 0.017453)
 define(cos45, 0.70711)
 dnl *********USER***********
 dnl ===      POINTS      ===
-define(zLength, "+ (6*DOM.dimZ) + @")dnl
+define(zLength, " + (6 * DOM.dimZ) + @")dnl
 define(coreWidth, " + (6 * DOM.dim) + @")dnl 
 define(diameter, " + (16.5 * DOM.dim) + @")dnl 
 //define(rectangleWidth, 80)dnl //50
 define(cornerStretch, 1)dnl 
 define(arcStretch, 1)dnl
 dnl ===    CELL COUNT    ===
-define(coreCount, " + Math.Round((DOM.dim/DOM.baseMesh)) + @")dnl 
+define(coreCount, " + Math.Round((DOM.dim / DOM.baseMesh)) + @")dnl 
 define(rectangleCount, " + Math.Round(((16.5 * DOM.dim) / DOM.baseMesh)) + @")dnl 
-define(zCount, "+ Math.Round((DOM.dimZ / DOM.baseMesh))+ @")dnl
+define(zCount, " + Math.Round((DOM.dimZ / DOM.baseMesh)) + @")dnl
 dnl ===BOUNDING RECTANGLE?===
 define(boundRect, 1)dnl
 dnl =========================
@@ -629,6 +682,6 @@ mergePatchPairs
  
 // ************************************************************************* //
             ";
-            }
+        }
     }
 }

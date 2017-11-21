@@ -55,9 +55,20 @@ namespace CallOF
                 var app_argument = string.Format("run -v {0}:{1} {2} {3} bash -c \"{4}{5}{6}\"", options.filePath, volumeDocker, entryPoint, container, sourceEnvironment, options.command, logging);
                 //Environment.SetEnvironmentVariable("PATH", @"C:\Program Files\Docker\Docker\Resources\bin");
 
-                Console.WriteLine(ConsoleApp.Run(app, app_argument).Output.Trim());
+               // Console.WriteLine(ConsoleApp.Run(app, app_argument).Output.Trim());
 
-                                
+
+
+                var p = new ConsoleApp(app, app_argument);
+                p.ConsoleOutput += (o, args1) =>
+                {
+                   Console.WriteLine(args1.Line);
+                };
+                p.Run();
+                p.WaitForExit();
+
+
+
                 //Console.ReadKey();
                 //ConsoleApp.Result
 

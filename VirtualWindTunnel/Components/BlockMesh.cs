@@ -7,6 +7,8 @@ using System.Text;
 using Grasshopper.Kernel.Parameters;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.VisualBasic.Devices;
+
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -31,7 +33,7 @@ namespace WindTunnel
         {
         }
 
-        
+
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -51,9 +53,9 @@ namespace WindTunnel
 
             pManager.AddIntegerParameter("baseMesh", "baseMesh", "baseMesh", GH_ParamAccess.item, 20);
 
-            pManager.AddGenericParameter("RAM", "RAM", "RAM", GH_ParamAccess.item, 0);
+            pManager.AddGenericParameter("RAM", "RAM", "RAM", GH_ParamAccess.item);
             pManager.AddIntegerParameter("CPUs", "CPUs", "CPUs", GH_ParamAccess.item, 1);
-            
+
             pManager.AddBooleanParameter("Run", "Run", "Run the blockMesh component", GH_ParamAccess.item, false);
 
         }
@@ -85,7 +87,7 @@ namespace WindTunnel
             //public Box DomainBoundaryBox;
             List<Brep> domain = new List<Brep>();
 
-            DA.GetDataList(0,  domain);
+            DA.GetDataList(0, domain);
             DA.GetData(1, ref workingDirectory);
 
             int mode = 0;
@@ -103,35 +105,64 @@ namespace WindTunnel
             OFDomainBuilder DOM = new OFDomainBuilder(domain, workingDirectory, baseMesh);
             //DOM = OFDomainBuilder(domain, workingDirectory);
 
-            
+
 
             if (CPUs == -1 || CPUs > Environment.ProcessorCount)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that many CPUs.");
             }
 
+            var totalGBRam = Convert.ToInt32((new ComputerInfo().TotalPhysicalMemory / (Math.Pow(1024, 2))) + 0.5);
+            if (RAM < 0 || RAM > totalGBRam)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that much RAM available.");
+            }
 
-            
 
 
 
             if (Run == true)
             {
+                        
+                
+                //if (Settings.getCurrentRAM() != RAM)
+                //{
 
-                if (RAM != 0)
-                {
-                    string newRAM = "Set-VM -StaticMemory -Name MobyLinuxVM -MemoryStartupBytes " + RAM+"GB";
-
-                    ProcessStartInfo psiRAM = new ProcessStartInfo(@"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe");
-                    psiRAM.Verb = "runas";
-                    psiRAM.Arguments = newRAM;
-
-                    Process pRAM = new Process();
-                    pRAM.StartInfo = psiRAM;
-                    pRAM.Start();
-                    pRAM.WaitForExit();
                     
-                }
+
+                //    string newRAM = "Set-VM -StaticMemory -Name MobyLinuxVM -MemoryStartupBytes " + RAM + "GB";
+                //    //var totalGBRam = 0 ;
+                                  
+                //    ProcessStartInfo psiNewRAM = new ProcessStartInfo(@"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe");
+                //    psiNewRAM.Verb = "runas";
+                //    psiNewRAM.Arguments = newRAM;
+
+                //    Process pRAM = new Process();
+                //    pRAM.StartInfo = psiNewRAM;
+                //    pRAM.Start();
+                //    pRAM.WaitForExit();
+
+                //}
+
+                //if (Settings.getCurrentCPUs(DOM) != CPUs)
+                //{
+
+                //    string newCPUs = @"Stop-VM -Name MobyLinuxVM;Set-VMProcessor MobyLinuxVM -Count '" + CPUs+ "';Start-VM -Name MobyLinuxVM";
+                //    //var totalGBRam = 0 ;
+                    
+
+                //    ProcessStartInfo psiNewCPUs = new ProcessStartInfo(@"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe");
+                //    psiNewCPUs.Verb = "runas";
+                //    psiNewCPUs.Arguments = newCPUs;
+
+                //    Process pRAM = new Process();
+                //    pRAM.StartInfo = psiNewCPUs;
+                //    pRAM.Start();
+                //    pRAM.WaitForExit();
+
+                //}
+
+
 
                 MeshingParameters mp = new MeshingParameters();
                 MeshingParameters mps = MeshingParameters.Smooth;
@@ -143,11 +174,12 @@ namespace WindTunnel
 
                 }
 
-                var stlDir = Path.GetDirectoryName( workingDirectory + @"\constant\triSurface\");
+                var stlDir = Path.GetDirectoryName(workingDirectory + @"\constant\triSurface\");
                 var stlFilenameBuildings = workingDirectory + @"\constant\triSurface\building.stl";
                 var stlFilenameGround = workingDirectory + @"\constant\triSurface\ground.stl";
 
-                if (!Directory.Exists(stlDir)) {
+                if (!Directory.Exists(stlDir))
+                {
                     Directory.CreateDirectory(stlDir);
                 }
 
@@ -156,13 +188,14 @@ namespace WindTunnel
 
                 if (mode == 0)
                 {
-                    STLExport.ExportBinary(stlFilenameGround,  DOM.newBoxGround);
+                    STLExport.ExportBinary(stlFilenameGround, DOM.newBoxGround);
                 }
-                else {
+                else
+                {
                     STLExport.ExportBinary(stlFilenameGround, DOM.newCylGround);
                 }
 
-                
+
                 string systemDir = workingDirectory + @"\system\";
 
                 if (!Directory.Exists(systemDir))
@@ -170,13 +203,17 @@ namespace WindTunnel
                     Directory.CreateDirectory(systemDir);
                 }
 
-                
+
 
                 if (mode == 1)
                 {
                     File.WriteAllText(Path.Combine(systemDir + "blockMeshDictCirc"), StringTemplates.circularDomainM4(DOM));
-                    ProcessStartInfo m4 = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\CallOF\bin\CallOF.exe", @" -e m4 ./system/blockMeshDictCirc > ./system/blockMeshDict -f " + DOM.workingDirectory);
+                    ProcessStartInfo m4 = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\CallOF\bin\CallOF.exe", " -e \"m4 ./system/blockMeshDictCirc > ./system/blockMeshDict\" -f " + DOM.workingDirectory);
                     //File.Delete(workingDirectory+@"\system\blockMeshDictCirc");
+                    Process m4p = new Process();
+                    m4p.StartInfo = m4;
+                    m4p.Start();
+                    m4p.WaitForExit();
                 }
                 else
                 {
@@ -192,9 +229,10 @@ namespace WindTunnel
                 p.WaitForExit();
                 //Thread.Sleep(500);
 
+
                 string logFile = "";
 
-                using (FileStream stream = File.Open(workingDirectory+@"\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (FileStream stream = File.Open(workingDirectory + @"\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
                     using (StreamReader reader = new StreamReader(stream))
                     {
@@ -203,7 +241,7 @@ namespace WindTunnel
                         //{
 
                         //}
-                        
+
                     }
                 }
 
@@ -218,10 +256,12 @@ namespace WindTunnel
             //}
 
             DA.SetData(1, DOM);
-            if (mode == 0) {
+            if (mode == 0)
+            {
                 DA.SetData(2, DOM.newBoxDomain);
             }
-            else {
+            else
+            {
                 DA.SetData(2, DOM.newCylindricalDomain);
             }
 
@@ -253,4 +293,5 @@ namespace WindTunnel
             get { return new Guid("{0AD4BDF7-33AC-492D-ABF0-622A5488C8E2}"); }
         }
     }
+
 }

@@ -40,6 +40,7 @@
       <HintPath>..\Dependencies\Grasshopper.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="RhinoCommon">
       <HintPath>..\Dependencies\RhinoCommon.dll</HintPath>
       <Private>False</Private>
@@ -53,6 +54,7 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Settings.cs" />
     <Compile Include="Components\BlockMesh.cs" />
     <Compile Include="Components\SimpleFoam.cs" />
     <Compile Include="Components\SnappyHexMesh.cs" />
