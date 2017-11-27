@@ -57,42 +57,7 @@ namespace WindTunnel
         public Point3d newMinGroundPlane1;
         public Point3d newMaxGroundPlane2;
 
-        public static double FindFacades(Plane plane, List<Brep> volumes, out double projectedAreaTotal)
-        {
-            List<Brep> Facades = new List<Brep>();
-
-            List<double> projectedAreas = new List<double>();
-            foreach (Brep b in volumes)
-            {
-                for (int i = 0; i < b.Faces.Count; i++)
-                {
-                    Vector3d vSurf = b.Faces[i].NormalAt(0.5, 0.5);
-                    double dot = plane.ZAxis * vSurf;
-                    if (dot < 0.1) continue;
-
-
-                    Brep face = b.Faces[i].DuplicateFace(false);
-                    //Print(dot + "");
-                    Facades.Add(face);
-
-                    Vector3d cross = Vector3d.CrossProduct(plane.ZAxis, vSurf);
-                    double norm = cross.Length;
-                    double angle = Math.Atan2(norm, dot);
-
-                    //Print((angle * 180 / Math.PI) + "");
-
-                    double projectedArea = face.GetArea() * Math.Cos(angle);
-
-                    projectedAreas.Add(projectedArea);
-                    //Print(projectedArea + "");
-                }
-            }
-            projectedAreaTotal = projectedAreas.Sum(x => x);
-
-            //return Facades;
-
-            return projectedAreaTotal;
-        }
+       
 
 
         public OFDomainBuilder(List<Brep> geometry, string _workingDirectory, double _baseMesh)
@@ -214,5 +179,48 @@ namespace WindTunnel
             ;
             // return base.ToString();
         }
+
+
+
+
+
+
+        public static double FindFacades(Plane plane, List<Brep> volumes, out double projectedAreaTotal)
+        {
+            List<Brep> Facades = new List<Brep>();
+
+            List<double> projectedAreas = new List<double>();
+            foreach (Brep b in volumes)
+            {
+                for (int i = 0; i < b.Faces.Count; i++)
+                {
+                    Vector3d vSurf = b.Faces[i].NormalAt(0.5, 0.5);
+                    double dot = plane.ZAxis * vSurf;
+                    if (dot < 0.1) continue;
+
+
+                    Brep face = b.Faces[i].DuplicateFace(false);
+                    //Print(dot + "");
+                    Facades.Add(face);
+
+                    Vector3d cross = Vector3d.CrossProduct(plane.ZAxis, vSurf);
+                    double norm = cross.Length;
+                    double angle = Math.Atan2(norm, dot);
+
+                    //Print((angle * 180 / Math.PI) + "");
+
+                    double projectedArea = face.GetArea() * Math.Cos(angle);
+
+                    projectedAreas.Add(projectedArea);
+                    //Print(projectedArea + "");
+                }
+            }
+            projectedAreaTotal = projectedAreas.Sum(x => x);
+
+            //return Facades;
+
+            return projectedAreaTotal;
+        }
+
     }
 }
