@@ -54,6 +54,7 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="OFCylDomain.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Components\BlockMesh.cs" />
     <Compile Include="Components\SimpleFoam.cs" />
