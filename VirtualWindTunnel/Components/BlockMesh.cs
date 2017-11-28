@@ -106,6 +106,8 @@ namespace WindTunnel
             //DOM = OFDomainBuilder(domain, workingDirectory);
 
 
+            OFCylDomain DOMCYL = new OFCylDomain(domain, 1, 1, 10, 50, workingDirectory, 1);
+
 
             if (CPUs == -1 || CPUs > Environment.ProcessorCount)
             {
@@ -207,13 +209,15 @@ namespace WindTunnel
 
                 if (mode == 1)
                 {
-                    File.WriteAllText(Path.Combine(systemDir + "blockMeshDictCirc"), StringTemplates.circularDomainM4(DOM));
-                    ProcessStartInfo m4 = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\CallOF\bin\CallOF.exe", " -e \"m4 ./system/blockMeshDictCirc > ./system/blockMeshDict\" -f " + DOM.workingDirectory);
-                    //File.Delete(workingDirectory+@"\system\blockMeshDictCirc");
-                    Process m4p = new Process();
-                    m4p.StartInfo = m4;
-                    m4p.Start();
-                    m4p.WaitForExit();
+                    //File.WriteAllText(Path.Combine(systemDir + "blockMeshDictCirc"), StringTemplates.circularDomainM4(DOM));
+                    //ProcessStartInfo m4 = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\CallOF\bin\CallOF.exe", " -e \"m4 ./system/blockMeshDictCirc > ./system/blockMeshDict\" -f " + DOM.workingDirectory);
+                    ////File.Delete(workingDirectory+@"\system\blockMeshDictCirc");
+                    //Process m4p = new Process();
+                    //m4p.StartInfo = m4;
+                    //m4p.Start();
+                    //m4p.WaitForExit();
+
+                    File.WriteAllText(Path.Combine(systemDir + "blockMeshDictCirc"), DOMCYL.stringyfyDomain());
                 }
                 else
                 {

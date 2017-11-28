@@ -10,46 +10,562 @@ namespace WindTunnel
 {
     public class OFCylDomain
     {
-        //BoundingBox
-        public double width;
-        public double length;
+        public BoundingBox BBox;
+        public Point3d center;
+        public Point3d locationInMesh;
+        public double radius;
         public double height;
-        public double yMin;
-        public double yMax;
-        public double xMin;
-        public double xMax;
-        public double zMin;
-        public double zMax;
-        public double dimX;
-        public double dimY;
-        public double dimZ;
-        public double dim;
 
-        //Calculated boundary
-        public Point3d newMin;
-        public Point3d newMax;
-
-        public Point3d centerGroundBBox;
 
 
         public int xCells;
         public int yCells;
         public int zCells;
 
-        public BoundingBox BBox;
-        public Circle circ;
-        public Cylinder newCylindricalDomain;
-        public Mesh newCylGround;
-        public Box newBoxDomain;
-        public Point3d locationInMesh;
+        
+
+        public Mesh DomainMesh;
+
+        List<string> MeshFaceLabel = new List<string>();
+        List<int> topFaceID = new List<int>();
+        List<int> bottomFaceID = new List<int>();
+        List<int> outletFaceID = new List<int>();
+        List<int> inletFaceID = new List<int>();
 
 
-        public double diameter;
+        public int divisionsX;
+        public int divisionsY;
+        public int divisionsZ;
+
+
+
+        // settings
         public string workingDirectory;
-
-
         public int CPU;
 
+
+       
+
+
+
+        public OFCylDomain(List<Brep> geometry, int _divisionsX, int _divisionsY , int _divisionsZ , int windDir, string _workingDirectory, int _CPU)
+        {
+            workingDirectory = _workingDirectory;
+            CPU = _CPU;
+
+        divisionsX = _divisionsX;
+            divisionsY = _divisionsY;
+            divisionsZ = _divisionsZ;
+
+            BBox = geometry[0].GetBoundingBox(true);
+            if (geometry.Count > 1)
+            {
+                for (int i = 1; i < geometry.Count; i++)
+                {
+                    BoundingBox bbb = geometry[i].GetBoundingBox(true);
+                    BBox.Union(bbb);
+                }
+            }
+
+            var xMin = BBox.Min.X;
+            var xMax = BBox.Max.X;
+            var yMin = BBox.Min.Y;
+            var yMax = BBox.Max.Y;
+            var zMin = BBox.Min.Z;
+            var zMax = BBox.Max.Z;
+       
+            var dimX = xMax - xMin;
+            var dimY = yMax - yMin;
+            var dimZ = zMax - zMin;
+
+
+
+            //Create ground plane of BBox
+            center = BBox.Center + 0.5 * -Vector3d.ZAxis * dimZ;
+            locationInMesh = center + 4 * Vector3d.ZAxis * dimZ;
+
+            //Create Circular Domain Ground
+            var dim = dimX > dimY ? dimX : dimY;
+             radius = 16.5 * dim;
+             height =  6 * dimZ;
+
+
+
+            var allPoints = MakeCylMeshPoints5deg(center, radius, height);
+
+            MakeCylMesh(allPoints, divisionsX, divisionsY, divisionsZ, windDir);
+        }
+
+
+
+
+        
+
+        private void MakeCylMesh(List<Point3d> allPoints, int divisionsX, int divisionsY, int divisionsZ, int windDir)
+        {
+            //Mesh DomainMesh = new Mesh();
+            //List<string> MeshFaceLabel = new List<string>();
+            //List<int> topFaceID = new List<int>();
+            //List<int> bottomFaceID = new List<int>();
+            //List<int> outletFaceID = new List<int>();
+            //List<int> inletFaceID = new List<int>();
+
+
+
+
+            // add all vertices to the mesh
+            foreach (Point3d xx in allPoints) DomainMesh.Vertices.Add(xx);
+
+            // generate mesh faces from ring points (lower)
+            for (int i = 0; i < allPoints.Count / 12 - 1; i++)
+            {
+                DomainMesh.Faces.AddFace(i, i + 1, allPoints.Count / 12 + i + 1, allPoints.Count / 12 + i);
+                MeshFaceLabel.Add("GroundRing");
+            }
+            //last Face in list
+            DomainMesh.Faces.AddFace(allPoints.Count / 12 - 1, 0, allPoints.Count / 12, allPoints.Count / 12 + allPoints.Count / 12 - 1);
+            MeshFaceLabel.Add("GroundRing");
+
+            // generate mesh faces from ring points (upper)
+            for (int i = allPoints.Count / 2; i < allPoints.Count / 2 + allPoints.Count / 12 - 1; i++)
+            {
+                DomainMesh.Faces.AddFace(i, i + 1, allPoints.Count / 12 + i + 1, allPoints.Count / 12 + i);
+                MeshFaceLabel.Add("TopRing");
+            }
+            //last Face in list
+            DomainMesh.Faces.AddFace(allPoints.Count / 2 + allPoints.Count / 12 - 1, allPoints.Count / 2, allPoints.Count / 12 + allPoints.Count / 2, allPoints.Count / 2 + (2 * allPoints.Count / 12) - 1);
+            MeshFaceLabel.Add("TopRing");
+
+
+
+            
+            for (int i = 0; i < allPoints.Count / 12 - 1; i++)
+            {
+                DomainMesh.Faces.AddFace(i, i + 1, allPoints.Count / 2 + i + 1, allPoints.Count / 2 + i);
+                MeshFaceLabel.Add("Patches");
+            }
+            //last Face in list
+            DomainMesh.Faces.AddFace(allPoints.Count / 12 - 1, 0, allPoints.Count / 2, allPoints.Count / 2 + allPoints.Count / 12 - 1);
+            MeshFaceLabel.Add("Patches");
+
+
+
+            ///------
+            ///------
+
+
+            for (int i = 0; i < inputTopVertices.Length - 3; i = i + 4)
+            {
+                DomainMesh.Faces.AddFace(inputGroundVertices[i], inputGroundVertices[i + 1], inputGroundVertices[i + 2], inputGroundVertices[i + 3]);
+                MeshFaceLabel.Add("GroundBox");
+            }
+            for (int i = 0; i < inputTopVertices.Length - 3; i = i + 4)
+            {
+                DomainMesh.Faces.AddFace(inputTopVertices[i], inputTopVertices[i + 1], inputTopVertices[i + 2], inputTopVertices[i + 3]);
+                MeshFaceLabel.Add("TopBox");
+            }
+
+
+            ///
+            /// Mesh is complete...
+            /// 
+
+
+            // compute inlet outlet normals:
+
+            DomainMesh.FaceNormals.ComputeFaceNormals();
+
+
+         /// check for Patch /... figure out inlet outlet
+            double windDirRad = RoundToNearest5(windDir) * Math.PI / 180;
+            Vector3d windVec = new Vector3d( Math.Sin(windDirRad), Math.Cos(windDirRad)   ,0);
+            windVec.Unitize();
+
+            for (int i = 0; i < DomainMesh.Faces.Count; i++)
+            {
+
+                // face normals are not guaranteed to point outwards
+                if (MeshFaceLabel[i].Contains("Ground")){ 
+                    bottomFaceID.Add(i);
+                }
+                else if(MeshFaceLabel[i].Contains("Top"))
+                {
+                    topFaceID.Add(i);
+                }
+                else
+                {
+                    //if (MeshFaceLabel[i] != "Patches") continue;
+                double dot = windVec * DomainMesh.FaceNormals[i];
+                if (dot > 0)
+                {
+                    outletFaceID.Add(i);
+                }
+                else {
+                   inletFaceID.Add(i);
+                }
+
+                }
+            }
+
+
+        }
+
+
+        public string stringyfyDomain()
+        {
+            StringBuilder sb = new StringBuilder();
+
+
+            sb.AppendLine(@"
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.1.0                                  |
+|   \\  /    A nd           | Web:      http://www.OpenFOAM.com               |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+ 
+convertToMeters 1;
+ 
+//
+vertices        
+(
+
+");
+
+            sb.AppendLine(stringyfyOFVertexList(DomainMesh.Vertices.ToPoint3dArray()));
+
+
+            sb.AppendLine(@"
+); 
+blocks          
+(
+");
+
+
+            sb.AppendLine(stringyfyBlocks(DomainMesh, inputGroundVertices, inputTopVertices,  divisionsX,  divisionsY,  divisionsZ));
+
+
+            sb.AppendLine(@"
+);
+ 
+ edges           
+ (
+ );
+boundary
+(
+
+");
+
+
+
+            sb.AppendLine(stringyfyBoundaries(DomainMesh, outletFaceID, inletFaceID, topFaceID, bottomFaceID));
+
+
+
+            sb.AppendLine(@"
+ );
+
+ 
+mergePatchPairs 
+(
+);");
+            return sb.ToString();
+
+
+        }
+
+
+        private static List<Point3d> MakeCylMeshPoints5deg(Point3d center, double radius, double height)
+        {
+
+            Plane pl = new Plane(center, Vector3d.ZAxis);
+            Interval inter = new Interval(-radius*0.5, radius * 0.5);
+
+            Rectangle3d innerRect = new Rectangle3d(pl, inter, inter);
+
+            List<Point3d> outerRingPointsLower = new List<Point3d>();
+            List<Point3d> pointsOnInnerRectLower = new List<Point3d>();
+            List<Point3d> gridPointsLower = new List<Point3d>();
+
+            List<Point3d> outerRingPointsUpper = new List<Point3d>();
+            List<Point3d> pointsOnInnerRectUpper = new List<Point3d>();
+            List<Point3d> gridPointsUpper = new List<Point3d>();
+
+            Point3d pt0 = center + Vector3d.YAxis * radius;
+
+
+
+
+
+            for (int i = 0; i < 72; i++)
+            {
+
+                double angle = 2 * Math.PI / (72) * i;
+                var t = Transform.Rotation(angle, center);
+
+                //rotate points
+                Point3d point = pt0;
+                point.Transform(t);
+                //add to list
+                outerRingPointsLower.Add(point);
+                //make line
+                Line ln = new Line(center, point);
+
+                //eventuell debuggen
+                var cinter = Rhino.Geometry.Intersect.Intersection.CurveCurve(innerRect.ToNurbsCurve(), ln.ToNurbsCurve(), 0.1, 0.1);
+                foreach (var ievent in cinter)
+                {
+                    if (ievent.IsPoint)
+                    {
+                        pointsOnInnerRectLower.Add(ievent.PointA);
+                    }
+                }
+                //----------
+            }
+
+            // vertical lines 
+            int[] list1 = {
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 71, 70, 69, 68, 67, 66, 65, 64
+            };
+
+            int[] list2 = { 36,
+35,
+34,
+33,
+32,
+31,
+30,
+29,
+28,
+37,
+38,
+39,
+40,
+41,
+42,
+43,
+44 };
+
+            // horizontal lines
+            int[] list3 = {
+10,
+11,
+12,
+13,
+14,
+15,
+16,
+17,
+18,
+19,
+20,
+21,
+22,
+23,
+24,
+25,
+26 };
+
+            int[] list4 = {
+62,
+61,
+60,
+59,
+58,
+57,
+56,
+55,
+54,
+53,
+52,
+51,
+50,
+49,
+48,
+47,
+46 };
+
+
+
+
+            for (int j = 0; j < list3.Length; j++)
+            {
+                Line lnH = new Line(pointsOnInnerRectLower[list3[j]], pointsOnInnerRectLower[list4[j]]);
+
+                for (int i = 0; i < list1.Length; i++)
+                {
+                    Line lnV = new Line(pointsOnInnerRectLower[list1[i]], pointsOnInnerRectLower[list2[i]]);
+
+                    Point3d interPoint;
+                    double a;
+                    double b;
+                    if (Rhino.Geometry.Intersect.Intersection.LineLine(lnH, lnV, out a, out b))
+                    {
+
+                        interPoint = lnH.PointAt(a);
+
+                        gridPointsLower.Add(interPoint);
+
+                    }
+                    else
+                    {
+                        // throw exception here... lines should always intersect
+                    }
+                }
+            }
+
+
+
+            foreach (var p in outerRingPointsLower)
+            {
+
+                outerRingPointsUpper.Add(p + Vector3d.ZAxis * height);
+            }
+            foreach (var p in pointsOnInnerRectLower)
+            {
+                pointsOnInnerRectUpper.Add(p + Vector3d.ZAxis * height);
+            }
+            foreach (var p in gridPointsLower)
+            {
+                gridPointsUpper.Add(p + Vector3d.ZAxis * height);
+            }
+
+
+
+            List<Point3d> ListOfAllPointsInMagicOrder = outerRingPointsLower.Concat(pointsOnInnerRectLower).Concat(gridPointsLower).Concat(outerRingPointsUpper).Concat(pointsOnInnerRectUpper).Concat(gridPointsUpper).ToList();
+
+
+
+            return ListOfAllPointsInMagicOrder;
+
+        }
+
+        private static string stringyfyBoundaries(Mesh m, List<int> outletFaceID, List<int> inletFaceID, List<int> topFaceID, List<int> bottomFaceID)
+        {
+
+            // make some text
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("inlet");
+            sb.AppendLine("{");
+            sb.AppendLine("type patch;");
+            sb.AppendLine("faces(");
+            foreach (int i in inletFaceID) {
+                MeshFace mf = m.Faces[i];
+                sb.AppendLine("(" + mf.A +" " + mf.B + " " + mf.C + " " + mf.D + ")");
+
+            }
+            sb.AppendLine(");");
+            sb.AppendLine("}");
+
+            sb.AppendLine("outlet");
+            sb.AppendLine("{");
+            sb.AppendLine("type patch;");
+            sb.AppendLine("faces(");
+            foreach (int i in outletFaceID)
+            {
+                MeshFace mf = m.Faces[i];
+                sb.AppendLine("(" + mf.A + " " + mf.B + " " + mf.C + " " + mf.D + ")");
+
+            }
+            sb.AppendLine(");");
+            sb.AppendLine("}");
+
+
+            sb.AppendLine("top");
+            sb.AppendLine("{");
+            sb.AppendLine("type symmetry;");
+            sb.AppendLine("faces(");
+            foreach (int i in topFaceID)
+            {
+                MeshFace mf = m.Faces[i];
+                sb.AppendLine("(" + mf.A + " " + mf.B + " " + mf.C + " " + mf.D + ")");
+
+            }
+            sb.AppendLine(");");
+            sb.AppendLine("}");
+
+            sb.AppendLine("ground");
+            sb.AppendLine("{");
+            sb.AppendLine("type wall;");
+            sb.AppendLine("faces(");
+            foreach (int i in bottomFaceID)
+            {
+                MeshFace mf = m.Faces[i];
+                sb.AppendLine("(" + mf.A + " " + mf.B + " " + mf.C + " " + mf.D + ")");
+
+            }
+            sb.AppendLine(");");
+            sb.AppendLine("}");
+
+            return sb.ToString();
+        }
+
+        private static string stringyfyBlocks(Mesh m ,  int[] inputGroundFaces, int[] inputTopFaces, int divisionsX, int divisionsY , int divisionsZ)
+        {
+
+            var fullList = m.Vertices.ToPoint3dArray().ToList();
+
+            List<String> blocksFromArcsA = new List<String>();
+            List<String> blocksFromArcsB = new List<String>();
+
+            for (int i = 0; i < fullList.Count / 12; i++)
+            {
+                blocksFromArcsA.Add(" hex (" + m.Faces[i].A + " " + m.Faces[i].B + " " + m.Faces[i].C + " " + m.Faces[i].D + " ");
+            }
+            //
+            for (int i = fullList.Count / 12; i < fullList.Count / 6; i++)
+            {
+                blocksFromArcsB.Add(m.Faces[i].A+ " " + m.Faces[i].B + " " + m.Faces[i].C+ " " + m.Faces[i].D + ") (" + divisionsX + " " + divisionsY + " " + divisionsZ + ") simpleGrading (1 1 1) ");
+            }
+
+
+
+            // make some text
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = 0; i < blocksFromArcsA.Count; i++) {
+
+                sb.AppendLine(blocksFromArcsA[i] + blocksFromArcsB[i]);
+            }
+
+          
+            ///------
+            ///------
+
+
+            for (int i = 0; i < inputGroundFaces.Length - 3; i = i + 4)
+            {
+
+                sb.AppendLine("hex (" + 
+                    
+                    inputGroundFaces[i] + " " + inputGroundFaces[i + 1] + " " + inputGroundFaces[i + 2] + " " + inputGroundFaces[i + 3] + " " +
+                    inputTopFaces[i] + " " + inputTopFaces[i + 1] + " " + inputTopFaces[i + 2] + " " + inputTopFaces[i + 3] + ") (1 1 " + divisionsZ + ") simpleGrading (1 1 1)  ");
+            }
+
+
+
+            return sb.ToString();
+        }
+
+        private static string stringyfyOFVertexList(Point3d[] L)
+        {
+            StringBuilder stb = new StringBuilder();
+
+            for (int i = 0; i < L.Length; i++)
+            {
+               stb.AppendLine("(" + L[i].X + " " + +L[i].Y + " " + +L[i].Z + ")");
+            }
+            return stb.ToString();
+        }
 
         private static int[] inputGroundVertices = {
 
@@ -2653,491 +3169,48 @@ namespace WindTunnel
             };
 
 
-
-        public OFCylDomain(List<Brep> geometry, string _workingDirectory, double baseMesh)
+        private static int RoundToNearest5(int _Knob)
         {
-            workingDirectory = _workingDirectory;
-            BBox = geometry[0].GetBoundingBox(true);
-            if (geometry.Count > 1)
+            int Knob = _Knob;
+            if (Knob < 0) Knob = 0;
+            if (Knob > 359) Knob = 359;
+
+            int val = 0;
+            while (Knob < 358)
             {
-                for (int i = 1; i < geometry.Count; i++)
+                if (Knob % 5 == 0)
                 {
-                    BoundingBox bbb = geometry[i].GetBoundingBox(true);
-                    BBox.Union(bbb);
+                    val = Knob;
                 }
+                if (Knob % 5 == 1)
+                {
+                    val = Knob - 1;
+                }
+                if (Knob % 5 == 2)
+                {
+                    val = Knob - 2;
+                }
+                if (Knob % 5 == 3)
+                {
+                    val = Knob + 2;
+                }
+                if (Knob % 5 == 4)
+                {
+                    val = Knob + 1;
+                }
+                break;
+            }
+            if (Knob == 358 | Knob == 359)
+            {
+                val = 0;
             }
 
-            xMin = BBox.Min.X;
-            xMax = BBox.Max.X;
-            yMin = BBox.Min.Y;
-            yMax = BBox.Max.Y;
-            zMin = BBox.Min.Z;
-            zMax = BBox.Max.Z;
 
 
-            Vector3d vecPlusY = new Vector3d(0, 1, 0);
-            Vector3d vecMinusY = new Vector3d(0, -1, 0);
-            Vector3d vecMinusX = new Vector3d(-1, 0, 0);
-            Vector3d vecPlusX = new Vector3d(1, 0, 0);
-            Vector3d vecMinusZ = new Vector3d(0, 0, -1);
-            Vector3d vecPlusZ = new Vector3d(0, 0, 1);
-
-
-            dimX = xMax - xMin;
-            dimY = yMax - yMin;
-            dimZ = zMax - zMin;
-
-
-
-            //Create ground plane of BBox
-            centerGroundBBox = BBox.Center + 0.5 * vecMinusZ * dimZ;
-
-
-            locationInMesh = centerGroundBBox + 4 * vecPlusZ * dimZ;
-
-            //Create Circular Domain Ground
-            dim = dimX > dimY ? dimX : dimY;
-            circ = new Circle(centerGroundBBox, 16.5 * dim);
-            newCylindricalDomain = new Cylinder(circ, 6 * dimZ);
-            MeshingParameters mpGround = MeshingParameters.Default;
-            newCylGround = Mesh.CreateFromPlanarBoundary(circ.ToNurbsCurve(), mpGround);
-
+            return val;
         }
 
-
-
-
-        public static List<Point3d> MakeCylMeshPoints5deg(Point3d center, double radius, double height)
-        {
-
-            Plane pl = new Plane(center, Vector3d.ZAxis);
-            Interval inter = new Interval(-radius, radius);
-
-            Rectangle3d innerRect = new Rectangle3d(pl, inter, inter);
-
-            List<Point3d> outerRingPointsLower = new List<Point3d>();
-            List<Point3d> pointsOnInnerRectLower = new List<Point3d>();
-            List<Point3d> gridPointsLower = new List<Point3d>();
-
-            List<Point3d> outerRingPointsUpper = new List<Point3d>();
-            List<Point3d> pointsOnInnerRectUpper = new List<Point3d>();
-            List<Point3d> gridPointsUpper = new List<Point3d>();
-
-            Point3d pt0 = center + Vector3d.YAxis * radius;
-
-
-
-
-
-            for (int i = 0; i < 360 / 5; i++)
-            {
-
-                double angle = 2 * Math.PI / (360 / 5) * i;
-                var t = Transform.Rotation(angle, center);
-
-                //rotate points
-                Point3d point = pt0;
-                point.Transform(t);
-                //add to list
-                outerRingPointsLower.Add(point);
-                //make line
-                Line ln = new Line(center, point);
-
-                //eventuell debuggen
-                var cinter = Rhino.Geometry.Intersect.Intersection.CurveCurve(innerRect.ToNurbsCurve(), ln.ToNurbsCurve(), 0.0001, 0.0001);
-                foreach (var ievent in cinter)
-                {
-                    if (ievent.IsOverlap)
-                    {
-                        pointsOnInnerRectLower.Add(ievent.PointA);
-                    }
-                }
-                //----------
-            }
-
-            // vertical lines 
-            int[] list1 = {
-                0, 1, 2, 3, 4, 5, 6, 7, 8, 71, 70, 69, 68, 67, 66, 65, 64
-            };
-
-            int[] list2 = { 36,
-35,
-34,
-33,
-32,
-31,
-30,
-29,
-28,
-37,
-38,
-39,
-40,
-41,
-42,
-43,
-44 };
-
-            // horizontal lines
-            int[] list3 = {
-10,
-11,
-12,
-13,
-14,
-15,
-16,
-17,
-18,
-19,
-20,
-21,
-22,
-23,
-24,
-25,
-26 };
-
-            int[] list4 = {
-62,
-61,
-60,
-59,
-58,
-57,
-56,
-55,
-54,
-53,
-52,
-51,
-50,
-49,
-48,
-47,
-46 };
-
-
-
-
-            for (int j = 0; j < list3.Length; j++)
-            {
-                Line lnH = new Line(pointsOnInnerRectLower[list3[j]], pointsOnInnerRectLower[list4[j]]);
-
-                for (int i = 0; i < list1.Length; i++)
-                {
-                    Line lnV = new Line(pointsOnInnerRectLower[list1[i]], pointsOnInnerRectLower[list2[i]]);
-
-                    Point3d interPoint;
-                    double a;
-                    double b;
-                    if (Rhino.Geometry.Intersect.Intersection.LineLine(lnH, lnV, out a, out b))
-                    {
-
-                        interPoint = lnH.PointAt(a);
-
-                        gridPointsLower.Add(interPoint);
-
-                    }
-                    else
-                    {
-                        // throw exception here... lines should always intersect
-                    }
-                }
-            }
-
-
-
-            foreach (var p in outerRingPointsLower)
-            {
-
-                outerRingPointsUpper.Add(p + Vector3d.ZAxis * height);
-            }
-            foreach (var p in pointsOnInnerRectLower)
-            {
-                pointsOnInnerRectUpper.Add(p + Vector3d.ZAxis * height);
-            }
-            foreach (var p in gridPointsLower)
-            {
-                gridPointsUpper.Add(p + Vector3d.ZAxis * height);
-            }
-
-
-
-            List<Point3d> ListOfAllPointsInMagicOrder = outerRingPointsLower.Concat(pointsOnInnerRectLower).Concat(gridPointsLower).Concat(outerRingPointsUpper).Concat(pointsOnInnerRectUpper).Concat(gridPointsUpper).ToList();
-
-
-
-            return ListOfAllPointsInMagicOrder;
-
-        }
-
-
-
-        public static void MakeCylMesh(List<Point3d> fullList, int divisionsX, int divisionsY, int divisionsZ, List<bool> inletOutletCheck)
-        {
-            Mesh m = new Mesh();
-            List<string> MeshFaceLabel = new List<string>();
-
-            List <String> blocksFromArcsA = new List<String>();
-            List<String> blocksFromArcsB = new List<String>();
-            List<String> listGroundArc = new List<String>();
-            List<String> listTopArc = new List<String>();
-
-
-            // add all vertices to the mesh
-            foreach (Point3d xx in fullList) m.Vertices.Add(xx);
-
-            // generate mesh faces from ring points (lower)
-            for (int i = 0; i < fullList.Count / 12 - 1; i++)
-            {
-                m.Faces.AddFace(i, i + 1, fullList.Count / 12 + i + 1, fullList.Count / 12 + i);
-                MeshFaceLabel.Add("groundRing");
-            }
-            //last Face in list
-            m.Faces.AddFace(fullList.Count / 12 - 1, 0, fullList.Count / 12, fullList.Count / 12 + fullList.Count / 12 - 1);
-            MeshFaceLabel.Add("groundRing");
-
-            // generate mesh faces from ring points (upper)
-            for (int i = fullList.Count / 2; i < fullList.Count / 2 + fullList.Count / 12 - 1; i++)
-            {
-                m.Faces.AddFace(i, i + 1, fullList.Count / 12 + i + 1, fullList.Count / 12 + i);
-                MeshFaceLabel.Add("TopRing");
-            }
-            //last Face in list
-            m.Faces.AddFace(fullList.Count / 2 + fullList.Count / 12 - 1, fullList.Count / 2, fullList.Count / 12 + fullList.Count / 2, fullList.Count / 2 + (2 * fullList.Count / 12) - 1);
-            MeshFaceLabel.Add("TopRing");
-
-
-
-            /// make some text...
-
-
-
-            for (int i = 0; i < fullList.Count / 12; i++)
-            {
-                blocksFromArcsA.Add(" hex (" + m.Faces[i].A.ToString() + " " + m.Faces[i].B.ToString() + " " + m.Faces[i].C.ToString() + " " + m.Faces[i].D.ToString() + " ");
-            }
-            //
-            for (int i = fullList.Count / 12; i < fullList.Count / 6; i++)
-            {
-                blocksFromArcsB.Add(m.Faces[i].A.ToString() + " " + m.Faces[i].B.ToString() + " " + m.Faces[i].C.ToString() + " " + m.Faces[i].D.ToString() + ") (" + divisionsX + " " + divisionsY + " " + divisionsZ + ") simpleGrading (1 1 1) ");
-            }
-
-
-            listGroundArc.Add("ground\n {\n type wall;\n faces\n (");
-            for (int i = 0; i < fullList.Count / 12; i++)
-            {
-                listGroundArc.Add("(" + m.Faces[i].A.ToString() + " " + m.Faces[i].B.ToString() + " " + m.Faces[i].C.ToString() + " " + m.Faces[i].D.ToString() + ")");
-            }
-
-            listTopArc.Add("top\n {\n type symmetry;\n faces\n (");
-            for (int i = fullList.Count / 12; i < fullList.Count / 6; i++)
-            {
-                listTopArc.Add("(" + m.Faces[i].A.ToString() + " " + m.Faces[i].B.ToString() + " " + m.Faces[i].C.ToString() + " " + m.Faces[i].D.ToString() + ")");
-            }
-
-
-
-
-
-            ///------
-            ///------
-
-
-
-
-
-            List<string> L1 = new List<String>();
-            //List<string> inletOutletCheck = new List<String>();
-            List<string> inletOutletList = new List<String>();
-            // List<String> L2 = new List<String>();
-
-
-
-            for (int i = 0; i < fullList.Count / 12 - 1; i++)
-            {
-                m.Faces.AddFace(i, i + 1, fullList.Count / 2 + i + 1, fullList.Count / 2 + i);
-                MeshFaceLabel.Add("Patches");
-            }
-            //last Face in list
-            m.Faces.AddFace(fullList.Count / 12 - 1, 0, fullList.Count / 2, fullList.Count / 2 + fullList.Count / 12 - 1);
-            MeshFaceLabel.Add("Patches");
-
-
-            // make some text
-
-
-            for (int i = 0; i < fullList.Count / 12; i++)
-            {
-                if (inletOutletCheck[i] == true)
-                {
-                    inletOutletList.Add("inlet" + i);
-                }
-                else
-                {
-                    inletOutletList.Add("outlet" + i);
-                }
-            }
-
-            for (int i = 0; i < fullList.Count / 12; i++)
-            {
-                L1.Add(inletOutletList[i] + "\n {\n type patch;\n faces\n (\n(\t" + m.Faces[i].A.ToString() + " " + m.Faces[i].B.ToString() + " " + m.Faces[i].C.ToString() + " " + m.Faces[i].D.ToString() + ") \n  );\n}");
-            }
-
-
-
-
-
-            ///------
-            ///------
-
-
-
-
-
-            List<String> groundBoxList = new List<String>();
-            List<String> topBoxList = new List<String>();
-
-
-
-            for (int i = 0; i < inputTopVertices.Length - 3; i = i + 4)
-            {
-                m.Faces.AddFace(inputGroundVertices[i], inputGroundVertices[i + 1], inputGroundVertices[i + 2], inputGroundVertices[i + 3]);
-                MeshFaceLabel.Add("GroundBox");
-            }
-            for (int i = 0; i < inputTopVertices.Length - 3; i = i + 4)
-            {
-                m.Faces.AddFace(inputTopVertices[i], inputTopVertices[i + 1], inputTopVertices[i + 2], inputTopVertices[i + 3]);
-                MeshFaceLabel.Add("TopBox");
-            }
-
-
-
-            // make some text
-
-            //groundBoxList.Add("ground\n {\n type wall;\n faces\n (");
-            for (int i = 0; i < m.Faces.Count() / 2; i++)
-            {
-                groundBoxList.Add("(" + m.Faces[i].A.ToString() + " " + m.Faces[i].B.ToString() + " " + m.Faces[i].C.ToString() + " " + m.Faces[i].D.ToString() + ")");
-            }
-            groundBoxList.Add(" \n  );\n}");
-
-            //topBoxList.Add("top\n {\n type symmetry;\n faces\n (");
-            for (int i = m.Faces.Count() / 2; i < m.Faces.Count(); i++)
-            {
-                topBoxList.Add("(" + m.Faces[i].A.ToString() + " " + m.Faces[i].B.ToString() + " " + m.Faces[i].C.ToString() + " " + m.Faces[i].D.ToString() + ")");
-            }
-            topBoxList.Add(" \n  );\n}");
-
-
-
-            /// Mesh is complete...
-            /// 
-
-
-            // compute inlet outlet normals:
-
-            m.FaceNormals.ComputeFaceNormals();
-
-
-            /// check for Patch /... figure out inlet outlet
-
-
-        }
-
-
-
-
-        private void stringyfyBlocks(List<int> inputGroundFaces, List<int> inputTopFaces, object divisionsZ, ref object A, ref object B, ref object C, ref object D)
-        {
-
-
-            List<int> m = new List<Int32>();
-            List<string> L1 = new List<String>();
-
-
-            for (int i = 0; i < inputGroundFaces.Count - 3; i = i + 4)
-            {
-                bool continueLoop = true;
-                m.Add(inputGroundFaces[i]);
-                m.Add(inputGroundFaces[i + 1]);
-                m.Add(inputGroundFaces[i + 2]);
-                m.Add(inputGroundFaces[i + 3]);
-                while (continueLoop)
-                {
-                    m.Add(inputTopFaces[i]);
-                    m.Add(inputTopFaces[i + 1]);
-                    m.Add(inputTopFaces[i + 2]);
-                    m.Add(inputTopFaces[i + 3]);
-                    continueLoop = false;
-                }
-            }
-
-
-            for (int i = 0; i < inputGroundFaces.Count + inputTopFaces.Count; i = i + 8)
-            {
-                L1.Add("hex (" + m[i].ToString() + " " + m[i + 1].ToString() + " " + m[i + 2].ToString() + " " + m[i + 3].ToString() + " " + m[i + 4].ToString() + " " + m[i + 5].ToString() + " " + m[i + 6].ToString() + " " + m[i + 7].ToString() + ") (1 1 " + divisionsZ + ") simpleGrading (1 1 1)  ");
-            }
-
-
-
-            A = m;
-            B = L1;
-        }
-
-
-
-
-        public static string stringyfyOFVertexList(List<Point3d> L)
-        {
-            StringBuilder stb = new StringBuilder();
-
-            for (int i = 0; i < L.Count; i++)
-            {
-               stb.AppendLine("(" + L[i].X + " " + +L[i].Y + " " + +L[i].Z + ")");
-            }
-            return stb.ToString();
-        }
-
-
-
-        public static double FindFacades(Plane plane, List<Brep> volumes, out double projectedAreaTotal)
-        {
-            List<Brep> Facades = new List<Brep>();
-
-            List<double> projectedAreas = new List<double>();
-            foreach (Brep b in volumes)
-            {
-                for (int i = 0; i < b.Faces.Count; i++)
-                {
-                    Vector3d vSurf = b.Faces[i].NormalAt(0.5, 0.5);
-                    double dot = plane.ZAxis * vSurf;
-                    if (dot < 0.1) continue;
-
-
-                    Brep face = b.Faces[i].DuplicateFace(false);
-                    //Print(dot + "");
-                    Facades.Add(face);
-
-                    Vector3d cross = Vector3d.CrossProduct(plane.ZAxis, vSurf);
-                    double norm = cross.Length;
-                    double angle = Math.Atan2(norm, dot);
-
-                    //Print((angle * 180 / Math.PI) + "");
-
-                    double projectedArea = face.GetArea() * Math.Cos(angle);
-
-                    projectedAreas.Add(projectedArea);
-                    //Print(projectedArea + "");
-                }
-            }
-            projectedAreaTotal = projectedAreas.Sum(x => x);
-
-            //return Facades;
-
-            return projectedAreaTotal;
-        }
+   
 
     }
 }
