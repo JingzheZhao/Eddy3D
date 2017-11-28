@@ -103,7 +103,7 @@ namespace WindTunnel
 
         private void MakeCylMesh(List<Point3d> allPoints, int divisionsX, int divisionsY, int divisionsZ, int windDir)
         {
-            //Mesh DomainMesh = new Mesh();
+           DomainMesh = new Mesh();
             //List<string> MeshFaceLabel = new List<string>();
             //List<int> topFaceID = new List<int>();
             //List<int> bottomFaceID = new List<int>();
