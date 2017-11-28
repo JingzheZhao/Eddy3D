@@ -217,7 +217,7 @@ namespace WindTunnel
                     //m4p.Start();
                     //m4p.WaitForExit();
 
-                    File.WriteAllText(Path.Combine(systemDir + "blockMeshDictCirc"), DOMCYL.stringyfyDomain());
+                    File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), DOMCYL.stringyfyDomain());
                 }
                 else
                 {

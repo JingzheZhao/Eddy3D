@@ -457,7 +457,8 @@ mergePatchPairs
             sb.AppendLine("inlet");
             sb.AppendLine("{");
             sb.AppendLine("type patch;");
-            sb.AppendLine("faces(");
+            sb.AppendLine("faces");
+            sb.AppendLine("(");
             foreach (int i in inletFaceID) {
                 MeshFace mf = m.Faces[i];
                 sb.AppendLine("(" + mf.A +" " + mf.B + " " + mf.C + " " + mf.D + ")");
@@ -469,7 +470,8 @@ mergePatchPairs
             sb.AppendLine("outlet");
             sb.AppendLine("{");
             sb.AppendLine("type patch;");
-            sb.AppendLine("faces(");
+            sb.AppendLine("faces");
+            sb.AppendLine("(");
             foreach (int i in outletFaceID)
             {
                 MeshFace mf = m.Faces[i];
@@ -483,7 +485,8 @@ mergePatchPairs
             sb.AppendLine("top");
             sb.AppendLine("{");
             sb.AppendLine("type symmetry;");
-            sb.AppendLine("faces(");
+            sb.AppendLine("faces");
+            sb.AppendLine("(");
             foreach (int i in topFaceID)
             {
                 MeshFace mf = m.Faces[i];
@@ -496,7 +499,8 @@ mergePatchPairs
             sb.AppendLine("ground");
             sb.AppendLine("{");
             sb.AppendLine("type wall;");
-            sb.AppendLine("faces(");
+            sb.AppendLine("faces");
+            sb.AppendLine("(");
             foreach (int i in bottomFaceID)
             {
                 MeshFace mf = m.Faces[i];
