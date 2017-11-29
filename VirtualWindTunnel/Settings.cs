@@ -40,7 +40,7 @@ namespace WindTunnel
 
         }
 
-        public static int getCurrentCPUs(OFDomainBuilder DOM)
+        public static int getCurrentCPUs(OFBoxDomain DOM)
         {
             string currentRAM = @"Get-VMProcessor MobyLinuxVM";
 

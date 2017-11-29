@@ -10,7 +10,7 @@ namespace WindTunnel
 {
     public class StringTemplates
     {
-        public static string blockMeshDict(OFDomainBuilder DOM)
+        public static string blockMeshDict(OFBoxDomain DOM)
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
@@ -404,7 +404,7 @@ libs
 }
             ";
         }
-        public static string circularDomainM4(OFDomainBuilder DOM)
+        public static string circularDomainM4(OFBoxDomain DOM)
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |

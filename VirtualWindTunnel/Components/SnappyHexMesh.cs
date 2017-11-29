@@ -6,6 +6,7 @@ using Rhino.Geometry;
 using System.Text;
 using Grasshopper.Kernel.Parameters;
 using System.Diagnostics;
+using Grasshopper.Kernel.Types;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -62,18 +63,41 @@ namespace WindTunnel
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            //string filepath = @"C:\OF\";
             bool Run = false;
-            
 
-            //string workingDirectory = "";
 
-            //public Box DomainBoundaryBox;
-            //List<Brep> domain = new List<Brep>();
+            //OFDomainBuilder DOM = null;
+            //if (!DA.GetData(0, ref DOM)) { return; }
+            //if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
-            OFDomainBuilder DOM = null;
-            if (!DA.GetData(0, ref DOM)) { return; }
-            if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
+
+            // we can use class inheritance 
+            OFCylDomain CylDom;
+            OFBoxDomain BoxDom;
+            OFBaseDomain DOM;
+
+            GH_ObjectWrapper gobj = null;
+            if (!DA.GetData(0, ref gobj)) { }
+
+            if ((gobj.Value is OFCylDomain))
+            {
+                CylDom = (OFCylDomain)gobj.Value;
+                DOM = (OFBaseDomain)gobj.Value;
+            }
+            else if ((gobj.Value is OFBoxDomain))
+            {
+                BoxDom = (OFBoxDomain)gobj.Value;
+                DOM = (OFBaseDomain)gobj.Value;
+            }
+         
+            else
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid domain object"); return;
+            }
+
+
+
+
 
 
             //string command = "";
@@ -159,10 +183,8 @@ namespace WindTunnel
                 DA.SetData(1, DOM);
 
             }
-            //else
-            //{
-            //    return;
-            //}
+            
+
 
 
         }

@@ -55,6 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\BlockMeshCyl.cs" />
+    <Compile Include="OFBaseDomain.cs" />
     <Compile Include="OFCylDomain.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Components\BlockMeshBox.cs" />
@@ -62,7 +63,7 @@
     <Compile Include="Components\SnappyHexMesh.cs" />
     <Compile Include="Components\Clean.cs" />
     <Compile Include="OFLaunch.cs" />
-    <Compile Include="OFDomain.cs" />
+    <Compile Include="OFBoxDomain.cs" />
     <Compile Include="STLExport.cs" />
     <Compile Include="Components\GeometryExport.cs" />
     <Compile Include="StringTemplates\boundaryConditions.cs" />

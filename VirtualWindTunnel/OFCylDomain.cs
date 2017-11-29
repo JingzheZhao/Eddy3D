@@ -8,11 +8,10 @@ using System.Threading.Tasks;
 
 namespace WindTunnel
 {
-    public class OFCylDomain
+    public class OFCylDomain : OFBaseDomain
     {
         public BoundingBox BBox;
-        public Point3d center;
-        public Point3d locationInMesh;
+
         public double radius;
         public double height;
 
@@ -40,9 +39,7 @@ namespace WindTunnel
 
 
 
-        // settings
-        public string workingDirectory;
-        public int CPU;
+
 
 
        
@@ -105,15 +102,7 @@ namespace WindTunnel
         private void MakeCylMesh(List<Point3d> allPoints, int divisionsX, int divisionsY, int divisionsZ, double windDir)
         {
            DomainMesh = new Mesh();
-            //List<string> MeshFaceLabel = new List<string>();
-            //List<int> topFaceID = new List<int>();
-            //List<int> bottomFaceID = new List<int>();
-            //List<int> outletFaceID = new List<int>();
-            //List<int> inletFaceID = new List<int>();
-
-
-
-
+         
             // add all vertices to the mesh
             foreach (Point3d xx in allPoints) DomainMesh.Vertices.Add(xx);
 
@@ -137,9 +126,6 @@ namespace WindTunnel
             DomainMesh.Faces.AddFace(allPoints.Count / 2 + allPoints.Count / 12 - 1, allPoints.Count / 2, allPoints.Count / 12 + allPoints.Count / 2, allPoints.Count / 2 + (2 * allPoints.Count / 12) - 1);
             MeshFaceLabel.Add("TopRing");
 
-
-
-            
             for (int i = 0; i < allPoints.Count / 12 - 1; i++)
             {
                 DomainMesh.Faces.AddFace(i, i + 1, allPoints.Count / 2 + i + 1, allPoints.Count / 2 + i);

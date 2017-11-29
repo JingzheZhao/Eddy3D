@@ -84,7 +84,7 @@ namespace WindTunnel
             DA.GetData(3, ref keepTimeSteps);
             DA.GetData(4, ref Run);
 
-            OFDomainBuilder DOM = null;
+            OFBoxDomain DOM = null;
             if (!DA.GetData(0, ref DOM)) { return; }
             if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 

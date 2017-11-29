@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace WindTunnel
 {
-    public class OFDomainBuilder
+    public class OFBoxDomain : OFBaseDomain
     {
         //BoundingBox
         public double width;
@@ -28,11 +28,7 @@ namespace WindTunnel
         //Calculated boundary
         public Point3d newMin;
         public Point3d newMax;
-        public Point3d centerGroundBBox;
-        //public double newDimX;
-        //public double newDimY;
-        //public double newDimZ;
-
+     
 
         public int xCells;
         public int yCells;
@@ -44,15 +40,15 @@ namespace WindTunnel
         public Mesh newBoxGround;
         public Mesh newCylGround;
         public Box newBoxDomain;
-        public Point3d locationInMesh;
+    
 
         public Rectangle3d plGround;
 
         public double diameter;
-        public string workingDirectory;
+       
         public double baseMesh;
         
-        public int CPU;
+   
 
         public Point3d newMinGroundPlane1;
         public Point3d newMaxGroundPlane2;
@@ -60,7 +56,7 @@ namespace WindTunnel
        
 
 
-        public OFDomainBuilder(List<Brep> geometry, string _workingDirectory, double _baseMesh)
+        public OFBoxDomain(List<Brep> geometry, string _workingDirectory, double _baseMesh)
         {
             workingDirectory = _workingDirectory;
             baseMesh = _baseMesh;
@@ -103,14 +99,14 @@ namespace WindTunnel
             
 
             //Create ground plane of BBox
-            centerGroundBBox = BBox.Center + 0.5 * vecMinusZ * dimZ;
+            center = BBox.Center + 0.5 * vecMinusZ * dimZ;
 
             
-            locationInMesh = centerGroundBBox + 4 * vecPlusZ * dimZ;
+            locationInMesh = center + 4 * vecPlusZ * dimZ;
 
             //Create Circular Domain
             dim = dimX > dimY ? dimX : dimY;
-            circ = new Circle(centerGroundBBox, 16.5 * dim);
+            circ = new Circle(center, 16.5 * dim);
             newCylindricalDomain = new Cylinder(circ, 6* dimZ);
             MeshingParameters mpGround = MeshingParameters.Default;
             newCylGround = Mesh.CreateFromPlanarBoundary(circ.ToNurbsCurve(), mpGround);
@@ -145,7 +141,7 @@ namespace WindTunnel
 
 
             var pl = Plane.WorldXY;
-            pl.Origin = centerGroundBBox;
+            pl.Origin = center;
 
             //Plane newPlaneGround = new Plane()
             newBoxDomain = new Box(pl, xInter, yInter, zInter);

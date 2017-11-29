@@ -102,7 +102,7 @@ namespace WindTunnel
             DA.GetData(5, ref CPUs);
             DA.GetData(6, ref Run);
 
-            OFDomainBuilder DOM = new OFDomainBuilder(domain, workingDirectory, baseMesh);
+            OFBoxDomain DOM = new OFBoxDomain(domain, workingDirectory, baseMesh);
             //DOM = OFDomainBuilder(domain, workingDirectory);
 
 
