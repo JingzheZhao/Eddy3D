@@ -77,6 +77,7 @@ namespace WindTunnel
             int iter = 1000;
             int writeInterval = 20;
             int keepTimeSteps = 5;
+            string workingDirectory = "";
 
             DA.GetData(1, ref iter);
             DA.GetData(2, ref writeInterval);
@@ -99,14 +100,39 @@ namespace WindTunnel
                 if (!Directory.Exists(stlDir)) {
                     Directory.CreateDirectory(stlDir);
                 }
-                
-                                
-                string systemDir = DOM.workingDirectory + @"\system\";
+
+                string systemDir = workingDirectory + @"\system\";
+                string constantDir = workingDirectory + @"\constant\";
+                string boundaryConditionsDir = workingDirectory + @"\0.org\";
 
                 if (!Directory.Exists(systemDir))
                 {
                     Directory.CreateDirectory(systemDir);
                 }
+                if (!Directory.Exists(constantDir))
+                {
+                    Directory.CreateDirectory(constantDir);
+                }
+                if (!Directory.Exists(boundaryConditionsDir))
+                {
+                    Directory.CreateDirectory(boundaryConditionsDir);
+                }
+
+
+
+                File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), StringTemplates.fvSchemes());
+                File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), StringTemplates.fvSolution());
+                File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), StringTemplates.fvSolution());
+                File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), StringTemplates.meshQualityDict());
+                
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "U"), BoundaryConditions.U());
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "P"), BoundaryConditions.P());
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "Omega"), BoundaryConditions.Omega());
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "K"), BoundaryConditions.K());
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "Epsilon"), BoundaryConditions.Epsilon());
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "ABLConditions"), BoundaryConditions.ABLConditions());
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "initialConditions"), BoundaryConditions.InitialConditions());
+
 
                 File.WriteAllText(Path.Combine(systemDir + "controlDict"), StringTemplates.controlDict(iter, keepTimeSteps, writeInterval));
 

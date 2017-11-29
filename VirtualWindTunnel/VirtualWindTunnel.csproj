@@ -54,9 +54,10 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\BlockMeshCyl.cs" />
     <Compile Include="OFCylDomain.cs" />
     <Compile Include="Settings.cs" />
-    <Compile Include="Components\BlockMesh.cs" />
+    <Compile Include="Components\BlockMeshBox.cs" />
     <Compile Include="Components\SimpleFoam.cs" />
     <Compile Include="Components\SnappyHexMesh.cs" />
     <Compile Include="Components\Clean.cs" />
@@ -64,10 +65,12 @@
     <Compile Include="OFDomain.cs" />
     <Compile Include="STLExport.cs" />
     <Compile Include="Components\GeometryExport.cs" />
-    <Compile Include="StringTemplates.cs" />
+    <Compile Include="StringTemplates\boundaryConditions.cs" />
+    <Compile Include="StringTemplates\StringTemplates.cs" />
     <Compile Include="VirtualWindTunnelInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

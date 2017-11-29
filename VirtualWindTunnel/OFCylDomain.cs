@@ -25,6 +25,7 @@ namespace WindTunnel
         
 
         public Mesh DomainMesh;
+        public Mesh DomainMeshGround;
 
         List<string> MeshFaceLabel = new List<string>();
         List<int> topFaceID = new List<int>();
@@ -48,12 +49,12 @@ namespace WindTunnel
 
 
 
-        public OFCylDomain(List<Brep> geometry, int _divisionsX, int _divisionsY , int _divisionsZ , int windDir, string _workingDirectory, int _CPU)
+        public OFCylDomain(List<Brep> geometry, int _divisionsX, int _divisionsY , int _divisionsZ , double windDir, string _workingDirectory, int _CPU)
         {
             workingDirectory = _workingDirectory;
             CPU = _CPU;
 
-        divisionsX = _divisionsX;
+            divisionsX = _divisionsX;
             divisionsY = _divisionsY;
             divisionsZ = _divisionsZ;
 
@@ -101,7 +102,7 @@ namespace WindTunnel
 
         
 
-        private void MakeCylMesh(List<Point3d> allPoints, int divisionsX, int divisionsY, int divisionsZ, int windDir)
+        private void MakeCylMesh(List<Point3d> allPoints, int divisionsX, int divisionsY, int divisionsZ, double windDir)
         {
            DomainMesh = new Mesh();
             //List<string> MeshFaceLabel = new List<string>();
@@ -166,14 +167,19 @@ namespace WindTunnel
             }
 
 
+            DomainMesh.FaceNormals.ComputeFaceNormals();
+
+
             ///
             /// Mesh is complete...
             /// 
 
 
+            ParseGroundMesh();
+
             // compute inlet outlet normals:
 
-            DomainMesh.FaceNormals.ComputeFaceNormals();
+            
 
 
          /// check for Patch /... figure out inlet outlet
@@ -207,6 +213,27 @@ namespace WindTunnel
                 }
             }
 
+
+        }
+
+        private void ParseGroundMesh()
+        {
+                        
+            DomainMeshGround = new Mesh();
+            DomainMeshGround.Vertices.AddVertices(DomainMesh.Vertices);
+
+            for (int i = 0; i < DomainMesh.Faces.Count; i++)
+            {
+
+                // face normals are not guaranteed to point outwards
+                if (MeshFaceLabel[i].Contains("Ground"))
+                {
+                    DomainMeshGround.Faces.AddFace(DomainMesh.Faces[i]);
+                   
+                }
+            }
+
+            DomainMeshGround.Vertices.CullUnused();
 
         }
 
@@ -282,7 +309,6 @@ mergePatchPairs
 
 
         }
-
 
         private static List<Point3d> MakeCylMeshPoints5deg(Point3d center, double radius, double height)
         {
@@ -1870,6 +1896,7 @@ mergePatchPairs
 424 ,
 423
 };
+
         private static int[] inputTopVertices = {
 
 505  ,
@@ -3172,10 +3199,9 @@ mergePatchPairs
 
             };
 
-
-        private static int RoundToNearest5(int _Knob)
+        private static int RoundToNearest5(double _Knob)
         {
-            int Knob = _Knob;
+            double Knob = _Knob;
             if (Knob < 0) Knob = 0;
             if (Knob > 359) Knob = 359;
 
@@ -3184,23 +3210,23 @@ mergePatchPairs
             {
                 if (Knob % 5 == 0)
                 {
-                    val = Knob;
+                    val = (int)Knob;
                 }
                 if (Knob % 5 == 1)
                 {
-                    val = Knob - 1;
+                    val = (int)Knob - 1;
                 }
                 if (Knob % 5 == 2)
                 {
-                    val = Knob - 2;
+                    val = (int)Knob - 2;
                 }
                 if (Knob % 5 == 3)
                 {
-                    val = Knob + 2;
+                    val = (int)Knob + 2;
                 }
                 if (Knob % 5 == 4)
                 {
-                    val = Knob + 1;
+                    val = (int)Knob + 1;
                 }
                 break;
             }

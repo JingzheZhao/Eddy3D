@@ -683,5 +683,422 @@ mergePatchPairs
 // ************************************************************************* //
             ";
         }
+
+        public static string meshQualityDict()
+        {
+            return
+               @"/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  3.0.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      meshQualityDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//- Maximum non-orthogonality allowed. Set to 180 to disable.
+maxNonOrtho 65;
+
+//- Max skewness allowed. Set to <0 to disable.
+maxBoundarySkewness 20;
+maxInternalSkewness 4;
+
+//- Max concaveness allowed. Is angle (in degrees) below which concavity
+//  is allowed. 0 is straight face, <0 would be convex face.
+//  Set to 180 to disable.
+maxConcave 80;
+
+//- Minimum pyramid volume. Is absolute volume of cell pyramid.
+//  Set to a sensible fraction of the smallest cell volume expected.
+//  Set to very negative number (e.g. -1E30) to disable.
+minVol 1e-13;
+
+//- Minimum quality of the tet formed by the face-centre
+//  and variable base point minimum decomposition triangles and
+//  the cell centre. This has to be a positive number for tracking
+//  to work. Set to very negative number (e.g. -1E30) to
+//  disable.
+//     <0 = inside out tet,
+//      0 = flat tet
+//      1 = regular tet
+minTetQuality 1e-15;
+
+//- Minimum face area. Set to <0 to disable.
+minArea -1;
+
+//- Minimum face twist. Set to <-1 to disable. dot product of face normal
+// and face centre triangles normal
+minTwist 0.02;
+
+//- Minimum normalised cell determinant. This is the determinant of all
+//  the areas of internal faces. It is a measure of how much of the
+//  outside area of the cell is to other cells. The idea is that if all
+//  outside faces of the cell are 'floating' (zeroGradient) the
+//  'fixedness' of the cell is determined by the area of the internal faces.
+//  1 = hex, <= 0 = folded or flattened illegal cell
+minDeterminant 0.001;
+
+//- Relative position of face in relation to cell centres (0.5 for orthogonal
+//  mesh) (0 -> 0.5)
+minFaceWeight 0.05;
+
+//- Volume ratio of neighbouring cells (0 -> 1)
+minVolRatio 0.01;
+
+//- Per triangle normal compared to average normal. Like face twist
+//  but now per (face-centre decomposition) triangle. Must be >0 for Fluent
+//  compatibility
+minTriangleTwist -1;
+
+
+//- If >0 : preserve cells with all points on the surface if the
+//  resulting volume after snapping (by approximation) is larger than
+//  minVolCollapseRatio times old volume (i.e. not collapsed to flat cell).
+//  If <0 : delete always.
+//minVolCollapseRatio 0.1;
+
+
+// ************************************************************************* //
+";
+        }
+        public static string fvSchemes()
+        {
+            return
+        @"/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.2                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         steadyState;
+}
+
+gradSchemes
+{
+    default         Gauss linear;
+    grad(U)         cellLimited Gauss linear 1;
+}
+
+divSchemes
+{
+    default         none;
+    div(phi,U)      bounded Gauss linearUpwindV grad(U);
+    div(phi,k)      bounded Gauss upwind;
+    div(phi,epsilon)  bounded Gauss upwind;
+    div(phi,omega)  bounded Gauss upwind;
+    div(phi,aoa)  bounded Gauss upwind;
+	div(phi,co2)  bounded Gauss upwind;
+    div((nuEff*dev2(T(grad(U))))) Gauss linear;
+    div(phi,time)   bounded   Gauss limitedLinear 1;
+}
+
+laplacianSchemes
+{
+    default         Gauss linear corrected;
+    laplacian(nuEff,time) Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         corrected;
+}
+
+fluxRequired
+{
+    default         no;
+    p;
+}
+wallDist
+{
+	method meshWave;
+}
+
+// ************************************************************************* //
+";
+        }
+
+        public static string fvSolution()
+        {
+            return @"/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.2                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    p
+    {
+        solver           GAMG;
+        tolerance        1e-9;
+        relTol           0.001;
+        smoother         GaussSeidel;
+        nPreSweeps       0;
+        nPostSweeps      2;
+        cacheAgglomeration on;
+        agglomerator     faceAreaPair;
+        nCellsInCoarsestLevel 10;
+        mergeLevels      1;
+    }
+/* Phi
+    {
+        solver           GAMG;
+        tolerance        1e-7;
+        relTol           0.01;
+        smoother         GaussSeidel;
+    }*/
+
+    U
+    {
+        solver           smoothSolver;
+        smoother         GaussSeidel;
+        tolerance        1e-8;
+        relTol           0.01;
+        nSweeps          1;
+    }
+
+    k
+    {
+        solver           smoothSolver;
+        smoother         GaussSeidel;
+        tolerance        1e-8;
+        relTol           0.1;
+        nSweeps          1;
+    }
+
+    epsilon
+    {
+        solver           smoothSolver;
+        smoother         GaussSeidel;
+        tolerance        1e-8;
+        relTol           0.1;
+        nSweeps          1;
+    }
+     omega
+    {
+        solver           smoothSolver;
+        smoother         GaussSeidel;
+        tolerance        1e-8;
+        relTol           0.1;
+        nSweeps          1;
+    }
+
+
+        SIMPLE
+{
+    nNonOrthogonalCorrectors 3;
+    residualControl
+    {
+    p       1e-4;
+    U       1e-5;
+    k       1e-5;
+    epsilon 1e-5;
+    }
+}
+
+potentialFlow
+{
+    nNonOrthogonalCorrectors 5;
+}
+
+relaxationFactors
+{
+    fields
+    {
+        p               0.7;
+    }
+    equations
+    {
+        U               0.3;
+        k               0.3;
+       epsilon          0.3;
+	   omega			0.3;
+    }
+}
+
+cache
+{
+    grad(U);
+}
+
+// ************************************************************************* //
+";
+            }
+        public static string surfaceFeatureExtractDict()
+        {
+            return @"/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.2                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      surfaceFeatureExtractDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+building.stl
+{
+    // How to obtain raw features (extractFromFile || extractFromSurface)
+    extractionMethod    extractFromSurface;
+
+    extractFromSurfaceCoeffs
+    {
+        // Mark edges whose adjacent surface normals are at an angle less
+        // than includedAngle as features
+        // - 0  : selects no edges
+        // - 180: selects all edges
+        includedAngle   180;
+    }
+
+    subsetFeatures
+    {
+        // Keep nonManifold edges (edges with >2 connected faces)
+        nonManifoldEdges       no;
+
+        // Keep open edges (edges with 1 connected face)
+        openEdges       yes;
+    }
+
+
+    // Write options
+
+        // Write features to obj format for postprocessing
+        writeObj                yes;
+}
+
+ground.stl
+{
+    // How to obtain raw features (extractFromFile || extractFromSurface)
+    extractionMethod    extractFromSurface;
+
+    extractFromSurfaceCoeffs
+    {
+        // Mark edges whose adjacent surface normals are at an angle less
+        // than includedAngle as features
+        // - 0  : selects no edges
+        // - 180: selects all edges
+        includedAngle   180;
+    }
+
+    subsetFeatures
+    {
+        // Keep nonManifold edges (edges with >2 connected faces)
+        nonManifoldEdges       no;
+
+        // Keep open edges (edges with 1 connected face)
+        openEdges       yes;
+    }
+
+
+    // Write options
+
+        // Write features to obj format for postprocessing
+        writeObj                yes;
+}
+
+// ************************************************************************* //
+";
+        }
+        public static string transportProperties()
+        {
+            return @"/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.2                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      transportProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+transportModel  Newtonian;
+
+nu              nu [0 2 -1 0 0 0 0] 1.5e-05;
+
+// ************************************************************************* //
+";
+        }
+        public static string turbulenceProperties()
+        {
+            return @"/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  3.0.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      RASProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+simulationType RAS;
+
+RAS
+{
+    RASModel         kOmegaSST; //RNGkEpsilon;
+
+    turbulence      on;
+
+    printCoeffs     on;
+}
+
+// ************************************************************************* //
+";
+        }
+
+    
+
+
     }
 }

@@ -27,8 +27,8 @@ namespace WindTunnel
         /// new tabs/panels will automatically be created.
         /// </summary>
         public BlockMesh()
-          : base("Domain", "Domain",
-              "Domain",
+          : base("DomainCyl", "DomainCyl",
+              "DomainCyl",
               "CFDTool", "Domain")
         {
         }
@@ -43,15 +43,21 @@ namespace WindTunnel
             pManager.AddBrepParameter("Geometry", "Geo", "Building Geometry. Add the volume for the virtual wind tunnel", GH_ParamAccess.list);
             pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item);
 
+            pManager.AddGenericParameter("windDir", "windDir", "windDir", GH_ParamAccess.item);
 
-            pManager.AddIntegerParameter("Mode", "Mode", "Domain generation mode", GH_ParamAccess.item, 0);
+            //pManager.AddIntegerParameter("Mode", "Mode", "Domain generation mode", GH_ParamAccess.item, 0);
 
-            Param_Integer param = pManager[2] as Param_Integer;
+            //Param_Integer param = pManager[2] as Param_Integer;
 
-            param.AddNamedValue("Box", 0);
-            param.AddNamedValue("Cyl", 1);
+            //param.AddNamedValue("Box", 0);
+            //param.AddNamedValue("Cyl", 1);
 
-            pManager.AddIntegerParameter("baseMesh", "baseMesh", "baseMesh", GH_ParamAccess.item, 20);
+            //pManager.AddIntegerParameter("baseMesh", "baseMesh", "baseMesh", GH_ParamAccess.item, 20);
+
+            pManager.AddIntegerParameter("divisionsX", "divisionsX", "divisionsX", GH_ParamAccess.item, 1);
+            pManager.AddIntegerParameter("divisionsY", "divisionsY", "divisionsY", GH_ParamAccess.item, 1);
+            pManager.AddIntegerParameter("divisionsZ", "divisionsZ", "divisionsZ", GH_ParamAccess.item, 10);
+
 
             pManager.AddGenericParameter("RAM", "RAM", "RAM", GH_ParamAccess.item);
             pManager.AddIntegerParameter("CPUs", "CPUs", "CPUs", GH_ParamAccess.item, 1);
@@ -90,23 +96,31 @@ namespace WindTunnel
             DA.GetDataList(0, domain);
             DA.GetData(1, ref workingDirectory);
 
-            int mode = 0;
-            int baseMesh = 0;
+            //int mode = 0;
+            //int baseMesh = 0;
             double RAM = 0;
             int CPUs = 1;
+            double windDir = 0;
+            int divisionsX = 1;
+            int divisionsY = 1;
+            int divisionsZ = 1;
 
-            DA.GetData(2, ref mode);
-            DA.GetData(3, ref baseMesh);
+            //DA.GetData(2, ref mode);
+            DA.GetData(2, ref windDir);
+            //DA.GetData(3, ref baseMesh);
+            DA.GetData(3, ref divisionsX);
+            DA.GetData(4, ref divisionsY);
+            DA.GetData(5, ref divisionsZ);
 
-            DA.GetData(4, ref RAM);
-            DA.GetData(5, ref CPUs);
-            DA.GetData(6, ref Run);
+            DA.GetData(6, ref RAM);
+            DA.GetData(7, ref CPUs);
+            DA.GetData(8, ref Run);
 
-            OFDomainBuilder DOM = new OFDomainBuilder(domain, workingDirectory, baseMesh);
+            //OFDomainBuilder DOM = new OFDomainBuilder(domain, workingDirectory, baseMesh);
             //DOM = OFDomainBuilder(domain, workingDirectory);
 
 
-            OFCylDomain DOMCYL = new OFCylDomain(domain, 1, 1, 10, 50, workingDirectory, 1);
+            OFCylDomain DOMCYL = new OFCylDomain(domain, divisionsX, divisionsY, divisionsZ, windDir, workingDirectory, 1);
 
 
             if (CPUs == -1 || CPUs > Environment.ProcessorCount)
@@ -188,45 +202,41 @@ namespace WindTunnel
 
                 STLExport.ExportBinary(stlFilenameBuildings, meshObjects);
 
-                if (mode == 0)
-                {
-                    STLExport.ExportBinary(stlFilenameGround, DOM.newBoxGround);
-                }
-                else
-                {
-                    STLExport.ExportBinary(stlFilenameGround, DOM.newCylGround);
-                }
+                
+                
+                STLExport.ExportBinary(stlFilenameGround, DOMCYL.DomainMeshGround);
+  
 
 
                 string systemDir = workingDirectory + @"\system\";
+                string constantDir = workingDirectory + @"\constant\";
+                string boundaryConditionsDir = workingDirectory + @"\0.org\";
 
                 if (!Directory.Exists(systemDir))
                 {
                     Directory.CreateDirectory(systemDir);
                 }
-
-
-
-                if (mode == 1)
+                if (!Directory.Exists(constantDir))
                 {
-                    //File.WriteAllText(Path.Combine(systemDir + "blockMeshDictCirc"), StringTemplates.circularDomainM4(DOM));
-                    //ProcessStartInfo m4 = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\CallOF\bin\CallOF.exe", " -e \"m4 ./system/blockMeshDictCirc > ./system/blockMeshDict\" -f " + DOM.workingDirectory);
-                    ////File.Delete(workingDirectory+@"\system\blockMeshDictCirc");
-                    //Process m4p = new Process();
-                    //m4p.StartInfo = m4;
-                    //m4p.Start();
-                    //m4p.WaitForExit();
-
-                    File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), DOMCYL.stringyfyDomain());
+                    Directory.CreateDirectory(constantDir);
                 }
-                else
+                if (!Directory.Exists(boundaryConditionsDir))
                 {
-                    File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), StringTemplates.blockMeshDict(DOM));
+                    Directory.CreateDirectory(boundaryConditionsDir);
                 }
+
+
+                File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), DOMCYL.stringyfyDomain());
 
 
                 
-                ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\CallOF\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
+
+
+
+
+
+
+                ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\CallOF\bin\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
                 Process p = new Process();
                 p.StartInfo = psi;
                 p.Start();
@@ -259,15 +269,9 @@ namespace WindTunnel
             //    return;
             //}
 
-            DA.SetData(1, DOM);
-            if (mode == 0)
-            {
-                DA.SetData(2, DOM.newBoxDomain);
-            }
-            else
-            {
-                DA.SetData(2, DOM.newCylindricalDomain);
-            }
+           DA.SetData(1, DOMCYL);           
+           DA.SetData(2, DOMCYL.DomainMeshGround);
+            
 
 
 
@@ -294,7 +298,7 @@ namespace WindTunnel
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("{0AD4BDF7-33AC-492D-ABF0-622A5488C8E2}"); }
+            get { return new Guid("{DDB7971A-EBAD-4A6F-8BFB-E77FE24F73BD}"); }
         }
     }
 

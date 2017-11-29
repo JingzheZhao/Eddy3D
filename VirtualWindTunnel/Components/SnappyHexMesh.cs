@@ -115,8 +115,9 @@ namespace WindTunnel
                 locationInMesh = DOM.locationInMesh;
 
                 File.WriteAllText(Path.Combine(systemDir + "snappyHexMeshDict"), StringTemplates.snappyHexMeshDict(acc, locationInMesh));
+                File.WriteAllText(Path.Combine(systemDir + "surfaceFeatureExtractDict"), StringTemplates.surfaceFeatureExtractDict());
 
-                
+
                 string command = DOM.CPU > 1 ? MultipleCPU: SingleCPU;
 
                 
