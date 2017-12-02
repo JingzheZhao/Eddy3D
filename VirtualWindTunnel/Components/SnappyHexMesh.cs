@@ -140,12 +140,15 @@ namespace WindTunnel
 
                 File.WriteAllText(Path.Combine(systemDir + "snappyHexMeshDict"), StringTemplates.snappyHexMeshDict(acc, locationInMesh));
                 File.WriteAllText(Path.Combine(systemDir + "surfaceFeatureExtractDict"), StringTemplates.surfaceFeatureExtractDict());
+                File.WriteAllText(Path.Combine(systemDir + "fvSchemes"), StringTemplates.fvSchemes());
+                File.WriteAllText(Path.Combine(systemDir + "fvSolution"), StringTemplates.fvSolution());
+                File.WriteAllText(Path.Combine(systemDir + "meshQualityDict"), StringTemplates.meshQualityDict());
 
 
                 string command = DOM.CPU > 1 ? MultipleCPU: SingleCPU;
 
                 
-                ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\CallOF\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
+                ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\Timur Dogan\Documents\GitHub\WindTunnel\CallOF\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
 
                 psi.UseShellExecute = false;
                 psi.WorkingDirectory = DOM.workingDirectory;
@@ -180,12 +183,12 @@ namespace WindTunnel
                 else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Nicht Super!!"); }
 
 
-                DA.SetData(1, DOM);
+             
 
             }
             
 
-
+   DA.SetData(1, DOM);
 
         }
 

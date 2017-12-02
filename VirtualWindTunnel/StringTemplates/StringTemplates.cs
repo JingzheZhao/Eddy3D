@@ -916,7 +916,25 @@ solvers
         relTol           0.1;
         nSweeps          1;
     }
-
+     ""(aoa | aoa0 | aoa1 | aoa2 | aoa3 | aoa4 | aoa5 | aoa6 | aoa7 | aoa8 | aoa9)""
+    {
+                solver PBiCG;
+                preconditioner DILU;
+                tolerance       1e-05;
+                relTol          0.1;
+                minIter 10;
+                maxIter 100;
+            }
+            co2
+  {
+                solver smoothSolver;
+                smoother symGaussSeidel;
+                tolerance       1e-06;
+                minIter 10;
+                maxIter 150;
+                relTol          0.1; //relTol(相对残差)tol（绝对残差）
+            }
+        }
 
         SIMPLE
 {
@@ -956,6 +974,7 @@ cache
 }
 
 // ************************************************************************* //
+
 ";
             }
         public static string surfaceFeatureExtractDict()

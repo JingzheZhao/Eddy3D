@@ -200,10 +200,7 @@ namespace WindTunnel
                 }
 
 
-                STLExport.ExportBinary(stlFilenameBuildings, meshObjects);
-
-                
-                
+                STLExport.ExportBinary(stlFilenameBuildings, meshObjects);        
                 STLExport.ExportBinary(stlFilenameGround, DOMCYL.DomainMeshGround);
   
 
@@ -227,16 +224,18 @@ namespace WindTunnel
 
 
                 File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), DOMCYL.stringyfyDomain());
-
-
-                
-
-
+                File.WriteAllText(Path.Combine(workingDirectory + "log"), "");
+                File.WriteAllText(Path.Combine(systemDir + "controlDict"), StringTemplates.controlDict(100, 5, 1));
 
 
 
 
-                ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\CallOF\bin\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
+
+
+
+
+
+                ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\Timur Dogan\Documents\GitHub\WindTunnel\CallOF\bin\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
                 Process p = new Process();
                 p.StartInfo = psi;
                 p.Start();

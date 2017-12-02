@@ -6,6 +6,7 @@ using Rhino.Geometry;
 using System.Text;
 using Grasshopper.Kernel.Parameters;
 using System.Diagnostics;
+using Grasshopper.Kernel.Types;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -63,6 +64,35 @@ namespace WindTunnel
         {
             //string filepath = @"C:\OF\";
             bool Run = false;
+
+
+
+           // OFBaseDomain DOM = null;
+           // if (!DA.GetData(0, ref DOM)) { return; }
+          
+
+            // we can use class inheritance 
+
+            OFBaseDomain DOM = null;
+
+            GH_ObjectWrapper gobj = null;
+            if (!DA.GetData(0, ref gobj)) { }
+
+            if ((gobj.Value is OFBaseDomain))
+            {
+                DOM = (OFBaseDomain)gobj.Value;
+            }
+            if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
+
+
+
+
+
+
+
+
+
+
             string SingleCPU = @"simpleFoam >> log ";
             string MultipleCPU = @"pyFoamRunner.py --autosense-parallel simpleFoam >> log ";
             
@@ -77,18 +107,11 @@ namespace WindTunnel
             int iter = 1000;
             int writeInterval = 20;
             int keepTimeSteps = 5;
-            string workingDirectory = "";
 
             DA.GetData(1, ref iter);
             DA.GetData(2, ref writeInterval);
             DA.GetData(3, ref keepTimeSteps);
             DA.GetData(4, ref Run);
-
-            OFBoxDomain DOM = null;
-            if (!DA.GetData(0, ref DOM)) { return; }
-            if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
-
-
 
             if (Run == true)
             {
@@ -101,9 +124,9 @@ namespace WindTunnel
                     Directory.CreateDirectory(stlDir);
                 }
 
-                string systemDir = workingDirectory + @"\system\";
-                string constantDir = workingDirectory + @"\constant\";
-                string boundaryConditionsDir = workingDirectory + @"\0.org\";
+                string systemDir = DOM.workingDirectory + @"\system\";
+                string constantDir = DOM.workingDirectory + @"\constant\";
+                string boundaryConditionsDir = DOM.workingDirectory + @"\0.org\";
 
                 if (!Directory.Exists(systemDir))
                 {
@@ -120,12 +143,10 @@ namespace WindTunnel
 
 
 
-                File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), StringTemplates.fvSchemes());
-                File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), StringTemplates.fvSolution());
-                File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), StringTemplates.fvSolution());
-                File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), StringTemplates.meshQualityDict());
-                
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "U"), BoundaryConditions.U());
+                var bconPathU = Path.Combine(boundaryConditionsDir + "U");
+
+
+                File.WriteAllText(bconPathU, BoundaryConditions.U());
                 File.WriteAllText(Path.Combine(boundaryConditionsDir + "P"), BoundaryConditions.P());
                 File.WriteAllText(Path.Combine(boundaryConditionsDir + "Omega"), BoundaryConditions.Omega());
                 File.WriteAllText(Path.Combine(boundaryConditionsDir + "K"), BoundaryConditions.K());
@@ -134,10 +155,10 @@ namespace WindTunnel
                 File.WriteAllText(Path.Combine(boundaryConditionsDir + "initialConditions"), BoundaryConditions.InitialConditions());
 
 
-                File.WriteAllText(Path.Combine(systemDir + "controlDict"), StringTemplates.controlDict(iter, keepTimeSteps, writeInterval));
+                
 
                 string command = DOM.CPU > 1 ? MultipleCPU : SingleCPU;
-                ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\CallOF\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
+                ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\Timur Dogan\Documents\GitHub\WindTunnel\CallOF\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
                
                 Process p = new Process();
                 p.StartInfo = psi;

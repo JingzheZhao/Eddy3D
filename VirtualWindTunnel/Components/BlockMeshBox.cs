@@ -198,10 +198,12 @@ namespace WindTunnel
 
 
                 
-                    File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), StringTemplates.blockMeshDict(DOM));
-               
+                File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), StringTemplates.blockMeshDict(DOM));
+                File.WriteAllText(Path.Combine(workingDirectory + "log"), "");
+                File.WriteAllText(Path.Combine(systemDir + "controlDict"), StringTemplates.controlDict(100, 5, 1));
 
-                
+
+
                 ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\CallOF\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
                 Process p = new Process();
                 p.StartInfo = psi;
