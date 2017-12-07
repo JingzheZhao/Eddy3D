@@ -233,9 +233,11 @@ namespace WindTunnel
 
 
 
+                
 
 
-                ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\Timur Dogan\Documents\GitHub\WindTunnel\CallOF\bin\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
+
+                ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory +@"\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
                 Process p = new Process();
                 p.StartInfo = psi;
                 p.Start();

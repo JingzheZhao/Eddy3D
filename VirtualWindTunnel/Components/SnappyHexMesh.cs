@@ -148,7 +148,7 @@ namespace WindTunnel
                 string command = DOM.CPU > 1 ? MultipleCPU: SingleCPU;
 
                 
-                ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\Timur Dogan\Documents\GitHub\WindTunnel\CallOF\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
+                ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
 
                 psi.UseShellExecute = false;
                 psi.WorkingDirectory = DOM.workingDirectory;

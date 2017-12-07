@@ -68,6 +68,7 @@
     <Compile Include="Components\GeometryExport.cs" />
     <Compile Include="StringTemplates\boundaryConditions.cs" />
     <Compile Include="StringTemplates\StringTemplates.cs" />
+    <Compile Include="Utilities.cs" />
     <Compile Include="VirtualWindTunnelInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
