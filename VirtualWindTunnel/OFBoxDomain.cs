@@ -46,7 +46,12 @@ namespace WindTunnel
         public double blockDimension;
         
 
-       public Mesh BuildingGeometry;
+        public Mesh BuildingGeometry;
+
+        //// Delete later
+        //public Plane pl;
+        //public Point3d center;
+        //// Delete later
 
 
         public OFBoxDomain(Mesh geometry, string _workingDirectory, double _blockDim)
@@ -58,17 +63,13 @@ namespace WindTunnel
 
             BBox = BuildingGeometry.GetBoundingBox(true);
                    
-
-
-
             xMin = BBox.Min.X;
             xMax = BBox.Max.X;
             yMin = BBox.Min.Y;
             yMax = BBox.Max.Y;
             zMin = BBox.Min.Z;
             zMax = BBox.Max.Z;
-            
-            
+                        
             Vector3d vecPlusY = new Vector3d(0, 1, 0);
             Vector3d vecMinusY = new Vector3d(0, -1, 0);
             Vector3d vecMinusX = new Vector3d(-1, 0, 0);
@@ -84,29 +85,27 @@ namespace WindTunnel
             
 
             //Create ground plane of BBox
-            center = BBox.Center + 0.5 * vecMinusZ * dimZ;
-
-            
+            center = BBox.Center + 0.5 * vecMinusZ * dimZ;            
             locationInMesh = center + 4 * vecPlusZ * dimZ;
 
 
 
-            Plane localSystem = Plane.WorldZX;
-            localSystem.Origin = center;
+            Plane localCoordSystem = Plane.WorldZX;
+            localCoordSystem.Origin = center;
 
-            localSystem.Translate(vecMinusY * dimY);
+            localCoordSystem.Translate(vecMinusY * dimY);
 
 
 
             //Create Box Domain
             //Find frontfacing areas in wind direction
      
-            frontageBuildingArea = projectedBuildingArea(localSystem, BuildingGeometry);
+            frontageBuildingArea = projectedBuildingArea(localCoordSystem, BuildingGeometry);
            
 
             //New Dimensions in Y \cite{Tominaga2008,Franke2007}
-            double scaleRectDomainYUpstream = - 5.5 * dimZ;
-            double scaleRectDomainYDownstream = 15.5 * dimZ;
+            double scaleRectDomainYUpstream = - (5.5 * dimZ + dimY);
+            double scaleRectDomainYDownstream = 15.5 * dimZ + dimY;
             double scaleRectDomainZ = 6* dimZ;
 
             // New Dimensions in X; take blocking ratio into account
@@ -126,7 +125,7 @@ namespace WindTunnel
             zCells = (int)((Math.Abs(zInter.Length)) / blockDimension);
 
 
-            var pl = Plane.WorldXY;
+            Plane pl = Plane.WorldXY;
             pl.Origin = center;
 
             //Plane newPlaneGround = new Plane()

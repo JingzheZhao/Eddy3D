@@ -39,8 +39,8 @@ namespace WindTunnel
             Box box = new Box(localSystem, interval, interval2, interval3);
 
             //Todo:
-            int z = 50;
-            int y = 50;
+            int z = 30;
+            int y = 30;
 
             double incrY = interval.Length / y;
             double incrZ = interval2.Length / z;

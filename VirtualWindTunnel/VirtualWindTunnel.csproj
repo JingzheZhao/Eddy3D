@@ -54,19 +54,19 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Components\BlockMeshCyl.cs" />
-    <Compile Include="Components\CellSize.cs" />
+    <Compile Include="Components\CompBlockMeshCyl.cs" />
+    <Compile Include="Components\CompCellSize.cs" />
     <Compile Include="OFBaseDomain.cs" />
     <Compile Include="OFCylDomain.cs" />
     <Compile Include="Settings.cs" />
-    <Compile Include="Components\BlockMeshBox.cs" />
-    <Compile Include="Components\SimpleFoam.cs" />
-    <Compile Include="Components\SnappyHexMesh.cs" />
-    <Compile Include="Components\Clean.cs" />
+    <Compile Include="Components\CompBlockMeshBox.cs" />
+    <Compile Include="Components\CompSimpleFoam.cs" />
+    <Compile Include="Components\CompSnappyHexMesh.cs" />
+    <Compile Include="Components\CompClean.cs" />
     <Compile Include="OFLaunch.cs" />
     <Compile Include="OFBoxDomain.cs" />
     <Compile Include="STLExport.cs" />
-    <Compile Include="Components\GeometryExport.cs" />
+    <Compile Include="Components\CompGeometryExport.cs" />
     <Compile Include="StringTemplates\boundaryConditions.cs" />
     <Compile Include="StringTemplates\StringTemplates.cs" />
     <Compile Include="Utilities.cs" />

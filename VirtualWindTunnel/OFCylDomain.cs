@@ -82,7 +82,7 @@ namespace WindTunnel
 
             
             height =  6 * dimZ;
-            var scaleCyclDomainHeight = 15.5 * dimZ;
+            var scaleCyclDomainHeight = (15.5 * dimZ) + dimY;
             //var scaleCyclDomainHeight = dimZ > dimY ? dimZ : dimY;
 
 

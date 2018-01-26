@@ -68,6 +68,11 @@ namespace WindTunnel
             pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.item);
             pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
             pManager.AddGenericParameter("Cyl", "C", "Domain", GH_ParamAccess.item);
+
+            //Delete later
+            pManager.AddGenericParameter("D", "D", "D", GH_ParamAccess.item);
+            pManager.AddGenericParameter("E", "E", "E", GH_ParamAccess.item);
+
         }
 
 
@@ -199,8 +204,8 @@ namespace WindTunnel
 
 
                 STLExport.ExportBinary(stlFilenameBuildings, allTogether);
+                STLExport.ExportBinary(stlFilenameGround, DOM.newBoxGround);
 
-             
 
 
                 string systemDir = workingDirectory + @"\system\";
@@ -216,7 +221,7 @@ namespace WindTunnel
                 File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), StringTemplates.blockMeshDict(DOM));
                 File.WriteAllText(Path.Combine(workingDirectory + "log"), "");
                 File.WriteAllText(Path.Combine(workingDirectory + "case.foam"), "");
-                File.WriteAllText(Path.Combine(systemDir + "controlDict"), StringTemplates.controlDict(100, 5, 1));
+                File.WriteAllText(Path.Combine(systemDir + "controlDict"), StringTemplates.controlDict(100, 5, 5));
 
 
 
@@ -256,7 +261,15 @@ namespace WindTunnel
             DA.SetData(1, DOM);
             //if (mode == 0)
             //{
-                DA.SetData(2, DOM.newBoxDomain);
+            DA.SetData(2, DOM.newBoxDomain);
+
+            ////Delete later
+            //DA.SetData(3, DOM.pl);
+            //DA.SetData(4, DOM.plGround);
+            ////DA.SetData(5, DOM.);
+            ////Delete later
+
+
             //}
             //else
             //{

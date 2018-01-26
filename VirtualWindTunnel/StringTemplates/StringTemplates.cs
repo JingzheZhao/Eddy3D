@@ -145,7 +145,7 @@ FoamFile
     {
         features
         (
-            {file ""building.eMesh""; level " + (acc + 1) + @";}
+            {file ""building.eMesh""; level " + (acc ) + @";}
         );
         refinementSurfaces
         {
