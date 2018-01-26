@@ -55,6 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\BlockMeshCyl.cs" />
+    <Compile Include="Components\CellSize.cs" />
     <Compile Include="OFBaseDomain.cs" />
     <Compile Include="OFCylDomain.cs" />
     <Compile Include="Settings.cs" />

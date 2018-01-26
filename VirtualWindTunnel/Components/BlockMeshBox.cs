@@ -40,7 +40,7 @@ namespace WindTunnel
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddBrepParameter("Geometry", "Geo", "Building Geometry. Add the volume for the virtual wind tunnel", GH_ParamAccess.list);
+            pManager.AddGeometryParameter("Geometry", "Geo", "Building Geometry. Add the volume for the virtual wind tunnel", GH_ParamAccess.list);
             pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item);
 
 
@@ -51,7 +51,7 @@ namespace WindTunnel
             param.AddNamedValue("Box", 0);
             param.AddNamedValue("Cyl", 1);
 
-            pManager.AddIntegerParameter("baseMesh", "baseMesh", "baseMesh", GH_ParamAccess.item, 20);
+            pManager.AddNumberParameter("baseMesh", "baseMesh", "baseMesh", GH_ParamAccess.item);
 
             pManager.AddGenericParameter("RAM", "RAM", "RAM", GH_ParamAccess.item);
             pManager.AddIntegerParameter("CPUs", "CPUs", "CPUs", GH_ParamAccess.item, 1);
@@ -85,24 +85,49 @@ namespace WindTunnel
             string workingDirectory = "";
 
             //public Box DomainBoundaryBox;
-            List<Brep> domain = new List<Brep>();
+            List<GeometryBase> domain = new List<GeometryBase>();
 
             DA.GetDataList(0, domain);
             DA.GetData(1, ref workingDirectory);
 
             int mode = 0;
-            int baseMesh = 0;
+            double blockDimension = 0;
             double RAM = 0;
             int CPUs = 1;
 
             DA.GetData(2, ref mode);
-            DA.GetData(3, ref baseMesh);
+            DA.GetData(3, ref blockDimension);
 
             DA.GetData(4, ref RAM);
             DA.GetData(5, ref CPUs);
             DA.GetData(6, ref Run);
 
-            OFBoxDomain DOM = new OFBoxDomain(domain, workingDirectory, baseMesh);
+
+            
+            Mesh allTogether = new Mesh();
+            MeshingParameters mp = new MeshingParameters();
+
+            foreach (GeometryBase b in domain)
+            {
+
+                if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
+                {
+                    Mesh obj = (Mesh)b;
+                    allTogether.Append(obj);
+                }
+                else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
+                {
+                    Brep obj = (Brep)b;
+                    var m = Mesh.CreateFromBrep(obj, mp);
+                    foreach (Mesh mm in m) allTogether.Append(mm);
+
+                }
+
+
+            }
+
+
+            OFBoxDomain DOM = new OFBoxDomain(allTogether, workingDirectory, blockDimension);
             //DOM = OFDomainBuilder(domain, workingDirectory);
 
 
@@ -163,16 +188,6 @@ namespace WindTunnel
 
 
 
-                MeshingParameters mp = new MeshingParameters();
-                MeshingParameters mps = MeshingParameters.Smooth;
-                List<Mesh> meshObjects = new List<Mesh>();
-
-                foreach (Brep b in domain)
-                {
-                    meshObjects.AddRange(Mesh.CreateFromBrep(b, mp));
-
-                }
-
                 var stlDir = Path.GetDirectoryName(workingDirectory + @"\constant\triSurface\");
                 var stlFilenameBuildings = workingDirectory + @"\constant\triSurface\building.stl";
                 var stlFilenameGround = workingDirectory + @"\constant\triSurface\ground.stl";
@@ -183,7 +198,7 @@ namespace WindTunnel
                 }
 
 
-                STLExport.ExportBinary(stlFilenameBuildings, meshObjects);
+                STLExport.ExportBinary(stlFilenameBuildings, allTogether);
 
              
 
@@ -200,11 +215,12 @@ namespace WindTunnel
                 
                 File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), StringTemplates.blockMeshDict(DOM));
                 File.WriteAllText(Path.Combine(workingDirectory + "log"), "");
+                File.WriteAllText(Path.Combine(workingDirectory + "case.foam"), "");
                 File.WriteAllText(Path.Combine(systemDir + "controlDict"), StringTemplates.controlDict(100, 5, 1));
 
 
 
-                ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
+                ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
                 Process p = new Process();
                 p.StartInfo = psi;
                 p.Start();

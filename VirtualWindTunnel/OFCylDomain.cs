@@ -31,6 +31,7 @@ namespace WindTunnel
         List<int> bottomFaceID = new List<int>();
         List<int> outletFaceID = new List<int>();
         List<int> inletFaceID = new List<int>();
+        public List<Point3d> ListOfAllPointsInMagicOrder;
 
 
         public int divisionsX;
@@ -46,7 +47,7 @@ namespace WindTunnel
 
 
 
-        public OFCylDomain(List<Brep> geometry, int _divisionsX, int _divisionsY , int _divisionsZ , double windDir, string _workingDirectory, int _CPU)
+        public OFCylDomain(Mesh geometry, int _divisionsX, int _divisionsY , int _divisionsZ , double windDir, string _workingDirectory, int _CPU)
         {
             workingDirectory = _workingDirectory;
             CPU = _CPU;
@@ -55,15 +56,10 @@ namespace WindTunnel
             divisionsY = _divisionsY;
             divisionsZ = _divisionsZ;
 
-            BBox = geometry[0].GetBoundingBox(true);
-            if (geometry.Count > 1)
-            {
-                for (int i = 1; i < geometry.Count; i++)
-                {
-                    BoundingBox bbb = geometry[i].GetBoundingBox(true);
-                    BBox.Union(bbb);
-                }
-            }
+            BBox = geometry.GetBoundingBox(true);
+           
+                        
+           
 
             var xMin = BBox.Min.X;
             var xMax = BBox.Max.X;
@@ -83,11 +79,33 @@ namespace WindTunnel
             locationInMesh = center + 4 * Vector3d.ZAxis * dimZ;
 
             //Create Circular Domain Ground
-            var dim = dimX > dimY ? dimX : dimY;
-             radius = 16.5 * dim;
-             height =  6 * dimZ;
+
+            
+            height =  6 * dimZ;
+            var scaleCyclDomainHeight = 15.5 * dimZ;
+            //var scaleCyclDomainHeight = dimZ > dimY ? dimZ : dimY;
 
 
+            Plane localSystem = Plane.WorldZX;
+            localSystem.Origin = center;
+
+            localSystem.Translate(-Vector3d.YAxis * dimY);
+            var projAreaList = new List<double>();
+            for(int i = 0; i < 72; i++) {
+                Plane localCopy = new Plane(localSystem);
+                localCopy.Rotate(5 * i * Math.PI / 180, Vector3d.ZAxis, center);
+
+                projAreaList.Add(projectedBuildingArea(localCopy, geometry));
+            }
+
+            frontageBuildingArea = projAreaList.Max();
+
+
+            // New Dimensions in X; take blocking ratio into account
+            var scaleCyclDomainBlockingRatio = frontageBuildingArea * 100 / 3 / height/2;
+
+
+            radius = scaleCyclDomainBlockingRatio > scaleCyclDomainHeight ? scaleCyclDomainBlockingRatio : scaleCyclDomainHeight; ;
 
             var allPoints = MakeCylMeshPoints5deg(center, radius, height);
 
@@ -202,6 +220,8 @@ namespace WindTunnel
 
         }
 
+
+
         private void ParseGroundMesh()
         {
                         
@@ -296,7 +316,9 @@ mergePatchPairs
 
         }
 
-        private static List<Point3d> MakeCylMeshPoints5deg(Point3d center, double radius, double height)
+        //private static List<Point3d> MakeCylMeshPoints5deg(Point3d center, double radius, double height)
+        //public static List<Point3d> MakeCylMeshPoints5deg(Point3d center, double radius, double height)
+        public List<Point3d> MakeCylMeshPoints5deg(Point3d center, double radius, double height)
         {
 
             Plane pl = new Plane(center, Vector3d.ZAxis);
@@ -453,13 +475,17 @@ mergePatchPairs
 
 
 
-            List<Point3d> ListOfAllPointsInMagicOrder = outerRingPointsLower.Concat(pointsOnInnerRectLower).Concat(gridPointsLower).Concat(outerRingPointsUpper).Concat(pointsOnInnerRectUpper).Concat(gridPointsUpper).ToList();
+            //List<Point3d> 
+            ListOfAllPointsInMagicOrder = outerRingPointsLower.Concat(pointsOnInnerRectLower).Concat(gridPointsLower).Concat(outerRingPointsUpper).Concat(pointsOnInnerRectUpper).Concat(gridPointsUpper).ToList();
 
 
 
             return ListOfAllPointsInMagicOrder;
 
         }
+
+
+
 
         private static string stringyfyBoundaries(Mesh m, List<int> outletFaceID, List<int> inletFaceID, List<int> topFaceID, List<int> bottomFaceID)
         {
@@ -3226,7 +3252,18 @@ mergePatchPairs
             return val;
         }
 
-   
+        public override string ToString()
+        {
+            return "Cyclic Domain:\n" +
+            "Smallest cell size in center: " + Math.Round(Math.Abs(ListOfAllPointsInMagicOrder[145].X - ListOfAllPointsInMagicOrder[136].X)) + " m\n"+
+            "Projected area: " + Math.Round(frontageBuildingArea)
+
+
+
+            ;
+            // return base.ToString();
+        }
 
     }
 }
+

@@ -51,6 +51,7 @@ namespace WindTunnel
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
+            //pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.item);
         }
 
 
@@ -158,7 +159,8 @@ namespace WindTunnel
                 
 
                 string command = DOM.CPU > 1 ? MultipleCPU : SingleCPU;
-                ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
+                ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
+                //ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
                
                 Process p = new Process();
                 p.StartInfo = psi;
@@ -168,12 +170,29 @@ namespace WindTunnel
 
                // OFLaunch.Run(command, StringTemplates.filePath);
             }
-            //else
+
+            //string logFile = "";
+
+            //using (FileStream stream = File.Open(DOM.workingDirectory + @"\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             //{
-            //    return;
+            //    using (StreamReader reader = new StreamReader(stream))
+            //    {
+            //        logFile = reader.ReadToEnd();
+            //        //while (!reader.EndOfStream)
+            //        //{
+
+            //        //}
+
+            //    }
             //}
 
-            
+            //DA.SetData(0, logFile);
+
+            //if (logFile.Contains("End")) { AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Super!!"); }
+            //// else if (logFile.Contains("End")) { AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Fast Super!!"); }
+            //else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Nicht Super!!"); }
+
+
         }
 
         /// <summary>

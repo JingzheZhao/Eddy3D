@@ -35,8 +35,6 @@ namespace WindTunnel
         public int zCells;
 
         public BoundingBox BBox;
-        public Circle circ;
-        public Cylinder newCylindricalDomain;
         public Mesh newBoxGround;
         public Mesh newCylGround;
         public Box newBoxDomain;
@@ -44,35 +42,22 @@ namespace WindTunnel
 
         public Rectangle3d plGround;
 
-        public double diameter;
-       
-        public double baseMesh;
+        public double diameter;  
+        public double blockDimension;
         
-   
 
-        public Point3d newMinGroundPlane1;
-        public Point3d newMaxGroundPlane2;
-
-       
+       public Mesh BuildingGeometry;
 
 
-        public OFBoxDomain(List<Brep> geometry, string _workingDirectory, double _baseMesh)
+        public OFBoxDomain(Mesh geometry, string _workingDirectory, double _blockDim)
         {
             workingDirectory = _workingDirectory;
-            baseMesh = _baseMesh;
-            
+            blockDimension = _blockDim;
+            BuildingGeometry = geometry;
             //BoundingBox bb = domain.GetBoundingBox(true);
-            
-            BBox = geometry[0].GetBoundingBox(true);
-            if (geometry.Count > 1)
-            {
 
-                for (int i = 1; i < geometry.Count; i++)
-                {
-                    BoundingBox bbb = geometry[i].GetBoundingBox(true);
-                    BBox.Union(bbb);
-                }
-            }
+            BBox = BuildingGeometry.GetBoundingBox(true);
+                   
 
 
 
@@ -104,27 +89,28 @@ namespace WindTunnel
             
             locationInMesh = center + 4 * vecPlusZ * dimZ;
 
-            //Create Circular Domain
-            dim = dimX > dimY ? dimX : dimY;
-            circ = new Circle(center, 16.5 * dim);
-            newCylindricalDomain = new Cylinder(circ, 6* dimZ);
-            MeshingParameters mpGround = MeshingParameters.Default;
-            newCylGround = Mesh.CreateFromPlanarBoundary(circ.ToNurbsCurve(), mpGround);
+
+
+            Plane localSystem = Plane.WorldZX;
+            localSystem.Origin = center;
+
+            localSystem.Translate(vecMinusY * dimY);
 
 
 
             //Create Box Domain
             //Find frontfacing areas in wind direction
-            double pj;
-            double projectedAreaZX = FindFacades(Plane.WorldZX, geometry, out pj);
+     
+            frontageBuildingArea = projectedBuildingArea(localSystem, BuildingGeometry);
+           
 
-            //New Dimensions in Y
-            double scaleRectDomainYUpstream = - 10.5 * dimY;
-            double scaleRectDomainYDownstream = 16.5 * dimY;
+            //New Dimensions in Y \cite{Tominaga2008,Franke2007}
+            double scaleRectDomainYUpstream = - 5.5 * dimZ;
+            double scaleRectDomainYDownstream = 15.5 * dimZ;
             double scaleRectDomainZ = 6* dimZ;
 
             // New Dimensions in X; take blocking ratio into account
-            var scaleRectDomainX  = projectedAreaZX * 100 / 3 / scaleRectDomainZ / 2;
+            var scaleRectDomainX  = frontageBuildingArea * 100 / 3 / scaleRectDomainZ / 2;
 
          
 
@@ -135,9 +121,9 @@ namespace WindTunnel
 
           
 
-            xCells = (int)((Math.Abs(xInter.Length)) / baseMesh);
-            yCells = (int)((Math.Abs(yInter.Length)) / baseMesh);
-            zCells = (int)((Math.Abs(zInter.Length)) / baseMesh);
+            xCells = (int)((Math.Abs(xInter.Length)) / blockDimension);
+            yCells = (int)((Math.Abs(yInter.Length)) / blockDimension);
+            zCells = (int)((Math.Abs(zInter.Length)) / blockDimension);
 
 
             var pl = Plane.WorldXY;
@@ -157,19 +143,21 @@ namespace WindTunnel
 
             Rectangle3d plGround = new Rectangle3d(pl, xInter, yInter);
             //Rectangle3d plGround = new Rectangle3d(pl, newMin, newMax);
+            MeshingParameters mpGround = MeshingParameters.Default;
             newBoxGround = Mesh.CreateFromPlanarBoundary(plGround.ToNurbsCurve(), mpGround);
 
         }
 
         public override string ToString()
         {
-            return "OF Domain:\n" +
-            "Dimensions in x: " + Math.Round(xCells * baseMesh) + " m\n" +
-            "Dimensions in y: " + Math.Round(yCells * baseMesh) + " m\n" +
-            "Dimensions in z: " + Math.Round(zCells * baseMesh) + " m\n" +
+            return "Box Domain:\n" +
+            "Dimensions in x: " + Math.Round(xCells * blockDimension) + " m\n" +
+            "Dimensions in y: " + Math.Round(yCells * blockDimension) + " m\n" +
+            "Dimensions in z: " + Math.Round(zCells * blockDimension) + " m\n" +
             "Cells in x: " + xCells + "\n" +
             "Cells in y: " + xCells + "\n" +
-            "Cells in z: " + zCells + "\n"
+            "Cells in z: " + zCells + "\n"+
+            "Projected area: " + Math.Round(frontageBuildingArea)
 
 
             ;
@@ -181,42 +169,7 @@ namespace WindTunnel
 
 
 
-        public static double FindFacades(Plane plane, List<Brep> volumes, out double projectedAreaTotal)
-        {
-            List<Brep> Facades = new List<Brep>();
-
-            List<double> projectedAreas = new List<double>();
-            foreach (Brep b in volumes)
-            {
-                for (int i = 0; i < b.Faces.Count; i++)
-                {
-                    Vector3d vSurf = b.Faces[i].NormalAt(0.5, 0.5);
-                    double dot = plane.ZAxis * vSurf;
-                    if (dot < 0.1) continue;
-
-
-                    Brep face = b.Faces[i].DuplicateFace(false);
-                    //Print(dot + "");
-                    Facades.Add(face);
-
-                    Vector3d cross = Vector3d.CrossProduct(plane.ZAxis, vSurf);
-                    double norm = cross.Length;
-                    double angle = Math.Atan2(norm, dot);
-
-                    //Print((angle * 180 / Math.PI) + "");
-
-                    double projectedArea = face.GetArea() * Math.Cos(angle);
-
-                    projectedAreas.Add(projectedArea);
-                    //Print(projectedArea + "");
-                }
-            }
-            projectedAreaTotal = projectedAreas.Sum(x => x);
-
-            //return Facades;
-
-            return projectedAreaTotal;
-        }
+      
 
     }
 }

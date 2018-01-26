@@ -65,9 +65,9 @@ FoamFile
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 
-flowVelocity(0 12 0);
+flowVelocity (0 12 0);
 
-        pressure		0; // you don't have to change this value
+pressure		0; // you don't have to change this value
 
 turbulentKE		0.03456;
 
@@ -99,7 +99,7 @@ FoamFile
         }
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-        dimensions[0 2 - 3 0 0 0 0];
+        dimensions [0 2 -3 0 0 0 0];
 
 #include		""initialConditions"";
 
@@ -229,7 +229,7 @@ internalField uniform $turbulentKE;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions[0 0 - 1 0 0 0 0];
+dimensions [0 0 -1 0 0 0 0];
 
 #include		""initialConditions"";
 
@@ -356,16 +356,16 @@ FoamFile
     format      ascii;
     class       volVectorField;
     location    ""0"";
-    object U;
+    object      U;
     }
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 
 
-    dimensions[0 1 - 1 0 0 0 0];
+    dimensions[0 1 -1 0 0 0 0];
 
 
-#include		""initialConditions"";
+#include ""initialConditions"";
 
 internalField uniform $flowVelocity;
 
@@ -383,7 +383,7 @@ inlet
     {
 
         type atmBoundaryLayerInletVelocity;
-        #include		""ABLConditions"";
+        #include ""ABLConditions"";
 
     }
         //type            fixedValue;
@@ -392,14 +392,14 @@ inlet
 outlet
     {
         type inletOutlet;
-value		$internalField;
+        value $internalField;
         inletValue uniform(0 0 0);
     }
 
 ground
     {
         type fixedValue;
-value uniform(0 0 0);
+        value uniform(0 0 0);
     }
 
 
@@ -407,7 +407,7 @@ value uniform(0 0 0);
 building
     {
         type fixedValue;
-value uniform(0 0 0);
+        value uniform(0 0 0);
     }
 
 

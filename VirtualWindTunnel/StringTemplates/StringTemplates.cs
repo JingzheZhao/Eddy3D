@@ -443,9 +443,9 @@ define(diameter, " + (16.5 * DOM.dim) + @")dnl
 define(cornerStretch, 1)dnl 
 define(arcStretch, 1)dnl
 dnl ===    CELL COUNT    ===
-define(coreCount, " + Math.Round((DOM.dim / DOM.baseMesh)) + @")dnl 
-define(rectangleCount, " + Math.Round(((16.5 * DOM.dim) / DOM.baseMesh)) + @")dnl 
-define(zCount, " + Math.Round((DOM.dimZ / DOM.baseMesh)) + @")dnl
+define(coreCount, " + Math.Round((DOM.dim / DOM.blockDimension)) + @")dnl 
+define(rectangleCount, " + Math.Round(((16.5 * DOM.dim) / DOM.blockDimension)) + @")dnl 
+define(zCount, " + Math.Round((DOM.dimZ / DOM.blockDimension)) + @")dnl
 dnl ===BOUNDING RECTANGLE?===
 define(boundRect, 1)dnl
 dnl =========================
@@ -805,8 +805,6 @@ divSchemes
     div(phi,k)      bounded Gauss upwind;
     div(phi,epsilon)  bounded Gauss upwind;
     div(phi,omega)  bounded Gauss upwind;
-    div(phi,aoa)  bounded Gauss upwind;
-	div(phi,co2)  bounded Gauss upwind;
     div((nuEff*dev2(T(grad(U))))) Gauss linear;
     div(phi,time)   bounded   Gauss limitedLinear 1;
 }
@@ -861,7 +859,7 @@ FoamFile
 
 solvers
 {
-    p
+p
     {
         solver           GAMG;
         tolerance        1e-9;
@@ -874,15 +872,8 @@ solvers
         nCellsInCoarsestLevel 10;
         mergeLevels      1;
     }
-/* Phi
-    {
-        solver           GAMG;
-        tolerance        1e-7;
-        relTol           0.01;
-        smoother         GaussSeidel;
-    }*/
 
-    U
+U
     {
         solver           smoothSolver;
         smoother         GaussSeidel;
@@ -891,7 +882,7 @@ solvers
         nSweeps          1;
     }
 
-    k
+k
     {
         solver           smoothSolver;
         smoother         GaussSeidel;
@@ -900,7 +891,7 @@ solvers
         nSweeps          1;
     }
 
-    epsilon
+epsilon
     {
         solver           smoothSolver;
         smoother         GaussSeidel;
@@ -908,7 +899,7 @@ solvers
         relTol           0.1;
         nSweeps          1;
     }
-     omega
+omega
     {
         solver           smoothSolver;
         smoother         GaussSeidel;
@@ -916,27 +907,9 @@ solvers
         relTol           0.1;
         nSweeps          1;
     }
-     ""(aoa | aoa0 | aoa1 | aoa2 | aoa3 | aoa4 | aoa5 | aoa6 | aoa7 | aoa8 | aoa9)""
-    {
-                solver PBiCG;
-                preconditioner DILU;
-                tolerance       1e-05;
-                relTol          0.1;
-                minIter 10;
-                maxIter 100;
-            }
-            co2
-  {
-                solver smoothSolver;
-                smoother symGaussSeidel;
-                tolerance       1e-06;
-                minIter 10;
-                maxIter 150;
-                relTol          0.1; //relTol(相对残差)tol（绝对残差）
-            }
-        }
+}
 
-        SIMPLE
+SIMPLE
 {
     nNonOrthogonalCorrectors 3;
     residualControl
@@ -946,11 +919,13 @@ solvers
     k       1e-5;
     epsilon 1e-5;
     }
+    pRefCell    0;
+    pRefValue    0;
 }
 
 potentialFlow
 {
-    nNonOrthogonalCorrectors 5;
+    nNonOrthogonalCorrectors 3;
 }
 
 relaxationFactors
