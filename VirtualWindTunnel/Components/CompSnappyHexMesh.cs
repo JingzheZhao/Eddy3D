@@ -39,7 +39,10 @@ namespace WindTunnel
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("Accuracy", "acc", "Specify accuracy of mesh", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("accBuilding", "accBuilding", "Specify accuracy of mesh", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("accFeatures", "accFeatures", "Specify accuracy of mesh", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("accGround", "accGround", "Specify accuracy of mesh", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Layer", "Layer", "Specify accuracy of mesh", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Run", "Run", "Create the mesh.", GH_ParamAccess.item, false);
 
         }
@@ -107,9 +110,17 @@ namespace WindTunnel
 
 
 
-            int acc = 3;          
-            DA.GetData(1, ref acc);            
-            DA.GetData(2, ref Run);
+            int accBuilding = 3;
+            int accFeatures = 3;
+            int accGround = 3;
+            int layers = 3;
+
+            
+            DA.GetData(1, ref accBuilding);
+            DA.GetData(2, ref accFeatures);
+            DA.GetData(3, ref accGround);
+            DA.GetData(4, ref layers);
+            DA.GetData(5, ref Run);
 
 
 
@@ -135,7 +146,7 @@ namespace WindTunnel
                 Point3d locationInMesh = new Point3d();
                 locationInMesh = DOM.locationInMesh;
 
-                File.WriteAllText(Path.Combine(systemDir + "snappyHexMeshDict"), StringTemplates.snappyHexMeshDict(acc, locationInMesh));
+                File.WriteAllText(Path.Combine(systemDir + "snappyHexMeshDict"), StringTemplates.snappyHexMeshDict(accBuilding, accFeatures, accGround, layers, locationInMesh));
                 File.WriteAllText(Path.Combine(systemDir + "surfaceFeatureExtractDict"), StringTemplates.surfaceFeatureExtractDict());
                 File.WriteAllText(Path.Combine(systemDir + "fvSchemes"), StringTemplates.fvSchemes());
                 File.WriteAllText(Path.Combine(systemDir + "fvSolution"), StringTemplates.fvSolution());
@@ -175,9 +186,9 @@ namespace WindTunnel
 
                 DA.SetData(0, logFile);
 
-                if (logFile.Contains("End")) {      AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Super!!"); }
+                //if (logFile.Contains("End")) {      AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Super!!"); }
                // else if (logFile.Contains("End")) { AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Fast Super!!"); }
-                else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Nicht Super!!"); }
+                //else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Nicht Super!!"); }
 
 
              

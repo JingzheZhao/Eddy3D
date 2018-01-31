@@ -104,7 +104,7 @@ boundary
         ";
         }
 
-        public static string snappyHexMeshDict(int acc, Point3d locationInMesh)
+        public static string snappyHexMeshDict(int accBuilding, int accFeatures, int accGround, int layers, Point3d locationInMesh)
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
@@ -145,13 +145,13 @@ FoamFile
     {
         features
         (
-            {file ""building.eMesh""; level " + (acc ) + @";}
+            {file ""building.eMesh""; level " + (accFeatures) + @" ;}
         );
         refinementSurfaces
         {
             building
             {
-                level (" + acc + " " + acc + @");
+                level (" + accBuilding + " " + accBuilding + @");
                 patchInfo
                 {
                     type wall;
@@ -160,7 +160,7 @@ FoamFile
 
             ground
             {
-                level (" + acc + " " + acc + @");
+                level (" + (accGround ) + " " + (accGround) + @");
                 patchInfo
                 {
                     type wall;
@@ -208,11 +208,11 @@ FoamFile
         {
             building
             {
-                nSurfaceLayers 3;
+                nSurfaceLayers "+ layers + @";
             }
             ground
             {
-                nSurfaceLayers 3;
+                nSurfaceLayers "+ layers + @";
             }
         }
 

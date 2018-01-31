@@ -3255,7 +3255,7 @@ mergePatchPairs
         public override string ToString()
         {
             return "Cyclic Domain:\n" +
-            "Smallest cell size in center: " + Math.Round(Math.Abs(ListOfAllPointsInMagicOrder[145].X - ListOfAllPointsInMagicOrder[136].X)) + " m\n"+
+            "Smallest cell size in center: " + Math.Round(Math.Abs(ListOfAllPointsInMagicOrder[281].X - ListOfAllPointsInMagicOrder[280].X)) + " m\n"+
             "Projected area: " + Math.Round(frontageBuildingArea)
 
 

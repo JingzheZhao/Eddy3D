@@ -67,7 +67,7 @@ FoamFile
 
 flowVelocity (0 12 0);
 
-pressure		0; // you don't have to change this value
+pressure		0;
 
 turbulentKE		0.03456;
 
@@ -362,7 +362,7 @@ FoamFile
 
 
 
-    dimensions[0 1 -1 0 0 0 0];
+dimensions [0 1 -1 0 0 0 0];
 
 
 #include ""initialConditions"";
