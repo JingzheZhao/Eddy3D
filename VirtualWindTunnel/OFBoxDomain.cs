@@ -109,10 +109,11 @@ namespace WindTunnel
             double scaleRectDomainZ = 6* dimZ;
 
             // New Dimensions in X; take blocking ratio into account
-            var scaleRectDomainX  = frontageBuildingArea * 100 / 3 / scaleRectDomainZ / 2;
+            var scaleRectDomainXblockingRatio  = frontageBuildingArea * 100 / 3 / scaleRectDomainZ / 2;
+            var scaleRectDomainXHeight = (5* dimZ)+dimX/2;
 
-         
 
+            var scaleRectDomainX = scaleRectDomainXblockingRatio > scaleRectDomainXHeight ? scaleRectDomainXblockingRatio : scaleRectDomainXHeight;
 
             Interval xInter = new Interval(-scaleRectDomainX, scaleRectDomainX);
             Interval yInter = new Interval(scaleRectDomainYUpstream, scaleRectDomainYDownstream);

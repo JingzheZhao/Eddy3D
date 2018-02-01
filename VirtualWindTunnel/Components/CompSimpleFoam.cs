@@ -94,8 +94,8 @@ namespace WindTunnel
 
 
 
-            string SingleCPU = @"simpleFoam >> log ";
-            string MultipleCPU = @"pyFoamRunner.py --autosense-parallel simpleFoam >> log ";
+            string SingleCPU = @"""pyFoamPrepareCase.py . --no-mesh-create;simpleFoam >> log """;
+            string MultipleCPU = @"""pyFoamPrepareCase.py . --no-mesh-create;pyFoamRunner.py --autosense-parallel simpleFoam >> log """;
             
             // workingDirectory = "";
 
@@ -148,15 +148,21 @@ namespace WindTunnel
 
 
                 File.WriteAllText(bconPathU, BoundaryConditions.U());
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "P"), BoundaryConditions.P());
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "Omega"), BoundaryConditions.Omega());
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "K"), BoundaryConditions.K());
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "Epsilon"), BoundaryConditions.Epsilon());
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "p"), BoundaryConditions.P());
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "omega"), BoundaryConditions.Omega());
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "k"), BoundaryConditions.K());
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "epsilon"), BoundaryConditions.Epsilon());
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "nut"), BoundaryConditions.Nut());
+
                 File.WriteAllText(Path.Combine(boundaryConditionsDir + "ABLConditions"), BoundaryConditions.ABLConditions());
                 File.WriteAllText(Path.Combine(boundaryConditionsDir + "initialConditions"), BoundaryConditions.InitialConditions());
 
 
-                
+                //Constant folder
+                File.WriteAllText(Path.Combine(constantDir + "turbulenceProperties"), StringTemplates.turbulenceProperties());
+                File.WriteAllText(Path.Combine(constantDir + "transportProperties"), StringTemplates.transportProperties());
+
+
 
                 string command = DOM.CPU > 1 ? MultipleCPU : SingleCPU;
                 ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);

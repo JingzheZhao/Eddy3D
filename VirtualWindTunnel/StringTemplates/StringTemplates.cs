@@ -275,6 +275,9 @@ FoamFile
         // if it reaches this number of iterations; possibly with an illegal
         // mesh.
         nLayerIter 50;
+
+        //max number of iterations after which the controls in the relaxed sub dictionary of meshQuality are used (typically 20).
+        nRelaxedIter 20;
     }
 
   // Generic mesh quality settings. At any undoable phase these determine

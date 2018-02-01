@@ -104,8 +104,10 @@ namespace WindTunnel
 
 
             //string command = "";
-            string SingleCPU = "surfaceFeatureExtract;snappyHexMesh snappyHexMesh -overwrite"; //-overwrite
-            string MultipleCPU = @"surfaceFeatureExtract; pyFoamDecompose.py --clear . " + DOM.CPU + @"; foamJob -parallel -screen snappyHexMesh -overwrite";
+            
+
+            string SingleCPU = @"""surfaceFeatureExtract >> log ;snappyHexMesh -overwrite >> log """; //-overwrite
+            string MultipleCPU = @"""surfaceFeatureExtract >> log ;pyFoamDecompose.py --clear . " + DOM.CPU + @"; foamJob -parallel -screen snappyHexMesh -overwrite >> log """;
 
 
 
@@ -155,17 +157,18 @@ namespace WindTunnel
 
                 string command = DOM.CPU > 1 ? MultipleCPU: SingleCPU;
 
-                ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
-                //ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
 
-                psi.UseShellExecute = false;
-                psi.WorkingDirectory = DOM.workingDirectory;
+                
+                ProcessStartInfo psiSnappyHexMesh = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
 
+                
+                psiSnappyHexMesh.UseShellExecute = false;
+                psiSnappyHexMesh.WorkingDirectory = DOM.workingDirectory;
 
-                Process p = new Process();
-                p.StartInfo = psi;
-                p.Start();
-                p.WaitForExit();
+                Process pSnappyHexMesh = new Process();
+                pSnappyHexMesh.StartInfo = psiSnappyHexMesh;
+                pSnappyHexMesh.Start();
+                pSnappyHexMesh.WaitForExit();
 
 
 

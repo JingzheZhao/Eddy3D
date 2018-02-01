@@ -32,13 +32,13 @@ FoamFile
 
         Uref		12;
 
-Zref		0.5;
+        Zref		0.5;
 
-z0 uniform 0.005;
+        z0 uniform 0.005;
 
-flowDir(0.0 1.0 0.0);
+        flowDir (0.0 1.0 0.0);
 
-zDir(0 0 1);
+        zDir (0 0 1);
 
         zGround uniform 0.0;
 
@@ -115,7 +115,7 @@ boundaryField
     ground
     {
         type epsilonWallFunction;
-    Cmu             0.09;
+        Cmu             0.09;
         kappa           0.4;
         E               9.8;
         value           $internalField;
@@ -393,13 +393,13 @@ outlet
     {
         type inletOutlet;
         value $internalField;
-        inletValue uniform(0 0 0);
+        inletValue uniform (0 0 0);
     }
 
 ground
     {
         type fixedValue;
-        value uniform(0 0 0);
+        value uniform (0 0 0);
     }
 
 
@@ -407,7 +407,7 @@ ground
 building
     {
         type fixedValue;
-        value uniform(0 0 0);
+        value uniform (0 0 0);
     }
 
 
@@ -418,8 +418,66 @@ building
 ";
 
         }
+        public static string Nut()
+        {
+            return @"/*--------------------------------*- C++ -*----------------------------------*\
+ | =========                 |                                                 |
+ | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+ |  \\    /   O peration     | Version:  2.2.2                                 |
+ |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+ |    \\/     M anipulation  |                                                 |
+ \*---------------------------------------------------------------------------*/
+    FoamFile
+{
+    version     2.0;
+    format ascii;
+    class volScalarField;
+    location    ""0"";
+    object nut;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions [0 2 -1 0 0 0 0];
+
+#include		""initialConditions"";
+
+internalField uniform $turbulentKE;
+
+boundaryField
+{
+    symmetry
+    {
+        type symmetry;
     }
 
-   
+    outlet
+    {
+	type calculated;
+value uniform 0;       
+    }
+    inlet
+    {
+        type calculated;
+value uniform 0;
+    }
+    ground
+    {
+        type nutkAtmRoughWallFunction;
+# include	""ABLConditions"";
+value uniform 0;
+    }
 
+    building
+    {
+        type nutUSpaldingWallFunction;
+value uniform 0;
+    }
+}
+
+
+// ************************************************************************* //
+";
+        }
+
+    }
 }

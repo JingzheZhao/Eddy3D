@@ -239,7 +239,7 @@ namespace WindTunnel
                 File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), DOMCYL.stringyfyDomain());
                 File.WriteAllText(Path.Combine(workingDirectory + "log"), "");
                 File.WriteAllText(Path.Combine(workingDirectory + "case.foam"), "");
-                File.WriteAllText(Path.Combine(systemDir + "controlDict"), StringTemplates.controlDict(100, 5, 1));
+                File.WriteAllText(Path.Combine(systemDir + "controlDict"), StringTemplates.controlDict(10000, 5, 5));
 
 
 
