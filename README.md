@@ -12,24 +12,20 @@ Installation
 
 - Check if Hyper-V Virtualization is enabled in BIOS of your machine
 
-(
-Open PowerShell as administrator and
+If not, open PowerShell as administrator and
 
 Enable Hyper-V with
 
-dism.exe /Online /Enable-Feature:Microsoft-Hyper-V /All
-or
+> dism.exe /Online /Enable-Feature:Microsoft-Hyper-V /All
 
-Enable Hypervisor with
+or enable Hypervisor with
 
-bcdedit /set hypervisorlaunchtype auto
+> bcdedit /set hypervisorlaunchtype auto
+
 Now restart the system and try again.
-)
 
 - Open commandline with elevated credentials
 
-- Pull docker container 
-
-> docker pull hfdresearch/swak4foamandpyfoam:latest-v4.1
+- Start eddy with one of the testFiles
 
 - Done
