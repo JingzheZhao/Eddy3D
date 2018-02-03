@@ -47,12 +47,13 @@ namespace WindTunnel
 
 
 
-        public OFCylDomain(Mesh geometry, int _divisionsX, int _divisionsY , int _divisionsZ , double windDir, string _workingDirectory, int _CPU)
+        public OFCylDomain(Mesh geometry, int _divisionsY , int _divisionsZ , double windDir, string _workingDirectory, int _CPU, double scaleFactorInnerRect=0.5)
         {
             workingDirectory = _workingDirectory;
             CPU = _CPU;
 
-            divisionsX = _divisionsX;
+           
+            divisionsX = 1;
             divisionsY = _divisionsY;
             divisionsZ = _divisionsZ;
 
@@ -107,7 +108,7 @@ namespace WindTunnel
 
             radius = scaleCyclDomainBlockingRatio > scaleCyclDomainHeight ? scaleCyclDomainBlockingRatio : scaleCyclDomainHeight; ;
 
-            var allPoints = MakeCylMeshPoints5deg(center, radius, height);
+            var allPoints = MakeCylMeshPoints5deg(center, radius, height, scaleFactorInnerRect);
 
             MakeCylMesh(allPoints, divisionsX, divisionsY, divisionsZ, windDir);
         }
@@ -318,11 +319,11 @@ mergePatchPairs
 
         //private static List<Point3d> MakeCylMeshPoints5deg(Point3d center, double radius, double height)
         //public static List<Point3d> MakeCylMeshPoints5deg(Point3d center, double radius, double height)
-        public List<Point3d> MakeCylMeshPoints5deg(Point3d center, double radius, double height)
+        public List<Point3d> MakeCylMeshPoints5deg(Point3d center, double radius, double height, double scaleFactorInnerRect=0.5)
         {
 
             Plane pl = new Plane(center, Vector3d.ZAxis);
-            Interval inter = new Interval(-radius*0.5, radius * 0.5);
+            Interval inter = new Interval(-radius* scaleFactorInnerRect, radius * scaleFactorInnerRect);
 
             Rectangle3d innerRect = new Rectangle3d(pl, inter, inter);
 

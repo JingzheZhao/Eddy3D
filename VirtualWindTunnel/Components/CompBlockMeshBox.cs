@@ -43,14 +43,7 @@ namespace WindTunnel
             pManager.AddGeometryParameter("Geometry", "Geo", "Building Geometry. Add the volume for the virtual wind tunnel", GH_ParamAccess.list);
             pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item);
 
-
-            pManager.AddIntegerParameter("Mode", "Mode", "Domain generation mode", GH_ParamAccess.item, 0);
-
-            Param_Integer param = pManager[2] as Param_Integer;
-
-            param.AddNamedValue("Box", 0);
-            param.AddNamedValue("Cyl", 1);
-
+                     
             pManager.AddNumberParameter("baseMesh", "baseMesh", "baseMesh", GH_ParamAccess.item);
 
             pManager.AddGenericParameter("RAM", "RAM", "RAM", GH_ParamAccess.item);
@@ -95,17 +88,17 @@ namespace WindTunnel
             DA.GetDataList(0, domain);
             DA.GetData(1, ref workingDirectory);
 
-            int mode = 0;
+
             double blockDimension = 0;
             double RAM = 0;
             int CPUs = 1;
 
-            DA.GetData(2, ref mode);
-            DA.GetData(3, ref blockDimension);
+            
+            DA.GetData(2, ref blockDimension);
 
-            DA.GetData(4, ref RAM);
-            DA.GetData(5, ref CPUs);
-            DA.GetData(6, ref Run);
+            DA.GetData(3, ref RAM);
+            DA.GetData(4, ref CPUs);
+            DA.GetData(5, ref Run);
 
 
             

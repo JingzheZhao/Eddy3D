@@ -42,6 +42,14 @@ namespace WindTunnel
             pManager.AddIntegerParameter("iterations", "iter", "Specify the number of iterations.", GH_ParamAccess.item, 1000);
             pManager.AddIntegerParameter("writeInterval", "Write Interval", "Write Interval.", GH_ParamAccess.item, 20);
             pManager.AddIntegerParameter("keepTimeSteps", "KeepTimeSteps", "KeepTimeSteps.", GH_ParamAccess.item, 5);
+
+            pManager.AddIntegerParameter("Mode", "Mode", "Robustness of the solver", GH_ParamAccess.item, 0);
+
+            Param_Integer param = pManager[2] as Param_Integer;
+
+            param.AddNamedValue("robust", 0);
+            param.AddNamedValue("quick", 1);
+
             pManager.AddBooleanParameter("Run", "Run", "Run the solver.", GH_ParamAccess.item, false);
             
         }
@@ -108,11 +116,17 @@ namespace WindTunnel
             int iter = 1000;
             int writeInterval = 20;
             int keepTimeSteps = 5;
+            int mode = 0;
+
 
             DA.GetData(1, ref iter);
             DA.GetData(2, ref writeInterval);
             DA.GetData(3, ref keepTimeSteps);
-            DA.GetData(4, ref Run);
+            DA.GetData(4, ref mode);
+            DA.GetData(5, ref Run);
+            
+
+
 
             if (Run == true)
             {

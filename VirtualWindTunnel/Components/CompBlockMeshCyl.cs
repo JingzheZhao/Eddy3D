@@ -43,7 +43,7 @@ namespace WindTunnel
             pManager.AddGeometryParameter("Geometry", "Geo", "Building Geometry. Add the volume for the virtual wind tunnel", GH_ParamAccess.list);
             pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item);
 
-            pManager.AddGenericParameter("windDir", "windDir", "windDir", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("windDir", "windDir", "windDir", GH_ParamAccess.item,0);
 
             //pManager.AddIntegerParameter("Mode", "Mode", "Domain generation mode", GH_ParamAccess.item, 0);
 
@@ -54,12 +54,12 @@ namespace WindTunnel
 
             //pManager.AddIntegerParameter("baseMesh", "baseMesh", "baseMesh", GH_ParamAccess.item, 20);
 
-            pManager.AddIntegerParameter("divisionsX", "divisionsX", "divisionsX", GH_ParamAccess.item, 1);
-            pManager.AddIntegerParameter("divisionsY", "divisionsY", "divisionsY", GH_ParamAccess.item, 1);
+            //pManager.AddIntegerParameter("divisionsX", "divisionsX", "divisionsX", GH_ParamAccess.item, 1);
+            pManager.AddIntegerParameter("divisionsOuterCirc", "divisionsOuterCirc", "divisionsOuterCirc", GH_ParamAccess.item, 1);
             pManager.AddIntegerParameter("divisionsZ", "divisionsZ", "divisionsZ", GH_ParamAccess.item, 10);
+            pManager.AddNumberParameter("scaleInnerR", "scaleInnerR", "scaleInnerR", GH_ParamAccess.item, 0.5);
 
-
-            pManager.AddGenericParameter("RAM", "RAM", "RAM", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("RAM", "RAM", "RAM", GH_ParamAccess.item, 2000);
             pManager.AddIntegerParameter("CPUs", "CPUs", "CPUs", GH_ParamAccess.item, 1);
 
             pManager.AddBooleanParameter("Run", "Run", "Run the blockMesh component", GH_ParamAccess.item, false);
@@ -99,19 +99,20 @@ namespace WindTunnel
 
             //int mode = 0;
             //int baseMesh = 0;
-            double RAM = 0;
+            int RAM = 0;
             int CPUs = 1;
-            double windDir = 0;
-            int divisionsX = 1;
-            int divisionsY = 1;
+            int windDir = 0;
+            int divisionsOuterCirc = 1;
             int divisionsZ = 1;
+            double scaleFactorInnerRect = 0.5;
 
             //DA.GetData(2, ref mode);
             DA.GetData(2, ref windDir);
             //DA.GetData(3, ref baseMesh);
-            DA.GetData(3, ref divisionsX);
-            DA.GetData(4, ref divisionsY);
-            DA.GetData(5, ref divisionsZ);
+            //DA.GetData(3, ref divisionsX);
+            DA.GetData(3, ref divisionsOuterCirc);
+            DA.GetData(4, ref divisionsZ);
+            DA.GetData(5, ref scaleFactorInnerRect);
 
             DA.GetData(6, ref RAM);
             DA.GetData(7, ref CPUs);
@@ -142,7 +143,7 @@ namespace WindTunnel
                
             }
 
-            OFCylDomain DOMCYL = new OFCylDomain(allTogether, divisionsX, divisionsY, divisionsZ, windDir, workingDirectory, 1);
+            OFCylDomain DOMCYL = new OFCylDomain(allTogether, divisionsOuterCirc, divisionsZ, windDir, workingDirectory, CPUs, scaleFactorInnerRect);
 
 
             if (CPUs == -1 || CPUs > Environment.ProcessorCount)
