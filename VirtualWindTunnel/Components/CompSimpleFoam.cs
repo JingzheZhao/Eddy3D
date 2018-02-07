@@ -102,8 +102,8 @@ namespace WindTunnel
 
 
 
-            string SingleCPU = @"""pyFoamPrepareCase.py . --no-mesh-create;simpleFoam >> log """;
-            string MultipleCPU = @"""pyFoamPrepareCase.py . --no-mesh-create;pyFoamRunner.py --autosense-parallel simpleFoam >> log """;
+            string SingleCPU = @"""pyFoamPrepareCase.py . --no-mesh-create;simpleFoam""";
+            string MultipleCPU = @"""renumberMesh -overwrite;pyFoamPrepareCase.py . --no-mesh-create;pyFoamDecompose.py --clear . """ + DOM.CPU +@""";pyFoamRunner.py --autosense-parallel simpleFoam""";
             
             // workingDirectory = "";
 

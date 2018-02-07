@@ -37,13 +37,14 @@ namespace WindTunnel
             pManager.AddBrepParameter("Breps", "B", "Add Breps", GH_ParamAccess.list);
             pManager.AddTextParameter("File", "F", "Provide a file path", GH_ParamAccess.item);
             pManager.AddIntegerParameter("Mode", "Mode", "Output mode: Binary = 0, ASCI = 1", GH_ParamAccess.item, 0);
+            pManager.AddTextParameter("filePrefix", "filePrefix", "filePrefix", GH_ParamAccess.item);
 
 
             Param_Integer param = pManager[2] as Param_Integer;
 
             param.AddNamedValue("Binary", 0);
             param.AddNamedValue("ASCI", 1);
-
+            param.AddNamedValue("BinaryList", 2);
 
         }
 
@@ -65,37 +66,41 @@ namespace WindTunnel
             string filePath = "";
             int MODE = 0;
             List<Brep> geo = new List<Brep>();
+            string filePrefix = "";
 
-            DA.GetDataList(0,  geo);
+            DA.GetDataList(0, geo);
             DA.GetData(1, ref filePath);
             DA.GetData(2, ref MODE);
+            DA.GetData(3, ref filePrefix);
 
-            
-            
+
 
             MeshingParameters mp = new MeshingParameters();
             MeshingParameters mps = MeshingParameters.Smooth;
 
             List<Mesh> meshObjects = new List<Mesh>();
-            
+
             foreach (Brep b in geo)
             {
-                meshObjects.AddRange(Mesh.CreateFromBrep( b , mp) );
+                meshObjects.AddRange(Mesh.CreateFromBrep(b, mp));
 
             }
 
 
-            if (MODE == 0) {
+            if (MODE == 0)
+            {
                 STLExport.ExportBinary(filePath, meshObjects);
             }
-            else {
+            if (MODE == 1)
+            {
                 STLExport.ExportASCI(filePath, meshObjects);
             }
+            if (MODE == 2)
+                STLExport.ExportBinaryList(filePath, meshObjects, filePrefix);
+            }
+        
 
-
-
-
-        }
+        
 
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface.

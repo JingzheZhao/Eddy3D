@@ -177,7 +177,7 @@ FoamFile
         maxLocalCells 5000000;
         maxGlobalCells 15000000;
         minRefinementCells 5;
-        nCellsBetweenLevels 5;
+        nCellsBetweenLevels 8;
         resolveFeatureAngle 30;
         allowFreeStandingZoneFaces true;
         planarAngle 30;
