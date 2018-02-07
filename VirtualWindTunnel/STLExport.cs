@@ -74,7 +74,6 @@ namespace WindTunnel
             File.WriteAllText(filePath, sb.ToString());
         }
 
-
         public static void ExportBinary(string filePath, List<Mesh> meshObjects)
         {
 

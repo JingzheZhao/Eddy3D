@@ -34,7 +34,7 @@ namespace WindTunnel
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddBrepParameter("Breps", "B", "Add Breps", GH_ParamAccess.list);
+            pManager.AddGeometryParameter("Geometry", "G", "Breps and Meshes supported", GH_ParamAccess.list);
             pManager.AddTextParameter("File", "F", "Provide a file path", GH_ParamAccess.item);
             pManager.AddIntegerParameter("Mode", "Mode", "Output mode: Binary = 0, ASCI = 1", GH_ParamAccess.item, 0);
 
@@ -64,14 +64,37 @@ namespace WindTunnel
         {
             string filePath = "";
             int MODE = 0;
-            List<Brep> geo = new List<Brep>();
+            List<GeometryBase> geo = new List<GeometryBase>();
+
 
             DA.GetDataList(0,  geo);
             DA.GetData(1, ref filePath);
             DA.GetData(2, ref MODE);
 
-            
-            
+            Mesh allTogether = new Mesh();
+            List<Mesh> allSeparate = new List<Mesh>();
+
+
+            foreach (GeometryBase b in geo)
+            {
+
+                if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
+                {
+                    Mesh obj = (Mesh)b;
+                    allTogether.Append(obj);
+                }
+                else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
+                {
+                    Brep obj = (Brep)b;
+                    var m = Mesh.CreateFromBrep(obj, mp);
+                    foreach (Mesh mm in m) allTogether.Append(mm);
+
+                }
+
+
+            }
+
+
 
             MeshingParameters mp = new MeshingParameters();
             MeshingParameters mps = MeshingParameters.Smooth;
