@@ -106,8 +106,8 @@ namespace WindTunnel
             //string command = "";
             
 
-            string SingleCPU = @"""surfaceFeatureExtract >> log ;snappyHexMesh -overwrite >> log """; //-overwrite
-            string MultipleCPU = @"""surfaceFeatureExtract >> log ;pyFoamDecompose.py --clear . " + DOM.CPU + @"; foamJob -parallel -screen snappyHexMesh -overwrite >> log """;
+            string SingleCPU = @"""surfaceFeatureExtract;snappyHexMesh -overwrite """; //-overwrite
+            string MultipleCPU = @"""surfaceFeatureExtract;pyFoamDecompose.py --clear . " + DOM.CPU + @"; foamJob -parallel -screen snappyHexMesh -overwrite""";
 
 
 

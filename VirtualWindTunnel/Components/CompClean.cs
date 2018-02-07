@@ -77,18 +77,19 @@ namespace WindTunnel
             {
 
                 List<String> l = new List<string>();
-                l.Add(@"0");
+                l.Add(@"\0");
                 l.Add(@".pyFoam");
-                l.Add(@"patchMass*");
-                l.Add(@"postProcessing*");
-                l.Add(@"forces*");
-                l.Add(@"efficiency");
-                l.Add(@"PyFoam*");
+                l.Add(@"\patchMass*");
+                l.Add(@"\postProcessing*");
+                l.Add(@"\forces*");
+                l.Add(@"\efficiency");
+                l.Add(@"\PyFoam*");
                 l.Add(@"\constant\extendedFeatureEdgeMesh");
-                l.Add(@"constant\polyMesh ");
-                l.Add(@"constant\triSurface\*.eMesh");
-                l.Add(@"*.pvsm");
-                l.Add(@"Decomposer.*");
+                l.Add(@"\constant\polyMesh ");
+                l.Add(@"\constant\triSurface\*.eMesh");
+                l.Add(@"\*.pvsm");
+                l.Add(@"\Decomposer.*");
+                l.Add(@"\processor.*");
 
                 //rm* OpenFOAM
                 //rm* foam
@@ -97,16 +98,24 @@ namespace WindTunnel
                 //rm* log*
                 //Directory.
 
-                
-                 //   Directory.GetDirectories(workingDirectory);
-                
+
+                //   Directory.GetDirectories(workingDirectory);
+
 
                 foreach (String element in l)
                 {
                     try
                     {
                         String newWorkingDirectory = workingDirectory + element;
-                        Directory.Delete(newWorkingDirectory, true);
+                        var newWorkingDirectoryInfo = new DirectoryInfo(newWorkingDirectory);
+
+                        foreach (var file in newWorkingDirectoryInfo.EnumerateFiles("*"))
+                        {
+                            file.Delete();
+                            Directory.Delete(newWorkingDirectory, true);
+                        }
+                        
+                        //File.Delete(newWorkingDirectory, true);
 
                         //bool directoryExists = Directory.Exists(newWorkingDirectory);
 

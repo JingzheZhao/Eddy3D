@@ -37,13 +37,14 @@ namespace WindTunnel
             pManager.AddGeometryParameter("Geometry", "G", "Breps and Meshes supported", GH_ParamAccess.list);
             pManager.AddTextParameter("File", "F", "Provide a file path", GH_ParamAccess.item);
             pManager.AddIntegerParameter("Mode", "Mode", "Output mode: Binary = 0, ASCI = 1", GH_ParamAccess.item, 0);
+            pManager.AddTextParameter("filePrefix", "filePrefix", "filePrefix", GH_ParamAccess.item);
 
 
             Param_Integer param = pManager[2] as Param_Integer;
 
             param.AddNamedValue("Binary", 0);
             param.AddNamedValue("ASCI", 1);
-
+            param.AddNamedValue("BinaryList", 2);
 
         }
 
@@ -64,13 +65,21 @@ namespace WindTunnel
         {
             string filePath = "";
             int MODE = 0;
+<<<<<<< HEAD
             List<GeometryBase> geo = new List<GeometryBase>();
 
+=======
+            List<Brep> geo = new List<Brep>();
+            string filePrefix = "";
+>>>>>>> d2f5679f0cb9ee4ed214ff106e851f17ed4304a9
 
-            DA.GetDataList(0,  geo);
+            DA.GetDataList(0, geo);
             DA.GetData(1, ref filePath);
             DA.GetData(2, ref MODE);
+            DA.GetData(3, ref filePrefix);
 
+
+<<<<<<< HEAD
             Mesh allTogether = new Mesh();
             List<Mesh> allSeparate = new List<Mesh>();
 
@@ -95,30 +104,35 @@ namespace WindTunnel
             }
 
 
+=======
+>>>>>>> d2f5679f0cb9ee4ed214ff106e851f17ed4304a9
 
             MeshingParameters mp = new MeshingParameters();
             MeshingParameters mps = MeshingParameters.Smooth;
 
             List<Mesh> meshObjects = new List<Mesh>();
-            
+
             foreach (Brep b in geo)
             {
-                meshObjects.AddRange(Mesh.CreateFromBrep( b , mp) );
+                meshObjects.AddRange(Mesh.CreateFromBrep(b, mp));
 
             }
 
 
-            if (MODE == 0) {
+            if (MODE == 0)
+            {
                 STLExport.ExportBinary(filePath, meshObjects);
             }
-            else {
+            if (MODE == 1)
+            {
                 STLExport.ExportASCI(filePath, meshObjects);
             }
+            if (MODE == 2)
+                STLExport.ExportBinaryList(filePath, meshObjects, filePrefix);
+            }
+        
 
-
-
-
-        }
+        
 
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface.

@@ -47,7 +47,7 @@ namespace CallOF
                 string app = "docker";
                 //string filepath = "/c/OF/";
                 string volumeDocker = "/home/openfoam/";
-                string entryPoint = @"--entrypoint=""""";
+                string entryPoint = @"--entrypoint="""" -it";
                 string container = "hfdresearch/swak4foamandpyfoam:latest-v4.1 ";
                 string sourceEnvironment = @"source /opt/openfoam4/etc/bashrc; cd /home/openfoam; ";
                 string logging = @"";
