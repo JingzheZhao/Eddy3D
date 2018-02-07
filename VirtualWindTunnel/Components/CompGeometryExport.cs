@@ -37,7 +37,6 @@ namespace WindTunnel
             pManager.AddGeometryParameter("Geometry", "G", "Breps and Meshes supported", GH_ParamAccess.list);
             pManager.AddTextParameter("File", "F", "Provide a file path", GH_ParamAccess.item);
             pManager.AddIntegerParameter("Mode", "Mode", "Output mode: Binary = 0, ASCI = 1", GH_ParamAccess.item, 0);
-            pManager.AddTextParameter("filePrefix", "filePrefix", "filePrefix", GH_ParamAccess.item);
 
 
             Param_Integer param = pManager[2] as Param_Integer;
@@ -45,6 +44,7 @@ namespace WindTunnel
             param.AddNamedValue("Binary", 0);
             param.AddNamedValue("ASCI", 1);
             param.AddNamedValue("BinaryList", 2);
+            param.AddNamedValue("ASCIList", 3);
 
         }
 
@@ -65,21 +65,24 @@ namespace WindTunnel
         {
             string filePath = "";
             int MODE = 0;
-<<<<<<< HEAD
+
             List<GeometryBase> geo = new List<GeometryBase>();
 
-=======
-            List<Brep> geo = new List<Brep>();
-            string filePrefix = "";
->>>>>>> d2f5679f0cb9ee4ed214ff106e851f17ed4304a9
+
 
             DA.GetDataList(0, geo);
             DA.GetData(1, ref filePath);
             DA.GetData(2, ref MODE);
-            DA.GetData(3, ref filePrefix);
+
+            var Dir = Path.GetDirectoryName(filePath);
+            var FileName = Path.GetFileNameWithoutExtension(filePath);
+            if (!Directory.Exists(Dir)) { Directory.CreateDirectory(Dir); }
 
 
-<<<<<<< HEAD
+
+
+            MeshingParameters mp = new MeshingParameters();
+
             Mesh allTogether = new Mesh();
             List<Mesh> allSeparate = new List<Mesh>();
 
@@ -91,6 +94,7 @@ namespace WindTunnel
                 {
                     Mesh obj = (Mesh)b;
                     allTogether.Append(obj);
+                    allSeparate.Add(obj);
                 }
                 else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
                 {
@@ -98,47 +102,51 @@ namespace WindTunnel
                     var m = Mesh.CreateFromBrep(obj, mp);
                     foreach (Mesh mm in m) allTogether.Append(mm);
 
+                    Mesh meshForMeshList = new Mesh();
+                    foreach (Mesh mm in m) meshForMeshList.Append(mm);
+                    allSeparate.Add(meshForMeshList);
                 }
 
 
             }
 
 
-=======
->>>>>>> d2f5679f0cb9ee4ed214ff106e851f17ed4304a9
-
-            MeshingParameters mp = new MeshingParameters();
-            MeshingParameters mps = MeshingParameters.Smooth;
-
-            List<Mesh> meshObjects = new List<Mesh>();
-
-            foreach (Brep b in geo)
-            {
-                meshObjects.AddRange(Mesh.CreateFromBrep(b, mp));
-
-            }
-
-
             if (MODE == 0)
             {
-                STLExport.ExportBinary(filePath, meshObjects);
+                STLExport.ExportBinary(filePath, allTogether);
             }
-            if (MODE == 1)
+            else if (MODE == 1)
             {
-                STLExport.ExportASCI(filePath, meshObjects);
+                STLExport.ExportASCI(filePath, allTogether);
             }
-            if (MODE == 2)
-                STLExport.ExportBinaryList(filePath, meshObjects, filePrefix);
+            else if (MODE == 2)
+            {
+
+                for (int i = 0; i < allSeparate.Count; i++)
+                {
+                    string filePath2 = Dir + @"\" + FileName + i + ".stl";
+                    STLExport.ExportBinary(filePath2, allSeparate[i]);
+                }
+
             }
-        
+            else if (MODE == 3)
+            {
+                for (int i = 0; i < allSeparate.Count; i++)
+                {
+                    string filePath2 = Dir + @"\" + FileName + i + ".stl";
+                    STLExport.ExportASCI(filePath2, allSeparate[i]);
+                }
+            }
+        }
 
-        
 
-        /// <summary>
-        /// Provides an Icon for every component that will be visible in the User Interface.
-        /// Icons need to be 24x24 pixels.
-        /// </summary>
-        protected override System.Drawing.Bitmap Icon
+
+
+    /// <summary>
+    /// Provides an Icon for every component that will be visible in the User Interface.
+    /// Icons need to be 24x24 pixels.
+    /// </summary>
+    protected override System.Drawing.Bitmap Icon
         {
             get
             {
