@@ -29,7 +29,7 @@ namespace WindTunnel
         public BlockMesh()
           : base("DomainCyl", "DomainCyl",
               "DomainCyl",
-              "CFDTool", "Domain")
+              "Eddy", "Domain")
         {
         }
 
@@ -96,7 +96,7 @@ namespace WindTunnel
 
 
             DA.GetData(1, ref workingDirectory);
-
+            
             //int mode = 0;
             //int baseMesh = 0;
             int RAM = 0;
@@ -240,7 +240,7 @@ namespace WindTunnel
                 File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), DOMCYL.stringyfyDomain());
                 File.WriteAllText(Path.Combine(workingDirectory + "log"), "");
                 File.WriteAllText(Path.Combine(workingDirectory + "case.foam"), "");
-                File.WriteAllText(Path.Combine(systemDir + "controlDict"), StringTemplates.controlDict(10000, 5, 5));
+                File.WriteAllText(Path.Combine(systemDir + "controlDict"), StringTemplates.controlDict(10000, 5, 5, null));
 
 
 

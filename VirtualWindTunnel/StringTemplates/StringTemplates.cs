@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Rhino.Geometry;
 
 
@@ -103,7 +101,6 @@ boundary
 );
         ";
         }
-
         public static string snappyHexMeshDict(int accBuilding, int accFeatures, int accGround, int layers, Point3d locationInMesh)
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
@@ -160,7 +157,7 @@ FoamFile
 
             ground
             {
-                level (" + (accGround ) + " " + (accGround) + @");
+                level (" + (accGround) + " " + (accGround) + @");
                 patchInfo
                 {
                     type wall;
@@ -208,11 +205,11 @@ FoamFile
         {
             building
             {
-                nSurfaceLayers "+ layers + @";
+                nSurfaceLayers " + layers + @";
             }
             ground
             {
-                nSurfaceLayers "+ layers + @";
+                nSurfaceLayers " + layers + @";
             }
         }
 
@@ -361,7 +358,7 @@ mergeTolerance 1E-6;
 //autoBlockMesh true;
 ";
         }
-        public static string controlDict(int iter, int keepTimeSteps, int writeInterval)
+        public static string controlDict(int iter, int keepTimeSteps, int writeInterval, List<Mesh> topologies)
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
@@ -404,6 +401,7 @@ libs
             runTimeModifiable true;
             functions
 {
+" + StringTemplates.functionObjCP(topologies) + @"
 }
             ";
         }
@@ -686,7 +684,6 @@ mergePatchPairs
 // ************************************************************************* //
             ";
         }
-
         public static string meshQualityDict()
         {
             return
@@ -841,7 +838,6 @@ wallDist
 // ************************************************************************* //
 ";
         }
-
         public static string fvSolution()
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
@@ -954,7 +950,7 @@ cache
 // ************************************************************************* //
 
 ";
-            }
+        }
         public static string surfaceFeatureExtractDict()
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
@@ -1093,9 +1089,149 @@ RAS
 // ************************************************************************* //
 ";
         }
+        public static string functionObjCP(List<Mesh> evaluationTopology)
+        {
+            var sb = new StringBuilder();
 
-    
-
-
+            for (int i = 0; i < evaluationTopology.Count; i++)
+            {
+                sb.Append(@"cp2
+{
+                    type pressure;
+                    libs(""libfieldFunctionObjects.so"");
+                    enabled yes;
+                    writeControl timeStep;
+                    writeInterval        50;
+                    UInf(9.07 9.07 0);     // the undistrubed velocity at building height
+                    pInf                96.7;        // the dynamic undisturbed pressure at building height
+                    pRef                38.4;        // the dynamic pressure at reference height (usually 10 m)
+                    rhoInf              1.2;
+                    calcTotal yes;
+                    calcCoeff yes;
+                }");
+                sb.Append(@"
+c_p_patch" + i + @"
+{
+    type                    swakExpression;
+    valueType               faceSet;
+    outputControlMode       timeStep;
+    outputInterval          1;
+    setName                 patch" + i + @";
+    aliases
+    {
+        c_p     total(p)_coeff;
     }
+    expression              ""c_p"";
+    accumulations (weightedAverage)
+    ;
+            verbose                 true;
+            autoInterpolate         true;
+            warnAutoInterpolate     false;
+        }
+");
+            }
+            return sb.ToString();
+
+        }
+        public static string topoSetDict(List<Mesh> evaluationTopology)
+        {
+            var sb = new StringBuilder();
+            sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      / F ield | OpenFOAM: The Open Source CFD Toolbox |
+|  \\    / O peration | Version:  5 |
+|   \\  / A nd | Web:      www.OpenFOAM.org |
+|    \\/ M anipulation |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+            version     2.0;
+            format ascii;
+    class dictionary;
+    location    ""system"";
+    object topoSetDict;
 }
+        // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+        actions
+        (");
+
+            for (int i = 0; i < evaluationTopology.Count; i++)
+            {
+                sb.Append(@"
+{
+            name patch" + i + @";
+            type faceZoneSet;
+            action new;
+            source searchableSurfaceToFaceZone;
+            sourceInfo
+        {
+                surface triSurfaceMesh;
+                name patch" + i + @".stl;    
+            }
+        }
+
+        {
+            name surfaceSlaveCells; 
+            type cellSet;
+            action new;
+            source faceZoneToCell;
+            sourceInfo
+                {
+                name patch" + i + @"; 
+                option slave;
+            }
+        }
+            ");
+            }
+            sb.Append(@");
+
+        // ************************************************************************* //");
+
+            return sb.ToString();
+
+        }
+        public static string samplePoints(List<Point3d> samplePoints)
+        {
+            var sb = new StringBuilder();
+            sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
+  | =========                 |                                                 |
+  | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+  |  \\    /   O peration     | Version:  5                                     |
+  |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+  |    \\/     M anipulation  |                                                 |
+  \*---------------------------------------------------------------------------*/
+
+cpSamples
+{
+
+                type probes;
+                libs(""libsampling.so"");
+                writeControl writeTime;
+
+                interpolationScheme cellPoint;
+
+                setFormat csv;
+
+                fields(total(p)_coeff);
+
+                probeLocations
+                  (");
+            for (int i = 0; i < samplePoints.Count; i++)
+            {
+                sb.Append(@"(" + samplePoints[i].X + @" " + samplePoints[i].Y + @" " + samplePoints[i].Z + @")");
+            }
+
+            sb.Append(@");
+
+        }
+
+
+            // ************************************************************************* //");
+
+            return sb.ToString();
+
+
+        }
+    }
+    }

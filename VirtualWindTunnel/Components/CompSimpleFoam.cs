@@ -27,7 +27,7 @@ namespace WindTunnel
         public SimpleFoam()
           : base("Simulation", "Simulation",
               "Simulation",
-              "CFDTool", "Simulation")
+              "Eddy", "Simulation")
         {
         }
 
@@ -93,15 +93,7 @@ namespace WindTunnel
             }
             if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
-
-
-
-
-
-
-
-
-
+            
             string SingleCPU = @"""pyFoamPrepareCase.py . --no-mesh-create;simpleFoam""";
             string MultipleCPU = @"""renumberMesh -overwrite;pyFoamPrepareCase.py . --no-mesh-create;pyFoamDecompose.py --clear . """ + DOM.CPU +@""";pyFoamRunner.py --autosense-parallel simpleFoam""";
             
@@ -117,12 +109,14 @@ namespace WindTunnel
             int writeInterval = 20;
             int keepTimeSteps = 5;
             int mode = 0;
+            
 
 
             DA.GetData(1, ref iter);
             DA.GetData(2, ref writeInterval);
             DA.GetData(3, ref keepTimeSteps);
             DA.GetData(4, ref mode);
+ 
             DA.GetData(5, ref Run);
             
 
@@ -178,14 +172,14 @@ namespace WindTunnel
 
 
 
-                string command = DOM.CPU > 1 ? MultipleCPU : SingleCPU;
-                ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
-                //ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
+                //string command = DOM.CPU > 1 ? MultipleCPU : SingleCPU;
+                //ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
+                ////ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
                
-                Process p = new Process();
-                p.StartInfo = psi;
-                p.Start();
-                p.WaitForExit();
+                //Process p = new Process();
+                //p.StartInfo = psi;
+                //p.Start();
+                //p.WaitForExit();
 
 
                // OFLaunch.Run(command, StringTemplates.filePath);

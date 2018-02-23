@@ -27,7 +27,7 @@ namespace WindTunnel
         public ResidualWriter()
           : base("residualWriter", "residualWriter",
               "Write stuff",
-              "CFDTool", "Simulation")
+              "Eddy", "Simulation")
         {
         }
 
@@ -81,7 +81,7 @@ namespace WindTunnel
                 var k = new List<double>();
 
 
-               string fullFilePath = workingDir + "log2";
+               string fullFilePath = workingDir + "log";
             
 
                 var lines = File.ReadAllLines(fullFilePath);

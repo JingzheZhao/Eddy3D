@@ -1,9 +1,6 @@
 ﻿using Rhino.Geometry;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace WindTunnel
 {
@@ -15,9 +12,11 @@ namespace WindTunnel
 
         // settings
         public string workingDirectory;
+        public string systemDirectory;
+        
         public int CPU;
 
-         public double frontageBuildingArea;
+        public double frontageBuildingArea;
 
         public static double projectedBuildingArea(Plane localSystem, Mesh buildings)
         {

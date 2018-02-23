@@ -28,7 +28,7 @@ namespace WindTunnel
         public CellSize()
           : base("CellSize", "CellSize",
               "CellSize",
-              "CFDTool", "Meshing")
+              "Eddy", "Mesh")
         {
         }
 

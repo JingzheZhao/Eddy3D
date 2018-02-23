@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2002
+VisualStudioVersion = 15.0.27004.2009
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VirtualWindTunnel", "VirtualWindTunnel\VirtualWindTunnel.csproj", "{6312C2AE-CDF7-4B7F-9527-A88EC673DD44}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eddy", "VirtualWindTunnel\Eddy.csproj", "{6312C2AE-CDF7-4B7F-9527-A88EC673DD44}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CallOF", "CallOF\CallOF.csproj", "{361DB954-5BEC-4EB7-AE92-BCD7FB0346AC}"
 EndProject

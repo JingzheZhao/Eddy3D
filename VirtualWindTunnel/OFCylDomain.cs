@@ -50,6 +50,7 @@ namespace WindTunnel
         public OFCylDomain(Mesh geometry, int _divisionsY , int _divisionsZ , double windDir, string _workingDirectory, int _CPU, double scaleFactorInnerRect=0.5)
         {
             workingDirectory = _workingDirectory;
+            systemDirectory = workingDirectory + @"system\";
             CPU = _CPU;
 
            

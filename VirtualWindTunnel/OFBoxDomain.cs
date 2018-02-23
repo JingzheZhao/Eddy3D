@@ -1,9 +1,5 @@
 ﻿using Rhino.Geometry;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 
 namespace WindTunnel
@@ -57,6 +53,7 @@ namespace WindTunnel
         public OFBoxDomain(Mesh geometry, string _workingDirectory, double _blockDim)
         {
             workingDirectory = _workingDirectory;
+            systemDirectory = workingDirectory + @"system\";
             blockDimension = _blockDim;
             BuildingGeometry = geometry;
             //BoundingBox bb = domain.GetBoundingBox(true);

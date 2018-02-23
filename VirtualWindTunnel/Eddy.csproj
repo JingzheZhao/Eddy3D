@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>WindTunnel</RootNamespace>
-    <AssemblyName>VirtualWindTunnel</AssemblyName>
+    <AssemblyName>Eddy</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <IsWebBootstrapper>false</IsWebBootstrapper>
@@ -56,6 +56,8 @@
   <ItemGroup>
     <Compile Include="Components\CompBlockMeshCyl.cs" />
     <Compile Include="Components\CompCellSize.cs" />
+    <Compile Include="Components\CompPostProcessingProbes.cs" />
+    <Compile Include="Components\CompPostProcessingPatches.cs" />
     <Compile Include="Components\CompResidualWriter.cs" />
     <Compile Include="OFBaseDomain.cs" />
     <Compile Include="OFCylDomain.cs" />
@@ -68,8 +70,8 @@
     <Compile Include="OFBoxDomain.cs" />
     <Compile Include="STLExport.cs" />
     <Compile Include="Components\CompGeometryExport.cs" />
-    <Compile Include="StringTemplates\boundaryConditions.cs" />
-    <Compile Include="StringTemplates\StringTemplates.cs" />
+    <Compile Include="StringTemplates\boundaryConditionTemplates.cs" />
+    <Compile Include="StringTemplates\stringTemplates.cs" />
     <Compile Include="Utilities.cs" />
     <Compile Include="VirtualWindTunnelInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

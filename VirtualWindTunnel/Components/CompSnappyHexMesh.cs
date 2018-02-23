@@ -27,7 +27,7 @@ namespace WindTunnel
         public SnappyHexMesh()
           : base("Mesh", "Mesh",
               "Mesh",
-              "CFDTool", "Meshing")
+              "Eddy", "Mesh")
         {
         }
 
@@ -159,16 +159,16 @@ namespace WindTunnel
 
 
                 
-                ProcessStartInfo psiSnappyHexMesh = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
+                //ProcessStartInfo psiSnappyHexMesh = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
 
                 
-                psiSnappyHexMesh.UseShellExecute = false;
-                psiSnappyHexMesh.WorkingDirectory = DOM.workingDirectory;
+                //psiSnappyHexMesh.UseShellExecute = false;
+                //psiSnappyHexMesh.WorkingDirectory = DOM.workingDirectory;
 
-                Process pSnappyHexMesh = new Process();
-                pSnappyHexMesh.StartInfo = psiSnappyHexMesh;
-                pSnappyHexMesh.Start();
-                pSnappyHexMesh.WaitForExit();
+                //Process pSnappyHexMesh = new Process();
+                //pSnappyHexMesh.StartInfo = psiSnappyHexMesh;
+                //pSnappyHexMesh.Start();
+                //pSnappyHexMesh.WaitForExit();
 
 
 

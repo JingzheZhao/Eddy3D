@@ -27,7 +27,7 @@ namespace WindTunnel
         public Clean()
           : base("Clean", "Clean",
               "Clean",
-              "CFDTool", "Misc")
+              "Eddy", "Misc")
         {
         }
 

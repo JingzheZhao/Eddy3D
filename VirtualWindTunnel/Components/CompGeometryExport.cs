@@ -25,7 +25,7 @@ namespace WindTunnel
         public GeometryExportComponent()
           : base("STLExporter", "STLExporter",
               "STLExporter",
-              "CFDTool", "Meshing")
+              "Eddy", "Mesh")
         {
         }
 
