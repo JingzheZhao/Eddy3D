@@ -8,6 +8,7 @@ using System.Linq;
 using Grasshopper.Kernel.Parameters;
 using System.Diagnostics;
 using Grasshopper.Kernel.Types;
+using System.Text.RegularExpressions;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -26,9 +27,7 @@ namespace WindTunnel
         /// new tabs/panels will automatically be created.
         /// </summary>
         public PostProcessingProbes()
-          : base("Probes", "Probes",
-              "postProcessing",
-              "Eddy", "postProcessing")
+          : base("Probes", "Probes","postProcessing","Eddy", "postProcessing")
         {
         }
 
@@ -44,7 +43,7 @@ namespace WindTunnel
             pManager.AddTextParameter("pointName", "pointName", "pointName", GH_ParamAccess.item);
             pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 0);
 
-            Param_Integer param = pManager[4] as Param_Integer;
+            Param_Integer param = pManager[3] as Param_Integer;
             param.AddNamedValue("cp_Probes", 0);
             param.AddNamedValue("U_Probes", 1);
 
@@ -239,7 +238,7 @@ namespace WindTunnel
                 List<Vector3d> values = new List<Vector3d>();
 
                 var lastLine = File.ReadLines(fullPath).Last();
-                string replacedString = System.Text.RegularExpressions.Regex.Replace(lastLine, "[()]", ""); //  RegexOptions.Compiled
+                string replacedString = System.Text.RegularExpressions.Regex.Replace(lastLine, "[()]", "", RegexOptions.Compiled); 
 
 
 

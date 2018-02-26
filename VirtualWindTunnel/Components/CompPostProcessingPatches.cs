@@ -26,9 +26,7 @@ namespace WindTunnel
         /// new tabs/panels will automatically be created.
         /// </summary>
         public PostProcessing()
-          : base("Patches", "Patches",
-              "postProcessing",
-              "Eddy", "postProcessing")
+          : base("Patches", "Patches","postProcessing","Eddy","postProcessing")
         {
         }
 
@@ -45,7 +43,7 @@ namespace WindTunnel
             pManager.AddTextParameter("topoName", "topoName", "topoName", GH_ParamAccess.item);
             pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 0);
 
-            Param_Integer param = pManager[4] as Param_Integer;
+            Param_Integer param = pManager[3] as Param_Integer;
             param.AddNamedValue("cp_Patches", 0);
             param.AddNamedValue("V_dot_Patches", 1);
 

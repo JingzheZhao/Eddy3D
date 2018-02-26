@@ -76,40 +76,47 @@ namespace WindTunnel
             if (Run == true)
             {
 
-                List<String> l = new List<string>();
-                l.Add(@"\0");
-                l.Add(@".pyFoam");
-                l.Add(@"\patchMass*");
-                l.Add(@"\postProcessing*");
-                l.Add(@"\forces*");
-                l.Add(@"\efficiency");
-                l.Add(@"\PyFoam*");
-                l.Add(@"\constant\extendedFeatureEdgeMesh");
-                l.Add(@"\constant\polyMesh ");
-                l.Add(@"\constant\triSurface\*.eMesh");
-                l.Add(@"\*.pvsm");
-                l.Add(@"\Decomposer.*");
-                l.Add(@"\processor.*");
+                List<String> listOfDataToDelete = new List<string>();
+                listOfDataToDelete.Add(@"\0");
+                listOfDataToDelete.Add(@"\.pyFoam");
+                listOfDataToDelete.Add(@"\patchMass*");
+                listOfDataToDelete.Add(@"\postProcessing\*");
+                listOfDataToDelete.Add(@"\postProcessing");
+                listOfDataToDelete.Add(@"\forces*");
+                listOfDataToDelete.Add(@"\efficiency");
+                listOfDataToDelete.Add(@"\PyFoam*");
+                listOfDataToDelete.Add(@"PyFoam*");
+                listOfDataToDelete.Add(@"\constant\extendedFeatureEdgeMesh");
+                listOfDataToDelete.Add(@"\constant\polyMesh ");
+                listOfDataToDelete.Add(@"\constant\triSurface\*.eMesh");
+                listOfDataToDelete.Add(@"\*.pvsm");
+                listOfDataToDelete.Add(@"\Decomposer.analyzed\");
+                listOfDataToDelete.Add(@"Decomposer*");
+                listOfDataToDelete.Add(@"\processor.*");
+                listOfDataToDelete.Add(@"[0-9]");
 
-                //rm* OpenFOAM
-                //rm* foam
-                //rm *.png
-                //rm Ply *
-                //rm* log*
-                //Directory.
-
-
-                //   Directory.GetDirectories(workingDirectory);
+                
 
 
-                foreach (String element in l)
+                //   Delete files in workingDir 
+
+                var workingDirectoryInfo = new DirectoryInfo(workingDirectory);
+
+                foreach (var file in workingDirectoryInfo.EnumerateFiles("*"))
+                {
+                    file.Delete();
+                }
+
+                // Delete files in subfolders
+
+                foreach (String element in listOfDataToDelete)
                 {
                     try
                     {
                         String newWorkingDirectory = workingDirectory + element;
-                        var newWorkingDirectoryInfo = new DirectoryInfo(newWorkingDirectory);
-
-                        foreach (var file in newWorkingDirectoryInfo.EnumerateFiles("*"))
+                        var subFolderWorkingDirInfo = new DirectoryInfo(newWorkingDirectory);
+                                                
+                        foreach (var file in subFolderWorkingDirInfo.EnumerateFiles("*"))
                         {
                             file.Delete();
                             Directory.Delete(newWorkingDirectory, true);
