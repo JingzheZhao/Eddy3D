@@ -66,6 +66,26 @@ namespace WindTunnel
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+
+
+            //// EDDY LIC CHECK
+            //Test.WriteHardwareId();
+            //if (Test.Validate() || Test.ValidateTrial())
+            //{
+            //}
+            //else
+            //{
+            //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Your trial period is over.");
+            //    return;
+            //}
+            //// END EDDY LIC CHECK
+
+
+
+
+
+
+
             bool Run = false;
 
 
