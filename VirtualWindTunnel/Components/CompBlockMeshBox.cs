@@ -15,7 +15,7 @@ using Microsoft.VisualBasic.Devices;
 // folder in Grasshopper.
 // You can use the _GrasshopperDeveloperSettings Rhino command for that.
 
-namespace WindTunnel
+namespace Eddy
 {
     public class BlockMeshBox : GH_Component
     {
@@ -100,9 +100,9 @@ namespace WindTunnel
             DA.GetData(4, ref CPUs);
             DA.GetData(5, ref Run);
 
-
             
-            Mesh allTogether = new Mesh();
+            
+            Mesh combinedMeshes = new Mesh();
             MeshingParameters mp = new MeshingParameters();
 
             foreach (GeometryBase b in domain)
@@ -111,13 +111,13 @@ namespace WindTunnel
                 if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
                 {
                     Mesh obj = (Mesh)b;
-                    allTogether.Append(obj);
+                    combinedMeshes.Append(obj);
                 }
                 else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
                 {
                     Brep obj = (Brep)b;
                     var m = Mesh.CreateFromBrep(obj, mp);
-                    foreach (Mesh mm in m) allTogether.Append(mm);
+                    foreach (Mesh mm in m) combinedMeshes.Append(mm);
 
                 }
 
@@ -125,8 +125,22 @@ namespace WindTunnel
             }
 
 
-            OFBoxDomain DOM = new OFBoxDomain(allTogether, workingDirectory, blockDimension);
+            if ( !workingDirectory.EndsWith(@"\"))
+            {
+                workingDirectory = workingDirectory + @"\";
+            }
+
+
+            OFBoxDomain DOM = new OFBoxDomain(combinedMeshes, workingDirectory, blockDimension);
             //DOM = OFDomainBuilder(domain, workingDirectory);
+
+            if (blockDimension > DOM.dimX || blockDimension > DOM.dimY || blockDimension > DOM.dimZ)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Your block dimensions need to be smaller than the domain.");
+            }
+
+
+            
 
 
             if (CPUs == -1 || CPUs > Environment.ProcessorCount)
@@ -184,19 +198,20 @@ namespace WindTunnel
 
                 //}
 
-
-
-                var stlDir = Path.GetDirectoryName(workingDirectory + @"\constant\triSurface\");
-                var stlFilenameBuildings = workingDirectory + @"\constant\triSurface\building.stl";
+                var stlDirectory = Path.GetDirectoryName(workingDirectory + @"\constant\triSurface\");
+               var stlFilenameBuildings = workingDirectory + @"\constant\triSurface\building.stl";
                 var stlFilenameGround = workingDirectory + @"\constant\triSurface\ground.stl";
 
-                if (!Directory.Exists(stlDir))
+
+                
+
+                if (!Directory.Exists(stlDirectory))
                 {
-                    Directory.CreateDirectory(stlDir);
+                    Directory.CreateDirectory(stlDirectory);
                 }
 
 
-                STLExport.ExportBinary(stlFilenameBuildings, allTogether);
+                STLExport.ExportBinary(stlFilenameBuildings, combinedMeshes);
                 STLExport.ExportBinary(stlFilenameGround, DOM.newBoxGround);
 
 
@@ -283,7 +298,7 @@ namespace WindTunnel
             {
                 // You can add image files to your project resources and access them like this:
                 //return Resources.IconForThisComponent;
-                return null;
+                return Properties.Resources.ED_boxDomain;
             }
         }
 

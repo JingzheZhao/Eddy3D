@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 
-namespace WindTunnel
+namespace Eddy
 {
     // class for all common domain properties, every domain type inherits this
     public class OFBaseDomain
@@ -13,10 +13,23 @@ namespace WindTunnel
         // settings
         public string workingDirectory;
         public string systemDirectory;
-        
+        public string constantDirectory;
+        public string postProcessingDirectory;
+        public string stlDirectory;
+                
         public int CPU;
 
         public double frontageBuildingArea;
+
+        //simulation inputs
+
+        public int iter;
+        public int writeInterval;
+        public int keepTimeSteps;
+
+        public int flowDir;
+        
+
 
         public static double projectedBuildingArea(Plane localSystem, Mesh buildings)
         {

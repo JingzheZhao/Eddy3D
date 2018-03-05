@@ -47,7 +47,7 @@ namespace CallOF
                 string app = "docker";
                 //string filepath = "/c/OF/";
                 string volumeDocker = "/home/openfoam/";
-                string entryPoint = @"--entrypoint="""" -it";
+                string entryPoint = @"--entrypoint=""""";  //-it didnt work --> the input device is not a TTY.  If you are using mintty, try prefixing the command with 'winpty'
                 string container = "hfdresearch/swak4foamandpyfoam:latest-v4.1 ";
                 string sourceEnvironment = @"source /opt/openfoam4/etc/bashrc; cd /home/openfoam; ";
                 string logging = @"";

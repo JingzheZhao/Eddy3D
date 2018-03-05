@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 using Rhino.Geometry;
 
 
-namespace WindTunnel
+namespace Eddy
 {
-    public class BoundaryConditions
+    public class BoundaryConditionTemplates
     {
-        public static string ABLConditions()
+        public static string ABLConditions(BoundaryConditions BCInflow )
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
@@ -30,17 +30,17 @@ FoamFile
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 
-        Uref		12;
+        Uref		" + BCInflow.U + @";
 
-        Zref		0.5;
+        Zref		" + BCInflow.zref + @";
 
-        z0 uniform 0.005;
+        z0 uniform " + BCInflow.z0 + @";
 
-        flowDir (0.0 1.0 0.0);
+        flowDir (" + BCInflow.flowDir.X + BCInflow.flowDir.Y + BCInflow.flowDir.Z+ @";);
 
         zDir (0 0 1);
 
-        zGround uniform 0.0;
+        zGround uniform " + BCInflow.zGround + @";
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 ";
@@ -341,9 +341,10 @@ internalField uniform $pressure;
         ";
 
         }
-        public static string U()
+        public static string U(BoundaryConditions BCInflow)
         {
-            return @"/*--------------------------------*- C++ -*----------------------------------*\
+            StringBuilder sb = new StringBuilder();
+            sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
 |  \\    /   O peration     | Version:  2.2.2                                 |
@@ -380,15 +381,20 @@ symmetry
 
 
 inlet
-    {
+    {");
+            if (BCInflow.btype == BoundaryType.abl) {
+                sb.Append(@"type atmBoundaryLayerInletVelocity;
+        #include ""ABLConditions"";");
+            }
+            else {
+                sb.Append(@"type fixedValue;
+        value uniform ("+ BCInflow.flowDir.X + BCInflow.flowDir.Y + BCInflow.flowDir.Z+ @");");
+}
+       
 
-        type atmBoundaryLayerInletVelocity;
-        #include ""ABLConditions"";
-
-    }
-        //type            fixedValue;
-        //value           uniform (0 4 0);
-
+    
+        
+sb.Append(@"
 outlet
     {
         type inletOutlet;
@@ -415,7 +421,8 @@ building
 
 
 // ************************************************************************* //
-";
+");
+            return sb.ToString();
 
         }
         public static string Nut()

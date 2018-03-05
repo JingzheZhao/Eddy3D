@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 using System.Diagnostics;
 using System.IO;
 
-namespace WindTunnel
+namespace Eddy
 {
     class Settings
     {

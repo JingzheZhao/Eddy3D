@@ -7,13 +7,14 @@ using System.Text;
 using Grasshopper.Kernel.Parameters;
 using System.Diagnostics;
 using System.Threading;
+using System.Linq;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
 // folder in Grasshopper.
 // You can use the _GrasshopperDeveloperSettings Rhino command for that.
 
-namespace WindTunnel
+namespace Eddy
 {
     public class Clean : GH_Component
     {
@@ -77,62 +78,58 @@ namespace WindTunnel
             {
 
                 List<String> listOfDataToDelete = new List<string>();
-                listOfDataToDelete.Add(@"\0");
-                listOfDataToDelete.Add(@"\.pyFoam");
-                listOfDataToDelete.Add(@"\patchMass*");
-                listOfDataToDelete.Add(@"\postProcessing\*");
-                listOfDataToDelete.Add(@"\postProcessing");
-                listOfDataToDelete.Add(@"\forces*");
-                listOfDataToDelete.Add(@"\efficiency");
-                listOfDataToDelete.Add(@"\PyFoam*");
-                listOfDataToDelete.Add(@"PyFoam*");
-                listOfDataToDelete.Add(@"\constant\extendedFeatureEdgeMesh");
-                listOfDataToDelete.Add(@"\constant\polyMesh ");
-                listOfDataToDelete.Add(@"\constant\triSurface\*.eMesh");
-                listOfDataToDelete.Add(@"\*.pvsm");
-                listOfDataToDelete.Add(@"\Decomposer.analyzed\");
-                listOfDataToDelete.Add(@"Decomposer*");
-                listOfDataToDelete.Add(@"\processor.*");
-                listOfDataToDelete.Add(@"[0-9]");
-
-                
+               
 
 
                 //   Delete files in workingDir 
 
                 var workingDirectoryInfo = new DirectoryInfo(workingDirectory);
 
-                foreach (var file in workingDirectoryInfo.EnumerateFiles("*"))
+                var listOfDirs = workingDirectoryInfo.EnumerateDirectories("*");
+
+                var systemDirectoryInfo = new DirectoryInfo(workingDirectory+@"\system\");
+                var listOfSystemFiles = systemDirectoryInfo.EnumerateFiles("*");
+
+                foreach (var file in listOfSystemFiles)
                 {
                     file.Delete();
                 }
 
                 // Delete files in subfolders
 
-                foreach (String element in listOfDataToDelete)
-                {
+                foreach (String element in listOfDirs.Select(x=> x.Name))
+                {   
+                    if (element.ToLower() == "system" || element.ToLower() == "constant" || element.ToLower() == "0.org")
+                    {
+                        continue;
+                    }
                     try
                     {
-                        String newWorkingDirectory = workingDirectory + element;
+                        String newWorkingDirectory = workingDirectory +@"\" + element;
                         var subFolderWorkingDirInfo = new DirectoryInfo(newWorkingDirectory);
-                                                
+
                         foreach (var file in subFolderWorkingDirInfo.EnumerateFiles("*"))
                         {
                             file.Delete();
                             Directory.Delete(newWorkingDirectory, true);
                         }
-                        
-                        //File.Delete(newWorkingDirectory, true);
+                        foreach (var file in systemDirectoryInfo.EnumerateFiles("*"))
+                        {
+                            if (System.Text.RegularExpressions.Regex.IsMatch(file.ToString(), "Probes"))
+                            {
+                                file.Delete();
+                            }
+                        }
 
-                        //bool directoryExists = Directory.Exists(newWorkingDirectory);
-
-                        //Console.WriteLine("top-level directory exists: " + directoryExists);
                     }
                     catch (Exception e)
                     {
                         Console.WriteLine("The process failed: {0}", e.Message);
                     }
                 }
+
+
+
             }
            
         }

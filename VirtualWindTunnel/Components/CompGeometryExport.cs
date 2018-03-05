@@ -11,7 +11,7 @@ using Grasshopper.Kernel.Parameters;
 // folder in Grasshopper.
 // You can use the _GrasshopperDeveloperSettings Rhino command for that.
 
-namespace WindTunnel
+namespace Eddy
 {
     public class GeometryExportComponent : GH_Component
     {

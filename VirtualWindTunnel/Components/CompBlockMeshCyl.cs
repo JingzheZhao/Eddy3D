@@ -15,7 +15,7 @@ using Microsoft.VisualBasic.Devices;
 // folder in Grasshopper.
 // You can use the _GrasshopperDeveloperSettings Rhino command for that.
 
-namespace WindTunnel
+namespace Eddy
 {
     public class BlockMesh : GH_Component
     {
@@ -44,7 +44,8 @@ namespace WindTunnel
             pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item);
 
             pManager.AddIntegerParameter("windDir", "windDir", "windDir", GH_ParamAccess.item,0);
-
+            pManager.AddGenericParameter("BC", "BC", "BC", GH_ParamAccess.list);
+            
             //pManager.AddIntegerParameter("Mode", "Mode", "Domain generation mode", GH_ParamAccess.item, 0);
 
             //Param_Integer param = pManager[2] as Param_Integer;
@@ -97,6 +98,8 @@ namespace WindTunnel
 
             DA.GetData(1, ref workingDirectory);
             
+
+
             //int mode = 0;
             //int baseMesh = 0;
             int RAM = 0;
@@ -108,6 +111,7 @@ namespace WindTunnel
 
             //DA.GetData(2, ref mode);
             DA.GetData(2, ref windDir);
+            //DA.GetDataList(3, BC);
             //DA.GetData(3, ref baseMesh);
             //DA.GetData(3, ref divisionsX);
             DA.GetData(3, ref divisionsOuterCirc);
@@ -124,27 +128,7 @@ namespace WindTunnel
             Mesh allTogether = new Mesh();
             MeshingParameters mp = new MeshingParameters();
 
-            foreach (GeometryBase b in domain)
-            {
-
-                if(b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
-                {
-                    Mesh obj = (Mesh)b;
-                    allTogether.Append(obj);
-                }
-                 else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
-                {
-                    Brep obj = (Brep)b;
-                    var m = Mesh.CreateFromBrep(obj, mp);
-                    foreach (Mesh mm in m) allTogether.Append(mm);
-
-                }
-
-               
-            }
-
-            OFCylDomain DOMCYL = new OFCylDomain(allTogether, divisionsOuterCirc, divisionsZ, windDir, workingDirectory, CPUs, scaleFactorInnerRect);
-
+            //Error handling
 
             if (CPUs == -1 || CPUs > Environment.ProcessorCount)
             {
@@ -156,7 +140,45 @@ namespace WindTunnel
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that much RAM available.");
             }
+            if (divisionsZ <= 0)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Divisions must be greater than 0.");
 
+            }
+            if (scaleFactorInnerRect <= 0 || scaleFactorInnerRect >= Math.Sqrt(0.5) )
+            { 
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Scale factor must be greater than 0 and less than 1.");
+
+            }
+
+
+            foreach (GeometryBase b in domain)
+            {
+
+                if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
+                {
+                    Mesh obj = (Mesh)b;
+                    allTogether.Append(obj);
+                }
+                else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
+                {
+                    Brep obj = (Brep)b;
+                    var m = Mesh.CreateFromBrep(obj, mp);
+                    foreach (Mesh mm in m) allTogether.Append(mm);
+
+                }
+
+
+            }
+
+            if ( !workingDirectory.EndsWith(@"\"))
+            {
+                workingDirectory = workingDirectory + @"\";
+            }
+            
+            OFCylDomain DOMCYL = new OFCylDomain(allTogether, divisionsOuterCirc, divisionsZ, windDir, workingDirectory, CPUs, scaleFactorInnerRect);
+
+            
 
 
 
@@ -261,26 +283,18 @@ namespace WindTunnel
                     using (StreamReader reader = new StreamReader(stream))
                     {
                         logFile = reader.ReadToEnd();
-                        //while (!reader.EndOfStream)
-                        //{
-
-                        //}
-
+               
                     }
                 }
 
                 DA.SetData(0, logFile);
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Super!!");
 
-                // OFLaunch.Run(command, StringTemplates.filePath);
-            }
-            //else
-            //{
-            //    return;
-            //}
+                      }
+        
 
            DA.SetData(1, DOMCYL);           
-           DA.SetData(2, DOMCYL.DomainMeshGround);
+           DA.SetData(2, DOMCYL.DomainMesh);
             
 
 
@@ -297,7 +311,7 @@ namespace WindTunnel
             {
                 // You can add image files to your project resources and access them like this:
                 //return Resources.IconForThisComponent;
-                return null;
+                return Properties.Resources.ED_cylDomain;
             }
         }
 

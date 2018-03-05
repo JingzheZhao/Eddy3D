@@ -4,7 +4,7 @@ using System.Text;
 using Rhino.Geometry;
 
 
-namespace WindTunnel
+namespace Eddy
 {
     public class StringTemplates
     {
@@ -360,7 +360,8 @@ mergeTolerance 1E-6;
         }
         public static string controlDict(int iter, int keepTimeSteps, int writeInterval, List<Mesh> topologies)
         {
-            return @"/*--------------------------------*- C++ -*----------------------------------*\
+            var sb = new StringBuilder();
+            sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
 |  \\    /   O peration     | Version:  2.2.2                                 |
@@ -401,10 +402,14 @@ libs
             runTimeModifiable true;
             functions
 {
-" + StringTemplates.functionObjCP(topologies) + @"
-}
-            ";
+
+");
+            if (topologies != null) { sb.Append(StringTemplates.functionObjCP(topologies).ToString()); }
+            else { sb.Append(@"};"); }
+
+            return sb.ToString();
         }
+
         public static string circularDomainM4(OFBoxDomain DOM)
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
@@ -838,9 +843,9 @@ wallDist
 // ************************************************************************* //
 ";
         }
-        public static string fvSolution()
+        public static string fvSolution(int mode)
         {
-            return @"/*--------------------------------*- C++ -*----------------------------------*\
+            StringBuilder sb = new StringBuilder(); sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
 |  \\    /   O peration     | Version:  2.2.2                                 |
@@ -925,9 +930,9 @@ SIMPLE
 potentialFlow
 {
     nNonOrthogonalCorrectors 3;
-}
-
-relaxationFactors
+}");
+            if (mode == 0) {
+                sb.Append(@"relaxationFactors
 {
     fields
     {
@@ -940,8 +945,25 @@ relaxationFactors
        epsilon          0.3;
 	   omega			0.3;
     }
-}
+}"
+);
+            }
+else { sb.Append(@"relaxationFactors
+{
+    fields
+    {
+        p               0.3;
+    }
+    equations
+    {
+        U               0.7;
+        k               0.7;
+       epsilon          0.7;
+	   omega			0.7;
+    }
+}"); }
 
+            sb.Append(@"
 cache
 {
     grad(U);
@@ -949,7 +971,8 @@ cache
 
 // ************************************************************************* //
 
-";
+;");
+                return sb.ToString();
         }
         public static string surfaceFeatureExtractDict()
         {
@@ -1092,10 +1115,7 @@ RAS
         public static string functionObjCP(List<Mesh> evaluationTopology)
         {
             var sb = new StringBuilder();
-
-            for (int i = 0; i < evaluationTopology.Count; i++)
-            {
-                sb.Append(@"cp2
+            sb.Append(@"cp2
 {
                     type pressure;
                     libs(""libfieldFunctionObjects.so"");
@@ -1109,6 +1129,8 @@ RAS
                     calcTotal yes;
                     calcCoeff yes;
                 }");
+            for (int i = 0; i < evaluationTopology.Count; i++)
+            {
                 sb.Append(@"
 c_p_patch" + i + @"
 {
@@ -1191,7 +1213,7 @@ FoamFile
             return sb.ToString();
 
         }
-        public static string samplePoints(List<Point3d> samplePoints)
+        public static string sampleProbes(List<Point3d> listOfPoints, string probeName, int mode)
         {
             var sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -1202,24 +1224,36 @@ FoamFile
   |    \\/     M anipulation  |                                                 |
   \*---------------------------------------------------------------------------*/
 
-cpSamples
+" + probeName + @"
 {
 
                 type probes;
-                libs(""libsampling.so"");
+                libs (""libsampling.so"");
                 writeControl writeTime;
 
                 interpolationScheme cellPoint;
 
                 setFormat csv;
 
-                fields(total(p)_coeff);
+                fields (");
+ if (mode == 0)
+            {
+                sb.Append("total(p)_coeff");
+            }
+            else if (mode == 1)
+            {
+                sb.Append("U");
+            }
+ 
+sb.Append(@");
 
                 probeLocations
                   (");
-            for (int i = 0; i < samplePoints.Count; i++)
+            sb.Append(Environment.NewLine);  
+            for (int i = 0; i < listOfPoints.Count; i++)
             {
-                sb.Append(@"(" + samplePoints[i].X + @" " + samplePoints[i].Y + @" " + samplePoints[i].Z + @")");
+                sb.Append(@"(" + listOfPoints[i].X + @" " + listOfPoints[i].Y + @" " + listOfPoints[i].Z + @")");
+                sb.Append(Environment.NewLine);  
             }
 
             sb.Append(@");
@@ -1233,5 +1267,15 @@ cpSamples
 
 
         }
+        public static string run_mesh() { return @"docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; ./run_clean""
+docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; blockMesh""
+docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatureExtract; snappyHexMesh -overwrite ; checkMesh""
+docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite""PAUSE";
+                }
+        public static string run_sim() {return @"docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamPrepareCase.py . --no-mesh-create""
+docker run -v %cd%/:/home/openfoam/ --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;simpleFoam""
+docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh""PAUSE"; }
+        public static string run() { return @"call run_mesh.bat call run_sim.bat PAUSE"; }
+
     }
-    }
+}

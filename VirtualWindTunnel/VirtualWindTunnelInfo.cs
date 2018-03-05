@@ -2,7 +2,7 @@
 using System.Drawing;
 using Grasshopper.Kernel;
 
-namespace WindTunnel
+namespace Eddy
 {
     public class VirtualWindTunnel : GH_AssemblyInfo
     {
