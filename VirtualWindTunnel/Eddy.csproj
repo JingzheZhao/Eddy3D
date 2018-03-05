@@ -61,6 +61,8 @@
     <Compile Include="Components\CompPostProcessingProbes.cs" />
     <Compile Include="Components\CompPostProcessingPatches.cs" />
     <Compile Include="Components\CompResidualWriter.cs" />
+    <Compile Include="Licensing\LicenseTest.cs" />
+    <Compile Include="Licensing\ModifyRegistry.cs" />
     <Compile Include="OFBaseDomain.cs" />
     <Compile Include="OFCylDomain.cs" />
     <Compile Include="Settings.cs" />
@@ -70,7 +72,7 @@
     <Compile Include="Components\CompClean.cs" />
     <Compile Include="OFLaunch.cs" />
     <Compile Include="OFBoxDomain.cs" />
-    <Compile Include="SKGL.cs" />
+    <Compile Include="Licensing\License.cs" />
     <Compile Include="STLExport.cs" />
     <Compile Include="Components\CompGeometryExport.cs" />
     <Compile Include="StringTemplates\boundaryConditionTemplates.cs" />
