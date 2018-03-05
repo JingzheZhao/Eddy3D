@@ -5,16 +5,16 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-namespace WindTunnel
+namespace Eddy
 {
     public class Test
     {
         public static void WriteHardwareId()
         {
-            string file = Utilities.AssemblyDirectory + "/EddyHardwareId.txt";
+            string file = Utilities.hardcodedAssemblyDir + "/EddyHardwareId.txt";
             if (!File.Exists(file))
             {
-                var GenereateAKey = new WindTunnel.Generate();
+                var GenereateAKey = new Generate();
                 File.WriteAllText(file, GenereateAKey.MachineCode.ToString());
 
             }
@@ -36,7 +36,7 @@ namespace WindTunnel
             }
             if (!string.IsNullOrWhiteSpace(key))
             {
-                WindTunnel.Validate ValidateAKey = new WindTunnel.Validate(); // create an object
+                Validate ValidateAKey = new Validate(); // create an object
                 ValidateAKey.Parola = Obscure(_powo, 40); // the passsword
                 ValidateAKey.Key = key; // enter a valid key
 

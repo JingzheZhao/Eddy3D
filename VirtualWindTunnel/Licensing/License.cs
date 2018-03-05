@@ -18,7 +18,7 @@ using System.Security;
 
 
 [assembly: AllowPartiallyTrustedCallers()]
-namespace WindTunnel
+namespace Eddy
 {
     #region "S E R I A L  K E Y  G E N E R A T I N G  L I B R A R Y"
 

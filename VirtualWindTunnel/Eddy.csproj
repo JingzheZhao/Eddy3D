@@ -56,8 +56,6 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BoundaryConditionsConstantFlow.cs" />
-    <Compile Include="BoundaryConditionsABL.cs" />
     <Compile Include="Components\CompBlockMeshCyl.cs" />
     <Compile Include="Components\CompCellSize.cs" />
     <Compile Include="Components\CompABL.cs" />

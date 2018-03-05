@@ -171,7 +171,7 @@ namespace Eddy
                 File.WriteAllText(Path.Combine(systemDir + "snappyHexMeshDict"), StringTemplates.snappyHexMeshDict(accBuilding, accFeatures, accGround, layers, locationInMesh));
                 File.WriteAllText(Path.Combine(systemDir + "surfaceFeatureExtractDict"), StringTemplates.surfaceFeatureExtractDict());
                 File.WriteAllText(Path.Combine(systemDir + "fvSchemes"), StringTemplates.fvSchemes());
-                File.WriteAllText(Path.Combine(systemDir + "fvSolution"), StringTemplates.fvSolution());
+                File.WriteAllText(Path.Combine(systemDir + "fvSolution"), StringTemplates.fvSolution(0));
                 File.WriteAllText(Path.Combine(systemDir + "meshQualityDict"), StringTemplates.meshQualityDict());
 
 

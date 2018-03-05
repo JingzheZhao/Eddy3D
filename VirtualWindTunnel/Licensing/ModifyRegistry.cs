@@ -4,7 +4,7 @@ using Microsoft.Win32;
 // it's required for reading/writing into the registry:
 // and for the MessageBox function:
 
-namespace WindTunnel
+namespace Eddy
 {
     /// <summary>
     /// An useful class to read/write/delete/count registry keys
