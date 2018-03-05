@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.VisualBasic.Devices;
 
 
+
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
 // folder in Grasshopper.
@@ -44,7 +45,7 @@ namespace Eddy
             pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item);
 
             pManager.AddIntegerParameter("windDir", "windDir", "windDir", GH_ParamAccess.item,0);
-            pManager.AddGenericParameter("BC", "BC", "BC", GH_ParamAccess.list);
+            //pManager.AddGenericParameter("BC", "BC", "BC", GH_ParamAccess.list);
             
             //pManager.AddIntegerParameter("Mode", "Mode", "Domain generation mode", GH_ParamAccess.item, 0);
 
@@ -268,7 +269,7 @@ namespace Eddy
 
                                 
                 //ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory +@"\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
-                ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
+                ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir+@"\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
                 Process p = new Process();
                 p.StartInfo = psi;
                 p.Start();

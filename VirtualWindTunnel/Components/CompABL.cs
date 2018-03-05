@@ -40,7 +40,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-       
+            pManager.AddGenericParameter("Bcond", "Bcond", "Bcond", GH_ParamAccess.item);
         }
 
 
@@ -75,7 +75,7 @@ namespace Eddy
 
 
 
-            DA.SetData(1, BCInflow);    
+            DA.SetData(0, BCInflow);    
 
          
            

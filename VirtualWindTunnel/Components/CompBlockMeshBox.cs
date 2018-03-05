@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.VisualBasic.Devices;
 
 
+
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
 // folder in Grasshopper.
@@ -233,7 +234,7 @@ namespace Eddy
 
 
 
-                ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
+                ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir+@"\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
                 Process p = new Process();
                 p.StartInfo = psi;
                 p.Start();

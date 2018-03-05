@@ -85,8 +85,7 @@ namespace Eddy
 
 
 
-            int mode = 0;
-            List<GeometryBase> topo = new List<GeometryBase>();
+            int mode = 0;            
             List<Point3d> listOfPoints = new List<Point3d>();
             bool run = false;
 
@@ -97,14 +96,11 @@ namespace Eddy
 
 
 
-            if (run == true)
+
+
+
+            if (run = true)
             {
-
-                if (!Directory.Exists(DOM.postProcessingDirectory))
-                    {
-                        Directory.CreateDirectory(DOM.postProcessingDirectory);
-                    }
-
 
 
                 if (mode == 0) // cp
@@ -112,6 +108,10 @@ namespace Eddy
                     string pointName = "cp_Probes";
                     DOM.postProcessingDirectory = DOM.workingDirectory + @"\postProcessing\";
 
+                    if (!Directory.Exists(DOM.postProcessingDirectory))
+                    {
+                        Directory.CreateDirectory(DOM.postProcessingDirectory);
+                    }
                     //Write sampleDict
 
                     File.WriteAllText(Path.Combine(DOM.systemDirectory + "controlDict"), StringTemplates.controlDict(DOM.iter, DOM.writeInterval, DOM.keepTimeSteps, null));
@@ -122,7 +122,7 @@ namespace Eddy
                     string command = @"""postProcess -func " + pointName + @" -latestTime""";
 
 
-                    ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
+                    ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir + @"\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
                     Process p = new Process();
                     p.StartInfo = psi;
                     p.Start();
@@ -142,13 +142,18 @@ namespace Eddy
                     string pointName = "U_Probes";
                     string postProcessDirectory = DOM.workingDirectory + @"\postProcessing\";
 
+                    if (!Directory.Exists(DOM.postProcessingDirectory))
+                    {
+                        Directory.CreateDirectory(DOM.postProcessingDirectory);
+                    }
+
                     File.WriteAllText(Path.Combine(DOM.systemDirectory + pointName), StringTemplates.sampleProbes(listOfPoints, pointName, mode));
 
 
 
                     string command = @"""postProcess -func " + pointName + @" -latestTime""";
 
-                    ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
+                    ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir + @"\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
                     Process p = new Process();
                     p.StartInfo = psi;
                     p.Start();
@@ -161,6 +166,7 @@ namespace Eddy
 
 
                     //DA.SetDataList(0, values);
+
 
 
 

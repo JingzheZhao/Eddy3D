@@ -40,7 +40,7 @@ namespace Eddy
         {
             pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
             pManager.AddIntegerParameter("iterations", "iter", "Specify the number of iterations.", GH_ParamAccess.item, 1000);
-            pManager.AddIntegerParameter("writeInterval", "Write Interval", "Write Interval.", GH_ParamAccess.item, 20);
+            pManager.AddIntegerParameter("writeInterval", "writeInterval", "writeInterval.", GH_ParamAccess.item, 20);
             pManager.AddIntegerParameter("keepTimeSteps", "KeepTimeSteps", "KeepTimeSteps.", GH_ParamAccess.item, 5);
 
             pManager.AddIntegerParameter("Mode", "Mode", "Robustness of the solver", GH_ParamAccess.item, 0);
@@ -128,7 +128,7 @@ namespace Eddy
             DA.GetData(6, ref Run);
 
             DOM.iter = iter;
-            DOM.writeInterval = writeInterval;
+            DOM.writeInterval  = writeInterval;
             DOM.keepTimeSteps = keepTimeSteps;
 
 
