@@ -2,7 +2,7 @@
 using System;
 
 
-namespace WindTunnel
+namespace Eddy
 {
     public class OFBoxDomain : OFBaseDomain
     {
@@ -52,11 +52,18 @@ namespace WindTunnel
 
         public OFBoxDomain(Mesh geometry, string _workingDirectory, double _blockDim)
         {
+
+
+            
+
             workingDirectory = _workingDirectory;
             systemDirectory = workingDirectory + @"system\";
             blockDimension = _blockDim;
             BuildingGeometry = geometry;
             //BoundingBox bb = domain.GetBoundingBox(true);
+
+            
+
 
             BBox = BuildingGeometry.GetBoundingBox(true);
                    

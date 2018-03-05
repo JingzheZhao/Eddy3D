@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-namespace WindTunnel
+namespace Eddy
 {
     public class OFCylDomain : OFBaseDomain
     {
@@ -25,6 +25,7 @@ namespace WindTunnel
 
         public Mesh DomainMesh;
         public Mesh DomainMeshGround;
+        
 
         List<string> MeshFaceLabel = new List<string>();
         List<int> topFaceID = new List<int>();
@@ -39,11 +40,7 @@ namespace WindTunnel
         public int divisionsZ;
 
 
-
-
-
-
-       
+               
 
 
 
@@ -479,9 +476,7 @@ mergePatchPairs
 
             //List<Point3d> 
             ListOfAllPointsInMagicOrder = outerRingPointsLower.Concat(pointsOnInnerRectLower).Concat(gridPointsLower).Concat(outerRingPointsUpper).Concat(pointsOnInnerRectUpper).Concat(gridPointsUpper).ToList();
-
-
-
+            
             return ListOfAllPointsInMagicOrder;
 
         }
@@ -3213,45 +3208,45 @@ mergePatchPairs
 
             };
 
-        private static int RoundToNearest5(double _Knob)
+        private int RoundToNearest5(double _Knob)
         {
             double Knob = _Knob;
             if (Knob < 0) Knob = 0;
             if (Knob > 359) Knob = 359;
 
-            int val = 0;
+            flowDir = 0;
             while (Knob < 358)
             {
                 if (Knob % 5 == 0)
                 {
-                    val = (int)Knob;
+                    flowDir = (int)Knob;
                 }
                 if (Knob % 5 == 1)
                 {
-                    val = (int)Knob - 1;
+                    flowDir = (int)Knob - 1;
                 }
                 if (Knob % 5 == 2)
                 {
-                    val = (int)Knob - 2;
+                    flowDir = (int)Knob - 2;
                 }
                 if (Knob % 5 == 3)
                 {
-                    val = (int)Knob + 2;
+                    flowDir = (int)Knob + 2;
                 }
                 if (Knob % 5 == 4)
                 {
-                    val = (int)Knob + 1;
+                    flowDir = (int)Knob + 1;
                 }
                 break;
             }
             if (Knob == 358 | Knob == 359)
             {
-                val = 0;
+                flowDir = 0;
             }
 
 
 
-            return val;
+            return flowDir;
         }
 
         public override string ToString()

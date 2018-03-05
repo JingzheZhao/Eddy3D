@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WindTunnel
+namespace Eddy
 {
     public static class Utilities
     {

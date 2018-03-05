@@ -14,7 +14,7 @@ using Grasshopper.Kernel.Types;
 // folder in Grasshopper.
 // You can use the _GrasshopperDeveloperSettings Rhino command for that.
 
-namespace WindTunnel
+namespace Eddy
 {
     public class PostProcessing : GH_Component
     {
