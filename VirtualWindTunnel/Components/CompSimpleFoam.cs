@@ -103,7 +103,7 @@ namespace Eddy
 
             if ((gobj2.Value is BoundaryConditions))
             {
-                BCInflow = (BoundaryConditions)gobj.Value;
+                BCInflow = (BoundaryConditions)gobj2.Value; 
             }
             if (BCInflow == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
