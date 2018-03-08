@@ -1270,11 +1270,13 @@ sb.Append(@");
         public static string run_mesh() { return @"docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; ./run_clean""
 docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; blockMesh""
 docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatureExtract; snappyHexMesh -overwrite ; checkMesh""
-docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite""PAUSE";
+docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite""
+PAUSE";
                 }
         public static string run_sim() {return @"docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamPrepareCase.py . --no-mesh-create""
 docker run -v %cd%/:/home/openfoam/ --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;simpleFoam""
-docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh""PAUSE"; }
+docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh""
+PAUSE"; }
         public static string run() { return @"call run_mesh.bat call run_sim.bat PAUSE"; }
 
     }

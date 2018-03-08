@@ -99,7 +99,7 @@ namespace Eddy
 
 
 
-            if (run = true)
+            if (run == true)
             {
 
 

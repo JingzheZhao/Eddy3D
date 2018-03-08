@@ -72,8 +72,10 @@ namespace Eddy
             BCInflow.btype = BoundaryType.abl;
 
             BCInflow.U = Uref;
-
-
+            BCInflow.zref = zref;
+            BCInflow.z0 = z0;
+            BCInflow.zGround = zGround;
+            BCInflow.flowDir = new Rhino.Geometry.Vector3d(0,1,0);
 
             DA.SetData(0, BCInflow);    
 

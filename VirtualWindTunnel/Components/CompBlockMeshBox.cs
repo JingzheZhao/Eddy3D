@@ -233,14 +233,14 @@ namespace Eddy
                 File.WriteAllText(Path.Combine(systemDir + "controlDict"), StringTemplates.controlDict(10000, 5, 5, null));
 
 
-
+                /*
                 ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir+@"\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
                 Process p = new Process();
                 p.StartInfo = psi;
                 p.Start();
                 p.WaitForExit();
                 //Thread.Sleep(500);
-
+                */
 
                 string logFile = "";
 

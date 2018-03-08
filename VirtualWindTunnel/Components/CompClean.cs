@@ -90,6 +90,10 @@ namespace Eddy
                 var systemDirectoryInfo = new DirectoryInfo(workingDirectory+@"\system\");
                 var listOfSystemFiles = systemDirectoryInfo.EnumerateFiles("*");
 
+                var constantDirectoryInfo = new DirectoryInfo(workingDirectory+@"\constant\");
+                var polyMeshDirectoryInfo = new DirectoryInfo(workingDirectory+@"\constant\polyMesh\");
+                var extendedFeatureEdgeMeshDirectoryInfo = new DirectoryInfo(workingDirectory+@"\constant\extendedFeatureEdgeMesh\");
+                
                 foreach (var file in listOfSystemFiles)
                 {
                     file.Delete();
@@ -117,8 +121,17 @@ namespace Eddy
                         {
                             if (System.Text.RegularExpressions.Regex.IsMatch(file.ToString(), "Probes"))
                             {
-                                file.Delete();
+                                file.Delete();                               
                             }
+                        }
+
+                        foreach (var file in extendedFeatureEdgeMeshDirectoryInfo.EnumerateFiles("*"))
+                        {
+                            file.Delete();
+                        }
+                        foreach (var file in polyMeshDirectoryInfo.EnumerateFiles("*"))
+                        {
+                            file.Delete();
                         }
 
                     }

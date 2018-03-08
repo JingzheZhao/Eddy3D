@@ -36,7 +36,7 @@ FoamFile
 
         z0 uniform " + BCInflow.z0 + @";
 
-        flowDir (" + BCInflow.flowDir.X + BCInflow.flowDir.Y + BCInflow.flowDir.Z+ @";);
+        flowDir (" + BCInflow.flowDir.X +" "+ BCInflow.flowDir.Y +" "+ BCInflow.flowDir.Z+ @");
 
         zDir (0 0 1);
 
@@ -384,11 +384,12 @@ inlet
     {");
             if (BCInflow.btype == BoundaryType.abl) {
                 sb.Append(@"type atmBoundaryLayerInletVelocity;
-        #include ""ABLConditions"";");
+        #include ""ABLConditions"";
+}");
             }
             else {
                 sb.Append(@"type fixedValue;
-        value uniform ("+ BCInflow.flowDir.X + BCInflow.flowDir.Y + BCInflow.flowDir.Z+ @");");
+        value uniform ("+ BCInflow.flowDir.X +" "+ BCInflow.flowDir.Y +" "+ BCInflow.flowDir.Z+ @");");
 }
        
 

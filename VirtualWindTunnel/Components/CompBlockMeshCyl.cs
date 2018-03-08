@@ -148,7 +148,7 @@ namespace Eddy
             }
             if (scaleFactorInnerRect <= 0 || scaleFactorInnerRect >= Math.Sqrt(0.5) )
             { 
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Scale factor must be greater than 0 and less than 1.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Scale factor must be greater than 0 and less than 0.7.");
 
             }
 
@@ -267,7 +267,7 @@ namespace Eddy
 
 
 
-                                
+                  /*              
                 //ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory +@"\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
                 ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir+@"\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
                 Process p = new Process();
@@ -275,6 +275,7 @@ namespace Eddy
                 p.Start();
                 p.WaitForExit();
                 //Thread.Sleep(500);
+                */
 
 
                 string logFile = "";
