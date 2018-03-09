@@ -94,23 +94,29 @@ namespace Eddy
             DA.GetData(2, ref mode);
             DA.GetData(3, ref run);
 
+            // Error handling
+
+            if (listOfPoints.Count() < 1)
+            { 
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You need to pass a list of point to the component.");
+
+            }
 
 
 
 
-
-            if (run == true)
+            if (run == true && listOfPoints.Count() > 0 )
             {
 
 
                 if (mode == 0) // cp
                 {
                     string pointName = "cp_Probes";
-                    DOM.postProcessingDirectory = DOM.workingDirectory + @"\postProcessing\";
+                    string postProcessingDirectory = DOM.workingDirectory + @"\postProcessing\";
 
-                    if (!Directory.Exists(DOM.postProcessingDirectory))
+                    if (!Directory.Exists(postProcessingDirectory))
                     {
-                        Directory.CreateDirectory(DOM.postProcessingDirectory);
+                        Directory.CreateDirectory(postProcessingDirectory);
                     }
                     //Write sampleDict
 
@@ -130,21 +136,20 @@ namespace Eddy
 
                     //Parse file
 
-                    ParsingValues values = new ParsingValues(listOfPoints, pointName, DOM.workingDirectory);
-
-                    File.WriteAllText(DOM.postProcessingDirectory + pointName + ".csv", values.ToString());
-                    DA.SetData(0, values);
+                    ParsingValues cp = new ParsingValues(listOfPoints, pointName, DOM.workingDirectory);
+                                        
+                    DA.SetData(0, cp.cpValues);
 
                 }
 
                 if (mode == 1) // U
                 {
                     string pointName = "U_Probes";
-                    string postProcessDirectory = DOM.workingDirectory + @"\postProcessing\";
+                    string postProcessingDirectory = DOM.workingDirectory + @"\postProcessing\";
 
-                    if (!Directory.Exists(DOM.postProcessingDirectory))
+                    if (!Directory.Exists(postProcessingDirectory))
                     {
-                        Directory.CreateDirectory(DOM.postProcessingDirectory);
+                        Directory.CreateDirectory(postProcessingDirectory);
                     }
 
                     File.WriteAllText(Path.Combine(DOM.systemDirectory + pointName), StringTemplates.sampleProbes(listOfPoints, pointName, mode));
@@ -160,12 +165,12 @@ namespace Eddy
 
                     p.WaitForExit();
 
-                    ParsingValues values = new ParsingValues(listOfPoints, pointName, DOM.workingDirectory);
+                    var U = new  ParsingValues(listOfPoints, pointName, DOM.workingDirectory);
 
-                    File.WriteAllText(postProcessDirectory + pointName + ".csv", values.ToString());
+                    
 
-
-                    //DA.SetDataList(0, values);
+                    
+                    DA.SetDataList(0, U.uValues);
 
 
 
