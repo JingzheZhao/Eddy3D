@@ -28,8 +28,37 @@ namespace Eddy
         public int keepTimeSteps;
 
         public int flowDir;
-        
+       
 
+
+        public static BoundingBox getRefinementBox(Plane localSystem, Mesh buildings, double padding = 10)
+        {
+            Plane worldXY = Plane.WorldXY;
+            Transform xform = Transform.ChangeBasis(worldXY, localSystem);
+            var refBox = BoundingBox.Empty;
+            BoundingBox boundingBox = buildings.GetBoundingBox(xform);
+            refBox.Union(boundingBox);
+            refBox.Max = new Point3d(refBox.Max.X + padding, refBox.Max.Y + padding, refBox.Max.Z + padding);
+            refBox.Min = new Point3d(refBox.Min.X - padding, refBox.Min.Y - padding, refBox.Min.Z);
+
+            return boundingBox;
+
+           // Interval refBoxinterval = new Interval(refBox.Min.X, refBox.Max.X);   // y
+           // Interval refBoxinterval2 = new Interval(refBox.Min.Y, refBox.Max.Y);  // z
+           // Interval refBoxinterval3 = new Interval(refBox.Min.Z, refBox.Max.Z);
+           //return new Box(localSystem, refBoxinterval, refBoxinterval2, refBoxinterval3);
+        }
+
+        public static Cylinder getRefinementCyl(Point3d center, Mesh buildings, double padding = 10)
+        {
+     
+            BoundingBox bb = buildings.GetBoundingBox(true);
+            var pt = new Point3d(bb.Max.X, bb.Max.Y, center.Z);
+            double radi = (center - pt).Length ;
+            var cyl = new Cylinder(new Circle(center, radi + padding), bb.Max.Z + padding);
+            return cyl;
+
+        }
 
         public static double projectedBuildingArea(Plane localSystem, Mesh buildings)
         {
@@ -43,12 +72,12 @@ namespace Eddy
 
             BoundingBox boundingBox = buildings.GetBoundingBox(xform);
             empty.Union(boundingBox);
-
-
             Interval interval = new Interval(empty.Min.X, empty.Max.X);   // y
             Interval interval2 = new Interval(empty.Min.Y, empty.Max.Y);  // z
             Interval interval3 = new Interval(empty.Min.Z, empty.Max.Z);
             Box box = new Box(localSystem, interval, interval2, interval3);
+
+
 
             //Todo:
             int z = 30;

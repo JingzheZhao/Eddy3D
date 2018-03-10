@@ -53,8 +53,8 @@ namespace Eddy
         public OFBoxDomain(Mesh geometry, string _workingDirectory, double _blockDim)
         {
 
+  
 
-            
 
             workingDirectory = _workingDirectory;
             systemDirectory = workingDirectory + @"system\";
