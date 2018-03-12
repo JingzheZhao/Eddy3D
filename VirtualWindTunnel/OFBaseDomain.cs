@@ -29,10 +29,12 @@ namespace Eddy
 
         public int flowDir;
         public Cylinder refinementCylinder;
+        public BoundingBox refinementBox;
+        public BoundingBox BBox;
      
         
 
-        public static BoundingBox getRefinementBox(Plane localSystem, Mesh buildings, double padding = 10)
+        public static BoundingBox getRefinementBox(Plane localSystem, Mesh buildings, double padding = 0)
         {
             Plane worldXY = Plane.WorldXY;
             Transform xform = Transform.ChangeBasis(worldXY, localSystem);

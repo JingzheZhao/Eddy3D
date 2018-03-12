@@ -45,11 +45,19 @@ namespace Eddy
              string postProcessingDirectory = workingDirectory + @"\postProcessing\";
             if (pointName == "cp_Probes")
             {
-                File.WriteAllText(postProcessingDirectory + pointName + ".csv", this.cpValues.ToString());
-            }
+                StringBuilder sb = new StringBuilder();
+                foreach (double i in this.cpValues) {
+                    sb.AppendLine(i.ToString());
+                }                                
+                File.WriteAllText(postProcessingDirectory + pointName + ".csv", sb.ToString());
+             }
             else
             {
-                File.WriteAllText(postProcessingDirectory + pointName + ".csv", this.uValues.ToString());
+                StringBuilder sb = new StringBuilder();
+                foreach (Vector3d i in this.uValues) {
+                    sb.AppendLine(i.ToString());
+                }                                
+                File.WriteAllText(postProcessingDirectory + pointName + ".csv", sb.ToString());
             }
              
 

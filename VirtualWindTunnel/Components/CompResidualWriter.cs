@@ -95,6 +95,9 @@ namespace Eddy
             //var l = lines[i];
             //if (l.StartsWith("Exec   : simpleFoam")) lines.Parse(l.Split(',')[1].Split('=')[1]));
 
+           
+
+
 
 
             int pCnt = 0;
@@ -120,13 +123,13 @@ namespace Eddy
 
                 if (l.StartsWith("smoothSolver:  Solving for omega, Initial residual =")) omega.Add(double.Parse(l.Split(',')[1].Split('=')[1]));
                 if (l.StartsWith("smoothSolver:  Solving for k, Initial residual =")) k.Add(double.Parse(l.Split(',')[1].Split('=')[1]));
+
             }
 
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("iter,Ux,Uy,Uz,p,omega,k");
-            for (int i = 0; i < Ux.Count; i++)
+            for (int i = 0; i < k.Count; i++)
             {
-
                 sb.AppendLine(iter[i] + "," + Ux[i] + "," + Uy[i] + "," + Uz[i] + "," + p1[i] + "," + omega[i] + "," + k[i]);
             }
 

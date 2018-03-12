@@ -10,7 +10,7 @@ namespace Eddy
 {
     public class OFCylDomain : OFBaseDomain
     {
-        public BoundingBox BBox;
+        //public BoundingBox BBox; //moved to BaseDomain so that is globally accessible
 
         public double radius;
         public double height;
@@ -38,6 +38,10 @@ namespace Eddy
         public int divisionsX;
         public int divisionsY;
         public int divisionsZ;
+
+        public double cellSizeInner;
+
+
 
 
                
@@ -116,7 +120,9 @@ namespace Eddy
 
                      // refinement Cylinder
 
-            refinementCylinder = getRefinementCyl(center, geometry, 0.3, 0.3);
+            //refinementCylinder = getRefinementCyl(center, geometry, 0.3, 0.3);
+            //refinementBox = getRefinementBox(localSystem, geometry, 0.3);
+           
 
         }
 
@@ -485,7 +491,7 @@ mergePatchPairs
 
             //List<Point3d> 
             ListOfAllPointsInMagicOrder = outerRingPointsLower.Concat(pointsOnInnerRectLower).Concat(gridPointsLower).Concat(outerRingPointsUpper).Concat(pointsOnInnerRectUpper).Concat(gridPointsUpper).ToList();
-            
+            cellSizeInner = Math.Abs(ListOfAllPointsInMagicOrder[281].X - ListOfAllPointsInMagicOrder[280].X);
             return ListOfAllPointsInMagicOrder;
 
         }
@@ -3261,7 +3267,7 @@ mergePatchPairs
         public override string ToString()
         {
             return "Cyclic Domain:\n" +
-            "Smallest cell size in center: " + Math.Abs(ListOfAllPointsInMagicOrder[281].X - ListOfAllPointsInMagicOrder[280].X) + " m\n"+
+            "Smallest cell size in center: " + cellSizeInner + " m\n"+
             "Projected area: " + Math.Round(frontageBuildingArea)
 
 
