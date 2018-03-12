@@ -1,4 +1,5 @@
 ﻿using Rhino.Geometry;
+using Rhino.Geometry.Intersect;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -128,10 +129,61 @@ namespace Eddy
 
         }
 
+        public Mesh MakeCircMeshPlane(Point3d center, double sizeInnerRect, int divisions, double circleRadius, List<Point3d> pointsOnCircle)
+        {
 
 
+            var pl = new Plane(center, Vector3d.ZAxis);
 
-        
+            var xinter = new Interval(-sizeInnerRect, sizeInnerRect);
+
+            var m = Mesh.CreateFromPlane(pl, xinter, xinter, divisions, divisions); // creates the inner rectangle with arbitrary subdivision
+
+            double minRad = Math.Sqrt(2 * (sizeInnerRect * sizeInnerRect));
+            double circRad = circleRadius;
+            if (circleRadius < minRad) circRad = minRad;
+
+            var c = new Circle(center, circRad);
+
+            var poly = m.GetNakedEdges()[0]; //returns a polygon with line segments for each mesh cell
+
+            //var pointsOnCircle = new List<Point3d>();
+
+
+            for (int i = 0; i < poly.Count; i++)
+            {
+
+                var vec = center - poly[i];
+                vec.Unitize();
+                vec *= (circleRadius + 1);
+                double t1;
+                double t2;
+                Point3d p1;
+                Point3d p2;
+
+                var inter = Rhino.Geometry.Intersect.Intersection.LineCircle(new Line(center, vec), c, out t1, out p1, out t2, out p2);
+                //if(inter == LineCircleIntersection.Single)
+
+                pointsOnCircle.Add(p1);
+
+            }
+            var mout = new Mesh();
+            int vcount = 0;
+            for (int i = 0; i < poly.Count - 1; i++)
+            {
+                mout.Vertices.Add(poly[i]);
+                mout.Vertices.Add(pointsOnCircle[i]);
+                mout.Vertices.Add(pointsOnCircle[i + 1]);
+                mout.Vertices.Add(poly[i + 1]);
+
+                mout.Faces.AddFace(new MeshFace(vcount, vcount + 1, vcount + 2, vcount + 3));
+                vcount += 4;
+            }
+
+            mout.Append(m);
+            return mout;
+        }
+
 
         private void MakeCylMesh(List<Point3d> allPoints, int divisionsX, int divisionsY, int divisionsZ, double windDir)
         {
