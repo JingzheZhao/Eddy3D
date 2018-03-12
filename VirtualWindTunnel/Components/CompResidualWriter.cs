@@ -7,6 +7,8 @@ using System.Text;
 using Grasshopper.Kernel.Parameters;
 using System.Diagnostics;
 using Grasshopper.Kernel.Types;
+using SlavaGu.ConsoleAppLauncher;
+using System.Windows.Forms;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -31,7 +33,7 @@ namespace Eddy
         {
         }
 
-        
+
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -40,6 +42,10 @@ namespace Eddy
         {
             //pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
             pManager.AddTextParameter("workingDir", "workingDir", "workingDir", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 0);
+            Param_Integer param = pManager[1] as Param_Integer;
+            param.AddNamedValue("live", 0);
+            param.AddNamedValue("pdf", 1);
 
         }
 
@@ -60,31 +66,32 @@ namespace Eddy
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            string workingDir = @"";
+            string workingDir = "";
 
 
+            int mode = 0;
 
-             
 
             DA.GetData(0, ref workingDir);
-
-           
-                var iter = new List<int>();
-                var Ux = new List<double>();
-                var Uy = new List<double>();
-                var Uz = new List<double>();
-                var p1 = new List<double>();
-                var p2 = new List<double>();
-                var p3 = new List<double>();
-                var p4 = new List<double>();
-                var omega = new List<double>();
-                var k = new List<double>();
+            DA.GetData(1, ref mode);
 
 
-               string fullFilePath = workingDir + "log";
-            
+            var iter = new List<int>();
+            var Ux = new List<double>();
+            var Uy = new List<double>();
+            var Uz = new List<double>();
+            var p1 = new List<double>();
+            var p2 = new List<double>();
+            var p3 = new List<double>();
+            var p4 = new List<double>();
+            var omega = new List<double>();
+            var k = new List<double>();
 
-                var lines = File.ReadAllLines(fullFilePath);
+
+            string fullFilePath = workingDir + "log";
+
+
+            var lines = File.ReadAllLines(fullFilePath);
             //var l = lines[i];
             //if (l.StartsWith("Exec   : simpleFoam")) lines.Parse(l.Split(',')[1].Split('=')[1]));
 
@@ -92,31 +99,31 @@ namespace Eddy
 
             int pCnt = 0;
 
-                for (int i = 0; i < lines.Length; i++)
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var l = lines[i];
+                if (l.StartsWith("Time =")) iter.Add(int.Parse(l.Replace("Time =", "").Trim()));
+
+                if (l.StartsWith("smoothSolver:  Solving for Ux, Initial residual =")) Ux.Add(double.Parse(l.Split(',')[1].Split('=')[1]));
+                if (l.StartsWith("smoothSolver:  Solving for Uy, Initial residual =")) Uy.Add(double.Parse(l.Split(',')[1].Split('=')[1]));
+                if (l.StartsWith("smoothSolver:  Solving for Uz, Initial residual =")) Uz.Add(double.Parse(l.Split(',')[1].Split('=')[1]));
+
+
+
+                if (l.StartsWith("GAMG:  Solving for p, Initial residual ="))
                 {
-                    var l = lines[i];
-                    if (l.StartsWith("Time =")) iter.Add(int.Parse(l.Replace("Time =", "").Trim()));
-
-                    if (l.StartsWith("smoothSolver:  Solving for Ux, Initial residual =")) Ux.Add(double.Parse(l.Split(',')[1].Split('=')[1]));
-                    if (l.StartsWith("smoothSolver:  Solving for Uy, Initial residual =")) Uy.Add(double.Parse(l.Split(',')[1].Split('=')[1]));
-                    if (l.StartsWith("smoothSolver:  Solving for Uz, Initial residual =")) Uz.Add(double.Parse(l.Split(',')[1].Split('=')[1]));
-
-
-
-                    if (l.StartsWith("GAMG:  Solving for p, Initial residual ="))
-                    {
-                        if (pCnt == 0) { p1.Add(double.Parse(l.Split(',')[1].Split('=')[1])); pCnt++; }
-                        else if (pCnt == 1) { p2.Add(double.Parse(l.Split(',')[1].Split('=')[1])); pCnt++; }
-                        else if (pCnt == 2) { p3.Add(double.Parse(l.Split(',')[1].Split('=')[1])); pCnt++; }
-                        else if (pCnt == 3) { p4.Add(double.Parse(l.Split(',')[1].Split('=')[1])); pCnt = 0; }
-                    }
-
-                    if (l.StartsWith("smoothSolver:  Solving for omega, Initial residual =")) omega.Add(double.Parse(l.Split(',')[1].Split('=')[1]));
-                    if (l.StartsWith("smoothSolver:  Solving for k, Initial residual =")) k.Add(double.Parse(l.Split(',')[1].Split('=')[1]));
+                    if (pCnt == 0) { p1.Add(double.Parse(l.Split(',')[1].Split('=')[1])); pCnt++; }
+                    else if (pCnt == 1) { p2.Add(double.Parse(l.Split(',')[1].Split('=')[1])); pCnt++; }
+                    else if (pCnt == 2) { p3.Add(double.Parse(l.Split(',')[1].Split('=')[1])); pCnt++; }
+                    else if (pCnt == 3) { p4.Add(double.Parse(l.Split(',')[1].Split('=')[1])); pCnt = 0; }
                 }
 
-                StringBuilder sb = new StringBuilder();
-                sb.AppendLine("iter,Ux,Uy,Uz,p,omega,k");
+                if (l.StartsWith("smoothSolver:  Solving for omega, Initial residual =")) omega.Add(double.Parse(l.Split(',')[1].Split('=')[1]));
+                if (l.StartsWith("smoothSolver:  Solving for k, Initial residual =")) k.Add(double.Parse(l.Split(',')[1].Split('=')[1]));
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("iter,Ux,Uy,Uz,p,omega,k");
             for (int i = 0; i < Ux.Count; i++)
             {
 
@@ -124,7 +131,71 @@ namespace Eddy
             }
 
 
-            File.WriteAllText(workingDir+"residuals.csv", sb.ToString());
+
+            if (mode == 0)
+            {
+                File.WriteAllText(workingDir + "residuals.csv", sb.ToString());
+                //File.WriteAllText(workingDir + "plotter.gnu", StringTemplates.plotResidualsLive());
+                Process plotProcess = new Process();
+                plotProcess.StartInfo.FileName = @"""C:\Program Files\gnuplot\bin\gnuplot.exe""";
+                plotProcess.StartInfo.UseShellExecute = false;
+                plotProcess.StartInfo.RedirectStandardInput = true;
+                plotProcess.StartInfo.CreateNoWindow = true;
+                plotProcess.Start();
+                StreamWriter sw = plotProcess.StandardInput;
+                //String strInputText = "plot sin(x)\n";
+                String strInputText = @"set key autotitle columnhead
+      set logscale y
+      set logscale y
+      set ylabel 'Residual'
+      set xlabel 'Iteration'
+      set format y ""10^{%T}""
+      set datafile separator ','
+      plot '" + workingDir + @"residuals.csv' u($0):2 with lines, '" + workingDir + @"residuals.csv' u($0):3 with lines, '" + workingDir + @"residuals.csv' u($0):4 with lines, '" + workingDir + @"residuals.csv' u($0):5 with lines, '" + workingDir + @"residuals.csv' u($0):6 with lines, '" + workingDir + @"residuals.csv' u($0):7 with lines
+      pause 10000
+      ";
+                sw.WriteLine(strInputText);
+                sw.Flush();
+                //MessageBox.Show("Close the gnuplot Window? " );
+                sw.Close();
+                //plotProcess.Close();
+            }
+            else
+            {
+                File.WriteAllText(workingDir + "residuals.csv", sb.ToString());
+                //File.WriteAllText(workingDir + "plotter.gnu", StringTemplates.plotResidualsPDF());
+                Process plotProcess = new Process();
+                plotProcess.StartInfo.FileName = @"""C:\Program Files\gnuplot\bin\gnuplot.exe""";
+                plotProcess.StartInfo.UseShellExecute = false;
+                plotProcess.StartInfo.RedirectStandardInput = true;
+                plotProcess.StartInfo.CreateNoWindow = true;
+                plotProcess.Start();
+                StreamWriter sw = plotProcess.StandardInput;
+                //String strInputText = "plot sin(x)\n";
+                String strInputText = @"set key autotitle columnhead
+      set logscale y
+      set logscale y
+      set ylabel 'Residual'
+      set xlabel 'Iteration'
+      set format y '10^{%T}'
+      set datafile separator ','
+      plot '" + workingDir + @"residuals.csv' u($0):2 with lines, '" + workingDir + @"residuals.csv' u($0):3 with lines, '" + workingDir + @"residuals.csv' u($0):4 with lines, '" + workingDir + @"residuals.csv' u($0):5 with lines, '" + workingDir + @"residuals.csv' u($0):6 with lines, '" + workingDir + @"residuals.csv' u($0):7 with lines
+      set terminal pdf
+      set output '" + workingDir + @"residuals.pdf'
+      replot
+      ";
+                sw.WriteLine(strInputText);
+                sw.Flush();
+                //MessageBox.Show("Close the gnuplot Window? " );
+                sw.Close();
+                //plotProcess.Close();
+
+            }
+
+
+
+
+
 
         }
 

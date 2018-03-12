@@ -178,7 +178,7 @@ namespace Eddy
             }
             
             OFCylDomain DOMCYL = new OFCylDomain(allTogether, divisionsOuterCirc, divisionsZ, windDir, workingDirectory, CPUs, scaleFactorInnerRect);
-
+            
             
 
 

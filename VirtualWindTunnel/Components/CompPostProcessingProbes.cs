@@ -162,7 +162,6 @@ namespace Eddy
                     Process p = new Process();
                     p.StartInfo = psi;
                     p.Start();
-
                     p.WaitForExit();
 
                     var U = new  ParsingValues(listOfPoints, pointName, DOM.workingDirectory);

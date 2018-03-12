@@ -168,7 +168,7 @@ namespace Eddy
                 Point3d locationInMesh = new Point3d();
                 locationInMesh = DOM.locationInMesh;
 
-                File.WriteAllText(Path.Combine(systemDir + "snappyHexMeshDict"), StringTemplates.snappyHexMeshDict(accBuilding, accFeatures, accGround, layers, locationInMesh));
+                File.WriteAllText(Path.Combine(systemDir + "snappyHexMeshDict"), StringTemplates.snappyHexMeshDict(accBuilding, accFeatures, accGround, layers, locationInMesh, DOM));
                 File.WriteAllText(Path.Combine(systemDir + "surfaceFeatureExtractDict"), StringTemplates.surfaceFeatureExtractDict());
                 File.WriteAllText(Path.Combine(systemDir + "fvSchemes"), StringTemplates.fvSchemes());
                 File.WriteAllText(Path.Combine(systemDir + "fvSolution"), StringTemplates.fvSolution(0));

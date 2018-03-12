@@ -28,8 +28,9 @@ namespace Eddy
         public int keepTimeSteps;
 
         public int flowDir;
-       
-
+        public Cylinder refinementCylinder;
+     
+        
 
         public static BoundingBox getRefinementBox(Plane localSystem, Mesh buildings, double padding = 10)
         {
@@ -49,13 +50,13 @@ namespace Eddy
            //return new Box(localSystem, refBoxinterval, refBoxinterval2, refBoxinterval3);
         }
 
-        public static Cylinder getRefinementCyl(Point3d center, Mesh buildings, double padding = 10)
+        public Cylinder getRefinementCyl(Point3d center, Mesh buildings, double paddingXY = 0, double paddingZ = 0.3)
         {
      
             BoundingBox bb = buildings.GetBoundingBox(true);
-            var pt = new Point3d(bb.Max.X, bb.Max.Y, center.Z);
-            double radi = (center - pt).Length ;
-            var cyl = new Cylinder(new Circle(center, radi + padding), bb.Max.Z + padding);
+            var pt = new Point3d(bb.Max.X, bb.Max.Y, center.Z);          
+            var radiusRefBox = (center - pt).Length; 
+            var cyl = new Cylinder(new Circle(center, radiusRefBox + paddingXY), bb.Max.Z + paddingZ);
             return cyl;
 
         }

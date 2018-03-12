@@ -71,6 +71,7 @@ namespace Eddy
             var dimY = yMax - yMin;
             var dimZ = zMax - zMin;
 
+   
 
 
             //Create ground plane of BBox
@@ -109,6 +110,14 @@ namespace Eddy
             var allPoints = MakeCylMeshPoints5deg(center, radius, height, scaleFactorInnerRect);
 
             MakeCylMesh(allPoints, divisionsX, divisionsY, divisionsZ, windDir);
+
+
+
+
+                     // refinement Cylinder
+
+            refinementCylinder = getRefinementCyl(center, geometry, 0.3, 0.3);
+
         }
 
 

@@ -62,7 +62,8 @@ namespace Eddy
             BuildingGeometry = geometry;
             //BoundingBox bb = domain.GetBoundingBox(true);
 
-            
+
+
 
 
             BBox = BuildingGeometry.GetBoundingBox(true);
@@ -86,7 +87,6 @@ namespace Eddy
             dimY = yMax - yMin;
             dimZ = zMax - zMin;
 
-            
 
             //Create ground plane of BBox
             center = BBox.Center + 0.5 * vecMinusZ * dimZ;            
@@ -149,6 +149,12 @@ namespace Eddy
             //Rectangle3d plGround = new Rectangle3d(pl, newMin, newMax);
             MeshingParameters mpGround = MeshingParameters.Default;
             newBoxGround = Mesh.CreateFromPlanarBoundary(plGround.ToNurbsCurve(), mpGround);
+                                            
+            
+            
+            // refinement Cylinder
+
+            refinementCylinder = getRefinementCyl(center, geometry, 10);
 
         }
 

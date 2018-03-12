@@ -101,8 +101,18 @@ boundary
 );
         ";
         }
-        public static string snappyHexMeshDict(int accBuilding, int accFeatures, int accGround, int layers, Point3d locationInMesh)
+        
+        public static string snappyHexMeshDict(int accBuilding, int accFeatures, int accGround, int layers, Point3d locationInMesh, OFBaseDomain dom)
         {
+            string refinementGeometry = "";
+            string Cylinder = @"refinementCylinder{
+type searchableCylinder; 
+point1 ("+dom.refinementCylinder.Center.ToString().Replace(',', ' ')+ @");
+point2 ("+(dom.refinementCylinder.Center + Vector3d.ZAxis*dom.refinementCylinder.Height2).ToString().Replace(',', ' ') + @");
+radius "+dom.refinementCylinder.CircleAt(0.5).Radius+@";
+}";
+            refinementGeometry = Cylinder;
+
             return @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
@@ -134,8 +144,8 @@ FoamFile
         {
             type triSurfaceMesh;
             name ground;
-        }
-	
+        }	
+        "+ refinementGeometry + @"
     }
 
     castellatedMeshControls
@@ -167,6 +177,10 @@ FoamFile
 
         refinementRegions
         {
+
+
+refinementCylinder {mode inside; levels ((" + accBuilding + " " + accBuilding + @"));}
+
 
         }
 
@@ -1274,10 +1288,33 @@ docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpy
 PAUSE";
                 }
         public static string run_sim() {return @"docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamPrepareCase.py . --no-mesh-create""
-docker run -v %cd%/:/home/openfoam/ --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;simpleFoam""
+docker run -v %cd%/:/home/openfoam/ --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;simpleFoam""
 docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh""
 PAUSE"; }
         public static string run() { return @"call run_mesh.bat call run_sim.bat PAUSE"; }
 
+
+        public static string plotResidualsPDF() {return @"set key autotitle columnhead
+      set logscale y
+      set ylabel 'Residual'
+      set xlabel 'Iteration'
+      set format y '10^{%T}'
+      set datafile separator ','
+      plot 'residuals.csv' u($0):2 with lines, 'residuals.csv' u($0):3 with lines, 'residuals.csv' u($0):4 with lines, 'residuals.csv' u($0):5 with lines, 'residuals.csv' u($0):6 with lines, 'residuals.csv' u($0):7 with lines
+      set terminal pdf
+      set output 'residuals.pdf'
+      replot";
+       }
+        public static string plotResidualsLive() {return @"set key autotitle columnhead
+      set logscale y
+      set ylabel 'Residual'
+      set xlabel 'Iteration'
+      set format y '10^{%T}'
+      set datafile separator ','
+      plot 'residuals.csv' u($0):2 with lines, 'residuals.csv' u($0):3 with lines, 'residuals.csv' u($0):4 with lines, 'residuals.csv' u($0):5 with lines, 'residuals.csv' u($0):6 with lines, 'residuals.csv' u($0):7 with lines
+      replot
+      pause 5
+      reread";
+       }
     }
 }
