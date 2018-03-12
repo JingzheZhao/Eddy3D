@@ -135,9 +135,9 @@ namespace Eddy
             OFBoxDomain DOM = new OFBoxDomain(combinedMeshes, workingDirectory, blockDimension);
             //DOM = OFDomainBuilder(domain, workingDirectory);
 
-            if (blockDimension > DOM.dimX || blockDimension > DOM.dimY || blockDimension > DOM.dimZ)
+            if ((DOM.xCells * blockDimension) > DOM.dimX || (DOM.yCells * blockDimension) > DOM.dimY || (DOM.zCells * blockDimension) > DOM.dimZ)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Your block dimensions need to be smaller than the domain.");
+              //  AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Your block dimensions need to be smaller than the domain.");
             }
 
 

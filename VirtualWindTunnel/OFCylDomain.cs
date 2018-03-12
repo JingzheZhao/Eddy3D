@@ -40,7 +40,9 @@ namespace Eddy
         public int divisionsZ;
 
         public double cellSizeInner;
-
+        public double cellSizeOuter;
+        public double distanceInnerOuter;
+        public double equalDivisions;
 
 
 
@@ -492,6 +494,10 @@ mergePatchPairs
             //List<Point3d> 
             ListOfAllPointsInMagicOrder = outerRingPointsLower.Concat(pointsOnInnerRectLower).Concat(gridPointsLower).Concat(outerRingPointsUpper).Concat(pointsOnInnerRectUpper).Concat(gridPointsUpper).ToList();
             cellSizeInner = Math.Abs(ListOfAllPointsInMagicOrder[281].X - ListOfAllPointsInMagicOrder[280].X);
+            cellSizeOuter = (ListOfAllPointsInMagicOrder[432] - ListOfAllPointsInMagicOrder[117]).Length;
+            distanceInnerOuter = (ListOfAllPointsInMagicOrder[45] - ListOfAllPointsInMagicOrder[117]).Length;
+            equalDivisions = Math.Round(distanceInnerOuter / cellSizeOuter);
+            
             return ListOfAllPointsInMagicOrder;
 
         }

@@ -161,9 +161,9 @@ namespace Eddy
         public override string ToString()
         {
             return "Box Domain:\n" +
-            "Dimensions in x: " + Math.Round(xCells * blockDimension) + " m\n" +
-            "Dimensions in y: " + Math.Round(yCells * blockDimension) + " m\n" +
-            "Dimensions in z: " + Math.Round(zCells * blockDimension) + " m\n" +
+            "Dimensions in x: " + Math.Round(xCells * blockDimension, 1) + " m\n" +
+            "Dimensions in y: " + Math.Round(yCells * blockDimension, 1) + " m\n" +
+            "Dimensions in z: " + Math.Round(zCells * blockDimension, 1) + " m\n" +
             "Cells in x: " + xCells + "\n" +
             "Cells in y: " + xCells + "\n" +
             "Cells in z: " + zCells + "\n"+
