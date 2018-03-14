@@ -30,7 +30,7 @@ namespace Eddy
         public int yCells;
         public int zCells;
 
-        public BoundingBox BBox;
+        //public BoundingBox BBox;
         public Mesh newBoxGround;
         public Mesh newCylGround;
         public Box newBoxDomain;

@@ -44,7 +44,7 @@ namespace Eddy
             pManager.AddGeometryParameter("Geometry", "Geo", "Building Geometry. Add the volume for the virtual wind tunnel", GH_ParamAccess.list);
             pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item);
 
-            pManager.AddIntegerParameter("windDir", "windDir", "windDir", GH_ParamAccess.item,0);
+            pManager.AddNumberParameter("windDir", "windDir", "windDir", GH_ParamAccess.item,0);
             //pManager.AddGenericParameter("BC", "BC", "BC", GH_ParamAccess.list);
             
             //pManager.AddIntegerParameter("Mode", "Mode", "Domain generation mode", GH_ParamAccess.item, 0);
@@ -65,7 +65,7 @@ namespace Eddy
             pManager.AddIntegerParameter("CPUs", "CPUs", "CPUs", GH_ParamAccess.item, 1);
 
             pManager.AddBooleanParameter("Run", "Run", "Run the blockMesh component", GH_ParamAccess.item, false);
-
+            
         }
 
         /// <summary>
@@ -105,10 +105,11 @@ namespace Eddy
             //int baseMesh = 0;
             int RAM = 0;
             int CPUs = 1;
-            int windDir = 0;
+            double windDir = 0;
             int divisionsOuterCirc = 1;
             int divisionsZ = 1;
             double scaleFactorInnerRect = 0.5;
+            
 
             //DA.GetData(2, ref mode);
             DA.GetData(2, ref windDir);
@@ -122,6 +123,7 @@ namespace Eddy
             DA.GetData(6, ref RAM);
             DA.GetData(7, ref CPUs);
             DA.GetData(8, ref Run);
+            
 
             //OFDomainBuilder DOM = new OFDomainBuilder(domain, workingDirectory, baseMesh);
             //DOM = OFDomainBuilder(domain, workingDirectory);
@@ -146,11 +148,11 @@ namespace Eddy
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Divisions must be greater than 0.");
 
             }
-            if (scaleFactorInnerRect <= 0 || scaleFactorInnerRect >= Math.Sqrt(0.5) )
-            { 
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Scale factor must be greater than 0 and less than 0.7.");
+            //if (scaleFactorInnerRect <= 0 || scaleFactorInnerRect >= Math.Sqrt(0.5) )
+            //{ 
+            //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Scale factor must be greater than 0 and less than 0.7.");
 
-            }
+            //}
 
 
             foreach (GeometryBase b in domain)
@@ -260,7 +262,7 @@ namespace Eddy
                 }
 
 
-                File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), DOMCYL.stringyfyDomain());
+                File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), DOMCYL.stringyfyDomain2());
                 File.WriteAllText(Path.Combine(workingDirectory + "log"), "");
                 File.WriteAllText(Path.Combine(workingDirectory + "case.foam"), "");
                 File.WriteAllText(Path.Combine(systemDir + "controlDict"), StringTemplates.controlDict(10000, 5, 5, null));
