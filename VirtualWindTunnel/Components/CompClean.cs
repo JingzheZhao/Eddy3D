@@ -124,6 +124,7 @@ namespace Eddy
                                 file.Delete();                               
                             }
                         }
+                       
 
                         foreach (var file in extendedFeatureEdgeMeshDirectoryInfo.EnumerateFiles("*"))
                         {

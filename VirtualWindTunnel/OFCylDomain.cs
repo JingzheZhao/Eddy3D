@@ -24,18 +24,7 @@ namespace Eddy
 
 
 
-        public Mesh DomainMesh= new Mesh();
-        public Mesh DomainMeshGround = new Mesh();
-
         
-        public Mesh perim = new Mesh();
-        public Mesh core = new Mesh();
-        public Mesh perimTop = new Mesh();
-        public Mesh coreTop = new Mesh();
-        public Mesh side = new Mesh();
-
-
-
         List<string> MeshFaceLabel = new List<string>();
         List<int> topFaceID = new List<int>();
         List<int> bottomFaceID = new List<int>();
@@ -62,7 +51,7 @@ namespace Eddy
 
 
 
-        public OFCylDomain(Mesh geometry, int _divisionsY, int _divisionsZ, double windDir, string _workingDirectory, int _CPU, double scaleFactorInnerRect = 0.5)
+        public OFCylDomain(Mesh geometry, List<BoundaryConditions> BCond, int _divisionsY, int _divisionsZ, double windDir, string _workingDirectory, int _CPU, double scaleFactorInnerRect = 0.5)
         {
             workingDirectory = _workingDirectory;
             systemDirectory = workingDirectory + @"system\";
@@ -135,8 +124,15 @@ namespace Eddy
 
             MakeCircMeshPlane(center, scaleFactorInnerRect, divisionsY, radius, height);
 
-            // refinement Cylinder
+            
 
+            this.BCInflow = BCond;
+            
+            
+
+
+
+            // refinement Cylinder
             //refinementCylinder = getRefinementCyl(center, geometry, 0.3, 0.3);
             //refinementBox = getRefinementBox(localSystem, geometry, 0.3);
 
@@ -199,6 +195,7 @@ namespace Eddy
 
 
             this.side = SideWalls(pointsOnCircle, height);
+            this.side.Normals.ComputeNormals();
             //  B = side;
 
    // Order is important!!! for stringifyDomain

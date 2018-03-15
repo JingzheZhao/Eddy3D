@@ -49,7 +49,7 @@ namespace Eddy
             param.AddNamedValue("robust", 1);
 
 
-            pManager.AddGenericParameter("Type", "Bcond", "", GH_ParamAccess.item);
+            //pManager.AddGenericParameter("Type", "Bcond", "", GH_ParamAccess.item);
 
 
             pManager.AddBooleanParameter("Run", "Run", "Run the solver.", GH_ParamAccess.item, false);
@@ -96,16 +96,7 @@ namespace Eddy
             if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
 
-            BoundaryConditions BCInflow = null;
 
-            GH_ObjectWrapper gobj2 = null;
-            if (!DA.GetData(5, ref gobj2)) { }
-
-            if ((gobj2.Value is BoundaryConditions))
-            {
-                BCInflow = (BoundaryConditions)gobj2.Value; 
-            }
-            if (BCInflow == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
             
             string SingleCPU = @"""pyFoamPrepareCase.py . --no-mesh-create;simpleFoam""";
@@ -125,7 +116,7 @@ namespace Eddy
             DA.GetData(3, ref writeInterval);
             DA.GetData(4, ref mode); 
             
-            DA.GetData(6, ref Run);
+            DA.GetData(5, ref Run);
 
             DOM.iter = iter;
             DOM.writeInterval  = writeInterval;
@@ -164,16 +155,31 @@ namespace Eddy
                 File.WriteAllText(Path.Combine(DOM.systemDirectory + "controlDict"), StringTemplates.controlDict(iter, writeInterval, keepTimeSteps, null));
 
                 
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "U"), BoundaryConditionTemplates.U(BCInflow));
+                if (DOM is OFBoxDomain) { 
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "U"), BoundaryConditionTemplates.U(DOM.BCInflow[0]));
                 File.WriteAllText(Path.Combine(boundaryConditionsDir + "p"), BoundaryConditionTemplates.P());
                 File.WriteAllText(Path.Combine(boundaryConditionsDir + "omega"), BoundaryConditionTemplates.Omega());
                 File.WriteAllText(Path.Combine(boundaryConditionsDir + "k"), BoundaryConditionTemplates.K());
                 File.WriteAllText(Path.Combine(boundaryConditionsDir + "epsilon"), BoundaryConditionTemplates.Epsilon());
                 File.WriteAllText(Path.Combine(boundaryConditionsDir + "nut"), BoundaryConditionTemplates.Nut());
 
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions(BCInflow));
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions(DOM.BCInflow[0]));
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions());
+                }
+                else
+                {
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "U"), BoundaryConditionTemplates.U_Cyl(DOM));
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "p"), BoundaryConditionTemplates.P_Cyl(DOM));
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "omega"), BoundaryConditionTemplates.Omega_Cyl(DOM));
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "k"), BoundaryConditionTemplates.K_Cyl(DOM));
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "epsilon"), BoundaryConditionTemplates.Epsilon_Cyl(DOM));
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "nut"), BoundaryConditionTemplates.Nut_Cyl(DOM));
+
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions(DOM.BCInflow[0]));
                 File.WriteAllText(Path.Combine(boundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions());
 
+
+                }
 
                 //Constant folder
                 File.WriteAllText(Path.Combine(constantDir + "turbulenceProperties"), StringTemplates.turbulenceProperties());

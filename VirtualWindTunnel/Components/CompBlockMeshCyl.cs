@@ -8,6 +8,7 @@ using Grasshopper.Kernel.Parameters;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.VisualBasic.Devices;
+using Grasshopper.Kernel.Types;
 
 
 
@@ -44,8 +45,8 @@ namespace Eddy
             pManager.AddGeometryParameter("Geometry", "Geo", "Building Geometry. Add the volume for the virtual wind tunnel", GH_ParamAccess.list);
             pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item);
 
-            pManager.AddNumberParameter("windDir", "windDir", "windDir", GH_ParamAccess.item,0);
-            //pManager.AddGenericParameter("BC", "BC", "BC", GH_ParamAccess.list);
+            //pManager.AddGenericParameter("windDir", "windDir", "windDir", GH_ParamAccess.item);
+            pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.list);
             
             //pManager.AddIntegerParameter("Mode", "Mode", "Domain generation mode", GH_ParamAccess.item, 0);
 
@@ -98,8 +99,21 @@ namespace Eddy
 
 
             DA.GetData(1, ref workingDirectory);
-            
 
+            List<BoundaryConditions> BCond = new List<BoundaryConditions>();
+
+            
+            List<GH_ObjectWrapper> gobj = new List<GH_ObjectWrapper>();
+            if (!DA.GetDataList(2, gobj)) { }
+
+            foreach (var obj in gobj)
+            {
+                if ((obj.Value is BoundaryConditions))
+                {
+                    BCond.Add((BoundaryConditions)obj.Value);
+                }
+                else  { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid boundary condition object"); return; }
+            }
 
             //int mode = 0;
             //int baseMesh = 0;
@@ -112,8 +126,8 @@ namespace Eddy
             
 
             //DA.GetData(2, ref mode);
-            DA.GetData(2, ref windDir);
-            //DA.GetDataList(3, BC);
+            //DA.GetData(2, ref windDir);
+            //DA.GetDataList(2, BCond);
             //DA.GetData(3, ref baseMesh);
             //DA.GetData(3, ref divisionsX);
             DA.GetData(3, ref divisionsOuterCirc);
@@ -179,8 +193,10 @@ namespace Eddy
                 workingDirectory = workingDirectory + @"\";
             }
             
-            OFCylDomain DOMCYL = new OFCylDomain(allTogether, divisionsOuterCirc, divisionsZ, windDir, workingDirectory, CPUs, scaleFactorInnerRect);
+            OFCylDomain DOMCYL = new OFCylDomain(allTogether, BCond, divisionsOuterCirc, divisionsZ, windDir, workingDirectory, CPUs, scaleFactorInnerRect);
             
+
+             
             
 
 

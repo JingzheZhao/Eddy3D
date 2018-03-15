@@ -31,7 +31,20 @@ namespace Eddy
         public Cylinder refinementCylinder;
         public BoundingBox refinementBox;
         public BoundingBox BBox;
-     
+
+
+        //Meshes from Cycl Domain
+        public Mesh DomainMesh= new Mesh();
+        public Mesh DomainMeshGround = new Mesh();
+
+        
+        public Mesh perim = new Mesh();
+        public Mesh core = new Mesh();
+        public Mesh perimTop = new Mesh();
+        public Mesh coreTop = new Mesh();
+        public Mesh side = new Mesh();
+
+        public List<BoundaryConditions> BCInflow;
         
 
         public static BoundingBox getRefinementBox(Plane localSystem, Mesh buildings, double padding = 0)
@@ -51,6 +64,9 @@ namespace Eddy
            // Interval refBoxinterval3 = new Interval(refBox.Min.Z, refBox.Max.Z);
            //return new Box(localSystem, refBoxinterval, refBoxinterval2, refBoxinterval3);
         }
+
+        
+
 
         public Cylinder getRefinementCyl(Point3d center, Mesh buildings, double paddingXY = 0, double paddingZ = 0.3)
         {

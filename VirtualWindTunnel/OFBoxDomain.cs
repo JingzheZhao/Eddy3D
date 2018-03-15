@@ -1,6 +1,6 @@
 ﻿using Rhino.Geometry;
 using System;
-
+using System.Collections.Generic;
 
 namespace Eddy
 {
@@ -50,7 +50,7 @@ namespace Eddy
         //// Delete later
 
 
-        public OFBoxDomain(Mesh geometry, string _workingDirectory, double _blockDim)
+        public OFBoxDomain(Mesh geometry, List<BoundaryConditions> BCond,  string _workingDirectory, double _blockDim)
         {
 
   
@@ -155,7 +155,7 @@ namespace Eddy
             // refinement Cylinder
 
             refinementCylinder = getRefinementCyl(center, geometry, 10);
-
+            this.BCInflow = BCond;
         }
 
         public override string ToString()

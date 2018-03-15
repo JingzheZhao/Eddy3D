@@ -8,6 +8,7 @@ using Grasshopper.Kernel.Parameters;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.VisualBasic.Devices;
+using Grasshopper.Kernel.Types;
 
 
 
@@ -43,7 +44,7 @@ namespace Eddy
         {
             pManager.AddGeometryParameter("Geometry", "Geo", "Building Geometry. Add the volume for the virtual wind tunnel", GH_ParamAccess.list);
             pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item);
-
+            pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.list);
                      
             pManager.AddNumberParameter("baseMesh", "baseMesh", "baseMesh", GH_ParamAccess.item);
 
@@ -96,12 +97,25 @@ namespace Eddy
             int CPUs = 1;
 
             
-            DA.GetData(2, ref blockDimension);
-            DA.GetData(3, ref RAM);
-            DA.GetData(4, ref CPUs);
-            DA.GetData(5, ref Run);
+            DA.GetData(3, ref blockDimension);
+            DA.GetData(4, ref RAM);
+            DA.GetData(5, ref CPUs);
+            DA.GetData(6, ref Run);
+
+            List<BoundaryConditions> BCond = new List<BoundaryConditions>();
 
             
+            List<GH_ObjectWrapper> gobj = new List<GH_ObjectWrapper>();
+            if (!DA.GetDataList(2, gobj)) { }
+
+            foreach (var obj in gobj)
+            {
+                if ((obj.Value is BoundaryConditions))
+                {
+                    BCond.Add((BoundaryConditions)obj.Value);
+                }
+                else  { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid boundary condition object"); return; }
+            }
             
             Mesh combinedMeshes = new Mesh();
             MeshingParameters mp = new MeshingParameters();
@@ -132,7 +146,7 @@ namespace Eddy
             }
 
 
-            OFBoxDomain DOM = new OFBoxDomain(combinedMeshes, workingDirectory, blockDimension);
+            OFBoxDomain DOM = new OFBoxDomain(combinedMeshes,BCond,  workingDirectory, blockDimension);
             //DOM = OFDomainBuilder(domain, workingDirectory);
 
             if ((DOM.xCells * blockDimension) > DOM.dimX || (DOM.yCells * blockDimension) > DOM.dimY || (DOM.zCells * blockDimension) > DOM.dimZ)

@@ -1,5 +1,6 @@
 ﻿using System;
 using Grasshopper.Kernel;
+using Rhino.Geometry;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -29,6 +30,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
+            pManager.AddNumberParameter("wDir", "wDir", "wDir", GH_ParamAccess.item);
             pManager.AddNumberParameter("Uref", "Uref", "Uref", GH_ParamAccess.item);
             pManager.AddNumberParameter("zref", "zref", "zref", GH_ParamAccess.item);
             pManager.AddNumberParameter("z0", "z0", "z0", GH_ParamAccess.item);
@@ -52,7 +54,7 @@ namespace Eddy
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-
+            double windDir = 0;
             double Uref = 0;
             double zref = 0;
             double z0 = 0;
@@ -61,25 +63,26 @@ namespace Eddy
 
            
 
-            
-            DA.GetData(0, ref Uref);            
-            DA.GetData(1, ref zref);
-            DA.GetData(2, ref z0);
-            DA.GetData(3, ref zGround);
+            DA.GetData(0, ref windDir);
+            DA.GetData(1, ref Uref);            
+            DA.GetData(2, ref zref);
+            DA.GetData(3, ref z0);
+            DA.GetData(4, ref zGround);
 
 
             BoundaryConditions BCInflow = new BoundaryConditions();
-            BCInflow.btype = BoundaryType.abl;
 
+            BCInflow.btype = BoundaryType.abl;            
             BCInflow.U = Uref;
             BCInflow.zref = zref;
             BCInflow.z0 = z0;
             BCInflow.zGround = zGround;
-            BCInflow.flowDir = new Rhino.Geometry.Vector3d(0,1,0);
+            BCInflow.flowDir = new Vector3d(Math.Cos(windDir),Math.Sin(windDir),0);
+            //BCInflow.flowDir = DOM
 
             DA.SetData(0, BCInflow);    
 
-         
+            
            
         }
 
