@@ -36,6 +36,7 @@ namespace Eddy
         //Meshes from Cycl Domain
         public Mesh DomainMesh= new Mesh();
         public Mesh DomainMeshGround = new Mesh();
+        public Mesh DomainMeshGroundPerim = new Mesh();
 
         
         public Mesh perim = new Mesh();
@@ -45,7 +46,16 @@ namespace Eddy
         public Mesh side = new Mesh();
 
         public List<BoundaryConditions> BCInflow;
+
+        public int accBuildings;
+        public int accGround;
+        public int accFeatures;
+        public int accRefinement;
+        public double gradingPerim;
+        public int nLayers;
+
         
+
 
         public static BoundingBox getRefinementBox(Plane localSystem, Mesh buildings, double padding = 0)
         {

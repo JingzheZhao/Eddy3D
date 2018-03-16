@@ -74,6 +74,7 @@ namespace Eddy
 
             DA.GetData(0, ref workingDir);
             DA.GetData(1, ref mode);
+            
 
 
             var iter = new List<int>();
@@ -92,6 +93,7 @@ namespace Eddy
 
 
             var lines = File.ReadAllLines(fullFilePath);
+
             //var l = lines[i];
             //if (l.StartsWith("Exec   : simpleFoam")) lines.Parse(l.Split(',')[1].Split('=')[1]));
 
@@ -150,6 +152,8 @@ namespace Eddy
                 String strInputText = @"set key autotitle columnhead
       set logscale y
       set logscale y
+      set yrange [0.00000001:1]
+      set xrange [0:10000]
       set ylabel 'Residual'
       set xlabel 'Iteration'
       set format y ""10^{%T}""
@@ -178,6 +182,8 @@ namespace Eddy
                 String strInputText = @"set key autotitle columnhead
       set logscale y
       set logscale y
+      set yrange [0.00000001:1]
+      set xrange [0:10000]
       set ylabel 'Residual'
       set xlabel 'Iteration'
       set format y '10^{%T}'

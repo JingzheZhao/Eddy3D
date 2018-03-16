@@ -51,7 +51,7 @@ namespace Eddy
 
 
 
-        public OFCylDomain(Mesh geometry, List<BoundaryConditions> BCond, int _divisionsY, int _divisionsZ, double windDir, string _workingDirectory, int _CPU, double scaleFactorInnerRect = 0.5)
+        public OFCylDomain(Mesh geometry, List<BoundaryConditions> BCond, int _divisionsY, double gradingPerim, double windDir, string _workingDirectory, int _CPU, double scaleFactorInnerRect = 0.5)
         {
             workingDirectory = _workingDirectory;
             systemDirectory = workingDirectory + @"system\";
@@ -60,7 +60,7 @@ namespace Eddy
 
             divisionsX = 1;
             divisionsY = _divisionsY;
-            divisionsZ = _divisionsZ;
+            //divisionsZ = _divisionsZ;
 
             BBox = geometry.GetBoundingBox(true);
 
@@ -198,9 +198,11 @@ namespace Eddy
             this.side.Normals.ComputeNormals();
             //  B = side;
 
-   // Order is important!!! for stringifyDomain
-            this.DomainMeshGround.Append(perim);
+            // Order is important!!! for stringifyDomain
+            //this.DomainMeshGround.Append(perim);
             this.DomainMeshGround.Append(core);
+            this.DomainMeshGroundPerim.Append(perim);
+
 
             this.DomainMesh.Append(perim);
             this.DomainMesh.Append(core);
@@ -3407,7 +3409,7 @@ mergePatchPairs
                  //Changed order because we had to flip core mesh plane
                 sb.AppendLine("hex (" + this.DomainMesh.Faces[i].A + " " + this.DomainMesh.Faces[i].D + " " + this.DomainMesh.Faces[i].C + " " + this.DomainMesh.Faces[i].B + " " + 
                     ((this.DomainMesh.Faces[i+c3].A )) + " " + (this.DomainMesh.Faces[i+c3].B )+ " " + (this.DomainMesh.Faces[i+c3].C ) + " " + 
-                    (this.DomainMesh.Faces[i+c3].D ) + ") (" +this.divisionsX  + " " + this.cellDivisionsPerim + " " + this.divisionsZ + ") simpleGrading (1 1 1)");
+                    (this.DomainMesh.Faces[i+c3].D ) + ") (" +this.divisionsX  + " " + (this.cellDivisionsPerim-1) + " " + this.divisionsZ + ") simpleGrading (1 "+this.gradingPerim +" 1)");
                 
             }
             sb.AppendLine("//core");

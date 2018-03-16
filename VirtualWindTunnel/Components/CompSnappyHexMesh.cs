@@ -41,8 +41,9 @@ namespace Eddy
             pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
             pManager.AddIntegerParameter("accBuilding", "accBuilding", "Specify accuracy of mesh", GH_ParamAccess.item);
             pManager.AddIntegerParameter("accFeatures", "accFeatures", "Specify accuracy of mesh", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("accRefinement", "accRefinement", "accRefinement", GH_ParamAccess.item);
             pManager.AddIntegerParameter("accGround", "accGround", "Specify accuracy of mesh", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("Layer", "Layer", "Specify accuracy of mesh", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("nLayer", "nLayer", "nLayer", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Run", "Run", "Create the mesh.", GH_ParamAccess.item, false);
 
         }
@@ -134,16 +135,23 @@ namespace Eddy
 
             int accBuilding = 3;
             int accFeatures = 3;
+            int accRefinement = 3;
             int accGround = 3;
-            int layers = 3;
+            int accLayers = 3;
 
             
             DA.GetData(1, ref accBuilding);
-            DA.GetData(2, ref accFeatures);
+            DA.GetData(2, ref accRefinement);
             DA.GetData(3, ref accGround);
-            DA.GetData(4, ref layers);
-            DA.GetData(5, ref Run);
+            DA.GetData(4, ref accGround);
+            DA.GetData(5, ref accLayers);
+            DA.GetData(6, ref Run);
 
+            accBuilding = DOM.accBuildings; 
+            accFeatures = DOM.accFeatures;
+            accRefinement = DOM.accRefinement;
+            accGround = DOM.accGround;
+            accLayers = DOM.nLayers;
 
 
             if (Run == true)
@@ -168,7 +176,7 @@ namespace Eddy
                 Point3d locationInMesh = new Point3d();
                 locationInMesh = DOM.locationInMesh;
 
-                File.WriteAllText(Path.Combine(systemDir + "snappyHexMeshDict"), StringTemplates.snappyHexMeshDict(accBuilding, accFeatures, accGround, layers, locationInMesh, DOM));
+                File.WriteAllText(Path.Combine(systemDir + "snappyHexMeshDict"), StringTemplates.snappyHexMeshDict(DOM));
                 File.WriteAllText(Path.Combine(systemDir + "surfaceFeatureExtractDict"), StringTemplates.surfaceFeatureExtractDict());
                 File.WriteAllText(Path.Combine(systemDir + "fvSchemes"), StringTemplates.fvSchemes());
                 File.WriteAllText(Path.Combine(systemDir + "fvSolution"), StringTemplates.fvSolution(0));

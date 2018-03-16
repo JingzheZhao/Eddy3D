@@ -102,7 +102,7 @@ boundary
         ";
         }
         
-        public static string snappyHexMeshDict(int accBuilding, int accFeatures, int accGround, int layers, Point3d locationInMesh, OFBaseDomain dom)
+        public static string snappyHexMeshDict(OFBaseDomain dom)
         {
             string refinementGeometry = "";
             string Cylinder = @"refinementCylinder{
@@ -151,6 +151,11 @@ FoamFile
             type triSurfaceMesh;
             name ground;
         }	
+        ground_perim.stl
+        {
+            type triSurfaceMesh;
+            name ground_perim;
+        }	
         "+ refinementGeometry + @"
     }
 
@@ -158,13 +163,13 @@ FoamFile
     {
         features
         (
-            {file ""building.eMesh""; level " + (accFeatures) + @" ;}
+            {file ""building.eMesh""; level " + (dom.accFeatures) + @" ;}
         );
         refinementSurfaces
         {
             building
             {
-                level (" + accBuilding + " " + accBuilding + @");
+                level (" + dom.accBuildings + " " + dom.accBuildings + @");
                 patchInfo
                 {
                     type wall;
@@ -173,7 +178,15 @@ FoamFile
 
             ground
             {
-                level (" + (accGround) + " " + (accGround) + @");
+                level (" + (dom.accGround) + " " + (dom.accGround) + @");
+                patchInfo
+                {
+                    type wall;
+                }
+            }
+            ground_perim
+            {
+                level (" + (dom.accGround-1) + " " + (dom.accGround-1) + @");
                 patchInfo
                 {
                     type wall;
@@ -184,13 +197,13 @@ FoamFile
         refinementRegions
         {
 
-refinementBox {mode inside; levels ((" + accBuilding + " " + accBuilding + @"));}
-//refinementCylinder {mode inside; levels ((" + accBuilding + " " + accBuilding + @"));}
+refinementBox {mode inside; levels ((" + dom.accRefinement + " " + dom.accRefinement + @"));}
+//refinementCylinder {mode inside; levels ((" + dom.accRefinement + " " + dom.accRefinement + @"));}
 
 
         }
 
-        locationInMesh ( " + locationInMesh.X + " " + locationInMesh.Y + " " + locationInMesh.Z + @" );
+        locationInMesh ( " + dom.locationInMesh.X + " " + dom.locationInMesh.Y + " " + dom.locationInMesh.Z + @" );
         maxLocalCells 5000000;
         maxGlobalCells 15000000;
         minRefinementCells 5;
@@ -225,11 +238,15 @@ refinementBox {mode inside; levels ((" + accBuilding + " " + accBuilding + @"));
         {
             building
             {
-                nSurfaceLayers " + layers + @";
+                nSurfaceLayers " + dom.nLayers + @";
             }
             ground
             {
-                nSurfaceLayers " + layers + @";
+                nSurfaceLayers " + dom.nLayers + @";
+            }
+            ground_perim
+            {
+                nSurfaceLayers " + dom.nLayers + @";
             }
         }
 

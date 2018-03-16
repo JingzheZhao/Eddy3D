@@ -59,7 +59,7 @@ namespace Eddy
 
             //pManager.AddIntegerParameter("divisionsX", "divisionsX", "divisionsX", GH_ParamAccess.item, 1);
             pManager.AddIntegerParameter("divisionsOuterCirc", "divisionsOuterCirc", "divisionsOuterCirc", GH_ParamAccess.item, 1);
-            pManager.AddIntegerParameter("divisionsZ", "divisionsZ", "divisionsZ", GH_ParamAccess.item, 10);
+            pManager.AddNumberParameter("gradingPerim", "gradingPerim", "gradingPerim", GH_ParamAccess.item, 1);
             pManager.AddNumberParameter("scaleInnerR", "scaleInnerR", "scaleInnerR", GH_ParamAccess.item, 0.5);
 
             pManager.AddIntegerParameter("RAM", "RAM", "RAM", GH_ParamAccess.item, 2000);
@@ -121,7 +121,7 @@ namespace Eddy
             int CPUs = 1;
             double windDir = 0;
             int divisionsOuterCirc = 1;
-            int divisionsZ = 1;
+            double gradingPerim = 1;
             double scaleFactorInnerRect = 0.5;
             
 
@@ -131,12 +131,15 @@ namespace Eddy
             //DA.GetData(3, ref baseMesh);
             //DA.GetData(3, ref divisionsX);
             DA.GetData(3, ref divisionsOuterCirc);
-            DA.GetData(4, ref divisionsZ);
+            DA.GetData(4, ref gradingPerim);
             DA.GetData(5, ref scaleFactorInnerRect);
 
             DA.GetData(6, ref RAM);
             DA.GetData(7, ref CPUs);
             DA.GetData(8, ref Run);
+
+
+            
             
 
             //OFDomainBuilder DOM = new OFDomainBuilder(domain, workingDirectory, baseMesh);
@@ -157,11 +160,11 @@ namespace Eddy
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that much RAM available.");
             }
-            if (divisionsZ <= 0)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Divisions must be greater than 0.");
+            //if (divisionsZ <= 0)
+            //{
+            //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Divisions must be greater than 0.");
 
-            }
+            //}
             //if (scaleFactorInnerRect <= 0 || scaleFactorInnerRect >= Math.Sqrt(0.5) )
             //{ 
             //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Scale factor must be greater than 0 and less than 0.7.");
@@ -193,10 +196,10 @@ namespace Eddy
                 workingDirectory = workingDirectory + @"\";
             }
             
-            OFCylDomain DOMCYL = new OFCylDomain(allTogether, BCond, divisionsOuterCirc, divisionsZ, windDir, workingDirectory, CPUs, scaleFactorInnerRect);
-            
+            OFCylDomain DOMCYL = new OFCylDomain(allTogether, BCond, divisionsOuterCirc, gradingPerim, windDir, workingDirectory, CPUs, scaleFactorInnerRect);
 
-             
+            gradingPerim = DOMCYL.gradingPerim;
+           
             
 
 
@@ -248,6 +251,7 @@ namespace Eddy
                 var stlDir = Path.GetDirectoryName(workingDirectory + @"\constant\triSurface\");
                 var stlFilenameBuildings = workingDirectory + @"\constant\triSurface\building.stl";
                 var stlFilenameGround = workingDirectory + @"\constant\triSurface\ground.stl";
+                var stlFilenameGroundPerim = workingDirectory + @"\constant\triSurface\ground_perim.stl";
 
                 if (!Directory.Exists(stlDir))
                 {
@@ -257,6 +261,7 @@ namespace Eddy
 
                 STLExport.ExportBinary(stlFilenameBuildings, allTogether);        
                 STLExport.ExportBinary(stlFilenameGround, DOMCYL.DomainMeshGround);
+                STLExport.ExportBinary(stlFilenameGroundPerim, DOMCYL.DomainMeshGroundPerim);
                 
 
 

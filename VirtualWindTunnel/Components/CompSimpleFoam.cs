@@ -175,7 +175,7 @@ namespace Eddy
                 File.WriteAllText(Path.Combine(boundaryConditionsDir + "epsilon"), BoundaryConditionTemplates.Epsilon_Cyl(DOM));
                 File.WriteAllText(Path.Combine(boundaryConditionsDir + "nut"), BoundaryConditionTemplates.Nut_Cyl(DOM));
 
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions(DOM.BCInflow[0]));
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions_Cyl(DOM.BCInflow[0]));
                 File.WriteAllText(Path.Combine(boundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions());
 
 
