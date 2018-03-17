@@ -196,9 +196,10 @@ namespace Eddy
                 workingDirectory = workingDirectory + @"\";
             }
             
+
             OFCylDomain DOMCYL = new OFCylDomain(allTogether, BCond, divisionsOuterCirc, gradingPerim, windDir, workingDirectory, CPUs, scaleFactorInnerRect);
 
-            gradingPerim = DOMCYL.gradingPerim;
+            DOMCYL.gradingPerim = gradingPerim;
            
             
 

@@ -32,11 +32,13 @@ namespace Eddy
 
         //public BoundingBox BBox;
         public Mesh newBoxGround;
-        public Mesh newCylGround;
+        public Mesh newBoxGroundPerim;
+        
+        
         public Box newBoxDomain;
     
 
-        public Rectangle3d plGround;
+        
 
         public double diameter;  
         public double blockDimension;
@@ -107,20 +109,33 @@ namespace Eddy
             frontageBuildingArea = projectedBuildingArea(localCoordSystem, BuildingGeometry);
            
 
-            //New Dimensions in Y \cite{Tominaga2008,Franke2007}
-            double scaleRectDomainYUpstream = - (5.5 * dimZ + dimY);
-            double scaleRectDomainYDownstream = 15.5 * dimZ + dimY;
             double scaleRectDomainZ = 6* dimZ;
 
             // New Dimensions in X; take blocking ratio into account
             var scaleRectDomainXblockingRatio  = frontageBuildingArea * 100 / 3 / scaleRectDomainZ / 2;
             var scaleRectDomainXHeight = (5* dimZ)+dimX/2;
-
-
             var scaleRectDomainX = scaleRectDomainXblockingRatio > scaleRectDomainXHeight ? scaleRectDomainXblockingRatio : scaleRectDomainXHeight;
+
+            //New Dimensions in Y \cite{Tominaga2008,Franke2007}
+
+            double scaleRectDomainYUpstream = - (5.5 * dimZ + dimY);
+            double scaleRectDomainYDownstream = 15.5 * dimZ + dimY;
+            double scaleRectDomainYUpstreamCore = - scaleRectDomainX;
+            double scaleRectDomainYDownstreamCore = scaleRectDomainX;
+            
+            
+            
+
+
+            
 
             Interval xInter = new Interval(-scaleRectDomainX, scaleRectDomainX);
             Interval yInter = new Interval(scaleRectDomainYUpstream, scaleRectDomainYDownstream);
+
+            Interval yInterPerim1 = new Interval(- scaleRectDomainX,scaleRectDomainYUpstream );
+            Interval yInterPerim2 = new Interval(scaleRectDomainX, scaleRectDomainYDownstream);
+
+
             Interval zInter = new Interval(0, scaleRectDomainZ);
 
           
@@ -145,11 +160,17 @@ namespace Eddy
             // newMinGroundPlane1 = cornersGroundPlane[1];
             // newMaxGroundPlane2 = cornersGroundPlane[3];
 
-            Rectangle3d plGround = new Rectangle3d(pl, xInter, yInter);
+            //Rectangle3d plGround = new Rectangle3d(pl, xInter, yInter);
+            Rectangle3d plGroundCore = new Rectangle3d(pl, xInter, xInter);
+            Rectangle3d plGroundPerim1 = new Rectangle3d(pl, xInter, yInterPerim1);
+            Rectangle3d plGroundPerim2 = new Rectangle3d(pl, xInter, yInterPerim2);
+
             //Rectangle3d plGround = new Rectangle3d(pl, newMin, newMax);
             MeshingParameters mpGround = MeshingParameters.Default;
-            newBoxGround = Mesh.CreateFromPlanarBoundary(plGround.ToNurbsCurve(), mpGround);
-                                            
+            this.newBoxGroundPerim = new Mesh();
+            this.newBoxGround = Mesh.CreateFromPlanarBoundary(plGroundCore.ToNurbsCurve(), mpGround);
+            this.newBoxGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim1.ToNurbsCurve(), mpGround));
+            this.newBoxGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim2.ToNurbsCurve(), mpGround));    
             
             
             // refinement Cylinder

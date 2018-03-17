@@ -121,6 +121,14 @@ boundaryField
         E               9.8;
         value           $internalField;
     }
+ground_perim
+    {
+        type epsilonWallFunction;
+        Cmu             0.09;
+        kappa           0.4;
+        E               9.8;
+        value           $internalField;
+    }
 
 building
     {
@@ -222,6 +230,11 @@ internalField uniform $turbulentKE;
                     type kqRWallFunction;
                     value       $internalField;
                 }
+ground_perim
+    {
+                    type kqRWallFunction;
+                    value       $internalField;
+                }
 
                 building
     {
@@ -272,6 +285,14 @@ boundaryField
     }
 
     ground
+    {
+        type omegaWallFunction;
+Cmu             0.09;
+        kappa           0.4;
+        E               9.8;
+        value           $internalField;
+    }
+ ground_perim
     {
         type omegaWallFunction;
 Cmu             0.09;
@@ -388,6 +409,10 @@ internalField uniform $pressure;
     {
                 type zeroGradient;
             }
+ ground_perim
+    {
+                type zeroGradient;
+            }
 
         }
 
@@ -474,7 +499,11 @@ ground
         value uniform (0 0 0);
     }
 
-
+ground_perim
+    {
+        type fixedValue;
+        value uniform (0 0 0);
+    }
 
 building
     {
@@ -555,7 +584,12 @@ value uniform 0;
 #include	""ABLConditions"";
 value uniform 0;
     }
-
+ground_perim
+    {
+        type nutkAtmRoughWallFunction;
+#include	""ABLConditions"";
+value uniform 0;
+    }
     building
     {
         type nutUSpaldingWallFunction;
@@ -657,6 +691,14 @@ boundaryField
         E               9.8;
         value           $internalField;
     }
+ground_perim
+    {
+        type epsilonWallFunction;
+        Cmu             0.09;
+        kappa           0.4;
+        E               9.8;
+        value           $internalField;
+    }
 building
     {
          type epsilonWallFunction;
@@ -719,6 +761,11 @@ internalField uniform $turbulentKE;
                     type kqRWallFunction;
                     value       $internalField;
                 }
+ ground_perim
+    {
+                    type kqRWallFunction;
+                    value       $internalField;
+                }
                 building
     {
                     type kqRWallFunction;
@@ -757,6 +804,14 @@ boundaryField
         type symmetry;
     }
     ground
+    {
+        type omegaWallFunction;
+Cmu             0.09;
+        kappa           0.4;
+        E               9.8;
+        value           $internalField;
+    }
+ground_perim
     {
         type omegaWallFunction;
 Cmu             0.09;
@@ -828,6 +883,10 @@ internalField uniform $pressure;
     {
                 type zeroGradient;
             }
+ground_perim
+    {
+                type zeroGradient;
+            }
         }
         // ************************************************************************* //
         ";
@@ -888,6 +947,11 @@ ground
         type fixedValue;
         value uniform (0 0 0);
     }
+ground_perim
+    {
+        type fixedValue;
+        value uniform (0 0 0);
+    }
 building
     {
         type fixedValue;
@@ -937,6 +1001,12 @@ value uniform 0;
 value uniform 0;
     }
     ground
+    {
+        type nutkAtmRoughWallFunction;
+# include	""ABLConditions"";
+value uniform 0;
+    }
+ground_perim
     {
         type nutkAtmRoughWallFunction;
 # include	""ABLConditions"";

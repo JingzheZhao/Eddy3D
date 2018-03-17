@@ -51,7 +51,7 @@ namespace Eddy
         public int accGround;
         public int accFeatures;
         public int accRefinement;
-        public double gradingPerim;
+        
         public int nLayers;
 
         

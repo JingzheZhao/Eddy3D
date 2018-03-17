@@ -137,21 +137,21 @@ namespace Eddy
             int accFeatures = 3;
             int accRefinement = 3;
             int accGround = 3;
-            int accLayers = 3;
+            int nLayers = 3;
 
             
             DA.GetData(1, ref accBuilding);
-            DA.GetData(2, ref accRefinement);
-            DA.GetData(3, ref accGround);
+            DA.GetData(2, ref accFeatures);
+            DA.GetData(3, ref accRefinement);
             DA.GetData(4, ref accGround);
-            DA.GetData(5, ref accLayers);
+            DA.GetData(5, ref nLayers);
             DA.GetData(6, ref Run);
 
-            accBuilding = DOM.accBuildings; 
-            accFeatures = DOM.accFeatures;
-            accRefinement = DOM.accRefinement;
-            accGround = DOM.accGround;
-            accLayers = DOM.nLayers;
+            DOM.accBuildings  = accBuilding; 
+           DOM.accFeatures =  accFeatures ;
+           DOM.accRefinement = accRefinement;
+           DOM.accGround = accGround;
+           DOM.nLayers = nLayers;
 
 
             if (Run == true)

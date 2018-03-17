@@ -146,7 +146,7 @@ namespace Eddy
             }
 
 
-            OFBoxDomain DOM = new OFBoxDomain(combinedMeshes,BCond,  workingDirectory, blockDimension);
+            OFBoxDomain DOM = new OFBoxDomain(combinedMeshes,BCond, workingDirectory, blockDimension);
             //DOM = OFDomainBuilder(domain, workingDirectory);
 
             if ((DOM.xCells * blockDimension) > DOM.dimX || (DOM.yCells * blockDimension) > DOM.dimY || (DOM.zCells * blockDimension) > DOM.dimZ)
@@ -216,7 +216,7 @@ namespace Eddy
                 var stlDirectory = Path.GetDirectoryName(workingDirectory + @"\constant\triSurface\");
                var stlFilenameBuildings = workingDirectory + @"\constant\triSurface\building.stl";
                 var stlFilenameGround = workingDirectory + @"\constant\triSurface\ground.stl";
-
+                var stlFilenameGroundPerim = workingDirectory + @"\constant\triSurface\ground_perim.stl";
 
                 
 
@@ -228,6 +228,7 @@ namespace Eddy
 
                 STLExport.ExportBinary(stlFilenameBuildings, combinedMeshes);
                 STLExport.ExportBinary(stlFilenameGround, DOM.newBoxGround);
+                STLExport.ExportBinary(stlFilenameGroundPerim, DOM.newBoxGroundPerim);
 
 
 

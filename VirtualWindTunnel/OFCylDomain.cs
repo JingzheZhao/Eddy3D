@@ -46,6 +46,8 @@ namespace Eddy
         public int equalDivisions;
 
 
+        public double gradingPerim;
+
 
 
 
@@ -127,7 +129,7 @@ namespace Eddy
             
 
             this.BCInflow = BCond;
-            
+                       
             
 
 
