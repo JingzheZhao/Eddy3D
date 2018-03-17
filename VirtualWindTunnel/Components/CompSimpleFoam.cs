@@ -187,8 +187,8 @@ namespace Eddy
 
 
                 //Batch files
-                File.WriteAllText(Path.Combine(DOM.workingDirectory + "run_mesh.bat"), StringTemplates.run_mesh());
-                File.WriteAllText(Path.Combine(DOM.workingDirectory + "run_sim.bat"), StringTemplates.run_sim());
+                File.WriteAllText(Path.Combine(DOM.workingDirectory + "run_mesh.bat"), StringTemplates.run_mesh(DOM));
+                File.WriteAllText(Path.Combine(DOM.workingDirectory + "run_sim.bat"), StringTemplates.run_sim(DOM));
                 File.WriteAllText(Path.Combine(DOM.workingDirectory + "run.bat"), StringTemplates.run());
 
                 //string command = DOM.CPU > 1 ? MultipleCPU : SingleCPU;
