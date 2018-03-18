@@ -153,7 +153,7 @@ namespace Eddy
       set logscale y
       set logscale y
       set yrange [0.00000001:1]
-      set xrange [0:10000]
+      set xrange [0:5000]
       set ylabel 'Residual'
       set xlabel 'Iteration'
       set format y ""10^{%T}""
@@ -183,7 +183,7 @@ namespace Eddy
       set logscale y
       set logscale y
       set yrange [0.00000001:1]
-      set xrange [0:10000]
+      set xrange [0:5000]
       set ylabel 'Residual'
       set xlabel 'Iteration'
       set format y '10^{%T}'

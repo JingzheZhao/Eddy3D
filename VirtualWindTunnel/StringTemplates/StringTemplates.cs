@@ -1313,11 +1313,13 @@ sb.Append(@");
                 sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint=""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; foamJob -parallel -screen snappyHexMesh -overwrite | tee -a log""");
                 sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint=""   hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructParMesh -constant | tee -a log""");
                 sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite | tee -a log""");
+                sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
                     }
             else
             {
                 sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatureExtract | tee -a log; snappyHexMesh -overwrite  | tee -a log; checkMesh | tee -a log""");
                 sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite | tee -a log""");
+                sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
             }
                 return sb.ToString();
                 }
@@ -1329,10 +1331,12 @@ sb.Append(@");
                 sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint=""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; foamJob -s -p renumberMesh -overwrite | tee -a log""");
                 sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint=""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; mpirun -np """ + DOM.CPU + @" simpleFoam -parallel | tee -a log""");
                 sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint=""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructPar -latestTime | tee -a log""");
+                sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
                     }
             else
             {
                 sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; simpleFoam | tee -a log""");
+                sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
             }
                 return sb.ToString();
                 }
