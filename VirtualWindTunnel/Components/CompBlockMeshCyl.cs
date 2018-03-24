@@ -285,11 +285,15 @@ namespace Eddy
 
 
                 File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), DOMCYL.stringyfyDomain2());
-                File.WriteAllText(Path.Combine(workingDirectory + "log"), "");
+                
                 File.WriteAllText(Path.Combine(workingDirectory + "case.foam"), "");
                 File.WriteAllText(Path.Combine(systemDir + "controlDict"), StringTemplates.controlDict(10000, 5, 5, null));
 
-
+                if (!File.Exists(Path.Combine(workingDirectory + "log")))
+                {
+                    File.WriteAllText(Path.Combine(workingDirectory + "log"), "");
+                }
+                
 
                   /*              
                 //ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory +@"\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);

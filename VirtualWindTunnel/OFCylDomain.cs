@@ -158,12 +158,13 @@ namespace Eddy
             if (circleRadius < minRad) circRad = minRad;
 
             var cellSizeCore =2*( sizeInnerRect / divisions);
-            this.cellDivisionsPerim = (int)Math.Round((circRad - (2 * sizeInnerRect)) / cellSizeCore);
+            //Math.Abs was just a workaround fix
+            this.cellDivisionsPerim = Math.Abs((int)Math.Round((circRad - (2 * sizeInnerRect)) / cellSizeCore));
             this.divisionsZ = (int)(height / cellSizeCore);
 
             var c = new Circle(center, circRad);
 
-            var poly = m.GetNakedEdges()[0]; //returns a polygon with line segments for each mesh cell
+            var poly = core.GetNakedEdges()[0]; //returns a polygon with line segments for each mesh cell
 
             for (int i = 0; i < poly.Count; i++)
             {
@@ -198,6 +199,7 @@ namespace Eddy
 
             this.side = SideWalls(pointsOnCircle, height);
             this.side.Normals.ComputeNormals();
+            this.side.Flip(true, true, true);
             //  B = side;
 
             // Order is important!!! for stringifyDomain
@@ -3369,9 +3371,10 @@ mergePatchPairs
             for (int i = 0; i < pt.Count - 1; i++)
             {
                 m.Vertices.Add(pt[i]);
-                m.Vertices.Add(pt[i + 1]);
+                m.Vertices.Add(pt[i] + Vector3d.ZAxis * h);   
+                
                 m.Vertices.Add(pt[i + 1] + Vector3d.ZAxis * h);
-                m.Vertices.Add(pt[i] + Vector3d.ZAxis * h);           
+                m.Vertices.Add(pt[i + 1]);        
                 
 
                 m.Faces.AddFace(new MeshFace(vcount, vcount + 1, vcount + 2, vcount + 3));
@@ -3411,7 +3414,7 @@ mergePatchPairs
                  //Changed order because we had to flip core mesh plane
                 sb.AppendLine("hex (" + this.DomainMesh.Faces[i].A + " " + this.DomainMesh.Faces[i].D + " " + this.DomainMesh.Faces[i].C + " " + this.DomainMesh.Faces[i].B + " " + 
                     ((this.DomainMesh.Faces[i+c3].A )) + " " + (this.DomainMesh.Faces[i+c3].B )+ " " + (this.DomainMesh.Faces[i+c3].C ) + " " + 
-                    (this.DomainMesh.Faces[i+c3].D ) + ") (" +this.divisionsX  + " " + (this.cellDivisionsPerim-1) + " " + this.divisionsZ + ") simpleGrading (1 "+this.gradingPerim +" 1)");
+                    (this.DomainMesh.Faces[i+c3].D ) + ") (" +this.divisionsX  + " " + (this.cellDivisionsPerim) + " " + this.divisionsZ + ") simpleGrading (1 "+this.gradingPerim +" 1)");
                 
             }
             sb.AppendLine("//core");
@@ -3419,7 +3422,7 @@ mergePatchPairs
             {   //core blocks //Changed order because we had to flip core mesh plane
                 sb.AppendLine("hex (" + this.DomainMesh.Faces[i+c1].A + " " + this.DomainMesh.Faces[i+c1].D + " " + this.DomainMesh.Faces[i+c1].C + " " + this.DomainMesh.Faces[i+c1].B + " " + 
                     ((this.DomainMesh.Faces[i+c2].A )) + " " + (this.DomainMesh.Faces[i+c2].B )+ " " + (this.DomainMesh.Faces[i+c2].C ) + " " + 
-                    (this.DomainMesh.Faces[i+c2].D ) + ") ( " +this.divisionsX  + " " + this.divisionsX + " " + this.divisionsZ + ") simpleGrading (1 1 1)");
+                    (this.DomainMesh.Faces[i+c2].D ) + ") (" +this.divisionsX  + " " + this.divisionsX + " " + this.divisionsZ + ") simpleGrading (1 1 1)");
    
             }
             

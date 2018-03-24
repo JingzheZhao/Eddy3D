@@ -204,10 +204,10 @@ refinementBox {mode inside; levels ((" + dom.accRefinement + " " + dom.accRefine
         }
 
         locationInMesh ( " + dom.locationInMesh.X + " " + dom.locationInMesh.Y + " " + dom.locationInMesh.Z + @" );
-        maxLocalCells 5000000;
-        maxGlobalCells 15000000;
+        maxLocalCells 15000000;
+        maxGlobalCells 50000000;
         minRefinementCells 5;
-        nCellsBetweenLevels 8;
+        nCellsBetweenLevels 5;
         resolveFeatureAngle 30;
         allowFreeStandingZoneFaces true;
         planarAngle 30;
@@ -836,8 +836,8 @@ ddtSchemes
 
 gradSchemes
 {
-    default         Gauss linear;
-    grad(U)         cellLimited Gauss linear 1;
+    default Gauss linear;
+    grad(U) cellLimited Gauss linear 1;
 }
 
 divSchemes
@@ -880,6 +880,138 @@ wallDist
 // ************************************************************************* //
 ";
         }
+//        public static string fvSolution(int mode)
+//        {
+//            StringBuilder sb = new StringBuilder(); sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
+//| =========                 |                                                 |
+//| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+//|  \\    /   O peration     | Version:  2.2.2                                 |
+//|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+//|    \\/     M anipulation  |                                                 |
+//\*---------------------------------------------------------------------------*/
+//FoamFile
+//{
+//    version     2.0;
+//    format      ascii;
+//    class       dictionary;
+//    object      fvSolution;
+//}
+//// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//solvers
+//{
+//p
+//    {
+//        solver           GAMG;
+//        tolerance        1e-9;
+//        relTol           0.001;
+//        smoother         GaussSeidel;
+//        nPreSweeps       0;
+//        nPostSweeps      2;
+//        cacheAgglomeration on;
+//        agglomerator     faceAreaPair;
+//        nCellsInCoarsestLevel 10;
+//        mergeLevels      1;
+//    }
+
+//U
+//    {
+//        solver           smoothSolver;
+//        smoother         GaussSeidel;
+//        tolerance        1e-8;
+//        relTol           0.01;
+//        nSweeps          1;
+//    }
+
+//k
+//    {
+//        solver           smoothSolver;
+//        smoother         GaussSeidel;
+//        tolerance        1e-8;
+//        relTol           0.1;
+//        nSweeps          1;
+//    }
+
+//epsilon
+//    {
+//        solver           smoothSolver;
+//        smoother         GaussSeidel;
+//        tolerance        1e-8;
+//        relTol           0.1;
+//        nSweeps          1;
+//    }
+//omega
+//    {
+//        solver           smoothSolver;
+//        smoother         GaussSeidel;
+//        tolerance        1e-8;
+//        relTol           0.1;
+//        nSweeps          1;
+//    }
+//}
+
+//SIMPLE
+//{
+//    nNonOrthogonalCorrectors 3;
+//    residualControl
+//    {
+//    p       1e-4;
+//    U       1e-5;
+//    k       1e-5;
+//    epsilon 1e-5;
+//    }
+//    pRefCell    0;
+//    pRefValue    0;
+//}
+
+//potentialFlow
+//{
+//    nNonOrthogonalCorrectors 3;
+//}");
+//            if (mode == 0)
+//            {
+//                sb.Append(@"relaxationFactors
+//{
+//    fields
+//    {
+//        p               0.7;
+//    }
+//    equations
+//    {
+//        U               0.3;
+//        k               0.3;
+//       epsilon          0.3;
+//	   omega			0.3;
+//    }
+//}"
+//);
+//            }
+//            else { sb.Append(@"relaxationFactors
+//{
+//    fields
+//    {
+//        p               0.3;
+//    }
+//    equations
+//    {
+//        U               0.7;
+//        k               0.7;
+//       epsilon          0.7;
+//	   omega			0.7;
+//    }
+//}"); }
+
+//            sb.Append(@"
+//cache
+//{
+//    grad(U);
+//}
+
+//// ************************************************************************* //
+
+//;");
+//            return sb.ToString();
+//        }
         public static string fvSolution(int mode)
         {
             StringBuilder sb = new StringBuilder(); sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -900,53 +1032,20 @@ FoamFile
 
 solvers
 {
-p
+    p
     {
-        solver           GAMG;
-        tolerance        1e-9;
-        relTol           0.001;
-        smoother         GaussSeidel;
-        nPreSweeps       0;
-        nPostSweeps      2;
-        cacheAgglomeration on;
-        agglomerator     faceAreaPair;
-        nCellsInCoarsestLevel 10;
-        mergeLevels      1;
+        solver          GAMG;
+        smoother        GaussSeidel;
+        tolerance       1e-6;
+        relTol          0.1;
     }
 
-U
+    ""(U|k|omega|epsilon)""
     {
-        solver           smoothSolver;
-        smoother         GaussSeidel;
-        tolerance        1e-8;
-        relTol           0.01;
-        nSweeps          1;
-    }
-
-k
-    {
-        solver           smoothSolver;
-        smoother         GaussSeidel;
-        tolerance        1e-8;
-        relTol           0.1;
-        nSweeps          1;
-    }
-
-epsilon
-    {
-        solver           smoothSolver;
-        smoother         GaussSeidel;
-        tolerance        1e-8;
-        relTol           0.1;
-        nSweeps          1;
-    }
-omega
-    {
-        solver           smoothSolver;
-        smoother         GaussSeidel;
-        tolerance        1e-8;
-        relTol           0.1;
-        nSweeps          1;
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-6;
+        relTol          0.1;
     }
 }
 

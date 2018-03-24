@@ -164,7 +164,7 @@ namespace Eddy
                 File.WriteAllText(Path.Combine(boundaryConditionsDir + "nut"), BoundaryConditionTemplates.Nut());
 
                 File.WriteAllText(Path.Combine(boundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions(DOM.BCInflow[0]));
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions());
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions(DOM.BCInflow[0]));
                 }
                 else
                 {
@@ -176,7 +176,7 @@ namespace Eddy
                 File.WriteAllText(Path.Combine(boundaryConditionsDir + "nut"), BoundaryConditionTemplates.Nut_Cyl(DOM));
 
                 File.WriteAllText(Path.Combine(boundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions_Cyl(DOM.BCInflow[0]));
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions());
+                File.WriteAllText(Path.Combine(boundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions(DOM.BCInflow[0]));
 
 
                 }

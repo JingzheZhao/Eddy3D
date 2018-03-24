@@ -87,6 +87,7 @@ namespace Eddy
             var p4 = new List<double>();
             var omega = new List<double>();
             var k = new List<double>();
+            var clocktime = new List<double>();
 
 
             string fullFilePath = workingDir + "log";
@@ -125,14 +126,14 @@ namespace Eddy
 
                 if (l.StartsWith("smoothSolver:  Solving for omega, Initial residual =")) omega.Add(double.Parse(l.Split(',')[1].Split('=')[1]));
                 if (l.StartsWith("smoothSolver:  Solving for k, Initial residual =")) k.Add(double.Parse(l.Split(',')[1].Split('=')[1]));
-
+                if (l.StartsWith("ExecutionTime =")) clocktime.Add(double.Parse(l.Split('s')[1].Split('=')[1]));
             }
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("iter,Ux,Uy,Uz,p,omega,k");
-            for (int i = 0; i < k.Count; i++)
+            sb.AppendLine("iter,Ux,Uy,Uz,p,omega,k,clocktime");
+            for (int i = 0; i < clocktime.Count; i++)
             {
-                sb.AppendLine(iter[i] + "," + Ux[i] + "," + Uy[i] + "," + Uz[i] + "," + p1[i] + "," + omega[i] + "," + k[i]);
+                sb.AppendLine(iter[i] + "," + Ux[i] + "," + Uy[i] + "," + Uz[i] + "," + p1[i] + "," + omega[i] + "," + k[i]+ "," + clocktime[i]);
             }
 
 

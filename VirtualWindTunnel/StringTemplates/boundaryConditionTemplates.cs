@@ -629,7 +629,7 @@ FoamFile
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 ";
         }
-        public static string InitialConditions()
+        public static string InitialConditions(BoundaryConditions BCInflow )
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
@@ -647,7 +647,7 @@ FoamFile
     object initialConditions;
         }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-flowVelocity (0 12 0);
+flowVelocity (" + BCInflow.flowDir.X +" "+ BCInflow.flowDir.Y +" "+ BCInflow.flowDir.Z+ @");
 pressure		0;
 turbulentKE		0.03456;
 turbulentEpsilon	0.0835;
