@@ -99,8 +99,6 @@ namespace Eddy
 
 
 
-
-
             if (mode == 0)
             {
 
@@ -122,11 +120,15 @@ namespace Eddy
                         foreach (Mesh mm in m) allTopo.Add(mm);
 
                     }
+                    
+                    
+                    for (int i = 0; i < allTopo.Count; i++)
+                    {
+                        string filePath = DOM.workingDirectory + @"constant\triSurface\" + topoName + i + ".stl";
+                        STLExport.ExportBinary(filePath, allTopo[i]);
+                    }
 
-                    for (int i = 0; i < topo.Count(); i++) { 
 
-                    STLExport.ExportBinary(DOM.workingDirectory + @"constant\triSurface\" + topoName +i + ".stl", allTopo);
-                }
                 }
 
                 File.WriteAllText(Path.Combine(DOM.systemDirectory + "controlDict"), StringTemplates.controlDict(10000, 5, 20, allTopo));

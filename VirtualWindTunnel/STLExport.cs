@@ -132,7 +132,7 @@ namespace Eddy
             File.WriteAllText(filePath, sb.ToString());
         }
 
-        public static void ExportBinary(string filePath, List<Mesh> meshObjects)
+        public static void ExportASCII(string filePath, List<Mesh> meshObjects)
         {
 
             //triangulate, compute face normals and count facets
