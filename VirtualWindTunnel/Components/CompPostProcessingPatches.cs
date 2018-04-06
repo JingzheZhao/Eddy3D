@@ -56,7 +56,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            //pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.list);
         }
 
 
@@ -206,9 +206,10 @@ namespace Eddy
 
                     File.WriteAllText(postProcessDirectory + topoName +@".csv", csv.ToString());
 
+                    DA.SetDataList(0,cpValues);
                 }
 
-
+               
 
 
             }
