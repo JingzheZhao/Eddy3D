@@ -13,6 +13,7 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <IsWebBootstrapper>false</IsWebBootstrapper>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
@@ -30,6 +31,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ConsoleAppLauncher, Version=1.0.6354.408, Culture=neutral, processorArchitecture=MSIL">
@@ -128,5 +130,6 @@ Erase "$(TargetPath)"</PostBuildEvent>
     <StartArguments>
     </StartArguments>
     <StartAction>Program</StartAction>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
 </Project>

@@ -1254,11 +1254,11 @@ RAS
             sb.Append(@"cp2
 {
                     type pressure;
-                    libs(""libfieldFunctionObjects.so"");
+                    libs (""libfieldFunctionObjects.so"");
                     enabled yes;
                     writeControl timeStep;
                     writeInterval        50;
-                    UInf(9.07 9.07 0);     // the undistrubed velocity at building height
+                    UInf (9.07 9.07 0);     // the undistrubed velocity at building height
                     pInf                96.7;        // the dynamic undisturbed pressure at building height
                     pRef                38.4;        // the dynamic pressure at reference height (usually 10 m)
                     rhoInf              1.2;
@@ -1268,7 +1268,7 @@ RAS
             for (int i = 0; i < evaluationTopology.Count; i++)
             {
                 sb.Append(@"
-c_p_patch" + i + @"
+patch" + i + @"
 {
     type                    swakExpression;
     valueType               faceSet;

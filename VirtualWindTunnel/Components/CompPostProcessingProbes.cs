@@ -41,11 +41,12 @@ namespace Eddy
             pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
             pManager.AddPointParameter("points", "points", "points", GH_ParamAccess.list);
             //pManager.AddTextParameter("pointName", "pointName", "pointName", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 0);
 
+            pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 0);
             Param_Integer param = pManager[2] as Param_Integer;
             param.AddNamedValue("cp_Probes", 0);
             param.AddNamedValue("U_Probes", 1);
+
             pManager.AddBooleanParameter("Run", "Run", "Clean the directory", GH_ParamAccess.item, false);
 
 
