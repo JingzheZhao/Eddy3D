@@ -40,10 +40,10 @@ namespace Eddy
             pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
             pManager.AddGenericParameter("topo", "topologies", "topologies", GH_ParamAccess.list);
            
-            pManager.AddTextParameter("topoName", "topoName", "topoName", GH_ParamAccess.item);
+            //pManager.AddTextParameter("topoName", "topoName", "topoName", GH_ParamAccess.item);
             pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 0);
 
-            Param_Integer param = pManager[3] as Param_Integer;
+            Param_Integer param = pManager[2] as Param_Integer;
             param.AddNamedValue("cp_Patches", 0);
             param.AddNamedValue("V_dot_Patches", 1);
 
@@ -56,7 +56,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            //pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.list);
         }
 
 
@@ -84,17 +84,17 @@ namespace Eddy
 
 
 
-            string topoName = "";
+            string topoName = "patch";
             int mode = 0;
             List<GeometryBase> topo = new List<GeometryBase>();
             List<Point3d> points = new List<Point3d>();
 
             DA.GetDataList(1, topo);
-            DA.GetDataList(2, points);
-            DA.GetData(3, ref topoName);
-            DA.GetData(4, ref mode);
+            //DA.GetDataList(2, points);
+            //DA.GetData(2, ref topoName);
 
 
+            DA.GetData(2, ref mode);
 
 
 
@@ -119,6 +119,13 @@ namespace Eddy
                         var m = Mesh.CreateFromBrep(obj, mp);
                         foreach (Mesh mm in m) allTopo.Add(mm);
 
+                    }
+                    
+                    
+                    for (int i = 0; i < allTopo.Count; i++)
+                    {
+                        string filePath = DOM.workingDirectory + @"constant\triSurface\" + topoName + i + ".stl";
+                        STLExport.ExportBinary(filePath, allTopo[i]);
                     }
 
 
@@ -187,10 +194,10 @@ namespace Eddy
                     {
                         var lastLine = File.ReadLines(fullPath[i]).Last();
                         cpValues[i] = double.Parse(lastLine.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1]);
-                        if (cpValues[i] > 100)
-                        {
-                            cpValues[i] = cpValues[i - 1];
-                        };
+                        //if (cpValues[i] > 100)
+                        //{
+                        //    cpValues[i] = cpValues[i - 1];
+                        //};
                         var firstColumn = i.ToString();
                         var secondColumn = cpValues[i].ToString();
                         var newLine = string.Format("{0},{1}", firstColumn, secondColumn);
@@ -199,9 +206,10 @@ namespace Eddy
 
                     File.WriteAllText(postProcessDirectory + topoName +@".csv", csv.ToString());
 
+                    DA.SetDataList(0,cpValues);
                 }
 
-
+               
 
 
             }
