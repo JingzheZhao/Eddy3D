@@ -99,7 +99,7 @@ namespace Eddy
 
 
             
-            string SingleCPU = @"""pyFoamPrepareCase.py . --no-mesh-create;simpleFoam""";
+           // string SingleCPU = @"""pyFoamPrepareCase.py . --no-mesh-create;simpleFoam""";
             string MultipleCPU = @"""renumberMesh -overwrite;pyFoamPrepareCase.py . --no-mesh-create;pyFoamDecompose.py --clear . """ + DOM.CPU +@""";pyFoamRunner.py --autosense-parallel simpleFoam""";
             
             

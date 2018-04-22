@@ -81,7 +81,7 @@ namespace Eddy
         {
             //string filepath = @"C:\OF\";
             bool Run = false;
-            string command = @"blockMesh";
+            //string command = @"blockMesh";
             string workingDirectory = "";
             
 

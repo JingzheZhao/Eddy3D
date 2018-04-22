@@ -9,6 +9,7 @@ using Grasshopper.Kernel.Parameters;
 using System.Diagnostics;
 using Grasshopper.Kernel.Types;
 using System.Text.RegularExpressions;
+using Grasshopper;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -57,7 +58,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Result", "Result", "Result", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Result", "Result", "Result", GH_ParamAccess.tree);
         }
 
 
@@ -115,6 +116,7 @@ namespace Eddy
 
                 if (mode == 0) // cp
                 {
+                    DataTree<double> cpTree = new DataTree<double>();
 
                     for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                     {
@@ -158,15 +160,16 @@ namespace Eddy
                             AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The field that is supposed to be probed does not exist.");
                         }
 
+                        cpTree.AddRange(cp.cpValues, new Grasshopper.Kernel.Data.GH_Path(i));
                     }
-                        DA.SetDataList(0, cp.cpValues);
 
-                    
-
+                    DA.SetDataTree(0, cpTree);
                 }
 
                 if (mode == 1) // U
                 {
+                    DataTree<Vector3d> uTree = new DataTree<Vector3d>();
+
                     for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                     {
                         string pointName = "U_Probes";
@@ -202,10 +205,12 @@ namespace Eddy
 
 
 
-                        DA.SetDataList(0, U.uValues);
+                        uTree.AddRange( U.uValues, new Grasshopper.Kernel.Data.GH_Path(i));
 
 
                     }
+
+                    DA.SetDataTree(0, uTree);
 
 
                 }

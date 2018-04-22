@@ -157,9 +157,9 @@ namespace Eddy
             if (Run == true)
             {
 
-                var meshStlDir = Path.GetDirectoryName(DOM.workingDirectory + @"mesh\constant\triSurface\");
-                var meshStlFilenameBuildings = DOM.workingDirectory + @"mesh\constant\triSurface\building.stl";
-                var meshStlFilenameGround = DOM.workingDirectory + @"mesh\constant\triSurface\ground.stl";
+                var meshStlDir = Path.GetDirectoryName(DOM.meshWorkingDirectory + @"mesh\constant\triSurface\");
+                var meshStlFilenameBuildings = DOM.meshWorkingDirectory + @"mesh\constant\triSurface\building.stl";
+                var meshStlFilenameGround = DOM.meshWorkingDirectory + @"mesh\constant\triSurface\ground.stl";
 
                 if (!Directory.Exists(meshStlDir))
                 {
@@ -167,7 +167,7 @@ namespace Eddy
                 }
 
 
-                string meshSystemDir = DOM.workingDirectory + @"mesh\system\";
+                string meshSystemDir = DOM.meshWorkingDirectory + @"mesh\system\";
 
                 if (!Directory.Exists(meshSystemDir))
                 {
@@ -203,7 +203,7 @@ namespace Eddy
 
                 string logFile = "";
 
-                using (FileStream stream = File.Open(DOM.workingDirectory + @"\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (FileStream stream = File.Open(DOM.meshWorkingDirectory + @"\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
                     using (StreamReader reader = new StreamReader(stream))
                     {
