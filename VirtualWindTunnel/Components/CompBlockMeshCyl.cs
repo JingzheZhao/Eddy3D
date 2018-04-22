@@ -100,20 +100,19 @@ namespace Eddy
 
             DA.GetData(1, ref baseWorkingDirectory);
 
-            List<BoundaryConditions> BCond = new List<BoundaryConditions>();
+            BoundaryConditions BCond = null;
 
 
-            List<GH_ObjectWrapper> gobj = new List<GH_ObjectWrapper>();
-            if (!DA.GetDataList(2, gobj)) { }
+            GH_ObjectWrapper gobj = null;
+            if (!DA.GetData(2, ref gobj)) { }
 
-            foreach (var obj in gobj)
-            {
-                if ((obj.Value is BoundaryConditions))
+       
+                if ((gobj.Value is BoundaryConditions))
                 {
-                    BCond.Add((BoundaryConditions)obj.Value);
+                    BCond =  ((BoundaryConditions)gobj.Value);
                 }
                 else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid boundary condition object"); return; }
-            }
+            
 
             //int mode = 0;
             //int baseMesh = 0;

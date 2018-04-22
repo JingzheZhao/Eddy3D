@@ -158,27 +158,27 @@ namespace Eddy
 
                 
                 if (DOM is OFBoxDomain) { 
-                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), BoundaryConditionTemplates.U(DOM));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), BoundaryConditionTemplates.U(DOM, i));
                 File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "p"), BoundaryConditionTemplates.P(DOM));
                 File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "omega"), BoundaryConditionTemplates.Omega(DOM));
                 File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "k"), BoundaryConditionTemplates.K(DOM));
                 File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "epsilon"), BoundaryConditionTemplates.Epsilon(DOM));
                 File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "nut"), BoundaryConditionTemplates.Nut(DOM));
 
-                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions(DOM));
-                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions(DOM));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions(DOM, i));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions(DOM,i));
                 }
                 else
                 {
                 File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), BoundaryConditionTemplates.U_Cyl(DOM));
-                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "p"), BoundaryConditionTemplates.P_Cyl(DOM));
-                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "omega"), BoundaryConditionTemplates.Omega_Cyl(DOM));
-                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "k"), BoundaryConditionTemplates.K_Cyl(DOM));
-                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "epsilon"), BoundaryConditionTemplates.Epsilon_Cyl(DOM));
-                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "nut"), BoundaryConditionTemplates.Nut_Cyl(DOM));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "p"), BoundaryConditionTemplates.P_Cyl(DOM, i));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "omega"), BoundaryConditionTemplates.Omega_Cyl(DOM, i));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "k"), BoundaryConditionTemplates.K_Cyl(DOM, i));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "epsilon"), BoundaryConditionTemplates.Epsilon_Cyl(DOM, i));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "nut"), BoundaryConditionTemplates.Nut_Cyl(DOM, i));
 
-                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions_Cyl(DOM));
-                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions(DOM));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions_Cyl(DOM, i));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions(DOM, i));
 
 
                 }
