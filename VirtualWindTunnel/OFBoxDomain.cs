@@ -52,21 +52,11 @@ namespace Eddy
         //// Delete later
 
 
-        public OFBoxDomain(Mesh geometry, List<BoundaryConditions> BCond,  string _workingDirectory, double _blockDim)
+        public OFBoxDomain(Mesh geometry, BoundaryConditions BCond, double _blockDim)
         {
-
-  
-
-
-            workingDirectory = _workingDirectory;
-            systemDirectory = workingDirectory + @"system\";
             blockDimension = _blockDim;
             BuildingGeometry = geometry;
-            //BoundingBox bb = domain.GetBoundingBox(true);
-
-
-
-
+            
 
             BBox = BuildingGeometry.GetBoundingBox(true);
                    
@@ -174,7 +164,6 @@ namespace Eddy
             
             
             // refinement Cylinder
-
             refinementCylinder = getRefinementCyl(center, geometry, 10);
             this.BCInflow = BCond;
         }

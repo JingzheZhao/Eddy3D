@@ -82,9 +82,12 @@ namespace Eddy
             BCInflow.zref = zref;
             BCInflow.z0 = z0;
             BCInflow.zGround = zGround;
-            
-            BCInflow.flowDir = new Vector3d(Math.Sin(windDir* Math.PI / 180), Math.Cos(windDir * Math.PI / 180), 0);
-            
+
+            BCInflow.flowDir = new List<Vector3d>();
+            foreach (double d in windDir)
+            {
+                BCInflow.flowDir.Add( new Vector3d(Math.Sin(d * Math.PI / 180), Math.Cos(d * Math.PI / 180), 0));
+            }
             //BCInflow.flowDir = DOM
 
             BCInflow.windDir = windDir;
