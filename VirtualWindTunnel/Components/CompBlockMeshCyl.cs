@@ -206,7 +206,7 @@ namespace Eddy
             }
 
 
-            OFCylDomain DOMCYL = new OFCylDomain(allTogether, BCond, divisionsOuterCirc, gradingPerim, windDir, baseWorkingDirectory, CPUs, scaleFactorInnerRect);
+            OFCylDomain DOMCYL = new OFCylDomain(allTogether, BCond, divisionsOuterCirc, gradingPerim, windDir, CPUs, scaleFactorInnerRect);
 
             DOMCYL.gradingPerim = gradingPerim;
             DOMCYL.meshStlDirectory = meshStlDirectory;
