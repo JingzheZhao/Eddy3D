@@ -134,11 +134,11 @@ namespace Eddy
                 {
                     File.WriteAllText(Path.Combine(DOM.BCInflow.windDir[l] + @"\system\" + "controlDict"), StringTemplates.controlDict(DOM.iter, 5, 20, allTopo));
                     File.WriteAllText(Path.Combine(DOM.BCInflow.windDir[l] + @"\system\" + "topoSetDict"), StringTemplates.topoSetDict(allTopo));
-                }
+                
 
 
 
-                string postProcessDirectory = DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\postProcessing\";
+                string postProcessDirectory = DOM.baseWorkingDirectory + DOM.BCInflow.windDir[l] + @"\postProcessing\";
                 int counterTopo = 0;
 
 
@@ -146,83 +146,82 @@ namespace Eddy
                 string command = @"""topoSet;simpleFoam""";
 
 
-                for (int l = 0; l < DOM.BCInflow.windDir.Count; l++)
-                {
+                
                     ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir + @"\CallOF.exe", " -e " + command + " -f " + "\"" + DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[l] + " \"");
                 Process p = new Process();
                 p.StartInfo = psi;
                 p.Start();
                 p.WaitForExit();
-                }
-
-
-                if (!Directory.Exists(postProcessDirectory))
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "There is no postProcessing directory.");
-                }
-                else
-                {
-                    counterTopo = topo.Count();
-
-                    string[] dir = Directory.GetDirectories(postProcessDirectory);
-                    string basePath = postProcessDirectory + @"\swakExpression_";
-
-                    int counterIter = Directory.GetDirectories(dir[0]).Length;
-
-
-                    string[] fullDir = new string[counterTopo];
-                    string[] filePathResults = new string[counterTopo];
-                    string[] dirLastIter = Directory.GetDirectories(dir[0]);
-
-
-                    var item = dirLastIter[dirLastIter.Length - 1];
-
-                    string lastIter = Path.GetFileName(item);
 
 
 
-                    // Build filepath
-                    for (int i = 0; i < counterTopo; i++)
+                    if (!Directory.Exists(postProcessDirectory))
                     {
-                        fullDir[i] = basePath + topoName + i;
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "There is no postProcessing directory.");
                     }
-
-
-                    // Build get fileName
-
-                    //filePathResults = Directory.GetFiles(fullDir[0]);
-                    //string fileName = new String(Path.GetFileName(filePathResults[0]).Where(c => Char.IsLetter(c) | Char.IsPunctuation(c)).ToArray());;
-                    //string fileName2 = Regex.Replace(filePathResults[0], @"[^A-Z]+", String.Empty);
-
-
-                    List<String> fullPath = new List<String>();
-
-                    for (int i = 0; i < counterTopo; i++)
+                    else
                     {
-                        fullPath.Add(fullDir[i] + @"\" + lastIter + @"\" + topoName + i);
+                        counterTopo = topo.Count();
+
+                        string[] dir = Directory.GetDirectories(postProcessDirectory);
+                        string basePath = postProcessDirectory + @"\swakExpression_";
+
+                        int counterIter = Directory.GetDirectories(dir[0]).Length;
+
+
+                        string[] fullDir = new string[counterTopo];
+                        string[] filePathResults = new string[counterTopo];
+                        string[] dirLastIter = Directory.GetDirectories(dir[0]);
+
+
+                        var item = dirLastIter[dirLastIter.Length - 1];
+
+                        string lastIter = Path.GetFileName(item);
+
+
+
+                        // Build filepath
+                        for (int i = 0; i < counterTopo; i++)
+                        {
+                            fullDir[i] = basePath + topoName + i;
+                        }
+
+
+                        // Build get fileName
+
+                        //filePathResults = Directory.GetFiles(fullDir[0]);
+                        //string fileName = new String(Path.GetFileName(filePathResults[0]).Where(c => Char.IsLetter(c) | Char.IsPunctuation(c)).ToArray());;
+                        //string fileName2 = Regex.Replace(filePathResults[0], @"[^A-Z]+", String.Empty);
+
+
+                        List<String> fullPath = new List<String>();
+
+                        for (int i = 0; i < counterTopo; i++)
+                        {
+                            fullPath.Add(fullDir[i] + @"\" + lastIter + @"\" + topoName + i);
+                        }
+
+
+                        double[] cpValues = new double[counterTopo];
+                        var csv = new System.Text.StringBuilder();
+
+
+                        for (int i = 0; i < counterTopo; i++)
+                        {
+                            var lastLine = File.ReadLines(fullPath[i]).Last();
+                            cpValues[i] = double.Parse(lastLine.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1]);
+                            //if (cpValues[i] > 100)
+                            //{
+                            //    cpValues[i] = cpValues[i - 1];
+                            //};
+                            var firstColumn = i.ToString();
+                            var secondColumn = cpValues[i].ToString();
+                            var newLine = string.Format("{0},{1}", firstColumn, secondColumn);
+                            csv.AppendLine(newLine);
+                        }
+
+                        File.WriteAllText(postProcessDirectory + topoName + @".csv", csv.ToString());
                     }
-
-
-                    double[] cpValues = new double[counterTopo];
-                    var csv = new System.Text.StringBuilder();
-
-
-                    for (int i = 0; i < counterTopo; i++)
-                    {
-                        var lastLine = File.ReadLines(fullPath[i]).Last();
-                        cpValues[i] = double.Parse(lastLine.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1]);
-                        //if (cpValues[i] > 100)
-                        //{
-                        //    cpValues[i] = cpValues[i - 1];
-                        //};
-                        var firstColumn = i.ToString();
-                        var secondColumn = cpValues[i].ToString();
-                        var newLine = string.Format("{0},{1}", firstColumn, secondColumn);
-                        csv.AppendLine(newLine);
-                    }
-
-                    File.WriteAllText(postProcessDirectory + topoName +@".csv", csv.ToString());
-
                     DA.SetDataList(0,cpValues);
                 }
 

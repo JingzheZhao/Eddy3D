@@ -100,9 +100,15 @@ namespace Eddy
 
             DA.GetData(1, ref baseWorkingDirectory);
 
+<<<<<<< HEAD
             BoundaryConditions BCond = null;
+=======
+            BoundaryConditions BCond = new BoundaryConditions();
+>>>>>>> 82a1bfbb4d8c062f625a6d71f780aa1172359ca9
 
+            DA.GetData(2, ref BCond);
 
+<<<<<<< HEAD
             GH_ObjectWrapper gobj = null;
             if (!DA.GetData(2, ref gobj)) { }
 
@@ -113,6 +119,23 @@ namespace Eddy
                 }
                 else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid boundary condition object"); return; }
             
+=======
+
+
+            //List<BoundaryConditions> BCond = new List<BoundaryConditions>();
+
+            //List<GH_ObjectWrapper> gobj = new List<GH_ObjectWrapper>();
+            //if (!DA.GetDataList(2, gobj)) { }
+
+            //foreach (var obj in gobj)
+            //{
+            //    if ((obj.Value is BoundaryConditions))
+            //    {
+            //        BCond.Add((BoundaryConditions)obj.Value);
+            //    }
+            //    else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid boundary condition object"); return; }
+            //}
+>>>>>>> 82a1bfbb4d8c062f625a6d71f780aa1172359ca9
 
             //int mode = 0;
             //int baseMesh = 0;
