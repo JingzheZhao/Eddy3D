@@ -145,6 +145,8 @@ namespace Eddy
 
                     //Parse file
 
+
+
                     ParsingValues cp = new ParsingValues(listOfPoints, pointName, DOM.workingDirectory, OFfield);
 
                     if (!File.Exists(cp.getLastIterationPath(DOM.workingDirectory)+OFfield))

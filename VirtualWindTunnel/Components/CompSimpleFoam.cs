@@ -130,8 +130,8 @@ namespace Eddy
                 for (int i = 0; i < DOM.BCInflow.windDir.Count; i++) { 
 
                 var simStlDir = Path.GetDirectoryName( DOM.baseWorkingDirectory + "\\"+ DOM.BCInflow.windDir[i] + @"\constant\triSurface\");
-                var simStlFilenameBuildings = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + + @"\constant\triSurface\building.stl";
-                var simStlFilenameGround = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + + @"\constant\triSurface\ground.stl";
+                var simStlFilenameBuildings = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i]  + @"\constant\triSurface\building.stl";
+                var simStlFilenameGround = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i]  + @"\constant\triSurface\ground.stl";
 
                 if (!Directory.Exists(simStlDir)) {
                     Directory.CreateDirectory(simStlDir);
@@ -141,9 +141,9 @@ namespace Eddy
                 string simConstantDir = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i]  + @"\constant\";
                 string simBoundaryConditionsDir = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\0.org\";
 
-                if (!Directory.Exists(DOM.systemDirectory))
+                if (!Directory.Exists(DOM.BCInflow.windDir[i] + @"\system\"))
                 {
-                    Directory.CreateDirectory(DOM.systemDirectory);
+                    Directory.CreateDirectory(DOM.BCInflow.windDir[i] + @"\system\");
                 }
                 if (!Directory.Exists(simConstantDir))
                 {
@@ -154,19 +154,19 @@ namespace Eddy
                     Directory.CreateDirectory(simBoundaryConditionsDir);
                 }
 
-                File.WriteAllText(Path.Combine(DOM.systemDirectory + "controlDict"), StringTemplates.controlDict(iter, writeInterval, keepTimeSteps, null));
+                File.WriteAllText(Path.Combine(DOM.BCInflow.windDir[i] + @"\system\" + "controlDict"), StringTemplates.controlDict(iter, writeInterval, keepTimeSteps, null));
 
                 
                 if (DOM is OFBoxDomain) { 
                 File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), BoundaryConditionTemplates.U(DOM));
-                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "p"), BoundaryConditionTemplates.P());
-                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "omega"), BoundaryConditionTemplates.Omega());
-                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "k"), BoundaryConditionTemplates.K());
-                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "epsilon"), BoundaryConditionTemplates.Epsilon());
-                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "nut"), BoundaryConditionTemplates.Nut());
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "p"), BoundaryConditionTemplates.P(DOM));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "omega"), BoundaryConditionTemplates.Omega(DOM));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "k"), BoundaryConditionTemplates.K(DOM));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "epsilon"), BoundaryConditionTemplates.Epsilon(DOM));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "nut"), BoundaryConditionTemplates.Nut(DOM));
 
-                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions(DOM.BCInflow));
-                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions(DOM.BCInflow));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions(DOM));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions(DOM));
                 }
                 else
                 {
@@ -177,8 +177,8 @@ namespace Eddy
                 File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "epsilon"), BoundaryConditionTemplates.Epsilon_Cyl(DOM));
                 File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "nut"), BoundaryConditionTemplates.Nut_Cyl(DOM));
 
-                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions_Cyl(DOM.BCInflow, DOM));
-                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions(DOM.BCInflow));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions_Cyl(DOM));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions(DOM));
 
 
                 }
@@ -189,9 +189,9 @@ namespace Eddy
 
 
                 //Batch files
-                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + + "run_mesh.bat"), StringTemplates.run_mesh(DOM));
-                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + + "run_sim.bat"), StringTemplates.run_sim(DOM));
-                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + + "run.bat"), StringTemplates.run());
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i]  + "run_mesh.bat"), StringTemplates.run_mesh(DOM));
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i]  + "run_sim.bat"), StringTemplates.run_sim(DOM));
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i]  + "run.bat"), StringTemplates.run());
 
                 
             }

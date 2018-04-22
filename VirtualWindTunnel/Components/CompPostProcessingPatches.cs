@@ -118,34 +118,42 @@ namespace Eddy
                         foreach (Mesh mm in m) allTopo.Add(mm);
 
                     }
-                    
-                    
-                    for (int i = 0; i < allTopo.Count; i++)
-                    {
-                        string filePath = DOM.
-                            workingDirectory + @"constant\triSurface\" + topoName + i + ".stl";
-                        STLExport.ExportBinary(filePath, allTopo[i]);
-                    }
 
+                    for (int l = 0; l < DOM.BCInflow.windDir.Count; l++)
+                    {
+                        for (int i = 0; i < allTopo.Count; i++)
+                        {
+                            string filePath = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[l] + @"constant\triSurface\" + topoName + i + ".stl";
+                            STLExport.ExportBinary(filePath, allTopo[i]);
+                        }
+                    }
 
                 }
 
-                File.WriteAllText(Path.Combine(DOM.systemDirectory + "controlDict"), StringTemplates.controlDict(DOM.iter, 5, 20, allTopo));
-                File.WriteAllText(Path.Combine(DOM.systemDirectory + "topoSetDict"), StringTemplates.topoSetDict(allTopo));
+                for (int l = 0; l < DOM.BCInflow.windDir.Count; l++)
+                {
+                    File.WriteAllText(Path.Combine(DOM.BCInflow.windDir[l] + @"\system\" + "controlDict"), StringTemplates.controlDict(DOM.iter, 5, 20, allTopo));
+                    File.WriteAllText(Path.Combine(DOM.BCInflow.windDir[l] + @"\system\" + "topoSetDict"), StringTemplates.topoSetDict(allTopo));
+                }
 
-                string postProcessDirectory = DOM.workingDirectory + @"\postProcessing\";
+
+
+                string postProcessDirectory = DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\postProcessing\";
                 int counterTopo = 0;
 
 
                 //Start sample process                
                 string command = @"""topoSet;simpleFoam""";
 
-                ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir + @"\CallOF.exe", " -e " + command + " -f " + "\"" + DOM.workingDirectory + " \"");
+
+                for (int l = 0; l < DOM.BCInflow.windDir.Count; l++)
+                {
+                    ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir + @"\CallOF.exe", " -e " + command + " -f " + "\"" + DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[l] + " \"");
                 Process p = new Process();
                 p.StartInfo = psi;
                 p.Start();
                 p.WaitForExit();
-
+                }
 
 
                 if (!Directory.Exists(postProcessDirectory))
