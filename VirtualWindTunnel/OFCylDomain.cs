@@ -53,10 +53,10 @@ namespace Eddy
 
 
 
-        public OFCylDomain(Mesh geometry, List<BoundaryConditions> BCond, int _divisionsY, double gradingPerim, double windDir, string _workingDirectory, int _CPU, double scaleFactorInnerRect = 0.5)
+        public OFCylDomain(Mesh geometry, BoundaryConditions BCond, int _divisionsY, double gradingPerim, double windDir, int _CPU, double scaleFactorInnerRect = 0.5)
         {
-            workingDirectory = _workingDirectory;
-            systemDirectory = workingDirectory + @"system\";
+            //workingDirectory = _workingDirectory;
+            //systemDirectory = workingDirectory + @"system\";
             CPU = _CPU;
 
 

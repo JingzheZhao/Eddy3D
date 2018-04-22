@@ -86,7 +86,7 @@ namespace Eddy
 
 
 
-            int mode = 0;            
+            int mode = 0;
             List<Point3d> listOfPoints = new List<Point3d>();
             bool run = false;
 
@@ -98,106 +98,114 @@ namespace Eddy
             // Error handling
 
             if (listOfPoints.Count() < 1)
-            { 
+            {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You need to pass a list of point to the component.");
 
             }
 
 
-            
 
 
 
 
-            if (run == true && listOfPoints.Count() > 0 )
+
+            if (run == true && listOfPoints.Count() > 0)
             {
 
 
                 if (mode == 0) // cp
                 {
-                    string pointName = "cp_Probes";
-                    string OFfield = "total(p)_coeff";
-                    string postProcessingDirectory = DOM.workingDirectory + @"\postProcessing\";
 
-                    if (!Directory.Exists(postProcessingDirectory))
+                    for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                     {
-                        Directory.CreateDirectory(postProcessingDirectory);
+
+                        string pointName = "cp_Probes";
+                        string OFfield = "total(p)_coeff";
+                        string postProcessingDirectory = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\postProcessing\";
+
+                        if (!Directory.Exists(postProcessingDirectory))
+                        {
+                            Directory.CreateDirectory(postProcessingDirectory);
+                        }
+                        //Write sampleDict
+
+                        File.WriteAllText(Path.Combine(DOM.BCInflow.windDir[i] + @"\system\" + "controlDict"), StringTemplates.controlDict(DOM.iter, DOM.writeInterval, DOM.keepTimeSteps, null));
+                        File.WriteAllText(Path.Combine(DOM.BCInflow.windDir[i] + @"\system\" + pointName), StringTemplates.sampleProbes(listOfPoints, pointName, mode));
+
+
+
+
+
+
+                        //Start sample process                
+                        string command = @"""postProcess -func " + pointName + @" -latestTime""";
+
+
+                        ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir + @"\CallOF.exe", " -e " + command + " -f " + "\"" + DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + " \"");
+                        Process p = new Process();
+                        p.StartInfo = psi;
+                        p.Start();
+                        p.WaitForExit();
+
+                        //Parse file
+
+
+
+                        ParsingValues cp = new ParsingValues(listOfPoints, pointName, DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i], OFfield);
+
+                        if (!File.Exists(cp.getLastIterationPath(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i]) + OFfield))
+                        {
+                            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The field that is supposed to be probed does not exist.");
+                        }
+
+
+                        DA.SetDataList(0, cp.cpValues);
+
                     }
-                    //Write sampleDict
-
-                    File.WriteAllText(Path.Combine(DOM.systemDirectory + "controlDict"), StringTemplates.controlDict(DOM.iter, DOM.writeInterval, DOM.keepTimeSteps, null));
-                    File.WriteAllText(Path.Combine(DOM.systemDirectory + pointName), StringTemplates.sampleProbes(listOfPoints, pointName, mode));
-
-
-                    
-
-
-
-                    //Start sample process                
-                    string command = @"""postProcess -func " + pointName + @" -latestTime""";
-
-
-                    ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir + @"\CallOF.exe", " -e " + command + " -f " + "\"" + DOM.workingDirectory + " \"" );
-                    Process p = new Process();
-                    p.StartInfo = psi;
-                    p.Start();
-                    p.WaitForExit();
-
-                    //Parse file
-
-
-
-                    ParsingValues cp = new ParsingValues(listOfPoints, pointName, DOM.workingDirectory, OFfield);
-
-                    if (!File.Exists(cp.getLastIterationPath(DOM.workingDirectory)+OFfield))
-                    {
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The field that is supposed to be probed does not exist.");
-                    }
-
-
-                    DA.SetDataList(0, cp.cpValues);
 
                 }
 
                 if (mode == 1) // U
                 {
-                    string pointName = "U_Probes";
-                    string OFfield = "U";
-                    string postProcessingDirectory = DOM.workingDirectory + @"\postProcessing\";
-
-                    if (!Directory.Exists(postProcessingDirectory))
+                    for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                     {
-                        Directory.CreateDirectory(postProcessingDirectory);
+                        string pointName = "U_Probes";
+                        string OFfield = "U";
+                        string postProcessingDirectory = DOM.baseWorkingDirectory + @"\postProcessing\";
+
+                        if (!Directory.Exists(postProcessingDirectory))
+                        {
+                            Directory.CreateDirectory(postProcessingDirectory);
+                        }
+
+                        File.WriteAllText(Path.Combine(DOM.BCInflow.windDir[i] + @"\system\" + pointName), StringTemplates.sampleProbes(listOfPoints, pointName, mode));
+
+
+
+                        string command = @"""postProcess -func " + pointName + @" -latestTime""";
+
+                        ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir + @"\CallOF.exe", " -e " + command + " -f " + "\"" + DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + " \"");
+                        Process p = new Process();
+                        p.StartInfo = psi;
+                        p.Start();
+                        p.WaitForExit();
+
+                        var U = new ParsingValues(listOfPoints, pointName, DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i], OFfield);
+
+
+                        // Input string is not of the right form...
+
+                        if (!File.Exists(U.getLastIterationPath(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i]) + OFfield))
+                        {
+                            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The field that is supposed to be probed does not exist.");
+                        }
+
+
+
+                        DA.SetDataList(0, U.uValues);
+
+
                     }
-
-                    File.WriteAllText(Path.Combine(DOM.systemDirectory + pointName), StringTemplates.sampleProbes(listOfPoints, pointName, mode));
-
-
-
-                    string command = @"""postProcess -func " + pointName + @" -latestTime""";
-
-                    ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir + @"\CallOF.exe", " -e " + command + " -f " + "\"" + DOM.workingDirectory + " \"");
-                    Process p = new Process();
-                    p.StartInfo = psi;
-                    p.Start();
-                    p.WaitForExit();
-
-                    var U = new  ParsingValues(listOfPoints, pointName, DOM.workingDirectory, OFfield);
-
-
-                    // Input string is not of the right form...
-
-                    if (!File.Exists(U.getLastIterationPath(DOM.workingDirectory) + OFfield))
-                    {
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The field that is supposed to be probed does not exist.");
-                    }
-
-
-
-                    DA.SetDataList(0, U.uValues);
-
-
-
 
 
                 }
