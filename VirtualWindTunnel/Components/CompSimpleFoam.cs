@@ -61,7 +61,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            //pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
         }
 
 
@@ -122,108 +122,85 @@ namespace Eddy
             DOM.writeInterval  = writeInterval;
             DOM.keepTimeSteps = keepTimeSteps;
 
-
+           
 
             if (Run == true)
             {
                 
-                var stlDir = Path.GetDirectoryName( DOM.workingDirectory + @"\constant\triSurface\");
-                var stlFilenameBuildings = DOM.workingDirectory + @"\constant\triSurface\building.stl";
-                var stlFilenameGround = DOM.workingDirectory + @"\constant\triSurface\ground.stl";
+                for (int i = 0; i < DOM.BCInflow.windDir.Count; i++) { 
 
-                if (!Directory.Exists(stlDir)) {
-                    Directory.CreateDirectory(stlDir);
+                var simStlDir = Path.GetDirectoryName( DOM.baseWorkingDirectory + "\\"+ DOM.BCInflow.windDir[i] + @"\constant\triSurface\");
+                var simStlFilenameBuildings = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + + @"\constant\triSurface\building.stl";
+                var simStlFilenameGround = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + + @"\constant\triSurface\ground.stl";
+
+                if (!Directory.Exists(simStlDir)) {
+                    Directory.CreateDirectory(simStlDir);
                 }
 
                 
-                string constantDir = DOM.workingDirectory + @"\constant\";
-                string boundaryConditionsDir = DOM.workingDirectory + @"\0.org\";
+                string simConstantDir = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i]  + @"\constant\";
+                string simBoundaryConditionsDir = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\0.org\";
 
                 if (!Directory.Exists(DOM.systemDirectory))
                 {
                     Directory.CreateDirectory(DOM.systemDirectory);
                 }
-                if (!Directory.Exists(constantDir))
+                if (!Directory.Exists(simConstantDir))
                 {
-                    Directory.CreateDirectory(constantDir);
+                    Directory.CreateDirectory(simConstantDir);
                 }
-                if (!Directory.Exists(boundaryConditionsDir))
+                if (!Directory.Exists(simBoundaryConditionsDir))
                 {
-                    Directory.CreateDirectory(boundaryConditionsDir);
+                    Directory.CreateDirectory(simBoundaryConditionsDir);
                 }
 
                 File.WriteAllText(Path.Combine(DOM.systemDirectory + "controlDict"), StringTemplates.controlDict(iter, writeInterval, keepTimeSteps, null));
 
                 
                 if (DOM is OFBoxDomain) { 
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "U"), BoundaryConditionTemplates.U(DOM.BCInflow[0]));
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "p"), BoundaryConditionTemplates.P());
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "omega"), BoundaryConditionTemplates.Omega());
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "k"), BoundaryConditionTemplates.K());
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "epsilon"), BoundaryConditionTemplates.Epsilon());
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "nut"), BoundaryConditionTemplates.Nut());
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), BoundaryConditionTemplates.U(DOM));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "p"), BoundaryConditionTemplates.P());
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "omega"), BoundaryConditionTemplates.Omega());
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "k"), BoundaryConditionTemplates.K());
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "epsilon"), BoundaryConditionTemplates.Epsilon());
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "nut"), BoundaryConditionTemplates.Nut());
 
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions(DOM.BCInflow[0]));
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions(DOM.BCInflow[0]));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions(DOM.BCInflow));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions(DOM.BCInflow));
                 }
                 else
                 {
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "U"), BoundaryConditionTemplates.U_Cyl(DOM));
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "p"), BoundaryConditionTemplates.P_Cyl(DOM));
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "omega"), BoundaryConditionTemplates.Omega_Cyl(DOM));
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "k"), BoundaryConditionTemplates.K_Cyl(DOM));
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "epsilon"), BoundaryConditionTemplates.Epsilon_Cyl(DOM));
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "nut"), BoundaryConditionTemplates.Nut_Cyl(DOM));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), BoundaryConditionTemplates.U_Cyl(DOM));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "p"), BoundaryConditionTemplates.P_Cyl(DOM));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "omega"), BoundaryConditionTemplates.Omega_Cyl(DOM));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "k"), BoundaryConditionTemplates.K_Cyl(DOM));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "epsilon"), BoundaryConditionTemplates.Epsilon_Cyl(DOM));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "nut"), BoundaryConditionTemplates.Nut_Cyl(DOM));
 
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions_Cyl(DOM.BCInflow[0]));
-                File.WriteAllText(Path.Combine(boundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions(DOM.BCInflow[0]));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions_Cyl(DOM.BCInflow, DOM));
+                File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions(DOM.BCInflow));
 
 
                 }
 
                 //Constant folder
-                File.WriteAllText(Path.Combine(constantDir + "turbulenceProperties"), StringTemplates.turbulenceProperties());
-                File.WriteAllText(Path.Combine(constantDir + "transportProperties"), StringTemplates.transportProperties());
+                File.WriteAllText(Path.Combine(simConstantDir + "turbulenceProperties"), StringTemplates.turbulenceProperties());
+                File.WriteAllText(Path.Combine(simConstantDir + "transportProperties"), StringTemplates.transportProperties());
 
 
                 //Batch files
-                File.WriteAllText(Path.Combine(DOM.workingDirectory + "run_mesh.bat"), StringTemplates.run_mesh(DOM));
-                File.WriteAllText(Path.Combine(DOM.workingDirectory + "run_sim.bat"), StringTemplates.run_sim(DOM));
-                File.WriteAllText(Path.Combine(DOM.workingDirectory + "run.bat"), StringTemplates.run());
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + + "run_mesh.bat"), StringTemplates.run_mesh(DOM));
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + + "run_sim.bat"), StringTemplates.run_sim(DOM));
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + + "run.bat"), StringTemplates.run());
 
-                //string command = DOM.CPU > 1 ? MultipleCPU : SingleCPU;
-                //ProcessStartInfo psi = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
-                ////ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
-               
-                //Process p = new Process();
-                //p.StartInfo = psi;
-                //p.Start();
-                //p.WaitForExit();
-
-
-               // OFLaunch.Run(command, StringTemplates.filePath);
+                
             }
 
-            //string logFile = "";
+            }
 
-            //using (FileStream stream = File.Open(DOM.workingDirectory + @"\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            //{
-            //    using (StreamReader reader = new StreamReader(stream))
-            //    {
-            //        logFile = reader.ReadToEnd();
-            //        //while (!reader.EndOfStream)
-            //        //{
+            DA.SetData(0, DOM);
 
-            //        //}
-
-            //    }
-            //}
-
-            //DA.SetData(0, logFile);
-
-            //if (logFile.Contains("End")) { AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Super!!"); }
-            //// else if (logFile.Contains("End")) { AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Fast Super!!"); }
-            //else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Nicht Super!!"); }
+         
 
 
         }

@@ -95,9 +95,7 @@ namespace Eddy
 
 
             DA.GetData(2, ref mode);
-
-
-
+            
 
             if (mode == 0)
             {
@@ -124,18 +122,29 @@ namespace Eddy
                     
                     for (int i = 0; i < allTopo.Count; i++)
                     {
-                        string filePath = DOM.workingDirectory + @"constant\triSurface\" + topoName + i + ".stl";
+                        string filePath = DOM.
+                            workingDirectory + @"constant\triSurface\" + topoName + i + ".stl";
                         STLExport.ExportBinary(filePath, allTopo[i]);
                     }
 
 
                 }
 
-                File.WriteAllText(Path.Combine(DOM.systemDirectory + "controlDict"), StringTemplates.controlDict(10000, 5, 20, allTopo));
+                File.WriteAllText(Path.Combine(DOM.systemDirectory + "controlDict"), StringTemplates.controlDict(DOM.iter, 5, 20, allTopo));
                 File.WriteAllText(Path.Combine(DOM.systemDirectory + "topoSetDict"), StringTemplates.topoSetDict(allTopo));
 
                 string postProcessDirectory = DOM.workingDirectory + @"\postProcessing\";
                 int counterTopo = 0;
+
+
+                //Start sample process                
+                string command = @"""topoSet;simpleFoam""";
+
+                ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir + @"\CallOF.exe", " -e " + command + " -f " + "\"" + DOM.workingDirectory + " \"");
+                Process p = new Process();
+                p.StartInfo = psi;
+                p.Start();
+                p.WaitForExit();
 
 
 
@@ -216,11 +225,8 @@ namespace Eddy
 
             if (mode == 1)
             {
-
                 return;
-
-
-
+                
             }
 
         }

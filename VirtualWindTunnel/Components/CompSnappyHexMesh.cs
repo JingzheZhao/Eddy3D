@@ -31,7 +31,7 @@ namespace Eddy
         {
         }
 
-        
+
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -113,7 +113,7 @@ namespace Eddy
                 BoxDom = (OFBoxDomain)gobj.Value;
                 DOM = (OFBaseDomain)gobj.Value;
             }
-         
+
             else
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid domain object"); return;
@@ -125,7 +125,7 @@ namespace Eddy
 
 
             //string command = "";
-            
+
 
             string SingleCPU = @"""surfaceFeatureExtract;snappyHexMesh -overwrite """; //-overwrite
             string MultipleCPU = @"""surfaceFeatureExtract;pyFoamDecompose.py --clear . " + DOM.CPU + @"; foamJob -parallel -screen snappyHexMesh -overwrite""";
@@ -139,7 +139,7 @@ namespace Eddy
             int accGround = 3;
             int nLayers = 3;
 
-            
+
             DA.GetData(1, ref accBuilding);
             DA.GetData(2, ref accFeatures);
             DA.GetData(3, ref accRefinement);
@@ -147,49 +147,50 @@ namespace Eddy
             DA.GetData(5, ref nLayers);
             DA.GetData(6, ref Run);
 
-            DOM.accBuildings  = accBuilding; 
-           DOM.accFeatures =  accFeatures ;
-           DOM.accRefinement = accRefinement;
-           DOM.accGround = accGround;
-           DOM.nLayers = nLayers;
+            DOM.accBuildings = accBuilding;
+            DOM.accFeatures = accFeatures;
+            DOM.accRefinement = accRefinement;
+            DOM.accGround = accGround;
+            DOM.nLayers = nLayers;
 
 
             if (Run == true)
             {
-                
-                var stlDir = Path.GetDirectoryName( DOM.workingDirectory + @"\constant\triSurface\");
-                var stlFilenameBuildings = DOM.workingDirectory + @"\constant\triSurface\building.stl";
-                var stlFilenameGround = DOM.workingDirectory + @"\constant\triSurface\ground.stl";
 
-                if (!Directory.Exists(stlDir)) {
-                    Directory.CreateDirectory(stlDir);
-                }
-                
-                                
-                string systemDir = DOM.workingDirectory + @"\system\";
+                var meshStlDir = Path.GetDirectoryName(DOM.workingDirectory + @"mesh\constant\triSurface\");
+                var meshStlFilenameBuildings = DOM.workingDirectory + @"mesh\constant\triSurface\building.stl";
+                var meshStlFilenameGround = DOM.workingDirectory + @"mesh\constant\triSurface\ground.stl";
 
-                if (!Directory.Exists(systemDir))
+                if (!Directory.Exists(meshStlDir))
                 {
-                    Directory.CreateDirectory(systemDir);
+                    Directory.CreateDirectory(meshStlDir);
+                }
+
+
+                string meshSystemDir = DOM.workingDirectory + @"mesh\system\";
+
+                if (!Directory.Exists(meshSystemDir))
+                {
+                    Directory.CreateDirectory(meshSystemDir);
                 }
 
                 Point3d locationInMesh = new Point3d();
                 locationInMesh = DOM.locationInMesh;
 
-                File.WriteAllText(Path.Combine(systemDir + "snappyHexMeshDict"), StringTemplates.snappyHexMeshDict(DOM));
-                File.WriteAllText(Path.Combine(systemDir + "surfaceFeatureExtractDict"), StringTemplates.surfaceFeatureExtractDict());
-                File.WriteAllText(Path.Combine(systemDir + "fvSchemes"), StringTemplates.fvSchemes());
-                File.WriteAllText(Path.Combine(systemDir + "fvSolution"), StringTemplates.fvSolution(0));
-                File.WriteAllText(Path.Combine(systemDir + "meshQualityDict"), StringTemplates.meshQualityDict());
+                File.WriteAllText(Path.Combine(meshSystemDir + "snappyHexMeshDict"), StringTemplates.snappyHexMeshDict(DOM));
+                File.WriteAllText(Path.Combine(meshSystemDir + "surfaceFeatureExtractDict"), StringTemplates.surfaceFeatureExtractDict());
+                File.WriteAllText(Path.Combine(meshSystemDir + "fvSchemes"), StringTemplates.fvSchemes());
+                File.WriteAllText(Path.Combine(meshSystemDir + "fvSolution"), StringTemplates.fvSolution(0));
+                File.WriteAllText(Path.Combine(meshSystemDir + "meshQualityDict"), StringTemplates.meshQualityDict());
 
 
-                string command = DOM.CPU > 1 ? MultipleCPU: SingleCPU;
+                string command = DOM.CPU > 1 ? MultipleCPU : SingleCPU;
 
 
-                
+
                 //ProcessStartInfo psiSnappyHexMesh = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
 
-                
+
                 //psiSnappyHexMesh.UseShellExecute = false;
                 //psiSnappyHexMesh.WorkingDirectory = DOM.workingDirectory;
 
@@ -218,16 +219,16 @@ namespace Eddy
                 DA.SetData(0, logFile);
 
                 //if (logFile.Contains("End")) {      AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Super!!"); }
-               // else if (logFile.Contains("End")) { AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Fast Super!!"); }
+                // else if (logFile.Contains("End")) { AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Fast Super!!"); }
                 //else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Nicht Super!!"); }
 
 
-             
+
 
             }
-            
 
-   DA.SetData(1, DOM);
+
+            DA.SetData(1, DOM);
 
         }
 

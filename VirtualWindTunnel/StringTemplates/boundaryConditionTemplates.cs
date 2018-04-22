@@ -10,9 +10,10 @@ namespace Eddy
 {
     public class BoundaryConditionTemplates
     {
-        public static string ABLConditions_Cyl(BoundaryConditions BCInflow)
+        public static string ABLConditions_Cyl(OFBaseDomain DOM)
         {
-            return @"/*--------------------------------*- C++ -*----------------------------------*\
+            StringBuilder sb = new StringBuilder();
+            sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
 |  \\    /   O peration     | Version:  v3.0+                                 |
@@ -30,22 +31,26 @@ FoamFile
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 
-        Uref		" + BCInflow.U + @";
+        Uref		" + DOM.BCInflow.U + @";
 
-        Zref		" + BCInflow.zref + @";
+        Zref		" + DOM.BCInflow.zref + @";
 
-        z0 uniform " + BCInflow.z0 + @";
+        z0 uniform " + DOM.BCInflow.z0 + @";
 
-        flowDir (" + BCInflow.flowDir.X +" "+ BCInflow.flowDir.Y +" "+ BCInflow.flowDir.Z+ @");
+        flowDir (" + DOM.BCInflow.flowDir.X + " " + DOM.BCInflow.flowDir.Y + " " + DOM.BCInflow.flowDir.Z + @");
 
         zDir (0 0 1);
 
-        zGround uniform " + BCInflow.zGround + @";
+        zGround uniform " + DOM.BCInflow.zGround + @";
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-";
+"
+        );
+
+            return sb.ToString();
         }
-        public static string InitialConditions_Cyl()
+       
+        public static string InitialConditions_Cyl(OFBaseDomain DOM)
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
@@ -140,7 +145,7 @@ value		$internalField;
    
 
             for (int i = 0; i < DOM.side.Faces.Count; i++) {
-                double dot = DOM.BCInflow[0].flowDir * DOM.side.FaceNormals[i]; //check
+                double dot = DOM.BCInflow.flowDir * DOM.side.FaceNormals[i]; //check
                 if (dot > 0) {
                     sb.AppendLine("patch" + i);
                     sb.Append(@"{	type atmBoundaryLayerInletEpsilon;
@@ -170,7 +175,7 @@ inletValue uniform $turbulentEpsilon;
         public static string K_Cyl(OFBaseDomain DOM)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine(@"/*--------------------------------*- C++ -*----------------------------------*\
+            sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
 |  \\    /   O peration     | Version:  2.2.2                                 |
@@ -206,7 +211,7 @@ internalField uniform $turbulentKE;
    
 
             for (int i = 0; i < DOM.side.Faces.Count; i++) {
-                double dot = DOM.BCInflow[0].flowDir * DOM.side.FaceNormals[i]; //check
+                double dot = DOM.BCInflow.flowDir * DOM.side.FaceNormals[i]; //check
                 if (dot > 0) {
                     sb.AppendLine("patch" + i);
                     sb.Append(@"{      type atmBoundaryLayerInletK;
@@ -463,7 +468,7 @@ symmetry
 ");
 
             for (int i = 0; i < DOM.side.Faces.Count; i++) {
-                double dot = DOM.BCInflow[0].flowDir * DOM.side.FaceNormals[i]; //check
+                double dot = DOM.BCInflow.flowDir[i] * DOM.side.FaceNormals[i]; //check
                 if (dot > 0) {
                     sb.AppendLine("patch" + i);
                     sb.AppendLine(@"{ type atmBoundaryLayerInletVelocity;
@@ -559,7 +564,7 @@ boundaryField
    
 
             for (int i = 0; i < DOM.side.Faces.Count; i++) {
-                double dot = DOM.BCInflow[0].flowDir * DOM.side.FaceNormals[i]; //check
+                double dot = DOM.BCInflow.flowDir * DOM.side.FaceNormals[i]; //check
                 if (dot > 0) {
                     sb.AppendLine("patch" + i);
                     sb.AppendLine(@" 
@@ -602,7 +607,7 @@ value uniform 0;
 ");
             return sb.ToString();
         }
-         public static string ABLConditions(BoundaryConditions BCInflow )
+         public static string ABLConditions(OFBaseDomain DOM)
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
@@ -620,16 +625,16 @@ FoamFile
     object ABLConditions;
         }
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-        Uref		" + BCInflow.U + @";
-        Zref		" + BCInflow.zref + @";
-        z0 uniform " + BCInflow.z0 + @";
-        flowDir (" + BCInflow.flowDir.X +" "+ BCInflow.flowDir.Y +" "+ BCInflow.flowDir.Z+ @");
+        Uref		" + DOM.BCInflow.U + @";
+        Zref		" + DOM.BCInflow.zref + @";
+        z0 uniform " + DOM.BCInflow.z0 + @";
+        flowDir (" + DOM.BCInflow.flowDir[i].X +" "+ DOM.BCInflow.flowDir.Y +" "+ DOM.BCInflow.flowDir.Z+ @");
         zDir (0 0 1);
-        zGround uniform " + BCInflow.zGround + @";
+        zGround uniform " + DOM.BCInflow.zGround + @";
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 ";
         }
-        public static string InitialConditions(BoundaryConditions BCInflow )
+        public static string InitialConditions(OFBaseDomain DOM)
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
@@ -647,7 +652,7 @@ FoamFile
     object initialConditions;
         }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-flowVelocity (" + BCInflow.flowDir.X +" "+ BCInflow.flowDir.Y +" "+ BCInflow.flowDir.Z+ @");
+flowVelocity (" + DOM.BCInflow.flowDir.X +" "+ DOM.BCInflow.flowDir.Y +" "+ DOM.BCInflow.flowDir.Z+ @");
 pressure		0;
 turbulentKE		0.03456;
 turbulentEpsilon	0.0835;
@@ -656,7 +661,7 @@ turbulentOmega		20;
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 ";
         }
-        public static string Epsilon()
+        public static string Epsilon(OFBaseDomain DOM)
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
@@ -719,7 +724,7 @@ inletValue uniform $turbulentEpsilon;
 // ************************************************************************* //
 ";
         }
-        public static string K()
+        public static string K(OFBaseDomain DOM)
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
@@ -775,7 +780,7 @@ internalField uniform $turbulentKE;
             // ************************************************************************* //
             ";
         }
-        public static string Omega()
+        public static string Omega(OFBaseDomain DOM)
         {
             return @"
         /*--------------------------------*- C++ -*----------------------------------*\
@@ -840,7 +845,7 @@ inletValue	$internalField;
 ";
 
         }
-        public static string P()
+        public static string P(OFBaseDomain DOM)
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
@@ -892,7 +897,7 @@ ground_perim
         ";
 
         }
-        public static string U(BoundaryConditions BCInflow)
+        public static string U(OFBaseDomain DOM)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -922,17 +927,19 @@ symmetry
 }
 inlet
     {");
-            if (BCInflow.btype == BoundaryType.abl) {
+            if (DOM.BCInflow.btype == BoundaryType.abl) {
                 sb.Append(@"type atmBoundaryLayerInletVelocity;
         #include ""ABLConditions"";
 }");
             }
             else {
-                sb.Append(@"type fixedValue;
-        value uniform ("+ BCInflow.flowDir.X +" "+ BCInflow.flowDir.Y +" "+ BCInflow.flowDir.Z+ @");");
+
+                    sb.Append(@"type fixedValue;
+        value uniform (" + DOM.BCInflow.flowDir.X + " " + DOM.BCInflow.flowDir.Y + " " + DOM.BCInflow.flowDir.Z + @");");
+
 }
        
-
+            
     
         
 sb.Append(@"
@@ -963,7 +970,7 @@ building
             return sb.ToString();
 
         }
-        public static string Nut()
+        public static string Nut(OFBaseDomain DOM)
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
  | =========                 |                                                 |

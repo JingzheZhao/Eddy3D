@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
@@ -9,7 +10,7 @@ using Rhino.Geometry;
 
 namespace Eddy
 {
-    public class ABL : GH_Component
+    public class ABLComp : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -18,7 +19,7 @@ namespace Eddy
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public ABL()
+        public ABLComp()
           : base("ABL", "ABL",  "Atmospheric Boundary Layer", "Eddy", "BC")
         {
         }
@@ -30,7 +31,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddNumberParameter("wDir", "wDir", "wDir", GH_ParamAccess.item);
+            pManager.AddNumberParameter("wDir", "wDir", "wDir", GH_ParamAccess.list);
             pManager.AddNumberParameter("Uref", "Uref", "Uref", GH_ParamAccess.item);
             pManager.AddNumberParameter("zref", "zref", "zref", GH_ParamAccess.item);
             pManager.AddNumberParameter("z0", "z0", "z0", GH_ParamAccess.item);
@@ -54,7 +55,10 @@ namespace Eddy
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            double windDir = 0;
+
+
+            List<double> windDir = new List<double>();
+            List<Vector3d> flowDir = new List<Vector3d>();
             double Uref = 0;
             double zref = 0;
             double z0 = 0;
@@ -62,8 +66,9 @@ namespace Eddy
 
 
            
+           
 
-            DA.GetData(0, ref windDir);
+            DA.GetDataList(0, windDir);
             DA.GetData(1, ref Uref);            
             DA.GetData(2, ref zref);
             DA.GetData(3, ref z0);
@@ -77,8 +82,12 @@ namespace Eddy
             BCInflow.zref = zref;
             BCInflow.z0 = z0;
             BCInflow.zGround = zGround;
-            BCInflow.flowDir = new Vector3d(Math.Sin(windDir*Math.PI/180),Math.Cos(windDir*Math.PI/180),0);
+            
+            BCInflow.flowDir = new Vector3d(Math.Sin(windDir* Math.PI / 180), Math.Cos(windDir * Math.PI / 180), 0);
+            
             //BCInflow.flowDir = DOM
+
+            BCInflow.windDir = windDir;
 
             DA.SetData(0, BCInflow);    
 

@@ -1408,21 +1408,14 @@ sb.Append(@");
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(@"docker run -v ""%cd%/:/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; blockMesh | tee -a log""");
             if (DOM.CPU > 1) {
-<<<<<<< HEAD
-                sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatureExtract | tee -a log""");
-                sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamDecompose.py --clear . "+DOM.CPU+@" | tee -a log""");                
-                sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; foamJob -parallel -screen snappyHexMesh -overwrite | tee -a log""");
-                sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint=""""   hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructParMesh -constant | tee -a log""");
-                sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite | tee -a log""");
-                sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
-=======
+
                 sb.AppendLine(@"docker run -v ""%cd%/:/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatureExtract | tee -a log");
                 sb.AppendLine(@"docker run -v ""%cd%/:/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamDecompose.py --clear . """+DOM.CPU+" | tee -a log");                
                 sb.AppendLine(@"docker run -v ""%cd%/:/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; foamJob -parallel -screen snappyHexMesh -overwrite | tee -a log""");
                 sb.AppendLine(@"docker run -v ""%cd%/:/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructParMesh -constant | tee -a log""");
                 sb.AppendLine(@"docker run -v ""%cd%/:/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite | tee -a log""");
                 sb.AppendLine(@"docker run -v ""%cd%/:/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
->>>>>>> f98897d4c3a183126b4a181d3e78b9a8fcb4481f
+
                     }
             else
             {
@@ -1434,15 +1427,7 @@ sb.Append(@");
                 }
         public static string run_sim(OFBaseDomain DOM) {
             StringBuilder sb = new StringBuilder();
-<<<<<<< HEAD
-            sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamPrepareCase.py . --no-mesh-create | tee -a log""");
-            if (DOM.CPU > 1) {
-                sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamDecompose.py --clear . "+DOM.CPU+@"| tee -a log""");
-                sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; foamJob -s -p renumberMesh -overwrite | tee -a log""");
-                sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; mpirun -np " + DOM.CPU + @" simpleFoam -parallel | tee -a log""");
-                sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructPar -latestTime | tee -a log""");
-                sb.AppendLine(@"docker run -v %cd%/:/home/openfoam/ --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
-=======
+
             sb.AppendLine(@"docker run -v ""%cd%/:/home/openfoam/"" --entrypoint=""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamPrepareCase.py . --no-mesh-create | tee -a log""");
             if (DOM.CPU > 1) {
                 sb.AppendLine(@"docker run -v ""%cd%/:/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamDecompose.py --clear . """+DOM.CPU+"| tee -a log");
@@ -1450,7 +1435,6 @@ sb.Append(@");
                 sb.AppendLine(@"docker run -v ""%cd%/:/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; mpirun -np """ + DOM.CPU + @" simpleFoam -parallel | tee -a log""");
                 sb.AppendLine(@"docker run -v ""%cd%/:/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructPar -latestTime | tee -a log""");
                 sb.AppendLine(@"docker run -v ""%cd%/:/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
->>>>>>> f98897d4c3a183126b4a181d3e78b9a8fcb4481f
                     }
             else
             {

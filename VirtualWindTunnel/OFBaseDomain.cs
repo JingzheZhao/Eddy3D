@@ -11,11 +11,16 @@ namespace Eddy
         public Point3d locationInMesh;
 
         // settings
-        public string workingDirectory;
-        public string systemDirectory;
-        public string constantDirectory;
+        public string simWorkingDirectory;
+        public string simSystemDirectory;
+        public string simConstantDirectory;
+        public string meshWorkingDirectory;
+        public string meshSystemDirectory;
+        public string meshConstantDirectory;
         public string postProcessingDirectory;
-        public string stlDirectory;
+        public string meshStlDirectory;
+        public string baseWorkingDirectory;
+        
                 
         public int CPU;
 
@@ -45,7 +50,7 @@ namespace Eddy
         public Mesh coreTop = new Mesh();
         public Mesh side = new Mesh();
 
-        public List<BoundaryConditions> BCInflow;
+        public BoundaryConditions BCInflow;
 
         public int accBuildings;
         public int accGround;

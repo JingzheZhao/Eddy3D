@@ -13,7 +13,9 @@ namespace Eddy
     public enum BoundaryType
     {
         constant,
-        abl
+        abl,
+        ablList,
+        constantList
     }
 
     public class BoundaryConditions
@@ -22,7 +24,9 @@ namespace Eddy
         public double z0;
         public double zref;
         public double zGround;
-        public Vector3d flowDir;
+        //public Vector3d flowDir;
+        public List<double> windDir = new List<double>();
+        public List<Vector3d> flowDir = new List<Vector3d>();
         public BoundaryType btype = BoundaryType.abl;
 
     }

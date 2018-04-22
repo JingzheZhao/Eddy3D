@@ -12,7 +12,8 @@ namespace Eddy
 {
     public static class Utilities
     {
-        static public string hardcodedAssemblyDir = @"C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\";
+        //static public string hardcodedAssemblyDir = @"C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\";
+        static public string hardcodedAssemblyDir = @"C:\Users\pkastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\";
 
         static public string AssemblyVersion
         {
@@ -52,9 +53,16 @@ namespace Eddy
                 return Path.GetDirectoryName(path);
             }
         }
-
+        
         //(c) Vasian Cepa 2005
         // Version 2 http://www.codeproject.com/Articles/11016/Numeric-String-Sort-in-C
+
+
+public static string FixDirectories(string dir)
+        {
+            string fixedDir = "\"" +dir + " \"";
+            return fixedDir;
+        }
 
 
 

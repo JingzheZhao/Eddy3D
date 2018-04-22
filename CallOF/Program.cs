@@ -52,7 +52,7 @@ namespace CallOF
                 string sourceEnvironment = @"source /opt/openfoam4/etc/bashrc; cd /home/openfoam; ";
                 string logging = @"";
                 //string command = "blockMesh";
-                var app_argument = string.Format("run -v {0}:{1} {2} {3} bash -c \"{4}{5}{6}\"", options.filePath, volumeDocker, entryPoint, container, sourceEnvironment, options.command, logging);
+                var app_argument = string.Format("run -v \"{0}:{1}\" {2} {3} bash -c \"{4}{5}{6}\"", options.filePath.Trim(), volumeDocker, entryPoint, container, sourceEnvironment, options.command, logging);
                 //Environment.SetEnvironmentVariable("PATH", @"C:\Program Files\Docker\Docker\Resources\bin");
 
                // Console.WriteLine(ConsoleApp.Run(app, app_argument).Output.Trim());
@@ -66,7 +66,7 @@ namespace CallOF
                 };
                 p.Run();
                 p.WaitForExit();
-                
+
 
 
 

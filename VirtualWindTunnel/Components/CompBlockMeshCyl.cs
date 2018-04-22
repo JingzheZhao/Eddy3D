@@ -47,7 +47,7 @@ namespace Eddy
 
             //pManager.AddGenericParameter("windDir", "windDir", "windDir", GH_ParamAccess.item);
             pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.list);
-            
+
             //pManager.AddIntegerParameter("Mode", "Mode", "Domain generation mode", GH_ParamAccess.item, 0);
 
             //Param_Integer param = pManager[2] as Param_Integer;
@@ -66,7 +66,7 @@ namespace Eddy
             pManager.AddIntegerParameter("CPUs", "CPUs", "CPUs", GH_ParamAccess.item, 1);
 
             pManager.AddBooleanParameter("Run", "Run", "Run the blockMesh component", GH_ParamAccess.item, false);
-            
+
         }
 
         /// <summary>
@@ -91,18 +91,18 @@ namespace Eddy
             //string filepath = @"C:\OF\";
             bool Run = false;
             string command = @"blockMesh";
-            string workingDirectory = "";
+            string baseWorkingDirectory = "";
 
             //public Box DomainBoundaryBox;
             List<GeometryBase> domain = new List<GeometryBase>();
             DA.GetDataList(0, domain);
 
 
-            DA.GetData(1, ref workingDirectory);
+            DA.GetData(1, ref baseWorkingDirectory);
 
             List<BoundaryConditions> BCond = new List<BoundaryConditions>();
 
-            
+
             List<GH_ObjectWrapper> gobj = new List<GH_ObjectWrapper>();
             if (!DA.GetDataList(2, gobj)) { }
 
@@ -112,7 +112,7 @@ namespace Eddy
                 {
                     BCond.Add((BoundaryConditions)obj.Value);
                 }
-                else  { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid boundary condition object"); return; }
+                else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid boundary condition object"); return; }
             }
 
             //int mode = 0;
@@ -123,7 +123,17 @@ namespace Eddy
             int divisionsOuterCirc = 1;
             double gradingPerim = 1;
             double scaleFactorInnerRect = 0.5;
-            
+
+            var meshStlDirectory = Path.GetDirectoryName(baseWorkingDirectory + @"mesh\constant\triSurface\");
+            var meshStlFilenameBuildings = baseWorkingDirectory + @"mesh\constant\triSurface\building.stl";
+            var meshStlFilenameGround = baseWorkingDirectory + @"mesh\constant\triSurface\ground.stl";
+            var meshStlFilenameGroundPerim = baseWorkingDirectory + @"mesh\constant\triSurface\ground_perim.stl";
+
+            string meshSystemDirectory = baseWorkingDirectory + @"mesh\system\";
+            string meshConstantDirectory = baseWorkingDirectory + @"mesh\constant\";
+            string meshBoundaryConditionsDirectory = baseWorkingDirectory + @"mesh\0.org\";
+
+
 
             //DA.GetData(2, ref mode);
             //DA.GetData(2, ref windDir);
@@ -138,10 +148,7 @@ namespace Eddy
             DA.GetData(7, ref CPUs);
             DA.GetData(8, ref Run);
 
-
             
-            
-
             //OFDomainBuilder DOM = new OFDomainBuilder(domain, workingDirectory, baseMesh);
             //DOM = OFDomainBuilder(domain, workingDirectory);
 
@@ -191,32 +198,37 @@ namespace Eddy
 
             }
 
-            if ( !workingDirectory.EndsWith(@"\"))
-            {
-                workingDirectory = workingDirectory + @"\";
-            }
-            
+            //Fix paths
 
-            OFCylDomain DOMCYL = new OFCylDomain(allTogether, BCond, divisionsOuterCirc, gradingPerim, windDir, workingDirectory, CPUs, scaleFactorInnerRect);
+            if (!baseWorkingDirectory.EndsWith(@"\"))
+            {
+                baseWorkingDirectory = baseWorkingDirectory + @"\";
+            }
+
+
+            OFCylDomain DOMCYL = new OFCylDomain(allTogether, BCond, divisionsOuterCirc, gradingPerim, windDir, baseWorkingDirectory, CPUs, scaleFactorInnerRect);
 
             DOMCYL.gradingPerim = gradingPerim;
-           
+            DOMCYL.meshStlDirectory = meshStlDirectory;
+            DOMCYL.meshSystemDirectory = meshSystemDirectory;
+            DOMCYL.baseWorkingDirectory = baseWorkingDirectory;
             
 
 
+            
 
             if (Run == true)
             {
-                        
-                
+
+
                 //if (Settings.getCurrentRAM() != RAM)
                 //{
 
-                    
+
 
                 //    string newRAM = "Set-VM -StaticMemory -Name MobyLinuxVM -MemoryStartupBytes " + RAM + "GB";
                 //    //var totalGBRam = 0 ;
-                                  
+
                 //    ProcessStartInfo psiNewRAM = new ProcessStartInfo(@"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe");
                 //    psiNewRAM.Verb = "runas";
                 //    psiNewRAM.Arguments = newRAM;
@@ -233,7 +245,7 @@ namespace Eddy
 
                 //    string newCPUs = @"Stop-VM -Name MobyLinuxVM;Set-VMProcessor MobyLinuxVM -Count '" + CPUs+ "';Start-VM -Name MobyLinuxVM";
                 //    //var totalGBRam = 0 ;
-                    
+
 
                 //    ProcessStartInfo psiNewCPUs = new ProcessStartInfo(@"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe");
                 //    psiNewCPUs.Verb = "runas";
@@ -248,84 +260,88 @@ namespace Eddy
 
 
 
+                //// old
+                //var stlDir = Path.GetDirectoryName(workingDirectory + @"\constant\triSurface\");
+                //var stlFilenameBuildings = workingDirectory + @"\constant\triSurface\building.stl";
+                //var stlFilenameGround = workingDirectory + @"\constant\triSurface\ground.stl";
+                //var stlFilenameGroundPerim = workingDirectory + @"\constant\triSurface\ground_perim.stl";
 
-                var stlDir = Path.GetDirectoryName(workingDirectory + @"\constant\triSurface\");
-                var stlFilenameBuildings = workingDirectory + @"\constant\triSurface\building.stl";
-                var stlFilenameGround = workingDirectory + @"\constant\triSurface\ground.stl";
-                var stlFilenameGroundPerim = workingDirectory + @"\constant\triSurface\ground_perim.stl";
+               
 
-                if (!Directory.Exists(stlDir))
+                if (!Directory.Exists(meshStlDirectory))
                 {
-                    Directory.CreateDirectory(stlDir);
+                    Directory.CreateDirectory(meshStlDirectory);
                 }
 
 
-                STLExport.ExportBinary(stlFilenameBuildings, allTogether);        
-                STLExport.ExportBinary(stlFilenameGround, DOMCYL.DomainMeshGround);
-                STLExport.ExportBinary(stlFilenameGroundPerim, DOMCYL.DomainMeshGroundPerim);
-                
+                STLExport.ExportBinary(meshStlFilenameBuildings, allTogether);
+                STLExport.ExportBinary(meshStlFilenameGround, DOMCYL.DomainMeshGround);
+                STLExport.ExportBinary(meshStlFilenameGroundPerim, DOMCYL.DomainMeshGroundPerim);
 
 
-                string systemDir = workingDirectory + @"\system\";
-                string constantDir = workingDirectory + @"\constant\";
-                string boundaryConditionsDir = workingDirectory + @"\0.org\";
+                // old
+                //string systemDir = workingDirectory + @"\system\";
+                //string constantDir = workingDirectory + @"\constant\";
+                //string boundaryConditionsDir = workingDirectory + @"\0.org\";
 
-                if (!Directory.Exists(systemDir))
+                               
+
+                if (!Directory.Exists(meshSystemDirectory))
                 {
-                    Directory.CreateDirectory(systemDir);
+                    Directory.CreateDirectory(meshSystemDirectory);
                 }
-                if (!Directory.Exists(constantDir))
+                if (!Directory.Exists(meshConstantDirectory))
                 {
-                    Directory.CreateDirectory(constantDir);
+                    Directory.CreateDirectory(meshConstantDirectory);
                 }
-                if (!Directory.Exists(boundaryConditionsDir))
+                if (!Directory.Exists(meshBoundaryConditionsDirectory))
                 {
-                    Directory.CreateDirectory(boundaryConditionsDir);
+                    Directory.CreateDirectory(meshBoundaryConditionsDirectory);
                 }
 
 
-                File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), DOMCYL.stringyfyDomain2());
-                
-                File.WriteAllText(Path.Combine(workingDirectory + "case.foam"), "");
-                File.WriteAllText(Path.Combine(systemDir + "controlDict"), StringTemplates.controlDict(10000, 5, 5, null));
+                File.WriteAllText(Path.Combine(meshSystemDirectory + @"mesh\blockMeshDict"), DOMCYL.stringyfyDomain2());
+                File.WriteAllText(Path.Combine(baseWorkingDirectory + @"mesh\case.foam"), "");
+                File.WriteAllText(Path.Combine(meshSystemDirectory + @"mesh\controlDict"), StringTemplates.controlDict(10000, 5, 5, null));
 
-                if (!File.Exists(Path.Combine(workingDirectory + "log")))
+                if (!File.Exists(Path.Combine(baseWorkingDirectory + @"mesh\log")))
                 {
-                    File.WriteAllText(Path.Combine(workingDirectory + "log"), "");
+                    File.WriteAllText(Path.Combine(baseWorkingDirectory + @"mesh\log"), "");
                 }
-                
 
-                  /*              
-                //ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory +@"\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
-                ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir+@"\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
-                Process p = new Process();
-                p.StartInfo = psi;
-                p.Start();
-                p.WaitForExit();
-                //Thread.Sleep(500);
-                */
+
+                /*              
+              //ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory +@"\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
+              ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir+@"\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
+              Process p = new Process();
+              p.StartInfo = psi;
+              p.Start();
+              p.WaitForExit();
+              //Thread.Sleep(500);
+              */
 
 
                 string logFile = "";
 
-                using (FileStream stream = File.Open(workingDirectory + @"\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (FileStream stream = File.Open(baseWorkingDirectory + @"mesh\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
                     using (StreamReader reader = new StreamReader(stream))
                     {
                         logFile = reader.ReadToEnd();
-               
+
                     }
                 }
 
                 DA.SetData(0, logFile);
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Super!!");
 
-                      }
-        
+            }
 
-           DA.SetData(1, DOMCYL);           
-           DA.SetData(2, DOMCYL.DomainMesh);
-            
+
+
+            DA.SetData(1, DOMCYL);
+            DA.SetData(2, DOMCYL.DomainMesh);
+
 
 
 

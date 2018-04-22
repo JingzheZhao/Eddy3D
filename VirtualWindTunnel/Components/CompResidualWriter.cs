@@ -99,8 +99,7 @@ namespace Eddy
             //if (l.StartsWith("Exec   : simpleFoam")) lines.Parse(l.Split(',')[1].Split('=')[1]));
 
            
-
-
+           
 
 
             int pCnt = 0;
@@ -136,7 +135,7 @@ namespace Eddy
                 sb.AppendLine(iter[i] + "," + Ux[i] + "," + Uy[i] + "," + Uz[i] + "," + p1[i] + "," + omega[i] + "," + k[i]+ "," + clocktime[i]);
             }
 
-
+        
 
             if (mode == 0)
             {

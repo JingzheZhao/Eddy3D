@@ -140,6 +140,8 @@ namespace Eddy
             }
 
 
+            //Fix paths
+
             if ( !workingDirectory.EndsWith(@"\"))
             {
                 workingDirectory = workingDirectory + @"\";
