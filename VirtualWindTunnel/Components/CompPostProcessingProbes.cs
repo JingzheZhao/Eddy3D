@@ -158,10 +158,10 @@ namespace Eddy
                             AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The field that is supposed to be probed does not exist.");
                         }
 
-
+                    }
                         DA.SetDataList(0, cp.cpValues);
 
-                    }
+                    
 
                 }
 
