@@ -165,7 +165,13 @@ namespace Eddy
             
             // refinement Cylinder
             refinementCylinder = getRefinementCyl(center, geometry, 10);
+
+            BCond.calculateCPPressures(zMax);
+
             this.BCInflow = BCond;
+
+
+
         }
 
         public override string ToString()

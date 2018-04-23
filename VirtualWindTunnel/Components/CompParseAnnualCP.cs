@@ -36,7 +36,7 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
-            pManager.AddPointParameter("Points", "Points", "Points", GH_ParamAccess.list);
+            //pManager.AddPointParameter("Points", "Points", "Points", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace Eddy
 
 
             List<Point3d> points = new List<Point3d>();
-            DA.GetDataList(1, points);
+            //DA.GetDataList(1, points);
 
 
             DataTree<double> cpTree = new DataTree<double>();
@@ -137,7 +137,7 @@ namespace Eddy
             {
                 for (int c = 0; c < numberOfWindDirs; c++)
                 {
-                    sb.Append(points[r].X + ","+ points[r].Y + ","+points[r].Z + ",");
+                    //sb.Append(points[r].X + ","+ points[r].Y + ","+points[r].Z + ",");
                     sb.Append(listOfAnnualData[c][r] + ",");
 
                 }

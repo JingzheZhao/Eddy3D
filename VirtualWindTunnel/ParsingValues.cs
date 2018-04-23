@@ -82,8 +82,8 @@ namespace Eddy
 
             for (int i = 1; i < counterPoints; i++)
             {
-                this.cpValues[i] = double.Parse(lastLine.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[i]); //this workes
-                sb.AppendLine(this.cpValues[i].ToString());
+                this.cpValues[i-1] = double.Parse(lastLine.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[i]); //this workes
+                sb.AppendLine(this.cpValues[i-1].ToString());
             }
             this.valueString = sb.ToString();
 

@@ -222,6 +222,7 @@ namespace Eddy
             DOMCYL.iter = 1000;
             DOMCYL.writeInterval = 5;
             DOMCYL.keepTimeSteps = 5;
+            
            
 
 
@@ -310,7 +311,7 @@ namespace Eddy
 
                 File.WriteAllText(meshSystemDirectory + @"\blockMeshDict", DOMCYL.stringyfyDomain2());
                 File.WriteAllText(baseWorkingDirectory + @"mesh\case.foam", "");
-                File.WriteAllText(meshSystemDirectory + @"\controlDict", StringTemplates.controlDict(DOMCYL, null));
+                File.WriteAllText(meshSystemDirectory + @"\controlDict", StringTemplates.controlDict(DOMCYL, null, 0));
 
                 if (!File.Exists(baseWorkingDirectory + @"mesh\log"))
                 {

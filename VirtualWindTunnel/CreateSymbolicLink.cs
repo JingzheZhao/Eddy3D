@@ -13,6 +13,7 @@ namespace Eddy
             
             strCmdText = "/c MKLINK /J "+ "\"" + simDir + "\"" + " "  +"\""+ meshDir + "\"";
             System.Diagnostics.Process.Start("CMD.exe", strCmdText);
+            
            
             
         }

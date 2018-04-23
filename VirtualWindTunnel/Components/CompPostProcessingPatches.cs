@@ -132,7 +132,7 @@ namespace Eddy
 
                 for (int l = 0; l < DOM.BCInflow.windDir.Count; l++)
                 {
-                    File.WriteAllText(Path.Combine(DOM.BCInflow.windDir[l] + @"\system\" + "controlDict"), StringTemplates.controlDict(DOM, null));
+                    File.WriteAllText(Path.Combine(DOM.BCInflow.windDir[l] + @"\system\" + "controlDict"), StringTemplates.controlDict(DOM, null,l));
                     File.WriteAllText(Path.Combine(DOM.BCInflow.windDir[l] + @"\system\" + "topoSetDict"), StringTemplates.topoSetDict(allTopo));
                 
 

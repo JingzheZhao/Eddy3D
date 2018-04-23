@@ -28,7 +28,7 @@ namespace Eddy
         public int writeInterval;
         public int keepTimeSteps;
 
-        public int flowDir;
+        
         public Cylinder refinementCylinder;
         public BoundingBox refinementBox;
         public BoundingBox BBox;

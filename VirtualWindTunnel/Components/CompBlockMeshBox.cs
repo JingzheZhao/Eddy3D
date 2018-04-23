@@ -246,7 +246,7 @@ namespace Eddy
                 File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), StringTemplates.blockMeshDict(DOM));
                 
                 File.WriteAllText(Path.Combine(workingDirectory + "case.foam"), "");
-                File.WriteAllText(Path.Combine(systemDir + "controlDict"), StringTemplates.controlDict(DOM, null));
+                File.WriteAllText(Path.Combine(systemDir + "controlDict"), StringTemplates.controlDict(DOM, null, 0));
 
                 if (!File.Exists(Path.Combine(workingDirectory + "log")))
                 {

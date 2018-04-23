@@ -126,7 +126,9 @@ namespace Eddy
 
             MakeCircMeshPlane(center, scaleFactorInnerRect, divisionsY, radius, height);
 
-            
+
+
+            BCond.calculateCPPressures(zMax);            
 
             this.BCInflow = BCond;
                        
@@ -3328,7 +3330,7 @@ mergePatchPairs
             if (Knob < 0) Knob = 0;
             if (Knob > 359) Knob = 359;
 
-            flowDir = 0;
+            int flowDir = 0;
             while (Knob < 358)
             {
                 if (Knob % 5 == 0)
