@@ -217,10 +217,13 @@ namespace Eddy
             DOMCYL.baseWorkingDirectory = baseWorkingDirectory;
             DOMCYL.meshConstantDirectory = meshConstantDirectory;
             DOMCYL.meshWorkingDirectory = meshWorkingDirectory;
-            
 
+            //needed for meshing purposes at this point in time
+            DOMCYL.iter = 1000;
+            DOMCYL.writeInterval = 5;
+            DOMCYL.keepTimeSteps = 5;
+           
 
-            
 
             if (Run == true)
             {

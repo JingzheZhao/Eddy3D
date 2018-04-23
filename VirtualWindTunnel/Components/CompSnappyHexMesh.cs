@@ -153,6 +153,11 @@ namespace Eddy
             DOM.accGround = accGround;
             DOM.nLayers = nLayers;
 
+            //needed for meshing purposes at this point in time
+            DOM.iter = 1000;
+            DOM.writeInterval = 5;
+            DOM.keepTimeSteps = 5;
+
 
             if (Run == true)
             {
@@ -187,17 +192,7 @@ namespace Eddy
                 File.WriteAllText(Path.Combine(meshSystemDir + "meshQualityDict"), StringTemplates.meshQualityDict());
 
 
-                for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
-                {
-
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\"+ DOM.BCInflow.windDir[i]  + @"\system\snappyHexMeshDict"), StringTemplates.snappyHexMeshDict(DOM));
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\"+ DOM.BCInflow.windDir[i]  + @"\system\surfaceFeatureExtractDict"), StringTemplates.surfaceFeatureExtractDict());
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\"+ DOM.BCInflow.windDir[i]  + @"\system\fvSchemes"), StringTemplates.fvSchemes());
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\"+ DOM.BCInflow.windDir[i]  + @"\system\fvSolution"), StringTemplates.fvSolution(0));
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\meshQualityDict"), StringTemplates.meshQualityDict());
-
-
-                }
+           
 
 
 

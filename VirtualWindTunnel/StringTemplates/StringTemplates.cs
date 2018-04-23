@@ -1415,7 +1415,7 @@ RAS
 ";
         }
         
-        public static string run_mesh(OFBaseDomain DOM, int d) {
+        public static string run_mesh(OFBaseDomain DOM) {
 
 
             StringBuilder sb = new StringBuilder();
@@ -1427,14 +1427,14 @@ RAS
                 sb.AppendLine(@"docker run -v """+DOM.meshWorkingDirectory +@":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; foamJob -parallel -screen snappyHexMesh -overwrite | tee -a log""");
                 sb.AppendLine(@"docker run -v """+DOM.meshWorkingDirectory +@":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructParMesh -constant | tee -a log""");
                 sb.AppendLine(@"docker run -v """+ DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite | tee -a log""");
-                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory   + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
+                sb.AppendLine(@"docker run -v """+ DOM.meshWorkingDirectory   + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
 
                     }
             else
             {
                 sb.AppendLine(@"docker run -v """+DOM.meshWorkingDirectory + "\\" +@":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatureExtract | tee -a log; snappyHexMesh -overwrite  | tee -a log; checkMesh | tee -a log""");
                 sb.AppendLine(@"docker run -v """+ DOM.meshWorkingDirectory + "\\"  + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite | tee -a log""");
-                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + "\\" + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
+                sb.AppendLine(@"docker run -v """+ DOM.meshWorkingDirectory + "\\" + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
             }      
             
 
@@ -1444,24 +1444,32 @@ RAS
         public static string run_sim(OFBaseDomain DOM, int d) {
             StringBuilder sb = new StringBuilder();
 
-            sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory+  DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamPrepareCase.py . --no-mesh-create | tee -a log""");
+                sb.AppendLine(@"docker run -v """+DOM.baseWorkingDirectory+DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamPrepareCase.py . --no-mesh-create | tee -a log""");
             if (DOM.CPU > 1) {
-                sb.AppendLine(@"docker run -v """+DOM.baseWorkingDirectory+  DOM.BCInflow.windDir[d] + @"/:/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamDecompose.py --clear . """+DOM.CPU+"| tee -a log");
-                sb.AppendLine(@"docker run -v """+DOM.baseWorkingDirectory+  DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; foamJob -s -p renumberMesh -overwrite | tee -a log""");
-                sb.AppendLine(@"docker run -v """+DOM.baseWorkingDirectory+  DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; mpirun -np """ + DOM.CPU + @" simpleFoam -parallel | tee -a log""");
-                sb.AppendLine(@"docker run -v """+ DOM.baseWorkingDirectory +  DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructPar -latestTime | tee -a log""");
-                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory +  DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
+                sb.AppendLine(@"docker run -v """+DOM.baseWorkingDirectory+DOM.BCInflow.windDir[d] + @"/:/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamDecompose.py --clear . """+DOM.CPU+"| tee -a log");
+                sb.AppendLine(@"docker run -v """+DOM.baseWorkingDirectory+DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; foamJob -s -p renumberMesh -overwrite | tee -a log""");
+                sb.AppendLine(@"docker run -v """+DOM.baseWorkingDirectory+DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; mpirun -np """ + DOM.CPU + @" simpleFoam -parallel | tee -a log""");
+                sb.AppendLine(@"docker run -v """+DOM.baseWorkingDirectory+DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructPar -latestTime | tee -a log""");
+                sb.AppendLine(@"docker run -v """+DOM.baseWorkingDirectory+DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
                     }
             else
             {
-                sb.AppendLine(@"docker run -v """+ DOM.baseWorkingDirectory +  DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; simpleFoam | tee -a log""");
-                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory +  DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
+                sb.AppendLine(@"docker run -v """+DOM.baseWorkingDirectory +  DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; simpleFoam | tee -a log""");
+                sb.AppendLine(@"docker run -v """+DOM.baseWorkingDirectory +  DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
             }
                 return sb.ToString();
                 }
-        public static string run() { return @"call run_mesh.bat 
-call run_sim.bat 
-PAUSE"; }
+        public static string run(OFBaseDomain DOM) {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine(@"call run_mesh.bat");
+            foreach (int i in DOM.BCInflow.windDir)
+            {
+                sb.AppendLine("start "+ i+ "_run_sim.bat");
+            }
+sb.AppendLine("PAUSE");
+            
+            return sb.ToString();
+            }
 
 
         public static string plotResidualsPDF() {return @"set key autotitle columnhead
