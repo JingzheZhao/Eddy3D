@@ -65,6 +65,8 @@ namespace CallOF
                    Console.WriteLine(args1.Line);
                 };
                 p.Run();
+
+                //Console.ReadKey();
                 p.WaitForExit();
 
 

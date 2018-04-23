@@ -157,9 +157,9 @@ namespace Eddy
             if (Run == true)
             {
 
-                var meshStlDir = Path.GetDirectoryName(DOM.meshWorkingDirectory + @"mesh\constant\triSurface\");
-                var meshStlFilenameBuildings = DOM.meshWorkingDirectory + @"mesh\constant\triSurface\building.stl";
-                var meshStlFilenameGround = DOM.meshWorkingDirectory + @"mesh\constant\triSurface\ground.stl";
+                var meshStlDir = DOM.meshWorkingDirectory + @"\constant\triSurface\";
+                var meshStlFilenameBuildings = DOM.meshWorkingDirectory + @"\constant\triSurface\building.stl";
+                var meshStlFilenameGround = DOM.meshWorkingDirectory + @"\constant\triSurface\ground.stl";
 
                 if (!Directory.Exists(meshStlDir))
                 {
@@ -167,7 +167,7 @@ namespace Eddy
                 }
 
 
-                string meshSystemDir = DOM.meshWorkingDirectory + @"mesh\system\";
+                string meshSystemDir = DOM.meshWorkingDirectory + @"\system\";
 
                 if (!Directory.Exists(meshSystemDir))
                 {
@@ -177,6 +177,9 @@ namespace Eddy
                 Point3d locationInMesh = new Point3d();
                 locationInMesh = DOM.locationInMesh;
 
+
+                
+
                 File.WriteAllText(Path.Combine(meshSystemDir + "snappyHexMeshDict"), StringTemplates.snappyHexMeshDict(DOM));
                 File.WriteAllText(Path.Combine(meshSystemDir + "surfaceFeatureExtractDict"), StringTemplates.surfaceFeatureExtractDict());
                 File.WriteAllText(Path.Combine(meshSystemDir + "fvSchemes"), StringTemplates.fvSchemes());
@@ -184,7 +187,24 @@ namespace Eddy
                 File.WriteAllText(Path.Combine(meshSystemDir + "meshQualityDict"), StringTemplates.meshQualityDict());
 
 
-                string command = DOM.CPU > 1 ? MultipleCPU : SingleCPU;
+                for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
+                {
+
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\"+ DOM.BCInflow.windDir[i]  + @"\system\snappyHexMeshDict"), StringTemplates.snappyHexMeshDict(DOM));
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\"+ DOM.BCInflow.windDir[i]  + @"\system\surfaceFeatureExtractDict"), StringTemplates.surfaceFeatureExtractDict());
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\"+ DOM.BCInflow.windDir[i]  + @"\system\fvSchemes"), StringTemplates.fvSchemes());
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\"+ DOM.BCInflow.windDir[i]  + @"\system\fvSolution"), StringTemplates.fvSolution(0));
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\meshQualityDict"), StringTemplates.meshQualityDict());
+
+
+                }
+
+
+
+
+
+
+                    string command = DOM.CPU > 1 ? MultipleCPU : SingleCPU;
 
 
 

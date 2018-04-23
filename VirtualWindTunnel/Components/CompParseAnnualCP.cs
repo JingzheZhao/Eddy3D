@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Grasshopper;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
@@ -23,18 +24,19 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public ParseAnnualCP()
-          : base("ParseAnnualCP", "ParseAnnualCP",  "ParseAnnualCP", "Eddy", "postProcessing")
+          : base("ParseAnnualCP", "ParseAnnualCP", "ParseAnnualCP", "Eddy", "postProcessing")
         {
         }
 
-        
+
 
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);            
+            pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
+            pManager.AddPointParameter("Points", "Points", "Points", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -67,9 +69,11 @@ namespace Eddy
             if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
 
+            List<Point3d> points = new List<Point3d>();
+            DA.GetDataList(1, points);
 
 
-
+            DataTree<double> cpTree = new DataTree<double>();
 
             List<string> fullProbeFilePath = new List<String>();
 
@@ -78,7 +82,7 @@ namespace Eddy
 
             for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
             {
-                fullProbeFilePath.Add(DOM.simWorkingDirectory + DOM.BCInflow.windDir[i] + @"\postProcessing\cp_Probes.csv");
+                fullProbeFilePath.Add(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\postProcessing\cp_Probes.csv");
             }
 
             var numberOfWindDirs = DOM.BCInflow.windDir.Count();
@@ -101,9 +105,28 @@ namespace Eddy
 
 
 
-            // Write Array to file
+            // Write Array to dataTree
 
+     
+
+
+
+            for (int c = 0; c < numberOfWindDirs; c++)
+            {
+                for (int r = 0; r < numberOfProbes; r++)
+                {
+                    cpTree.Add(listOfAnnualData[c][r], new Grasshopper.Kernel.Data.GH_Path(c));
+                }
+                
+            }
+
+
+            DA.SetDataTree(0, cpTree);
+
+
+            //Write Array to file
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
+
             for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
             {
                 sb.Append(DOM.BCInflow.windDir[i] + ",");
@@ -114,13 +137,17 @@ namespace Eddy
             {
                 for (int c = 0; c < numberOfWindDirs; c++)
                 {
+                    sb.Append(points[r].X + ","+ points[r].Y + ","+points[r].Z + ",");
                     sb.Append(listOfAnnualData[c][r] + ",");
+
                 }
                 sb.AppendLine("");
             }
-            File.WriteAllText(DOM.simWorkingDirectory + @"\annualCPData.csv", sb.ToString());
+            File.WriteAllText(DOM.baseWorkingDirectory + @"\annualCPData.csv", sb.ToString());
 
-            DA.SetDataList(0, sb.ToString());
+
+
+            
 
 
         }

@@ -123,16 +123,16 @@ namespace Eddy
 
                         string pointName = "cp_Probes";
                         string OFfield = "total(p)_coeff";
-                        string postProcessingDirectory = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\postProcessing\";
+                        //string postProcessingDirectory = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\postProcessing\";
 
-                        if (!Directory.Exists(postProcessingDirectory))
-                        {
-                            Directory.CreateDirectory(postProcessingDirectory);
-                        }
+                        //if (!Directory.Exists(postProcessingDirectory))
+                        //{
+                        //    Directory.CreateDirectory(postProcessingDirectory);
+                        //}
                         //Write sampleDict
 
-                        File.WriteAllText(Path.Combine(DOM.BCInflow.windDir[i] + @"\system\" + "controlDict"), StringTemplates.controlDict(DOM.iter, DOM.writeInterval, DOM.keepTimeSteps, null));
-                        File.WriteAllText(Path.Combine(DOM.BCInflow.windDir[i] + @"\system\" + pointName), StringTemplates.sampleProbes(listOfPoints, pointName, mode));
+                        File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + "controlDict", StringTemplates.controlDict(DOM, null));
+                        File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, mode));
 
 
 
@@ -143,7 +143,7 @@ namespace Eddy
                         string command = @"""postProcess -func " + pointName + @" -latestTime""";
 
 
-                        ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir + @"\CallOF.exe", " -e " + command + " -f " + "\"" + DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + " \"");
+                        ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir + @"\CallOF.exe", " -e " + command + " -f " + "\"" + DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i]);
                         Process p = new Process();
                         p.StartInfo = psi;
                         p.Start();
@@ -155,10 +155,11 @@ namespace Eddy
 
                         ParsingValues cp = new ParsingValues(listOfPoints, pointName, DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i], OFfield);
 
-                        if (!File.Exists(cp.getLastIterationPath(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i]) + OFfield))
-                        {
-                            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The field that is supposed to be probed does not exist.");
-                        }
+                        //check this
+                        //if (!File.Exists(cp.getLastIterationPath(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i]) + OFfield))
+                        //{
+                        //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The field that is supposed to be probed does not exist.");
+                        //}
 
                         cpTree.AddRange(cp.cpValues, new Grasshopper.Kernel.Data.GH_Path(i));
                     }
@@ -174,20 +175,20 @@ namespace Eddy
                     {
                         string pointName = "U_Probes";
                         string OFfield = "U";
-                        string postProcessingDirectory = DOM.baseWorkingDirectory + @"\postProcessing\";
+                        //string postProcessingDirectory = DOM.baseWorkingDirectory + @"\postProcessing\";
 
-                        if (!Directory.Exists(postProcessingDirectory))
-                        {
-                            Directory.CreateDirectory(postProcessingDirectory);
-                        }
+                        //if (!Directory.Exists(postProcessingDirectory))
+                        //{
+                        //    Directory.CreateDirectory(postProcessingDirectory);
+                        //}
 
-                        File.WriteAllText(Path.Combine(DOM.BCInflow.windDir[i] + @"\system\" + pointName), StringTemplates.sampleProbes(listOfPoints, pointName, mode));
+                        File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, mode));
 
 
 
                         string command = @"""postProcess -func " + pointName + @" -latestTime""";
 
-                        ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir + @"\CallOF.exe", " -e " + command + " -f " + "\"" + DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + " \"");
+                        ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir + @"\CallOF.exe", " -e " + command + " -f " + "\"" + DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i]);
                         Process p = new Process();
                         p.StartInfo = psi;
                         p.Start();
@@ -197,11 +198,11 @@ namespace Eddy
 
 
                         // Input string is not of the right form...
-
-                        if (!File.Exists(U.getLastIterationPath(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i]) + OFfield))
-                        {
-                            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The field that is supposed to be probed does not exist.");
-                        }
+                        //check this
+                        //if (!File.Exists(U.getLastIterationPath(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i]) + OFfield))
+                        //{
+                        //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The field that is supposed to be probed does not exist.");
+                        //}
 
 
 

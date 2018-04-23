@@ -426,7 +426,7 @@ internalField uniform $pressure;
             return sb.ToString();
 
         }
-        public static string U_Cyl(OFBaseDomain DOM)
+        public static string U_Cyl(OFBaseDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -468,7 +468,7 @@ symmetry
 ");
 
             for (int i = 0; i < DOM.side.Faces.Count; i++) {
-                double dot = DOM.BCInflow.flowDir[i] * DOM.side.FaceNormals[i]; //check
+                double dot = DOM.BCInflow.flowDir[d] * DOM.side.FaceNormals[i]; //check
                 if (dot > 0) {
                     sb.AppendLine("patch" + i);
                     sb.AppendLine(@"{ type atmBoundaryLayerInletVelocity;

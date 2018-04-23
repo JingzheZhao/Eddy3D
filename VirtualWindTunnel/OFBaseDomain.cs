@@ -11,13 +11,9 @@ namespace Eddy
         public Point3d locationInMesh;
 
         // settings
-        public string simWorkingDirectory;
-        public string simSystemDirectory;
-        public string simConstantDirectory;
         public string meshWorkingDirectory;
         public string meshSystemDirectory;
-        public string meshConstantDirectory;
-        public string postProcessingDirectory;
+        public string meshConstantDirectory;        
         public string meshStlDirectory;
         public string baseWorkingDirectory;
         

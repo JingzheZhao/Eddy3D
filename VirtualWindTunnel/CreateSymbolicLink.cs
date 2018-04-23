@@ -1,31 +1,20 @@
 ﻿using System.Runtime.InteropServices;
 using System.IO;
 
-namespace ConsoleApplication
+namespace Eddy
 {
-    class Program
+    class SymlinkCreator
     {
-        [DllImport("kernel32.dll")]
-        static extern bool CreateSymbolicLink(
-        string lpSymlinkFileName, string lpTargetFileName, SymbolicLink dwFlags);
+       
 
-        enum SymbolicLink
+        public static void Create(string simDir, string meshDir)
         {
-            File = 0,
-            Directory = 1
-        }
-
-        static void Main(string[] args)
-        {
-            string symbolicLink = @"c:\bar.txt";
-            string fileName = @"c:\temp\foo.txt";
-
-            using (var writer = File.CreateText(fileName))
-            {
-                writer.WriteLine("Hello World");
-            }
-
-            CreateSymbolicLink(symbolicLink, fileName, SymbolicLink.File);
+            string strCmdText;
+            
+            strCmdText = "/c MKLINK /J "+ "\"" + simDir + "\"" + " "  +"\""+ meshDir + "\"";
+            System.Diagnostics.Process.Start("CMD.exe", strCmdText);
+           
+            
         }
     }
 }

@@ -46,7 +46,7 @@ namespace Eddy
             pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item);
 
             //pManager.AddGenericParameter("windDir", "windDir", "windDir", GH_ParamAccess.item);
-            pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.list);
+            pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.item);
 
             //pManager.AddIntegerParameter("Mode", "Mode", "Domain generation mode", GH_ParamAccess.item, 0);
 
@@ -127,7 +127,7 @@ namespace Eddy
             double gradingPerim = 1;
             double scaleFactorInnerRect = 0.5;
 
-            var meshStlDirectory = Path.GetDirectoryName(baseWorkingDirectory + @"mesh\constant\triSurface\");
+            var meshStlDirectory = baseWorkingDirectory + @"mesh\constant\triSurface\";
             var meshStlFilenameBuildings = baseWorkingDirectory + @"mesh\constant\triSurface\building.stl";
             var meshStlFilenameGround = baseWorkingDirectory + @"mesh\constant\triSurface\ground.stl";
             var meshStlFilenameGroundPerim = baseWorkingDirectory + @"mesh\constant\triSurface\ground_perim.stl";
@@ -135,7 +135,7 @@ namespace Eddy
             string meshSystemDirectory = baseWorkingDirectory + @"mesh\system\";
             string meshConstantDirectory = baseWorkingDirectory + @"mesh\constant\";
             string meshBoundaryConditionsDirectory = baseWorkingDirectory + @"mesh\0.org\";
-
+            string meshWorkingDirectory = baseWorkingDirectory + @"mesh\";
 
 
             //DA.GetData(2, ref mode);
@@ -215,6 +215,8 @@ namespace Eddy
             DOMCYL.meshStlDirectory = meshStlDirectory;
             DOMCYL.meshSystemDirectory = meshSystemDirectory;
             DOMCYL.baseWorkingDirectory = baseWorkingDirectory;
+            DOMCYL.meshConstantDirectory = meshConstantDirectory;
+            DOMCYL.meshWorkingDirectory = meshWorkingDirectory;
             
 
 
@@ -303,13 +305,13 @@ namespace Eddy
                 }
 
 
-                File.WriteAllText(Path.Combine(meshSystemDirectory + @"mesh\blockMeshDict"), DOMCYL.stringyfyDomain2());
-                File.WriteAllText(Path.Combine(baseWorkingDirectory + @"mesh\case.foam"), "");
-                File.WriteAllText(Path.Combine(meshSystemDirectory + @"mesh\controlDict"), StringTemplates.controlDict(10000, 5, 5, null));
+                File.WriteAllText(meshSystemDirectory + @"\blockMeshDict", DOMCYL.stringyfyDomain2());
+                File.WriteAllText(baseWorkingDirectory + @"mesh\case.foam", "");
+                File.WriteAllText(meshSystemDirectory + @"\controlDict", StringTemplates.controlDict(DOMCYL, null));
 
-                if (!File.Exists(Path.Combine(baseWorkingDirectory + @"mesh\log")))
+                if (!File.Exists(baseWorkingDirectory + @"mesh\log"))
                 {
-                    File.WriteAllText(Path.Combine(baseWorkingDirectory + @"mesh\log"), "");
+                    File.WriteAllText(baseWorkingDirectory + @"mesh\log", "");
                 }
 
 
