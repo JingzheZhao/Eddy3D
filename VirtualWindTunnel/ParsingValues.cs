@@ -78,12 +78,12 @@ namespace Eddy
 
 
             this.cpValues = new double[counterPoints];
-            var lastLine = File.ReadLines(fullPath).Last();
+            var lastLine = File.ReadLines(fullPath).Where(line => line != "").Last();
 
-            for (int i = 1; i < counterPoints; i++)
+            for (int i = 0; i < counterPoints; i++)
             {
-                this.cpValues[i-1] = double.Parse(lastLine.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[i]); //this workes
-                sb.AppendLine(this.cpValues[i-1].ToString());
+                this.cpValues[i] = double.Parse(lastLine.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[i+1]); //this workes
+                sb.AppendLine(this.cpValues[i].ToString());
             }
             this.valueString = sb.ToString();
 
