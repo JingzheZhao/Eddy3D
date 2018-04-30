@@ -1,8 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
-
+using System.Text;
+using Grasshopper.Kernel.Parameters;
+using System.Diagnostics;
+using System.Threading;
+using Grasshopper.Kernel.Types;
+using EddyLib;
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
 // folder in Grasshopper.
@@ -10,7 +16,7 @@ using Rhino.Geometry;
 
 namespace Eddy
 {
-    public class ABLComp : GH_Component
+    public class CellSize : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -19,8 +25,10 @@ namespace Eddy
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public ABLComp()
-          : base("ABL", "ABL",  "Atmospheric Boundary Layer", "Eddy", "BC")
+        public CellSize()
+          : base("CellSize", "CellSize",
+              "CellSize",
+              "Eddy", "Mesh")
         {
         }
 
@@ -31,11 +39,11 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddNumberParameter("wDir", "wDir", "wDir", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Uref", "Uref", "Uref", GH_ParamAccess.item);
-            pManager.AddNumberParameter("zref", "zref", "zref", GH_ParamAccess.item);
-            pManager.AddNumberParameter("z0", "z0", "z0", GH_ParamAccess.item);
-            pManager.AddNumberParameter("zGround", "zGround", "zGround", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
+            pManager.AddNumberParameter("blockMeshCellSize", "blockMeshCellSize", "Cell size in meters", GH_ParamAccess.item);
+            pManager.AddNumberParameter("desiredCellSize", "desiredCellSize", "Cell size in meters", GH_ParamAccess.item);
+            //pManager.AddBooleanParameter("", "Run", "Clean the directory", GH_ParamAccess.item, false);
+
         }
 
         /// <summary>
@@ -43,7 +51,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Bcond", "Bcond", "Bcond", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Acc", "Acc", "Accuracy needed", GH_ParamAccess.item);
         }
 
 
@@ -57,47 +65,50 @@ namespace Eddy
         {
 
 
-            List<double> windDir = new List<double>();
-            List<Vector3d> flowDir = new List<Vector3d>();
-            double Uref = 0;
-            double zref = 0;
-            double z0 = 0;
-            double zGround = 0;
-            double pinf = 0;
-            double pref = 0;
-            
+            double desiredCellSize = 1;
+            double blockMeshCellSize = 1;
+            int acc = 1;
 
-           
-           
+            OFCylDomain CylDom;
+            OFBoxDomain BoxDom;
+            OFBaseDomain DOM;
 
-            DA.GetDataList(0, windDir);
-            DA.GetData(1, ref Uref);            
-            DA.GetData(2, ref zref);
-            DA.GetData(3, ref z0);
-            DA.GetData(4, ref zGround);
+            GH_ObjectWrapper gobj = null;
+            if (!DA.GetData(0, ref gobj)) { }
 
-
-            BoundaryConditions BCInflow = new BoundaryConditions();
-
-            BCInflow.btype = BoundaryType.abl;            
-            BCInflow.U = Uref;
-            BCInflow.zref = zref;
-            BCInflow.z0 = z0;
-            BCInflow.zGround = zGround;
-
-            BCInflow.flowDir = new List<Vector3d>();
-            foreach (double d in windDir)
+            if ((gobj.Value is OFCylDomain))
             {
-                BCInflow.flowDir.Add(new Vector3d(Math.Sin(d * Math.PI / 180), Math.Cos(d * Math.PI / 180), 0));
+                CylDom = (OFCylDomain)gobj.Value;
+                DOM = (OFBaseDomain)gobj.Value;
+
+                //blockMeshCellSize = Math.Abs(CylDom.ListOfAllPointsInMagicOrder[145].X - CylDom.ListOfAllPointsInMagicOrder[136].X);
+
             }
+            else if ((gobj.Value is OFBoxDomain))
+            {
+                BoxDom = (OFBoxDomain)gobj.Value;
+                DOM = (OFBaseDomain)gobj.Value;
+            }
+
+            else
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid domain object");
+                return;
+            }
+
+            DA.GetData(1, ref blockMeshCellSize);
+            DA.GetData(2, ref desiredCellSize);
+
             
 
-            BCInflow.windDir = windDir;
+            acc =(int)(Math.Round(((Math.Log(blockMeshCellSize) - Math.Log(desiredCellSize)) / Math.Log(2))));
 
-            DA.SetData(0, BCInflow);    
 
-            
-           
+
+
+
+            DA.SetData(0, acc);
+
         }
 
         /// <summary>
@@ -121,7 +132,7 @@ namespace Eddy
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("{820494F3-2858-4CB3-8E26-E11256EDAE35}"); }
+            get { return new Guid("{BFAD64ED-FACE-4D30-8A3A-64877F1609F2}"); }
         }
     }
 }

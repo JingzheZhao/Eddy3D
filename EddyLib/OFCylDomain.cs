@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-namespace Eddy
+namespace EddyLib
 {
     public class OFCylDomain : OFBaseDomain
     {

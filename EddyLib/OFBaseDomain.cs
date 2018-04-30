@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 
-namespace Eddy
+namespace EddyLib
 {
     // class for all common domain properties, every domain type inherits this
     public class OFBaseDomain

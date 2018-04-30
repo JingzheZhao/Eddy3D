@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using Rhino.Geometry;
 
-namespace Eddy
+namespace EddyLib
 {
     public enum BoundaryType
     {

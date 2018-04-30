@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 using System.Diagnostics;
 using System.IO;
 
-namespace Eddy
+namespace EddyLib
 {
     class Settings
     {

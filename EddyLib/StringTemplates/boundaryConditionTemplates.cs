@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Rhino.Geometry;
 
 
-namespace Eddy
+namespace EddyLib
 {
     public class BoundaryConditionTemplates
     {

@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.VisualBasic.Devices;
 using Grasshopper.Kernel.Types;
-
+using EddyLib;
 
 
 // In order to load the result of this wizard, you will also need to

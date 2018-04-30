@@ -8,12 +8,12 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Eddy
+namespace EddyLib
 {
     public static class Utilities
     {
         //static public string hardcodedAssemblyDir = @"C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\";
-        static public string hardcodedAssemblyDir = @"C:\Users\pkastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\";
+       // static public string hardcodedAssemblyDir = @"C:\Users\pkastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\";
 
         static public string AssemblyVersion
         {
