@@ -28,6 +28,8 @@ namespace Eddy
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
+
+
         public BlockMesh()
           : base("DomainCyl", "DomainCyl",
               "DomainCyl",
@@ -43,10 +45,10 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGeometryParameter("Geometry", "Geo", "Building Geometry. Add the volume for the virtual wind tunnel", GH_ParamAccess.list);
-            pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item);
+            pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, @"C:\Temp");
 
             //pManager.AddGenericParameter("windDir", "windDir", "windDir", GH_ParamAccess.item);
-            pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.item);
+            pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.item );
 
             //pManager.AddIntegerParameter("Mode", "Mode", "Domain generation mode", GH_ParamAccess.item, 0);
 
@@ -60,7 +62,7 @@ namespace Eddy
             //pManager.AddIntegerParameter("divisionsX", "divisionsX", "divisionsX", GH_ParamAccess.item, 1);
             pManager.AddIntegerParameter("divisionsOuterCirc", "divisionsOuterCirc", "divisionsOuterCirc", GH_ParamAccess.item, 1);
             pManager.AddNumberParameter("gradingPerim", "gradingPerim", "gradingPerim", GH_ParamAccess.item, 1);
-            pManager.AddNumberParameter("scaleInnerR", "scaleInnerR", "scaleInnerR", GH_ParamAccess.item, 0.5);
+            pManager.AddNumberParameter("scaleInnerR", "scaleInnerR", "scaleInnerR", GH_ParamAccess.item, 100);
 
             pManager.AddIntegerParameter("RAM", "RAM", "RAM", GH_ParamAccess.item, 2000);
             pManager.AddIntegerParameter("CPUs", "CPUs", "CPUs", GH_ParamAccess.item, 1);
@@ -127,15 +129,15 @@ namespace Eddy
             double gradingPerim = 1;
             double scaleFactorInnerRect = 0.5;
 
-            var meshStlDirectory = baseWorkingDirectory + @"mesh\constant\triSurface\";
-            var meshStlFilenameBuildings = baseWorkingDirectory + @"mesh\constant\triSurface\building.stl";
-            var meshStlFilenameGround = baseWorkingDirectory + @"mesh\constant\triSurface\ground.stl";
-            var meshStlFilenameGroundPerim = baseWorkingDirectory + @"mesh\constant\triSurface\ground_perim.stl";
+            var meshStlDirectory = baseWorkingDirectory + @"\mesh\constant\triSurface\";
+            var meshStlFilenameBuildings = baseWorkingDirectory + @"\mesh\constant\triSurface\building.stl";
+            var meshStlFilenameGround = baseWorkingDirectory + @"\mesh\constant\triSurface\ground.stl";
+            var meshStlFilenameGroundPerim = baseWorkingDirectory + @"\mesh\constant\triSurface\ground_perim.stl";
 
-            string meshSystemDirectory = baseWorkingDirectory + @"mesh\system\";
-            string meshConstantDirectory = baseWorkingDirectory + @"mesh\constant\";
-            string meshBoundaryConditionsDirectory = baseWorkingDirectory + @"mesh\0.org\";
-            string meshWorkingDirectory = baseWorkingDirectory + @"mesh\";
+            string meshSystemDirectory = baseWorkingDirectory + @"\mesh\system\";
+            string meshConstantDirectory = baseWorkingDirectory + @"\mesh\constant\";
+            string meshBoundaryConditionsDirectory = baseWorkingDirectory + @"\mesh\0.org\";
+            string meshWorkingDirectory = baseWorkingDirectory + @"\mesh\";
 
 
             //DA.GetData(2, ref mode);
@@ -226,8 +228,7 @@ namespace Eddy
            
 
 
-            if (Run == true)
-            {
+         
 
 
                 //if (Settings.getCurrentRAM() != RAM)
@@ -310,15 +311,18 @@ namespace Eddy
 
 
                 File.WriteAllText(meshSystemDirectory + @"\blockMeshDict", DOMCYL.stringyfyDomain2());
-                File.WriteAllText(baseWorkingDirectory + @"mesh\case.foam", "");
+                File.WriteAllText(baseWorkingDirectory + @"\mesh\case.foam", "");
                 File.WriteAllText(meshSystemDirectory + @"\controlDict", StringTemplates.controlDict(DOMCYL, null, 0));
 
-                if (!File.Exists(baseWorkingDirectory + @"mesh\log"))
+                if (!File.Exists(baseWorkingDirectory + @"\mesh\log"))
                 {
-                    File.WriteAllText(baseWorkingDirectory + @"mesh\log", "");
+                    File.WriteAllText(baseWorkingDirectory + @"\mesh\log", "");
                 }
 
 
+
+            if (Run == true)
+            {
                 /*              
               //ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory +@"\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
               ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir+@"\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
@@ -332,7 +336,7 @@ namespace Eddy
 
                 string logFile = "";
 
-                using (FileStream stream = File.Open(baseWorkingDirectory + @"mesh\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (FileStream stream = File.Open(baseWorkingDirectory + @"\mesh\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
                     using (StreamReader reader = new StreamReader(stream))
                     {

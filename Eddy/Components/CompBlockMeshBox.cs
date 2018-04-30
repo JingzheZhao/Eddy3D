@@ -43,7 +43,7 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGeometryParameter("Geometry", "Geo", "Building Geometry. Add the volume for the virtual wind tunnel", GH_ParamAccess.list);
-            pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item);
+            pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, @"C:\Temp");
             pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.item);
                      
             pManager.AddNumberParameter("baseMesh", "baseMesh", "baseMesh", GH_ParamAccess.item);
@@ -173,8 +173,6 @@ namespace Eddy
 
 
 
-            if (Run == true)
-            {
                         
                 
                 //if (Settings.getCurrentRAM() != RAM)
@@ -254,6 +252,8 @@ namespace Eddy
                 }
 
 
+            if (Run == true)
+            {
                 /*
                 ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir+@"\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
                 Process p = new Process();

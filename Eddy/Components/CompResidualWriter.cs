@@ -9,6 +9,7 @@ using System.Diagnostics;
 using Grasshopper.Kernel.Types;
 using SlavaGu.ConsoleAppLauncher;
 using System.Windows.Forms;
+using Grasshopper;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -54,7 +55,8 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            //pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Lab", "L", "Labels", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Res", "R", "Residuals", GH_ParamAccess.tree);
         }
 
 
@@ -90,7 +92,7 @@ namespace Eddy
             var clocktime = new List<double>();
 
 
-            string fullFilePath = workingDir + "log";
+            string fullFilePath = workingDir + @"\log";
 
 
             var lines = File.ReadAllLines(fullFilePath);
@@ -205,6 +207,26 @@ namespace Eddy
 
 
 
+            var labels = new List<string>();
+            labels.Add("Ux");
+            labels.Add("Uy");
+            labels.Add("Uz");
+            labels.Add("p");
+            labels.Add("omega");
+            labels.Add("k");
+
+            DA.SetDataList(0, labels);
+
+            var resid = new DataTree<double>();
+
+            resid.AddRange(Ux, new Grasshopper.Kernel.Data.GH_Path(0));
+            resid.AddRange(Uy, new Grasshopper.Kernel.Data.GH_Path(1));
+            resid.AddRange(Uz, new Grasshopper.Kernel.Data.GH_Path(2));
+            resid.AddRange(p1, new Grasshopper.Kernel.Data.GH_Path(3));
+            resid.AddRange(omega, new Grasshopper.Kernel.Data.GH_Path(4));
+            resid.AddRange(k, new Grasshopper.Kernel.Data.GH_Path(5));
+
+            DA.SetDataTree(1, resid);
 
         }
 

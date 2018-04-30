@@ -11,7 +11,7 @@ using EddyLib;
 namespace Eddy
 {
     public class ABLComp : GH_Component
-    {
+    {      List<double> dirs = new List<double>();
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
         /// constructor without any arguments.
@@ -22,20 +22,25 @@ namespace Eddy
         public ABLComp()
           : base("ABL", "ABL",  "Atmospheric Boundary Layer", "Eddy", "BC")
         {
+            dirs.Add(0);
         }
 
-        
+
 
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
+        /// 
+  
+       
+         
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddNumberParameter("wDir", "wDir", "wDir", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Uref", "Uref", "Uref", GH_ParamAccess.item);
-            pManager.AddNumberParameter("zref", "zref", "zref", GH_ParamAccess.item);
-            pManager.AddNumberParameter("z0", "z0", "z0", GH_ParamAccess.item);
-            pManager.AddNumberParameter("zGround", "zGround", "zGround", GH_ParamAccess.item);
+            pManager.AddNumberParameter("wDir", "wDir", "wDir", GH_ParamAccess.list, dirs);
+            pManager.AddNumberParameter("Uref", "Uref", "Uref", GH_ParamAccess.item, 5);
+            pManager.AddNumberParameter("zref", "zref", "zref", GH_ParamAccess.item,10);
+            pManager.AddNumberParameter("z0", "z0", "z0", GH_ParamAccess.item,1);
+            pManager.AddNumberParameter("zGround", "zGround", "zGround", GH_ParamAccess.item,0);
         }
 
         /// <summary>
@@ -63,13 +68,8 @@ namespace Eddy
             double zref = 0;
             double z0 = 0;
             double zGround = 0;
-            double pinf = 0;
-            double pref = 0;
+      
             
-
-           
-           
-
             DA.GetDataList(0, windDir);
             DA.GetData(1, ref Uref);            
             DA.GetData(2, ref zref);
@@ -77,27 +77,10 @@ namespace Eddy
             DA.GetData(4, ref zGround);
 
 
-            BoundaryConditions BCInflow = new BoundaryConditions();
+            BoundaryConditions BCInflow = new BoundaryConditions( windDir, Uref, zref, z0, zGround);
 
-            BCInflow.btype = BoundaryType.abl;            
-            BCInflow.U = Uref;
-            BCInflow.zref = zref;
-            BCInflow.z0 = z0;
-            BCInflow.zGround = zGround;
+               DA.SetData(0, BCInflow);    
 
-            BCInflow.flowDir = new List<Vector3d>();
-            foreach (double d in windDir)
-            {
-                BCInflow.flowDir.Add(new Vector3d(Math.Sin(d * Math.PI / 180), Math.Cos(d * Math.PI / 180), 0));
-            }
-            
-
-            BCInflow.windDir = windDir;
-
-            DA.SetData(0, BCInflow);    
-
-            
-           
         }
 
         /// <summary>

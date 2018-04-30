@@ -59,7 +59,8 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Result", "Result", "Result", GH_ParamAccess.tree);
+            pManager.AddGenericParameter("Result", "Cp", "Result", GH_ParamAccess.tree);
+            pManager.AddGenericParameter("Result", "U", "Result", GH_ParamAccess.tree);
         }
 
 
@@ -108,8 +109,9 @@ namespace Eddy
 
 
 
+            DataTree<double> cpTree = new DataTree<double>();
 
-
+            DataTree<Vector3d> uTree = new DataTree<Vector3d>();
 
             if (run == true && listOfPoints.Count() > 0)
             {
@@ -117,7 +119,7 @@ namespace Eddy
 
                 if (mode == 0) // cp
                 {
-                    DataTree<double> cpTree = new DataTree<double>();
+                    
 
                     for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                     {
@@ -165,12 +167,12 @@ namespace Eddy
                         cpTree.AddRange(cp.cpValues, new Grasshopper.Kernel.Data.GH_Path(i));
                     }
 
-                    DA.SetDataTree(0, cpTree);
+                   
                 }
 
                 if (mode == 1) // U
                 {
-                    DataTree<Vector3d> uTree = new DataTree<Vector3d>();
+                   
 
                     for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                     {
@@ -212,12 +214,13 @@ namespace Eddy
 
                     }
 
-                    DA.SetDataTree(0, uTree);
+                   
 
 
                 }
             }
-
+            DA.SetDataTree(0, cpTree);
+            DA.SetDataTree(1, uTree);
         }
 
         /// <summary>

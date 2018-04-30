@@ -39,11 +39,11 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("accBuilding", "accBuilding", "Specify accuracy of mesh", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("accFeatures", "accFeatures", "Specify accuracy of mesh", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("accRefinement", "accRefinement", "accRefinement", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("accGround", "accGround", "Specify accuracy of mesh", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("nLayer", "nLayer", "nLayer", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("accBuilding", "accBuilding", "Specify accuracy of mesh", GH_ParamAccess.item,2);
+            pManager.AddIntegerParameter("accFeatures", "accFeatures", "Specify accuracy of mesh", GH_ParamAccess.item,2);
+            pManager.AddIntegerParameter("accRefinement", "accRefinement", "accRefinement", GH_ParamAccess.item,0);
+            pManager.AddIntegerParameter("accGround", "accGround", "Specify accuracy of mesh", GH_ParamAccess.item,2);
+            pManager.AddIntegerParameter("nLayer", "nLayer", "nLayer", GH_ParamAccess.item,3);
             pManager.AddBooleanParameter("Run", "Run", "Create the mesh.", GH_ParamAccess.item, false);
 
         }
@@ -159,8 +159,8 @@ namespace Eddy
             DOM.keepTimeSteps = 5;
 
 
-            if (Run == true)
-            {
+
+               
 
                 var meshStlDir = DOM.meshWorkingDirectory + @"\constant\triSurface\";
                 var meshStlFilenameBuildings = DOM.meshWorkingDirectory + @"\constant\triSurface\building.stl";
@@ -171,6 +171,7 @@ namespace Eddy
                     Directory.CreateDirectory(meshStlDir);
                 }
 
+                File.WriteAllText(DOM.meshWorkingDirectory + @"\log", "");
 
                 string meshSystemDir = DOM.meshWorkingDirectory + @"\system\";
 
@@ -202,6 +203,8 @@ namespace Eddy
                     string command = DOM.CPU > 1 ? MultipleCPU : SingleCPU;
 
 
+            if (Run == true)
+            {
 
                 //ProcessStartInfo psiSnappyHexMesh = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
 
