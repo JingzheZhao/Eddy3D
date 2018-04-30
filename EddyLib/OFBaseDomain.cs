@@ -11,6 +11,7 @@ namespace EddyLib
         public Point3d locationInMesh;
 
         // settings
+        public string meshPolyMeshDirectory;
         public string meshWorkingDirectory;
         public string meshSystemDirectory;
         public string meshConstantDirectory;        

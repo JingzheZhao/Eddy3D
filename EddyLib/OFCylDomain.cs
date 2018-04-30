@@ -53,9 +53,25 @@ namespace EddyLib
 
 
 
-        public OFCylDomain(Mesh geometry, BoundaryConditions BCond, int _divisionsY, double gradingPerim, double windDir, int _CPU, double scaleFactorInnerRect = 0.5)
+        public OFCylDomain(Mesh geometry, BoundaryConditions BCond, int _divisionsY, double gradingPerim, double windDir, int _CPU, double scaleFactorInnerRect = 0.5, string baseWorkingDirectory = @"C:\Temp")
         {
-            //workingDirectory = _workingDirectory;
+            this.gradingPerim = gradingPerim;
+            this.baseWorkingDirectory = baseWorkingDirectory;
+            this.meshStlDirectory = baseWorkingDirectory + @"\mesh\constant\triSurface\";
+            this.meshPolyMeshDirectory = baseWorkingDirectory + @"\mesh\constant\polyMesh\";
+            this.meshSystemDirectory = baseWorkingDirectory + @"\mesh\system\";
+            this.meshConstantDirectory = baseWorkingDirectory + @"\mesh\constant\";
+            this.meshWorkingDirectory = baseWorkingDirectory + @"\mesh\";
+
+
+
+
+           //needed for meshing purposes at this point in time
+            this.iter = 1000;
+            this.writeInterval = 5;
+            this.keepTimeSteps = 5;
+
+
             //systemDirectory = workingDirectory + @"system\";
             CPU = _CPU;
 

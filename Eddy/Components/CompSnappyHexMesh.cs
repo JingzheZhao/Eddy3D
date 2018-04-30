@@ -123,11 +123,10 @@ namespace Eddy
 
 
 
+                //string command = "";
 
-            //string command = "";
 
-
-            string SingleCPU = @"""surfaceFeatureExtract;snappyHexMesh -overwrite """; //-overwrite
+                string SingleCPU = @"""surfaceFeatureExtract;snappyHexMesh -overwrite """; //-overwrite
             string MultipleCPU = @"""surfaceFeatureExtract;pyFoamDecompose.py --clear . " + DOM.CPU + @"; foamJob -parallel -screen snappyHexMesh -overwrite""";
 
 
@@ -160,9 +159,35 @@ namespace Eddy
 
 
 
-               
 
-                var meshStlDir = DOM.meshWorkingDirectory + @"\constant\triSurface\";
+
+
+            //CLEAN UP THE OF MESS
+
+            if (Run == true)
+            {
+                
+                if (Directory.Exists(DOM.meshPolyMeshDirectory))
+                {
+                    System.IO.DirectoryInfo di = new DirectoryInfo(DOM.meshPolyMeshDirectory);
+                    foreach (FileInfo file in di.GetFiles())
+                    {
+                        file.Delete();
+                    }
+                    foreach (DirectoryInfo dir in di.GetDirectories())
+                    {
+                        dir.Delete(true);
+                    }
+                }
+            }
+
+
+
+
+
+
+
+            var meshStlDir = DOM.meshWorkingDirectory + @"\constant\triSurface\";
                 var meshStlFilenameBuildings = DOM.meshWorkingDirectory + @"\constant\triSurface\building.stl";
                 var meshStlFilenameGround = DOM.meshWorkingDirectory + @"\constant\triSurface\ground.stl";
 
@@ -205,6 +230,10 @@ namespace Eddy
 
             if (Run == true)
             {
+               
+              
+
+
 
                 //ProcessStartInfo psiSnappyHexMesh = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
 
