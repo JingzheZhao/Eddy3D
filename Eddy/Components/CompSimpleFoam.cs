@@ -7,7 +7,7 @@ using System.Text;
 using Grasshopper.Kernel.Parameters;
 using System.Diagnostics;
 using Grasshopper.Kernel.Types;
-
+using EddyLib;
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
 // folder in Grasshopper.
@@ -124,8 +124,7 @@ namespace Eddy
 
 
 
-            if (Run == true)
-            {
+            
 
                 for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                 {
@@ -216,6 +215,11 @@ namespace Eddy
                     File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run.bat"), StringTemplates.run(DOM));
                     File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + "_run_sim.bat"), StringTemplates.run_sim(DOM, i));
                 }
+
+
+                
+            if (Run == true)
+            {
             }
 
             DA.SetData(0, DOM);

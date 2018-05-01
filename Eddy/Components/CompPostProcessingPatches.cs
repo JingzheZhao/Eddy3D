@@ -8,6 +8,7 @@ using System.Linq;
 using Grasshopper.Kernel.Parameters;
 using System.Diagnostics;
 using Grasshopper.Kernel.Types;
+using EddyLib;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -147,7 +148,7 @@ namespace Eddy
 
 
                 
-                ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir + @"\CallOF.exe", " -e " + command + " -f " + "\"" + DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[l] + " \"");
+                ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", " -e " + command + " -f " + "\"" + DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[l] + " \"");
                 Process p = new Process();
                 p.StartInfo = psi;
                 p.Start();

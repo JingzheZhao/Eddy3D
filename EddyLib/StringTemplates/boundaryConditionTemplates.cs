@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Rhino.Geometry;
 
 
-namespace Eddy
+namespace EddyLib
 {
     public class BoundaryConditionTemplates
     {
@@ -31,7 +31,7 @@ FoamFile
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 
-        Uref		" + DOM.BCInflow.U + @";
+        Uref		" + DOM.BCInflow.URef + @";
 
         Zref		" + DOM.BCInflow.zref + @";
 
@@ -625,7 +625,7 @@ FoamFile
     object ABLConditions;
         }
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-        Uref		" + DOM.BCInflow.U + @";
+        Uref		" + DOM.BCInflow.URef + @";
         Zref		" + DOM.BCInflow.zref + @";
         z0 uniform " + DOM.BCInflow.z0 + @";
         flowDir (" + DOM.BCInflow.flowDir[d].X +" "+ DOM.BCInflow.flowDir[d].Y +" "+ DOM.BCInflow.flowDir[d].Z+ @");

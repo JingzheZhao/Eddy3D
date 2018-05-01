@@ -9,7 +9,7 @@ using System.IO;
 using Rhino.Geometry;
 using System.Collections;
 
-namespace Eddy
+namespace EddyLib
 {
     public class ParsingValues
     {
@@ -82,7 +82,7 @@ namespace Eddy
 
             for (int i = 0; i < counterPoints; i++)
             {
-                this.cpValues[i] = double.Parse(lastLine.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[i+1]); //this workes
+                this.cpValues[i] = double.Parse(lastLine.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[i+1]); //this workes 
                 sb.AppendLine(this.cpValues[i].ToString());
             }
             this.valueString = sb.ToString();

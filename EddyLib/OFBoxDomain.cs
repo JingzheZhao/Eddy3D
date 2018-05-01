@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Eddy
+namespace EddyLib
 {
     public class OFBoxDomain : OFBaseDomain
     {

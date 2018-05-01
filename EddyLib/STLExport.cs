@@ -6,9 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Eddy
+namespace EddyLib
 {
-    class STLExport
+    public class STLExport
     {
 
         public static void ExportASCI(string filePath, List<Mesh> meshObjects)

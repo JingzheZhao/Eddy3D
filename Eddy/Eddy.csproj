@@ -63,7 +63,6 @@
   <ItemGroup>
     <Compile Include="Components\CompParseAnnualCP.cs" />
     <Compile Include="Components\CompABL.cs" />
-    <Compile Include="CreateSymbolicLink.cs" />
     <Compile Include="Components\CompBlockMeshCyl.cs" />
     <Compile Include="Components\CompCellSize.cs" />
     <Compile Include="Components\CompPostProcessingProbes.cs" />
@@ -71,30 +70,19 @@
     <Compile Include="Components\CompResidualWriter.cs" />
     <Compile Include="Licensing\LicenseTest.cs" />
     <Compile Include="Licensing\ModifyRegistry.cs" />
-    <Compile Include="OFBaseDomain.cs" />
-    <Compile Include="OFCylDomain.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="ParsingValues.cs" />
-    <Compile Include="BoundaryConditionsBase.cs" />
-    <Compile Include="Settings.cs" />
     <Compile Include="Components\CompBlockMeshBox.cs" />
     <Compile Include="Components\CompSimpleFoam.cs" />
     <Compile Include="Components\CompSnappyHexMesh.cs" />
     <Compile Include="Components\CompClean.cs" />
-    <Compile Include="OFLaunch.cs" />
-    <Compile Include="OFBoxDomain.cs" />
     <Compile Include="Licensing\License.cs" />
-    <Compile Include="STLExport.cs" />
     <Compile Include="Components\CompGeometryExport.cs" />
-    <Compile Include="StringTemplates\boundaryConditionTemplates.cs" />
-    <Compile Include="StringTemplates\stringTemplates.cs" />
-    <Compile Include="Utilities.cs" />
-    <Compile Include="VirtualWindTunnelInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="VirtualWindTunnelInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -111,6 +99,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\ED_cylDomain.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\EddyLib\EddyLib.csproj">
+      <Project>{cd46984c-eb80-48de-b903-ce9f1bbca21e}</Project>
+      <Name>EddyLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

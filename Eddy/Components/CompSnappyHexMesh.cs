@@ -7,7 +7,7 @@ using System.Text;
 using Grasshopper.Kernel.Parameters;
 using System.Diagnostics;
 using Grasshopper.Kernel.Types;
-
+using EddyLib;
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
 // folder in Grasshopper.
@@ -39,11 +39,11 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("accBuilding", "accBuilding", "Specify accuracy of mesh", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("accFeatures", "accFeatures", "Specify accuracy of mesh", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("accRefinement", "accRefinement", "accRefinement", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("accGround", "accGround", "Specify accuracy of mesh", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("nLayer", "nLayer", "nLayer", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("accBuilding", "accBuilding", "Specify accuracy of mesh", GH_ParamAccess.item,2);
+            pManager.AddIntegerParameter("accFeatures", "accFeatures", "Specify accuracy of mesh", GH_ParamAccess.item,2);
+            pManager.AddIntegerParameter("accRefinement", "accRefinement", "accRefinement", GH_ParamAccess.item,0);
+            pManager.AddIntegerParameter("accGround", "accGround", "Specify accuracy of mesh", GH_ParamAccess.item,2);
+            pManager.AddIntegerParameter("nLayer", "nLayer", "nLayer", GH_ParamAccess.item,3);
             pManager.AddBooleanParameter("Run", "Run", "Create the mesh.", GH_ParamAccess.item, false);
 
         }
@@ -123,11 +123,10 @@ namespace Eddy
 
 
 
+                //string command = "";
 
-            //string command = "";
 
-
-            string SingleCPU = @"""surfaceFeatureExtract;snappyHexMesh -overwrite """; //-overwrite
+                string SingleCPU = @"""surfaceFeatureExtract;snappyHexMesh -overwrite """; //-overwrite
             string MultipleCPU = @"""surfaceFeatureExtract;pyFoamDecompose.py --clear . " + DOM.CPU + @"; foamJob -parallel -screen snappyHexMesh -overwrite""";
 
 
@@ -159,10 +158,50 @@ namespace Eddy
             DOM.keepTimeSteps = 5;
 
 
+
+
+
+
+            //CLEAN UP THE OF MESS
+
             if (Run == true)
             {
+                
+                if (Directory.Exists(DOM.meshPolyMeshDirectory))
+                {
+                    System.IO.DirectoryInfo di = new DirectoryInfo(DOM.meshPolyMeshDirectory);
+                    foreach (FileInfo file in di.GetFiles())
+                    {
+                        file.Delete();
+                    }
+                    foreach (DirectoryInfo dir in di.GetDirectories())
+                    {
+                        dir.Delete(true);
+                    }
+                }
 
-                var meshStlDir = DOM.meshWorkingDirectory + @"\constant\triSurface\";
+                if (Directory.Exists(DOM.meshConstantDirectory+ @"extendedFeatureEdgeMesh"))
+                {
+                    System.IO.DirectoryInfo di = new DirectoryInfo(DOM.meshConstantDirectory + @"extendedFeatureEdgeMesh");
+                    foreach (FileInfo file in di.GetFiles())
+                    {
+                        file.Delete();
+                    }
+                    foreach (DirectoryInfo dir in di.GetDirectories())
+                    {
+                        dir.Delete(true);
+                    }
+                }
+
+            }
+
+
+
+
+
+
+
+            var meshStlDir = DOM.meshWorkingDirectory + @"\constant\triSurface\";
                 var meshStlFilenameBuildings = DOM.meshWorkingDirectory + @"\constant\triSurface\building.stl";
                 var meshStlFilenameGround = DOM.meshWorkingDirectory + @"\constant\triSurface\ground.stl";
 
@@ -171,6 +210,7 @@ namespace Eddy
                     Directory.CreateDirectory(meshStlDir);
                 }
 
+                File.WriteAllText(DOM.meshWorkingDirectory + @"\log", "");
 
                 string meshSystemDir = DOM.meshWorkingDirectory + @"\system\";
 
@@ -200,6 +240,12 @@ namespace Eddy
 
 
                     string command = DOM.CPU > 1 ? MultipleCPU : SingleCPU;
+
+
+            if (Run == true)
+            {
+               
+              
 
 
 

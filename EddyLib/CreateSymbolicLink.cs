@@ -3,9 +3,9 @@ using System.IO;
 using System.Diagnostics;
 using System;
 
-namespace Eddy
+namespace EddyLib
 {
-    class SymlinkCreator
+  public  class SymlinkCreator
     {
        
 

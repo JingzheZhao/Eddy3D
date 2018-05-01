@@ -4,7 +4,7 @@ using System.Text;
 using Rhino.Geometry;
 
 
-namespace Eddy
+namespace EddyLib
 {
     public class StringTemplates
     {
