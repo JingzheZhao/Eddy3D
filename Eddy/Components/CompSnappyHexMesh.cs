@@ -179,6 +179,20 @@ namespace Eddy
                         dir.Delete(true);
                     }
                 }
+
+                if (Directory.Exists(DOM.meshConstantDirectory+ @"extendedFeatureEdgeMesh"))
+                {
+                    System.IO.DirectoryInfo di = new DirectoryInfo(DOM.meshConstantDirectory + @"extendedFeatureEdgeMesh");
+                    foreach (FileInfo file in di.GetFiles())
+                    {
+                        file.Delete();
+                    }
+                    foreach (DirectoryInfo dir in di.GetDirectories())
+                    {
+                        dir.Delete(true);
+                    }
+                }
+
             }
 
 
