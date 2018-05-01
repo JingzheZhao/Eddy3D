@@ -123,7 +123,7 @@ namespace Eddy
                     {
                         for (int i = 0; i < allTopo.Count; i++)
                         {
-                            string filePath = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[l] + @"constant\triSurface\" + topoName + i + ".stl";
+                            string filePath = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[l] + @"\constant\triSurface\" + topoName + i + ".stl";
                             STLExport.ExportBinary(filePath, allTopo[i]);
                         }
                     }
@@ -132,8 +132,8 @@ namespace Eddy
 
                 for (int l = 0; l < DOM.BCInflow.windDir.Count; l++)
                 {
-                    File.WriteAllText(Path.Combine(DOM.BCInflow.windDir[l] + @"\system\" + "controlDict"), StringTemplates.controlDict(DOM, null,l));
-                    File.WriteAllText(Path.Combine(DOM.BCInflow.windDir[l] + @"\system\" + "topoSetDict"), StringTemplates.topoSetDict(allTopo));
+                    File.WriteAllText(DOM.baseWorkingDirectory +  DOM.BCInflow.windDir[l] + @"\system\" + "controlDict", StringTemplates.controlDict(DOM, null, l));
+                    File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[l]   + @"\system\" + "topoSetDict", StringTemplates.topoSetDict(allTopo));
                 
 
 
