@@ -21,6 +21,14 @@ namespace Eddy
 {
     public class PostProcessingProbes : GH_Component
     {
+
+
+        DataTree<double> cpTree = new DataTree<double>();
+        DataTree<Vector3d> uTree = new DataTree<Vector3d>();
+
+
+
+
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
         /// constructor without any arguments.
@@ -109,12 +117,13 @@ namespace Eddy
 
 
 
-            DataTree<double> cpTree = new DataTree<double>();
-
-            DataTree<Vector3d> uTree = new DataTree<Vector3d>();
 
             if (run == true && listOfPoints.Count() > 0)
             {
+
+
+ cpTree = new DataTree<double>();
+                uTree = new DataTree<Vector3d>();
 
 
                 if (mode == 0) // cp
