@@ -42,13 +42,13 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGeometryParameter("Geometry", "Geo", "Building Geometry. Add the volume for the virtual wind tunnel", GH_ParamAccess.list);
+            pManager.AddGeometryParameter("Geometry", "Geo", "Building Geometry. Building Geometry.", GH_ParamAccess.list);
             pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, @"C:\Temp");
             pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.item);
                      
             pManager.AddNumberParameter("baseMesh", "baseMesh", "baseMesh", GH_ParamAccess.item);
 
-            pManager.AddGenericParameter("RAM", "RAM", "RAM", GH_ParamAccess.item);
+            //pManager.AddGenericParameter("RAM", "RAM", "RAM", GH_ParamAccess.item);
             pManager.AddIntegerParameter("CPUs", "CPUs", "CPUs", GH_ParamAccess.item, 1);
 
             pManager.AddBooleanParameter("Run", "Run", "Run the blockMesh component", GH_ParamAccess.item, false);
@@ -98,9 +98,9 @@ namespace Eddy
 
             
             DA.GetData(3, ref blockDimension);
-            DA.GetData(4, ref RAM);
-            DA.GetData(5, ref CPUs);
-            DA.GetData(6, ref Run);
+            //DA.GetData(4, ref RAM);
+            DA.GetData(4, ref CPUs);
+            DA.GetData(5, ref Run);
 
             BoundaryConditions BCond;
 

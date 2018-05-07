@@ -13,7 +13,7 @@ namespace EddyLib
     public static class Utilities
     {
         //static public string hardcodedAssemblyDir = @"C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\";
-       // static public string hardcodedAssemblyDir = @"C:\Users\pkastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\";
+        //static public string hardcodedAssemblyDir = @"C:\Users\pkastner\Documents\GitHub\WindTunnel\Eddy\bin\";
 
         static public string AssemblyVersion
         {

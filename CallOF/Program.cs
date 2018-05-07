@@ -55,53 +55,23 @@ namespace CallOF
                 var app_argument = string.Format("run -v \"{0}:{1}\" {2} {3} bash -c \"{4}{5}{6}\"", options.filePath.Trim(), volumeDocker, entryPoint, container, sourceEnvironment, options.command, logging);
                 //Environment.SetEnvironmentVariable("PATH", @"C:\Program Files\Docker\Docker\Resources\bin");
 
-               // Console.WriteLine(ConsoleApp.Run(app, app_argument).Output.Trim());
+                // Console.WriteLine(ConsoleApp.Run(app, app_argument).Output.Trim());
 
 
 
                 var p = new ConsoleApp(app, app_argument);
                 p.ConsoleOutput += (o, args1) =>
                 {
-                   Console.WriteLine(args1.Line);
+                    Console.WriteLine(args1.Line);
                 };
                 p.Run();
 
                 //Console.ReadKey();
-                p.WaitForExit();
-
-
-
-
-                //Console.ReadKey();
-                //ConsoleApp.Result
-
-
-
-
-
-                //// Prog
-                //Stopwatch stopwatch = new Stopwatch();
-                //stopwatch.Start();
-
-                //Console.WriteLine("Reading file...");
-                //errorLog.AppendLine("Reading file...");
-
-
-
-                //Console.WriteLine("Finished. ( Time elapsed: {0} )", stopwatch.Elapsed);
-                //errorLog.AppendLine(String.Format("Finished. ( Time elapsed: {0} )", stopwatch.Elapsed));
-                //File.WriteAllText(Path.Combine(options.OutputFile + ".log"), errorLog.ToString());
-
-
-
-                //Console.ReadLine();
-
-                ////
             }
 
 
         }
-        }
+    }
 
 
     // Define a class to receive parsed values

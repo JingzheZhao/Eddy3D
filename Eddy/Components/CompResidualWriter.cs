@@ -132,7 +132,7 @@ namespace Eddy
 
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("iter,Ux,Uy,Uz,p,omega,k,clocktime");
-            for (int i = 0; i < clocktime.Count; i++)
+            for (int i = 0; i < clocktime.Count-1; i++) // Sometimes there is one less line "Execution time"
             {
                 sb.AppendLine(iter[i] + "," + Ux[i] + "," + Uy[i] + "," + Uz[i] + "," + p1[i] + "," + omega[i] + "," + k[i]+ "," + clocktime[i]);
             }

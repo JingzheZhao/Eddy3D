@@ -27,18 +27,9 @@ namespace EddyLib
             Process SymLinks = new Process();
             SymLinks.StartInfo = startInfo;
             SymLinks.EnableRaisingEvents = true;
-            //try
-            //{
-                SymLinks.Start();
-            //}
-            //catch (Exception e)
-            //{
-            //    throw;
-            //}
-
-
             
-            //System.Diagnostics.Process.Start("CMD.exe", strCmdText);
+            SymLinks.Start();
+ 
             
            
             

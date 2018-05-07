@@ -38,6 +38,7 @@ namespace EddyLib
         public int divisionsZ;
 
         public int cellDivisionsPerim;
+
         
 
         public double cellSizeInner;
@@ -53,9 +54,10 @@ namespace EddyLib
 
 
 
-        public OFCylDomain(Mesh geometry, BoundaryConditions BCond, int _divisionsY, double gradingPerim, double windDir, int _CPU, double scaleFactorInnerRect = 0.5, string baseWorkingDirectory = @"C:\Temp")
+        public OFCylDomain(Mesh geometry, BoundaryConditions BCond, int _divisionsY, double gradingPerim, double windDir, int _CPU, double sizeInnerRect = 0.5, double sizeOuterCirc = 0, double sizeHeight = 0,  string baseWorkingDirectory = @"C:\temp")
         {
             this.gradingPerim = gradingPerim;
+            
             this.baseWorkingDirectory = baseWorkingDirectory;
             this.meshStlDirectory = baseWorkingDirectory + @"\mesh\constant\triSurface\";
             this.meshPolyMeshDirectory = baseWorkingDirectory + @"\mesh\constant\polyMesh\";
@@ -96,17 +98,26 @@ namespace EddyLib
             var dimY = yMax - yMin;
             var dimZ = zMax - zMin;
 
-
-
-
+            
             //Create ground plane of BBox
             center = BBox.Center + 0.5 * -Vector3d.ZAxis * dimZ;
             locationInMesh = center + 4 * Vector3d.ZAxis * dimZ;
 
             //Create Circular Domain Ground
 
+            // Check standard inputs for height
 
-            height = 6 * dimZ;
+              
+            if (sizeHeight == 0)
+            {
+                height = 6 * dimZ;
+            }
+            else
+            {
+                height = sizeHeight;
+            }
+
+                        
             var scaleCyclDomainHeight = (15.5 * dimZ) + dimY;
             //var scaleCyclDomainHeight = dimZ > dimY ? dimZ : dimY;
 
@@ -131,27 +142,31 @@ namespace EddyLib
             var scaleCyclDomainBlockingRatio = frontageBuildingArea * 100 / 3 / height / 2;
 
 
-            radius = scaleCyclDomainBlockingRatio > scaleCyclDomainHeight ? scaleCyclDomainBlockingRatio : scaleCyclDomainHeight;
+            // Check standard inputs for radius
+
+            if (sizeOuterCirc == 0)
+            {
+                radius = scaleCyclDomainBlockingRatio > scaleCyclDomainHeight ? scaleCyclDomainBlockingRatio : scaleCyclDomainHeight;
+            }
+            else
+            {
+               radius = sizeOuterCirc;
+            }
+
+
 
 
             //old domain
             //var allPoints = MakeCylMeshPoints5deg(center, radius, height, scaleFactorInnerRect);
             //MakeCylMesh(allPoints, divisionsX, divisionsY, divisionsZ, windDir); 
 
-
-
-            MakeCircMeshPlane(center, scaleFactorInnerRect, divisionsY, radius, height);
-
-
+            MakeCircMeshPlane(center, sizeInnerRect, divisionsY, radius, height);
+            
 
             BCond.calculateCPPressures(zMax);            
 
             this.BCInflow = BCond;
                        
-            
-
-
-
             // refinement Cylinder
             //refinementCylinder = getRefinementCyl(center, geometry, 0.3, 0.3);
             //refinementBox = getRefinementBox(localSystem, geometry, 0.3);
@@ -159,7 +174,7 @@ namespace EddyLib
 
         }
 
-        public void MakeCircMeshPlane(Point3d center, double sizeInnerRect, int divisions, double circleRadius, double height)
+        public void MakeCircMeshPlane(Point3d center, int divisions, double circleRadius, double height, double sizeInnerRect = 0.5)
         {
             List<Point3d> pointsOnCircle = new List<Point3d>();
             var pl = new Plane(center, Vector3d.ZAxis);
@@ -199,14 +214,11 @@ namespace EddyLib
             }
 
            
-
-
           
             this.coreTop.Append(m);
             this.coreTop.Translate(Vector3d.ZAxis * height);
 
-
-
+            
             this.perim = PerimeterRing(poly, pointsOnCircle);
             //perimTop = new Mesh();
             this.perimTop.Append(perim);

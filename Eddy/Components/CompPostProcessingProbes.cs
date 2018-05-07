@@ -137,19 +137,11 @@ namespace Eddy
                         string OFfield = "total(p)_coeff";
                         //string postProcessingDirectory = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\postProcessing\";
 
-                        //if (!Directory.Exists(postProcessingDirectory))
-                        //{
-                        //    Directory.CreateDirectory(postProcessingDirectory);
-                        //}
-                        //Write sampleDict
-
+                        
                         File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + "controlDict", StringTemplates.controlDict(DOM, null,i));
                         File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, mode));
 
-
-
-
-
+                                                
 
                         //Start sample process                
                         string command = @"""postProcess -func " + pointName + @" -latestTime""";
@@ -181,51 +173,41 @@ namespace Eddy
 
                 if (mode == 1) // U
                 {
-                   
+
+
+                    StringBuilder command = new StringBuilder();
 
                     for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                     {
+
                         string pointName = "U_Probes";
                         string OFfield = "U";
-                        //string postProcessingDirectory = DOM.baseWorkingDirectory + @"\postProcessing\";
 
-                        //if (!Directory.Exists(postProcessingDirectory))
-                        //{
-                        //    Directory.CreateDirectory(postProcessingDirectory);
-                        //}
+                        // Write the dicts
 
                         File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, mode));
+                                           
+                        
+                        command.Append(@"""postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + pointName + @" -latestTime;""");
 
-
-
-                        string command = @"""postProcess -func " + pointName + @" -latestTime""";
-
-                        ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", " -e " + command + " -f " + "\"" + DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i]);
-                        Process p = new Process();
-                        p.StartInfo = psi;
-                        p.Start();
-                        p.WaitForExit();
+                        
+                        // Parse values
 
                         var U = new ParsingValues(listOfPoints, pointName, DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i], OFfield);
 
-
-                        // Input string is not of the right form...
-                        //check this
-                        //if (!File.Exists(U.getLastIterationPath(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i]) + OFfield))
-                        //{
-                        //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The field that is supposed to be probed does not exist.");
-                        //}
-
-
+                                                
+                        // Create datatree
 
                         uTree.AddRange( U.uValues, new Grasshopper.Kernel.Data.GH_Path(i));
-
-
+                        
                     }
-
-                   
-
-
+                    
+                    ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", " -e " + command + " -f " + "\"" + DOM.baseWorkingDirectory);
+                    Process p = new Process();
+                    p.StartInfo = psi;
+                    p.Start();
+                    p.WaitForExit();
+                                        
                 }
             }
             DA.SetDataTree(0, cpTree);
