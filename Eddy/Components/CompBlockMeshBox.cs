@@ -141,10 +141,7 @@ namespace Eddy
 
             //Fix paths
 
-            if ( !workingDirectory.EndsWith(@"\"))
-            {
-                workingDirectory = workingDirectory + @"\";
-            }
+            workingDirectory = Utilities.FixDirectories(workingDirectory);
 
 
             OFBoxDomain DOM = new OFBoxDomain(combinedMeshes,BCond,  blockDimension);

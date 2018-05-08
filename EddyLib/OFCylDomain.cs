@@ -174,7 +174,7 @@ namespace EddyLib
 
         }
 
-        public void MakeCircMeshPlane(Point3d center, int divisions, double circleRadius, double height, double sizeInnerRect = 0.5)
+        public void MakeCircMeshPlane(Point3d center, double sizeInnerRect, int divisions, double circleRadius, double height)
         {
             List<Point3d> pointsOnCircle = new List<Point3d>();
             var pl = new Plane(center, Vector3d.ZAxis);

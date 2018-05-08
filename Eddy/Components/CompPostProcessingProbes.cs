@@ -122,53 +122,51 @@ namespace Eddy
             {
 
 
- cpTree = new DataTree<double>();
+                cpTree = new DataTree<double>();
                 uTree = new DataTree<Vector3d>();
 
 
                 if (mode == 0) // cp
                 {
-                    
+
+
+                    StringBuilder command = new StringBuilder();
+
+                    string pointName = "cp_Probes";
+                    string OFfield = "total(p)_coeff";
 
                     for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                     {
 
-                        string pointName = "cp_Probes";
-                        string OFfield = "total(p)_coeff";
-                        //string postProcessingDirectory = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\postProcessing\";
-
-                        
-                        File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + "controlDict", StringTemplates.controlDict(DOM, null,i));
+                        File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + "controlDict", StringTemplates.controlDict(DOM, null, i));
                         File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, mode));
 
-                                                
-
-                        //Start sample process                
-                        string command = @"""postProcess -func " + pointName + @" -latestTime""";
+                        command.Append(@"postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + pointName + @" -latestTime;");
 
 
-                        ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", " -e " + command + " -f " + "\"" + DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i]);
-                        Process p = new Process();
-                        p.StartInfo = psi;
-                        p.Start();
-                        p.WaitForExit();
+                    }
 
-                        //Parse file
+                    ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", " -e " + command + " -f " + "\"" + DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i]);
+                    Process p = new Process();
+                    p.StartInfo = psi;
+                    p.Start();
+                    p.WaitForExit();
+
+                    for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
+                    {
+
+
 
 
 
                         ParsingValues cp = new ParsingValues(listOfPoints, pointName, DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i], OFfield);
 
-                        //check this
-                        //if (!File.Exists(cp.getLastIterationPath(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i]) + OFfield))
-                        //{
-                        //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The field that is supposed to be probed does not exist.");
-                        //}
+
 
                         cpTree.AddRange(cp.cpValues, new Grasshopper.Kernel.Data.GH_Path(i));
                     }
 
-                   
+
                 }
 
                 if (mode == 1) // U
@@ -177,37 +175,44 @@ namespace Eddy
 
                     StringBuilder command = new StringBuilder();
 
+                    string pointName = "U_Probes";
+                    string OFfield = "U";
+
                     for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                     {
 
-                        string pointName = "U_Probes";
-                        string OFfield = "U";
 
                         // Write the dicts
 
                         File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, mode));
-                                           
-                        
-                        command.Append(@"""postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + pointName + @" -latestTime;""");
 
-                        
-                        // Parse values
+                        command.Append(@"postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + pointName + @" -latestTime;");
 
-                        var U = new ParsingValues(listOfPoints, pointName, DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i], OFfield);
 
-                                                
-                        // Create datatree
-
-                        uTree.AddRange( U.uValues, new Grasshopper.Kernel.Data.GH_Path(i));
-                        
                     }
-                    
-                    ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", " -e " + command + " -f " + "\"" + DOM.baseWorkingDirectory);
+
+                    ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.baseWorkingDirectory);
                     Process p = new Process();
                     p.StartInfo = psi;
                     p.Start();
                     p.WaitForExit();
-                                        
+
+                    for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
+                    {
+
+                        // Parse values
+
+                        var U = new ParsingValues(listOfPoints, pointName, DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i], OFfield);
+
+
+                        // Create datatree
+
+                        uTree.AddRange(U.uValues, new Grasshopper.Kernel.Data.GH_Path(i));
+
+                    }
+
+
+
                 }
             }
             DA.SetDataTree(0, cpTree);
