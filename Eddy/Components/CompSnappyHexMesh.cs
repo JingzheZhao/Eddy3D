@@ -39,11 +39,11 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("accBuilding", "accBuilding", "Specify accuracy of mesh", GH_ParamAccess.item,2);
-            pManager.AddIntegerParameter("accFeatures", "accFeatures", "Specify accuracy of mesh", GH_ParamAccess.item,2);
-            pManager.AddIntegerParameter("accRefinement", "accRefinement", "accRefinement", GH_ParamAccess.item,0);
-            pManager.AddIntegerParameter("accGround", "accGround", "Specify accuracy of mesh", GH_ParamAccess.item,2);
-            pManager.AddIntegerParameter("nLayer", "nLayer", "nLayer", GH_ParamAccess.item,3);
+            pManager.AddIntegerParameter("accBuilding", "accBuilding", "Specify accuracy of mesh", GH_ParamAccess.item, 2);
+            pManager.AddIntegerParameter("accFeatures", "accFeatures", "Specify accuracy of mesh", GH_ParamAccess.item, 2);
+            pManager.AddIntegerParameter("accRefinement", "accRefinement", "accRefinement", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("accGround", "accGround", "Specify accuracy of mesh", GH_ParamAccess.item, 2);
+            pManager.AddIntegerParameter("nLayer", "nLayer", "nLayer", GH_ParamAccess.item, 3);
             pManager.AddBooleanParameter("Run", "Run", "Create the mesh.", GH_ParamAccess.item, false);
 
         }
@@ -123,10 +123,10 @@ namespace Eddy
 
 
 
-                //string command = "";
+            //string command = "";
 
 
-                string SingleCPU = @"""surfaceFeatureExtract;snappyHexMesh -overwrite """; //-overwrite
+            string SingleCPU = @"""surfaceFeatureExtract;snappyHexMesh -overwrite """; //-overwrite
             string MultipleCPU = @"""surfaceFeatureExtract;pyFoamDecompose.py --clear . " + DOM.CPU + @"; foamJob -parallel -screen snappyHexMesh -overwrite""";
 
 
@@ -166,7 +166,7 @@ namespace Eddy
 
             if (Run == true)
             {
-                
+
                 if (Directory.Exists(DOM.meshPolyMeshDirectory))
                 {
                     System.IO.DirectoryInfo di = new DirectoryInfo(DOM.meshPolyMeshDirectory);
@@ -180,7 +180,7 @@ namespace Eddy
                     }
                 }
 
-                if (Directory.Exists(DOM.meshConstantDirectory+ @"extendedFeatureEdgeMesh"))
+                if (Directory.Exists(DOM.meshConstantDirectory + @"extendedFeatureEdgeMesh"))
                 {
                     System.IO.DirectoryInfo di = new DirectoryInfo(DOM.meshConstantDirectory + @"extendedFeatureEdgeMesh");
                     foreach (FileInfo file in di.GetFiles())
@@ -202,50 +202,54 @@ namespace Eddy
 
 
             var meshStlDir = DOM.meshWorkingDirectory + @"\constant\triSurface\";
-                var meshStlFilenameBuildings = DOM.meshWorkingDirectory + @"\constant\triSurface\building.stl";
-                var meshStlFilenameGround = DOM.meshWorkingDirectory + @"\constant\triSurface\ground.stl";
+            var meshStlFilenameBuildings = DOM.meshWorkingDirectory + @"\constant\triSurface\building.stl";
+            var meshStlFilenameGround = DOM.meshWorkingDirectory + @"\constant\triSurface\ground.stl";
 
-                if (!Directory.Exists(meshStlDir))
-                {
-                    Directory.CreateDirectory(meshStlDir);
-                }
+            if (!Directory.Exists(meshStlDir))
+            {
+                Directory.CreateDirectory(meshStlDir);
+            }
 
+
+            if (!File.Exists(DOM.meshWorkingDirectory + @"\log"))
+            {
                 File.WriteAllText(DOM.meshWorkingDirectory + @"\log", "");
+            }
 
-                string meshSystemDir = DOM.meshWorkingDirectory + @"\system\";
+            string meshSystemDir = DOM.meshWorkingDirectory + @"\system\";
 
-                if (!Directory.Exists(meshSystemDir))
-                {
-                    Directory.CreateDirectory(meshSystemDir);
-                }
+            if (!Directory.Exists(meshSystemDir))
+            {
+                Directory.CreateDirectory(meshSystemDir);
+            }
 
-                Point3d locationInMesh = new Point3d();
-                locationInMesh = DOM.locationInMesh;
-
-
-                
-
-                File.WriteAllText(Path.Combine(meshSystemDir + "snappyHexMeshDict"), StringTemplates.snappyHexMeshDict(DOM));
-                File.WriteAllText(Path.Combine(meshSystemDir + "surfaceFeatureExtractDict"), StringTemplates.surfaceFeatureExtractDict());
-                File.WriteAllText(Path.Combine(meshSystemDir + "fvSchemes"), StringTemplates.fvSchemes());
-                File.WriteAllText(Path.Combine(meshSystemDir + "fvSolution"), StringTemplates.fvSolution(0));
-                File.WriteAllText(Path.Combine(meshSystemDir + "meshQualityDict"), StringTemplates.meshQualityDict());
+            Point3d locationInMesh = new Point3d();
+            locationInMesh = DOM.locationInMesh;
 
 
-           
+
+
+            File.WriteAllText(Path.Combine(meshSystemDir + "snappyHexMeshDict"), StringTemplates.snappyHexMeshDict(DOM));
+            File.WriteAllText(Path.Combine(meshSystemDir + "surfaceFeatureExtractDict"), StringTemplates.surfaceFeatureExtractDict());
+            File.WriteAllText(Path.Combine(meshSystemDir + "fvSchemes"), StringTemplates.fvSchemes());
+            File.WriteAllText(Path.Combine(meshSystemDir + "fvSolution"), StringTemplates.fvSolution(0));
+            File.WriteAllText(Path.Combine(meshSystemDir + "meshQualityDict"), StringTemplates.meshQualityDict());
 
 
 
 
 
 
-                    string command = DOM.CPU > 1 ? MultipleCPU : SingleCPU;
+
+
+
+            string command = DOM.CPU > 1 ? MultipleCPU : SingleCPU;
 
 
             if (Run == true)
             {
-               
-              
+
+
 
 
 

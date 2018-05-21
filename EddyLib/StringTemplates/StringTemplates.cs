@@ -396,7 +396,7 @@ mergeTolerance 1E-6;
 //autoBlockMesh true;
 ";
         }
-        public static string controlDict(OFBaseDomain DOM, List<Mesh> topologies, int i)
+        public static string controlDict(OFBaseDomain DOM, List<Mesh> topologies, int numberOfTopologies)
         {
             var sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -443,7 +443,7 @@ libs
 #includeFunc residuals
 ");
             //if (topologies != null) {
-                sb.Append(StringTemplates.functionObjCP(DOM,topologies,i).ToString());
+                sb.Append(StringTemplates.functionObjCP(DOM,topologies,numberOfTopologies).ToString());
             //}
             //else { sb.Append(@"};"); }
 
@@ -1459,6 +1459,8 @@ RAS
             }
                 return sb.ToString();
                 }
+       
+     
         public static string run(OFBaseDomain DOM) {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(@"call run_mesh.bat");

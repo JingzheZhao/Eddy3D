@@ -67,8 +67,8 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Result", "Cp", "Result", GH_ParamAccess.tree);
-            pManager.AddGenericParameter("Result", "U", "Result", GH_ParamAccess.tree);
+            pManager.AddGenericParameter("Result", "Out", "Result", GH_ParamAccess.tree);
+            //pManager.AddGenericParameter("Result", "Out", "Result", GH_ParamAccess.tree);
         }
 
 
@@ -146,7 +146,7 @@ namespace Eddy
 
                     }
 
-                    ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", " -e " + command + " -f " + "\"" + DOM.baseWorkingDirectory);
+                    ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.baseWorkingDirectory);
                     Process p = new Process();
                     p.StartInfo = psi;
                     p.Start();
@@ -154,15 +154,7 @@ namespace Eddy
 
                     for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                     {
-
-
-
-
-
                         ParsingValues cp = new ParsingValues(listOfPoints, pointName, DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i], OFfield);
-
-
-
                         cpTree.AddRange(cp.cpValues, new Grasshopper.Kernel.Data.GH_Path(i));
                     }
 
@@ -215,9 +207,18 @@ namespace Eddy
 
                 }
             }
-            DA.SetDataTree(0, cpTree);
-            DA.SetDataTree(1, uTree);
+
+            if (mode == 0)
+            {
+                DA.SetDataTree(0, cpTree);
+            }
+            else if (mode == 1)
+            {
+                DA.SetDataTree(0, uTree);
+            }
+
         }
+
 
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface.
@@ -244,3 +245,6 @@ namespace Eddy
         }
     }
 }
+
+
+

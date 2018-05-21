@@ -52,7 +52,7 @@ namespace EddyLib
         //// Delete later
 
 
-        public OFBoxDomain(Mesh geometry, BoundaryConditions BCond, double _blockDim)
+        public OFBoxDomain(Mesh geometry, BoundaryConditions BCond, double _blockDim, string baseWorkingDirectory = @"C:\temp")
         {
             blockDimension = _blockDim;
             BuildingGeometry = geometry;
@@ -170,7 +170,19 @@ namespace EddyLib
 
             this.BCInflow = BCond;
 
+            this.baseWorkingDirectory = baseWorkingDirectory;
+            this.meshStlDirectory = baseWorkingDirectory + @"\mesh\constant\triSurface\";
+            this.meshPolyMeshDirectory = baseWorkingDirectory + @"\mesh\constant\polyMesh\";
+            this.meshSystemDirectory = baseWorkingDirectory + @"\mesh\system\";
+            this.meshConstantDirectory = baseWorkingDirectory + @"\mesh\constant\";
+            this.meshWorkingDirectory = baseWorkingDirectory + @"\mesh\";
 
+
+
+            //needed for meshing purposes at this point in time
+            this.iter = 1000;
+            this.writeInterval = 5;
+            this.keepTimeSteps = 5;
 
         }
 

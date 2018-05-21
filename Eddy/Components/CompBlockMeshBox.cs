@@ -43,9 +43,9 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGeometryParameter("Geometry", "Geo", "Building Geometry. Building Geometry.", GH_ParamAccess.list);
-            pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, @"C:\Temp");
+            pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, @"C:\temp");
             pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.item);
-                     
+
             pManager.AddNumberParameter("baseMesh", "baseMesh", "baseMesh", GH_ParamAccess.item);
 
             //pManager.AddGenericParameter("RAM", "RAM", "RAM", GH_ParamAccess.item);
@@ -62,11 +62,11 @@ namespace Eddy
         {
             pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.item);
             pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Cyl", "C", "Domain", GH_ParamAccess.item);
+            //pManager.AddGenericParameter("Cyl", "C", "Domain", GH_ParamAccess.item);
 
-            //Delete later
-            pManager.AddGenericParameter("D", "D", "D", GH_ParamAccess.item);
-            pManager.AddGenericParameter("E", "E", "E", GH_ParamAccess.item);
+            ////Delete later
+            //pManager.AddGenericParameter("D", "D", "D", GH_ParamAccess.item);
+            //pManager.AddGenericParameter("E", "E", "E", GH_ParamAccess.item);
 
         }
 
@@ -79,81 +79,87 @@ namespace Eddy
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            //string filepath = @"C:\OF\";
+
             bool Run = false;
-            //string command = @"blockMesh";
-            string workingDirectory = "";
-            
+
+
 
             //public Box DomainBoundaryBox;
             List<GeometryBase> domain = new List<GeometryBase>();
+            string baseWorkingDirectory = "";
 
             DA.GetDataList(0, domain);
-            DA.GetData(1, ref workingDirectory);
-            
+            DA.GetData(1, ref baseWorkingDirectory);
 
             double blockDimension = 0;
             double RAM = 0;
             int CPUs = 1;
 
-            
+
             DA.GetData(3, ref blockDimension);
             //DA.GetData(4, ref RAM);
             DA.GetData(4, ref CPUs);
             DA.GetData(5, ref Run);
 
             BoundaryConditions BCond;
-
-
             GH_ObjectWrapper gobj = null;
             if (!DA.GetData(2, ref gobj)) { }
 
-            
+
             if ((gobj.Value is BoundaryConditions))
             {
-                BCond=(BoundaryConditions)gobj.Value;
+                BCond = (BoundaryConditions)gobj.Value;
             }
-            else  { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid boundary condition object"); return; }
-            
-            
+            else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid boundary condition object"); return; }
+
+
             Mesh combinedMeshes = new Mesh();
             MeshingParameters mp = new MeshingParameters();
 
-            foreach (GeometryBase b in domain)
+
+
+            if (domain == null)
             {
-
-                if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please reference an input geometry."); return;
+            }
+            else
+            {
+                foreach (GeometryBase b in domain)
                 {
-                    Mesh obj = (Mesh)b;
-                    combinedMeshes.Append(obj);
-                }
-                else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
-                {
-                    Brep obj = (Brep)b;
-                    var m = Mesh.CreateFromBrep(obj, mp);
-                    foreach (Mesh mm in m) combinedMeshes.Append(mm);
+
+                    if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
+                    {
+                        Mesh obj = (Mesh)b;
+                        combinedMeshes.Append(obj);
+                    }
+                    else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
+                    {
+                        Brep obj = (Brep)b;
+                        var m = Mesh.CreateFromBrep(obj, mp);
+                        foreach (Mesh mm in m) combinedMeshes.Append(mm);
+
+                    }
+
 
                 }
-
-
             }
 
 
             //Fix paths
 
-            workingDirectory = Utilities.FixDirectories(workingDirectory);
+            baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
 
 
-            OFBoxDomain DOM = new OFBoxDomain(combinedMeshes,BCond,  blockDimension);
+            OFBoxDomain DOM = new OFBoxDomain(combinedMeshes, BCond, blockDimension, baseWorkingDirectory);
             //DOM = OFDomainBuilder(domain, workingDirectory);
 
             if ((DOM.xCells * blockDimension) > DOM.dimX || (DOM.yCells * blockDimension) > DOM.dimY || (DOM.zCells * blockDimension) > DOM.dimZ)
             {
-              //  AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Your block dimensions need to be smaller than the domain.");
+                //  AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Your block dimensions need to be smaller than the domain.");
             }
 
 
-            
+
 
 
             if (CPUs == -1 || CPUs > Environment.ProcessorCount)
@@ -161,92 +167,98 @@ namespace Eddy
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that many CPUs.");
             }
 
-            var totalGBRam = Convert.ToInt32((new ComputerInfo().TotalPhysicalMemory / (Math.Pow(1024, 2))) + 0.5);
-            if (RAM < 0 || RAM > totalGBRam)
+            //var totalGBRam = Convert.ToInt32((new ComputerInfo().TotalPhysicalMemory / (Math.Pow(1024, 2))) + 0.5);
+            //if (RAM < 0 || RAM > totalGBRam)
+            //{
+            //    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that much RAM available.");
+            //}
+
+
+
+
+
+
+            //if (Settings.getCurrentRAM() != RAM)
+            //{
+
+
+
+            //    string newRAM = "Set-VM -StaticMemory -Name MobyLinuxVM -MemoryStartupBytes " + RAM + "GB";
+            //    //var totalGBRam = 0 ;
+
+            //    ProcessStartInfo psiNewRAM = new ProcessStartInfo(@"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe");
+            //    psiNewRAM.Verb = "runas";
+            //    psiNewRAM.Arguments = newRAM;
+
+            //    Process pRAM = new Process();
+            //    pRAM.StartInfo = psiNewRAM;
+            //    pRAM.Start();
+            //    pRAM.WaitForExit();
+
+            //}
+
+            //if (Settings.getCurrentCPUs(DOM) != CPUs)
+            //{
+
+            //    string newCPUs = @"Stop-VM -Name MobyLinuxVM;Set-VMProcessor MobyLinuxVM -Count '" + CPUs+ "';Start-VM -Name MobyLinuxVM";
+            //    //var totalGBRam = 0 ;
+
+
+            //    ProcessStartInfo psiNewCPUs = new ProcessStartInfo(@"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe");
+            //    psiNewCPUs.Verb = "runas";
+            //    psiNewCPUs.Arguments = newCPUs;
+
+            //    Process pRAM = new Process();
+            //    pRAM.StartInfo = psiNewCPUs;
+            //    pRAM.Start();
+            //    pRAM.WaitForExit();
+
+            //}
+
+            
+            //////
+
+            var meshStlFilenameBuildings = DOM.baseWorkingDirectory + @"\mesh\constant\triSurface\building.stl";
+            var meshStlFilenameGround = DOM.baseWorkingDirectory + @"\mesh\constant\triSurface\ground.stl";
+            var meshStlFilenameGroundPerim = DOM.baseWorkingDirectory + @"\mesh\constant\triSurface\ground_perim.stl";
+            var meshBoundaryConditionsDirectory = DOM.baseWorkingDirectory + @"\mesh\0.org\";
+
+
+            if (!Directory.Exists(DOM.meshStlDirectory))
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that much RAM available.");
+                Directory.CreateDirectory(DOM.meshStlDirectory);
             }
 
 
+            STLExport.ExportBinary(meshStlFilenameBuildings, combinedMeshes);
+            STLExport.ExportBinary(meshStlFilenameGround, DOM.newBoxGround);
+            STLExport.ExportBinary(meshStlFilenameGroundPerim, DOM.newBoxGroundPerim);
 
 
-                        
-                
-                //if (Settings.getCurrentRAM() != RAM)
-                //{
-
-                    
-
-                //    string newRAM = "Set-VM -StaticMemory -Name MobyLinuxVM -MemoryStartupBytes " + RAM + "GB";
-                //    //var totalGBRam = 0 ;
-                                  
-                //    ProcessStartInfo psiNewRAM = new ProcessStartInfo(@"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe");
-                //    psiNewRAM.Verb = "runas";
-                //    psiNewRAM.Arguments = newRAM;
-
-                //    Process pRAM = new Process();
-                //    pRAM.StartInfo = psiNewRAM;
-                //    pRAM.Start();
-                //    pRAM.WaitForExit();
-
-                //}
-
-                //if (Settings.getCurrentCPUs(DOM) != CPUs)
-                //{
-
-                //    string newCPUs = @"Stop-VM -Name MobyLinuxVM;Set-VMProcessor MobyLinuxVM -Count '" + CPUs+ "';Start-VM -Name MobyLinuxVM";
-                //    //var totalGBRam = 0 ;
-                    
-
-                //    ProcessStartInfo psiNewCPUs = new ProcessStartInfo(@"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe");
-                //    psiNewCPUs.Verb = "runas";
-                //    psiNewCPUs.Arguments = newCPUs;
-
-                //    Process pRAM = new Process();
-                //    pRAM.StartInfo = psiNewCPUs;
-                //    pRAM.Start();
-                //    pRAM.WaitForExit();
-
-                //}
-
-                var stlDirectory = Path.GetDirectoryName(workingDirectory + @"\constant\triSurface\");
-               var stlFilenameBuildings = workingDirectory + @"\constant\triSurface\building.stl";
-                var stlFilenameGround = workingDirectory + @"\constant\triSurface\ground.stl";
-                var stlFilenameGroundPerim = workingDirectory + @"\constant\triSurface\ground_perim.stl";
-
-                
-
-                if (!Directory.Exists(stlDirectory))
-                {
-                    Directory.CreateDirectory(stlDirectory);
-                }
+            if (!Directory.Exists(DOM.meshSystemDirectory))
+            {
+                Directory.CreateDirectory(DOM.meshSystemDirectory);
+            }
+            if (!Directory.Exists(DOM.meshConstantDirectory))
+            {
+                Directory.CreateDirectory(DOM.meshConstantDirectory);
+            }
+            if (!Directory.Exists(meshBoundaryConditionsDirectory))
+            {
+                Directory.CreateDirectory(meshBoundaryConditionsDirectory);
+            }
 
 
-                STLExport.ExportBinary(stlFilenameBuildings, combinedMeshes);
-                STLExport.ExportBinary(stlFilenameGround, DOM.newBoxGround);
-                STLExport.ExportBinary(stlFilenameGroundPerim, DOM.newBoxGroundPerim);
+            File.WriteAllText(DOM.meshSystemDirectory + @"\blockMeshDict", StringTemplates.blockMeshDict(DOM));
+            File.WriteAllText(DOM.baseWorkingDirectory + @"\mesh\case.foam", "");
+            File.WriteAllText(DOM.meshSystemDirectory + @"\controlDict", StringTemplates.controlDict(DOM, null, 0));
+
+            if (!File.Exists(baseWorkingDirectory + @"\mesh\log"))
+            {
+                File.WriteAllText(baseWorkingDirectory + @"\mesh\log", "");
+            }
 
 
-
-                string systemDir = workingDirectory + @"\system\";
-
-                if (!Directory.Exists(systemDir))
-                {
-                    Directory.CreateDirectory(systemDir);
-                }
-
-
-
-                
-                File.WriteAllText(Path.Combine(systemDir + "blockMeshDict"), StringTemplates.blockMeshDict(DOM));
-                
-                File.WriteAllText(Path.Combine(workingDirectory + "case.foam"), "");
-                File.WriteAllText(Path.Combine(systemDir + "controlDict"), StringTemplates.controlDict(DOM, null, 0));
-
-                if (!File.Exists(Path.Combine(workingDirectory + "log")))
-                {
-                    File.WriteAllText(Path.Combine(workingDirectory + "log"), "");
-                }
 
 
             if (Run == true)
@@ -262,7 +274,7 @@ namespace Eddy
 
                 string logFile = "";
 
-                using (FileStream stream = File.Open(workingDirectory + @"\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (FileStream stream = File.Open(baseWorkingDirectory + @"\mesh\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
                     using (StreamReader reader = new StreamReader(stream))
                     {
@@ -288,7 +300,7 @@ namespace Eddy
             DA.SetData(1, DOM);
             //if (mode == 0)
             //{
-            DA.SetData(2, DOM.newBoxDomain);
+            //DA.SetData(2, DOM.newBoxDomain);
 
             ////Delete later
             //DA.SetData(3, DOM.pl);

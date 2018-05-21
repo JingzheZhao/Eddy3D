@@ -147,7 +147,7 @@ namespace Eddy
             //OFDomainBuilder DOM = new OFDomainBuilder(domain, workingDirectory, baseMesh);
             //DOM = OFDomainBuilder(domain, workingDirectory);
 
-            Mesh allTogether = new Mesh();
+            Mesh combinedMeshes = new Mesh();
             MeshingParameters mp = new MeshingParameters();
 
             //Error handling
@@ -180,13 +180,13 @@ namespace Eddy
                 if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
                 {
                     Mesh obj = (Mesh)b;
-                    allTogether.Append(obj);
+                    combinedMeshes.Append(obj);
                 }
                 else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
                 {
                     Brep obj = (Brep)b;
                     var m = Mesh.CreateFromBrep(obj, mp);
-                    foreach (Mesh mm in m) allTogether.Append(mm);
+                    foreach (Mesh mm in m) combinedMeshes.Append(mm);
 
                 }
 
@@ -199,7 +199,7 @@ namespace Eddy
 
 
 
-            OFCylDomain DOMCYL = new OFCylDomain(allTogether, BCond, divisionsOuterCirc, gradingPerim, windDir, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory);
+            OFCylDomain DOMCYL = new OFCylDomain(combinedMeshes, BCond, divisionsOuterCirc, gradingPerim, windDir, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory);
 
 
 
@@ -263,7 +263,7 @@ namespace Eddy
             }
 
 
-            STLExport.ExportBinary(meshStlFilenameBuildings, allTogether);
+            STLExport.ExportBinary(meshStlFilenameBuildings, combinedMeshes);
             STLExport.ExportBinary(meshStlFilenameGround, DOMCYL.DomainMeshGround);
             STLExport.ExportBinary(meshStlFilenameGroundPerim, DOMCYL.DomainMeshGroundPerim);
 
