@@ -1564,12 +1564,16 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#includeEtc ""caseDicts/PostProcessing/numerical/residuals.cfg""
+type            residuals;
+libs            (""libutilityFunctionObjects.so"");
+
+writeControl timeStep;
+writeInterval   1;
 
 fields (U p epsilon omega  k);
 
-            // ************************************************************************* //
-            ";
+// ************************************************************************* //
+";
         }
     }
 }
