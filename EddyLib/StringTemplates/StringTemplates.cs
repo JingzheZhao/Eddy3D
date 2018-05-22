@@ -1415,7 +1415,7 @@ RAS
 ";
         }
         
-        public static string run_mesh_docker(OFBaseDomain DOM) {
+        public static string run_mesh(OFBaseDomain DOM) {
 
 
             StringBuilder sb = new StringBuilder();
@@ -1441,7 +1441,7 @@ RAS
 
                 return sb.ToString();
                 }
-        public static string run_sim_docker(OFBaseDomain DOM, int d) {
+        public static string run_sim(OFBaseDomain DOM, int d) {
             StringBuilder sb = new StringBuilder();
 
                 sb.AppendLine(@"docker run -v """+DOM.baseWorkingDirectory+DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamPrepareCase.py . --no-mesh-create | tee -a log""");
@@ -1460,7 +1460,7 @@ RAS
                 return sb.ToString();
                 }
 
-        public static string run_mesh(OFBaseDomain DOM)
+        public static string run_mesh_docker(OFBaseDomain DOM)
         {
 
 
@@ -1468,31 +1468,47 @@ RAS
             sb.AppendLine("\""+Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""blockMesh | tee -a log"" -f """ + DOM.meshWorkingDirectory + " \"");
             if (DOM.CPU > 1)
             {
-
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  "" -e ""surfaceFeatureExtract | tee -a log; pyFoamDecompose.py --clear . " + DOM.CPU + @" | tee -a log; foamJob -parallel -screen snappyHexMesh -overwrite | tee -a log; reconstructParMesh -constant | tee -a log; renumberMesh -overwrite | tee -a log; checkMesh | tee -a log"" -f """ + DOM.meshWorkingDirectory  + " \"");
-
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""surfaceFeatureExtract | tee -a log "" -f """ + DOM.meshWorkingDirectory  + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""pyFoamDecompose.py --clear . " + DOM.CPU + @" | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""foamJob -parallel -screen snappyHexMesh -overwrite | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""reconstructParMesh -constant | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""renumberMesh -overwrite | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");
+                sb.AppendLine("PAUSE");
             }
             else
             {
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e "" snappyHexMesh -overwrite  | tee -a log; checkMesh | tee -a log; renumberMesh -overwrite | tee -a log; checkMesh | tee -a log"" -f """ + DOM.meshWorkingDirectory +  " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""surfaceFeatureExtract | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""snappyHexMesh -overwrite  | tee -a log "" -f """ + DOM.meshWorkingDirectory +  " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""renumberMesh -overwrite | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");                
+                sb.AppendLine("PAUSE");
             }
 
 
 
             return sb.ToString();
         }
-        public static string run_sim(OFBaseDomain DOM, int d)
+        public static string run_sim_docker(OFBaseDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
 
-            sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e "" pyFoamPrepareCase.py . --no-mesh-create | tee -a log"" -f """ + DOM.meshWorkingDirectory + " \"");
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""pyFoamPrepareCase.py . --no-mesh-create | tee -a log"" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
             if (DOM.CPU > 1)
             {
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e "" pyFoamDecompose.py --clear . " + DOM.CPU + @"| tee -a log; foamJob -s -p renumberMesh -overwrite | tee -a log; mpirun -np " + DOM.CPU + @" simpleFoam -parallel | tee -a log; reconstructPar -latestTime | tee -a log; checkMesh | tee -a log"" -f """  + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""pyFoamDecompose.py --clear . " + DOM.CPU + @"| tee -a log "" -f """  + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""foamJob -s -p renumberMesh -overwrite | tee -a log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""mpirun -np " + DOM.CPU + @" simpleFoam -parallel | tee -a log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""reconstructPar -latestTime | tee -a log; "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
+                sb.AppendLine("PAUSE");
             }
             else
             {
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e "" simpleFoam | tee -a log; checkMesh | tee -a log"" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""simpleFoam | tee -a log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
+                sb.AppendLine("PAUSE");
             }
             return sb.ToString();
         }

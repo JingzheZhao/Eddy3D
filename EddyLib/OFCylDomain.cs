@@ -18,9 +18,9 @@ namespace EddyLib
 
 
 
-        public int xCells;
-        public int yCells;
-        public int zCells;
+        //public int xCells;
+        //public int yCells;
+        //public int zCells;
 
 
 
@@ -98,16 +98,9 @@ namespace EddyLib
             var dimY = yMax - yMin;
             var dimZ = zMax - zMin;
 
-            
-            //Create ground plane of BBox
-            center = BBox.Center + 0.5 * -Vector3d.ZAxis * dimZ;
-            locationInMesh = center + 4 * Vector3d.ZAxis * dimZ;
-
-            //Create Circular Domain Ground
 
             // Check standard inputs for height
 
-              
             if (sizeHeight == 0)
             {
                 height = 6 * dimZ;
@@ -117,8 +110,21 @@ namespace EddyLib
                 height = sizeHeight;
             }
 
-                        
-            var scaleCyclDomainHeight = (15.5 * dimZ) + dimY;
+
+            //Create ground plane of BBox
+            //center needs dimZ to stay at ground level
+            center = BBox.Center + 0.5 * -Vector3d.ZAxis * dimZ;
+
+
+            locationInMesh = center + (Vector3d.ZAxis * (height- 0.1));
+
+            //Create Circular Domain Ground
+
+            
+
+
+
+            var scaleCyclDomainHeight = (15.5 * height) + dimY;
             //var scaleCyclDomainHeight = dimZ > dimY ? dimZ : dimY;
 
 
@@ -194,7 +200,19 @@ namespace EddyLib
             var cellSizeCore =2*( sizeInnerRect / divisions);
             //Math.Abs was just a workaround fix
             this.cellDivisionsPerim = Math.Abs((int)Math.Round((circRad - (2 * sizeInnerRect)) / cellSizeCore));
-            this.divisionsZ = (int)(height / cellSizeCore);
+            
+
+            // divisionsZ must be min 1
+
+            if ((int)(height / cellSizeCore) < 1)
+            {
+                this.divisionsZ = 1;
+            }
+            else
+            {
+                this.divisionsZ = (int)(height / cellSizeCore);
+            }
+
 
             var c = new Circle(center, circRad);
 
