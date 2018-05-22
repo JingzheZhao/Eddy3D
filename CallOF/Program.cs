@@ -26,8 +26,8 @@ namespace CallOF
                 //    options.CPUs = Environment.ProcessorCount;
                 //}
                 // Values are available here
-                //if (options.Verbose)
-                //{
+                if (options.Verbose)
+                {
                     Console.WriteLine("File path: {0}", options.filePath);
                     //Console.WriteLine("Output: {0}", options.OutputFile);
                     Console.WriteLine("Executable: {0}", options.command);
@@ -41,7 +41,7 @@ namespace CallOF
                     //errorLog.AppendLine(String.Format("Viscosity: {0}", options.Visc));
                     //errorLog.AppendLine(String.Format("Processors used: {0}", options.CPUs));
                     //errorLog.AppendLine(String.Format("Abort if error smaller than: {0}", options.MaxErr));
-                //}
+                }
 
 
                 string app = "docker";
@@ -55,12 +55,15 @@ namespace CallOF
                 var app_argument = string.Format("run -v \"{0}:{1}\" {2} {3} bash -c \"{4}{5}{6}\"", options.filePath.Trim(), volumeDocker, entryPoint, container, sourceEnvironment, options.command, logging);
                 //Environment.SetEnvironmentVariable("PATH", @"C:\Program Files\Docker\Docker\Resources\bin");
 
-                // Console.WriteLine(ConsoleApp.Run(app, app_argument).Output.Trim());
 
+                //Show stdout after executed command
 
+                //Console.WriteLine(ConsoleApp.Run(app, app_argument).Output.Trim());
 
+                //Don't show stdout
+                
                 var p = new ConsoleApp(app, app_argument);
-                p.ConsoleOutput += (o, args1) =>
+                p.ConsoleOutput += (o, args1) =>                
                 {
                     Console.WriteLine(args1.Line);
                 };
@@ -69,12 +72,7 @@ namespace CallOF
                 //Console.ReadKey();
 
 
-                
-
-
-
-
-
+          
 
             }
 
@@ -114,7 +112,7 @@ namespace CallOF
         //HelpText = "Sets the viscosity of the fluid.")]
         //public double Visc { get; set; }
 
-        [Option('v', "verbose", DefaultValue = true,
+        [Option('l', "loud", DefaultValue = true,
         HelpText = "Prints all messages to standard output.")]
         public bool Verbose { get; set; }
 
