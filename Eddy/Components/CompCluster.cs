@@ -10,6 +10,7 @@ using Grasshopper.Kernel.Types;
 using EddyLib;
 using Eddy.Properties;
 using System.Linq;
+using Grasshopper;
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
 // folder in Grasshopper.
@@ -51,9 +52,10 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("Centroids", "C", "Centroids", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Clusters", "Cl", "Clusters", GH_ParamAccess.item);
+
             pManager.AddGenericParameter("Breaks", "B", "Natural Breaks", GH_ParamAccess.item);
 
-            //pManager.AddGenericParameter("Means", "M", "Means", GH_ParamAccess.item);
 
         }
 
@@ -82,7 +84,7 @@ namespace Eddy
 
             var dirsVec = new List<Vector3d>();
 
-            foreach (double d in dirsDeg)
+            foreach (double d in dirsRad)
             {
                 var v = Vector3d.YAxis;
                 v.Rotate(d, Vector3d.ZAxis);
@@ -96,19 +98,39 @@ namespace Eddy
                 kmd[i] = new KMpt(i, dirsVec[i].X, dirsVec[i].Y, dirsVec[i].Z);
             }
 
-            var results = KMeans.Cluster<KMpt>(kmd, bins, 5000);
+            var results = KMeans.Cluster<KMpt>(kmd, bins, 5000,null,1);
             var Centroids = new List<double>();
             foreach (int i in results.Centroids) {
-                Centroids.Add(dirsDeg[i]);
+
+               Centroids.Add(dirsDeg[i]);
             }
 
+            var Clusters = new DataTree<Point3d>();
+            for (int i = 0; i <  results.Clusters.Length; i++)
+            {
+                var c = results.Clusters[i];
+                foreach (var pt in c)
+                {
+                    //Clusters.Add(dirsDeg[pt.Id], new Grasshopper.Kernel.Data.GH_Path(i));
+                    Clusters.Add(new Point3d(pt.X,pt.Y,pt.Z), new Grasshopper.Kernel.Data.GH_Path(i));
 
-            var breaks = JenksFisher.CreateJenksFisherBreaksArray(dirsDeg, bins);
+
+
+                }
+            }
+
 
 
 
             DA.SetDataList(0, Centroids);
-            DA.SetDataList(1, breaks);
+
+            DA.SetDataTree(1, Clusters);
+
+
+
+
+            var breaks = JenksFisher.CreateJenksFisherBreaksArray(dirsDeg, bins);
+            DA.SetDataList(2, breaks);
 
 
         }
