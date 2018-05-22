@@ -69,6 +69,7 @@
     <Compile Include="Components\CompPostProcessingProbes.cs" />
     <Compile Include="Components\CompPostProcessingPatches.cs" />
     <Compile Include="Components\CompResidualWriter.cs" />
+    <Compile Include="Components\CompCluster.cs" />
     <Compile Include="Licensing\LicenseTest.cs" />
     <Compile Include="Licensing\ModifyRegistry.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -106,6 +107,48 @@
       <Project>{cd46984c-eb80-48de-b903-ce9f1bbca21e}</Project>
       <Name>EddyLib</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_cluster.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_domBox.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_domCyl.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_foam.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_geoExport.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_parseCp.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_parseU.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_probes.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_residuals.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_snappy.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_abl.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_block.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_cellsize.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_clean.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

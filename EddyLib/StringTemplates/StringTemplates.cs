@@ -1320,7 +1320,7 @@ building.stl
 
     // Write options
 
-        // Write features to obj format for postprocessing
+        // Write features to obj format for PostProcessing
         writeObj                yes;
 }
 
@@ -1350,7 +1350,7 @@ ground.stl
 
     // Write options
 
-        // Write features to obj format for postprocessing
+        // Write features to obj format for PostProcessing
         writeObj                yes;
 }
 
@@ -1564,7 +1564,7 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#includeEtc ""caseDicts/postProcessing/numerical/residuals.cfg""
+#includeEtc ""caseDicts/PostProcessing/numerical/residuals.cfg""
 
 fields (U p epsilon omega  k);
 

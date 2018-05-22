@@ -47,6 +47,8 @@
   <ItemGroup>
     <Compile Include="BoundaryConditionsBase.cs" />
     <Compile Include="CreateSymbolicLink.cs" />
+    <Compile Include="JenksFisherNaturalBreaks.cs" />
+    <Compile Include="KMeansClustering.cs" />
     <Compile Include="OFBaseDomain.cs" />
     <Compile Include="OFBoxDomain.cs" />
     <Compile Include="OFCylDomain.cs" />

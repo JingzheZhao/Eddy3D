@@ -11,6 +11,7 @@ using Grasshopper.Kernel.Types;
 using System.Text.RegularExpressions;
 using Grasshopper;
 using EddyLib;
+using Eddy.Properties;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -37,7 +38,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public PostProcessingProbes()
-          : base("Probes", "Probes", "postProcessing", "Eddy", "postProcessing")
+          : base("Probes", "Probes", "PostProcessing", "Eddy", "PostProcessing")
         {
         }
 
@@ -229,8 +230,7 @@ namespace Eddy
             get
             {
                 // You can add image files to your project resources and access them like this:
-                //return Resources.IconForThisComponent;
-                return null;
+                return Resources.Eddy_probes;
             }
         }
 
