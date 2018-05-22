@@ -40,7 +40,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddNumberParameter("Data", "Data", "Data", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Dir", "Dir", "Wind directions (deg)", GH_ParamAccess.list);
             pManager.AddIntegerParameter("Bins", "Bins", "Number of bins", GH_ParamAccess.item, 8);
 
         }
@@ -67,25 +67,43 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-            var data = new List<double>();
-            DA.GetDataList(0, data);
+            var dirsDeg = new List<double>();
+            DA.GetDataList(0, dirsDeg);
 
             int bins = 8;
             DA.GetData(1, ref bins);
 
-            KMpt1D[] kmd = new KMpt1D[data.Count];
-            for (int i = 0; i < data.Count; i++) {
-                kmd[i] = new KMpt1D(i, data[i]);
+
+
+            var dirsRad = new List<double>();
+            foreach (double d in dirsDeg){
+                dirsRad.Add(d * Math.PI / 180.0);
             }
 
-            var results = KMeans.Cluster<KMpt1D>(kmd, bins, 1000);
+            var dirsVec = new List<Vector3d>();
+
+            foreach (double d in dirsDeg)
+            {
+                var v = Vector3d.YAxis;
+                v.Rotate(d, Vector3d.ZAxis);
+                dirsVec.Add(v);
+            }
+
+
+
+            KMpt[] kmd = new KMpt[dirsVec.Count];
+            for (int i = 0; i < dirsVec.Count; i++) {
+                kmd[i] = new KMpt(i, dirsVec[i].X, dirsVec[i].Y, dirsVec[i].Z);
+            }
+
+            var results = KMeans.Cluster<KMpt>(kmd, bins, 5000);
             var Centroids = new List<double>();
             foreach (int i in results.Centroids) {
-                Centroids.Add(data[i]);
+                Centroids.Add(dirsDeg[i]);
             }
 
 
-            var breaks = JenksFisher.CreateJenksFisherBreaksArray(data, bins);
+            var breaks = JenksFisher.CreateJenksFisherBreaksArray(dirsDeg, bins);
 
 
 

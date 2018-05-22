@@ -163,8 +163,13 @@ namespace Eddy
             get
             {
                 // You can add image files to your project resources and access them like this:
+<<<<<<< HEAD
                 //return Resources.IconForThisComponent;
                 return Resources.Eddy_parseU;
+=======
+                return Resources.Eddy_parseU;
+               // return null;
+>>>>>>> 4403c9224c4e3b1b89352e42c304800db67b2102
             }
         }
 

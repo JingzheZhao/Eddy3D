@@ -6,45 +6,8 @@ using System.Reflection;
 namespace EddyLib
 {
 
-    public class KMpt1D
-    {
-        #region Properties
 
-        public int Id { get; set; }
-        [KMeansValue]
-        public double X { get; set; }
-      
-
-        #endregion
-
-        #region Constructors
-
-        public KMpt1D()
-        {
-            Id = -1;
-            X = -1;
-
-        }
-
-        public KMpt1D(double _x)
-        {
-            this.Id = -1;
-            this.X = _x;
-
-        }
-
-        public KMpt1D(int _id, double _x)
-        {
-            this.Id = _id;
-            this.X = _x;
-
-        }
-
-        #endregion
-
-
-    }
-    public class KMpt3D
+    public class KMpt
     {
         #region Properties
 
@@ -60,7 +23,7 @@ namespace EddyLib
 
         #region Constructors
 
-        public KMpt3D()
+        public KMpt()
         {
             Id = -1;
             X = -1;
@@ -68,7 +31,7 @@ namespace EddyLib
             Z = -1;
         }
 
-        public KMpt3D(double _x, double _y, double _z)
+        public KMpt(double _x, double _y, double _z)
         {
             this.Id = -1;
             this.X = _x;
@@ -76,7 +39,7 @@ namespace EddyLib
             this.Z = _z;
         }
 
-        public KMpt3D(int _id, double _x, double _y, double _z)
+        public KMpt(int _id, double _x, double _y, double _z)
         {
             this.Id = _id;
             this.X = _x;
