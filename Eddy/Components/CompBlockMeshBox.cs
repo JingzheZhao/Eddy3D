@@ -92,7 +92,7 @@ namespace Eddy
             DA.GetData(1, ref baseWorkingDirectory);
 
             double blockDimension = 0;
-            double RAM = 0;
+        //    double RAM = 0;
             int CPUs = 1;
 
 
@@ -351,7 +351,7 @@ namespace Eddy
             {
                 // You can add image files to your project resources and access them like this:
                 //return Resources.IconForThisComponent;
-                return Properties.Resources.ED_boxDomain;
+                return Properties.Resources.Eddy_domBox;
             }
         }
 

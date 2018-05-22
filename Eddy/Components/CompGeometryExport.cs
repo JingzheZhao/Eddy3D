@@ -6,6 +6,7 @@ using Rhino.Geometry;
 using System.Text;
 using Grasshopper.Kernel.Parameters;
 using EddyLib;
+using Eddy.Properties;
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
 // folder in Grasshopper.
@@ -151,8 +152,7 @@ namespace Eddy
             get
             {
                 // You can add image files to your project resources and access them like this:
-                //return Resources.IconForThisComponent;
-                return null;
+                return Resources.Eddy_geoExport;
             }
         }
 

@@ -27,7 +27,7 @@
 //        /// new tabs/panels will automatically be created.
 //        /// </summary>
 //        public PostProcessing()
-//          : base("Patches", "Patches","postProcessing","Eddy","postProcessing")
+//          : base("Patches", "Patches","PostProcessing","Eddy","PostProcessing")
 //        {
 //        }
 
@@ -139,7 +139,7 @@
 
 
 
-//                string postProcessDirectory = DOM.baseWorkingDirectory + DOM.BCInflow.windDir[l] + @"\postProcessing\";
+//                string postProcessDirectory = DOM.baseWorkingDirectory + DOM.BCInflow.windDir[l] + @"\PostProcessing\";
 //                int counterTopo = 0;
 
 
@@ -158,7 +158,7 @@
 
 //                    if (!Directory.Exists(postProcessDirectory))
 //                    {
-//                        AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "There is no postProcessing directory.");
+//                        AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "There is no PostProcessing directory.");
 //                    }
 //                    else
 //                    {
