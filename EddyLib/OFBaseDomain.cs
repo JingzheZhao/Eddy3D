@@ -1,4 +1,5 @@
 ﻿using Rhino.Geometry;
+using System;
 using System.Collections.Generic;
 
 
@@ -14,11 +15,11 @@ namespace EddyLib
         public string meshPolyMeshDirectory;
         public string meshWorkingDirectory;
         public string meshSystemDirectory;
-        public string meshConstantDirectory;        
+        public string meshConstantDirectory;
         public string meshStlDirectory;
         public string baseWorkingDirectory;
-        
-                
+
+
         public int CPU;
 
         public double frontageBuildingArea;
@@ -29,18 +30,18 @@ namespace EddyLib
         public int writeInterval;
         public int keepTimeSteps;
 
-        
+
         public Cylinder refinementCylinder;
         public BoundingBox refinementBox;
         public BoundingBox BBox;
 
 
         //Meshes from Cycl Domain
-        public Mesh DomainMesh= new Mesh();
+        public Mesh DomainMesh = new Mesh();
         public Mesh DomainMeshGround = new Mesh();
         public Mesh DomainMeshGroundPerim = new Mesh();
 
-        
+
         public Mesh perim = new Mesh();
         public Mesh core = new Mesh();
         public Mesh perimTop = new Mesh();
@@ -53,10 +54,15 @@ namespace EddyLib
         public int accGround;
         public int accFeatures;
         public int accRefinement;
-        
+
         public int nLayers;
 
         
+       
+
+
+
+
 
 
         public static BoundingBox getRefinementBox(Plane localSystem, Mesh buildings, double padding = 0)
@@ -71,21 +77,23 @@ namespace EddyLib
 
             return boundingBox;
 
-           // Interval refBoxinterval = new Interval(refBox.Min.X, refBox.Max.X);   // y
-           // Interval refBoxinterval2 = new Interval(refBox.Min.Y, refBox.Max.Y);  // z
-           // Interval refBoxinterval3 = new Interval(refBox.Min.Z, refBox.Max.Z);
-           //return new Box(localSystem, refBoxinterval, refBoxinterval2, refBoxinterval3);
+            // Interval refBoxinterval = new Interval(refBox.Min.X, refBox.Max.X);   // y
+            // Interval refBoxinterval2 = new Interval(refBox.Min.Y, refBox.Max.Y);  // z
+            // Interval refBoxinterval3 = new Interval(refBox.Min.Z, refBox.Max.Z);
+            //return new Box(localSystem, refBoxinterval, refBoxinterval2, refBoxinterval3);
         }
 
-        
+
+
+
 
 
         public Cylinder getRefinementCyl(Point3d center, Mesh buildings, double paddingXY = 0, double paddingZ = 0.3)
         {
-     
+
             BoundingBox bb = buildings.GetBoundingBox(true);
-            var pt = new Point3d(bb.Max.X, bb.Max.Y, center.Z);          
-            var radiusRefBox = (center - pt).Length; 
+            var pt = new Point3d(bb.Max.X, bb.Max.Y, center.Z);
+            var radiusRefBox = (center - pt).Length;
             var cyl = new Cylinder(new Circle(center, radiusRefBox + paddingXY), bb.Max.Z + paddingZ);
             return cyl;
 
@@ -151,7 +159,7 @@ namespace EddyLib
 
 
 
-          
+
             return incrY * incrZ * hitcount;
         }
     }

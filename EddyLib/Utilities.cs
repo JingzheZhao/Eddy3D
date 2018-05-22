@@ -4,8 +4,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Cache;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace EddyLib
@@ -14,6 +17,8 @@ namespace EddyLib
     {
         //static public string hardcodedAssemblyDir = @"C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\";
         //static public string hardcodedAssemblyDir = @"C:\Users\pkastner\Documents\GitHub\WindTunnel\Eddy\bin\";
+
+        
 
         static public string AssemblyVersion
         {
@@ -67,6 +72,53 @@ namespace EddyLib
             return dir;
         }
 
+
+
+
+
+
+        public static bool CheckLicence()
+        {
+            bool licence = false;
+            //DateTime dateNow = Utilities.GetNistTime();
+            DateTime dateCompile = new DateTime(2018, 5, 21, 0, 00, 00).ToUniversalTime();
+            TimeSpan licenceDuration = new TimeSpan(60, 0, 0, 0);
+
+
+
+            DateTime dateTime = DateTime.MinValue;
+            DateTime dateTimeUTC = DateTime.MinValue;
+
+            System.Net.HttpWebRequest request = (System.Net.HttpWebRequest)System.Net.WebRequest.Create("http://nist.time.gov/actualtime.cgi?lzbc=siqm9b");
+            request.Method = "GET";
+            request.Accept = "text/html, application/xhtml+xml, */*";
+            request.UserAgent = "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)";
+            request.ContentType = "application/x-www-form-urlencoded";
+            //request.CachePolicy = new RequestCachePolicy(System.Net.Cache.RequestCacheLevel.NoCacheNoStore); //No caching
+            System.Net.HttpWebResponse response = (System.Net.HttpWebResponse)request.GetResponse();
+            if (response.StatusCode == (System.Net.HttpStatusCode.OK))
+            {
+                System.IO.StreamReader stream = new StreamReader(response.GetResponseStream());
+                string html = stream.ReadToEnd();//<timestamp time=\"1395772696469995\" delay=\"1395772696469995\"/>
+                string time = System.Text.RegularExpressions.Regex.Match(html, @"(?<=\btime="")[^""]*").Value;
+                double milliseconds = Convert.ToInt64(time) / 1000.0;
+                dateTime = new DateTime(1970, 1, 1).AddMilliseconds(milliseconds).ToLocalTime();
+                dateTimeUTC = dateTime.ToUniversalTime();
+            }
+
+            if ((dateTimeUTC - dateCompile) > licenceDuration)
+            {
+                licence = false;
+            }
+            else
+            {
+                licence = true;
+            }
+
+
+
+            return licence;
+        }
 
 
         public class NumericComparer : IComparer

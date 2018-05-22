@@ -184,6 +184,9 @@ namespace EddyLib
             this.writeInterval = 5;
             this.keepTimeSteps = 5;
 
+
+
+
         }
 
         public override string ToString()

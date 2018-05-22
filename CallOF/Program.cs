@@ -26,8 +26,8 @@ namespace CallOF
                 //    options.CPUs = Environment.ProcessorCount;
                 //}
                 // Values are available here
-                if (options.Verbose)
-                {
+                //if (options.Verbose)
+                //{
                     Console.WriteLine("File path: {0}", options.filePath);
                     //Console.WriteLine("Output: {0}", options.OutputFile);
                     Console.WriteLine("Executable: {0}", options.command);
@@ -41,7 +41,7 @@ namespace CallOF
                     //errorLog.AppendLine(String.Format("Viscosity: {0}", options.Visc));
                     //errorLog.AppendLine(String.Format("Processors used: {0}", options.CPUs));
                     //errorLog.AppendLine(String.Format("Abort if error smaller than: {0}", options.MaxErr));
-                }
+                //}
 
 
                 string app = "docker";
@@ -67,6 +67,15 @@ namespace CallOF
                 p.Run();
 
                 //Console.ReadKey();
+
+
+                
+
+
+
+
+
+
             }
 
 
@@ -105,7 +114,7 @@ namespace CallOF
         //HelpText = "Sets the viscosity of the fluid.")]
         //public double Visc { get; set; }
 
-        [Option('l', "loud", DefaultValue = true,
+        [Option('v', "verbose", DefaultValue = true,
         HelpText = "Prints all messages to standard output.")]
         public bool Verbose { get; set; }
 

@@ -93,6 +93,11 @@ namespace Eddy
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+
+
+
+
+
             //string filepath = @"C:\OF\";
             bool Run = false;
             //  string command = @"blockMesh";
@@ -198,134 +203,145 @@ namespace Eddy
             baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
 
 
-
-            OFCylDomain DOMCYL = new OFCylDomain(combinedMeshes, BCond, divisionsOuterCirc, gradingPerim, windDir, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory);
-
-
-
-
-
-
-
-
-
-
-
-            //if (Settings.getCurrentRAM() != RAM)
-            //{
-
-
-
-            //    string newRAM = "Set-VM -StaticMemory -Name MobyLinuxVM -MemoryStartupBytes " + RAM + "GB";
-            //    //var totalGBRam = 0 ;
-
-            //    ProcessStartInfo psiNewRAM = new ProcessStartInfo(@"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe");
-            //    psiNewRAM.Verb = "runas";
-            //    psiNewRAM.Arguments = newRAM;
-
-            //    Process pRAM = new Process();
-            //    pRAM.StartInfo = psiNewRAM;
-            //    pRAM.Start();
-            //    pRAM.WaitForExit();
-
-            //}
-
-            //if (Settings.getCurrentCPUs(DOM) != CPUs)
-            //{
-
-            //    string newCPUs = @"Stop-VM -Name MobyLinuxVM;Set-VMProcessor MobyLinuxVM -Count '" + CPUs+ "';Start-VM -Name MobyLinuxVM";
-            //    //var totalGBRam = 0 ;
-
-
-            //    ProcessStartInfo psiNewCPUs = new ProcessStartInfo(@"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe");
-            //    psiNewCPUs.Verb = "runas";
-            //    psiNewCPUs.Arguments = newCPUs;
-
-            //    Process pRAM = new Process();
-            //    pRAM.StartInfo = psiNewCPUs;
-            //    pRAM.Start();
-            //    pRAM.WaitForExit();
-
-            //}
-
-
-
-
-            var meshStlFilenameBuildings = DOMCYL.baseWorkingDirectory + @"\mesh\constant\triSurface\building.stl";
-            var meshStlFilenameGround = DOMCYL.baseWorkingDirectory + @"\mesh\constant\triSurface\ground.stl";
-            var meshStlFilenameGroundPerim = DOMCYL.baseWorkingDirectory + @"\mesh\constant\triSurface\ground_perim.stl";
-            var meshBoundaryConditionsDirectory = DOMCYL.baseWorkingDirectory + @"\mesh\0.org\";
-
-
-            if (!Directory.Exists(DOMCYL.meshStlDirectory))
+            if (Utilities.CheckLicence() == true)
             {
-                Directory.CreateDirectory(DOMCYL.meshStlDirectory);
-            }
-
-
-            STLExport.ExportBinary(meshStlFilenameBuildings, combinedMeshes);
-            STLExport.ExportBinary(meshStlFilenameGround, DOMCYL.DomainMeshGround);
-            STLExport.ExportBinary(meshStlFilenameGroundPerim, DOMCYL.DomainMeshGroundPerim);
-
-
-            if (!Directory.Exists(DOMCYL.meshSystemDirectory))
-            {
-                Directory.CreateDirectory(DOMCYL.meshSystemDirectory);
-            }
-            if (!Directory.Exists(DOMCYL.meshConstantDirectory))
-            {
-                Directory.CreateDirectory(DOMCYL.meshConstantDirectory);
-            }
-            if (!Directory.Exists(meshBoundaryConditionsDirectory))
-            {
-                Directory.CreateDirectory(meshBoundaryConditionsDirectory);
-            }
-
-
-            File.WriteAllText(DOMCYL.meshSystemDirectory + @"\blockMeshDict", DOMCYL.stringyfyDomain2());
-            File.WriteAllText(DOMCYL.baseWorkingDirectory + @"\mesh\case.foam", "");
-            File.WriteAllText(DOMCYL.meshSystemDirectory + @"\controlDict", StringTemplates.controlDict(DOMCYL, null, 0));
-
-            if (!File.Exists(baseWorkingDirectory + @"\mesh\log"))
-            {
-                File.WriteAllText(baseWorkingDirectory + @"\mesh\log", "");
-            }
 
 
 
-            if (Run == true)
-            {
-                /*              
-              //ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory +@"\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
-              ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir+@"\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
-              Process p = new Process();
-              p.StartInfo = psi;
-              p.Start();
-              p.WaitForExit();
-              //Thread.Sleep(500);
-              */
+
+                OFCylDomain DOMCYL = new OFCylDomain(combinedMeshes, BCond, divisionsOuterCirc, gradingPerim, windDir, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory);
 
 
-                string logFile = "";
 
-                using (FileStream stream = File.Open(baseWorkingDirectory + @"\mesh\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+
+
+
+
+
+
+
+
+
+                //if (Settings.getCurrentRAM() != RAM)
+                //{
+
+
+
+                //    string newRAM = "Set-VM -StaticMemory -Name MobyLinuxVM -MemoryStartupBytes " + RAM + "GB";
+                //    //var totalGBRam = 0 ;
+
+                //    ProcessStartInfo psiNewRAM = new ProcessStartInfo(@"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe");
+                //    psiNewRAM.Verb = "runas";
+                //    psiNewRAM.Arguments = newRAM;
+
+                //    Process pRAM = new Process();
+                //    pRAM.StartInfo = psiNewRAM;
+                //    pRAM.Start();
+                //    pRAM.WaitForExit();
+
+                //}
+
+                //if (Settings.getCurrentCPUs(DOM) != CPUs)
+                //{
+
+                //    string newCPUs = @"Stop-VM -Name MobyLinuxVM;Set-VMProcessor MobyLinuxVM -Count '" + CPUs+ "';Start-VM -Name MobyLinuxVM";
+                //    //var totalGBRam = 0 ;
+
+
+                //    ProcessStartInfo psiNewCPUs = new ProcessStartInfo(@"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe");
+                //    psiNewCPUs.Verb = "runas";
+                //    psiNewCPUs.Arguments = newCPUs;
+
+                //    Process pRAM = new Process();
+                //    pRAM.StartInfo = psiNewCPUs;
+                //    pRAM.Start();
+                //    pRAM.WaitForExit();
+
+                //}
+
+
+
+
+                var meshStlFilenameBuildings = DOMCYL.baseWorkingDirectory + @"\mesh\constant\triSurface\building.stl";
+                var meshStlFilenameGround = DOMCYL.baseWorkingDirectory + @"\mesh\constant\triSurface\ground.stl";
+                var meshStlFilenameGroundPerim = DOMCYL.baseWorkingDirectory + @"\mesh\constant\triSurface\ground_perim.stl";
+                var meshBoundaryConditionsDirectory = DOMCYL.baseWorkingDirectory + @"\mesh\0.org\";
+
+
+                if (!Directory.Exists(DOMCYL.meshStlDirectory))
                 {
-                    using (StreamReader reader = new StreamReader(stream))
-                    {
-                        logFile = reader.ReadToEnd();
-
-                    }
+                    Directory.CreateDirectory(DOMCYL.meshStlDirectory);
                 }
 
-                DA.SetData(0, logFile);
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Super!!");
+
+                STLExport.ExportBinary(meshStlFilenameBuildings, combinedMeshes);
+                STLExport.ExportBinary(meshStlFilenameGround, DOMCYL.DomainMeshGround);
+                STLExport.ExportBinary(meshStlFilenameGroundPerim, DOMCYL.DomainMeshGroundPerim);
+
+
+                if (!Directory.Exists(DOMCYL.meshSystemDirectory))
+                {
+                    Directory.CreateDirectory(DOMCYL.meshSystemDirectory);
+                }
+                if (!Directory.Exists(DOMCYL.meshConstantDirectory))
+                {
+                    Directory.CreateDirectory(DOMCYL.meshConstantDirectory);
+                }
+                if (!Directory.Exists(meshBoundaryConditionsDirectory))
+                {
+                    Directory.CreateDirectory(meshBoundaryConditionsDirectory);
+                }
+
+
+                File.WriteAllText(DOMCYL.meshSystemDirectory + @"\blockMeshDict", DOMCYL.stringyfyDomain2());
+                File.WriteAllText(DOMCYL.baseWorkingDirectory + @"\mesh\case.foam", "");
+                File.WriteAllText(DOMCYL.meshSystemDirectory + @"\controlDict", StringTemplates.controlDict(DOMCYL, null, 0));
+
+                if (!File.Exists(baseWorkingDirectory + @"\mesh\log"))
+                {
+                    File.WriteAllText(baseWorkingDirectory + @"\mesh\log", "");
+                }
+
+
+
+                if (Run == true)
+                {
+                    /*              
+                  //ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory +@"\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
+                  ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir+@"\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
+                  Process p = new Process();
+                  p.StartInfo = psi;
+                  p.Start();
+                  p.WaitForExit();
+                  //Thread.Sleep(500);
+                  */
+
+
+                    string logFile = "";
+
+                    using (FileStream stream = File.Open(baseWorkingDirectory + @"\mesh\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    {
+                        using (StreamReader reader = new StreamReader(stream))
+                        {
+                            logFile = reader.ReadToEnd();
+
+                        }
+                    }
+
+                    DA.SetData(0, logFile);
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Super!!");
+
+                }
+
+                DA.SetData(1, DOMCYL);
+                DA.SetData(2, DOMCYL.DomainMesh);
+
 
             }
-
-            DA.SetData(1, DOMCYL);
-            DA.SetData(2, DOMCYL.DomainMesh);
-
-
+            else
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Licence expired.");
+            }
 
 
         }
