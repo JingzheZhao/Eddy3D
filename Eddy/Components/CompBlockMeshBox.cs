@@ -46,7 +46,7 @@ namespace Eddy
             pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, @"C:\temp");
             pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.item);
 
-            pManager.AddNumberParameter("baseMesh", "baseMesh", "baseMesh", GH_ParamAccess.item);
+            pManager.AddNumberParameter("baseMesh", "baseMesh", "baseMesh", GH_ParamAccess.item, 5);
 
             //pManager.AddGenericParameter("RAM", "RAM", "RAM", GH_ParamAccess.item);
             pManager.AddIntegerParameter("CPUs", "CPUs", "CPUs", GH_ParamAccess.item, 1);
@@ -233,6 +233,12 @@ namespace Eddy
                 var meshStlFilenameGround = DOM.baseWorkingDirectory + @"\mesh\constant\triSurface\ground.stl";
                 var meshStlFilenameGroundPerim = DOM.baseWorkingDirectory + @"\mesh\constant\triSurface\ground_perim.stl";
                 var meshBoundaryConditionsDirectory = DOM.baseWorkingDirectory + @"\mesh\0.org\";
+
+
+                if (!Directory.Exists(baseWorkingDirectory))
+                {
+                    Directory.CreateDirectory(baseWorkingDirectory);
+                }
 
 
                 if (!Directory.Exists(DOM.meshStlDirectory))

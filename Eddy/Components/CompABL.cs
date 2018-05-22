@@ -22,7 +22,7 @@ namespace Eddy
         public ABLComp()
           : base("ABL", "ABL",  "Atmospheric Boundary Layer", "Eddy", "BC")
         {
-            dirs.Add(0);
+            //dirs.Add(0);
         }
 
 
@@ -60,7 +60,7 @@ namespace Eddy
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-
+            dirs.Add(0);
 
             List<double> windDir = new List<double>();
             List<Vector3d> flowDir = new List<Vector3d>();
