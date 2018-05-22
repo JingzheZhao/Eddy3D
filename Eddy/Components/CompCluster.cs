@@ -78,7 +78,7 @@ namespace Eddy
                 kmd[i] = new KMpt1D(i, data[i]);
             }
 
-            var results = KMeans.Cluster<KMpt1D>(kmd, bins, 1000);
+            var results = KMeans.Cluster<KMpt1D>(kmd, bins, 5000);
             var Centroids = new List<double>();
             foreach (int i in results.Centroids) {
                 Centroids.Add(data[i]);
