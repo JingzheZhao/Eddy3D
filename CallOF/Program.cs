@@ -60,7 +60,7 @@ namespace CallOF
 
                 //Console.WriteLine(ConsoleApp.Run(app, app_argument).Output.Trim());
 
-                //Don't show stdout
+                //Don't show stdout asynchronosly
                 
                 var p = new ConsoleApp(app, app_argument);
                 p.ConsoleOutput += (o, args1) =>                

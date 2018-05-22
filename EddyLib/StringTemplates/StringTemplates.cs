@@ -1415,7 +1415,7 @@ RAS
 ";
         }
         
-        public static string run_mesh_docker(OFBaseDomain DOM) {
+        public static string run_mesh(OFBaseDomain DOM) {
 
 
             StringBuilder sb = new StringBuilder();
@@ -1441,7 +1441,7 @@ RAS
 
                 return sb.ToString();
                 }
-        public static string run_sim_docker(OFBaseDomain DOM, int d) {
+        public static string run_sim(OFBaseDomain DOM, int d) {
             StringBuilder sb = new StringBuilder();
 
                 sb.AppendLine(@"docker run -v """+DOM.baseWorkingDirectory+DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamPrepareCase.py . --no-mesh-create | tee -a log""");
@@ -1460,7 +1460,7 @@ RAS
                 return sb.ToString();
                 }
 
-        public static string run_mesh(OFBaseDomain DOM)
+        public static string run_mesh_docker(OFBaseDomain DOM)
         {
 
 
@@ -1490,7 +1490,7 @@ RAS
 
             return sb.ToString();
         }
-        public static string run_sim(OFBaseDomain DOM, int d)
+        public static string run_sim_docker(OFBaseDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
 
