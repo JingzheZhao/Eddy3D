@@ -7,6 +7,7 @@ using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using EddyLib;
+using Eddy.Properties;
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
 // folder in Grasshopper.
@@ -73,7 +74,7 @@ namespace Eddy
             //DA.GetDataList(1, points);
 
 
-            DataTree<double> UTree = new DataTree<double>();
+            DataTree<Vector3d> UTree = new DataTree<Vector3d>();
 
             List<string> fullProbeFilePath = new List<String>();
 
@@ -87,19 +88,21 @@ namespace Eddy
 
             var numberOfWindDirs = DOM.BCInflow.windDir.Count();
             var numberOfProbes = File.ReadAllLines(fullProbeFilePath[0]).Count();
-
+            //string[] abc = replacedString.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 
 
             // Array for output data
 
-            var listOfAnnualData = new double[numberOfWindDirs][];
+            var listOfAnnualData = new Vector3d[numberOfWindDirs][];
 
             for (int r = 0; r < numberOfWindDirs; r++)
             {
-                listOfAnnualData[r] = new double[numberOfProbes];
+                listOfAnnualData[r] = new Vector3d[numberOfProbes];
+                int counter = 1;
                 for (int c = 0; c < numberOfProbes; c++)
                 {
-                    listOfAnnualData[r][c] = double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c]);
+                    listOfAnnualData[r][c] = new Vector3d(double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[0]), double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1]), double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[2]));
+                    counter += 3;
                 }
             }
 
@@ -161,7 +164,7 @@ namespace Eddy
             {
                 // You can add image files to your project resources and access them like this:
                 //return Resources.IconForThisComponent;
-                return null;
+                return Resources.Eddy_parseU;
             }
         }
 
