@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CallOF", "CallOF\CallOF.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EddyLib", "EddyLib\EddyLib.csproj", "{CD46984C-EB80-48DE-B903-CE9F1BBCA21E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CallOC", "EddyComfort\CallOC.csproj", "{C99FBAC2-178E-47A4-935E-86B2117FF9DC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CallOC", "CallOC\CallOC.csproj", "{C99FBAC2-178E-47A4-935E-86B2117FF9DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
