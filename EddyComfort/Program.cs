@@ -1,0 +1,227 @@
+﻿using CommandLine;
+using CommandLine.Text;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.IO;
+using EddyLib;
+
+namespace CallOC
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var options = new Options();
+            if (CommandLine.Parser.Default.ParseArguments(args, options))
+            {
+                StringBuilder errorLog = new StringBuilder();
+
+                if (options.Verbose)
+                {
+                    Console.WriteLine("EPW weather file path: {0}", options.weather);
+                    errorLog.AppendLine(String.Format("EPW weather file path: {0}", options.weather));
+
+                    Console.WriteLine("Diffuse radiation (ill): {0}", options.difRad);
+                    errorLog.AppendLine(String.Format("Diffuse radiation (ill): {0}", options.difRad));
+
+                    Console.WriteLine("Direct radiation (ill): {0}", options.dirRad);
+                    errorLog.AppendLine(String.Format("Direct radiation (ill): {0}", options.dirRad));
+
+                    Console.WriteLine("Wind speed scaling factors (csv): {0}", options.windScaling);
+                    errorLog.AppendLine(String.Format("Wind speed scaling factors (csv): {0}", options.windScaling));
+
+                    Console.WriteLine("Output file path: {0}", options.output);
+                    errorLog.AppendLine(String.Format("Output file path: {0}", options.output));
+                }
+
+
+                // load weather data
+                // -----------------
+                string[] epwData = File.ReadAllLines(options.output);
+
+                // get header data
+                string[] ln1 = epwData[0].Split(',');
+
+                var Location = System.Text.RegularExpressions.Regex.Replace((ln1[1]), @"\s+", "");
+                var Latitude = Double.Parse(ln1[6]);
+                var Longitude = Double.Parse(ln1[7]);
+                var TimeZone = Double.Parse(ln1[8]);
+
+                // get hourly data
+                string[] epwNoHeader = epwData.Skip(8).Take(8760).ToArray(); // new ArraySegment<string>(epwData, 8, 8760).Array;//.ToArray();
+
+                var DryBulbTemp = epwNoHeader.Select(o => Double.Parse(o.Split(',')[6])).ToArray(); // Dry Bulb Temperature
+                var DewPointTemp = epwNoHeader.Select(o => Double.Parse(o.Split(',')[7])).ToArray(); // Dew Point Temperature
+                var RelativeHumidity = epwNoHeader.Select(o => Double.Parse(o.Split(',')[8])).ToArray(); // Relative Humidity
+                var Pressure = epwNoHeader.Select(o => Double.Parse(o.Split(',')[9])).ToArray(); // Barometric Pressure
+                var WindSpeed = epwNoHeader.Select(o => Double.Parse(o.Split(',')[21])).ToArray(); // WindSpeed
+                var WindDirection = epwNoHeader.Select(o => Double.Parse(o.Split(',')[20])).ToArray(); // Wind Direction
+                var DirectNormalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[14])).ToArray(); // Direct Normal Radiation
+                var DiffuseHorizontalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[15])).ToArray(); // Diffuse Horizontal Illuminance
+                //var GlobalHorizontalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[13])); // Global Horizontal Illuminance
+                //var SkyCover = epwNoHeader.Select(o => Double.Parse(o.Split(',')[22])); // Global Horizontal Illuminance
+
+                var Yr = epwNoHeader.Select(o => Double.Parse(o.Split(',')[0])).ToArray();
+                var Mo = epwNoHeader.Select(o => Double.Parse(o.Split(',')[1])).ToArray();
+                var Dy = epwNoHeader.Select(o => Double.Parse(o.Split(',')[2])).ToArray();
+                var Hr = epwNoHeader.Select(o => Double.Parse(o.Split(',')[3])).ToArray();
+                var DateTime = epwNoHeader.Select(o => o.Split(',')[0] + "." + o.Split(',')[1] + "." + o.Split(',')[2] + " " + o.Split(',')[3]).ToArray();
+
+                var sg = new SolarGeometry();
+
+                var SolarElevation = new List<double>();
+                var SolarAzi = new List<double>();
+                for (int i = 0; i < Yr.Length; i++)
+                {
+                    double _el = sg.solarelevation(Latitude, Longitude, Yr[i], Mo[i], Dy[i], Hr[i], 0, 0, TimeZone, 0);
+                    double _az = sg.solarazimuth(Latitude, Longitude, Yr[i], Mo[i], Dy[i], Hr[i], 0, 0, TimeZone, 0);
+
+                    if (_el > 0)
+                    {
+                        SolarElevation.Add(_el);
+                        SolarAzi.Add(_az);
+                    }
+                    else
+                    {
+                        SolarElevation.Add(0);
+                        SolarAzi.Add(0);
+                    }
+
+                }
+
+
+
+                // constants that should be dealt with later
+                //-----------------------
+
+                double Wst, Hst, BodyA, GrRef;
+                Wst = 30;
+                Hst = 30;
+                BodyA = 0.5;
+                GrRef = 0.2;
+
+                //  Load radiation datasets
+                //  [x][]  time
+                //  [][x]  points
+                var DiffRad = RadianceFiles.loadILL(options.difRad);
+                var DirRad = RadianceFiles.loadILL(options.dirRad);
+
+
+
+                //  Todo: implement wind scaling factor load here -- @Patrick
+
+
+                int sensorPointCount = DiffRad[0].Length;
+                double[,] Utci = new double[8760,sensorPointCount];
+                double[,] conditionOfPerson = new double[8760, sensorPointCount];
+
+                //for (int j = 0; j < sensorPointCount; j++) {
+
+                Parallel.For(0, sensorPointCount,
+                  j => {
+                      
+               
+                    for (int i = 0; i < 8760; i++)
+                    {
+
+                        double mrt = UTCI.GetMRT2(DryBulbTemp[i], RelativeHumidity[i], DiffRad[i][j], DirRad[i][j], SolarElevation[i], DryBulbTemp[i], Wst, Hst, BodyA, GrRef, 0.95)[0];
+
+                        double utci_temp = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], WindSpeed[i], DiffRad[i][j], DirRad[i][j], SolarElevation[i], Wst, Hst, BodyA, GrRef, mrt);
+
+                        double cOfPerson = 0;
+
+                        if (utci_temp < -40) cOfPerson = -5;
+                        else if ((-40 <= utci_temp) && (utci_temp < -27)) cOfPerson = -4;
+                        else if ((-27 <= utci_temp) && (utci_temp < -13)) cOfPerson = -3;
+                        else if ((-13 <= utci_temp) && (utci_temp < 0)) cOfPerson = -2;
+                        else if ((0 <= utci_temp) && (utci_temp < 9)) cOfPerson = -1;
+                        else if ((9 <= utci_temp) && (utci_temp < 26)) cOfPerson = 0;
+                        else if ((26 <= utci_temp) && (utci_temp < 28)) cOfPerson = 1;
+                        else if ((28 <= utci_temp) && (utci_temp < 32)) cOfPerson = 2;
+                        else if ((32 <= utci_temp) && (utci_temp < 38)) cOfPerson = 3;
+                        else if ((38 <= utci_temp) && (utci_temp < 46)) cOfPerson = 4;
+                        else cOfPerson = 5;
+
+                          Utci[i, j] = utci_temp;
+
+                          conditionOfPerson[i, j] = cOfPerson;
+
+                    }
+
+                      // }
+                  });
+
+
+
+
+                //Write Array to file
+                StringBuilder sbUtci = new StringBuilder();
+                for (int j = 0; j < sensorPointCount; j++) {
+                      for (int i = 0; i < 8760; i++)
+                      {
+                        sbUtci.Append(Utci[i,j] + ",");
+                    }
+                    sbUtci.AppendLine("");
+                }
+                File.WriteAllText(options.output , sbUtci.ToString());
+
+
+
+
+                if (options.Verbose)
+                {
+                    File.WriteAllText(options.output + ".err", errorLog.ToString());
+                }
+
+                Console.ReadKey();
+            }
+        }
+    }
+
+    // Define a class to receive parsed values
+    class Options
+    {
+        [Option('w', "weather", Required = true,
+        HelpText = "EPW weather file path.")]
+        public string weather { get; set; }
+
+        [Option('f', "difRad", Required = true,
+        HelpText = "Diffuse radiation (ill)")]
+        public string difRad { get; set; }
+
+        [Option('r', "dirRad", Required = true,
+        HelpText = "Direct radiation (ill)")]
+        public string dirRad { get; set; }
+
+
+        [Option('u', "windScaling", Required = true,
+        HelpText = "Wind speed scaling factors (csv)")]
+        public string windScaling { get; set; }
+
+
+        [Option('o', "output", Required = true,
+        HelpText = "Output file path")]
+        public string output { get; set; }
+
+        [Option('l', "loud", DefaultValue = true,
+        HelpText = "Prints all messages to standard output.")]
+        public bool Verbose { get; set; }
+
+
+
+        [ParserState]
+        public IParserState LastParserState { get; set; }
+
+        [HelpOption]
+        public string GetUsage()
+        {
+            return HelpText.AutoBuild(this,
+              (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current));
+        }
+    }
+
+
+}
