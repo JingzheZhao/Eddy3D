@@ -144,11 +144,6 @@ namespace EddyLib
                     // HEA GENERATION AND RUNNING
                     //---------------------------
 
-
-
-                    //string HEAPATH = @"C:\UD\hea_grundlage.set";
-                    //string HEACONTENT = File.ReadAllText(HEAPATH);
-
                     string HEACONTENT = HEAtemplate;
 
 
@@ -168,10 +163,9 @@ namespace EddyLib
                     string sensor_punkte = "sensors.pts";
                     string hea_dateiname = (workingDir + @"\input.hea");
 
-                string viewpoint = ((varianten_name) + ".vf");
 
-                string dgp_out_file = ((varianten_name) + "_dgp.out");
-                string static_system = ((varianten_name) + ".dc " + (varianten_name) + ".ill");
+                    string dgp_out_file = ((varianten_name) + "_dgp.out");
+                    string static_system = ((varianten_name) + ".dc " + (varianten_name) + ".ill");
                     string daylight_autonomy_active_RGB = ((varianten_name) + "_autonomy.DA");
                     string daylight_availability_active_RGB = ((varianten_name) + "_availability.DA");
                     string continuous_daylight_autonomy_active_RGB = ((varianten_name) + "_continuous_daylight_autonomy.CDA");
@@ -194,7 +188,6 @@ namespace EddyLib
              {"geometrie_datei", geometrie_datei                                                         },
              {"sensor_punkte", sensor_punkte                                                             },
              {"radiance_quelldateien", radiance_quelldateien                                             },
-             {"viewpoint", viewpoint                                                                     },
              {"dgp_out_file", dgp_out_file                                                               },
              {"static_system", static_system                                                             },
              {"verschattung", verschattung                                                               },
@@ -354,9 +347,9 @@ namespace EddyLib
 
 project_name		@projekt_name@
 project_directory	@projekt_ordner@\
-bin_directory		C:\UD\bin\DAYSIM\bin_windows\
+bin_directory		C:\DIVA\DaysimBinaries\
 tmp_directory		@tmp@\
-material_directory	C:\UD\bin\DAYSIM\materials\
+#material_directory	C:\UD\bin\DAYSIM\materials\
 
 ##################
 # site information
@@ -379,7 +372,6 @@ geometry_file @geometrie_datei@
 scene_rotation_angle 00
 sensor_file @sensor_punkte@
 radiance_source_files @radiance_quelldateien@
-#viewpoint_file Untitled.vf
 dgp_out_file @dgp_out_file@
 @verschattung@
 static_system @static_system@
@@ -423,17 +415,17 @@ dp 512
 # daylighting results 
 #######################
 
-daylight_autonomy_active_RGB @daylight_autonomy_active_RGB@
-daylight_availability_active_RGB @daylight_availability_active_RGB@
-continuous_daylight_autonomy_active_RGB @continuous_daylight_autonomy_active_RGB@
-UDI_100_active_RGB @UDI_100_active_RGB@
-UDI_100_2000_active_RGB @UDI_100_2000_active_RGB@
-UDI_2000_active_RGB @UDI_2000_active_RGB@
-electric_lighting @electric_lighting@
-direct_sunlight_file @direct_sunlight_file@
-thermal_simulation @thermal_simulation@
-DDS_sensor_file @DDS_sensor_file@
-DDS_file @DDS_file@
+# daylight_autonomy_active_RGB @daylight_autonomy_active_RGB@
+# daylight_availability_active_RGB @daylight_availability_active_RGB@
+# continuous_daylight_autonomy_active_RGB @continuous_daylight_autonomy_active_RGB@
+# UDI_100_active_RGB @UDI_100_active_RGB@
+# UDI_100_2000_active_RGB @UDI_100_2000_active_RGB@
+# UDI_2000_active_RGB @UDI_2000_active_RGB@
+# electric_lighting @electric_lighting@
+# direct_sunlight_file @direct_sunlight_file@
+# thermal_simulation @thermal_simulation@
+# DDS_sensor_file @DDS_sensor_file@
+# DDS_file @DDS_file@
 
 ";
 
