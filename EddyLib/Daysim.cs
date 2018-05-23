@@ -11,27 +11,19 @@ using Rhino;
 
 namespace EddyLib
 {
-
     public class DaysimSettings
     {
         public DaysimSettings() { }
 
-
-        public int START = 0;
-        public int STOP = 8760;
         public int AB = 0;
         public int AD = 1024;
         public int AS = 512;
         public int AR = 256;
         public double AA = 0.2;
 
-        public double MESHRES = 2;
-        public double RADRES = 0;
-        public double SENOFF = 0.5;
 
         public string PROJNAME = "default";
         public string PROJDIR = @"C:\UD\temp";
-        //public string WEANAME = @"TUR_ISTANBUL.170600_IWEC";
         public string EPWPATH = @"C:\UD\LIB\TUR_ISTANBUL.170600_IWEC.EPW";
 
     }
@@ -94,10 +86,8 @@ namespace EddyLib
                 RhinoApp.WriteLine("SetWeather failed");
             }
         }
-
         public static void RunDaysim(string workingDir, string varNameBase, DaysimSettings setCon)
-            {
-
+        {
                 Regex re = new Regex(@"\@(\w+)\@", RegexOptions.Compiled);
                 try
                 {
@@ -133,35 +123,32 @@ namespace EddyLib
                                 }
                             }
                         }
-                        else { Rhino.RhinoApp.WriteLine("Check your weather!"); }
+                        else { Debug.WriteLine("Check your weather!"); }
 
 
                     }
                     catch
                     {
-                        Rhino.RhinoApp.WriteLine("MULTIPLE OR NO WEATHER FILE FOUND");
+                        Debug.WriteLine("MULTIPLE OR NO WEATHER FILE FOUND");
                     }
                     // HEA GENERATION AND RUNNING
                     //---------------------------
 
                     string HEACONTENT = HEAtemplate;
-
-
                     string varianten_name = (varNameBase);
 
                     string projekt_ordner = workingDir;
                     string wetterpfad = (workingDir + @"\" + wetterdatei);
-                    //string UDI_lower_limit = "500";
-                    //string UDI_upper_limit = "2000";
-                    string zeitplan = "weekdays9to5withDST.60min.occ.csv";
-                    string minimum_illuminance_level = "500";
-                    string verschattung = "shading 1";
+
+                    //string zeitplan = "weekdays9to5withDST.60min.occ.csv";
+                    //string minimum_illuminance_level = "500";
+                    //string verschattung = "shading 1";
                     // FIXED ----------------------------------------------------------------------------------------------------
                     string material_datei = "materials.rad";
                     string geometrie_datei = "scene.rad";
                     string radiance_quelldateien = @"2, "+ workingDir + @"\materials.rad" + @", " + workingDir + @"\scene.rad";
                     string sensor_punkte = "sensors.pts";
-                    string hea_dateiname = (workingDir + @"\input.hea");
+                    //string hea_dateiname = (workingDir + @"\input.hea");
 
 
                     string dgp_out_file = ((varianten_name) + "_dgp.out");
@@ -190,7 +177,7 @@ namespace EddyLib
              {"radiance_quelldateien", radiance_quelldateien                                             },
              {"dgp_out_file", dgp_out_file                                                               },
              {"static_system", static_system                                                             },
-             {"verschattung", verschattung                                                               },
+             //{"verschattung", verschattung                                                               },
              {"sensor_unit", ("2")                                                                       },
               {"output_units", "1"                                                         },
              {"electric_lighting" , electric_lighting                                                    },
@@ -204,8 +191,8 @@ namespace EddyLib
              {"UDI_2000_active_RGB" , "scene_UDI_2000.DA"                                                },
              {"DDS_sensor_file" , DDS_sensor_file                                                        },
              {"DDS_file" , DDS_file                                                                      },
-             {"zeitplan" , zeitplan                                                                      },
-             {"minimum_illuminance_level" , minimum_illuminance_level                                    },
+             //{"zeitplan" , zeitplan                                                                      },
+             //{"minimum_illuminance_level" , minimum_illuminance_level                                    },
              {"aa" , AA                                                        },
              {"ar" , AR                                                        },
              {"as" , AS                                                        },
@@ -339,7 +326,7 @@ namespace EddyLib
             }
 
         private const string HEAtemplate = @"
-# @projekt_name@.hea
+
 # DAYSIM Input File generated by Eddy
 # Timur Dogan, Patrick Kastner
 # The file consist of keywords followed by variable assignment.
@@ -349,7 +336,6 @@ project_name		@projekt_name@
 project_directory	@projekt_ordner@\
 bin_directory		C:\DIVA\DaysimBinaries\
 tmp_directory		@tmp@\
-#material_directory	C:\UD\bin\DAYSIM\materials\
 
 ##################
 # site information
@@ -373,7 +359,6 @@ scene_rotation_angle 00
 sensor_file @sensor_punkte@
 radiance_source_files @radiance_quelldateien@
 dgp_out_file @dgp_out_file@
-@verschattung@
 static_system @static_system@
 
 # sensor_file_unit @sensor_unit@
