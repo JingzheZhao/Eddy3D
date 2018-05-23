@@ -122,6 +122,10 @@ namespace Eddy
 
 
             // export pts file for Daysim
+            if (!Directory.Exists(DOM.baseWorkingDirectory + @"Rad\"))
+            {
+                Directory.CreateDirectory(DOM.baseWorkingDirectory + @"Rad\");
+            }
             RadianceFiles.writePTS(DOM.baseWorkingDirectory + @"\Rad\sensors.pts", listOfPoints);
 
 
