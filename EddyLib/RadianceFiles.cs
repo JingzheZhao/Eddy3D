@@ -83,34 +83,22 @@ namespace EddyLib
 
         public static void writePTS(string pts_path, List<Point3d> pts, List<Vector3d> pts_norm)
         {
-            //////////////////////////////////////////////////////////////////////////
-            // write out the pts file
-            /////////////////////////////////////////////////////////////////////////
-            if (File.Exists(pts_path)) { File.Delete(pts_path); } // delete file if extist to prevent appendign to an old file
-
+            StringBuilder sb = new StringBuilder();
             for (int k = 0; k < pts.Count; k++)
             {
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(pts_path, true))
-                {
-                    file.WriteLine(FormatPointAndNormal(pts[k], pts_norm[k]));
-                }
+                sb.AppendLine(FormatPointAndNormal(pts[k], pts_norm[k]));
             }
+            File.WriteAllText(pts_path, sb.ToString());
         }
 
         public static void writePTS(string pts_path, List<Point3d> pts)
         {
-            //////////////////////////////////////////////////////////////////////////
-            // write out the pts file
-            /////////////////////////////////////////////////////////////////////////
-            if (File.Exists(pts_path)) { File.Delete(pts_path); } // delete file if extist to prevent appendign to an old file
-
+            StringBuilder sb = new StringBuilder();
             for (int k = 0; k < pts.Count; k++)
             {
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(pts_path, true))
-                {
-                    file.WriteLine(FormatPointAndNormal(pts[k], Vector3d.ZAxis));
-                }
+                sb.AppendLine(FormatPointAndNormal(pts[k], Vector3d.ZAxis));
             }
+            File.WriteAllText(pts_path, sb.ToString());
         }
 
 
