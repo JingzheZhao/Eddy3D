@@ -203,7 +203,7 @@ namespace Eddy
             baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
 
 
-            if (Utilities.CheckLicence() == true)
+            if(true) //if (Utilities.CheckLicence() == true)
             {
 
 
@@ -307,7 +307,10 @@ namespace Eddy
 
 
                 //export RAD for DAYSIM
-
+                if (!Directory.Exists(DOMCYL.baseWorkingDirectory + @"Rad\"))
+                {
+                    Directory.CreateDirectory(DOMCYL.baseWorkingDirectory + @"Rad\");
+                }
                 string radMat = @"
 void plastic Generic_20
 0
