@@ -304,6 +304,26 @@ namespace Eddy
 
 
 
+
+
+                //export RAD for DAYSIM
+
+                string radMat = @"
+void plastic Generic_20
+0
+0
+5 0.2 0.2 0.2 0 0 
+";
+                Mesh daysimMesh = new Mesh();
+                daysimMesh.Append(combinedMeshes);
+                // Todo: add ground plane to the above mesh
+
+                File.WriteAllText(DOMCYL.baseWorkingDirectory + @"Rad\materials.rad", radMat);
+                RadianceFiles.MeshProc(daysimMesh, DOMCYL.baseWorkingDirectory + @"Rad\scene.rad", "Generic_20");
+             
+
+
+
                 if (Run == true)
                 {
                     /*              

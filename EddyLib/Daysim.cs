@@ -162,14 +162,16 @@ namespace EddyLib
                     string minimum_illuminance_level = "500";
                     string verschattung = "shading 1";
                     // FIXED ----------------------------------------------------------------------------------------------------
-                    string material_datei = "scene_material_daysim.rad";
-                    string geometrie_datei = "scene_daysim.rad";
-                    string radiance_quelldateien = @"2, C:\UD\lib\material_lib.rad" + @", " + workingDir + @"\scene.rad";
-                    string dgp_out_file = ((varianten_name) + "_dgp.out");
-                    string sensor_punkte = ((varianten_name) + ".pts");
-                    string viewpoint = ((varianten_name) + ".vf");
-                    string hea_dateiname = (workingDir + @"\" + varianten_name + ".hea");
-                    string static_system = ((varianten_name) + ".dc " + (varianten_name) + ".ill");
+                    string material_datei = "materials.rad";
+                    string geometrie_datei = "scene.rad";
+                    string radiance_quelldateien = @"2, "+ workingDir + @"\materials.rad" + @", " + workingDir + @"\scene.rad";
+                    string sensor_punkte = "sensors.pts";
+                    string hea_dateiname = (workingDir + @"\input.hea");
+
+                string viewpoint = ((varianten_name) + ".vf");
+
+                string dgp_out_file = ((varianten_name) + "_dgp.out");
+                string static_system = ((varianten_name) + ".dc " + (varianten_name) + ".ill");
                     string daylight_autonomy_active_RGB = ((varianten_name) + "_autonomy.DA");
                     string daylight_availability_active_RGB = ((varianten_name) + "_availability.DA");
                     string continuous_daylight_autonomy_active_RGB = ((varianten_name) + "_continuous_daylight_autonomy.CDA");

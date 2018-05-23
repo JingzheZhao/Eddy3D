@@ -97,9 +97,25 @@ namespace EddyLib
             }
         }
 
+        public static void writePTS(string pts_path, List<Point3d> pts)
+        {
+            //////////////////////////////////////////////////////////////////////////
+            // write out the pts file
+            /////////////////////////////////////////////////////////////////////////
+            if (File.Exists(pts_path)) { File.Delete(pts_path); } // delete file if extist to prevent appendign to an old file
+
+            for (int k = 0; k < pts.Count; k++)
+            {
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(pts_path, true))
+                {
+                    file.WriteLine(FormatPointAndNormal(pts[k], Vector3d.ZAxis));
+                }
+            }
+        }
 
 
-    
+
+
 
         public static double[,] readDatFile(string path)
         {
