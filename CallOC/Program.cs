@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using EddyLib;
+using System.Diagnostics;
 
 namespace CallOC
 {
@@ -40,7 +41,7 @@ namespace CallOC
 
                 // load weather data
                 // -----------------
-                string[] epwData = File.ReadAllLines(options.output);
+                string[] epwData = File.ReadAllLines(options.weather);
 
                 // get header data
                 string[] ln1 = epwData[0].Split(',');
@@ -93,6 +94,17 @@ namespace CallOC
                 }
 
 
+                string workDir = Path.GetDirectoryName(options.output);
+                string weaFileName = Path.GetFileName(options.weather) + ".wea";
+                Console.WriteLine(workDir);
+                Console.WriteLine(weaFileName);
+
+                Daysim.Epw2Wea(options.weather, workDir + "\\" + weaFileName );
+
+
+
+
+
 
                 // constants that should be dealt with later
                 //-----------------------
@@ -107,7 +119,7 @@ namespace CallOC
                 //  [x][]  time
                 //  [][x]  points
                 var DiffRad = RadianceFiles.loadILL(options.difRad);
-                var DirRad = RadianceFiles.loadILL(options.dirRad);
+                var DirRad = RadianceFiles.loadDIR(options.dirRad);
 
 
 
@@ -118,13 +130,17 @@ namespace CallOC
                 double[,] Utci = new double[8760,sensorPointCount];
                 double[,] conditionOfPerson = new double[8760, sensorPointCount];
 
+
+                Console.WriteLine("Starting UTCI calc...");
+                Stopwatch sw = new Stopwatch();sw.Start();
                 //for (int j = 0; j < sensorPointCount; j++) {
 
-                Parallel.For(0, sensorPointCount,
-                  j => {
-                      
-               
-                    for (int i = 0; i < 8760; i++)
+                    Parallel.For(0, sensorPointCount - 1,
+                      j =>
+                      {
+
+
+                          for (int i = 0; i < 8760; i++)
                     {
 
                         double mrt = UTCI.GetMRT2(DryBulbTemp[i], RelativeHumidity[i], DiffRad[i][j], DirRad[i][j], SolarElevation[i], DryBulbTemp[i], Wst, Hst, BodyA, GrRef, 0.95)[0];
@@ -150,11 +166,13 @@ namespace CallOC
                           conditionOfPerson[i, j] = cOfPerson;
 
                     }
+                   // Console.WriteLine("Sensor " + j + " done.");
+                     // }
+                });
 
-                      // }
-                  });
+                Console.WriteLine("Compute time: "+sw.ElapsedMilliseconds);
 
-
+                Console.WriteLine("Writing UTCI results...");
 
 
                 //Write Array to file
@@ -175,6 +193,8 @@ namespace CallOC
                 {
                     File.WriteAllText(options.output + ".err", errorLog.ToString());
                 }
+
+                Console.WriteLine("Done");
 
                 Console.ReadKey();
             }

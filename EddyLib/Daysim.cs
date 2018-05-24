@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
-using Rhino;
 
 
 namespace EddyLib
@@ -37,10 +36,10 @@ namespace EddyLib
             {
                 if (Directory.Exists(targetPath) == false) Directory.CreateDirectory(targetPath);
 
-                if (Directory.GetFiles(targetPath, "*.wea").Length > 0)
-                {
-                    Array.ForEach(Directory.GetFiles(targetPath, "*.wea"), delegate (string path) { File.Delete(path); });
-                }
+                //if (Directory.GetFiles(targetPath, "*.wea").Length > 0)
+                //{
+                //    Array.ForEach(Directory.GetFiles(targetPath, "*.wea"), delegate (string path) { File.Delete(path); });
+                //}
                 string epwdatname = Path.GetFileNameWithoutExtension(weatherFilePath);
 
 
@@ -83,7 +82,7 @@ namespace EddyLib
 
             catch
             {
-                RhinoApp.WriteLine("SetWeather failed");
+                Debug.WriteLine("SetWeather failed");
             }
         }
         public static void RunDaysim(string workingDir, string varNameBase, DaysimSettings setCon)

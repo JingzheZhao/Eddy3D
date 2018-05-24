@@ -7,20 +7,12 @@ namespace EddyLib
     public static class UTCI
     {
 
-
-
         public static double GetUTCI2(double TaC, double RH, double Wsp, double DifHRad, double DirNRad, double Sunh, double Wst, double Hst, double BodyA, double GrRef, double mrt)
         {
-
-
-
             double v = Wsp;//wind speed
-
 
             double DMRT = mrt - TaC;
             double Pa = CalcPa2(TaC, RH);
-
-
 
             /*Function value is the UTCI in degree Celsius
              !~computed by a 6th order approximating polynomial from the 4 Input paramters

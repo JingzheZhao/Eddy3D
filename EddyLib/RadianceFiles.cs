@@ -162,19 +162,49 @@ namespace EddyLib
         }
 
 
-        /// <summary>
-        /// Loads an entire Daysim Illuminance file and converts it into a 2D double array.
-        /// </summary>
-        /// <returns>The IL.</returns>
-        /// <param name="fileName">File name.</param>
-        public static double[][] loadILL(string fileName)
+        public static double[][] loadILL(string illFileName) // total illuminance data
         {
-            //  [x][]  time
-            //  [][x]  points
+            // [x][] time
+            // [][x] points
+            //string[] illLines = System.IO.File.ReadAllLines(illFileName);
+            //return illLines.Select(l => Array.ConvertAll<string, double>(l.Split(new[] { ' ' }).Skip(4).ToArray(), Double.Parse)).ToArray();
 
-            string[] lines = System.IO.File.ReadAllLines(fileName);
-            double[][] result = lines.Select(l => Array.ConvertAll<string, double>(l.Split(new[] { ' ' }).Skip(4).ToArray(), Double.Parse)).ToArray();
-            return result;
+
+            string[] lines = System.IO.File.ReadAllLines(illFileName);
+            double[][] values = new double[lines.Length][];
+           
+
+            for (int h = 0; h < lines.Length; h++)
+            {
+                
+                    string[] hourData = lines[h].Split(' ').Skip(4).ToArray();
+                    double[] hourDataDouble = Array.ConvertAll<string, double>(hourData, Double.Parse);
+                    values[h] = hourDataDouble;
+               
+
+            }
+            return values;
+        }
+
+        public static double[][] loadDIR(string dirFileName) // direct illuminance data
+        {
+            //string[] dirLines = System.IO.File.ReadAllLines(dirFileName);
+            //return dirLines.Select(l => Array.ConvertAll<string, double>(l.Split(new[] { ' ' }).Skip(3).ToArray(), Double.Parse)).ToArray();
+
+            string[] lines = System.IO.File.ReadAllLines(dirFileName);
+            double[][] values = new double[lines.Length][];
+
+
+            for (int h = 0; h < lines.Length; h++)
+            {
+
+                string[] hourData = lines[h].Split(' ').Skip(3).ToArray();
+                double[] hourDataDouble = Array.ConvertAll<string, double>(hourData, Double.Parse);
+                values[h] = hourDataDouble;
+
+
+            }
+            return values;
         }
 
     }
