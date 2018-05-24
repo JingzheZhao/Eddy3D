@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EddyLib", "EddyLib\EddyLib.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CallOC", "CallOC\CallOC.csproj", "{C99FBAC2-178E-47A4-935E-86B2117FF9DC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CallBatchRunner", "CallBatchRunner\CallBatchRunner.csproj", "{429765F7-2EF8-43E5-8ABA-1FB303B9AE03}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{C99FBAC2-178E-47A4-935E-86B2117FF9DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C99FBAC2-178E-47A4-935E-86B2117FF9DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C99FBAC2-178E-47A4-935E-86B2117FF9DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{429765F7-2EF8-43E5-8ABA-1FB303B9AE03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{429765F7-2EF8-43E5-8ABA-1FB303B9AE03}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{429765F7-2EF8-43E5-8ABA-1FB303B9AE03}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{429765F7-2EF8-43E5-8ABA-1FB303B9AE03}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
