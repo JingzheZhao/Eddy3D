@@ -155,8 +155,8 @@ namespace Eddy
 
             //needed for meshing purposes at this point in time
             DOM.iter = 1000;
-            DOM.writeInterval = 5;
-            DOM.keepTimeSteps = 5;
+            DOM.writeInterval = 10;
+            DOM.keepTimeSteps = 2;
 
 
 

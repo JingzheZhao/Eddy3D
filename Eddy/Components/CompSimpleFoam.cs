@@ -42,8 +42,8 @@ namespace Eddy
             pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
             pManager.AddIntegerParameter("iterations", "iter", "Specify the number of iterations.", GH_ParamAccess.item, 1000);
             pManager.AddIntegerParameter("writeInterval", "writeInterval", "writeInterval.", GH_ParamAccess.item, 20);
-            pManager.AddIntegerParameter("keepTimeSteps", "KeepTimeSteps", "KeepTimeSteps.", GH_ParamAccess.item, 5);
-
+            pManager.AddIntegerParameter("keepTimeSteps", "keepTimeSteps", "keepTimeSteps.", GH_ParamAccess.item, 2);
+            
             pManager.AddIntegerParameter("Mode", "Mode", "Robustness of the solver", GH_ParamAccess.item, 0);
             Param_Integer param = pManager[4] as Param_Integer;
             param.AddNamedValue("quick", 0);
@@ -105,16 +105,16 @@ namespace Eddy
 
 
             int iter = 1000;
-            int writeInterval = 20;
-            int keepTimeSteps = 5;
+            int writeInterval = 10;
+            int keepTimeSteps = 2;
             int mode = 0;
 
 
 
 
             DA.GetData(1, ref iter);
-            DA.GetData(2, ref keepTimeSteps);
-            DA.GetData(3, ref writeInterval);
+            DA.GetData(3, ref keepTimeSteps);
+            DA.GetData(2, ref writeInterval);
             DA.GetData(4, ref mode);
 
             DA.GetData(5, ref Run);

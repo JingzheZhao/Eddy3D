@@ -63,7 +63,7 @@ namespace Eddy
             pManager.AddIntegerParameter("divisionsOuterCirc", "divisionsOuterCirc", "divisionsOuterCirc", GH_ParamAccess.item, 1);
             pManager.AddNumberParameter("gradingPerim", "gradingPerim", "gradingPerim", GH_ParamAccess.item, 1);
 
-            pManager.AddNumberParameter("sizeInnerR", "sizeInnerR", "sizeInnerR", GH_ParamAccess.item, 0.5);
+            pManager.AddNumberParameter("sizeInnerR", "sizeInnerR", "sizeInnerR", GH_ParamAccess.item);
             pManager.AddNumberParameter("sizeOuterR", "sizeOuterR", "sizeOuterR", GH_ParamAccess.item, 0);
             pManager.AddNumberParameter("sizeHeight", "sizeHeight", "sizeHeight", GH_ParamAccess.item, 0);
 

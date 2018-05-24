@@ -54,7 +54,7 @@ namespace EddyLib
 
 
 
-        public OFCylDomain(Mesh geometry, BoundaryConditions BCond, int _divisionsY, double gradingPerim, double windDir, int _CPU, double sizeInnerRect = 0.5, double sizeOuterCirc = 0, double sizeHeight = 0,  string baseWorkingDirectory = @"C:\temp")
+        public OFCylDomain(Mesh geometry, BoundaryConditions BCond, int _divisionsY, double gradingPerim, double windDir, int _CPU, double sizeInnerRect, double sizeOuterCirc = 0, double sizeHeight = 0,  string baseWorkingDirectory = @"C:\temp")
         {
             this.gradingPerim = gradingPerim;
             
@@ -68,10 +68,10 @@ namespace EddyLib
 
 
 
-           //needed for meshing purposes at this point in time
+            //needed for meshing purposes at this point in time
             this.iter = 1000;
-            this.writeInterval = 5;
-            this.keepTimeSteps = 5;
+            this.writeInterval = 10;
+            this.keepTimeSteps = 2;
 
 
             //systemDirectory = workingDirectory + @"system\";
@@ -193,7 +193,7 @@ namespace EddyLib
             this.core.Append(m);
             this.core.Flip(true, true, true);
 
-            double minRad = Math.Sqrt(2 * (sizeInnerRect * sizeInnerRect))+1; // +1 to account for collapsing face on boundary
+            double minRad = Math.Sqrt(2 * (sizeInnerRect * sizeInnerRect))*1.1; // *1.1 to account for collapsing face on boundary
             double circRad = circleRadius;
             if (circleRadius < minRad) circRad = minRad;
 

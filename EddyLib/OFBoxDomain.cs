@@ -181,8 +181,8 @@ namespace EddyLib
 
             //needed for meshing purposes at this point in time
             this.iter = 1000;
-            this.writeInterval = 5;
-            this.keepTimeSteps = 5;
+            this.writeInterval = 10;
+            this.keepTimeSteps = 2;
 
 
 
