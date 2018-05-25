@@ -102,9 +102,6 @@ namespace EddyLib
         }
 
 
-
-
-
         public static double[,] readDatFile(string path)
         {
             string[] txt = File.ReadAllLines(path);
