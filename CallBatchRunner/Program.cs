@@ -21,7 +21,7 @@ namespace CallBatchRunner
             {
 
 
-                var batchFiles = Directory.GetFiles(options.workingDir, "*.bat", SearchOption.AllDirectories);
+                var batchFiles = Directory.GetFiles(options.workingDir, options.pattern , SearchOption.AllDirectories);  //"*.bat"
 
                 //multithreaded with limit
                 CancellationToken ct = new CancellationToken();
@@ -85,7 +85,12 @@ namespace CallBatchRunner
             public int threads { get; set; }
 
 
-            [Option('l', "loud", DefaultValue = true,
+        [Option('p', "pattern", Required = true, DefaultValue = "*.bat",
+HelpText = "File search pattern")]
+        public string pattern { get; set; }
+
+
+        [Option('l', "loud", DefaultValue = true,
             HelpText = "Prints all messages to standard output.")]
             public bool Verbose { get; set; }
 
