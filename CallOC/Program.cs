@@ -126,6 +126,9 @@ namespace CallOC
                 //  Todo: implement wind scaling factor load here -- @Patrick
 
 
+
+
+
                 int sensorPointCount = DiffRad[0].Length;
                 double[,] Utci = new double[8760,sensorPointCount];
                 double[,] conditionOfPerson = new double[8760, sensorPointCount];

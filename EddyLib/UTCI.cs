@@ -126,6 +126,11 @@ namespace EddyLib
 
 
 
+        public static double GetWindReductionFactor()
+        {
+            return ;
+        }
+
 
         private static double CalcPa2(double TaC, double RH)
         {
