@@ -113,6 +113,22 @@ namespace EddyLib
             }
         }
 
+        public static double[][] readPTS(string pts_path)
+        {
+            var lines = File.ReadAllLines(pts_path);
+
+            double[][] points = new double[lines.Length][];
+
+            for (int k = 0; k < lines.Length; k++)
+            {           
+                      string[] ptsString = lines[k].Split(' ').Take(3).ToArray();
+                      double[] pts = Array.ConvertAll<string, double>(ptsString, Double.Parse);
+                points[k] = pts;
+            }
+
+            return points;
+        }
+
 
 
 

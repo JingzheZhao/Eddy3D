@@ -203,23 +203,9 @@ namespace Eddy
             baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
 
 
-            if(true) //if (Utilities.CheckLicence() == true)
+            if (Utilities.CheckLicence() == true)
             {
-
-
-
-
                 OFCylDomain DOMCYL = new OFCylDomain(combinedMeshes, BCond, divisionsOuterCirc, gradingPerim, windDir, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory);
-
-
-
-
-
-
-
-
-
-
 
 
                 //if (Settings.getCurrentRAM() != RAM)

@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CallOC", "CallOC\CallOC.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CallBatchRunner", "CallBatchRunner\CallBatchRunner.csproj", "{429765F7-2EF8-43E5-8ABA-1FB303B9AE03}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CallProbes", "CallProbes\CallProbes.csproj", "{9FF24CDE-5613-4875-B30E-D11E86000120}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{429765F7-2EF8-43E5-8ABA-1FB303B9AE03}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{429765F7-2EF8-43E5-8ABA-1FB303B9AE03}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{429765F7-2EF8-43E5-8ABA-1FB303B9AE03}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9FF24CDE-5613-4875-B30E-D11E86000120}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9FF24CDE-5613-4875-B30E-D11E86000120}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9FF24CDE-5613-4875-B30E-D11E86000120}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9FF24CDE-5613-4875-B30E-D11E86000120}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
