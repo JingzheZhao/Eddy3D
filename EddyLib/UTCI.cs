@@ -129,7 +129,7 @@ namespace EddyLib
 
 
 
-        public static double GetWindReductionFactor(int probeIndex, string filePath, int numberOfProbes, List<double> windDirs, double windVelWeatherFile, double windDirWeatherFile)
+        public static double GetWindReductionFactor(int probeIndex, double[][] ReductionArray, string filePath, int numberOfProbes, List<double> windDirs, double windVelWeatherFile, double windDirWeatherFile)
         {
 
             int numberOfWindDirs = windDirs.Count();
@@ -138,23 +138,7 @@ namespace EddyLib
             double windRedFactor = 0;
 
 
-            // load  data
-            // -----------------
-            var ReductionData = File.ReadAllLines(filePath).Skip(1).ToList();
-
-            
-            // Array of Reduction data // find better way since this will be loaded every time --> list of points?
-
-            var ReductionArray = new double[numberOfWindDirs][];
-
-            for (int d = 0; d < numberOfWindDirs; d++)
-            {
-                ReductionArray[d] = new double[numberOfProbes];
-                for (int p = 0; p < numberOfProbes; p++)
-                {
-                    ReductionArray[d][p] = double.Parse(ReductionData[p].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[d]);
-                }
-            }
+           
 
             
 
@@ -174,7 +158,7 @@ namespace EddyLib
         }
 
 
-        public static int NextLowerIndex(List<double> windDirs, double UTCIWindDir)
+        private static int NextLowerIndex(List<double> windDirs, double UTCIWindDir)
         {
 
 
@@ -192,7 +176,7 @@ namespace EddyLib
 
 
 
-        public static int NextUpperIndex(List<double> windDirs, double UTCIWindDir)
+        private static int NextUpperIndex(List<double> windDirs, double UTCIWindDir)
         {
 
             int upperIndex = 0;

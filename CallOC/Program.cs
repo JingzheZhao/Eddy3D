@@ -139,13 +139,35 @@ namespace CallOC
 
                 double[,] windReduction = new double[8760, sensorPointCount];
                 var windDirList = new List<double> { 0, 45, 90, 135, 180, 225, 270, 315 };
+                var numberOfWindDirs = windDirList.Count;
+
+                // load  data
+                // -----------------
+                var ReductionData = File.ReadAllLines(options.windScaling).Skip(1).ToList();
+
+
+                // Array of Reduction data // find better way since this will be loaded every time --> list of points?
+
+                var ReductionArray = new double[numberOfWindDirs][];
+
+                for (int d = 0; d < numberOfWindDirs; d++)
+                {
+                    ReductionArray[d] = new double[sensorPointCount];
+                    for (int p = 0; p < sensorPointCount; p++)
+                    {
+                        ReductionArray[d][p] = double.Parse(ReductionData[p].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[d]);
+                    }
+                }
+
+                
+                
 
                 for (int j = 0; j < sensorPointCount; j++)
                 {
                     for (int i = 0; i < 8760; i++)
                     {
                         // hours of weather file in iterator missing
-                        windReduction[i,j] = UTCI.GetWindReductionFactor(j, options.windScaling, sensorPointCount, windDirList, WindSpeed[i], WindDirection[i]);
+                        windReduction[i,j] = UTCI.GetWindReductionFactor(j, ReductionArray, options.windScaling, sensorPointCount, windDirList, WindSpeed[i], WindDirection[i]);
                     }
                 }
 
@@ -154,7 +176,7 @@ namespace CallOC
 
                 System.Text.StringBuilder ReductionFile = new System.Text.StringBuilder();
 
-                for (int i = 0; i < windDirList.Count; i++)
+                for (int i = 0; i < numberOfWindDirs; i++)
                 {
                     ReductionFile.Append(windDirList[i] + ",");
 
