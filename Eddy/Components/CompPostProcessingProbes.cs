@@ -117,10 +117,6 @@ namespace Eddy
 
 
 
-
-
-
-
             // export pts file for Daysim
             if (!Directory.Exists(DOM.baseWorkingDirectory + @"Rad\"))
             {
@@ -138,14 +134,12 @@ namespace Eddy
             if (run == true && listOfPoints.Count() > 0)
             {
 
-
                 cpTree = new DataTree<double>();
                 uTree = new DataTree<Vector3d>();
 
 
                 if (mode == 0) // cp
                 {
-
 
                     StringBuilder command = new StringBuilder();
 
