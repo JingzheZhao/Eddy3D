@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.IO;
 using EddyLib;
 using System.Diagnostics;
+using Rhino.Geometry;
 
 namespace CallOC
 {
@@ -123,15 +124,30 @@ namespace CallOC
 
 
 
-                //  Todo: implement wind scaling factor load here -- @Patrick
-
-
+               
 
 
 
                 int sensorPointCount = DiffRad[0].Length;
                 double[,] Utci = new double[8760,sensorPointCount];
                 double[,] conditionOfPerson = new double[8760, sensorPointCount];
+
+
+
+                ////  Todo: implement wind scaling factor load here -- @Patrick
+
+
+                double[] windReduction = new double[sensorPointCount];
+                var windDirList = new List<double> { 0, 45, 90, 135, 180, 225, 270, 315 };
+
+                for (int i = 0; i < sensorPointCount; i++)
+                {
+                   // hours of weather file in iterator missing
+                   windReduction[i] =   EddyLib.UTCI.GetWindReductionFactor(i, options.windScaling, sensorPointCount, windDirList, WindSpeed[0], WindDirection[0]);
+                }
+
+
+                ////
 
 
                 Console.WriteLine("Starting UTCI calc...");

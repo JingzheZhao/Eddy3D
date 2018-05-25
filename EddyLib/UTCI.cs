@@ -1,6 +1,9 @@
-﻿using System;
+﻿using Rhino.Geometry;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.Linq;
 
 namespace EddyLib
 {
@@ -126,9 +129,82 @@ namespace EddyLib
 
 
 
-        public static double GetWindReductionFactor()
+        public static double GetWindReductionFactor(int probeIndex, string filePath, int numberOfProbes, List<double> windDirs, double windVelWeatherFile, double windDirWeatherFile)
         {
-            return 0;
+
+            int numberOfWindDirs = windDirs.Count();
+
+
+            double windRedFactor = 0;
+
+
+            // load  data
+            // -----------------
+            var ReductionData = File.ReadAllLines(filePath).Skip(1).ToList();
+
+            
+            // Array of Reduction data // find better way since this will be loaded every time --> list of points?
+
+            var ReductionArray = new double[numberOfWindDirs][];
+
+            for (int d = 0; d < numberOfWindDirs; d++)
+            {
+                ReductionArray[d] = new double[numberOfProbes];
+                for (int p = 0; p < numberOfProbes; p++)
+                {
+                    ReductionArray[d][p] = double.Parse(ReductionData[p].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[d]);
+                }
+            }
+
+            
+
+            double distanceToLower = windDirWeatherFile - NextLowerIndex(windDirs, windDirWeatherFile);
+            double distanceToUpper = windDirWeatherFile - NextUpperIndex(windDirs, windDirWeatherFile);
+
+
+            var nextLow = NextLowerIndex(windDirs, windDirWeatherFile);
+            var nextUp = NextUpperIndex(windDirs, windDirWeatherFile);
+
+
+
+            var windRedFactorInterpolated = windVelWeatherFile * (ReductionArray[nextLow][probeIndex] + distanceToLower * (ReductionArray[nextUp][probeIndex] / (distanceToLower + distanceToUpper)));
+
+            
+            return windRedFactorInterpolated;
+        }
+
+
+        public static int NextLowerIndex(List<double> windDirs, double UTCIWindDir)
+        {
+
+
+            int lowerIndex = 0;
+            double NextLower = windDirs[0];
+
+            for (int i = 0; i < windDirs.Count(); i++)
+                if (windDirs[i] < UTCIWindDir)
+                {
+                    NextLower = windDirs[i];
+                    lowerIndex = i;
+                }
+            return lowerIndex;
+        }
+
+
+
+        public static int NextUpperIndex(List<double> windDirs, double UTCIWindDir)
+        {
+
+            int upperIndex = 0;
+            double NextUpper = windDirs[0];
+
+            for (int i = 0; i > windDirs.Count(); i++)
+                if (windDirs[i] > UTCIWindDir)
+                {
+                    NextUpper = windDirs[i];
+                    upperIndex = i;
+                }
+            return upperIndex;
         }
 
 
