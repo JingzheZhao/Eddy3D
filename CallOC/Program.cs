@@ -150,6 +150,30 @@ namespace CallOC
                 }
 
 
+                //Write Reduction Array to file
+
+                System.Text.StringBuilder ReductionFile = new System.Text.StringBuilder();
+
+                for (int i = 0; i < windDirList.Count; i++)
+                {
+                    ReductionFile.Append(windDirList[i] + ",");
+
+                }
+
+                ReductionFile.AppendLine("");
+                for (int j = 0; j < sensorPointCount; j++)
+                {
+                    for (int i = 0; i < 8760; i++)
+                    {
+
+                        ReductionFile.Append(windReduction[i, j] + ",");
+
+                    }
+                    ReductionFile.AppendLine("");
+                }
+                File.WriteAllText(Path.GetDirectoryName(options.windScaling) + @"\ReductionData.csv", ReductionFile.ToString());
+
+
                 ////
 
 
