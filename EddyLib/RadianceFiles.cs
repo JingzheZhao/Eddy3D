@@ -22,12 +22,14 @@ namespace EddyLib
         // Radiance isn't exactly culture-aware, so we have to make everything here en-US
         private static readonly CultureInfo radianceCulture = new CultureInfo("en-US");
         private static string FormatPointAndNormal(Point3d p, Vector3d n) =>
-           String.Format(radianceCulture, "{0:0.000} {1:0.000} {2:0.000} {3:0.000} {4:0.000} {5:0.000}", p.X, p.Y, p.Z, n.X, n.Y, n.Z);
+           String.Format(radianceCulture, "{0:0.###} {1:0.###} {2:0.###} {3:0.###} {4:0.###} {5:0.###}", p.X, p.Y, p.Z, n.X, n.Y, n.Z);
         private static string FormatPoint(Point3d p) =>
-        String.Format(radianceCulture, "{0:0.000} {1:0.000} {2:0.000}", p.X, p.Y, p.Z);
+        String.Format(radianceCulture, "{0:0.###} {1:0.###} {2:0.###}", p.X, p.Y, p.Z);
 
-      
-   
+        
+
+
+
         public static void MeshProc(Mesh _m, string _fname, string _mat)
         {
             System.IO.StreamWriter sw = new System.IO.StreamWriter(_fname);
