@@ -100,7 +100,7 @@ namespace CallOC
                 Console.WriteLine(workDir);
                 Console.WriteLine(weaFileName);
 
-                Daysim.Epw2Wea(options.weather, workDir + "\\" + weaFileName );
+                Daysim.Epw2Wea(options.weather, workDir );
 
 
 
