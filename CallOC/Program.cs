@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.IO;
 using EddyLib;
 using System.Diagnostics;
+using Rhino.Geometry;
 
 namespace CallOC
 {
@@ -16,7 +17,7 @@ namespace CallOC
         static void Main(string[] args)
         {
             var options = new Options();
-            if (CommandLine.Parser.Default.ParseArguments(args, options))
+            if (Parser.Default.ParseArguments(args, options))
             {
                 StringBuilder errorLog = new StringBuilder();
 
@@ -123,12 +124,79 @@ namespace CallOC
 
 
 
-                //  Todo: implement wind scaling factor load here -- @Patrick
+               
+
 
 
                 int sensorPointCount = DiffRad[0].Length;
                 double[,] Utci = new double[8760,sensorPointCount];
                 double[,] conditionOfPerson = new double[8760, sensorPointCount];
+
+
+
+                ////  Todo: implement wind scaling factor load here -- @Patrick
+
+
+                double[,] windReduction = new double[8760, sensorPointCount];
+                var windDirList = new List<double> { 0, 45, 90, 135, 180, 225, 270, 315 };
+                var numberOfWindDirs = windDirList.Count;
+
+                // load  data
+                // -----------------
+                var ReductionData = File.ReadAllLines(options.windScaling).Skip(1).ToList();
+
+
+                // Array of Reduction data // find better way since this will be loaded every time --> list of points?
+
+                var ReductionArray = new double[numberOfWindDirs][];
+
+                for (int d = 0; d < numberOfWindDirs; d++)
+                {
+                    ReductionArray[d] = new double[sensorPointCount];
+                    for (int p = 0; p < sensorPointCount; p++)
+                    {
+                        ReductionArray[d][p] = double.Parse(ReductionData[p].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[d]);
+                    }
+                }
+
+                
+                
+
+                for (int j = 0; j < sensorPointCount; j++)
+                {
+                    for (int i = 0; i < 8760; i++)
+                    {
+                        // hours of weather file in iterator missing
+                        windReduction[i,j] = UTCI.GetWindReductionFactor(j, ReductionArray, options.windScaling, sensorPointCount, windDirList, WindSpeed[i], WindDirection[i]);
+                    }
+                }
+
+
+                //Write Reduction Array to file
+
+                System.Text.StringBuilder ReductionFile = new System.Text.StringBuilder();
+
+                for (int i = 0; i < numberOfWindDirs; i++)
+                {
+                    ReductionFile.Append(windDirList[i] + ",");
+
+                }
+
+                ReductionFile.AppendLine("");
+                for (int j = 0; j < sensorPointCount; j++)
+                {
+                    for (int i = 0; i < 8760; i++)
+                    {
+
+                        ReductionFile.Append(windReduction[i, j] + ",");
+
+                    }
+                    ReductionFile.AppendLine("");
+                }
+                File.WriteAllText(Path.GetDirectoryName(options.windScaling) + @"\ReductionData.csv", ReductionFile.ToString());
+
+
+                ////
 
 
                 Console.WriteLine("Starting UTCI calc...");

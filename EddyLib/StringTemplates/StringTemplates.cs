@@ -136,7 +136,7 @@ FoamFile
 }
 
     castellatedMesh true;
-    snap false;
+    snap true;
     addLayers false;
     geometry
     {
@@ -434,7 +434,7 @@ libs
             purgeWrite      " + DOM.keepTimeSteps + @";
             writeFormat binary;
             writePrecision  6;
-            writeCompression false;
+            writeCompression true;
             timeFormat general;
             timePrecision   6;
             runTimeModifiable true;
@@ -1526,10 +1526,11 @@ RAS
 
         public static string run(OFBaseDomain DOM) {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine(@"call run_mesh.bat");
+            sb.AppendLine(@"call "+DOM.baseWorkingDirectory +   "run_mesh.bat");
             foreach (int i in DOM.BCInflow.windDir)
             {
-                sb.AppendLine("start "+ i+ "_run_sim.bat");
+                //sb.AppendLine("start " + DOM.baseWorkingDirectory +i + "_run_sim.bat");
+                sb.AppendLine("call " + DOM.baseWorkingDirectory + i + "_run_sim.bat");
             }
 //sb.AppendLine("PAUSE");
             

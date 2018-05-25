@@ -104,8 +104,20 @@ namespace Eddy
             string baseWorkingDirectory = "";
 
             //public Box DomainBoundaryBox;
+            List<GeometryBase> _domain = new List<GeometryBase>();
+            DA.GetDataList(0, _domain);
+
+
             List<GeometryBase> domain = new List<GeometryBase>();
-            DA.GetDataList(0, domain);
+            foreach (var g in _domain) {
+                if (g != null) domain.Add(g);
+            }
+
+
+
+
+
+
             DA.GetData(1, ref baseWorkingDirectory);
 
             BoundaryConditions BCond = null;

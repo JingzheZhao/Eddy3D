@@ -22,12 +22,14 @@ namespace EddyLib
         // Radiance isn't exactly culture-aware, so we have to make everything here en-US
         private static readonly CultureInfo radianceCulture = new CultureInfo("en-US");
         private static string FormatPointAndNormal(Point3d p, Vector3d n) =>
-           String.Format(radianceCulture, "{0:0.000} {1:0.000} {2:0.000} {3:0.000} {4:0.000} {5:0.000}", p.X, p.Y, p.Z, n.X, n.Y, n.Z);
+           String.Format(radianceCulture, "{0:0.###} {1:0.###} {2:0.###} {3:0.###} {4:0.###} {5:0.###}", p.X, p.Y, p.Z, n.X, n.Y, n.Z);
         private static string FormatPoint(Point3d p) =>
-        String.Format(radianceCulture, "{0:0.000} {1:0.000} {2:0.000}", p.X, p.Y, p.Z);
+        String.Format(radianceCulture, "{0:0.###} {1:0.###} {2:0.###}", p.X, p.Y, p.Z);
 
-      
-   
+        
+
+
+
         public static void MeshProc(Mesh _m, string _fname, string _mat)
         {
             System.IO.StreamWriter sw = new System.IO.StreamWriter(_fname);
@@ -83,34 +85,22 @@ namespace EddyLib
 
         public static void writePTS(string pts_path, List<Point3d> pts, List<Vector3d> pts_norm)
         {
-            //////////////////////////////////////////////////////////////////////////
-            // write out the pts file
-            /////////////////////////////////////////////////////////////////////////
-            if (File.Exists(pts_path)) { File.Delete(pts_path); } // delete file if extist to prevent appendign to an old file
-
+            StringBuilder sb = new StringBuilder();
             for (int k = 0; k < pts.Count; k++)
             {
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(pts_path, true))
-                {
-                    file.WriteLine(FormatPointAndNormal(pts[k], pts_norm[k]));
-                }
+                sb.AppendLine(FormatPointAndNormal(pts[k], pts_norm[k]));
             }
+            File.WriteAllText(pts_path, sb.ToString());
         }
 
         public static void writePTS(string pts_path, List<Point3d> pts)
         {
-            //////////////////////////////////////////////////////////////////////////
-            // write out the pts file
-            /////////////////////////////////////////////////////////////////////////
-            if (File.Exists(pts_path)) { File.Delete(pts_path); } // delete file if extist to prevent appendign to an old file
-
+            StringBuilder sb = new StringBuilder();
             for (int k = 0; k < pts.Count; k++)
             {
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(pts_path, true))
-                {
-                    file.WriteLine(FormatPointAndNormal(pts[k], Vector3d.ZAxis));
-                }
+                sb.AppendLine(FormatPointAndNormal(pts[k], Vector3d.ZAxis));
             }
+            File.WriteAllText(pts_path, sb.ToString());
         }
 
         public static double[][] readPTS(string pts_path)
@@ -128,9 +118,6 @@ namespace EddyLib
 
             return points;
         }
-
-
-
 
 
         public static double[,] readDatFile(string path)
