@@ -131,7 +131,7 @@ namespace Eddy
             for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
             {
                 UFile.Append(DOM.BCInflow.windDir[i] + ", , ,");
-
+                UFile.Append(DOM.BCInflow.windDir[i] + "x, y, z,");
             }
 
             UFile.AppendLine("");
@@ -154,7 +154,7 @@ namespace Eddy
 
             for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
             {
-                ReductionFile.Append(DOM.BCInflow.windDir[i] + ", , ,");
+                ReductionFile.Append(DOM.BCInflow.windDir[i] + ",");
 
             }
 
