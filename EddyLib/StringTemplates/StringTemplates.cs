@@ -1526,10 +1526,10 @@ RAS
 
         public static string run(OFBaseDomain DOM) {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine(@"call run_mesh.bat");
+            sb.AppendLine(@"call "+DOM.baseWorkingDirectory +   "run_mesh.bat");
             foreach (int i in DOM.BCInflow.windDir)
             {
-                sb.AppendLine("start "+ i+ "_run_sim.bat");
+                sb.AppendLine("start " + DOM.baseWorkingDirectory +i + "_run_sim.bat");
             }
 //sb.AppendLine("PAUSE");
             

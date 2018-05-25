@@ -39,8 +39,8 @@ namespace CallBatchRunner
                     Console.WriteLine(batchFiles[i]);
 
 
-                    var processInfo = new ProcessStartInfo("cmd.exe", "/c"  +"\"" +batchFiles[i] + "\"") ;
-                    processInfo.CreateNoWindow = true;
+                    var processInfo = new ProcessStartInfo("cmd.exe", "/c" + "\"" +batchFiles[i] + "\"") ;
+                    //processInfo.CreateNoWindow = true;
                     processInfo.UseShellExecute = false;
                     processInfo.RedirectStandardError = true;
                     processInfo.RedirectStandardOutput = true;
@@ -67,7 +67,7 @@ namespace CallBatchRunner
 
 
 
-                Console.ReadKey();
+                //Console.ReadKey();
 
             }
 
