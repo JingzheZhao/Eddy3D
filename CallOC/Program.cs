@@ -17,7 +17,7 @@ namespace CallOC
         static void Main(string[] args)
         {
             var options = new Options();
-            if (CommandLine.Parser.Default.ParseArguments(args, options))
+            if (Parser.Default.ParseArguments(args, options))
             {
                 StringBuilder errorLog = new StringBuilder();
 
@@ -137,13 +137,16 @@ namespace CallOC
                 ////  Todo: implement wind scaling factor load here -- @Patrick
 
 
-                double[] windReduction = new double[sensorPointCount];
+                double[,] windReduction = new double[8760, sensorPointCount];
                 var windDirList = new List<double> { 0, 45, 90, 135, 180, 225, 270, 315 };
 
-                for (int i = 0; i < sensorPointCount; i++)
+                for (int j = 0; j < sensorPointCount; j++)
                 {
-                   // hours of weather file in iterator missing
-                   windReduction[i] =   EddyLib.UTCI.GetWindReductionFactor(i, options.windScaling, sensorPointCount, windDirList, WindSpeed[0], WindDirection[0]);
+                    for (int i = 0; i < 8760; i++)
+                    {
+                        // hours of weather file in iterator missing
+                        windReduction[i,j] = UTCI.GetWindReductionFactor(j, options.windScaling, sensorPointCount, windDirList, WindSpeed[i], WindDirection[i]);
+                    }
                 }
 
 
