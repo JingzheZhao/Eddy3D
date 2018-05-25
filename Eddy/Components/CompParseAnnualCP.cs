@@ -45,7 +45,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("out", "out", "out", GH_ParamAccess.list);
+            //pManager.AddGenericParameter("out", "out", "out", GH_ParamAccess.list);
         }
 
 
@@ -112,17 +112,17 @@ namespace Eddy
 
 
 
-            for (int c = 0; c < numberOfWindDirs; c++)
-            {
-                for (int r = 0; r < numberOfProbes; r++)
-                {
-                    cpTree.Add(listOfAnnualData[c][r], new Grasshopper.Kernel.Data.GH_Path(c));
-                }
+            //for (int c = 0; c < numberOfWindDirs; c++)
+            //{
+            //    for (int r = 0; r < numberOfProbes; r++)
+            //    {
+            //        cpTree.Add(listOfAnnualData[c][r], new Grasshopper.Kernel.Data.GH_Path(c));
+            //    }
                 
-            }
+            //}
 
 
-            DA.SetDataTree(0, cpTree);
+            //DA.SetDataTree(0, cpTree);
 
 
             //Write Array to file

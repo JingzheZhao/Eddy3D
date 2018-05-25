@@ -21,12 +21,14 @@ namespace EddyLib
     public class BoundaryConditions
     {
         public double URef = 5;
+        public double UPedestrianHeight;
         public double z0 = 1;
         public double zref = 10;
         public double zGround = 0;
         public List<double> windDir = new List<double>();
         public List<Vector3d> flowDir = new List<Vector3d>();
         public BoundaryType btype = BoundaryType.abl;
+
 
 
         public double pinf;
@@ -41,11 +43,13 @@ namespace EddyLib
 
         public BoundaryConditions(List<double> dirs, double _uref , double _zref, double _z0 , double _zground)
         {
+            double pedestrianHeight = 1.5;
             this.btype = BoundaryType.abl;
             this.URef = _uref;
             this.zref = _zref;
             this.z0 = _z0;
             this.zGround = _zground;
+            this.UPedestrianHeight = (((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((pedestrianHeight + z0) / z0));
 
             foreach (double d in dirs)
             {

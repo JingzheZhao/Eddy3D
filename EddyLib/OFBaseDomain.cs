@@ -57,6 +57,7 @@ namespace EddyLib
 
         public int nLayers;
 
+        public bool writeCompression;
         
        
 

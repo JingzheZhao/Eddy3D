@@ -25,7 +25,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public ParseHourlyU()
-          : base("ParseHourlyU", "ParseHourlyU", "ParseHourlyU", "Eddy", "postProcessing")
+          : base("ParseHourlyURed", "ParseHourlyURed", "ParseHourlyURed", "Eddy", "postProcessing")
         {
         }
 
@@ -45,7 +45,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("out", "out", "out", GH_ParamAccess.list);
+           // pManager.AddGenericParameter("out", "out", "out", GH_ParamAccess.list);
         }
 
 
@@ -98,11 +98,11 @@ namespace Eddy
             for (int r = 0; r < numberOfWindDirs; r++)
             {
                 listOfAnnualData[r] = new Vector3d[numberOfProbes];
-                int counter = 1;
+                //int counter = 1;
                 for (int c = 0; c < numberOfProbes; c++)
                 {
-                    listOfAnnualData[r][c] = new Vector3d(double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[0]), double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1]), double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[2]));
-                    counter += 3;
+                    listOfAnnualData[r][c] = new Vector3d(double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[0])/DOM.BCInflow.UPedestrianHeight, double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1]) / DOM.BCInflow.UPedestrianHeight, double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[2]) / DOM.BCInflow.UPedestrianHeight);
+                    //counter += 3;
                 }
             }
 
@@ -112,44 +112,66 @@ namespace Eddy
 
 
 
-            for (int c = 0; c < numberOfWindDirs; c++)
-            {
-                for (int r = 0; r < numberOfProbes; r++)
-                {
-                    UTree.Add(listOfAnnualData[c][r], new Grasshopper.Kernel.Data.GH_Path(c));
-                }
+            //for (int c = 0; c < numberOfWindDirs; c++)
+            //{
+            //    for (int r = 0; r < numberOfProbes; r++)
+            //    {
+            //        UTree.Add(listOfAnnualData[c][r], new Grasshopper.Kernel.Data.GH_Path(c));
+            //    }
                 
-            }
+            //}
 
 
-            DA.SetDataTree(0, UTree);
+            //DA.SetDataTree(0, UTree);
 
 
-            //Write Array to file
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            //Write U Array to file
+            System.Text.StringBuilder UFile = new System.Text.StringBuilder();
 
             for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
             {
-                sb.Append(DOM.BCInflow.windDir[i] + ",");
+                UFile.Append(DOM.BCInflow.windDir[i] + ", , ,");
 
             }
 
-            sb.AppendLine("");
+            UFile.AppendLine("");
+
             for (int r = 0; r < numberOfProbes; r++)
             {
                 for (int c = 0; c < numberOfWindDirs; c++)
                 {
-                    //sb.Append(points[r].X + ","+ points[r].Y + ","+points[r].Z + ",");
-                    sb.Append(listOfAnnualData[c][r] + ",");
+                    
+                    UFile.Append(listOfAnnualData[c][r] + ",");
 
                 }
-                sb.AppendLine("");
+                UFile.AppendLine("");
             }
-            File.WriteAllText(DOM.baseWorkingDirectory + @"\hourlyUData.csv", sb.ToString());
+            File.WriteAllText(DOM.baseWorkingDirectory + @"\hourlyUData.csv", UFile.ToString());
 
+            //Write Reduction Array to file
 
+            System.Text.StringBuilder ReductionFile = new System.Text.StringBuilder();
 
-            
+            for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
+            {
+                ReductionFile.Append(DOM.BCInflow.windDir[i] + ", , ,");
+
+            }
+
+            ReductionFile.AppendLine("");
+            for (int r = 0; r < numberOfProbes; r++)
+            {
+                
+                for (int c = 0; c < numberOfWindDirs; c++)
+                {
+
+                    ReductionFile.Append(Math.Sqrt(Math.Pow(listOfAnnualData[c][r].X,2)* Math.Pow(listOfAnnualData[c][r].Y,2)* Math.Pow(listOfAnnualData[c][r].Z,2) )+ ",");
+                    
+                }
+                ReductionFile.AppendLine("");
+            }
+            File.WriteAllText(DOM.baseWorkingDirectory + @"\hourlyReductionData.csv", ReductionFile.ToString());
+
 
 
         }
