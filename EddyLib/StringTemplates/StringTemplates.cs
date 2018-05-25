@@ -434,7 +434,7 @@ libs
             purgeWrite      " + DOM.keepTimeSteps + @";
             writeFormat binary;
             writePrecision  6;
-            writeCompression false;
+            writeCompression true;
             timeFormat general;
             timePrecision   6;
             runTimeModifiable true;

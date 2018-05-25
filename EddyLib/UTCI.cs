@@ -128,7 +128,7 @@ namespace EddyLib
 
         public static double GetWindReductionFactor()
         {
-            return ;
+            return 0;
         }
 
 
