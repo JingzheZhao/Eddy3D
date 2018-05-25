@@ -215,7 +215,7 @@ namespace Eddy
             baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
 
 
-            if(true) //if (Utilities.CheckLicence() == true)
+            if (Utilities.CheckLicence() == true)
             {
 
 
