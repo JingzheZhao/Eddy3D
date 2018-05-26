@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using EddyLib;
+using Rhino.Geometry;
 
 namespace CallProbes
 {
@@ -27,6 +28,14 @@ namespace CallProbes
                 //[prope][x,y,z]
                 double[][] probes = EddyLib.RadianceFiles.readPTS(options.probes);
 
+                List<Point3d> pointList = new List<Point3d>();
+
+                for (int i = 0; i < probes.GetLength(0); i++)
+                {
+                    pointList.Add(new Point3d(probes[i][0], probes[i][1], probes[i][2]));
+                }
+
+
 
                 var cpTree = new List<List<double>>();
                 var uTree = new List<List<double[]>>();
@@ -44,8 +53,8 @@ namespace CallProbes
                     for (int i = 0; i < dirs.Length; i++)
                     {
 
-                        File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + "controlDict", StringTemplates.controlDict(DOM, null, i));
-                        File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, options.mode));
+                        //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + "controlDict", StringTemplates.controlDict(DOM, null, i));
+                        //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, options.mode));
                         command.Append(@"postProcess -case " + dirs[i] + " -func " + pointName + @" -latestTime;");
 
 
@@ -59,7 +68,7 @@ namespace CallProbes
 
                     for (int i = 0; i < dirs.Length; i++)
                     {
-                        ParsingValues cp = new ParsingValues(listOfPoints, pointName, options.workingDir + "\\" + dirs[i], OFfield);
+                        ParsingValues cp = new ParsingValues(pointList, pointName, options.workingDir + "\\" + dirs[i], OFfield);
                         //cpTree.AddRange(cp.cpValues, new Grasshopper.Kernel.Data.GH_Path(i));
                     }
 
@@ -81,7 +90,7 @@ namespace CallProbes
 
                         // Write the dicts
 
-                        File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, options.mode));
+                        //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, options.mode));
                         command.Append(@"postProcess -case " + dirs[i] + " -func " + pointName + @" -latestTime;");
 
 
@@ -98,7 +107,7 @@ namespace CallProbes
 
                         // Parse values
 
-                        var U = new ParsingValues(listOfPoints, pointName, options.workingDir + "\\" + dirs[i], OFfield);
+                        var U = new ParsingValues(pointList, pointName, options.workingDir + "\\" + dirs[i], OFfield);
 
 
                         // Create datatree
