@@ -37,8 +37,7 @@ namespace CallProbes
 
 
 
-                var cpTree = new List<List<double>>();
-                var uTree = new List<List<double[]>>();
+             
 
 
                 if (options.mode == 0) // cp
