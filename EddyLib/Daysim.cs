@@ -227,7 +227,7 @@ namespace EddyLib
 
                     string pathvar = System.Environment.GetEnvironmentVariable("PATH");
                     System.Environment.SetEnvironmentVariable("PATH", pathvar + @";"+ DaysimInstallation);
-                    System.Environment.SetEnvironmentVariable("RAYPATH", @"C:\UD\bin\DAYSIM\lib\;C:\UD\bin\Radiance\lib\");
+                  //  System.Environment.SetEnvironmentVariable("RAYPATH", @"C:\UD\bin\DAYSIM\lib\;C:\UD\bin\Radiance\lib\");
 
 
 
@@ -237,8 +237,8 @@ namespace EddyLib
 
 
                     string pathvar2 = startInfo.EnvironmentVariables["PATH"];
-                    startInfo.EnvironmentVariables["PATH"] = pathvar2 + @";C:\UD\bin\DAYSIM\bin_windows\;C:\UD\bin\Radiance\bin\;C:\UD\bin\DAYSIM;";
-                    startInfo.EnvironmentVariables["RAYPATH"] = @"C:\UD\bin\DAYSIM\lib\;C:\UD\bin\Radiance\lib\";
+                    startInfo.EnvironmentVariables["PATH"] = pathvar2 + @";" + DaysimInstallation; //@";C:\UD\bin\DAYSIM\bin_windows\;C:\UD\bin\Radiance\bin\;C:\UD\bin\DAYSIM;";
+                  //  startInfo.EnvironmentVariables["RAYPATH"] = @"C:\UD\bin\DAYSIM\lib\;C:\UD\bin\Radiance\lib\";
 
 
                     startInfo.UseShellExecute = false;
@@ -254,7 +254,7 @@ namespace EddyLib
                         p = Process.Start(startInfo);
                         p.WaitForExit();
                     }
-                    catch { Console.WriteLine("radfiles2daysim error"); }
+                    catch (Exception e) { Console.WriteLine("radfiles2daysim error" + e.Message); }
 
                     try
                     {
@@ -264,7 +264,7 @@ namespace EddyLib
                         p = Process.Start(startInfo);
                         p.WaitForExit();
                     }
-                    catch { Console.WriteLine("gen_dc dif error"); }
+                    catch (Exception e) { Console.WriteLine("gen_dc dif error" + e.Message); }
 
                     try
                     {
@@ -274,7 +274,7 @@ namespace EddyLib
                         p = Process.Start(startInfo);
                         p.WaitForExit();
                     }
-                    catch { Console.WriteLine("gen_dc dir error"); }
+                    catch (Exception e) { Console.WriteLine("gen_dc dir error" + e.Message); }
 
                     try
                     {
@@ -283,7 +283,7 @@ namespace EddyLib
                         p = Process.Start(startInfo);
                         p.WaitForExit();
                     }
-                    catch { Console.WriteLine("hea -paste error"); }
+                    catch (Exception e) { Console.WriteLine("hea -paste error" + e.Message); }
 
                     try
                     {
@@ -293,7 +293,7 @@ namespace EddyLib
                         p = Process.Start(startInfo);
                         p.WaitForExit();
                     }
-                    catch { Console.WriteLine("ds_illum error"); }
+                    catch (Exception e) { Console.WriteLine("ds_illum error" + e.Message); }
 
                     //try
                     //{
@@ -313,16 +313,16 @@ namespace EddyLib
                         p = Process.Start(startInfo);
                         p.WaitForExit();
                     }
-                    catch { Console.WriteLine("gen_dc error"); }
+                    catch (Exception e) { Console.WriteLine("gen_dc error" + e.Message); }
 
                     oneSimTime.Stop();
                     int oneSimTook = Convert.ToInt32(oneSimTime.ElapsedMilliseconds);
     
                 }
 
-                catch
+                catch (Exception e)
                 {
-                    Console.WriteLine("runDAYSIM failed");
+                    Console.WriteLine("runDAYSIM failed" + e.Message);
                 }
             }
 
