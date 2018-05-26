@@ -135,7 +135,7 @@ namespace EddyLib
             int numberOfWindDirs = windDirs.Count();
 
 
-            double windRedFactor = 0;
+         //   double windRedFactor = 0;
 
 
            

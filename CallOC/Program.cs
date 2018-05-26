@@ -95,13 +95,6 @@ namespace CallOC
                 }
 
 
-                string workDir = Path.GetDirectoryName(options.output);
-                string weaFileName = Path.GetFileName(options.weather) + ".wea";
-                Console.WriteLine(workDir);
-                Console.WriteLine(weaFileName);
-
-                Daysim.Epw2Wea(options.weather, workDir );
-
 
 
 

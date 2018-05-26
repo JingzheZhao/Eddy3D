@@ -20,7 +20,7 @@ namespace EddyLib
         public int AR = 256;
         public double AA = 0.2;
 
-
+       
         public string PROJNAME = "default";
         public string PROJDIR = @"C:\UD\temp";
         public string EPWPATH = @"C:\UD\LIB\TUR_ISTANBUL.170600_IWEC.EPW";
@@ -30,6 +30,8 @@ namespace EddyLib
 
     public class Daysim
     {
+        public static string DaysimInstallation = @"C:\DIVA\DaysimBinaries";
+
         public static void Epw2Wea(string weatherFilePath, string targetPath)
         {
             try
@@ -60,8 +62,8 @@ namespace EddyLib
 
                 ProcessStartInfo processInfo = new ProcessStartInfo();
                 processInfo.Arguments = arguments;
-                processInfo.FileName = @"C:\UD\bin\DAYSIM\bin_windows\epw2wea";
-                processInfo.WorkingDirectory = @"C:\UD\bin\DAYSIM\bin_windows";
+                processInfo.FileName = DaysimInstallation+@"\epw2wea";
+                processInfo.WorkingDirectory = DaysimInstallation;
                 processInfo.UseShellExecute = false;
                 processInfo.RedirectStandardOutput = true;
                 processInfo.RedirectStandardError = true;
@@ -208,12 +210,12 @@ namespace EddyLib
                         output = re.Replace(HEACONTENT, match => args[match.Groups[1].Value]);
                         //Console.Write(output);
                     }
-                    catch (Exception e) { Rhino.RhinoApp.WriteLine(e.Message); }
+                    catch (Exception e) { Console.WriteLine(e.Message); }
                     try
                     {
                         System.IO.File.WriteAllText(workingDir + @"\" + varianten_name + @".hea", output);
                     }
-                    catch (Exception e) { Rhino.RhinoApp.WriteLine("hea file error " + e.Message); }
+                    catch (Exception e) { Console.WriteLine("hea file error " + e.Message); }
 
 
 
@@ -224,14 +226,14 @@ namespace EddyLib
 
 
                     string pathvar = System.Environment.GetEnvironmentVariable("PATH");
-                    System.Environment.SetEnvironmentVariable("PATH", pathvar + @";C:\UD\bin\DAYSIM\bin_windows\;C:\UD\bin\Radiance\bin\;C:\UD\bin\DAYSIM;");
+                    System.Environment.SetEnvironmentVariable("PATH", pathvar + @";"+ DaysimInstallation);
                     System.Environment.SetEnvironmentVariable("RAYPATH", @"C:\UD\bin\DAYSIM\lib\;C:\UD\bin\Radiance\lib\");
 
 
 
                     //run the daysim radiance executables
                     ProcessStartInfo startInfo = new ProcessStartInfo();
-                    startInfo.WorkingDirectory = "C:\\UD\\bin\\DAYSIM\\bin_windows";
+                    startInfo.WorkingDirectory = DaysimInstallation;
 
 
                     string pathvar2 = startInfo.EnvironmentVariables["PATH"];
@@ -252,7 +254,7 @@ namespace EddyLib
                         p = Process.Start(startInfo);
                         p.WaitForExit();
                     }
-                    catch { Rhino.RhinoApp.WriteLine("radfiles2daysim error"); }
+                    catch { Console.WriteLine("radfiles2daysim error"); }
 
                     try
                     {
@@ -262,7 +264,7 @@ namespace EddyLib
                         p = Process.Start(startInfo);
                         p.WaitForExit();
                     }
-                    catch { Rhino.RhinoApp.WriteLine("gen_dc dif error"); }
+                    catch { Console.WriteLine("gen_dc dif error"); }
 
                     try
                     {
@@ -272,7 +274,7 @@ namespace EddyLib
                         p = Process.Start(startInfo);
                         p.WaitForExit();
                     }
-                    catch { Rhino.RhinoApp.WriteLine("gen_dc dir error"); }
+                    catch { Console.WriteLine("gen_dc dir error"); }
 
                     try
                     {
@@ -281,7 +283,7 @@ namespace EddyLib
                         p = Process.Start(startInfo);
                         p.WaitForExit();
                     }
-                    catch { Rhino.RhinoApp.WriteLine("hea -paste error"); }
+                    catch { Console.WriteLine("hea -paste error"); }
 
                     try
                     {
@@ -291,7 +293,7 @@ namespace EddyLib
                         p = Process.Start(startInfo);
                         p.WaitForExit();
                     }
-                    catch { Rhino.RhinoApp.WriteLine("ds_illum error"); }
+                    catch { Console.WriteLine("ds_illum error"); }
 
                     //try
                     //{
@@ -301,7 +303,7 @@ namespace EddyLib
                     //    p = Process.Start(startInfo);
                     //    p.WaitForExit();
                     //}
-                    //catch { Rhino.RhinoApp.WriteLine("gen_directsunlight error"); }
+                    //catch { Console.WriteLine("gen_directsunlight error"); }
 
                     try
                     {
@@ -311,7 +313,7 @@ namespace EddyLib
                         p = Process.Start(startInfo);
                         p.WaitForExit();
                     }
-                    catch { Rhino.RhinoApp.WriteLine("gen_dc error"); }
+                    catch { Console.WriteLine("gen_dc error"); }
 
                     oneSimTime.Stop();
                     int oneSimTook = Convert.ToInt32(oneSimTime.ElapsedMilliseconds);
@@ -320,7 +322,7 @@ namespace EddyLib
 
                 catch
                 {
-                    Rhino.RhinoApp.WriteLine("runDAYSIM failed");
+                    Console.WriteLine("runDAYSIM failed");
                 }
             }
 
