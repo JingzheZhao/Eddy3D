@@ -138,7 +138,7 @@ namespace Eddy
                    
 
                     string pointName = "cp_Probes";
-                    string OFfield = "total(p)_coeff";
+                    //string OFfield = "total(p)_coeff";
 
                     for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                     {
@@ -161,7 +161,7 @@ namespace Eddy
 
                  
                     string pointName = "U_Probes";
-                    string OFfield = "U";
+                    //string OFfield = "U";
 
                     for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                     {
