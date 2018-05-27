@@ -113,7 +113,7 @@ namespace CallOC
                 //  [x][]  time
                 //  [][x]  points
                 var DiffRad = RadianceFiles.loadILL(options.difRad);
-                var DirRad = RadianceFiles.loadDIR(options.dirRad);
+                var DirRad = RadianceFiles.loadILL(options.dirRad);
 
 
 

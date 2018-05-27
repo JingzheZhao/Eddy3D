@@ -210,5 +210,97 @@ namespace EddyLib
             return values;
         }
 
+
+        public static double[][] loadDC(string file) // total illuminance data
+        {
+            // [x][] lines
+            // [][x] coeffs
+
+            string[] lines = System.IO.File.ReadAllLines(file).Where(x => !x.Trim().StartsWith("#")).ToArray();
+            double[][] values = new double[lines.Length][];
+
+
+            for (int h = 0; h < lines.Length; h++)
+            {
+
+                string[] data = lines[h].Trim().Split('\t').ToArray();
+                double[] dataDouble = Array.ConvertAll<string, double>(data, Double.Parse);
+                values[h] = dataDouble;
+
+
+            }
+            return values;
+        }
+
+
+        public static void writeDC(string file, double[][] dif , double[][] dir) // total illuminance data
+        {
+            // [x][] lines
+            // [][x] coeffs
+            var sb = new StringBuilder();
+         
+            for (int h = 0; h < dif.Length; h++)
+            {
+                for (int c = 0; c < dif[h].Length; c++)
+                {
+                    sb.Append(dif[h][c].ToString());
+                    sb.Append('\t');
+                }
+                for (int c = 0; c < dir[h].Length; c++)
+                {
+                    sb.Append(dir[h][c].ToString());
+                    sb.Append('\t');
+                }
+                sb.AppendLine("");
+            }
+            File.WriteAllText(file, sb.ToString());
+        }
+
+        public static void writeDC_DIF(string file, double[][] dif, double[][] dir) // total illuminance data
+        {
+            // [x][] lines
+            // [][x] coeffs
+            var sb = new StringBuilder();
+
+            for (int h = 0; h < dif.Length; h++)
+            {
+                for (int c = 0; c < dif[h].Length; c++)
+                {
+                    sb.Append(dif[h][c].ToString());
+                    sb.Append('\t');
+                }
+                for (int c = 0; c < dir[h].Length; c++)
+                {
+                    sb.Append("0");
+                    sb.Append('\t');
+                }
+                sb.AppendLine("");
+            }
+            File.WriteAllText(file, sb.ToString());
+        }
+
+        public static void writeDC_DIR(string file, double[][] dif, double[][] dir) // total illuminance data
+        {
+            // [x][] lines
+            // [][x] coeffs
+            var sb = new StringBuilder();
+
+            for (int h = 0; h < dif.Length; h++)
+            {
+                for (int c = 0; c < dif[h].Length; c++)
+                {
+                    sb.Append("0");
+                    sb.Append('\t');
+                }
+                for (int c = 0; c < dir[h].Length; c++)
+                {
+                    sb.Append(dir[h][c].ToString());
+                    sb.Append('\t');
+                }
+                sb.AppendLine("");
+            }
+            File.WriteAllText(file, sb.ToString());
+        }
+
     }
 }

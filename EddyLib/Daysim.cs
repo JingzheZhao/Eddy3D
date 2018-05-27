@@ -21,9 +21,9 @@ namespace EddyLib
         public double AA = 0.2;
 
 
-        public string PROJNAME = "default";
-        public string PROJDIR = @"C:\UD\temp";
-        public string EPWPATH = @"C:\UD\LIB\TUR_ISTANBUL.170600_IWEC.EPW";
+        public string ProjectName = "CallRay";
+        public string WorkDir = @"C:\temp";
+        public string Weather = "";
 
     }
 
@@ -103,11 +103,16 @@ namespace EddyLib
                 Debug.WriteLine("SetWeather failed");
             }
         }
-        public static void RunDaysim(string workingDir, string varNameBase, DaysimSettings setCon)
+        public static void RunDaysim( DaysimSettings setCon)
         {
             Regex re = new Regex(@"\@(\w+)\@", RegexOptions.Compiled);
             try
             {
+
+                string workingDir = setCon.WorkDir;
+
+                string varNameBase = setCon.ProjectName;
+
                 string AB = setCon.AB.ToString();
                 string AD = setCon.AD.ToString();
                 string AS = setCon.AS.ToString();
@@ -156,11 +161,6 @@ namespace EddyLib
 
                 string projekt_ordner = workingDir;
                 string wetterpfad = (workingDir + @"\" + wetterdatei);
-
-                //string zeitplan = "weekdays9to5withDST.60min.occ.csv";
-                //string minimum_illuminance_level = "500";
-                //string verschattung = "shading 1";
-                // FIXED ----------------------------------------------------------------------------------------------------
                 string material_datei = "materials.rad";
                 string geometrie_datei = "scene.rad";
                 string radiance_quelldateien = @"2, " + workingDir + @"\materials.rad" + @", " + workingDir + @"\scene.rad";
@@ -168,16 +168,9 @@ namespace EddyLib
                 //string hea_dateiname = (workingDir + @"\input.hea");
 
 
-                string dgp_out_file = ((varianten_name) + "_dgp.out");
-                string static_system = ((varianten_name) + ".dc " + (varianten_name) + ".ill");
-                string daylight_autonomy_active_RGB = ((varianten_name) + "_autonomy.DA");
-                string daylight_availability_active_RGB = ((varianten_name) + "_availability.DA");
-                string continuous_daylight_autonomy_active_RGB = ((varianten_name) + "_continuous_daylight_autonomy.CDA");
-                string electric_lighting = ((varianten_name) + "_el.htm");
-                string direct_sunlight_file = ((varianten_name) + ".dir");
-                string thermal_simulation = ((varianten_name) + "_intgain.csv");
-                string DDS_sensor_file = ((varianten_name) + ".dds");
-                string DDS_file = ((varianten_name) + ".sen");
+                string static_system_DIR = (varianten_name) + " " + ((varianten_name) + ".dc " + (varianten_name) + ".dir.ill");
+                string static_system_DIF = (varianten_name) + " " + ((varianten_name) + ".dc " + (varianten_name) + ".dif.ill");
+
 
 
                 var args = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -192,44 +185,49 @@ namespace EddyLib
              {"geometrie_datei", geometrie_datei                                                         },
              {"sensor_punkte", sensor_punkte                                                             },
              {"radiance_quelldateien", radiance_quelldateien                                             },
-             {"dgp_out_file", dgp_out_file                                                               },
-             {"static_system", static_system                                                             },
-             //{"verschattung", verschattung                                                               },
+             {"static_system", static_system_DIR                                                             },
              {"sensor_unit", ("2")                                                                       },
-              {"output_units", "1"                                                         },
-             {"electric_lighting" , electric_lighting                                                    },
-             {"direct_sunlight_file" , direct_sunlight_file                                              },
-             {"thermal_simulation" , thermal_simulation                                                  },
-             {"daylight_autonomy_active_RGB" , daylight_autonomy_active_RGB                              },
-             {"daylight_availability_active_RGB" , daylight_availability_active_RGB                      },
-             {"continuous_daylight_autonomy_active_RGB" , continuous_daylight_autonomy_active_RGB        },
-             {"UDI_100_active_RGB" , "scene_UDI_100.DA"                                                  },
-             {"UDI_100_2000_active_RGB" , "scene_UDI_100_2000.DA"                                        },
-             {"UDI_2000_active_RGB" , "scene_UDI_2000.DA"                                                },
-             {"DDS_sensor_file" , DDS_sensor_file                                                        },
-             {"DDS_file" , DDS_file                                                                      },
-             //{"zeitplan" , zeitplan                                                                      },
-             //{"minimum_illuminance_level" , minimum_illuminance_level                                    },
+             {"output_units", "1"                                                         },
              {"aa" , AA                                                        },
              {"ar" , AR                                                        },
              {"as" , AS                                                        },
              {"ad" , AD                                                        },
              {"ab" , AB                                                        },
-             {"nutzungsplan" , "" },
              };
 
 
-                string output = "";
-                try
-                {
+                var argsDIF = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+             {
+             {"projekt_name" , varianten_name                                                            },
+             {"projekt_ordner", projekt_ordner                                                           },
+             {"tmp", workingDir                                                                          },
+             {"wetterkopf", wetterkopf                                                                   },
+             {"wetterdatei", wetterdatei                                                                 },
+             {"wetterdateikurz", wetterdatei                                                             },
+             {"material_datei", material_datei                                                           },
+             {"geometrie_datei", geometrie_datei                                                         },
+             {"sensor_punkte", sensor_punkte                                                             },
+             {"radiance_quelldateien", radiance_quelldateien                                             },
+             {"static_system", static_system_DIF                                                            },
+             {"sensor_unit", ("2")                                                                       },
+             {"output_units", "1"                                                         },
+             {"aa" , AA                                                        },
+             {"ar" , AR                                                        },
+             {"as" , AS                                                        },
+             {"ad" , AD                                                        },
+             {"ab" , AB                                                        },
+             };
 
-                    output = re.Replace(HEACONTENT, match => args[match.Groups[1].Value]);
-                    //Console.Write(output);
-                }
-                catch (Exception e) { Console.WriteLine(e.Message); }
+
+
+              
                 try
                 {
+                    string output = re.Replace(HEACONTENT, match => args[match.Groups[1].Value]);
+                    string output_DIF = re.Replace(HEACONTENT, match => argsDIF[match.Groups[1].Value]);
+
                     System.IO.File.WriteAllText(workingDir + @"\" + varianten_name + @".hea", output);
+                    System.IO.File.WriteAllText(workingDir + @"\" + varianten_name + @".dif.hea", output_DIF);
                 }
                 catch (Exception e) { Console.WriteLine("hea file error " + e.Message); }
 
@@ -263,34 +261,34 @@ namespace EddyLib
                 startInfo.CreateNoWindow = true;
                 Process p;
 
-                try
-                {
+                //try
+                //{
 
-                    startInfo.FileName = "radfiles2daysim";
-                    startInfo.Arguments = workingDir + @"/" + varianten_name + @".hea -m -g";
-                    p = Process.Start(startInfo);
+                //    startInfo.FileName = "radfiles2daysim";
+                //    startInfo.Arguments = workingDir + @"/" + varianten_name + @".hea -m -g";
+                //    p = Process.Start(startInfo);
 
-                    p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
-                    Console.WriteLine("output>>" + e.Data);
-                    p.BeginOutputReadLine();
+                //    p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
+                //    Console.WriteLine("output>>" + e.Data);
+                //    p.BeginOutputReadLine();
 
-                    p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
-                        Console.WriteLine("error>>" + e.Data);
-                    p.BeginErrorReadLine();
+                //    p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+                //        Console.WriteLine("error>>" + e.Data);
+                //    p.BeginErrorReadLine();
 
-                    p.WaitForExit();
+                //    p.WaitForExit();
 
-                    Console.WriteLine("ExitCode: {0}", p.ExitCode);
-                    p.Close();
+                //    Console.WriteLine("ExitCode: {0}", p.ExitCode);
+                //    p.Close();
 
-                }
-                catch (Exception e) { Console.WriteLine("radfiles2daysim error" + e.Message); }
+                //}
+                //catch (Exception e) { Console.WriteLine("radfiles2daysim error" + e.Message); }
 
                 try
                 {
 
                     startInfo.FileName = "gen_dc";
-                    startInfo.Arguments = workingDir + @"/" + (varianten_name) + @".hea -dif -af test_dif.amb";
+                    startInfo.Arguments = workingDir + @"\" + (varianten_name) + @".hea -dif -af test_dif.amb";
                     p = Process.Start(startInfo);
                     p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
                            Console.WriteLine("output>>" + e.Data);
@@ -311,7 +309,7 @@ namespace EddyLib
                 {
 
                     startInfo.FileName = "gen_dc";
-                    startInfo.Arguments = workingDir + @"/" + (varianten_name) + @".hea -dir -af test_dif.amb";
+                    startInfo.Arguments = workingDir + @"\" + (varianten_name) + @".hea -dir -af test_dif.amb";
                     p = Process.Start(startInfo);
                     p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
                            Console.WriteLine("output>>" + e.Data);
@@ -328,10 +326,43 @@ namespace EddyLib
                 }
                 catch (Exception e) { Console.WriteLine("gen_dc dir error" + e.Message); }
 
+
+
+
+
+                //load dir and dif coefficients
+                var dirDC = EddyLib.RadianceFiles.loadDC(workingDir + @"\" + (varianten_name) + @".dir.dc");
+                var difDC = EddyLib.RadianceFiles.loadDC(workingDir + @"\" + (varianten_name) + @".dif.dc");
+
+
+                //try
+                //{
+                //    startInfo.FileName = "gen_dc";
+                //    startInfo.Arguments = workingDir + @"\" + (varianten_name) + ".hea -paste";
+                //    p = Process.Start(startInfo);
+                //    p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
+                //           Console.WriteLine("output>>" + e.Data);
+                //    p.BeginOutputReadLine();
+
+                //    p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+                //        Console.WriteLine("error>>" + e.Data);
+                //    p.BeginErrorReadLine();
+
+                //    p.WaitForExit();
+
+                //    Console.WriteLine("ExitCode: {0}", p.ExitCode);
+                //    p.Close();
+                //}
+                //catch (Exception e) { Console.WriteLine("hea -paste error" + e.Message); }
+
+
+                //DIRECT Rad
+                RadianceFiles.writeDC_DIR(workingDir + @"\" + (varianten_name) + @".dc", difDC, dirDC);
                 try
                 {
 
-                    startInfo.Arguments = workingDir + "/" + (varianten_name) + ".hea -paste";
+                    startInfo.FileName = "ds_illum";
+                    startInfo.Arguments = workingDir + @"/" + (varianten_name) + @".hea";
                     p = Process.Start(startInfo);
                     p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
                            Console.WriteLine("output>>" + e.Data);
@@ -346,13 +377,17 @@ namespace EddyLib
                     Console.WriteLine("ExitCode: {0}", p.ExitCode);
                     p.Close();
                 }
-                catch (Exception e) { Console.WriteLine("hea -paste error" + e.Message); }
+                catch (Exception e) { Console.WriteLine("ds_illum error" + e.Message); }
 
+
+
+                //DIFFUSE Rad
+                RadianceFiles.writeDC_DIF(workingDir + @"\" + (varianten_name) + @".dc", difDC, dirDC);
                 try
                 {
 
                     startInfo.FileName = "ds_illum";
-                    startInfo.Arguments = workingDir + @"/" + (varianten_name) + @".hea";
+                    startInfo.Arguments = workingDir + @"/" + (varianten_name) + @".dif.hea";
                     p = Process.Start(startInfo);
                     p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
                            Console.WriteLine("output>>" + e.Data);
@@ -379,26 +414,26 @@ namespace EddyLib
                 //}
                 //catch { Console.WriteLine("gen_directsunlight error"); }
 
-                try
-                {
+                //try
+                //{
 
-                    startInfo.FileName = "gen_dc";
-                    startInfo.Arguments = workingDir + @"/" + varianten_name + @".hea -paste";
-                    p = Process.Start(startInfo);
-                    p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
-                           Console.WriteLine("output>>" + e.Data);
-                    p.BeginOutputReadLine();
+                //    startInfo.FileName = "gen_dc";
+                //    startInfo.Arguments = workingDir + @"/" + varianten_name + @".hea -paste";
+                //    p = Process.Start(startInfo);
+                //    p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
+                //           Console.WriteLine("output>>" + e.Data);
+                //    p.BeginOutputReadLine();
 
-                    p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
-                        Console.WriteLine("error>>" + e.Data);
-                    p.BeginErrorReadLine();
+                //    p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+                //        Console.WriteLine("error>>" + e.Data);
+                //    p.BeginErrorReadLine();
 
-                    p.WaitForExit();
+                //    p.WaitForExit();
 
-                    Console.WriteLine("ExitCode: {0}", p.ExitCode);
-                    p.Close();
-                }
-                catch (Exception e) { Console.WriteLine("gen_dc error" + e.Message); }
+                //    Console.WriteLine("ExitCode: {0}", p.ExitCode);
+                //    p.Close();
+                //}
+                //catch (Exception e) { Console.WriteLine("gen_dc error" + e.Message); }
 
                 oneSimTime.Stop();
                 int oneSimTook = Convert.ToInt32(oneSimTime.ElapsedMilliseconds);
@@ -415,17 +450,11 @@ namespace EddyLib
 
 # DAYSIM Input File generated by Eddy
 # Timur Dogan, Patrick Kastner
-# The file consist of keywords followed by variable assignment.
-# You can add comment lines into the file that start with #.
 
 project_name		@projekt_name@
 project_directory	@projekt_ordner@\
 bin_directory		C:\DIVA\DaysimBinaries\
 tmp_directory		@tmp@\
-
-##################
-# site information
-##################
 
 @wetterkopf@
 first_weekday 1
@@ -436,23 +465,14 @@ lower_direct_threshold 2
 lower_diffuse_threshold 2
 output_units @output_units@
 
-######################
-# building information
-######################
 material_file @material_datei@
 geometry_file @geometrie_datei@
 scene_rotation_angle 00
 sensor_file @sensor_punkte@
 radiance_source_files @radiance_quelldateien@
-dgp_out_file @dgp_out_file@
-static_system @static_system@
 
+shading 1 @static_system@
 # sensor_file_unit @sensor_unit@
-
-
-######################
-# RADIANCE parameters
-######################
 
 ab @ab@
 ad @ad@
@@ -475,39 +495,7 @@ dp 512
 # lw .002
 # ps 2
 # pt .05
-# af test.amb
-
- 
-######################
-# Analysis information
-######################
-
-#######################
-# daylighting results 
-#######################
-
-# daylight_autonomy_active_RGB @daylight_autonomy_active_RGB@
-# daylight_availability_active_RGB @daylight_availability_active_RGB@
-# continuous_daylight_autonomy_active_RGB @continuous_daylight_autonomy_active_RGB@
-# UDI_100_active_RGB @UDI_100_active_RGB@
-# UDI_100_2000_active_RGB @UDI_100_2000_active_RGB@
-# UDI_2000_active_RGB @UDI_2000_active_RGB@
-# electric_lighting @electric_lighting@
-# direct_sunlight_file @direct_sunlight_file@
-# thermal_simulation @thermal_simulation@
-# DDS_sensor_file @DDS_sensor_file@
-# DDS_file @DDS_file@
-
-";
-
-
-
-
-
-
-
-
-
+# af test.amb";
     }
 
 }
