@@ -22,7 +22,7 @@ namespace CallProbes
             {
 
 
-                var dirs = options.dirs.Split(',');
+                var windDirs = options.dirs.Split(',');
 
 
                 //[prope][x,y,z]
@@ -49,12 +49,12 @@ namespace CallProbes
                     string pointName = "cp_Probes";
                     string OFfield = "total(p)_coeff";
 
-                    for (int i = 0; i < dirs.Length; i++)
+                    for (int i = 0; i < windDirs.Length; i++)
                     {
 
                         //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + "controlDict", StringTemplates.controlDict(DOM, null, i));
                         //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, options.mode));
-                        command.Append(@"postProcess -case " + dirs[i] + " -func " + pointName + @" -latestTime;");
+                        command.Append(@"postProcess -case " + windDirs[i] + " -func " + pointName + @" -latestTime;");
 
 
                     }
@@ -65,9 +65,9 @@ namespace CallProbes
                     p.Start();
                     p.WaitForExit();
 
-                    for (int i = 0; i < dirs.Length; i++)
+                    for (int i = 0; i < windDirs.Length; i++)
                     {
-                        ParsingValues cp = new ParsingValues(pointList, pointName, options.workingDir + "\\" + dirs[i], OFfield);
+                        ParsingValues cp = new ParsingValues(pointList, pointName, options.workingDir + "\\" + windDirs[i], OFfield);
                         //cpTree.AddRange(cp.cpValues, new Grasshopper.Kernel.Data.GH_Path(i));
                     }
 
@@ -83,14 +83,14 @@ namespace CallProbes
                     string pointName = "U_Probes";
                     string OFfield = "U";
 
-                    for (int i = 0; i < dirs.Length; i++)
+                    for (int i = 0; i < windDirs.Length; i++)
                     {
 
 
                         // Write the dicts
 
                         //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, options.mode));
-                        command.Append(@"postProcess -case " + dirs[i] + " -func " + pointName + @" -latestTime;");
+                        command.Append(@"postProcess -case " + windDirs[i] + " -func " + pointName + @" -latestTime;");
 
 
                     }
@@ -101,12 +101,15 @@ namespace CallProbes
                     p.Start();
                     p.WaitForExit();
 
-                    for (int i = 0; i < dirs.Length; i++)
+
+                    Thread.Sleep(5000);
+
+                    for (int i = 0; i < windDirs.Length; i++)
                     {
 
                         // Parse values
 
-                        var U = new ParsingValues(pointList, pointName, options.workingDir + "\\" + dirs[i], OFfield);
+                        var U = new ParsingValues(pointList, pointName, options.workingDir + "\\" + windDirs[i], OFfield);
 
 
                         // Create datatree

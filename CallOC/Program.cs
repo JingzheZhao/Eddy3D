@@ -177,7 +177,7 @@ namespace CallOC
                     }
                     ReductionFile.AppendLine("");
                 }
-                File.WriteAllText(Path.GetDirectoryName(options.windScaling) + @"\ReductionData.csv", ReductionFile.ToString());
+                File.WriteAllText(Path.GetDirectoryName(options.windScaling) + @"\WindReductionData.csv", ReductionFile.ToString());
 
 
                 ////

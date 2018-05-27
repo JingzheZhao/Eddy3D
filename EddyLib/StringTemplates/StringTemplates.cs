@@ -1605,7 +1605,7 @@ RAS
 
             string dif = "-f " + "\"" + workDir + @"\Rad\CallRay.dif.ill" + "\"";
             string dir = "-r " + "\"" + workDir + @"\Rad\CallRay.dir.ill" + "\"";
-            string u = "-u " + "\"" + workDir + @"\PostProcessing\___________??_______.csv" + "\"";
+            string u = "-u " + "\"" + workDir + @"\WindReductionData.csv" + "\"";
 
 
             StringBuilder sb = new StringBuilder();
