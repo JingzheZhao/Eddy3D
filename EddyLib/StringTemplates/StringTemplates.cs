@@ -1564,8 +1564,8 @@ RAS
             //@ Patrick WIP
 
             string dirs = "";
-            foreach (var d in DOM.BCInflow.windDir) dirs += (int) d + ',';
-            dirs.TrimEnd(',');
+            foreach (var d in DOM.BCInflow.windDir) dirs += ( ( (int) d ).ToString() + ',');
+            dirs = dirs.TrimEnd(',');
 
             string dif = "-f " + "\"" + DOM.baseWorkingDirectory + @"\Rad\CallRay.dif.ill" + "\"";
             string dir = "-r " + "\"" + DOM.baseWorkingDirectory + @"\Rad\CallRay.dir.ill" + "\"";
