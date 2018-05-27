@@ -218,6 +218,9 @@ namespace Eddy
 
             File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run.bat"), StringTemplates.run(DOM));
             File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_sim_all.bat"), StringTemplates.runSimOnly(DOM));
+
+            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_ray.bat"), StringTemplates.run_RayTrace(DOM));
+            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_probes.bat"), StringTemplates.run_Probes(DOM));
             File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_utci.bat"), StringTemplates.run_UTCI(DOM));
 
 

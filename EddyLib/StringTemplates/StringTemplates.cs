@@ -1558,6 +1558,40 @@ RAS
             return sb.ToString();
         }
 
+        public static string run_RayTrace(OFBaseDomain DOM)
+        {
+            string workDir = DOM.baseWorkingDirectory.Trim('\\');
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallRay.exe\" " + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCInflow.weather + "\"");
+            //   sb.AppendLine("PAUSE");
+            return sb.ToString();
+        }
+
+        public static string run_Probes(OFBaseDomain DOM)
+        {
+
+            //@ Patrick WIP
+
+            string dirs = "";
+            foreach (var d in DOM.BCInflow.windDir) dirs += (((int)d).ToString() + ',');
+            dirs = dirs.TrimEnd(',');
+
+            string workDir = DOM.baseWorkingDirectory.Trim('\\');
+
+        
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallProbes.exe\" " + "-w " + "\"" + workDir + "\" " + "-p " + "\"" + workDir + @"\Rad\sensors.pts" + "\"" + " -d " + dirs + " -m 1");
+          
+            //   sb.AppendLine("PAUSE");
+
+
+
+
+
+            return sb.ToString();
+        }
+
         public static string run_UTCI(OFBaseDomain DOM)
         {
 
@@ -1575,8 +1609,8 @@ RAS
 
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallProbes.exe\" "+ "-w " + "\"" +workDir + "\" " + "-p " + "\"" + workDir + @"\Rad\sensors.pts" + "\"" + " -d " + dirs + " -m 1");
-            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallRay.exe\" "  + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCInflow.weather + "\"");
+            //sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallProbes.exe\" "+ "-w " + "\"" +workDir + "\" " + "-p " + "\"" + workDir + @"\Rad\sensors.pts" + "\"" + " -d " + dirs + " -m 1");
+            //sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallRay.exe\" "  + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCInflow.weather + "\"");
             sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallOC.exe\" "   + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCInflow.weather +" "+ dif + " " + dir + " " + u);
                                                                 
             //   sb.AppendLine("PAUSE");
