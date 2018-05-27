@@ -129,18 +129,13 @@ namespace EddyLib
 
 
 
-        public static double GetWindReductionFactor(int probeIndex, double[][] ReductionArray, string filePath, int numberOfProbes, List<double> windDirs, double windVelWeatherFile, double windDirWeatherFile)
+        public static double GetWindReductionFactor(int probeIndex, double[][] ReductionArray, int numberOfProbes, List<double> windDirs, double windVelWeatherFile, double windDirWeatherFile)
         {
 
             int numberOfWindDirs = windDirs.Count();
 
 
          //   double windRedFactor = 0;
-
-
-           
-
-            
 
             double distanceToLower = windDirWeatherFile - NextLowerIndex(windDirs, windDirWeatherFile);
             double distanceToUpper = windDirWeatherFile - NextUpperIndex(windDirs, windDirWeatherFile);

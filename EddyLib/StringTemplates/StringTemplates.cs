@@ -1560,42 +1560,28 @@ RAS
 
         public static string run_UTCI(OFBaseDomain DOM)
         {
-     
-            //WIP
+
+            //@ Patrick WIP
 
             string dirs = "";
-            foreach (var d in DOM.BCInflow.windDir) dirs += d + ',';
+            foreach (var d in DOM.BCInflow.windDir) dirs += (int) d + ',';
             dirs.TrimEnd(',');
 
+            string dif = "-f " + "\"" + DOM.baseWorkingDirectory + @"\Rad\CallRay.dif.ill" + "\"";
+            string dir = "-r " + "\"" + DOM.baseWorkingDirectory + @"\Rad\CallRay.dir.ill" + "\"";
+            string u = "-u " + "\"" + DOM.baseWorkingDirectory + @"\PostProcessing\___________??_______.csv" + "\"";
+
+
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallProbes.exe"" -w " + "\"" + DOM.baseWorkingDirectory + "\" " + "-p " + "\"" + DOM.baseWorkingDirectory + "\\Rad\" " +" -d "+ dirs+" -m 1");
-            sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallRay.exe""  -d " + "\"" + DOM.baseWorkingDirectory + "\" " + "-w " + "\"" + DOM.BCInflow.weather);
-            sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOC.exe""  -w " + "\"" + DOM.baseWorkingDirectory + "\" " + "-p " + "\"" + DOM.baseWorkingDirectory + "\\Rad\" " + " -d " + dirs + " -m 1");
-
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallProbes.exe\"" + "\"" +  "-w " + "\"" + DOM.baseWorkingDirectory + "\" " + "-p " + "\"" + DOM.baseWorkingDirectory + "\\Rad\\sensors.pts\" " + " -d " + dirs + " -m 1" + "\"");
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallRay.exe\"" + "\"" + "-d " + "\"" + DOM.baseWorkingDirectory + "\" " + "-w " + "\"" + DOM.BCInflow.weather + "\"");
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallOC.exe\"" + "\"" + "-d " + "\"" + DOM.baseWorkingDirectory + "\" " + "-w " + "\"" + DOM.BCInflow.weather +" "+ dif + " " + dir + " " + u + "\"");
+                                                                
             //   sb.AppendLine("PAUSE");
+       
 
 
-        //[Option('w', "weather", Required = true,
-        //HelpText = "EPW weather file path.")]
-        //public string weather { get; set; }
-
-        //[Option('f', "difRad", Required = true,
-        //HelpText = "Diffuse radiation (ill)")]
-        //public string difRad { get; set; }
-
-        //[Option('r', "dirRad", Required = true,
-        //HelpText = "Direct radiation (ill)")]
-        //public string dirRad { get; set; }
-
-
-        //[Option('u', "windScaling", Required = true,
-        //HelpText = "Wind speed scaling factors (csv)")]
-        //public string windScaling { get; set; }
-
-
-        //[Option('o', "output", Required = true,
-        //HelpText = "Output file path")]
-        //public string output { get; set; }
+            
 
             return sb.ToString();
         }

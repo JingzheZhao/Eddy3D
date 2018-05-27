@@ -218,6 +218,8 @@ namespace Eddy
 
             File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run.bat"), StringTemplates.run(DOM));
             File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_sim_all.bat"), StringTemplates.runSimOnly(DOM));
+            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_utci.bat"), StringTemplates.run_UTCI(DOM));
+
 
             for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                 {

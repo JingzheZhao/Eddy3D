@@ -26,17 +26,17 @@ namespace CallOC
                     Console.WriteLine("EPW weather file path: {0}", options.weather);
                     errorLog.AppendLine(String.Format("EPW weather file path: {0}", options.weather));
 
-                    Console.WriteLine("Diffuse radiation (ill): {0}", options.difRad);
-                    errorLog.AppendLine(String.Format("Diffuse radiation (ill): {0}", options.difRad));
+                    //Console.WriteLine("Diffuse radiation (ill): {0}", options.difRad);
+                    //errorLog.AppendLine(String.Format("Diffuse radiation (ill): {0}", options.difRad));
 
-                    Console.WriteLine("Direct radiation (ill): {0}", options.dirRad);
-                    errorLog.AppendLine(String.Format("Direct radiation (ill): {0}", options.dirRad));
+                    //Console.WriteLine("Direct radiation (ill): {0}", options.dirRad);
+                    //errorLog.AppendLine(String.Format("Direct radiation (ill): {0}", options.dirRad));
 
-                    Console.WriteLine("Wind speed scaling factors (csv): {0}", options.windScaling);
-                    errorLog.AppendLine(String.Format("Wind speed scaling factors (csv): {0}", options.windScaling));
+                    //Console.WriteLine("Wind speed scaling factors (csv): {0}", options.windScaling);
+                    //errorLog.AppendLine(String.Format("Wind speed scaling factors (csv): {0}", options.windScaling));
 
-                    Console.WriteLine("Output file path: {0}", options.output);
-                    errorLog.AppendLine(String.Format("Output file path: {0}", options.output));
+                    Console.WriteLine("Working directory: {0}", options.workingDir);
+                    errorLog.AppendLine(String.Format("Working directory: {0}", options.workingDir));
                 }
 
 
@@ -106,12 +106,9 @@ namespace CallOC
                 //  Load radiation datasets
                 //  [x][]  time
                 //  [][x]  points
-                var DiffRad = RadianceFiles.loadILL(options.difRad);
-                var DirRad = RadianceFiles.loadILL(options.dirRad);
+              var DiffRad = RadianceFiles.loadILL(options.difRad);
+              var DirRad = RadianceFiles.loadILL(options.dirRad);
 
-
-
-               
 
 
 
@@ -154,7 +151,7 @@ namespace CallOC
                     for (int i = 0; i < 8760; i++)
                     {
                         // hours of weather file in iterator missing
-                        windReduction[i,j] = UTCI.GetWindReductionFactor(j, ReductionArray, options.windScaling, sensorPointCount, windDirList, WindSpeed[i], WindDirection[i]);
+                        windReduction[i,j] = UTCI.GetWindReductionFactor(j, ReductionArray, sensorPointCount, windDirList, WindSpeed[i], WindDirection[i]);
                     }
                 }
 
@@ -200,7 +197,7 @@ namespace CallOC
 
                         double mrt = UTCI.GetMRT2(DryBulbTemp[i], RelativeHumidity[i], DiffRad[i][j], DirRad[i][j], SolarElevation[i], DryBulbTemp[i], Wst, Hst, BodyA, GrRef, 0.95)[0];
 
-                        double utci_temp = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], WindSpeed[i], DiffRad[i][j], DirRad[i][j], SolarElevation[i], Wst, Hst, BodyA, GrRef, mrt);
+                        double utci_temp = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], windReduction[i,j]* WindSpeed[i], DiffRad[i][j], DirRad[i][j], SolarElevation[i], Wst, Hst, BodyA, GrRef, mrt);
 
                         double cOfPerson = 0;
 
@@ -239,14 +236,14 @@ namespace CallOC
                     }
                     sbUtci.AppendLine("");
                 }
-                File.WriteAllText(options.output , sbUtci.ToString());
+                File.WriteAllText(options.workingDir + @"\utci.t" , sbUtci.ToString());
 
 
 
 
                 if (options.Verbose)
                 {
-                    File.WriteAllText(options.output + ".err", errorLog.ToString());
+                    File.WriteAllText(options.workingDir+@"\utci.err", errorLog.ToString());
                 }
 
                 Console.WriteLine("Done");
@@ -276,10 +273,12 @@ namespace CallOC
         HelpText = "Wind speed scaling factors (csv)")]
         public string windScaling { get; set; }
 
-
-        [Option('o', "output", Required = true,
-        HelpText = "Output file path")]
-        public string output { get; set; }
+        [Option('d', "workingDir", Required = true,
+                HelpText = "Working directory.")]
+        public string workingDir { get; set; }
+        //[Option('o', "output", Required = true,
+        //HelpText = "Output file path")]
+        //public string output { get; set; }
 
         [Option('l', "loud", DefaultValue = true,
         HelpText = "Prints all messages to standard output.")]
