@@ -31,6 +31,7 @@ namespace CallRay
 
 
                 Console.WriteLine("Done");
+
                 Console.ReadKey();
             }
 
@@ -67,6 +68,7 @@ namespace CallRay
         {
             return HelpText.AutoBuild(this,
               (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current));
+
         }
     }
 

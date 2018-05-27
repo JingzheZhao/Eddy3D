@@ -20,7 +20,7 @@ namespace EddyLib
         public int AR = 256;
         public double AA = 0.2;
 
-       
+
         public string PROJNAME = "default";
         public string PROJDIR = @"C:\UD\temp";
         public string EPWPATH = @"C:\UD\LIB\TUR_ISTANBUL.170600_IWEC.EPW";
@@ -62,12 +62,13 @@ namespace EddyLib
 
                 ProcessStartInfo processInfo = new ProcessStartInfo();
                 processInfo.Arguments = arguments;
-                processInfo.FileName = DaysimInstallation+@"\epw2wea";
+                processInfo.FileName = DaysimInstallation + @"\epw2wea";
                 processInfo.WorkingDirectory = DaysimInstallation;
                 processInfo.UseShellExecute = false;
                 processInfo.RedirectStandardOutput = true;
                 processInfo.RedirectStandardError = true;
                 processInfo.CreateNoWindow = true;
+
 
                 Process p = new Process();
                 p.StartInfo = processInfo;
@@ -75,7 +76,22 @@ namespace EddyLib
                 // p.ErrorDataReceived += DebugLog.CaptureError;
 
                 p.Start();
+
+
+                p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
+                       Console.WriteLine("output>>" + e.Data);
+                p.BeginOutputReadLine();
+
+                p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+                    Console.WriteLine("error>>" + e.Data);
+                p.BeginErrorReadLine();
+
                 p.WaitForExit();
+
+                Console.WriteLine("ExitCode: {0}", p.ExitCode);
+                p.Close();
+
+
 
                 Debug.WriteLine("WEA FILE EXSISTS? " + File.Exists(Path.GetFullPath(Path.Combine(targetPath, epwdatname + @".wea"))).ToString());
 
@@ -89,82 +105,82 @@ namespace EddyLib
         }
         public static void RunDaysim(string workingDir, string varNameBase, DaysimSettings setCon)
         {
-                Regex re = new Regex(@"\@(\w+)\@", RegexOptions.Compiled);
+            Regex re = new Regex(@"\@(\w+)\@", RegexOptions.Compiled);
+            try
+            {
+                string AB = setCon.AB.ToString();
+                string AD = setCon.AD.ToString();
+                string AS = setCon.AS.ToString();
+                string AR = setCon.AR.ToString();
+                string AA = setCon.AA.ToString();
+
+
+
+
+                // PARSING PARAMS AND WEATHER
+                //---------------------------
+                string wetterdatei = null;
+                string wetterkopf = null;
+                string[] weaPaths = null;
+
                 try
                 {
-                    string AB = setCon.AB.ToString();
-                    string AD = setCon.AD.ToString();
-                    string AS = setCon.AS.ToString();
-                    string AR = setCon.AR.ToString();
-                    string AA = setCon.AA.ToString();
+                    //ParamHandling.LoadParameterSettings();
+                    weaPaths = Directory.GetFiles(workingDir, "*.wea", SearchOption.TopDirectoryOnly);
 
-
-
-
-                    // PARSING PARAMS AND WEATHER
-                    //---------------------------
-                    string wetterdatei = null;
-                    string wetterkopf = null;
-                    string[] weaPaths = null;
-
-                    try
+                    if (weaPaths.Length > 0 && weaPaths.Length < 2)
                     {
-                        //ParamHandling.LoadParameterSettings();
-                        weaPaths = Directory.GetFiles(workingDir, "*.wea", SearchOption.TopDirectoryOnly);
-
-                        if (weaPaths.Length > 0 && weaPaths.Length < 2)
+                        wetterdatei = Path.GetFileName(weaPaths[0]);
+                        using (var sr = new StreamReader(weaPaths[0]))
                         {
-                            wetterdatei = Path.GetFileName(weaPaths[0]);
-                            using (var sr = new StreamReader(weaPaths[0]))
+                            for (int i = 0; i < 6; i++)
                             {
-                                for (int i = 0; i < 6; i++)
-                                {
-                                    string st = sr.ReadLine();
-                                    wetterkopf += st + "\n";
-                                }
+                                string st = sr.ReadLine();
+                                wetterkopf += st + "\n";
                             }
                         }
-                        else { Debug.WriteLine("Check your weather!"); }
-
-
                     }
-                    catch
-                    {
-                        Debug.WriteLine("MULTIPLE OR NO WEATHER FILE FOUND");
-                    }
-                    // HEA GENERATION AND RUNNING
-                    //---------------------------
-
-                    string HEACONTENT = HEAtemplate;
-                    string varianten_name = (varNameBase);
-
-                    string projekt_ordner = workingDir;
-                    string wetterpfad = (workingDir + @"\" + wetterdatei);
-
-                    //string zeitplan = "weekdays9to5withDST.60min.occ.csv";
-                    //string minimum_illuminance_level = "500";
-                    //string verschattung = "shading 1";
-                    // FIXED ----------------------------------------------------------------------------------------------------
-                    string material_datei = "materials.rad";
-                    string geometrie_datei = "scene.rad";
-                    string radiance_quelldateien = @"2, "+ workingDir + @"\materials.rad" + @", " + workingDir + @"\scene.rad";
-                    string sensor_punkte = "sensors.pts";
-                    //string hea_dateiname = (workingDir + @"\input.hea");
+                    else { Debug.WriteLine("Check your weather!"); }
 
 
-                    string dgp_out_file = ((varianten_name) + "_dgp.out");
-                    string static_system = ((varianten_name) + ".dc " + (varianten_name) + ".ill");
-                    string daylight_autonomy_active_RGB = ((varianten_name) + "_autonomy.DA");
-                    string daylight_availability_active_RGB = ((varianten_name) + "_availability.DA");
-                    string continuous_daylight_autonomy_active_RGB = ((varianten_name) + "_continuous_daylight_autonomy.CDA");
-                    string electric_lighting = ((varianten_name) + "_el.htm");
-                    string direct_sunlight_file = ((varianten_name) + ".dir");
-                    string thermal_simulation = ((varianten_name) + "_intgain.csv");
-                    string DDS_sensor_file = ((varianten_name) + ".dds");
-                    string DDS_file = ((varianten_name) + ".sen");
+                }
+                catch
+                {
+                    Debug.WriteLine("MULTIPLE OR NO WEATHER FILE FOUND");
+                }
+                // HEA GENERATION AND RUNNING
+                //---------------------------
+
+                string HEACONTENT = HEAtemplate;
+                string varianten_name = (varNameBase);
+
+                string projekt_ordner = workingDir;
+                string wetterpfad = (workingDir + @"\" + wetterdatei);
+
+                //string zeitplan = "weekdays9to5withDST.60min.occ.csv";
+                //string minimum_illuminance_level = "500";
+                //string verschattung = "shading 1";
+                // FIXED ----------------------------------------------------------------------------------------------------
+                string material_datei = "materials.rad";
+                string geometrie_datei = "scene.rad";
+                string radiance_quelldateien = @"2, " + workingDir + @"\materials.rad" + @", " + workingDir + @"\scene.rad";
+                string sensor_punkte = "sensors.pts";
+                //string hea_dateiname = (workingDir + @"\input.hea");
 
 
-                    var args = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                string dgp_out_file = ((varianten_name) + "_dgp.out");
+                string static_system = ((varianten_name) + ".dc " + (varianten_name) + ".ill");
+                string daylight_autonomy_active_RGB = ((varianten_name) + "_autonomy.DA");
+                string daylight_availability_active_RGB = ((varianten_name) + "_availability.DA");
+                string continuous_daylight_autonomy_active_RGB = ((varianten_name) + "_continuous_daylight_autonomy.CDA");
+                string electric_lighting = ((varianten_name) + "_el.htm");
+                string direct_sunlight_file = ((varianten_name) + ".dir");
+                string thermal_simulation = ((varianten_name) + "_intgain.csv");
+                string DDS_sensor_file = ((varianten_name) + ".dds");
+                string DDS_file = ((varianten_name) + ".sen");
+
+
+                var args = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
              {
              {"projekt_name" , varianten_name                                                            },
              {"projekt_ordner", projekt_ordner                                                           },
@@ -203,128 +219,197 @@ namespace EddyLib
              };
 
 
-                    string output = "";
-                    try
-                    {
-
-                        output = re.Replace(HEACONTENT, match => args[match.Groups[1].Value]);
-                        //Console.Write(output);
-                    }
-                    catch (Exception e) { Console.WriteLine(e.Message); }
-                    try
-                    {
-                        System.IO.File.WriteAllText(workingDir + @"\" + varianten_name + @".hea", output);
-                    }
-                    catch (Exception e) { Console.WriteLine("hea file error " + e.Message); }
-
-
-
-                    Stopwatch oneSimTime = new Stopwatch();
-                    oneSimTime.Start();
-
-                    //RhinoApp.WriteLine("# Exterior Raytrace " + index.ToString());
-
-
-                    string pathvar = System.Environment.GetEnvironmentVariable("PATH");
-                    System.Environment.SetEnvironmentVariable("PATH", pathvar + @";"+ DaysimInstallation);
-                  //  System.Environment.SetEnvironmentVariable("RAYPATH", @"C:\UD\bin\DAYSIM\lib\;C:\UD\bin\Radiance\lib\");
-
-
-
-                    //run the daysim radiance executables
-                    ProcessStartInfo startInfo = new ProcessStartInfo();
-                    startInfo.WorkingDirectory = DaysimInstallation;
-
-
-                    string pathvar2 = startInfo.EnvironmentVariables["PATH"];
-                    startInfo.EnvironmentVariables["PATH"] = pathvar2 + @";" + DaysimInstallation; //@";C:\UD\bin\DAYSIM\bin_windows\;C:\UD\bin\Radiance\bin\;C:\UD\bin\DAYSIM;";
-                  //  startInfo.EnvironmentVariables["RAYPATH"] = @"C:\UD\bin\DAYSIM\lib\;C:\UD\bin\Radiance\lib\";
-
-
-                    startInfo.UseShellExecute = false;
-                    startInfo.RedirectStandardOutput = true;
-                    startInfo.CreateNoWindow = true;
-                    Process p;
-
-                    try
-                    {
-
-                        startInfo.FileName = "radfiles2daysim";
-                        startInfo.Arguments = workingDir + @"/" + varianten_name + @".hea -m -g";
-                        p = Process.Start(startInfo);
-                        p.WaitForExit();
-                    }
-                    catch (Exception e) { Console.WriteLine("radfiles2daysim error" + e.Message); }
-
-                    try
-                    {
-
-                        startInfo.FileName = "gen_dc";
-                        startInfo.Arguments = workingDir + @"/" + (varianten_name) + @".hea -dif -af test_dif.amb";
-                        p = Process.Start(startInfo);
-                        p.WaitForExit();
-                    }
-                    catch (Exception e) { Console.WriteLine("gen_dc dif error" + e.Message); }
-
-                    try
-                    {
-
-                        startInfo.FileName = "gen_dc";
-                        startInfo.Arguments = workingDir + @"/" + (varianten_name) + @".hea -dir -af test_dif.amb";
-                        p = Process.Start(startInfo);
-                        p.WaitForExit();
-                    }
-                    catch (Exception e) { Console.WriteLine("gen_dc dir error" + e.Message); }
-
-                    try
-                    {
-
-                        startInfo.Arguments = workingDir + "/" + (varianten_name) + ".hea -paste";
-                        p = Process.Start(startInfo);
-                        p.WaitForExit();
-                    }
-                    catch (Exception e) { Console.WriteLine("hea -paste error" + e.Message); }
-
-                    try
-                    {
-
-                        startInfo.FileName = "ds_illum";
-                        startInfo.Arguments = workingDir + @"/" + (varianten_name) + @".hea";
-                        p = Process.Start(startInfo);
-                        p.WaitForExit();
-                    }
-                    catch (Exception e) { Console.WriteLine("ds_illum error" + e.Message); }
-
-                    //try
-                    //{
-
-                    //    startInfo.FileName = "gen_directsunlight";
-                    //    startInfo.Arguments = workingDir + @"/" + (varianten_name) + @".hea";
-                    //    p = Process.Start(startInfo);
-                    //    p.WaitForExit();
-                    //}
-                    //catch { Console.WriteLine("gen_directsunlight error"); }
-
-                    try
-                    {
-
-                        startInfo.FileName = "gen_dc";
-                        startInfo.Arguments = workingDir + @"/" + varianten_name + @".hea -paste";
-                        p = Process.Start(startInfo);
-                        p.WaitForExit();
-                    }
-                    catch (Exception e) { Console.WriteLine("gen_dc error" + e.Message); }
-
-                    oneSimTime.Stop();
-                    int oneSimTook = Convert.ToInt32(oneSimTime.ElapsedMilliseconds);
-    
-                }
-
-                catch (Exception e)
+                string output = "";
+                try
                 {
-                    Console.WriteLine("runDAYSIM failed" + e.Message);
+
+                    output = re.Replace(HEACONTENT, match => args[match.Groups[1].Value]);
+                    //Console.Write(output);
                 }
+                catch (Exception e) { Console.WriteLine(e.Message); }
+                try
+                {
+                    System.IO.File.WriteAllText(workingDir + @"\" + varianten_name + @".hea", output);
+                }
+                catch (Exception e) { Console.WriteLine("hea file error " + e.Message); }
+
+
+
+                Stopwatch oneSimTime = new Stopwatch();
+                oneSimTime.Start();
+
+                //RhinoApp.WriteLine("# Exterior Raytrace " + index.ToString());
+
+
+                string pathvar = System.Environment.GetEnvironmentVariable("PATH");
+                System.Environment.SetEnvironmentVariable("PATH", pathvar + @";" + DaysimInstallation);
+                //  System.Environment.SetEnvironmentVariable("RAYPATH", @"C:\UD\bin\DAYSIM\lib\;C:\UD\bin\Radiance\lib\");
+
+
+
+                //run the daysim radiance executables
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.WorkingDirectory = DaysimInstallation;
+
+
+                string pathvar2 = startInfo.EnvironmentVariables["PATH"];
+                startInfo.EnvironmentVariables["PATH"] = pathvar2 + @";" + DaysimInstallation; //@";C:\UD\bin\DAYSIM\bin_windows\;C:\UD\bin\Radiance\bin\;C:\UD\bin\DAYSIM;";
+                                                                                               //  startInfo.EnvironmentVariables["RAYPATH"] = @"C:\UD\bin\DAYSIM\lib\;C:\UD\bin\Radiance\lib\";
+
+
+                startInfo.UseShellExecute = false;
+                startInfo.RedirectStandardError = true;
+                startInfo.RedirectStandardOutput = true;
+                startInfo.CreateNoWindow = true;
+                Process p;
+
+                try
+                {
+
+                    startInfo.FileName = "radfiles2daysim";
+                    startInfo.Arguments = workingDir + @"/" + varianten_name + @".hea -m -g";
+                    p = Process.Start(startInfo);
+
+                    p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
+                    Console.WriteLine("output>>" + e.Data);
+                    p.BeginOutputReadLine();
+
+                    p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+                        Console.WriteLine("error>>" + e.Data);
+                    p.BeginErrorReadLine();
+
+                    p.WaitForExit();
+
+                    Console.WriteLine("ExitCode: {0}", p.ExitCode);
+                    p.Close();
+
+                }
+                catch (Exception e) { Console.WriteLine("radfiles2daysim error" + e.Message); }
+
+                try
+                {
+
+                    startInfo.FileName = "gen_dc";
+                    startInfo.Arguments = workingDir + @"/" + (varianten_name) + @".hea -dif -af test_dif.amb";
+                    p = Process.Start(startInfo);
+                    p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
+                           Console.WriteLine("output>>" + e.Data);
+                    p.BeginOutputReadLine();
+
+                    p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+                        Console.WriteLine("error>>" + e.Data);
+                    p.BeginErrorReadLine();
+
+                    p.WaitForExit();
+
+                    Console.WriteLine("ExitCode: {0}", p.ExitCode);
+                    p.Close();
+                }
+                catch (Exception e) { Console.WriteLine("gen_dc dif error" + e.Message); }
+
+                try
+                {
+
+                    startInfo.FileName = "gen_dc";
+                    startInfo.Arguments = workingDir + @"/" + (varianten_name) + @".hea -dir -af test_dif.amb";
+                    p = Process.Start(startInfo);
+                    p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
+                           Console.WriteLine("output>>" + e.Data);
+                    p.BeginOutputReadLine();
+
+                    p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+                        Console.WriteLine("error>>" + e.Data);
+                    p.BeginErrorReadLine();
+
+                    p.WaitForExit();
+
+                    Console.WriteLine("ExitCode: {0}", p.ExitCode);
+                    p.Close();
+                }
+                catch (Exception e) { Console.WriteLine("gen_dc dir error" + e.Message); }
+
+                try
+                {
+
+                    startInfo.Arguments = workingDir + "/" + (varianten_name) + ".hea -paste";
+                    p = Process.Start(startInfo);
+                    p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
+                           Console.WriteLine("output>>" + e.Data);
+                    p.BeginOutputReadLine();
+
+                    p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+                        Console.WriteLine("error>>" + e.Data);
+                    p.BeginErrorReadLine();
+
+                    p.WaitForExit();
+
+                    Console.WriteLine("ExitCode: {0}", p.ExitCode);
+                    p.Close();
+                }
+                catch (Exception e) { Console.WriteLine("hea -paste error" + e.Message); }
+
+                try
+                {
+
+                    startInfo.FileName = "ds_illum";
+                    startInfo.Arguments = workingDir + @"/" + (varianten_name) + @".hea";
+                    p = Process.Start(startInfo);
+                    p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
+                           Console.WriteLine("output>>" + e.Data);
+                    p.BeginOutputReadLine();
+
+                    p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+                        Console.WriteLine("error>>" + e.Data);
+                    p.BeginErrorReadLine();
+
+                    p.WaitForExit();
+
+                    Console.WriteLine("ExitCode: {0}", p.ExitCode);
+                    p.Close();
+                }
+                catch (Exception e) { Console.WriteLine("ds_illum error" + e.Message); }
+
+                //try
+                //{
+
+                //    startInfo.FileName = "gen_directsunlight";
+                //    startInfo.Arguments = workingDir + @"/" + (varianten_name) + @".hea";
+                //    p = Process.Start(startInfo);
+                //    p.WaitForExit();
+                //}
+                //catch { Console.WriteLine("gen_directsunlight error"); }
+
+                try
+                {
+
+                    startInfo.FileName = "gen_dc";
+                    startInfo.Arguments = workingDir + @"/" + varianten_name + @".hea -paste";
+                    p = Process.Start(startInfo);
+                    p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
+                           Console.WriteLine("output>>" + e.Data);
+                    p.BeginOutputReadLine();
+
+                    p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+                        Console.WriteLine("error>>" + e.Data);
+                    p.BeginErrorReadLine();
+
+                    p.WaitForExit();
+
+                    Console.WriteLine("ExitCode: {0}", p.ExitCode);
+                    p.Close();
+                }
+                catch (Exception e) { Console.WriteLine("gen_dc error" + e.Message); }
+
+                oneSimTime.Stop();
+                int oneSimTook = Convert.ToInt32(oneSimTime.ElapsedMilliseconds);
+
             }
+
+            catch (Exception e)
+            {
+                Console.WriteLine("runDAYSIM failed" + e.Message);
+            }
+        }
 
         private const string HEAtemplate = @"
 
@@ -416,7 +501,7 @@ dp 512
 ";
 
 
-        
+
 
 
 
