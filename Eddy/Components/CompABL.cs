@@ -42,6 +42,8 @@ namespace Eddy
             pManager.AddNumberParameter("zref", "zref", "zref", GH_ParamAccess.item,10);
             pManager.AddNumberParameter("z0", "z0", "z0", GH_ParamAccess.item,1);
             pManager.AddNumberParameter("zGround", "zGround", "zGround", GH_ParamAccess.item,0);
+            pManager.AddTextParameter("Epw", "Epw", "Weather file path", GH_ParamAccess.item);
+
         }
 
         /// <summary>
@@ -76,9 +78,10 @@ namespace Eddy
             DA.GetData(2, ref zref);
             DA.GetData(3, ref z0);
             DA.GetData(4, ref zGround);
+            string weather = "";
+            DA.GetData(5, ref weather);
 
-
-            BoundaryConditions BCInflow = new BoundaryConditions( windDir, Uref, zref, z0, zGround);
+            BoundaryConditions BCInflow = new BoundaryConditions( windDir, Uref, zref, z0, zGround, weather);
 
                DA.SetData(0, BCInflow);    
 

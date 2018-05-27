@@ -101,21 +101,21 @@ boundary
 );
         ";
         }
-        
+
         public static string snappyHexMeshDict(OFBaseDomain dom)
         {
             string refinementGeometry = "";
             string Cylinder = @"refinementCylinder{
 type searchableCylinder; 
-point1 ("+dom.refinementCylinder.Center.ToString().Replace(',', ' ')+ @");
-point2 ("+(dom.refinementCylinder.Center + Vector3d.ZAxis*dom.refinementCylinder.Height2).ToString().Replace(',', ' ') + @");
-radius "+dom.refinementCylinder.CircleAt(0.5).Radius+@";
+point1 (" + dom.refinementCylinder.Center.ToString().Replace(',', ' ') + @");
+point2 (" + (dom.refinementCylinder.Center + Vector3d.ZAxis * dom.refinementCylinder.Height2).ToString().Replace(',', ' ') + @");
+radius " + dom.refinementCylinder.CircleAt(0.5).Radius + @";
 }";
 
             string Box = @"refinementBox{
           type searchableBox;      
-          min ("+dom.BBox.Min.X +" "+ +dom.BBox.Min.Y+" "+ dom.BBox.Min.Z + @");  
-          max ("+dom.BBox.Max.X +" "+dom.BBox.Max.Y+" "+ dom.BBox.Max.Z +@");  
+          min (" + dom.BBox.Min.X + " " + +dom.BBox.Min.Y + " " + dom.BBox.Min.Z + @");  
+          max (" + dom.BBox.Max.X + " " + dom.BBox.Max.Y + " " + dom.BBox.Max.Z + @");  
 }";
             refinementGeometry = Box;
 
@@ -156,7 +156,7 @@ FoamFile
             type triSurfaceMesh;
             name ground_perim;
         }	
-        "+ refinementGeometry + @"
+        " + refinementGeometry + @"
     }
 
     castellatedMeshControls
@@ -187,7 +187,7 @@ FoamFile
             }
             ground_perim
             {
-                level (" + (dom.accGround-1) + " " + (dom.accGround-1) + @");
+                level (" + (dom.accGround - 1) + " " + (dom.accGround - 1) + @");
                 patchInfo
                 {
                     type wall;
@@ -443,13 +443,13 @@ libs
 #includeFunc residuals
 ");
             //if (topologies != null) {
-                sb.Append(StringTemplates.functionObjCP(DOM,topologies,numberOfTopologies).ToString());
+            sb.Append(StringTemplates.functionObjCP(DOM, topologies, numberOfTopologies).ToString());
             //}
             //else { sb.Append(@"};"); }
 
             return sb.ToString();
         }
-public static string functionObjCP(OFBaseDomain DOM, List<Mesh> evaluationTopology, int d)
+        public static string functionObjCP(OFBaseDomain DOM, List<Mesh> evaluationTopology, int d)
         {
             var sb = new StringBuilder();
             sb.Append(@"cp2
@@ -458,21 +458,22 @@ public static string functionObjCP(OFBaseDomain DOM, List<Mesh> evaluationTopolo
                     libs (""libfieldFunctionObjects.so"");
                     enabled yes;
                     writeControl timeStep;
-                    writeInterval "     +  DOM.writeInterval+@";
-                    UInf ("+ DOM.BCInflow.Uinf[d].X +" "+ DOM.BCInflow.Uinf[d].Y + " " + DOM.BCInflow.Uinf[d].Z +@");     // the undistrubed velocity at building height
+                    writeInterval " + DOM.writeInterval + @";
+                    UInf (" + DOM.BCInflow.Uinf[d].X + " " + DOM.BCInflow.Uinf[d].Y + " " + DOM.BCInflow.Uinf[d].Z + @");     // the undistrubed velocity at building height
                     pInf " + DOM.BCInflow.pinf + @";        // the dynamic undisturbed pressure at building height
-                    pRef "+ DOM.BCInflow.pref + @";        // the dynamic pressure at reference height (usually 10 m)
+                    pRef " + DOM.BCInflow.pref + @";        // the dynamic pressure at reference height (usually 10 m)
                     rhoInf              1.2;
                     calcTotal yes;
                     calcCoeff yes;
                 }");
 
-           
 
-                    if (evaluationTopology != null) {
-               for (int i = 0; i < evaluationTopology.Count; i++)
+
+            if (evaluationTopology != null)
             {
-                sb.Append(@"
+                for (int i = 0; i < evaluationTopology.Count; i++)
+                {
+                    sb.Append(@"
 patch" + i + @"
 {
     type                    swakExpression;
@@ -492,12 +493,12 @@ patch" + i + @"
             warnAutoInterpolate     false;
 }
 ");
-            }
+                }
             }
             else { sb.Append(@"};"); }
 
 
-            
+
             return sb.ToString();
 
         }
@@ -582,7 +583,7 @@ FoamFile
                 setFormat csv;
 
                 fields (");
- if (mode == 0)
+            if (mode == 0)
             {
                 sb.Append("total(p)_coeff");
             }
@@ -590,16 +591,16 @@ FoamFile
             {
                 sb.Append("U");
             }
- 
-sb.Append(@");
+
+            sb.Append(@");
 
                 probeLocations
                   (");
-            sb.Append(Environment.NewLine);  
+            sb.Append(Environment.NewLine);
             for (int i = 0; i < listOfPoints.Count; i++)
             {
                 sb.Append(@"(" + listOfPoints[i].X + @" " + listOfPoints[i].Y + @" " + listOfPoints[i].Z + @")");
-                sb.Append(Environment.NewLine);  
+                sb.Append(Environment.NewLine);
             }
 
             sb.Append(@");
@@ -613,285 +614,285 @@ sb.Append(@");
 
 
         }
-//        public static string circularDomainM4(OFBoxDomain DOM)
-//        {
-//            return @"/*--------------------------------*- C++ -*----------------------------------*\
-//| =========                 |                                                 |
-//| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-//|  \\    /   O peration     | Version:  2.1.0                                  |
-//|   \\  /    A nd           | Web:      http://www.OpenFOAM.com               |
-//|    \\/     M anipulation  |                                                 |
-//\*---------------------------------------------------------------------------*/
+        //        public static string circularDomainM4(OFBoxDomain DOM)
+        //        {
+        //            return @"/*--------------------------------*- C++ -*----------------------------------*\
+        //| =========                 |                                                 |
+        //| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+        //|  \\    /   O peration     | Version:  2.1.0                                  |
+        //|   \\  /    A nd           | Web:      http://www.OpenFOAM.com               |
+        //|    \\/     M anipulation  |                                                 |
+        //\*---------------------------------------------------------------------------*/
 
-//FoamFile
-//{
-//    version     2.0;
-//    format      ascii;
-//    class       dictionary;
-//    object      blockMeshDict;
-//}
-//// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
- 
-//convertToMeters 1;
- 
-//dnl changecom(//)
-//changequote([,])
-//define(LPAREN,[(])dnl
-//define(RPAREN,[)])dnl
-//dnl
-//define(calc, [esyscmd(perl -e 'printf ($1)')])dnl
-//dnl
-//define(pip180, 0.017453)
-//define(cos45, 0.70711)
-//dnl *********USER***********
-//dnl ===      POINTS      ===
-//define(zLength, " + (6 * DOM.dimZ) + @")dnl
-//define(coreWidth, " + (6 * DOM.dim) + @")dnl 
-//define(diameter, " + (16.5 * DOM.dim) + @")dnl 
-////define(rectangleWidth, 80)dnl //50
-//define(cornerStretch, 1)dnl 
-//define(arcStretch, 1)dnl
-//dnl ===    CELL COUNT    ===
-//define(coreCount, " + Math.Round((DOM.dim / DOM.blockDimension)) + @")dnl 
-//define(rectangleCount, " + Math.Round(((16.5 * DOM.dim) / DOM.blockDimension)) + @")dnl 
-//define(zCount, " + Math.Round((DOM.dimZ / DOM.blockDimension)) + @")dnl
-//dnl ===BOUNDING RECTANGLE?===
-//define(boundRect, 1)dnl
-//dnl =========================
-//dnl *******CALCULATED********
-//define(radius, calc(0.5*diameter))dnl
-//define(halfCoreWidth, calc(0.5*coreWidth))dnl
-//define(halfRectangleWidth, calc(0.5*rectangleWidth))dnl
-//define(negHalfCoreWidth, calc(-1*halfCoreWidth))dnl
-//define(halfCoreCorner, calc(cornerStretch*halfCoreWidth*2))dnl
-//define(negHalfCoreCorner, calc(-1*halfCoreCorner))dnl
-//define(negRadius, calc(-1*radius))dnl
-//define(cornerRadius, calc(sqrt(2)*radius/2))dnl
-//define(negCornerRadius, calc(-1*cornerRadius))dnl
-//define(negHalfRectangleWidth, calc(-1*halfRectangleWidth))dnl
-//dnl =========================
-//dnl ===     ARC POINTS    ===
-//dnl define(coreArchLong, calc(0.67*halfCoreWidth))dnl
-//define(coreArchLong, calc(1.001*arcStretch*(halfCoreWidth+halfCoreCorner*0.5-halfCoreWidth*0.5)))dnl
-//define(negCoreArchLong, calc(-1*coreArchLong))dnl
-//define(coreArchShort, calc(halfCoreWidth/2))dnl
-//define(negCoreArchShort, calc(-1*coreArchShort))dnl
-//define(radiusArchLong, calc(cos(22.5*pip180)*radius))dnl
-//define(negRadiusArchLong, calc(-1*radiusArchLong))dnl
-//define(radiusArchShort, calc(sin(22.5*pip180)*radius))dnl
-//define(negRadiusArchShort, calc(-1*radiusArchShort))dnl
-//dnl =========================
-//dnl
-//define(zCount, 1)dnl
+        //FoamFile
+        //{
+        //    version     2.0;
+        //    format      ascii;
+        //    class       dictionary;
+        //    object      blockMeshDict;
+        //}
+        //// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-//vertices        
-//(
-//    (  0  0  0 )          //0
-//    (  0  0  zLength )          //1
-//    (  halfCoreCorner  0  0 )          //2
-//    (  halfCoreCorner  0  zLength )          //3
-//    (  0  halfCoreCorner  0 )          //4
-//    (  0  halfCoreCorner  zLength )        //5
-//    ( negHalfCoreCorner  0  0 )               //6
-//    ( negHalfCoreCorner  0  zLength )        //7
-//    (  0  negHalfCoreCorner  0 )               //8
-//    (  0  negHalfCoreCorner  zLength )        //9
-//    (  halfCoreWidth  halfCoreWidth  0 )               //10
-//    (  halfCoreWidth  halfCoreWidth  zLength )        //11
-//    ( negHalfCoreWidth  halfCoreWidth  0 )               //12
-//    ( negHalfCoreWidth  halfCoreWidth  zLength )        //13
-//    ( negHalfCoreWidth negHalfCoreWidth  0 )               //14
-//    ( negHalfCoreWidth negHalfCoreWidth  zLength )        //15
-//    (  halfCoreWidth negHalfCoreWidth  0 )               //16
-//    (  halfCoreWidth negHalfCoreWidth  zLength )        //17
-//    (  radius  0  0 )               //18
-//    (  radius  0  zLength )        //19
-//    (  0  radius  0 )               //20
-//    (  0  radius  zLength )        //21
-//    ( negRadius  0  0 )               //22
-//    ( negRadius  0  zLength )        //23
-//    (  0  negRadius  0 )               //24
-//    (  0  negRadius  zLength )        //25
-//    (  cornerRadius  cornerRadius  0 )           //26
-//    (  cornerRadius  cornerRadius  zLength )    //27
-//    ( negCornerRadius  cornerRadius  0 )           //28
-//    ( negCornerRadius  cornerRadius  zLength )    //29
-//    ( negCornerRadius negCornerRadius  0 )           //30
-//    ( negCornerRadius negCornerRadius  zLength )    //31
-//    (  cornerRadius negCornerRadius  0 )           //32
-//    (  cornerRadius negCornerRadius  zLength )    //33
+        //convertToMeters 1;
 
-//); 
+        //dnl changecom(//)
+        //changequote([,])
+        //define(LPAREN,[(])dnl
+        //define(RPAREN,[)])dnl
+        //dnl
+        //define(calc, [esyscmd(perl -e 'printf ($1)')])dnl
+        //dnl
+        //define(pip180, 0.017453)
+        //define(cos45, 0.70711)
+        //dnl *********USER***********
+        //dnl ===      POINTS      ===
+        //define(zLength, " + (6 * DOM.dimZ) + @")dnl
+        //define(coreWidth, " + (6 * DOM.dim) + @")dnl 
+        //define(diameter, " + (16.5 * DOM.dim) + @")dnl 
+        ////define(rectangleWidth, 80)dnl //50
+        //define(cornerStretch, 1)dnl 
+        //define(arcStretch, 1)dnl
+        //dnl ===    CELL COUNT    ===
+        //define(coreCount, " + Math.Round((DOM.dim / DOM.blockDimension)) + @")dnl 
+        //define(rectangleCount, " + Math.Round(((16.5 * DOM.dim) / DOM.blockDimension)) + @")dnl 
+        //define(zCount, " + Math.Round((DOM.dimZ / DOM.blockDimension)) + @")dnl
+        //dnl ===BOUNDING RECTANGLE?===
+        //define(boundRect, 1)dnl
+        //dnl =========================
+        //dnl *******CALCULATED********
+        //define(radius, calc(0.5*diameter))dnl
+        //define(halfCoreWidth, calc(0.5*coreWidth))dnl
+        //define(halfRectangleWidth, calc(0.5*rectangleWidth))dnl
+        //define(negHalfCoreWidth, calc(-1*halfCoreWidth))dnl
+        //define(halfCoreCorner, calc(cornerStretch*halfCoreWidth*2))dnl
+        //define(negHalfCoreCorner, calc(-1*halfCoreCorner))dnl
+        //define(negRadius, calc(-1*radius))dnl
+        //define(cornerRadius, calc(sqrt(2)*radius/2))dnl
+        //define(negCornerRadius, calc(-1*cornerRadius))dnl
+        //define(negHalfRectangleWidth, calc(-1*halfRectangleWidth))dnl
+        //dnl =========================
+        //dnl ===     ARC POINTS    ===
+        //dnl define(coreArchLong, calc(0.67*halfCoreWidth))dnl
+        //define(coreArchLong, calc(1.001*arcStretch*(halfCoreWidth+halfCoreCorner*0.5-halfCoreWidth*0.5)))dnl
+        //define(negCoreArchLong, calc(-1*coreArchLong))dnl
+        //define(coreArchShort, calc(halfCoreWidth/2))dnl
+        //define(negCoreArchShort, calc(-1*coreArchShort))dnl
+        //define(radiusArchLong, calc(cos(22.5*pip180)*radius))dnl
+        //define(negRadiusArchLong, calc(-1*radiusArchLong))dnl
+        //define(radiusArchShort, calc(sin(22.5*pip180)*radius))dnl
+        //define(negRadiusArchShort, calc(-1*radiusArchShort))dnl
+        //dnl =========================
+        //dnl
+        //define(zCount, 1)dnl
 
-//blocks          
-//LPAREN
-//    hex (2 10 0 16 3 11 1 17) (coreCount coreCount zCount) simpleGrading (1 1 1)          //1
-//    hex (10 4 12 0 11 5 13 1) (coreCount coreCount zCount) simpleGrading (1 1 1)          //2
-//    hex (12 6 14 0 13 7 15 1) (coreCount coreCount zCount) simpleGrading (1 1 1)          //3
-//    hex (14 8 16 0 15 9 17 1) (coreCount coreCount zCount) simpleGrading (1 1 1)          //4
-//    hex (18 26 10 2 19 27 11 3) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //5
-//    hex (26 20 4 10 27 21 5 11) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //6
-//    hex (20 28 12 4 21 29 13 5) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //7
-//    hex (28 22 6 12 29 23 7 13) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //8
-//    hex (22 30 14 6 23 31 15 7) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //9
-//    hex (30 24 8 14 31 25 9 15) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //10
-//    hex (24 32 16 8 25 33 17 9) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //11
-//    hex (32 18 2 16 33 19 3 17) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //12
+        //vertices        
+        //(
+        //    (  0  0  0 )          //0
+        //    (  0  0  zLength )          //1
+        //    (  halfCoreCorner  0  0 )          //2
+        //    (  halfCoreCorner  0  zLength )          //3
+        //    (  0  halfCoreCorner  0 )          //4
+        //    (  0  halfCoreCorner  zLength )        //5
+        //    ( negHalfCoreCorner  0  0 )               //6
+        //    ( negHalfCoreCorner  0  zLength )        //7
+        //    (  0  negHalfCoreCorner  0 )               //8
+        //    (  0  negHalfCoreCorner  zLength )        //9
+        //    (  halfCoreWidth  halfCoreWidth  0 )               //10
+        //    (  halfCoreWidth  halfCoreWidth  zLength )        //11
+        //    ( negHalfCoreWidth  halfCoreWidth  0 )               //12
+        //    ( negHalfCoreWidth  halfCoreWidth  zLength )        //13
+        //    ( negHalfCoreWidth negHalfCoreWidth  0 )               //14
+        //    ( negHalfCoreWidth negHalfCoreWidth  zLength )        //15
+        //    (  halfCoreWidth negHalfCoreWidth  0 )               //16
+        //    (  halfCoreWidth negHalfCoreWidth  zLength )        //17
+        //    (  radius  0  0 )               //18
+        //    (  radius  0  zLength )        //19
+        //    (  0  radius  0 )               //20
+        //    (  0  radius  zLength )        //21
+        //    ( negRadius  0  0 )               //22
+        //    ( negRadius  0  zLength )        //23
+        //    (  0  negRadius  0 )               //24
+        //    (  0  negRadius  zLength )        //25
+        //    (  cornerRadius  cornerRadius  0 )           //26
+        //    (  cornerRadius  cornerRadius  zLength )    //27
+        //    ( negCornerRadius  cornerRadius  0 )           //28
+        //    ( negCornerRadius  cornerRadius  zLength )    //29
+        //    ( negCornerRadius negCornerRadius  0 )           //30
+        //    ( negCornerRadius negCornerRadius  zLength )    //31
+        //    (  cornerRadius negCornerRadius  0 )           //32
+        //    (  cornerRadius negCornerRadius  zLength )    //33
 
-  
-//RPAREN;
- 
-// edges           
-// (
-//     arc  2 10 ( coreArchLong   coreArchShort   0)
-//     arc  3 11 ( coreArchLong   coreArchShort   zLength)
-//     arc 16  2 ( coreArchLong  negCoreArchShort   0)
-//     arc 17  3 ( coreArchLong  negCoreArchShort   zLength)
-//     arc 10  4 (  coreArchShort  coreArchLong   0)
-//     arc 11  5 (  coreArchShort  coreArchLong   zLength)
-//     arc  4 12 ( negCoreArchShort  coreArchLong   0)
-//     arc  5 13 ( negCoreArchShort  coreArchLong   zLength)
-//     arc 12  6 (negCoreArchLong   coreArchShort   0)
-//     arc 13  7 (negCoreArchLong   coreArchShort   zLength)
-//     arc  6 14 (negCoreArchLong  negCoreArchShort   0)
-//     arc  7 15 (negCoreArchLong  negCoreArchShort   zLength)
-//     arc 14  8 ( negCoreArchShort negCoreArchLong   0)
-//     arc 15  9 ( negCoreArchShort negCoreArchLong   zLength)
-//     arc  8 16 (  coreArchShort negCoreArchLong   0)
-//     arc  9 17 (  coreArchShort negCoreArchLong   zLength)
-//     arc 18 26 ( radiusArchLong  radiusArchShort  0)
-//     arc 19 27 ( radiusArchLong  radiusArchShort  zLength)
-//     arc 26 20 ( radiusArchShort  radiusArchLong  0)
-//     arc 27 21 ( radiusArchShort  radiusArchLong  zLength)
-//     arc 20 28 (negRadiusArchShort  radiusArchLong  0)
-//     arc 21 29 (negRadiusArchShort  radiusArchLong  zLength)
-//     arc 28 22 (negRadiusArchLong  radiusArchShort  0)
-//     arc 29 23 (negRadiusArchLong  radiusArchShort  zLength)
-//     arc 22 30 (negRadiusArchLong -radiusArchShort  0)
-//     arc 23 31 (negRadiusArchLong -radiusArchShort  zLength)
-//     arc 30 24 (negRadiusArchShort negRadiusArchLong  0)
-//     arc 31 25 (negRadiusArchShort negRadiusArchLong  zLength)
-//     arc 24 32 ( radiusArchShort negRadiusArchLong  0)
-//     arc 25 33 ( radiusArchShort negRadiusArchLong  zLength)
-//     arc 32 18 ( radiusArchLong negRadiusArchShort  0)
-//     arc 33 19 ( radiusArchLong negRadiusArchShort  zLength)
-// );
-//boundary
-//LPAREN
-//    ground
-//    {
-//    type wall;
-//    faces
-//	LPAREN
-//    (2 10 0 16)
-//    (10 4 12 0)
-//    (12 6 14 0)
-//    (14 8 16 0)
-//    (18 26 10 2)
-//    (10 26 20 4)
-//    (4 20 28 12)
-//    (12 28 22 6)
-//    (6 22 30 14)
-//    (14 30 24 8)
-//    (8 24 32 16)
-//    (16 32 18 2)
-//    RPAREN;
-//    }
-//    top
-//    {
-//    type symmetry;
-//    faces
-//	LPAREN
-//    (3 11 1 17)
-//    (11 5 13 1)
-//    (13 7 15 1)
-//    (15 9 17 1)
-//    (3 19 27 11)
-//    (11 27 21 5)
-//    (5 21 29 13)
-//    (13 29 23 7)
-//    (7 23 31 15)
-//    (15 31 25 9)
-//    (9 25 33 17)
-//    (17 33 19 3)
-//    RPAREN;
-//    }
-//    one
-//    {
-//    type patch;
-//    faces
-//	LPAREN
-//	(18 19 27 26)
-//	RPAREN;
-//	}
-//	two
-//    {
-//    type patch;
-//    faces
-//	LPAREN
-//	(26 27 21 20)
-//	RPAREN;
-//	}
+        //); 
 
-//three
-//    {
-//    type patch;
-//    faces
-//	LPAREN
-//	(20 21 29 28)
-//	RPAREN;
-//	}
-//four
-//    {
-//    type patch;
-//    faces
-//	LPAREN
-//	(28 29 23 22)
-//	RPAREN;
-//	}
-//five
-//    {
-//    type patch;
-//    faces
-//	LPAREN
-//	(22 23 31 30)
-//	RPAREN;
-//	}
-//six
-//    {
-//    type patch;
-//    faces
-//	LPAREN
-//	(30 31 25 24)
-//	RPAREN;
-//	}
-//seven
-//    {
-//    type patch;
-//    faces
-//	LPAREN
-//	(24 25 33 32)
-//	RPAREN;
-//	}
-//eight
-//    {
-//    type patch;
-//    faces
-//	LPAREN
-//	(32 33 19 18)
-//	RPAREN;
-//	}
+        //blocks          
+        //LPAREN
+        //    hex (2 10 0 16 3 11 1 17) (coreCount coreCount zCount) simpleGrading (1 1 1)          //1
+        //    hex (10 4 12 0 11 5 13 1) (coreCount coreCount zCount) simpleGrading (1 1 1)          //2
+        //    hex (12 6 14 0 13 7 15 1) (coreCount coreCount zCount) simpleGrading (1 1 1)          //3
+        //    hex (14 8 16 0 15 9 17 1) (coreCount coreCount zCount) simpleGrading (1 1 1)          //4
+        //    hex (18 26 10 2 19 27 11 3) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //5
+        //    hex (26 20 4 10 27 21 5 11) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //6
+        //    hex (20 28 12 4 21 29 13 5) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //7
+        //    hex (28 22 6 12 29 23 7 13) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //8
+        //    hex (22 30 14 6 23 31 15 7) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //9
+        //    hex (30 24 8 14 31 25 9 15) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //10
+        //    hex (24 32 16 8 25 33 17 9) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //11
+        //    hex (32 18 2 16 33 19 3 17) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //12
 
-// RPAREN;
 
- 
-//mergePatchPairs 
-//(
-//);
- 
-//// ************************************************************************* //
-//            ";
-//        }
+        //RPAREN;
+
+        // edges           
+        // (
+        //     arc  2 10 ( coreArchLong   coreArchShort   0)
+        //     arc  3 11 ( coreArchLong   coreArchShort   zLength)
+        //     arc 16  2 ( coreArchLong  negCoreArchShort   0)
+        //     arc 17  3 ( coreArchLong  negCoreArchShort   zLength)
+        //     arc 10  4 (  coreArchShort  coreArchLong   0)
+        //     arc 11  5 (  coreArchShort  coreArchLong   zLength)
+        //     arc  4 12 ( negCoreArchShort  coreArchLong   0)
+        //     arc  5 13 ( negCoreArchShort  coreArchLong   zLength)
+        //     arc 12  6 (negCoreArchLong   coreArchShort   0)
+        //     arc 13  7 (negCoreArchLong   coreArchShort   zLength)
+        //     arc  6 14 (negCoreArchLong  negCoreArchShort   0)
+        //     arc  7 15 (negCoreArchLong  negCoreArchShort   zLength)
+        //     arc 14  8 ( negCoreArchShort negCoreArchLong   0)
+        //     arc 15  9 ( negCoreArchShort negCoreArchLong   zLength)
+        //     arc  8 16 (  coreArchShort negCoreArchLong   0)
+        //     arc  9 17 (  coreArchShort negCoreArchLong   zLength)
+        //     arc 18 26 ( radiusArchLong  radiusArchShort  0)
+        //     arc 19 27 ( radiusArchLong  radiusArchShort  zLength)
+        //     arc 26 20 ( radiusArchShort  radiusArchLong  0)
+        //     arc 27 21 ( radiusArchShort  radiusArchLong  zLength)
+        //     arc 20 28 (negRadiusArchShort  radiusArchLong  0)
+        //     arc 21 29 (negRadiusArchShort  radiusArchLong  zLength)
+        //     arc 28 22 (negRadiusArchLong  radiusArchShort  0)
+        //     arc 29 23 (negRadiusArchLong  radiusArchShort  zLength)
+        //     arc 22 30 (negRadiusArchLong -radiusArchShort  0)
+        //     arc 23 31 (negRadiusArchLong -radiusArchShort  zLength)
+        //     arc 30 24 (negRadiusArchShort negRadiusArchLong  0)
+        //     arc 31 25 (negRadiusArchShort negRadiusArchLong  zLength)
+        //     arc 24 32 ( radiusArchShort negRadiusArchLong  0)
+        //     arc 25 33 ( radiusArchShort negRadiusArchLong  zLength)
+        //     arc 32 18 ( radiusArchLong negRadiusArchShort  0)
+        //     arc 33 19 ( radiusArchLong negRadiusArchShort  zLength)
+        // );
+        //boundary
+        //LPAREN
+        //    ground
+        //    {
+        //    type wall;
+        //    faces
+        //	LPAREN
+        //    (2 10 0 16)
+        //    (10 4 12 0)
+        //    (12 6 14 0)
+        //    (14 8 16 0)
+        //    (18 26 10 2)
+        //    (10 26 20 4)
+        //    (4 20 28 12)
+        //    (12 28 22 6)
+        //    (6 22 30 14)
+        //    (14 30 24 8)
+        //    (8 24 32 16)
+        //    (16 32 18 2)
+        //    RPAREN;
+        //    }
+        //    top
+        //    {
+        //    type symmetry;
+        //    faces
+        //	LPAREN
+        //    (3 11 1 17)
+        //    (11 5 13 1)
+        //    (13 7 15 1)
+        //    (15 9 17 1)
+        //    (3 19 27 11)
+        //    (11 27 21 5)
+        //    (5 21 29 13)
+        //    (13 29 23 7)
+        //    (7 23 31 15)
+        //    (15 31 25 9)
+        //    (9 25 33 17)
+        //    (17 33 19 3)
+        //    RPAREN;
+        //    }
+        //    one
+        //    {
+        //    type patch;
+        //    faces
+        //	LPAREN
+        //	(18 19 27 26)
+        //	RPAREN;
+        //	}
+        //	two
+        //    {
+        //    type patch;
+        //    faces
+        //	LPAREN
+        //	(26 27 21 20)
+        //	RPAREN;
+        //	}
+
+        //three
+        //    {
+        //    type patch;
+        //    faces
+        //	LPAREN
+        //	(20 21 29 28)
+        //	RPAREN;
+        //	}
+        //four
+        //    {
+        //    type patch;
+        //    faces
+        //	LPAREN
+        //	(28 29 23 22)
+        //	RPAREN;
+        //	}
+        //five
+        //    {
+        //    type patch;
+        //    faces
+        //	LPAREN
+        //	(22 23 31 30)
+        //	RPAREN;
+        //	}
+        //six
+        //    {
+        //    type patch;
+        //    faces
+        //	LPAREN
+        //	(30 31 25 24)
+        //	RPAREN;
+        //	}
+        //seven
+        //    {
+        //    type patch;
+        //    faces
+        //	LPAREN
+        //	(24 25 33 32)
+        //	RPAREN;
+        //	}
+        //eight
+        //    {
+        //    type patch;
+        //    faces
+        //	LPAREN
+        //	(32 33 19 18)
+        //	RPAREN;
+        //	}
+
+        // RPAREN;
+
+
+        //mergePatchPairs 
+        //(
+        //);
+
+        //// ************************************************************************* //
+        //            ";
+        //        }
         public static string meshQualityDict()
         {
             return
@@ -1046,138 +1047,138 @@ wallDist
 // ************************************************************************* //
 ";
         }
-//        public static string fvSolution(int mode)
-//        {
-//            StringBuilder sb = new StringBuilder(); sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
-//| =========                 |                                                 |
-//| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-//|  \\    /   O peration     | Version:  2.2.2                                 |
-//|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
-//|    \\/     M anipulation  |                                                 |
-//\*---------------------------------------------------------------------------*/
-//FoamFile
-//{
-//    version     2.0;
-//    format      ascii;
-//    class       dictionary;
-//    object      fvSolution;
-//}
-//// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+        //        public static string fvSolution(int mode)
+        //        {
+        //            StringBuilder sb = new StringBuilder(); sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
+        //| =========                 |                                                 |
+        //| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+        //|  \\    /   O peration     | Version:  2.2.2                                 |
+        //|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+        //|    \\/     M anipulation  |                                                 |
+        //\*---------------------------------------------------------------------------*/
+        //FoamFile
+        //{
+        //    version     2.0;
+        //    format      ascii;
+        //    class       dictionary;
+        //    object      fvSolution;
+        //}
+        //// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-//solvers
-//{
-//p
-//    {
-//        solver           GAMG;
-//        tolerance        1e-9;
-//        relTol           0.001;
-//        smoother         GaussSeidel;
-//        nPreSweeps       0;
-//        nPostSweeps      2;
-//        cacheAgglomeration on;
-//        agglomerator     faceAreaPair;
-//        nCellsInCoarsestLevel 10;
-//        mergeLevels      1;
-//    }
+        //solvers
+        //{
+        //p
+        //    {
+        //        solver           GAMG;
+        //        tolerance        1e-9;
+        //        relTol           0.001;
+        //        smoother         GaussSeidel;
+        //        nPreSweeps       0;
+        //        nPostSweeps      2;
+        //        cacheAgglomeration on;
+        //        agglomerator     faceAreaPair;
+        //        nCellsInCoarsestLevel 10;
+        //        mergeLevels      1;
+        //    }
 
-//U
-//    {
-//        solver           smoothSolver;
-//        smoother         GaussSeidel;
-//        tolerance        1e-8;
-//        relTol           0.01;
-//        nSweeps          1;
-//    }
+        //U
+        //    {
+        //        solver           smoothSolver;
+        //        smoother         GaussSeidel;
+        //        tolerance        1e-8;
+        //        relTol           0.01;
+        //        nSweeps          1;
+        //    }
 
-//k
-//    {
-//        solver           smoothSolver;
-//        smoother         GaussSeidel;
-//        tolerance        1e-8;
-//        relTol           0.1;
-//        nSweeps          1;
-//    }
+        //k
+        //    {
+        //        solver           smoothSolver;
+        //        smoother         GaussSeidel;
+        //        tolerance        1e-8;
+        //        relTol           0.1;
+        //        nSweeps          1;
+        //    }
 
-//epsilon
-//    {
-//        solver           smoothSolver;
-//        smoother         GaussSeidel;
-//        tolerance        1e-8;
-//        relTol           0.1;
-//        nSweeps          1;
-//    }
-//omega
-//    {
-//        solver           smoothSolver;
-//        smoother         GaussSeidel;
-//        tolerance        1e-8;
-//        relTol           0.1;
-//        nSweeps          1;
-//    }
-//}
+        //epsilon
+        //    {
+        //        solver           smoothSolver;
+        //        smoother         GaussSeidel;
+        //        tolerance        1e-8;
+        //        relTol           0.1;
+        //        nSweeps          1;
+        //    }
+        //omega
+        //    {
+        //        solver           smoothSolver;
+        //        smoother         GaussSeidel;
+        //        tolerance        1e-8;
+        //        relTol           0.1;
+        //        nSweeps          1;
+        //    }
+        //}
 
-//SIMPLE
-//{
-//    nNonOrthogonalCorrectors 3;
-//    residualControl
-//    {
-//    p       1e-4;
-//    U       1e-5;
-//    k       1e-5;
-//    epsilon 1e-5;
-//    }
-//    pRefCell    0;
-//    pRefValue    0;
-//}
+        //SIMPLE
+        //{
+        //    nNonOrthogonalCorrectors 3;
+        //    residualControl
+        //    {
+        //    p       1e-4;
+        //    U       1e-5;
+        //    k       1e-5;
+        //    epsilon 1e-5;
+        //    }
+        //    pRefCell    0;
+        //    pRefValue    0;
+        //}
 
-//potentialFlow
-//{
-//    nNonOrthogonalCorrectors 3;
-//}");
-//            if (mode == 0)
-//            {
-//                sb.Append(@"relaxationFactors
-//{
-//    fields
-//    {
-//        p               0.7;
-//    }
-//    equations
-//    {
-//        U               0.3;
-//        k               0.3;
-//       epsilon          0.3;
-//	   omega			0.3;
-//    }
-//}"
-//);
-//            }
-//            else { sb.Append(@"relaxationFactors
-//{
-//    fields
-//    {
-//        p               0.3;
-//    }
-//    equations
-//    {
-//        U               0.7;
-//        k               0.7;
-//       epsilon          0.7;
-//	   omega			0.7;
-//    }
-//}"); }
+        //potentialFlow
+        //{
+        //    nNonOrthogonalCorrectors 3;
+        //}");
+        //            if (mode == 0)
+        //            {
+        //                sb.Append(@"relaxationFactors
+        //{
+        //    fields
+        //    {
+        //        p               0.7;
+        //    }
+        //    equations
+        //    {
+        //        U               0.3;
+        //        k               0.3;
+        //       epsilon          0.3;
+        //	   omega			0.3;
+        //    }
+        //}"
+        //);
+        //            }
+        //            else { sb.Append(@"relaxationFactors
+        //{
+        //    fields
+        //    {
+        //        p               0.3;
+        //    }
+        //    equations
+        //    {
+        //        U               0.7;
+        //        k               0.7;
+        //       epsilon          0.7;
+        //	   omega			0.7;
+        //    }
+        //}"); }
 
-//            sb.Append(@"
-//cache
-//{
-//    grad(U);
-//}
+        //            sb.Append(@"
+        //cache
+        //{
+        //    grad(U);
+        //}
 
-//// ************************************************************************* //
+        //// ************************************************************************* //
 
-//;");
-//            return sb.ToString();
-//        }
+        //;");
+        //            return sb.ToString();
+        //        }
         public static string fvSolution(int mode)
         {
             StringBuilder sb = new StringBuilder(); sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -1240,7 +1241,8 @@ potentialFlow
 {
     nNonOrthogonalCorrectors 15;
 }");
-            if (mode == 0) {
+            if (mode == 0)
+            {
                 sb.Append(@"relaxationFactors
 {
     fields
@@ -1257,7 +1259,7 @@ potentialFlow
 }"
 );
             }
-else { sb.Append(@"relaxationFactors
+            else { sb.Append(@"relaxationFactors
 {
     fields
     {
@@ -1281,7 +1283,7 @@ cache
 // ************************************************************************* //
 
 ;");
-                return sb.ToString();
+            return sb.ToString();
         }
         public static string surfaceFeatureExtractDict()
         {
@@ -1421,63 +1423,67 @@ RAS
 // ************************************************************************* //
 ";
         }
-        
-        public static string run_mesh(OFBaseDomain DOM) {
+
+        public static string run_mesh(OFBaseDomain DOM)
+        {
 
 
             StringBuilder sb = new StringBuilder();
-                sb.AppendLine(@"docker run -v """+DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; blockMesh | tee -a log""");
-            if (DOM.CPU > 1) {
-
-                sb.AppendLine(@"docker run -v """+DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatureExtract | tee -a log""");
-                sb.AppendLine(@"docker run -v """+DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamDecompose.py --clear . " + DOM.CPU+ @" | tee -a log""");                
-                sb.AppendLine(@"docker run -v """+DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; foamJob -parallel -screen snappyHexMesh -overwrite | tee -a log""");
-                sb.AppendLine(@"docker run -v """+DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructParMesh -constant | tee -a log""");
-                sb.AppendLine(@"docker run -v """+DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite | tee -a log""");
-                sb.AppendLine(@"docker run -v """+DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
-
-                    }
-            else
+            sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; blockMesh | tee -a log""");
+            if (DOM.CPU > 1)
             {
-                sb.AppendLine(@"docker run -v """+DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatureExtract | tee -a log; snappyHexMesh -overwrite  | tee -a log; checkMesh | tee -a log""");
-                sb.AppendLine(@"docker run -v """+DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite | tee -a log""");
-                sb.AppendLine(@"docker run -v """+DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
-            }      
-            
 
+                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatureExtract | tee -a log""");
+                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamDecompose.py --clear . " + DOM.CPU + @" | tee -a log""");
+                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; foamJob -parallel -screen snappyHexMesh -overwrite | tee -a log""");
+                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructParMesh -constant | tee -a log""");
+                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite | tee -a log""");
+                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
 
-                return sb.ToString();
-                }
-        public static string run_sim(OFBaseDomain DOM, int d) {
-            StringBuilder sb = new StringBuilder();
-
-                sb.AppendLine(@"docker run -v """+DOM.baseWorkingDirectory+DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamPrepareCase.py . --no-mesh-create | tee -a log""");
-            if (DOM.CPU > 1) {
-                sb.AppendLine(@"docker run -v """+DOM.baseWorkingDirectory+DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; potentialFoam | tee -a log""");
-                sb.AppendLine(@"docker run -v """+DOM.baseWorkingDirectory+DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamDecompose.py --clear . "+DOM.CPU+ @"| tee -a log""");
-                sb.AppendLine(@"docker run -v """+DOM.baseWorkingDirectory+DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; foamJob -s -p renumberMesh -overwrite | tee -a log""");
-                sb.AppendLine(@"docker run -v """+DOM.baseWorkingDirectory+DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; mpirun -np " + DOM.CPU + @" simpleFoam -parallel | tee -a log""");
-                sb.AppendLine(@"docker run -v """+DOM.baseWorkingDirectory+DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructPar -latestTime | tee -a log""");
-                sb.AppendLine(@"docker run -v """+DOM.baseWorkingDirectory+DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
-                    }
-            else
-            {
-                sb.AppendLine(@"docker run -v """+DOM.baseWorkingDirectory +  DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; potentialFoam | tee -a log""");
-                sb.AppendLine(@"docker run -v """+DOM.baseWorkingDirectory +  DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; simpleFoam | tee -a log""");
-                sb.AppendLine(@"docker run -v """+DOM.baseWorkingDirectory +  DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
             }
-                return sb.ToString();
-                }
+            else
+            {
+                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatureExtract | tee -a log; snappyHexMesh -overwrite  | tee -a log; checkMesh | tee -a log""");
+                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite | tee -a log""");
+                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
+            }
+
+
+
+            return sb.ToString();
+        }
+        public static string run_sim(OFBaseDomain DOM, int d)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamPrepareCase.py . --no-mesh-create | tee -a log""");
+            if (DOM.CPU > 1)
+            {
+                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; potentialFoam | tee -a log""");
+                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamDecompose.py --clear . " + DOM.CPU + @"| tee -a log""");
+                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; foamJob -s -p renumberMesh -overwrite | tee -a log""");
+                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; mpirun -np " + DOM.CPU + @" simpleFoam -parallel | tee -a log""");
+                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructPar -latestTime | tee -a log""");
+                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
+            }
+            else
+            {
+                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; potentialFoam | tee -a log""");
+                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; simpleFoam | tee -a log""");
+                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
+            }
+            return sb.ToString();
+        }
 
         public static string run_mesh_docker(OFBaseDomain DOM)
         {
 
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("\""+Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""blockMesh | tee -a log"" -f """ + DOM.meshWorkingDirectory + " \"");
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""blockMesh | tee -a log"" -f """ + DOM.meshWorkingDirectory + " \"");
             if (DOM.CPU > 1)
             {
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""surfaceFeatureExtract | tee -a log "" -f """ + DOM.meshWorkingDirectory  + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""surfaceFeatureExtract | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""pyFoamDecompose.py --clear . " + DOM.CPU + @" | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""foamJob -parallel -screen snappyHexMesh -overwrite | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""reconstructParMesh -constant | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");
@@ -1488,10 +1494,10 @@ RAS
             else
             {
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""surfaceFeatureExtract | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""snappyHexMesh -overwrite  | tee -a log "" -f """ + DOM.meshWorkingDirectory +  " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""snappyHexMesh -overwrite  | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""renumberMesh -overwrite | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");                
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");
                 sb.AppendLine("PAUSE");
             }
 
@@ -1507,7 +1513,7 @@ RAS
             if (DOM.CPU > 1)
             {
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""potentialFoam | tee -a log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""pyFoamDecompose.py --clear . " + DOM.CPU + @"| tee -a log "" -f """  + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""pyFoamDecompose.py --clear . " + DOM.CPU + @"| tee -a log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""foamJob -s -p renumberMesh -overwrite | tee -a log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""mpirun -np " + DOM.CPU + @" simpleFoam -parallel | tee -a log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""reconstructPar -latestTime | tee -a log; "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
@@ -1524,21 +1530,80 @@ RAS
             return sb.ToString();
         }
 
-        public static string run(OFBaseDomain DOM) {
+        public static string run(OFBaseDomain DOM)
+        {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine(@"call "+DOM.baseWorkingDirectory +   "run_mesh.bat");
+            sb.AppendLine(@"call " + DOM.baseWorkingDirectory + "run_mesh.bat");
             foreach (int i in DOM.BCInflow.windDir)
             {
                 //sb.AppendLine("start " + DOM.baseWorkingDirectory +i + "_run_sim.bat");
                 sb.AppendLine("call " + DOM.baseWorkingDirectory + i + "_run_sim.bat");
             }
-//sb.AppendLine("PAUSE");
-            
+            //sb.AppendLine("PAUSE");
+
             return sb.ToString();
+        }
+
+        public static string runSimOnly(OFBaseDomain DOM)
+        {
+            StringBuilder sb = new StringBuilder();
+            //  sb.AppendLine(@"call " + DOM.baseWorkingDirectory + "run_mesh.bat");
+            foreach (int i in DOM.BCInflow.windDir)
+            {
+                //sb.AppendLine("start " + DOM.baseWorkingDirectory +i + "_run_sim.bat");
+                sb.AppendLine("call " + DOM.baseWorkingDirectory + i + "_run_sim.bat");
             }
+            //sb.AppendLine("PAUSE");
+
+            return sb.ToString();
+        }
+
+        public static string run_UTCI(OFBaseDomain DOM)
+        {
+     
+            //WIP
+
+            string dirs = "";
+            foreach (var d in DOM.BCInflow.windDir) dirs += d + ',';
+            dirs.TrimEnd(',');
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallProbes.exe"" -w " + "\"" + DOM.baseWorkingDirectory + "\" " + "-p " + "\"" + DOM.baseWorkingDirectory + "\\Rad\" " +" -d "+ dirs+" -m 1");
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallRay.exe""  -d " + "\"" + DOM.baseWorkingDirectory + "\" " + "-w " + "\"" + DOM.BCInflow.weather);
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOC.exe""  -w " + "\"" + DOM.baseWorkingDirectory + "\" " + "-p " + "\"" + DOM.baseWorkingDirectory + "\\Rad\" " + " -d " + dirs + " -m 1");
+
+            //   sb.AppendLine("PAUSE");
 
 
-        public static string plotResidualsPDF() {return @"set key autotitle columnhead
+        //[Option('w', "weather", Required = true,
+        //HelpText = "EPW weather file path.")]
+        //public string weather { get; set; }
+
+        //[Option('f', "difRad", Required = true,
+        //HelpText = "Diffuse radiation (ill)")]
+        //public string difRad { get; set; }
+
+        //[Option('r', "dirRad", Required = true,
+        //HelpText = "Direct radiation (ill)")]
+        //public string dirRad { get; set; }
+
+
+        //[Option('u', "windScaling", Required = true,
+        //HelpText = "Wind speed scaling factors (csv)")]
+        //public string windScaling { get; set; }
+
+
+        //[Option('o', "output", Required = true,
+        //HelpText = "Output file path")]
+        //public string output { get; set; }
+
+            return sb.ToString();
+        }
+
+
+        public static string plotResidualsPDF()
+        {
+            return @"set key autotitle columnhead
       set logscale y
       set ylabel 'Residual'
       set xlabel 'Iteration'
@@ -1548,8 +1613,10 @@ RAS
       set terminal pdf
       set output 'residuals.pdf'
       replot";
-       }
-        public static string plotResidualsLive() {return @"set key autotitle columnhead
+        }
+        public static string plotResidualsLive()
+        {
+            return @"set key autotitle columnhead
       set logscale y
       set ylabel 'Residual'
       set xlabel 'Iteration'
@@ -1559,7 +1626,7 @@ RAS
       replot
       pause 5
       reread";
-       }
+        }
         public static string residuals()
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\

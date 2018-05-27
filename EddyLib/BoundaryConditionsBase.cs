@@ -29,7 +29,7 @@ namespace EddyLib
         public List<Vector3d> flowDir = new List<Vector3d>();
         public BoundaryType btype = BoundaryType.abl;
 
-
+        public string weather;
 
         public double pinf;
         public double pref;
@@ -41,8 +41,9 @@ namespace EddyLib
             flowDir.Add(Vector3d.YAxis);
         }
 
-        public BoundaryConditions(List<double> dirs, double _uref , double _zref, double _z0 , double _zground)
+        public BoundaryConditions(List<double> dirs, double _uref , double _zref, double _z0 , double _zground, string weather)
         {
+            this.weather = weather;
             double pedestrianHeight = 1.5;
             this.btype = BoundaryType.abl;
             this.URef = _uref;

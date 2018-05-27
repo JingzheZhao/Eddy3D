@@ -215,16 +215,19 @@ namespace Eddy
 
                 File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_mesh.bat"), StringTemplates.run_mesh(DOM));
 
-            
-                for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
+
+            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run.bat"), StringTemplates.run(DOM));
+            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_sim_all.bat"), StringTemplates.runSimOnly(DOM));
+
+            for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                 {
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run.bat"), StringTemplates.run(DOM));
                     File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + "_run_sim.bat"), StringTemplates.run_sim(DOM, i));
                 }
-          
-           
-                        
-                
+
+
+
+
+
             if (Run == true)
             {
             }

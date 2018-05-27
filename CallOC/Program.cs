@@ -94,12 +94,6 @@ namespace CallOC
 
                 }
 
-
-
-
-
-
-
                 // constants that should be dealt with later
                 //-----------------------
 
