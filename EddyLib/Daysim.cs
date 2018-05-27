@@ -229,7 +229,7 @@ namespace EddyLib
                     System.IO.File.WriteAllText(workingDir + @"\" + varianten_name + @".hea", output);
                     System.IO.File.WriteAllText(workingDir + @"\" + varianten_name + @".dif.hea", output_DIF);
                 }
-                catch (Exception e) { Console.WriteLine("hea file error " + e.Message); }
+                catch (Exception e) { Console.WriteLine("hea file error " + e.Message +"  "+ workingDir + @"\" + varianten_name + @".hea"); }
 
 
 

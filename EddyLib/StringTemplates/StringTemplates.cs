@@ -1573,9 +1573,9 @@ RAS
 
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallProbes.exe\" " + "\"" +  "-w " + "\"" + DOM.baseWorkingDirectory + "\" " + "-p " + "\"" + DOM.baseWorkingDirectory + "\\Rad\\sensors.pts\" " + " -d " + dirs + " -m 1" + "\"");
-            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallRay.exe\" " + "\"" + "-d " + "\"" + DOM.baseWorkingDirectory + "\" " + "-w " + "\"" + DOM.BCInflow.weather + "\"");
-            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallOC.exe\" " + "\"" + "-d " + "\"" + DOM.baseWorkingDirectory + "\" " + "-w " + "\"" + DOM.BCInflow.weather +" "+ dif + " " + dir + " " + u + "\"");
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallProbes.exe\" "+ "-w " + "\"" + DOM.baseWorkingDirectory + "\" " + "-p " + "\"" + DOM.baseWorkingDirectory + @"\Rad\sensors.pts" + "\"" + " -d " + dirs + " -m 1");
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallRay.exe\" "  + "-d " + "\"" + DOM.baseWorkingDirectory + "\" " + "-w " + "\"" + DOM.BCInflow.weather + "\"");
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallOC.exe\" "   + "-d " + "\"" + DOM.baseWorkingDirectory + "\" " + "-w " + "\"" + DOM.BCInflow.weather +" "+ dif + " " + dir + " " + u);
                                                                 
             //   sb.AppendLine("PAUSE");
        

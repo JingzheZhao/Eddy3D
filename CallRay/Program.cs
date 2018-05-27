@@ -23,11 +23,11 @@ namespace CallRay
                 Console.WriteLine(options.workingDir);
                 Console.WriteLine(weaFileName);
 
-                Daysim.Epw2Wea(options.weather, options.workingDir+@"\rad");
+                Daysim.Epw2Wea(options.weather, options.workingDir+@"\Rad");
 
                 DaysimSettings set = new DaysimSettings();
                 set.AB = 1;
-                set.WorkDir = options.workingDir + @"\rad";
+                set.WorkDir = options.workingDir + @"\Rad";
 
                 Daysim.RunDaysim( set);
 
