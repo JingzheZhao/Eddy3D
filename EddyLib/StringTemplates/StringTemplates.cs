@@ -1567,15 +1567,17 @@ RAS
             foreach (var d in DOM.BCInflow.windDir) dirs += ( ( (int) d ).ToString() + ',');
             dirs = dirs.TrimEnd(',');
 
-            string dif = "-f " + "\"" + DOM.baseWorkingDirectory + @"\Rad\CallRay.dif.ill" + "\"";
-            string dir = "-r " + "\"" + DOM.baseWorkingDirectory + @"\Rad\CallRay.dir.ill" + "\"";
-            string u = "-u " + "\"" + DOM.baseWorkingDirectory + @"\PostProcessing\___________??_______.csv" + "\"";
+            string workDir = DOM.baseWorkingDirectory.Trim('\\');
+
+            string dif = "-f " + "\"" + workDir + @"\Rad\CallRay.dif.ill" + "\"";
+            string dir = "-r " + "\"" + workDir + @"\Rad\CallRay.dir.ill" + "\"";
+            string u = "-u " + "\"" + workDir + @"\PostProcessing\___________??_______.csv" + "\"";
 
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallProbes.exe\" "+ "-w " + "\"" + DOM.baseWorkingDirectory + "\" " + "-p " + "\"" + DOM.baseWorkingDirectory + @"\Rad\sensors.pts" + "\"" + " -d " + dirs + " -m 1");
-            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallRay.exe\" "  + "-d " + "\"" + DOM.baseWorkingDirectory + "\" " + "-w " + "\"" + DOM.BCInflow.weather + "\"");
-            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallOC.exe\" "   + "-d " + "\"" + DOM.baseWorkingDirectory + "\" " + "-w " + "\"" + DOM.BCInflow.weather +" "+ dif + " " + dir + " " + u);
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallProbes.exe\" "+ "-w " + "\"" +workDir + "\" " + "-p " + "\"" + workDir + @"\Rad\sensors.pts" + "\"" + " -d " + dirs + " -m 1");
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallRay.exe\" "  + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCInflow.weather + "\"");
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallOC.exe\" "   + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCInflow.weather +" "+ dif + " " + dir + " " + u);
                                                                 
             //   sb.AppendLine("PAUSE");
        
