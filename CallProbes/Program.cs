@@ -21,7 +21,30 @@ namespace CallProbes
             if (CommandLine.Parser.Default.ParseArguments(args, options))
             {
 
+
                 
+                var URef = 5;
+                var zref = 10;
+                var z0 = 1;
+                var pedestrianHeight = 1.5;
+                var UPedestrianHeight =(((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((pedestrianHeight + z0) / z0));
+
+
+                //// Parse BC
+
+                //var lines = File.ReadAllLines(options.workingDir + options.windDirs.Split(',')[0]+@"0.org\ABLConditions");
+
+                //for (int i = 0; i < lines.Length; i++)
+                //{
+                //    var l = lines[i];
+                //    if (l.StartsWith("Uref")) Uref = double.Parse(l.Replace("Time =", "").Trim());
+
+
+
+
+                //}
+
+                //// End Parse Boundary Cond
 
 
 
@@ -137,8 +160,7 @@ namespace CallProbes
 
                     List<string> fullProbeFilePath = new List<String>();
                     var numberOfWindDirs = windDirs.Length;
-                    //var numberOfProbes = File.ReadAllLines(fullProbeFilePath[0]).Count(); //defined above
-                    var UPedestrianHeight = 2;
+                    //var numberOfProbes = File.ReadAllLines(fullProbeFilePath[0]).Count(); //defined above                    
                     //string[] abc = replacedString.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 
 
