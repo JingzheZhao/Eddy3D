@@ -73,7 +73,10 @@ namespace EddyLib
         }
 
 
-
+        public static bool IsDirectoryEmpty(string path)
+        {
+            return !Directory.EnumerateFileSystemEntries(path).Any();
+        }
 
 
 

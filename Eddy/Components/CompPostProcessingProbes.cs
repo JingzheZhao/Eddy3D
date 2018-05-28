@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 using Grasshopper;
 using EddyLib;
 using Eddy.Properties;
+using System.Threading;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -100,6 +101,7 @@ namespace Eddy
 
             int mode = 0;
             List<Point3d> listOfPoints = new List<Point3d>();
+            
             bool run = false;
 
             DA.GetDataList(1, listOfPoints);
@@ -109,7 +111,9 @@ namespace Eddy
 
             // Error handling
 
-            if (listOfPoints.Count() < 1)
+            var numberOfProbes = listOfPoints.Count();
+
+            if (numberOfProbes < 1)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You need to pass a list of point to the component.");
 
@@ -127,11 +131,15 @@ namespace Eddy
 
 
 
+            if (Utilities.IsDirectoryEmpty(DOM.meshPolyMeshDirectory) == true)
+            {
+                throw new System.ArgumentException("The mesh folder is empty. Can't pull probes from a mesh that does not exist.");
+            }
 
 
 
 
-            if (run == true && listOfPoints.Count() > 0)
+            if (run == true && numberOfProbes > 0)
             {
 
                 cpTree = new DataTree<double>();
@@ -162,6 +170,8 @@ namespace Eddy
                     p.StartInfo = psi;
                     p.Start();
                     p.WaitForExit();
+
+                    Thread.Sleep(2 * numberOfProbes);
 
                     for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                     {
@@ -199,6 +209,8 @@ namespace Eddy
                     p.StartInfo = psi;
                     p.Start();
                     p.WaitForExit();
+
+                    Thread.Sleep(2 * numberOfProbes);
 
                     for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                     {
