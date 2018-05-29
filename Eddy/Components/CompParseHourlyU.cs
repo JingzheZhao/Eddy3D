@@ -130,8 +130,8 @@ namespace Eddy
 
             for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
             {
-                UFile.Append(DOM.BCInflow.windDir[i] + ", , ,");
-                UFile.Append(DOM.BCInflow.windDir[i] + "x, y, z,");
+                UFile.AppendLine(DOM.BCInflow.windDir[i] + ", , ,");
+                UFile.AppendLine("x, y, z,");
             }
 
             UFile.AppendLine("");
@@ -141,7 +141,7 @@ namespace Eddy
                 for (int c = 0; c < numberOfWindDirs; c++)
                 {
                     
-                    UFile.Append(listOfAnnualData[c][r] + ",");
+                    UFile.AppendLine(listOfAnnualData[c][r] + ",");
 
                 }
                 UFile.AppendLine("");
@@ -170,7 +170,7 @@ namespace Eddy
                 }
                 ReductionFile.AppendLine("");
             }
-            File.WriteAllText(DOM.baseWorkingDirectory + @"\hourlyReductionData.csv", ReductionFile.ToString());
+            File.WriteAllText(DOM.baseWorkingDirectory + @"\WindReductionData.csv", ReductionFile.ToString());
 
 
 
