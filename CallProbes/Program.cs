@@ -21,34 +21,27 @@ namespace CallProbes
             if (CommandLine.Parser.Default.ParseArguments(args, options))
             {
 
+                var lines = File.ReadAllLines(options.workingDir + "\\" + options.windDirs.Split(',')[0] + @"\0.org\ABLConditions");
 
-                
-                var URef = 5;
-                var zref = 10;
-                var z0 = 1;
+                double URef = 0.0;
+                double zref = 0.0;
+                double z0 = 0.0;
                 var pedestrianHeight = 1.5;
-                var UPedestrianHeight =(((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((pedestrianHeight + z0) / z0));
+                
+                                                        
 
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    var l = lines[i];
+                    if (l.Contains("Uref")) URef = double.Parse(l.Replace("Uref", "").Replace(";", "").Trim());
+                    if (l.Contains("z0")) z0 = double.Parse(l.Replace("z0 uniform", "").Replace(";", "").Trim());
+                    if (l.Contains("Zref")) zref = double.Parse(l.Replace("Zref", "").Replace(";", "").Trim());
+                }
 
-                //// Parse BC
-
-                //var lines = File.ReadAllLines(options.workingDir + options.windDirs.Split(',')[0]+@"0.org\ABLConditions");
-
-                //for (int i = 0; i < lines.Length; i++)
-                //{
-                //    var l = lines[i];
-                //    if (l.StartsWith("Uref")) Uref = double.Parse(l.Replace("Time =", "").Trim());
-
-
-
-
-                //}
-
-                //// End Parse Boundary Cond
-
-
+                var UPedestrianHeight = ((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((pedestrianHeight + z0) / z0);
 
                 var windDirs = options.windDirs.Split(',');
+                var numberOfWindDirs = windDirs.Length;
 
 
                 //[prope][x,y,z]
@@ -81,7 +74,7 @@ namespace CallProbes
                     string pointName = "cp_Probes";
                     string OFfield = "total(p)_coeff";
 
-                    for (int i = 0; i < windDirs.Length; i++)
+                    for (int i = 0; i < numberOfWindDirs; i++)
                     {
 
                         //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + "controlDict", StringTemplates.controlDict(DOM, null, i));
@@ -97,10 +90,11 @@ namespace CallProbes
                     p.Start();
                     p.WaitForExit();
 
-                    Thread.Sleep(2 * probes.GetLength(0));
+                    
 
-                    for (int i = 0; i < windDirs.Length; i++)
+                    for (int i = 0; i < numberOfWindDirs; i++)
                     {
+                        //Thread.Sleep(2 * probes.GetLength(0));
                         ParsingValues cp = new ParsingValues(pointList, pointName, options.workingDir + "\\" + windDirs[i], OFfield);
                         //cpTree.AddRange(cp.cpValues, new Grasshopper.Kernel.Data.GH_Path(i));
                     }
@@ -118,7 +112,7 @@ namespace CallProbes
                     string pointName = "U_Probes";
                     string OFfield = "U";
 
-                    for (int i = 0; i < windDirs.Length; i++)
+                    for (int i = 0; i < numberOfWindDirs; i++)
                     {
 
 
@@ -136,13 +130,13 @@ namespace CallProbes
                     p.Start();
                     p.WaitForExit();
 
-                    Thread.Sleep(2 * probes.GetLength(0));
+                    
 
-                    for (int i = 0; i < windDirs.Length; i++)
+                    for (int i = 0; i < numberOfWindDirs; i++)
                     {
 
                         // Parse values
-
+                        //Thread.Sleep(2 * probes.GetLength(0));
                         var U = new ParsingValues(pointList, pointName, options.workingDir + "\\" + windDirs[i], OFfield);
 
 
@@ -152,14 +146,14 @@ namespace CallProbes
 
                     }
 
-                    List<Point3d> points = new List<Point3d>();
+                    //List<Point3d> points = new List<Point3d>();
                     //DA.GetDataList(1, points);
 
 
 
 
                     List<string> fullProbeFilePath = new List<String>();
-                    var numberOfWindDirs = windDirs.Length;
+                    
                     //var numberOfProbes = File.ReadAllLines(fullProbeFilePath[0]).Count(); //defined above                    
                     //string[] abc = replacedString.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 
@@ -196,10 +190,14 @@ namespace CallProbes
 
                     for (int i = 0; i < numberOfWindDirs; i++)
                     {
-                        UFile.AppendLine(windDirs[i] + ", , ,");
-                        UFile.AppendLine( "x, y, z,");
+                        UFile.Append(windDirs[i] + " , , ,");
+                        
                     }
-
+                    UFile.AppendLine("");
+                    for (int i = 0; i < numberOfWindDirs; i++)
+                    {
+                        UFile.Append("x, y, z,");
+                    }
                     UFile.AppendLine("");
 
                     for (int r = 0; r < numberOfProbes; r++)
@@ -231,8 +229,8 @@ namespace CallProbes
                         for (int c = 0; c < numberOfWindDirs; c++)
                         {
 
-                            ReductionFile.Append(Math.Sqrt(Math.Pow(listOfAnnualData[c][r].X, 2) * Math.Pow(listOfAnnualData[c][r].Y, 2) * Math.Pow(listOfAnnualData[c][r].Z, 2)) + ",");
-
+                            ReductionFile.Append(Math.Round(Math.Sqrt(Math.Pow(listOfAnnualData[c][r].X, 2) * Math.Pow(listOfAnnualData[c][r].Y, 2) * Math.Pow(listOfAnnualData[c][r].Z, 2)), 5) + ",");
+                            
                         }
                         ReductionFile.AppendLine("");
                     }
