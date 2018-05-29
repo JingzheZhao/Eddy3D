@@ -135,14 +135,12 @@ namespace CallProbes
                     p.StartInfo = psi;
                     p.Start();
                     p.WaitForExit();
-<<<<<<< HEAD
+
                     p.Close();
 
-                    Thread.Sleep(5000);
-=======
 
                     Thread.Sleep(2 * probes.GetLength(0));
->>>>>>> 8da0c0a947bc11b1a67d9664f26ef59f7ba2d379
+
 
                     for (int i = 0; i < windDirs.Length; i++)
                     {
