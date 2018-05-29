@@ -89,7 +89,7 @@ namespace CallProbes
                     p.StartInfo = psi;
                     p.Start();
                     p.WaitForExit();
-                    p.Close();
+                    //p.Close();
                     
 
                     for (int i = 0; i < numberOfWindDirs; i++)
@@ -129,7 +129,7 @@ namespace CallProbes
                     p.StartInfo = psi;
                     p.Start();
                     p.WaitForExit();          
-                    p.Close();
+                    //p.Close();
 
 
                     //Thread.Sleep(2 * probes.GetLength(0));
@@ -180,7 +180,7 @@ namespace CallProbes
                         //int counter = 1;
                         for (int c = 0; c < numberOfProbes; c++)
                         {
-                            listOfAnnualData[r][c] = new Vector3d(double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[0]) / UPedestrianHeight, double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1]) / UPedestrianHeight, double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[2]) / UPedestrianHeight);
+                            listOfAnnualData[r][c] = new Vector3d(double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[0]) , double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1]), double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[2]));
                             //counter += 3;
                         }
                     }
@@ -232,7 +232,7 @@ namespace CallProbes
                         for (int c = 0; c < numberOfWindDirs; c++)
                         {
 
-                            ReductionFile.Append(Math.Round(Math.Sqrt(Math.Pow(listOfAnnualData[c][r].X, 2) * Math.Pow(listOfAnnualData[c][r].Y, 2) * Math.Pow(listOfAnnualData[c][r].Z, 2)), 5) + ",");
+                            ReductionFile.Append(Math.Round(Math.Sqrt(Math.Pow(listOfAnnualData[c][r].X, 2) + Math.Pow(listOfAnnualData[c][r].Y, 2) + Math.Pow(listOfAnnualData[c][r].Z, 2)) /UPedestrianHeight ,5)+ ",");
                             
                         }
                         ReductionFile.AppendLine("");
