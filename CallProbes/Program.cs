@@ -89,7 +89,7 @@ namespace CallProbes
                     p.StartInfo = psi;
                     p.Start();
                     p.WaitForExit();
-
+                    p.Close();
                     
 
                     for (int i = 0; i < numberOfWindDirs; i++)
@@ -128,9 +128,12 @@ namespace CallProbes
                     Process p = new Process();
                     p.StartInfo = psi;
                     p.Start();
-                    p.WaitForExit();
+                    p.WaitForExit();          
+                    p.Close();
 
-                    
+
+                    //Thread.Sleep(2 * probes.GetLength(0));
+
 
                     for (int i = 0; i < numberOfWindDirs; i++)
                     {
