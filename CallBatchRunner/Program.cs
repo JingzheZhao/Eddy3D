@@ -32,8 +32,15 @@ namespace CallBatchRunner
                     MaxDegreeOfParallelism = options.threads,
                     CancellationToken = ct
                 };
+
+                int cnt = 0;
+
                 Parallel.For(0, batchFiles.Length, parallelOptions, (i) =>
                 {
+                   // Console.WriteLine("+--------------------------------------------------------------" );
+                    Console.WriteLine("+-----------------------------------------------------------" + cnt);
+                    cnt++;
+                   // Console.WriteLine("+--------------------------------------------------------------" );
 
                     // launch procs here...
                     Console.WriteLine(batchFiles[i]);
@@ -47,13 +54,19 @@ namespace CallBatchRunner
 
                     var process = Process.Start(processInfo);
 
-                    process.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
-                        Console.WriteLine("output>>" + e.Data);
-                    process.BeginOutputReadLine();
+                    if (options.Verbose) process.OutputDataReceived += ((object sender, DataReceivedEventArgs e) =>
+                    {
+                     if (!String.IsNullOrWhiteSpace(e.Data)) Console.WriteLine("output>>" + e.Data);
+                    });
+                     process.BeginOutputReadLine();
 
-                    process.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
-                        Console.WriteLine("error>>" + e.Data);
-                    process.BeginErrorReadLine();
+                    if (options.Verbose) process.ErrorDataReceived += ((object sender, DataReceivedEventArgs e) =>
+                    {
+
+                        if (!String.IsNullOrWhiteSpace(e.Data)) Console.WriteLine("error>>" + e.Data);
+                    });
+
+                   process.BeginErrorReadLine();
 
                     process.WaitForExit();
 
@@ -90,7 +103,7 @@ HelpText = "File search pattern")]
         public string pattern { get; set; }
 
 
-        [Option('l', "loud", DefaultValue = true,
+        [Option('l', "loud", DefaultValue = false,
             HelpText = "Prints all messages to standard output.")]
             public bool Verbose { get; set; }
 

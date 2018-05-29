@@ -100,7 +100,7 @@ namespace CallProbes
                     p.StartInfo = psi;
                     p.Start();
                     p.WaitForExit();
-
+                    p.Close();
 
                     Thread.Sleep(5000);
 
