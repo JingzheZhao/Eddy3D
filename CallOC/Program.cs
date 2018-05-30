@@ -130,7 +130,7 @@ namespace CallOC
                 var ReductionData = File.ReadAllLines(options.windScaling).Skip(1).ToList();
 
 
-                // Array of Reduction data // find better way since this will be loaded every time --> list of points?
+                // Array of Reduction data 
 
                 var ReductionArray = new double[numberOfWindDirs][];
 
