@@ -1540,6 +1540,9 @@ RAS
                 sb.AppendLine("call " + DOM.baseWorkingDirectory + i + "_run_sim.bat");
             }
             //sb.AppendLine("PAUSE");
+            sb.AppendLine("call " + DOM.baseWorkingDirectory + "run_ray.bat");
+            sb.AppendLine("call " + DOM.baseWorkingDirectory + "run_probes.bat");
+            sb.AppendLine("call " + DOM.baseWorkingDirectory + "run_utci.bat");
 
             return sb.ToString();
         }
