@@ -226,14 +226,14 @@ namespace CallProbes
                             for (int c = 0; c < numberOfWindDirs; c++)
                             {
 
-                                UFile.Append(listOfAnnualData[c][r] + ",");
+                                UFile.Append(String.Format("{0:0.####}",listOfAnnualData[c][r].X )+ ","+ String.Format("{0:0.####}", listOfAnnualData[c][r].Y) + ","+ String.Format("{0:0.####}", listOfAnnualData[c][r].Z) + ",");
 
                             }
                             UFile.AppendLine("");
                         }
 
                      
-                        File.WriteAllText(options.workingDir + @"\hourlyUData.csv", UFile.ToString());
+                        File.WriteAllText(options.workingDir + @"\UData.csv", UFile.ToString());
 
                         //Write Reduction Array to file
 
@@ -242,18 +242,14 @@ namespace CallProbes
                         for (int i = 0; i < numberOfWindDirs; i++)
                         {
                             ReductionFile.Append(windDirs[i] + ",");
-
                         }
 
                         ReductionFile.AppendLine("");
                         for (int r = 0; r < numberOfProbes; r++)
                         {
-
                             for (int c = 0; c < numberOfWindDirs; c++)
                             {
-
                                 ReductionFile.Append(String.Format("{0:0.###}",Math.Round(Math.Sqrt(Math.Pow(listOfAnnualData[c][r].X, 2) + Math.Pow(listOfAnnualData[c][r].Y, 2) + Math.Pow(listOfAnnualData[c][r].Z, 2)) / UPedestrianHeight, 3)) + ",");
-
                             }
                             ReductionFile.AppendLine("");
                         }
