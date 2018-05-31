@@ -20,8 +20,9 @@ namespace CallProbes
             var options = new Options();
             if (CommandLine.Parser.Default.ParseArguments(args, options))
             {
-
-                var lines = File.ReadAllLines(options.workingDir + "\\" + options.windDirs.Split(',')[0] + @"\0.org\ABLConditions");
+                var filePath = options.workingDir + "\\" + options.windDirs.Split(',')[0] + @"\0.org\ABLConditions";
+                if (!File.Exists(filePath) )                    {                    Console.WriteLine();                    return; }
+                var lines = File.ReadAllLines(filePath);
 
                 double URef = 0.0;
                 double zref = 0.0;
