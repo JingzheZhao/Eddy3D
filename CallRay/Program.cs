@@ -26,11 +26,17 @@ namespace CallRay
                 Daysim.Epw2Wea(options.weather, options.workingDir+@"\Rad");
 
                 DaysimSettings set = new DaysimSettings();
-                set.AB = 1;
+                set.AB = 0;
                 set.WorkDir = options.workingDir + @"\Rad";
 
                 Daysim.RunDaysim( set);
 
+              
+                //RadianceFiles.saveILLBin(options.workingDir + @"\Rad\CallRay.dir.ill");
+                //RadianceFiles.saveILLBin(options.workingDir + @"\Rad\CallRay.dif.ill");
+
+                ////var data1 = RadianceFiles.loadILL(options.workingDir + @"\Rad\CallRay.dir.ill");
+                ////var data2 = RadianceFiles.loadBin(options.workingDir + @"\Rad\CallRay.dir.ill.bin");
 
                 Console.WriteLine("Done");
 
