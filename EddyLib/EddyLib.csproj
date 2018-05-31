@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ASCIProgressBar.cs" />
     <Compile Include="BoundaryConditionsBase.cs" />
     <Compile Include="CreateSymbolicLink.cs" />
     <Compile Include="Daysim.cs" />

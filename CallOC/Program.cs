@@ -16,248 +16,285 @@ namespace CallOC
     {
         static void Main(string[] args)
         {
-            var options = new Options();
-            if (Parser.Default.ParseArguments(args, options))
+            try
             {
-                StringBuilder errorLog = new StringBuilder();
-
-                if (options.Verbose)
+                var options = new Options();
+                if (Parser.Default.ParseArguments(args, options))
                 {
-                    Console.WriteLine("EPW weather file path: {0}", options.weather);
-                    errorLog.AppendLine(String.Format("EPW weather file path: {0}", options.weather));
+                    StringBuilder errorLog = new StringBuilder();
 
-                    Console.WriteLine("Diffuse radiation (ill): {0}", options.difRad);
-                    errorLog.AppendLine(String.Format("Diffuse radiation (ill): {0}", options.difRad));
-
-                    Console.WriteLine("Direct radiation (ill): {0}", options.dirRad);
-                    errorLog.AppendLine(String.Format("Direct radiation (ill): {0}", options.dirRad));
-
-                    Console.WriteLine("Wind speed scaling factors (csv): {0}", options.windScaling);
-                    errorLog.AppendLine(String.Format("Wind speed scaling factors (csv): {0}", options.windScaling));
-
-                    Console.WriteLine("Working directory: {0}", options.workingDir);
-                    errorLog.AppendLine(String.Format("Working directory: {0}", options.workingDir));
-                }
-
-
-
-                if (!Directory.Exists(options.workingDir)) { Console.WriteLine(options.workingDir + " not found. Exiting"); return; }
-                if (!File.Exists(options.weather)) { Console.WriteLine(options.weather + " not found. Exiting"); return; }
-                if (!File.Exists(options.windScaling)) { Console.WriteLine(options.windScaling + " not found. Exiting"); return; }
-                if (!File.Exists(options.difRad)) { Console.WriteLine(options.difRad + " not found. Exiting"); return; }
-                if (!File.Exists(options.dirRad)) { Console.WriteLine(options.difRad + " not found. Exiting"); return; }
-
-
-
-                // load weather data
-                // -----------------
-                string[] epwData = File.ReadAllLines(options.weather);
-
-                // get header data
-                string[] ln1 = epwData[0].Split(',');
-
-                var Location = System.Text.RegularExpressions.Regex.Replace((ln1[1]), @"\s+", "");
-                var Latitude = Double.Parse(ln1[6]);
-                var Longitude = Double.Parse(ln1[7]);
-                var TimeZone = Double.Parse(ln1[8]);
-
-                // get hourly data
-                string[] epwNoHeader = epwData.Skip(8).Take(8760).ToArray(); // new ArraySegment<string>(epwData, 8, 8760).Array;//.ToArray();
-
-                var DryBulbTemp = epwNoHeader.Select(o => Double.Parse(o.Split(',')[6])).ToArray(); // Dry Bulb Temperature
-                var DewPointTemp = epwNoHeader.Select(o => Double.Parse(o.Split(',')[7])).ToArray(); // Dew Point Temperature
-                var RelativeHumidity = epwNoHeader.Select(o => Double.Parse(o.Split(',')[8])).ToArray(); // Relative Humidity
-                var Pressure = epwNoHeader.Select(o => Double.Parse(o.Split(',')[9])).ToArray(); // Barometric Pressure
-                var WindSpeed = epwNoHeader.Select(o => Double.Parse(o.Split(',')[21])).ToArray(); // WindSpeed
-                var WindDirection = epwNoHeader.Select(o => Double.Parse(o.Split(',')[20])).ToArray(); // Wind Direction
-                var DirectNormalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[14])).ToArray(); // Direct Normal Radiation
-                var DiffuseHorizontalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[15])).ToArray(); // Diffuse Horizontal Illuminance
-                //var GlobalHorizontalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[13])); // Global Horizontal Illuminance
-                //var SkyCover = epwNoHeader.Select(o => Double.Parse(o.Split(',')[22])); // Global Horizontal Illuminance
-
-                var Yr = epwNoHeader.Select(o => Double.Parse(o.Split(',')[0])).ToArray();
-                var Mo = epwNoHeader.Select(o => Double.Parse(o.Split(',')[1])).ToArray();
-                var Dy = epwNoHeader.Select(o => Double.Parse(o.Split(',')[2])).ToArray();
-                var Hr = epwNoHeader.Select(o => Double.Parse(o.Split(',')[3])).ToArray();
-                var DateTime = epwNoHeader.Select(o => o.Split(',')[0] + "." + o.Split(',')[1] + "." + o.Split(',')[2] + " " + o.Split(',')[3]).ToArray();
-
-                var sg = new SolarGeometry();
-
-                var SolarElevation = new List<double>();
-                var SolarAzi = new List<double>();
-                for (int i = 0; i < Yr.Length; i++)
-                {
-                    double _el = sg.solarelevation(Latitude, Longitude, Yr[i], Mo[i], Dy[i], Hr[i], 0, 0, TimeZone, 0);
-                    double _az = sg.solarazimuth(Latitude, Longitude, Yr[i], Mo[i], Dy[i], Hr[i], 0, 0, TimeZone, 0);
-
-                    if (_el > 0)
+                    if (options.Verbose)
                     {
-                        SolarElevation.Add(_el);
-                        SolarAzi.Add(_az);
-                    }
-                    else
-                    {
-                        SolarElevation.Add(0);
-                        SolarAzi.Add(0);
+                        Console.WriteLine("EPW weather file path: {0}", options.weather);
+                        errorLog.AppendLine(String.Format("EPW weather file path: {0}", options.weather));
+
+                        Console.WriteLine("Diffuse radiation (ill): {0}", options.difRad);
+                        errorLog.AppendLine(String.Format("Diffuse radiation (ill): {0}", options.difRad));
+
+                        Console.WriteLine("Direct radiation (ill): {0}", options.dirRad);
+                        errorLog.AppendLine(String.Format("Direct radiation (ill): {0}", options.dirRad));
+
+                        Console.WriteLine("Wind speed scaling factors (csv): {0}", options.windScaling);
+                        errorLog.AppendLine(String.Format("Wind speed scaling factors (csv): {0}", options.windScaling));
+
+                        Console.WriteLine("Working directory: {0}", options.workingDir);
+                        errorLog.AppendLine(String.Format("Working directory: {0}", options.workingDir));
                     }
 
-                }
 
-                // constants that should be dealt with later
-                //-----------------------
+                    bool fileMissing = false;
+                    if (!Directory.Exists(options.workingDir)) { Console.WriteLine(options.workingDir + " not found. Exiting");  fileMissing = true; }
+                    if (!File.Exists(options.weather)) { Console.WriteLine(options.weather + " not found. Exiting"); fileMissing = true; }
+                    if (!File.Exists(options.windScaling)) { Console.WriteLine(options.windScaling + " not found. Exiting"); fileMissing = true; }
+                    if (!File.Exists(options.difRad)) { Console.WriteLine(options.difRad + " not found. Exiting"); fileMissing = true; }
+                    if (!File.Exists(options.dirRad)) { Console.WriteLine(options.difRad + " not found. Exiting"); fileMissing = true; }
 
-                double Wst, Hst, BodyA, GrRef;
-                Wst = 30;
-                Hst = 30;
-                BodyA = 0.5;
-                GrRef = 0.2;
+                    if (fileMissing == true) { System.Threading.Thread.Sleep(5000);  return; }
 
-                //  Load radiation datasets
-                //  [x][]  time
-                //  [][x]  points
-              var DiffRad = RadianceFiles.loadILL(options.difRad);
-              var DirRad = RadianceFiles.loadILL(options.dirRad);
+                    // load weather data
+                    // -----------------
+                    string[] epwData = File.ReadAllLines(options.weather);
 
+                    // get header data
+                    string[] ln1 = epwData[0].Split(',');
 
+                    var Location = System.Text.RegularExpressions.Regex.Replace((ln1[1]), @"\s+", "");
+                    var Latitude = Double.Parse(ln1[6]);
+                    var Longitude = Double.Parse(ln1[7]);
+                    var TimeZone = Double.Parse(ln1[8]);
 
+                    // get hourly data
+                    string[] epwNoHeader = epwData.Skip(8).Take(8760).ToArray(); // new ArraySegment<string>(epwData, 8, 8760).Array;//.ToArray();
 
-                int sensorPointCount = DiffRad[0].Length;
-                double[,] Utci = new double[8760,sensorPointCount];
-                double[,] conditionOfPerson = new double[8760, sensorPointCount];
+                    var DryBulbTemp = epwNoHeader.Select(o => Double.Parse(o.Split(',')[6])).ToArray(); // Dry Bulb Temperature
+                    var DewPointTemp = epwNoHeader.Select(o => Double.Parse(o.Split(',')[7])).ToArray(); // Dew Point Temperature
+                    var RelativeHumidity = epwNoHeader.Select(o => Double.Parse(o.Split(',')[8])).ToArray(); // Relative Humidity
+                    var Pressure = epwNoHeader.Select(o => Double.Parse(o.Split(',')[9])).ToArray(); // Barometric Pressure
+                    var WindSpeed = epwNoHeader.Select(o => Double.Parse(o.Split(',')[21])).ToArray(); // WindSpeed
+                    var WindDirection = epwNoHeader.Select(o => Double.Parse(o.Split(',')[20])).ToArray(); // Wind Direction
+                    var DirectNormalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[14])).ToArray(); // Direct Normal Radiation
+                    var DiffuseHorizontalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[15])).ToArray(); // Diffuse Horizontal Illuminance
+                                                                                                                        //var GlobalHorizontalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[13])); // Global Horizontal Illuminance
+                                                                                                                        //var SkyCover = epwNoHeader.Select(o => Double.Parse(o.Split(',')[22])); // Global Horizontal Illuminance
 
+                    var Yr = epwNoHeader.Select(o => Double.Parse(o.Split(',')[0])).ToArray();
+                    var Mo = epwNoHeader.Select(o => Double.Parse(o.Split(',')[1])).ToArray();
+                    var Dy = epwNoHeader.Select(o => Double.Parse(o.Split(',')[2])).ToArray();
+                    var Hr = epwNoHeader.Select(o => Double.Parse(o.Split(',')[3])).ToArray();
+                    var DateTime = epwNoHeader.Select(o => o.Split(',')[0] + "." + o.Split(',')[1] + "." + o.Split(',')[2] + " " + o.Split(',')[3]).ToArray();
 
+                    Console.WriteLine("Calculating: Solar Geometry");
+                    var sg = new SolarGeometry();
 
-                ////  Todo: implement wind scaling factor load here -- @Patrick
-
-
-                double[,] windReduction = new double[8760, sensorPointCount];
-                var windDirList = new List<double> { 0, 45, 90, 135, 180, 225, 270, 315 };
-                var numberOfWindDirs = windDirList.Count;
-
-                // load  data
-                // -----------------
-                var ReductionData = File.ReadAllLines(options.windScaling).Skip(1).ToList();
-
-
-                // Array of Reduction data 
-
-                var ReductionArray = new double[numberOfWindDirs][];
-
-                for (int d = 0; d < numberOfWindDirs; d++)
-                {
-                    ReductionArray[d] = new double[sensorPointCount];
-                    for (int p = 0; p < sensorPointCount; p++)
+                    var SolarElevation = new List<double>();
+                    var SolarAzi = new List<double>();
+                    for (int i = 0; i < Yr.Length; i++)
                     {
-                        ReductionArray[d][p] = double.Parse(ReductionData[p].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[d]);
-                    }
-                }
+                        double _el = sg.solarelevation(Latitude, Longitude, Yr[i], Mo[i], Dy[i], Hr[i], 0, 0, TimeZone, 0);
+                        double _az = sg.solarazimuth(Latitude, Longitude, Yr[i], Mo[i], Dy[i], Hr[i], 0, 0, TimeZone, 0);
 
-                
-                
-
-                for (int j = 0; j < sensorPointCount; j++)
-                {
-                    for (int i = 0; i < 8760; i++)
-                    {
-                        // hours of weather file in iterator missing
-                        windReduction[i,j] = UTCI.GetWindReductionFactor(j, ReductionArray, sensorPointCount, windDirList, WindSpeed[i], WindDirection[i]);
-                    }
-                }
-
-
-                //Write Reduction Array to file
-
-                System.Text.StringBuilder ReductionFile = new System.Text.StringBuilder();
-
-                for (int i = 0; i < numberOfWindDirs; i++)
-                {
-                    ReductionFile.Append(windDirList[i] + ",");
-
-                }
-
-                ReductionFile.AppendLine("");
-                for (int j = 0; j < sensorPointCount; j++)
-                {
-                    for (int i = 0; i < 8760; i++)
-                    {
-
-                        ReductionFile.Append(windReduction[i, j] + ",");
+                        if (_el > 0)
+                        {
+                            SolarElevation.Add(_el);
+                            SolarAzi.Add(_az);
+                        }
+                        else
+                        {
+                            SolarElevation.Add(0);
+                            SolarAzi.Add(0);
+                        }
 
                     }
-                    ReductionFile.AppendLine("");
-                }
-                File.WriteAllText(Path.GetDirectoryName(options.windScaling) + @"\WindReductionData.csv", ReductionFile.ToString());
+
+                    // constants that should be dealt with later
+                    //-----------------------
+
+                    double Wst, Hst, BodyA, GrRef;
+                    Wst = 30;
+                    Hst = 30;
+                    BodyA = 0.5;
+                    GrRef = 0.2;
+
+                    //  Load radiation datasets
+                    //  [x][]  time
+                    //  [][x]  points
+                    Console.WriteLine("Loading: Radiation data");
+
+                    var DiffRad = RadianceFiles.loadILL(options.difRad);
+                    var DirRad = RadianceFiles.loadILL(options.dirRad);
 
 
-                ////
 
 
-                Console.WriteLine("Starting UTCI calc...");
-                Stopwatch sw = new Stopwatch();sw.Start();
-                for (int j = 0; j < sensorPointCount; j++) {
-
-                    //Parallel.For(0, sensorPointCount - 1,
-                    //  j =>
-                    //  {
+                    int sensorPointCount = DiffRad[0].Length;
+                    double[,] Utci = new double[8760, sensorPointCount];
+                    double[,] conditionOfPerson = new double[8760, sensorPointCount];
 
 
+
+                    ////  Todo: implement wind scaling factor load here -- @Patrick
+
+                    Console.WriteLine("Loading: Wind data");
+
+                    var windDirList = new List<double> { 0, 45, 90, 135, 180, 225, 270, 315 };
+                    var numberOfWindDirs = windDirList.Count;
+
+                    // load  data
+                    // -----------------
+                    var ReductionData = File.ReadAllLines(options.windScaling).Skip(1).ToList();
+
+
+                    // Array of Reduction data 
+
+                    var ReductionArray = new double[numberOfWindDirs][];
+
+                    for (int d = 0; d < numberOfWindDirs; d++)
+                    {
+                        ReductionArray[d] = new double[sensorPointCount];
+                        for (int p = 0; p < sensorPointCount; p++)
+                        {
+                            ReductionArray[d][p] = double.Parse(ReductionData[p].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[d]);
+                        }
+                    }
+
+
+                    Console.WriteLine("Calculating: Wind reduction");
+                    double[,] windReduction = new double[8760, sensorPointCount];
+
+
+                    for (int j = 0; j < sensorPointCount; j++)
+                    {
                         for (int i = 0; i < 8760; i++)
+                        {
+                            // hours of weather file in iterator missing
+                            windReduction[i, j] = UTCI.GetWindReductionFactor(j, ReductionArray, sensorPointCount, windDirList, WindSpeed[i], WindDirection[i]);
+                        }
+                    }
+
+
+                    //Write Reduction Array to file
+
+                    System.Text.StringBuilder ReductionFile = new System.Text.StringBuilder();
+
+                    for (int i = 0; i < numberOfWindDirs; i++)
                     {
-
-                        double mrt = UTCI.GetMRT2(DryBulbTemp[i], RelativeHumidity[i], DiffRad[i][j], DirRad[i][j], SolarElevation[i], DryBulbTemp[i], Wst, Hst, BodyA, GrRef, 0.95)[0];
-
-                        double utci_temp = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], windReduction[i,j]* WindSpeed[i], DiffRad[i][j], DirRad[i][j], SolarElevation[i], Wst, Hst, BodyA, GrRef, mrt);
-
-                        double cOfPerson = 0;
-
-                        if (utci_temp < -40) cOfPerson = -5;
-                        else if ((-40 <= utci_temp) && (utci_temp < -27)) cOfPerson = -4;
-                        else if ((-27 <= utci_temp) && (utci_temp < -13)) cOfPerson = -3;
-                        else if ((-13 <= utci_temp) && (utci_temp < 0)) cOfPerson = -2;
-                        else if ((0 <= utci_temp) && (utci_temp < 9)) cOfPerson = -1;
-                        else if ((9 <= utci_temp) && (utci_temp < 26)) cOfPerson = 0;
-                        else if ((26 <= utci_temp) && (utci_temp < 28)) cOfPerson = 1;
-                        else if ((28 <= utci_temp) && (utci_temp < 32)) cOfPerson = 2;
-                        else if ((32 <= utci_temp) && (utci_temp < 38)) cOfPerson = 3;
-                        else if ((38 <= utci_temp) && (utci_temp < 46)) cOfPerson = 4;
-                        else cOfPerson = 5;
-
-                          Utci[i, j] = utci_temp;
-
-                          conditionOfPerson[i, j] = cOfPerson;
+                        ReductionFile.Append(windDirList[i] + ",");
 
                     }
-                   // Console.WriteLine("Sensor " + j + " done.");
-                     }
-                ///});
 
-                Console.WriteLine("Compute time: "+sw.ElapsedMilliseconds);
+                    ReductionFile.AppendLine("");
+                    for (int j = 0; j < sensorPointCount; j++)
+                    {
+                        for (int i = 0; i < 8760; i++)
+                        {
 
-                Console.WriteLine("Writing UTCI results...");
+                            ReductionFile.Append(windReduction[i, j] + ",");
 
-
-                //Write Array to file
-                StringBuilder sbUtci = new StringBuilder();
-                for (int j = 0; j < sensorPointCount; j++) {
-                      for (int i = 0; i < 8760; i++)
-                      {
-                        sbUtci.Append(Utci[i,j] + ",");
+                        }
+                        ReductionFile.AppendLine("");
                     }
-                    sbUtci.AppendLine("");
+                    File.WriteAllText(Path.GetDirectoryName(options.windScaling) + @"\WindReductionData.csv", ReductionFile.ToString());
+
+
+                    ////
+
+                    Console.WriteLine("Starting UTCI calc...");
+                    Stopwatch sw = new Stopwatch(); sw.Start();
+
+
+                    using (var progress = new ASCIIProgressBar())
+                    {
+                      
+
+                 
+                    for (int j = 0; j < sensorPointCount; j++)
+                    {
+                            progress.Report((double)j / sensorPointCount);
+                            //Parallel.For(0, sensorPointCount - 1,
+                            //  j =>
+                            //  {
+
+
+                            for (int i = 0; i < 8760; i++)
+                        {
+
+                            double mrt = UTCI.GetMRT2(DryBulbTemp[i], RelativeHumidity[i], DiffRad[i][j], DirRad[i][j], SolarElevation[i], DryBulbTemp[i], Wst, Hst, BodyA, GrRef, 0.95)[0];
+
+                            double utci_temp = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], windReduction[i, j] * WindSpeed[i], DiffRad[i][j], DirRad[i][j], SolarElevation[i], Wst, Hst, BodyA, GrRef, mrt);
+
+                            double cOfPerson = 0;
+
+                            if (utci_temp < -40) cOfPerson = -5;
+                            else if ((-40 <= utci_temp) && (utci_temp < -27)) cOfPerson = -4;
+                            else if ((-27 <= utci_temp) && (utci_temp < -13)) cOfPerson = -3;
+                            else if ((-13 <= utci_temp) && (utci_temp < 0)) cOfPerson = -2;
+                            else if ((0 <= utci_temp) && (utci_temp < 9)) cOfPerson = -1;
+                            else if ((9 <= utci_temp) && (utci_temp < 26)) cOfPerson = 0;
+                            else if ((26 <= utci_temp) && (utci_temp < 28)) cOfPerson = 1;
+                            else if ((28 <= utci_temp) && (utci_temp < 32)) cOfPerson = 2;
+                            else if ((32 <= utci_temp) && (utci_temp < 38)) cOfPerson = 3;
+                            else if ((38 <= utci_temp) && (utci_temp < 46)) cOfPerson = 4;
+                            else cOfPerson = 5;
+
+                            Utci[i, j] = utci_temp;
+
+                            conditionOfPerson[i, j] = cOfPerson;
+
+                        }
+                        // Console.WriteLine("Sensor " + j + " done.");
+                    }
+                        ///});
+
+
+
+                    }//end using prog bar
+
+                    Console.WriteLine("Compute time: " + sw.ElapsedMilliseconds);
+
+                    Console.WriteLine("Writing UTCI results...");
+
+
+                    //Write Array to file
+                    StringBuilder sbUtci = new StringBuilder();
+                    for (int j = 0; j < sensorPointCount; j++)
+                    {
+                        for (int i = 0; i < 8760; i++)
+                        {
+                            sbUtci.Append(Utci[i, j] + ",");
+                        }
+                        sbUtci.AppendLine("");
+                    }
+                    File.WriteAllText(options.workingDir + @"\utci.t", sbUtci.ToString());
+
+
+
+
+                    if (options.Verbose)
+                    {
+                        File.WriteAllText(options.workingDir + @"\utci.err", errorLog.ToString());
+                    }
+
+                    Console.WriteLine("Done");
+
+                  //  Console.ReadKey();
+
+
                 }
-                File.WriteAllText(options.workingDir + @"\utci.t" , sbUtci.ToString());
 
-
-
-
-                if (options.Verbose)
+                else
                 {
-                    File.WriteAllText(options.workingDir+@"\utci.err", errorLog.ToString());
+                   // Console.WriteLine(options.GetUsage());
+                    System.Threading.Thread.Sleep(5000); return;
                 }
 
-                Console.WriteLine("Done");
 
-                Console.ReadKey();
+
+            }
+
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                System.Threading.Thread.Sleep(5000); return;
             }
         }
     }
@@ -304,6 +341,8 @@ namespace CallOC
             return HelpText.AutoBuild(this,
               (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current));
         }
+
+
     }
 
 
