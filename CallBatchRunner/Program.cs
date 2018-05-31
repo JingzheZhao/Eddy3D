@@ -22,9 +22,9 @@ namespace CallBatchRunner
 
                 if (!Directory.Exists(options.workingDir)) { Console.WriteLine(options.workingDir + " not found. Exiting"); return; }
 
-                string[] batchFiles = Directory.GetFiles(options.workingDir, options.pattern , SearchOption.AllDirectories);  //"*.bat"
+                string[] batchFiles = Directory.GetFiles(options.workingDir, options.pattern, SearchOption.AllDirectories);  //"*.bat"
                 if (batchFiles == null) { Console.WriteLine("No files found"); return; }
-                if (batchFiles.Length<1) { Console.WriteLine("No files found"); return; }
+                if (batchFiles.Length < 1) { Console.WriteLine("No files found"); return; }
 
                 //multithreaded with limit
                 CancellationToken ct = new CancellationToken();
@@ -40,16 +40,18 @@ namespace CallBatchRunner
 
                 Parallel.For(0, batchFiles.Length, parallelOptions, (i) =>
                 {
-                   // Console.WriteLine("+--------------------------------------------------------------" );
-                    Console.WriteLine("+-----------------------------------------------------------" + cnt);
+                    Console.WriteLine(@"
++--------------------------------------------------------------
++-----------------------------------------------------------" + cnt + @"
++--------------------------------------------------------------
+");
                     cnt++;
-                   // Console.WriteLine("+--------------------------------------------------------------" );
 
                     // launch procs here...
                     Console.WriteLine(batchFiles[i]);
 
 
-                    var processInfo = new ProcessStartInfo("cmd.exe", "/c" + "\"" +batchFiles[i] + "\"") ;
+                    var processInfo = new ProcessStartInfo("cmd.exe", "/c" + "\"" + batchFiles[i] + "\"");
                     //processInfo.CreateNoWindow = true;
                     processInfo.UseShellExecute = false;
                     processInfo.RedirectStandardError = true;
@@ -59,9 +61,9 @@ namespace CallBatchRunner
 
                     if (options.Verbose) process.OutputDataReceived += ((object sender, DataReceivedEventArgs e) =>
                     {
-                     if (!String.IsNullOrWhiteSpace(e.Data)) Console.WriteLine("output>>" + e.Data);
+                        if (!String.IsNullOrWhiteSpace(e.Data)) Console.WriteLine("output>>" + e.Data);
                     });
-                     process.BeginOutputReadLine();
+                    process.BeginOutputReadLine();
 
                     if (options.Verbose) process.ErrorDataReceived += ((object sender, DataReceivedEventArgs e) =>
                     {
@@ -69,7 +71,7 @@ namespace CallBatchRunner
                         if (!String.IsNullOrWhiteSpace(e.Data)) Console.WriteLine("error>>" + e.Data);
                     });
 
-                   process.BeginErrorReadLine();
+                    process.BeginErrorReadLine();
 
                     process.WaitForExit();
 
@@ -89,37 +91,37 @@ namespace CallBatchRunner
 
         }
     }
-        // Define a class to receive parsed values
-        class Options
-        {
-            [Option('w', "workingDir", Required = true,
-            HelpText = "Working directory.")]
-            public string workingDir { get; set; }
+    // Define a class to receive parsed values
+    class Options
+    {
+        [Option('w', "workingDir", Required = true,
+        HelpText = "Working directory.")]
+        public string workingDir { get; set; }
 
-            [Option('t', "threads", Required = true, DefaultValue = 4,
-            HelpText = "Number of parallel threads")]
-            public int threads { get; set; }
+        [Option('t', "threads", Required = true, DefaultValue = 4,
+        HelpText = "Number of parallel threads")]
+        public int threads { get; set; }
 
 
         [Option('p', "pattern", Required = true, DefaultValue = "*.bat",
-HelpText = "File search pattern")]
+        HelpText = "File search pattern")]
         public string pattern { get; set; }
 
 
         [Option('l', "loud", DefaultValue = false,
             HelpText = "Prints all messages to standard output.")]
-            public bool Verbose { get; set; }
+        public bool Verbose { get; set; }
 
 
 
-            [ParserState]
-            public IParserState LastParserState { get; set; }
+        [ParserState]
+        public IParserState LastParserState { get; set; }
 
-            [HelpOption]
-            public string GetUsage()
-            {
-                return HelpText.AutoBuild(this,
-                  (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current));
-            }
+        [HelpOption]
+        public string GetUsage()
+        {
+            return HelpText.AutoBuild(this,
+              (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current));
         }
     }
+}
