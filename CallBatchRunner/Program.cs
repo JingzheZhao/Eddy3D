@@ -20,8 +20,11 @@ namespace CallBatchRunner
             if (CommandLine.Parser.Default.ParseArguments(args, options))
             {
 
+                if (!Directory.Exists(options.workingDir)) { Console.WriteLine(options.workingDir + " not found. Exiting"); return; }
 
-                var batchFiles = Directory.GetFiles(options.workingDir, options.pattern , SearchOption.AllDirectories);  //"*.bat"
+                string[] batchFiles = Directory.GetFiles(options.workingDir, options.pattern , SearchOption.AllDirectories);  //"*.bat"
+                if (batchFiles == null) { Console.WriteLine("No files found"); return; }
+                if (batchFiles.Length<1) { Console.WriteLine("No files found"); return; }
 
                 //multithreaded with limit
                 CancellationToken ct = new CancellationToken();
