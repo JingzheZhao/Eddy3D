@@ -189,27 +189,166 @@ namespace EddyLib
             return values;
         }
 
-        public static double[][] loadDIR(string dirFileName) // direct illuminance data
-        {
-            //string[] dirLines = System.IO.File.ReadAllLines(dirFileName);
-            //return dirLines.Select(l => Array.ConvertAll<string, double>(l.Split(new[] { ' ' }).Skip(3).ToArray(), Double.Parse)).ToArray();
 
-            string[] lines = System.IO.File.ReadAllLines(dirFileName);
+        public static void saveILLBin(string illFileName) // total illuminance data
+        {
+            // [x][] time
+            // [][x] points
+            //string[] illLines = System.IO.File.ReadAllLines(illFileName);
+            //return illLines.Select(l => Array.ConvertAll<string, double>(l.Split(new[] { ' ' }).Skip(4).ToArray(), Double.Parse)).ToArray();
+
+
+            string[] lines = System.IO.File.ReadAllLines(illFileName);
             double[][] values = new double[lines.Length][];
 
 
             for (int h = 0; h < lines.Length; h++)
             {
 
-                string[] hourData = lines[h].Split(' ').Skip(3).ToArray();
+                string[] hourData = lines[h].Split(' ').Skip(4).ToArray();
                 double[] hourDataDouble = Array.ConvertAll<string, double>(hourData, Double.Parse);
                 values[h] = hourDataDouble;
 
 
             }
-            return values;
+
+            writeBin(illFileName + ".bin", values);
         }
 
+        public static float[,] loadBin(string filename) 
+        {
+            // [i,   time
+            //    j] points
+
+
+            float[,] data;
+
+            int iDim;
+            int jDim;
+            
+
+            //reading from the file
+            // 1.
+            using (BinaryReader b = new BinaryReader(
+                File.Open(filename, FileMode.Open)))
+            {
+                // 2.
+                // Position and length variables.
+                int pos = 0;
+                // 2A.
+                // Use BaseStream.
+                int length = (int)b.BaseStream.Length;
+
+                iDim = b.ReadInt32();
+                jDim = b.ReadInt32();
+                data = new float[iDim, jDim];
+                pos += sizeof(int);
+                pos += sizeof(int);
+
+                int i = 0;
+                int j = 0;
+                while (pos < length)
+                {
+      
+                    float v = b.ReadSingle();
+                    data[i,j] = (v);
+
+                    pos += sizeof(float);
+
+                    j++;
+                    if (j == jDim) { j = 0; i++; }
+                }
+            }
+
+            return data;
+        }
+        public static void writeBin(string fileName, double[][] values)
+        {
+            // [i,   time
+            //    j] points
+
+
+            BinaryWriter bw;
+            //create the file
+            try
+            {
+                bw = new BinaryWriter(new FileStream(fileName , FileMode.Create));
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine(e.Message + "\n Cannot create file.");
+                return;
+            }
+
+            //writing into the file
+            try
+            {
+                bw.Write((int)values.Length);
+                bw.Write((int)values[0].Length);
+
+
+                for (int i = 0; i < values.Length; i++)
+                {
+                    for (int j = 0; j < values[i].Length; j++)
+                    {
+                        float fval = (float)values[i][j];
+
+                        bw.Write(fval);
+                    }
+                }
+
+
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine(e.Message + "\n Cannot write to file.");
+                return;
+            }
+            bw.Close();
+        }
+        public static void writeBin(string fileName, double[,] values)
+        {
+            // [i,   time
+            //    j] points
+
+
+            BinaryWriter bw;
+            //create the file
+            try
+            {
+                bw = new BinaryWriter(new FileStream(fileName, FileMode.Create));
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine(e.Message + "\n Cannot create file.");
+                return;
+            }
+
+            //writing into the file
+            try
+            {
+                bw.Write((Int32)values.GetUpperBound(0));
+                bw.Write((Int32)values.GetUpperBound(1));
+
+
+                for (int i = 0; i < values.GetUpperBound(0); i++)
+                {
+                    for (int j = 0; j < values.GetUpperBound(1); j++)
+                    {
+                        float fval = (float)values[i, j];
+                        bw.Write(fval);
+                    }
+                }
+
+
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine(e.Message + "\n Cannot write to file.");
+                return;
+            }
+            bw.Close();
+        }
 
         public static double[][] loadDC(string file) // total illuminance data
         {
