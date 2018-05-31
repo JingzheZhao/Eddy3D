@@ -36,16 +36,14 @@ namespace CallBatchRunner
                     CancellationToken = ct
                 };
 
-                int cnt = 0;
-
                 Parallel.For(0, batchFiles.Length, parallelOptions, (i) =>
                 {
                     Console.WriteLine(@"
 +--------------------------------------------------------------
-+-----------------------------------------------------------" + cnt + @"
++-----------------------------------------------------------" + i + @"
 +--------------------------------------------------------------
 ");
-                    cnt++;
+                 
 
                     // launch procs here...
                     Console.WriteLine(batchFiles[i]);
