@@ -26,7 +26,7 @@ namespace CallRay
                 Daysim.Epw2Wea(options.weather, options.workingDir+@"\Rad");
 
                 DaysimSettings set = new DaysimSettings();
-                set.AB = 0;
+                set.AB = 1;
                 set.WorkDir = options.workingDir + @"\Rad";
 
                 Daysim.RunDaysim( set);
