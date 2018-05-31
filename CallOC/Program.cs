@@ -43,13 +43,13 @@ namespace CallOC
 
 
                     bool fileMissing = false;
-                    if (!Directory.Exists(options.workingDir)) { Console.WriteLine(options.workingDir + " not found. Exiting");  fileMissing = true; }
+                    if (!Directory.Exists(options.workingDir)) { Console.WriteLine(options.workingDir + " not found. Exiting"); fileMissing = true; }
                     if (!File.Exists(options.weather)) { Console.WriteLine(options.weather + " not found. Exiting"); fileMissing = true; }
                     if (!File.Exists(options.windScaling)) { Console.WriteLine(options.windScaling + " not found. Exiting"); fileMissing = true; }
                     if (!File.Exists(options.difRad)) { Console.WriteLine(options.difRad + " not found. Exiting"); fileMissing = true; }
                     if (!File.Exists(options.dirRad)) { Console.WriteLine(options.difRad + " not found. Exiting"); fileMissing = true; }
 
-                    if (fileMissing == true) { System.Threading.Thread.Sleep(5000);  return; }
+                    if (fileMissing == true) { System.Threading.Thread.Sleep(5000); return; }
 
                     // load weather data
                     // -----------------
@@ -204,46 +204,47 @@ namespace CallOC
 
                     using (var progress = new ASCIIProgressBar())
                     {
-                      
-
-                 
-                    for (int j = 0; j < sensorPointCount; j++)
-                    {
-                            progress.Report((double)j / sensorPointCount);
-                            //Parallel.For(0, sensorPointCount - 1,
-                            //  j =>
-                            //  {
 
 
-                            for (int i = 0; i < 8760; i++)
+
+                        for (int j = 0; j < sensorPointCount; j++)
                         {
 
-                            double mrt = UTCI.GetMRT2(DryBulbTemp[i], RelativeHumidity[i], DiffRad[i][j], DirRad[i][j], SolarElevation[i], DryBulbTemp[i], Wst, Hst, BodyA, GrRef, 0.95)[0];
+                          //  Parallel.For(0, sensorPointCount - 1,
+                          //j =>
+                          //{
 
-                            double utci_temp = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], windReduction[i, j] * WindSpeed[i], mrt);
+                              progress.Report((double)j / sensorPointCount);
 
-                            //double cOfPerson = 0;
+                              for (int i = 0; i < 8760; i++)
+                              {
 
-                            //if (utci_temp < -40) cOfPerson = -5;
-                            //else if ((-40 <= utci_temp) && (utci_temp < -27)) cOfPerson = -4;
-                            //else if ((-27 <= utci_temp) && (utci_temp < -13)) cOfPerson = -3;
-                            //else if ((-13 <= utci_temp) && (utci_temp < 0)) cOfPerson = -2;
-                            //else if ((0 <= utci_temp) && (utci_temp < 9)) cOfPerson = -1;
-                            //else if ((9 <= utci_temp) && (utci_temp < 26)) cOfPerson = 0;
-                            //else if ((26 <= utci_temp) && (utci_temp < 28)) cOfPerson = 1;
-                            //else if ((28 <= utci_temp) && (utci_temp < 32)) cOfPerson = 2;
-                            //else if ((32 <= utci_temp) && (utci_temp < 38)) cOfPerson = 3;
-                            //else if ((38 <= utci_temp) && (utci_temp < 46)) cOfPerson = 4;
-                            //else cOfPerson = 5;
+                                  double mrt = UTCI.GetMRT2(DryBulbTemp[i], RelativeHumidity[i], DiffRad[i][j], DirRad[i][j], SolarElevation[i], DryBulbTemp[i], Wst, Hst, BodyA, GrRef, 0.95)[0];
 
-                            //Utci[i, j] = utci_temp;
+                                  double utci_temp = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], windReduction[i, j] * WindSpeed[i], mrt);
+                                      Utci[i, j] = utci_temp;
 
-                            //conditionOfPerson[i, j] = cOfPerson;
+                                      //double cOfPerson = 0;
 
-                        }
-                        // Console.WriteLine("Sensor " + j + " done.");
-                    }
-                        ///});
+                                      //if (utci_temp < -40) cOfPerson = -5;
+                                      //else if ((-40 <= utci_temp) && (utci_temp < -27)) cOfPerson = -4;
+                                      //else if ((-27 <= utci_temp) && (utci_temp < -13)) cOfPerson = -3;
+                                      //else if ((-13 <= utci_temp) && (utci_temp < 0)) cOfPerson = -2;
+                                      //else if ((0 <= utci_temp) && (utci_temp < 9)) cOfPerson = -1;
+                                      //else if ((9 <= utci_temp) && (utci_temp < 26)) cOfPerson = 0;
+                                      //else if ((26 <= utci_temp) && (utci_temp < 28)) cOfPerson = 1;
+                                      //else if ((28 <= utci_temp) && (utci_temp < 32)) cOfPerson = 2;
+                                      //else if ((32 <= utci_temp) && (utci_temp < 38)) cOfPerson = 3;
+                                      //else if ((38 <= utci_temp) && (utci_temp < 46)) cOfPerson = 4;
+                                      //else cOfPerson = 5;
+
+
+                                      //conditionOfPerson[i, j] = cOfPerson;
+
+                                  }
+                                  // Console.WriteLine("Sensor " + j + " done.");
+                                  }
+                             // });
 
 
 
@@ -276,14 +277,14 @@ namespace CallOC
 
                     Console.WriteLine("Done");
 
-                  //  Console.ReadKey();
+                    //  Console.ReadKey();
 
 
                 }
 
                 else
                 {
-                   // Console.WriteLine(options.GetUsage());
+                    // Console.WriteLine(options.GetUsage());
                     System.Threading.Thread.Sleep(5000); return;
                 }
 
