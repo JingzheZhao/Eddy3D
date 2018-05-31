@@ -20,24 +20,33 @@ namespace CallProbes
             var options = new Options();
             if (CommandLine.Parser.Default.ParseArguments(args, options))
             {
-                var filePath = options.workingDir + "\\" + options.windDirs.Split(',')[0] + @"\0.org\ABLConditions";
-                if (!File.Exists(filePath) )                    {                    Console.WriteLine();                    return; }
-                var lines = File.ReadAllLines(filePath);
 
-                double URef = 0.0;
+
+                if (!Directory.Exists(options.workingDir))  { Console.WriteLine(options.workingDir + " not found. Exiting"); return; } 
+
+
+                    double URef = 0.0;
                 double zref = 0.0;
                 double z0 = 0.0;
                 var pedestrianHeight = 1.5;
-                
-                                                        
-
-                for (int i = 0; i < lines.Length; i++)
+                try
                 {
-                    var l = lines[i];
-                    if (l.Contains("Uref")) URef = double.Parse(l.Replace("Uref", "").Replace(";", "").Trim());
-                    if (l.Contains("z0")) z0 = double.Parse(l.Replace("z0 uniform", "").Replace(";", "").Trim());
-                    if (l.Contains("Zref")) zref = double.Parse(l.Replace("Zref", "").Replace(";", "").Trim());
+                    var filePath = options.workingDir + "\\" + options.windDirs.Split(',')[0] + @"\0.org\ABLConditions";
+                    if (!File.Exists(filePath)) { Console.WriteLine(filePath + " not found. Exiting"); return; }
+
+                    string[] lines = File.ReadAllLines(filePath);
+
+
+
+                    for (int i = 0; i < lines.Length; i++)
+                    {
+                        var l = lines[i];
+                        if (l.Contains("Uref")) URef = double.Parse(l.Replace("Uref", "").Replace(";", "").Trim());
+                        if (l.Contains("z0")) z0 = double.Parse(l.Replace("z0 uniform", "").Replace(";", "").Trim());
+                        if (l.Contains("Zref")) zref = double.Parse(l.Replace("Zref", "").Replace(";", "").Trim());
+                    }
                 }
+                catch (Exception e) { Console.WriteLine(e.Message); return; }
 
                 var UPedestrianHeight = ((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((pedestrianHeight + z0) / z0);
 
@@ -67,38 +76,42 @@ namespace CallProbes
                 if (options.mode == 0) // cp
                 {
 
-
-                    
-
-                    StringBuilder command = new StringBuilder();
-
-                    string pointName = "cp_Probes";
-                    string OFfield = "total(p)_coeff";
-
-                    for (int i = 0; i < numberOfWindDirs; i++)
+                    try
                     {
 
-                        //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + "controlDict", StringTemplates.controlDict(DOM, null, i));
-                        //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, options.mode));
-                        command.Append(@"postProcess -case " + windDirs[i] + " -func " + pointName + @" -latestTime;");
 
+                        StringBuilder command = new StringBuilder();
+
+                        string pointName = "cp_Probes";
+                        string OFfield = "total(p)_coeff";
+
+                        for (int i = 0; i < numberOfWindDirs; i++)
+                        {
+
+                            //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + "controlDict", StringTemplates.controlDict(DOM, null, i));
+                            //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, options.mode));
+                            command.Append(@"postProcess -case " + windDirs[i] + " -func " + pointName + @" -latestTime;");
+
+
+                        }
+
+                        ProcessStartInfo psi = new ProcessStartInfo(EddyLib.Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + options.workingDir);
+                        Process p = new Process();
+                        p.StartInfo = psi;
+                        p.Start();
+                        p.WaitForExit();
+                        //p.Close();
+
+
+                        for (int i = 0; i < numberOfWindDirs; i++)
+                        {
+                            //Thread.Sleep(2 * probes.GetLength(0));
+                            ParsingValues cp = new ParsingValues(pointList, pointName, options.workingDir + "\\" + windDirs[i], OFfield);
+                            //cpTree.AddRange(cp.cpValues, new Grasshopper.Kernel.Data.GH_Path(i));
+                        }
 
                     }
-
-                    ProcessStartInfo psi = new ProcessStartInfo(EddyLib.Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + options.workingDir);
-                    Process p = new Process();
-                    p.StartInfo = psi;
-                    p.Start();
-                    p.WaitForExit();
-                    //p.Close();
-                    
-
-                    for (int i = 0; i < numberOfWindDirs; i++)
-                    {
-                        //Thread.Sleep(2 * probes.GetLength(0));
-                        ParsingValues cp = new ParsingValues(pointList, pointName, options.workingDir + "\\" + windDirs[i], OFfield);
-                        //cpTree.AddRange(cp.cpValues, new Grasshopper.Kernel.Data.GH_Path(i));
-                    }
+                    catch (Exception e) { Console.WriteLine(e.Message); return; }
 
 
                 }
@@ -106,151 +119,154 @@ namespace CallProbes
                 if (options.mode == 1) // U
                 {
 
-                    
-
-                    StringBuilder command = new StringBuilder();
-
-                    string pointName = "U_Probes";
-                    string OFfield = "U";
-
-                    for (int i = 0; i < numberOfWindDirs; i++)
+                    try
                     {
 
+                        StringBuilder command = new StringBuilder();
 
-                        // Write the dicts
+                        string pointName = "U_Probes";
+                        string OFfield = "U";
 
-                        //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, options.mode));
-                        command.Append(@"postProcess -case " + windDirs[i] + " -func " + pointName + @" -latestTime;");
-
-
-                    }
-
-                    ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + options.workingDir);
-                    Process p = new Process();
-                    p.StartInfo = psi;
-                    p.Start();
-                    p.WaitForExit();          
-                    //p.Close();
-
-
-                    //Thread.Sleep(2 * probes.GetLength(0));
-
-
-                    for (int i = 0; i < numberOfWindDirs; i++)
-                    {
-
-                        // Parse values
-                        //Thread.Sleep(2 * probes.GetLength(0));
-                        var U = new ParsingValues(pointList, pointName, options.workingDir + "\\" + windDirs[i], OFfield);
-
-
-                        // Create datatree
-
-                        // uTree.AddRange(U.uValues, new Grasshopper.Kernel.Data.GH_Path(i));
-
-                    }
-
-                    //List<Point3d> points = new List<Point3d>();
-                    //DA.GetDataList(1, points);
-
-
-
-
-                    List<string> fullProbeFilePath = new List<String>();
-                    
-                    //var numberOfProbes = File.ReadAllLines(fullProbeFilePath[0]).Count(); //defined above                    
-                    //string[] abc = replacedString.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-
-
-                    //Build paths as list
-
-                    for (int i = 0; i < numberOfWindDirs; i++)
-                    {
-                        fullProbeFilePath.Add(options.workingDir + "\\" + windDirs[i] + @"\postProcessing\U_Probes.csv");
-                    }
-
-
-
-                    // Array for output data
-
-                    var listOfAnnualData = new Vector3d[numberOfWindDirs][];
-
-                    for (int r = 0; r < numberOfWindDirs; r++)
-                    {
-                        listOfAnnualData[r] = new Vector3d[numberOfProbes];
-                        //int counter = 1;
-                        for (int c = 0; c < numberOfProbes; c++)
+                        for (int i = 0; i < numberOfWindDirs; i++)
                         {
-                            listOfAnnualData[r][c] = new Vector3d(double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[0]) , double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1]), double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[2]));
-                            //counter += 3;
+
+
+                            // Write the dicts
+
+                            //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, options.mode));
+                            command.Append(@"postProcess -case " + windDirs[i] + " -func " + pointName + @" -latestTime;");
+
+
                         }
-                    }
+
+                        ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + options.workingDir);
+                        Process p = new Process();
+                        p.StartInfo = psi;
+                        p.Start();
+                        p.WaitForExit();
+                        //p.Close();
 
 
-                    //Write U Array to file
+                        //Thread.Sleep(2 * probes.GetLength(0));
 
 
-                    System.Text.StringBuilder UFile = new System.Text.StringBuilder();
-
-                    for (int i = 0; i < numberOfWindDirs; i++)
-                    {
-                        UFile.Append(windDirs[i] + " , , ,");
-                        
-                    }
-                    UFile.AppendLine("");
-                    for (int i = 0; i < numberOfWindDirs; i++)
-                    {
-                        UFile.Append("x, y, z,");
-                    }
-                    UFile.AppendLine("");
-
-                    for (int r = 0; r < numberOfProbes; r++)
-                    {
-                        for (int c = 0; c < numberOfWindDirs; c++)
+                        for (int i = 0; i < numberOfWindDirs; i++)
                         {
 
-                            UFile.Append(listOfAnnualData[c][r] + ",");
+                            // Parse values
+                            //Thread.Sleep(2 * probes.GetLength(0));
+                            var U = new ParsingValues(pointList, pointName, options.workingDir + "\\" + windDirs[i], OFfield);
+
+
+                            // Create datatree
+
+                            // uTree.AddRange(U.uValues, new Grasshopper.Kernel.Data.GH_Path(i));
+
+                        }
+
+                        //List<Point3d> points = new List<Point3d>();
+                        //DA.GetDataList(1, points);
+
+
+
+
+                        List<string> fullProbeFilePath = new List<String>();
+
+                        //var numberOfProbes = File.ReadAllLines(fullProbeFilePath[0]).Count(); //defined above                    
+                        //string[] abc = replacedString.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+
+
+                        //Build paths as list
+
+                        for (int i = 0; i < numberOfWindDirs; i++)
+                        {
+                            var path = options.workingDir + "\\" + windDirs[i] + @"\postProcessing\U_Probes.csv";
+                            if (!File.Exists(path)) { Console.WriteLine(path + " not found. Exiting"); return; }
+                            fullProbeFilePath.Add(path);   
+                        }
+
+                    
+
+
+                        // Array for output data
+
+                        var listOfAnnualData = new Vector3d[numberOfWindDirs][];
+
+                        for (int r = 0; r < numberOfWindDirs; r++)
+                        {
+                            listOfAnnualData[r] = new Vector3d[numberOfProbes];
+                            //int counter = 1;
+                            for (int c = 0; c < numberOfProbes; c++)
+                            {
+                                listOfAnnualData[r][c] = new Vector3d(double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[0]), double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1]), double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[2]));
+                                //counter += 3;
+                            }
+                        }
+
+
+                        //Write U Array to file
+
+
+                        System.Text.StringBuilder UFile = new System.Text.StringBuilder();
+
+                        for (int i = 0; i < numberOfWindDirs; i++)
+                        {
+                            UFile.Append(windDirs[i] + " , , ,");
 
                         }
                         UFile.AppendLine("");
-                    }
-                    File.WriteAllText(options.workingDir + @"\hourlyUData.csv", UFile.ToString());
+                        for (int i = 0; i < numberOfWindDirs; i++)
+                        {
+                            UFile.Append("x, y, z,");
+                        }
+                        UFile.AppendLine("");
 
-                    //Write Reduction Array to file
+                        for (int r = 0; r < numberOfProbes; r++)
+                        {
+                            for (int c = 0; c < numberOfWindDirs; c++)
+                            {
 
-                    System.Text.StringBuilder ReductionFile = new System.Text.StringBuilder();
+                                UFile.Append(listOfAnnualData[c][r] + ",");
 
-                    for (int i = 0; i < numberOfWindDirs; i++)
-                    {
-                        ReductionFile.Append(windDirs[i] + ",");
+                            }
+                            UFile.AppendLine("");
+                        }
 
-                    }
+                     
+                        File.WriteAllText(options.workingDir + @"\hourlyUData.csv", UFile.ToString());
 
-                    ReductionFile.AppendLine("");
-                    for (int r = 0; r < numberOfProbes; r++)
-                    {
+                        //Write Reduction Array to file
 
-                        for (int c = 0; c < numberOfWindDirs; c++)
+                        System.Text.StringBuilder ReductionFile = new System.Text.StringBuilder();
+
+                        for (int i = 0; i < numberOfWindDirs; i++)
+                        {
+                            ReductionFile.Append(windDirs[i] + ",");
+
+                        }
+
+                        ReductionFile.AppendLine("");
+                        for (int r = 0; r < numberOfProbes; r++)
                         {
 
-                            ReductionFile.Append(Math.Round(Math.Sqrt(Math.Pow(listOfAnnualData[c][r].X, 2) + Math.Pow(listOfAnnualData[c][r].Y, 2) + Math.Pow(listOfAnnualData[c][r].Z, 2)) /UPedestrianHeight ,5)+ ",");
-                            
+                            for (int c = 0; c < numberOfWindDirs; c++)
+                            {
+
+                                ReductionFile.Append(Math.Round(Math.Sqrt(Math.Pow(listOfAnnualData[c][r].X, 2) + Math.Pow(listOfAnnualData[c][r].Y, 2) + Math.Pow(listOfAnnualData[c][r].Z, 2)) / UPedestrianHeight, 5) + ",");
+
+                            }
+                            ReductionFile.AppendLine("");
                         }
-                        ReductionFile.AppendLine("");
+                        File.WriteAllText(options.workingDir + @"\WindReductionData.csv", ReductionFile.ToString());
+
+
+
                     }
-                    File.WriteAllText(options.workingDir + @"\WindReductionData.csv", ReductionFile.ToString());
 
-
+                    catch (Exception e) { Console.WriteLine(e.Message); return; }
 
                 }
             }
-
-
-
-
-
-
-
         }
     }
 
@@ -258,7 +274,7 @@ namespace CallProbes
     // Define a class to receive parsed values
     class Options
     {
-        
+
         [Option('d', "workingDir", Required = true,
         HelpText = "Working directory.")]
         public string workingDir { get; set; }

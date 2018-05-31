@@ -51,7 +51,6 @@ namespace CallRay
         HelpText = "EPW weather file path.")]
         public string weather { get; set; }
 
-
         //[Option('o', "output", Required = true,
         //HelpText = "Output file path")]
         //public string output { get; set; }
@@ -59,8 +58,6 @@ namespace CallRay
         [Option('l', "loud", DefaultValue = true,
         HelpText = "Prints all messages to standard output.")]
         public bool Verbose { get; set; }
-
-
 
         [ParserState]
         public IParserState LastParserState { get; set; }
