@@ -205,7 +205,7 @@ namespace CallProbes
 
 
                         //Write U Array to file
-
+                        Console.WriteLine("Write U Array");
 
                         System.Text.StringBuilder UFile = new System.Text.StringBuilder();
 
@@ -236,6 +236,7 @@ namespace CallProbes
                         File.WriteAllText(options.workingDir + @"\UData.csv", UFile.ToString());
 
                         //Write Reduction Array to file
+                        Console.WriteLine("Write Reduction Array");
 
                         System.Text.StringBuilder ReductionFile = new System.Text.StringBuilder();
 
