@@ -188,7 +188,7 @@ namespace CallOC
                         for (int i = 0; i < 8760; i++)
                         {
 
-                            ReductionFile.Append(windReduction[i, j] + ",");
+                            ReductionFile.Append(String.Format("{0:0.###}",windReduction[i, j]) + ",");
 
                         }
                         ReductionFile.AppendLine("");
@@ -261,7 +261,7 @@ namespace CallOC
                     {
                         for (int i = 0; i < 8760; i++)
                         {
-                            sbUtci.Append(Utci[i, j] + ",");
+                            sbUtci.Append(String.Format("{0:0.##}", Utci[i, j] )+ ",");
                         }
                         sbUtci.AppendLine("");
                     }
