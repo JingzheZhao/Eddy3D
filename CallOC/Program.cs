@@ -26,18 +26,27 @@ namespace CallOC
                     Console.WriteLine("EPW weather file path: {0}", options.weather);
                     errorLog.AppendLine(String.Format("EPW weather file path: {0}", options.weather));
 
-                    //Console.WriteLine("Diffuse radiation (ill): {0}", options.difRad);
-                    //errorLog.AppendLine(String.Format("Diffuse radiation (ill): {0}", options.difRad));
+                    Console.WriteLine("Diffuse radiation (ill): {0}", options.difRad);
+                    errorLog.AppendLine(String.Format("Diffuse radiation (ill): {0}", options.difRad));
 
-                    //Console.WriteLine("Direct radiation (ill): {0}", options.dirRad);
-                    //errorLog.AppendLine(String.Format("Direct radiation (ill): {0}", options.dirRad));
+                    Console.WriteLine("Direct radiation (ill): {0}", options.dirRad);
+                    errorLog.AppendLine(String.Format("Direct radiation (ill): {0}", options.dirRad));
 
-                    //Console.WriteLine("Wind speed scaling factors (csv): {0}", options.windScaling);
-                    //errorLog.AppendLine(String.Format("Wind speed scaling factors (csv): {0}", options.windScaling));
+                    Console.WriteLine("Wind speed scaling factors (csv): {0}", options.windScaling);
+                    errorLog.AppendLine(String.Format("Wind speed scaling factors (csv): {0}", options.windScaling));
 
                     Console.WriteLine("Working directory: {0}", options.workingDir);
                     errorLog.AppendLine(String.Format("Working directory: {0}", options.workingDir));
                 }
+
+
+
+                if (!Directory.Exists(options.workingDir)) { Console.WriteLine(options.workingDir + " not found. Exiting"); return; }
+                if (!File.Exists(options.weather)) { Console.WriteLine(options.weather + " not found. Exiting"); return; }
+                if (!File.Exists(options.windScaling)) { Console.WriteLine(options.windScaling + " not found. Exiting"); return; }
+                if (!File.Exists(options.difRad)) { Console.WriteLine(options.difRad + " not found. Exiting"); return; }
+                if (!File.Exists(options.dirRad)) { Console.WriteLine(options.difRad + " not found. Exiting"); return; }
+
 
 
                 // load weather data
