@@ -10,7 +10,7 @@ namespace EddyLib
     public static class UTCI
     {
 
-        public static double GetUTCI2(double TaC, double RH, double Wsp, double DifHRad, double DirNRad, double Sunh, double Wst, double Hst, double BodyA, double GrRef, double mrt)
+        public static double GetUTCI2(double TaC, double RH, double Wsp,   double mrt)
         {
             double v = Wsp;//wind speed
 

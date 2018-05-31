@@ -220,25 +220,25 @@ namespace CallOC
 
                             double mrt = UTCI.GetMRT2(DryBulbTemp[i], RelativeHumidity[i], DiffRad[i][j], DirRad[i][j], SolarElevation[i], DryBulbTemp[i], Wst, Hst, BodyA, GrRef, 0.95)[0];
 
-                            double utci_temp = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], windReduction[i, j] * WindSpeed[i], DiffRad[i][j], DirRad[i][j], SolarElevation[i], Wst, Hst, BodyA, GrRef, mrt);
+                            double utci_temp = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], windReduction[i, j] * WindSpeed[i], mrt);
 
-                            double cOfPerson = 0;
+                            //double cOfPerson = 0;
 
-                            if (utci_temp < -40) cOfPerson = -5;
-                            else if ((-40 <= utci_temp) && (utci_temp < -27)) cOfPerson = -4;
-                            else if ((-27 <= utci_temp) && (utci_temp < -13)) cOfPerson = -3;
-                            else if ((-13 <= utci_temp) && (utci_temp < 0)) cOfPerson = -2;
-                            else if ((0 <= utci_temp) && (utci_temp < 9)) cOfPerson = -1;
-                            else if ((9 <= utci_temp) && (utci_temp < 26)) cOfPerson = 0;
-                            else if ((26 <= utci_temp) && (utci_temp < 28)) cOfPerson = 1;
-                            else if ((28 <= utci_temp) && (utci_temp < 32)) cOfPerson = 2;
-                            else if ((32 <= utci_temp) && (utci_temp < 38)) cOfPerson = 3;
-                            else if ((38 <= utci_temp) && (utci_temp < 46)) cOfPerson = 4;
-                            else cOfPerson = 5;
+                            //if (utci_temp < -40) cOfPerson = -5;
+                            //else if ((-40 <= utci_temp) && (utci_temp < -27)) cOfPerson = -4;
+                            //else if ((-27 <= utci_temp) && (utci_temp < -13)) cOfPerson = -3;
+                            //else if ((-13 <= utci_temp) && (utci_temp < 0)) cOfPerson = -2;
+                            //else if ((0 <= utci_temp) && (utci_temp < 9)) cOfPerson = -1;
+                            //else if ((9 <= utci_temp) && (utci_temp < 26)) cOfPerson = 0;
+                            //else if ((26 <= utci_temp) && (utci_temp < 28)) cOfPerson = 1;
+                            //else if ((28 <= utci_temp) && (utci_temp < 32)) cOfPerson = 2;
+                            //else if ((32 <= utci_temp) && (utci_temp < 38)) cOfPerson = 3;
+                            //else if ((38 <= utci_temp) && (utci_temp < 46)) cOfPerson = 4;
+                            //else cOfPerson = 5;
 
-                            Utci[i, j] = utci_temp;
+                            //Utci[i, j] = utci_temp;
 
-                            conditionOfPerson[i, j] = cOfPerson;
+                            //conditionOfPerson[i, j] = cOfPerson;
 
                         }
                         // Console.WriteLine("Sensor " + j + " done.");
