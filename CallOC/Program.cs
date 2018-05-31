@@ -174,26 +174,26 @@ namespace CallOC
 
                     //Write Reduction Array to file
 
-                    System.Text.StringBuilder ReductionFile = new System.Text.StringBuilder();
+                    //System.Text.StringBuilder ReductionFile = new System.Text.StringBuilder();
 
-                    for (int i = 0; i < numberOfWindDirs; i++)
-                    {
-                        ReductionFile.Append(windDirList[i] + ",");
+                    //for (int i = 0; i < numberOfWindDirs; i++)
+                    //{
+                    //    ReductionFile.Append(windDirList[i] + ",");
 
-                    }
+                    //}
 
-                    ReductionFile.AppendLine("");
-                    for (int j = 0; j < sensorPointCount; j++)
-                    {
-                        for (int i = 0; i < 8760; i++)
-                        {
+                    //ReductionFile.AppendLine("");
+                    //for (int j = 0; j < sensorPointCount; j++)
+                    //{
+                    //    for (int i = 0; i < 8760; i++)
+                    //    {
 
-                            ReductionFile.Append(String.Format("{0:0.###}",windReduction[i, j]) + ",");
+                    //        ReductionFile.Append(String.Format("{0:0.###}",windReduction[i, j]) + ",");
 
-                        }
-                        ReductionFile.AppendLine("");
-                    }
-                    File.WriteAllText(Path.GetDirectoryName(options.windScaling) + @"\WindReductionData.csv", ReductionFile.ToString());
+                    //    }
+                    //    ReductionFile.AppendLine("");
+                    //}
+                    //File.WriteAllText(Path.GetDirectoryName(options.windScaling) + @"\WindReductionData2.csv", ReductionFile.ToString());
 
 
                     ////
@@ -265,7 +265,7 @@ namespace CallOC
                         }
                         sbUtci.AppendLine("");
                     }
-                    File.WriteAllText(options.workingDir + @"\utci.t", sbUtci.ToString());
+                    File.WriteAllText(options.workingDir + @"\utci.csv", sbUtci.ToString());
 
 
 

@@ -252,7 +252,7 @@ namespace CallProbes
                             for (int c = 0; c < numberOfWindDirs; c++)
                             {
 
-                                ReductionFile.Append(Math.Round(Math.Sqrt(Math.Pow(listOfAnnualData[c][r].X, 2) + Math.Pow(listOfAnnualData[c][r].Y, 2) + Math.Pow(listOfAnnualData[c][r].Z, 2)) / UPedestrianHeight, 5) + ",");
+                                ReductionFile.Append(String.Format("{0:0.###}",Math.Round(Math.Sqrt(Math.Pow(listOfAnnualData[c][r].X, 2) + Math.Pow(listOfAnnualData[c][r].Y, 2) + Math.Pow(listOfAnnualData[c][r].Z, 2)) / UPedestrianHeight, 3)) + ",");
 
                             }
                             ReductionFile.AppendLine("");
