@@ -31,7 +31,6 @@ namespace CallRay
 
                 Daysim.RunDaysim( set);
 
-              
                 //RadianceFiles.saveILLBin(options.workingDir + @"\Rad\CallRay.dir.ill");
                 //RadianceFiles.saveILLBin(options.workingDir + @"\Rad\CallRay.dif.ill");
 

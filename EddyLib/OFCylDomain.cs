@@ -118,9 +118,11 @@ namespace EddyLib
 
             locationInMesh = center + (Vector3d.ZAxis * (height- 0.1));
 
+            locationInMesh += radius * 0.9 * Vector3d.XAxis;
+
             //Create Circular Domain Ground
 
-            
+
 
 
 
