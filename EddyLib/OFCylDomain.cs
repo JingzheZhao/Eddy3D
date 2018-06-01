@@ -116,9 +116,7 @@ namespace EddyLib
             center = BBox.Center + 0.5 * -Vector3d.ZAxis * dimZ;
 
 
-            locationInMesh = center + (Vector3d.ZAxis * (height- 0.1));
-
-            locationInMesh += radius * 0.9 * Vector3d.XAxis;
+     
 
             //Create Circular Domain Ground
 
@@ -161,6 +159,11 @@ namespace EddyLib
                radius = sizeOuterCirc;
             }
 
+
+            // point inside cdf domain - needed for meshing and finding the void space for fluid
+            locationInMesh = center + (Vector3d.ZAxis * (height - 0.1));
+            // move into periphery
+            locationInMesh += radius * 0.9 * Vector3d.XAxis;
 
 
 
