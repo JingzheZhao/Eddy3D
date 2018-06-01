@@ -120,6 +120,7 @@ namespace CallOC
                     //  [][x]  points
                     Console.WriteLine("Loading: Radiation data");
 
+
                     var DiffRad = RadianceFiles.loadILL(options.difRad);
                     var DirRad = RadianceFiles.loadILL(options.dirRad);
 
@@ -141,8 +142,14 @@ namespace CallOC
 
                     // load  data
                     // -----------------
-                    var ReductionData = File.ReadAllLines(options.windScaling).Skip(1).ToList();
+                    var ReductionData = File.ReadAllLines(options.windScaling).Skip(1).ToArray();
 
+
+                    for (int i = 0; i < sensorPointCount; i++)
+                    {
+                        var l = ReductionData[i];
+                        if (l.Contains("∞")) ReductionData[i] = l.Replace("∞", "0");
+                    }
 
                     // Array of Reduction data 
 
