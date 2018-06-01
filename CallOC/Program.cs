@@ -201,20 +201,21 @@ namespace CallOC
                     Console.WriteLine("Starting UTCI calc...");
                     Stopwatch sw = new Stopwatch(); sw.Start();
 
+                    int cnt = 0;
 
                     using (var progress = new ASCIIProgressBar())
                     {
 
 
 
-                        for (int j = 0; j < sensorPointCount; j++)
-                        {
+                        //for (int j = 0; j < sensorPointCount; j++)
+                        //{
 
-                          //  Parallel.For(0, sensorPointCount - 1,
-                          //j =>
-                          //{
-
-                              progress.Report((double)j / sensorPointCount);
+                            Parallel.For(0, sensorPointCount ,
+                          j =>
+                          {
+                              cnt++;
+                              progress.Report((double)cnt / sensorPointCount);
 
                               for (int i = 0; i < 8760; i++)
                               {
@@ -243,8 +244,8 @@ namespace CallOC
 
                                   }
                                   // Console.WriteLine("Sensor " + j + " done.");
-                                  }
-                             // });
+                                //  }
+                             });
 
 
 
