@@ -69,8 +69,8 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Result", "Out", "Result", GH_ParamAccess.tree);
-            //pManager.AddGenericParameter("Result", "Out", "Result", GH_ParamAccess.tree);
+            pManager.AddGenericParameter("Points", "Points", "Points", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Result", "Result", "Result", GH_ParamAccess.tree);
         }
 
 
@@ -138,7 +138,27 @@ namespace Eddy
 
 
 
-           
+            //Weld Mesh to prevent wrong inclusion test
+            DOM.combinedMeshes.Weld(Math.PI);
+
+
+            // Filter the list
+            int kept = 0;
+            for (int i = 0; i < listOfPoints.Count; i++)
+            {
+                // Test whether this is an element that we want to keep.
+                if (DOM.combinedMeshes.IsPointInside(listOfPoints[i], 0.01, true) == false)
+                {
+                    // Add it to the list of kept elements.
+                    listOfPoints[kept] = listOfPoints[i];
+                    kept++;
+                }
+            }
+            // Unfortunately IList has no Resize method. So instead we
+            // remove the last element of the list until: elements.Count == kept.
+            while (kept < listOfPoints.Count) listOfPoints.RemoveAt(listOfPoints.Count - 1);
+
+
 
             if (run == true && numberOfProbes > 0)
             {
@@ -148,26 +168,6 @@ namespace Eddy
 
 
 
-
-                //Weld Mesh to prevent wrong inclusion test
-                DOM.combinedMeshes.Weld(Math.PI);
-
-
-                // Filter the list
-                int kept = 0;
-                for (int i = 0; i < listOfPoints.Count; i++)
-                {
-                    // Test whether this is an element that we want to keep.
-                    if (DOM.combinedMeshes.IsPointInside(listOfPoints[i], 0.001, true) == false)
-                    {
-                        // Add it to the list of kept elements.
-                        listOfPoints[kept] = listOfPoints[i];
-                        kept++;
-                    }
-                }
-                // Unfortunately IList has no Resize method. So instead we
-                // remove the last element of the list until: elements.Count == kept.
-                while (kept < listOfPoints.Count) listOfPoints.RemoveAt(listOfPoints.Count - 1);
 
 
 
@@ -258,11 +258,13 @@ namespace Eddy
 
             if (mode == 0)
             {
-                DA.SetDataTree(0, cpTree);
+                DA.SetDataTree(1, cpTree);
+                DA.SetDataList(0, listOfPoints);
             }
             else if (mode == 1)
             {
-                DA.SetDataTree(0, uTree);
+                DA.SetDataTree(1, uTree);
+                DA.SetDataList(0, listOfPoints);
             }
            
 
