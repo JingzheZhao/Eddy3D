@@ -185,7 +185,7 @@ namespace EddyLib
             this.keepTimeSteps = 2;
 
 
-
+            this.combinedMeshes = geometry;
 
         }
 

@@ -182,6 +182,8 @@ namespace EddyLib
             //refinementCylinder = getRefinementCyl(center, geometry, 0.3, 0.3);
             //refinementBox = getRefinementBox(localSystem, geometry, 0.3);
 
+
+            this.combinedMeshes = geometry;
            
 
         }

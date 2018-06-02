@@ -35,6 +35,9 @@ namespace EddyLib
         public BoundingBox refinementBox;
         public BoundingBox BBox;
 
+        //Building Meshes for probes component
+        public Mesh combinedMeshes;
+
 
         //Meshes from Cycl Domain
         public Mesh DomainMesh = new Mesh();
