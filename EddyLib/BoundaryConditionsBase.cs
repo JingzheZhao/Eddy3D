@@ -22,6 +22,7 @@ namespace EddyLib
     {
         public double URef = 5;
         public double UPedestrianHeight;
+        public double Ustar;
         public double z0 = 1;
         public double zref = 10;
         public double zGround = 0;
@@ -29,11 +30,19 @@ namespace EddyLib
         public List<Vector3d> flowDir = new List<Vector3d>();
         public BoundaryType btype = BoundaryType.abl;
 
+
+        //turbulence
+        public double k;
+        public double epsilon;
+        public double omega;
+
+
         public string weather;
 
         public double pinf;
         public double pref;
         public List<Vector3d> Uinf = new List<Vector3d>();
+        
 
 
         public BoundaryConditions() {
@@ -51,6 +60,10 @@ namespace EddyLib
             this.z0 = _z0;
             this.zGround = _zground;
             this.UPedestrianHeight = (((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((pedestrianHeight + z0) / z0));
+            this.Ustar = 0.41 * (URef / Math.Log((zref + z0) / z0));
+            this.k = Math.Pow(this.Ustar, 2) / Math.Sqrt(0.09);
+            this.epsilon = Math.Pow(this.Ustar, 3) / 0.41*( this.zref -this.zGround+this.z0);
+            this.omega = this.epsilon/0.09*this.k;
 
             foreach (double d in dirs)
             {

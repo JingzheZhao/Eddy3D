@@ -188,7 +188,7 @@ namespace Eddy
                         File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + "controlDict", StringTemplates.controlDict(DOM, null, i));
                         File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, mode));
 
-                        command.Append(@"postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + pointName + @" -latestTime;");
+                        command.Append(@"postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + pointName + @" -latestTime | tee -a " + DOM.BCInflow.windDir[i] + @"\log_probes;");
 
 
                     }
@@ -227,7 +227,7 @@ namespace Eddy
 
                         File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, mode));
 
-                        command.Append(@"postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + pointName + @" -latestTime;");
+                        command.Append(@"postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + pointName + @" -latestTime | " + DOM.BCInflow.windDir[i] + @"\log_probes;");
 
 
                     }

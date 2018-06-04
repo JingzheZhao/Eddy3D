@@ -118,8 +118,8 @@ radius " + dom.refinementCylinder.CircleAt(0.5).Radius + @";
           max (" + dom.BBox.Max.X + " " + dom.BBox.Max.Y + " " + dom.BBox.Max.Z + @");  
 }";
             refinementGeometry = Box;
-
-            return @"/*--------------------------------*- C++ -*----------------------------------*\
+            StringBuilder sb = new StringBuilder();
+            sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
 |  \\    /   O peration     | Version:  2.3.0                                 |
@@ -135,10 +135,10 @@ FoamFile
     object snappyHexMeshDict;
 }
 
-    castellatedMesh true;
-    snap true;
-    addLayers false;
-    geometry
+    castellatedMesh true;");
+    sb.AppendLine("snap ");      if (dom.meshingMode == 1 || dom.meshingMode == 2) { sb.Append("true;"); } else { sb.Append("false;"); }
+    sb.AppendLine("addLayers "); if (dom.meshingMode == 2) { sb.Append("true;"); } else { sb.Append("false;"); }
+    sb.AppendLine(@"geometry
     {
         building.stl
         {
@@ -394,7 +394,8 @@ refinementBox {mode inside; levels ((" + dom.accRefinement + " " + dom.accRefine
 debug 0;
 mergeTolerance 1E-6;
 //autoBlockMesh true;
-";
+");
+            return sb.ToString();
         }
         public static string controlDict(OFBaseDomain DOM, List<Mesh> topologies, int numberOfTopologies)
         {
@@ -434,7 +435,7 @@ libs
             purgeWrite      " + DOM.keepTimeSteps + @";
             writeFormat binary;
             writePrecision  6;
-            writeCompression true;
+            writeCompression uncompressed;
             timeFormat general;
             timePrecision   6;
             runTimeModifiable true;
@@ -1240,7 +1241,8 @@ SIMPLE
 potentialFlow
 {
     nNonOrthogonalCorrectors 15;
-}");
+}
+");
             if (mode == 0)
             {
                 sb.Append(@"relaxationFactors

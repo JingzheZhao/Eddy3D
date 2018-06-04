@@ -49,42 +49,8 @@ FoamFile
 
             return sb.ToString();
         }
-       
-        public static string InitialConditions_Cyl(OFBaseDomain DOM)
-        {
-            return @"/*--------------------------------*- C++ -*----------------------------------*\
-| =========                 |                                                 |
-| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  v3.0+                                 |
-|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
-|    \\/     M anipulation  |                                                 |
-\*---------------------------------------------------------------------------*/
-FoamFile
-{
-    version     2.0;
-    format      ascii;
-    class       IOobject;
-    location    ""0"";
-    object initialConditions;
-        }
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-
-flowVelocity (0 12 0);
-
-pressure		0;
-
-turbulentKE		0.03456;
-
-turbulentEpsilon	0.0835;
-
-turbulentOmega		20;
-
-#inputMode		merge;
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-";
-        }
+        
         public static string Epsilon_Cyl(OFBaseDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
@@ -652,11 +618,11 @@ FoamFile
     object initialConditions;
         }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-flowVelocity (" + DOM.BCInflow.flowDir[d].X +" "+ DOM.BCInflow.flowDir[d].Y +" "+ DOM.BCInflow.flowDir[d].Z+ @");
-pressure		0;
-turbulentKE		0.03456;
-turbulentEpsilon	0.0835;
-turbulentOmega		20;
+flowVelocity (" + DOM.BCInflow.flowDir[d].X * DOM.BCInflow.URef + " "+ DOM.BCInflow.flowDir[d].Y* DOM.BCInflow.URef + " "+ DOM.BCInflow.flowDir[d].Z * DOM.BCInflow.URef + @");
+pressure    0;
+turbulentKE "      + Math.Round(DOM.BCInflow.k,4)          + @";
+turbulentEpsilon "  + Math.Round(DOM.BCInflow.epsilon,4)    + @";
+turbulentOmega	"  + Math.Round(DOM.BCInflow.omega,4)      + @";
 #inputMode		merge;
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 ";
@@ -707,11 +673,11 @@ ground_perim
 building
     {
          type epsilonWallFunction;
-value		$internalField;
+         value		$internalField;
     }
     inlet
     {
-	type atmBoundaryLayerInletEpsilon;
+	    type atmBoundaryLayerInletEpsilon;
         #include	""ABLConditions"";
     }
     outlet
@@ -759,7 +725,7 @@ internalField uniform $turbulentKE;
                 inlet
     {
                     type atmBoundaryLayerInletK;
-# include	""ABLConditions"";
+                    # include	""ABLConditions"";
                 }
                 ground
     {
@@ -928,8 +894,8 @@ symmetry
 inlet
     {");
             if (DOM.BCInflow.btype == BoundaryType.abl) {
-                sb.Append(@"type atmBoundaryLayerInletVelocity;
-        #include ""ABLConditions"";
+                sb.AppendLine(@"type    atmBoundaryLayerInletVelocity;
+                #include ""ABLConditions"";
 }");
             }
             else {

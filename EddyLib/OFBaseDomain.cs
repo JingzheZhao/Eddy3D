@@ -58,7 +58,7 @@ namespace EddyLib
         public int accGround;
         public int accFeatures;
         public int accRefinement;
-
+        public int meshingMode;
         public int nLayers;
 
         
