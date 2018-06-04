@@ -36,7 +36,8 @@ namespace EddyLib
         public BoundingBox BBox;
 
         //Building Meshes for probes component
-        public Mesh combinedMeshes;
+        //public Mesh combinedMeshes;
+        public Brep inputBreps;
 
 
         //Meshes from Cycl Domain

@@ -144,6 +144,16 @@ namespace Eddy
                 }
             }
 
+            // Those Breps are currently necessary to perform the point inclusion check for the probing components
+
+            Brep inputBreps = new Brep();
+
+            foreach (GeometryBase g in domain)
+            {
+                
+                inputBreps.Append(Brep.TryConvertBrep(g));
+            }
+            
 
 
             if (Utilities.CheckLicence() == true)
@@ -154,7 +164,7 @@ namespace Eddy
                 baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
 
 
-                OFBoxDomain DOM = new OFBoxDomain(combinedMeshes, BCond, blockDimension, baseWorkingDirectory);
+                OFBoxDomain DOM = new OFBoxDomain(inputBreps, combinedMeshes, BCond, blockDimension, baseWorkingDirectory);
 
 
 

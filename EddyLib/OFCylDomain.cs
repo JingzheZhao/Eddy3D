@@ -54,7 +54,7 @@ namespace EddyLib
 
 
 
-        public OFCylDomain(Mesh geometry, BoundaryConditions BCond, int _divisionsY, double gradingPerim, double windDir, int _CPU, double sizeInnerRect, double sizeOuterCirc = 0, double sizeHeight = 0,  string baseWorkingDirectory = @"C:\temp")
+        public OFCylDomain(Brep inputBreps, Mesh geometry, BoundaryConditions BCond, int _divisionsY, double gradingPerim, double windDir, int _CPU, double sizeInnerRect, double sizeOuterCirc = 0, double sizeHeight = 0,  string baseWorkingDirectory = @"C:\temp")
         {
             this.gradingPerim = gradingPerim;
             
@@ -183,8 +183,8 @@ namespace EddyLib
             //refinementBox = getRefinementBox(localSystem, geometry, 0.3);
 
 
-            this.combinedMeshes = geometry;
-           
+            this.inputBreps = inputBreps;
+
 
         }
 
@@ -271,7 +271,7 @@ namespace EddyLib
             this.DomainMesh.Append(side);
             this.DomainMesh.Normals.ComputeNormals();
 
-            this.DomainMesh.Weld(Math.PI);
+            
             
             //stringifyBlocks2(perim, core, perimTop, coreTop, divisionsY, divisionsZ);
             //stringyfyVertexList2(outMesh);

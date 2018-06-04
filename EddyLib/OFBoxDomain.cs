@@ -52,7 +52,7 @@ namespace EddyLib
         //// Delete later
 
 
-        public OFBoxDomain(Mesh geometry, BoundaryConditions BCond, double _blockDim, string baseWorkingDirectory = @"C:\temp")
+        public OFBoxDomain(Brep inputBreps, Mesh geometry, BoundaryConditions BCond, double _blockDim, string baseWorkingDirectory = @"C:\temp")
         {
             blockDimension = _blockDim;
             BuildingGeometry = geometry;
@@ -184,8 +184,8 @@ namespace EddyLib
             this.writeInterval = 10;
             this.keepTimeSteps = 2;
 
-
-            this.combinedMeshes = geometry;
+            this.inputBreps = inputBreps;
+  
 
         }
 

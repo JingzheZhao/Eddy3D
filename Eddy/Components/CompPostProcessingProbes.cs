@@ -39,7 +39,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public PostProcessingProbes()
-          : base("Probes", "Probes", "PostProcessing", "Eddy", "PostProcessing")
+          : base("VisProbes", "VisProbes", "PostProcessing", "Eddy", "PostProcessing")
         {
         }
 
@@ -101,7 +101,7 @@ namespace Eddy
 
             int mode = 0;
             List<Point3d> listOfPoints = new List<Point3d>();
-            
+
             bool run = false;
 
             DA.GetDataList(1, listOfPoints);
@@ -109,14 +109,39 @@ namespace Eddy
             DA.GetData(2, ref mode);
             DA.GetData(3, ref run);
 
-            // Error handling
+
+            
+            
+            // Inclusion check for probes
+
+            // Filter the list
+            int kept = 0;
+            for (int i = 0; i < listOfPoints.Count; i++)
+            {
+                // Test whether this is an element that we want to keep.
+                if (DOM.inputBreps.IsPointInside(listOfPoints[i], 0.01, true) == false)
+                {
+                    // Add it to the list of kept elements.
+                    listOfPoints[kept] = listOfPoints[i];
+                    kept++;
+                }
+            }
+            // Unfortunately IList has no Resize method. So instead we
+            // remove the last element of the list until: elements.Count == kept.
+            while (kept < listOfPoints.Count) listOfPoints.RemoveAt(listOfPoints.Count - 1);
+
+
+
+            // from here on list elements won't change anymore
 
             var numberOfProbes = listOfPoints.Count();
+
+
+            // Error handling
 
             if (numberOfProbes < 1)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You need to pass a list of point to the component.");
-
             }
 
 
@@ -128,36 +153,14 @@ namespace Eddy
             }
             RadianceFiles.writePTS(DOM.baseWorkingDirectory + @"\Rad\sensors.pts", listOfPoints);
 
-
-
-
             if (Utilities.IsDirectoryEmpty(DOM.meshPolyMeshDirectory) == true)
             {
-                throw new System.ArgumentException("The mesh folder is empty. Can't pull probes from a mesh that does not exist.");
+                throw new System.ArgumentException("The mesh folder is empty. Can't retrieve probes from a mesh that does not exist.");
             }
 
 
 
-            //Weld Mesh to prevent wrong inclusion test
-            DOM.combinedMeshes.Weld(Math.PI);
-
-
-            // Filter the list
-            int kept = 0;
-            for (int i = 0; i < listOfPoints.Count; i++)
-            {
-                // Test whether this is an element that we want to keep.
-                if (DOM.combinedMeshes.IsPointInside(listOfPoints[i], 0.01, true) == false)
-                {
-                    // Add it to the list of kept elements.
-                    listOfPoints[kept] = listOfPoints[i];
-                    kept++;
-                }
-            }
-            // Unfortunately IList has no Resize method. So instead we
-            // remove the last element of the list until: elements.Count == kept.
-            while (kept < listOfPoints.Count) listOfPoints.RemoveAt(listOfPoints.Count - 1);
-
+            
 
 
             if (run == true && numberOfProbes > 0)
@@ -266,7 +269,7 @@ namespace Eddy
                 DA.SetDataTree(1, uTree);
                 DA.SetDataList(0, listOfPoints);
             }
-           
+
 
         }
 
