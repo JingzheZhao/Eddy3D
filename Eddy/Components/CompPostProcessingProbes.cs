@@ -193,6 +193,12 @@ namespace Eddy
 
                     }
 
+#if DEBUG
+
+                    command.AppendLine("PAUSE");
+
+#endif 
+
                     ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.baseWorkingDirectory);
                     Process p = new Process();
                     p.StartInfo = psi;
@@ -231,6 +237,13 @@ namespace Eddy
 
 
                     }
+
+#if DEBUG
+
+                    command.AppendLine("PAUSE");
+
+#endif 
+
 
                     ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.baseWorkingDirectory);
                     Process p = new Process();
