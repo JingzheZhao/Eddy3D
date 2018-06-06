@@ -61,6 +61,7 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\CompConstantU.cs" />
     <Compile Include="Components\CompParseHourlyU.cs" />
     <Compile Include="Components\CompParseAnnualCP.cs" />
     <Compile Include="Components\CompABL.cs" />

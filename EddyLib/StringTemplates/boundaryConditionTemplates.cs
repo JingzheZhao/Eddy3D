@@ -392,7 +392,105 @@ internalField uniform $pressure;
             return sb.ToString();
 
         }
-        public static string U_Cyl(OFBaseDomain DOM, int d)
+
+        public static string UCylConstU(OFBaseDomain DOM, int d)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.2                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    location    ""0"";
+    object      U;
+    }
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+
+
+dimensions [0 1 -1 0 0 0 0];
+
+
+#include ""initialConditions"";
+
+internalField uniform $flowVelocity;
+
+
+boundaryField
+{
+
+symmetry
+    {
+        type symmetry;
+}
+
+
+");
+
+            for (int i = 0; i < DOM.side.Faces.Count; i++)
+            {
+                double dot = DOM.BCInflow.flowDir[d] * DOM.side.FaceNormals[i]; //check
+                if (dot > 0)
+                {
+                    sb.AppendLine("patch" + i);
+                    sb.AppendLine(@"{type            fixedValue;
+value           uniform (" + DOM.BCInflow.flowDir[d].X* DOM.BCInflow.URef + " " + DOM.BCInflow.flowDir[d].Y* DOM.BCInflow.URef + " " + DOM.BCInflow.flowDir[d].Z* DOM.BCInflow.URef + @" );
+}");
+                }
+                else
+                {
+                    sb.AppendLine("patch" + i);
+                    sb.AppendLine(@"
+    {
+        type inletOutlet;
+        value $internalField;
+        inletValue uniform (0 0 0);
+    }");
+                }
+            }
+
+
+
+
+
+            sb.AppendLine(@"
+ground
+    {
+        type fixedValue;
+        value uniform (0 0 0);
+    }
+
+ground_perim
+    {
+        type fixedValue;
+        value uniform (0 0 0);
+    }
+
+building
+    {
+        type fixedValue;
+        value uniform (0 0 0);
+    }
+
+
+}
+
+
+// ************************************************************************* //
+");
+            return sb.ToString();
+
+        }
+
+   
+        public static string U_CylABL(OFBaseDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -863,7 +961,7 @@ ground_perim
         ";
 
         }
-        public static string U(OFBaseDomain DOM, int i)
+        public static string UBoxABL(OFBaseDomain DOM, int i)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -893,22 +991,79 @@ symmetry
 }
 inlet
     {");
-            if (DOM.BCInflow.btype == BoundaryType.abl) {
                 sb.AppendLine(@"type    atmBoundaryLayerInletVelocity;
                 #include ""ABLConditions"";
 }");
-            }
-            else {
-
-                    sb.Append(@"type fixedValue;
-        value uniform (" + DOM.BCInflow.flowDir[i].X + " " + DOM.BCInflow.flowDir[i].Y + " " + DOM.BCInflow.flowDir[i].Z + @");");
-
-}
-       
-            
+           
     
         
 sb.Append(@"
+outlet
+    {
+        type inletOutlet;
+        value $internalField;
+        inletValue uniform (0 0 0);
+    }
+ground
+    {
+        type fixedValue;
+        value uniform (0 0 0);
+    }
+ground_perim
+    {
+        type fixedValue;
+        value uniform (0 0 0);
+    }
+building
+    {
+        type fixedValue;
+        value uniform (0 0 0);
+    }
+}
+// ************************************************************************* //
+");
+            return sb.ToString();
+
+        }
+        public static string UBoxConstU(OFBaseDomain DOM, int i)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.2                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    location    ""0"";
+    object      U;
+    }
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+dimensions [0 1 -1 0 0 0 0];
+#include ""initialConditions"";
+internalField uniform $flowVelocity;
+boundaryField
+{
+symmetry
+    {
+        type symmetry;
+}
+inlet
+    {");
+            
+
+                sb.Append(@"type fixedValue;
+        value uniform (" + DOM.BCInflow.flowDir[i].X * DOM.BCInflow.URef + " " + DOM.BCInflow.flowDir[i].Y * DOM.BCInflow.URef + " " + DOM.BCInflow.flowDir[i].Z * DOM.BCInflow.URef + @");
+}");
+
+          
+
+            sb.Append(@"
 outlet
     {
         type inletOutlet;

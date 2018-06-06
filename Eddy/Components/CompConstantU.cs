@@ -11,7 +11,7 @@ using Eddy.Properties;
 
 namespace Eddy
 {
-    public class BCondABLComp : GH_Component
+    public class BCondConstU : GH_Component
     {      List<double> dirs = new List<double>();
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -20,8 +20,8 @@ namespace Eddy
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public BCondABLComp()
-          : base("ABL", "ABL",  "Atmospheric Boundary Layer", "Eddy", "BC")
+        public BCondConstU()
+          : base("ConstU", "ConstU",  "ConstU", "Eddy", "BC")
         {
             //dirs.Add(0);
         }
@@ -39,9 +39,7 @@ namespace Eddy
         {
             pManager.AddNumberParameter("wDir", "wDir", "wDir", GH_ParamAccess.list, dirs);
             pManager.AddNumberParameter("Uref", "Uref", "Uref", GH_ParamAccess.item, 5);
-            pManager.AddNumberParameter("zref", "zref", "zref", GH_ParamAccess.item,10);
-            pManager.AddNumberParameter("z0", "z0", "z0", GH_ParamAccess.item,1);
-            pManager.AddNumberParameter("zGround", "zGround", "zGround", GH_ParamAccess.item,0);
+            pManager.AddNumberParameter("z0", "z0", "z0", GH_ParamAccess.item,1);  
             pManager.AddTextParameter("Epw", "Epw", "Weather file path", GH_ParamAccess.item);
 
         }
@@ -68,23 +66,20 @@ namespace Eddy
             List<double> windDir = new List<double>();
             List<Vector3d> flowDir = new List<Vector3d>();
             double Uref = 0;
-            double zref = 0;
+            //double zref = 0;
             double z0 = 0;
-            double zGround = 0;
+            //double zGround = 0;
       
             
             DA.GetDataList(0, windDir);
             DA.GetData(1, ref Uref);            
-            DA.GetData(2, ref zref);
-            DA.GetData(3, ref z0);
-            DA.GetData(4, ref zGround);
+            //DA.GetData(2, ref zref);
+            DA.GetData(2, ref z0);
+            //DA.GetData(4, ref zGround);
             string weather = "";
-            DA.GetData(5, ref weather);
+            DA.GetData(3, ref weather);
 
-            
-
-
-            BoundaryConditions BCInflow = new BoundaryConditions(BoundaryType.abl, windDir, Uref, zref, z0, zGround, weather);
+            BoundaryConditions BCInflow = new BoundaryConditions(BoundaryType.constant, windDir, Uref, z0, weather);
 
                DA.SetData(0, BCInflow);    
 
@@ -99,7 +94,7 @@ namespace Eddy
             get
             {
                 // You can add image files to your project resources and access them like this:
-                return Resources.Eddy_abl;
+                return Resources.Eddy_parseU;
                // return null;
             }
         }
@@ -111,7 +106,7 @@ namespace Eddy
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("{820494F3-2858-4CB3-8E26-E11256EDAE35}"); }
+            get { return new Guid("{C6C39723-8EA9-4478-B1A6-9F2ABD9109A8}"); }
         }
     }
 }
