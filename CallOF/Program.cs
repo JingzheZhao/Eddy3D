@@ -69,10 +69,15 @@ namespace CallOF
                 };
                 p.Run();
 
-                //Console.ReadKey();
+#if DEBUG
+
+                Console.ReadKey();
+
+#endif
 
 
-          
+
+
 
             }
 

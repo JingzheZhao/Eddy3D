@@ -188,16 +188,12 @@ namespace Eddy
                         File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + "controlDict", StringTemplates.controlDict(DOM, null, i));
                         File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, mode));
 
-                        command.Append(@"postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + pointName + @" -latestTime | tee -a " + DOM.BCInflow.windDir[i] + @"\log_probes;");
+                        command.Append(@"postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + pointName + @" -latestTime | tee -a " + DOM.BCInflow.windDir[i] + @"/log_probes;");
 
 
                     }
 
-#if DEBUG
 
-                    command.AppendLine("PAUSE");
-
-#endif 
 
                     ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.baseWorkingDirectory);
                     Process p = new Process();
@@ -233,16 +229,12 @@ namespace Eddy
 
                         File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, mode));
 
-                        command.Append(@"postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + pointName + @" -latestTime | " + DOM.BCInflow.windDir[i] + @"\log_probes;");
+                        command.Append(@"postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + pointName + @" -latestTime | tee -a " + DOM.BCInflow.windDir[i] + @"/log_probes;");
 
 
                     }
 
-#if DEBUG
 
-                    command.AppendLine("PAUSE");
-
-#endif 
 
 
                     ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.baseWorkingDirectory);
