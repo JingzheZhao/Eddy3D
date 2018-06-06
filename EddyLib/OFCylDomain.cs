@@ -281,7 +281,7 @@ namespace EddyLib
             this.DomainMesh.Append(side);
             this.DomainMesh.Normals.ComputeNormals();
 
-
+            this.DomainMesh.Weld(Math.PI);
 
             //stringifyBlocks2(perim, core, perimTop, coreTop, divisionsY, divisionsZ);
             //stringyfyVertexList2(outMesh);
