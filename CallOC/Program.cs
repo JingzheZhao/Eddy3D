@@ -49,7 +49,24 @@ namespace CallOC
                     if (!File.Exists(options.difRad)) { Console.WriteLine(options.difRad + " not found. Exiting"); fileMissing = true; }
                     if (!File.Exists(options.dirRad)) { Console.WriteLine(options.difRad + " not found. Exiting"); fileMissing = true; }
 
-                    if (fileMissing == true) { System.Threading.Thread.Sleep(5000); return; }
+                    if (fileMissing == true) { System.Threading.Thread.Sleep(8000); return; }
+
+                    // Error checks for CFD data
+
+                    // load  data
+                    // -----------------
+                    var ReductionData = File.ReadAllLines(options.windScaling).Skip(1).ToArray();
+
+                    var numberOfWindDirsSimulated = ReductionData[0].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Count();
+
+                    if (numberOfWindDirsSimulated < 8)
+                    {
+                        //Console.WriteLine(@"Error: You need to simulate at least 8 wind direction, preferrably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
+                        throw new System.ArgumentException(@"Error: You need to simulate at least 8 wind direction, preferrably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
+                    }
+
+
+
 
                     // load weather data
                     // -----------------
@@ -138,11 +155,11 @@ namespace CallOC
                     Console.WriteLine("Loading: Wind data");
 
                     var windDirList = new List<double> { 0, 45, 90, 135, 180, 225, 270, 315 };
+                                        
                     var numberOfWindDirs = windDirList.Count;
+                    
 
-                    // load  data
-                    // -----------------
-                    var ReductionData = File.ReadAllLines(options.windScaling).Skip(1).ToArray();
+                    
 
 
                     for (int i = 0; i < sensorPointCount; i++)
@@ -150,6 +167,10 @@ namespace CallOC
                         var l = ReductionData[i];
                         if (l.Contains("∞")) ReductionData[i] = l.Replace("∞", "0");
                     }
+
+
+                    
+
 
                     // Array of Reduction data 
 
@@ -165,7 +186,7 @@ namespace CallOC
                     }
 
 
-                    Console.WriteLine("Calculating: Wind reduction");
+                    Console.WriteLine("Calculating: Wind reduction factors");
                     double[,] windReduction = new double[8760, sensorPointCount];
 
 

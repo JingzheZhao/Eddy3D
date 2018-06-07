@@ -110,8 +110,8 @@ namespace Eddy
             DA.GetData(3, ref run);
 
 
-            
-            
+
+
             // Inclusion check for probes
 
             // Filter the list
@@ -119,7 +119,6 @@ namespace Eddy
             for (int i = 0; i < listOfPoints.Count; i++)
             {
                 // Test whether this is an element that we want to keep.
-                //if (DOM.inputBreps.IsPointInside(listOfPoints[i], 0.01, true) == false && DOM.DomainMesh.IsPointInside(listOfPoints[i], 0.01, true) == true)
                 if (DOM.inputBreps.IsPointInside(listOfPoints[i], 0.01, true) == false)
                 {
                     // Add it to the list of kept elements.
@@ -131,9 +130,6 @@ namespace Eddy
             // remove the last element of the list until: elements.Count == kept.
             while (kept < listOfPoints.Count) listOfPoints.RemoveAt(listOfPoints.Count - 1);
 
-
-
-            // from here on list elements won't change anymore
 
             var numberOfProbes = listOfPoints.Count();
 

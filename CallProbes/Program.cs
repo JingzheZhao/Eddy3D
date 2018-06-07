@@ -25,7 +25,7 @@ namespace CallProbes
                 if (!Directory.Exists(options.workingDir))  { Console.WriteLine(options.workingDir + " not found. Exiting"); return; } 
 
 
-                    double URef = 0.0;
+                double URef = 0.0;
                 double zref = 0.0;
                 double z0 = 0.0;
                 var pedestrianHeight = 1.5;
@@ -90,7 +90,8 @@ namespace CallProbes
 
                             //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + "controlDict", StringTemplates.controlDict(DOM, null, i));
                             //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, options.mode));
-                            command.Append(@"postProcess -case " + windDirs[i] + " -func " + pointName + @" -latestTime;");
+                            command.Append(@"postProcess -case " + windDirs[i] + " -func " + pointName + @" -latestTime | tee -a " + windDirs[i] + @"/log_probes;");
+                            
 
 
                         }
@@ -134,7 +135,7 @@ namespace CallProbes
                             // Write the dicts
 
                             //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, options.mode));
-                            command.Append(@"postProcess -case " + windDirs[i] + " -func " + pointName + @" -latestTime;");
+                            command.Append(@"postProcess -case " + windDirs[i] + " -func " + pointName + @" -latestTime | tee -a " + windDirs[i] + @"/log_probes;");
 
 
                         }
