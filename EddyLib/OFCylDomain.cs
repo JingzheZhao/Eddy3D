@@ -124,8 +124,8 @@ namespace EddyLib
 
 
 
-            //var scaleCyclDomainHeight = (15.5 * height) + dimY;
-            var scaleCyclDomainHeight = height > dimY ? height : dimY;
+            var scaleCyclDomainHeight = (15.5 * dimZ) + dimY;
+            //var scaleCyclDomainHeight = height > dimY ? height : dimY;
 
 
             Plane localSystem = Plane.WorldZX;

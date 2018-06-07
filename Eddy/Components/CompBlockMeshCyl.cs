@@ -210,6 +210,8 @@ namespace Eddy
 
             }
 
+            
+
             // Those Breps are currently necessary to perform the point inclusion check for the probing components
 
             Brep inputBreps = new Brep();
@@ -219,7 +221,7 @@ namespace Eddy
 
                 inputBreps.Append(Brep.TryConvertBrep(g));
             }
-
+            
 
 
             //Fix paths

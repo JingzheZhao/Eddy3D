@@ -119,6 +119,7 @@ namespace Eddy
             for (int i = 0; i < listOfPoints.Count; i++)
             {
                 // Test whether this is an element that we want to keep.
+                //if (DOM.inputBreps.IsPointInside(listOfPoints[i], 0.01, true) == false && DOM.DomainMesh.IsPointInside(listOfPoints[i], 0.01, true) == true)
                 if (DOM.inputBreps.IsPointInside(listOfPoints[i], 0.01, true) == false)
                 {
                     // Add it to the list of kept elements.

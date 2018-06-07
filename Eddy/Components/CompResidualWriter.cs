@@ -92,6 +92,7 @@ namespace Eddy
             var k = new List<double>();
             var clocktime = new List<double>();
 
+            
 
             string fullFilePath = workingDir + @"\log";
 
