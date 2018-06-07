@@ -67,6 +67,7 @@
     <Compile Include="Components\CompABL.cs" />
     <Compile Include="Components\CompBlockMeshCyl.cs" />
     <Compile Include="Components\CompCellSize.cs" />
+    <Compile Include="Components\CompUTCIReader.cs" />
     <Compile Include="Components\CompWriteProbes.cs" />
     <Compile Include="Components\CompPostProcessingProbes.cs" />
     <Compile Include="Components\CompPostProcessingPatches.cs" />

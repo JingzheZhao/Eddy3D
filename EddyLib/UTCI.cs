@@ -10,7 +10,7 @@ namespace EddyLib
     public static class UTCI
     {
 
-        public static double GetUTCI2(double TaC, double RH, double Wsp,   double mrt)
+        public static double GetUTCI2(double TaC, double RH, double Wsp, double mrt)
         {
             double v = Wsp;//wind speed
 
@@ -134,21 +134,46 @@ namespace EddyLib
 
             int numberOfWindDirs = windDirs.Count();
 
-
-         //   double windRedFactor = 0;
-
-            double distanceToLower = windDirWeatherFile - NextLowerIndex(windDirs, windDirWeatherFile);
-            double distanceToUpper = windDirWeatherFile - NextUpperIndex(windDirs, windDirWeatherFile);
-
-
-            var nextLow = NextLowerIndex(windDirs, windDirWeatherFile);
-            var nextUp = NextUpperIndex(windDirs, windDirWeatherFile);
+            // 0, 45, 90, 135, 180, 225, 270, 315, 360 
 
 
 
-            var windRedFactorInterpolated = windVelWeatherFile * (ReductionArray[nextLow][probeIndex] + distanceToLower * (ReductionArray[nextUp][probeIndex] / (distanceToLower + distanceToUpper)));
 
-            
+
+            var nextLowIndex = NextLowerIndex(windDirs, windDirWeatherFile);
+            var nextUpIndex = NextUpperIndex(windDirs, windDirWeatherFile);
+
+            var nextLowDir = windDirs[nextLowIndex];
+            var nextUpDir = windDirs[nextUpIndex];
+
+
+            double distanceToLower = windDirWeatherFile - windDirs[nextLowIndex];
+            double distanceToUpper;
+
+            if (nextUpIndex == 0)
+            {
+                distanceToUpper = Math.Abs((windDirWeatherFile - windDirs[nextUpIndex]) - 360);
+            }
+            else
+            {
+                distanceToUpper = windDirWeatherFile - windDirs[nextUpIndex];
+            }
+
+            //var y1_y0 = distanceToUpper;
+            //var x0 = ReductionArray[nextUpIndex][probeIndex];
+            //var x1_x0 = ReductionArray[nextLowIndex][probeIndex] - ReductionArray[nextUpIndex][probeIndex];
+            //var y_y0 = distanceToLower + distanceToUpper;
+            var weightingLow = 1-( distanceToLower / (distanceToLower + distanceToUpper));
+            var weightingUp = 1- (distanceToUpper / (distanceToLower + distanceToUpper));
+            var nextLowerReduction = ReductionArray[nextLowIndex][probeIndex];
+            var nextUpperReduction = ReductionArray[nextUpIndex][probeIndex];
+
+            var windRedFactorInterpolated = ((nextLowerReduction * weightingLow) + (nextUpperReduction * weightingUp));
+
+
+            //  (ReductionArray[nextLow][probeIndex] + distanceToLower * (ReductionArray[nextUp][probeIndex] / (distanceToLower + distanceToUpper)));
+
+
             return windRedFactorInterpolated;
         }
 

@@ -243,8 +243,9 @@ namespace CallProbes
 
                         // Calculate the undisturbed velocity at probing height !!!This only makes sense for horizontal slices!!!
 
+
                         var probingHeight = pointList[0].Z;
-                        var UPedestrianHeight = ((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((probingHeight + z0) / z0);
+                        var UProbingHeight = ((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((probingHeight + z0) / z0);
 
 
                         System.Text.StringBuilder ReductionFile = new System.Text.StringBuilder();
@@ -259,7 +260,7 @@ namespace CallProbes
                         {
                             for (int c = 0; c < numberOfWindDirs; c++)
                             {
-                                ReductionFile.Append(String.Format("{0:0.###}",Math.Round(Math.Sqrt(Math.Pow(listOfAnnualData[c][r].X, 2) + Math.Pow(listOfAnnualData[c][r].Y, 2) + Math.Pow(listOfAnnualData[c][r].Z, 2)) / UPedestrianHeight, 3)) + ",");
+                                ReductionFile.Append(String.Format("{0:0.###}",Math.Round(Math.Sqrt(Math.Pow(listOfAnnualData[c][r].X, 2) + Math.Pow(listOfAnnualData[c][r].Y, 2) + Math.Pow(listOfAnnualData[c][r].Z, 2)) / UProbingHeight, 3)) + ",");
                             }
                             ReductionFile.AppendLine("");
                         }

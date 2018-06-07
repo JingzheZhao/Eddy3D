@@ -322,9 +322,9 @@ namespace CallOC
                     sbUtciDEBUG.AppendLine("MRT: " + UTCI.GetMRT2(DryBulbTemp[0], RelativeHumidity[0], DiffRad[0][0], DirRad[0][0], SolarElevation[0], DryBulbTemp[0], Wst, Hst, BodyA, GrRef, 0.95)[0]);
                     sbUtciDEBUG.AppendLine("Vapour pressure: " + Pressure[0]);
                     sbUtciDEBUG.AppendLine("Relative humidity: " + RelativeHumidity[0]);
-                    sbUtciDEBUG.AppendLine("Wind reduction:n" + windReduction[0, 0]);
+                    sbUtciDEBUG.AppendLine("Wind reduction: " + windReduction[0, 0]);
                  
-                    sbUtciDEBUG.AppendLine("Wind speed:n" + WindSpeed[0]);
+                    sbUtciDEBUG.AppendLine("Wind speed: " + WindSpeed[0]);
                     
                     sbUtciDEBUG.AppendLine("UTCI: " + String.Format("{0:0.##}", Utci[0, 0]));
                     sbUtciDEBUG.AppendLine("");
