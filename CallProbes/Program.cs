@@ -28,7 +28,7 @@ namespace CallProbes
                 double URef = 0.0;
                 double zref = 0.0;
                 double z0 = 0.0;
-                var pedestrianHeight = 1.5;
+                
                 try
                 {
                     var filePath = options.workingDir + "\\" + options.windDirs.Split(',')[0] + @"\0.org\ABLConditions";
@@ -48,7 +48,7 @@ namespace CallProbes
                 }
                 catch (Exception e) { Console.WriteLine(e.Message); return; }
 
-                var UPedestrianHeight = ((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((pedestrianHeight + z0) / z0);
+                
 
                 var windDirs = options.windDirs.Split(',');
                 var numberOfWindDirs = windDirs.Length;
@@ -90,7 +90,7 @@ namespace CallProbes
 
                             //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + "controlDict", StringTemplates.controlDict(DOM, null, i));
                             //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, options.mode));
-                            command.Append(@"postProcess -case " + windDirs[i] + " -func " + pointName + @" -latestTime | tee -a " + windDirs[i] + @"/log_probes;");
+                            command.Append(@"postProcess -case " + windDirs[i] + " -func " + pointName + @" -newTimes | tee -a " + windDirs[i] + @"/log_probes;");
                             
 
 
@@ -135,7 +135,7 @@ namespace CallProbes
                             // Write the dicts
 
                             //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, options.mode));
-                            command.Append(@"postProcess -case " + windDirs[i] + " -func " + pointName + @" -latestTime | tee -a " + windDirs[i] + @"/log_probes;");
+                            command.Append(@"postProcess -case " + windDirs[i] + " -func " + pointName + @" -newTimes | tee -a " + windDirs[i] + @"/log_probes;");
 
 
                         }
@@ -237,7 +237,15 @@ namespace CallProbes
                         File.WriteAllText(options.workingDir + @"\UData.csv", UFile.ToString());
 
                         //Write Reduction Array to file
+
                         Console.WriteLine("Write Reduction Array");
+
+
+                        // Calculate the undisturbed velocity at probing height !!!This only makes sense for horizontal slices!!!
+
+                        var probingHeight = pointList[0].Z;
+                        var UPedestrianHeight = ((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((probingHeight + z0) / z0);
+
 
                         System.Text.StringBuilder ReductionFile = new System.Text.StringBuilder();
 

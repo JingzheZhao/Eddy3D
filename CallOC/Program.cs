@@ -169,36 +169,45 @@ namespace CallOC
                     }
 
 
-                    
 
 
-                    // Array of Reduction data 
 
-                    var ReductionArray = new double[numberOfWindDirs][];
+                    // Array of Reduction data
 
-                    for (int d = 0; d < numberOfWindDirs; d++)
-                    {
-                        ReductionArray[d] = new double[sensorPointCount];
-                        for (int p = 0; p < sensorPointCount; p++)
-                        {
-                            ReductionArray[d][p] = double.Parse(ReductionData[p].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[d]);
-                        }
-                    }
-
-
-                    Console.WriteLine("Calculating: Wind reduction factors");
                     double[,] windReduction = new double[8760, sensorPointCount];
 
-
-                    for (int j = 0; j < sensorPointCount; j++)
+                    int cntReduction = 0;
+                    using (var progress = new ASCIIProgressBar())
                     {
-                        for (int i = 0; i < 8760; i++)
-                        {
-                            // hours of weather file in iterator missing
-                            windReduction[i, j] = UTCI.GetWindReductionFactor(j, ReductionArray, sensorPointCount, windDirList, WindSpeed[i], WindDirection[i]);
-                        }
-                    }
+                                   
 
+                        var ReductionArray = new double[numberOfWindDirs][];
+
+                        for (int d = 0; d < numberOfWindDirs; d++)
+                        {
+                            
+                            ReductionArray[d] = new double[sensorPointCount];
+                            for (int p = 0; p < sensorPointCount; p++)
+                            {                                
+                                ReductionArray[d][p] = double.Parse(ReductionData[p].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[d]);
+                            }
+                        }
+
+                        Console.WriteLine("Calculating: Wind reduction factors");
+
+                        for (int j = 0; j < sensorPointCount; j++)
+                        {
+                            cntReduction++;
+                            progress.Report((double)cntReduction / sensorPointCount);
+                            for (int i = 0; i < 8760; i++)
+                            {
+                                                             
+                                // hours of weather file in iterator missing
+                                windReduction[i, j] = UTCI.GetWindReductionFactor(j, ReductionArray, sensorPointCount, windDirList, WindSpeed[i], WindDirection[i]);
+                            }
+                        }
+
+                    }
 
                     //Write Reduction Array to file
 
@@ -294,14 +303,14 @@ namespace CallOC
                         }
                         sbUtci.AppendLine("");
                     }
-                    File.WriteAllText(options.workingDir + @"\utci.csv", sbUtci.ToString());
+                    File.WriteAllText(options.workingDir + @"\UTCI.csv", sbUtci.ToString());
 
 
 
 
                     if (options.Verbose)
                     {
-                        File.WriteAllText(options.workingDir + @"\utci.err", errorLog.ToString());
+                        File.WriteAllText(options.workingDir + @"\UTCI.err", errorLog.ToString());
                     }
 
                     Console.WriteLine("Done");
