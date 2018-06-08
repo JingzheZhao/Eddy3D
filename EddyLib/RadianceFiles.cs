@@ -134,6 +134,23 @@ namespace EddyLib
             return RGB;
         }
 
+
+        public static double[,] readCSVFile(string path)
+        {
+            string[] txt = File.ReadAllLines(path);
+            double[,] data = new double[txt.Length, txt[0].Trim(',').Split(',').Length];
+            for (int i = 0; i < txt.Length; i++)
+            {
+                string[] ln = txt[i].Trim(',').Split(',');
+                for (int j = 0; j < ln.Length; j++)
+                {
+                    if (string.IsNullOrWhiteSpace(ln[j])) continue;
+                    data[i, j] = double.Parse(ln[j]);
+                }
+            }
+            return data;
+        }
+
         //====================================== ILLU FILE
 
         /// <summary>
