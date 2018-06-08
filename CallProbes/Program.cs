@@ -103,6 +103,8 @@ namespace CallProbes
                         p.WaitForExit();
                         //p.Close();
 
+                        Thread.Sleep(3 * probes.GetLength(0) * numberOfWindDirs);
+
 
                         for (int i = 0; i < numberOfWindDirs; i++)
                         {
@@ -147,8 +149,10 @@ namespace CallProbes
                         p.WaitForExit();
                         //p.Close();
 
+                        // Issue
+                        // Could not find a part of the path 'C:\temp\0\PostProcessing\U_Probes'.
 
-                        //Thread.Sleep(2 * probes.GetLength(0));
+                        Thread.Sleep(3 * probes.GetLength(0)* numberOfWindDirs);
 
 
                         for (int i = 0; i < numberOfWindDirs; i++)

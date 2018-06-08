@@ -34,7 +34,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public UTCIReader()
-          : base("UTCIReader", "UTCIReader", "UTCIReader", "Eddy", "Misc")
+          : base("UTCIReader", "UTCIReader", "UTCIReader", "Eddy", "UTCI")
         {
         }
 
@@ -59,7 +59,10 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
-            //pManager.AddGenericParameter("Result", "Out", "Result", GH_ParamAccess.tree);
+            
+            //pManager.AddGenericParameter("windSpeed", "windSpeed", "windSpeed", GH_ParamAccess.list);
+            //pManager.AddGenericParameter("windDir", "windDir", "windDir", GH_ParamAccess.list);
+            //pManager.AddGenericParameter("windRed", "windRed", "windRed", GH_ParamAccess.list);
         }
 
 
@@ -103,7 +106,10 @@ namespace Eddy
                 valueHours[i] = double.Parse(allLines[i].Split(',')[hour]);
             }
 
+            
+
             DA.SetDataList(0, valueHours);
+            
 
         }
 

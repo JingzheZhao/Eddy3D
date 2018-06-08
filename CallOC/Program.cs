@@ -288,7 +288,17 @@ namespace CallOC
 
                     }//end using prog bar
 
-                    Console.WriteLine("Compute time: " + sw.ElapsedMilliseconds / 1000 + " s or ca. " + sw.ElapsedMilliseconds / 1000 / 60 + " min");
+                    if (sw.ElapsedMilliseconds < 60 * 1000)
+                    {
+                        Console.WriteLine("Compute time: " + sw.ElapsedMilliseconds / 1000 + " s");
+                    }
+
+                    else
+                    {
+                        Console.WriteLine("Compute time: " + sw.ElapsedMilliseconds / 1000 + " s or ca. " + sw.ElapsedMilliseconds / 1000 / 60 + " min");
+                    }
+               
+                    
 
                     Console.WriteLine("Writing UTCI results...");
 
