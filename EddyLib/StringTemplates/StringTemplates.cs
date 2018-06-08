@@ -118,8 +118,8 @@ radius " + dom.refinementCylinder.CircleAt(0.5).Radius + @";
           max (" + dom.BBox.Max.X + " " + dom.BBox.Max.Y + " " + dom.BBox.Max.Z + @");  
 }";
             refinementGeometry = Box;
-
-            return @"/*--------------------------------*- C++ -*----------------------------------*\
+            StringBuilder sb = new StringBuilder();
+            sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
 |  \\    /   O peration     | Version:  2.3.0                                 |
@@ -135,10 +135,10 @@ FoamFile
     object snappyHexMeshDict;
 }
 
-    castellatedMesh true;
-    snap true;
-    addLayers false;
-    geometry
+    castellatedMesh true;");
+    sb.Append("snap ");      if (dom.meshingMode == 1 || dom.meshingMode == 2) { sb.AppendLine("true;"); } else { sb.AppendLine("false;"); }
+    sb.Append("addLayers "); if (dom.meshingMode == 2) { sb.AppendLine("true;"); } else { sb.AppendLine("false;"); }
+    sb.Append(@"geometry
     {
         building.stl
         {
@@ -394,7 +394,8 @@ refinementBox {mode inside; levels ((" + dom.accRefinement + " " + dom.accRefine
 debug 0;
 mergeTolerance 1E-6;
 //autoBlockMesh true;
-";
+");
+            return sb.ToString();
         }
         public static string controlDict(OFBaseDomain DOM, List<Mesh> topologies, int numberOfTopologies)
         {
@@ -434,7 +435,7 @@ libs
             purgeWrite      " + DOM.keepTimeSteps + @";
             writeFormat binary;
             writePrecision  6;
-            writeCompression true;
+            writeCompression uncompressed;
             timeFormat general;
             timePrecision   6;
             runTimeModifiable true;
@@ -893,6 +894,9 @@ FoamFile
         //// ************************************************************************* //
         //            ";
         //        }
+
+
+        
         public static string meshQualityDict()
         {
             return
@@ -1240,7 +1244,8 @@ SIMPLE
 potentialFlow
 {
     nNonOrthogonalCorrectors 15;
-}");
+}
+");
             if (mode == 0)
             {
                 sb.Append(@"relaxationFactors
@@ -1439,13 +1444,22 @@ RAS
                 sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructParMesh -constant | tee -a log""");
                 sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite | tee -a log""");
                 sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
+#if DEBUG
 
+                sb.AppendLine("PAUSE");
+
+#endif 
             }
             else
             {
                 sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatureExtract | tee -a log; snappyHexMesh -overwrite  | tee -a log; checkMesh | tee -a log""");
                 sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite | tee -a log""");
                 sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
+#if DEBUG
+
+                sb.AppendLine("PAUSE");
+
+#endif 
             }
 
 
@@ -1465,12 +1479,22 @@ RAS
                 sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; mpirun -np " + DOM.CPU + @" simpleFoam -parallel | tee -a log""");
                 sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructPar -latestTime | tee -a log""");
                 sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
+#if DEBUG
+
+                sb.AppendLine("PAUSE");
+
+#endif 
             }
             else
             {
                 sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; potentialFoam | tee -a log""");
                 sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; simpleFoam | tee -a log""");
                 sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
+#if DEBUG
+
+                sb.AppendLine("PAUSE");
+
+#endif 
             }
             return sb.ToString();
         }
@@ -1489,7 +1513,11 @@ RAS
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""reconstructParMesh -constant | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""renumberMesh -overwrite | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");
+#if DEBUG
+
                 sb.AppendLine("PAUSE");
+
+#endif 
             }
             else
             {
@@ -1498,7 +1526,11 @@ RAS
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""renumberMesh -overwrite | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");
+#if DEBUG
+
                 sb.AppendLine("PAUSE");
+
+#endif 
             }
 
 
@@ -1518,14 +1550,22 @@ RAS
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""mpirun -np " + DOM.CPU + @" simpleFoam -parallel | tee -a log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""reconstructPar -latestTime | tee -a log; "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
+#if DEBUG
+
                 sb.AppendLine("PAUSE");
+
+#endif 
             }
             else
             {
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""potentialFoam | tee -a log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""simpleFoam | tee -a log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
+#if DEBUG
+
                 sb.AppendLine("PAUSE");
+
+#endif 
             }
             return sb.ToString();
         }
@@ -1539,11 +1579,14 @@ RAS
                 //sb.AppendLine("start " + DOM.baseWorkingDirectory +i + "_run_sim.bat");
                 sb.AppendLine("call " + DOM.baseWorkingDirectory + i + "_run_sim.bat");
             }
-            //sb.AppendLine("PAUSE");
             sb.AppendLine("call " + DOM.baseWorkingDirectory + "run_ray.bat");
             sb.AppendLine("call " + DOM.baseWorkingDirectory + "run_probes.bat");
             sb.AppendLine("call " + DOM.baseWorkingDirectory + "run_utci.bat");
+#if DEBUG
 
+            sb.AppendLine("PAUSE");
+
+#endif 
             return sb.ToString();
         }
 
@@ -1556,8 +1599,11 @@ RAS
                 //sb.AppendLine("start " + DOM.baseWorkingDirectory +i + "_run_sim.bat");
                 sb.AppendLine("call " + DOM.baseWorkingDirectory + i + "_run_sim.bat");
             }
-            //sb.AppendLine("PAUSE");
+#if DEBUG
 
+            sb.AppendLine("PAUSE");
+
+#endif 
             return sb.ToString();
         }
 
@@ -1566,7 +1612,11 @@ RAS
             string workDir = DOM.baseWorkingDirectory.Trim('\\');
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallRay.exe\" " + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCInflow.weather + "\"");
-            //   sb.AppendLine("PAUSE");
+#if DEBUG
+
+            sb.AppendLine("PAUSE");
+
+#endif 
             return sb.ToString();
         }
 
@@ -1585,10 +1635,12 @@ RAS
 
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallProbes.exe\" " + "-d " + "\"" + workDir + "\" " + "-p " + "\"" + workDir + @"\Rad\sensors.pts" + "\"" + " -w " + dirs + " -m 1");
-          
-            //   sb.AppendLine("PAUSE");
 
+#if DEBUG
 
+            sb.AppendLine("PAUSE");
+
+#endif 
 
 
 
@@ -1615,12 +1667,14 @@ RAS
             //sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallProbes.exe\" "+ "-w " + "\"" +workDir + "\" " + "-p " + "\"" + workDir + @"\Rad\sensors.pts" + "\"" + " -d " + dirs + " -m 1");
             //sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallRay.exe\" "  + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCInflow.weather + "\"");
             sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallOC.exe\" "   + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCInflow.weather +"\" "+ dif + " " + dir + " " + u);
-                                                                
-            //   sb.AppendLine("PAUSE");
-       
+
+#if DEBUG
+
+            sb.AppendLine("PAUSE");
+
+#endif
 
 
-            
 
             return sb.ToString();
         }

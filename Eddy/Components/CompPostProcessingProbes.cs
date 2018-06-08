@@ -39,7 +39,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public PostProcessingProbes()
-          : base("Probes", "Probes", "PostProcessing", "Eddy", "PostProcessing")
+          : base("VisProbes", "VisProbes", "PostProcessing", "Eddy", "PostProcessing")
         {
         }
 
@@ -69,8 +69,8 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Result", "Out", "Result", GH_ParamAccess.tree);
-            //pManager.AddGenericParameter("Result", "Out", "Result", GH_ParamAccess.tree);
+            pManager.AddGenericParameter("Points", "Points", "Points", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Result", "Result", "Result", GH_ParamAccess.tree);
         }
 
 
@@ -101,7 +101,7 @@ namespace Eddy
 
             int mode = 0;
             List<Point3d> listOfPoints = new List<Point3d>();
-            
+
             bool run = false;
 
             DA.GetDataList(1, listOfPoints);
@@ -109,14 +109,36 @@ namespace Eddy
             DA.GetData(2, ref mode);
             DA.GetData(3, ref run);
 
-            // Error handling
+
+
+
+            // Inclusion check for probes
+
+            // Filter the list
+            int kept = 0;
+            for (int i = 0; i < listOfPoints.Count; i++)
+            {
+                // Test whether this is an element that we want to keep.
+                if (DOM.inputBreps.IsPointInside(listOfPoints[i], 0.01, true) == false)
+                {
+                    // Add it to the list of kept elements.
+                    listOfPoints[kept] = listOfPoints[i];
+                    kept++;
+                }
+            }
+            // Unfortunately IList has no Resize method. So instead we
+            // remove the last element of the list until: elements.Count == kept.
+            while (kept < listOfPoints.Count) listOfPoints.RemoveAt(listOfPoints.Count - 1);
+
 
             var numberOfProbes = listOfPoints.Count();
+
+
+            // Error handling
 
             if (numberOfProbes < 1)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You need to pass a list of point to the component.");
-
             }
 
 
@@ -128,15 +150,14 @@ namespace Eddy
             }
             RadianceFiles.writePTS(DOM.baseWorkingDirectory + @"\Rad\sensors.pts", listOfPoints);
 
-
-
-
             if (Utilities.IsDirectoryEmpty(DOM.meshPolyMeshDirectory) == true)
             {
-                throw new System.ArgumentException("The mesh folder is empty. Can't pull probes from a mesh that does not exist.");
+                throw new System.ArgumentException("The mesh folder is empty. Can't retrieve probes from a mesh that does not exist.");
             }
 
 
+
+            
 
 
             if (run == true && numberOfProbes > 0)
@@ -144,6 +165,10 @@ namespace Eddy
 
                 cpTree = new DataTree<double>();
                 uTree = new DataTree<Vector3d>();
+
+
+
+
 
 
                 if (mode == 0) // cp
@@ -160,10 +185,12 @@ namespace Eddy
                         File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + "controlDict", StringTemplates.controlDict(DOM, null, i));
                         File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, mode));
 
-                        command.Append(@"postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + pointName + @" -latestTime;");
+                        command.Append(@"postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + pointName + @" -latestTime | tee -a " + DOM.BCInflow.windDir[i] + @"/log_probes;");
 
 
                     }
+
+
 
                     ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.baseWorkingDirectory);
                     Process p = new Process();
@@ -199,10 +226,13 @@ namespace Eddy
 
                         File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, mode));
 
-                        command.Append(@"postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + pointName + @" -latestTime;");
+                        command.Append(@"postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + pointName + @" -latestTime | tee -a " + DOM.BCInflow.windDir[i] + @"/log_probes;");
 
 
                     }
+
+
+
 
                     ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.baseWorkingDirectory);
                     Process p = new Process();
@@ -233,12 +263,15 @@ namespace Eddy
 
             if (mode == 0)
             {
-                DA.SetDataTree(0, cpTree);
+                DA.SetDataTree(1, cpTree);
+                DA.SetDataList(0, listOfPoints);
             }
             else if (mode == 1)
             {
-                DA.SetDataTree(0, uTree);
+                DA.SetDataTree(1, uTree);
+                DA.SetDataList(0, listOfPoints);
             }
+
 
         }
 

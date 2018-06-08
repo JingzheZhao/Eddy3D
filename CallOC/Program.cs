@@ -49,7 +49,24 @@ namespace CallOC
                     if (!File.Exists(options.difRad)) { Console.WriteLine(options.difRad + " not found. Exiting"); fileMissing = true; }
                     if (!File.Exists(options.dirRad)) { Console.WriteLine(options.difRad + " not found. Exiting"); fileMissing = true; }
 
-                    if (fileMissing == true) { System.Threading.Thread.Sleep(5000); return; }
+                    if (fileMissing == true) { System.Threading.Thread.Sleep(8000); return; }
+
+                    // Error checks for CFD data
+
+                    // load  data
+                    // -----------------
+                    var ReductionData = File.ReadAllLines(options.windScaling).Skip(1).ToArray();
+
+                    var numberOfWindDirsSimulated = ReductionData[0].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Count();
+
+                    if (numberOfWindDirsSimulated < 8)
+                    {
+                        //Console.WriteLine(@"Error: You need to simulate at least 8 wind direction, preferrably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
+                        throw new System.ArgumentException(@"Error: You need to simulate at least 8 wind direction, preferrably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
+                    }
+
+
+
 
                     // load weather data
                     // -----------------
@@ -120,6 +137,7 @@ namespace CallOC
                     //  [][x]  points
                     Console.WriteLine("Loading: Radiation data");
 
+
                     var DiffRad = RadianceFiles.loadILL(options.difRad);
                     var DirRad = RadianceFiles.loadILL(options.dirRad);
 
@@ -137,40 +155,59 @@ namespace CallOC
                     Console.WriteLine("Loading: Wind data");
 
                     var windDirList = new List<double> { 0, 45, 90, 135, 180, 225, 270, 315 };
+
                     var numberOfWindDirs = windDirList.Count;
 
-                    // load  data
-                    // -----------------
-                    var ReductionData = File.ReadAllLines(options.windScaling).Skip(1).ToList();
 
 
-                    // Array of Reduction data 
 
-                    var ReductionArray = new double[numberOfWindDirs][];
 
-                    for (int d = 0; d < numberOfWindDirs; d++)
+                    for (int i = 0; i < sensorPointCount; i++)
                     {
-                        ReductionArray[d] = new double[sensorPointCount];
-                        for (int p = 0; p < sensorPointCount; p++)
-                        {
-                            ReductionArray[d][p] = double.Parse(ReductionData[p].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[d]);
-                        }
+                        var l = ReductionData[i];
+                        if (l.Contains("∞")) ReductionData[i] = l.Replace("∞", "0");
                     }
 
 
-                    Console.WriteLine("Calculating: Wind reduction");
+
+
+
+                    // Array of Reduction data
+
                     double[,] windReduction = new double[8760, sensorPointCount];
 
-
-                    for (int j = 0; j < sensorPointCount; j++)
+                    int cntReduction = 0;
+                    using (var progress = new ASCIIProgressBar())
                     {
-                        for (int i = 0; i < 8760; i++)
-                        {
-                            // hours of weather file in iterator missing
-                            windReduction[i, j] = UTCI.GetWindReductionFactor(j, ReductionArray, sensorPointCount, windDirList, WindSpeed[i], WindDirection[i]);
-                        }
-                    }
 
+
+                        var ReductionArray = new double[numberOfWindDirs][];
+
+                        for (int d = 0; d < numberOfWindDirs; d++)
+                        {
+
+                            ReductionArray[d] = new double[sensorPointCount];
+                            for (int p = 0; p < sensorPointCount; p++)
+                            {
+                                ReductionArray[d][p] = double.Parse(ReductionData[p].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[d]);
+                            }
+                        }
+
+                        Console.WriteLine("Calculating: Wind reduction factors");
+
+                        for (int j = 0; j < sensorPointCount; j++)
+                        {
+                            cntReduction++;
+                            progress.Report((double)cntReduction / sensorPointCount);
+                            for (int i = 0; i < 8760; i++)
+                            {
+
+                                // hours of weather file in iterator missing
+                                windReduction[i, j] = UTCI.GetWindReductionFactor(j, ReductionArray, sensorPointCount, windDirList, WindSpeed[i], WindDirection[i]);
+                            }
+                        }
+
+                    }
 
                     //Write Reduction Array to file
 
@@ -211,47 +248,57 @@ namespace CallOC
                         //for (int j = 0; j < sensorPointCount; j++)
                         //{
 
-                            Parallel.For(0, sensorPointCount ,
-                          j =>
+                        Parallel.For(0, sensorPointCount,
+                      j =>
+                      {
+                          cnt++;
+                          progress.Report((double)cnt / sensorPointCount);
+
+                          for (int i = 0; i < 8760; i++)
                           {
-                              cnt++;
-                              progress.Report((double)cnt / sensorPointCount);
 
-                              for (int i = 0; i < 8760; i++)
-                              {
+                              double mrt = UTCI.GetMRT2(DryBulbTemp[i], RelativeHumidity[i], DiffRad[i][j], DirRad[i][j], SolarElevation[i], DryBulbTemp[i], Wst, Hst, BodyA, GrRef, 0.95)[0];
 
-                                  double mrt = UTCI.GetMRT2(DryBulbTemp[i], RelativeHumidity[i], DiffRad[i][j], DirRad[i][j], SolarElevation[i], DryBulbTemp[i], Wst, Hst, BodyA, GrRef, 0.95)[0];
+                              double utci_temp = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], windReduction[i, j] * WindSpeed[i], mrt);
+                              Utci[i, j] = utci_temp;
 
-                                  double utci_temp = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], windReduction[i, j] * WindSpeed[i], mrt);
-                                      Utci[i, j] = utci_temp;
+                                  //double cOfPerson = 0;
 
-                                      //double cOfPerson = 0;
-
-                                      //if (utci_temp < -40) cOfPerson = -5;
-                                      //else if ((-40 <= utci_temp) && (utci_temp < -27)) cOfPerson = -4;
-                                      //else if ((-27 <= utci_temp) && (utci_temp < -13)) cOfPerson = -3;
-                                      //else if ((-13 <= utci_temp) && (utci_temp < 0)) cOfPerson = -2;
-                                      //else if ((0 <= utci_temp) && (utci_temp < 9)) cOfPerson = -1;
-                                      //else if ((9 <= utci_temp) && (utci_temp < 26)) cOfPerson = 0;
-                                      //else if ((26 <= utci_temp) && (utci_temp < 28)) cOfPerson = 1;
-                                      //else if ((28 <= utci_temp) && (utci_temp < 32)) cOfPerson = 2;
-                                      //else if ((32 <= utci_temp) && (utci_temp < 38)) cOfPerson = 3;
-                                      //else if ((38 <= utci_temp) && (utci_temp < 46)) cOfPerson = 4;
-                                      //else cOfPerson = 5;
+                                  //if (utci_temp < -40) cOfPerson = -5;
+                                  //else if ((-40 <= utci_temp) && (utci_temp < -27)) cOfPerson = -4;
+                                  //else if ((-27 <= utci_temp) && (utci_temp < -13)) cOfPerson = -3;
+                                  //else if ((-13 <= utci_temp) && (utci_temp < 0)) cOfPerson = -2;
+                                  //else if ((0 <= utci_temp) && (utci_temp < 9)) cOfPerson = -1;
+                                  //else if ((9 <= utci_temp) && (utci_temp < 26)) cOfPerson = 0;
+                                  //else if ((26 <= utci_temp) && (utci_temp < 28)) cOfPerson = 1;
+                                  //else if ((28 <= utci_temp) && (utci_temp < 32)) cOfPerson = 2;
+                                  //else if ((32 <= utci_temp) && (utci_temp < 38)) cOfPerson = 3;
+                                  //else if ((38 <= utci_temp) && (utci_temp < 46)) cOfPerson = 4;
+                                  //else cOfPerson = 5;
 
 
-                                      //conditionOfPerson[i, j] = cOfPerson;
+                                  //conditionOfPerson[i, j] = cOfPerson;
 
-                                  }
-                                  // Console.WriteLine("Sensor " + j + " done.");
-                                //  }
-                             });
+                              }
+                              // Console.WriteLine("Sensor " + j + " done.");
+                              //  }
+                          });
 
 
 
                     }//end using prog bar
 
-                    Console.WriteLine("Compute time: " + sw.ElapsedMilliseconds);
+                    if (sw.ElapsedMilliseconds < 60 * 1000)
+                    {
+                        Console.WriteLine("Compute time: " + sw.ElapsedMilliseconds / 1000 + " s");
+                    }
+
+                    else
+                    {
+                        Console.WriteLine("Compute time: " + sw.ElapsedMilliseconds / 1000 + " s or ca. " + sw.ElapsedMilliseconds / 1000 / 60 + " min");
+                    }
+               
+                    
 
                     Console.WriteLine("Writing UTCI results...");
 
@@ -262,18 +309,45 @@ namespace CallOC
                     {
                         for (int i = 0; i < 8760; i++)
                         {
-                            sbUtci.Append(String.Format("{0:0.##}", Utci[i, j] )+ ",");
+                            sbUtci.Append(String.Format("{0:0.##}", Utci[i, j]) + ",");
                         }
                         sbUtci.AppendLine("");
                     }
-                    File.WriteAllText(options.workingDir + @"\utci.csv", sbUtci.ToString());
+                    File.WriteAllText(options.workingDir + @"\UTCI.csv", sbUtci.ToString());
 
+
+#if DEBUG
+                    //Write Debug info to file
+                    StringBuilder sbUtciDEBUG = new StringBuilder();
+
+                    sbUtciDEBUG.AppendLine(@"UTCI for sensor point 0 over all hours of the year.");
+                    
+                    for (int i = 0; i < 8760; i++)
+                    {
+
+                        sbUtciDEBUG.Append(String.Format("{0:0}", Utci[i, 0]) + ",");
+                    }
+                    sbUtciDEBUG.AppendLine("Detailed Values for sensor point 0 at hour 0:");
+                    sbUtciDEBUG.AppendLine("Air temperature: " + DryBulbTemp[0]);
+                    sbUtciDEBUG.AppendLine("MRT: " + UTCI.GetMRT2(DryBulbTemp[0], RelativeHumidity[0], DiffRad[0][0], DirRad[0][0], SolarElevation[0], DryBulbTemp[0], Wst, Hst, BodyA, GrRef, 0.95)[0]);
+                    sbUtciDEBUG.AppendLine("Vapour pressure: " + Pressure[0]);
+                    sbUtciDEBUG.AppendLine("Relative humidity: " + RelativeHumidity[0]);
+                    sbUtciDEBUG.AppendLine("Wind reduction: " + windReduction[0, 0]);
+                 
+                    sbUtciDEBUG.AppendLine("Wind speed: " + WindSpeed[0]);
+                    
+                    sbUtciDEBUG.AppendLine("UTCI: " + String.Format("{0:0.##}", Utci[0, 0]));
+                    sbUtciDEBUG.AppendLine("");
+                    File.WriteAllText(options.workingDir + @"\UTCI_debug.csv", sbUtciDEBUG.ToString());
+
+
+#endif
 
 
 
                     if (options.Verbose)
                     {
-                        File.WriteAllText(options.workingDir + @"\utci.err", errorLog.ToString());
+                        File.WriteAllText(options.workingDir + @"\UTCI.err", errorLog.ToString());
                     }
 
                     Console.WriteLine("Done");

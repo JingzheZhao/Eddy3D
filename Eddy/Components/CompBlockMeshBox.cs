@@ -139,11 +139,21 @@ namespace Eddy
                         foreach (Mesh mm in m) combinedMeshes.Append(mm);
 
                     }
-
+                    
 
                 }
             }
 
+            // Those Breps are currently necessary to perform the point inclusion check for the probing components
+
+            Brep inputBreps = new Brep();
+
+            foreach (GeometryBase g in domain)
+            {
+                
+                inputBreps.Append(Brep.TryConvertBrep(g));
+            }
+            
 
 
             if (Utilities.CheckLicence() == true)
@@ -154,7 +164,7 @@ namespace Eddy
                 baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
 
 
-                OFBoxDomain DOM = new OFBoxDomain(combinedMeshes, BCond, blockDimension, baseWorkingDirectory);
+                OFBoxDomain DOM = new OFBoxDomain(inputBreps, combinedMeshes, BCond, blockDimension, baseWorkingDirectory);
 
 
 
@@ -274,6 +284,26 @@ namespace Eddy
                 {
                     File.WriteAllText(baseWorkingDirectory + @"\mesh\log", "");
                 }
+
+
+
+                //export RAD for DAYSIM
+                if (!Directory.Exists(DOM.baseWorkingDirectory + @"Rad\"))
+                {
+                    Directory.CreateDirectory(DOM.baseWorkingDirectory + @"Rad\");
+                }
+                string radMat = @"
+void plastic Generic_20
+0
+0
+5 0.2 0.2 0.2 0 0 
+";
+                Mesh daysimMesh = new Mesh();
+                daysimMesh.Append(combinedMeshes);
+                // Todo: add ground plane to the above mesh
+
+                File.WriteAllText(DOM.baseWorkingDirectory + @"Rad\materials.rad", radMat);
+                RadianceFiles.MeshProc(daysimMesh, DOM.baseWorkingDirectory + @"Rad\scene.rad", "Generic_20");
 
 
 

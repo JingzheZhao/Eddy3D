@@ -24,7 +24,7 @@ namespace EddyLib
 
 
 
-        
+
         List<string> MeshFaceLabel = new List<string>();
         List<int> topFaceID = new List<int>();
         List<int> bottomFaceID = new List<int>();
@@ -39,7 +39,7 @@ namespace EddyLib
 
         public int cellDivisionsPerim;
 
-        
+
 
         public double cellSizeInner;
         public double cellSizeOuter;
@@ -49,15 +49,15 @@ namespace EddyLib
 
         public double gradingPerim;
 
+        public double sizeInnerR;
 
 
 
 
-
-        public OFCylDomain(Mesh geometry, BoundaryConditions BCond, int _divisionsY, double gradingPerim, double windDir, int _CPU, double sizeInnerRect, double sizeOuterCirc = 0, double sizeHeight = 0,  string baseWorkingDirectory = @"C:\temp")
+        public OFCylDomain(Brep inputBreps, Mesh geometry, BoundaryConditions BCond, int _divisionsY, double gradingPerim, double windDir, int _CPU, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0, string baseWorkingDirectory = @"C:\temp")
         {
             this.gradingPerim = gradingPerim;
-            
+
             this.baseWorkingDirectory = baseWorkingDirectory;
             this.meshStlDirectory = baseWorkingDirectory + @"\mesh\constant\triSurface\";
             this.meshPolyMeshDirectory = baseWorkingDirectory + @"\mesh\constant\polyMesh\";
@@ -116,7 +116,7 @@ namespace EddyLib
             center = BBox.Center + 0.5 * -Vector3d.ZAxis * dimZ;
 
 
-     
+
 
             //Create Circular Domain Ground
 
@@ -124,8 +124,8 @@ namespace EddyLib
 
 
 
-            var scaleCyclDomainHeight = (15.5 * height) + dimY;
-            //var scaleCyclDomainHeight = dimZ > dimY ? dimZ : dimY;
+            var scaleCyclDomainHeight = (15.5 * dimZ) + dimY;
+            //var scaleCyclDomainHeight = height > dimY ? height : dimY;
 
 
             Plane localSystem = Plane.WorldZX;
@@ -156,7 +156,7 @@ namespace EddyLib
             }
             else
             {
-               radius = sizeOuterCirc;
+                radius = sizeOuterCirc;
             }
 
 
@@ -169,12 +169,22 @@ namespace EddyLib
 
             //old domain
             //var allPoints = MakeCylMeshPoints5deg(center, radius, height, scaleFactorInnerRect);
-            //MakeCylMesh(allPoints, divisionsX, divisionsY, divisionsZ, windDir); 
+            //MakeCylMesh(allPoints, divisionsX, divisionsY, divisionsZ, windDir);
 
-            MakeCircMeshPlane(center, sizeInnerRect, divisionsY, radius, height);
-            
+            if (sizeInnerRect == 0)
+            {
+                this.sizeInnerR = BBox.Diagonal.Length / Math.Sqrt(2);
+            }
+            else
+            {
+                this.sizeInnerR = sizeInnerRect;
+            }
 
-            BCond.calculateCPPressures(zMax);            
+
+            MakeCircMeshPlane(center, this.sizeInnerR, divisionsY, radius, height);
+
+
+            BCond.calculateCPPressures(zMax);
 
             this.BCInflow = BCond;
 
@@ -182,7 +192,9 @@ namespace EddyLib
             //refinementCylinder = getRefinementCyl(center, geometry, 0.3, 0.3);
             //refinementBox = getRefinementBox(localSystem, geometry, 0.3);
 
-           
+
+            this.inputBreps = inputBreps;
+
 
         }
 
@@ -190,22 +202,22 @@ namespace EddyLib
         {
             List<Point3d> pointsOnCircle = new List<Point3d>();
             var pl = new Plane(center, Vector3d.ZAxis);
-            
+
             var xinter = new Interval(-sizeInnerRect, sizeInnerRect);
-            
+
 
             var m = Mesh.CreateFromPlane(pl, xinter, xinter, divisions, divisions); // creates the inner rectangle with arbitrary subdivision
             this.core.Append(m);
             this.core.Flip(true, true, true);
 
-            double minRad = Math.Sqrt(2 * (sizeInnerRect * sizeInnerRect))*1.1; // *1.1 to account for collapsing face on boundary
+            double minRad = Math.Sqrt(2 * (sizeInnerRect * sizeInnerRect)) * 1.1; // *1.1 to account for collapsing face on boundary
             double circRad = circleRadius;
             if (circleRadius < minRad) circRad = minRad;
 
-            var cellSizeCore =2*( sizeInnerRect / divisions);
+            var cellSizeCore = 2 * (sizeInnerRect / divisions);
             //Math.Abs was just a workaround fix
             this.cellDivisionsPerim = Math.Abs((int)Math.Round((circRad - (2 * sizeInnerRect)) / cellSizeCore));
-            
+
 
             // divisionsZ must be min 1
 
@@ -237,12 +249,12 @@ namespace EddyLib
                 pointsOnCircle.Add(p1);
             }
 
-           
-          
+
+
             this.coreTop.Append(m);
             this.coreTop.Translate(Vector3d.ZAxis * height);
 
-            
+
             this.perim = PerimeterRing(poly, pointsOnCircle);
             //perimTop = new Mesh();
             this.perimTop.Append(perim);
@@ -270,7 +282,7 @@ namespace EddyLib
             this.DomainMesh.Normals.ComputeNormals();
 
             this.DomainMesh.Weld(Math.PI);
-            
+
             //stringifyBlocks2(perim, core, perimTop, coreTop, divisionsY, divisionsZ);
             //stringyfyVertexList2(outMesh);
             //stringifyPatches2(outMesh);
@@ -407,8 +419,8 @@ namespace EddyLib
         //    DomainMeshGround.Vertices.CullUnused();
 
         //}
-                
-               
+
+
         public List<Point3d> MakeCylMeshPoints5deg(Point3d center, double radius, double height, double scaleFactorInnerRect = 0.5)
         {
 
@@ -650,7 +662,7 @@ mergePatchPairs
 
         }
 
-        
+
 
         private static string stringyfyBoundaries(Mesh m, List<int> outletFaceID, List<int> inletFaceID, List<int> topFaceID, List<int> bottomFaceID)
         {
@@ -3425,11 +3437,11 @@ mergePatchPairs
             for (int i = 0; i < pt.Count - 1; i++)
             {
                 m.Vertices.Add(pt[i]);
-                m.Vertices.Add(pt[i] + Vector3d.ZAxis * h);   
-                
+                m.Vertices.Add(pt[i] + Vector3d.ZAxis * h);
+
                 m.Vertices.Add(pt[i + 1] + Vector3d.ZAxis * h);
-                m.Vertices.Add(pt[i + 1]);        
-                
+                m.Vertices.Add(pt[i + 1]);
+
 
                 m.Faces.AddFace(new MeshFace(vcount, vcount + 1, vcount + 2, vcount + 3));
                 vcount += 4;
@@ -3462,24 +3474,25 @@ mergePatchPairs
             int c2 = this.perim.Faces.Count + this.core.Faces.Count + this.perimTop.Faces.Count;
             // counter for cores and perimeters
             int c3 = this.perim.Faces.Count + this.core.Faces.Count;
-            
-            for (int i = 0; i < this.perim.Faces.Count; i++)  {       
+
+            for (int i = 0; i < this.perim.Faces.Count; i++)
+            {
                 //perimeter blocks
-                 //Changed order because we had to flip core mesh plane
-                sb.AppendLine("hex (" + this.DomainMesh.Faces[i].A + " " + this.DomainMesh.Faces[i].D + " " + this.DomainMesh.Faces[i].C + " " + this.DomainMesh.Faces[i].B + " " + 
-                    ((this.DomainMesh.Faces[i+c3].A )) + " " + (this.DomainMesh.Faces[i+c3].B )+ " " + (this.DomainMesh.Faces[i+c3].C ) + " " + 
-                    (this.DomainMesh.Faces[i+c3].D ) + ") (" +this.divisionsX  + " " + (this.cellDivisionsPerim) + " " + this.divisionsZ + ") simpleGrading (1 "+this.gradingPerim +" 1)");
-                
+                //Changed order because we had to flip core mesh plane
+                sb.AppendLine("hex (" + this.DomainMesh.Faces[i].A + " " + this.DomainMesh.Faces[i].D + " " + this.DomainMesh.Faces[i].C + " " + this.DomainMesh.Faces[i].B + " " +
+                    ((this.DomainMesh.Faces[i + c3].A)) + " " + (this.DomainMesh.Faces[i + c3].B) + " " + (this.DomainMesh.Faces[i + c3].C) + " " +
+                    (this.DomainMesh.Faces[i + c3].D) + ") (" + this.divisionsX + " " + (this.cellDivisionsPerim) + " " + this.divisionsZ + ") simpleGrading (1 " + this.gradingPerim + " 1)");
+
             }
             sb.AppendLine("//core");
             for (int i = 0; i < this.core.Faces.Count; i++)
             {   //core blocks //Changed order because we had to flip core mesh plane
-                sb.AppendLine("hex (" + this.DomainMesh.Faces[i+c1].A + " " + this.DomainMesh.Faces[i+c1].D + " " + this.DomainMesh.Faces[i+c1].C + " " + this.DomainMesh.Faces[i+c1].B + " " + 
-                    ((this.DomainMesh.Faces[i+c2].A )) + " " + (this.DomainMesh.Faces[i+c2].B )+ " " + (this.DomainMesh.Faces[i+c2].C ) + " " + 
-                    (this.DomainMesh.Faces[i+c2].D ) + ") (" +this.divisionsX  + " " + this.divisionsX + " " + this.divisionsZ + ") simpleGrading (1 1 1)");
-   
+                sb.AppendLine("hex (" + this.DomainMesh.Faces[i + c1].A + " " + this.DomainMesh.Faces[i + c1].D + " " + this.DomainMesh.Faces[i + c1].C + " " + this.DomainMesh.Faces[i + c1].B + " " +
+                    ((this.DomainMesh.Faces[i + c2].A)) + " " + (this.DomainMesh.Faces[i + c2].B) + " " + (this.DomainMesh.Faces[i + c2].C) + " " +
+                    (this.DomainMesh.Faces[i + c2].D) + ") (" + this.divisionsX + " " + this.divisionsX + " " + this.divisionsZ + ") simpleGrading (1 1 1)");
+
             }
-            
+
             return sb.ToString();
         }
 
@@ -3497,14 +3510,14 @@ mergePatchPairs
         type patch;
         faces
         (");
-                sb.AppendLine("(" + this.DomainMesh.Faces[i+counter].A + " " + this.DomainMesh.Faces[i+counter].B + " " + this.DomainMesh.Faces[i+counter].C + " " + this.DomainMesh.Faces[i+counter].D + ")");
+                sb.AppendLine("(" + this.DomainMesh.Faces[i + counter].A + " " + this.DomainMesh.Faces[i + counter].B + " " + this.DomainMesh.Faces[i + counter].C + " " + this.DomainMesh.Faces[i + counter].D + ")");
                 sb.AppendLine(@");
         }");
             }
 
             return sb.ToString();
         }
-        private  string stringyfyVertexList2()
+        private string stringyfyVertexList2()
         {
             System.Text.StringBuilder stb = new System.Text.StringBuilder();
 
@@ -3521,23 +3534,23 @@ mergePatchPairs
 
             int c1 = this.perimTop.Faces.Count + this.coreTop.Faces.Count;
             int c2 = this.perim.Faces.Count + this.core.Faces.Count + this.perimTop.Faces.Count;
-                    sb.AppendLine(@"top
+            sb.AppendLine(@"top
 {
 type symmetry;
 faces
 (");
-            for (int i = 0; i <  this.perimTop.Faces.Count; i++)
+            for (int i = 0; i < this.perimTop.Faces.Count; i++)
             {
-                sb.AppendLine("(" + this.DomainMesh.Faces[i+c1].A + " " + this.DomainMesh.Faces[i+c1].B + " " + this.DomainMesh.Faces[i+c1].C + " " + this.DomainMesh.Faces[i+c1].D + ")");                   
+                sb.AppendLine("(" + this.DomainMesh.Faces[i + c1].A + " " + this.DomainMesh.Faces[i + c1].B + " " + this.DomainMesh.Faces[i + c1].C + " " + this.DomainMesh.Faces[i + c1].D + ")");
             }
-            for (int i = 0; i <  this.coreTop.Faces.Count; i++)
+            for (int i = 0; i < this.coreTop.Faces.Count; i++)
             {
-                sb.AppendLine("(" + this.DomainMesh.Faces[i+c2].A + " " + this.DomainMesh.Faces[i+c2].B + " " + this.DomainMesh.Faces[i+c2].C + " " + this.DomainMesh.Faces[i+c2].D + ")");                   
+                sb.AppendLine("(" + this.DomainMesh.Faces[i + c2].A + " " + this.DomainMesh.Faces[i + c2].B + " " + this.DomainMesh.Faces[i + c2].C + " " + this.DomainMesh.Faces[i + c2].D + ")");
             }
             sb.AppendLine(@");
         }");
             return sb.ToString();
-        } 
+        }
 
         private string stringifyGround2()
         {
@@ -3546,21 +3559,21 @@ faces
             int c1 = this.perim.Faces.Count + this.core.Faces.Count;
             //int c2 = this.perim.Faces.Count + this.core.Faces.Count + this.perimTop.Faces.Count + this.coreTop.Faces.Count;
 
-             sb.AppendLine(@"ground
+            sb.AppendLine(@"ground
 {
 type wall;
 faces
 (");
             for (int i = 0; i < c1; i++)
             {
-               sb.AppendLine("(" + this.DomainMesh.Faces[i].A + " " + this.DomainMesh.Faces[i].B + " " + this.DomainMesh.Faces[i].C + " " + this.DomainMesh.Faces[i].D + ")");               
+                sb.AppendLine("(" + this.DomainMesh.Faces[i].A + " " + this.DomainMesh.Faces[i].B + " " + this.DomainMesh.Faces[i].C + " " + this.DomainMesh.Faces[i].D + ")");
             }
-            
+
             sb.AppendLine(@");
-        }"); 
+        }");
             return sb.ToString();
-        } 
-        
+        }
+
         public string stringyfyDomain2()
         {
             StringBuilder sb = new StringBuilder();
@@ -3648,7 +3661,7 @@ mergePatchPairs
             // return base.ToString();
         }
 
-        
+
     }
 
 }

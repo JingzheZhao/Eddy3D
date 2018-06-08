@@ -43,7 +43,7 @@ namespace Eddy
             pManager.AddIntegerParameter("iterations", "iter", "Specify the number of iterations.", GH_ParamAccess.item, 1000);
             pManager.AddIntegerParameter("writeInterval", "writeInterval", "writeInterval.", GH_ParamAccess.item, 20);
             pManager.AddIntegerParameter("keepTimeSteps", "keepTimeSteps", "keepTimeSteps.", GH_ParamAccess.item, 2);
-            
+
             pManager.AddIntegerParameter("Mode", "Mode", "Robustness of the solver", GH_ParamAccess.item, 0);
             Param_Integer param = pManager[4] as Param_Integer;
             param.AddNamedValue("quick", 0);
@@ -125,50 +125,60 @@ namespace Eddy
 
 
 
-            
 
-                for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
+
+            for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
+            {
+
+                var simStlDir = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\constant\triSurface\";
+                var simStlFilenameBuildings = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\constant\triSurface\building.stl";
+                var simStlFilenameGround = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\constant\triSurface\ground.stl";
+
+                if (!Directory.Exists(simStlDir))
                 {
-
-                    var simStlDir = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\constant\triSurface\";
-                    var simStlFilenameBuildings = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\constant\triSurface\building.stl";
-                    var simStlFilenameGround = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\constant\triSurface\ground.stl";
-
-                    if (!Directory.Exists(simStlDir))
-                    {
-                        Directory.CreateDirectory(simStlDir);
-                    }
+                    Directory.CreateDirectory(simStlDir);
+                }
 
 
-                    string simConstantDir = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\constant\";
-                    string simBoundaryConditionsDir = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\0.org\";
+                string simConstantDir = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\constant\";
+                string simBoundaryConditionsDir = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\0.org\";
 
-                    if (!Directory.Exists(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\"))
-                    {
-                        Directory.CreateDirectory(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\");
-                    }
-                    if (!Directory.Exists(simConstantDir))
-                    {
-                        Directory.CreateDirectory(simConstantDir);
-                    }
-                    if (!Directory.Exists(simBoundaryConditionsDir))
-                    {
-                        Directory.CreateDirectory(simBoundaryConditionsDir);
-                    }
+                if (!Directory.Exists(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\"))
+                {
+                    Directory.CreateDirectory(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\");
+                }
+                if (!Directory.Exists(simConstantDir))
+                {
+                    Directory.CreateDirectory(simConstantDir);
+                }
+                if (!Directory.Exists(simBoundaryConditionsDir))
+                {
+                    Directory.CreateDirectory(simBoundaryConditionsDir);
+                }
 
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\" + "controlDict"), StringTemplates.controlDict(DOM, null,i));
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\case.foam"),"");
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\" + "controlDict"), StringTemplates.controlDict(DOM, null, i));
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\case.foam"), "");
 
                 if (DOM is OFBoxDomain)
                 {
-                    File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), BoundaryConditionTemplates.U(DOM, i));
+                    if (DOM.BCInflow.btype is BoundaryType.abl)
+                    {
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), BoundaryConditionTemplates.UBoxABL(DOM, i));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions(DOM, i));
+                    }
+                    if (DOM.BCInflow.btype is BoundaryType.constant) { File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), BoundaryConditionTemplates.UBoxConstU(DOM, i)); }
+
+                    //REmove this later
+                    File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions_Cyl(DOM, i));
+                    //REmove this later
+
                     File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "p"), BoundaryConditionTemplates.P(DOM));
                     File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "omega"), BoundaryConditionTemplates.Omega(DOM));
                     File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "k"), BoundaryConditionTemplates.K(DOM));
                     File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "epsilon"), BoundaryConditionTemplates.Epsilon(DOM));
                     File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "nut"), BoundaryConditionTemplates.Nut(DOM));
 
-                    File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions(DOM, i));
+
                     File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions(DOM, i));
 
                     File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\snappyHexMeshDict"), StringTemplates.snappyHexMeshDict(DOM));
@@ -180,40 +190,50 @@ namespace Eddy
                 }
                 else
                 {
-                    File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), BoundaryConditionTemplates.U_Cyl(DOM, i));
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "p"), BoundaryConditionTemplates.P_Cyl(DOM, i));
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "omega"), BoundaryConditionTemplates.Omega_Cyl(DOM, i));
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "k"), BoundaryConditionTemplates.K_Cyl(DOM, i));
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "epsilon"), BoundaryConditionTemplates.Epsilon_Cyl(DOM, i));
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "nut"), BoundaryConditionTemplates.Nut_Cyl(DOM, i));
-
+                    if (DOM.BCInflow.btype is BoundaryType.abl)
+                    {
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), BoundaryConditionTemplates.U_CylABL(DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions_Cyl(DOM, i));
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions(DOM, i));
-                        
-                        File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\snappyHexMeshDict"), StringTemplates.snappyHexMeshDict(DOM));
-                        File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\surfaceFeatureExtractDict"), StringTemplates.surfaceFeatureExtractDict());
-                        File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\fvSchemes"), StringTemplates.fvSchemes());
-                        File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\fvSolution"), StringTemplates.fvSolution(0));
-                        File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\meshQualityDict"), StringTemplates.meshQualityDict());
-                        File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\residuals"), StringTemplates.residuals());
+                    }
+                    if (DOM.BCInflow.btype is BoundaryType.constant) { File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), BoundaryConditionTemplates.UCylConstU(DOM, i)); }
+
+                    //REmove this later
+                    File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions_Cyl(DOM, i));
+                    //REmove this later
+
+                    File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "p"), BoundaryConditionTemplates.P_Cyl(DOM, i));
+                    File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "omega"), BoundaryConditionTemplates.Omega_Cyl(DOM, i));
+                    File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "k"), BoundaryConditionTemplates.K_Cyl(DOM, i));
+                    File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "epsilon"), BoundaryConditionTemplates.Epsilon_Cyl(DOM, i));
+                    File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "nut"), BoundaryConditionTemplates.Nut_Cyl(DOM, i));
+
+
+                    File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions(DOM, i));
+
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\snappyHexMeshDict"), StringTemplates.snappyHexMeshDict(DOM));
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\surfaceFeatureExtractDict"), StringTemplates.surfaceFeatureExtractDict());
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\fvSchemes"), StringTemplates.fvSchemes());
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\fvSolution"), StringTemplates.fvSolution(0));
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\meshQualityDict"), StringTemplates.meshQualityDict());
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\residuals"), StringTemplates.residuals());
 
 
 
                 }
 
-                    //Constant folder
-                    File.WriteAllText(Path.Combine(simConstantDir + "turbulenceProperties"), StringTemplates.turbulenceProperties());
-                    File.WriteAllText(Path.Combine(simConstantDir + "transportProperties"), StringTemplates.transportProperties());
-                
-                    // Symbolic dir junctions
-                    SymlinkCreator.Create(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\constant\polyMesh\", DOM.meshConstantDirectory + @"\polyMesh\");
+                //Constant folder
+                File.WriteAllText(Path.Combine(simConstantDir + "turbulenceProperties"), StringTemplates.turbulenceProperties());
+                File.WriteAllText(Path.Combine(simConstantDir + "transportProperties"), StringTemplates.transportProperties());
 
-                }
+                // Symbolic dir junctions
+                SymlinkCreator.Create(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\constant\polyMesh\", DOM.meshConstantDirectory + @"\polyMesh\");
+
+            }
 
 
-                //Batch files
+            //Batch files
 
-                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_mesh.bat"), StringTemplates.run_mesh(DOM));
+            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_mesh.bat"), StringTemplates.run_mesh(DOM));
 
 
             File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run.bat"), StringTemplates.run(DOM));
@@ -225,9 +245,9 @@ namespace Eddy
 
 
             for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
-                {
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + "_run_sim.bat"), StringTemplates.run_sim(DOM, i));
-                }
+            {
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + "_run_sim.bat"), StringTemplates.run_sim(DOM, i));
+            }
 
 
 

@@ -68,7 +68,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-           // pManager.AddGenericParameter("Result", "Out", "Result", GH_ParamAccess.tree);
+            //pManager.AddGenericParameter("Result", "Out", "Result", GH_ParamAccess.list);
             //pManager.AddGenericParameter("Result", "Out", "Result", GH_ParamAccess.tree);
         }
 
@@ -106,11 +106,34 @@ namespace Eddy
             DA.GetData(2, ref mode);
             //DA.GetData(3, ref run);
 
+
+
+            // Inclusion check for probes
+
+            // Filter the list
+            int kept = 0;
+            for (int i = 0; i < listOfPoints.Count; i++)
+            {
+                // Test whether this is an element that we want to keep.
+                if (DOM.inputBreps.IsPointInside(listOfPoints[i], 0.01, true) == false)
+                {
+                    // Add it to the list of kept elements.
+                    listOfPoints[kept] = listOfPoints[i];
+                    kept++;
+                }
+            }
+            // Unfortunately IList has no Resize method. So instead we
+            // remove the last element of the list until: elements.Count == kept.
+            while (kept < listOfPoints.Count) listOfPoints.RemoveAt(listOfPoints.Count - 1);
+
+
+            var numberOfProbes = listOfPoints.Count();
+
             // Error handling
 
-            if (listOfPoints.Count() < 1)
+            if (numberOfProbes < 1)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You need to pass a list of points to the component.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You need to pass a list of point to the component.");
 
             }
 
@@ -125,17 +148,22 @@ namespace Eddy
 
 
 
-            if (listOfPoints.Count() > 0)
+            
+
+
+            if (numberOfProbes > 0)
             {
 
                 cpTree = new DataTree<double>();
                 uTree = new DataTree<Vector3d>();
 
+                
+
 
                 if (mode == 0) // cp
                 {
 
-                   
+
 
                     string pointName = "cp_Probes";
                     //string OFfield = "total(p)_coeff";
@@ -146,11 +174,11 @@ namespace Eddy
                         File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + "controlDict", StringTemplates.controlDict(DOM, null, i));
                         File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, mode));
 
-                    
+
 
                     }
 
-     
+
 
 
                 }
@@ -159,7 +187,7 @@ namespace Eddy
                 {
 
 
-                 
+
                     string pointName = "U_Probes";
                     //string OFfield = "U";
 
@@ -171,19 +199,18 @@ namespace Eddy
 
                         File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, mode));
 
-              
+
 
                     }
 
-           
+
 
 
 
                 }
             }
 
-       
-
+            
         }
 
 

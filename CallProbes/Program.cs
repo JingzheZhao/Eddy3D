@@ -25,10 +25,10 @@ namespace CallProbes
                 if (!Directory.Exists(options.workingDir))  { Console.WriteLine(options.workingDir + " not found. Exiting"); return; } 
 
 
-                    double URef = 0.0;
+                double URef = 0.0;
                 double zref = 0.0;
                 double z0 = 0.0;
-                var pedestrianHeight = 1.5;
+                
                 try
                 {
                     var filePath = options.workingDir + "\\" + options.windDirs.Split(',')[0] + @"\0.org\ABLConditions";
@@ -48,7 +48,7 @@ namespace CallProbes
                 }
                 catch (Exception e) { Console.WriteLine(e.Message); return; }
 
-                var UPedestrianHeight = ((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((pedestrianHeight + z0) / z0);
+                
 
                 var windDirs = options.windDirs.Split(',');
                 var numberOfWindDirs = windDirs.Length;
@@ -90,7 +90,8 @@ namespace CallProbes
 
                             //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + "controlDict", StringTemplates.controlDict(DOM, null, i));
                             //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, options.mode));
-                            command.Append(@"postProcess -case " + windDirs[i] + " -func " + pointName + @" -latestTime;");
+                            command.Append(@"postProcess -case " + windDirs[i] + " -func " + pointName + @" -newTimes | tee -a " + windDirs[i] + @"/log_probes;");
+                            
 
 
                         }
@@ -101,6 +102,8 @@ namespace CallProbes
                         p.Start();
                         p.WaitForExit();
                         //p.Close();
+
+                        Thread.Sleep(2 * probes.GetLength(0) * numberOfWindDirs);
 
 
                         for (int i = 0; i < numberOfWindDirs; i++)
@@ -134,7 +137,7 @@ namespace CallProbes
                             // Write the dicts
 
                             //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, options.mode));
-                            command.Append(@"postProcess -case " + windDirs[i] + " -func " + pointName + @" -latestTime;");
+                            command.Append(@"postProcess -case " + windDirs[i] + " -func " + pointName + @" -newTimes | tee -a " + windDirs[i] + @"/log_probes;");
 
 
                         }
@@ -146,8 +149,10 @@ namespace CallProbes
                         p.WaitForExit();
                         //p.Close();
 
+                        // Issue
+                        // Could not find a part of the path 'C:\temp\0\PostProcessing\U_Probes'.
 
-                        //Thread.Sleep(2 * probes.GetLength(0));
+                        Thread.Sleep(2 * probes.GetLength(0)* numberOfWindDirs);
 
 
                         for (int i = 0; i < numberOfWindDirs; i++)
@@ -236,7 +241,16 @@ namespace CallProbes
                         File.WriteAllText(options.workingDir + @"\UData.csv", UFile.ToString());
 
                         //Write Reduction Array to file
+
                         Console.WriteLine("Write Reduction Array");
+
+
+                        // Calculate the undisturbed velocity at probing height !!!This only makes sense for horizontal slices!!!
+
+
+                        var probingHeight = pointList[0].Z;
+                        var UProbingHeight = ((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((probingHeight + z0) / z0);
+
 
                         System.Text.StringBuilder ReductionFile = new System.Text.StringBuilder();
 
@@ -250,7 +264,7 @@ namespace CallProbes
                         {
                             for (int c = 0; c < numberOfWindDirs; c++)
                             {
-                                ReductionFile.Append(String.Format("{0:0.###}",Math.Round(Math.Sqrt(Math.Pow(listOfAnnualData[c][r].X, 2) + Math.Pow(listOfAnnualData[c][r].Y, 2) + Math.Pow(listOfAnnualData[c][r].Z, 2)) / UPedestrianHeight, 3)) + ",");
+                                ReductionFile.Append(String.Format("{0:0.###}",Math.Round(Math.Sqrt(Math.Pow(listOfAnnualData[c][r].X, 2) + Math.Pow(listOfAnnualData[c][r].Y, 2) + Math.Pow(listOfAnnualData[c][r].Z, 2)) / UProbingHeight, 3)) + ",");
                             }
                             ReductionFile.AppendLine("");
                         }

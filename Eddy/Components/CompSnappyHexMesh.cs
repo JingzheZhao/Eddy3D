@@ -45,6 +45,14 @@ namespace Eddy
             pManager.AddIntegerParameter("accRefinement", "accRefinement", "accRefinement", GH_ParamAccess.item, 0);
             pManager.AddIntegerParameter("accGround", "accGround", "Specify accuracy of mesh", GH_ParamAccess.item, 2);
             pManager.AddIntegerParameter("nLayer", "nLayer", "nLayer", GH_ParamAccess.item, 3);
+            pManager.AddIntegerParameter("Mode", "Mode", @"Mode: 
+0: No snapping, no layers
+1: With Snapping, no layers
+2: With Snapping, with layers", GH_ParamAccess.item, 2);
+            Param_Integer param = pManager[3] as Param_Integer;
+            param.AddNamedValue("No snapping, no layers", 0);
+            param.AddNamedValue("With Snapping, no layers", 1);
+            param.AddNamedValue("With Snapping, with layers", 2);
             pManager.AddBooleanParameter("Run", "Run", "Create the mesh.", GH_ParamAccess.item, false);
 
         }
@@ -138,6 +146,8 @@ namespace Eddy
             int accRefinement = 3;
             int accGround = 3;
             int nLayers = 3;
+            int mode = 2;
+            
 
 
             DA.GetData(1, ref accBuilding);
@@ -145,7 +155,8 @@ namespace Eddy
             DA.GetData(3, ref accRefinement);
             DA.GetData(4, ref accGround);
             DA.GetData(5, ref nLayers);
-            DA.GetData(6, ref Run);
+            DA.GetData(6, ref mode);
+            DA.GetData(7, ref Run);
 
             DOM.accBuildings = accBuilding;
             DOM.accFeatures = accFeatures;
@@ -157,6 +168,8 @@ namespace Eddy
             DOM.iter = 1000;
             DOM.writeInterval = 10;
             DOM.keepTimeSteps = 2;
+
+            DOM.meshingMode = mode;
 
 
 

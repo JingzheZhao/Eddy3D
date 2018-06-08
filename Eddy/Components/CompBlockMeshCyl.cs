@@ -63,7 +63,7 @@ namespace Eddy
             pManager.AddIntegerParameter("divisionsOuterCirc", "divisionsOuterCirc", "divisionsOuterCirc", GH_ParamAccess.item, 1);
             pManager.AddNumberParameter("gradingPerim", "gradingPerim", "gradingPerim", GH_ParamAccess.item, 1);
 
-            pManager.AddNumberParameter("sizeInnerR", "sizeInnerR", "sizeInnerR", GH_ParamAccess.item);
+            pManager.AddNumberParameter("sizeInnerR", "sizeInnerR", "sizeInnerR", GH_ParamAccess.item, 0);
             pManager.AddNumberParameter("sizeOuterR", "sizeOuterR", "sizeOuterR", GH_ParamAccess.item, 0);
             pManager.AddNumberParameter("sizeHeight", "sizeHeight", "sizeHeight", GH_ParamAccess.item, 0);
 
@@ -139,7 +139,7 @@ namespace Eddy
             double windDir = 0;
             int divisionsOuterCirc = 1;
             double gradingPerim = 1;
-            double sizeInnerRect = 0.5; //Percentage!
+            double sizeInnerRect = 0; 
             double sizeOuterCirc = 0;
             double sizeHeight = 0;
 
@@ -210,6 +210,20 @@ namespace Eddy
 
             }
 
+            
+
+            // Those Breps are currently necessary to perform the point inclusion check for the probing components
+
+            Brep inputBreps = new Brep();
+
+            foreach (GeometryBase g in domain)
+            {
+
+                inputBreps.Append(Brep.TryConvertBrep(g));
+            }
+            
+
+
             //Fix paths
 
             baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
@@ -217,7 +231,7 @@ namespace Eddy
 
             if (Utilities.CheckLicence() == true)
             {
-                OFCylDomain DOMCYL = new OFCylDomain(combinedMeshes, BCond, divisionsOuterCirc, gradingPerim, windDir, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory);
+                OFCylDomain DOMCYL = new OFCylDomain(inputBreps, combinedMeshes, BCond, divisionsOuterCirc, gradingPerim, windDir, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory);
 
 
                 //if (Settings.getCurrentRAM() != RAM)
