@@ -1,0 +1,25 @@
+<project outputDir="C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\Confused" baseDir="C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel" xmlns="http://confuser.codeplex.com">
+  <module path="Eddy\bin\CallOF.exe" />
+  <module path="Eddy\bin\CallOF.exe.config" />
+  <module path="Eddy\bin\CallOF.pdb" />
+  <module path="Eddy\bin\CallProbes.exe" />
+  <module path="Eddy\bin\CallProbes.exe.config" />
+  <module path="Eddy\bin\CallProbes.pdb" />
+  <module path="Eddy\bin\CallRay.exe" />
+  <module path="Eddy\bin\CallRay.exe.config" />
+  <module path="Eddy\bin\CallRay.pdb" />
+  <module path="Eddy\bin\CommandLine.dll" />
+  <module path="Eddy\bin\CommandLine.xml" />
+  <module path="Eddy\bin\ConsoleAppLauncher.dll" />
+  <module path="Eddy\bin\Eddy.gha" />
+  <module path="Eddy\bin\Eddy.pdb" />
+  <module path="Eddy\bin\EddyLib.dll" />
+  <module path="Eddy\bin\EddyLib.pdb" />
+  <module path="Eddy\bin\RhinoCommon.dll" />
+  <module path="Eddy\bin\CallBatchRunner.exe" />
+  <module path="Eddy\bin\CallBatchRunner.exe.config" />
+  <module path="Eddy\bin\CallBatchRunner.pdb" />
+  <module path="Eddy\bin\CallOC.exe" />
+  <module path="Eddy\bin\CallOC.exe.config" />
+  <module path="Eddy\bin\CallOC.pdb" />
+</project>

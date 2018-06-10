@@ -25,9 +25,9 @@ namespace CallProbes
                 if (!Directory.Exists(options.workingDir))  { Console.WriteLine(options.workingDir + " not found. Exiting"); return; } 
 
 
-                double URef = 0.0;
-                double zref = 0.0;
-                double z0 = 0.0;
+                double URef = 5;
+                double zref = 10;
+                double z0 = 1;
                 
                 try
                 {

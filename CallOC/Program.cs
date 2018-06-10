@@ -39,6 +39,13 @@ namespace CallOC
 
                         Console.WriteLine("Working directory: {0}", options.workingDir);
                         errorLog.AppendLine(String.Format("Working directory: {0}", options.workingDir));
+
+                        if (options.hourandpoint != null)
+                        {
+                            Console.WriteLine("Debugging: {0}", options.hourandpoint);
+                            errorLog.AppendLine(String.Format("Debugging: {0}", options.hourandpoint));
+                        }
+                        
                     }
 
 
@@ -158,6 +165,13 @@ namespace CallOC
 
                     var numberOfWindDirs = windDirList.Count;
 
+                    int[] debug = new int[2];
+
+
+                    for (int i = 0; i < 2; i++)
+                    {
+                        debug[i] = int.Parse(options.hourandpoint.Split(',')[i]);
+                    }
 
 
 
@@ -262,27 +276,27 @@ namespace CallOC
                               double utci_temp = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], windReduction[i, j] * WindSpeed[i], mrt);
                               Utci[i, j] = utci_temp;
 
-                                  //double cOfPerson = 0;
+                              //double cOfPerson = 0;
 
-                                  //if (utci_temp < -40) cOfPerson = -5;
-                                  //else if ((-40 <= utci_temp) && (utci_temp < -27)) cOfPerson = -4;
-                                  //else if ((-27 <= utci_temp) && (utci_temp < -13)) cOfPerson = -3;
-                                  //else if ((-13 <= utci_temp) && (utci_temp < 0)) cOfPerson = -2;
-                                  //else if ((0 <= utci_temp) && (utci_temp < 9)) cOfPerson = -1;
-                                  //else if ((9 <= utci_temp) && (utci_temp < 26)) cOfPerson = 0;
-                                  //else if ((26 <= utci_temp) && (utci_temp < 28)) cOfPerson = 1;
-                                  //else if ((28 <= utci_temp) && (utci_temp < 32)) cOfPerson = 2;
-                                  //else if ((32 <= utci_temp) && (utci_temp < 38)) cOfPerson = 3;
-                                  //else if ((38 <= utci_temp) && (utci_temp < 46)) cOfPerson = 4;
-                                  //else cOfPerson = 5;
+                              //if (utci_temp < -40) cOfPerson = -5;
+                              //else if ((-40 <= utci_temp) && (utci_temp < -27)) cOfPerson = -4;
+                              //else if ((-27 <= utci_temp) && (utci_temp < -13)) cOfPerson = -3;
+                              //else if ((-13 <= utci_temp) && (utci_temp < 0)) cOfPerson = -2;
+                              //else if ((0 <= utci_temp) && (utci_temp < 9)) cOfPerson = -1;
+                              //else if ((9 <= utci_temp) && (utci_temp < 26)) cOfPerson = 0;
+                              //else if ((26 <= utci_temp) && (utci_temp < 28)) cOfPerson = 1;
+                              //else if ((28 <= utci_temp) && (utci_temp < 32)) cOfPerson = 2;
+                              //else if ((32 <= utci_temp) && (utci_temp < 38)) cOfPerson = 3;
+                              //else if ((38 <= utci_temp) && (utci_temp < 46)) cOfPerson = 4;
+                              //else cOfPerson = 5;
 
 
-                                  //conditionOfPerson[i, j] = cOfPerson;
+                              //conditionOfPerson[i, j] = cOfPerson;
 
-                              }
-                              // Console.WriteLine("Sensor " + j + " done.");
-                              //  }
-                          });
+                          }
+                          // Console.WriteLine("Sensor " + j + " done.");
+                          //  }
+                      });
 
 
 
@@ -297,8 +311,8 @@ namespace CallOC
                     {
                         Console.WriteLine("Compute time: " + sw.ElapsedMilliseconds / 1000 + " s or ca. " + sw.ElapsedMilliseconds / 1000 / 60 + " min");
                     }
-               
-                    
+
+
 
                     Console.WriteLine("Writing UTCI results...");
 
@@ -320,23 +334,23 @@ namespace CallOC
                     //Write Debug info to file
                     StringBuilder sbUtciDEBUG = new StringBuilder();
 
-                    sbUtciDEBUG.AppendLine(@"UTCI for sensor point 0 over all hours of the year.");
-                    
+                    sbUtciDEBUG.AppendLine(@"UTCI for sensor point " + debug[1] + " over all hours of the year.");
+
                     for (int i = 0; i < 8760; i++)
                     {
 
-                        sbUtciDEBUG.Append(String.Format("{0:0}", Utci[i, 0]) + ",");
+                        sbUtciDEBUG.Append(String.Format("{0:0}", Utci[i, debug[1]]) + ",");
                     }
-                    sbUtciDEBUG.AppendLine("Detailed Values for sensor point 0 at hour 0:");
-                    sbUtciDEBUG.AppendLine("Air temperature: " + DryBulbTemp[0]);
-                    sbUtciDEBUG.AppendLine("MRT: " + UTCI.GetMRT2(DryBulbTemp[0], RelativeHumidity[0], DiffRad[0][0], DirRad[0][0], SolarElevation[0], DryBulbTemp[0], Wst, Hst, BodyA, GrRef, 0.95)[0]);
-                    sbUtciDEBUG.AppendLine("Vapour pressure: " + Pressure[0]);
-                    sbUtciDEBUG.AppendLine("Relative humidity: " + RelativeHumidity[0]);
-                    sbUtciDEBUG.AppendLine("Wind reduction: " + windReduction[0, 0]);
-                 
-                    sbUtciDEBUG.AppendLine("Wind speed: " + WindSpeed[0]);
-                    
-                    sbUtciDEBUG.AppendLine("UTCI: " + String.Format("{0:0.##}", Utci[0, 0]));
+                    sbUtciDEBUG.AppendLine("Detailed Values for sensor point " + debug[1] + " at hour " + debug[0] + ":");
+                    sbUtciDEBUG.AppendLine("Air temperature: " + DryBulbTemp[debug[0]]);
+                    sbUtciDEBUG.AppendLine("MRT: " + UTCI.GetMRT2(DryBulbTemp[debug[0]], RelativeHumidity[debug[0]], DiffRad[debug[0]][0], DirRad[debug[0]][0], SolarElevation[debug[0]], DryBulbTemp[debug[0]], Wst, Hst, BodyA, GrRef, 0.95)[0]);
+                    sbUtciDEBUG.AppendLine("Vapour pressure: " + Pressure[debug[0]]);
+                    sbUtciDEBUG.AppendLine("Relative humidity: " + RelativeHumidity[debug[0]]);
+                    sbUtciDEBUG.AppendLine("Wind reduction: " + windReduction[debug[0], debug[1]]);
+
+                    sbUtciDEBUG.AppendLine("Wind speed: " + WindSpeed[debug[0]]);
+
+                    sbUtciDEBUG.AppendLine("UTCI: " + String.Format("{0:0.##}", Utci[debug[0], debug[1]]));
                     sbUtciDEBUG.AppendLine("");
                     File.WriteAllText(options.workingDir + @"\UTCI_debug.csv", sbUtciDEBUG.ToString());
 
@@ -406,6 +420,9 @@ namespace CallOC
         HelpText = "Prints all messages to standard output.")]
         public bool Verbose { get; set; }
 
+        [Option('b', "debug",
+        HelpText = "Select hour and probe for debugging as comma separated string -> 23,50 meaning 23rd hour for probe 50 ")]
+        public string hourandpoint { get; set; }
 
 
         [ParserState]
