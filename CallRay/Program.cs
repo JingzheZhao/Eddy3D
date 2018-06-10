@@ -14,32 +14,44 @@ namespace CallRay
     {
         static void Main(string[] args)
         {
-            var options = new Options();
-            if (CommandLine.Parser.Default.ParseArguments(args, options))
+
+            // Check licence
+
+            if (Utilities.CheckLicence() == true)
             {
 
+                var options = new Options();
+                if (CommandLine.Parser.Default.ParseArguments(args, options))
+                {
 
-                string weaFileName = Path.GetFileName(options.weather) + ".wea";
-                Console.WriteLine(options.workingDir);
-                Console.WriteLine(weaFileName);
 
-                Daysim.Epw2Wea(options.weather, options.workingDir+@"\Rad");
+                    string weaFileName = Path.GetFileName(options.weather) + ".wea";
+                    Console.WriteLine(options.workingDir);
+                    Console.WriteLine(weaFileName);
 
-                DaysimSettings set = new DaysimSettings();
-                set.AB = 1;
-                set.WorkDir = options.workingDir + @"\Rad";
+                    Daysim.Epw2Wea(options.weather, options.workingDir + @"\Rad");
 
-                Daysim.RunDaysim( set);
+                    DaysimSettings set = new DaysimSettings();
+                    set.AB = 1;
+                    set.WorkDir = options.workingDir + @"\Rad";
 
-                //RadianceFiles.saveILLBin(options.workingDir + @"\Rad\CallRay.dir.ill");
-                //RadianceFiles.saveILLBin(options.workingDir + @"\Rad\CallRay.dif.ill");
+                    Daysim.RunDaysim(set);
 
-                ////var data1 = RadianceFiles.loadILL(options.workingDir + @"\Rad\CallRay.dir.ill");
-                ////var data2 = RadianceFiles.loadBin(options.workingDir + @"\Rad\CallRay.dir.ill.bin");
+                    //RadianceFiles.saveILLBin(options.workingDir + @"\Rad\CallRay.dir.ill");
+                    //RadianceFiles.saveILLBin(options.workingDir + @"\Rad\CallRay.dif.ill");
 
-                Console.WriteLine("Done");
+                    ////var data1 = RadianceFiles.loadILL(options.workingDir + @"\Rad\CallRay.dir.ill");
+                    ////var data2 = RadianceFiles.loadBin(options.workingDir + @"\Rad\CallRay.dir.ill.bin");
 
-             //   Console.ReadKey();
+                    Console.WriteLine("Done");
+
+                    //   Console.ReadKey();
+                
+            }
+            }
+            else
+            {
+                Console.WriteLine("The licence for this tool expired.");
             }
 
         }
