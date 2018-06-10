@@ -127,6 +127,12 @@ namespace EddyLib
 
         }
 
+        public static double GetUAtProbingHeightFromEPW(double URef, double z0, double zref, double probingHeight)
+        {
+            var UAtProbingHeightFromEPW = ((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((probingHeight + z0) / z0);
+            return UAtProbingHeightFromEPW;
+        }
+
 
 
         public static double GetWindReductionFactor(int probeIndex, double[][] ReductionArray, int numberOfProbes, List<double> windDirs, double windVelWeatherFile, double windDirWeatherFile)

@@ -38,8 +38,8 @@ namespace CallOC
                             Console.WriteLine("Direct radiation (ill): {0}", options.dirRad);
                             errorLog.AppendLine(String.Format("Direct radiation (ill): {0}", options.dirRad));
 
-                            Console.WriteLine("Wind speed scaling factors (csv): {0}", options.windScaling);
-                            errorLog.AppendLine(String.Format("Wind speed scaling factors (csv): {0}", options.windScaling));
+                            Console.WriteLine("Wind velocity scaling factors (csv): {0}", options.windScaling);
+                            errorLog.AppendLine(String.Format("Wind velocity scaling factors (csv): {0}", options.windScaling));
 
                             Console.WriteLine("Working directory: {0}", options.workingDir);
                             errorLog.AppendLine(String.Format("Working directory: {0}", options.workingDir));
@@ -254,7 +254,42 @@ namespace CallOC
                         //File.WriteAllText(Path.GetDirectoryName(options.windScaling) + @"\WindReductionData2.csv", ReductionFile.ToString());
 
 
-                        ////
+                        //// Importing probeHeight from probe file to scale U down to pedestrian level
+                        Console.WriteLine("Parsing height of probes to scale down wind velocity from weather file.");
+
+                        double[][] probes = EddyLib.RadianceFiles.readPTS(options.workingDir + @"\Rad\sensors.pts");                         
+                        
+                        var arbitraryProbePoint = new Point3d(probes[0][0], probes[0][1], probes[0][2]);
+
+                        var probingHeight = arbitraryProbePoint.Z;
+
+                        // Parse z0 from simulation directory                    
+
+                        double URef = 5;
+                        double zref = 10;
+                        double z0 = 1;
+
+                        try
+                        {
+                            var filePath = options.workingDir + "\\" + windDirList[0] + @"\0.org\ABLConditions";
+                            if (!File.Exists(filePath)) { Console.WriteLine(filePath + " not found. Exiting"); return; }
+
+                            string[] lines = File.ReadAllLines(filePath);
+
+
+
+                            for (int i = 0; i < lines.Length; i++)
+                            {
+                                var l = lines[i];
+                                if (l.Contains("Uref")) URef = double.Parse(l.Replace("Uref", "").Replace(";", "").Trim());
+                                if (l.Contains("z0")) z0 = double.Parse(l.Replace("z0 uniform", "").Replace(";", "").Trim());
+                                if (l.Contains("Zref")) zref = double.Parse(l.Replace("Zref", "").Replace(";", "").Trim());
+                            }
+                        }
+                        catch (Exception e) { Console.WriteLine(e.Message); return; }
+
+                                              
+
 
                         Console.WriteLine("Starting UTCI calc...");
                         Stopwatch sw = new Stopwatch(); sw.Start();
@@ -282,17 +317,21 @@ namespace CallOC
 
                                   // Check for extreme windspeeds
 
-                                  if (windReduction[i, j] * WindSpeed[i] > 17)
+                                  double resultingWindSpeedforUTCI = windReduction[i, j] * UTCI.GetUAtProbingHeightFromEPW(WindSpeed[i], z0, zref, probingHeight);
+
+                                  if (windReduction[i, j] * UTCI.GetUAtProbingHeightFromEPW(WindSpeed[i], z0, zref, probingHeight) > 17)
                                   {
-                                      Utci[i, j] = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], 17, mrt);
+                                      resultingWindSpeedforUTCI = 17;
+                                      Utci[i, j] = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], resultingWindSpeedforUTCI, mrt);
                                   }
-                                  else if (windReduction[i, j] * WindSpeed[i] < 0.5)
+                                  else if (resultingWindSpeedforUTCI < 0.5)
                                   {
-                                      Utci[i, j] = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], 0.5, mrt);
+                                      resultingWindSpeedforUTCI = 0.5;
+                                      Utci[i, j] = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], resultingWindSpeedforUTCI, mrt);
                                   }
                                   else
                                   {
-                                      Utci[i, j] = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], windReduction[i, j] * WindSpeed[i], mrt);
+                                      Utci[i, j] = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], resultingWindSpeedforUTCI,  mrt);
                                   }
 
 
@@ -347,7 +386,7 @@ namespace CallOC
                         {
                             for (int i = 0; i < 8760; i++)
                             {
-                                sbUtci.Append(String.Format("{0:0.##}", Utci[i, j]) + ",");
+                                sbUtci.Append(String.Format("{0:0.00}", Utci[i, j]) + ",");
                             }
                             sbUtci.AppendLine("");
                         }
@@ -358,7 +397,7 @@ namespace CallOC
                         //Write Debug info to file
                         StringBuilder sbUtciDEBUG = new StringBuilder();
 
-                        sbUtciDEBUG.AppendLine(@"UTCI for sensor point " + debug[1] + " over all hours of the year.");
+                        sbUtciDEBUG.AppendLine(@"UTCI for sensor point " + debug[1] + " over all hours of the year:");
 
                         for (int i = 0; i < 8760; i++)
                         {
@@ -368,14 +407,18 @@ namespace CallOC
                         sbUtciDEBUG.Append(Environment.NewLine);
                         sbUtciDEBUG.AppendLine("Detailed Values for sensor point " + debug[1] + " at hour " + debug[0] + ":");
                         sbUtciDEBUG.AppendLine("Air temperature: " + DryBulbTemp[debug[0]]);
-                        sbUtciDEBUG.AppendLine("MRT: " + UTCI.GetMRT2(DryBulbTemp[debug[0]], RelativeHumidity[debug[0]], DiffRad[debug[0]][debug[1]], DirRad[debug[0]][debug[1]], SolarElevation[debug[0]], DryBulbTemp[debug[0]], Wst, Hst, BodyA, GrRef, 0.95)[0]);
+                        sbUtciDEBUG.AppendLine("MRT: " + String.Format("{0:0.00}", UTCI.GetMRT2(DryBulbTemp[debug[0]], RelativeHumidity[debug[0]], DiffRad[debug[0]][debug[1]], DirRad[debug[0]][debug[1]], SolarElevation[debug[0]], DryBulbTemp[debug[0]], Wst, Hst, BodyA, GrRef, 0.95)[0]));
                         sbUtciDEBUG.AppendLine("Vapour pressure: " + Pressure[debug[0]]);
                         sbUtciDEBUG.AppendLine("Relative humidity: " + RelativeHumidity[debug[0]]);
-                        sbUtciDEBUG.AppendLine("Wind reduction: " + windReduction[debug[0], debug[1]]);
+                        
 
-                        sbUtciDEBUG.AppendLine("Wind speed: " + WindSpeed[debug[0]]);
+                        sbUtciDEBUG.AppendLine("Wind speed from .epw: " + String.Format("{0:0.00}", WindSpeed[debug[0]]));
+                        sbUtciDEBUG.AppendLine("probingHeight from CFD: " + String.Format("{0:0.00}", probingHeight));
+                        sbUtciDEBUG.AppendLine("Scaled-down wind velocity from .epw: " + String.Format("{0:0.00}", UTCI.GetUAtProbingHeightFromEPW(WindSpeed[debug[0]], z0, zref, probingHeight)));
+                        sbUtciDEBUG.AppendLine("Wind reduction from CFD: " + String.Format("{0:0.00}", windReduction[debug[0], debug[1]]));
+                        sbUtciDEBUG.AppendLine("Resulting wind velocity for UTCI calculation: " + String.Format("{0:0.00}", windReduction[debug[0], debug[1]] * UTCI.GetUAtProbingHeightFromEPW(WindSpeed[debug[0]], z0, zref, probingHeight)));
 
-                        sbUtciDEBUG.AppendLine("UTCI: " + String.Format("{0:0.##}", Utci[debug[0], debug[1]]));
+                        sbUtciDEBUG.AppendLine("UTCI: " + String.Format("{0:0.00}", Utci[debug[0], debug[1]]));
                         sbUtciDEBUG.AppendLine("");
                         File.WriteAllText(options.workingDir + @"\UTCI_debug_hour_" + debug[0] + "_probe_" + debug[1] + ".csv", sbUtciDEBUG.ToString());
 
@@ -438,7 +481,7 @@ namespace CallOC
 
 
         [Option('u', "windScaling", Required = true,
-        HelpText = "Wind speed scaling factors (csv)")]
+        HelpText = "Wind velocity scaling factors (csv)")]
         public string windScaling { get; set; }
 
         [Option('d', "workingDir", Required = true,
