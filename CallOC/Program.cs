@@ -45,7 +45,7 @@ namespace CallOC
                             Console.WriteLine("Debugging: {0}", options.hourandpoint);
                             errorLog.AppendLine(String.Format("Debugging: {0}", options.hourandpoint));
                         }
-                        
+
                     }
 
 
@@ -273,8 +273,25 @@ namespace CallOC
 
                               double mrt = UTCI.GetMRT2(DryBulbTemp[i], RelativeHumidity[i], DiffRad[i][j], DirRad[i][j], SolarElevation[i], DryBulbTemp[i], Wst, Hst, BodyA, GrRef, 0.95)[0];
 
-                              double utci_temp = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], windReduction[i, j] * WindSpeed[i], mrt);
-                              Utci[i, j] = utci_temp;
+                              // Check for extreme windspeeds
+
+                              if (windReduction[i, j] * WindSpeed[i] > 17)
+                              {
+                                  Utci[i, j] = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], 17, mrt);
+                              }
+                              else if(windReduction[i, j] * WindSpeed[i] < 0.5)
+                              {
+                                  Utci[i, j] = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], 0.5, mrt);
+                              }
+                              else
+                              {
+                                  Utci[i, j] = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], windReduction[i, j] * WindSpeed[i], mrt);
+                              }
+
+                              
+
+
+
 
                               //double cOfPerson = 0;
 
@@ -341,9 +358,10 @@ namespace CallOC
 
                         sbUtciDEBUG.Append(String.Format("{0:0}", Utci[i, debug[1]]) + ",");
                     }
+                    sbUtciDEBUG.Append(Environment.NewLine);
                     sbUtciDEBUG.AppendLine("Detailed Values for sensor point " + debug[1] + " at hour " + debug[0] + ":");
                     sbUtciDEBUG.AppendLine("Air temperature: " + DryBulbTemp[debug[0]]);
-                    sbUtciDEBUG.AppendLine("MRT: " + UTCI.GetMRT2(DryBulbTemp[debug[0]], RelativeHumidity[debug[0]], DiffRad[debug[0]][0], DirRad[debug[0]][0], SolarElevation[debug[0]], DryBulbTemp[debug[0]], Wst, Hst, BodyA, GrRef, 0.95)[0]);
+                    sbUtciDEBUG.AppendLine("MRT: " + UTCI.GetMRT2(DryBulbTemp[debug[0]], RelativeHumidity[debug[0]], DiffRad[debug[0]][debug[1]], DirRad[debug[0]][debug[1]], SolarElevation[debug[0]], DryBulbTemp[debug[0]], Wst, Hst, BodyA, GrRef, 0.95)[0]);
                     sbUtciDEBUG.AppendLine("Vapour pressure: " + Pressure[debug[0]]);
                     sbUtciDEBUG.AppendLine("Relative humidity: " + RelativeHumidity[debug[0]]);
                     sbUtciDEBUG.AppendLine("Wind reduction: " + windReduction[debug[0], debug[1]]);
@@ -352,7 +370,7 @@ namespace CallOC
 
                     sbUtciDEBUG.AppendLine("UTCI: " + String.Format("{0:0.##}", Utci[debug[0], debug[1]]));
                     sbUtciDEBUG.AppendLine("");
-                    File.WriteAllText(options.workingDir + @"\UTCI_debug.csv", sbUtciDEBUG.ToString());
+                    File.WriteAllText(options.workingDir + @"\UTCI_debug_hour_" + debug[0]+"_probe_" + debug[1]+".csv", sbUtciDEBUG.ToString());
 
 
 #endif
