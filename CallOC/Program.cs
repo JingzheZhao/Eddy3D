@@ -393,8 +393,9 @@ namespace CallOC
                         File.WriteAllText(options.workingDir + @"\UTCI.csv", sbUtci.ToString());
 
 
-#if DEBUG
+
                         //Write Debug info to file
+                        #if DEBUG
                         StringBuilder sbUtciDEBUG = new StringBuilder();
 
                         sbUtciDEBUG.AppendLine(@"UTCI for sensor point " + debug[1] + " over all hours of the year:");
@@ -404,7 +405,7 @@ namespace CallOC
 
                             sbUtciDEBUG.Append(String.Format("{0:0}", Utci[i, debug[1]]) + ",");
                         }
-                        sbUtciDEBUG.Append(Environment.NewLine);
+                        sbUtciDEBUG.Append(Environment.NewLine);sbUtciDEBUG.Append(Environment.NewLine);
                         sbUtciDEBUG.AppendLine("Detailed Values for sensor point " + debug[1] + " at hour " + debug[0] + ":");
                         sbUtciDEBUG.AppendLine("Air temperature: " + DryBulbTemp[debug[0]]);
                         sbUtciDEBUG.AppendLine("MRT: " + String.Format("{0:0.00}", UTCI.GetMRT2(DryBulbTemp[debug[0]], RelativeHumidity[debug[0]], DiffRad[debug[0]][debug[1]], DirRad[debug[0]][debug[1]], SolarElevation[debug[0]], DryBulbTemp[debug[0]], Wst, Hst, BodyA, GrRef, 0.95)[0]));
@@ -421,9 +422,7 @@ namespace CallOC
                         sbUtciDEBUG.AppendLine("UTCI: " + String.Format("{0:0.00}", Utci[debug[0], debug[1]]));
                         sbUtciDEBUG.AppendLine("");
                         File.WriteAllText(options.workingDir + @"\UTCI_debug_hour_" + debug[0] + "_probe_" + debug[1] + ".csv", sbUtciDEBUG.ToString());
-
-
-#endif
+                        #endif
 
 
 

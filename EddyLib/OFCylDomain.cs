@@ -50,6 +50,7 @@ namespace EddyLib
         public double gradingPerim;
 
         public double sizeInnerR;
+        public List<Point3d> pointsOnCircle;
 
 
 
@@ -247,6 +248,7 @@ namespace EddyLib
                 var inter = Rhino.Geometry.Intersect.Intersection.LineCircle(new Line(center, vec), c, out t1, out p1, out t2, out p2);
                 //if(inter == LineCircleIntersection.Single)
                 pointsOnCircle.Add(p1);
+                
             }
 
 
@@ -282,6 +284,8 @@ namespace EddyLib
             this.DomainMesh.Normals.ComputeNormals();
 
             this.DomainMesh.Weld(Math.PI);
+
+            this.pointsOnCircle = pointsOnCircle;
 
             //stringifyBlocks2(perim, core, perimTop, coreTop, divisionsY, divisionsZ);
             //stringyfyVertexList2(outMesh);
