@@ -90,7 +90,7 @@ namespace EddyLib
 
             //Plane localCoordSystem = Plane.WorldZX;
             var localCoordSystem = Plane.WorldZX;
-            localCoordSystem.Rotate((windDir-90) * Math.PI / 180, localCoordSystem.XAxis);
+            localCoordSystem.Rotate(((-1*windDir)-90) * Math.PI / 180, localCoordSystem.XAxis);
             localCoordSystem.Origin = center;
 
             localCoordSystem.Translate(localCoordSystem.YAxis * dimY);

@@ -1054,7 +1054,8 @@ symmetry
         type symmetry;
 }
 inlet
-    {");
+    {
+");
             
 
                 sb.Append(@"type fixedValue;
