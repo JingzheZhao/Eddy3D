@@ -117,6 +117,12 @@ namespace Eddy
             MeshingParameters mp = new MeshingParameters();
 
 
+            
+            if (BCond.windDir.Count >1)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "For box-shaped domains you can only pass one wind direction per simulation setup."); return;
+            }
+            
 
             if (domain == null)
             {
@@ -163,8 +169,9 @@ namespace Eddy
 
                 baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
 
-
+                
                 OFBoxDomain DOM = new OFBoxDomain(inputBreps, combinedMeshes, BCond, blockDimension, baseWorkingDirectory);
+
 
 
 
@@ -175,137 +182,137 @@ namespace Eddy
                 //DOM = OFDomainBuilder(domain, workingDirectory);
 
                 if ((DOM.xCells * blockDimension) > DOM.dimX || (DOM.yCells * blockDimension) > DOM.dimY || (DOM.zCells * blockDimension) > DOM.dimZ)
-                {
-                    //  AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Your block dimensions need to be smaller than the domain.");
-                }
+                    {
+                        //  AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Your block dimensions need to be smaller than the domain.");
+                    }
 
 
 
 
 
-                if (CPUs == -1 || CPUs > Environment.ProcessorCount)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that many CPUs.");
-                }
+                    if (CPUs == -1 || CPUs > Environment.ProcessorCount)
+                    {
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that many CPUs.");
+                    }
 
-                //var totalGBRam = Convert.ToInt32((new ComputerInfo().TotalPhysicalMemory / (Math.Pow(1024, 2))) + 0.5);
-                //if (RAM < 0 || RAM > totalGBRam)
-                //{
-                //    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that much RAM available.");
-                //}
-
-
+                    //var totalGBRam = Convert.ToInt32((new ComputerInfo().TotalPhysicalMemory / (Math.Pow(1024, 2))) + 0.5);
+                    //if (RAM < 0 || RAM > totalGBRam)
+                    //{
+                    //    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that much RAM available.");
+                    //}
 
 
 
 
-                //if (Settings.getCurrentRAM() != RAM)
-                //{
+
+
+                    //if (Settings.getCurrentRAM() != RAM)
+                    //{
 
 
 
-                //    string newRAM = "Set-VM -StaticMemory -Name MobyLinuxVM -MemoryStartupBytes " + RAM + "GB";
-                //    //var totalGBRam = 0 ;
+                    //    string newRAM = "Set-VM -StaticMemory -Name MobyLinuxVM -MemoryStartupBytes " + RAM + "GB";
+                    //    //var totalGBRam = 0 ;
 
-                //    ProcessStartInfo psiNewRAM = new ProcessStartInfo(@"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe");
-                //    psiNewRAM.Verb = "runas";
-                //    psiNewRAM.Arguments = newRAM;
+                    //    ProcessStartInfo psiNewRAM = new ProcessStartInfo(@"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe");
+                    //    psiNewRAM.Verb = "runas";
+                    //    psiNewRAM.Arguments = newRAM;
 
-                //    Process pRAM = new Process();
-                //    pRAM.StartInfo = psiNewRAM;
-                //    pRAM.Start();
-                //    pRAM.WaitForExit();
+                    //    Process pRAM = new Process();
+                    //    pRAM.StartInfo = psiNewRAM;
+                    //    pRAM.Start();
+                    //    pRAM.WaitForExit();
 
-                //}
+                    //}
 
-                //if (Settings.getCurrentCPUs(DOM) != CPUs)
-                //{
+                    //if (Settings.getCurrentCPUs(DOM) != CPUs)
+                    //{
 
-                //    string newCPUs = @"Stop-VM -Name MobyLinuxVM;Set-VMProcessor MobyLinuxVM -Count '" + CPUs+ "';Start-VM -Name MobyLinuxVM";
-                //    //var totalGBRam = 0 ;
-
-
-                //    ProcessStartInfo psiNewCPUs = new ProcessStartInfo(@"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe");
-                //    psiNewCPUs.Verb = "runas";
-                //    psiNewCPUs.Arguments = newCPUs;
-
-                //    Process pRAM = new Process();
-                //    pRAM.StartInfo = psiNewCPUs;
-                //    pRAM.Start();
-                //    pRAM.WaitForExit();
-
-                //}
+                    //    string newCPUs = @"Stop-VM -Name MobyLinuxVM;Set-VMProcessor MobyLinuxVM -Count '" + CPUs+ "';Start-VM -Name MobyLinuxVM";
+                    //    //var totalGBRam = 0 ;
 
 
-                //////
+                    //    ProcessStartInfo psiNewCPUs = new ProcessStartInfo(@"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe");
+                    //    psiNewCPUs.Verb = "runas";
+                    //    psiNewCPUs.Arguments = newCPUs;
 
-                var meshStlFilenameBuildings = DOM.baseWorkingDirectory + @"\mesh\constant\triSurface\building.stl";
-                var meshStlFilenameGround = DOM.baseWorkingDirectory + @"\mesh\constant\triSurface\ground.stl";
-                var meshStlFilenameGroundPerim = DOM.baseWorkingDirectory + @"\mesh\constant\triSurface\ground_perim.stl";
-                var meshBoundaryConditionsDirectory = DOM.baseWorkingDirectory + @"\mesh\0.org\";
+                    //    Process pRAM = new Process();
+                    //    pRAM.StartInfo = psiNewCPUs;
+                    //    pRAM.Start();
+                    //    pRAM.WaitForExit();
 
-
-                if (!Directory.Exists(baseWorkingDirectory))
-                {
-                    Directory.CreateDirectory(baseWorkingDirectory);
-                }
+                    //}
 
 
-                if (!Directory.Exists(DOM.meshStlDirectory))
-                {
-                    Directory.CreateDirectory(DOM.meshStlDirectory);
-                }
+                    //////
+
+                    var meshStlFilenameBuildings = DOM.baseWorkingDirectory + @"\mesh\constant\triSurface\building.stl";
+                    var meshStlFilenameGround = DOM.baseWorkingDirectory + @"\mesh\constant\triSurface\ground.stl";
+                    var meshStlFilenameGroundPerim = DOM.baseWorkingDirectory + @"\mesh\constant\triSurface\ground_perim.stl";
+                    var meshBoundaryConditionsDirectory = DOM.baseWorkingDirectory + @"\mesh\0.org\";
 
 
-                STLExport.ExportBinary(meshStlFilenameBuildings, combinedMeshes);
-                STLExport.ExportBinary(meshStlFilenameGround, DOM.newBoxGround);
-                STLExport.ExportBinary(meshStlFilenameGroundPerim, DOM.newBoxGroundPerim);
+                    if (!Directory.Exists(baseWorkingDirectory))
+                    {
+                        Directory.CreateDirectory(baseWorkingDirectory);
+                    }
 
 
-                if (!Directory.Exists(DOM.meshSystemDirectory))
-                {
-                    Directory.CreateDirectory(DOM.meshSystemDirectory);
-                }
-                if (!Directory.Exists(DOM.meshConstantDirectory))
-                {
-                    Directory.CreateDirectory(DOM.meshConstantDirectory);
-                }
-                if (!Directory.Exists(meshBoundaryConditionsDirectory))
-                {
-                    Directory.CreateDirectory(meshBoundaryConditionsDirectory);
-                }
+                    if (!Directory.Exists(DOM.meshStlDirectory))
+                    {
+                        Directory.CreateDirectory(DOM.meshStlDirectory);
+                    }
 
 
-                File.WriteAllText(DOM.meshSystemDirectory + @"\blockMeshDict", StringTemplates.blockMeshDict(DOM));
-                File.WriteAllText(DOM.baseWorkingDirectory + @"\mesh\case.foam", "");
-                File.WriteAllText(DOM.meshSystemDirectory + @"\controlDict", StringTemplates.controlDict(DOM, null, 0));
-
-                if (!File.Exists(baseWorkingDirectory + @"\mesh\log"))
-                {
-                    File.WriteAllText(baseWorkingDirectory + @"\mesh\log", "");
-                }
+                    STLExport.ExportBinary(meshStlFilenameBuildings, combinedMeshes);
+                    STLExport.ExportBinary(meshStlFilenameGround, DOM.newBoxGround);
+                    STLExport.ExportBinary(meshStlFilenameGroundPerim, DOM.newBoxGroundPerim);
 
 
+                    if (!Directory.Exists(DOM.meshSystemDirectory))
+                    {
+                        Directory.CreateDirectory(DOM.meshSystemDirectory);
+                    }
+                    if (!Directory.Exists(DOM.meshConstantDirectory))
+                    {
+                        Directory.CreateDirectory(DOM.meshConstantDirectory);
+                    }
+                    if (!Directory.Exists(meshBoundaryConditionsDirectory))
+                    {
+                        Directory.CreateDirectory(meshBoundaryConditionsDirectory);
+                    }
 
-                //export RAD for DAYSIM
-                if (!Directory.Exists(DOM.baseWorkingDirectory + @"Rad\"))
-                {
-                    Directory.CreateDirectory(DOM.baseWorkingDirectory + @"Rad\");
-                }
-                string radMat = @"
+
+                    File.WriteAllText(DOM.meshSystemDirectory + @"\blockMeshDict", StringTemplates.blockMeshDict(DOM));
+                    File.WriteAllText(DOM.baseWorkingDirectory + @"\mesh\case.foam", "");
+                    File.WriteAllText(DOM.meshSystemDirectory + @"\controlDict", StringTemplates.controlDict(DOM, null, 0));
+
+                    if (!File.Exists(baseWorkingDirectory + @"\mesh\log"))
+                    {
+                        File.WriteAllText(baseWorkingDirectory + @"\mesh\log", "");
+                    }
+
+
+
+                    //export RAD for DAYSIM
+                    if (!Directory.Exists(DOM.baseWorkingDirectory + @"Rad\"))
+                    {
+                        Directory.CreateDirectory(DOM.baseWorkingDirectory + @"Rad\");
+                    }
+                    string radMat = @"
 void plastic Generic_20
 0
 0
 5 0.2 0.2 0.2 0 0 
 ";
-                Mesh daysimMesh = new Mesh();
-                daysimMesh.Append(combinedMeshes);
-                // Todo: add ground plane to the above mesh
+                    Mesh daysimMesh = new Mesh();
+                    daysimMesh.Append(combinedMeshes);
+                    // Todo: add ground plane to the above mesh
 
-                File.WriteAllText(DOM.baseWorkingDirectory + @"Rad\materials.rad", radMat);
-                RadianceFiles.MeshProc(daysimMesh, DOM.baseWorkingDirectory + @"Rad\scene.rad", "Generic_20");
+                    File.WriteAllText(DOM.baseWorkingDirectory + @"Rad\materials.rad", radMat);
+                    RadianceFiles.MeshProc(daysimMesh, DOM.baseWorkingDirectory + @"Rad\scene.rad", "Generic_20");
 
-
+               
 
 
                 if (Run == true)

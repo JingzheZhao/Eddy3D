@@ -26,38 +26,21 @@ FoamFile
         object blockMeshDict;
 }
 convertToMeters 1;
-backgroundMesh
-{
-        xMin " + DOM.newBoxDomain.BoundingBox.Min.X + @";
-        xMax " + DOM.newBoxDomain.BoundingBox.Max.X + @";
-        yMin " + DOM.newBoxDomain.BoundingBox.Min.Y + @";
-        yMax " + DOM.newBoxDomain.BoundingBox.Max.Y + @";
-        zMin " + DOM.newBoxDomain.BoundingBox.Min.Z + @";
-        zMax " + DOM.newBoxDomain.BoundingBox.Max.Z + @";
-        xCells " + DOM.xCells + @";
-        yCells " + DOM.yCells + @";
-        zCells " + DOM.zCells + @";
-}
+
 vertices
 (
-                ($:backgroundMesh.xMin $:backgroundMesh.yMin $:backgroundMesh.zMin)
-                ($:backgroundMesh.xMax $:backgroundMesh.yMin $:backgroundMesh.zMin)
-                ($:backgroundMesh.xMax $:backgroundMesh.yMax $:backgroundMesh.zMin)
-                ($:backgroundMesh.xMin $:backgroundMesh.yMax $:backgroundMesh.zMin)
-                ($:backgroundMesh.xMin $:backgroundMesh.yMin $:backgroundMesh.zMax)
-                ($:backgroundMesh.xMax $:backgroundMesh.yMin $:backgroundMesh.zMax)
-                ($:backgroundMesh.xMax $:backgroundMesh.yMax $:backgroundMesh.zMax)
-                ($:backgroundMesh.xMin $:backgroundMesh.yMax $:backgroundMesh.zMax)
+(" + DOM.newBoxDomain.GetCorners()[0].X + " " + DOM.newBoxDomain.GetCorners()[0].Y + " " + DOM.newBoxDomain.GetCorners()[0].Z + @")
+(" + DOM.newBoxDomain.GetCorners()[1].X + " " + DOM.newBoxDomain.GetCorners()[1].Y + " " + DOM.newBoxDomain.GetCorners()[1].Z + @")
+(" + DOM.newBoxDomain.GetCorners()[2].X + " " + DOM.newBoxDomain.GetCorners()[2].Y + " " + DOM.newBoxDomain.GetCorners()[2].Z + @")
+(" + DOM.newBoxDomain.GetCorners()[3].X + " " + DOM.newBoxDomain.GetCorners()[3].Y + " " + DOM.newBoxDomain.GetCorners()[3].Z + @")
+(" + DOM.newBoxDomain.GetCorners()[4].X + " " + DOM.newBoxDomain.GetCorners()[4].Y + " " + DOM.newBoxDomain.GetCorners()[4].Z + @")
+(" + DOM.newBoxDomain.GetCorners()[5].X + " " + DOM.newBoxDomain.GetCorners()[5].Y + " " + DOM.newBoxDomain.GetCorners()[5].Z + @")
+(" + DOM.newBoxDomain.GetCorners()[6].X + " " + DOM.newBoxDomain.GetCorners()[6].Y + " " + DOM.newBoxDomain.GetCorners()[6].Z + @")
+(" + DOM.newBoxDomain.GetCorners()[7].X + " " + DOM.newBoxDomain.GetCorners()[7].Y + " " + DOM.newBoxDomain.GetCorners()[7].Z + @")
 );
 blocks
 (
-        hex (0 1 2 3 4 5 6 7)
-        (
-                        $:backgroundMesh.xCells
-                        $:backgroundMesh.yCells
-                        $:backgroundMesh.zCells
-        )
-        simpleGrading (1 1 1)
+        hex (0 1 2 3 4 5 6 7) ("+  DOM.xCells + " "  + DOM.yCells + " " + DOM.zCells + @") simpleGrading (1 1 1)
 );
 edges
 (
@@ -136,9 +119,9 @@ FoamFile
 }
 
     castellatedMesh true;");
-    sb.Append("snap ");      if (dom.meshingMode == 1 || dom.meshingMode == 2) { sb.AppendLine("true;"); } else { sb.AppendLine("false;"); }
-    sb.Append("addLayers "); if (dom.meshingMode == 2) { sb.AppendLine("true;"); } else { sb.AppendLine("false;"); }
-    sb.Append(@"geometry
+            sb.Append("snap "); if (dom.meshingMode == 1 || dom.meshingMode == 2) { sb.AppendLine("true;"); } else { sb.AppendLine("false;"); }
+            sb.Append("addLayers "); if (dom.meshingMode == 2) { sb.AppendLine("true;"); } else { sb.AppendLine("false;"); }
+            sb.Append(@"geometry
     {
         building.stl
         {
@@ -896,7 +879,7 @@ FoamFile
         //        }
 
 
-        
+
         public static string meshQualityDict()
         {
             return
@@ -1464,8 +1447,11 @@ RAS
 
 
 
+
+
             return sb.ToString();
         }
+
         public static string run_sim(OFBaseDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
@@ -1631,7 +1617,7 @@ RAS
 
             string workDir = DOM.baseWorkingDirectory.Trim('\\');
 
-        
+
 
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallProbes.exe\" " + "-d " + "\"" + workDir + "\" " + "-p " + "\"" + workDir + @"\Rad\sensors.pts" + "\"" + " -w " + dirs + " -m 1");
@@ -1653,7 +1639,7 @@ RAS
             //@ Patrick WIP
 
             string dirs = "";
-            foreach (var d in DOM.BCInflow.windDir) dirs += ( ( (int) d ).ToString() + ',');
+            foreach (var d in DOM.BCInflow.windDir) dirs += (((int)d).ToString() + ',');
             dirs = dirs.TrimEnd(',');
 
             string workDir = DOM.baseWorkingDirectory.Trim('\\');
@@ -1666,7 +1652,7 @@ RAS
             StringBuilder sb = new StringBuilder();
             //sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallProbes.exe\" "+ "-w " + "\"" +workDir + "\" " + "-p " + "\"" + workDir + @"\Rad\sensors.pts" + "\"" + " -d " + dirs + " -m 1");
             //sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallRay.exe\" "  + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCInflow.weather + "\"");
-            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallOC.exe\" "   + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCInflow.weather +"\" "+ dif + " " + dir + " " + u);
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallOC.exe\" " + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCInflow.weather + "\" " + dif + " " + dir + " " + u);
 
 #if DEBUG
 

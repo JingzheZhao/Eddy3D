@@ -24,7 +24,7 @@ namespace EddyLib
         //Calculated boundary
         public Point3d newMin;
         public Point3d newMax;
-     
+
 
         public int xCells;
         public int yCells;
@@ -33,16 +33,14 @@ namespace EddyLib
         //public BoundingBox BBox;
         public Mesh newBoxGround;
         public Mesh newBoxGroundPerim;
-        
-        
+
+
         public Box newBoxDomain;
-    
 
-        
 
-        public double diameter;  
+        public double diameter;
         public double blockDimension;
-        
+
 
         public Mesh BuildingGeometry;
 
@@ -56,17 +54,17 @@ namespace EddyLib
         {
             blockDimension = _blockDim;
             BuildingGeometry = geometry;
-            
+
 
             BBox = BuildingGeometry.GetBoundingBox(true);
-                   
+
             xMin = BBox.Min.X;
             xMax = BBox.Max.X;
             yMin = BBox.Min.Y;
             yMax = BBox.Max.Y;
             zMin = BBox.Min.Z;
             zMax = BBox.Max.Z;
-                        
+
             Vector3d vecPlusY = new Vector3d(0, 1, 0);
             Vector3d vecMinusY = new Vector3d(0, -1, 0);
             Vector3d vecMinusX = new Vector3d(-1, 0, 0);
@@ -75,73 +73,80 @@ namespace EddyLib
             Vector3d vecPlusZ = new Vector3d(0, 0, 1);
 
             
+
+
             dimX = xMax - xMin;
             dimY = yMax - yMin;
             dimZ = zMax - zMin;
 
 
             //Create ground plane of BBox
-            center = BBox.Center + 0.5 * vecMinusZ * dimZ;            
+            center = BBox.Center + 0.5 * vecMinusZ * dimZ;
             locationInMesh = center + 4 * vecPlusZ * dimZ;
 
+            var windDir = BCond.windDir[0];
+            //Vector3d vecWindDir = new Vector3d(Math.Sin(windDir * Math.PI / 180), Math.Cos(windDir * Math.PI / 180), 0);
 
 
-            Plane localCoordSystem = Plane.WorldZX;
+            //Plane localCoordSystem = Plane.WorldZX;
+            var localCoordSystem = Plane.WorldZX;
+            localCoordSystem.Rotate((windDir-90) * Math.PI / 180, localCoordSystem.XAxis);
             localCoordSystem.Origin = center;
 
-            localCoordSystem.Translate(vecMinusY * dimY);
-
+            localCoordSystem.Translate(localCoordSystem.YAxis * dimY);
+            
 
 
             //Create Box Domain
             //Find frontfacing areas in wind direction
-     
-            frontageBuildingArea = projectedBuildingArea(localCoordSystem, BuildingGeometry);
-           
 
-            double scaleRectDomainZ = 6* dimZ;
+            frontageBuildingArea = projectedBuildingArea(localCoordSystem, BuildingGeometry);
+
+
+            double scaleRectDomainZ = 6 * dimZ;
 
             // New Dimensions in X; take blocking ratio into account
-            var scaleRectDomainXblockingRatio  = frontageBuildingArea * 100 / 3 / scaleRectDomainZ / 2;
-            var scaleRectDomainXHeight = (5* dimZ)+dimX/2;
+            var scaleRectDomainXblockingRatio = frontageBuildingArea * 100 / 3 / scaleRectDomainZ / 2;
+            var scaleRectDomainXHeight = (5 * dimZ) + dimX / 2;
             var scaleRectDomainX = scaleRectDomainXblockingRatio > scaleRectDomainXHeight ? scaleRectDomainXblockingRatio : scaleRectDomainXHeight;
 
             //New Dimensions in Y \cite{Tominaga2008,Franke2007}
 
-            double scaleRectDomainYUpstream = - (5.5 * dimZ + dimY);
+            double scaleRectDomainYUpstream = -(5.5 * dimZ + dimY);
             double scaleRectDomainYDownstream = 15.5 * dimZ + dimY;
-            double scaleRectDomainYUpstreamCore = - scaleRectDomainX;
+            double scaleRectDomainYUpstreamCore = -scaleRectDomainX;
             double scaleRectDomainYDownstreamCore = scaleRectDomainX;
-            
-            
-            
 
 
-            
+
+
+
+
 
             Interval xInter = new Interval(-scaleRectDomainX, scaleRectDomainX);
             Interval yInter = new Interval(scaleRectDomainYUpstream, scaleRectDomainYDownstream);
 
-            Interval yInterPerim1 = new Interval(- scaleRectDomainX,scaleRectDomainYUpstream );
+            Interval yInterPerim1 = new Interval(-scaleRectDomainX, scaleRectDomainYUpstream);
             Interval yInterPerim2 = new Interval(scaleRectDomainX, scaleRectDomainYDownstream);
 
 
             Interval zInter = new Interval(0, scaleRectDomainZ);
 
-          
+
 
             xCells = (int)((Math.Abs(xInter.Length)) / blockDimension);
             yCells = (int)((Math.Abs(yInter.Length)) / blockDimension);
             zCells = (int)((Math.Abs(zInter.Length)) / blockDimension);
 
 
-            Plane pl = Plane.WorldXY;
+            
+            var pl = new Plane(center, localCoordSystem.ZAxis ,-1*localCoordSystem.YAxis);
             pl.Origin = center;
 
             //Plane newPlaneGround = new Plane()
             newBoxDomain = new Box(pl, xInter, yInter, zInter);
 
-           
+
 
             //Point3d[] cornersGroundPlane;
             //Point3d[] = cornersGroundPlane;
@@ -160,11 +165,11 @@ namespace EddyLib
             this.newBoxGroundPerim = new Mesh();
             this.newBoxGround = Mesh.CreateFromPlanarBoundary(plGroundCore.ToNurbsCurve(), mpGround);
             this.newBoxGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim1.ToNurbsCurve(), mpGround));
-            this.newBoxGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim2.ToNurbsCurve(), mpGround));    
-            
-            
+            this.newBoxGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim2.ToNurbsCurve(), mpGround));
+
+
             // refinement Cylinder
-            refinementCylinder = getRefinementCyl(center, geometry, 10);
+            //refinementCylinder = getRefinementCyl(center, geometry, 10);
 
             BCond.calculateCPPressures(zMax);
 
@@ -185,7 +190,7 @@ namespace EddyLib
             this.keepTimeSteps = 2;
 
             this.inputBreps = inputBreps;
-  
+
 
         }
 
@@ -197,7 +202,7 @@ namespace EddyLib
             "Dimensions in z: " + Math.Round(zCells * blockDimension, 1) + " m\n" +
             "Cells in x: " + xCells + "\n" +
             "Cells in y: " + xCells + "\n" +
-            "Cells in z: " + zCells + "\n"+
+            "Cells in z: " + zCells + "\n" +
             "Projected area: " + Math.Round(frontageBuildingArea)
 
 
@@ -210,7 +215,7 @@ namespace EddyLib
 
 
 
-      
+
 
     }
 }
