@@ -97,11 +97,11 @@ namespace Eddy
             var allLines = File.ReadAllLines(DOM.baseWorkingDirectory + @"\UTCI.csv");
             var numberOfLines = allLines.Count();
 
-            string[] ln1 = allLines[0].Split(',');
-
             
+
+
             double[] valueHours = new double[numberOfLines];
-            for (int i = 0; i < numberOfLines; i++)
+            for (int i = 0; i < numberOfLines && hour < 8761; i++)
             {
                 valueHours[i] = double.Parse(allLines[i].Split(',')[hour]);
             }
