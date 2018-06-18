@@ -300,7 +300,12 @@ namespace CallOC
                         Console.WriteLine("Starting UTCI calc...");
                         Stopwatch sw = new Stopwatch(); sw.Start();
 
+
+
+
                         int cnt = 0;
+                        bool[,] uncertaintyMRTArray = new bool[8760, sensorPointCount];
+                        bool[,] uncertaintyWindArray = new bool[8760, sensorPointCount];
 
                         using (var progress = new ASCIIProgressBar())
                         {
@@ -319,7 +324,25 @@ namespace CallOC
                               for (int i = 0; i < 8760; i++)
                               {
 
+                                  uncertaintyWindArray[i, j] = false;
+                                  uncertaintyMRTArray[i, j] = false;
+
+
+                                  // Check for extreme mrts
+
                                   double mrt = UTCI.GetMRT2(DryBulbTemp[i], RelativeHumidity[i], DiffRad[i][j], DirRad[i][j], SolarElevation[i], DryBulbTemp[i], Wst, Hst, BodyA, GrRef, 0.95)[0];
+
+                                  if (mrt < DryBulbTemp[i] - 30)
+                                  {
+                                      mrt = 30;
+                                      uncertaintyMRTArray[i, j] = true;
+                                  }
+                                  if (mrt > DryBulbTemp[i] + 70)
+                                  {
+                                      mrt = 70;
+                                      uncertaintyMRTArray[i, j] = true;
+                                  }
+
 
                                   // Check for extreme windspeeds
 
@@ -329,11 +352,13 @@ namespace CallOC
                                   {
                                       resultingWindSpeedforUTCI = 17;
                                       Utci[i, j] = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], resultingWindSpeedforUTCI, mrt);
+                                      uncertaintyWindArray[i, j] = true;
                                   }
                                   else if (resultingWindSpeedforUTCI < 0.5)
                                   {
                                       resultingWindSpeedforUTCI = 0.5;
                                       Utci[i, j] = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], resultingWindSpeedforUTCI, mrt);
+                                      uncertaintyWindArray[i, j] = true;
                                   }
                                   else
                                   {
@@ -398,6 +423,26 @@ namespace CallOC
                         }
                         File.WriteAllText(options.workingDir + @"\UTCI.csv", sbUtci.ToString());
 
+                        // Uncertainty output for UTCI calculations
+
+                        StringBuilder sbUtciUncertainty = new StringBuilder();
+                        sbUtciUncertainty.AppendLine("The calculated UTCI values lie outside of uncertainty bounds for the following sensor points and hours either because of low/high wind velocities or MRT values:");
+                        int counter = 0;
+                        for (int j = 0; j < sensorPointCount; j++)
+                        {
+                            sbUtciUncertainty.Append("Sensorpoint: " + j + ", Hour: ");
+                            for (int i = 0; i < 8760; i++)
+                            {
+                                if (uncertaintyMRTArray[i, j] == true || uncertaintyWindArray[i, j] == true)
+                                {
+                                    sbUtciUncertainty.Append(i+ ", ");
+                                    counter++;
+                                }
+                            }
+                            sbUtciUncertainty.AppendLine("");
+                        }
+                        sbUtciUncertainty.AppendLine("Total incidents of uncertainty: " + counter + " or " + Math.Round((double)counter / (8760*sensorPointCount),2) + " %");
+                        File.WriteAllText(options.workingDir + @"\UTCI.uncertainty", sbUtciUncertainty.ToString());
 
 
                         //Write Debug info to file

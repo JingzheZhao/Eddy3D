@@ -103,7 +103,6 @@ namespace Eddy
             //if (l.StartsWith("Exec   : simpleFoam")) lines.Parse(l.Split(',')[1].Split('=')[1]));
 
            
-           
 
 
             int pCnt = 0;
