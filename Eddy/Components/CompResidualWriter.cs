@@ -110,6 +110,12 @@ namespace Eddy
             DA.GetData(1, ref x0x1);
             DA.GetData(2, ref y0y1);
 
+            foreach (double dir in DOM.BCInflow.windDir)
+            {
+                fullFilePath = DOM.baseWorkingDirectory + dir + @"\postProcessing\residuals\0\residuals.dat";
+                if (!File.Exists((fullFilePath))) { AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "The residual file for wind direction " + dir + " does not exist."); }
+            }
+
             try
             {
 
@@ -118,8 +124,7 @@ namespace Eddy
                 foreach (double dir in DOM.BCInflow.windDir)
                 {
 
-                    if (!File.Exists((fullFilePath))){ AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The residual file for wind direction " + dir + " does not exist."); }
-
+                    
                     fullFilePath = DOM.baseWorkingDirectory + dir + @"\postProcessing\residuals\0\residuals.dat";
 
 

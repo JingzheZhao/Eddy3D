@@ -118,6 +118,12 @@ namespace Eddy
 
             var selection = DOM.BCInflow.windDir.Intersect(selectionList).ToList();
 
+            foreach (double dir in selection)
+            {
+                fullFilePath = DOM.baseWorkingDirectory + dir + @"\postProcessing\residuals\0\residuals.dat";
+                if (!File.Exists((fullFilePath))) { AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "The residual file for wind direction " + dir + " does not exist."); }
+            }
+
 
             if (run == true)
             {
@@ -134,8 +140,7 @@ namespace Eddy
                         fullFilePath = DOM.baseWorkingDirectory + dir + @"\postProcessing\residuals\0\residuals.dat";
 
 
-                        if (!File.Exists((fullFilePath))){ AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The residual file for wind direction "+dir+" does not exist."); }
-
+                        
                         Process plotProcess = new Process();
                         plotProcess.StartInfo.FileName = @"""C:\Program Files\gnuplot\bin\gnuplot.exe""";
                         plotProcess.StartInfo.UseShellExecute = false;
@@ -154,8 +159,7 @@ set xlabel 'Iteration'
 set format y ""10^{%T}""
 set datafile separator '\t'
 plot '" + fullFilePath + @"' u($0):2 with lines title 'Ux', '" + fullFilePath + @"' u($0):3 with lines title 'Uy', '" + fullFilePath + @"' u($0):4 with lines title 'Uz', '" + fullFilePath + @"' u($0):5 with lines title 'p', '" + fullFilePath + @"' u($0):6 with lines title 'omega', '" + fullFilePath + @"' u($0):7 with lines title 'k'
-pause 10
-reread
+pause 10;reread
 ";
                         sw.WriteLine(strInputText);
                         
