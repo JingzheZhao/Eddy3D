@@ -50,7 +50,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
             pManager.AddPointParameter("points", "points", "points", GH_ParamAccess.list);
             //pManager.AddTextParameter("pointName", "pointName", "pointName", GH_ParamAccess.item);
 
@@ -202,7 +202,7 @@ namespace Eddy
 
                     for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                     {
-                        ParsingValues cp = new ParsingValues(listOfPoints, pointName, DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i], OFfield);
+                        ParsingProbes cp = new ParsingProbes(listOfPoints, pointName, DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i], OFfield);
                         cpTree.AddRange(cp.cpValues, new Grasshopper.Kernel.Data.GH_Path(i));
                     }
 
@@ -247,7 +247,7 @@ namespace Eddy
 
                         // Parse values
 
-                        var U = new ParsingValues(listOfPoints, pointName, DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i], OFfield);
+                        var U = new ParsingProbes(listOfPoints, pointName, DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i], OFfield);
 
 
                         // Create datatree

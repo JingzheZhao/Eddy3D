@@ -11,7 +11,7 @@ using System.Collections;
 
 namespace EddyLib
 {
-    public class ParsingValues
+    public class ParsingProbes
     {
 
         public double[] cpValues;
@@ -24,7 +24,7 @@ namespace EddyLib
         private string workingDirectory;
 
 
-        public ParsingValues(List<Point3d> ListOfPoints, string PointName, string WorkingDirectory, string OFfield)
+        public ParsingProbes(List<Point3d> ListOfPoints, string PointName, string WorkingDirectory, string OFfield)
         {
             listOfPoints = ListOfPoints;
             pointName = PointName;
@@ -82,7 +82,7 @@ namespace EddyLib
 
             for (int i = 0; i < counterPoints; i++)
             {
-                this.cpValues[i] = double.Parse(lastLine.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[i+1]); //this workes 
+                this.cpValues[i] = double.Parse(lastLine.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[i + 1]); //this workes 
                 sb.AppendLine(this.cpValues[i].ToString());
             }
             this.valueString = sb.ToString();
@@ -158,6 +158,9 @@ namespace EddyLib
 
             return lastIterationInt;
         }
+
+
+     
 
 
     }

@@ -74,6 +74,7 @@
     <Compile Include="Components\CompPostProcessingPatches.cs" />
     <Compile Include="Components\CompResidualWriter.cs" />
     <Compile Include="Components\CompCluster.cs" />
+    <Compile Include="Components\CompResidualViz.cs" />
     <Compile Include="Licensing\LicenseTest.cs" />
     <Compile Include="Licensing\ModifyRegistry.cs" />
     <Compile Include="Properties\Resources.Designer.cs">

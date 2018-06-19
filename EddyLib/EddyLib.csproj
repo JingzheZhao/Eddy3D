@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="ASCIProgressBar.cs" />
     <Compile Include="BoundaryConditionsBase.cs" />
+    <Compile Include="ParsingResiduals.cs" />
     <Compile Include="CreateSymbolicLink.cs" />
     <Compile Include="Daysim.cs" />
     <Compile Include="JenksFisherNaturalBreaks.cs" />
@@ -56,7 +57,7 @@
     <Compile Include="OFBoxDomain.cs" />
     <Compile Include="OFCylDomain.cs" />
     <Compile Include="OFLaunch.cs" />
-    <Compile Include="ParsingValues.cs" />
+    <Compile Include="ParsingProbes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RadianceFiles.cs" />
     <Compile Include="Settings.cs" />

@@ -39,7 +39,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Mesh", "Mesh", "Mesh", GH_ParamAccess.item);
             pManager.AddIntegerParameter("iterations", "iter", "Specify the number of iterations.", GH_ParamAccess.item, 1000);
             pManager.AddIntegerParameter("writeInterval", "writeInterval", "writeInterval.", GH_ParamAccess.item, 20);
             pManager.AddIntegerParameter("keepTimeSteps", "keepTimeSteps", "keepTimeSteps.", GH_ParamAccess.item, 2);
@@ -62,7 +62,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
         }
 
 

@@ -113,7 +113,7 @@ namespace CallProbes
                             for (int i = 0; i < numberOfWindDirs; i++)
                             {
                                 //Thread.Sleep(2 * probes.GetLength(0));
-                                ParsingValues cp = new ParsingValues(pointList, pointName, options.workingDir + "\\" + windDirs[i], OFfield);
+                                ParsingProbes cp = new ParsingProbes(pointList, pointName, options.workingDir + "\\" + windDirs[i], OFfield);
                                 //cpTree.AddRange(cp.cpValues, new Grasshopper.Kernel.Data.GH_Path(i));
                             }
 
@@ -164,7 +164,7 @@ namespace CallProbes
 
                                 // Parse values
                                 //Thread.Sleep(2 * probes.GetLength(0));
-                                var U = new ParsingValues(pointList, pointName, options.workingDir + "\\" + windDirs[i], OFfield);
+                                var U = new ParsingProbes(pointList, pointName, options.workingDir + "\\" + windDirs[i], OFfield);
 
 
                                 // Create datatree

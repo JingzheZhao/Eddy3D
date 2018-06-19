@@ -49,7 +49,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
             pManager.AddPointParameter("points", "points", "points", GH_ParamAccess.list);
             //pManager.AddTextParameter("pointName", "pointName", "pointName", GH_ParamAccess.item);
 
