@@ -78,7 +78,9 @@ namespace CallOC
                         if (numberOfWindDirsSimulated < 8)
                         {
                             //Console.WriteLine(@"Error: You need to simulate at least 8 wind direction, preferrably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
-                            throw new System.ArgumentException(@"Error: You need to simulate at least 8 wind direction, preferrably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
+                            errorLog.AppendLine(@"Error: You need to simulate at least 8 wind direction, preferably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
+                            throw new System.ArgumentException(@"Error: You need to simulate at least 8 wind direction, preferably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
+
                         }
 
 

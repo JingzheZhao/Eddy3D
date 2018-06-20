@@ -24,33 +24,58 @@ namespace CallProbes
                 var options = new Options();
                 if (CommandLine.Parser.Default.ParseArguments(args, options))
                 {
+                    StringBuilder errorLog = new StringBuilder();
+
+                    Console.WriteLine("Working directory: {0}", options.workingDir);
+                    errorLog.AppendLine(String.Format("Working directory: {0}", options.workingDir));
+
+                    Console.WriteLine("Probes: {0}", options.probes);
+                    errorLog.AppendLine(String.Format("Probes: {0}", options.probes));
+
+                    Console.WriteLine("Wind directions considered: {0}", options.windDirs);
+                    errorLog.AppendLine(String.Format("Wind directions considered: {0}", options.windDirs));
+
+                    Console.WriteLine("Mode (0=cp;1=U): {0}", options.mode);
+                    errorLog.AppendLine(String.Format("Mode (0=cp;1=U): {0}", options.mode));
+
+                    Console.WriteLine("Verbose: {0}", options.Verbose);
+                    errorLog.AppendLine(String.Format("Verbose: {0}", options.Verbose));
+
+                    // Error checking
 
 
-                    if (!Directory.Exists(options.workingDir)) { Console.WriteLine(options.workingDir + " not found. Exiting"); return; }
+
+                    if (!Directory.Exists(options.workingDir)) { errorLog.AppendLine(options.workingDir + " not found. Exiting"); Console.WriteLine(options.workingDir + " not found. Exiting"); }
+
+
+
+
+
+
+
 
 
                     double URef = 5;
                     double zref = 10;
                     double z0 = 1;
+                    // Read all variables from one file path. Variables are usually identical for all wind directions so this should be robust.
+                    var filePath = options.workingDir + "\\" + options.windDirs.Split(',')[0] + @"\0.org\ABLConditions";
 
-                    try
+
+
+
+                    string[] lines = File.ReadAllLines(filePath);
+
+
+
+                    for (int i = 0; i < lines.Length; i++)
                     {
-                        var filePath = options.workingDir + "\\" + options.windDirs.Split(',')[0] + @"\0.org\ABLConditions";
-                        if (!File.Exists(filePath)) { Console.WriteLine(filePath + " not found. Exiting"); return; }
-
-                        string[] lines = File.ReadAllLines(filePath);
-
-
-
-                        for (int i = 0; i < lines.Length; i++)
-                        {
-                            var l = lines[i];
-                            if (l.Contains("Uref")) URef = double.Parse(l.Replace("Uref", "").Replace(";", "").Trim());
-                            if (l.Contains("z0")) z0 = double.Parse(l.Replace("z0 uniform", "").Replace(";", "").Trim());
-                            if (l.Contains("Zref")) zref = double.Parse(l.Replace("Zref", "").Replace(";", "").Trim());
-                        }
+                        var l = lines[i];
+                        if (l.Contains("Uref")) URef = double.Parse(l.Replace("Uref", "").Replace(";", "").Trim());
+                        if (l.Contains("z0")) z0 = double.Parse(l.Replace("z0 uniform", "").Replace(";", "").Trim());
+                        if (l.Contains("Zref")) zref = double.Parse(l.Replace("Zref", "").Replace(";", "").Trim());
                     }
-                    catch (Exception e) { Console.WriteLine(e.Message); return; }
+
 
 
 
@@ -69,11 +94,27 @@ namespace CallProbes
                         pointList.Add(new Point3d(probes[i][0], probes[i][1], probes[i][2]));
                     }
 
+                    // More Error checking
 
-
-                    if (Utilities.IsDirectoryEmpty(options.workingDir + @"\mesh\constant\polyMesh") == true)
+                    if (Utilities.IsDirectoryEmpty(options.workingDir + @"\mesh\constant\polyMesh"))
                     {
+                        errorLog.AppendLine("The mesh folder is empty. Can't pull probes from a mesh that does not exist."); return;
                         throw new System.ArgumentException("The mesh folder is empty. Can't pull probes from a mesh that does not exist.");
+                    }
+                    for (int i = 0; i < numberOfWindDirs; i++)
+                    {
+                        if (!File.Exists(options.workingDir + windDirs[i] + @"\system\U_Probes"))
+                        {
+                            errorLog.AppendLine("The wind direction " + windDirs[i] + @" misses the probing dictionary. Please connect the component ""writeProbes"" and recompute the solution."); return;
+                            throw new System.ArgumentException("The wind direction " + windDirs[i] + @" misses the probing dictionary. Please connect the component ""writeProbes"" and recompute the solution.");
+
+                        }
+                    }
+
+                    for (int i = 0; i < numberOfWindDirs; i++)
+                    {
+                        var ABLfilePath = options.workingDir + "\\" + options.windDirs.Split(',')[i] + @"\0.org\ABLConditions";
+                        if (!File.Exists(ABLfilePath)) { Console.WriteLine(ABLfilePath + " not found. Exiting"); errorLog.AppendLine(ABLfilePath + " not found. Exiting"); }
                     }
 
 
@@ -190,7 +231,7 @@ namespace CallProbes
                             for (int i = 0; i < numberOfWindDirs; i++)
                             {
                                 var path = options.workingDir + "\\" + windDirs[i] + @"\postProcessing\U_Probes.csv";
-                                if (!File.Exists(path)) { Console.WriteLine(path + " not found. Exiting"); return; }
+                                if (!File.Exists(path)) { Console.WriteLine(path + " not found. Exiting"); errorLog.AppendLine(path + " not found. Exiting"); return; }
                                 fullProbeFilePath.Add(path);
                             }
 
@@ -275,10 +316,17 @@ namespace CallProbes
                             File.WriteAllText(options.workingDir + @"\WindReductionData.csv", ReductionFile.ToString());
 
 
+                            if (options.Verbose)
+                            {
+                                File.WriteAllText(options.workingDir + @"\Probes.err", errorLog.ToString());
+                            }
+
+                            Console.WriteLine("Done");
+
 
                         }
 
-                        catch (Exception e) { Console.WriteLine(e.Message); return; }
+                        catch (Exception e) { Console.WriteLine(e.Message); File.WriteAllText(options.workingDir + @"\Probes.err", errorLog.ToString()); return; }
 
                     }
 
@@ -311,7 +359,6 @@ namespace CallProbes
         [Option('m', "mode", Required = true, DefaultValue = 1,
            HelpText = "Mode: 0 = cp, 1 = U")]
         public int mode { get; set; }
-
 
         [Option('l', "loud", DefaultValue = true,
                 HelpText = "Prints all messages to standard output.")]
