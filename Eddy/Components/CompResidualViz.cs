@@ -140,7 +140,6 @@ namespace Eddy
                         fullFilePath = DOM.baseWorkingDirectory + dir + @"\postProcessing\residuals\0\residuals.dat";
 
                         
-                        
                         Process plotProcess = new Process();
                         plotProcess.StartInfo.FileName = @"C:\Program Files\gnuplot\bin\gnuplot.exe";
                         plotProcess.StartInfo.UseShellExecute = false;
