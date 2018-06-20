@@ -41,18 +41,6 @@ namespace CallProbes
                     Console.WriteLine("Verbose: {0}", options.Verbose);
                     errorLog.AppendLine(String.Format("Verbose: {0}", options.Verbose));
 
-                    // Error checking
-
-
-
-                    if (!Directory.Exists(options.workingDir)) { errorLog.AppendLine(options.workingDir + " not found. Exiting"); Console.WriteLine(options.workingDir + " not found. Exiting"); }
-
-
-
-
-
-
-
 
 
                     double URef = 5;
@@ -61,114 +49,116 @@ namespace CallProbes
                     // Read all variables from one file path. Variables are usually identical for all wind directions so this should be robust.
                     var filePath = options.workingDir + "\\" + options.windDirs.Split(',')[0] + @"\0.org\ABLConditions";
 
-
-
-
-                    string[] lines = File.ReadAllLines(filePath);
-
-
-
-                    for (int i = 0; i < lines.Length; i++)
-                    {
-                        var l = lines[i];
-                        if (l.Contains("Uref")) URef = double.Parse(l.Replace("Uref", "").Replace(";", "").Trim());
-                        if (l.Contains("z0")) z0 = double.Parse(l.Replace("z0 uniform", "").Replace(";", "").Trim());
-                        if (l.Contains("Zref")) zref = double.Parse(l.Replace("Zref", "").Replace(";", "").Trim());
-                    }
-
-
-
-
                     var windDirs = options.windDirs.Split(',');
                     var numberOfWindDirs = windDirs.Length;
 
-
-                    //[prope][x,y,z]
-                    double[][] probes = EddyLib.RadianceFiles.readPTS(options.probes);
-                    var numberOfProbes = probes.GetLength(0);
-
-                    List<Point3d> pointList = new List<Point3d>();
-
-                    for (int i = 0; i < probes.GetLength(0); i++)
+                    
+                    try
                     {
-                        pointList.Add(new Point3d(probes[i][0], probes[i][1], probes[i][2]));
-                    }
 
-                    // More Error checking
+                        // Error checking
 
-                    if (Utilities.IsDirectoryEmpty(options.workingDir + @"\mesh\constant\polyMesh"))
-                    {
-                        errorLog.AppendLine("The mesh folder is empty. Can't pull probes from a mesh that does not exist."); return;
-                        throw new System.ArgumentException("The mesh folder is empty. Can't pull probes from a mesh that does not exist.");
-                    }
-                    for (int i = 0; i < numberOfWindDirs; i++)
-                    {
-                        if (!File.Exists(options.workingDir + windDirs[i] + @"\system\U_Probes"))
+                        if (!Directory.Exists(options.workingDir)) { errorLog.AppendLine(options.workingDir + " not found. Exiting"); Console.WriteLine(options.workingDir + " not found. Exiting"); }
+                        
+                        if (Utilities.IsDirectoryEmpty(options.workingDir + @"\mesh\constant\polyMesh"))
                         {
-                            errorLog.AppendLine("The wind direction " + windDirs[i] + @" misses the probing dictionary. Please connect the component ""writeProbes"" and recompute the solution."); return;
-                            throw new System.ArgumentException("The wind direction " + windDirs[i] + @" misses the probing dictionary. Please connect the component ""writeProbes"" and recompute the solution.");
+                            errorLog.AppendLine("The mesh folder is empty. Can't pull probes from a mesh that does not exist.");
+                            //throw new System.ArgumentException("The mesh folder is empty. Can't pull probes from a mesh that does not exist.");
+                        }
+                        for (int i = 0; i < numberOfWindDirs; i++)
+                        {
+                            var fp = options.workingDir + @"\" + windDirs[i] + @"\system\U_Probes";
+                            if (!File.Exists(fp))
+                            {
+                                errorLog.AppendLine(@"The wind direction """ + windDirs[i] + @""" misses the probing dictionary. Please connect the ""writeProbes"" component and recompute the solution.");
+                                throw new System.ArgumentException("The wind direction " + windDirs[i] + @" misses the probing dictionary. Please connect the component ""writeProbes"" and recompute the solution.");
+                            }
+                        }
+
+                        for (int i = 0; i < numberOfWindDirs; i++)
+                        {
+                            var ABLfilePath = options.workingDir + "\\" + options.windDirs.Split(',')[i] + @"\0.org\ABLConditions";
+                            if (!File.Exists(ABLfilePath)) { Console.WriteLine(ABLfilePath + " not found. Exiting"); errorLog.AppendLine(ABLfilePath + " not found. Exiting"); }
+                        }
+
+
+
+                        string[] lines = File.ReadAllLines(filePath);
+
+
+                        for (int i = 0; i < lines.Length; i++)
+                        {
+                            var l = lines[i];
+                            if (l.Contains("Uref")) URef = double.Parse(l.Replace("Uref", "").Replace(";", "").Trim());
+                            if (l.Contains("z0")) z0 = double.Parse(l.Replace("z0 uniform", "").Replace(";", "").Trim());
+                            if (l.Contains("Zref")) zref = double.Parse(l.Replace("Zref", "").Replace(";", "").Trim());
+                        }
+
+
+
+                        //[prope][x,y,z]
+                        double[][] probes = EddyLib.RadianceFiles.readPTS(options.probes);
+                        var numberOfProbes = probes.GetLength(0);
+
+                        List<Point3d> pointList = new List<Point3d>();
+
+                        for (int i = 0; i < probes.GetLength(0); i++)
+                        {
+                            pointList.Add(new Point3d(probes[i][0], probes[i][1], probes[i][2]));
+                        }
+
+
+
+                        if (options.mode == 0) // cp
+                        {
+
+                            //try
+                            //{
+
+
+                            //    StringBuilder command = new StringBuilder();
+
+                            //    string pointName = "cp_Probes";
+                            //    string OFfield = "total(p)_coeff";
+
+                            //    for (int i = 0; i < numberOfWindDirs; i++)
+                            //    {
+
+                            //        //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + "controlDict", StringTemplates.controlDict(DOM, null, i));
+                            //        //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, options.mode));
+                            //        command.Append(@"postProcess -case " + windDirs[i] + " -func " + pointName + @" -newTimes | tee -a " + windDirs[i] + @"/log_probes;");
+
+
+
+                            //    }
+
+                            //    ProcessStartInfo psi = new ProcessStartInfo(EddyLib.Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + options.workingDir);
+                            //    Process p = new Process();
+                            //    p.StartInfo = psi;
+                            //    p.Start();
+                            //    p.WaitForExit();
+                            //    //p.Close();
+
+                            //    Thread.Sleep(2 * probes.GetLength(0) * numberOfWindDirs);
+
+
+                            //    for (int i = 0; i < numberOfWindDirs; i++)
+                            //    {
+                            //        //Thread.Sleep(2 * probes.GetLength(0));
+                            //        ParsingProbes cp = new ParsingProbes(pointList, pointName, options.workingDir + "\\" + windDirs[i], OFfield);
+                            //        //cpTree.AddRange(cp.cpValues, new Grasshopper.Kernel.Data.GH_Path(i));
+                            //    }
+
+                            //}
+                            //catch (Exception e) { Console.WriteLine(e.Message); return; }
+
 
                         }
-                    }
 
-                    for (int i = 0; i < numberOfWindDirs; i++)
-                    {
-                        var ABLfilePath = options.workingDir + "\\" + options.windDirs.Split(',')[i] + @"\0.org\ABLConditions";
-                        if (!File.Exists(ABLfilePath)) { Console.WriteLine(ABLfilePath + " not found. Exiting"); errorLog.AppendLine(ABLfilePath + " not found. Exiting"); }
-                    }
-
-
-                    if (options.mode == 0) // cp
-                    {
-
-                        try
+                        if (options.mode == 1) // U
                         {
 
 
-                            StringBuilder command = new StringBuilder();
-
-                            string pointName = "cp_Probes";
-                            string OFfield = "total(p)_coeff";
-
-                            for (int i = 0; i < numberOfWindDirs; i++)
-                            {
-
-                                //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + "controlDict", StringTemplates.controlDict(DOM, null, i));
-                                //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, options.mode));
-                                command.Append(@"postProcess -case " + windDirs[i] + " -func " + pointName + @" -newTimes | tee -a " + windDirs[i] + @"/log_probes;");
-
-
-
-                            }
-
-                            ProcessStartInfo psi = new ProcessStartInfo(EddyLib.Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + options.workingDir);
-                            Process p = new Process();
-                            p.StartInfo = psi;
-                            p.Start();
-                            p.WaitForExit();
-                            //p.Close();
-
-                            Thread.Sleep(2 * probes.GetLength(0) * numberOfWindDirs);
-
-
-                            for (int i = 0; i < numberOfWindDirs; i++)
-                            {
-                                //Thread.Sleep(2 * probes.GetLength(0));
-                                ParsingProbes cp = new ParsingProbes(pointList, pointName, options.workingDir + "\\" + windDirs[i], OFfield);
-                                //cpTree.AddRange(cp.cpValues, new Grasshopper.Kernel.Data.GH_Path(i));
-                            }
-
-                        }
-                        catch (Exception e) { Console.WriteLine(e.Message); return; }
-
-
-                    }
-
-                    if (options.mode == 1) // U
-                    {
-
-                        try
-                        {
 
                             StringBuilder command = new StringBuilder();
 
@@ -283,7 +273,7 @@ namespace CallProbes
                             }
 
 
-                            File.WriteAllText(options.workingDir + @"\UData.csv", UFile.ToString());
+                            File.WriteAllText(options.workingDir + @"\U.csv", UFile.ToString());
 
                             //Write Reduction Array to file
 
@@ -324,14 +314,18 @@ namespace CallProbes
                             Console.WriteLine("Done");
 
 
+
+
                         }
-
-                        catch (Exception e) { Console.WriteLine(e.Message); File.WriteAllText(options.workingDir + @"\Probes.err", errorLog.ToString()); return; }
-
                     }
 
+
+                    catch (Exception e) { Console.WriteLine(e.Message); File.WriteAllText(options.workingDir + @"\Probes.err", errorLog.ToString()); return; }
+
                 }
+
             }
+
             else
             {
                 Console.WriteLine("The licence for this tool expired.");
