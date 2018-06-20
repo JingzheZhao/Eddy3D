@@ -20,7 +20,7 @@ using Eddy.Properties;
 
 namespace Eddy
 {
-    public class UTCIReader : GH_Component
+    public class ReadUTCIHourly : GH_Component
     {
 
 
@@ -33,8 +33,8 @@ namespace Eddy
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public UTCIReader()
-          : base("UTCIReader", "UTCIReader", "UTCIReader", "Eddy", "UTCI")
+        public ReadUTCIHourly()
+          : base("ReadUTCIHourly", "ReadUTCIHourly", "ReadUTCIHourly", "Eddy", "UTCI")
         {
         }
 
@@ -45,7 +45,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
             
             pManager.AddIntegerParameter("Hour", "Hour", "Hour", GH_ParamAccess.item, 0);
             
@@ -94,6 +94,11 @@ namespace Eddy
             DA.GetData(1, ref hour);
 
 
+
+
+       
+
+
             var allLines = File.ReadAllLines(DOM.baseWorkingDirectory + @"\UTCI.csv");
             var numberOfLines = allLines.Count();
 
@@ -106,7 +111,12 @@ namespace Eddy
                 valueHours[i] = double.Parse(allLines[i].Split(',')[hour]);
             }
 
-            
+
+       
+
+
+
+
 
             DA.SetDataList(0, valueHours);
             

@@ -52,14 +52,14 @@ namespace CallProbes
                     var windDirs = options.windDirs.Split(',');
                     var numberOfWindDirs = windDirs.Length;
 
-                    
+
                     try
                     {
 
                         // Error checking
 
                         if (!Directory.Exists(options.workingDir)) { errorLog.AppendLine(options.workingDir + " not found. Exiting"); Console.WriteLine(options.workingDir + " not found. Exiting"); }
-                        
+
                         if (Utilities.IsDirectoryEmpty(options.workingDir + @"\mesh\constant\polyMesh"))
                         {
                             errorLog.AppendLine("The mesh folder is empty. Can't pull probes from a mesh that does not exist.");
@@ -347,15 +347,15 @@ namespace CallProbes
         public string probes { get; set; }
 
         [Option('w', "windDirs", Required = true,
-            HelpText = "Wind directions as comma separated string - > 0,45,90")]
+        HelpText = "Wind directions as comma separated string - > 0,45,90")]
         public string windDirs { get; set; }
 
         [Option('m', "mode", Required = true, DefaultValue = 1,
-           HelpText = "Mode: 0 = cp, 1 = U")]
+        HelpText = "Mode: 0 = cp, 1 = U")]
         public int mode { get; set; }
 
         [Option('l', "loud", DefaultValue = true,
-                HelpText = "Prints all messages to standard output.")]
+        HelpText = "Prints all messages to standard output.")]
         public bool Verbose { get; set; }
 
 
