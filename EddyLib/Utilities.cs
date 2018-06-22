@@ -18,7 +18,7 @@ namespace EddyLib
         //static public string hardcodedAssemblyDir = @"C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\";
         //static public string hardcodedAssemblyDir = @"C:\Users\pkastner\Documents\GitHub\WindTunnel\Eddy\bin\";
 
-        
+
 
         static public string AssemblyVersion
         {
@@ -76,6 +76,23 @@ namespace EddyLib
         public static bool IsDirectoryEmpty(string path)
         {
             return !Directory.EnumerateFileSystemEntries(path).Any();
+        }
+
+
+        public static string ConvertComputeTimes(long elapsedMilliseconds)
+        {
+            string elapsedTime = "";
+
+            if (elapsedMilliseconds < 60 * 1000)
+            {
+                elapsedTime = ("Compute time: " + elapsedMilliseconds / 1000 + " s");
+            }
+            else
+            {
+                elapsedTime= ("Compute time: " + elapsedMilliseconds / 1000 + " s or ca. " + elapsedMilliseconds / 1000 / 60 + " min");
+            }
+
+            return elapsedTime;
         }
 
 

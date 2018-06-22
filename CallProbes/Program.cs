@@ -224,20 +224,11 @@ namespace CallProbes
 
                             //Thread.Sleep(2 * 30* Math.Sqrt(probes.GetLength(0)) * numberOfWindDirs);
 
-                            if (sw.ElapsedMilliseconds < 60 * 1000)
-                            {
-                                Console.WriteLine("Compute time: " + sw.ElapsedMilliseconds / 1000 + " s");
-                            }
-                            else
-                            {
-                                Console.WriteLine("Compute time: " + sw.ElapsedMilliseconds / 1000 + " s or ca. " + sw.ElapsedMilliseconds / 1000 / 60 + " min");
-                            }
-
-
-
+                            Console.WriteLine(Utilities.ConvertComputeTimes(sw.ElapsedMilliseconds));
 
                             
-                            Console.WriteLine("Parsing the vectors for every wind direction and writing probed result files.");
+
+                            Console.WriteLine("Parsing the velocity vectors for the probes of every wind direction and writing result files.");
                             Stopwatch sw2 = new Stopwatch(); sw2.Start();
 
 
@@ -273,14 +264,9 @@ namespace CallProbes
                             }
 
 
-                            if (sw2.ElapsedMilliseconds < 60 * 1000)
-                            {
-                                Console.WriteLine("Compute time: " + sw2.ElapsedMilliseconds / 1000 + " s");
-                            }
-                            else
-                            {
-                                Console.WriteLine("Compute time: " + sw2.ElapsedMilliseconds / 1000 + " s or ca. " + sw2.ElapsedMilliseconds / 1000 / 60 + " min");
-                            }
+                            Console.WriteLine(Utilities.ConvertComputeTimes(sw2.ElapsedMilliseconds));
+                                
+                            
 
 
                             // Array for output data
@@ -313,14 +299,7 @@ namespace CallProbes
                                 });
                             }
 
-                            if (sw3.ElapsedMilliseconds < 60 * 1000)
-                            {
-                                Console.WriteLine("Compute time: " + sw3.ElapsedMilliseconds / 1000 + " s");
-                            }
-                            else
-                            {
-                                Console.WriteLine("Compute time: " + sw3.ElapsedMilliseconds / 1000 + " s or ca. " + sw3.ElapsedMilliseconds / 1000 / 60 + " min");
-                            }
+                            Console.WriteLine(Utilities.ConvertComputeTimes(sw3.ElapsedMilliseconds));
 
 
                             //Write U Array to file
@@ -365,14 +344,7 @@ namespace CallProbes
                             //Write Reduction Array to file
 
 
-                            if (sw4.ElapsedMilliseconds < 60 * 1000)
-                            {
-                                Console.WriteLine("Compute time: " + sw4.ElapsedMilliseconds / 1000 + " s");
-                            }
-                            else
-                            {
-                                Console.WriteLine("Compute time: " + sw4.ElapsedMilliseconds / 1000 + " s or ca. " + sw4.ElapsedMilliseconds / 1000 / 60 + " min");
-                            }
+                            Console.WriteLine(Utilities.ConvertComputeTimes(sw4.ElapsedMilliseconds));
 
 
                             Console.WriteLine("Write Reduction Array");
@@ -417,14 +389,7 @@ namespace CallProbes
                                     File.WriteAllText(options.workingDir + @"\Probes.err", errorLog.ToString());
                                 }
 
-                                if (sw5.ElapsedMilliseconds < 60 * 1000)
-                                {
-                                    Console.WriteLine("Compute time: " + sw5.ElapsedMilliseconds / 1000 + " s");
-                                }
-                                else
-                                {
-                                    Console.WriteLine("Compute time: " + sw5.ElapsedMilliseconds / 1000 + " s or ca. " + sw5.ElapsedMilliseconds / 1000 / 60 + " min");
-                                }
+                                Console.WriteLine(Utilities.ConvertComputeTimes(sw5.ElapsedMilliseconds));
 
                                 Console.WriteLine("Done");
 

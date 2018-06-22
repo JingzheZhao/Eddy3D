@@ -398,14 +398,7 @@ namespace CallOC
 
                         }//end using prog bar
 
-                        if (sw.ElapsedMilliseconds < 60 * 1000)
-                        {
-                            Console.WriteLine("Compute time: " + sw.ElapsedMilliseconds / 1000 + " s");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Compute time: " + sw.ElapsedMilliseconds / 1000 + " s or ca. " + sw.ElapsedMilliseconds / 1000 / 60 + " min");
-                        }
+                        Console.WriteLine(Utilities.ConvertComputeTimes(sw.ElapsedMilliseconds));
 
 
 
