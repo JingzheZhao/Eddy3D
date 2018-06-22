@@ -226,7 +226,7 @@ namespace CallProbes
 
                             Console.WriteLine(Utilities.ConvertComputeTimes(sw.ElapsedMilliseconds));
 
-                            
+
 
                             Console.WriteLine("Parsing the velocity vectors for the probes of every wind direction and writing result files.");
                             Stopwatch sw2 = new Stopwatch(); sw2.Start();
@@ -265,8 +265,8 @@ namespace CallProbes
 
 
                             Console.WriteLine(Utilities.ConvertComputeTimes(sw2.ElapsedMilliseconds));
-                                
-                            
+
+
 
 
                             // Array for output data
@@ -275,8 +275,18 @@ namespace CallProbes
                             Stopwatch sw3 = new Stopwatch(); sw3.Start();
 
 
-                            Vector3d[,] listOfAnnualData = new Vector3d[numberOfWindDirs, numberOfProbes];
+                            Vector3d[,] AnnualData = new Vector3d[numberOfWindDirs, numberOfProbes];
 
+                            var UData = new string[numberOfWindDirs][];
+
+                            UData[0] = File.ReadAllLines(fullProbeFilePath[0]);
+                            UData[1] = File.ReadAllLines(fullProbeFilePath[1]);
+                            UData[2] = File.ReadAllLines(fullProbeFilePath[2]);
+                            UData[3] = File.ReadAllLines(fullProbeFilePath[3]);
+                            UData[4] = File.ReadAllLines(fullProbeFilePath[4]);
+                            UData[5] = File.ReadAllLines(fullProbeFilePath[5]);
+                            UData[6] = File.ReadAllLines(fullProbeFilePath[6]);
+                            UData[7] = File.ReadAllLines(fullProbeFilePath[7]);
 
                             using (var progress = new ASCIIProgressBar())
                             {
@@ -291,11 +301,11 @@ namespace CallProbes
                                     //listOfAnnualData[r] = new Vector3d[numberOfProbes];
                                     for (int c = 0; c < numberOfProbes; c++)
                                     {
-                                        listOfAnnualData[r, c] = new Vector3d(double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(',')[0]), double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(',')[1]), double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(',')[2]));
+                                        AnnualData[r, c] = new Vector3d(double.Parse(UData[r][c].Split(',')[0]), double.Parse(UData[r][c].Split(',')[1]), double.Parse(UData[r][c].Split(',')[2]));
                                         progress.Report((double)cnt / numberOfProbes * numberOfWindDirs);
                                         cnt++;
                                     }
-                                //}
+                                    //}
                                 });
                             }
 
@@ -330,7 +340,7 @@ namespace CallProbes
                                     for (int c = 0; c < numberOfWindDirs; c++)
                                     {
 
-                                        UFile.Append(String.Format("{0:0.##}", listOfAnnualData[c, r].X) + "," + String.Format("{0:0.####}", listOfAnnualData[c, r].Y) + "," + String.Format("{0:0.####}", listOfAnnualData[c, r].Z) + ",");
+                                        UFile.Append(String.Format("{0:0.##}", AnnualData[c, r].X) + "," + String.Format("{0:0.####}", AnnualData[c, r].Y) + "," + String.Format("{0:0.####}", AnnualData[c, r].Z) + ",");
                                         progress.Report((double)cnt / numberOfProbes * numberOfWindDirs);
                                         cnt++;
                                     }
@@ -375,7 +385,7 @@ namespace CallProbes
                                 {
                                     for (int c = 0; c < numberOfWindDirs; c++)
                                     {
-                                        ReductionFile.Append(String.Format("{0:0.#}", Math.Round(Math.Sqrt(Math.Pow(listOfAnnualData[c, r].X, 2) + Math.Pow(listOfAnnualData[c, r].Y, 2) + Math.Pow(listOfAnnualData[c, r].Z, 2)) / UProbingHeight, 3)) + ",");
+                                        ReductionFile.Append(String.Format("{0:0.#}", Math.Round(Math.Sqrt(Math.Pow(AnnualData[c, r].X, 2) + Math.Pow(AnnualData[c, r].Y, 2) + Math.Pow(AnnualData[c, r].Z, 2)) / UProbingHeight, 3)) + ",");
                                         progress.Report((double)cnt / numberOfProbes * numberOfWindDirs);
                                         cnt++;
                                     }

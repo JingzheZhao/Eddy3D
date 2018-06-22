@@ -43,7 +43,7 @@ namespace EddyLib
 
         private void writeToCSV()
         {
-            string PostProcessingDirectory = workingDirectory + @"\PostProcessing\";
+            string PostProcessingDirectory = workingDirectory + @"\postProcessing\";
             if (pointName == "cp_Probes")
             {
                 StringBuilder sb = new StringBuilder();
@@ -119,7 +119,7 @@ namespace EddyLib
         public string getLastProcProssDir(List<Point3d> listOfPoints, string pointName, string workingDirectory, string field)
         {
             var counterPoints = listOfPoints.Count;
-            string PostProcessingDirectory = workingDirectory + @"\PostProcessing\";
+            string PostProcessingDirectory = workingDirectory + @"\postProcessing\";
 
 
             //replace this with input
