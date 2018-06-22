@@ -146,7 +146,7 @@ namespace Eddy
                 }
                 UFile.AppendLine("");
             }
-            File.WriteAllText(DOM.baseWorkingDirectory + @"\hourlyUData.csv", UFile.ToString());
+            File.WriteAllText(DOM.baseWorkingDirectory + @"\hourlyU.csv", UFile.ToString());
 
             //Write Reduction Array to file
 

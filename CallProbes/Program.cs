@@ -83,6 +83,37 @@ namespace CallProbes
 
 
 
+
+                        // Delete files in subfolders
+                        var listOfDirsInfo = new List<string>();
+
+                        for (int i = 0; i < numberOfWindDirs; i++)
+                        {
+                            listOfDirsInfo.Add((@"C:\Temp\" + windDirs[i] + @"\postProcessing\"));
+
+                        }
+
+
+
+                        for (int i = 0; i < numberOfWindDirs; i++)
+                        {
+
+
+                            foreach (var subDir in new DirectoryInfo(listOfDirsInfo[i]).GetDirectories())
+                            {
+
+                                if (subDir.ToString().ToLower() == "residuals")
+                                {
+                                    continue;
+                                }
+                                subDir.Delete(true);
+                            }
+                        }
+
+
+
+
+
                         string[] lines = File.ReadAllLines(filePath);
 
 
@@ -158,6 +189,10 @@ namespace CallProbes
                         if (options.mode == 1) // U
                         {
 
+                            Console.WriteLine("Probing the simulation results.");
+
+                            Stopwatch sw = new Stopwatch(); sw.Start();
+
 
 
                             StringBuilder command = new StringBuilder();
@@ -182,12 +217,28 @@ namespace CallProbes
                             p.StartInfo = psi;
                             p.Start();
                             p.WaitForExit();
-                            //p.Close();
+                            p.Close();
 
                             // Issue
                             // Could not find a part of the path 'C:\temp\0\PostProcessing\U_Probes'.
 
-                            Thread.Sleep(2 * probes.GetLength(0) * numberOfWindDirs);
+                            //Thread.Sleep(2 * 30* Math.Sqrt(probes.GetLength(0)) * numberOfWindDirs);
+
+                            if (sw.ElapsedMilliseconds < 60 * 1000)
+                            {
+                                Console.WriteLine("Compute time: " + sw.ElapsedMilliseconds / 1000 + " s");
+                            }
+                            else
+                            {
+                                Console.WriteLine("Compute time: " + sw.ElapsedMilliseconds / 1000 + " s or ca. " + sw.ElapsedMilliseconds / 1000 / 60 + " min");
+                            }
+
+
+
+
+                            
+                            Console.WriteLine("Parsing the vectors for every wind direction and writing probed result files.");
+                            Stopwatch sw2 = new Stopwatch(); sw2.Start();
 
 
                             for (int i = 0; i < numberOfWindDirs; i++)
@@ -197,17 +248,11 @@ namespace CallProbes
                                 //Thread.Sleep(2 * probes.GetLength(0));
                                 var U = new ParsingProbes(pointList, pointName, options.workingDir + "\\" + windDirs[i], OFfield);
 
-
                                 // Create datatree
 
                                 // uTree.AddRange(U.uValues, new Grasshopper.Kernel.Data.GH_Path(i));
 
                             }
-
-                            //List<Point3d> points = new List<Point3d>();
-                            //DA.GetDataList(1, points);
-
-
 
 
                             List<string> fullProbeFilePath = new List<String>();
@@ -216,7 +261,9 @@ namespace CallProbes
                             //string[] abc = replacedString.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 
 
-                            //Build paths as list
+                            //Build list of paths
+
+
 
                             for (int i = 0; i < numberOfWindDirs; i++)
                             {
@@ -226,95 +273,163 @@ namespace CallProbes
                             }
 
 
+                            if (sw2.ElapsedMilliseconds < 60 * 1000)
+                            {
+                                Console.WriteLine("Compute time: " + sw2.ElapsedMilliseconds / 1000 + " s");
+                            }
+                            else
+                            {
+                                Console.WriteLine("Compute time: " + sw2.ElapsedMilliseconds / 1000 + " s or ca. " + sw2.ElapsedMilliseconds / 1000 / 60 + " min");
+                            }
 
 
                             // Array for output data
 
-                            var listOfAnnualData = new Vector3d[numberOfWindDirs][];
+                            Console.WriteLine("Re-collecting output data from every wind direction.");
+                            Stopwatch sw3 = new Stopwatch(); sw3.Start();
 
-                            for (int r = 0; r < numberOfWindDirs; r++)
+
+                            Vector3d[,] listOfAnnualData = new Vector3d[numberOfWindDirs, numberOfProbes];
+
+
+                            using (var progress = new ASCIIProgressBar())
                             {
-                                listOfAnnualData[r] = new Vector3d[numberOfProbes];
-                                //int counter = 1;
-                                for (int c = 0; c < numberOfProbes; c++)
+                                int cnt = 0;
+                                Parallel.For(0, numberOfWindDirs,
+                                r =>
+
                                 {
-                                    listOfAnnualData[r][c] = new Vector3d(double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[0]), double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1]), double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[2]));
-                                    //counter += 3;
-                                }
+
+                                    //for (int r = 0; r < numberOfWindDirs; r++)
+                                    //{
+                                    //listOfAnnualData[r] = new Vector3d[numberOfProbes];
+                                    for (int c = 0; c < numberOfProbes; c++)
+                                    {
+                                        listOfAnnualData[r, c] = new Vector3d(double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(',')[0]), double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(',')[1]), double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(',')[2]));
+                                        progress.Report((double)cnt / numberOfProbes * numberOfWindDirs);
+                                        cnt++;
+                                    }
+                                //}
+                                });
+                            }
+
+                            if (sw3.ElapsedMilliseconds < 60 * 1000)
+                            {
+                                Console.WriteLine("Compute time: " + sw3.ElapsedMilliseconds / 1000 + " s");
+                            }
+                            else
+                            {
+                                Console.WriteLine("Compute time: " + sw3.ElapsedMilliseconds / 1000 + " s or ca. " + sw3.ElapsedMilliseconds / 1000 / 60 + " min");
                             }
 
 
                             //Write U Array to file
-                            Console.WriteLine("Write U Array");
+                            Console.WriteLine("Writing U Array");
+                            Stopwatch sw4 = new Stopwatch(); sw4.Start();
+
 
                             System.Text.StringBuilder UFile = new System.Text.StringBuilder();
 
-                            for (int i = 0; i < numberOfWindDirs; i++)
+                            using (var progress = new ASCIIProgressBar())
                             {
-                                UFile.Append(windDirs[i] + " , , ,");
+                                int cnt = 0;
 
-                            }
-                            UFile.AppendLine("");
-                            for (int i = 0; i < numberOfWindDirs; i++)
-                            {
-                                UFile.Append("x, y, z,");
-                            }
-                            UFile.AppendLine("");
-
-                            for (int r = 0; r < numberOfProbes; r++)
-                            {
-                                for (int c = 0; c < numberOfWindDirs; c++)
+                                for (int i = 0; i < numberOfWindDirs; i++)
                                 {
-
-                                    UFile.Append(String.Format("{0:0.####}", listOfAnnualData[c][r].X) + "," + String.Format("{0:0.####}", listOfAnnualData[c][r].Y) + "," + String.Format("{0:0.####}", listOfAnnualData[c][r].Z) + ",");
+                                    UFile.Append(windDirs[i] + " , , ,");
 
                                 }
                                 UFile.AppendLine("");
-                            }
+                                for (int i = 0; i < numberOfWindDirs; i++)
+                                {
+                                    UFile.Append("x, y, z,");
+                                }
+                                UFile.AppendLine("");
 
+                                for (int r = 0; r < numberOfProbes; r++)
+                                {
+                                    for (int c = 0; c < numberOfWindDirs; c++)
+                                    {
+
+                                        UFile.Append(String.Format("{0:0.##}", listOfAnnualData[c, r].X) + "," + String.Format("{0:0.####}", listOfAnnualData[c, r].Y) + "," + String.Format("{0:0.####}", listOfAnnualData[c, r].Z) + ",");
+                                        progress.Report((double)cnt / numberOfProbes * numberOfWindDirs);
+                                        cnt++;
+                                    }
+                                    UFile.AppendLine("");
+                                }
+
+                            }
 
                             File.WriteAllText(options.workingDir + @"\U.csv", UFile.ToString());
 
                             //Write Reduction Array to file
 
+
+                            if (sw4.ElapsedMilliseconds < 60 * 1000)
+                            {
+                                Console.WriteLine("Compute time: " + sw4.ElapsedMilliseconds / 1000 + " s");
+                            }
+                            else
+                            {
+                                Console.WriteLine("Compute time: " + sw4.ElapsedMilliseconds / 1000 + " s or ca. " + sw4.ElapsedMilliseconds / 1000 / 60 + " min");
+                            }
+
+
                             Console.WriteLine("Write Reduction Array");
+                            Stopwatch sw5 = new Stopwatch(); sw5.Start();
 
 
                             // Calculate the undisturbed velocity at probing height !!!This only makes sense for horizontal slices!!!
 
-
-                            var probingHeight = pointList[0].Z;
-                            var UProbingHeight = ((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((probingHeight + z0) / z0);
-
-
-                            System.Text.StringBuilder ReductionFile = new System.Text.StringBuilder();
-
-                            for (int i = 0; i < numberOfWindDirs; i++)
+                            using (var progress = new ASCIIProgressBar())
                             {
-                                ReductionFile.Append(windDirs[i] + ",");
-                            }
+                                int cnt = 0;
 
-                            ReductionFile.AppendLine("");
-                            for (int r = 0; r < numberOfProbes; r++)
-                            {
-                                for (int c = 0; c < numberOfWindDirs; c++)
+
+
+                                var probingHeight = pointList[0].Z;
+                                var UProbingHeight = ((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((probingHeight + z0) / z0);
+
+
+                                System.Text.StringBuilder ReductionFile = new System.Text.StringBuilder();
+
+                                for (int i = 0; i < numberOfWindDirs; i++)
                                 {
-                                    ReductionFile.Append(String.Format("{0:0.###}", Math.Round(Math.Sqrt(Math.Pow(listOfAnnualData[c][r].X, 2) + Math.Pow(listOfAnnualData[c][r].Y, 2) + Math.Pow(listOfAnnualData[c][r].Z, 2)) / UProbingHeight, 3)) + ",");
+                                    ReductionFile.Append(windDirs[i] + ",");
                                 }
+
                                 ReductionFile.AppendLine("");
+                                for (int r = 0; r < numberOfProbes; r++)
+                                {
+                                    for (int c = 0; c < numberOfWindDirs; c++)
+                                    {
+                                        ReductionFile.Append(String.Format("{0:0.#}", Math.Round(Math.Sqrt(Math.Pow(listOfAnnualData[c, r].X, 2) + Math.Pow(listOfAnnualData[c, r].Y, 2) + Math.Pow(listOfAnnualData[c, r].Z, 2)) / UProbingHeight, 3)) + ",");
+                                        progress.Report((double)cnt / numberOfProbes * numberOfWindDirs);
+                                        cnt++;
+                                    }
+                                    ReductionFile.AppendLine("");
+                                }
+                                File.WriteAllText(options.workingDir + @"\WindReductionData.csv", ReductionFile.ToString());
+
+
+                                if (options.Verbose)
+                                {
+                                    File.WriteAllText(options.workingDir + @"\Probes.err", errorLog.ToString());
+                                }
+
+                                if (sw5.ElapsedMilliseconds < 60 * 1000)
+                                {
+                                    Console.WriteLine("Compute time: " + sw5.ElapsedMilliseconds / 1000 + " s");
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Compute time: " + sw5.ElapsedMilliseconds / 1000 + " s or ca. " + sw5.ElapsedMilliseconds / 1000 / 60 + " min");
+                                }
+
+                                Console.WriteLine("Done");
+
+
                             }
-                            File.WriteAllText(options.workingDir + @"\WindReductionData.csv", ReductionFile.ToString());
-
-
-                            if (options.Verbose)
-                            {
-                                File.WriteAllText(options.workingDir + @"\Probes.err", errorLog.ToString());
-                            }
-
-                            Console.WriteLine("Done");
-
-
-
 
                         }
                     }

@@ -402,7 +402,6 @@ namespace CallOC
                         {
                             Console.WriteLine("Compute time: " + sw.ElapsedMilliseconds / 1000 + " s");
                         }
-
                         else
                         {
                             Console.WriteLine("Compute time: " + sw.ElapsedMilliseconds / 1000 + " s or ca. " + sw.ElapsedMilliseconds / 1000 / 60 + " min");
