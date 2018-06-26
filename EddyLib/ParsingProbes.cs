@@ -19,9 +19,9 @@ namespace EddyLib
         public string valueString;
 
 
-        private List<Point3d> listOfPoints;
-        private string pointName;
-        private string caseDirectory;
+        private readonly List<Point3d> listOfPoints;
+        private readonly string pointName;
+        private readonly string caseDirectory;
 
 
         public ParsingProbes(List<Point3d> ListOfPoints, string PointName, string caseDirectory, string OFfield)
@@ -37,11 +37,11 @@ namespace EddyLib
             {
                 ParsingVectors(listOfPoints, pointName, this.caseDirectory, OFfield);
             }
-            writeToCSV();
+            WriteToCSV();
         }
 
 
-        private void writeToCSV()
+        private void WriteToCSV()
         {
             string PostProcessingDirectory = caseDirectory + @"\postProcessing\";
             if (pointName == "cp_Probes")
@@ -70,7 +70,7 @@ namespace EddyLib
         private void ParsingNumbers(List<Point3d> listOfPoints, string pointName, string workingDirectory, string OFfield)
         {
 
-            string fullPath = getLastProcProssDir(listOfPoints, pointName, workingDirectory, OFfield);
+            string fullPath = GetLastProcProssDir(listOfPoints, pointName, workingDirectory, OFfield);
 
             var counterPoints = listOfPoints.Count;
 
@@ -93,7 +93,7 @@ namespace EddyLib
         private void ParsingVectors(List<Point3d> listOfPoints, string pointName, string workingDirectory, string OFfield)
         {
 
-            string fullPath = getLastProcProssDir(listOfPoints, pointName, workingDirectory, OFfield);
+            string fullPath = GetLastProcProssDir(listOfPoints, pointName, workingDirectory, OFfield);
 
             var counterPoints = listOfPoints.Count;
 
@@ -116,7 +116,7 @@ namespace EddyLib
 
         }
 
-        public string getLastProcProssDir(List<Point3d> listOfPoints, string pointName, string workingDirectory, string field)
+        public string GetLastProcProssDir(List<Point3d> listOfPoints, string pointName, string workingDirectory, string field)
         {
             var counterPoints = listOfPoints.Count;
             string PostProcessingDirectory = workingDirectory + @"\postProcessing\";
@@ -136,7 +136,7 @@ namespace EddyLib
             return fullPath;
         }
 
-        public string getLastIterationPath(string workingDirectory)
+        public string GetLastIterationPath(string workingDirectory)
         {
             var sortedWorkingDir = Directory.GetDirectories(workingDirectory);
             Array.Sort(sortedWorkingDir, new Utilities.NumericComparer());
@@ -148,7 +148,7 @@ namespace EddyLib
             return fullPath;
         }
 
-        public int getLastIteration(string workingDir)
+        public int GetLastIteration(string workingDir)
         {
             var sortedWorkingDir = Directory.GetDirectories(caseDirectory);
             Array.Sort(sortedWorkingDir, new Utilities.NumericComparer());
