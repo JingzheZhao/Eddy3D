@@ -21,21 +21,21 @@ namespace EddyLib
 
         private List<Point3d> listOfPoints;
         private string pointName;
-        private string workingDirectory;
+        private string caseDirectory;
 
 
-        public ParsingProbes(List<Point3d> ListOfPoints, string PointName, string WorkingDirectory, string OFfield)
+        public ParsingProbes(List<Point3d> ListOfPoints, string PointName, string caseDirectory, string OFfield)
         {
             listOfPoints = ListOfPoints;
             pointName = PointName;
-            workingDirectory = WorkingDirectory;
+            this.caseDirectory = caseDirectory;
             if (pointName == "cp_Probes")
             {
-                ParsingNumbers(listOfPoints, pointName, workingDirectory, OFfield);
+                ParsingNumbers(listOfPoints, pointName, this.caseDirectory, OFfield);
             }
             else
             {
-                ParsingVectors(listOfPoints, pointName, workingDirectory, OFfield);
+                ParsingVectors(listOfPoints, pointName, this.caseDirectory, OFfield);
             }
             writeToCSV();
         }
@@ -43,7 +43,7 @@ namespace EddyLib
 
         private void writeToCSV()
         {
-            string PostProcessingDirectory = workingDirectory + @"\postProcessing\";
+            string PostProcessingDirectory = caseDirectory + @"\postProcessing\";
             if (pointName == "cp_Probes")
             {
                 StringBuilder sb = new StringBuilder();
@@ -53,7 +53,7 @@ namespace EddyLib
                 }
                 File.WriteAllText(PostProcessingDirectory + pointName + ".csv", sb.ToString());
             }
-            else
+            if (pointName == "U_Probes")
             {
                 StringBuilder sb = new StringBuilder();
                 foreach (Vector3d i in this.uValues)
@@ -150,7 +150,7 @@ namespace EddyLib
 
         public int getLastIteration(string workingDir)
         {
-            var sortedWorkingDir = Directory.GetDirectories(workingDirectory);
+            var sortedWorkingDir = Directory.GetDirectories(caseDirectory);
             Array.Sort(sortedWorkingDir, new Utilities.NumericComparer());
 
             var lastIteration = Path.GetDirectoryName(sortedWorkingDir[sortedWorkingDir.Length - 1]);

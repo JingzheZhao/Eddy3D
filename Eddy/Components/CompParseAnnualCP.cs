@@ -83,7 +83,7 @@ namespace Eddy
 
             for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
             {
-                fullProbeFilePath.Add(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\PostProcessing\cp_Probes.csv");
+                fullProbeFilePath.Add(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\postProcessing\cp_Probes.csv");
             }
 
             var numberOfWindDirs = DOM.BCInflow.windDir.Count();
