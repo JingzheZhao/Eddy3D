@@ -26,17 +26,17 @@ namespace CallProbes
                 {
                     StringBuilder errorLog = new StringBuilder();
 
-                    Console.WriteLine("Working directory: {0}", options.workingDir);
-                    errorLog.AppendLine(String.Format("Working directory: {0}", options.workingDir));
+                    Console.WriteLine("Working directory: {0}", options.WorkingDir);
+                    errorLog.AppendLine(String.Format("Working directory: {0}", options.WorkingDir));
 
-                    Console.WriteLine("Probes: {0}", options.probes);
-                    errorLog.AppendLine(String.Format("Probes: {0}", options.probes));
+                    Console.WriteLine("Probes: {0}", options.Probes);
+                    errorLog.AppendLine(String.Format("Probes: {0}", options.Probes));
 
-                    Console.WriteLine("Wind directions considered: {0}", options.windDirs);
-                    errorLog.AppendLine(String.Format("Wind directions considered: {0}", options.windDirs));
+                    Console.WriteLine("Wind directions considered: {0}", options.WindDirs);
+                    errorLog.AppendLine(String.Format("Wind directions considered: {0}", options.WindDirs));
 
-                    Console.WriteLine("Mode (0=cp;1=U): {0}", options.mode);
-                    errorLog.AppendLine(String.Format("Mode (0=cp;1=U): {0}", options.mode));
+                    Console.WriteLine("Mode (0=cp;1=U): {0}", options.Mode);
+                    errorLog.AppendLine(String.Format("Mode (0=cp;1=U): {0}", options.Mode));
 
                     Console.WriteLine("Verbose: {0}", options.Verbose);
                     errorLog.AppendLine(String.Format("Verbose: {0}", options.Verbose));
@@ -47,42 +47,44 @@ namespace CallProbes
                     double zref = 10;
                     double z0 = 1;
                     // Read all variables from one file path. Variables are usually identical for all wind directions so this should be robust.
-                    var filePath = options.workingDir + "\\" + options.windDirs.Split(',')[0] + @"\0.org\ABLConditions";
+                    var filePath = options.WorkingDir + "\\" + options.WindDirs.Split(',')[0] + @"\0.org\ABLConditions";
 
-                    var windDirs = options.windDirs.Split(',');
+                    var windDirs = options.WindDirs.Split(',');
                     var numberOfWindDirs = windDirs.Length;
+
+
+                    // Error checking
+
+                    if (!Directory.Exists(options.WorkingDir)) { errorLog.AppendLine(options.WorkingDir + " not found. Exiting"); Console.WriteLine(options.WorkingDir + " not found. Exiting"); }
+
+                    if (Utilities.IsDirectoryEmpty(options.WorkingDir + @"\mesh\constant\polyMesh"))
+                    {
+                        errorLog.AppendLine("The mesh folder is empty. Can't pull probes from a mesh that does not exist.");
+                        //throw new System.ArgumentException("The mesh folder is empty. Can't pull probes from a mesh that does not exist.");
+                    }
+                    for (int i = 0; i < numberOfWindDirs; i++)
+                    {
+                        var fp = options.WorkingDir + @"\" + windDirs[i] + @"\system\U_Probes";
+                        if (!File.Exists(fp))
+                        {
+                            errorLog.AppendLine(@"The wind direction """ + windDirs[i] + @""" misses the probing dictionary. Please connect the ""writeProbes"" component and recompute the solution.");
+                            throw new System.ArgumentException("The wind direction " + windDirs[i] + @" misses the probing dictionary. Please connect the component ""writeProbes"" and recompute the solution.");
+                        }
+                    }
+
+                    for (int i = 0; i < numberOfWindDirs; i++)
+                    {
+                        var ABLfilePath = options.WorkingDir + "\\" + options.WindDirs.Split(',')[i] + @"\0.org\ABLConditions";
+                        if (!File.Exists(ABLfilePath)) { Console.WriteLine(ABLfilePath + " not found. Exiting"); errorLog.AppendLine(ABLfilePath + " not found. Exiting"); }
+                    }
+
+
 
 
                     try
                     {
 
-                        // Error checking
-
-                        if (!Directory.Exists(options.workingDir)) { errorLog.AppendLine(options.workingDir + " not found. Exiting"); Console.WriteLine(options.workingDir + " not found. Exiting"); }
-
-                        if (Utilities.IsDirectoryEmpty(options.workingDir + @"\mesh\constant\polyMesh"))
-                        {
-                            errorLog.AppendLine("The mesh folder is empty. Can't pull probes from a mesh that does not exist.");
-                            //throw new System.ArgumentException("The mesh folder is empty. Can't pull probes from a mesh that does not exist.");
-                        }
-                        for (int i = 0; i < numberOfWindDirs; i++)
-                        {
-                            var fp = options.workingDir + @"\" + windDirs[i] + @"\system\U_Probes";
-                            if (!File.Exists(fp))
-                            {
-                                errorLog.AppendLine(@"The wind direction """ + windDirs[i] + @""" misses the probing dictionary. Please connect the ""writeProbes"" component and recompute the solution.");
-                                throw new System.ArgumentException("The wind direction " + windDirs[i] + @" misses the probing dictionary. Please connect the component ""writeProbes"" and recompute the solution.");
-                            }
-                        }
-
-                        for (int i = 0; i < numberOfWindDirs; i++)
-                        {
-                            var ABLfilePath = options.workingDir + "\\" + options.windDirs.Split(',')[i] + @"\0.org\ABLConditions";
-                            if (!File.Exists(ABLfilePath)) { Console.WriteLine(ABLfilePath + " not found. Exiting"); errorLog.AppendLine(ABLfilePath + " not found. Exiting"); }
-                        }
-
-
-
+                        
 
                         // Delete files in subfolders
                         var listOfDirsInfo = new List<string>();
@@ -128,7 +130,7 @@ namespace CallProbes
 
 
                         //[prope][x,y,z]
-                        double[][] probes = EddyLib.RadianceFiles.readPTS(options.probes);
+                        double[][] probes = EddyLib.RadianceFiles.readPTS(options.Probes);
                         var numberOfProbes = probes.GetLength(0);
 
                         List<Point3d> pointList = new List<Point3d>();
@@ -140,7 +142,7 @@ namespace CallProbes
 
 
 
-                        if (options.mode == 0) // cp
+                        if (options.Mode == 0) // cp
                         {
 
                             //try
@@ -186,7 +188,7 @@ namespace CallProbes
 
                         }
 
-                        if (options.mode == 1) // U
+                        if (options.Mode == 1) // U
                         {
 
                             Console.WriteLine("Probing the simulation results.");
@@ -212,15 +214,20 @@ namespace CallProbes
 
                             }
 
-                            ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + options.workingDir);
-                            Process p = new Process();
-                            p.StartInfo = psi;
+                            
+
+                            ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + options.WorkingDir);
+                            Process p = new Process
+                            {
+                                StartInfo = psi
+                            };
                             p.Start();
                             p.WaitForExit();
                             p.Close();
 
                             // Issue
                             // Could not find a part of the path 'C:\temp\0\PostProcessing\U_Probes'.
+                            // This happens if OF process closes immideately after calling
 
                             //Thread.Sleep(2 * 30* Math.Sqrt(probes.GetLength(0)) * numberOfWindDirs);
 
@@ -237,7 +244,7 @@ namespace CallProbes
 
                                 // Parse values
                                 //Thread.Sleep(2 * probes.GetLength(0));
-                                var U = new ParsingProbes(pointList, pointName, options.workingDir + "\\" + windDirs[i], OFfield);
+                                var U = new ParsingProbes(pointList, pointName, options.WorkingDir + "\\" + windDirs[i], OFfield);
 
                                 // Create datatree
 
@@ -258,7 +265,7 @@ namespace CallProbes
 
                             for (int i = 0; i < numberOfWindDirs; i++)
                             {
-                                var path = options.workingDir + "\\" + windDirs[i] + @"\postProcessing\U_Probes.csv";
+                                var path = options.WorkingDir + "\\" + windDirs[i] + @"\postProcessing\U_Probes.csv";
                                 if (!File.Exists(path)) { Console.WriteLine(path + " not found. Exiting"); errorLog.AppendLine(path + " not found. Exiting"); return; }
                                 fullProbeFilePath.Add(path);
                             }
@@ -349,7 +356,7 @@ namespace CallProbes
 
                             }
 
-                            File.WriteAllText(options.workingDir + @"\U.csv", UFile.ToString());
+                            File.WriteAllText(options.WorkingDir + @"\U.csv", UFile.ToString());
 
                             //Write Reduction Array to file
 
@@ -391,12 +398,12 @@ namespace CallProbes
                                     }
                                     ReductionFile.AppendLine("");
                                 }
-                                File.WriteAllText(options.workingDir + @"\WindReductionData.csv", ReductionFile.ToString());
+                                File.WriteAllText(options.WorkingDir + @"\WindReductionData.csv", ReductionFile.ToString());
 
 
                                 if (options.Verbose)
                                 {
-                                    File.WriteAllText(options.workingDir + @"\Probes.err", errorLog.ToString());
+                                    File.WriteAllText(options.WorkingDir + @"\Probes.err", errorLog.ToString());
                                 }
 
                                 Console.WriteLine(Utilities.ConvertComputeTimes(sw5.ElapsedMilliseconds));
@@ -410,7 +417,7 @@ namespace CallProbes
                     }
 
 
-                    catch (Exception e) { Console.WriteLine(e.Message); File.WriteAllText(options.workingDir + @"\Probes.err", errorLog.ToString()); return; }
+                    catch (Exception e) { Console.WriteLine(e.Message); File.WriteAllText(options.WorkingDir + @"\Probes.err", errorLog.ToString()); return; }
 
                 }
 
@@ -430,19 +437,19 @@ namespace CallProbes
 
         [Option('d', "workingDir", Required = true,
         HelpText = "Working directory.")]
-        public string workingDir { get; set; }
+        public string WorkingDir { get; set; }
 
         [Option('p', "probes", Required = true,
         HelpText = "Probes file (.pts)")]
-        public string probes { get; set; }
+        public string Probes { get; set; }
 
         [Option('w', "windDirs", Required = true,
         HelpText = "Wind directions as comma separated string - > 0,45,90")]
-        public string windDirs { get; set; }
+        public string WindDirs { get; set; }
 
         [Option('m', "mode", Required = true, DefaultValue = 1,
         HelpText = "Mode: 0 = cp, 1 = U")]
-        public int mode { get; set; }
+        public int Mode { get; set; }
 
         [Option('l', "loud", DefaultValue = true,
         HelpText = "Prints all messages to standard output.")]
