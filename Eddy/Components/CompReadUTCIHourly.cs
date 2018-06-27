@@ -59,7 +59,8 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
-            
+            pManager.AddGenericParameter("U", "U", "Overall Uncertainty in %", GH_ParamAccess.item);
+
             //pManager.AddGenericParameter("windSpeed", "windSpeed", "windSpeed", GH_ParamAccess.list);
             //pManager.AddGenericParameter("windDir", "windDir", "windDir", GH_ParamAccess.list);
             //pManager.AddGenericParameter("windRed", "windRed", "windRed", GH_ParamAccess.list);
@@ -112,14 +113,18 @@ namespace Eddy
             }
 
 
-       
+
+            // Parse UTCI uncertaintly from file
+
+            var uncertaintyLine = File.ReadLines(DOM.baseWorkingDirectory + @"\UTCI.uncertainty").Last();
+            var uncertaintyNUM = double.Parse(uncertaintyLine.Split('%')[0].Split(':')[1].Split('r')[1]);
 
 
 
 
 
             DA.SetDataList(0, valueHours);
-            
+            DA.SetData(1, uncertaintyNUM);
 
         }
 

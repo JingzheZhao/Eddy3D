@@ -204,7 +204,7 @@ namespace Eddy
                 baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
 
 
-                OFBoxDomain DOM = new OFBoxDomain(inputBreps, combinedMeshes, BCond, blockDimension, baseWorkingDirectory);
+                OFBoxDomain DOM = new OFBoxDomain(inputBreps, combinedMeshes, terrainMeshes, BCond,  blockDimension, baseWorkingDirectory);
 
 
 

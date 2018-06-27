@@ -59,12 +59,12 @@ namespace CallOC
 
 
                         bool fileMissing = false;
-                        if (!Directory.Exists(options.WorkingDir)) { Console.WriteLine(options.WorkingDir + " not found. Exiting"); fileMissing = true; }
-                        if (!File.Exists(options.Weather)) { Console.WriteLine(options.Weather + " not found. Exiting"); fileMissing = true; }
-                        if (!File.Exists(options.WindScaling)) { Console.WriteLine(options.WindScaling + " not found. Exiting"); fileMissing = true; }
-                        if (!File.Exists(options.DifRad)) { Console.WriteLine(options.DifRad + " not found. Exiting"); fileMissing = true; }
-                        if (!File.Exists(options.DirRad)) { Console.WriteLine(options.DifRad + " not found. Exiting"); fileMissing = true; }
-
+                        if (!Directory.Exists(options.WorkingDir) ) { Console.WriteLine(options.WorkingDir + " not found. Exiting"); fileMissing = true; }
+                        if (!File.Exists(options.Weather)       || new FileInfo(options.Weather).Length == 0) { Console.WriteLine(options.Weather + " not found or empty. Exiting"); fileMissing = true; }
+                        if (!File.Exists(options.WindScaling)   || new FileInfo(options.WindScaling).Length == 0) { Console.WriteLine(options.WindScaling + " not found or empty. Exiting"); fileMissing = true; }
+                        if (!File.Exists(options.DifRad)        || new FileInfo(options.DifRad).Length == 0) { Console.WriteLine(options.DifRad + " not found or empty. Exiting"); fileMissing = true; }
+                        if (!File.Exists(options.DirRad)        || new FileInfo(options.DirRad).Length == 0) { Console.WriteLine(options.DirRad + " not found or empty. Exiting"); fileMissing = true; }
+                        if (new FileInfo(options.WorkingDir + @"\Rad\sensors.pts").Length == 0) { Console.WriteLine(options.WorkingDir + @"\Rad\sensors.pts" + " not found or empty. Exiting"); fileMissing = true; }
                         if (fileMissing == true) { System.Threading.Thread.Sleep(8000); return; }
 
                         // Error checks for CFD data
@@ -265,6 +265,10 @@ namespace CallOC
                         //// Importing probeHeight from probe file to scale U down to pedestrian level
                         Console.WriteLine("Parsing height of probes to scale down wind velocity from weather file.");
 
+
+
+
+
                         double[][] probes = EddyLib.RadianceFiles.readPTS(options.WorkingDir + @"\Rad\sensors.pts");
 
                         var arbitraryProbePoint = new Point3d(probes[0][0], probes[0][1], probes[0][2]);
@@ -427,32 +431,32 @@ namespace CallOC
 
                             //Percentage for each sensorpoint
                             int cntSensorPercent = 0;
-                            sbUtciUncertainty.Append("Sensorpoint: " + j + ", ");
+                            sbUtciUncertainty.Append("SP: " + j + ",");
                             for (int i = 0; i < 8760; i++)
                             {
-                                
+
                                 if (uncertaintyMRTArray[i, j] == true || uncertaintyWindArray[i, j] == true)
                                 {
                                     cntSensorPercent++;
                                 }
                             }
-                            
-                            sbUtciUncertainty.Append((int)Math.Round((double)(100 * cntSensorPercent) / 8760) + " % U, Hours: ");
+
+                            sbUtciUncertainty.Append("\t" + (int)Math.Round((double)(100 * cntSensorPercent) / 8760) + " % U,\tHours: ");
                             cntSensorPercent = 0;
                             //Hours for each sensorpoint
                             for (int i = 0; i < 8760; i++)
                             {
                                 if (uncertaintyMRTArray[i, j] == true || uncertaintyWindArray[i, j] == true)
                                 {
-                                    
-                                    
+
+
                                     sbUtciUncertainty.Append(i + ",");
                                     counter++;
                                 }
                             }
                             sbUtciUncertainty.AppendLine("");
                         }
-                        sbUtciUncertainty.AppendLine("Total incidents of uncertainty: " + counter + " or " + Math.Round((double)counter / (8760 * sensorPointCount), 2) + " %");
+                        sbUtciUncertainty.AppendLine("Total incidents of uncertainty: " + counter + " or " + Math.Round((double)counter * 100 / (8760 * sensorPointCount), 0) + " % overall annual uncertainty");
                         File.WriteAllText(options.WorkingDir + @"\UTCI.uncertainty", sbUtciUncertainty.ToString());
 
 

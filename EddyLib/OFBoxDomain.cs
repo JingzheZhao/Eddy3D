@@ -50,7 +50,7 @@ namespace EddyLib
         //// Delete later
 
 
-        public OFBoxDomain(Brep inputBreps, Mesh geometry, BoundaryConditions BCond, double _blockDim, string baseWorkingDirectory = @"C:\temp")
+        public OFBoxDomain(Brep inputBreps, Mesh geometry, Mesh terrain, BoundaryConditions BCond, double _blockDim, string baseWorkingDirectory = @"C:\temp")
         {
             blockDimension = _blockDim;
             BuildingGeometry = geometry;
@@ -139,9 +139,11 @@ namespace EddyLib
             zCells = (int)((Math.Abs(zInter.Length)) / blockDimension);
 
 
-            
-            var pl = new Plane(center, localCoordSystem.ZAxis ,-1*localCoordSystem.YAxis);
-            pl.Origin = center;
+
+            var pl = new Plane(center, localCoordSystem.ZAxis, -1 * localCoordSystem.YAxis)
+            {
+                Origin = center
+            };
 
             //Plane newPlaneGround = new Plane()
             newBoxDomain = new Box(pl, xInter, yInter, zInter);
