@@ -420,12 +420,14 @@ namespace CallOC
                         // Uncertainty output for UTCI calculations
 
                         StringBuilder sbUtciUncertainty = new StringBuilder();
-                        sbUtciUncertainty.AppendLine("The calculated UTCI values lie outside of uncertainty bounds for the following sensor points and hours either because of low/high wind velocities or MRT values:");
+                        sbUtciUncertainty.AppendLine("The calculated UTCI values lie outside of uncertainty (U) bounds for the following sensor points and hours either because of low/high wind velocities or MRT values:");
                         int counter = 0;
                         for (int j = 0; j < sensorPointCount; j++)
                         {
+
+                            //Percentage for each sensorpoint
                             int cntSensorPercent = 0;
-                            sbUtciUncertainty.Append("Sensorpoint: " + j);
+                            sbUtciUncertainty.Append("Sensorpoint: " + j + ", ");
                             for (int i = 0; i < 8760; i++)
                             {
                                 
@@ -434,14 +436,17 @@ namespace CallOC
                                     cntSensorPercent++;
                                 }
                             }
-                            sbUtciUncertainty.Append(", Hour: ");
+                            
+                            sbUtciUncertainty.Append((int)Math.Round((double)(100 * cntSensorPercent) / 8760) + " % U, Hours: ");
+                            cntSensorPercent = 0;
+                            //Hours for each sensorpoint
                             for (int i = 0; i < 8760; i++)
                             {
                                 if (uncertaintyMRTArray[i, j] == true || uncertaintyWindArray[i, j] == true)
                                 {
-                                    sbUtciUncertainty.Append(cntSensorPercent/8760 + ", ");
-                                    cntSensorPercent = 0;
-                                    sbUtciUncertainty.Append(i + ", ");
+                                    
+                                    
+                                    sbUtciUncertainty.Append(i + ",");
                                     counter++;
                                 }
                             }
