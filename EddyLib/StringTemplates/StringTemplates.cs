@@ -8,7 +8,7 @@ namespace EddyLib
 {
     public class StringTemplates
     {
-        public static string blockMeshDict(OFBoxDomain DOM)
+        public static string BlockMeshDict(OFBoxDomain DOM)
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
@@ -85,7 +85,7 @@ boundary
         ";
         }
 
-        public static string snappyHexMeshDict(OFBaseDomain dom)
+        public static string SnappyHexMeshDict(OFBaseDomain dom)
         {
             string refinementGeometry = "";
             string Cylinder = @"refinementCylinder{
@@ -380,7 +380,7 @@ mergeTolerance 1E-6;
 ");
             return sb.ToString();
         }
-        public static string controlDict(OFBaseDomain DOM, List<Mesh> topologies, int numberOfTopologies)
+        public static string ControlDict(OFBaseDomain DOM, List<Mesh> topologies, int numberOfTopologies)
         {
             var sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -427,13 +427,13 @@ libs
 #includeFunc residuals
 ");
             //if (topologies != null) {
-            sb.Append(StringTemplates.functionObjCP(DOM, topologies, numberOfTopologies).ToString());
+            sb.Append(StringTemplates.FunctionObjCP(DOM, topologies, numberOfTopologies).ToString());
             //}
             //else { sb.Append(@"};"); }
 
             return sb.ToString();
         }
-        public static string functionObjCP(OFBaseDomain DOM, List<Mesh> evaluationTopology, int d)
+        public static string FunctionObjCP(OFBaseDomain DOM, List<Mesh> evaluationTopology, int d)
         {
             var sb = new StringBuilder();
             sb.Append(@"cp2
@@ -486,7 +486,7 @@ patch" + i + @"
             return sb.ToString();
 
         }
-        public static string topoSetDict(List<Mesh> evaluationTopology)
+        public static string TopoSetDict(List<Mesh> evaluationTopology)
         {
             var sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -544,7 +544,7 @@ FoamFile
             return sb.ToString();
 
         }
-        public static string sampleProbes(List<Point3d> listOfPoints, string probeName, int mode)
+        public static string SampleProbes(List<Point3d> listOfPoints, string probeName, int mode)
         {
             var sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -880,7 +880,7 @@ FoamFile
 
 
 
-        public static string meshQualityDict()
+        public static string MeshQualityDict()
         {
             return
                @"/*--------------------------------*- C++ -*----------------------------------*\
@@ -964,7 +964,7 @@ minTriangleTwist -1;
 // ************************************************************************* //
 ";
         }
-        public static string fvSchemes()
+        public static string FvSchemes()
         {
             return
         @"/*--------------------------------*- C++ -*----------------------------------*\
@@ -1166,7 +1166,7 @@ wallDist
         //;");
         //            return sb.ToString();
         //        }
-        public static string fvSolution(int mode)
+        public static string FvSolution(int mode)
         {
             StringBuilder sb = new StringBuilder(); sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
@@ -1273,7 +1273,7 @@ cache
 ;");
             return sb.ToString();
         }
-        public static string surfaceFeatureExtractDict()
+        public static string SurfaceFeatureExtractDict()
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
@@ -1354,7 +1354,7 @@ ground.stl
 // ************************************************************************* //
 ";
         }
-        public static string transportProperties()
+        public static string TransportProperties()
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
@@ -1379,7 +1379,7 @@ nu              nu [0 2 -1 0 0 0 0] 1.5e-05;
 // ************************************************************************* //
 ";
         }
-        public static string turbulenceProperties()
+        public static string TurbulenceProperties()
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
@@ -1412,7 +1412,7 @@ RAS
 ";
         }
 
-        public static string run_mesh(OFBaseDomain DOM)
+        public static string Run_mesh(OFBaseDomain DOM)
         {
 
 
@@ -1452,7 +1452,7 @@ RAS
             return sb.ToString();
         }
 
-        public static string run_sim(OFBaseDomain DOM, int d)
+        public static string Run_sim(OFBaseDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -1485,7 +1485,7 @@ RAS
             return sb.ToString();
         }
 
-        public static string run_mesh_docker(OFBaseDomain DOM)
+        public static string Run_mesh_docker(OFBaseDomain DOM)
         {
 
 
@@ -1523,7 +1523,7 @@ RAS
 
             return sb.ToString();
         }
-        public static string run_sim_docker(OFBaseDomain DOM, int d)
+        public static string Run_sim_docker(OFBaseDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -1556,7 +1556,7 @@ RAS
             return sb.ToString();
         }
 
-        public static string run(OFBaseDomain DOM)
+        public static string Run(OFBaseDomain DOM)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(@"call " + DOM.baseWorkingDirectory + "run_mesh.bat");
@@ -1576,7 +1576,7 @@ RAS
             return sb.ToString();
         }
 
-        public static string runSimOnly(OFBaseDomain DOM)
+        public static string RunSimOnly(OFBaseDomain DOM)
         {
             StringBuilder sb = new StringBuilder();
             //  sb.AppendLine(@"call " + DOM.baseWorkingDirectory + "run_mesh.bat");
@@ -1593,7 +1593,7 @@ RAS
             return sb.ToString();
         }
 
-        public static string run_RayTrace(OFBaseDomain DOM)
+        public static string Run_RayTrace(OFBaseDomain DOM)
         {
             string workDir = DOM.baseWorkingDirectory.Trim('\\');
             StringBuilder sb = new StringBuilder();
@@ -1606,7 +1606,7 @@ RAS
             return sb.ToString();
         }
 
-        public static string run_Probes(OFBaseDomain DOM)
+        public static string Run_Probes(OFBaseDomain DOM)
         {
 
             //@ Patrick WIP
@@ -1633,7 +1633,7 @@ RAS
             return sb.ToString();
         }
 
-        public static string run_UTCI(OFBaseDomain DOM)
+        public static string Run_UTCI(OFBaseDomain DOM)
         {
 
             //@ Patrick WIP
@@ -1666,7 +1666,7 @@ RAS
         }
 
 
-        public static string plotResidualsPDF()
+        public static string PlotResidualsPDF()
         {
             return @"set key autotitle columnhead
       set logscale y
@@ -1679,7 +1679,7 @@ RAS
       set output 'residuals.pdf'
       replot";
         }
-        public static string plotResidualsLive()
+        public static string PlotResidualsLive()
         {
             return @"set key autotitle columnhead
       set logscale y
@@ -1692,7 +1692,7 @@ RAS
       pause 5
       reread";
         }
-        public static string residuals()
+        public static string Residuals()
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
   =========                 |

@@ -243,11 +243,11 @@ namespace Eddy
 
 
 
-            File.WriteAllText(Path.Combine(meshSystemDir + "snappyHexMeshDict"), StringTemplates.snappyHexMeshDict(DOM));
-            File.WriteAllText(Path.Combine(meshSystemDir + "surfaceFeatureExtractDict"), StringTemplates.surfaceFeatureExtractDict());
-            File.WriteAllText(Path.Combine(meshSystemDir + "fvSchemes"), StringTemplates.fvSchemes());
-            File.WriteAllText(Path.Combine(meshSystemDir + "fvSolution"), StringTemplates.fvSolution(0));
-            File.WriteAllText(Path.Combine(meshSystemDir + "meshQualityDict"), StringTemplates.meshQualityDict());
+            File.WriteAllText(Path.Combine(meshSystemDir + "snappyHexMeshDict"), StringTemplates.SnappyHexMeshDict(DOM));
+            File.WriteAllText(Path.Combine(meshSystemDir + "surfaceFeatureExtractDict"), StringTemplates.SurfaceFeatureExtractDict());
+            File.WriteAllText(Path.Combine(meshSystemDir + "fvSchemes"), StringTemplates.FvSchemes());
+            File.WriteAllText(Path.Combine(meshSystemDir + "fvSolution"), StringTemplates.FvSolution(0));
+            File.WriteAllText(Path.Combine(meshSystemDir + "meshQualityDict"), StringTemplates.MeshQualityDict());
 
 
 

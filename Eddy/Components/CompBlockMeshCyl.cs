@@ -307,7 +307,7 @@ namespace Eddy
 
                 File.WriteAllText(DOMCYL.meshSystemDirectory + @"\blockMeshDict", DOMCYL.stringyfyDomain2());
                 File.WriteAllText(DOMCYL.baseWorkingDirectory + @"\mesh\case.foam", "");
-                File.WriteAllText(DOMCYL.meshSystemDirectory + @"\controlDict", StringTemplates.controlDict(DOMCYL, null, 0));
+                File.WriteAllText(DOMCYL.meshSystemDirectory + @"\controlDict", StringTemplates.ControlDict(DOMCYL, null, 0));
 
                 if (!File.Exists(baseWorkingDirectory + @"\mesh\log"))
                 {

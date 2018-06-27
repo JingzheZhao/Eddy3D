@@ -156,7 +156,7 @@ namespace Eddy
                     Directory.CreateDirectory(simBoundaryConditionsDir);
                 }
 
-                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\" + "controlDict"), StringTemplates.controlDict(DOM, null, i));
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\" + "controlDict"), StringTemplates.ControlDict(DOM, null, i));
                 File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\case.foam"), "");
 
                 if (DOM is OFBoxDomain)
@@ -181,12 +181,12 @@ namespace Eddy
 
                     File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions(DOM, i));
 
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\snappyHexMeshDict"), StringTemplates.snappyHexMeshDict(DOM));
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\surfaceFeatureExtractDict"), StringTemplates.surfaceFeatureExtractDict());
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\fvSchemes"), StringTemplates.fvSchemes());
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\fvSolution"), StringTemplates.fvSolution(0));
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\meshQualityDict"), StringTemplates.meshQualityDict());
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\residuals"), StringTemplates.residuals());
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\snappyHexMeshDict"), StringTemplates.SnappyHexMeshDict(DOM));
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\surfaceFeatureExtractDict"), StringTemplates.SurfaceFeatureExtractDict());
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\fvSchemes"), StringTemplates.FvSchemes());
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\fvSolution"), StringTemplates.FvSolution(0));
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\meshQualityDict"), StringTemplates.MeshQualityDict());
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\residuals"), StringTemplates.Residuals());
                 }
                 else
                 {
@@ -210,20 +210,20 @@ namespace Eddy
 
                     File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions(DOM, i));
 
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\snappyHexMeshDict"), StringTemplates.snappyHexMeshDict(DOM));
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\surfaceFeatureExtractDict"), StringTemplates.surfaceFeatureExtractDict());
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\fvSchemes"), StringTemplates.fvSchemes());
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\fvSolution"), StringTemplates.fvSolution(0));
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\meshQualityDict"), StringTemplates.meshQualityDict());
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\residuals"), StringTemplates.residuals());
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\snappyHexMeshDict"), StringTemplates.SnappyHexMeshDict(DOM));
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\surfaceFeatureExtractDict"), StringTemplates.SurfaceFeatureExtractDict());
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\fvSchemes"), StringTemplates.FvSchemes());
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\fvSolution"), StringTemplates.FvSolution(0));
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\meshQualityDict"), StringTemplates.MeshQualityDict());
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\residuals"), StringTemplates.Residuals());
 
 
 
                 }
 
                 //Constant folder
-                File.WriteAllText(Path.Combine(simConstantDir + "turbulenceProperties"), StringTemplates.turbulenceProperties());
-                File.WriteAllText(Path.Combine(simConstantDir + "transportProperties"), StringTemplates.transportProperties());
+                File.WriteAllText(Path.Combine(simConstantDir + "turbulenceProperties"), StringTemplates.TurbulenceProperties());
+                File.WriteAllText(Path.Combine(simConstantDir + "transportProperties"), StringTemplates.TransportProperties());
 
                 // Symbolic dir junctions
                 SymlinkCreator.Create(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\constant\polyMesh\", DOM.meshConstantDirectory + @"\polyMesh\");
@@ -234,21 +234,21 @@ namespace Eddy
             //Batch files
 
 
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_mesh.bat"), StringTemplates.run_mesh(DOM));
+            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_mesh.bat"), StringTemplates.Run_mesh(DOM));
 
 
 
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run.bat"), StringTemplates.run(DOM));
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_sim_all.bat"), StringTemplates.runSimOnly(DOM));
+            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run.bat"), StringTemplates.Run(DOM));
+            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_sim_all.bat"), StringTemplates.RunSimOnly(DOM));
 
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_ray.bat"), StringTemplates.run_RayTrace(DOM));
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_probes.bat"), StringTemplates.run_Probes(DOM));
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_utci.bat"), StringTemplates.run_UTCI(DOM));
+            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_ray.bat"), StringTemplates.Run_RayTrace(DOM));
+            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_probes.bat"), StringTemplates.Run_Probes(DOM));
+            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_utci.bat"), StringTemplates.Run_UTCI(DOM));
 
 
             for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
             {
-                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + "_run_sim.bat"), StringTemplates.run_sim(DOM, i));
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + "_run_sim.bat"), StringTemplates.Run_sim(DOM, i));
             }
 
 

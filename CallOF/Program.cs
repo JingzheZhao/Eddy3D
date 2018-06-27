@@ -28,16 +28,16 @@ namespace CallOF
                 // Values are available here
                 if (options.Verbose)
                 {
-                    Console.WriteLine("File path: {0}", options.filePath);
+                    Console.WriteLine("File path: {0}", options.FilePath);
                     //Console.WriteLine("Output: {0}", options.OutputFile);
-                    Console.WriteLine("Executable: {0}", options.command);
+                    Console.WriteLine("Executable: {0}", options.Command);
                     //Console.WriteLine("Viscosity: {0}", options.Visc);
                     //Console.WriteLine("Processors used: {0}", options.CPUs);
                     //Console.WriteLine("Abort if error smaller than: {0}", options.MaxErr);
 
-                    errorLog.AppendLine(String.Format("File path: {0}", options.filePath));
+                    errorLog.AppendLine(String.Format("File path: {0}", options.FilePath));
                     //errorLog.AppendLine(String.Format("Output: {0}", options.OutputFile));
-                    errorLog.AppendLine(String.Format("Executable: {0}", options.command));
+                    errorLog.AppendLine(String.Format("Executable: {0}", options.Command));
                     //errorLog.AppendLine(String.Format("Viscosity: {0}", options.Visc));
                     //errorLog.AppendLine(String.Format("Processors used: {0}", options.CPUs));
                     //errorLog.AppendLine(String.Format("Abort if error smaller than: {0}", options.MaxErr));
@@ -52,7 +52,7 @@ namespace CallOF
                 string sourceEnvironment = @"source /opt/openfoam4/etc/bashrc; cd /home/openfoam; ";
                 string logging = @"";
                 //string command = "blockMesh";
-                var app_argument = string.Format("run -v \"{0}:{1}\" {2} {3} bash -c \"{4}{5}{6}\"", options.filePath.Trim(), volumeDocker, entryPoint, container, sourceEnvironment, options.command, logging);
+                var app_argument = string.Format("run -v \"{0}:{1}\" {2} {3} bash -c \"{4}{5}{6}\"", options.FilePath.Trim(), volumeDocker, entryPoint, container, sourceEnvironment, options.Command, logging);
                 //Environment.SetEnvironmentVariable("PATH", @"C:\Program Files\Docker\Docker\Resources\bin");
 
 
@@ -93,7 +93,7 @@ namespace CallOF
     {
         [Option('f', "filePath", Required = true,
         HelpText = "File path.")]
-        public string filePath { get; set; }
+        public string FilePath { get; set; }
 
         //[Option('o', "output", Required = true,
         //HelpText = "Output file to be generated.")]
@@ -105,7 +105,7 @@ namespace CallOF
 
         [Option('e', "executable", Required = true,
         HelpText = "Binary to be executed.")]
-        public string command { get; set; }
+        public string Command { get; set; }
 
         //[Option('p', "parallel processes", DefaultValue = -1,
         //HelpText = "Number of parallel processes allowed.")]

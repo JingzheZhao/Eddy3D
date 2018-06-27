@@ -29,20 +29,20 @@ namespace CallOC
 
                         if (options.Verbose)
                         {
-                            Console.WriteLine("EPW weather file path: {0}", options.weather);
-                            errorLog.AppendLine(String.Format("EPW weather file path: {0}", options.weather));
+                            Console.WriteLine("EPW weather file path: {0}", options.Weather);
+                            errorLog.AppendLine(String.Format("EPW weather file path: {0}", options.Weather));
 
-                            Console.WriteLine("Diffuse radiation (ill): {0}", options.difRad);
-                            errorLog.AppendLine(String.Format("Diffuse radiation (ill): {0}", options.difRad));
+                            Console.WriteLine("Diffuse radiation (ill): {0}", options.DifRad);
+                            errorLog.AppendLine(String.Format("Diffuse radiation (ill): {0}", options.DifRad));
 
-                            Console.WriteLine("Direct radiation (ill): {0}", options.dirRad);
-                            errorLog.AppendLine(String.Format("Direct radiation (ill): {0}", options.dirRad));
+                            Console.WriteLine("Direct radiation (ill): {0}", options.DirRad);
+                            errorLog.AppendLine(String.Format("Direct radiation (ill): {0}", options.DirRad));
 
-                            Console.WriteLine("Wind velocity scaling factors (csv): {0}", options.windScaling);
-                            errorLog.AppendLine(String.Format("Wind velocity scaling factors (csv): {0}", options.windScaling));
+                            Console.WriteLine("Wind velocity scaling factors (csv): {0}", options.WindScaling);
+                            errorLog.AppendLine(String.Format("Wind velocity scaling factors (csv): {0}", options.WindScaling));
 
-                            Console.WriteLine("Working directory: {0}", options.workingDir);
-                            errorLog.AppendLine(String.Format("Working directory: {0}", options.workingDir));
+                            Console.WriteLine("Working directory: {0}", options.WorkingDir);
+                            errorLog.AppendLine(String.Format("Working directory: {0}", options.WorkingDir));
 
 #if DEBUG
                             if (options.hourandpoint != null)
@@ -59,11 +59,11 @@ namespace CallOC
 
 
                         bool fileMissing = false;
-                        if (!Directory.Exists(options.workingDir)) { Console.WriteLine(options.workingDir + " not found. Exiting"); fileMissing = true; }
-                        if (!File.Exists(options.weather)) { Console.WriteLine(options.weather + " not found. Exiting"); fileMissing = true; }
-                        if (!File.Exists(options.windScaling)) { Console.WriteLine(options.windScaling + " not found. Exiting"); fileMissing = true; }
-                        if (!File.Exists(options.difRad)) { Console.WriteLine(options.difRad + " not found. Exiting"); fileMissing = true; }
-                        if (!File.Exists(options.dirRad)) { Console.WriteLine(options.difRad + " not found. Exiting"); fileMissing = true; }
+                        if (!Directory.Exists(options.WorkingDir)) { Console.WriteLine(options.WorkingDir + " not found. Exiting"); fileMissing = true; }
+                        if (!File.Exists(options.Weather)) { Console.WriteLine(options.Weather + " not found. Exiting"); fileMissing = true; }
+                        if (!File.Exists(options.WindScaling)) { Console.WriteLine(options.WindScaling + " not found. Exiting"); fileMissing = true; }
+                        if (!File.Exists(options.DifRad)) { Console.WriteLine(options.DifRad + " not found. Exiting"); fileMissing = true; }
+                        if (!File.Exists(options.DirRad)) { Console.WriteLine(options.DifRad + " not found. Exiting"); fileMissing = true; }
 
                         if (fileMissing == true) { System.Threading.Thread.Sleep(8000); return; }
 
@@ -71,7 +71,7 @@ namespace CallOC
 
                         // load  data
                         // -----------------
-                        var ReductionData = File.ReadAllLines(options.windScaling).Skip(1).ToArray();
+                        var ReductionData = File.ReadAllLines(options.WindScaling).Skip(1).ToArray();
 
                         var numberOfWindDirsSimulated = ReductionData[0].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Count();
 
@@ -90,7 +90,7 @@ namespace CallOC
 
                         // load weather data
                         // -----------------
-                        string[] epwData = File.ReadAllLines(options.weather);
+                        string[] epwData = File.ReadAllLines(options.Weather);
 
                         // get header data
                         string[] ln1 = epwData[0].Split(',');
@@ -158,8 +158,8 @@ namespace CallOC
                         Console.WriteLine("Loading: Radiation data");
 
 
-                        var DiffRad = RadianceFiles.loadILL(options.difRad);
-                        var DirRad = RadianceFiles.loadILL(options.dirRad);
+                        var DiffRad = RadianceFiles.loadILL(options.DifRad);
+                        var DirRad = RadianceFiles.loadILL(options.DirRad);
 
 
 
@@ -265,7 +265,7 @@ namespace CallOC
                         //// Importing probeHeight from probe file to scale U down to pedestrian level
                         Console.WriteLine("Parsing height of probes to scale down wind velocity from weather file.");
 
-                        double[][] probes = EddyLib.RadianceFiles.readPTS(options.workingDir + @"\Rad\sensors.pts");
+                        double[][] probes = EddyLib.RadianceFiles.readPTS(options.WorkingDir + @"\Rad\sensors.pts");
 
                         var arbitraryProbePoint = new Point3d(probes[0][0], probes[0][1], probes[0][2]);
 
@@ -279,7 +279,7 @@ namespace CallOC
 
                         try
                         {
-                            var filePath = options.workingDir + "\\" + windDirList[0] + @"\0.org\ABLConditions";
+                            var filePath = options.WorkingDir + "\\" + windDirList[0] + @"\0.org\ABLConditions";
                             if (!File.Exists(filePath)) { Console.WriteLine(filePath + " not found. Exiting"); return; }
 
                             string[] lines = File.ReadAllLines(filePath);
@@ -415,7 +415,7 @@ namespace CallOC
                             }
                             sbUtci.AppendLine("");
                         }
-                        File.WriteAllText(options.workingDir + @"\UTCI.csv", sbUtci.ToString());
+                        File.WriteAllText(options.WorkingDir + @"\UTCI.csv", sbUtci.ToString());
 
                         // Uncertainty output for UTCI calculations
 
@@ -424,19 +424,31 @@ namespace CallOC
                         int counter = 0;
                         for (int j = 0; j < sensorPointCount; j++)
                         {
-                            sbUtciUncertainty.Append("Sensorpoint: " + j + ", Hour: ");
+                            int cntSensorPercent = 0;
+                            sbUtciUncertainty.Append("Sensorpoint: " + j);
+                            for (int i = 0; i < 8760; i++)
+                            {
+                                
+                                if (uncertaintyMRTArray[i, j] == true || uncertaintyWindArray[i, j] == true)
+                                {
+                                    cntSensorPercent++;
+                                }
+                            }
+                            sbUtciUncertainty.Append(", Hour: ");
                             for (int i = 0; i < 8760; i++)
                             {
                                 if (uncertaintyMRTArray[i, j] == true || uncertaintyWindArray[i, j] == true)
                                 {
-                                    sbUtciUncertainty.Append(i+ ", ");
+                                    sbUtciUncertainty.Append(cntSensorPercent/8760 + ", ");
+                                    cntSensorPercent = 0;
+                                    sbUtciUncertainty.Append(i + ", ");
                                     counter++;
                                 }
                             }
                             sbUtciUncertainty.AppendLine("");
                         }
-                        sbUtciUncertainty.AppendLine("Total incidents of uncertainty: " + counter + " or " + Math.Round((double)counter / (8760*sensorPointCount),2) + " %");
-                        File.WriteAllText(options.workingDir + @"\UTCI.uncertainty", sbUtciUncertainty.ToString());
+                        sbUtciUncertainty.AppendLine("Total incidents of uncertainty: " + counter + " or " + Math.Round((double)counter / (8760 * sensorPointCount), 2) + " %");
+                        File.WriteAllText(options.WorkingDir + @"\UTCI.uncertainty", sbUtciUncertainty.ToString());
 
 
                         //Write Debug info to file
@@ -473,7 +485,7 @@ namespace CallOC
 
                         if (options.Verbose)
                         {
-                            File.WriteAllText(options.workingDir + @"\UTCI.err", errorLog.ToString());
+                            File.WriteAllText(options.WorkingDir + @"\UTCI.err", errorLog.ToString());
                         }
 
                         Console.WriteLine("Done");
@@ -513,24 +525,24 @@ namespace CallOC
     {
         [Option('w', "weather", Required = true,
         HelpText = "EPW weather file path.")]
-        public string weather { get; set; }
+        public string Weather { get; set; }
 
         [Option('f', "difRad", Required = true,
         HelpText = "Diffuse radiation (ill)")]
-        public string difRad { get; set; }
+        public string DifRad { get; set; }
 
         [Option('r', "dirRad", Required = true,
         HelpText = "Direct radiation (ill)")]
-        public string dirRad { get; set; }
+        public string DirRad { get; set; }
 
 
         [Option('u', "windScaling", Required = true,
         HelpText = "Wind velocity scaling factors (csv)")]
-        public string windScaling { get; set; }
+        public string WindScaling { get; set; }
 
         [Option('d', "workingDir", Required = true,
                 HelpText = "Working directory.")]
-        public string workingDir { get; set; }
+        public string WorkingDir { get; set; }
         //[Option('o', "output", Required = true,
         //HelpText = "Output file path")]
         //public string output { get; set; }

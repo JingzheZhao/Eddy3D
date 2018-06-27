@@ -171,8 +171,8 @@ namespace Eddy
                     for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                     {
 
-                        File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + "controlDict", StringTemplates.controlDict(DOM, null, i));
-                        File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, mode));
+                        File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + "controlDict", StringTemplates.ControlDict(DOM, null, i));
+                        File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.SampleProbes(listOfPoints, pointName, mode));
 
 
 
@@ -197,7 +197,7 @@ namespace Eddy
 
                         // Write the dicts
 
-                        File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, mode));
+                        File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.SampleProbes(listOfPoints, pointName, mode));
 
 
 
