@@ -34,7 +34,7 @@ namespace EddyLib
 
 
         public int divisionsX = 1;
-        public int divisionsY;
+        public int _divOutercircle;
         public int divisionsZ;
 
         public int cellDivisionsPerim;
@@ -47,7 +47,7 @@ namespace EddyLib
         public int equalDivisions;
 
 
-        public double gradingPerim;
+        public int gradingPerim;
 
         public double sizeInnerR;
         public List<Point3d> pointsOnCircle;
@@ -55,7 +55,7 @@ namespace EddyLib
 
 
 
-        public OFCylDomain(Brep inputBreps, Mesh geometry, BoundaryConditions BCond, int _divisionsY, double gradingPerim, double windDir, int _CPU, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0, string baseWorkingDirectory = @"C:\temp")
+        public OFCylDomain(Brep inputBreps, Mesh geometry, BoundaryConditions BCond, int divOuterCircle, int gradingPerim, int divPerim ,double windDir, int _CPU, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0, string baseWorkingDirectory = @"C:\temp")
         {
             this.gradingPerim = gradingPerim;
 
@@ -80,7 +80,7 @@ namespace EddyLib
 
 
             divisionsX = 1;
-            divisionsY = _divisionsY;
+            _divOutercircle = divOuterCircle;
             //divisionsZ = _divisionsZ;
 
             BBox = geometry.GetBoundingBox(true);
@@ -182,7 +182,7 @@ namespace EddyLib
             }
 
 
-            MakeCircMeshPlane(center, this.sizeInnerR, divisionsY, radius, height);
+            MakeCircMeshPlane(center, this.sizeInnerR, _divOutercircle, radius, height, gradingPerim, divPerim);
 
 
             BCond.calculateCPPressures(zMax);
@@ -199,7 +199,7 @@ namespace EddyLib
 
         }
 
-        public void MakeCircMeshPlane(Point3d center, double sizeInnerRect, int divisions, double circleRadius, double height)
+        public void MakeCircMeshPlane(Point3d center, double sizeInnerRect, int divisionsY, double circleRadius, double height, int gradingPerim, int divPerim)
         {
             List<Point3d> pointsOnCircle = new List<Point3d>();
             var pl = new Plane(center, Vector3d.ZAxis);
@@ -207,7 +207,7 @@ namespace EddyLib
             var xinter = new Interval(-sizeInnerRect, sizeInnerRect);
 
 
-            var m = Mesh.CreateFromPlane(pl, xinter, xinter, divisions, divisions); // creates the inner rectangle with arbitrary subdivision
+            var m = Mesh.CreateFromPlane(pl, xinter, xinter, divisionsY, divisionsY); // creates the inner rectangle with arbitrary subdivision
             this.core.Append(m);
             this.core.Flip(true, true, true);
 
@@ -215,9 +215,10 @@ namespace EddyLib
             double circRad = circleRadius;
             if (circleRadius < minRad) circRad = minRad;
 
-            var cellSizeCore = 2 * (sizeInnerRect / divisions);
+            var cellSizeCore = 2 * (sizeInnerRect / divisionsY);
             //Math.Abs was just a workaround fix
-            this.cellDivisionsPerim = Math.Abs((int)Math.Round((circRad - (2 * sizeInnerRect)) / cellSizeCore));
+            this.cellDivisionsPerim = divPerim;
+            //this.cellDivisionsPerim = Math.Abs((int)Math.Round((circRad - (2 * sizeInnerRect)) / cellSizeCore));
 
 
             // divisionsZ must be min 1
@@ -634,7 +635,7 @@ blocks
 ");
 
 
-            sb.AppendLine(stringyfyBlocks(DomainMesh, inputGroundVertices, inputTopVertices, divisionsX, divisionsY, divisionsZ));
+            sb.AppendLine(stringyfyBlocks(DomainMesh, inputGroundVertices, inputTopVertices, divisionsX, _divOutercircle, divisionsZ));
 
 
             sb.AppendLine(@"

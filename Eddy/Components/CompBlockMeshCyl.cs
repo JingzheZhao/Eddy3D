@@ -61,7 +61,8 @@ namespace Eddy
 
             //pManager.AddIntegerParameter("divisionsX", "divisionsX", "divisionsX", GH_ParamAccess.item, 1);
             pManager.AddIntegerParameter("divisionsOuterCirc", "divisionsOuterCirc", "divisionsOuterCirc", GH_ParamAccess.item, 1);
-            pManager.AddNumberParameter("gradingPerim", "gradingPerim", "gradingPerim", GH_ParamAccess.item, 1);
+            pManager.AddIntegerParameter("gradingPerim", "gradingPerim", "gradingPerim", GH_ParamAccess.item, 1);
+            pManager.AddIntegerParameter("divPerim", "divPerim", "divPerim", GH_ParamAccess.item, 1);
 
             pManager.AddNumberParameter("sizeInnerR", "sizeInnerR", "sizeInnerR", GH_ParamAccess.item, 0);
             pManager.AddNumberParameter("sizeOuterR", "sizeOuterR", "sizeOuterR", GH_ParamAccess.item, 0);
@@ -109,7 +110,8 @@ namespace Eddy
 
 
             List<GeometryBase> domain = new List<GeometryBase>();
-            foreach (var g in _domain) {
+            foreach (var g in _domain)
+            {
                 if (g != null) domain.Add(g);
             }
 
@@ -138,8 +140,9 @@ namespace Eddy
             int CPUs = 1;
             double windDir = 0;
             int divisionsOuterCirc = 1;
-            double gradingPerim = 1;
-            double sizeInnerRect = 0; 
+            int gradingPerim = 1;
+            int divPerim = 1;
+            double sizeInnerRect = 0;
             double sizeOuterCirc = 0;
             double sizeHeight = 0;
 
@@ -151,14 +154,15 @@ namespace Eddy
             //DA.GetData(3, ref divisionsX);
             DA.GetData(3, ref divisionsOuterCirc);
             DA.GetData(4, ref gradingPerim);
-            DA.GetData(5, ref sizeInnerRect);
-            DA.GetData(6, ref sizeOuterCirc);
-            DA.GetData(7, ref sizeHeight);
+            DA.GetData(5, ref divPerim);
+            DA.GetData(6, ref sizeInnerRect);
+            DA.GetData(7, ref sizeOuterCirc);
+            DA.GetData(8, ref sizeHeight);
 
 
             //DA.GetData(6, ref RAM);
-            DA.GetData(8, ref CPUs);
-            DA.GetData(9, ref Run);
+            DA.GetData(9, ref CPUs);
+            DA.GetData(10, ref Run);
 
 
             //OFDomainBuilder DOM = new OFDomainBuilder(domain, workingDirectory, baseMesh);
@@ -196,7 +200,8 @@ namespace Eddy
 
                 if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
                 {
-                    Mesh obj = (Mesh)b;
+                    Mesh obj = new Mesh();
+                    obj = (Mesh)b;
                     combinedMeshes.Append(obj);
                 }
                 else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
@@ -210,7 +215,7 @@ namespace Eddy
 
             }
 
-            
+
 
             // Those Breps are currently necessary to perform the point inclusion check for the probing components
 
@@ -221,7 +226,7 @@ namespace Eddy
 
                 inputBreps.Append(Brep.TryConvertBrep(g));
             }
-            
+
 
 
             //Fix paths
@@ -231,7 +236,7 @@ namespace Eddy
 
             if (Utilities.CheckLicence() == true)
             {
-                OFCylDomain DOMCYL = new OFCylDomain(inputBreps, combinedMeshes, BCond, divisionsOuterCirc, gradingPerim, windDir, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory);
+                OFCylDomain DOMCYL = new OFCylDomain(inputBreps, combinedMeshes, BCond, divisionsOuterCirc, gradingPerim, divPerim, windDir, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory);
 
 
                 //if (Settings.getCurrentRAM() != RAM)
@@ -335,7 +340,7 @@ void plastic Generic_20
 
                 File.WriteAllText(DOMCYL.baseWorkingDirectory + @"Rad\materials.rad", radMat);
                 RadianceFiles.MeshProc(daysimMesh, DOMCYL.baseWorkingDirectory + @"Rad\scene.rad", "Generic_20");
-             
+
 
 
 

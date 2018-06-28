@@ -40,7 +40,7 @@ vertices
 );
 blocks
 (
-        hex (0 1 2 3 4 5 6 7) ("+  DOM.xCells + " "  + DOM.yCells + " " + DOM.zCells + @") simpleGrading (1 1 1)
+        hex (0 1 2 3 4 5 6 7) (" + DOM.xCells + " " + DOM.yCells + " " + DOM.zCells + @") simpleGrading (1 1 1)
 );
 edges
 (
@@ -1555,6 +1555,20 @@ RAS
             }
             return sb.ToString();
         }
+
+        public static string Run_checkBadMesh(OFBaseDomain DOM)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""foamToVTK -faceSet highAspectRatioCells -ascii;foamToVTK -faceSet nonOrthoFaces -ascii;foamToVTK -faceSet skewFaces -ascii;foamToVTK -faceSet wrongOrientedFaces -ascii; foamToVTK -faceSet zeroVolumeCells -ascii | tee -a log"" -f """ + DOM.baseWorkingDirectory  + @"\mesh\");
+#if DEBUG
+
+                sb.AppendLine("PAUSE");
+
+#endif
+            return sb.ToString();
+        }
+
 
         public static string Run(OFBaseDomain DOM)
         {

@@ -487,7 +487,7 @@ namespace CallOC
 
                         sbUtciDEBUG.AppendLine("UTCI: " + String.Format("{0:0.0}", Utci[debug[0], debug[1]]));
                         sbUtciDEBUG.AppendLine("");
-                        File.WriteAllText(options.workingDir + @"\UTCI_debug_hour_" + debug[0] + "_probe_" + debug[1] + ".csv", sbUtciDEBUG.ToString());
+                        File.WriteAllText(options.WorkingDir + @"\UTCI_debug_hour_" + debug[0] + "_probe_" + debug[1] + ".csv", sbUtciDEBUG.ToString());
 #endif
 
 

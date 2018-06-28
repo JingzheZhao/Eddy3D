@@ -158,7 +158,7 @@ set xlabel 'Iteration'
 set format y ""10^{%T}""
 set datafile separator '\t'
 plot '" + fullFilePath + @"' u($0):2 with lines title 'Ux', '" + fullFilePath + @"' u($0):3 with lines title 'Uy', '" + fullFilePath + @"' u($0):4 with lines title 'Uz', '" + fullFilePath + @"' u($0):5 with lines title 'p', '" + fullFilePath + @"' u($0):6 with lines title 'omega', '" + fullFilePath + @"' u($0):7 with lines title 'k'
-pause 30;replot
+pause 90;replot
 ";
                         sw.WriteLine(strInputText);
 

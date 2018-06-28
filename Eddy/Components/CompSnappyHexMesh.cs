@@ -249,7 +249,7 @@ namespace Eddy
             File.WriteAllText(Path.Combine(meshSystemDir + "fvSolution"), StringTemplates.FvSolution(0));
             File.WriteAllText(Path.Combine(meshSystemDir + "meshQualityDict"), StringTemplates.MeshQualityDict());
 
-
+            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_checkBadMesh.bat"), StringTemplates.Run_checkBadMesh(DOM));
 
 
 
