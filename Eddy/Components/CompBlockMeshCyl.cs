@@ -179,6 +179,10 @@ namespace Eddy
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that much RAM available.");
             }
+            if (divisionsOuterCirc >= 50 && gradingPerim >= 10)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "A high number of outer divisions while at the same time using high perimeter grading might slow down mesh creation significantly.");
+            }
             //if (divisionsZ <= 0)
             //{
             //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Divisions must be greater than 0.");
