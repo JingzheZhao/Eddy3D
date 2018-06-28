@@ -69,7 +69,7 @@ namespace Eddy
             pManager.AddNumberParameter("sizeHeight", "sizeHeight", "sizeHeight", GH_ParamAccess.item, 0);
 
             //pManager.AddIntegerParameter("RAM", "RAM", "RAM", GH_ParamAccess.item, 2000);
-            pManager.AddIntegerParameter("CPUs", "CPUs", "CPUs", GH_ParamAccess.item, 1);
+            pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
 
             pManager.AddBooleanParameter("Run", "Run", "Run the blockMesh component", GH_ParamAccess.item, false);
 
@@ -173,10 +173,12 @@ namespace Eddy
 
             //Error handling
 
-            if (CPUs == -1 || CPUs > Environment.ProcessorCount)
+            if (CPUs > Environment.ProcessorCount)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that many CPUs.");
             }
+
+
 
             var totalGBRam = Convert.ToInt32((new ComputerInfo().TotalPhysicalMemory / (Math.Pow(1024, 2))) + 0.5);
             if (RAM < 0 || RAM > totalGBRam)
@@ -242,6 +244,11 @@ namespace Eddy
             {
                 OFCylDomain DOMCYL = new OFCylDomain(inputBreps, combinedMeshes, BCond, divisionsOuterCirc, gradingPerim, divPerim, windDir, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory);
 
+
+                if (CPUs == -1)
+                {
+                    DOMCYL.autoCPUCalc = true;
+                }
 
                 //if (Settings.getCurrentRAM() != RAM)
                 //{

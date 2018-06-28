@@ -61,15 +61,14 @@ namespace EddyLib
         public int meshingMode;
         public int nLayers;
 
-        
-       
+        public bool autoCPUCalc;
+        public int numberOfCellsInMesh;
 
 
 
 
 
-
-        public static BoundingBox getRefinementBox(Plane localSystem, Mesh buildings, double padding = 0)
+        public static BoundingBox GetRefinementBox(Plane localSystem, Mesh buildings, double padding = 0)
         {
             Plane worldXY = Plane.WorldXY;
             Transform xform = Transform.ChangeBasis(worldXY, localSystem);
@@ -92,7 +91,7 @@ namespace EddyLib
 
 
 
-        public Cylinder getRefinementCyl(Point3d center, Mesh buildings, double paddingXY = 0, double paddingZ = 0.3)
+        public Cylinder GetRefinementCyl(Point3d center, Mesh buildings, double paddingXY = 0, double paddingZ = 0.3)
         {
 
             BoundingBox bb = buildings.GetBoundingBox(true);
@@ -103,7 +102,7 @@ namespace EddyLib
 
         }
 
-        public static double projectedBuildingArea(Plane localSystem, Mesh buildings)
+        public static double ProjectedBuildingArea(Plane localSystem, Mesh buildings)
         {
 
             Plane worldXY = Plane.WorldXY;

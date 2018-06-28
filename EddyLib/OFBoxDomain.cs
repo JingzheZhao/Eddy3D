@@ -100,7 +100,7 @@ namespace EddyLib
             //Create Box Domain
             //Find frontfacing areas in wind direction
 
-            frontageBuildingArea = projectedBuildingArea(localCoordSystem, BuildingGeometry);
+            frontageBuildingArea = ProjectedBuildingArea(localCoordSystem, BuildingGeometry);
 
 
             double scaleRectDomainZ = 6 * dimZ;

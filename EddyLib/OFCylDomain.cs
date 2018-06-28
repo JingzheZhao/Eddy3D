@@ -139,7 +139,7 @@ namespace EddyLib
                 Plane localCopy = new Plane(localSystem);
                 localCopy.Rotate(5 * i * Math.PI / 180, Vector3d.ZAxis, center);
 
-                projAreaList.Add(projectedBuildingArea(localCopy, geometry));
+                projAreaList.Add(ProjectedBuildingArea(localCopy, geometry));
             }
 
             frontageBuildingArea = projAreaList.Max();
