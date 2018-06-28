@@ -125,6 +125,12 @@ namespace Eddy
 
 
 
+            if (iter == 0 || keepTimeSteps == 0 || writeInterval == 0)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide valid inputs.");
+            }
+
+
 
 
             for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)

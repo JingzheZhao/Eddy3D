@@ -179,14 +179,10 @@ namespace Eddy
             }
 
             var totalGBRam = Convert.ToInt32((new ComputerInfo().TotalPhysicalMemory / (Math.Pow(1024, 2))) + 0.5);
-            if (RAM < 0 || RAM > totalGBRam)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that much RAM available.");
-            }
-            if (divisionsOuterCirc * gradingPerim >= 400)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "A high number of outer divisions while at the same time using high perimeter grading might slow down mesh creation significantly.");
-            }
+            //if (RAM < 0 || RAM > totalGBRam)
+            //{
+            //    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that much RAM available.");
+            //}
             //if (divisionsZ <= 0)
             //{
             //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Divisions must be greater than 0.");
