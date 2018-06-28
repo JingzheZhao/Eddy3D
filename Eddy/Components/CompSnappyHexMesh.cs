@@ -171,8 +171,13 @@ namespace Eddy
 
             DOM.meshingMode = mode;
 
+            
 
 
+            if (accBuilding >= 4 || accFeatures >= 4 || accRefinement >= 4 || accGround >= 4 || nLayers >= 3)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "A high number of refinment stages might significantly slow down mesh creation. Try to create a reasonable fine mesh with the Domain component.");
+            }
 
 
 
