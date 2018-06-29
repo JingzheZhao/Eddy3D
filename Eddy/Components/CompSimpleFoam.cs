@@ -131,6 +131,16 @@ namespace Eddy
             }
 
 
+            // Check for killed processes
+            for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
+            {
+                if (Utilities.didProcessGetKilled(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i]) == true)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Some processes got killed probably because to little RAM was available. Try to increase the RAM acclocated for the Docker virtual machine.");
+                }
+                
+            }
+            
 
 
             for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
@@ -193,6 +203,8 @@ namespace Eddy
                     File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\fvSolution"), StringTemplates.FvSolution(0));
                     File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\meshQualityDict"), StringTemplates.MeshQualityDict());
                     File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\residuals"), StringTemplates.Residuals());
+
+
                 }
                 else
                 {
@@ -251,6 +263,9 @@ namespace Eddy
             File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_probes.bat"), StringTemplates.Run_Probes(DOM));
             File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_utci.bat"), StringTemplates.Run_UTCI(DOM));
 
+#if DEBUG
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_blockMesh.bat"), StringTemplates.blockMesh(DOM));
+#endif
 
             for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
             {
@@ -259,7 +274,7 @@ namespace Eddy
 
             //Autocalc number of CPUs
             if (DOM.autoCPUCalc == true)
-            {           
+            {
                 DOM.CPU = Utilities.CPUAutoCalc(DOM.meshWorkingDirectory);
             }
 

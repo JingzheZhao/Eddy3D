@@ -118,7 +118,8 @@ FoamFile
     object snappyHexMeshDict;
 }
 
-    castellatedMesh true;");
+    castellatedMesh true
+;");
             sb.Append("snap "); if (dom.meshingMode == 1 || dom.meshingMode == 2) { sb.AppendLine("true;"); } else { sb.AppendLine("false;"); }
             sb.Append("addLayers "); if (dom.meshingMode == 2) { sb.AppendLine("true;"); } else { sb.AppendLine("false;"); }
             sb.Append(@"geometry
@@ -1542,6 +1543,7 @@ RAS
 
 #endif 
             }
+
             else
             {
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""potentialFoam | tee -a log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
@@ -1556,11 +1558,18 @@ RAS
             return sb.ToString();
         }
 
+        public static string blockMesh(OFBaseDomain DOM)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""blockMesh | tee -a log"" -f """ + DOM.meshWorkingDirectory + " \"");
+            return sb.ToString();
+        }
+
         public static string Run_checkBadMesh(OFBaseDomain DOM)
         {
             StringBuilder sb = new StringBuilder();
 
-            sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""foamToVTK -faceSet highAspectRatioCells -ascii;foamToVTK -faceSet nonOrthoFaces -ascii;foamToVTK -faceSet skewFaces -ascii;foamToVTK -faceSet wrongOrientedFaces -ascii; foamToVTK -faceSet zeroVolumeCells -ascii | tee -a log"" -f """ + DOM.baseWorkingDirectory  + @"\mesh\ ");
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""foamToVTK -faceSet highAspectRatioCells -ascii;foamToVTK -faceSet nonOrthoFaces -ascii;foamToVTK -faceSet skewFaces -ascii;foamToVTK -faceSet wrongOrientedFaces -ascii; foamToVTK -faceSet zeroVolumeCells -ascii | tee -a log"" -f """ + DOM.baseWorkingDirectory + @"\mesh\ ");
 #if DEBUG
 
                 sb.AppendLine("PAUSE");

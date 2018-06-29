@@ -174,12 +174,16 @@ namespace Eddy
             
 
 
-            if (accBuilding >= 4 || accFeatures >= 4 || accRefinement >= 4 || accGround >= 4 || nLayers >= 3)
+            if (accBuilding >= 5 || accFeatures >= 5 || accRefinement >= 5 || accGround >= 5 || nLayers >= 5)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "A high number of refinment stages might significantly slow down mesh creation. Try to create a reasonable fine mesh with the Domain component.");
             }
 
-
+            // Check for killed processes
+            if (Utilities.didProcessGetKilled(DOM.meshWorkingDirectory) == true)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Some processes got killed probably because to little RAM was available. Try to increase the RAM acclocated for the Docker virtual machine.");
+            }
 
             //CLEAN UP THE OF MESS
 

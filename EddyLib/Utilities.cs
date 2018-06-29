@@ -140,6 +140,31 @@ namespace EddyLib
             throw new NotImplementedException();
         }
 
+
+        public static bool didProcessGetKilled(string workingDirectory)
+        {
+            bool processGotKilled = false;
+
+            if (File.Exists(workingDirectory + @"\log"))
+            {
+                try
+                {
+                    var logFile = File.ReadAllLines(workingDirectory + @"\log");
+                    foreach (string line in logFile)
+                    {
+                        if (line.EndsWith("(Killed).")) { processGotKilled = true; }
+                    }
+
+                }
+                catch (Exception)
+                {
+
+                    throw;
+                }
+            }
+            return processGotKilled;
+        }
+
         public static string ConvertComputeTimes(long elapsedMilliseconds)
         {
             string elapsedTime = "";
