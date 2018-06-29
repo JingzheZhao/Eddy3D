@@ -136,7 +136,7 @@ namespace Eddy
 
             //int mode = 0;
             //int baseMesh = 0;
-            //int RAM = 0;
+            int RAM = 0;
             int CPUs = 1;
             double windDir = 0;
             int divisionsOuterCirc = 1;

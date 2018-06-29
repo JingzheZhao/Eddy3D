@@ -204,12 +204,9 @@ namespace Eddy
                 baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
 
 
-                OFBoxDomain DOMBOX = new OFBoxDomain(inputBreps, combinedMeshes, terrainMeshes, BCond,  blockDimension, baseWorkingDirectory);
+                OFBoxDomain DOM = new OFBoxDomain(inputBreps, combinedMeshes, terrainMeshes, BCond,  blockDimension, baseWorkingDirectory);
 
-                if (CPUs == -1)
-                {
-                    DOMBOX.autoCPUCalc = true;
-                }
+
 
 
 
@@ -218,7 +215,7 @@ namespace Eddy
 
                 //DOM = OFDomainBuilder(domain, workingDirectory);
 
-                if ((DOMBOX.xCells * blockDimension) > DOMBOX.dimX || (DOMBOX.yCells * blockDimension) > DOMBOX.dimY || (DOMBOX.zCells * blockDimension) > DOMBOX.dimZ)
+                if ((DOM.xCells * blockDimension) > DOM.dimX || (DOM.yCells * blockDimension) > DOM.dimY || (DOM.zCells * blockDimension) > DOM.dimZ)
                 {
                     //  AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Your block dimensions need to be smaller than the domain.");
                 }
@@ -283,10 +280,10 @@ namespace Eddy
 
                 //////
 
-                var meshStlFilenameBuildings = DOMBOX.baseWorkingDirectory + @"\mesh\constant\triSurface\building.stl";
-                var meshStlFilenameGround = DOMBOX.baseWorkingDirectory + @"\mesh\constant\triSurface\ground.stl";
-                var meshStlFilenameGroundPerim = DOMBOX.baseWorkingDirectory + @"\mesh\constant\triSurface\ground_perim.stl";
-                var meshBoundaryConditionsDirectory = DOMBOX.baseWorkingDirectory + @"\mesh\0.org\";
+                var meshStlFilenameBuildings = DOM.baseWorkingDirectory + @"\mesh\constant\triSurface\building.stl";
+                var meshStlFilenameGround = DOM.baseWorkingDirectory + @"\mesh\constant\triSurface\ground.stl";
+                var meshStlFilenameGroundPerim = DOM.baseWorkingDirectory + @"\mesh\constant\triSurface\ground_perim.stl";
+                var meshBoundaryConditionsDirectory = DOM.baseWorkingDirectory + @"\mesh\0.org\";
 
 
                 if (!Directory.Exists(baseWorkingDirectory))
@@ -295,9 +292,9 @@ namespace Eddy
                 }
 
 
-                if (!Directory.Exists(DOMBOX.meshStlDirectory))
+                if (!Directory.Exists(DOM.meshStlDirectory))
                 {
-                    Directory.CreateDirectory(DOMBOX.meshStlDirectory);
+                    Directory.CreateDirectory(DOM.meshStlDirectory);
                 }
 
 
@@ -305,23 +302,23 @@ namespace Eddy
 
                 if (terrain != null)
                 {
-                    STLExport.ExportBinary(meshStlFilenameGround, DOMBOX.newBoxGround);
+                    STLExport.ExportBinary(meshStlFilenameGround, DOM.newBoxGround);
                 }
                 else
                 {
-                    STLExport.ExportBinary(meshStlFilenameGround, DOMBOX.newBoxGround);
-                    STLExport.ExportBinary(meshStlFilenameGroundPerim, DOMBOX.newBoxGroundPerim);
+                    STLExport.ExportBinary(meshStlFilenameGround, DOM.newBoxGround);
+                    STLExport.ExportBinary(meshStlFilenameGroundPerim, DOM.newBoxGroundPerim);
                 }
                 
 
 
-                if (!Directory.Exists(DOMBOX.meshSystemDirectory))
+                if (!Directory.Exists(DOM.meshSystemDirectory))
                 {
-                    Directory.CreateDirectory(DOMBOX.meshSystemDirectory);
+                    Directory.CreateDirectory(DOM.meshSystemDirectory);
                 }
-                if (!Directory.Exists(DOMBOX.meshConstantDirectory))
+                if (!Directory.Exists(DOM.meshConstantDirectory))
                 {
-                    Directory.CreateDirectory(DOMBOX.meshConstantDirectory);
+                    Directory.CreateDirectory(DOM.meshConstantDirectory);
                 }
                 if (!Directory.Exists(meshBoundaryConditionsDirectory))
                 {
@@ -329,9 +326,9 @@ namespace Eddy
                 }
 
 
-                File.WriteAllText(DOMBOX.meshSystemDirectory + @"\blockMeshDict", StringTemplates.BlockMeshDict(DOMBOX));
-                File.WriteAllText(DOMBOX.baseWorkingDirectory + @"\mesh\case.foam", "");
-                File.WriteAllText(DOMBOX.meshSystemDirectory + @"\controlDict", StringTemplates.ControlDict(DOMBOX, null, 0));
+                File.WriteAllText(DOM.meshSystemDirectory + @"\blockMeshDict", StringTemplates.BlockMeshDict(DOM));
+                File.WriteAllText(DOM.baseWorkingDirectory + @"\mesh\case.foam", "");
+                File.WriteAllText(DOM.meshSystemDirectory + @"\controlDict", StringTemplates.ControlDict(DOM, null, 0));
 
                 if (!File.Exists(baseWorkingDirectory + @"\mesh\log"))
                 {
@@ -341,9 +338,9 @@ namespace Eddy
 
 
                 //export RAD for DAYSIM
-                if (!Directory.Exists(DOMBOX.baseWorkingDirectory + @"Rad\"))
+                if (!Directory.Exists(DOM.baseWorkingDirectory + @"Rad\"))
                 {
-                    Directory.CreateDirectory(DOMBOX.baseWorkingDirectory + @"Rad\");
+                    Directory.CreateDirectory(DOM.baseWorkingDirectory + @"Rad\");
                 }
                 string radMat = @"
 void plastic Generic_20
@@ -355,8 +352,8 @@ void plastic Generic_20
                 daysimMesh.Append(combinedMeshes);
                 // Todo: add ground plane to the above mesh
 
-                File.WriteAllText(DOMBOX.baseWorkingDirectory + @"Rad\materials.rad", radMat);
-                RadianceFiles.MeshProc(daysimMesh, DOMBOX.baseWorkingDirectory + @"Rad\scene.rad", "Generic_20");
+                File.WriteAllText(DOM.baseWorkingDirectory + @"Rad\materials.rad", radMat);
+                RadianceFiles.MeshProc(daysimMesh, DOM.baseWorkingDirectory + @"Rad\scene.rad", "Generic_20");
 
 
 
@@ -397,10 +394,10 @@ void plastic Generic_20
                 //    return;
                 //}
 
-                DA.SetData(1, DOMBOX);
+                DA.SetData(1, DOM);
                 //if (mode == 0)
                 //{
-                DA.SetData(2, DOMBOX.newBoxDomain);
+                DA.SetData(2, DOM.newBoxDomain);
 
                 ////Delete later
                 //DA.SetData(3, DOM.pl);
