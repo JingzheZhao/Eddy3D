@@ -153,7 +153,7 @@ FoamFile
         {
             building
             {
-                level (" + dom.accBuildings + " " + dom.accBuildings + @");
+                level (1 " + dom.accBuildings + @");
                 patchInfo
                 {
                     type wall;
@@ -162,7 +162,7 @@ FoamFile
 
             ground
             {
-                level (" + (dom.accGround) + " " + (dom.accGround) + @");
+                level (1 " + (dom.accGround) + @");
                 patchInfo
                 {
                     type wall;
