@@ -257,24 +257,8 @@ namespace Eddy
             File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_checkBadMesh.bat"), StringTemplates.Run_checkBadMesh(DOM));
 
 
-            if ( File.Exists(DOM.meshWorkingDirectory + @"\log"))
-            {
-                var logFile = File.ReadAllLines(DOM.meshWorkingDirectory + @"\log"); 
-                foreach (string line in logFile)
-                {
-                    if (line.StartsWith("cells:"))
-                    {
-                        DOM.numberOfCellsInMesh = int.Parse(line.Split(':')[1]);
-                        
-                        DOM.CPU = DOM.numberOfCellsInMesh / 50000;
-                        if(Environment.ProcessorCount)
-                    }
-                }
-            }
-            else
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Can't perform CPU autocalculation yet, please mesh the domain as a first step.");
-            }
+            //Autocalc number of CPUs
+            DOM.CPU = Utilities.CPUAutoCalc(DOM.meshWorkingDirectory);
 
 
 

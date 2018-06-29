@@ -52,7 +52,7 @@ namespace Eddy
             pManager.AddNumberParameter("baseMesh", "baseMesh", "baseMesh", GH_ParamAccess.item, 5);
 
             //pManager.AddGenericParameter("RAM", "RAM", "RAM", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("CPUs", "CPUs", "CPUs", GH_ParamAccess.item, 1);
+            pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
 
             pManager.AddBooleanParameter("Run", "Run", "Run the blockMesh component", GH_ParamAccess.item, false);
 
@@ -227,7 +227,7 @@ namespace Eddy
 
 
 
-                if (CPUs == -1 || CPUs > Environment.ProcessorCount)
+                if (CPUs > Environment.ProcessorCount)
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that many CPUs.");
                 }

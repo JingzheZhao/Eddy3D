@@ -59,6 +59,8 @@ namespace EddyLib
             }
         }
 
+        public static object GH_RuntimeMessageLevel { get; private set; }
+
         //(c) Vasian Cepa 2005
         // Version 2 http://www.codeproject.com/Articles/11016/Numeric-String-Sort-in-C
 
@@ -79,6 +81,65 @@ namespace EddyLib
         }
 
 
+        public static int CPUAutoCalc(string meshWorkingDirectory)
+        {
+            int CPU = 1;
+            int numberOfCellsInMesh = 0;
+            int numberOfCPUsOnMachine = System.Environment.ProcessorCount;
+
+            if (File.Exists(meshWorkingDirectory + @"\log"))
+            {
+                var logFile = File.ReadAllLines(meshWorkingDirectory + @"\log");
+                foreach (string line in logFile)
+                {
+                    if (line.StartsWith("    cells:"))
+                    {
+                        numberOfCellsInMesh = int.Parse(line.Split(':')[1]);
+
+                        if (numberOfCellsInMesh > 50000)
+                        {
+                            CPU = numberOfCellsInMesh / 50000;
+                            if (CPU > numberOfCPUsOnMachine - 2)
+                            {
+                                CPU = numberOfCPUsOnMachine - 2;
+                            }
+                        }
+
+                        if (CPU < 1)
+                        {
+                            CPU = 1;
+                        }
+
+                    }
+                    else
+                    {
+                        CPU = numberOfCPUsOnMachine - 2;
+                        if (CPU < 1)
+                        {
+                            CPU = 1;
+                        }
+                    }
+
+                }
+
+            }
+            else
+            {
+                CPU = numberOfCPUsOnMachine - 2;
+                if (CPU < 1)
+                {
+                    CPU = 1;
+                }
+            }
+
+            return CPU;
+        }
+
+        private static void AddRuntimeMessage(object warning, string v)
+        {
+            throw new NotImplementedException();
+        }
+
         public static string ConvertComputeTimes(long elapsedMilliseconds)
         {
             string elapsedTime = "";
@@ -89,7 +150,7 @@ namespace EddyLib
             }
             else
             {
-                elapsedTime= ("Compute time: " + elapsedMilliseconds / 1000 + " s or ca. " + elapsedMilliseconds / 1000 / 60 + " min");
+                elapsedTime = ("Compute time: " + elapsedMilliseconds / 1000 + " s or ca. " + elapsedMilliseconds / 1000 / 60 + " min");
             }
 
             return elapsedTime;

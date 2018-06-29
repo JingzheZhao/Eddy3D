@@ -257,8 +257,11 @@ namespace Eddy
                 File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + "_run_sim.bat"), StringTemplates.Run_sim(DOM, i));
             }
 
-
-
+            //Autocalc number of CPUs
+            if (DOM.autoCPUCalc == true)
+            {           
+                DOM.CPU = Utilities.CPUAutoCalc(DOM.meshWorkingDirectory);
+            }
 
 
             if (Run == true)
