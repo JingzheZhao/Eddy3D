@@ -265,6 +265,9 @@ namespace Eddy
                     if (line.StartsWith("cells:"))
                     {
                         DOM.numberOfCellsInMesh = int.Parse(line.Split(':')[1]);
+                        
+                        DOM.CPU = DOM.numberOfCellsInMesh / 50000;
+                        if(Environment.ProcessorCount)
                     }
                 }
             }
