@@ -296,6 +296,7 @@ namespace Eddy
                     using (StreamReader reader = new StreamReader(stream))
                     {
                         logFile = reader.ReadToEnd();
+                        
                         //while (!reader.EndOfStream)
                         //{
 

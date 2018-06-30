@@ -1,9 +1,0 @@
-<project outputDir="C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\Eddy\bin\Confused" baseDir="C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\Eddy\bin" xmlns="http://confuser.codeplex.com">
-  <rule pattern="true" preset="maximum" inherit="false" />
-  <module path="EddyLib.dll" />
-  <module path="CallBatchRunner.exe" />
-  <module path="CallOC.exe" />
-  <module path="CallOF.exe" />
-  <module path="CallProbes.exe" />
-  <module path="CallRay.exe" />
-</project>
