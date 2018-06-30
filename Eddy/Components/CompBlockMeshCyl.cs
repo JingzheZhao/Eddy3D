@@ -241,6 +241,7 @@ namespace Eddy
                 OFCylDomain DOMCYL = new OFCylDomain(inputBreps, combinedMeshes, BCond, divisionsOuterCirc, gradingPerim, divPerim, windDir, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory);
 
 
+                DOMCYL.CPU = CPUs;
                 if (CPUs == -1)
                 {
                     DOMCYL.autoCPUCalc = true;
