@@ -64,6 +64,8 @@ namespace EddyLib
         public bool autoCPUCalc;
         public int numberOfCellsInMesh;
 
+        public int turbulenceModel;
+
 
 
 

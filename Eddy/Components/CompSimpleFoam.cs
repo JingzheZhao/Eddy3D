@@ -41,9 +41,9 @@ namespace Eddy
         {
             pManager.AddGenericParameter("Mesh", "Mesh", "Mesh", GH_ParamAccess.item);
             pManager.AddIntegerParameter("iterations", "iter", "Specify the number of iterations.", GH_ParamAccess.item, 1000);
-            pManager.AddIntegerParameter("writeInterval", "writeInterval", "writeInterval.", GH_ParamAccess.item, 20);
-            pManager.AddIntegerParameter("keepTimeSteps", "keepTimeSteps", "keepTimeSteps.", GH_ParamAccess.item, 2);
-
+            pManager.AddIntegerParameter("WriteInterval", "WriteInterval", "WriteInterval.", GH_ParamAccess.item, 20);
+            pManager.AddIntegerParameter("KeepTimeSteps", "KeepTimeSteps", "KeepTimeSteps.", GH_ParamAccess.item, 2);
+            pManager.AddIntegerParameter("Turb", "Turb", "Turbulence model.", GH_ParamAccess.item, 2);
             pManager.AddIntegerParameter("Mode", "Mode", "Robustness of the solver", GH_ParamAccess.item, 0);
             Param_Integer param = pManager[4] as Param_Integer;
             param.AddNamedValue("quick", 0);
@@ -108,6 +108,7 @@ namespace Eddy
             int writeInterval = 10;
             int keepTimeSteps = 2;
             int mode = 0;
+            int turb = 0;
 
 
 
@@ -115,13 +116,16 @@ namespace Eddy
             DA.GetData(1, ref iter);
             DA.GetData(3, ref keepTimeSteps);
             DA.GetData(2, ref writeInterval);
-            DA.GetData(4, ref mode);
+            DA.GetData(4, ref turb);
+            DA.GetData(5, ref mode);
 
-            DA.GetData(5, ref Run);
+            DA.GetData(6, ref Run);
 
             DOM.iter = iter;
             DOM.writeInterval = writeInterval;
             DOM.keepTimeSteps = keepTimeSteps;
+
+            DOM.turbulenceModel = turb;
 
 
 
@@ -240,7 +244,7 @@ namespace Eddy
                 }
 
                 //Constant folder
-                File.WriteAllText(Path.Combine(simConstantDir + "turbulenceProperties"), StringTemplates.TurbulenceProperties());
+                File.WriteAllText(Path.Combine(simConstantDir + "turbulenceProperties"), StringTemplates.TurbulenceProperties(DOM));
                 File.WriteAllText(Path.Combine(simConstantDir + "transportProperties"), StringTemplates.TransportProperties());
 
                 // Symbolic dir junctions

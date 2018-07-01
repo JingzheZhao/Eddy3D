@@ -1380,9 +1380,10 @@ nu              nu [0 2 -1 0 0 0 0] 1.5e-05;
 // ************************************************************************* //
 ";
         }
-        public static string TurbulenceProperties()
+        public static string TurbulenceProperties(OFBaseDomain DOM)
         {
-            return @"/*--------------------------------*- C++ -*----------------------------------*\
+            StringBuilder sb = new StringBuilder();
+            sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
 |  \\    /   O peration     | Version:  3.0.1                                 |
@@ -1402,15 +1403,18 @@ simulationType RAS;
 
 RAS
 {
-    RASModel         kOmegaSST; //RNGkEpsilon;
+    RASModel         ");
+            if (DOM.turbulenceModel == 2) { sb.Append("kOmegaSST;"); } else if (DOM.turbulenceModel == 1) { sb.Append("RNGkEpsilon;"); } else { sb.Append("kEpsilon;"); }
+            sb.AppendLine(@"
+            turbulence on;
 
-    turbulence      on;
-
-    printCoeffs     on;
-}
+            printCoeffs on;
+        }
 
 // ************************************************************************* //
-";
+;""");
+
+            return sb.ToString();
         }
 
         public static string Run_mesh(OFBaseDomain DOM)
@@ -1572,7 +1576,7 @@ RAS
             sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""foamToVTK -faceSet highAspectRatioCells -ascii;foamToVTK -faceSet nonOrthoFaces -ascii;foamToVTK -faceSet skewFaces -ascii;foamToVTK -faceSet wrongOrientedFaces -ascii; foamToVTK -faceSet zeroVolumeCells -ascii | tee -a log"" -f """ + DOM.baseWorkingDirectory + @"\mesh\ ");
 #if DEBUG
 
-                sb.AppendLine("PAUSE");
+            sb.AppendLine("PAUSE");
 
 #endif
             return sb.ToString();
