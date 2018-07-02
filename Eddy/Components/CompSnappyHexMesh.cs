@@ -180,7 +180,7 @@ namespace Eddy
             }
 
             // Check for killed processes
-            if (Utilities.didProcessGetKilled(DOM.meshWorkingDirectory) == true)
+            if (Utilities.DidProcessGetKilled(DOM.meshWorkingDirectory) == true)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Some processes got killed probably because to little RAM was available. Try to increase the RAM acclocated for the Docker virtual machine.");
             }

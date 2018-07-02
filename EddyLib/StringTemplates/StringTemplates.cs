@@ -1562,7 +1562,7 @@ RAS
             return sb.ToString();
         }
 
-        public static string blockMesh(OFBaseDomain DOM)
+        public static string BlockMesh(OFBaseDomain DOM)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""blockMesh | tee -a log"" -f """ + DOM.meshWorkingDirectory + " \"");

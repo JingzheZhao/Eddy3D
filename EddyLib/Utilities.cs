@@ -141,7 +141,7 @@ namespace EddyLib
         }
 
 
-        public static bool didProcessGetKilled(string workingDirectory)
+        public static bool DidProcessGetKilled(string workingDirectory)
         {
             bool processGotKilled = false;
 

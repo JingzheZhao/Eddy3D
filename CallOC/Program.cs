@@ -45,10 +45,10 @@ namespace CallOC
                             errorLog.AppendLine(String.Format("Working directory: {0}", options.WorkingDir));
 
 #if DEBUG
-                            if (options.hourandpoint != null)
+                            if (options.Hourandpoint != null)
                             {
-                                Console.WriteLine("Debugging: {0}", options.hourandpoint);
-                                errorLog.AppendLine(String.Format("Debugging: {0}", options.hourandpoint));
+                                Console.WriteLine("Debugging: {0}", options.Hourandpoint);
+                                errorLog.AppendLine(String.Format("Debugging: {0}", options.Hourandpoint));
 
 
 
@@ -185,7 +185,7 @@ namespace CallOC
 
                         for (int i = 0; i < 2; i++)
                         {
-                            debug[i] = int.Parse(options.hourandpoint.Split(',')[i]);
+                            debug[i] = int.Parse(options.Hourandpoint.Split(',')[i]);
                         }
 #endif
 
@@ -563,7 +563,7 @@ namespace CallOC
 #if DEBUG
         [Option('b', "debug",
         HelpText = "Select hour and probe for debugging as comma separated string -> 23,50 meaning 23rd hour for probe 50 ")]
-        public string hourandpoint { get; set; }
+        public string Hourandpoint { get; set; }
 #endif
 
         [ParserState]

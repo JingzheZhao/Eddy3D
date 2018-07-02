@@ -43,11 +43,15 @@ namespace Eddy
             pManager.AddIntegerParameter("iterations", "iter", "Specify the number of iterations.", GH_ParamAccess.item, 1000);
             pManager.AddIntegerParameter("WriteInterval", "WriteInterval", "WriteInterval.", GH_ParamAccess.item, 20);
             pManager.AddIntegerParameter("KeepTimeSteps", "KeepTimeSteps", "KeepTimeSteps.", GH_ParamAccess.item, 2);
-            pManager.AddIntegerParameter("Turb", "Turb", "Turbulence model.", GH_ParamAccess.item, 2);
+            pManager.AddIntegerParameter("Turb", "Turb", "Turbulence model.", GH_ParamAccess.item, 0);
+            Param_Integer turb = pManager[4] as Param_Integer;
+            turb.AddNamedValue("kEpsilon", 0);
+            turb.AddNamedValue("RNGkEpsilon", 1);
+            turb.AddNamedValue("kOmegaSST", 2);
             pManager.AddIntegerParameter("Mode", "Mode", "Robustness of the solver", GH_ParamAccess.item, 0);
-            Param_Integer param = pManager[4] as Param_Integer;
-            param.AddNamedValue("quick", 0);
-            param.AddNamedValue("robust", 1);
+            Param_Integer simulationMode = pManager[5] as Param_Integer;
+            simulationMode.AddNamedValue("quick", 0);
+            simulationMode.AddNamedValue("robust", 1);
 
 
             //pManager.AddGenericParameter("Type", "Bcond", "", GH_ParamAccess.item);
@@ -138,7 +142,7 @@ namespace Eddy
             // Check for killed processes
             for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
             {
-                if (Utilities.didProcessGetKilled(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i]) == true)
+                if (Utilities.DidProcessGetKilled(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i]) == true)
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Some processes got killed probably because to little RAM was available. Try to increase the RAM acclocated for the Docker virtual machine.");
                 }
@@ -248,6 +252,7 @@ namespace Eddy
                 File.WriteAllText(Path.Combine(simConstantDir + "transportProperties"), StringTemplates.TransportProperties());
 
                 // Symbolic dir junctions
+                SymlinkCreator.Delete(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\constant\polyMesh\");
                 SymlinkCreator.Create(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\constant\polyMesh\", DOM.meshConstantDirectory + @"\polyMesh\");
 
             }
@@ -268,7 +273,7 @@ namespace Eddy
             File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_utci.bat"), StringTemplates.Run_UTCI(DOM));
 
 #if DEBUG
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_blockMesh.bat"), StringTemplates.blockMesh(DOM));
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_blockMesh.bat"), StringTemplates.BlockMesh(DOM));
 #endif
 
             for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
