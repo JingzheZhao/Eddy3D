@@ -80,6 +80,29 @@ namespace EddyLib
             return !Directory.EnumerateFileSystemEntries(path).Any();
         }
 
+        public static int GetLastIterationInSimfolder(string simWorkingDirectory)
+        {
+            var sortedWorkingDir = Directory.EnumerateDirectories(simWorkingDirectory);
+            var filteredListOfFolders = new List<String>();
+
+            foreach (string s in sortedWorkingDir)
+            {
+                var filter = s.Remove(0, simWorkingDirectory.Length+1);
+                filteredListOfFolders.Add(filter);
+            }
+             
+            
+
+            var filteredNumbers = filteredListOfFolders.Where(s => s.All(char.IsDigit));
+            
+            //Array.Sort(filtered, new Utilities.NumericComparer());
+
+            var lastIteration = filteredNumbers.Max();
+            int lastIterationInt = int.Parse(lastIteration);
+
+            return lastIterationInt;
+        }
+
 
         public static int CPUAutoCalc(string meshWorkingDirectory)
         {

@@ -70,7 +70,7 @@ namespace EddyLib
         private void ParsingNumbers(List<Point3d> listOfPoints, string pointName, string workingDirectory, string OFfield)
         {
 
-            string fullPath = GetLastProcProssDir(listOfPoints, pointName, workingDirectory, OFfield);
+            string fullPath = GetLastProcProssDir(pointName, workingDirectory, OFfield);
 
             var counterPoints = listOfPoints.Count;
 
@@ -93,7 +93,7 @@ namespace EddyLib
         private void ParsingVectors(List<Point3d> listOfPoints, string pointName, string workingDirectory, string OFfield)
         {
 
-            string fullPath = GetLastProcProssDir(listOfPoints, pointName, workingDirectory, OFfield);
+            string fullPath = GetLastProcProssDir(pointName, workingDirectory, OFfield);
 
             var counterPoints = listOfPoints.Count;
 
@@ -116,9 +116,9 @@ namespace EddyLib
 
         }
 
-        public string GetLastProcProssDir(List<Point3d> listOfPoints, string pointName, string workingDirectory, string field)
+        public string GetLastProcProssDir(string pointName, string workingDirectory, string field)
         {
-            var counterPoints = listOfPoints.Count;
+            
             string PostProcessingDirectory = workingDirectory + @"\postProcessing\";
 
 
@@ -148,16 +148,7 @@ namespace EddyLib
             return fullPath;
         }
 
-        public int GetLastIteration(string workingDir)
-        {
-            var sortedWorkingDir = Directory.GetDirectories(caseDirectory);
-            Array.Sort(sortedWorkingDir, new Utilities.NumericComparer());
-
-            var lastIteration = Path.GetDirectoryName(sortedWorkingDir[sortedWorkingDir.Length - 1]);
-            int lastIterationInt = int.Parse(lastIteration);
-
-            return lastIterationInt;
-        }
+        
 
 
      

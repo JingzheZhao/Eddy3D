@@ -53,38 +53,55 @@ namespace CallProbes
                     var numberOfWindDirs = windDirs.Length;
 
 
-                    // Error checking
-
-                    if (!Directory.Exists(options.WorkingDir)) { errorLog.AppendLine(options.WorkingDir + " not found. Exiting"); Console.WriteLine(options.WorkingDir + " not found. Exiting"); }
-
-                    if (Utilities.IsDirectoryEmpty(options.WorkingDir + @"\mesh\constant\polyMesh"))
-                    {
-                        errorLog.AppendLine("The mesh folder is empty. Can't pull probes from a mesh that does not exist.");
-                        //throw new System.ArgumentException("The mesh folder is empty. Can't pull probes from a mesh that does not exist.");
-                    }
-                    for (int i = 0; i < numberOfWindDirs; i++)
-                    {
-                        var fp = options.WorkingDir + @"\" + windDirs[i] + @"\system\U_Probes";
-                        if (!File.Exists(fp))
-                        {
-                            errorLog.AppendLine(@"The wind direction """ + windDirs[i] + @""" misses the probing dictionary. Please connect the ""writeProbes"" component and recompute the solution.");
-                            throw new System.ArgumentException("The wind direction " + windDirs[i] + @" misses the probing dictionary. Please connect the component ""writeProbes"" and recompute the solution.");
-                        }
-                    }
-
-                    for (int i = 0; i < numberOfWindDirs; i++)
-                    {
-                        var ABLfilePath = options.WorkingDir + "\\" + options.WindDirs.Split(',')[i] + @"\0.org\ABLConditions";
-                        if (!File.Exists(ABLfilePath)) { Console.WriteLine(ABLfilePath + " not found. Exiting"); errorLog.AppendLine(ABLfilePath + " not found. Exiting"); }
-                    }
-
-
+                    
 
 
                     try
                     {
 
-                        
+                        // Error checking
+
+                        if (!Directory.Exists(options.WorkingDir)) { errorLog.AppendLine(options.WorkingDir + " not found. Exiting"); Console.WriteLine(options.WorkingDir + " not found. Exiting"); }
+
+                        if (Utilities.IsDirectoryEmpty(options.WorkingDir + @"\mesh\constant\polyMesh"))
+                        {
+                            errorLog.AppendLine("The mesh folder is empty. Can't pull probes from a mesh that does not exist.");
+                            //throw new System.ArgumentException("The mesh folder is empty. Can't pull probes from a mesh that does not exist.");
+                        }
+                        for (int i = 0; i < numberOfWindDirs; i++)
+                        {
+                            var fp = options.WorkingDir + @"\" + windDirs[i] + @"\system\U_Probes";
+                            if (!File.Exists(fp))
+                            {
+                                errorLog.AppendLine(@"The wind direction """ + windDirs[i] + @""" misses the probing dictionary. Please connect the ""writeProbes"" component and recompute the solution.");
+                                throw new System.ArgumentException("The wind direction " + windDirs[i] + @" misses the probing dictionary. Please connect the component ""writeProbes"" and recompute the solution.");
+                            }
+                        }
+
+                        for (int i = 0; i < numberOfWindDirs; i++)
+                        {
+                            var ABLfilePath = options.WorkingDir + "\\" + options.WindDirs.Split(',')[i] + @"\0.org\ABLConditions";
+                            if (!File.Exists(ABLfilePath)) { Console.WriteLine(ABLfilePath + " not found. Exiting"); errorLog.AppendLine(ABLfilePath + " not found. Exiting"); }
+                        }
+
+
+                        // Check if U file is in last iteration
+                        for (int i = 0; i < numberOfWindDirs; i++)
+                        {
+                            string iter = Utilities.GetLastIterationInSimfolder(options.WorkingDir + @"\" + windDirs[i]).ToString();
+                            string fp = options.WorkingDir + @"\" + windDirs[i] + @"\" + iter + @"\U";
+
+
+                            if (!File.Exists(fp))
+                            {
+                                errorLog.AppendLine(@"The simulation folder of the wind direction """ + windDirs[i] + @""" misses the velocity (U) result file. Please make sure that U is calculated for this particular timestep (change WriteInterval) and recompute the solution.");
+                                throw new System.ArgumentException(@"The simulation folder of the wind direction """ + windDirs[i] + @""" misses the velocity (U) result file. Please make sure that U is calculated for this particular timestep (change WriteInterval) and recompute the solution.");
+                            }
+                        }
+
+
+
+
 
                         // Delete files in subfolders
                         var listOfDirsInfo = new List<string>();
@@ -97,20 +114,20 @@ namespace CallProbes
 
 
 
-                        for (int i = 0; i < numberOfWindDirs; i++)
-                        {
+                        //for (int i = 0; i < numberOfWindDirs; i++)
+                        //{
 
 
-                            foreach (var subDir in new DirectoryInfo(listOfDirsInfo[i]).GetDirectories())
-                            {
+                        //    foreach (var subDir in new DirectoryInfo(listOfDirsInfo[i]).GetDirectories())
+                        //    {
 
-                                if (subDir.ToString().ToLower() == "residuals")
-                                {
-                                    continue;
-                                }
-                                subDir.Delete(true);
-                            }
-                        }
+                        //        if (subDir.ToString().ToLower() == "residuals")
+                        //        {
+                        //            continue;
+                        //        }
+                        //        subDir.Delete(true);
+                        //    }
+                        //}
 
 
 
