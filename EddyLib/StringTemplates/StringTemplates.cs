@@ -1406,13 +1406,14 @@ RAS
     RASModel         ");
             if (DOM.turbulenceModel == 2) { sb.Append("kOmegaSST;"); } else if (DOM.turbulenceModel == 1) { sb.Append("RNGkEpsilon;"); } else { sb.Append("kEpsilon;"); }
             sb.AppendLine(@"
-            turbulence on;
+    turbulence on;
 
-            printCoeffs on;
-        }
+    printCoeffs on;
+
+}
 
 // ************************************************************************* //
-;""");
+");
 
             return sb.ToString();
         }

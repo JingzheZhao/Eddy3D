@@ -144,15 +144,29 @@ namespace EddyLib
         public static bool DidProcessGetKilled(string workingDirectory)
         {
             bool processGotKilled = false;
+            string logFilePath = workingDirectory + @"\log";
 
-            if (File.Exists(workingDirectory + @"\log"))
+            if (File.Exists(logFilePath))
             {
                 try
                 {
-                    var logFile = File.ReadAllLines(workingDirectory + @"\log");
-                    foreach (string line in logFile)
+                    String line;
+                    List<String> lines = new List<String>();
+
+
+                    using (var fs = new FileStream(logFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (var sr = new StreamReader(fs, System.Text.Encoding.Default))
                     {
-                        if (line.EndsWith("(Killed).")) { processGotKilled = true; }
+
+                        
+                        while ((line = sr.ReadLine()) != null)
+                            lines.Add(line);
+                    }
+                    
+                                        
+                    foreach (string lline in lines)
+                    {
+                        if (lline.EndsWith("(Killed).")) { processGotKilled = true; }
                     }
 
                 }
@@ -163,7 +177,16 @@ namespace EddyLib
                 }
             }
             return processGotKilled;
+
+
+
+
+
         }
+
+
+
+
 
         public static string ConvertComputeTimes(long elapsedMilliseconds)
         {
@@ -179,11 +202,13 @@ namespace EddyLib
             }
 
             return elapsedTime;
-        }
+
+
+            }
 
 
 
-        public static bool CheckLicence()
+            public static bool CheckLicence()
         {
             bool licence = false;
             //DateTime dateNow = Utilities.GetNistTime();
