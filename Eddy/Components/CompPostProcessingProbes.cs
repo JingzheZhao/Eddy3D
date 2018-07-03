@@ -142,6 +142,20 @@ namespace Eddy
             }
 
 
+            // Check if U file is in last iteration
+            for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
+            {
+                string iter = Utilities.GetLastIterationInSimfolder(DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDir[i]).ToString();
+                string fp = DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDir[i] + @"\" + iter + @"\U";
+
+
+                if (!File.Exists(fp))
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The simulation folder of the wind direction """ + DOM.BCInflow.windDir[i] + @""" misses the velocity (U) result file. Please make sure that U is calculated for this particular timestep (change WriteInterval) and recompute the solution.");
+                  }
+            }
+
+
 
             // export pts file for Daysim
             if (!Directory.Exists(DOM.baseWorkingDirectory + @"Rad\"))
