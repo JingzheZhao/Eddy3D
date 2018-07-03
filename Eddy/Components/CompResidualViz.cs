@@ -13,6 +13,7 @@ using Grasshopper;
 using Eddy.Properties;
 using System.Linq;
 using EddyLib;
+using System.Text.RegularExpressions;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -139,7 +140,19 @@ namespace Eddy
 
                         fullFilePath = DOM.baseWorkingDirectory + dir + @"\postProcessing\residuals\0\residuals.dat";
 
-                        
+
+                        var fields = Utilities.FileReader(fullFilePath)[1];
+
+
+                        var field1 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[1];
+                        var field2 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[2];
+                        var field3 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[3];
+                        var field4 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[4];
+                        var field5 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[5];
+                        var field6 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[6];
+                    
+
+
                         Process plotProcess = new Process();
                         plotProcess.StartInfo.FileName = @"C:\Program Files\gnuplot\bin\gnuplot.exe";
                         plotProcess.StartInfo.UseShellExecute = false;
@@ -157,7 +170,7 @@ set ylabel 'Residual'
 set xlabel 'Iteration'
 set format y ""10^{%T}""
 set datafile separator '\t'
-plot '" + fullFilePath + @"' u($0):2 with lines title 'Ux', '" + fullFilePath + @"' u($0):3 with lines title 'Uy', '" + fullFilePath + @"' u($0):4 with lines title 'Uz', '" + fullFilePath + @"' u($0):5 with lines title 'p', '" + fullFilePath + @"' u($0):6 with lines title 'omega', '" + fullFilePath + @"' u($0):7 with lines title 'k'
+plot '" + fullFilePath + @"' u($0):2 with lines title '" + field1 + "','" + fullFilePath + @"' u($0):3 with lines title '" + field2 + "','" + fullFilePath + @"' u($0):4 with lines title '" + field3 + "','" + fullFilePath + @"' u($0):5 with lines title '" + field4 + "','" + fullFilePath + @"' u($0):6 with lines title '" + field5 + "','" + fullFilePath + @"' u($0):7 with lines title '" + field6+@"'
 pause 90;replot
 ";
                         sw.WriteLine(strInputText);

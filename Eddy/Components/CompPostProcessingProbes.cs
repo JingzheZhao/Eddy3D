@@ -54,7 +54,7 @@ namespace Eddy
             pManager.AddPointParameter("points", "points", "points", GH_ParamAccess.list);
             //pManager.AddTextParameter("pointName", "pointName", "pointName", GH_ParamAccess.item);
 
-            pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 1);
             Param_Integer param = pManager[2] as Param_Integer;
             param.AddNamedValue("cp_Probes", 0);
             param.AddNamedValue("U_Probes", 1);

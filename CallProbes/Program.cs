@@ -364,7 +364,7 @@ namespace CallProbes
                                     for (int c = 0; c < numberOfWindDirs; c++)
                                     {
 
-                                        UFile.Append(String.Format("{0:0.##}", AnnualData[c, r].X) + "," + String.Format("{0:0.####}", AnnualData[c, r].Y) + "," + String.Format("{0:0.####}", AnnualData[c, r].Z) + ",");
+                                        UFile.Append(String.Format("{0:0.##}", AnnualData[c, r].X) + "," + String.Format("{0:0.##}", AnnualData[c, r].Y) + "," + String.Format("{0:0.##}", AnnualData[c, r].Z) + ",");
                                         progress.Report((double)cnt / numberOfProbes * numberOfWindDirs);
                                         cnt++;
                                     }

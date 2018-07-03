@@ -85,7 +85,7 @@ namespace Eddy
             if (!Directory.Exists(workDir)) return;
 
 
-            string file = workDir + @"\utci.csv";
+            string file = workDir + @"\UTCI.csv";
 
             if (!File.Exists(file)) return;
 

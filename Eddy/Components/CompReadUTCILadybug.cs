@@ -89,17 +89,27 @@ namespace Eddy
             if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
 
+
+
+
+
             List<string> ladybugAnalysisPeriod = new List<string>();
 
             DA.GetDataList(1, ladybugAnalysisPeriod);
 
 
+            if (ladybugAnalysisPeriod == null)
+            { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid analysis periode object."); return; }
+
+
+
+
             var allLines = File.ReadAllLines(DOM.baseWorkingDirectory + @"\UTCI.csv");
             var numberOfLines = allLines.Count();
 
-            
+
             // -1 because of python
-            
+
             int month_start = int.Parse(ladybugAnalysisPeriod[0].Split(',')[0].Split('(')[1]) - 1;
             var month_end = int.Parse(ladybugAnalysisPeriod[1].Split(',')[0].Split('(')[1]);
             var day_start = int.Parse(ladybugAnalysisPeriod[0].Split(',')[1]) - 1;
@@ -148,29 +158,29 @@ namespace Eddy
 
         }
 
-    /// <summary>
-    /// Provides an Icon for every component that will be visible in the User Interface.
-    /// Icons need to be 24x24 pixels.
-    /// </summary>
-    protected override System.Drawing.Bitmap Icon
-    {
-        get
+        /// <summary>
+        /// Provides an Icon for every component that will be visible in the User Interface.
+        /// Icons need to be 24x24 pixels.
+        /// </summary>
+        protected override System.Drawing.Bitmap Icon
         {
-            // You can add image files to your project resources and access them like this:
-            return Resources.Eddy_parseU;
+            get
+            {
+                // You can add image files to your project resources and access them like this:
+                return Resources.Eddy_parseU;
+            }
+        }
+
+        /// <summary>
+        /// Each component must have a unique Guid to identify it. 
+        /// It is vital this Guid doesn't change otherwise old ghx files 
+        /// that use the old ID will partially fail during loading.
+        /// </summary>
+        public override Guid ComponentGuid
+        {
+            get { return new Guid("{D1F7773E-3B8E-407E-A8DF-BB4B106F28BA}"); }
         }
     }
-
-    /// <summary>
-    /// Each component must have a unique Guid to identify it. 
-    /// It is vital this Guid doesn't change otherwise old ghx files 
-    /// that use the old ID will partially fail during loading.
-    /// </summary>
-    public override Guid ComponentGuid
-    {
-        get { return new Guid("{D1F7773E-3B8E-407E-A8DF-BB4B106F28BA}"); }
-    }
-}
 }
 
 

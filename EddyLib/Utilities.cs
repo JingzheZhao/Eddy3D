@@ -87,14 +87,14 @@ namespace EddyLib
 
             foreach (string s in sortedWorkingDir)
             {
-                var filter = s.Remove(0, simWorkingDirectory.Length+1);
+                var filter = s.Remove(0, simWorkingDirectory.Length + 1);
                 filteredListOfFolders.Add(filter);
             }
-             
-            
+
+
 
             var filteredNumbers = filteredListOfFolders.Where(s => s.All(char.IsDigit));
-            
+
             //Array.Sort(filtered, new Utilities.NumericComparer());
 
             var lastIteration = filteredNumbers.Max();
@@ -181,12 +181,12 @@ namespace EddyLib
                     using (var sr = new StreamReader(fs, System.Text.Encoding.Default))
                     {
 
-                        
+
                         while ((line = sr.ReadLine()) != null)
                             lines.Add(line);
                     }
-                    
-                                        
+
+
                     foreach (string lline in lines)
                     {
                         if (lline.EndsWith("(Killed).")) { processGotKilled = true; }
@@ -208,7 +208,41 @@ namespace EddyLib
         }
 
 
+        public static List<String>FileReader(string filePath)
+        {
 
+            String line;
+            List<String> lines = new List<String>();
+
+            if (File.Exists(filePath))
+            {
+                try
+                {
+                    
+
+
+                    using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (var sr = new StreamReader(fs, System.Text.Encoding.Default))
+                    {
+
+
+                        while ((line = sr.ReadLine()) != null)
+                            lines.Add(line);
+                    }
+
+
+                  
+
+                }
+                catch (Exception)
+                {
+
+                    throw;
+                }
+            }
+            return lines;
+            
+        }
 
 
         public static string ConvertComputeTimes(long elapsedMilliseconds)
@@ -227,11 +261,11 @@ namespace EddyLib
             return elapsedTime;
 
 
-            }
+        }
 
 
 
-            public static bool CheckLicence()
+        public static bool CheckLicence()
         {
             bool licence = false;
             //DateTime dateNow = Utilities.GetNistTime();
