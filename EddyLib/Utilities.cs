@@ -106,6 +106,7 @@ namespace EddyLib
             dockerInfo.WriteLine(str);
             dockerInfo.Flush();
             dockerInfo.Close();
+            p.WaitForExit();
 
 
         }
