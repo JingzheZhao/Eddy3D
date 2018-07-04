@@ -74,6 +74,44 @@ namespace EddyLib
             return dir;
         }
 
+        public static bool IsDockerRunning(string workingDirectory)
+        {
+
+            bool running = false;
+            string fp = workingDirectory + @"\dockerStatus";
+
+            var lines = Utilities.FileReader(fp);
+
+            foreach (string line in lines)
+            {
+                if (line.StartsWith("Containers"))
+                {
+                    running = true;
+                }
+            }
+
+            return running;
+        }
+
+        public static void WriteDockerInfo(string workingDirectory)
+        {
+            System.Diagnostics.Process p = new System.Diagnostics.Process();
+            p.StartInfo.FileName = @"C:\Windows\System32\cmd.exe";
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.RedirectStandardInput = true;
+            p.StartInfo.CreateNoWindow = true;
+            p.Start();
+            StreamWriter dockerInfo = p.StandardInput;
+            String str = @"docker info > " + workingDirectory + @"\dockerStatus";
+            dockerInfo.WriteLine(str);
+            dockerInfo.Flush();
+            dockerInfo.Close();
+
+
+        }
+
+
+
 
         public static bool IsDirectoryEmpty(string path)
         {
@@ -208,7 +246,7 @@ namespace EddyLib
         }
 
 
-        public static List<String>FileReader(string filePath)
+        public static List<String> FileReader(string filePath)
         {
 
             String line;
@@ -218,7 +256,7 @@ namespace EddyLib
             {
                 try
                 {
-                    
+
 
 
                     using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
@@ -231,7 +269,7 @@ namespace EddyLib
                     }
 
 
-                  
+
 
                 }
                 catch (Exception)
@@ -241,7 +279,7 @@ namespace EddyLib
                 }
             }
             return lines;
-            
+
         }
 
 

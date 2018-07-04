@@ -236,8 +236,28 @@ namespace Eddy
             baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
 
 
+
+
+
             if (Utilities.CheckLicence() == true)
             {
+
+                // Check if Docker is running
+
+                Utilities.WriteDockerInfo(baseWorkingDirectory);
+                bool dockerRunning = false;
+                if (Utilities.IsDockerRunning(baseWorkingDirectory))
+                {
+                    dockerRunning = true;
+                }
+                if (dockerRunning == false)
+                {
+
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"Docker is not running. Please start the application ""Docker for Windows"".");
+
+                }
+
+
                 OFCylDomain DOMCYL = new OFCylDomain(inputBreps, combinedMeshes, BCond, divisionsOuterCirc, gradingPerim, divPerim, windDir, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory);
 
 

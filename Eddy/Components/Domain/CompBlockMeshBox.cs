@@ -156,6 +156,9 @@ namespace Eddy
                 }
             }
 
+       
+
+
 
 
             if (domain == null)
@@ -199,12 +202,29 @@ namespace Eddy
             if (Utilities.CheckLicence() == true)
             {
 
+                // Check if Docker is running
+
+                Utilities.WriteDockerInfo(baseWorkingDirectory);
+                bool dockerRunning = false;
+                if (Utilities.IsDockerRunning(baseWorkingDirectory))
+                {
+                    dockerRunning = true;
+                }
+                if (dockerRunning == false)
+                {
+
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"Docker is not running. Please start the application ""Docker for Windows"".");
+
+                }
+
+
+
                 //Fix paths
 
                 baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
 
 
-                OFBoxDomain DOMBOX = new OFBoxDomain(inputBreps, combinedMeshes, terrainMeshes, BCond,  blockDimension, baseWorkingDirectory);
+                OFBoxDomain DOMBOX = new OFBoxDomain(inputBreps, combinedMeshes, terrainMeshes, BCond, blockDimension, baseWorkingDirectory);
 
                 if (CPUs == -1)
                 {
@@ -312,7 +332,7 @@ namespace Eddy
                     STLExport.ExportBinary(meshStlFilenameGround, DOMBOX.newBoxGround);
                     STLExport.ExportBinary(meshStlFilenameGroundPerim, DOMBOX.newBoxGroundPerim);
                 }
-                
+
 
 
                 if (!Directory.Exists(DOMBOX.meshSystemDirectory))
