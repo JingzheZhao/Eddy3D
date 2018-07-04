@@ -206,6 +206,8 @@ namespace Eddy
 
                 OFBoxDomain DOMBOX = new OFBoxDomain(inputBreps, combinedMeshes, terrainMeshes, BCond,  blockDimension, baseWorkingDirectory);
 
+
+                DOMBOX.CPU = CPUs;
                 if (CPUs == -1)
                 {
                     DOMBOX.autoCPUCalc = true;
