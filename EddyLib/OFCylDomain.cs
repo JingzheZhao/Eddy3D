@@ -185,7 +185,7 @@ namespace EddyLib
             MakeCircMeshPlane(center, this.sizeInnerR, _divOutercircle, radius, height, gradingPerim, divPerim);
 
 
-            BCond.calculateCPPressures(zMax);
+            BCond.CalculateCPPressures(zMax);
 
             this.BCInflow = BCond;
 

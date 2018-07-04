@@ -12,7 +12,8 @@ using Eddy.Properties;
 namespace Eddy
 {
     public class BCondABLComp : GH_Component
-    {      List<double> dirs = new List<double>();
+    {
+        //List<double> defaultDir = new List<double>(0);
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
         /// constructor without any arguments.
@@ -37,13 +38,13 @@ namespace Eddy
          
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddNumberParameter("wDir", "wDir", "wDir", GH_ParamAccess.list, dirs);
+            pManager.AddNumberParameter("wDir", "wDir", "wDir", GH_ParamAccess.list);
             pManager.AddNumberParameter("Uref", "Uref", "Uref", GH_ParamAccess.item, 5);
             pManager.AddNumberParameter("zref", "zref", "zref", GH_ParamAccess.item,10);
             pManager.AddNumberParameter("z0", "z0", "z0", GH_ParamAccess.item,1);
             pManager.AddNumberParameter("zGround", "zGround", "zGround", GH_ParamAccess.item,0);
-            pManager.AddTextParameter("Epw", "Epw", "Weather file path", GH_ParamAccess.item);
-
+            pManager.AddTextParameter("Epw", "Epw", "Weather file path", GH_ParamAccess.item, "");
+            pManager[0].Optional = true;
         }
 
         /// <summary>
@@ -63,7 +64,7 @@ namespace Eddy
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            dirs.Add(0);
+            //windDir.Add(0);
 
             List<double> windDir = new List<double>();
             List<Vector3d> flowDir = new List<Vector3d>();
@@ -81,7 +82,14 @@ namespace Eddy
             string weather = "";
             DA.GetData(5, ref weather);
 
-            
+            if (weather == "")
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Without a weather file (.epw) connected you will not be able to perform outdoor comfort calculations.");
+            }
+            if (windDir.Count == 0)
+            {
+                windDir.Add(0);
+            }
 
 
             BoundaryConditions BCInflow = new BoundaryConditions(BoundaryType.abl, windDir, Uref, zref, z0, zGround, weather);

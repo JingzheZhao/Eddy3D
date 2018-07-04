@@ -20,9 +20,9 @@ namespace CallBatchRunner
             if (CommandLine.Parser.Default.ParseArguments(args, options))
             {
 
-                if (!Directory.Exists(options.workingDir)) { Console.WriteLine(options.workingDir + " not found. Exiting"); return; }
+                if (!Directory.Exists(options.WorkingDir)) { Console.WriteLine(options.WorkingDir + " not found. Exiting"); return; }
 
-                string[] batchFiles = Directory.GetFiles(options.workingDir, options.pattern, SearchOption.AllDirectories);  //"*.bat"
+                string[] batchFiles = Directory.GetFiles(options.WorkingDir, options.Pattern, SearchOption.AllDirectories);  //"*.bat"
                 if (batchFiles == null) { Console.WriteLine("No files found"); return; }
                 if (batchFiles.Length < 1) { Console.WriteLine("No files found"); return; }
 
@@ -32,7 +32,7 @@ namespace CallBatchRunner
                 stopw.Start();
                 var parallelOptions = new ParallelOptions()
                 {
-                    MaxDegreeOfParallelism = options.threads,
+                    MaxDegreeOfParallelism = options.Threads,
                     CancellationToken = ct
                 };
 
@@ -94,16 +94,16 @@ namespace CallBatchRunner
     {
         [Option('w', "workingDir", Required = true,
         HelpText = "Working directory.")]
-        public string workingDir { get; set; }
+        public string WorkingDir { get; set; }
 
         [Option('t', "threads", Required = true, DefaultValue = 4,
         HelpText = "Number of parallel threads")]
-        public int threads { get; set; }
+        public int Threads { get; set; }
 
 
         [Option('p', "pattern", Required = true, DefaultValue = "*.bat",
         HelpText = "File search pattern")]
-        public string pattern { get; set; }
+        public string Pattern { get; set; }
 
 
         [Option('l', "loud", DefaultValue = false,

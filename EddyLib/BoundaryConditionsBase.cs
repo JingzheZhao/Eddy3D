@@ -45,11 +45,11 @@ namespace EddyLib
 
 
 
-        public BoundaryConditions()
-        {
-            windDir.Add(0);
-            flowDir.Add(Vector3d.YAxis);
-        }
+        //public BoundaryConditions()
+        //{
+        //    windDir.Add(0);
+        //    flowDir.Add(Vector3d.YAxis);
+        //}
 
         public BoundaryConditions(BoundaryType type, List<double> dirs, double _uref, double _zref, double _z0, double _zground, string weather)
         {
@@ -80,6 +80,8 @@ namespace EddyLib
             }
         }
 
+        // This is the overload for the constantU BCond where zGround is missing
+
         public BoundaryConditions(BoundaryType type, List<double> dirs, double _uref, double _z0, string weather)
         {
             this.weather = weather;
@@ -92,8 +94,8 @@ namespace EddyLib
             this.UPedestrianHeight = (((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((pedestrianHeight + z0) / z0));
             this.Ustar = 0.41 * (URef / Math.Log((zref + z0) / z0));
             this.k = Math.Pow(this.Ustar, 2) / Math.Sqrt(0.09);
-            this.epsilon = Math.Pow(this.Ustar, 3) / 0.41 * (this.zref - this.zGround + this.z0);
-            this.omega = this.epsilon / 0.09 * this.k;
+            this.epsilon = Math.Pow(this.Ustar, 3) / (0.41 * (this.zref - this.zGround + this.z0));
+            this.omega = this.epsilon / (0.09 * this.k);
 
             foreach (double d in dirs)
             {
@@ -103,7 +105,7 @@ namespace EddyLib
         }
 
 
-        public void calculateCPPressures(double buildingHeight)
+        public void CalculateCPPressures(double buildingHeight)
         {
             this.pinf = 1.2 * 0.5 * Math.Pow(((((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((buildingHeight + z0) / z0))), 2);
             this.pref = 1.2 * 0.5 * Math.Pow(((((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((buildingHeight + z0) / z0))), 2);

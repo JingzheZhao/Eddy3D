@@ -173,7 +173,7 @@ namespace EddyLib
             // refinement Cylinder
             //refinementCylinder = getRefinementCyl(center, geometry, 10);
 
-            BCond.calculateCPPressures(zMax);
+            BCond.CalculateCPPressures(zMax);
 
             this.BCInflow = BCond;
 

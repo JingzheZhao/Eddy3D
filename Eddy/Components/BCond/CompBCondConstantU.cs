@@ -12,7 +12,9 @@ using Eddy.Properties;
 namespace Eddy
 {
     public class BCondConstU : GH_Component
-    {      List<double> dirs = new List<double>();
+    {
+        //readonly List<double> defaultDir = new List<double>(0);
+
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
         /// constructor without any arguments.
@@ -21,7 +23,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public BCondConstU()
-          : base("ConstU", "ConstU",  "ConstU", "Eddy", "BC")
+          : base("ConstU", "ConstU", "ConstU", "Eddy", "BC")
         {
             //dirs.Add(0);
         }
@@ -32,16 +34,16 @@ namespace Eddy
         /// Registers all the input parameters for this component.
         /// </summary>
         /// 
-  
-       
-         
+
+
+
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddNumberParameter("wDir", "wDir", "wDir", GH_ParamAccess.list, dirs);
+            pManager.AddNumberParameter("wDir", "wDir", "wDir", GH_ParamAccess.list);
             pManager.AddNumberParameter("Uref", "Uref", "Uref", GH_ParamAccess.item, 5);
-            pManager.AddNumberParameter("z0", "z0", "z0", GH_ParamAccess.item,1);  
-            pManager.AddTextParameter("Epw", "Epw", "Weather file path", GH_ParamAccess.item);
-
+            pManager.AddNumberParameter("z0", "z0", "z0", GH_ParamAccess.item, 1);
+            pManager.AddTextParameter("Epw", "Epw", "Weather file path", GH_ParamAccess.item, "");
+            pManager[0].Optional = true;
         }
 
         /// <summary>
@@ -61,27 +63,38 @@ namespace Eddy
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            dirs.Add(0);
 
+            //windDir.Add(0);
             List<double> windDir = new List<double>();
             List<Vector3d> flowDir = new List<Vector3d>();
             double Uref = 0;
             //double zref = 0;
             double z0 = 0;
             //double zGround = 0;
-      
-            
+
+
             DA.GetDataList(0, windDir);
-            DA.GetData(1, ref Uref);            
+            DA.GetData(1, ref Uref);
             //DA.GetData(2, ref zref);
             DA.GetData(2, ref z0);
             //DA.GetData(4, ref zGround);
             string weather = "";
             DA.GetData(3, ref weather);
 
+            if (weather == "")
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Without a weather file (.epw) connected you will not be able to perform outdoor comfort calculations.");
+            }
+
+            if (windDir.Count == 0)
+            {
+                windDir.Add(0);
+            }
+
+
             BoundaryConditions BCInflow = new BoundaryConditions(BoundaryType.constant, windDir, Uref, z0, weather);
 
-               DA.SetData(0, BCInflow);    
+            DA.SetData(0, BCInflow);
 
         }
 
@@ -95,7 +108,7 @@ namespace Eddy
             {
                 // You can add image files to your project resources and access them like this:
                 return Resources.Eddy_parseU;
-               // return null;
+                // return null;
             }
         }
 
