@@ -195,7 +195,7 @@ namespace EddyLib
 
 
             this.inputBreps = inputBreps;
-
+            this.autoCPUCalc = false;
 
         }
 

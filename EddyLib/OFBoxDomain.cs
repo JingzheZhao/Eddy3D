@@ -192,6 +192,7 @@ namespace EddyLib
             this.keepTimeSteps = 2;
 
             this.inputBreps = inputBreps;
+            this.autoCPUCalc = false;
 
 
         }
