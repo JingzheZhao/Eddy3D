@@ -262,7 +262,7 @@ namespace Eddy
 
 
             //Autocalc number of CPUs
-            DOM.CPU = Utilities.CPUAutoCalc(DOM.meshWorkingDirectory);
+            DOM.CPU = Utilities.CPUAutoCalc(DOM.meshWorkingDirectory, DOM.CPU);
 
 
 

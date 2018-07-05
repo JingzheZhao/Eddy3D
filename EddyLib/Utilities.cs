@@ -143,9 +143,9 @@ namespace EddyLib
         }
 
 
-        public static int CPUAutoCalc(string meshWorkingDirectory)
+        public static int CPUAutoCalc(string meshWorkingDirectory, int CPUSetByUser)
         {
-            int CPU = 1;
+            int CPU = CPUSetByUser;
             int numberOfCellsInMesh = 0;
             int numberOfCPUsOnMachine = System.Environment.ProcessorCount;
 
