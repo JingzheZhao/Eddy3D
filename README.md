@@ -29,3 +29,11 @@ Now restart the system and try again.
 - Start eddy with one of the testFiles
 
 - Done
+
+
+# Troubleshooting
+---
+> Solution exception: Could not load file or assembly...
+
+Navigate to the folder you downloaded the files to and tick the 'unblock' box in the file properties.
+
