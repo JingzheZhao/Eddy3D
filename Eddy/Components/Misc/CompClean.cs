@@ -33,7 +33,7 @@ namespace Eddy
         {
         }
 
-        
+
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -50,7 +50,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-       
+
         }
 
 
@@ -62,24 +62,24 @@ namespace Eddy
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            
+
             bool Run = false;
             string workingDirectory = "";
 
-            
-            
-            DA.GetData(0, ref workingDirectory);            
+
+
+            DA.GetData(0, ref workingDirectory);
             DA.GetData(1, ref Run);
 
-            
-            
+
+
 
 
             if (Run == true)
             {
 
                 List<String> listOfDataToDelete = new List<string>();
-               
+
 
 
                 //   Delete files in workingDir 
@@ -88,13 +88,13 @@ namespace Eddy
 
                 var listOfDirs = workingDirectoryInfo.EnumerateDirectories("*");
 
-                var systemDirectoryInfo = new DirectoryInfo(workingDirectory+@"\system\");
+                var systemDirectoryInfo = new DirectoryInfo(workingDirectory + @"\system\");
                 var listOfSystemFiles = systemDirectoryInfo.EnumerateFiles("*");
 
-                var constantDirectoryInfo = new DirectoryInfo(workingDirectory+@"\constant\");
-                var polyMeshDirectoryInfo = new DirectoryInfo(workingDirectory+@"\constant\polyMesh\");
-                var extendedFeatureEdgeMeshDirectoryInfo = new DirectoryInfo(workingDirectory+@"\constant\extendedFeatureEdgeMesh\");
-                
+                var constantDirectoryInfo = new DirectoryInfo(workingDirectory + @"\constant\");
+                var polyMeshDirectoryInfo = new DirectoryInfo(workingDirectory + @"\constant\polyMesh\");
+                var extendedFeatureEdgeMeshDirectoryInfo = new DirectoryInfo(workingDirectory + @"\constant\extendedFeatureEdgeMesh\");
+
                 foreach (var file in listOfSystemFiles)
                 {
                     file.Delete();
@@ -102,15 +102,15 @@ namespace Eddy
 
                 // Delete files in subfolders
 
-                foreach (String element in listOfDirs.Select(x=> x.Name))
-                {   
+                foreach (String element in listOfDirs.Select(x => x.Name))
+                {
                     if (element.ToLower() == "system" || element.ToLower() == "constant" || element.ToLower() == "0.org")
                     {
                         continue;
                     }
                     try
                     {
-                        String newWorkingDirectory = workingDirectory +@"\" + element;
+                        String newWorkingDirectory = workingDirectory + @"\" + element;
                         var subFolderWorkingDirInfo = new DirectoryInfo(newWorkingDirectory);
 
                         foreach (var file in subFolderWorkingDirInfo.EnumerateFiles("*"))
@@ -122,10 +122,10 @@ namespace Eddy
                         {
                             if (System.Text.RegularExpressions.Regex.IsMatch(file.ToString(), "Probes"))
                             {
-                                file.Delete();                               
+                                file.Delete();
                             }
                         }
-                       
+
 
                         foreach (var file in extendedFeatureEdgeMeshDirectoryInfo.EnumerateFiles("*"))
                         {
@@ -146,7 +146,7 @@ namespace Eddy
 
 
             }
-           
+
         }
 
         /// <summary>

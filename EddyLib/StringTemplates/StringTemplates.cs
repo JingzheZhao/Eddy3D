@@ -118,8 +118,7 @@ FoamFile
     object snappyHexMeshDict;
 }
 
-    castellatedMesh true
-;");
+    castellatedMesh true;");
             sb.Append("snap "); if (dom.meshingMode == 1 || dom.meshingMode == 2) { sb.AppendLine("true;"); } else { sb.AppendLine("false;"); }
             sb.Append("addLayers "); if (dom.meshingMode == 2) { sb.AppendLine("true;"); } else { sb.AppendLine("false;"); }
             sb.Append(@"geometry
@@ -154,7 +153,7 @@ FoamFile
         {
             building
             {
-                level (1 " + dom.accBuildings + @");
+                level (" + (dom.accBuildings - 1) + @" " + dom.accBuildings + @");
                 patchInfo
                 {
                     type wall;
@@ -163,7 +162,7 @@ FoamFile
 
             ground
             {
-                level (1 " + (dom.accGround) + @");
+                level (" + (dom.accBuildings - 1) + @" " + (dom.accGround) + @");
                 patchInfo
                 {
                     type wall;
@@ -171,7 +170,7 @@ FoamFile
             }
             ground_perim
             {
-                level (" + (dom.accGround - 1) + " " + (dom.accGround - 1) + @");
+                level (" + (dom.accGround - 1) + @" " + (dom.accGround - 1) + @");
                 patchInfo
                 {
                     type wall;
@@ -182,41 +181,70 @@ FoamFile
         refinementRegions
         {
 
-refinementBox {mode inside; levels ((1 " + dom.accRefinement + @"));}
+refinementBox {mode inside; levels ((" + dom.accRefinement + @" " + dom.accRefinement + @"));}
 //refinementCylinder {mode inside; levels ((" + dom.accRefinement + " " + dom.accRefinement + @"));}
 
 
         }
 
         locationInMesh ( " + dom.locationInMesh.X + " " + dom.locationInMesh.Y + " " + dom.locationInMesh.Z + @" );
-        maxLocalCells 15000000;
-        maxGlobalCells 50000000;
-        minRefinementCells 5;
-        nCellsBetweenLevels 5;
-        resolveFeatureAngle 30;
-        allowFreeStandingZoneFaces true;
-        planarAngle 30;
-        maxLoadUnbalance 0.10;
+        //maxLocalCells 15000000;
+        //maxGlobalCells 50000000;
+        //minRefinementCells 5;
+        //nCellsBetweenLevels 5;
+        //resolveFeatureAngle 30;
+        //allowFreeStandingZoneFaces true;
+        //planarAngle 30;
+        //maxLoadUnbalance 0.10;
+
+maxLocalCells       100000;
+    maxGlobalCells      100000000;
+    minRefinementCells  10;
+    maxLoadUnbalance    0.10;
+    nCellsBetweenLevels 3;
+    resolveFeatureAngle 30;
+    allowFreeStandingZoneFaces true;
     }
 
-    snapControls
-    {
-        nSolveIter 300;
-        nSmoothPatch 5;
-        tolerance 4.0;
-        nRelaxIter 8;
-        nFeatureSnapIter 10;
-        implicitFeatureSnap false;
-        explicitFeatureSnap true;
-        multiRegionFeatureSnap false;
-    }
+    
+
+//snapControls
+//    {
+//        nSolveIter 300;
+//        nSmoothPatch 5;
+//        tolerance 4.0;
+//        nRelaxIter 8;
+//        nFeatureSnapIter 10;
+//        implicitFeatureSnap false;
+//        explicitFeatureSnap true;
+//        multiRegionFeatureSnap false;
+//    }
+snapControls
+{
+    nSmoothPatch    3;
+    tolerance       2.0;
+    nSolveIter      100;
+    nRelaxIter      5;
+
+    nFeatureSnapIter 10;
+
+    explicitFeatureSnap    false;
+    multiRegionFeatureSnap false;
+    implicitFeatureSnap    true;
+}
+
+
+ 
+
+
+
 
     // Settings for the layer addition.
     addLayersControls
     {
-        // Are the thickness parameters below relative to the undistorted
-        // size of the refined cell outside layer (true) or absolute sizes (false).
-        relativeSizes true;
+        //// Are the thickness parameters below relative to the undistorted
+        //// size of the refined cell outside layer (true) or absolute sizes (false).
+        //relativeSizes true;
 
         // Per final patch (so not geometry!) the layer information
         layers
@@ -235,136 +263,212 @@ refinementBox {mode inside; levels ((1 " + dom.accRefinement + @"));}
             }
         }
 
-        // Expansion factor for layer mesh
-        expansionRatio 1.2;
+   featureAngle              100;
+    slipFeatureAngle          30;
 
-        // Wanted thickness of final added cell layer. If multiple layers
-        // is the thickness of the layer furthest away from the wall.
-        // Relative to undistorted size of cell outside layer.
-        // See relativeSizes parameter.
-        finalLayerThickness 0.7;
+    nLayerIter                50;
+    nRelaxedIter              20;
+    nRelaxIter                5;
 
-        // Minimum thickness of cell layer. If for any reason layer
-        // cannot be above minThickness do not add layer.
-        // Relative to undistorted size of cell outside layer.
-        // See relativeSizes parameter.
-        minThickness 0.1;
+    nGrow                     0;
 
-        // If points get not extruded do nGrow layers of connected faces that are
-        // also not grown. This helps convergence of the layer addition process
-        // close to features.
-        // Note: changed(corrected) w.r.t 17x! (didn't do anything in 17x)
-        nGrow 0;
+    nSmoothSurfaceNormals     1;
+    nSmoothNormals            3;
+    nSmoothThickness          10;
+    maxFaceThicknessRatio     0.5;
+    maxThicknessToMedialRatio 0.3;
 
-        // Advanced settings
+    minMedialAxisAngle        90;
+    nMedialAxisIter           10;
 
-        // When not to extrude surface. 0 is flat surface, 90 is when two faces
-        // are perpendicular
-        featureAngle 180;
+    nBufferCellsNoExtrude     0;
+    additionalReporting       false;
 
-        // Maximum number of snapping relaxation iterations. Should stop
-        // before upon reaching a correct mesh.
-        nRelaxIter 5;
+relativeSizes       true;
+    expansionRatio      1.2;
+    finalLayerThickness 0.5;
+    minThickness        1e-3;
 
-        // Number of smoothing iterations of surface normals
-        nSmoothSurfaceNormals 1;
+//    nSmoothDisplacement       0;
+//    detectExtrusionIsland     false;
 
-        // Number of smoothing iterations of interior mesh movement direction
-        nSmoothNormals 3;
+        //// Expansion factor for layer mesh
+        //expansionRatio 1.2;
 
-        // Smooth layer thickness over surface patches
-        nSmoothThickness 10;
+        //// Wanted thickness of final added cell layer. If multiple layers
+        //// is the thickness of the layer furthest away from the wall.
+        //// Relative to undistorted size of cell outside layer.
+        //// See relativeSizes parameter.
+        //finalLayerThickness 0.7;
 
-        // Stop layer growth on highly warped cells
-        maxFaceThicknessRatio 0.5;
+        //// Minimum thickness of cell layer. If for any reason layer
+        //// cannot be above minThickness do not add layer.
+        //// Relative to undistorted size of cell outside layer.
+        //// See relativeSizes parameter.
+        //minThickness 0.1;
 
-        // Reduce layer growth where ratio thickness to medial
-        // distance is large
-        maxThicknessToMedialRatio 0.3;
+        //// If points get not extruded do nGrow layers of connected faces that are
+        //// also not grown. This helps convergence of the layer addition process
+        //// close to features.
+        //// Note: changed(corrected) w.r.t 17x! (didn't do anything in 17x)
+        //nGrow 0;
 
-        // Angle used to pick up medial axis points
-        // Note: changed(corrected) w.r.t 16x! 90 degrees corresponds to 130 in 16x.
-        minMedianAxisAngle 90;
+        //// Advanced settings
 
-        // Create buffer region for new layer terminations
-        nBufferCellsNoExtrude 0;
+        //// When not to extrude surface. 0 is flat surface, 90 is when two faces
+        //// are perpendicular
+        //featureAngle 180;
+
+        //// Maximum number of snapping relaxation iterations. Should stop
+        //// before upon reaching a correct mesh.
+        //nRelaxIter 5;
+
+        //// Number of smoothing iterations of surface normals
+        //nSmoothSurfaceNormals 1;
+
+        //// Number of smoothing iterations of interior mesh movement direction
+        //nSmoothNormals 3;
+
+        //// Smooth layer thickness over surface patches
+        //nSmoothThickness 10;
+
+        //// Stop layer growth on highly warped cells
+        //maxFaceThicknessRatio 0.5;
+
+        //// Reduce layer growth where ratio thickness to medial
+        //// distance is large
+        //maxThicknessToMedialRatio 0.3;
+
+        //// Angle used to pick up medial axis points
+        //// Note: changed(corrected) w.r.t 16x! 90 degrees corresponds to 130 in 16x.
+        //minMedianAxisAngle 90;
+
+        //// Create buffer region for new layer terminations
+        //nBufferCellsNoExtrude 0;
 
 
-        // Overall max number of layer addition iterations. The mesher will exit
-        // if it reaches this number of iterations; possibly with an illegal
-        // mesh.
-        nLayerIter 50;
+        //// Overall max number of layer addition iterations. The mesher will exit
+        //// if it reaches this number of iterations; possibly with an illegal
+        //// mesh.
+        //nLayerIter 50;
 
-        //max number of iterations after which the controls in the relaxed sub dictionary of meshQuality are used (typically 20).
-        nRelaxedIter 20;
+        ////max number of iterations after which the controls in the relaxed sub dictionary of meshQuality are used (typically 20).
+        //nRelaxedIter 20;
     }
 
   // Generic mesh quality settings. At any undoable phase these determine
   // where to undo.
   meshQualityControls
 {
-    //- Maximum non-orthogonality allowed. Set to 180 to disable.
-    maxNonOrtho 65;
+   
+maxNonOrtho 65;
 
-    //- Max skewness allowed. Set to <0 to disable.
-    maxBoundarySkewness 20;
-    maxInternalSkewness 4;
+maxBoundarySkewness 20;
 
-    //- Max concaveness allowed. Is angle (in degrees) below which concavity
-    //  is allowed. 0 is straight face, <0 would be convex face.
-    //  Set to 180 to disable.
-    maxConcave 80;
+maxInternalSkewness 4;
 
-    //- Minimum pyramid volume. Is absolute volume of cell pyramid.
-    //  Set to a sensible fraction of the smallest cell volume expected.
-    //  Set to very negative number (e.g. -1E30) to disable.
-    minVol 1e-16;
+maxConcave 80;
 
-    //- Minimum quality of the tet formed by the face-centre
-    //  and variable base point minimum decomposition triangles and
-    //  the cell centre. This has to be a positive number for tracking
-    //  to work. Set to very negative number (e.g. -1E30) to
-    //  disable.
-    //     <0 = inside out tet,
-    //      0 = flat tet
-    //      1 = regular tet
-    minTetQuality -1e+30; // 1e-30;
+// Minimum cell pyramid volume; case dependent
+minVol 1e-13;
 
-    //- Minimum face area. Set to <0 to disable.
-    minArea 1e-13;
+//  1e-15 (small positive) to enable tracking
+// -1e+30 (large negative) for best layer insertion
+minTetQuality 1e-15;
 
-    //- Minimum face twist. Set to <-1 to disable. dot product of face normal
-    //  and face centre triangles normal
-    minTwist 0.02;
+// if >0 : preserve single cells with all points on the surface if the
+// resulting volume after snapping (by approximation) is larger than
+// minVolCollapseRatio times old volume (i.e. not collapsed to flat cell).
+//  If <0 : delete always.
+//minVolCollapseRatio 0.5;
 
-    //- Minimum normalised cell determinant
-    //  1 = hex, <= 0 = folded or flattened illegal cell
-    minDeterminant 0.001;
+minArea          -1;
 
-    //- minFaceWeight (0 -> 0.5)
-    minFaceWeight 0.02;
+minTwist          0.02;
 
-    //- minVolRatio (0 -> 1)
-    minVolRatio 0.01;
+minDeterminant    0.001;
 
-    //must be >0 for Fluent compatibility
-    minTriangleTwist -1;
+minFaceWeight     0.05;
+
+minVolRatio       0.01;
+
+minTriangleTwist -1;
+
+nSmoothScale   4;
+
+errorReduction 0.75;
+
+relaxed
+{
+    maxNonOrtho   75;
+}
 
 
-    // Advanced
 
-    //- Number of error distribution iterations
-    nSmoothScale 4;
-    //- Amount to scale back displacement at error points
-    errorReduction 0.75;
 
-    // Optional : some meshing phases allow usage of relaxed rules.
-    // See e.g. addLayersControls::nRelaxedIter.
-    relaxed
-    {
-        //- Maximum non-orthogonality allowed. Set to 180 to disable.
-        maxNonOrtho 75;
-    }
+////- Maximum non-orthogonality allowed. Set to 180 to disable.
+//    maxNonOrtho 65;
+
+//    //- Max skewness allowed. Set to <0 to disable.
+//    maxBoundarySkewness 20;
+//    maxInternalSkewness 4;
+
+//    //- Max concaveness allowed. Is angle (in degrees) below which concavity
+//    //  is allowed. 0 is straight face, <0 would be convex face.
+//    //  Set to 180 to disable.
+//    maxConcave 80;
+
+//    //- Minimum pyramid volume. Is absolute volume of cell pyramid.
+//    //  Set to a sensible fraction of the smallest cell volume expected.
+//    //  Set to very negative number (e.g. -1E30) to disable.
+//    minVol 1e-16;
+
+//    //- Minimum quality of the tet formed by the face-centre
+//    //  and variable base point minimum decomposition triangles and
+//    //  the cell centre. This has to be a positive number for tracking
+//    //  to work. Set to very negative number (e.g. -1E30) to
+//    //  disable.
+//    //     <0 = inside out tet,
+//    //      0 = flat tet
+//    //      1 = regular tet
+//    minTetQuality -1e+30; // 1e-30;
+
+//    //- Minimum face area. Set to <0 to disable.
+//    minArea 1e-13;
+
+//    //- Minimum face twist. Set to <-1 to disable. dot product of face normal
+//    //  and face centre triangles normal
+//    minTwist 0.02;
+
+//    //- Minimum normalised cell determinant
+//    //  1 = hex, <= 0 = folded or flattened illegal cell
+//    minDeterminant 0.001;
+
+//    //- minFaceWeight (0 -> 0.5)
+//    minFaceWeight 0.02;
+
+//    //- minVolRatio (0 -> 1)
+//    minVolRatio 0.01;
+
+//    //must be >0 for Fluent compatibility
+//    minTriangleTwist -1;
+
+
+//    // Advanced
+
+//    //- Number of error distribution iterations
+//    nSmoothScale 4;
+//    //- Amount to scale back displacement at error points
+//    errorReduction 0.75;
+
+//    // Optional : some meshing phases allow usage of relaxed rules.
+//    // See e.g. addLayersControls::nRelaxedIter.
+//    relaxed
+//    {
+//        //- Maximum non-orthogonality allowed. Set to 180 to disable.
+//        maxNonOrtho 75;
+//    }
+
 }
 
   // Write flags
@@ -965,8 +1069,8 @@ minTriangleTwist -1;
 // ************************************************************************* //
 ";
         }
-        public static string FvSchemes()
-        {
+        public static string FvSchemesAccurate()
+        {// An accurate and stable numerical scheme
             return
         @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
@@ -991,19 +1095,18 @@ ddtSchemes
 
 gradSchemes
 {
-    default Gauss linear;
-    grad(U) cellLimited Gauss linear 1;
+    default cellMDLimited Gauss linear 0.5;
 }
 
 divSchemes
 {
     default         none;
     div(phi,U)      bounded Gauss linearUpwindV grad(U);
-    div(phi,k)      bounded Gauss upwind;
-    div(phi,epsilon)  bounded Gauss upwind;
-    div(phi,omega)  bounded Gauss upwind;
+    div(phi,k)      bounded Gauss upwind grad(U);
+    div(phi,epsilon)  bounded Gauss upwind grad(U);
+    div(phi,omega)  bounded Gauss upwind grad(U);
     div((nuEff*dev2(T(grad(U))))) Gauss linear;
-    div(phi,time)   bounded   Gauss limitedLinear 1;
+    div(phi,time)   bounded Gauss upwind grad(U);
 }
 
 laplacianSchemes
@@ -1020,6 +1123,369 @@ interpolationSchemes
 snGradSchemes
 {
     default         corrected;
+}
+
+fluxRequired
+{
+    default         no;
+    p;
+}
+wallDist
+{
+	method meshWave;
+}
+
+// ************************************************************************* //
+";
+        }
+
+        public static string FvSchemesRobust1()
+        {//A robust numerical scheme but diffusive
+            return
+        @"/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.2                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         steadyState;
+}
+
+
+
+gradSchemes
+{
+    grad(U) cellMDLimited Gauss linear 1.0;
+}
+
+divSchemes
+{
+    default         none;
+    div(phi,U)       Gauss upwind;
+    div(phi,k)       Gauss upwind;
+    div(phi,epsilon) Gauss upwind;
+    div(phi,omega)   Gauss upwind;
+    div((nuEff*dev2(T(grad(U))))) Gauss linear;
+    div(phi,time)   Gauss upwind;
+}
+
+laplacianSchemes
+{
+    default         Gauss linear corrected;
+    laplacian(nuEff,time) Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         corrected;
+}
+
+fluxRequired
+{
+    default         no;
+    p;
+}
+wallDist
+{
+	method meshWave;
+}
+
+// ************************************************************************* //
+";
+        }
+        public static string FvSchemesAccurateOscillatory()
+        {// An even more accurate but oscillatory scheme
+            return
+        @"/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.2                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         steadyState;
+}
+
+
+
+gradSchemes
+{
+    grad(U) Gauss linear;
+}
+
+divSchemes
+{
+    
+    div(phi,U)       Gauss linear;
+    div(phi,k)       Gauss linearUpwind grad(U);
+    div(phi,epsilon) Gauss linearUpwind grad(U);
+    div(phi,omega)   Gauss linearUpwind grad(U);
+    div((nuEff*dev2(T(grad(U))))) Gauss linear;
+    div(phi,time)   Gauss linearUpwind grad(U);
+}
+
+laplacianSchemes
+{
+    default         Gauss linear corrected;
+    laplacian(nuEff,time) Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         corrected;
+}
+
+fluxRequired
+{
+    default         no;
+    p;
+}
+wallDist
+{
+	method meshWave;
+}
+
+// ************************************************************************* //
+";
+        }
+            public static string FvSchemesOrtho70_80()
+            {
+                // An accurate numerical scheme on orthogonal (70-80) meshes
+                return
+            @"/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.2                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         steadyState;
+}
+
+
+
+gradSchemes
+{
+    default cellMDLimited leastSquares 1.0;
+}
+
+divSchemes
+{
+    
+    div(phi,U)       Gauss linearUpwind grad(U);
+    div(phi,k)       Gauss linearUpwind;
+    div(phi,epsilon) Gauss linearUpwind;
+    div(phi,omega)   Gauss linearUpwind;
+    div((nuEff*dev2(T(grad(U))))) Gauss linear;
+    div(phi,time)   Gauss linearUpwind grad(U);
+}
+
+laplacianSchemes
+{
+    default         Gauss linear limited 0.5;
+    laplacian(nuEff,time) Gauss linear limited 0.5;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         limited 0.5;
+}
+
+fluxRequired
+{
+    default         no;
+    p;
+}
+wallDist
+{
+	method meshWave;
+}
+
+// ************************************************************************* //
+";
+
+
+            }
+
+
+        public static string FvSchemesOrtho60_70()
+        {
+            // An accurate numerical scheme on orthogonal (60-70) meshes
+            return
+        @"/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.2                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         steadyState;
+}
+
+
+
+gradSchemes
+{
+    default cellMDLimited Gauss linear 0.5;
+}
+
+divSchemes
+{
+    
+    div(phi,U)       Gauss linearUpwind grad(U);
+    div(phi,k)       Gauss linearUpwind;
+    div(phi,epsilon) Gauss linearUpwind;
+    div(phi,omega)   Gauss linearUpwind;
+    div((nuEff*dev2(T(grad(U))))) Gauss linear;
+    div(phi,time)   Gauss linearUpwind grad(U);
+}
+
+laplacianSchemes
+{
+    default         Gauss linear limited 0.77;
+    laplacian(nuEff,time) Gauss linear limited 0.77;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         limited 0.77;
+}
+
+fluxRequired
+{
+    default         no;
+    p;
+}
+wallDist
+{
+	method meshWave;
+}
+
+// ************************************************************************* //
+";
+        }
+        public static string FvSchemesOrtho40_60()
+        {
+            // An accurate numerical scheme on orthogonal (40-60) meshes
+            return
+        @"/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.2                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         steadyState;
+}
+
+
+
+gradSchemes
+{
+    default cellMDLimited Gauss linear 0.5;
+}
+
+divSchemes
+{
+    
+    div(phi,U)       Gauss linearUpwind grad(U);
+    div(phi,k)       Gauss linearUpwind;
+    div(phi,epsilon) Gauss linearUpwind;
+    div(phi,omega)   Gauss linearUpwind;
+    div((nuEff*dev2(T(grad(U))))) Gauss linear;
+    div(phi,time)   Gauss linearUpwind grad(U);
+}
+
+laplacianSchemes
+{
+    default         Gauss linear limited 1.0;
+    laplacian(nuEff,time) Gauss linear limited 1.0;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         limited 1.0;
 }
 
 fluxRequired
@@ -1189,19 +1655,32 @@ solvers
 {
     p
     {
-        solver          GAMG;
-        smoother        GaussSeidel;
-        tolerance       1e-6;
-        relTol          0.1;
-    }
+        solver GAMG;
+        tolerance 1e-6;
+        relTol 0.1;
+        smoother GaussSeidel;
+        nPreSweeps 0;
+        nPostSweeps 2;
+        cacheAgglomeration on;
+        agglomerator faceAreaPair;
+        nCellsInCoarsestLevel 100;
+        mergeLevels 1;
+    } 
 
-    ""(U|k|omega|epsilon)""
+    ""(k|omega|epsilon)""
     {
         solver          smoothSolver;
         smoother        symGaussSeidel;
         tolerance       1e-6;
         relTol          0.1;
-    }
+    }   
+    U
+    {
+        solver PBiCG;
+        preconditioner DILU;
+        tolerance 1e-8;
+        relTol 0.0;
+    } 
 	Phi
     {
         solver          GAMG;
@@ -1213,9 +1692,9 @@ solvers
 
 SIMPLE
 {");
-    if (mode == 0) { sb.Append(@"nNonOrthogonalCorrectors 1;"); }
-    else { sb.Append(@"nNonOrthogonalCorrectors 4;"); }
-    sb.AppendLine(@"
+            if (mode == 0) { sb.Append(@"nNonOrthogonalCorrectors 1;"); }
+            else { sb.Append(@"nNonOrthogonalCorrectors 4;"); }
+            sb.AppendLine(@"
     residualControl
     {
     p       1e-4;
@@ -1425,16 +1904,16 @@ RAS
 
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; blockMesh | tee  log""");
+            sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; blockMesh | tee  log""");
             if (DOM.CPU > 1)
             {
 
-                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatureExtract | tee  log""");
-                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamDecompose.py --clear . " + DOM.CPU + @" | tee  log""");
-                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; foamJob -parallel -screen snappyHexMesh -overwrite | tee  log""");
-                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructParMesh -constant | tee  log""");
-                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite | tee  log""");
-                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatureExtract | tee -a  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamDecompose.py --clear . " + DOM.CPU + @" | tee -a  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; foamJob -parallel -screen snappyHexMesh -overwrite | tee -a  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructParMesh -constant | tee -a  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite | tee -a  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a  log""");
 #if DEBUG
 
                 sb.AppendLine("PAUSE");
@@ -1443,9 +1922,9 @@ RAS
             }
             else
             {
-                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatureExtract | tee  log; snappyHexMesh -overwrite  | tee  log; checkMesh | tee  log""");
-                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite | tee  log""");
-                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatureExtract | tee  log; snappyHexMesh -overwrite  | tee  log; checkMesh | tee  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite | tee -a  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.meshWorkingDirectory + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a  log""");
 #if DEBUG
 
                 sb.AppendLine("PAUSE");
@@ -1464,16 +1943,16 @@ RAS
         {
             StringBuilder sb = new StringBuilder();
 
-            sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamPrepareCase.py . --no-mesh-create | tee  log""");
+            sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" -it  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamPrepareCase.py . --no-mesh-create | tee  log""");
             if (DOM.CPU > 1)
             {
-               
-                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamDecompose.py --clear . " + DOM.CPU + @" | tee  log""");
-                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; foamJob -s -p renumberMesh -overwrite | tee  log""");
-                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; foamJob -s -p potentialFoam -overwrite | tee  log""");
-                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; mpirun -np " + DOM.CPU + @" simpleFoam -parallel | tee  log""");
-                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructPar -latestTime | tee  log""");
-                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint=""""  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee  log""");
+
+                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" -it  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamDecompose.py --clear . " + DOM.CPU + @" | tee -a  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" -it  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; foamJob -s -p renumberMesh -overwrite | tee -a  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" -it  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; foamJob -s -p potentialFoam | tee -a  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" -it  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; mpirun -np " + DOM.CPU + @" simpleFoam -parallel | tee -a  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" -it  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructPar -latestTime | tee -a  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" -it  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee  log""");
 #if DEBUG
 
                 sb.AppendLine("PAUSE");
@@ -1482,9 +1961,9 @@ RAS
             }
             else
             {
-                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; potentialFoam | tee  log""");
-                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; simpleFoam | tee  log""");
-                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; potentialFoam | tee  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; simpleFoam | tee -a  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a  log""");
 #if DEBUG
 
                 sb.AppendLine("PAUSE");
@@ -1502,12 +1981,12 @@ RAS
             sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""blockMesh | tee  log"" -f """ + DOM.meshWorkingDirectory + " \"");
             if (DOM.CPU > 1)
             {
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""surfaceFeatureExtract | tee  log "" -f """ + DOM.meshWorkingDirectory + " \"");
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""pyFoamDecompose.py --clear . " + DOM.CPU + @" | tee  log "" -f """ + DOM.meshWorkingDirectory + " \"");
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""foamJob -parallel -screen snappyHexMesh -overwrite | tee  log "" -f """ + DOM.meshWorkingDirectory + " \"");
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""reconstructParMesh -constant | tee  log "" -f """ + DOM.meshWorkingDirectory + " \"");
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""renumberMesh -overwrite | tee  log "" -f """ + DOM.meshWorkingDirectory + " \"");
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee  log "" -f """ + DOM.meshWorkingDirectory + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""surfaceFeatureExtract | tee -a  log "" -f """ + DOM.meshWorkingDirectory + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""pyFoamDecompose.py --clear . " + DOM.CPU + @" | tee -a  log "" -f """ + DOM.meshWorkingDirectory + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""foamJob -parallel -screen snappyHexMesh -overwrite | tee -a  log "" -f """ + DOM.meshWorkingDirectory + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""reconstructParMesh -constant | tee -a  log "" -f """ + DOM.meshWorkingDirectory + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""renumberMesh -overwrite | tee -a  log "" -f """ + DOM.meshWorkingDirectory + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a  log "" -f """ + DOM.meshWorkingDirectory + " \"");
 #if DEBUG
 
                 sb.AppendLine("PAUSE");
@@ -1517,10 +1996,10 @@ RAS
             else
             {
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""surfaceFeatureExtract | tee  log "" -f """ + DOM.meshWorkingDirectory + " \"");
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""snappyHexMesh -overwrite  | tee  log "" -f """ + DOM.meshWorkingDirectory + " \"");
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee  log "" -f """ + DOM.meshWorkingDirectory + " \"");
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""renumberMesh -overwrite | tee  log "" -f """ + DOM.meshWorkingDirectory + " \"");
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee  log "" -f """ + DOM.meshWorkingDirectory + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""snappyHexMesh -overwrite  | tee -a  log "" -f """ + DOM.meshWorkingDirectory + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a  log "" -f """ + DOM.meshWorkingDirectory + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""renumberMesh -overwrite | tee -a  log "" -f """ + DOM.meshWorkingDirectory + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a log "" -f """ + DOM.meshWorkingDirectory + " \"");
 #if DEBUG
 
                 sb.AppendLine("PAUSE");
@@ -1539,13 +2018,13 @@ RAS
             sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""pyFoamPrepareCase.py . --no-mesh-create | tee  log"" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
             if (DOM.CPU > 1)
             {
-               
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""pyFoamDecompose.py --clear . " + DOM.CPU + @"| tee  log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""foamJob -s -p renumberMesh -overwrite | tee  log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""foamJob -s -p potentialFoam -overwrite | tee  log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""mpirun -np " + DOM.CPU + @" simpleFoam -parallel | tee  log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""reconstructPar -latestTime | tee  log; "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee  log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
+
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""pyFoamDecompose.py --clear . " + DOM.CPU + @"| tee -a  log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""foamJob -s -p renumberMesh -overwrite | tee -a  log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""foamJob -s -p potentialFoam | tee -a  log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""mpirun -np " + DOM.CPU + @" simpleFoam -parallel | tee -a  log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""reconstructPar -latestTime | tee -a  log; "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a  log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
 #if DEBUG
 
                 sb.AppendLine("PAUSE");
@@ -1556,8 +2035,8 @@ RAS
             else
             {
                 sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""potentialFoam | tee  log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""simpleFoam | tee  log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
-                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee  log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""simpleFoam | tee -a  log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
+                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a  log "" -f """ + DOM.baseWorkingDirectory + DOM.BCInflow.windDir[d] + " \"");
 #if DEBUG
 
                 sb.AppendLine("PAUSE");
@@ -1578,7 +2057,7 @@ RAS
         {
             StringBuilder sb = new StringBuilder();
 
-            sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""foamToVTK -faceSet highAspectRatioCells -ascii;foamToVTK -faceSet nonOrthoFaces -ascii;foamToVTK -faceSet skewFaces -ascii;foamToVTK -faceSet wrongOrientedFaces -ascii; foamToVTK -faceSet zeroVolumeCells -ascii | tee  log"" -f """ + DOM.baseWorkingDirectory + @"\mesh\ ");
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""foamToVTK -faceSet highAspectRatioCells -ascii;foamToVTK -faceSet nonOrthoFaces -ascii;foamToVTK -faceSet skewFaces -ascii;foamToVTK -faceSet wrongOrientedFaces -ascii; foamToVTK -faceSet zeroVolumeCells -ascii | tee -a  log"" -f """ + DOM.baseWorkingDirectory + @"\mesh\ ");
 #if DEBUG
 
             sb.AppendLine("PAUSE");

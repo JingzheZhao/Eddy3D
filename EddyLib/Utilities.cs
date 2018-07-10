@@ -161,9 +161,9 @@ namespace EddyLib
                         if (numberOfCellsInMesh > 50000)
                         {
                             CPU = numberOfCellsInMesh / 50000;
-                            if (CPU > numberOfCPUsOnMachine - 2)
+                            if (CPU > numberOfCPUsOnMachine /2)
                             {
-                                CPU = numberOfCPUsOnMachine - 2;
+                                CPU = numberOfCPUsOnMachine /2;
                             }
                         }
 
@@ -175,7 +175,7 @@ namespace EddyLib
                     }
                     else
                     {
-                        CPU = numberOfCPUsOnMachine - 2;
+                        CPU = numberOfCPUsOnMachine /2;
                         if (CPU < 1)
                         {
                             CPU = 1;

@@ -254,7 +254,7 @@ namespace Eddy
 
             File.WriteAllText(Path.Combine(meshSystemDir + "snappyHexMeshDict"), StringTemplates.SnappyHexMeshDict(DOM));
             File.WriteAllText(Path.Combine(meshSystemDir + "surfaceFeatureExtractDict"), StringTemplates.SurfaceFeatureExtractDict());
-            File.WriteAllText(Path.Combine(meshSystemDir + "fvSchemes"), StringTemplates.FvSchemes());
+            File.WriteAllText(Path.Combine(meshSystemDir + "fvSchemes"), StringTemplates.FvSchemesRobust1());
             File.WriteAllText(Path.Combine(meshSystemDir + "fvSolution"), StringTemplates.FvSolution(0));
             File.WriteAllText(Path.Combine(meshSystemDir + "meshQualityDict"), StringTemplates.MeshQualityDict());
 
@@ -262,7 +262,11 @@ namespace Eddy
 
 
             //Autocalc number of CPUs
-            DOM.CPU = Utilities.CPUAutoCalc(DOM.meshWorkingDirectory, DOM.CPU);
+            if (DOM.autoCPUCalc == true)
+            {
+                DOM.CPU = Utilities.CPUAutoCalc(DOM.meshWorkingDirectory, DOM.CPU);
+            }
+            
 
 
 

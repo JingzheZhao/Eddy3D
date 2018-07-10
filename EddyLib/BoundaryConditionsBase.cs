@@ -43,6 +43,10 @@ namespace EddyLib
         public double pref;
         public List<Vector3d> Uinf = new List<Vector3d>();
 
+        double Tu;
+        double eddy_viscosity_ratio;
+        double nu;
+
 
 
         //public BoundaryConditions()
@@ -62,16 +66,19 @@ namespace EddyLib
             this.zGround = _zground;
             this.UPedestrianHeight = (((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((pedestrianHeight + z0) / z0));
             this.Ustar = (0.41 * URef) / Math.Log(((zref + z0) / z0));
-            this.k = Math.Pow(this.Ustar, 2) / Math.Sqrt(0.09);
-            this.epsilon = Math.Pow(this.Ustar, 3) / (0.41 * (this.zref - this.zGround + this.z0));
-            this.omega = this.epsilon / (0.09 * this.k);
+            //this.k = Math.Pow(this.Ustar, 2) / Math.Sqrt(0.09);
+            //this.epsilon = Math.Pow(this.Ustar, 3) / (0.41 * (this.zref - this.zGround + this.z0));
+            //this.omega = this.epsilon / (0.09 * this.k);
 
             //CFD Online
-            //form.k.value = 1.5 * Math.pow(form.Tu.value / 100, 2) * Math.pow(form.u_freestream.value, 2)
 
-            // form.epsilon.value = 0.09 * Math.pow(form.k.value, 2) / (form.nu.value * form.eddy_viscosity_ratio.value)
+            eddy_viscosity_ratio = 10;
+            Tu = 5;
+            nu = 1.5e-05;
 
-            // form.omega.value = form.epsilon.value / (0.09 * form.k.value)
+            this.k = K(this.Tu, this.URef);
+            this.epsilon = Epsilon(this.k, this.eddy_viscosity_ratio, this.nu);
+            this.omega = Omega(this.epsilon, this.k);
 
             foreach (double d in dirs)
             {
@@ -93,9 +100,21 @@ namespace EddyLib
             //this.zGround = _zground;
             this.UPedestrianHeight = (((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((pedestrianHeight + z0) / z0));
             this.Ustar = 0.41 * (URef / Math.Log((zref + z0) / z0));
-            this.k = Math.Pow(this.Ustar, 2) / Math.Sqrt(0.09);
-            this.epsilon = Math.Pow(this.Ustar, 3) / (0.41 * (this.zref - this.zGround + this.z0));
-            this.omega = this.epsilon / (0.09 * this.k);
+            //this.k = Math.Pow(this.Ustar, 2) / Math.Sqrt(0.09);
+            //this.epsilon = Math.Pow(this.Ustar, 3) / (0.41 * (this.zref - this.zGround + this.z0));
+            //this.omega = this.epsilon / (0.09 * this.k);
+
+            //CFD Online
+
+            eddy_viscosity_ratio = 10;
+            Tu = 5; //in percent
+            nu = 1.5e-05;
+
+            this.k = K(this.Tu, this.URef);
+            this.epsilon = Epsilon(this.k, this.eddy_viscosity_ratio, this.nu);
+            this.omega = Omega(this.epsilon, this.k);
+
+
 
             foreach (double d in dirs)
             {
@@ -115,6 +134,23 @@ namespace EddyLib
                 this.Uinf.Add((d * (((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((buildingHeight + z0) / z0))));
             }
 
+        }
+
+        public double Epsilon(double k, double eddy_viscosity_ratio, double nu)
+        {
+            double epsilon = 0.09 * Math.Pow(k, 2) / (nu * eddy_viscosity_ratio);
+            return epsilon;
+        }
+
+        public double Omega(double epsilon, double k)
+        {
+            double omega = epsilon / (0.09 * k);
+            return omega;
+        }
+        public double K(double Tu, double URef)
+        {
+           double k = 1.5 * Math.Pow(Tu / 100, 2) * Math.Pow(URef, 2);
+            return k;
         }
 
     }
