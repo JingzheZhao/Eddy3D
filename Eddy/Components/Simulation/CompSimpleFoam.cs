@@ -131,11 +131,19 @@ namespace Eddy
 
             DA.GetData(6, ref Run);
 
+            //Make sure that all fields are always written
+            if (iter < writeInterval)
+            {
+                writeInterval = iter;
+            }
+
             DOM.iter = iter;
             DOM.writeInterval = writeInterval;
             DOM.keepTimeSteps = keepTimeSteps;
 
             DOM.turbulenceModel = turb;
+
+            
 
 
 

@@ -1100,10 +1100,10 @@ gradSchemes
 
 divSchemes
 {
-    default         none;
+    default         bounded Gauss upwind grad(U);
     div(phi,U)      bounded Gauss linearUpwindV grad(U);
     div(phi,k)      bounded Gauss upwind grad(U);
-    div(phi,epsilon)  bounded Gauss upwind grad(U);
+    //div(phi,epsilon)  bounded Gauss upwind grad(U);
     div(phi,omega)  bounded Gauss upwind grad(U);
     div((nuEff*dev2(T(grad(U))))) Gauss linear;
     div(phi,time)   bounded Gauss upwind grad(U);
@@ -1167,15 +1167,17 @@ ddtSchemes
 
 gradSchemes
 {
-    grad(U) cellMDLimited Gauss linear 1.0;
+    default cellMDLimited Gauss linear 1.0;
 }
 
 divSchemes
 {
-    default         none;
+    default          Gauss upwind;
     div(phi,U)       Gauss upwind;
-    div(phi,k)       Gauss upwind;
-    div(phi,epsilon) Gauss upwind;
+    //div(phi,k)       Gauss upwind;
+    //div(phi,epsilon) Gauss upwind;
+    div(phi,k)       Gauss linear;
+    div(phi,epsilon) Gauss linear;
     div(phi,omega)   Gauss upwind;
     div((nuEff*dev2(T(grad(U))))) Gauss linear;
     div(phi,time)   Gauss upwind;
@@ -1238,15 +1240,17 @@ ddtSchemes
 
 gradSchemes
 {
-    grad(U) Gauss linear;
+    default Gauss linear;
 }
 
 divSchemes
 {
-    
+    default         Gauss linearUpwind grad(U);
     div(phi,U)       Gauss linear;
-    div(phi,k)       Gauss linearUpwind grad(U);
-    div(phi,epsilon) Gauss linearUpwind grad(U);
+    //div(phi,k)       Gauss linearUpwind grad(U);
+    //div(phi,epsilon) Gauss linearUpwind grad(U);
+    div(phi,k)       Gauss linear;
+    div(phi,epsilon) Gauss linear;
     div(phi,omega)   Gauss linearUpwind grad(U);
     div((nuEff*dev2(T(grad(U))))) Gauss linear;
     div(phi,time)   Gauss linearUpwind grad(U);
@@ -1315,10 +1319,12 @@ gradSchemes
 
 divSchemes
 {
-    
+    default          Gauss linearUpwind;
     div(phi,U)       Gauss linearUpwind grad(U);
-    div(phi,k)       Gauss linearUpwind;
-    div(phi,epsilon) Gauss linearUpwind;
+    //div(phi,k)       Gauss linearUpwind;
+    //div(phi,epsilon) Gauss linearUpwind;
+    div(phi,k)       Gauss linear;
+    div(phi,epsilon) Gauss linear;
     div(phi,omega)   Gauss linearUpwind;
     div((nuEff*dev2(T(grad(U))))) Gauss linear;
     div(phi,time)   Gauss linearUpwind grad(U);
@@ -1393,8 +1399,10 @@ divSchemes
 {
     
     div(phi,U)       Gauss linearUpwind grad(U);
-    div(phi,k)       Gauss linearUpwind;
-    div(phi,epsilon) Gauss linearUpwind;
+    //div(phi,k)       Gauss linearUpwind;
+    //div(phi,epsilon) Gauss linearUpwind;
+    div(phi,k)       Gauss linear;
+    div(phi,epsilon) Gauss linear;
     div(phi,omega)   Gauss linearUpwind;
     div((nuEff*dev2(T(grad(U))))) Gauss linear;
     div(phi,time)   Gauss linearUpwind grad(U);
@@ -1463,10 +1471,12 @@ gradSchemes
 
 divSchemes
 {
-    
+    default          Gauss linearUpwind;
     div(phi,U)       Gauss linearUpwind grad(U);
-    div(phi,k)       Gauss linearUpwind;
-    div(phi,epsilon) Gauss linearUpwind;
+    //div(phi,k)       Gauss linearUpwind;
+    //div(phi,epsilon) Gauss linearUpwind;
+    div(phi,k)       Gauss linear;
+    div(phi,epsilon) Gauss linear;
     div(phi,omega)   Gauss linearUpwind;
     div((nuEff*dev2(T(grad(U))))) Gauss linear;
     div(phi,time)   Gauss linearUpwind grad(U);
