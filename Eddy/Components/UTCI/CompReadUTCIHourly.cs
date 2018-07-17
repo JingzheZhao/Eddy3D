@@ -95,9 +95,13 @@ namespace Eddy
             DA.GetData(1, ref hour);
 
 
+            if (hour > 8759)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please connect a number slider that represent 8760 hours of the year as a maximum value."); return;
+            }
 
 
-       
+
 
 
             var allLines = File.ReadAllLines(DOM.baseWorkingDirectory + @"\UTCI.csv");
@@ -107,7 +111,7 @@ namespace Eddy
 
 
             double[] valueHours = new double[numberOfLines];
-            for (int i = 0; i < numberOfLines && hour < 8761; i++)
+            for (int i = 0; i < numberOfLines && hour < 8760; i++)
             {
                 valueHours[i] = double.Parse(allLines[i].Split(',')[hour]);
             }
