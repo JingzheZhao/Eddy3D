@@ -38,7 +38,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public CompLoadUTCI()
-          : base("Load UTCI", "Load UTCI", "Misc", "Eddy", "Misc")
+          : base("Load UTCI", "Load UTCI", "Misc", "Eddy", "UTCI")
         {
         }
 
