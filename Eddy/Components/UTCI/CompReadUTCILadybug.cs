@@ -139,6 +139,7 @@ namespace Eddy
 
                         for (int i = 0; i < numberOfLines; i++)
                         {
+                            // TODO: move this out of loop later
                             valueHour.Add(double.Parse(allLines[i].Split(',')[h]), new Grasshopper.Kernel.Data.GH_Path(i));
                         }
 
