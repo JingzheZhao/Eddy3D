@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 using Grasshopper;
 using EddyLib;
 using Eddy.Properties;
+using System.Threading.Tasks;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -102,6 +103,8 @@ namespace Eddy
             { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid analysis periode object."); return; }
 
 
+           
+            
 
 
             var allLines = File.ReadAllLines(DOM.baseWorkingDirectory + @"\UTCI.csv");
@@ -118,8 +121,31 @@ namespace Eddy
             var hour_end = int.Parse(ladybugAnalysisPeriod[1].Split(',')[2].Split(')')[0]);
 
 
+            var hours = hour_end - hour_start;
+
+            double[,] data = new double[numberOfLines, hours];
+
+
+
+
+            System.Threading.Tasks.Parallel.For(0, numberOfLines,
+              i =>
+              {
+
+                  for (int h = 0; h < hours; h++)
+                  {
+                      data[i, h] = double.Parse(allLines[i].Split(',')[h]);
+                  }
+
+
+              });
+
+
+
+
             //double[] valueHour = new double[numberOfLines];
             var valueHour = new DataTree<double>();
+
 
 
             for (int m = month_start; m < month_end; m++)
@@ -140,7 +166,7 @@ namespace Eddy
                         for (int i = 0; i < numberOfLines; i++)
                         {
                             // TODO: move this out of loop later
-                            valueHour.Add(double.Parse(allLines[i].Split(',')[h]), new Grasshopper.Kernel.Data.GH_Path(i));
+                            valueHour.Add(data[i, h], new Grasshopper.Kernel.Data.GH_Path(h));
                         }
 
                     }
@@ -151,6 +177,7 @@ namespace Eddy
 
             var uncertaintyLine = File.ReadLines(DOM.baseWorkingDirectory + @"\UTCI.uncertainty").Last();
             var uncertaintyNUM = double.Parse(uncertaintyLine.Split('%')[0].Split(':')[1].Split('r')[1]);
+
 
 
 
