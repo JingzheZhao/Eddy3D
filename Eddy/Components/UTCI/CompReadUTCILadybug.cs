@@ -50,6 +50,9 @@ namespace Eddy
 
             pManager.AddTextParameter("analysisPeriod", "analysisPeriod", "analysisPeriod", GH_ParamAccess.list);
 
+            pManager.AddBooleanParameter("Run", "Run", "Run the component", GH_ParamAccess.item, false);
+
+
 
 
         }
@@ -90,13 +93,14 @@ namespace Eddy
             if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
 
-
+            bool Run = false;
 
 
 
             List<string> ladybugAnalysisPeriod = new List<string>();
 
             DA.GetDataList(1, ladybugAnalysisPeriod);
+            DA.GetData(2, ref Run);
 
 
             if (ladybugAnalysisPeriod == null)
@@ -126,63 +130,67 @@ namespace Eddy
             double[,] data = new double[numberOfLines, hours];
 
 
-
-
-            System.Threading.Tasks.Parallel.For(0, numberOfLines,
-              i =>
-              {
-
-                  for (int h = 0; h < hours; h++)
-                  {
-                      data[i, h] = double.Parse(allLines[i].Split(',')[h]);
-                  }
-
-
-              });
-
-
-
-
-            //double[] valueHour = new double[numberOfLines];
-            var valueHour = new DataTree<double>();
-
-
-
-            for (int m = month_start; m < month_end; m++)
+            if (Run)
             {
-                for (int d = day_start; d < day_end; d++)
+
+
+                System.Threading.Tasks.Parallel.For(0, numberOfLines,
+                  i =>
+                  {
+
+                      for (int h = 0; h < hours; h++)
+                      {
+                          data[i, h] = double.Parse(allLines[i].Split(',')[h]);
+                      }
+
+
+                  });
+
+
+
+
+                //double[] valueHour = new double[numberOfLines];
+                var valueHour = new DataTree<double>();
+
+
+
+                for (int m = month_start; m < month_end; m++)
                 {
-                    for (int h = hour_start; h < hour_end; h++)
+                    for (int d = day_start; d < day_end; d++)
                     {
-
-                        // Check if already gone through month
-                        if (m == 2 && d > 29) { continue; }
-
-                        else if (m == 2 && d > 28) { continue; }
-
-                        else if ((m == 4 || m == 6 || m == 9 || m == 10) && d > 30) { continue; }
-                        //
-
-                        for (int i = 0; i < numberOfLines; i++)
+                        for (int h = hour_start; h < hour_end; h++)
                         {
-                            // TODO: move this out of loop later
-                            valueHour.Add(data[i, h], new Grasshopper.Kernel.Data.GH_Path(h));
-                        }
 
+                            // Check if already gone through month
+                            if (m == 2 && d > 29) { continue; }
+
+                            else if (m == 2 && d > 28) { continue; }
+
+                            else if ((m == 4 || m == 6 || m == 9 || m == 10) && d > 30) { continue; }
+                            //
+
+                            for (int i = 0; i < numberOfLines; i++)
+                            {
+                                // TODO: move this out of loop later
+                                valueHour.Add(data[i, h], new Grasshopper.Kernel.Data.GH_Path(h));
+                            }
+
+                        }
                     }
                 }
+
+                // Parse UTCI uncertaintly from file
+
+                var uncertaintyLine = File.ReadLines(DOM.baseWorkingDirectory + @"\UTCI.uncertainty").Last();
+                var uncertaintyNUM = double.Parse(uncertaintyLine.Split('%')[0].Split(':')[1].Split('r')[1]);
+
+
+
+
+                DA.SetDataTree(0, valueHour);
+                DA.SetData(1, uncertaintyNUM);
             }
 
-            // Parse UTCI uncertaintly from file
-
-            var uncertaintyLine = File.ReadLines(DOM.baseWorkingDirectory + @"\UTCI.uncertainty").Last();
-            var uncertaintyNUM = double.Parse(uncertaintyLine.Split('%')[0].Split(':')[1].Split('r')[1]);
-
-
-
-
-            DA.SetDataTree(0, valueHour);
-            DA.SetData(1, uncertaintyNUM);
 
         }
 

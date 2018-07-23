@@ -54,7 +54,7 @@ namespace Eddy
             //pManager.AddGenericParameter("RAM", "RAM", "RAM", GH_ParamAccess.item);
             pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
 
-            pManager.AddBooleanParameter("Run", "Run", "Run the blockMesh component", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Clean", "Clean", "Clean", GH_ParamAccess.item, false);
 
         }
 

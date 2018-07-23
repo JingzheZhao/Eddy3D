@@ -38,7 +38,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public CompLoadUTCI()
-          : base("Load UTCI", "Load UTCI", "Misc", "Eddy", "UTCI")
+          : base("LoadUTCIProbewise", "LoadUTCIProbewise", "Misc", "Eddy", "UTCI")
         {
         }
 
@@ -55,9 +55,11 @@ namespace Eddy
             pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 0);
             Param_Integer param = pManager[1] as Param_Integer;
             param.AddNamedValue("UTCI", 0);
-          //  param.AddNamedValue("U_Probes", 1);
+            //  param.AddNamedValue("U_Probes", 1);
 
             //pManager.AddBooleanParameter("Run", "Run", "Clean the directory", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Run", "Run", "Run the component", GH_ParamAccess.item, false);
+
 
 
         }
@@ -82,28 +84,36 @@ namespace Eddy
             string workDir = "";
             DA.GetData(0, ref workDir);
 
-            if (!Directory.Exists(workDir)) return;
 
+            bool Run = false;
 
-            string file = workDir + @"\UTCI.csv";
-
-            if (!File.Exists(file)) return;
-
-
-            var data = RadianceFiles.readCSVFile(file);
-
-            var dataTree = new DataTree<double>();
-
-            for (int i = 0; i < data.GetUpperBound(0); i++)
+            if (Run)
             {
-             
-                for (int j = 0; j < data.GetUpperBound(1); j++)
+                if (!Directory.Exists(workDir)) return;
+
+
+                string file = workDir + @"\UTCI.csv";
+
+                if (!File.Exists(file)) return;
+
+
+                var data = RadianceFiles.readCSVFile(file);
+
+                var dataTree = new DataTree<double>();
+
+                for (int i = 0; i < data.GetUpperBound(0); i++)
                 {
-                    dataTree.Add(data[i, j], new Grasshopper.Kernel.Data.GH_Path(i));
+
+                    for (int j = 0; j < data.GetUpperBound(1); j++)
+                    {
+                        dataTree.Add(data[i, j], new Grasshopper.Kernel.Data.GH_Path(i));
+                    }
                 }
+
+                DA.SetDataTree(0, dataTree);
             }
 
-            DA.SetDataTree(0, dataTree);
+           
         }
 
 
@@ -116,7 +126,7 @@ namespace Eddy
             get
             {
                 // You can add image files to your project resources and access them like this:
-                return Resources.Eddy_probes;
+                return Resources.Eddy_parseU;
             }
         }
 

@@ -48,8 +48,8 @@ namespace Eddy
             pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
             
             pManager.AddIntegerParameter("Hour", "Hour", "Hour", GH_ParamAccess.item, 0);
-            
 
+            pManager.AddBooleanParameter("Run", "Run", "Run the component", GH_ParamAccess.item, false);
 
         }
 
@@ -64,6 +64,8 @@ namespace Eddy
             //pManager.AddGenericParameter("windSpeed", "windSpeed", "windSpeed", GH_ParamAccess.list);
             //pManager.AddGenericParameter("windDir", "windDir", "windDir", GH_ParamAccess.list);
             //pManager.AddGenericParameter("windRed", "windRed", "windRed", GH_ParamAccess.list);
+        
+
         }
 
 
@@ -89,46 +91,53 @@ namespace Eddy
             }
             if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
+            bool Run = false;
 
-            int hour = 0;
-
-            DA.GetData(1, ref hour);
-
-
-            if (hour > 8759)
+            if (Run)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please connect a number slider that represent 8760 hours of the year as a maximum value."); return;
+
+                int hour = 0;
+
+                DA.GetData(1, ref hour);
+
+
+                if (hour > 8759)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please connect a number slider that represent 8760 hours of the year as a maximum value."); return;
+                }
+
+
+
+
+
+                var allLines = File.ReadAllLines(DOM.baseWorkingDirectory + @"\UTCI.csv");
+                var numberOfLines = allLines.Count();
+
+
+
+
+                double[] valueHours = new double[numberOfLines];
+                for (int i = 0; i < numberOfLines && hour < 8760; i++)
+                {
+                    valueHours[i] = double.Parse(allLines[i].Split(',')[hour]);
+                }
+
+
+
+                // Parse UTCI uncertaintly from file
+
+                var uncertaintyLine = File.ReadLines(DOM.baseWorkingDirectory + @"\UTCI.uncertainty").Last();
+                var uncertaintyNUM = double.Parse(uncertaintyLine.Split('%')[0].Split(':')[1].Split('r')[1]);
+
+
+
+
+
+                DA.SetDataList(0, valueHours);
+                DA.SetData(1, uncertaintyNUM);
             }
 
 
-
-
-
-            var allLines = File.ReadAllLines(DOM.baseWorkingDirectory + @"\UTCI.csv");
-            var numberOfLines = allLines.Count();
-
-            
-
-
-            double[] valueHours = new double[numberOfLines];
-            for (int i = 0; i < numberOfLines && hour < 8760; i++)
-            {
-                valueHours[i] = double.Parse(allLines[i].Split(',')[hour]);
-            }
-
-
-
-            // Parse UTCI uncertaintly from file
-
-            var uncertaintyLine = File.ReadLines(DOM.baseWorkingDirectory + @"\UTCI.uncertainty").Last();
-            var uncertaintyNUM = double.Parse(uncertaintyLine.Split('%')[0].Split(':')[1].Split('r')[1]);
-
-
-
-
-
-            DA.SetDataList(0, valueHours);
-            DA.SetData(1, uncertaintyNUM);
 
         }
 

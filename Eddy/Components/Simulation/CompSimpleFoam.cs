@@ -63,7 +63,7 @@ namespace Eddy
             //pManager.AddGenericParameter("Type", "Bcond", "", GH_ParamAccess.item);
 
 
-            pManager.AddBooleanParameter("Run", "Run", "Run the solver.", GH_ParamAccess.item, false);
+          //  pManager.AddBooleanParameter("Clean", "Clean", "Run the solver.", GH_ParamAccess.item, false);
 
         }
 
@@ -129,7 +129,7 @@ namespace Eddy
             DA.GetData(4, ref turb);
             DA.GetData(5, ref mode);
 
-            DA.GetData(6, ref Run);
+           // DA.GetData(6, ref Run);
 
             //Make sure that all fields are always written
             if (iter < writeInterval)
