@@ -649,7 +649,9 @@ FoamFile
             return sb.ToString();
 
         }
-        public static string SampleProbes(List<Point3d> listOfPoints, string probeName, int mode)
+
+
+        public static string SampleProbes(List<Point3d> listOfPoints, string probeName, string OFField)
         {
             var sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -671,17 +673,7 @@ FoamFile
 
                 setFormat csv;
 
-                fields (");
-            if (mode == 0)
-            {
-                sb.Append("total(p)_coeff");
-            }
-            else if (mode == 1)
-            {
-                sb.Append("U");
-            }
-
-            sb.Append(@");
+                fields ("+ OFField + @");
 
                 probeLocations
                   (");
@@ -2080,15 +2072,15 @@ RAS
         public static string Run(OFBaseDomain DOM)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine(@"call " + DOM.baseWorkingDirectory + "run_mesh.bat");
+            sb.AppendLine(@"call """ + DOM.baseWorkingDirectory + @"run_mesh.bat""");
             foreach (int i in DOM.BCInflow.windDir)
             {
-                //sb.AppendLine("start " + DOM.baseWorkingDirectory +i + "_run_sim.bat");
-                sb.AppendLine("call " + DOM.baseWorkingDirectory + i + "_run_sim.bat");
+             
+                sb.AppendLine(@"call """ + DOM.baseWorkingDirectory + i + @"_run_sim.bat""");
             }
-            sb.AppendLine("call " + DOM.baseWorkingDirectory + "run_ray.bat");
-            sb.AppendLine("call " + DOM.baseWorkingDirectory + "run_probes.bat");
-            sb.AppendLine("call " + DOM.baseWorkingDirectory + "run_utci.bat");
+            sb.AppendLine(@"call """ + DOM.baseWorkingDirectory + @"run_ray.bat""");
+            sb.AppendLine(@"call """ + DOM.baseWorkingDirectory + @"run_probes.bat""");
+            sb.AppendLine(@"call """ + DOM.baseWorkingDirectory + @"run_utci.bat""");
 #if DEBUG
 
             sb.AppendLine("PAUSE");

@@ -31,8 +31,8 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public ResidualWriter()
-        : base("residualWriter", "residualWriter",
-        "Write stuff",
+        : base("WriteResiduals", "WriteResiduals",
+        "Write",
         "Eddy", "Residuals")
         {
         }

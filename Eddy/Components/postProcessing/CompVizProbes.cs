@@ -58,6 +58,7 @@ namespace Eddy
             Param_Integer param = pManager[2] as Param_Integer;
             param.AddNamedValue("cp_Probes", 0);
             param.AddNamedValue("U_Probes", 1);
+           
 
             pManager.AddBooleanParameter("Run", "Run", "Clean the directory", GH_ParamAccess.item, false);
 
@@ -170,19 +171,11 @@ namespace Eddy
             }
 
 
-
-            
-
-
             if (run == true && numberOfProbes > 0)
             {
 
                 cpTree = new DataTree<double>();
                 uTree = new DataTree<Vector3d>();
-
-
-
-
 
 
                 if (mode == 0) // cp
@@ -197,14 +190,12 @@ namespace Eddy
                     {
 
                         File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + "controlDict", StringTemplates.ControlDict(DOM, null, i));
-                        File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.SampleProbes(listOfPoints, pointName, mode));
+                        File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.SampleProbes(listOfPoints, pointName, OFfield));
 
                         command.Append(@"postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + pointName + @" -latestTime | tee  " + DOM.BCInflow.windDir[i] + @"/log_probes;");
 
 
                     }
-
-
 
                     ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.baseWorkingDirectory);
                     Process p = new Process();
@@ -226,7 +217,6 @@ namespace Eddy
                 if (mode == 1) // U
                 {
 
-
                     StringBuilder command = new StringBuilder();
 
                     string pointName = "U_Probes";
@@ -235,17 +225,14 @@ namespace Eddy
                     for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                     {
 
-
                         // Write the dicts
 
-                        File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.SampleProbes(listOfPoints, pointName, mode));
+                        File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.SampleProbes(listOfPoints, pointName, OFfield));
 
                         command.Append(@"postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + pointName + @" -latestTime | tee  " + DOM.BCInflow.windDir[i] + @"/log_probes;");
 
 
                     }
-
-
 
 
                     ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.baseWorkingDirectory);
@@ -254,25 +241,20 @@ namespace Eddy
                     p.Start();
                     p.WaitForExit();
 
-                    Thread.Sleep(2 * numberOfProbes);
+                    //Thread.Sleep(2 * numberOfProbes);
 
                     for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                     {
-
                         // Parse values
 
                         var U = new ParsingProbes(listOfPoints, pointName, DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i], OFfield);
-
 
                         // Create datatree
 
                         uTree.AddRange(U.uValues, new Grasshopper.Kernel.Data.GH_Path(i));
 
                     }
-
-
-
-                }
+                }                
             }
 
             if (mode == 0)

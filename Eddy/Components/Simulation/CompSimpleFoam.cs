@@ -85,7 +85,7 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             //string filepath = @"C:\OF\";
-            bool Run = false;
+            
 
 
 

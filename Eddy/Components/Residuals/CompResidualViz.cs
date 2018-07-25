@@ -22,7 +22,7 @@ using System.Text.RegularExpressions;
 
 namespace Eddy
 {
-    public class ResidualViZ : GH_Component
+    public class VisResiduals : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public
@@ -31,9 +31,9 @@ namespace Eddy
         /// Subcategory the panel. If you use non-existing tab or panel names,
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public ResidualViZ()
-        : base("residualViz", "residualViz",
-        "Viz stuff",
+        public VisResiduals()
+        : base("VisResiduals", "VisResiduals",
+        "Vis",
         "Eddy", "Residuals")
         {
         }

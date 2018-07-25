@@ -308,7 +308,7 @@ namespace EddyLib
         {
             bool licence = false;
             //DateTime dateNow = Utilities.GetNistTime();
-            DateTime dateCompile = new DateTime(2018, 6, 10, 0, 00, 00).ToUniversalTime();
+            DateTime dateCompile = new DateTime(2018, 7, 25, 0, 00, 00).ToUniversalTime();
             TimeSpan licenceDuration = new TimeSpan(60, 0, 0, 0);
             DateTime expiresAt = dateCompile.Add(licenceDuration);
 

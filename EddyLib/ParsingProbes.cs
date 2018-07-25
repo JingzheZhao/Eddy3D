@@ -15,7 +15,7 @@ namespace EddyLib
     {
 
         public double[] cpValues;
-        public Vector3d[] uValues;
+        public Vector3d[] uValues;        
         public string valueString;
 
 
@@ -62,6 +62,7 @@ namespace EddyLib
                 }
                 File.WriteAllText(PostProcessingDirectory + pointName + ".csv", sb.ToString());
             }
+            
 
 
         }

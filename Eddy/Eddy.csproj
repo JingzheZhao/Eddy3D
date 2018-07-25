@@ -72,8 +72,8 @@
     <Compile Include="Components\UTCI\CompReadUTCILadybug.cs" />
     <Compile Include="Components\UTCI\CompReadUTCIHourly.cs" />
     <Compile Include="Components\postProcessing\CompWriteProbes.cs" />
-    <Compile Include="Components\postProcessing\CompPostProcessingProbes.cs" />
-    <Compile Include="Components\postProcessing\CompPostProcessingPatches.cs" />
+    <Compile Include="Components\postProcessing\CompVizProbes.cs" />
+    <Compile Include="Components\postProcessing\CompVizPatches.cs" />
     <Compile Include="Components\Residuals\CompResidualWriter.cs" />
     <Compile Include="Components\preProcessing\CompCluster.cs" />
     <Compile Include="Components\Residuals\CompResidualViz.cs" />
