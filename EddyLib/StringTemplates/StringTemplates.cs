@@ -1710,7 +1710,7 @@ SIMPLE
 
 potentialFlow
 {
-    nNonOrthogonalCorrectors 15;
+    nNonOrthogonalCorrectors 20;
 }
 ");
             if (mode == 0)
@@ -2179,32 +2179,7 @@ RAS
         }
 
 
-        public static string PlotResidualsPDF()
-        {
-            return @"set key autotitle columnhead
-      set logscale y
-      set ylabel 'Residual'
-      set xlabel 'Iteration'
-      set format y '10^{%T}'
-      set datafile separator ','
-      plot 'residuals.csv' u($0):2 with lines, 'residuals.csv' u($0):3 with lines, 'residuals.csv' u($0):4 with lines, 'residuals.csv' u($0):5 with lines, 'residuals.csv' u($0):6 with lines, 'residuals.csv' u($0):7 with lines
-      set terminal pdf
-      set output 'residuals.pdf'
-      replot";
-        }
-        public static string PlotResidualsLive()
-        {
-            return @"set key autotitle columnhead
-      set logscale y
-      set ylabel 'Residual'
-      set xlabel 'Iteration'
-      set format y '10^{%T}'
-      set datafile separator ','
-      plot 'residuals.csv' u($0):2 with lines, 'residuals.csv' u($0):3 with lines, 'residuals.csv' u($0):4 with lines, 'residuals.csv' u($0):5 with lines, 'residuals.csv' u($0):6 with lines, 'residuals.csv' u($0):7 with lines
-      replot
-      pause 5
-      reread";
-        }
+    
         public static string Residuals()
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
