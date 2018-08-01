@@ -21,12 +21,11 @@ using System.Threading;
 
 namespace Eddy
 {
-    public class CompVisProbes : GH_Component
+    public class CompVisProbesCustom : GH_Component
     {
+        DataTree<double> treeDouble = new DataTree<double>();
+        DataTree<Vector3d> treeVector = new DataTree<Vector3d>();
 
-
-        DataTree<double> cpTree = new DataTree<double>();
-        DataTree<Vector3d> uTree = new DataTree<Vector3d>();
 
 
 
@@ -38,8 +37,8 @@ namespace Eddy
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public CompVisProbes()
-          : base("VisProbes", "VisProbes", "PostProcessing", "Eddy", "PostProcessing")
+        public CompVisProbesCustom()
+          : base("VisProbesCustom", "VisProbesCustom", "PostProcessing", "Eddy", "PostProcessing")
         {
         }
 
@@ -54,10 +53,11 @@ namespace Eddy
             pManager.AddPointParameter("points", "points", "points", GH_ParamAccess.list);
             //pManager.AddTextParameter("pointName", "pointName", "pointName", GH_ParamAccess.item);
 
-            pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 1);
-            Param_Integer param = pManager[2] as Param_Integer;
-            param.AddNamedValue("cp_Probes", 0);
-            param.AddNamedValue("U_Probes", 1);
+            pManager.AddTextParameter("Field", "Field", "Field", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("FieldType", "FieldType", "FieldType", GH_ParamAccess.item);
+            Param_Integer param = pManager[3] as Param_Integer;
+            param.AddNamedValue("number", 0);
+            param.AddNamedValue("vector", 1);
 
 
             pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item, false);
@@ -100,16 +100,17 @@ namespace Eddy
 
 
 
-            int mode = 0;
+            int fieldtype = 0;
             List<Point3d> listOfPoints = new List<Point3d>();
 
             bool run = false;
+            String probePattern = "";
 
             DA.GetDataList(1, listOfPoints);
             //DA.GetData(2, ref pointName);
-            DA.GetData(2, ref mode);
-            DA.GetData(3, ref run);
-
+            DA.GetData(2, ref probePattern);
+            DA.GetData(3, ref fieldtype);
+            DA.GetData(4, ref run);
 
 
 
@@ -171,32 +172,36 @@ namespace Eddy
             }
 
 
+
+
+
+
             if (run == true && numberOfProbes > 0)
             {
 
 
                 try
                 {
-                    //cpTree = new DataTree<double>();
-                    //uTree = new DataTree<Vector3d>();
+
+                    //treeDouble = new DataTree<double>();
+                    //treeVector = new DataTree<Vector3d>();
 
 
-                    if (mode == 0) // cp
+                    if (fieldtype == 0) // double
                     {
 
                         StringBuilder command = new StringBuilder();
 
-                        string pointName = "cp_Probes";
-                        string OFfield = "total(p)_coeff";
-                        int fieldtype = 0; // double
+                        //string pointName = "cp_Probes";                        
+                        string ofFieldClean = Regex.Replace(probePattern, @"[^a-zA-Z]", "");
 
                         for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                         {
 
                             File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + "controlDict", StringTemplates.ControlDict(DOM, null, i));
-                            File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.SampleProbes(listOfPoints, pointName, OFfield));
+                            File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + ofFieldClean, StringTemplates.SampleProbes(listOfPoints, probePattern, ofFieldClean));
 
-                            command.Append(@"postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + pointName + @" -latestTime | tee  " + DOM.BCInflow.windDir[i] + @"/log_probes;");
+                            command.Append(@"postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + ofFieldClean + @" -latestTime | tee  " + DOM.BCInflow.windDir[i] + @"/log_probes;");
 
 
                         }
@@ -211,30 +216,29 @@ namespace Eddy
 
                         for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                         {
-                            ParsingProbes cp = new ParsingProbes(listOfPoints, pointName, DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i], OFfield, fieldtype);
-                            cpTree.AddRange(cp.numberValues, new Grasshopper.Kernel.Data.GH_Path(i));
+                            ParsingProbes Numbers = new ParsingProbes(listOfPoints, probePattern, DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i], ofFieldClean, fieldtype);
+                            treeDouble.AddRange(Numbers.numberValues, new Grasshopper.Kernel.Data.GH_Path(i));
                         }
 
 
                     }
 
-                    if (mode == 1) // U
+                    if (fieldtype == 1) //vector
                     {
 
                         StringBuilder command = new StringBuilder();
 
-                        string pointName = "U_Probes";
-                        string OFfield = "U";
-                        int fieldtype = 1; // vectors
+                        //string pointName = "U_Probes";
+                        string OFfield = Regex.Replace(probePattern, @"[^a-zA-Z]", "");
 
                         for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                         {
 
                             // Write the dicts
 
-                            File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.SampleProbes(listOfPoints, pointName, OFfield));
+                            File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + OFfield, StringTemplates.SampleProbes(listOfPoints, probePattern, OFfield));
 
-                            command.Append(@"postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + pointName + @" -latestTime | tee  " + DOM.BCInflow.windDir[i] + @"/log_probes;");
+                            command.Append(@"postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + OFfield + @" -latestTime | tee  " + DOM.BCInflow.windDir[i] + @"/log_probes;");
 
 
                         }
@@ -252,14 +256,15 @@ namespace Eddy
                         {
                             // Parse values
 
-                            var U = new ParsingProbes(listOfPoints, pointName, DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i], OFfield, fieldtype);
+                            var Vectors = new ParsingProbes(listOfPoints, probePattern, DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i], OFfield, fieldtype);
 
                             // Create datatree
 
-                            uTree.AddRange(U.vectorValues, new Grasshopper.Kernel.Data.GH_Path(i));
+                            treeVector.AddRange(Vectors.vectorValues, new Grasshopper.Kernel.Data.GH_Path(i));
 
                         }
                     }
+
                 }
                 catch (Exception)
                 {
@@ -270,14 +275,15 @@ namespace Eddy
 
             }
 
-            if (mode == 0)
+
+            if (fieldtype == 0)
             {
-                DA.SetDataTree(1, cpTree);
+                DA.SetDataTree(1, treeDouble);
                 DA.SetDataList(0, listOfPoints);
             }
-            else if (mode == 1)
+            else if (fieldtype == 1)
             {
-                DA.SetDataTree(1, uTree);
+                DA.SetDataTree(1, treeVector);
                 DA.SetDataList(0, listOfPoints);
             }
 
@@ -305,7 +311,7 @@ namespace Eddy
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("{D39A60E1-7086-4C6F-BFF1-492D84910227}"); }
+            get { return new Guid("{59D9EC97-C131-4D2B-A78D-1764CC6BE849}"); }
         }
     }
 }
