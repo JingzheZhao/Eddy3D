@@ -37,14 +37,14 @@ namespace EddyLib
             {
                 ParsingVectors(listOfPoints, pointName, this.caseDirectory, OFfield);
             }
-            WriteToCSV();
+            WriteToCSV(fieldtype);
         }
 
 
-        private void WriteToCSV()
+        private void WriteToCSV(int fieldtype)
         {
             string PostProcessingDirectory = caseDirectory + @"\postProcessing\";
-            if (pointName == "cp_Probes")
+            if (fieldtype == 0)
             {
                 StringBuilder sb = new StringBuilder();
                 foreach (double i in this.numberValues)
@@ -53,7 +53,7 @@ namespace EddyLib
                 }
                 File.WriteAllText(PostProcessingDirectory + pointName + ".csv", sb.ToString());
             }
-            if (pointName == "U_Probes")
+            if (fieldtype == 1)
             {
                 StringBuilder sb = new StringBuilder();
                 foreach (Vector3d i in this.vectorValues)

@@ -177,8 +177,8 @@ namespace Eddy
 
                 try
                 {
-                    //cpTree = new DataTree<double>();
-                    //uTree = new DataTree<Vector3d>();
+                    cpTree = new DataTree<double>();
+                    uTree = new DataTree<Vector3d>();
 
 
                     if (mode == 0) // cp

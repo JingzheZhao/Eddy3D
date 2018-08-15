@@ -164,7 +164,7 @@ namespace EddyLib
             // point inside cdf domain - needed for meshing and finding the void space for fluid
             locationInMesh = center + (Vector3d.ZAxis * (height - 0.1));
             // move into periphery
-            locationInMesh += radius * 0.9 * Vector3d.XAxis;
+            locationInMesh += radius * 0.6 * Vector3d.XAxis;
 
 
 

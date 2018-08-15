@@ -183,8 +183,8 @@ namespace Eddy
                 try
                 {
 
-                    //treeDouble = new DataTree<double>();
-                    //treeVector = new DataTree<Vector3d>();
+                    treeDouble = new DataTree<double>();
+                    treeVector = new DataTree<Vector3d>();
 
 
                     if (fieldtype == 0) // double

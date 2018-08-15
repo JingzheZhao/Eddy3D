@@ -261,7 +261,8 @@ namespace CallProbes
 
                                 // Parse values
                                 //Thread.Sleep(2 * probes.GetLength(0));
-                                var U = new ParsingProbes(pointList, pointName, options.WorkingDir + "\\" + windDirs[i], OFfield);
+                                int fieldtype = 1; //vectors
+                                var U = new ParsingProbes(pointList, pointName, options.WorkingDir + "\\" + windDirs[i], OFfield, fieldtype);
 
                                 // Create datatree
 
