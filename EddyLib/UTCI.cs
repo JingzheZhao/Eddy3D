@@ -607,7 +607,7 @@ namespace EddyLib
             StrngHeat = Math.Round((double)sH / Vals.Count, 3);
 
         }
-        public static  UTCI_ConditionOfPerson(List<double> UTCI, ref object conditionOfPerson)
+        public static void UTCI_ConditionOfPerson(List<double> UTCI, ref object conditionOfPerson)
         {
             List<double> rtl = new List<double>();
             double condition = 0;
