@@ -166,7 +166,7 @@ namespace CallOC
 
                         int sensorPointCount = DiffRad[0].Length;
                         double[,] Utci = new double[8760, sensorPointCount];
-                        double[,] conditionOfPerson = new double[8760, sensorPointCount];
+                        //double[,] conditionOfPerson = new double[8760, sensorPointCount];
 
 
 
@@ -378,16 +378,16 @@ namespace CallOC
 
                                   //double cOfPerson = 0;
 
-                                  //if (utci_temp < -40) cOfPerson = -5;
-                                  //else if ((-40 <= utci_temp) && (utci_temp < -27)) cOfPerson = -4;
-                                  //else if ((-27 <= utci_temp) && (utci_temp < -13)) cOfPerson = -3;
-                                  //else if ((-13 <= utci_temp) && (utci_temp < 0)) cOfPerson = -2;
-                                  //else if ((0 <= utci_temp) && (utci_temp < 9)) cOfPerson = -1;
-                                  //else if ((9 <= utci_temp) && (utci_temp < 26)) cOfPerson = 0;
-                                  //else if ((26 <= utci_temp) && (utci_temp < 28)) cOfPerson = 1;
-                                  //else if ((28 <= utci_temp) && (utci_temp < 32)) cOfPerson = 2;
-                                  //else if ((32 <= utci_temp) && (utci_temp < 38)) cOfPerson = 3;
-                                  //else if ((38 <= utci_temp) && (utci_temp < 46)) cOfPerson = 4;
+                                  //if (Utci[i, j] < -40) cOfPerson = -5;
+                                  //else if ((-40 <= Utci[i, j]) && (Utci[i, j] < -27)) cOfPerson = -4;
+                                  //else if ((-27 <= Utci[i, j]) && (Utci[i, j] < -13)) cOfPerson = -3;
+                                  //else if ((-13 <= Utci[i, j]) && (Utci[i, j] < 0)) cOfPerson = -2;
+                                  //else if ((0 <= Utci[i, j]) && (Utci[i, j] < 9)) cOfPerson = -1;
+                                  //else if ((9 <= Utci[i, j]) && (Utci[i, j] < 26)) cOfPerson = 0;
+                                  //else if ((26 <= Utci[i, j]) && (Utci[i, j] < 28)) cOfPerson = 1;
+                                  //else if ((28 <= Utci[i, j]) && (Utci[i, j] < 32)) cOfPerson = 2;
+                                  //else if ((32 <= Utci[i, j]) && (Utci[i, j] < 38)) cOfPerson = 3;
+                                  //else if ((38 <= Utci[i, j]) && (Utci[i, j] < 46)) cOfPerson = 4;
                                   //else cOfPerson = 5;
 
 

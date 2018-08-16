@@ -63,6 +63,7 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.tree);
+            //pManager.AddGenericParameter("AnnEx", "AnnEx", "Annual Exceedance in %", GH_ParamAccess.list);
             pManager.AddGenericParameter("U", "U", "Overall Uncertainty in %", GH_ParamAccess.item);
             //pManager.AddGenericParameter("windSpeed", "windSpeed", "windSpeed", GH_ParamAccess.list);
             //pManager.AddGenericParameter("windDir", "windDir", "windDir", GH_ParamAccess.list);
@@ -112,7 +113,7 @@ namespace Eddy
 
 
             var allLines = File.ReadAllLines(DOM.baseWorkingDirectory + @"\UTCI.csv");
-            var numberOfLines = allLines.Count();
+            var numberOfProbes = allLines.Count();
 
 
             // -1 because of python
@@ -127,20 +128,20 @@ namespace Eddy
 
             var hours = hour_end - hour_start;
 
-            double[,] data = new double[numberOfLines, hours];
+            double[,] HourlyUTCI = new double[numberOfProbes, hours];
 
 
             if (Run)
             {
 
 
-                System.Threading.Tasks.Parallel.For(0, numberOfLines,
+                System.Threading.Tasks.Parallel.For(0, numberOfProbes,
                   i =>
                   {
 
                       for (int h = 0; h < hours; h++)
                       {
-                          data[i, h] = double.Parse(allLines[i].Split(',')[h]);
+                          HourlyUTCI[i, h] = double.Parse(allLines[i].Split(',')[h]);
                       }
 
 
@@ -151,6 +152,9 @@ namespace Eddy
 
                 //double[] valueHour = new double[numberOfLines];
                 var valueHour = new DataTree<double>();
+               
+
+                // Fill datatrees
 
 
 
@@ -169,15 +173,32 @@ namespace Eddy
                             else if ((m == 4 || m == 6 || m == 9 || m == 10) && d > 30) { continue; }
                             //
 
-                            for (int i = 0; i < numberOfLines; i++)
+                            for (int i = 0; i < numberOfProbes; i++)
                             {
                                 // TODO: move this out of loop later
-                                valueHour.Add(data[i, h], new Grasshopper.Kernel.Data.GH_Path(h));
+                                valueHour.Add(HourlyUTCI[i, h], new Grasshopper.Kernel.Data.GH_Path(h));
+                             
+                        
+
                             }
 
                         }
                     }
                 }
+                
+                
+
+                //for (int i = 0; i < numberOfProbes; i++)
+                //{
+                //    for (int h = 0; h < 8759; h++)
+                //    {
+                        
+                        
+                //    }
+                    
+                //}
+
+
 
                 // Parse UTCI uncertaintly from file
 
@@ -188,7 +209,9 @@ namespace Eddy
 
 
                 DA.SetDataTree(0, valueHour);
+                //DA.SetDataList(1, AnnEx);
                 DA.SetData(1, uncertaintyNUM);
+
             }
 
 

@@ -133,6 +133,26 @@ namespace EddyLib
             return UAtProbingHeightFromEPW;
         }
 
+        public static double GetConditionOfPerson(double UTCI)
+        {
+                        
+            double cOfPerson = 0;            
+
+            if (UTCI < -40) cOfPerson = -5;
+            else if ((-40 <= UTCI) && (UTCI < -27)) cOfPerson = -4;
+            else if ((-27 <= UTCI) && (UTCI < -13)) cOfPerson = -3;
+            else if ((-13 <= UTCI) && (UTCI < 0)) cOfPerson = -2;
+            else if ((0 <= UTCI) && (UTCI < 9)) cOfPerson = -1;
+            else if ((9 <= UTCI) && (UTCI < 26)) cOfPerson = 0;
+            else if ((26 <= UTCI) && (UTCI < 28)) cOfPerson = 1;
+            else if ((28 <= UTCI) && (UTCI < 32)) cOfPerson = 2;
+            else if ((32 <= UTCI) && (UTCI < 38)) cOfPerson = 3;
+            else if ((38 <= UTCI) && (UTCI < 46)) cOfPerson = 4;
+            else cOfPerson = 5;
+                        
+            return cOfPerson;
+        }
+
 
 
         public static double GetWindReductionFactor(int probeIndex, double[][] ReductionArray, int numberOfProbes, List<double> windDirs, double windVelWeatherFile, double windDirWeatherFile)

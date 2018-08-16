@@ -12,6 +12,8 @@ using System.Text.RegularExpressions;
 using Grasshopper;
 using EddyLib;
 using Eddy.Properties;
+using System.Threading.Tasks;
+using Microsoft.VisualBasic.FileIO;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -46,7 +48,7 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
-            
+
             pManager.AddIntegerParameter("Hour", "Hour", "Hour", GH_ParamAccess.item, 0);
 
             pManager.AddBooleanParameter("Run", "Run", "Run the component", GH_ParamAccess.item, false);
@@ -59,12 +61,13 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
+            pManager.AddGenericParameter("AnnEx", "AnnEx", "Annual Exceedance in %", GH_ParamAccess.list);
             pManager.AddGenericParameter("U", "U", "Overall Uncertainty in %", GH_ParamAccess.item);
 
             //pManager.AddGenericParameter("windSpeed", "windSpeed", "windSpeed", GH_ParamAccess.list);
             //pManager.AddGenericParameter("windDir", "windDir", "windDir", GH_ParamAccess.list);
             //pManager.AddGenericParameter("windRed", "windRed", "windRed", GH_ParamAccess.list);
-        
+
 
         }
 
@@ -93,38 +96,113 @@ namespace Eddy
 
             bool Run = false;
 
+
+            int inputHour = 0;
+            DA.GetData(1, ref inputHour);
+            DA.GetData(2, ref Run);
+
+
             if (Run)
             {
 
-                int hour = 0;
 
-                DA.GetData(1, ref hour);
-
-
-                if (hour > 8759)
+                if (inputHour > 8759)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please connect a number slider that represent 8760 hours of the year as a maximum value."); return;
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please connect a number slider that represent 8760 hours of the year as a maximum range."); return;
+                }
+
+
+                var path = DOM.baseWorkingDirectory + @"\UTCI.csv";
+
+                var allLines = File.ReadAllLines(path);
+                var numberOfProbes = allLines.Count();
+
+
+                int annualHours = 8760;
+
+
+
+                double[] HourlyUTCI = new double[numberOfProbes];
+
+                for (int i = 0; i < numberOfProbes && inputHour < annualHours; i++)
+                {
+                    HourlyUTCI[i] = double.Parse(allLines[i].Split(',')[inputHour]);
+
                 }
 
 
 
+                double[,] FullUTCI = new double[numberOfProbes, annualHours];
+
+                //System.Threading.Tasks.Parallel.For(0, numberOfProbes,
+                //i =>
+                //{
+
+                //    for (int h = 0; h < annualHours - 1; h++)
+                //    {
+                //        FullUTCI[i, h] = double.Parse(allLines[i].Split(',')[h]);
+                //    }
 
 
-                var allLines = File.ReadAllLines(DOM.baseWorkingDirectory + @"\UTCI.csv");
-                var numberOfLines = allLines.Count();
+                //});
 
 
 
+                
 
-                double[] valueHours = new double[numberOfLines];
-                for (int i = 0; i < numberOfLines && hour < 8760; i++)
-                {
-                    valueHours[i] = double.Parse(allLines[i].Split(',')[hour]);
-                }
+                
+                //using (TextFieldParser csvParser = new TextFieldParser(path))
+                //{
+                //    csvParser.CommentTokens = new string[] { "#" };
+                //    csvParser.SetDelimiters(new string[] { "," });
+                //    csvParser.HasFieldsEnclosedInQuotes = false;
+
+                //    // Skip the row with the column names
+                //    csvParser.ReadLine();
+
+                //    while (!csvParser.EndOfData)
+                //    {
+                //        // Read current line fields, pointer moves to the next line.
+                //        string[] fields = csvParser.ReadFields();
+                //        string Name = fields[0];
+                //        string Address = fields[1];
+                //    }
+                //}
 
 
 
-                // Parse UTCI uncertaintly from file
+                ////double[] valueHour = new double[numberOfLines];
+                //var UTCITree = new DataTree<double>();
+
+
+                //// Fill datatrees
+
+                var ConditionOfPerson = new DataTree<int>();
+                var AnnEx = new List<double>();
+
+
+                //System.Threading.Tasks.Parallel.For(0, numberOfProbes,
+                //j =>
+                //{
+
+                //    for (int h = 0; h < annualHours - 1; h++)
+                //    {
+
+                //        //ConditionOfPerson.Add(UTCI.GetConditionOfPerson(FullUTCI[i, h]), new Grasshopper.Kernel.Data.GH_Path(h));
+                //        UTCITree.Add(UTCITree[UTCITree.Path(j), h], new Grasshopper.Kernel.Data.GH_Path(h));
+
+                //        // Evaluate annual conditions
+
+                //        int conditionCounter = 0;
+
+                //        if (ConditionOfPerson[ConditionOfPerson.Path(j), h] != 0)
+                //        {
+                //            conditionCounter += 1;
+                //            AnnEx.Add(conditionCounter / 8760 * 100);
+                //        }
+                //    }
+                //});
+
 
                 var uncertaintyLine = File.ReadLines(DOM.baseWorkingDirectory + @"\UTCI.uncertainty").Last();
                 var uncertaintyNUM = double.Parse(uncertaintyLine.Split('%')[0].Split(':')[1].Split('r')[1]);
@@ -133,13 +211,30 @@ namespace Eddy
 
 
 
-                DA.SetDataList(0, valueHours);
-                DA.SetData(1, uncertaintyNUM);
+                DA.SetDataList(0, HourlyUTCI);
+                DA.SetDataList(1, AnnEx);
+                DA.SetData(2, uncertaintyNUM);
             }
 
-
-
         }
+
+
+
+
+        //for (int i = 0; i < numberOfProbes; i++)
+        //{
+        //    for (int h = 0; h < 8759; h++)
+        //    {
+
+        //        ConditionOfPerson.Add(UTCI.GetConditionOfPerson(HourlyUTCI[i, h]), new Grasshopper.Kernel.Data.GH_Path(h));
+        //    }
+
+        //}
+
+
+
+
+
 
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface.
@@ -165,6 +260,5 @@ namespace Eddy
         }
     }
 }
-
 
 
