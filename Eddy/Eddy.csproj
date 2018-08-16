@@ -67,7 +67,7 @@
     <Compile Include="Components\BCond\CompBCondABL.cs" />
     <Compile Include="Components\Domain\CompBlockMeshCyl.cs" />
     <Compile Include="Components\Misc\CompCellSize.cs" />
-    <Compile Include="Components\postProcessing\CompVizProbesCustom.cs" />
+    <Compile Include="Components\postProcessing\CompVisProbesCustom.cs" />
     <Compile Include="Components\UTCI\CompLoadUTCIAnnualExceedance.cs" />
     <Compile Include="Components\UTCI\CompLoadUTCIProbewise.cs" />
     <Compile Include="Components\UTCI\CompReadUTCILadybug.cs" />
