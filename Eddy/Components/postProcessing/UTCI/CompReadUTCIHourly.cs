@@ -63,7 +63,7 @@ namespace Eddy
             pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
             pManager.AddGenericParameter("UTCIT", "UTCIT", "UTCIT in °C", GH_ParamAccess.tree);        
             pManager.AddGenericParameter("HumanConditions", "HC", "HumanConditions", GH_ParamAccess.tree);
-            pManager.AddGenericParameter("ComfortHours", "CH", "ComfortHours in %", GH_ParamAccess.tree);     
+            pManager.AddGenericParameter("ComfortHours", "CH", "ComfortHours in %", GH_ParamAccess.list);     
 
             pManager.AddGenericParameter("U", "U", "Overall Uncertainty in %", GH_ParamAccess.item);
 
@@ -143,7 +143,7 @@ namespace Eddy
 
                 var UTCITree = new DataTree<double>();
                 var HumanConditionsTree = new DataTree<int>();
-                var ComfortHoursTree = new DataTree<double>();
+                var ComfortHoursList = new List<double>();
 
                 
                 using (Microsoft.VisualBasic.FileIO.TextFieldParser csvParser = new Microsoft.VisualBasic.FileIO.TextFieldParser(path))
@@ -181,7 +181,7 @@ namespace Eddy
 
                         double cmftPercentage = Math.Round((double)comfortCnt * 100 /8760, 1); 
 
-                        ComfortHoursTree.Add(cmftPercentage, new Grasshopper.Kernel.Data.GH_Path(cnt));
+                        ComfortHoursList.Add(cmftPercentage);
                         
                         cnt++;
                     }
@@ -198,7 +198,7 @@ namespace Eddy
                 DA.SetDataList(0, HourlyUTCI);
                 DA.SetDataTree(1, UTCITree);
                 DA.SetDataTree(2, HumanConditionsTree);
-                DA.SetDataTree(3, ComfortHoursTree);
+                DA.SetDataList(3, ComfortHoursList);
                 DA.SetData(4, uncertaintyVal);
             }
 
