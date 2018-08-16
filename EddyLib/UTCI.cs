@@ -133,10 +133,10 @@ namespace EddyLib
             return UAtProbingHeightFromEPW;
         }
 
-        public static double GetConditionOfPerson(double UTCI)
+        public static int GetConditionOfPerson(double UTCI)
         {
                         
-            double cOfPerson = 0;            
+            int cOfPerson = 0;            
 
             if (UTCI < -40) cOfPerson = -5;
             else if ((-40 <= UTCI) && (UTCI < -27)) cOfPerson = -4;

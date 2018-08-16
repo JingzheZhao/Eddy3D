@@ -36,7 +36,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public ReadUTCIHourly()
-          : base("ReadUTCIHourly", "ReadUTCIHourly", "ReadUTCIHourly", "Eddy", "UTCI")
+          : base("ReadUTCIByHour", "ReadUTCIByHour", "ReadUTCIByHour", "Eddy", "UTCI")
         {
         }
 
@@ -61,7 +61,10 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
-            pManager.AddGenericParameter("AnnEx", "AnnEx", "Annual Exceedance in %", GH_ParamAccess.list);
+            pManager.AddGenericParameter("UTCIT", "UTCIT", "UTCIT", GH_ParamAccess.tree);        
+            pManager.AddGenericParameter("HumanConditions", "HC", "HumanConditions", GH_ParamAccess.tree);
+            pManager.AddGenericParameter("ComfortHours", "CH", "ComfortHours", GH_ParamAccess.tree);     
+
             pManager.AddGenericParameter("U", "U", "Overall Uncertainty in %", GH_ParamAccess.item);
 
             //pManager.AddGenericParameter("windSpeed", "windSpeed", "windSpeed", GH_ParamAccess.list);
@@ -130,90 +133,73 @@ namespace Eddy
 
                 }
 
+                
+              
 
 
-                double[,] FullUTCI = new double[numberOfProbes, annualHours];
 
-                //System.Threading.Tasks.Parallel.For(0, numberOfProbes,
-                //i =>
-                //{
+                //// Fill datatrees from CSV
+                               
 
-                //    for (int h = 0; h < annualHours - 1; h++)
-                //    {
-                //        FullUTCI[i, h] = double.Parse(allLines[i].Split(',')[h]);
-                //    }
+                var UTCITree = new DataTree<double>();
+                var HumanConditionsTree = new DataTree<int>();
+                var ComfortHoursTree = new DataTree<double>();
+
+                
+                using (Microsoft.VisualBasic.FileIO.TextFieldParser csvParser = new Microsoft.VisualBasic.FileIO.TextFieldParser(path))
+                {
+                    csvParser.CommentTokens = new string[] { "#" };
+                    csvParser.SetDelimiters(new string[] { "," });
+                    csvParser.HasFieldsEnclosedInQuotes = false;
+
+                    // Skip the row with the column names
+                    //csvParser.ReadLine();
+                    int cnt = 0;
+                    
+
+                    while (!csvParser.EndOfData)
+                    {
+                        // Read current line fields, pointer moves to the next line.
+                        string[] fields = csvParser.ReadFields();
 
 
-                //});
+                        
+                        int comfortCnt = 0;
 
+                        for (int i = 0; i < annualHours; i++)
+                        {
+                            UTCITree.Add(double.Parse(fields[i]), new Grasshopper.Kernel.Data.GH_Path(cnt));
+                            HumanConditionsTree.Add(UTCI.GetConditionOfPerson(double.Parse(fields[i])), new Grasshopper.Kernel.Data.GH_Path(cnt));
+
+                            if (  UTCI.GetConditionOfPerson(double.Parse(fields[i])) =0)
+                            {
+                                comfortCnt++;
+                            }
+
+                            
+                        }
+
+                        double cmftPercentage = Math.Round((double)comfortCnt * 100 /8760, 1); 
+
+                        ComfortHoursTree.Add(cmftPercentage, new Grasshopper.Kernel.Data.GH_Path(cnt));
+                        
+                        cnt++;
+                    }
+                }
 
 
                 
-
-                
-                //using (TextFieldParser csvParser = new TextFieldParser(path))
-                //{
-                //    csvParser.CommentTokens = new string[] { "#" };
-                //    csvParser.SetDelimiters(new string[] { "," });
-                //    csvParser.HasFieldsEnclosedInQuotes = false;
-
-                //    // Skip the row with the column names
-                //    csvParser.ReadLine();
-
-                //    while (!csvParser.EndOfData)
-                //    {
-                //        // Read current line fields, pointer moves to the next line.
-                //        string[] fields = csvParser.ReadFields();
-                //        string Name = fields[0];
-                //        string Address = fields[1];
-                //    }
-                //}
-
-
-
-                ////double[] valueHour = new double[numberOfLines];
-                //var UTCITree = new DataTree<double>();
-
-
-                //// Fill datatrees
-
-                var ConditionOfPerson = new DataTree<int>();
-                var AnnEx = new List<double>();
-
-
-                //System.Threading.Tasks.Parallel.For(0, numberOfProbes,
-                //j =>
-                //{
-
-                //    for (int h = 0; h < annualHours - 1; h++)
-                //    {
-
-                //        //ConditionOfPerson.Add(UTCI.GetConditionOfPerson(FullUTCI[i, h]), new Grasshopper.Kernel.Data.GH_Path(h));
-                //        UTCITree.Add(UTCITree[UTCITree.Path(j), h], new Grasshopper.Kernel.Data.GH_Path(h));
-
-                //        // Evaluate annual conditions
-
-                //        int conditionCounter = 0;
-
-                //        if (ConditionOfPerson[ConditionOfPerson.Path(j), h] != 0)
-                //        {
-                //            conditionCounter += 1;
-                //            AnnEx.Add(conditionCounter / 8760 * 100);
-                //        }
-                //    }
-                //});
-
+                // Read uncertainty file
 
                 var uncertaintyLine = File.ReadLines(DOM.baseWorkingDirectory + @"\UTCI.uncertainty").Last();
-                var uncertaintyNUM = double.Parse(uncertaintyLine.Split('%')[0].Split(':')[1].Split('r')[1]);
+                var uncertaintyVal = double.Parse(uncertaintyLine.Split('%')[0].Split(':')[1].Split('r')[1]);
 
-
-
-
-
+                
                 DA.SetDataList(0, HourlyUTCI);
-                DA.SetDataList(1, AnnEx);
-                DA.SetData(2, uncertaintyNUM);
+                DA.SetDataTree(1, UTCITree);
+                DA.SetDataTree(2, HumanConditionsTree);
+                DA.SetDataTree(3, ComfortHoursTree);
+                DA.SetData(4, uncertaintyVal);
             }
 
         }
