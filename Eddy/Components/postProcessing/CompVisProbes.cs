@@ -58,9 +58,9 @@ namespace Eddy
             Param_Integer param = pManager[2] as Param_Integer;
             param.AddNamedValue("cp_Probes", 0);
             param.AddNamedValue("U_Probes", 1);
-           
 
-            pManager.AddBooleanParameter("Run", "Run", "Clean the directory", GH_ParamAccess.item, false);
+
+            pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item, false);
 
 
         }
@@ -153,7 +153,7 @@ namespace Eddy
                 if (!File.Exists(fp))
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The simulation folder of the wind direction """ + DOM.BCInflow.windDir[i] + @""" misses the velocity (U) result file. Please make sure that U is calculated for this particular timestep (change WriteInterval) and recompute the solution.");
-                  }
+                }
             }
 
 
@@ -188,6 +188,7 @@ namespace Eddy
 
                         string pointName = "cp_Probes";
                         string OFfield = "total(p)_coeff";
+                        int fieldtype = 0; // double
 
                         for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                         {
@@ -206,12 +207,12 @@ namespace Eddy
                         p.Start();
                         p.WaitForExit();
 
-                        Thread.Sleep(2 * numberOfProbes);
+                        //Thread.Sleep(2 * numberOfProbes);
 
                         for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                         {
-                            ParsingProbes cp = new ParsingProbes(listOfPoints, pointName, DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i], OFfield);
-                            cpTree.AddRange(cp.cpValues, new Grasshopper.Kernel.Data.GH_Path(i));
+                            ParsingProbes cp = new ParsingProbes(listOfPoints, pointName, DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i], OFfield, fieldtype);
+                            cpTree.AddRange(cp.numberValues, new Grasshopper.Kernel.Data.GH_Path(i));
                         }
 
 
@@ -224,6 +225,7 @@ namespace Eddy
 
                         string pointName = "U_Probes";
                         string OFfield = "U";
+                        int fieldtype = 1; // vectors
 
                         for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                         {
@@ -250,11 +252,11 @@ namespace Eddy
                         {
                             // Parse values
 
-                            var U = new ParsingProbes(listOfPoints, pointName, DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i], OFfield);
+                            var U = new ParsingProbes(listOfPoints, pointName, DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i], OFfield, fieldtype);
 
                             // Create datatree
 
-                            uTree.AddRange(U.uValues, new Grasshopper.Kernel.Data.GH_Path(i));
+                            uTree.AddRange(U.vectorValues, new Grasshopper.Kernel.Data.GH_Path(i));
 
                         }
                     }
@@ -265,7 +267,7 @@ namespace Eddy
                     throw;
                 }
 
-                
+
             }
 
             if (mode == 0)

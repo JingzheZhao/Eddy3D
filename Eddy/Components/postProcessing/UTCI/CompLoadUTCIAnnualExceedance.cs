@@ -78,38 +78,97 @@
 
 
 
-//            //var utci = new DataTree<double>();
+//            //    //var utci = new DataTree<double>();
 
 
 
-//            DA.GetDataTree(0, out GH_Structure<GH_Goo<double>> utci);
+//            //    DA.GetDataTree(0, out GH_Structure<GH_Goo<double>> utci);
 
-//            foreach (GH_Path path in utci.Paths)
+//            //    foreach (GH_Path path in utci.Paths)
+//            //    {
+//            //        foreach ()
+
+
+
+//            //    }
+
+
+
+
+
+//            //    for (int i = 0; i < data.GetUpperBound(0); i++)
+//            //    {
+
+//            //        for (int j = 0; j < data.GetUpperBound(1); j++)
+//            //        {
+//            //            dataTree.Add(data[i, j], new Grasshopper.Kernel.Data.GH_Path(i));
+//            //        }
+//            //    }
+
+//            //    DA.SetDataTree(0, dataTree);
+//            //}
+
+
+
+
+
+//            /// <summary>
+//            /// 
+//            /// </summary>
+
+
+//            var geo = new List<Brep>();
+
+//            GH_Structure<GH_Brep> GH_GeoTree;
+
+
+
+//            if (!DA.GetDataTree(0, out GH_GeoTree)) { }
+
+//            foreach (GH_Path path in GH_GeoTree.Paths)
+
 //            {
-//                foreach ()
 
-
+//                geo.AddRange(from GH_Brep o in GH_GeoTree.get_Branch(path) where o != null where o.Value != null select o.Value);
 
 //            }
 
 
 
+//            //var BC = new List<BoundaryConditionObject>();
+
+//            ////List<Brep> GEO = new List<Brep>();
+
+//            ////if (!DA.GetDataList(0, GEO)) { return; }
 
 
-//            for (int i = 0; i < data.GetUpperBound(0); i++)
-//            {
 
-//                for (int j = 0; j < data.GetUpperBound(1); j++)
-//                {
-//                    dataTree.Add(data[i, j], new Grasshopper.Kernel.Data.GH_Path(i));
-//                }
-//            }
 
-//            DA.SetDataTree(0, dataTree);
+
+//            //var bcond = BoundaryCondition._UNSET_;
+
+
+
+//            //if (Type == "ADIABAT") bcond = BoundaryCondition.ADIABAT;
+
+//            //else bcond = BoundaryCondition.GROUND;
+
+
+
+//            //  RhinoApp.WriteLine(bcond.ToString());
+
+
+
+//            foreach (Brep b in geo) BC.Add(new BoundaryConditionObject(b, bcond));
+
+
+
+//            DA.SetDataList(0, BC);
+
+
+
+
 //        }
-
-
-
 
 //        /// <summary>
 //        /// Provides an Icon for every component that will be visible in the User Interface.

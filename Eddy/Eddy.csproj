@@ -68,10 +68,17 @@
     <Compile Include="Components\Domain\CompBlockMeshCyl.cs" />
     <Compile Include="Components\Misc\CompCellSize.cs" />
     <Compile Include="Components\postProcessing\CompVisProbesCustom.cs" />
+<<<<<<< HEAD
     <Compile Include="Components\UTCI\CompLoadUTCIAnnualExceedance.cs" />
     <Compile Include="Components\UTCI\CompLoadUTCIProbewise.cs" />
     <Compile Include="Components\UTCI\CompReadUTCILadybug.cs" />
     <Compile Include="Components\UTCI\CompReadUTCIHourly.cs" />
+=======
+    <Compile Include="Components\postProcessing\UTCI\CompLoadUTCIAnnualExceedance.cs" />
+    <Compile Include="Components\postProcessing\UTCI\CompLoadUTCIProbewise.cs" />
+    <Compile Include="Components\postProcessing\UTCI\CompReadUTCILadybug.cs" />
+    <Compile Include="Components\postProcessing\UTCI\CompReadUTCIHourly.cs" />
+>>>>>>> 47818333f385fb019fa40db434d57e67b6798c4b
     <Compile Include="Components\postProcessing\CompWriteProbes.cs" />
     <Compile Include="Components\postProcessing\CompVisProbes.cs" />
     <Compile Include="Components\postProcessing\CompVisPatches.cs" />
