@@ -61,9 +61,9 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
-            pManager.AddGenericParameter("UTCIT", "UTCIT", "UTCIT", GH_ParamAccess.tree);        
+            pManager.AddGenericParameter("UTCIT", "UTCIT", "UTCIT in °C", GH_ParamAccess.tree);        
             pManager.AddGenericParameter("HumanConditions", "HC", "HumanConditions", GH_ParamAccess.tree);
-            pManager.AddGenericParameter("ComfortHours", "CH", "ComfortHours", GH_ParamAccess.tree);     
+            pManager.AddGenericParameter("ComfortHours", "CH", "ComfortHours in %", GH_ParamAccess.tree);     
 
             pManager.AddGenericParameter("U", "U", "Overall Uncertainty in %", GH_ParamAccess.item);
 
@@ -171,7 +171,7 @@ namespace Eddy
                             UTCITree.Add(double.Parse(fields[i]), new Grasshopper.Kernel.Data.GH_Path(cnt));
                             HumanConditionsTree.Add(UTCI.GetConditionOfPerson(double.Parse(fields[i])), new Grasshopper.Kernel.Data.GH_Path(cnt));
 
-                            if (  UTCI.GetConditionOfPerson(double.Parse(fields[i])) =0)
+                            if (  UTCI.GetConditionOfPerson(double.Parse(fields[i])) ==0)
                             {
                                 comfortCnt++;
                             }
