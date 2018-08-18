@@ -44,7 +44,7 @@ namespace Eddy
         {
             pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, @"C:\temp");
 
-            pManager.AddGeometryParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
+            pManager.AddBrepParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
             pManager.AddGeometryParameter("Terrain", "Terrain", "Terrain Geometry.", GH_ParamAccess.list);
 
             pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.item);

@@ -112,8 +112,7 @@ namespace Eddy
 
             //GH_ObjectWrapper gobj2 = null;    
             List<GH_ObjectWrapper> gobj2 = new List<GH_ObjectWrapper>();
-            int IntervalAsNumber = 0;
-            List<string> IntervalAsString = new List<string>();
+            
 
             List<string> dateTimeInput = new List<string>();
 
@@ -139,7 +138,7 @@ namespace Eddy
 
                     DA.GetDataList(1, dateTimeInput);
 
-                    IntervalAsNumber = (int) double.Parse(dateTimeInput[0]);
+                     var IntervalAsNumber = (int) double.Parse(dateTimeInput[0]);
 
 
                     //if (inputHour > 8759)
@@ -148,10 +147,10 @@ namespace Eddy
                     //}
 
 
-                    //if (IntervalAsNumber.Count > 1)
-                    //{
-                    //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please connect a number slider that represent 8760 hours of the year as a maximum range."); return;
-                    //}
+                    if (dateTimeInput.Count > 1)
+                    {
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please connect a number slider that represent 8760 hours of the year as a maximum range."); return;
+                    }
 
                     var path = DOM.baseWorkingDirectory + @"\UTCI.csv";
 
@@ -186,23 +185,22 @@ namespace Eddy
                     //List<string> inputInterval = new List<string>();
                     //DA.GetDataList(1, inputInterval);
 
-                    if (!DA.GetDataList(1, gobj2)) { }
+                    //if (!DA.GetDataList(1, gobj2)) { }
 
-                    foreach (GH_ObjectWrapper o in gobj2)
-                    {
+                    //foreach (GH_ObjectWrapper o in gobj2)
+                    //{
 
-                        if (o is String)
-                        {
-                            IntervalAsString.Add((String)o.Value);
-                        }
+                    //    if (o is String)
+                    //    {
+                    //        IntervalAsString.Add((String)o.Value);
+                    //    }
 
-                    }
-                    if (IntervalAsString == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid Int object"); return; }
+                    //}
+                    //if (IntervalAsString == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid Int object"); return; }
 
+                    DA.GetDataList(1, dateTimeInput);
 
-
-
-                    var ladybugAnalysisPeriod = IntervalAsString;
+                    var ladybugAnalysisPeriod = dateTimeInput;
 
 
 
