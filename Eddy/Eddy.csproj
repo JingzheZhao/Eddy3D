@@ -37,6 +37,9 @@
     <Reference Include="ConsoleAppLauncher, Version=1.0.6354.408, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\ConsoleAppLauncher.1.0.6354.408\lib\net40\ConsoleAppLauncher.dll</HintPath>
     </Reference>
+    <Reference Include="CsvHelper, Version=7.0.0.0, Culture=neutral, PublicKeyToken=8c4959082be5c823, processorArchitecture=MSIL">
+      <HintPath>..\packages\CsvHelper.7.1.1\lib\net45\CsvHelper.dll</HintPath>
+    </Reference>
     <Reference Include="GH_IO">
       <HintPath>..\Dependencies\GH_IO.dll</HintPath>
       <Private>False</Private>
@@ -45,6 +48,7 @@
       <HintPath>..\Dependencies\Grasshopper.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="RhinoCommon">
       <HintPath>..\Dependencies\RhinoCommon.dll</HintPath>

@@ -65,17 +65,10 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-<<<<<<< HEAD
             pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.tree);
             //pManager.AddGenericParameter("UTCIT", "UTCIT", "UTCIT in °C", GH_ParamAccess.tree);        
             //pManager.AddGenericParameter("HumanConditions", "HC", "HumanConditions", GH_ParamAccess.tree);
             //pManager.AddGenericParameter("ComfortHours", "CH", "ComfortHours in %", GH_ParamAccess.list);     
-=======
-            pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
-            pManager.AddGenericParameter("UTCIT", "UTCIT", "UTCIT in °C", GH_ParamAccess.tree);
-            pManager.AddGenericParameter("HumanConditions", "HC", "HumanConditions", GH_ParamAccess.tree);
-            pManager.AddGenericParameter("ComfortHours", "CH", "ComfortHours in %", GH_ParamAccess.list);
->>>>>>> 1f8e0ba8542a845cd066a934e00dcbb4b59e40b2
 
             pManager.AddGenericParameter("U", "U", "Overall Uncertainty in %", GH_ParamAccess.item);
 
@@ -121,27 +114,18 @@ namespace Eddy
             List<GH_ObjectWrapper> gobj2 = new List<GH_ObjectWrapper>();
             int IntervalAsNumber = 0;
             List<string> IntervalAsString = new List<string>();
-            
 
-    
+
+
             DA.GetData(3, ref Run);
 
             int annualHours = 8760;
 
 
 
-
-            //stop code execution here if run is not set to true.
-            if (!Run) { return; }
-
-
-
-            if (inputHour > 8759)
+            if (Run)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please connect a number slider that represent 8760 hours of the year as a maximum range."); return;
-            }
 
-<<<<<<< HEAD
                 if (evaluationMode == 0)
                 {
 
@@ -154,36 +138,16 @@ namespace Eddy
                     //if (IntervalAsNumber == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
                     DA.GetDataList(1, gobj2);
-=======
-
-            var path = DOM.baseWorkingDirectory + @"\UTCI.csv";
-
-            var allLines = File.ReadAllLines(path);
-            var numberOfProbes = allLines.Count();
-
-
-            int annualHours = 8760;
->>>>>>> 1f8e0ba8542a845cd066a934e00dcbb4b59e40b2
 
                     IntervalAsNumber = (int)(gobj2[0].Value);
 
 
-<<<<<<< HEAD
                     //if (inputHour > 8759)
                     //{
                     //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please connect a number slider that represent 8760 hours of the year as a maximum range."); return;
                     //}
-=======
-            double[] HourlyUTCI = new double[numberOfProbes];
->>>>>>> 1f8e0ba8542a845cd066a934e00dcbb4b59e40b2
 
-            for (int i = 0; i < numberOfProbes && inputHour < annualHours; i++)
-            {
-                HourlyUTCI[i] = double.Parse(allLines[i].Split(',')[inputHour]);
 
-            }
-
-<<<<<<< HEAD
                     //if (IntervalAsNumber.Count > 1)
                     //{
                     //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please connect a number slider that represent 8760 hours of the year as a maximum range."); return;
@@ -315,57 +279,8 @@ namespace Eddy
                                 }
 
                             }
-=======
-
-
-
-
-
-            //// Fill datatrees from CSV
-
-
-            var UTCITree = new DataTree<double>();
-            var HumanConditionsTree = new DataTree<int>();
-            var ComfortHoursList = new List<double>();
-
-
-            using (Microsoft.VisualBasic.FileIO.TextFieldParser csvParser = new Microsoft.VisualBasic.FileIO.TextFieldParser(path))
-            {
-                csvParser.CommentTokens = new string[] { "#" };
-                csvParser.SetDelimiters(new string[] { "," });
-                csvParser.HasFieldsEnclosedInQuotes = false;
-
-                // Skip the row with the column names
-                //csvParser.ReadLine();
-                int cnt = 0;
-
-
-                while (!csvParser.EndOfData)
-                {
-                    // Read current line fields, pointer moves to the next line.
-                    string[] fields = csvParser.ReadFields();
-
-
-
-                    int comfortCnt = 0;
-
-                    for (int i = 0; i < annualHours; i++)
-                    {
-                        double value = double.Parse(fields[i]);
-
-                        var ghPath = new Grasshopper.Kernel.Data.GH_Path(cnt);
-
-                        UTCITree.Add(value, ghPath);
-                        HumanConditionsTree.Add(UTCI.GetConditionOfPerson(value), ghPath);
-
-                        if (UTCI.GetConditionOfPerson(value) == 0)
-                        {
-                            comfortCnt++;
->>>>>>> 1f8e0ba8542a845cd066a934e00dcbb4b59e40b2
                         }
-                    }
 
-<<<<<<< HEAD
 
                         DA.SetDataTree(0, valueHour);
 
@@ -428,29 +343,6 @@ namespace Eddy
 
                     var uncertaintyLine = File.ReadLines(DOM.baseWorkingDirectory + @"\UTCI.uncertainty").Last();
                     var uncertaintyVal = double.Parse(uncertaintyLine.Split('%')[0].Split(':')[1].Split('r')[1]);
-=======
-                    double cmftPercentage = Math.Round((double)comfortCnt * 100 / 8760, 1);
-
-                    ComfortHoursList.Add(cmftPercentage);
-
-                    cnt++;
-                }
-            }
-
-
-
-            // Read uncertainty file
-
-            var uncertaintyLine = File.ReadLines(DOM.baseWorkingDirectory + @"\UTCI.uncertainty").Last();
-            var uncertaintyVal = double.Parse(uncertaintyLine.Split('%')[0].Split(':')[1].Split('r')[1]);
-
-
-            DA.SetDataList(0, HourlyUTCI);
-            DA.SetDataTree(1, UTCITree);
-            DA.SetDataTree(2, HumanConditionsTree);
-            DA.SetDataList(3, ComfortHoursList);
-            DA.SetData(4, uncertaintyVal);
->>>>>>> 1f8e0ba8542a845cd066a934e00dcbb4b59e40b2
 
 
                     //DA.SetDataTree(1, UTCITree);
@@ -504,5 +396,4 @@ namespace Eddy
         }
     }
 }
-
 
