@@ -61,9 +61,9 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
-            pManager.AddGenericParameter("UTCIT", "UTCIT", "UTCIT in °C", GH_ParamAccess.tree);        
+            pManager.AddGenericParameter("UTCIT", "UTCIT", "UTCIT in °C", GH_ParamAccess.tree);
             pManager.AddGenericParameter("HumanConditions", "HC", "HumanConditions", GH_ParamAccess.tree);
-            pManager.AddGenericParameter("ComfortHours", "CH", "ComfortHours in %", GH_ParamAccess.list);     
+            pManager.AddGenericParameter("ComfortHours", "CH", "ComfortHours in %", GH_ParamAccess.list);
 
             pManager.AddGenericParameter("U", "U", "Overall Uncertainty in %", GH_ParamAccess.item);
 
@@ -105,102 +105,104 @@ namespace Eddy
             DA.GetData(2, ref Run);
 
 
-            if (Run)
+
+            //stop code execution here if run is not set to true.
+            if (!Run) { return; }
+
+
+
+            if (inputHour > 8759)
             {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please connect a number slider that represent 8760 hours of the year as a maximum range."); return;
+            }
 
 
-                if (inputHour > 8759)
+            var path = DOM.baseWorkingDirectory + @"\UTCI.csv";
+
+            var allLines = File.ReadAllLines(path);
+            var numberOfProbes = allLines.Count();
+
+
+            int annualHours = 8760;
+
+
+
+            double[] HourlyUTCI = new double[numberOfProbes];
+
+            for (int i = 0; i < numberOfProbes && inputHour < annualHours; i++)
+            {
+                HourlyUTCI[i] = double.Parse(allLines[i].Split(',')[inputHour]);
+
+            }
+
+
+
+
+
+
+            //// Fill datatrees from CSV
+
+
+            var UTCITree = new DataTree<double>();
+            var HumanConditionsTree = new DataTree<int>();
+            var ComfortHoursList = new List<double>();
+
+
+            using (Microsoft.VisualBasic.FileIO.TextFieldParser csvParser = new Microsoft.VisualBasic.FileIO.TextFieldParser(path))
+            {
+                csvParser.CommentTokens = new string[] { "#" };
+                csvParser.SetDelimiters(new string[] { "," });
+                csvParser.HasFieldsEnclosedInQuotes = false;
+
+                // Skip the row with the column names
+                //csvParser.ReadLine();
+                int cnt = 0;
+
+
+                while (!csvParser.EndOfData)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please connect a number slider that represent 8760 hours of the year as a maximum range."); return;
-                }
-
-
-                var path = DOM.baseWorkingDirectory + @"\UTCI.csv";
-
-                var allLines = File.ReadAllLines(path);
-                var numberOfProbes = allLines.Count();
-
-
-                int annualHours = 8760;
+                    // Read current line fields, pointer moves to the next line.
+                    string[] fields = csvParser.ReadFields();
 
 
 
-                double[] HourlyUTCI = new double[numberOfProbes];
+                    int comfortCnt = 0;
 
-                for (int i = 0; i < numberOfProbes && inputHour < annualHours; i++)
-                {
-                    HourlyUTCI[i] = double.Parse(allLines[i].Split(',')[inputHour]);
-
-                }
-
-                
-              
-
-
-
-                //// Fill datatrees from CSV
-                               
-
-                var UTCITree = new DataTree<double>();
-                var HumanConditionsTree = new DataTree<int>();
-                var ComfortHoursList = new List<double>();
-
-                
-                using (Microsoft.VisualBasic.FileIO.TextFieldParser csvParser = new Microsoft.VisualBasic.FileIO.TextFieldParser(path))
-                {
-                    csvParser.CommentTokens = new string[] { "#" };
-                    csvParser.SetDelimiters(new string[] { "," });
-                    csvParser.HasFieldsEnclosedInQuotes = false;
-
-                    // Skip the row with the column names
-                    //csvParser.ReadLine();
-                    int cnt = 0;
-                    
-
-                    while (!csvParser.EndOfData)
+                    for (int i = 0; i < annualHours; i++)
                     {
-                        // Read current line fields, pointer moves to the next line.
-                        string[] fields = csvParser.ReadFields();
+                        UTCITree.Add(double.Parse(fields[i]), new Grasshopper.Kernel.Data.GH_Path(cnt));
+                        HumanConditionsTree.Add(UTCI.GetConditionOfPerson(double.Parse(fields[i])), new Grasshopper.Kernel.Data.GH_Path(cnt));
 
-
-                        
-                        int comfortCnt = 0;
-
-                        for (int i = 0; i < annualHours; i++)
+                        if (UTCI.GetConditionOfPerson(double.Parse(fields[i])) == 0)
                         {
-                            UTCITree.Add(double.Parse(fields[i]), new Grasshopper.Kernel.Data.GH_Path(cnt));
-                            HumanConditionsTree.Add(UTCI.GetConditionOfPerson(double.Parse(fields[i])), new Grasshopper.Kernel.Data.GH_Path(cnt));
-
-                            if (  UTCI.GetConditionOfPerson(double.Parse(fields[i])) ==0)
-                            {
-                                comfortCnt++;
-                            }
-
-                            
+                            comfortCnt++;
                         }
 
-                        double cmftPercentage = Math.Round((double)comfortCnt * 100 /8760, 1); 
 
-                        ComfortHoursList.Add(cmftPercentage);
-                        
-                        cnt++;
                     }
+
+                    double cmftPercentage = Math.Round((double)comfortCnt * 100 / 8760, 1);
+
+                    ComfortHoursList.Add(cmftPercentage);
+
+                    cnt++;
                 }
-
-
-                
-                // Read uncertainty file
-
-                var uncertaintyLine = File.ReadLines(DOM.baseWorkingDirectory + @"\UTCI.uncertainty").Last();
-                var uncertaintyVal = double.Parse(uncertaintyLine.Split('%')[0].Split(':')[1].Split('r')[1]);
-
-                
-                DA.SetDataList(0, HourlyUTCI);
-                DA.SetDataTree(1, UTCITree);
-                DA.SetDataTree(2, HumanConditionsTree);
-                DA.SetDataList(3, ComfortHoursList);
-                DA.SetData(4, uncertaintyVal);
             }
+
+
+
+            // Read uncertainty file
+
+            var uncertaintyLine = File.ReadLines(DOM.baseWorkingDirectory + @"\UTCI.uncertainty").Last();
+            var uncertaintyVal = double.Parse(uncertaintyLine.Split('%')[0].Split(':')[1].Split('r')[1]);
+
+
+            DA.SetDataList(0, HourlyUTCI);
+            DA.SetDataTree(1, UTCITree);
+            DA.SetDataTree(2, HumanConditionsTree);
+            DA.SetDataList(3, ComfortHoursList);
+            DA.SetData(4, uncertaintyVal);
+
 
         }
 
