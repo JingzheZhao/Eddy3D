@@ -68,8 +68,9 @@
     <Compile Include="Components\Domain\CompBlockMeshCyl.cs" />
     <Compile Include="Components\Misc\CompCellSize.cs" />
     <Compile Include="Components\postProcessing\CompVisProbesCustom.cs" />
-    <Compile Include="Components\postProcessing\UTCI\CompLoadUTCIAnnualExceedance.cs" />
-    <Compile Include="Components\postProcessing\UTCI\CompLoadUTCIProbewise.cs" />
+    <Compile Include="Components\postProcessing\UTCI\CompReadUTCIProbewise.cs" />
+    <Compile Include="Components\postProcessing\UTCI\CompReadAnnualComfortHours.cs" />
+    <Compile Include="Components\postProcessing\UTCI\CompReadAnnualHumanConditions.cs" />
     <Compile Include="Components\postProcessing\UTCI\CompReadUTCILadybug.cs" />
     <Compile Include="Components\postProcessing\UTCI\CompReadUTCIHourly.cs" />
     <Compile Include="Components\postProcessing\CompWriteProbes.cs" />
@@ -87,7 +88,7 @@
     </Compile>
     <Compile Include="Components\Domain\CompBlockMeshBox.cs" />
     <Compile Include="Components\Simulation\CompSimpleFoam.cs" />
-    <Compile Include="Components\postProcessing\CompSnappyHexMesh.cs" />
+    <Compile Include="Components\Mesh\CompSnappyHexMesh.cs" />
     <Compile Include="Components\Misc\CompClean.cs" />
     <Compile Include="Licensing\License.cs" />
     <Compile Include="Components\Mesh\CompGeometryExport.cs" />

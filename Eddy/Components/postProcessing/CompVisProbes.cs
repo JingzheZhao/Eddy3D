@@ -137,9 +137,43 @@ namespace Eddy
 
             // Error handling
 
+            StringBuilder errorLog = new StringBuilder();
+
             if (numberOfProbes < 1)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You need to pass a list of point to the component.");
+            }
+
+
+            var numberOfWindDirs = DOM.BCInflow.windDir.Count;
+
+
+
+            for (int i = 0; i < numberOfWindDirs; i++)
+
+            {
+                var fp = DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDir[i] + @"\system\U_Probes";
+                if (!File.Exists(fp))
+                {
+                    errorLog.AppendLine(@"The wind direction """ + DOM.BCInflow.windDir[i] + @""" misses the probing dictionary. Please connect the ""writeProbes"" component and recompute the solution.");
+                    throw new System.ArgumentException("The wind direction " + DOM.BCInflow.windDir[i] + @" misses the probing dictionary. Please connect the component ""writeProbes"" and recompute the solution.");
+                }
+            }
+
+            for (int i = 0; i < numberOfWindDirs; i++)
+            {
+                var fp = DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDir[i] + @"\mesh\constant\polyMesh";
+                if (!Directory.Exists(fp))
+                {
+                    errorLog.AppendLine(@"The wind direction""" + DOM.BCInflow.windDir[i] + @""" misses the ""\constant\polyMesh"" dictionary. Please make sure that directory exists.");
+                    throw new System.ArgumentException("The wind direction" + DOM.BCInflow.windDir[i] + @" misses the ""\constant\polyMesh"" dictionary. Please make sure that directory exists.");
+                }
+            }
+
+            for (int i = 0; i < numberOfWindDirs; i++)
+            {
+                var ABLfilePath = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\0.org\ABLConditions";
+                if (!File.Exists(ABLfilePath)) { Console.WriteLine(ABLfilePath + " not found. Exiting"); errorLog.AppendLine(ABLfilePath + " not found. Exiting"); }
             }
 
 
@@ -261,11 +295,11 @@ namespace Eddy
                         }
                     }
                 }
-                catch (Exception)
-                {
 
-                    throw;
-                }
+
+                catch (Exception e) { Console.WriteLine(e.Message); File.WriteAllText(DOM.baseWorkingDirectory + @"\Probes.err", errorLog.ToString()); return; }
+
+
 
 
             }

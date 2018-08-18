@@ -53,7 +53,7 @@ namespace Eddy
             param.AddNamedValue("No snapping, no layers", 0);
             param.AddNamedValue("With Snapping, no layers", 1);
             param.AddNamedValue("With Snapping, with layers", 2);
-            pManager.AddBooleanParameter("Run", "Run", "Create the mesh.", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Clean", "Clean", "Clean the mesh.", GH_ParamAccess.item, false);
 
         }
 

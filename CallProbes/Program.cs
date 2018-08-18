@@ -68,6 +68,8 @@ namespace CallProbes
                             errorLog.AppendLine("The mesh folder is empty. Can't pull probes from a mesh that does not exist.");
                             //throw new System.ArgumentException("The mesh folder is empty. Can't pull probes from a mesh that does not exist.");
                         }
+
+
                         for (int i = 0; i < numberOfWindDirs; i++)
                         {
                             var fp = options.WorkingDir + @"\" + windDirs[i] + @"\system\U_Probes";
@@ -75,6 +77,16 @@ namespace CallProbes
                             {
                                 errorLog.AppendLine(@"The wind direction """ + windDirs[i] + @""" misses the probing dictionary. Please connect the ""writeProbes"" component and recompute the solution.");
                                 throw new System.ArgumentException("The wind direction " + windDirs[i] + @" misses the probing dictionary. Please connect the component ""writeProbes"" and recompute the solution.");
+                            }
+                        }
+
+                        for (int i = 0; i < numberOfWindDirs; i++)
+                        {
+                            var fp = options.WorkingDir + @"\" + windDirs[i] + @"\mesh\constant\polyMesh";
+                            if (!Directory.Exists(fp))
+                            {
+                                errorLog.AppendLine(@"The wind direction""" + windDirs[i] + @""" misses the ""\constant\polyMesh"" dictionary. Please make sure that directory exists.");
+                                throw new System.ArgumentException("The wind direction" + windDirs[i] + @" misses the ""\constant\polyMesh"" dictionary. Please make sure that directory exists.");
                             }
                         }
 
