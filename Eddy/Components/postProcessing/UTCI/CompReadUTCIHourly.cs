@@ -49,7 +49,7 @@ namespace Eddy
         {
             pManager.AddGenericParameter("Simulation", "Sim", "Sim", GH_ParamAccess.item);
 
-            pManager.AddGenericParameter("Interval", "Int", "Interval to be avaluated. May either be a single hour (mode 1) or a Ladybug analysisPeriod (mode 2).", GH_ParamAccess.list);
+            pManager.AddTextParameter("Interval", "Int", "Interval to be avaluated. May either be a single hour (mode 1) or a Ladybug analysisPeriod (mode 2).", GH_ParamAccess.list);
 
             pManager.AddIntegerParameter("Mode", "Mode", "Interval to be used for evaluation. It may either be a single hour (mode 1) or a Ladybug analysisPeriod (mode 2).", GH_ParamAccess.item, 0);
             Param_Integer evaluationMode = pManager[2] as Param_Integer;
@@ -115,7 +115,7 @@ namespace Eddy
             int IntervalAsNumber = 0;
             List<string> IntervalAsString = new List<string>();
 
-
+            List<string> dateTimeInput = new List<string>();
 
             DA.GetData(3, ref Run);
 
@@ -137,9 +137,9 @@ namespace Eddy
                     //}
                     //if (IntervalAsNumber == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
-                    DA.GetDataList(1, gobj2);
+                    DA.GetDataList(1, dateTimeInput);
 
-                    IntervalAsNumber = (int)(gobj2[0].Value);
+                    IntervalAsNumber = (int) double.Parse(dateTimeInput[0]);
 
 
                     //if (inputHour > 8759)
