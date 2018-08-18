@@ -171,15 +171,16 @@ namespace Eddy
                     for (int i = 0; i < annualHours; i++)
                     {
                         double value = double.Parse(fields[i]);
-                        UTCITree.Add(value, new Grasshopper.Kernel.Data.GH_Path(cnt));
-                        HumanConditionsTree.Add(UTCI.GetConditionOfPerson(value), new Grasshopper.Kernel.Data.GH_Path(cnt));
+
+                        var ghPath = new Grasshopper.Kernel.Data.GH_Path(cnt);
+
+                        UTCITree.Add(value, ghPath);
+                        HumanConditionsTree.Add(UTCI.GetConditionOfPerson(value), ghPath);
 
                         if (UTCI.GetConditionOfPerson(value) == 0)
                         {
                             comfortCnt++;
                         }
-
-
                     }
 
                     double cmftPercentage = Math.Round((double)comfortCnt * 100 / 8760, 1);
