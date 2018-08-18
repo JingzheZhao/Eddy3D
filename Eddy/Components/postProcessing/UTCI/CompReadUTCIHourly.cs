@@ -51,7 +51,7 @@ namespace Eddy
 
             pManager.AddGenericParameter("Interval", "Int", "Interval to be avaluated. May either be a single hour (mode 1) or a Ladybug analysisPeriod (mode 2).", GH_ParamAccess.list);
 
-            pManager.AddIntegerParameter("Mode", "Mode", "Interval to be used for evaluation. It may either be a single hour (mode 1) or a Ladybug analysisPeriod (mode 2).", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("Mode", "Mode", "Interval to be used for evaluation. It may either be a single hour (mode 1) or a analysisPeriod formatted as (6, 15, 1) (6, 15, 24) for beginning and end respectively (mode 2).", GH_ParamAccess.item, 0);
             Param_Integer evaluationMode = pManager[2] as Param_Integer;
             evaluationMode.AddNamedValue("single hour", 0);
             evaluationMode.AddNamedValue("LB analysisPeriod", 1);
