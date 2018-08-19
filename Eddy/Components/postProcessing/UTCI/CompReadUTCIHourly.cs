@@ -51,7 +51,7 @@ namespace Eddy
 
             pManager.AddTextParameter("Interval", "Int", "Interval to be avaluated. May either be a single hour (mode 1) or a Ladybug analysisPeriod (mode 2).", GH_ParamAccess.list);
 
-            pManager.AddIntegerParameter("Mode", "Mode", "Interval to be used for evaluation. It may either be a single hour (mode 1) or a analysisPeriod formatted as (6, 15, 1) (6, 15, 24) for beginning and end respectively (mode 2).", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("Mode", "Mode", "Interval to be used for evaluation. It may either be a single hour (mode 1) or a multiline Ladybug analysisPeriod formatted as (6, 15, 1) (6, 15, 24) for beginning and end respectively (mode 2).", GH_ParamAccess.item, 0);
             Param_Integer evaluationMode = pManager[2] as Param_Integer;
             evaluationMode.AddNamedValue("single hour", 0);
             evaluationMode.AddNamedValue("LB analysisPeriod", 1);
@@ -106,14 +106,6 @@ namespace Eddy
             DA.GetData(2, ref evaluationMode);
 
 
-            // Cast Interval into correct object
-
-
-
-            //GH_ObjectWrapper gobj2 = null;    
-            List<GH_ObjectWrapper> gobj2 = new List<GH_ObjectWrapper>();
-            
-
             List<string> dateTimeInput = new List<string>();
 
             DA.GetData(3, ref Run);
@@ -122,234 +114,236 @@ namespace Eddy
 
 
 
-            if (Run)
+            if (!Run) { return; }
+
+
+            if (evaluationMode == 0)
             {
 
-                if (evaluationMode == 0)
+                //if (!DA.GetDataList(1, gobj2)) { }
+
+                //if ((gobj2[0].Value is Int16 || gobj2[0].Value is Int32 || gobj2[0].Value is Int64 || gobj2[0].Value is Double))
+                //{
+                //    IntervalAsNumber = (int)gobj2[0].Value;
+                //}
+                //if (IntervalAsNumber == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
+
+                DA.GetDataList(1, dateTimeInput);
+
+                var IntervalAsNumber = (int)double.Parse(dateTimeInput[0]);
+
+
+                //if (inputHour > 8759)
+                //{
+                //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please connect a number slider that represent 8760 hours of the year as a maximum range."); return;
+                //}
+
+
+                if (dateTimeInput.Count > 1)
                 {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please connect a number slider that represent 8760 hours of the year as a maximum range."); return;
+                }
 
-                    //if (!DA.GetDataList(1, gobj2)) { }
+                var path = DOM.baseWorkingDirectory + @"\UTCI.csv";
 
-                    //if ((gobj2[0].Value is Int16 || gobj2[0].Value is Int32 || gobj2[0].Value is Int64 || gobj2[0].Value is Double))
-                    //{
-                    //    IntervalAsNumber = (int)gobj2[0].Value;
-                    //}
-                    //if (IntervalAsNumber == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
+                var allLines = File.ReadAllLines(path);
+                var numberOfProbes = allLines.Count();
 
-                    DA.GetDataList(1, dateTimeInput);
+                //int inputHour = Convert.ToInt32(IntervalAsNumber);
 
-                     var IntervalAsNumber = (int) double.Parse(dateTimeInput[0]);
+                double[] HourlyUTCI = new double[numberOfProbes];
 
-
-                    //if (inputHour > 8759)
-                    //{
-                    //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please connect a number slider that represent 8760 hours of the year as a maximum range."); return;
-                    //}
-
-
-                    if (dateTimeInput.Count > 1)
-                    {
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please connect a number slider that represent 8760 hours of the year as a maximum range."); return;
-                    }
-
-                    var path = DOM.baseWorkingDirectory + @"\UTCI.csv";
-
-                    var allLines = File.ReadAllLines(path);
-                    var numberOfProbes = allLines.Count();
-
-                    //int inputHour = Convert.ToInt32(IntervalAsNumber);
-
-                    double[] HourlyUTCI = new double[numberOfProbes];
-
-                    for (int i = 0; i < numberOfProbes && IntervalAsNumber < annualHours; i++)
-                    {
-                        HourlyUTCI[i] = double.Parse(allLines[i].Split(',')[IntervalAsNumber]);
-
-                    }
-
-
-                    DA.SetDataList(0, HourlyUTCI);
-
+                for (int i = 0; i < numberOfProbes && IntervalAsNumber < annualHours; i++)
+                {
+                    HourlyUTCI[i] = double.Parse(allLines[i].Split(',')[IntervalAsNumber]);
 
                 }
 
 
-                if (evaluationMode == 1)
-                {
+                DA.SetDataList(0, HourlyUTCI);
 
-                    //// Fill datatrees from CSV
-
-                    //List<string> ladybugAnalysisPeriod = new List<string>();
-
-                    //DA.GetDataList(1, ladybugAnalysisPeriod);
-                    //List<string> inputInterval = new List<string>();
-                    //DA.GetDataList(1, inputInterval);
-
-                    //if (!DA.GetDataList(1, gobj2)) { }
-
-                    //foreach (GH_ObjectWrapper o in gobj2)
-                    //{
-
-                    //    if (o is String)
-                    //    {
-                    //        IntervalAsString.Add((String)o.Value);
-                    //    }
-
-                    //}
-                    //if (IntervalAsString == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid Int object"); return; }
-
-                    DA.GetDataList(1, dateTimeInput);
-
-                    var ladybugAnalysisPeriod = dateTimeInput;
-
-
-
-                    if (ladybugAnalysisPeriod == null)
-                    {
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid analysis periode object."); return;
-                    }
-
-
-
-                    var allLines = File.ReadAllLines(DOM.baseWorkingDirectory + @"\UTCI.csv");
-                    var numberOfProbes = allLines.Count();
-
-
-                    // -1 because of python
-
-
-                    int month_start = int.Parse(ladybugAnalysisPeriod[0].Split(',')[0].Split('(')[1]) - 1;
-                    var month_end = int.Parse(ladybugAnalysisPeriod[1].Split(',')[0].Split('(')[1]);
-                    var day_start = int.Parse(ladybugAnalysisPeriod[0].Split(',')[1]) - 1;
-                    var day_end = int.Parse(ladybugAnalysisPeriod[1].Split(',')[1]);
-                    var hour_start = int.Parse(ladybugAnalysisPeriod[0].Split(',')[2].Split(')')[0]) - 1;
-                    var hour_end = int.Parse(ladybugAnalysisPeriod[1].Split(',')[2].Split(')')[0]);
-
-
-
-                    var hours = hour_end - hour_start;
-
-                    double[,] HourlyUTCI = new double[numberOfProbes, hours];
-
-
-                    System.Threading.Tasks.Parallel.For(0, numberOfProbes,
-                      i =>
-                      {
-
-                          for (int h = 0; h < hours; h++)
-                          {
-                              HourlyUTCI[i, h] = double.Parse(allLines[i].Split(',')[h]);
-                          }
-
-
-                      });
-
-
-
-                    //double[] valueHour = new double[numberOfLines];
-                    var valueHour = new DataTree<double>();
-
-
-                    // Fill datatrees
-
-                    for (int m = month_start; m < month_end; m++)
-                    {
-                        for (int d = day_start; d < day_end; d++)
-                        {
-                            for (int h = hour_start; h < hour_end; h++)
-                            {
-
-                                // Check if already gone through month
-                                if (m == 2 && d > 29) { continue; }
-
-                                else if (m == 2 && d > 28) { continue; }
-
-                                else if ((m == 4 || m == 6 || m == 9 || m == 10) && d > 30) { continue; }
-                                //
-
-                                for (int i = 0; i < numberOfProbes; i++)
-                                {
-                                    // TODO: move this out of loop later
-                                    valueHour.Add(HourlyUTCI[i, h], new Grasshopper.Kernel.Data.GH_Path(h));
-
-
-
-                                }
-
-                            }
-                        }
-
-
-                        DA.SetDataTree(0, valueHour);
-
-
-
-                        //    var UTCITree = new DataTree<double>();
-                        ////var HumanConditionsTree = new DataTree<int>();
-                        ////var ComfortHoursList = new List<double>();
-
-
-                        //using (Microsoft.VisualBasic.FileIO.TextFieldParser csvParser = new Microsoft.VisualBasic.FileIO.TextFieldParser(path))
-                        //{
-                        //    csvParser.CommentTokens = new string[] { "#" };
-                        //    csvParser.SetDelimiters(new string[] { "," });
-                        //    csvParser.HasFieldsEnclosedInQuotes = false;
-
-                        //    // Skip the row with the column names
-                        //    //csvParser.ReadLine();
-                        //    int cnt = 0;
-
-
-                        //    while (!csvParser.EndOfData)
-                        //    {
-                        //        // Read current line fields, pointer moves to the next line.
-                        //        string[] fields = csvParser.ReadFields();
-
-
-
-                        //        int comfortCnt = 0;
-
-                        //        for (int i = 0; i < annualHours; i++)
-                        //        {
-                        //            UTCITree.Add(double.Parse(fields[i]), new Grasshopper.Kernel.Data.GH_Path(cnt));
-                        //            //HumanConditionsTree.Add(UTCI.GetConditionOfPerson(double.Parse(fields[i])), new Grasshopper.Kernel.Data.GH_Path(cnt));
-
-                        //            //if (UTCI.GetConditionOfPerson(double.Parse(fields[i])) == 0)
-                        //            //{
-                        //                //comfortCnt++;
-                        //            //}
-
-
-                        //        }
-
-                        //        //double cmftPercentage = Math.Round((double)comfortCnt * 100 / 8760, 1);
-
-                        //        //ComfortHoursList.Add(cmftPercentage);
-
-                        //        cnt++;
-                        //    }
-                        //}
-
-
-
-
-                    }
-
-
-
-                    // Read uncertainty file
-
-                    var uncertaintyLine = File.ReadLines(DOM.baseWorkingDirectory + @"\UTCI.uncertainty").Last();
-                    var uncertaintyVal = double.Parse(uncertaintyLine.Split('%')[0].Split(':')[1].Split('r')[1]);
-
-
-                    //DA.SetDataTree(1, UTCITree);
-                    //DA.SetDataTree(2, HumanConditionsTree);
-                    //DA.SetDataList(3, ComfortHoursList);
-                    DA.SetData(2, uncertaintyVal);
-                }
 
             }
+
+
+            if (evaluationMode == 1)
+            {
+
+                //// Fill datatrees from CSV
+
+                //List<string> ladybugAnalysisPeriod = new List<string>();
+
+                //DA.GetDataList(1, ladybugAnalysisPeriod);
+                //List<string> inputInterval = new List<string>();
+                //DA.GetDataList(1, inputInterval);
+
+                //if (!DA.GetDataList(1, gobj2)) { }
+
+                //foreach (GH_ObjectWrapper o in gobj2)
+                //{
+
+                //    if (o is String)
+                //    {
+                //        IntervalAsString.Add((String)o.Value);
+                //    }
+
+                //}
+                //if (IntervalAsString == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid Int object"); return; }
+
+                DA.GetDataList(1, dateTimeInput);
+
+                var ladybugAnalysisPeriod = dateTimeInput;
+
+
+
+                if (ladybugAnalysisPeriod == null)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid analysis periode object."); return;
+                }
+
+
+
+                var allLines = File.ReadAllLines(DOM.baseWorkingDirectory + @"\UTCI.csv");
+                var numberOfProbes = allLines.Count();
+
+
+                // -1 because of python
+
+
+                int month_start = int.Parse(ladybugAnalysisPeriod[0].Split(',')[0].Split('(')[1]) - 1;
+                var month_end = int.Parse(ladybugAnalysisPeriod[1].Split(',')[0].Split('(')[1]);
+                var day_start = int.Parse(ladybugAnalysisPeriod[0].Split(',')[1]) - 1;
+                var day_end = int.Parse(ladybugAnalysisPeriod[1].Split(',')[1]);
+                var hour_start = int.Parse(ladybugAnalysisPeriod[0].Split(',')[2].Split(')')[0]) - 1;
+                var hour_end = int.Parse(ladybugAnalysisPeriod[1].Split(',')[2].Split(')')[0]);
+
+
+
+                var hours = hour_end - hour_start;
+
+                double[,] HourlyUTCI = new double[numberOfProbes, hours];
+
+
+                System.Threading.Tasks.Parallel.For(0, numberOfProbes,
+                  i =>
+                  {
+
+                      for (int h = 0; h < hours; h++)
+                      {
+                          HourlyUTCI[i, h] = double.Parse(allLines[i].Split(',')[h]);
+                      }
+
+
+                  });
+
+
+
+                //double[] valueHour = new double[numberOfLines];
+                var valueHour = new DataTree<double>();
+
+
+                // Fill datatrees
+
+                for (int m = month_start; m < month_end; m++)
+                {
+                    for (int d = day_start; d < day_end; d++)
+                    {
+                        for (int h = hour_start; h < hour_end; h++)
+                        {
+
+                            // Check if already gone through month
+                            if (m == 2 && d > 29) { continue; }
+
+                            else if (m == 2 && d > 28) { continue; }
+
+                            else if ((m == 4 || m == 6 || m == 9 || m == 10) && d > 30) { continue; }
+                            //
+
+                            for (int i = 0; i < numberOfProbes; i++)
+                            {
+                                // TODO: move this out of loop later
+                                valueHour.Add(HourlyUTCI[i, h], new Grasshopper.Kernel.Data.GH_Path(h));
+
+
+
+                            }
+
+                        }
+                    }
+
+
+                    DA.SetDataTree(0, valueHour);
+
+
+
+                    //    var UTCITree = new DataTree<double>();
+                    ////var HumanConditionsTree = new DataTree<int>();
+                    ////var ComfortHoursList = new List<double>();
+
+
+                    //using (Microsoft.VisualBasic.FileIO.TextFieldParser csvParser = new Microsoft.VisualBasic.FileIO.TextFieldParser(path))
+                    //{
+                    //    csvParser.CommentTokens = new string[] { "#" };
+                    //    csvParser.SetDelimiters(new string[] { "," });
+                    //    csvParser.HasFieldsEnclosedInQuotes = false;
+
+                    //    // Skip the row with the column names
+                    //    //csvParser.ReadLine();
+                    //    int cnt = 0;
+
+
+                    //    while (!csvParser.EndOfData)
+                    //    {
+                    //        // Read current line fields, pointer moves to the next line.
+                    //        string[] fields = csvParser.ReadFields();
+
+
+
+                    //        int comfortCnt = 0;
+
+                    //        for (int i = 0; i < annualHours; i++)
+                    //        {
+                    //            UTCITree.Add(double.Parse(fields[i]), new Grasshopper.Kernel.Data.GH_Path(cnt));
+                    //            //HumanConditionsTree.Add(UTCI.GetConditionOfPerson(double.Parse(fields[i])), new Grasshopper.Kernel.Data.GH_Path(cnt));
+
+                    //            //if (UTCI.GetConditionOfPerson(double.Parse(fields[i])) == 0)
+                    //            //{
+                    //                //comfortCnt++;
+                    //            //}
+
+
+                    //        }
+
+                    //        //double cmftPercentage = Math.Round((double)comfortCnt * 100 / 8760, 1);
+
+                    //        //ComfortHoursList.Add(cmftPercentage);
+
+                    //        cnt++;
+                    //    }
+                    //}
+
+
+
+
+                }
+
+
+
+                // Read uncertainty file
+
+                var uncertaintyLine = File.ReadLines(DOM.baseWorkingDirectory + @"\UTCI.uncertainty").Last();
+                var uncertaintyVal = double.Parse(uncertaintyLine.Split('%')[0].Split(':')[1].Split('r')[1]);
+
+
+                //DA.SetDataTree(1, UTCITree);
+                //DA.SetDataTree(2, HumanConditionsTree);
+                //DA.SetDataList(3, ComfortHoursList);
+                DA.SetData(2, uncertaintyVal);
+
+
+            }
+
+
         }
 
 

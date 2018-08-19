@@ -162,11 +162,11 @@ namespace Eddy
 
             for (int i = 0; i < numberOfWindDirs; i++)
             {
-                var fp = DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDir[i] + @"\mesh\constant\polyMesh";
+                var fp = DOM.baseWorkingDirectory + @"\mesh\constant\polyMesh";
                 if (!Directory.Exists(fp))
                 {
-                    errorLog.AppendLine(@"The wind direction""" + DOM.BCInflow.windDir[i] + @""" misses the ""\constant\polyMesh"" dictionary. Please make sure that directory exists.");
-                    throw new System.ArgumentException("The wind direction" + DOM.BCInflow.windDir[i] + @" misses the ""\constant\polyMesh"" dictionary. Please make sure that directory exists.");
+                    errorLog.AppendLine(@"The wind direction """ + DOM.BCInflow.windDir[i] + @""" misses the ""\constant\polyMesh"" dictionary. Please make sure that directory exists.");
+                    throw new System.ArgumentException("The wind direction " + DOM.BCInflow.windDir[i] + @" misses the ""\constant\polyMesh"" dictionary. Please make sure that directory exists.");
                 }
             }
 

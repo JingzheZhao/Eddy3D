@@ -48,6 +48,7 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Simulation", "Sim", "Sim", GH_ParamAccess.item);
+            pManager.AddTextParameter("Interval", "Int", "Interval to be avaluated. May either be a single hour (mode 1) or a Ladybug analysisPeriod (mode 2).", GH_ParamAccess.list);
 
             pManager.AddBooleanParameter("Run", "Run", "Run the component", GH_ParamAccess.item, false);
 
@@ -94,64 +95,68 @@ namespace Eddy
 
             int annualHours = 8760;
 
+            List<string> dateTimeInput = new List<string>();
 
-            if (Run)
+
+            if (!Run)
             {
+                return;
+            }
 
-                //// Fill datatrees from CSV
-
-
-                var path = DOM.baseWorkingDirectory + @"\UTCI.csv";
-                List<double> ComfortHoursList = new List<double>();
+            //// Fill datatrees from CSV
 
 
+            var path = DOM.baseWorkingDirectory + @"\UTCI.csv";
+            List<double> ComfortHoursList = new List<double>();
 
-                using (Microsoft.VisualBasic.FileIO.TextFieldParser csvParser = new Microsoft.VisualBasic.FileIO.TextFieldParser(path))
+
+
+            using (Microsoft.VisualBasic.FileIO.TextFieldParser csvParser = new Microsoft.VisualBasic.FileIO.TextFieldParser(path))
+            {
+                csvParser.CommentTokens = new string[] { "#" };
+                csvParser.SetDelimiters(new string[] { "," });
+                csvParser.HasFieldsEnclosedInQuotes = false;
+
+                // Skip the row with the column names
+                //csvParser.ReadLine();
+                int cnt = 0;
+
+
+                while (!csvParser.EndOfData)
                 {
-                    csvParser.CommentTokens = new string[] { "#" };
-                    csvParser.SetDelimiters(new string[] { "," });
-                    csvParser.HasFieldsEnclosedInQuotes = false;
-
-                    // Skip the row with the column names
-                    //csvParser.ReadLine();
-                    int cnt = 0;
+                    // Read current line fields, pointer moves to the next line.
+                    string[] fields = csvParser.ReadFields();
 
 
-                    while (!csvParser.EndOfData)
+
+                    int comfortCnt = 0;
+
+                    for (int i = 0; i < annualHours; i++)
                     {
-                        // Read current line fields, pointer moves to the next line.
-                        string[] fields = csvParser.ReadFields();
+                        //UTCITree.Add(double.Parse(fields[i]), new Grasshopper.Kernel.Data.GH_Path(cnt));
+                        //HumanConditionsTree.Add(UTCI.GetConditionOfPerson(double.Parse(fields[i])), new Grasshopper.Kernel.Data.GH_Path(cnt));
 
-
-
-                        int comfortCnt = 0;
-
-                        for (int i = 0; i < annualHours; i++)
+                        if (UTCI.GetConditionOfPerson(double.Parse(fields[i])) == 0)
                         {
-                            //UTCITree.Add(double.Parse(fields[i]), new Grasshopper.Kernel.Data.GH_Path(cnt));
-                            //HumanConditionsTree.Add(UTCI.GetConditionOfPerson(double.Parse(fields[i])), new Grasshopper.Kernel.Data.GH_Path(cnt));
-
-                            if (UTCI.GetConditionOfPerson(double.Parse(fields[i])) == 0)
-                            {
                             comfortCnt++;
-                            }
-
-
                         }
 
-                        double cmftPercentage = Math.Round((double)comfortCnt * 100 / 8760, 1);
 
-                        ComfortHoursList.Add(cmftPercentage);
-
-                        cnt++;
                     }
+
+                    double cmftPercentage = Math.Round((double)comfortCnt * 100 / 8760, 1);
+
+                    ComfortHoursList.Add(cmftPercentage);
+
+                    cnt++;
                 }
-
-
-                DA.SetDataList(0, ComfortHoursList);
-
-
             }
+
+
+            DA.SetDataList(0, ComfortHoursList);
+
+
+
 
 
         }
