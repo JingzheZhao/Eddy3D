@@ -24,7 +24,7 @@ or enable Hypervisor with
 
 Now restart the system and try again.
 
-- Open commandline with elevated credentials
+- Open command line with elevated credentials
 
 - Start eddy with one of the testFiles
 
