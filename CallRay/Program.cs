@@ -25,15 +25,17 @@ namespace CallRay
                 {
 
 
-                    string weaFileName = Path.GetFileName(options.weather) + ".wea";
-                    Console.WriteLine(options.workingDir);
+                    string weaFileName = Path.GetFileName(options.Weather) + ".wea";
+                    Console.WriteLine(options.WorkingDir);
                     Console.WriteLine(weaFileName);
 
-                    Daysim.Epw2Wea(options.weather, options.workingDir + @"\Rad");
+                    Daysim.Epw2Wea(options.Weather, options.WorkingDir + @"\Rad");
 
-                    DaysimSettings set = new DaysimSettings();
-                    set.AB = 1;
-                    set.WorkDir = options.workingDir + @"\Rad";
+                    DaysimSettings set = new DaysimSettings
+                    {
+                        AB = 1,
+                        WorkDir = options.WorkingDir + @"\Rad"
+                    };
 
                     Daysim.RunDaysim(set);
 
@@ -62,11 +64,11 @@ namespace CallRay
     {
         [Option('d', "workingDir", Required = true,
         HelpText = "Working directory.")]
-        public string workingDir { get; set; }
+        public string WorkingDir { get; set; }
 
         [Option('w', "weather", Required = true,
         HelpText = "EPW weather file path.")]
-        public string weather { get; set; }
+        public string Weather { get; set; }
 
         //[Option('o', "output", Required = true,
         //HelpText = "Output file path")]

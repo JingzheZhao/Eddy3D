@@ -302,7 +302,60 @@ namespace EddyLib
 
         }
 
+        public static List<int> ExportEvaluationHours(List<string> LBanalysis)
+        {
+            List<int> hoursToEvaluate = new List<int>();
 
+            int month_start = int.Parse(LBanalysis[0].Split(',')[0].Split('(')[1]) - 1;
+            var month_end = int.Parse(LBanalysis[1].Split(',')[0].Split('(')[1]);
+            var day_start = int.Parse(LBanalysis[0].Split(',')[1]) - 1;
+            var day_end = int.Parse(LBanalysis[1].Split(',')[1]);
+            var hour_start = int.Parse(LBanalysis[0].Split(',')[2].Split(')')[0]) - 1;
+            var hour_end = int.Parse(LBanalysis[1].Split(',')[2].Split(')')[0]);
+
+            if (month_end > 12) { month_end = 12; }
+            if (day_end > 31) { day_end = 31; }
+            if (hour_end > 24) { hour_end = 24; }
+
+            int cnt = 0;
+
+            var hours = hour_end - hour_start;
+
+            for (int m = 0; m < 12; m++) // 0-11
+            {
+                for (int d = 0; d < 31; d++) // 0-30
+                {
+                    for (int h = 0; h < 24; h++) // 0-23
+                    {
+                        // Check if already gone through month          
+
+                        if (m == 2 && d > 27) { continue; }
+
+                        else if ((m == 4 || m == 6 || m == 9 || m == 10) && d > 29) { continue; }
+                        //
+
+                        cnt++;
+                        // Fill list
+
+                        if (m >= month_start && m < month_end && d >= day_start && d < day_end && h >= hour_start && h < hour_end)
+                        {
+                            hoursToEvaluate.Add(cnt);
+                        }
+
+
+
+
+                    }
+                }
+            }
+
+
+
+
+
+            return hoursToEvaluate;
+
+        }
 
         public static bool CheckLicence()
         {

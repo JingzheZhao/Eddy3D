@@ -1,19 +1,11 @@
-﻿using System;
+﻿using Eddy.Properties;
+using EddyLib;
+using Grasshopper.Kernel;
+using Grasshopper.Kernel.Types;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using Grasshopper.Kernel;
-using Rhino.Geometry;
-using System.Text;
 using System.Linq;
-using Grasshopper.Kernel.Parameters;
-using System.Diagnostics;
-using Grasshopper.Kernel.Types;
-using System.Text.RegularExpressions;
-using Grasshopper;
-using EddyLib;
-using Eddy.Properties;
-using System.Threading.Tasks;
-using Microsoft.VisualBasic.FileIO;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -24,8 +16,6 @@ namespace Eddy
 {
     public class ReadComfortHours : GH_Component
     {
-
-
 
 
         /// <summary>
@@ -90,13 +80,21 @@ namespace Eddy
 
             bool Run = false;
 
-
-            DA.GetData(1, ref Run);
-
-            int annualHours = 8760;
+            //int annualHours = 8760;
 
             List<string> dateTimeInput = new List<string>();
 
+            // Get interval
+
+            DA.GetDataList(1, dateTimeInput);
+
+            var ladybugAnalysisPeriod = dateTimeInput;
+
+            
+
+            DA.GetData(2, ref Run);
+
+            
 
             if (!Run)
             {
@@ -109,62 +107,66 @@ namespace Eddy
             var path = DOM.baseWorkingDirectory + @"\UTCI.csv";
             List<double> ComfortHoursList = new List<double>();
 
+                        
 
-
-            using (Microsoft.VisualBasic.FileIO.TextFieldParser csvParser = new Microsoft.VisualBasic.FileIO.TextFieldParser(path))
+            if (ladybugAnalysisPeriod == null || ladybugAnalysisPeriod.Count != 2)
             {
-                csvParser.CommentTokens = new string[] { "#" };
-                csvParser.SetDelimiters(new string[] { "," });
-                csvParser.HasFieldsEnclosedInQuotes = false;
-
-                // Skip the row with the column names
-                //csvParser.ReadLine();
-                int cnt = 0;
-
-
-                while (!csvParser.EndOfData)
-                {
-                    // Read current line fields, pointer moves to the next line.
-                    string[] fields = csvParser.ReadFields();
-
-
-
-                    int comfortCnt = 0;
-
-                    for (int i = 0; i < annualHours; i++)
-                    {
-                        //UTCITree.Add(double.Parse(fields[i]), new Grasshopper.Kernel.Data.GH_Path(cnt));
-                        //HumanConditionsTree.Add(UTCI.GetConditionOfPerson(double.Parse(fields[i])), new Grasshopper.Kernel.Data.GH_Path(cnt));
-
-                        if (UTCI.GetConditionOfPerson(double.Parse(fields[i])) == 0)
-                        {
-                            comfortCnt++;
-                        }
-
-
-                    }
-
-                    double cmftPercentage = Math.Round((double)comfortCnt * 100 / 8760, 1);
-
-                    ComfortHoursList.Add(cmftPercentage);
-
-                    cnt++;
-                }
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid analysis periode object."); return;
             }
 
+                       
 
-            DA.SetDataList(0, ComfortHoursList);
+            var allLines = File.ReadAllLines(DOM.baseWorkingDirectory + @"\UTCI.csv");
+            var numberOfProbes = allLines.Count();
 
 
+            // Fill array once; fastest method so far
 
+            double[,] HourlyUTCI = new double[numberOfProbes, 8760];
+            //double[,] HourlyHumanConditions = new double[numberOfProbes, 8760];
+            double[] ComfortHours = new double[numberOfProbes];
+
+            System.Threading.Tasks.Parallel.For(0, numberOfProbes,
+              i =>
+              {
+
+                  for (int h = 0; h < 8760; h++)
+                  {
+                      HourlyUTCI[i, h] = double.Parse(allLines[i].Split(',')[h]);
+                  }
+
+
+              });
+
+            var hoursToEvaluate = Utilities.ExportEvaluationHours(ladybugAnalysisPeriod);
+
+            //System.Threading.Tasks.Parallel.For(0, numberOfProbes,
+            //  i =>
+            //  {
+
+            for (int probes = 0; probes < numberOfProbes; probes++)
+            {
+
+            
+                  int comfortCnt = 0;
+                  foreach (int hour in hoursToEvaluate)
+                  {
+                      if (UTCI.GetConditionOfPerson(HourlyUTCI[probes, hour]) == 0)
+                      {
+                          //HourlyHumanConditions[i,hour]=UTCI.GetConditionOfPerson(HourlyUTCI[i, hour]);
+                          comfortCnt++;
+
+                      }
+
+                  }
+                  ComfortHours[probes] = Math.Round((double)comfortCnt * 100 / hoursToEvaluate.Count, 1);
+                //});
+            }
+
+            DA.SetDataList(0, ComfortHours);
 
 
         }
-
-
-
-
-
 
 
 
@@ -173,25 +175,15 @@ namespace Eddy
         /// Provides an Icon for every component that will be visible in the User Interface.
         /// Icons need to be 24x24 pixels.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
+        protected override System.Drawing.Bitmap Icon =>
                 // You can add image files to your project resources and access them like this:
-                return Resources.Eddy_parseU;
-            }
-        }
+                Resources.Eddy_parseU;
 
         /// <summary>
         /// Each component must have a unique Guid to identify it. 
         /// It is vital this Guid doesn't change otherwise old ghx files 
         /// that use the old ID will partially fail during loading.
         /// </summary>
-        public override Guid ComponentGuid
-        {
-            get { return new Guid("{91BD9BAF-A114-4062-AA82-30E9C82CE36E}"); }
-        }
+        public override Guid ComponentGuid => new Guid("{91BD9BAF-A114-4062-AA82-30E9C82CE36E}");
     }
 }
-
-

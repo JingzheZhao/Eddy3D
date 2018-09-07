@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
 
 
 namespace EddyLib
@@ -36,7 +33,10 @@ namespace EddyLib
         {
             try
             {
-                if (Directory.Exists(targetPath) == false) Directory.CreateDirectory(targetPath);
+                if (Directory.Exists(targetPath) == false)
+                {
+                    Directory.CreateDirectory(targetPath);
+                }
 
                 //if (Directory.GetFiles(targetPath, "*.wea").Length > 0)
                 //{
@@ -60,18 +60,22 @@ namespace EddyLib
 
 
 
-                ProcessStartInfo processInfo = new ProcessStartInfo();
-                processInfo.Arguments = arguments;
-                processInfo.FileName = DaysimInstallation + @"\epw2wea";
-                processInfo.WorkingDirectory = DaysimInstallation;
-                processInfo.UseShellExecute = false;
-                processInfo.RedirectStandardOutput = true;
-                processInfo.RedirectStandardError = true;
-                processInfo.CreateNoWindow = true;
+                ProcessStartInfo processInfo = new ProcessStartInfo
+                {
+                    Arguments = arguments,
+                    FileName = DaysimInstallation + @"\epw2wea",
+                    WorkingDirectory = DaysimInstallation,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
 
 
-                Process p = new Process();
-                p.StartInfo = processInfo;
+                Process p = new Process
+                {
+                    StartInfo = processInfo
+                };
                 // p.OutputDataReceived += DebugLog.CaptureOutput;
                 // p.ErrorDataReceived += DebugLog.CaptureError;
 
@@ -103,7 +107,7 @@ namespace EddyLib
                 Debug.WriteLine("SetWeather failed");
             }
         }
-        public static void RunDaysim( DaysimSettings setCon)
+        public static void RunDaysim(DaysimSettings setCon)
         {
             Regex re = new Regex(@"\@(\w+)\@", RegexOptions.Compiled);
             try
@@ -220,7 +224,7 @@ namespace EddyLib
 
 
 
-              
+
                 try
                 {
                     string output = re.Replace(HEACONTENT, match => args[match.Groups[1].Value]);
@@ -229,7 +233,7 @@ namespace EddyLib
                     System.IO.File.WriteAllText(workingDir + @"\" + varianten_name + @".hea", output);
                     System.IO.File.WriteAllText(workingDir + @"\" + varianten_name + @".dif.hea", output_DIF);
                 }
-                catch (Exception e) { Console.WriteLine("hea file error " + e.Message +"  "+ workingDir + @"\" + varianten_name + @".hea"); }
+                catch (Exception e) { Console.WriteLine("hea file error " + e.Message + "  " + workingDir + @"\" + varianten_name + @".hea"); }
 
 
 
@@ -246,8 +250,10 @@ namespace EddyLib
 
 
                 //run the daysim radiance executables
-                ProcessStartInfo startInfo = new ProcessStartInfo();
-                startInfo.WorkingDirectory = DaysimInstallation;
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    WorkingDirectory = DaysimInstallation
+                };
 
 
                 string pathvar2 = startInfo.EnvironmentVariables["PATH"];

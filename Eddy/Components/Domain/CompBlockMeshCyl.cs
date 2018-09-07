@@ -1,15 +1,11 @@
-﻿using System;
+﻿using EddyLib;
+using Grasshopper.Kernel;
+using Grasshopper.Kernel.Types;
+using Microsoft.VisualBasic.Devices;
+using Rhino.Geometry;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using Grasshopper.Kernel;
-using Rhino.Geometry;
-using System.Text;
-using Grasshopper.Kernel.Parameters;
-using System.Diagnostics;
-using System.Threading;
-using Microsoft.VisualBasic.Devices;
-using Grasshopper.Kernel.Types;
-using EddyLib;
 
 
 // In order to load the result of this wizard, you will also need to
@@ -112,7 +108,10 @@ namespace Eddy
             List<GeometryBase> domain = new List<GeometryBase>();
             foreach (var g in _domain)
             {
-                if (g != null) domain.Add(g);
+                if (g != null)
+                {
+                    domain.Add(g);
+                }
             }
 
 
@@ -136,7 +135,7 @@ namespace Eddy
 
             //int mode = 0;
             //int baseMesh = 0;
-            
+
             int CPUs = 1;
             double windDir = 0;
             int divisionsOuterCirc = 1;
@@ -210,8 +209,10 @@ namespace Eddy
                 {
                     Brep obj = (Brep)b;
                     var m = Mesh.CreateFromBrep(obj, mp);
-                    foreach (Mesh mm in m) combinedMeshes.Append(mm);
-
+                    foreach (Mesh mm in m)
+                    {
+                        combinedMeshes.Append(mm);
+                    }
                 }
 
 
@@ -258,10 +259,10 @@ namespace Eddy
                 }
 
 
-                OFCylDomain DOMCYL = new OFCylDomain(inputBreps, combinedMeshes, BCond, divisionsOuterCirc, gradingPerim, divPerim, windDir, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory);
-
-
-                DOMCYL.CPU = CPUs;
+                OFCylDomain DOMCYL = new OFCylDomain(inputBreps, combinedMeshes, BCond, divisionsOuterCirc, gradingPerim, divPerim, windDir, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory)
+                {
+                    CPU = CPUs
+                };
                 if (CPUs == -1)
                 {
                     DOMCYL.autoCPUCalc = true;
@@ -418,25 +419,17 @@ void plastic Generic_20
         /// Provides an Icon for every component that will be visible in the User Interface.
         /// Icons need to be 24x24 pixels.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
+        protected override System.Drawing.Bitmap Icon =>
                 // You can add image files to your project resources and access them like this:
                 //return Resources.IconForThisComponent;
-                return Properties.Resources.Eddy_domCyl;
-            }
-        }
+                Properties.Resources.Eddy_domCyl;
 
         /// <summary>
         /// Each component must have a unique Guid to identify it. 
         /// It is vital this Guid doesn't change otherwise old ghx files 
         /// that use the old ID will partially fail during loading.
         /// </summary>
-        public override Guid ComponentGuid
-        {
-            get { return new Guid("{DDB7971A-EBAD-4A6F-8BFB-E77FE24F73BD}"); }
-        }
+        public override Guid ComponentGuid => new Guid("{DDB7971A-EBAD-4A6F-8BFB-E77FE24F73BD}");
     }
 
 }

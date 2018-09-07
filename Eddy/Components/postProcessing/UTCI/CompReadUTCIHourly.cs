@@ -49,12 +49,12 @@ namespace Eddy
         {
             pManager.AddGenericParameter("Simulation", "Sim", "Sim", GH_ParamAccess.item);
 
-            pManager.AddTextParameter("Interval", "Int", "Interval to be avaluated. May either be a single hour (mode 1) or a Ladybug analysisPeriod (mode 2).", GH_ParamAccess.list);
+            pManager.AddTextParameter("Interval", "Int", "It may either be a single hour or a multiline Ladybug analysisPeriod formatted as (6, 15, 1) (6, 15, 24) for beginning and end respectively.", GH_ParamAccess.list);
 
-            pManager.AddIntegerParameter("Mode", "Mode", "Interval to be used for evaluation. It may either be a single hour (mode 1) or a multiline Ladybug analysisPeriod formatted as (6, 15, 1) (6, 15, 24) for beginning and end respectively (mode 2).", GH_ParamAccess.item, 0);
-            Param_Integer evaluationMode = pManager[2] as Param_Integer;
-            evaluationMode.AddNamedValue("single hour", 0);
-            evaluationMode.AddNamedValue("LB analysisPeriod", 1);
+            //pManager.AddIntegerParameter("Mode", "Mode", "Interval to be used for evaluation. It may either be a single hour (mode 1) or a multiline Ladybug analysisPeriod formatted as (6, 15, 1) (6, 15, 24) for beginning and end respectively (mode 2).", GH_ParamAccess.item, 0);
+            //Param_Integer evaluationMode = pManager[2] as Param_Integer;
+            //evaluationMode.AddNamedValue("single hour", 0);
+            //evaluationMode.AddNamedValue("LB analysisPeriod", 1);
 
             pManager.AddBooleanParameter("Run", "Run", "Run the component", GH_ParamAccess.item, false);
 
@@ -102,13 +102,15 @@ namespace Eddy
 
             bool Run = false;
 
-            int evaluationMode = 0;
-            DA.GetData(2, ref evaluationMode);
+            //int evaluationMode = 0;
+            //DA.GetData(2, ref evaluationMode);
 
 
             List<string> dateTimeInput = new List<string>();
+            DA.GetDataList(1, dateTimeInput);
 
-            DA.GetData(3, ref Run);
+
+            DA.GetData(2, ref Run);
 
             int annualHours = 8760;
 
@@ -117,7 +119,7 @@ namespace Eddy
             if (!Run) { return; }
 
 
-            if (evaluationMode == 0)
+            if (dateTimeInput.Count == 1)
             {
 
                 //if (!DA.GetDataList(1, gobj2)) { }
@@ -128,7 +130,7 @@ namespace Eddy
                 //}
                 //if (IntervalAsNumber == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
-                DA.GetDataList(1, dateTimeInput);
+                
 
                 var IntervalAsNumber = (int)double.Parse(dateTimeInput[0]);
 
@@ -139,10 +141,10 @@ namespace Eddy
                 //}
 
 
-                if (dateTimeInput.Count > 1)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please connect a number slider that represent 8760 hours of the year as a maximum range."); return;
-                }
+                //if (dateTimeInput.Count > 1)
+                //{
+                //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please connect a number slider that represent 8760 hours of the year as a maximum range."); return;
+                //}
 
                 var path = DOM.baseWorkingDirectory + @"\UTCI.csv";
 
@@ -166,7 +168,7 @@ namespace Eddy
             }
 
 
-            if (evaluationMode == 1)
+            if (dateTimeInput.Count == 2)
             {
 
                 //// Fill datatrees from CSV
@@ -190,7 +192,7 @@ namespace Eddy
                 //}
                 //if (IntervalAsString == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid Int object"); return; }
 
-                DA.GetDataList(1, dateTimeInput);
+                //DA.GetDataList(1, dateTimeInput);
 
                 var ladybugAnalysisPeriod = dateTimeInput;
 
@@ -209,7 +211,6 @@ namespace Eddy
 
                 // -1 because of python
 
-
                 int month_start = int.Parse(ladybugAnalysisPeriod[0].Split(',')[0].Split('(')[1]) - 1;
                 var month_end = int.Parse(ladybugAnalysisPeriod[1].Split(',')[0].Split('(')[1]);
                 var day_start = int.Parse(ladybugAnalysisPeriod[0].Split(',')[1]) - 1;
@@ -220,6 +221,8 @@ namespace Eddy
 
 
                 var hours = hour_end - hour_start;
+
+                // Fill array once
 
                 double[,] HourlyUTCI = new double[numberOfProbes, hours];
 
@@ -242,7 +245,7 @@ namespace Eddy
                 var valueHour = new DataTree<double>();
 
 
-                // Fill datatrees
+                // Fill datatrees from array that has been filled before
 
                 for (int m = month_start; m < month_end; m++)
                 {
@@ -338,7 +341,7 @@ namespace Eddy
                 //DA.SetDataTree(1, UTCITree);
                 //DA.SetDataTree(2, HumanConditionsTree);
                 //DA.SetDataList(3, ComfortHoursList);
-                DA.SetData(2, uncertaintyVal);
+                DA.SetData(1, uncertaintyVal);
 
 
             }
