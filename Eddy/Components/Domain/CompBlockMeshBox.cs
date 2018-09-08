@@ -50,7 +50,7 @@ namespace Eddy
             //pManager.AddGenericParameter("RAM", "RAM", "RAM", GH_ParamAccess.item);
             pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
 
-            pManager.AddBooleanParameter("Clean", "Clean", "Clean", GH_ParamAccess.item, false);
+            //pManager.AddBooleanParameter("Clean", "Clean", "Clean", GH_ParamAccess.item, false);
 
 
             pManager[2].Optional = true;
@@ -81,7 +81,7 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-            bool Run = false;
+       
 
 
 
@@ -117,7 +117,7 @@ namespace Eddy
             DA.GetData(4, ref blockDimension);
             //DA.GetData(4, ref RAM);
             DA.GetData(5, ref CPUs);
-            DA.GetData(6, ref Run);
+            //DA.GetData(6, ref Run);
 
 
 
@@ -163,11 +163,7 @@ namespace Eddy
 
                 }
             }
-
-
-
-
-
+                                          
 
 
             if (geometries == null)
@@ -233,6 +229,7 @@ namespace Eddy
                 //Fix paths
 
                 baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
+
 
 
                 OFBoxDomain DOMBOX = new OFBoxDomain(inputBreps, combinedMeshes, terrainMeshes, BCond, blockDimension, baseWorkingDirectory);
@@ -418,26 +415,16 @@ void plastic Generic_20
                 //AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Super!!");
 
 
+
+
+
+
                 DA.SetData(1, DOMBOX);
                 //if (mode == 0)
                 //{
                 DA.SetData(2, DOMBOX.newBoxDomain);
 
 
-                if (Run == true)
-                {
-                    /*
-                    ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir+@"\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
-                    Process p = new Process();
-                    p.StartInfo = psi;
-                    p.Start();
-                    p.WaitForExit();
-                    //Thread.Sleep(500);
-                    */
-
-
-
-                }
 
             }
             else

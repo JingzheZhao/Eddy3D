@@ -67,7 +67,7 @@ namespace Eddy
             //pManager.AddIntegerParameter("RAM", "RAM", "RAM", GH_ParamAccess.item, 2000);
             pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
 
-            pManager.AddBooleanParameter("Clean", "Clean", "Clean", GH_ParamAccess.item, false);
+            //pManager.AddBooleanParameter("Clean", "Clean", "Clean", GH_ParamAccess.item, false);
 
         }
 
@@ -96,7 +96,7 @@ namespace Eddy
 
 
             //string filepath = @"C:\OF\";
-            bool Run = false;
+            //bool Run = false;
             //  string command = @"blockMesh";
             string baseWorkingDirectory = "";
 
@@ -137,7 +137,6 @@ namespace Eddy
             //int baseMesh = 0;
 
             int CPUs = 1;
-            double windDir = 0;
             int divisionsOuterCirc = 1;
             int gradingPerim = 1;
             int divPerim = 1;
@@ -161,7 +160,7 @@ namespace Eddy
 
             //DA.GetData(6, ref RAM);
             DA.GetData(9, ref CPUs);
-            DA.GetData(10, ref Run);
+            //DA.GetData(10, ref Run);
 
 
             //OFDomainBuilder DOM = new OFDomainBuilder(domain, workingDirectory, baseMesh);
@@ -242,7 +241,7 @@ namespace Eddy
 
             if (Utilities.CheckLicence() == true)
             {
-
+               
                 // Check if Docker is running
 
                 Utilities.WriteDockerInfo(baseWorkingDirectory);
@@ -259,7 +258,7 @@ namespace Eddy
                 }
 
 
-                OFCylDomain DOMCYL = new OFCylDomain(inputBreps, combinedMeshes, BCond, divisionsOuterCirc, gradingPerim, divPerim, windDir, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory)
+                OFCylDomain DOMCYL = new OFCylDomain(inputBreps, combinedMeshes, BCond, divisionsOuterCirc, gradingPerim, divPerim, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory)
                 {
                     CPU = CPUs
                 };
@@ -373,10 +372,10 @@ void plastic Generic_20
 
 
 
-                if (Run == true)
-                {
+                //if (Run == true)
+                //{
             
-                }
+                //}
 
                 DA.SetData(1, DOMCYL);
                 DA.SetData(2, DOMCYL.DomainMesh);

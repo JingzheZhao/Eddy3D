@@ -227,6 +227,9 @@ namespace EddyLib
             this.autoCPUCalc = false;
 
 
+          
+
+
         }
 
         public override string ToString()

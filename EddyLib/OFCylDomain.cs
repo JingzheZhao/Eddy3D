@@ -55,7 +55,7 @@ namespace EddyLib
 
 
 
-        public OFCylDomain(Brep inputBreps, Mesh geometry, BoundaryConditions BCond, int divOuterCircle, int gradingPerim, int divPerim ,double windDir, int _CPU, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0, string baseWorkingDirectory = @"C:\temp")
+        public OFCylDomain(Brep inputBreps, Mesh geometry, BoundaryConditions BCond, int divOuterCircle, int gradingPerim, int divPerim, int _CPU, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0, string baseWorkingDirectory = @"C:\temp")
         {
             this.gradingPerim = gradingPerim;
 

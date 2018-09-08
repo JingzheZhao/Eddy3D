@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using Grasshopper.Kernel;
-using Rhino.Geometry;
-using System.Text;
-using Grasshopper.Kernel.Parameters;
-using System.Diagnostics;
-using Grasshopper.Kernel.Types;
+﻿using Eddy.Properties;
 using EddyLib;
-using Eddy.Properties;
+using Grasshopper.Kernel;
+using Grasshopper.Kernel.Parameters;
+using Grasshopper.Kernel.Types;
+using System;
+using System.IO;
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
 // folder in Grasshopper.
@@ -63,7 +59,7 @@ namespace Eddy
             //pManager.AddGenericParameter("Type", "Bcond", "", GH_ParamAccess.item);
 
 
-          //  pManager.AddBooleanParameter("Clean", "Clean", "Run the solver.", GH_ParamAccess.item, false);
+            //  pManager.AddBooleanParameter("Clean", "Clean", "Run the solver.", GH_ParamAccess.item, false);
 
         }
 
@@ -85,7 +81,7 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             //string filepath = @"C:\OF\";
-            
+
 
 
 
@@ -129,7 +125,7 @@ namespace Eddy
             DA.GetData(4, ref turb);
             DA.GetData(5, ref mode);
 
-           // DA.GetData(6, ref Run);
+            // DA.GetData(6, ref Run);
 
             //Make sure that all fields are always written
             if (iter < writeInterval)
@@ -143,7 +139,7 @@ namespace Eddy
 
             DOM.turbulenceModel = turb;
 
-            
+
 
 
 
@@ -203,16 +199,25 @@ namespace Eddy
                 File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\system\" + "controlDict"), StringTemplates.ControlDict(DOM, null, i));
                 File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\case.foam"), "");
 
-                // Symbolic dir junctions
-                if (Directory.Exists(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\constant\polyMesh"))
-                {
-                    SymlinkCreator.Delete(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\constant\polyMesh");
-                    SymlinkCreator.Create(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\constant\polyMesh", DOM.meshConstantDirectory + @"\polyMesh");
-                }
-                else
-                {
-                    SymlinkCreator.Create(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\constant\polyMesh", DOM.meshConstantDirectory + @"\polyMesh");
-                }
+                // Not working currently: Symbolic dir junctions only for cylindrical domain, and, if they exist, delete them for boxDomain
+
+                //if (DOM is OFCylDomain)
+                //{
+                    if (Directory.Exists(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\constant\polyMesh"))
+                    {
+                        SymlinkCreator.Delete(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\constant\polyMesh");
+                        SymlinkCreator.Create(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\constant\polyMesh", DOM.meshConstantDirectory + @"\polyMesh");
+                    }
+                    else
+                    {
+                        SymlinkCreator.Create(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\constant\polyMesh", DOM.meshConstantDirectory + @"\polyMesh");
+                    }
+                //}
+                //else
+                //{
+                //    SymlinkCreator.Delete(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\constant\polyMesh");
+                //}
+
 
 
 
@@ -360,15 +365,34 @@ namespace Eddy
             }
 
 
-            //Batch files
+            ////Batch files depending on type
 
 
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_mesh.bat"), StringTemplates.Run_mesh(DOM));
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run.bat"), StringTemplates.Run(DOM));
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_sim_all.bat"), StringTemplates.RunSimOnly(DOM));
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_ray.bat"), StringTemplates.Run_RayTrace(DOM));
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_probes.bat"), StringTemplates.Run_Probes(DOM));
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_utci.bat"), StringTemplates.Run_UTCI(DOM));
+            //if (DOM is OFBoxDomain)
+            //{
+
+            //    for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
+            //    {
+            //        File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_mesh_" + DOM.BCInflow.windDir[i] + @".bat"), StringTemplates.Run_Mesh_Box(DOM, i));
+            //    }
+            //    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run.bat"), StringTemplates.Run(DOM));
+            //    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_sim_all.bat"), StringTemplates.RunSimOnly(DOM));
+            //    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_ray.bat"), StringTemplates.Run_RayTrace(DOM));
+            //    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_probes.bat"), StringTemplates.Run_Probes(DOM));
+            //    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_utci.bat"), StringTemplates.Run_UTCI(DOM));
+            //}
+            //else
+            //{
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_mesh.bat"), StringTemplates.Run_Mesh_Cyl(DOM));
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run.bat"), StringTemplates.Run(DOM));
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_sim_all.bat"), StringTemplates.RunSimOnly(DOM));
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_ray.bat"), StringTemplates.Run_RayTrace(DOM));
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_probes.bat"), StringTemplates.Run_Probes(DOM));
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_utci.bat"), StringTemplates.Run_UTCI(DOM));
+            //}
+
+
+
 
 #if DEBUG
             File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_blockMesh.bat"), StringTemplates.BlockMesh(DOM));
@@ -397,24 +421,15 @@ namespace Eddy
         /// Provides an Icon for every component that will be visible in the User Interface.
         /// Icons need to be 24x24 pixels.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
+        protected override System.Drawing.Bitmap Icon =>
                 // You can add image files to your project resources and access them like this:
-                return Resources.Eddy_foam;
-                //return null;
-            }
-        }
+                Resources.Eddy_foam;//return null;
 
         /// <summary>
         /// Each component must have a unique Guid to identify it. 
         /// It is vital this Guid doesn't change otherwise old ghx files 
         /// that use the old ID will partially fail during loading.
         /// </summary>
-        public override Guid ComponentGuid
-        {
-            get { return new Guid("{7FF4A70C-DB4E-473C-BDC0-606CE58A979A}"); }
-        }
+        public override Guid ComponentGuid => new Guid("{7FF4A70C-DB4E-473C-BDC0-606CE58A979A}");
     }
 }
