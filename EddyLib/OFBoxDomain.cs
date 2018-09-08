@@ -130,7 +130,20 @@ namespace EddyLib
             Interval yInterPerim2 = new Interval(scaleRectDomainX, scaleRectDomainYDownstream);
 
 
-            Interval zInter = new Interval(0, scaleRectDomainZ);
+            Interval zInter;
+            if (terrain.DisjointMeshCount == 0)
+            {
+                zInter = new Interval(0, scaleRectDomainZ);
+            }
+            else
+            {
+                var bboxTerrain = terrain.GetBoundingBox(true);
+                zInter = new Interval(bboxTerrain.Max.Z, scaleRectDomainZ);
+            }
+                
+
+            // If terrain is used, scale down Z to make sure all points are inside the domain
+
 
 
 
