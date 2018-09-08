@@ -138,7 +138,7 @@ namespace EddyLib
             else
             {
                 var bboxTerrain = terrain.GetBoundingBox(true);
-                zInter = new Interval(bboxTerrain.Max.Z, scaleRectDomainZ);
+                zInter = new Interval(bboxTerrain.Min.Z-0.1, scaleRectDomainZ);
             }
                 
 
