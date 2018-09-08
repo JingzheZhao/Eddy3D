@@ -375,35 +375,36 @@ void plastic Generic_20
 
                 if (Run == true)
                 {
-                    /*              
-                  //ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory +@"\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
-                  ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir+@"\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
-                  Process p = new Process();
-                  p.StartInfo = psi;
-                  p.Start();
-                  p.WaitForExit();
-                  //Thread.Sleep(500);
-                  */
-
-
-                    string logFile = "";
-
-                    using (FileStream stream = File.Open(baseWorkingDirectory + @"\mesh\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                    {
-                        using (StreamReader reader = new StreamReader(stream))
-                        {
-                            logFile = reader.ReadToEnd();
-
-                        }
-                    }
-
-                    DA.SetData(0, logFile);
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Super!!");
-
+            
                 }
 
                 DA.SetData(1, DOMCYL);
                 DA.SetData(2, DOMCYL.DomainMesh);
+
+                /*              
+          //ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory +@"\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
+          ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir+@"\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
+          Process p = new Process();
+          p.StartInfo = psi;
+          p.Start();
+          p.WaitForExit();
+          //Thread.Sleep(500);
+          */
+
+
+                string logFile = "";
+
+                using (FileStream stream = File.Open(baseWorkingDirectory + @"\mesh\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    using (StreamReader reader = new StreamReader(stream))
+                    {
+                        logFile = reader.ReadToEnd();
+
+                    }
+                }
+
+                DA.SetData(0, logFile);
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Super!!");
 
 
             }

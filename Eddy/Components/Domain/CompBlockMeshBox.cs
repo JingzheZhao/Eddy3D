@@ -1,15 +1,10 @@
-﻿using System;
+﻿using EddyLib;
+using Grasshopper.Kernel;
+using Grasshopper.Kernel.Types;
+using Rhino.Geometry;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using Grasshopper.Kernel;
-using Rhino.Geometry;
-using System.Text;
-using Grasshopper.Kernel.Parameters;
-using System.Diagnostics;
-using System.Threading;
-using Microsoft.VisualBasic.Devices;
-using Grasshopper.Kernel.Types;
-using EddyLib;
 
 
 // In order to load the result of this wizard, you will also need to
@@ -45,7 +40,8 @@ namespace Eddy
             pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, @"C:\temp");
 
             pManager.AddBrepParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
-            pManager.AddGeometryParameter("Terrain", "Terrain", "Terrain Geometry.", GH_ParamAccess.list);
+            pManager.AddGeometryParameter("Terrain", "Terrain", "Terrain Geometry. Make sure the terrain geometry is bigger than the ground plane of the wind tunnel.", GH_ParamAccess.list);
+
 
             pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.item);
 
@@ -56,6 +52,8 @@ namespace Eddy
 
             pManager.AddBooleanParameter("Clean", "Clean", "Clean", GH_ParamAccess.item, false);
 
+
+            pManager[2].Optional = true;
         }
 
         /// <summary>
@@ -65,7 +63,7 @@ namespace Eddy
         {
             pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.item);
             pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
-            pManager.AddGenericParameter("B", "B", "Domain", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Box", "Box", "Domain", GH_ParamAccess.item);
 
             ////Delete later
             //pManager.AddGenericParameter("D", "D", "D", GH_ParamAccess.item);
@@ -88,32 +86,25 @@ namespace Eddy
 
 
             //public Box DomainBoundaryBox;
-            List<GeometryBase> domain = new List<GeometryBase>();
+            List<GeometryBase> geometries = new List<GeometryBase>();
             string baseWorkingDirectory = "";
 
             List<GeometryBase> terrain = new List<GeometryBase>();
 
-            DA.GetDataList(1, domain);
-            DA.GetDataList(2, terrain);
+
 
             DA.GetData(0, ref baseWorkingDirectory);
 
-
+            DA.GetDataList(1, geometries);
+            DA.GetDataList(2, terrain);
 
             double blockDimension = 0;
             //    double RAM = 0;
             int CPUs = 1;
 
-
-            DA.GetData(3, ref blockDimension);
-            //DA.GetData(4, ref RAM);
-            DA.GetData(4, ref CPUs);
-            DA.GetData(5, ref Run);
-
             BoundaryConditions BCond;
             GH_ObjectWrapper gobj = null;
-            if (!DA.GetData(2, ref gobj)) { }
-
+            if (!DA.GetData(3, ref gobj)) { }
 
             if ((gobj.Value is BoundaryConditions))
             {
@@ -122,10 +113,18 @@ namespace Eddy
             else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid boundary condition object"); return; }
 
 
+
+            DA.GetData(4, ref blockDimension);
+            //DA.GetData(4, ref RAM);
+            DA.GetData(5, ref CPUs);
+            DA.GetData(6, ref Run);
+
+
+
             Mesh combinedMeshes = new Mesh();
             MeshingParameters mp = new MeshingParameters();
 
-            Mesh terrainMeshes = new Mesh();
+
 
 
             if (BCond.windDir.Count > 1)
@@ -134,7 +133,14 @@ namespace Eddy
             }
 
 
-            if (terrain != null)
+            Mesh terrainMeshes = new Mesh();
+
+            if (terrain.Count == 0)
+            {
+               // AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "If you don't provide a terrain, Eddy will use a standard ground plane."); return;
+
+            }
+            else // (terrain.Count > 0)
             {
                 foreach (GeometryBase b in terrain)
                 {
@@ -148,26 +154,29 @@ namespace Eddy
                     {
                         Brep obj = (Brep)b;
                         var m = Mesh.CreateFromBrep(obj, mp);
-                        foreach (Mesh mm in m) terrainMeshes.Append(mm);
-
+                        foreach (Mesh mm in m)
+                        {
+                            terrainMeshes.Append(mm);
+                        }
                     }
 
 
                 }
             }
 
-       
 
 
 
 
-            if (domain == null)
+
+
+            if (geometries == null)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please reference an input geometry."); return;
             }
             else
             {
-                foreach (GeometryBase b in domain)
+                foreach (GeometryBase b in geometries)
                 {
 
                     if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
@@ -179,8 +188,10 @@ namespace Eddy
                     {
                         Brep obj = (Brep)b;
                         var m = Mesh.CreateFromBrep(obj, mp);
-                        foreach (Mesh mm in m) combinedMeshes.Append(mm);
-
+                        foreach (Mesh mm in m)
+                        {
+                            combinedMeshes.Append(mm);
+                        }
                     }
 
 
@@ -191,7 +202,7 @@ namespace Eddy
 
             Brep inputBreps = new Brep();
 
-            foreach (GeometryBase g in domain)
+            foreach (GeometryBase g in geometries)
             {
 
                 inputBreps.Append(Brep.TryConvertBrep(g));
@@ -321,10 +332,17 @@ namespace Eddy
                 }
 
 
+                // STL export
+
                 STLExport.ExportBinary(meshStlFilenameBuildings, combinedMeshes);
 
-                if (terrain != null)
+                                         
+
+
+                if (terrain.Count > 0)
                 {
+                    //No perim if we use a terrain
+                    DOMBOX.newBoxGround.Translate(Vector3d.ZAxis * 0.001);
                     STLExport.ExportBinary(meshStlFilenameGround, DOMBOX.newBoxGround);
                 }
                 else
@@ -332,6 +350,8 @@ namespace Eddy
                     STLExport.ExportBinary(meshStlFilenameGround, DOMBOX.newBoxGround);
                     STLExport.ExportBinary(meshStlFilenameGroundPerim, DOMBOX.newBoxGroundPerim);
                 }
+
+              
 
 
 
@@ -379,6 +399,29 @@ void plastic Generic_20
                 RadianceFiles.MeshProc(daysimMesh, DOMBOX.baseWorkingDirectory + @"Rad\scene.rad", "Generic_20");
 
 
+                string logFile = "";
+
+                using (FileStream stream = File.Open(baseWorkingDirectory + @"\mesh\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    using (StreamReader reader = new StreamReader(stream))
+                    {
+                        logFile = reader.ReadToEnd();
+                        //while (!reader.EndOfStream)
+                        //{
+
+                        //}
+
+                    }
+                }
+
+                DA.SetData(0, logFile);
+                //AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Super!!");
+
+
+                DA.SetData(1, DOMBOX);
+                //if (mode == 0)
+                //{
+                DA.SetData(2, DOMBOX.newBoxDomain);
 
 
                 if (Run == true)
@@ -392,48 +435,9 @@ void plastic Generic_20
                     //Thread.Sleep(500);
                     */
 
-                    string logFile = "";
 
-                    using (FileStream stream = File.Open(baseWorkingDirectory + @"\mesh\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                    {
-                        using (StreamReader reader = new StreamReader(stream))
-                        {
-                            logFile = reader.ReadToEnd();
-                            //while (!reader.EndOfStream)
-                            //{
 
-                            //}
-
-                        }
-                    }
-
-                    DA.SetData(0, logFile);
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Super!!");
-
-                    // OFLaunch.Run(command, StringTemplates.filePath);
                 }
-                //else
-                //{
-                //    return;
-                //}
-
-                DA.SetData(1, DOMBOX);
-                //if (mode == 0)
-                //{
-                DA.SetData(2, DOMBOX.newBoxDomain);
-
-                ////Delete later
-                //DA.SetData(3, DOM.pl);
-                //DA.SetData(4, DOM.plGround);
-                ////DA.SetData(5, DOM.);
-                ////Delete later
-
-
-                //}
-                //else
-                //{
-                //    DA.SetData(2, DOM.newCylindricalDomain);
-                //}
 
             }
             else
@@ -448,25 +452,17 @@ void plastic Generic_20
         /// Provides an Icon for every component that will be visible in the User Interface.
         /// Icons need to be 24x24 pixels.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
+        protected override System.Drawing.Bitmap Icon =>
                 // You can add image files to your project resources and access them like this:
                 //return Resources.IconForThisComponent;
-                return Properties.Resources.Eddy_domBox;
-            }
-        }
+                Properties.Resources.Eddy_domBox;
 
         /// <summary>
         /// Each component must have a unique Guid to identify it. 
         /// It is vital this Guid doesn't change otherwise old ghx files 
         /// that use the old ID will partially fail during loading.
         /// </summary>
-        public override Guid ComponentGuid
-        {
-            get { return new Guid("{0AD4BDF7-33AC-492D-ABF0-622A5488C8E2}"); }
-        }
+        public override Guid ComponentGuid => new Guid("{0AD4BDF7-33AC-492D-ABF0-622A5488C8E2}");
     }
 
 }

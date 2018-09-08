@@ -4,12 +4,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Cache;
 using System.Reflection;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using Rhino.Geometry;
+using System.Threading;
+
 
 namespace EddyLib
 {
@@ -416,6 +414,24 @@ namespace EddyLib
             return licence;
         }
 
+
+        //public static bool ArePointsOutsideBrep(Mesh GeometryToCheck, Mesh GeometryToCheckAgainst)
+        //{
+        //    bool ShapeInsideBrep = false;
+
+        //    for (int i = 0; i < 4;i++)
+        //    {
+        //        if( GeometryToCheck.Vertices[i].X < GeometryToCheckAgainst.Vertices[i].X)
+        //        {
+
+        //        }
+        //    }
+
+
+        //    return ShapeInsideBrep;
+        //}
+
+        
 
         public class NumericComparer : IComparer
         {

@@ -42,10 +42,9 @@ namespace EddyLib
         public double pinf;
         public double pref;
         public List<Vector3d> Uinf = new List<Vector3d>();
-
-        double Tu;
-        double eddy_viscosity_ratio;
-        double nu;
+        readonly double Tu;
+        readonly double eddy_viscosity_ratio;
+        readonly double nu;
 
 
 

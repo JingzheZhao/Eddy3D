@@ -163,11 +163,26 @@ namespace EddyLib
             Rectangle3d plGroundPerim2 = new Rectangle3d(pl, xInter, yInterPerim2);
 
             //Rectangle3d plGround = new Rectangle3d(pl, newMin, newMax);
+
+
+
+
+
             MeshingParameters mpGround = MeshingParameters.Default;
-            this.newBoxGroundPerim = new Mesh();
-            this.newBoxGround = Mesh.CreateFromPlanarBoundary(plGroundCore.ToNurbsCurve(), mpGround);
-            this.newBoxGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim1.ToNurbsCurve(), mpGround));
-            this.newBoxGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim2.ToNurbsCurve(), mpGround));
+
+            if (terrain.DisjointMeshCount == 0)
+            {                
+                this.newBoxGround = Mesh.CreateFromPlanarBoundary(plGroundCore.ToNurbsCurve(), mpGround);
+                this.newBoxGroundPerim = new Mesh();
+                this.newBoxGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim1.ToNurbsCurve(), mpGround));
+                this.newBoxGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim2.ToNurbsCurve(), mpGround));
+            }
+            else
+            {               
+                this.newBoxGround = terrain;            
+            }
+
+                      
 
 
             // refinement Cylinder
