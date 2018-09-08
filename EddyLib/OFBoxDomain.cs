@@ -33,6 +33,7 @@ namespace EddyLib
         //public BoundingBox BBox;
         public Mesh newBoxGround;
         public Mesh newBoxGroundPerim;
+        
 
 
         public Box newBoxDomain;
@@ -131,6 +132,9 @@ namespace EddyLib
 
 
             Interval zInter;
+
+            this.terrainMesh = terrain;
+
             if (terrain.DisjointMeshCount == 0)
             {
                 zInter = new Interval(0, scaleRectDomainZ);

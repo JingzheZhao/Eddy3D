@@ -44,6 +44,7 @@ namespace EddyLib
         public Mesh DomainMesh = new Mesh();
         public Mesh DomainMeshGround = new Mesh();
         public Mesh DomainMeshGroundPerim = new Mesh();
+        public Mesh terrainMesh;
 
 
         public Mesh perim = new Mesh();

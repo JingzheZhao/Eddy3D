@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Rhino.Geometry;
+using System;
 using System.Collections.Generic;
 using System.Text;
-using Rhino.Geometry;
 
 
 namespace EddyLib
@@ -88,6 +88,12 @@ boundary
         public static string SnappyHexMeshDict(OFBaseDomain dom)
         {
             string refinementGeometry = "";
+            string ground_perim = @"ground_perim.stl
+            {
+                type triSurfaceMesh;
+                name ground_perim;
+            }
+            ";
             string Cylinder = @"refinementCylinder{
 type searchableCylinder; 
 point1 (" + dom.refinementCylinder.Center.ToString().Replace(',', ' ') + @");
@@ -133,12 +139,9 @@ FoamFile
         {
             type triSurfaceMesh;
             name ground;
-        }	
-        ground_perim.stl
-        {
-            type triSurfaceMesh;
-            name ground_perim;
-        }	
+        }");
+            if (dom.terrainMesh.DisjointMeshCount == 0) { sb.Append(ground_perim); };
+            sb.Append(@"	
         " + refinementGeometry + @"
     }
 
@@ -673,7 +676,7 @@ FoamFile
 
                 setFormat csv;
 
-                fields ("+ OFField + @");
+                fields (" + OFField + @");
 
                 probeLocations
                   (");
@@ -1277,11 +1280,11 @@ wallDist
 // ************************************************************************* //
 ";
         }
-            public static string FvSchemesOrtho70_80()
-            {
-                // An accurate numerical scheme on orthogonal (70-80) meshes
-                return
-            @"/*--------------------------------*- C++ -*----------------------------------*\
+        public static string FvSchemesOrtho70_80()
+        {
+            // An accurate numerical scheme on orthogonal (70-80) meshes
+            return
+        @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
 |  \\    /   O peration     | Version:  2.2.2                                 |
@@ -1352,7 +1355,7 @@ wallDist
 ";
 
 
-            }
+        }
 
 
         public static string FvSchemesOrtho60_70()
@@ -2075,7 +2078,7 @@ RAS
             sb.AppendLine(@"call """ + DOM.baseWorkingDirectory + @"run_mesh.bat""");
             foreach (int i in DOM.BCInflow.windDir)
             {
-             
+
                 sb.AppendLine(@"call """ + DOM.baseWorkingDirectory + i + @"_run_sim.bat""");
             }
             sb.AppendLine(@"call """ + DOM.baseWorkingDirectory + @"run_ray.bat""");
@@ -2125,7 +2128,11 @@ RAS
             //@ Patrick WIP
 
             string dirs = "";
-            foreach (var d in DOM.BCInflow.windDir) dirs += (((int)d).ToString() + ',');
+            foreach (var d in DOM.BCInflow.windDir)
+            {
+                dirs += (((int)d).ToString() + ',');
+            }
+
             dirs = dirs.TrimEnd(',');
 
             string workDir = DOM.baseWorkingDirectory.Trim('\\');
@@ -2152,7 +2159,11 @@ RAS
             //@ Patrick WIP
 
             string dirs = "";
-            foreach (var d in DOM.BCInflow.windDir) dirs += (((int)d).ToString() + ',');
+            foreach (var d in DOM.BCInflow.windDir)
+            {
+                dirs += (((int)d).ToString() + ',');
+            }
+
             dirs = dirs.TrimEnd(',');
 
             string workDir = DOM.baseWorkingDirectory.Trim('\\');
@@ -2179,7 +2190,7 @@ RAS
         }
 
 
-    
+
         public static string Residuals()
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
