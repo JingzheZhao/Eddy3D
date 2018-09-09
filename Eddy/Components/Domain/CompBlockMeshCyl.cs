@@ -56,13 +56,13 @@ namespace Eddy
             //pManager.AddIntegerParameter("baseMesh", "baseMesh", "baseMesh", GH_ParamAccess.item, 20);
 
             //pManager.AddIntegerParameter("divisionsX", "divisionsX", "divisionsX", GH_ParamAccess.item, 1);
-            pManager.AddIntegerParameter("divisionsOuterCirc", "divisionsOuterCirc", "divisionsOuterCirc", GH_ParamAccess.item, 1);
-            pManager.AddIntegerParameter("gradingPerim", "gradingPerim", "gradingPerim", GH_ParamAccess.item, 1);
-            pManager.AddIntegerParameter("divPerim", "divPerim", "divPerim", GH_ParamAccess.item, 1);
+            pManager.AddIntegerParameter("Radial divisions", "RadDiv", "Radial divisions", GH_ParamAccess.item, 1);
+            pManager.AddIntegerParameter("Concentric grading", "ConcGrad", "Concentric grading", GH_ParamAccess.item, 1);
+            pManager.AddIntegerParameter("Concentric divisions", "ConcDiv", "Concentric Divisions", GH_ParamAccess.item, 1);
 
-            pManager.AddNumberParameter("sizeInnerR", "sizeInnerR", "sizeInnerR", GH_ParamAccess.item, 0);
-            pManager.AddNumberParameter("sizeOuterR", "sizeOuterR", "sizeOuterR", GH_ParamAccess.item, 0);
-            pManager.AddNumberParameter("sizeHeight", "sizeHeight", "sizeHeight", GH_ParamAccess.item, 0);
+            pManager.AddNumberParameter("Size of inner rectangle", "InnerR", "Size of inner rectangle", GH_ParamAccess.item, 0);
+            pManager.AddNumberParameter("Size of outer radius", "OuterR", "Size of outer radius", GH_ParamAccess.item, 0);
+            pManager.AddNumberParameter("Height", "Height", "Height", GH_ParamAccess.item, 0);
 
             //pManager.AddIntegerParameter("RAM", "RAM", "RAM", GH_ParamAccess.item, 2000);
             pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
@@ -78,7 +78,7 @@ namespace Eddy
         {
             pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.item);
             pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Cyl", "C", "Domain", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Cylinder", "Cyl", "Cylinder", GH_ParamAccess.item);
         }
 
 
