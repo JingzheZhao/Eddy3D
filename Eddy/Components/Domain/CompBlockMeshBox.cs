@@ -45,7 +45,7 @@ namespace Eddy
 
             pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.item);
 
-            pManager.AddNumberParameter("baseMesh", "baseMesh", "baseMesh", GH_ParamAccess.item, 5);
+            pManager.AddNumberParameter("BaseMesh", "BaseMesh", "BaseMesh", GH_ParamAccess.item, 5);
 
             //pManager.AddGenericParameter("RAM", "RAM", "RAM", GH_ParamAccess.item);
             pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
@@ -62,7 +62,7 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Domain", "Dom", "Simulation Domain", GH_ParamAccess.item);
             pManager.AddGenericParameter("Box", "Box", "Domain", GH_ParamAccess.item);
 
             ////Delete later

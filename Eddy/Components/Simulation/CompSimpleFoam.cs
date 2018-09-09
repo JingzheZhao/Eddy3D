@@ -36,10 +36,10 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Mesh", "Mesh", "Mesh", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("iterations", "iter", "Specify the number of iterations.", GH_ParamAccess.item, 1000);
-            pManager.AddIntegerParameter("WriteInterval", "WriteInterval", "WriteInterval.", GH_ParamAccess.item, 20);
-            pManager.AddIntegerParameter("KeepTimeSteps", "KeepTimeSteps", "KeepTimeSteps.", GH_ParamAccess.item, 2);
-            pManager.AddIntegerParameter("Turb", "Turb", "Turbulence model.", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("Iterations", "Iter", "Specify the number of iterations to be simulated.", GH_ParamAccess.item, 1000);
+            pManager.AddIntegerParameter("WriteInterval", "WriteInt", "Simulation write interval.", GH_ParamAccess.item, 20);
+            pManager.AddIntegerParameter("KeepTimeSteps", "TimeSteps", "Number of time steps to keep in simulation folder..", GH_ParamAccess.item, 2);
+            pManager.AddIntegerParameter("Turbulence", "Turb", "Turbulence model.", GH_ParamAccess.item, 0);
             Param_Integer turb = pManager[4] as Param_Integer;
             turb.AddNamedValue("kEpsilon (quick)", 0);
             turb.AddNamedValue("RNGkEpsilon (more accurate)", 1);
