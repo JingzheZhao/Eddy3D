@@ -47,10 +47,10 @@ namespace Eddy
         {
             //pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
             pManager.AddVectorParameter("cp values/velocity vectors", "Inp", "List of cp values or velocity vectors depending on mode.", GH_ParamAccess.list);
-            //pManager.AddTextParameter("pointName", "pointName", "pointName", GH_ParamAccess.item);
-
+            //pManager.AddGenericParameter("Area", "Area", "Area to be evaluated.", GH_ParamAccess.item);
+            pManager.AddMeshParameter("Mesh", "Mesh", "Mesh surface to be evaluated.", GH_ParamAccess.item);
             pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 1);
-            Param_Integer param = pManager[1] as Param_Integer;
+            Param_Integer param = pManager[2] as Param_Integer;
             //param.AddNamedValue("from cp", 0);
             param.AddNamedValue("from U", 1);
 
@@ -66,9 +66,9 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             //pManager.AddGenericParameter("Points", "Points", "Points", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Result", "Res", "Result", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Min", "Min", "Minimum value", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Max", "Max", "Maximum value", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Result", "Res", "Result: Volumetric flow rate in m^3/s.", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Min", "Min", "Minimum value in m/s", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Max", "Max", "Maximum value in m/s", GH_ParamAccess.item);
         }
 
 
@@ -95,21 +95,23 @@ namespace Eddy
             //if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
             var listOfInputVelocities = new List<Vector3d>();
-            
 
+            
 
             int mode = 1;
             //List<Point3d> listOfPoints = new List<Point3d>();
 
             bool run = false;
+            var mesh = new Mesh();
 
             DA.GetDataList(0, listOfInputVelocities);
-            //DA.GetData(2, ref pointName);
-            DA.GetData(1, ref mode);
+            DA.GetData(1, ref mesh);
+            DA.GetData(2, ref mode);
             //DA.GetData(3, ref run);
 
-
-
+           
+ 
+                
 
             // Inclusion check for probes
 
@@ -205,11 +207,14 @@ namespace Eddy
             //}
 
 
-            double FlowRate = 0;
+            double AverageFlowRate = 0;
             double Min = 0;
             double Max = 0;
             var Magnitudes = new List<double>();
+            double VolumetricFlowRate = 0.0;
+            double Area = 0;
 
+            
 
             try
             {
@@ -219,14 +224,27 @@ namespace Eddy
                 {
                     int cnt = 0;
 
+                    // Compute average flow rate for all probes
+
                     foreach (Vector3d U in listOfInputVelocities)
                     {
-                        FlowRate += U.Length;
+                        AverageFlowRate += U.Length;
                         Magnitudes.Add(U.Length);
                         cnt++;
                     }
 
-                    FlowRate = FlowRate / cnt;
+
+                    AverageFlowRate = AverageFlowRate / cnt; // m/s
+
+                    for (int i = 0; i< mesh.Faces.Count; i++)
+                    {
+                        Area += (Utilities.MeshFaceArea(i, mesh));
+                    }
+
+                    
+
+                    VolumetricFlowRate = AverageFlowRate * Area;
+
 
 
                     Min = Magnitudes.Any() ? Magnitudes.Min(x => x) : 0;
@@ -244,7 +262,7 @@ namespace Eddy
 
 
 
-            DA.SetData(0, FlowRate);
+            DA.SetData(0, VolumetricFlowRate);
             DA.SetData(1, Min);
             DA.SetData(2, Max);
 

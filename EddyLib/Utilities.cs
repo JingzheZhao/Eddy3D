@@ -355,6 +355,36 @@ namespace EddyLib
 
         }
 
+        public static double MeshFaceArea(int meshfaceindex, Mesh m)
+        {
+            //get points into a nice, concise format
+            Point3d[] pts = new Point3d[4];
+            pts[0] = m.Vertices[m.Faces[meshfaceindex].A];
+            pts[1] = m.Vertices[m.Faces[meshfaceindex].B];
+            pts[2] = m.Vertices[m.Faces[meshfaceindex].C];
+            if (m.Faces[meshfaceindex].IsQuad) pts[3] = m.Vertices[m.Faces[meshfaceindex].D];
+
+            //calculate areas of triangles
+            double a = pts[0].DistanceTo(pts[1]);
+            double b = pts[1].DistanceTo(pts[2]);
+            double c = pts[2].DistanceTo(pts[0]);
+            double p = 0.5 * (a + b + c);
+            double area1 = Math.Sqrt(p * (p - a) * (p - b) * (p - c));
+
+            //if quad, calc area of second triangle
+            double area2 = 0;
+            if (m.Faces[meshfaceindex].IsQuad)
+            {
+                a = pts[0].DistanceTo(pts[2]);
+                b = pts[2].DistanceTo(pts[3]);
+                c = pts[3].DistanceTo(pts[0]);
+                p = 0.5 * (a + b + c);
+                area2 = Math.Sqrt(p * (p - a) * (p - b) * (p - c));
+            }
+
+            return area1 + area2;
+        }
+
         public static bool CheckLicence()
         {
             bool licence = false;
