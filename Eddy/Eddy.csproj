@@ -66,12 +66,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\BCond\CompBCondConstantU.cs" />
+    <Compile Include="Components\postProcessing\CompComputeFlowRateFromCp.cs" />
     <Compile Include="Components\postProcessing\CompParseHourlyU.cs" />
     <Compile Include="Components\postProcessing\CompParseAnnualCP.cs" />
     <Compile Include="Components\BCond\CompBCondABL.cs" />
     <Compile Include="Components\Domain\CompBlockMeshCyl.cs" />
     <Compile Include="Components\Misc\CompCellSize.cs" />
-    <Compile Include="Components\postProcessing\CompComputeFlowRate.cs" />
+    <Compile Include="Components\postProcessing\CompComputeFlowRateFromU.cs" />
     <Compile Include="Components\postProcessing\CompVisProbesCustom.cs" />
     <Compile Include="Components\postProcessing\UTCI\CompReadUTCIProbewise.cs" />
     <Compile Include="Components\postProcessing\UTCI\CompReadAnnualComfortHours.cs" />

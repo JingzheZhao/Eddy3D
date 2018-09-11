@@ -1,13 +1,9 @@
 ﻿using Eddy.Properties;
 using EddyLib;
-using Grasshopper;
 using Grasshopper.Kernel;
-using Grasshopper.Kernel.Parameters;
-using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -18,11 +14,8 @@ using System.Text;
 
 namespace Eddy
 {
-    public class CompComputeFlowRate : GH_Component
+    public class CompComputeFlowRateFromU : GH_Component
     {
-        private readonly DataTree<double> cpTree = new DataTree<double>();
-        private readonly DataTree<Vector3d> uTree = new DataTree<Vector3d>();
-
 
 
 
@@ -33,7 +26,7 @@ namespace Eddy
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public CompComputeFlowRate()
+        public CompComputeFlowRateFromU()
           : base("ComputeFlowRate", "FlowRate", "PostProcessing", "Eddy", "PostProcessing")
         {
         }
@@ -46,13 +39,9 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             //pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
-            pManager.AddVectorParameter("cp values/velocity vectors", "Inp", "List of cp values or velocity vectors depending on mode.", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Velocity vectors", "U", "List of velocity vectors.", GH_ParamAccess.list);
             //pManager.AddGenericParameter("Area", "Area", "Area to be evaluated.", GH_ParamAccess.item);
             pManager.AddMeshParameter("Mesh", "Mesh", "Mesh surface to be evaluated.", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 1);
-            Param_Integer param = pManager[2] as Param_Integer;
-            //param.AddNamedValue("from cp", 0);
-            param.AddNamedValue("from U", 1);
 
 
             //pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item, false);
@@ -94,24 +83,16 @@ namespace Eddy
             //}
             //if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
-            var listOfInputVelocities = new List<Vector3d>();
-
-            
-
-            int mode = 1;
-            //List<Point3d> listOfPoints = new List<Point3d>();
-
-            bool run = false;
             var mesh = new Mesh();
 
-            DA.GetDataList(0, listOfInputVelocities);
+
             DA.GetData(1, ref mesh);
-            DA.GetData(2, ref mode);
+
             //DA.GetData(3, ref run);
 
-           
- 
-                
+
+
+
 
             // Inclusion check for probes
 
@@ -207,50 +188,63 @@ namespace Eddy
             //}
 
 
+
+            var listOfInputVelocities = new List<Vector3d>();
             double AverageFlowRate = 0;
             double Min = 0;
             double Max = 0;
             var Magnitudes = new List<double>();
             double VolumetricFlowRate = 0.0;
-            double Area = 0;
 
-            
 
             try
             {
 
 
-                if (mode == 1) // U
+                double Area = 0;
+
+                for (int i = 0; i < mesh.Faces.Count; i++)
                 {
-                    int cnt = 0;
-
-                    // Compute average flow rate for all probes
-
-                    foreach (Vector3d U in listOfInputVelocities)
-                    {
-                        AverageFlowRate += U.Length;
-                        Magnitudes.Add(U.Length);
-                        cnt++;
-                    }
-
-
-                    AverageFlowRate = AverageFlowRate / cnt; // m/s
-
-                    for (int i = 0; i< mesh.Faces.Count; i++)
-                    {
-                        Area += (Utilities.MeshFaceArea(i, mesh));
-                    }
-
-                    
-
-                    VolumetricFlowRate = AverageFlowRate * Area;
-
-
-
-                    Min = Magnitudes.Any() ? Magnitudes.Min(x => x) : 0;
-                    Max = Magnitudes.Any() ? Magnitudes.Max(x => x) : 0;
-
+                    Area += (Utilities.MeshFaceArea(i, mesh));
                 }
+
+
+
+
+
+
+
+
+                DA.GetDataList(0, listOfInputVelocities);
+
+
+
+                int cnt = 0;
+
+                // Compute average flow rate for all probes
+
+
+
+                foreach (Vector3d U in listOfInputVelocities)
+                {
+                    AverageFlowRate += U.Length;
+                    Magnitudes.Add(U.Length);
+                    cnt++;
+                }
+
+
+                AverageFlowRate = AverageFlowRate / cnt; // m/s
+
+
+
+                VolumetricFlowRate = AverageFlowRate * Area;
+
+
+
+                Min = Magnitudes.Any() ? Magnitudes.Min(x => x) : 0;
+                Max = Magnitudes.Any() ? Magnitudes.Max(x => x) : 0;
+
+
 
 
             }
