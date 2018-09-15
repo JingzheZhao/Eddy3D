@@ -1,17 +1,14 @@
-﻿using System;
+﻿using Eddy.Properties;
+using EddyLib;
+using Grasshopper;
+using Grasshopper.Kernel;
+using Grasshopper.Kernel.Parameters;
+using Grasshopper.Kernel.Types;
+using Rhino.Geometry;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using Grasshopper.Kernel;
-using Rhino.Geometry;
-using System.Text;
 using System.Linq;
-using Grasshopper.Kernel.Parameters;
-using System.Diagnostics;
-using Grasshopper.Kernel.Types;
-using System.Text.RegularExpressions;
-using Grasshopper;
-using EddyLib;
-using Eddy.Properties;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -22,10 +19,8 @@ namespace Eddy
 {
     public class WriteProbes : GH_Component
     {
-
-
-        DataTree<double> cpTree = new DataTree<double>();
-        DataTree<Vector3d> uTree = new DataTree<Vector3d>();
+        private DataTree<double> cpTree = new DataTree<double>();
+        private DataTree<Vector3d> uTree = new DataTree<Vector3d>();
 
 
 
@@ -124,8 +119,10 @@ namespace Eddy
             }
             // Unfortunately IList has no Resize method. So instead we
             // remove the last element of the list until: elements.Count == kept.
-            while (kept < listOfPoints.Count) listOfPoints.RemoveAt(listOfPoints.Count - 1);
-
+            while (kept < listOfPoints.Count)
+            {
+                listOfPoints.RemoveAt(listOfPoints.Count - 1);
+            }
 
             var numberOfProbes = listOfPoints.Count();
 
@@ -148,7 +145,7 @@ namespace Eddy
 
 
 
-            
+
 
 
             if (numberOfProbes > 0)
@@ -157,7 +154,7 @@ namespace Eddy
                 cpTree = new DataTree<double>();
                 uTree = new DataTree<Vector3d>();
 
-                
+
 
 
                 if (mode == 0) // cp
@@ -206,7 +203,7 @@ namespace Eddy
                 }
             }
 
-            
+
         }
 
 
@@ -214,24 +211,16 @@ namespace Eddy
         /// Provides an Icon for every component that will be visible in the User Interface.
         /// Icons need to be 24x24 pixels.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
+        protected override System.Drawing.Bitmap Icon =>
                 // You can add image files to your project resources and access them like this:
-                return Resources.Eddy_probes;
-            }
-        }
+                Resources.Eddy_probes;
 
         /// <summary>
         /// Each component must have a unique Guid to identify it. 
         /// It is vital this Guid doesn't change otherwise old ghx files 
         /// that use the old ID will partially fail during loading.
         /// </summary>
-        public override Guid ComponentGuid
-        {
-            get { return new Guid("{B9E3FDF3-5B76-456F-BE10-3A6EAFAB641A}"); }
-        }
+        public override Guid ComponentGuid => new Guid("{B9E3FDF3-5B76-456F-BE10-3A6EAFAB641A}");
     }
 }
 

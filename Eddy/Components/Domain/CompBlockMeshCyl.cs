@@ -241,21 +241,8 @@ namespace Eddy
 
             if (Utilities.CheckLicence() == true)
             {
-               
-                // Check if Docker is running
 
-                Utilities.WriteDockerInfo(baseWorkingDirectory);
-                bool dockerRunning = false;
-                if (Utilities.IsDockerRunning(baseWorkingDirectory))
-                {
-                    dockerRunning = true;
-                }
-                if (dockerRunning == false)
-                {
 
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Docker is not running. Please start the application ""Docker for Windows"".");
-
-                }
 
 
                 OFCylDomain DOMCYL = new OFCylDomain(inputBreps, combinedMeshes, BCond, divisionsOuterCirc, gradingPerim, divPerim, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory)
@@ -374,7 +361,7 @@ void plastic Generic_20
 
                 //if (Run == true)
                 //{
-            
+
                 //}
 
                 DA.SetData(1, DOMCYL);

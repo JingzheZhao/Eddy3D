@@ -20,28 +20,30 @@ namespace EddyLib
 
 
         private readonly List<Point3d> listOfPoints;
-        private readonly string pointName;
+        
         private readonly string caseDirectory;
 
 
-        public ParsingProbes(List<Point3d> ListOfPoints, string PointName, string caseDirectory, string OFfield, int fieldtype)
+        public ParsingProbes(List<Point3d> ListOfPoints, string enumeratedProbeName, string caseDirectory, string OFfield, int fieldtype)
         {
             listOfPoints = ListOfPoints;
-            pointName = PointName;
+            
             this.caseDirectory = caseDirectory;
+            //Number
             if (fieldtype == 0)
             {
-                ParsingNumbers(listOfPoints, pointName, this.caseDirectory, OFfield);
+                ParsingNumbers(listOfPoints, enumeratedProbeName, this.caseDirectory, OFfield);
             }
+            //Vector
             if (fieldtype == 1)
             {
-                ParsingVectors(listOfPoints, pointName, this.caseDirectory, OFfield);
+                ParsingVectors(listOfPoints, enumeratedProbeName, this.caseDirectory, OFfield);
             }
-            WriteToCSV(fieldtype);
+            WriteToCSV(fieldtype, enumeratedProbeName);
         }
 
 
-        private void WriteToCSV(int fieldtype)
+        private void WriteToCSV(int fieldtype, string enumeratedProbeName)
         {
             string PostProcessingDirectory = caseDirectory + @"\postProcessing\";
             if (fieldtype == 0)
@@ -51,7 +53,7 @@ namespace EddyLib
                 {
                     sb.AppendLine(i.ToString());
                 }
-                File.WriteAllText(PostProcessingDirectory + pointName + ".csv", sb.ToString());
+                File.WriteAllText(PostProcessingDirectory + enumeratedProbeName + ".csv", sb.ToString());
             }
             if (fieldtype == 1)
             {
@@ -60,7 +62,7 @@ namespace EddyLib
                 {
                     sb.AppendLine(i.ToString());
                 }
-                File.WriteAllText(PostProcessingDirectory + pointName + ".csv", sb.ToString());
+                File.WriteAllText(PostProcessingDirectory + enumeratedProbeName + ".csv", sb.ToString());
             }
             
 
@@ -68,10 +70,10 @@ namespace EddyLib
         }
 
 
-        private void ParsingNumbers(List<Point3d> listOfPoints, string pointName, string workingDirectory, string OFfield)
+        private void ParsingNumbers(List<Point3d> listOfPoints, string enumeratedProbeName, string workingDirectory, string OFfield)
         {
 
-            string fullPath = GetLastProcProssDir(pointName, workingDirectory, OFfield);
+            string fullPath = GetLastProcProssDir(enumeratedProbeName, workingDirectory, OFfield);
 
             var counterPoints = listOfPoints.Count;
 
@@ -117,14 +119,14 @@ namespace EddyLib
 
         }
 
-        public string GetLastProcProssDir(string pointName, string workingDirectory, string field)
+        public static string GetLastProcProssDir(string enumeratedProbeName, string workingDirectory, string field)
         {
             
             string PostProcessingDirectory = workingDirectory + @"\postProcessing\";
 
 
             //replace this with input
-            string basePath = PostProcessingDirectory + pointName;
+            string basePath = PostProcessingDirectory + enumeratedProbeName;
 
             //string[] filePathResults = new string[counterPoints];
             var directoriesBasePath = Directory.GetDirectories(basePath);

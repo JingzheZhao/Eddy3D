@@ -1,12 +1,11 @@
-﻿using System;
+﻿using Rhino.Geometry;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Rhino.Geometry;
-using System.Threading;
 
 
 namespace EddyLib
@@ -18,7 +17,7 @@ namespace EddyLib
 
 
 
-        static public string AssemblyVersion
+        public static string AssemblyVersion
         {
             get
             {
@@ -34,7 +33,7 @@ namespace EddyLib
             return Path.GetDirectoryName(filePath);
         }
 
-        static public string AssemblyDirectory
+        public static string AssemblyDirectory
         {
             get
             {
@@ -159,9 +158,9 @@ namespace EddyLib
                         if (numberOfCellsInMesh > 50000)
                         {
                             CPU = numberOfCellsInMesh / 50000;
-                            if (CPU > numberOfCPUsOnMachine /2)
+                            if (CPU > numberOfCPUsOnMachine / 2)
                             {
-                                CPU = numberOfCPUsOnMachine /2;
+                                CPU = numberOfCPUsOnMachine / 2;
                             }
                         }
 
@@ -173,7 +172,7 @@ namespace EddyLib
                     }
                     else
                     {
-                        CPU = numberOfCPUsOnMachine /2;
+                        CPU = numberOfCPUsOnMachine / 2;
                         if (CPU < 1)
                         {
                             CPU = 1;
@@ -220,7 +219,9 @@ namespace EddyLib
 
 
                         while ((line = sr.ReadLine()) != null)
+                        {
                             lines.Add(line);
+                        }
                     }
 
 
@@ -264,7 +265,9 @@ namespace EddyLib
 
 
                         while ((line = sr.ReadLine()) != null)
+                        {
                             lines.Add(line);
+                        }
                     }
 
 
@@ -362,7 +365,10 @@ namespace EddyLib
             pts[0] = m.Vertices[m.Faces[meshfaceindex].A];
             pts[1] = m.Vertices[m.Faces[meshfaceindex].B];
             pts[2] = m.Vertices[m.Faces[meshfaceindex].C];
-            if (m.Faces[meshfaceindex].IsQuad) pts[3] = m.Vertices[m.Faces[meshfaceindex].D];
+            if (m.Faces[meshfaceindex].IsQuad)
+            {
+                pts[3] = m.Vertices[m.Faces[meshfaceindex].D];
+            }
 
             //calculate areas of triangles
             double a = pts[0].DistanceTo(pts[1]);
@@ -384,6 +390,50 @@ namespace EddyLib
 
             return area1 + area2;
         }
+
+        public static double[] filterExtremeCPs(double[] inputList)
+        {
+            double[] outputList = new double[inputList.Length];
+
+
+            for (int i = 0; i < inputList.Length; i++)
+            {
+
+                if (inputList[i] < -1)
+                {
+                    outputList[i] = -1;
+                }
+                else if (inputList[i] > 1)
+                {
+                    outputList[i] = 1;
+                }
+                else
+                {
+                    outputList[i] = inputList[i];
+                }
+            }
+            return outputList;
+        }
+
+        public static List<Vector3d> filterExtremeVectorLengths(List<Vector3d> inputList)
+        {
+            List<Vector3d> outputList = new List<Vector3d>();
+
+
+            for (int i = 0; i < inputList.Count; i++)
+            {
+
+                if (inputList[i].Length < 1000)
+                {
+                    outputList.Add(inputList[i]);
+
+                }
+            }
+
+            return outputList;
+        }
+
+
 
         public static bool CheckLicence()
         {
@@ -437,9 +487,14 @@ namespace EddyLib
             //}
 
 
-            if (DateTime.Now > expiresAt) licence = false;
-            else licence = true;
-
+            if (DateTime.Now > expiresAt)
+            {
+                licence = false;
+            }
+            else
+            {
+                licence = true;
+            }
 
             return licence;
         }
@@ -461,7 +516,7 @@ namespace EddyLib
         //    return ShapeInsideBrep;
         //}
 
-        
+
 
         public class NumericComparer : IComparer
         {
@@ -486,19 +541,44 @@ namespace EddyLib
             public static int Compare(string s1, string s2)
             {
                 //get rid of special cases
-                if ((s1 == null) && (s2 == null)) return 0;
-                else if (s1 == null) return -1;
-                else if (s2 == null) return 1;
+                if ((s1 == null) && (s2 == null))
+                {
+                    return 0;
+                }
+                else if (s1 == null)
+                {
+                    return -1;
+                }
+                else if (s2 == null)
+                {
+                    return 1;
+                }
 
-                if ((s1.Equals(string.Empty) && (s2.Equals(string.Empty)))) return 0;
-                else if (s1.Equals(string.Empty)) return -1;
-                else if (s2.Equals(string.Empty)) return -1;
+                if ((s1.Equals(string.Empty) && (s2.Equals(string.Empty))))
+                {
+                    return 0;
+                }
+                else if (s1.Equals(string.Empty))
+                {
+                    return -1;
+                }
+                else if (s2.Equals(string.Empty))
+                {
+                    return -1;
+                }
 
                 //WE style, special case
                 bool sp1 = Char.IsLetterOrDigit(s1, 0);
                 bool sp2 = Char.IsLetterOrDigit(s2, 0);
-                if (sp1 && !sp2) return 1;
-                if (!sp1 && sp2) return -1;
+                if (sp1 && !sp2)
+                {
+                    return 1;
+                }
+
+                if (!sp1 && sp2)
+                {
+                    return -1;
+                }
 
                 int i1 = 0, i2 = 0; //current index
                 int r = 0; // temp result
@@ -520,15 +600,27 @@ namespace EddyLib
                             {
                                 r = s1[i1].CompareTo(s2[i2]);
                             }
-                            if (r != 0) return r;
+                            if (r != 0)
+                            {
+                                return r;
+                            }
                         }
-                        else if (!letter1 && letter2) return -1;
-                        else if (letter1 && !letter2) return 1;
+                        else if (!letter1 && letter2)
+                        {
+                            return -1;
+                        }
+                        else if (letter1 && !letter2)
+                        {
+                            return 1;
+                        }
                     }
                     else if (c1 && c2)
                     {
                         r = CompareNum(s1, ref i1, s2, ref i2);
-                        if (r != 0) return r;
+                        if (r != 0)
+                        {
+                            return r;
+                        }
                     }
                     else if (c1)
                     {
@@ -568,19 +660,36 @@ namespace EddyLib
                 int nzLength1 = end1 - nzStart1;
                 int nzLength2 = end2 - nzStart2;
 
-                if (nzLength1 < nzLength2) return -1;
-                else if (nzLength1 > nzLength2) return 1;
+                if (nzLength1 < nzLength2)
+                {
+                    return -1;
+                }
+                else if (nzLength1 > nzLength2)
+                {
+                    return 1;
+                }
 
                 for (int j1 = nzStart1, j2 = nzStart2; j1 <= i1; j1++, j2++)
                 {
                     int r = s1[j1].CompareTo(s2[j2]);
-                    if (r != 0) return r;
+                    if (r != 0)
+                    {
+                        return r;
+                    }
                 }
                 // the nz parts are equal
                 int length1 = end1 - start1;
                 int length2 = end2 - start2;
-                if (length1 == length2) return 0;
-                if (length1 > length2) return -1;
+                if (length1 == length2)
+                {
+                    return 0;
+                }
+
+                if (length1 > length2)
+                {
+                    return -1;
+                }
+
                 return 1;
             }
 
@@ -596,9 +705,16 @@ namespace EddyLib
                     {
                         nzStart++;
                     }
-                    else countZeros = false;
+                    else
+                    {
+                        countZeros = false;
+                    }
+
                     end++;
-                    if (end >= s.Length) break;
+                    if (end >= s.Length)
+                    {
+                        break;
+                    }
                 }
             }
 

@@ -72,6 +72,12 @@ namespace EddyLib
             sw.Close();
         }
 
+        public static bool IsSymbolic(string path)
+        {
+            FileInfo pathInfo = new FileInfo(path);
+            return pathInfo.Attributes.HasFlag(FileAttributes.ReparsePoint);
+        }
+
 
 
     }

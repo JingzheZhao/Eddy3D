@@ -1,12 +1,6 @@
-﻿using System;
+﻿using Rhino.Geometry;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Text.RegularExpressions;
-using System.Diagnostics;
-using System.IO;
-using Rhino.Geometry;
 
 namespace EddyLib
 {
@@ -22,6 +16,7 @@ namespace EddyLib
     {
         public double URef = 5;
         public double UPedestrianHeight;
+        public double UatBuildingHeight;
         public double Ustar;
         public double z0 = 1;
         public double zref = 10;
@@ -42,9 +37,9 @@ namespace EddyLib
         public double pinf;
         public double pref;
         public List<Vector3d> Uinf = new List<Vector3d>();
-        readonly double Tu;
-        readonly double eddy_viscosity_ratio;
-        readonly double nu;
+        private readonly double Tu;
+        private readonly double eddy_viscosity_ratio;
+        private readonly double nu;
 
 
 
@@ -64,6 +59,7 @@ namespace EddyLib
             this.z0 = _z0;
             this.zGround = _zground;
             this.UPedestrianHeight = (((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((pedestrianHeight + z0) / z0));
+            //this.UBuildingHeight = (((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((maxBuildingHeight + z0) / z0));
             this.Ustar = (0.41 * URef) / Math.Log(((zref + z0) / z0));
             //this.k = Math.Pow(this.Ustar, 2) / Math.Sqrt(0.09);
             //this.epsilon = Math.Pow(this.Ustar, 3) / (0.41 * (this.zref - this.zGround + this.z0));
@@ -98,6 +94,7 @@ namespace EddyLib
             this.z0 = _z0;
             //this.zGround = _zground;
             this.UPedestrianHeight = (((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((pedestrianHeight + z0) / z0));
+            //this.UBuildingHeight = (((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((maxBuildingHeight + z0) / z0));
             this.Ustar = 0.41 * (URef / Math.Log((zref + z0) / z0));
             //this.k = Math.Pow(this.Ustar, 2) / Math.Sqrt(0.09);
             //this.epsilon = Math.Pow(this.Ustar, 3) / (0.41 * (this.zref - this.zGround + this.z0));
@@ -121,6 +118,12 @@ namespace EddyLib
                 this.flowDir.Add(new Vector3d(Math.Sin(d * Math.PI / 180), Math.Cos(d * Math.PI / 180), 0));
             }
         }
+
+        public void setUatBuildingHeight(double maxBuildingHeight)
+        {
+            this.UatBuildingHeight = (((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((maxBuildingHeight + z0) / z0));
+        }
+
 
 
         public void CalculateCPPressures(double buildingHeight)
@@ -148,7 +151,7 @@ namespace EddyLib
         }
         public double K(double Tu, double URef)
         {
-           double k = 1.5 * Math.Pow(Tu / 100, 2) * Math.Pow(URef, 2);
+            double k = 1.5 * Math.Pow(Tu / 100, 2) * Math.Pow(URef, 2);
             return k;
         }
 

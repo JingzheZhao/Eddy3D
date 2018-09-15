@@ -654,7 +654,7 @@ FoamFile
         }
 
 
-        public static string SampleProbes(List<Point3d> listOfPoints, string probeName, string OFField)
+        public static string SampleProbes(List<Point3d> listOfPoints, string enumeratedProbeName, string cleanedOFField)
         {
             var sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -665,7 +665,7 @@ FoamFile
   |    \\/     M anipulation  |                                                 |
   \*---------------------------------------------------------------------------*/
 
-" + probeName + @"
+" + enumeratedProbeName + @"
 {
 
                 type probes;
@@ -676,7 +676,7 @@ FoamFile
 
                 setFormat csv;
 
-                fields (" + OFField + @");
+                fields (" + cleanedOFField + @");
 
                 probeLocations
                   (");

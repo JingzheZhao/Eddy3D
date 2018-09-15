@@ -68,11 +68,14 @@ namespace CallOF
                     Console.WriteLine(args1.Line);
                 };
                 p.Run();
-                p.WaitForExit(); 
+                
+                p.WaitForExit();
+                p.Stop();
+
 
                 //Console.ReadKey();
 #if DEBUG
-
+               
                 Console.ReadKey();
 
 #endif

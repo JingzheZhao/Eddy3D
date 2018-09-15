@@ -221,11 +221,15 @@ namespace Eddy
 
                 int cnt = 0;
 
+                // Clean input
+
+                var cleanedVelocityList = Utilities.filterExtremeVectorLengths(listOfInputVelocities);
+
+
                 // Compute average flow rate for all probes
 
 
-
-                foreach (Vector3d U in listOfInputVelocities)
+                foreach (Vector3d U in cleanedVelocityList)
                 {
                     AverageFlowRate += U.Length;
                     Magnitudes.Add(U.Length);

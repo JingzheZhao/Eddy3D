@@ -41,9 +41,9 @@ namespace Eddy
         {
             pManager.AddGenericParameter("Domain", "Dom", "Simulation Domain", GH_ParamAccess.item);
             pManager.AddIntegerParameter("AccBuilding", "AccBuilding", "Specify accuracy of building mesh.", GH_ParamAccess.item, 2);
-            pManager.AddIntegerParameter("AccFeatures", "accFeatures", "Specify accuracy of building features (corners) mesh.", GH_ParamAccess.item, 2);
-            pManager.AddIntegerParameter("AccRefinement", "accRefinement", "Specify accuracy of bounding box mesh.", GH_ParamAccess.item, 0);
-            pManager.AddIntegerParameter("AccGround", "accGround", "Specify accuracy of ground mesh.", GH_ParamAccess.item, 2);
+            pManager.AddIntegerParameter("AccFeatures", "AccFeatures", "Specify accuracy of building features (corners) mesh.", GH_ParamAccess.item, 2);
+            pManager.AddIntegerParameter("AccRefinement", "AccRefinement", "Specify accuracy of bounding box mesh.", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("AccGround", "AccGround", "Specify accuracy of ground mesh.", GH_ParamAccess.item, 2);
             pManager.AddIntegerParameter("nLayer", "nLay", "Number of mesh layers.", GH_ParamAccess.item, 3);
             pManager.AddIntegerParameter("Mode", "Mode", @"Mode: 
 0: No snapping, no layers

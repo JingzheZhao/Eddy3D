@@ -206,6 +206,8 @@ namespace EddyLib
             //refinementCylinder = getRefinementCyl(center, geometry, 10);
 
             BCond.CalculateCPPressures(zMax);
+            BCond.setUatBuildingHeight(zMax);
+
 
             this.BCInflow = BCond;
 

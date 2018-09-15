@@ -1,6 +1,7 @@
 ﻿using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
@@ -39,7 +40,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            //pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
             pManager.AddGenericParameter("cp values", "Cp1", "List of cp values.", GH_ParamAccess.list);
             pManager.AddGenericParameter("cp values", "Cp2", "List of cp values.", GH_ParamAccess.list);
             //pManager.AddGenericParameter("Area", "Area", "Area to be evaluated.", GH_ParamAccess.item);
@@ -72,13 +73,26 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
+            OFBaseDomain DOM = null;
+
+            GH_ObjectWrapper gobj = null;
+            if (!DA.GetData(0, ref gobj)) { }
+
+            if ((gobj.Value is OFBaseDomain))
+            {
+                DOM = (OFBaseDomain)gobj.Value;
+            }
+            if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
+
+
+
 
             var mesh1 = new Mesh();
             var mesh2 = new Mesh();
 
 
-            DA.GetData(2, ref mesh1);
-            DA.GetData(3, ref mesh2);
+            DA.GetData(3, ref mesh1);
+            DA.GetData(4, ref mesh2);
             //DA.GetData(3, ref run);
 
 
@@ -196,8 +210,8 @@ namespace Eddy
                 var listOfInputCps1 = new List<double>();
                 var listOfInputCps2 = new List<double>();
 
-                DA.GetDataList(0, listOfInputCps1);
-                DA.GetDataList(1, listOfInputCps2);
+                DA.GetDataList(1, listOfInputCps1);
+                DA.GetDataList(2, listOfInputCps2);
 
 
 
@@ -249,10 +263,13 @@ namespace Eddy
 
                 AverageCp2 = AverageCp2 / cnt2; //
 
-                var ratioOfAreas = Area1 / Area2;
-                double deltaCp = Math.Abs(AverageCp1 - AverageCp2);
+                var C_D_general = 0.7;
+                var C_D_tot_A = ((C_D_general*Area1*C_D_general*Area2)/Math.Sqrt(Math.Pow(C_D_general*Area1,2)+ Math.Pow(C_D_general * Area1, 2)));
 
-                VolumetricFlowRate = 0.7 * Math.Pow((ratioOfAreas / (1 + ratioOfAreas) * deltaCp),0.5);
+               
+               double deltaCp = Math.Abs(AverageCp1 - AverageCp2);
+
+                VolumetricFlowRate = C_D_tot_A * DOM.BCInflow.UatBuildingHeight * Math.Sqrt( deltaCp);
                
                                               
 

@@ -147,16 +147,7 @@ namespace Eddy
 
 
 
-            for (int i = 0; i < numberOfWindDirs; i++)
 
-            {
-                var fp = DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDir[i] + @"\system\U_Probes";
-                if (!File.Exists(fp))
-                {
-                    errorLog.AppendLine(@"The wind direction """ + DOM.BCInflow.windDir[i] + @""" misses the probing dictionary. Please connect the ""writeProbes"" component and recompute the solution.");
-                    throw new System.ArgumentException("The wind direction " + DOM.BCInflow.windDir[i] + @" misses the probing dictionary. Please connect the component ""writeProbes"" and recompute the solution.");
-                }
-            }
 
             for (int i = 0; i < numberOfWindDirs; i++)
             {
@@ -164,7 +155,11 @@ namespace Eddy
                 if (!Directory.Exists(fp))
                 {
                     errorLog.AppendLine(@"The wind direction """ + DOM.BCInflow.windDir[i] + @""" misses the ""\constant\polyMesh"" dictionary. Please make sure that directory exists.");
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The wind direction " + DOM.BCInflow.windDir[i] + @" misses the ""\constant\polyMesh"" dictionary. Please make sure that directory exists.");
+
                     throw new System.ArgumentException("The wind direction " + DOM.BCInflow.windDir[i] + @" misses the ""\constant\polyMesh"" dictionary. Please make sure that directory exists.");
+
+
                 }
             }
 
@@ -203,7 +198,7 @@ namespace Eddy
             }
 
 
-            if (run == true && numberOfProbes > 0)
+            if (numberOfProbes > 0)
             {
 
 
@@ -215,6 +210,9 @@ namespace Eddy
 
                     if (mode == 0) // cp
                     {
+
+
+
 
                         StringBuilder command = new StringBuilder();
 
@@ -229,24 +227,59 @@ namespace Eddy
                             File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.SampleProbes(listOfPoints, pointName, OFfield));
 
                             command.Append(@"postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + pointName + @" -latestTime | tee  " + DOM.BCInflow.windDir[i] + @"/log_probes;");
-
-
                         }
 
-                        ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.baseWorkingDirectory);
-                        Process p = new Process
+                        for (int i = 0; i < numberOfWindDirs; i++)
+
                         {
-                            StartInfo = psi
-                        };
-                        p.Start();
-                        p.WaitForExit();
+                            var fp = DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDir[i] + @"\system\cp_Probes";
+                            if (!File.Exists(fp))
+                            {
+
+                                errorLog.AppendLine(@"The wind direction """ + DOM.BCInflow.windDir[i] + @""" misses the probing dictionary for cp values. Possible solution: Please connect the ""writeProbes"" component and recompute the solution.");
+                                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The wind direction " + DOM.BCInflow.windDir[i] + @" misses the ""\constant\polyMesh"" dictionary. Please make sure that directory exists.");
+
+                                throw new System.ArgumentException("The wind direction " + DOM.BCInflow.windDir[i] + @" misses the probing dictionary  for cp values. Possible solution: Please connect the component ""writeProbes"" and recompute the solution.");
+                            }
+                        }
+
+
+                        if (run == true)
+                        {
+                            ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.baseWorkingDirectory);
+                            Process p = new Process
+                            {
+                                StartInfo = psi
+                            };
+                            p.Start();
+                            p.WaitForExit();
+                        }
+
 
                         //Thread.Sleep(2 * numberOfProbes);
 
                         for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                         {
-                            ParsingProbes cp = new ParsingProbes(listOfPoints, pointName, DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i], OFfield, fieldtype);
-                            cpTree.AddRange(cp.numberValues, new Grasshopper.Kernel.Data.GH_Path(i));
+
+
+
+
+                            var caseDir = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i];
+                            string pathToProbeFile = ParsingProbes.GetLastProcProssDir(pointName, caseDir, OFfield);
+                            if (File.Exists(pathToProbeFile))
+                            {
+
+                                //string pointName = "cp_Probes";
+                                //string OFfield = "total(p)_coeff";
+
+                                ParsingProbes cp = new ParsingProbes(listOfPoints, pointName, caseDir, OFfield, fieldtype);
+                                cpTree.AddRange(Utilities.filterExtremeCPs(cp.numberValues), new Grasshopper.Kernel.Data.GH_Path(i));
+                            }
+                            else
+                            {
+                                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The file  """ + pathToProbeFile + @""" does not exist. Please run the probing component.");
+
+                            }
                         }
 
 
@@ -254,6 +287,8 @@ namespace Eddy
 
                     if (mode == 1) // U
                     {
+
+
 
                         StringBuilder command = new StringBuilder();
 
@@ -273,14 +308,28 @@ namespace Eddy
 
                         }
 
+                        for (int i = 0; i < numberOfWindDirs; i++)
 
-                        ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.baseWorkingDirectory);
-                        Process p = new Process
                         {
-                            StartInfo = psi
-                        };
-                        p.Start();
-                        p.WaitForExit();
+                            var fp = DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDir[i] + @"\system\U_Probes";
+                            if (!File.Exists(fp))
+                            {
+                                errorLog.AppendLine(@"The wind direction """ + DOM.BCInflow.windDir[i] + @""" misses the probing dictionary for U values. Possible solution: Please connect the ""writeProbes"" component and recompute the solution.");
+                                throw new System.ArgumentException("The wind direction " + DOM.BCInflow.windDir[i] + @" misses the probing dictionary for U values. Possible solution: Please connect the component ""writeProbes"" and recompute the solution.");
+                            }
+                        }
+
+                        if (run == true)
+                        {
+
+                            ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.baseWorkingDirectory);
+                            Process p = new Process
+                            {
+                                StartInfo = psi
+                            };
+                            p.Start();
+                            p.WaitForExit();
+                        }
 
                         //Thread.Sleep(2 * numberOfProbes);
 
@@ -288,12 +337,22 @@ namespace Eddy
                         {
                             // Parse values
 
-                            var U = new ParsingProbes(listOfPoints, pointName, DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i], OFfield, fieldtype);
+                            var caseDir = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i];
+                            string pathToProbeFile = ParsingProbes.GetLastProcProssDir(pointName, caseDir, OFfield);
+                            if (File.Exists(pathToProbeFile))
+                            {
 
-                            // Create datatree
+                                var U = new ParsingProbes(listOfPoints, pointName, caseDir, OFfield, fieldtype);
 
-                            uTree.AddRange(U.vectorValues, new Grasshopper.Kernel.Data.GH_Path(i));
+                                // Create datatree
 
+                                uTree.AddRange(U.vectorValues, new Grasshopper.Kernel.Data.GH_Path(i));
+                            }
+                            else
+                            {
+                                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The file  """ + pathToProbeFile + @""" does not exist. Please run the probing component.");
+
+                            }
                         }
                     }
                 }

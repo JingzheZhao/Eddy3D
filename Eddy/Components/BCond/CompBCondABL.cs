@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Eddy.Properties;
+using EddyLib;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
-using EddyLib;
-using Eddy.Properties;
+using System;
+using System.Collections.Generic;
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
 // folder in Grasshopper.
@@ -22,7 +22,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public BCondABLComp()
-          : base("ABL", "ABL",  "Atmospheric Boundary Layer", "Eddy", "BC")
+          : base("ABL", "ABL", "Atmospheric Boundary Layer", "Eddy", "BC")
         {
             //dirs.Add(0);
         }
@@ -33,16 +33,16 @@ namespace Eddy
         /// Registers all the input parameters for this component.
         /// </summary>
         /// 
-  
-       
-         
+
+
+
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddNumberParameter("wDir", "wDir", "wDir", GH_ParamAccess.list);
             pManager.AddNumberParameter("Uref", "Uref", "Uref", GH_ParamAccess.item, 5);
-            pManager.AddNumberParameter("zref", "zref", "zref", GH_ParamAccess.item,10);
-            pManager.AddNumberParameter("z0", "z0", "z0", GH_ParamAccess.item,1);
-            pManager.AddNumberParameter("zGround", "zGround", "zGround", GH_ParamAccess.item,0);
+            pManager.AddNumberParameter("zref", "zref", "zref", GH_ParamAccess.item, 10);
+            pManager.AddNumberParameter("z0", "z0", "z0", GH_ParamAccess.item, 1);
+            pManager.AddNumberParameter("zGround", "zGround", "zGround", GH_ParamAccess.item, 0);
             pManager.AddTextParameter("Epw", "Epw", "Weather file path", GH_ParamAccess.item, "");
             pManager[0].Optional = true;
         }
@@ -72,10 +72,10 @@ namespace Eddy
             double zref = 0;
             double z0 = 0;
             double zGround = 0;
-      
-            
+
+
             DA.GetDataList(0, windDir);
-            DA.GetData(1, ref Uref);            
+            DA.GetData(1, ref Uref);
             DA.GetData(2, ref zref);
             DA.GetData(3, ref z0);
             DA.GetData(4, ref zGround);
@@ -91,10 +91,11 @@ namespace Eddy
                 windDir.Add(0);
             }
 
+            
 
             BoundaryConditions BCInflow = new BoundaryConditions(BoundaryType.abl, windDir, Uref, zref, z0, zGround, weather);
 
-               DA.SetData(0, BCInflow);    
+            DA.SetData(0, BCInflow);
 
         }
 
@@ -102,24 +103,15 @@ namespace Eddy
         /// Provides an Icon for every component that will be visible in the User Interface.
         /// Icons need to be 24x24 pixels.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
+        protected override System.Drawing.Bitmap Icon =>
                 // You can add image files to your project resources and access them like this:
-                return Resources.Eddy_abl;
-               // return null;
-            }
-        }
+                Resources.Eddy_abl;// return null;
 
         /// <summary>
         /// Each component must have a unique Guid to identify it. 
         /// It is vital this Guid doesn't change otherwise old ghx files 
         /// that use the old ID will partially fail during loading.
         /// </summary>
-        public override Guid ComponentGuid
-        {
-            get { return new Guid("{820494F3-2858-4CB3-8E26-E11256EDAE35}"); }
-        }
+        public override Guid ComponentGuid => new Guid("{820494F3-2858-4CB3-8E26-E11256EDAE35}");
     }
 }

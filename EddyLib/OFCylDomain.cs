@@ -186,6 +186,8 @@ namespace EddyLib
 
 
             BCond.CalculateCPPressures(zMax);
+            BCond.setUatBuildingHeight(zMax);
+
 
             this.BCInflow = BCond;
 
