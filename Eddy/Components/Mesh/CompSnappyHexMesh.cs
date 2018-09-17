@@ -46,7 +46,7 @@ namespace Eddy
 0: No snapping, no layers
 1: With Snapping, no layers
 2: With Snapping, with layers", GH_ParamAccess.item, 2);
-            Param_Integer param = pManager[3] as Param_Integer;
+            Param_Integer param = pManager[6] as Param_Integer;
             param.AddNamedValue("No snapping, no layers", 0);
             param.AddNamedValue("With Snapping, no layers", 1);
             param.AddNamedValue("With Snapping, with layers", 2);
@@ -93,7 +93,7 @@ namespace Eddy
 
 
 
-            bool Run = false;
+            bool Clean = false;
 
 
             //OFDomainBuilder DOM = null;
@@ -153,7 +153,7 @@ namespace Eddy
             DA.GetData(4, ref accGround);
             DA.GetData(5, ref nLayers);
             DA.GetData(6, ref mode);
-            DA.GetData(7, ref Run);
+            DA.GetData(7, ref Clean);
 
             DOM.accBuildings = accBuilding;
             DOM.accFeatures = accFeatures;
@@ -184,7 +184,7 @@ namespace Eddy
 
             //CLEAN UP THE OF MESS
 
-            if (Run == true)
+            if (Clean == true)
             {
 
                 if (Directory.Exists(DOM.meshPolyMeshDirectory))
@@ -336,52 +336,26 @@ namespace Eddy
             string command = DOM.CPUs > 1 ? MultipleCPU : SingleCPU;
 
 
-            if (Run == true)
+            string logFile = "";
+
+            using (FileStream stream = File.Open(DOM.meshWorkingDirectory + @"\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
-
-
-
-
-
-                //ProcessStartInfo psiSnappyHexMesh = new ProcessStartInfo(@"C:\Users\pkastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\CallOF.exe", " -e " + command + " -f " + DOM.workingDirectory);
-
-
-                //psiSnappyHexMesh.UseShellExecute = false;
-                //psiSnappyHexMesh.WorkingDirectory = DOM.workingDirectory;
-
-                //Process pSnappyHexMesh = new Process();
-                //pSnappyHexMesh.StartInfo = psiSnappyHexMesh;
-                //pSnappyHexMesh.Start();
-                //pSnappyHexMesh.WaitForExit();
-
-
-
-                string logFile = "";
-
-                using (FileStream stream = File.Open(DOM.meshWorkingDirectory + @"\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (StreamReader reader = new StreamReader(stream))
                 {
-                    using (StreamReader reader = new StreamReader(stream))
-                    {
-                        logFile = reader.ReadToEnd();
+                    logFile = reader.ReadToEnd();
 
-                        //while (!reader.EndOfStream)
-                        //{
+                    //while (!reader.EndOfStream)
+                    //{
 
-                        //}
+                    //}
 
-                    }
                 }
-
-                DA.SetData(0, logFile);
-
-                //if (logFile.Contains("End")) {      AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Super!!"); }
-                // else if (logFile.Contains("End")) { AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Fast Super!!"); }
-                //else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Nicht Super!!"); }
-
-
-
-
             }
+
+            DA.SetData(0, logFile);
+
+
+           
 
 
             DA.SetData(1, DOM);

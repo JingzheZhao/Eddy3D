@@ -2,19 +2,13 @@
 using CommandLine.Text;
 using SlavaGu.ConsoleAppLauncher;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace CallOF
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             var options = new Options();
             if (CommandLine.Parser.Default.ParseArguments(args, options))
@@ -61,25 +55,34 @@ namespace CallOF
                 //Console.WriteLine(ConsoleApp.Run(app, app_argument).Output.Trim());
 
                 //Don't show stdout asynchronosly
-                
-                var p = new ConsoleApp(app, app_argument);
-                p.ConsoleOutput += (o, args1) =>                
+
+
+                try
                 {
-                    Console.WriteLine(args1.Line);
-                };
-                p.Run();
-                
-                p.WaitForExit();
-                p.Stop();
+                    var p = new ConsoleApp(app, app_argument);
+                    p.ConsoleOutput += (o, args1) =>
+                    {
+                        Console.WriteLine(args1.Line);
+                    };
+                    p.Run();
+
+                    p.WaitForExit();
+                    p.Stop();
 
 
-                //Console.ReadKey();
 #if DEBUG
-               
-                Console.ReadKey();
+
+                    Console.ReadKey();
 
 #endif
+                }
+                catch (Exception e)
+                {
 
+                    { Console.WriteLine(e.Message); };
+
+
+                }
 
 
 
@@ -92,7 +95,7 @@ namespace CallOF
 
 
     // Define a class to receive parsed values
-    class Options
+    internal class Options
     {
         [Option('f', "filePath", Required = true,
         HelpText = "File path.")]

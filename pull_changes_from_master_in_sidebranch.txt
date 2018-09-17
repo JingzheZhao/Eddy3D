@@ -1,0 +1,3 @@
+git checkout b1
+git merge master
+git commit X
