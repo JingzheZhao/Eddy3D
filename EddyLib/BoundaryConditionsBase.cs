@@ -119,7 +119,7 @@ namespace EddyLib
             }
         }
 
-        public void setUatBuildingHeight(double maxBuildingHeight)
+        public void SetUatBuildingHeight(double maxBuildingHeight)
         {
             this.UatBuildingHeight = (((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((maxBuildingHeight + z0) / z0));
         }

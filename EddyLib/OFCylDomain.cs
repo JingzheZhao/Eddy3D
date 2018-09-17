@@ -75,8 +75,8 @@ namespace EddyLib
             this.keepTimeSteps = 2;
 
 
-            //systemDirectory = workingDirectory + @"system\";
-            CPU = _CPU;
+            
+            this.CPUs = _CPU;
 
 
             divisionsX = 1;
@@ -186,7 +186,7 @@ namespace EddyLib
 
 
             BCond.CalculateCPPressures(zMax);
-            BCond.setUatBuildingHeight(zMax);
+            BCond.SetUatBuildingHeight(zMax);
 
 
             this.BCInflow = BCond;
@@ -597,7 +597,7 @@ namespace EddyLib
         }
 
 
-        public string stringyfyDomain()
+        public string StringyfyDomain()
         {
             StringBuilder sb = new StringBuilder();
 
@@ -627,7 +627,7 @@ vertices
 
 ");
 
-            sb.AppendLine(stringyfyOFVertexList(DomainMesh.Vertices.ToPoint3dArray()));
+            sb.AppendLine(StringyfyOFVertexList(DomainMesh.Vertices.ToPoint3dArray()));
 
 
             sb.AppendLine(@"
@@ -637,7 +637,7 @@ blocks
 ");
 
 
-            sb.AppendLine(stringyfyBlocks(DomainMesh, inputGroundVertices, inputTopVertices, divisionsX, _divOutercircle, divisionsZ));
+            sb.AppendLine(StringyfyBlocks(DomainMesh, inputGroundVertices, inputTopVertices, divisionsX, _divOutercircle, divisionsZ));
 
 
             sb.AppendLine(@"
@@ -653,7 +653,7 @@ boundary
 
 
 
-            sb.AppendLine(stringyfyBoundaries(DomainMesh, outletFaceID, inletFaceID, topFaceID, bottomFaceID));
+            sb.AppendLine(StringyfyBoundaries(DomainMesh, outletFaceID, inletFaceID, topFaceID, bottomFaceID));
 
 
 
@@ -671,7 +671,7 @@ mergePatchPairs
 
 
 
-        private static string stringyfyBoundaries(Mesh m, List<int> outletFaceID, List<int> inletFaceID, List<int> topFaceID, List<int> bottomFaceID)
+        private static string StringyfyBoundaries(Mesh m, List<int> outletFaceID, List<int> inletFaceID, List<int> topFaceID, List<int> bottomFaceID)
         {
 
             // make some text
@@ -736,7 +736,7 @@ mergePatchPairs
             return sb.ToString();
         }
 
-        private static string stringyfyBlocks(Mesh m, int[] inputGroundFaces, int[] inputTopFaces, int divisionsX, int divisionsY, int divisionsZ)
+        private static string StringyfyBlocks(Mesh m, int[] inputGroundFaces, int[] inputTopFaces, int divisionsX, int divisionsY, int divisionsZ)
         {
 
             var fullList = m.Vertices.ToPoint3dArray().ToList();
@@ -782,7 +782,7 @@ mergePatchPairs
             return sb.ToString();
         }
 
-        private static string stringyfyOFVertexList(Point3d[] L)
+        private static string StringyfyOFVertexList(Point3d[] L)
         {
             StringBuilder stb = new StringBuilder();
 
@@ -3473,7 +3473,7 @@ mergePatchPairs
             return mOutBottom;
         }
 
-        private string stringifyBlocks2()
+        private string StringifyBlocks2()
         {
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
 
@@ -3503,7 +3503,7 @@ mergePatchPairs
             return sb.ToString();
         }
 
-        private string stringifyPatches2()
+        private string StringifyPatches2()
         {
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
 
@@ -3524,7 +3524,7 @@ mergePatchPairs
 
             return sb.ToString();
         }
-        private string stringyfyVertexList2()
+        private string StringyfyVertexList2()
         {
             System.Text.StringBuilder stb = new System.Text.StringBuilder();
 
@@ -3535,7 +3535,7 @@ mergePatchPairs
             return stb.ToString();
         }
 
-        private string stringifyTop2()
+        private string StringifyTop2()
         {
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
 
@@ -3559,7 +3559,7 @@ faces
             return sb.ToString();
         }
 
-        private string stringifyGround2()
+        private string StringifyGround2()
         {
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
 
@@ -3581,7 +3581,7 @@ faces
             return sb.ToString();
         }
 
-        public string stringyfyDomain2()
+        public string StringyfyDomain2()
         {
             StringBuilder sb = new StringBuilder();
 
@@ -3611,7 +3611,7 @@ vertices
 
 ");
 
-            sb.AppendLine(stringyfyVertexList2());
+            sb.AppendLine(StringyfyVertexList2());
 
 
             sb.AppendLine(@"
@@ -3621,7 +3621,7 @@ blocks
 ");
 
 
-            sb.AppendLine(stringifyBlocks2());
+            sb.AppendLine(StringifyBlocks2());
 
 
             sb.AppendLine(@"
@@ -3637,9 +3637,9 @@ boundary
 
 
 
-            sb.AppendLine(stringifyPatches2());
-            sb.AppendLine(stringifyTop2());
-            sb.AppendLine(stringifyGround2());
+            sb.AppendLine(StringifyPatches2());
+            sb.AppendLine(StringifyTop2());
+            sb.AppendLine(StringifyGround2());
 
 
 

@@ -52,7 +52,7 @@ namespace Eddy
             pManager.AddTextParameter("Field", "Field", "Field", GH_ParamAccess.item);
             pManager.AddIntegerParameter("FieldType", "FieldType", "FieldType", GH_ParamAccess.item, 1);
             Param_Integer param = pManager[4] as Param_Integer;
-            param.AddNamedValue("double", 0);
+            param.AddNamedValue("scalar", 0);
             param.AddNamedValue("vector", 1);
 
 
@@ -232,7 +232,7 @@ namespace Eddy
 
                                 // Create datatree
 
-                                treeDouble.AddRange(Utilities.filterExtremeCPs(Numbers.numberValues), new Grasshopper.Kernel.Data.GH_Path(i));
+                                treeDouble.AddRange(Utilities.FilterExtremeCPs(Numbers.numberValues), new Grasshopper.Kernel.Data.GH_Path(i));
                             }
                             else
                             {

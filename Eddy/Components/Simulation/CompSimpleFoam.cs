@@ -107,7 +107,7 @@ namespace Eddy
 
 
             // string SingleCPU = @"""pyFoamPrepareCase.py . --no-mesh-create;simpleFoam""";
-            string MultipleCPU = @"""renumberMesh -overwrite;pyFoamPrepareCase.py . --no-mesh-create;pyFoamDecompose.py --clear . """ + DOM.CPU + @""";pyFoamRunner.py --autosense-parallel simpleFoam""";
+            string MultipleCPU = @"""renumberMesh -overwrite;pyFoamPrepareCase.py . --no-mesh-create;pyFoamDecompose.py --clear . """ + DOM.CPUs + @""";pyFoamRunner.py --autosense-parallel simpleFoam""";
 
 
             int iter = 1000;
@@ -186,7 +186,7 @@ namespace Eddy
                 //Autocalc number of CPUs
                 if (DOM.autoCPUCalc == true)
                 {
-                    DOM.CPU = Utilities.CPUAutoCalc(DOM.meshWorkingDirectory, DOM.CPU);
+                    DOM.CPUs = Utilities.CPUAutoCalc(DOM.meshWorkingDirectory, DOM.CPUs);
                 }
 
 

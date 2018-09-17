@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using Grasshopper.Kernel;
-using Rhino.Geometry;
-using System.Text;
-using Grasshopper.Kernel.Parameters;
-using System.Diagnostics;
-using Grasshopper.Kernel.Types;
+﻿using Eddy.Properties;
 using EddyLib;
-using Eddy.Properties;
+using Grasshopper.Kernel;
+using Grasshopper.Kernel.Parameters;
+using Grasshopper.Kernel.Types;
+using Rhino.Geometry;
+using System;
+using System.IO;
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
 // folder in Grasshopper.
@@ -136,7 +133,7 @@ namespace Eddy
 
 
             string SingleCPU = @"""surfaceFeatureExtract;snappyHexMesh -overwrite """; //-overwrite
-            string MultipleCPU = @"""surfaceFeatureExtract;pyFoamDecompose.py --clear . " + DOM.CPU + @"; foamJob -parallel -screen snappyHexMesh -overwrite""";
+            string MultipleCPU = @"""surfaceFeatureExtract;pyFoamDecompose.py --clear . " + DOM.CPUs + @"; foamJob -parallel -screen snappyHexMesh -overwrite""";
 
 
 
@@ -147,7 +144,7 @@ namespace Eddy
             int accGround = 3;
             int nLayers = 3;
             int mode = 2;
-            
+
 
 
             DA.GetData(1, ref accBuilding);
@@ -171,7 +168,7 @@ namespace Eddy
 
             DOM.meshingMode = mode;
 
-            
+
 
 
             if (accBuilding >= 5 || accFeatures >= 5 || accRefinement >= 5 || accGround >= 5 || nLayers >= 5)
@@ -216,8 +213,74 @@ namespace Eddy
                     }
                 }
 
-            }
 
+                if (DOM.CPUs > 1)
+                {
+
+
+                    for (int i = 0; i < DOM.CPUs; i++)
+                    {
+                        var path = DOM.meshWorkingDirectory + @"\processor" + i;
+                        if (Directory.Exists(path))
+                        {
+                            System.IO.DirectoryInfo di = new DirectoryInfo(path);
+                            foreach (FileInfo file in di.GetFiles())
+                            {
+                                file.Delete();
+                            }
+                            foreach (DirectoryInfo dir in di.GetDirectories())
+                            {
+                                dir.Delete(true);
+                            }
+                            di.Delete();
+
+                        }
+                    }
+
+                    // Delete proc folders
+
+                    for (int i = 0; i < DOM.CPUs; i++)
+                    {
+                        var meshPath = DOM.meshWorkingDirectory + @"\processor" + i;
+                        if (Directory.Exists(meshPath))
+                        {
+                            System.IO.DirectoryInfo di = new DirectoryInfo(meshPath);
+                            foreach (FileInfo file in di.GetFiles())
+                            {
+                                file.Delete();
+                            }
+                            foreach (DirectoryInfo dir in di.GetDirectories())
+                            {
+                                dir.Delete(true);
+                            }
+                            di.Delete();
+                        }
+
+                        for (int l = 0; l < DOM.BCInflow.windDir.Count; l++)
+                        {
+
+                            var cpuPath = DOM.baseWorkingDirectory + DOM.BCInflow.windDir[l] + @"\processor" + i;
+
+                            if (Directory.Exists(cpuPath))
+                            {
+                                System.IO.DirectoryInfo di = new DirectoryInfo(cpuPath);
+                                foreach (FileInfo file in di.GetFiles())
+                                {
+                                    file.Delete();
+                                }
+                                foreach (DirectoryInfo dir in di.GetDirectories())
+                                {
+                                    dir.Delete(true);
+                                }
+                                di.Delete();
+
+                            }
+
+                        }
+                    }
+                }
+
+            }
 
 
 
@@ -264,13 +327,13 @@ namespace Eddy
             //Autocalc number of CPUs
             if (DOM.autoCPUCalc == true)
             {
-                DOM.CPU = Utilities.CPUAutoCalc(DOM.meshWorkingDirectory, DOM.CPU);
+                DOM.CPUs = Utilities.CPUAutoCalc(DOM.meshWorkingDirectory, DOM.CPUs);
             }
-            
 
 
 
-            string command = DOM.CPU > 1 ? MultipleCPU : SingleCPU;
+
+            string command = DOM.CPUs > 1 ? MultipleCPU : SingleCPU;
 
 
             if (Run == true)
@@ -300,7 +363,7 @@ namespace Eddy
                     using (StreamReader reader = new StreamReader(stream))
                     {
                         logFile = reader.ReadToEnd();
-                        
+
                         //while (!reader.EndOfStream)
                         //{
 
@@ -329,24 +392,15 @@ namespace Eddy
         /// Provides an Icon for every component that will be visible in the User Interface.
         /// Icons need to be 24x24 pixels.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
+        protected override System.Drawing.Bitmap Icon =>
                 // You can add image files to your project resources and access them like this:
-                return Resources.Eddy_snappy;
-               // return null;
-            }
-        }
+                Resources.Eddy_snappy;// return null;
 
         /// <summary>
         /// Each component must have a unique Guid to identify it. 
         /// It is vital this Guid doesn't change otherwise old ghx files 
         /// that use the old ID will partially fail during loading.
         /// </summary>
-        public override Guid ComponentGuid
-        {
-            get { return new Guid("{6836B42F-FB09-48AF-BF41-A85D9D8FD913}"); }
-        }
+        public override Guid ComponentGuid => new Guid("{6836B42F-FB09-48AF-BF41-A85D9D8FD913}");
     }
 }

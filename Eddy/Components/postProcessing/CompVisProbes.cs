@@ -52,8 +52,8 @@ namespace Eddy
 
             pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 1);
             Param_Integer param = pManager[2] as Param_Integer;
-            param.AddNamedValue("cp_Probes", 0);
-            param.AddNamedValue("U_Probes", 1);
+            param.AddNamedValue("cp", 0);
+            param.AddNamedValue("U", 1);
 
 
             pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item, false);
@@ -273,7 +273,7 @@ namespace Eddy
                                 //string OFfield = "total(p)_coeff";
 
                                 ParsingProbes cp = new ParsingProbes(listOfPoints, pointName, caseDir, OFfield, fieldtype);
-                                cpTree.AddRange(Utilities.filterExtremeCPs(cp.numberValues), new Grasshopper.Kernel.Data.GH_Path(i));
+                                cpTree.AddRange(Utilities.FilterExtremeCPs(cp.numberValues), new Grasshopper.Kernel.Data.GH_Path(i));
                             }
                             else
                             {

@@ -20,7 +20,7 @@ namespace EddyLib
         public string baseWorkingDirectory;
 
 
-        public int CPU;
+        public int CPUs;
 
         public double frontageBuildingArea;
 

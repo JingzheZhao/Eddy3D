@@ -51,11 +51,11 @@ namespace EddyLib
         //// Delete later
 
 
-        public OFBoxDomain(Brep inputBreps, Mesh geometry, Mesh terrain, BoundaryConditions BCond, double _blockDim, string baseWorkingDirectory = @"C:\temp")
+        public OFBoxDomain(Brep inputBreps, Mesh geometry, Mesh terrain, BoundaryConditions BCond, double _blockDim, int CPUs,  string baseWorkingDirectory = @"C:\temp")
         {
             blockDimension = _blockDim;
             BuildingGeometry = geometry;
-
+            this.CPUs = CPUs;
 
             BBox = BuildingGeometry.GetBoundingBox(true);
 
@@ -206,7 +206,7 @@ namespace EddyLib
             //refinementCylinder = getRefinementCyl(center, geometry, 10);
 
             BCond.CalculateCPPressures(zMax);
-            BCond.setUatBuildingHeight(zMax);
+            BCond.SetUatBuildingHeight(zMax);
 
 
             this.BCInflow = BCond;

@@ -247,7 +247,7 @@ namespace Eddy
 
                 OFCylDomain DOMCYL = new OFCylDomain(inputBreps, combinedMeshes, BCond, divisionsOuterCirc, gradingPerim, divPerim, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory)
                 {
-                    CPU = CPUs
+                    CPUs = CPUs
                 };
                 if (CPUs == -1)
                 {
@@ -325,7 +325,7 @@ namespace Eddy
                 }
 
 
-                File.WriteAllText(DOMCYL.meshSystemDirectory + @"\blockMeshDict", DOMCYL.stringyfyDomain2());
+                File.WriteAllText(DOMCYL.meshSystemDirectory + @"\blockMeshDict", DOMCYL.StringyfyDomain2());
                 File.WriteAllText(DOMCYL.baseWorkingDirectory + @"\mesh\case.foam", "");
                 File.WriteAllText(DOMCYL.meshSystemDirectory + @"\controlDict", StringTemplates.ControlDict(DOMCYL, null, 0));
 

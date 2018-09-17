@@ -220,7 +220,7 @@ namespace Eddy
 
 
 
-                OFBoxDomain DOMBOX = new OFBoxDomain(inputBreps, combinedMeshes, terrainMeshes, BCond, blockDimension, baseWorkingDirectory);
+                OFBoxDomain DOMBOX = new OFBoxDomain(inputBreps, combinedMeshes, terrainMeshes, BCond, blockDimension,CPUs, baseWorkingDirectory);
 
                 if (CPUs == -1)
                 {

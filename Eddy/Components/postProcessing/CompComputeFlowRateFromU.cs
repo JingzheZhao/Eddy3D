@@ -27,10 +27,10 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public CompComputeFlowRateFromU()
-          : base("ComputeFlowRate", "FlowRate", "PostProcessing", "Eddy", "PostProcessing")
+          : base("ComputeFlowRateFromU", "FlowRateU", "Compute flow rates from velocity vectors", "Eddy", "PostProcessing")
         {
         }
-
+        
 
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             //pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Velocity vectors", "U", "List of velocity vectors.", GH_ParamAccess.list);
+            pManager.AddVectorParameter("Velocity vectors", "U", "List of velocity vectors.", GH_ParamAccess.list);
             //pManager.AddGenericParameter("Area", "Area", "Area to be evaluated.", GH_ParamAccess.item);
             pManager.AddMeshParameter("Mesh", "Mesh", "Mesh surface to be evaluated.", GH_ParamAccess.item);
 
@@ -88,108 +88,20 @@ namespace Eddy
 
             DA.GetData(1, ref mesh);
 
-            //DA.GetData(3, ref run);
+            
 
 
 
-
-
-            // Inclusion check for probes
-
-            //// Filter the list
-            //int kept = 0;
-            //for (int i = 0; i < listOfPoints.Count; i++)
-            //{
-            //    // Test whether this is an element that we want to keep.
-            //    if (DOM.inputBreps.IsPointInside(listOfPoints[i], 0.01, true) == false)
-            //    {
-            //        // Add it to the list of kept elements.
-            //        listOfPoints[kept] = listOfPoints[i];
-            //        kept++;
-            //    }
-            //}
-            //// Unfortunately IList has no Resize method. So instead we
-            //// remove the last element of the list until: elements.Count == kept.
-            //while (kept < listOfPoints.Count)
-            //{
-            //    listOfPoints.RemoveAt(listOfPoints.Count - 1);
-            //}
-
-            //var numberOfProbes = listOfPoints.Count();
-
-
-            // Error handling
 
             StringBuilder errorLog = new StringBuilder();
 
-            //if (numberOfProbes < 1)
-            //{
-            //    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You need to pass a list of point to the component.");
-            //}
+           
 
 
-            //var numberOfWindDirs = DOM.BCInflow.windDir.Count;
+            var listInputVelocities = new List<Vector3d>();
+            var ArrayInputVelocities = new Vector3d[listInputVelocities.Count];
+            DA.GetDataList(0, listInputVelocities);
 
-
-
-            //for (int i = 0; i < numberOfWindDirs; i++)
-
-            //{
-            //    var fp = DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDir[i] + @"\system\U_Probes";
-            //    if (!File.Exists(fp))
-            //    {
-            //        errorLog.AppendLine(@"The wind direction """ + DOM.BCInflow.windDir[i] + @""" misses the probing dictionary. Please connect the ""writeProbes"" component and recompute the solution.");
-            //        throw new System.ArgumentException("The wind direction " + DOM.BCInflow.windDir[i] + @" misses the probing dictionary. Please connect the component ""writeProbes"" and recompute the solution.");
-            //    }
-            //}
-
-            //for (int i = 0; i < numberOfWindDirs; i++)
-            //{
-            //    var fp = DOM.baseWorkingDirectory + @"\mesh\constant\polyMesh";
-            //    if (!Directory.Exists(fp))
-            //    {
-            //        errorLog.AppendLine(@"The wind direction """ + DOM.BCInflow.windDir[i] + @""" misses the ""\constant\polyMesh"" dictionary. Please make sure that directory exists.");
-            //        throw new System.ArgumentException("The wind direction " + DOM.BCInflow.windDir[i] + @" misses the ""\constant\polyMesh"" dictionary. Please make sure that directory exists.");
-            //    }
-            //}
-
-            //for (int i = 0; i < numberOfWindDirs; i++)
-            //{
-            //    var ABLfilePath = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\0.org\ABLConditions";
-            //    if (!File.Exists(ABLfilePath)) { Console.WriteLine(ABLfilePath + " not found. Exiting"); errorLog.AppendLine(ABLfilePath + " not found. Exiting"); }
-            //}
-
-
-            //// Check if U file is in last iteration
-            //for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
-            //{
-            //    string iter = Utilities.GetLastIterationInSimfolder(DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDir[i]).ToString();
-            //    string fp = DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDir[i] + @"\" + iter + @"\U";
-
-
-            //    if (!File.Exists(fp))
-            //    {
-            //        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The simulation folder of the wind direction """ + DOM.BCInflow.windDir[i] + @""" misses the velocity (U) result file. Please make sure that U is calculated for this particular timestep (change WriteInterval) and recompute the solution.");
-            //    }
-            //}
-
-
-
-            //// export pts file for Daysim
-            //if (!Directory.Exists(DOM.baseWorkingDirectory + @"Rad\"))
-            //{
-            //    Directory.CreateDirectory(DOM.baseWorkingDirectory + @"Rad\");
-            //}
-            //RadianceFiles.writePTS(DOM.baseWorkingDirectory + @"\Rad\sensors.pts", listOfPoints);
-
-            //if (Utilities.IsDirectoryEmpty(DOM.meshPolyMeshDirectory) == true)
-            //{
-            //    throw new System.ArgumentException("The mesh folder is empty. Can't retrieve probes from a mesh that does not exist.");
-            //}
-
-
-
-            var listOfInputVelocities = new List<Vector3d>();
             double AverageFlowRate = 0;
             double Min = 0;
             double Max = 0;
@@ -207,15 +119,11 @@ namespace Eddy
                 {
                     Area += (Utilities.MeshFaceArea(i, mesh));
                 }
+                                             
+                
 
 
-
-
-
-
-
-
-                DA.GetDataList(0, listOfInputVelocities);
+                DA.GetDataList(0, listInputVelocities);
 
 
 
@@ -223,13 +131,22 @@ namespace Eddy
 
                 // Clean input
 
-                var cleanedVelocityList = Utilities.filterExtremeVectorLengths(listOfInputVelocities);
+                //Build array
 
+                //for (int i= 0; i< listInputVelocities.Count; i++)
+                //{
+                //    ArrayInputVelocities[i] = listInputVelocities[i];
+                //}
+
+
+
+                //var cleanedVelocities = Utilities.FilterExtremeVectorLengths(ArrayInputVelocities);
+                //var cleanedVelocities = ArrayInputVelocities;
 
                 // Compute average flow rate for all probes
 
 
-                foreach (Vector3d U in cleanedVelocityList)
+                foreach (Vector3d U in listInputVelocities)
                 {
                     AverageFlowRate += U.Length;
                     Magnitudes.Add(U.Length);

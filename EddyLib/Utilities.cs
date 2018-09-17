@@ -391,7 +391,7 @@ namespace EddyLib
             return area1 + area2;
         }
 
-        public static double[] filterExtremeCPs(double[] inputList)
+        public static double[] FilterExtremeCPs(double[] inputList)
         {
             double[] outputList = new double[inputList.Length];
 
@@ -415,12 +415,12 @@ namespace EddyLib
             return outputList;
         }
 
-        public static List<Vector3d> filterExtremeVectorLengths(List<Vector3d> inputList)
+        public static Vector3d[] FilterExtremeVectorLengths(Vector3d[] inputList)
         {
             List<Vector3d> outputList = new List<Vector3d>();
 
 
-            for (int i = 0; i < inputList.Count; i++)
+            for (int i = 0; i < inputList.Length; i++)
             {
 
                 if (inputList[i].Length < 1000)
@@ -429,8 +429,8 @@ namespace EddyLib
 
                 }
             }
-
-            return outputList;
+                                          
+            return outputList.ToArray();
         }
 
 
@@ -439,7 +439,7 @@ namespace EddyLib
         {
             bool licence = false;
             //DateTime dateNow = Utilities.GetNistTime();
-            DateTime dateCompile = new DateTime(2018, 8, 25, 0, 00, 00).ToUniversalTime();
+            DateTime dateCompile = new DateTime(2018, 9, 25, 0, 00, 00).ToUniversalTime();
             TimeSpan licenceDuration = new TimeSpan(120, 0, 0, 0);
             DateTime expiresAt = dateCompile.Add(licenceDuration);
 
