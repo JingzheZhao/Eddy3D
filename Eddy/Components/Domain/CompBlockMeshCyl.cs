@@ -43,19 +43,10 @@ namespace Eddy
             pManager.AddBrepParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
             pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, @"C:\temp");
 
-            //pManager.AddGenericParameter("windDir", "windDir", "windDir", GH_ParamAccess.item);
+     
             pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.item);
 
-            //pManager.AddIntegerParameter("Mode", "Mode", "Domain generation mode", GH_ParamAccess.item, 0);
-
-            //Param_Integer param = pManager[2] as Param_Integer;
-
-            //param.AddNamedValue("Box", 0);
-            //param.AddNamedValue("Cyl", 1);
-
-            //pManager.AddIntegerParameter("baseMesh", "baseMesh", "baseMesh", GH_ParamAccess.item, 20);
-
-            //pManager.AddIntegerParameter("divisionsX", "divisionsX", "divisionsX", GH_ParamAccess.item, 1);
+         
             pManager.AddIntegerParameter("Radial divisions", "RadDiv", "Radial divisions", GH_ParamAccess.item, 1);
             pManager.AddIntegerParameter("Concentric grading", "ConcGrad", "Concentric grading", GH_ParamAccess.item, 1);
             pManager.AddIntegerParameter("Concentric divisions", "ConcDiv", "Concentric Divisions", GH_ParamAccess.item, 1);
@@ -64,10 +55,9 @@ namespace Eddy
             pManager.AddNumberParameter("Size of outer radius", "OuterR", "Size of outer radius", GH_ParamAccess.item, 0);
             pManager.AddNumberParameter("Height", "Height", "Height", GH_ParamAccess.item, 0);
 
-            //pManager.AddIntegerParameter("RAM", "RAM", "RAM", GH_ParamAccess.item, 2000);
+          
             pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
 
-            //pManager.AddBooleanParameter("Clean", "Clean", "Clean", GH_ParamAccess.item, false);
 
         }
 
@@ -133,8 +123,7 @@ namespace Eddy
 
 
 
-            //int mode = 0;
-            //int baseMesh = 0;
+          
 
             int CPUs = 1;
             int divisionsOuterCirc = 1;
@@ -145,11 +134,7 @@ namespace Eddy
             double sizeHeight = 0;
 
 
-            //DA.GetData(2, ref mode);
-            //DA.GetData(2, ref windDir);
-            //DA.GetDataList(2, BCond);
-            //DA.GetData(3, ref baseMesh);
-            //DA.GetData(3, ref divisionsX);
+       
             DA.GetData(3, ref divisionsOuterCirc);
             DA.GetData(4, ref gradingPerim);
             DA.GetData(5, ref divPerim);
@@ -163,9 +148,7 @@ namespace Eddy
             //DA.GetData(10, ref Run);
 
 
-            //OFDomainBuilder DOM = new OFDomainBuilder(domain, workingDirectory, baseMesh);
-            //DOM = OFDomainBuilder(domain, workingDirectory);
-
+    
             Mesh combinedMeshes = new Mesh();
             MeshingParameters mp = new MeshingParameters();
 
@@ -366,16 +349,6 @@ void plastic Generic_20
 
                 DA.SetData(1, DOMCYL);
                 DA.SetData(2, DOMCYL.DomainMesh);
-
-                /*              
-          //ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory +@"\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
-          ProcessStartInfo psi = new ProcessStartInfo(Utilities.hardcodedAssemblyDir+@"\CallOF.exe", " -e " + command + " -f " + DOMCYL.workingDirectory);
-          Process p = new Process();
-          p.StartInfo = psi;
-          p.Start();
-          p.WaitForExit();
-          //Thread.Sleep(500);
-          */
 
 
                 string logFile = "";
