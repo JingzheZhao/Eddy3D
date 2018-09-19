@@ -175,7 +175,7 @@ FoamFile
             }
             ground_perim
             {
-                level (" + (dom.accGround - 1) + @" " + (dom.accGround - 1) + @");
+                level (" + (dom.accGround - 1) + @" " + (dom.accGround) + @");
                 patchInfo
                 {
                     type wall;
