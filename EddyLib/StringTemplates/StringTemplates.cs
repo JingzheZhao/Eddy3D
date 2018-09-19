@@ -139,8 +139,10 @@ FoamFile
         {
             type triSurfaceMesh;
             name ground;
-        }");
-            if (dom.terrainMesh.DisjointMeshCount == 0) { sb.Append(ground_perim); };
+        }");if (dom.terrainMesh!= null)
+            {
+                if (dom.terrainMesh.DisjointMeshCount == 0) { sb.Append(ground_perim); };
+            }
             sb.Append(@"	
         " + refinementGeometry + @"
     }
