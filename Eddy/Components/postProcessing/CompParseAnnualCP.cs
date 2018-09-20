@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using Eddy.Properties;
+using EddyLib;
 using Grasshopper;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
-using EddyLib;
-using Eddy.Properties;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
 // folder in Grasshopper.
@@ -38,6 +38,7 @@ namespace Eddy
         {
             pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
             //pManager.AddPointParameter("Points", "Points", "Points", GH_ParamAccess.list);
+            pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -69,6 +70,8 @@ namespace Eddy
             }
             if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
+            bool run = false;
+            DA.GetData(1, ref run);
 
             List<Point3d> points = new List<Point3d>();
             //DA.GetDataList(1, points);
@@ -81,74 +84,80 @@ namespace Eddy
 
             //Build paths as list
 
-            for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
+
+            if (run = true)
             {
-                fullProbeFilePath.Add(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\postProcessing\cp_Probes.csv");
-            }
-
-            var numberOfWindDirs = DOM.BCInflow.windDir.Count();
-            var numberOfProbes = File.ReadAllLines(fullProbeFilePath[0]).Count();
 
 
 
-            // Array for output data
-
-            var listOfAnnualData = new double[numberOfWindDirs][];
-
-            for (int r = 0; r < numberOfWindDirs; r++)
-            {
-                listOfAnnualData[r] = new double[numberOfProbes];
-                for (int c = 0; c < numberOfProbes; c++)
+                for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
                 {
-                    listOfAnnualData[r][c] = double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c]);
+                    fullProbeFilePath.Add(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\postProcessing\cp_Probes.csv");
                 }
-            }
+
+                var numberOfWindDirs = DOM.BCInflow.windDir.Count();
+                var numberOfProbes = File.ReadAllLines(fullProbeFilePath[0]).Count();
 
 
 
-            // Write Array to dataTree
+                // Array for output data
 
-     
+                var listOfAnnualData = new double[numberOfWindDirs][];
 
-
-
-            //for (int c = 0; c < numberOfWindDirs; c++)
-            //{
-            //    for (int r = 0; r < numberOfProbes; r++)
-            //    {
-            //        cpTree.Add(listOfAnnualData[c][r], new Grasshopper.Kernel.Data.GH_Path(c));
-            //    }
-                
-            //}
-
-
-            //DA.SetDataTree(0, cpTree);
-
-
-            //Write Array to file
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-
-            for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
-            {
-                sb.Append(DOM.BCInflow.windDir[i] + ",");
-
-            }
-            sb.AppendLine("");
-            for (int r = 0; r < numberOfProbes; r++)
-            {
-                for (int c = 0; c < numberOfWindDirs; c++)
+                for (int r = 0; r < numberOfWindDirs; r++)
                 {
-                    //sb.Append(points[r].X + ","+ points[r].Y + ","+points[r].Z + ",");
-                    sb.Append(listOfAnnualData[c][r] + ",");
+                    listOfAnnualData[r] = new double[numberOfProbes];
+                    for (int c = 0; c < numberOfProbes; c++)
+                    {
+                        listOfAnnualData[r][c] = double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c]);
+                    }
+                }
+
+
+
+                // Write Array to dataTree
+
+
+
+
+
+                //for (int c = 0; c < numberOfWindDirs; c++)
+                //{
+                //    for (int r = 0; r < numberOfProbes; r++)
+                //    {
+                //        cpTree.Add(listOfAnnualData[c][r], new Grasshopper.Kernel.Data.GH_Path(c));
+                //    }
+
+                //}
+
+
+                //DA.SetDataTree(0, cpTree);
+
+
+                //Write Array to file
+                System.Text.StringBuilder sb = new System.Text.StringBuilder();
+
+                for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
+                {
+                    sb.Append(DOM.BCInflow.windDir[i] + ",");
 
                 }
                 sb.AppendLine("");
+                for (int r = 0; r < numberOfProbes; r++)
+                {
+                    for (int c = 0; c < numberOfWindDirs; c++)
+                    {
+                        //sb.Append(points[r].X + ","+ points[r].Y + ","+points[r].Z + ",");
+                        sb.Append(listOfAnnualData[c][r] + ",");
+
+                    }
+                    sb.AppendLine("");
+                }
+                File.WriteAllText(DOM.baseWorkingDirectory + @"\annualCPData.csv", sb.ToString());
+
+
             }
-            File.WriteAllText(DOM.baseWorkingDirectory + @"\annualCPData.csv", sb.ToString());
 
-
-
-            
 
 
         }
@@ -157,24 +166,15 @@ namespace Eddy
         /// Provides an Icon for every component that will be visible in the User Interface.
         /// Icons need to be 24x24 pixels.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
+        protected override System.Drawing.Bitmap Icon =>
                 // You can add image files to your project resources and access them like this:
-                return Resources.Eddy_parseCp;
-                //return null;
-            }
-        }
+                Resources.Eddy_parseCp;//return null;
 
         /// <summary>
         /// Each component must have a unique Guid to identify it. 
         /// It is vital this Guid doesn't change otherwise old ghx files 
         /// that use the old ID will partially fail during loading.
         /// </summary>
-        public override Guid ComponentGuid
-        {
-            get { return new Guid("{ED246ABD-F3E7-4AEC-A24C-CD6ADA25A389}"); }
-        }
+        public override Guid ComponentGuid => new Guid("{ED246ABD-F3E7-4AEC-A24C-CD6ADA25A389}");
     }
 }
