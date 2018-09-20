@@ -173,7 +173,8 @@ namespace Eddy
             // Check if U file is in last iteration
             for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
             {
-                string iter = Utilities.GetLastIterationInSimfolder(DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDir[i]).ToString();
+                string path = DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDir[i];
+                string iter = Utilities.GetLastIterationInSimfolder(path).ToString();
                 string fp = DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDir[i] + @"\" + iter + @"\U";
 
 

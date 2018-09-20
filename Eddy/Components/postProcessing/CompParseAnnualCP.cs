@@ -85,7 +85,7 @@ namespace Eddy
             //Build paths as list
 
 
-            if (run = true)
+            if (run == true)
             {
 
 

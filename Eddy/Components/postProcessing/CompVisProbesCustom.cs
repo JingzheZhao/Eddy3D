@@ -147,7 +147,10 @@ namespace Eddy
             {
                 string iter = Utilities.GetLastIterationInSimfolder(DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDir[i]).ToString();
                 string fp = DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDir[i] + @"\" + iter + @"\U";
-
+                if (Convert.ToUInt32(iter) == 0)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The wind direction """ + DOM.BCInflow.windDir[i] + @""" has not been simulated yet.");
+                }
 
                 if (!File.Exists(fp))
                 {

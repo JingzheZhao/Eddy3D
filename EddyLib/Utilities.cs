@@ -123,13 +123,25 @@ namespace EddyLib
 
             foreach (string s in sortedWorkingDir)
             {
+
                 var filter = s.Remove(0, simWorkingDirectory.Length + 1);
-                filteredListOfFolders.Add(filter);
+                if (filter != null)
+                {
+                    filteredListOfFolders.Add(filter);
+                }
+                //Add 0 if there is no iteration folder
+                else
+                {
+                    filteredListOfFolders.Add("0");
+                }
+                
             }
 
 
+            
 
             var filteredNumbers = filteredListOfFolders.Where(s => s.All(char.IsDigit));
+            
 
             //Array.Sort(filtered, new Utilities.NumericComparer());
 
