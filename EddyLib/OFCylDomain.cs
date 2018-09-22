@@ -186,8 +186,16 @@ namespace EddyLib
 
 
             BCond.CalculateCPPressures(zMax);
-            BCond.SetUatBuildingHeight(zMax);
 
+
+            if (BCond.btype == BoundaryType.constant)
+            {
+                BCond.SetUatBuildingHeightUconst();
+            }
+            if (BCond.btype == BoundaryType.abl)
+            {
+                BCond.SetUatBuildingHeightABL(zMax);
+            }
 
             this.BCInflow = BCond;
 

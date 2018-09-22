@@ -1,6 +1,5 @@
 ﻿using Rhino.Geometry;
 using System;
-using System.Collections.Generic;
 
 namespace EddyLib
 {
@@ -33,7 +32,7 @@ namespace EddyLib
         //public BoundingBox BBox;
         public Mesh newBoxGround;
         public Mesh newBoxGroundPerim;
-        
+
 
 
         public Box newBoxDomain;
@@ -51,7 +50,7 @@ namespace EddyLib
         //// Delete later
 
 
-        public OFBoxDomain(Brep inputBreps, Mesh geometry, Mesh terrain, BoundaryConditions BCond, double _blockDim, int CPUs,  string baseWorkingDirectory = @"C:\temp")
+        public OFBoxDomain(Brep inputBreps, Mesh geometry, Mesh terrain, BoundaryConditions BCond, double _blockDim, int CPUs, string baseWorkingDirectory = @"C:\temp")
         {
             blockDimension = _blockDim;
             BuildingGeometry = geometry;
@@ -73,7 +72,7 @@ namespace EddyLib
             Vector3d vecMinusZ = new Vector3d(0, 0, -1);
             Vector3d vecPlusZ = new Vector3d(0, 0, 1);
 
-            
+
 
 
             dimX = xMax - xMin;
@@ -91,11 +90,11 @@ namespace EddyLib
 
             //Plane localCoordSystem = Plane.WorldZX;
             var localCoordSystem = Plane.WorldZX;
-            localCoordSystem.Rotate(((-1*windDir)-90) * Math.PI / 180, localCoordSystem.XAxis);
+            localCoordSystem.Rotate(((-1 * windDir) - 90) * Math.PI / 180, localCoordSystem.XAxis);
             localCoordSystem.Origin = center;
 
             localCoordSystem.Translate(localCoordSystem.YAxis * dimY);
-            
+
 
 
             //Create Box Domain
@@ -142,9 +141,9 @@ namespace EddyLib
             else
             {
                 var bboxTerrain = terrain.GetBoundingBox(true);
-                zInter = new Interval(bboxTerrain.Min.Z-0.1, scaleRectDomainZ);
+                zInter = new Interval(bboxTerrain.Min.Z - 0.1, scaleRectDomainZ);
             }
-                
+
 
             // If terrain is used, scale down Z to make sure all points are inside the domain
 
@@ -188,25 +187,36 @@ namespace EddyLib
             MeshingParameters mpGround = MeshingParameters.Default;
 
             if (terrain.DisjointMeshCount == 0)
-            {                
+            {
                 this.newBoxGround = Mesh.CreateFromPlanarBoundary(plGroundCore.ToNurbsCurve(), mpGround);
                 this.newBoxGroundPerim = new Mesh();
                 this.newBoxGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim1.ToNurbsCurve(), mpGround));
                 this.newBoxGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim2.ToNurbsCurve(), mpGround));
             }
             else
-            {               
-                this.newBoxGround = terrain;            
+            {
+                this.newBoxGround = terrain;
             }
 
-                      
+
 
 
             // refinement Cylinder
             //refinementCylinder = getRefinementCyl(center, geometry, 10);
 
+            if (BCond.btype == BoundaryType.constant)
+            {
+                BCond.SetUatBuildingHeightUconst();
+            }
+            if (BCond.btype == BoundaryType.abl)
+            {
+                BCond.SetUatBuildingHeightABL(zMax);
+            }
+
+
+
             BCond.CalculateCPPressures(zMax);
-            BCond.SetUatBuildingHeight(zMax);
+
 
 
             this.BCInflow = BCond;
@@ -229,7 +239,7 @@ namespace EddyLib
             this.autoCPUCalc = false;
 
 
-          
+
 
 
         }

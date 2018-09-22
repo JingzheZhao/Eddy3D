@@ -5,7 +5,6 @@ using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 // In order to load the result of this wizard, you will also need to
@@ -29,11 +28,11 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public CompComputeFlowRateFromCp()
-          : base("ComputeFlowRateFromCp", "FlowRateCp", "Compute flow rates from pressure coefficients", "Eddy", "PostProcessing")
+              : base("ComputeFlowRateFromCp", "FlowRateCp", "Compute flow rates from pressure coefficients", "Eddy", "PostProcessing")
         {
         }
 
-
+        
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -41,7 +40,8 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
-            pManager.AddGenericParameter("cp values", "Cp", "List of two averaged cp values.", GH_ParamAccess.list);
+            pManager.AddNumberParameter("cp values", "Cp", "List of two averaged cp values.", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Cd values", "Cd", "List of two discharge coeffiecients.", GH_ParamAccess.list);
             //pManager.AddGenericParameter("cp values", "Cp2", "List of cp values.", GH_ParamAccess.list);
             //pManager.AddGenericParameter("Area", "Area", "Area to be evaluated.", GH_ParamAccess.item);
             pManager.AddMeshParameter("Mesh surfaces", "Mesh", "List of two mesh surfaces to be evaluated.", GH_ParamAccess.list);
@@ -84,28 +84,35 @@ namespace Eddy
             }
             if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
-
+            var cdList = new List<double>();
 
 
             var meshes = new List<Mesh>();
-            
+            DA.GetDataList(2, cdList);
 
-            DA.GetDataList(2, meshes);
-        
+            DA.GetDataList(3, meshes);
 
 
-            
+            if (cdList.Count == 0)
+            {
+                cdList.Add(0.7);
+                cdList.Add(0.7);
+            }
+               
+
+            //private readonly List<double> cdList = new List<double> { 0.7, 0.7 };
+
 
             StringBuilder errorLog = new StringBuilder();
 
-           
+
 
 
             double AverageCp1 = 0;
             double AverageCp2 = 0;
             double Min = 0;
             double Max = 0;
-            
+
             double Area1 = 0;
             double Area2 = 0;
             double VolumetricFlowRate = 0;
@@ -174,15 +181,18 @@ namespace Eddy
                 //AverageCp2 = AverageCp2 / cnt2; //
                 AverageCp2 = listOfInputCps1[1];
 
-                var C_D_general = 0.7;
-                var C_D_tot_A = ((C_D_general*Area1*C_D_general*Area2)/Math.Sqrt(Math.Pow(C_D_general*Area1,2)+ Math.Pow(C_D_general * Area1, 2)));
+                //var C_D_general = 0.7;
+                var C_D_1 = cdList[0];
+                var C_D_2 = cdList[1];
 
-               
-               double deltaCp = Math.Abs(AverageCp1 - AverageCp2);
+                var C_D_tot_A = ((C_D_1 * Area1 * C_D_2 * Area2) / Math.Sqrt(Math.Pow(C_D_1 * Area1, 2) + Math.Pow(C_D_2 * Area1, 2)));
 
-                VolumetricFlowRate = C_D_tot_A * DOM.BCInflow.UatBuildingHeight * Math.Sqrt( deltaCp);
-               
-                                              
+
+                double deltaCp = Math.Abs(AverageCp1 - AverageCp2);
+
+                VolumetricFlowRate = C_D_tot_A * DOM.BCInflow.UatBuildingHeight * Math.Sqrt(deltaCp);
+
+
 
             }
 
