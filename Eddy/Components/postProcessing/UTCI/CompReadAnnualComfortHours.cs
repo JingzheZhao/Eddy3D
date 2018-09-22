@@ -90,11 +90,11 @@ namespace Eddy
 
             var ladybugAnalysisPeriod = dateTimeInput;
 
-            
+
 
             DA.GetData(2, ref Run);
 
-            
+
 
             if (!Run)
             {
@@ -107,14 +107,14 @@ namespace Eddy
             var path = DOM.baseWorkingDirectory + @"\UTCI.csv";
             List<double> ComfortHoursList = new List<double>();
 
-                        
+
 
             if (ladybugAnalysisPeriod == null || ladybugAnalysisPeriod.Count != 2)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid analysis periode object."); return;
             }
 
-                       
+
 
             var allLines = File.ReadAllLines(DOM.baseWorkingDirectory + @"\UTCI.csv");
             var numberOfProbes = allLines.Count();
@@ -126,9 +126,21 @@ namespace Eddy
             //double[,] HourlyHumanConditions = new double[numberOfProbes, 8760];
             double[] ComfortHours = new double[numberOfProbes];
 
+
+
+
+
             System.Threading.Tasks.Parallel.For(0, numberOfProbes,
-              i =>
+                
+
+            i =>
               {
+
+                  if (GH_Document.IsEscapeKeyDown())
+                  {
+                      GH_Document GHDocument = OnPingDocument();
+                      GHDocument.RequestAbortSolution();
+                  }
 
                   for (int h = 0; h < 8760; h++)
                   {
@@ -147,19 +159,19 @@ namespace Eddy
             for (int probes = 0; probes < numberOfProbes; probes++)
             {
 
-            
-                  int comfortCnt = 0;
-                  foreach (int hour in hoursToEvaluate)
-                  {
-                      if (UTCI.GetConditionOfPerson(HourlyUTCI[probes, hour]) == 0)
-                      {
-                          //HourlyHumanConditions[i,hour]=UTCI.GetConditionOfPerson(HourlyUTCI[i, hour]);
-                          comfortCnt++;
 
-                      }
+                int comfortCnt = 0;
+                foreach (int hour in hoursToEvaluate)
+                {
+                    if (UTCI.GetConditionOfPerson(HourlyUTCI[probes, hour]) == 0)
+                    {
+                        //HourlyHumanConditions[i,hour]=UTCI.GetConditionOfPerson(HourlyUTCI[i, hour]);
+                        comfortCnt++;
 
-                  }
-                  ComfortHours[probes] = Math.Round((double)comfortCnt * 100 / hoursToEvaluate.Count, 1);
+                    }
+
+                }
+                ComfortHours[probes] = Math.Round((double)comfortCnt * 100 / hoursToEvaluate.Count, 1);
                 //});
             }
 
