@@ -180,7 +180,7 @@ FoamFile
 
             ground
             {
-                level (" + (dom.accBuildings - 1) + @" " + (dom.accGround) + @");
+                level (" + (dom.accGround) + @" " + (dom.accGround) + @");
                 patchInfo
                 {
                     type wall;
