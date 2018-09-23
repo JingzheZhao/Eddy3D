@@ -32,7 +32,7 @@ namespace Eddy
         {
         }
 
-        
+
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -98,7 +98,7 @@ namespace Eddy
                 cdList.Add(0.7);
                 cdList.Add(0.7);
             }
-               
+
 
             //private readonly List<double> cdList = new List<double> { 0.7, 0.7 };
 
@@ -180,6 +180,10 @@ namespace Eddy
 
                 //AverageCp2 = AverageCp2 / cnt2; //
                 AverageCp2 = listOfInputCps1[1];
+
+                // Airflow assessment in cross-ventilated buildings with operable façade elements
+                // P.KaravaaT.StathopoulosbA.K.Athienitisb
+                // https://www.sciencedirect.com/science/article/pii/S0360132310002271
 
                 //var C_D_general = 0.7;
                 var C_D_1 = cdList[0];
