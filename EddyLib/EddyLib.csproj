@@ -49,6 +49,7 @@
     <Compile Include="ASCIProgressBar.cs" />
     <Compile Include="BoundaryConditionsBase.cs" />
     <Compile Include="ParsingResiduals.cs" />
+    <Compile Include="Streamwriter.cs" />
     <Compile Include="SymbolicLink.cs" />
     <Compile Include="Daysim.cs" />
     <Compile Include="JenksFisherNaturalBreaks.cs" />

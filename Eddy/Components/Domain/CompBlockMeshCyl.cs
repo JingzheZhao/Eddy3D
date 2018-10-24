@@ -41,12 +41,12 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddBrepParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
-            pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, @"C:\temp");
+            pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, @"C:\Users\%USERNAME%\Eddy\");
 
-     
+
             pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.item);
 
-         
+
             pManager.AddIntegerParameter("Radial divisions", "RadDiv", "Radial divisions", GH_ParamAccess.item, 1);
             pManager.AddIntegerParameter("Concentric grading", "ConcGrad", "Concentric grading", GH_ParamAccess.item, 1);
             pManager.AddIntegerParameter("Concentric divisions", "ConcDiv", "Concentric Divisions", GH_ParamAccess.item, 1);
@@ -55,7 +55,7 @@ namespace Eddy
             pManager.AddNumberParameter("Size of outer radius", "OuterR", "Size of outer radius", GH_ParamAccess.item, 0);
             pManager.AddNumberParameter("Height", "Height", "Height", GH_ParamAccess.item, 0);
 
-          
+
             pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
 
 
@@ -106,7 +106,7 @@ namespace Eddy
 
 
 
-
+            
 
 
             DA.GetData(1, ref baseWorkingDirectory);
@@ -123,7 +123,7 @@ namespace Eddy
 
 
 
-          
+
 
             int CPUs = 1;
             int divisionsOuterCirc = 1;
@@ -134,7 +134,7 @@ namespace Eddy
             double sizeHeight = 0;
 
 
-       
+
             DA.GetData(3, ref divisionsOuterCirc);
             DA.GetData(4, ref gradingPerim);
             DA.GetData(5, ref divPerim);
@@ -148,11 +148,35 @@ namespace Eddy
             //DA.GetData(10, ref Run);
 
 
-    
+
             Mesh combinedMeshes = new Mesh();
             MeshingParameters mp = new MeshingParameters();
 
             //Error handling
+
+            // //c//c//temp/abc/mesh/
+
+            //string windowsVersion = Utilities.GetOSInfo();
+            bool isWindows7 = Utilities.IsWindows7;
+            string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+
+            //if (windowsVersion == "Windows 7" || windowsVersion == "Windows 8")
+            //{
+            //    if (!baseWorkingDirectory.StartsWith(userFolder, StringComparison.InvariantCultureIgnoreCase))
+            //    {
+            //        AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "For Windows 7 and 8, the working directory must be in the user folder because of contrainst with a deprecated Docker version.."); return;
+            //    }
+            //}
+
+            if (isWindows7)
+            {
+                if (!baseWorkingDirectory.StartsWith(userFolder, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "For Windows 7 and 8, the working directory must be in the user folder because of contrainst with a deprecated Docker version.."); return;
+                }
+            }
+
 
             if (CPUs > Environment.ProcessorCount)
             {
@@ -217,6 +241,7 @@ namespace Eddy
             //Fix paths
 
             baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
+            //string OFbaseWorkingDirectory = Utilities.reformatWorkingDir(baseWorkingDirectory);
 
 
 
@@ -224,8 +249,6 @@ namespace Eddy
 
             if (Utilities.CheckLicence() == true)
             {
-
-
 
 
                 OFCylDomain DOMCYL = new OFCylDomain(inputBreps, combinedMeshes, BCond, divisionsOuterCirc, gradingPerim, divPerim, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory)

@@ -19,6 +19,13 @@ namespace EddyLib
         public string meshStlDirectory;
         public string baseWorkingDirectory;
 
+        //directories for OF call
+        public string OFmeshWorkingDirectory;
+        public string OFmeshPolyMeshDirectory;
+        public string OFmeshSystemDirectory;
+        public string OFmeshConstantDirectory;
+        public string OFmeshStlDirectory;
+        public string OFbaseWorkingDirectory;
 
         public int CPUs;
 

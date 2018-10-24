@@ -1,10 +1,8 @@
 ﻿using Rhino.Geometry;
-using Rhino.Geometry.Intersect;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 
 namespace EddyLib
@@ -25,11 +23,11 @@ namespace EddyLib
 
 
 
-        List<string> MeshFaceLabel = new List<string>();
-        List<int> topFaceID = new List<int>();
-        List<int> bottomFaceID = new List<int>();
-        List<int> outletFaceID = new List<int>();
-        List<int> inletFaceID = new List<int>();
+        private readonly List<string> MeshFaceLabel = new List<string>();
+        private readonly List<int> topFaceID = new List<int>();
+        private readonly List<int> bottomFaceID = new List<int>();
+        private readonly List<int> outletFaceID = new List<int>();
+        private readonly List<int> inletFaceID = new List<int>();
         public List<Point3d> ListOfAllPointsInMagicOrder;
 
 
@@ -66,7 +64,12 @@ namespace EddyLib
             this.meshConstantDirectory = baseWorkingDirectory + @"\mesh\constant\";
             this.meshWorkingDirectory = baseWorkingDirectory + @"\mesh\";
 
-
+            this.OFbaseWorkingDirectory =   Utilities.reformatWorkingDir(baseWorkingDirectory);
+            this.OFmeshStlDirectory =       Utilities.reformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\triSurface\");
+            this.OFmeshPolyMeshDirectory =  Utilities.reformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\polyMesh\");
+            this.OFmeshSystemDirectory =    Utilities.reformatWorkingDir(baseWorkingDirectory + @"\mesh\system\");
+            this.OFmeshConstantDirectory = Utilities.reformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\");
+            this.OFmeshWorkingDirectory =   Utilities.reformatWorkingDir(baseWorkingDirectory + @"\mesh\");
 
 
             //needed for meshing purposes at this point in time
@@ -75,7 +78,7 @@ namespace EddyLib
             this.keepTimeSteps = 2;
 
 
-            
+
             this.CPUs = _CPU;
 
 
@@ -223,7 +226,10 @@ namespace EddyLib
 
             double minRad = Math.Sqrt(2 * (sizeInnerRect * sizeInnerRect)) * 1.1; // *1.1 to account for collapsing face on boundary
             double circRad = circleRadius;
-            if (circleRadius < minRad) circRad = minRad;
+            if (circleRadius < minRad)
+            {
+                circRad = minRad;
+            }
 
             var cellSizeCore = 2 * (sizeInnerRect / divisionsY);
             //Math.Abs was just a workaround fix
@@ -259,7 +265,7 @@ namespace EddyLib
                 var inter = Rhino.Geometry.Intersect.Intersection.LineCircle(new Line(center, vec), c, out t1, out p1, out t2, out p2);
                 //if(inter == LineCircleIntersection.Single)
                 pointsOnCircle.Add(p1);
-                
+
             }
 
 
@@ -801,7 +807,7 @@ mergePatchPairs
             return stb.ToString();
         }
 
-        private static int[] inputGroundVertices = {
+        private static readonly int[] inputGroundVertices = {
 
 72  ,
 73  ,
@@ -2101,7 +2107,7 @@ mergePatchPairs
 423
 };
 
-        private static int[] inputTopVertices = {
+        private static readonly int[] inputTopVertices = {
 
 505  ,
 506  ,
@@ -3406,8 +3412,15 @@ mergePatchPairs
         private int RoundToNearest5(double _Knob)
         {
             double Knob = _Knob;
-            if (Knob < 0) Knob = 0;
-            if (Knob > 359) Knob = 359;
+            if (Knob < 0)
+            {
+                Knob = 0;
+            }
+
+            if (Knob > 359)
+            {
+                Knob = 359;
+            }
 
             int flowDir = 0;
             while (Knob < 358)

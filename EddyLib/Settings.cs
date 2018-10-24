@@ -6,11 +6,38 @@ using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
 using System.IO;
+using System.Xml.Serialization;
 
 namespace EddyLib
 {
     class Settings
     {
+        //public string WindowsVersion { get; set; }
+        
+        //private static XmlSerializer xs;
+
+        //static Settings()
+        //{
+        //    xs = new XmlSerializer(typeof(Settings));
+        //}
+
+        //public void SaveToFile(string NameFile)
+        //{
+        //    using (Streamwriter sr = new Streamwriter(NameFile))
+        //    {
+        //        xs.Serialize(sr, this));
+        //    }
+        //}
+
+        //public static Settings ReadFromFile(string NameFile)
+        //{
+        //    using (StreamReader sr = new StreamReader(NameFile))
+        //    {
+        //        return xs.Deserialize(sr) as Settings;
+        //    }
+        //}
+
+
         public static int getCurrentRAM()
         {
             string currentRAM = @"Get-VMMemory MobyLinuxVM";

@@ -37,7 +37,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, @"C:\temp");
+            pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, @"C:\Users\%USERNAME%\Eddy\");
 
             pManager.AddBrepParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
             pManager.AddGeometryParameter("Terrain", "Terrain", "Terrain Geometry. Make sure the terrain geometry is bigger than the ground plane of the wind tunnel.", GH_ParamAccess.list);
@@ -71,8 +71,7 @@ namespace Eddy
 
         }
 
-
-
+        
         /// <summary>
         /// This is the method that actually does the work.
         /// </summary>
@@ -81,7 +80,7 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-       
+
 
 
 
@@ -114,6 +113,8 @@ namespace Eddy
 
 
 
+
+
             DA.GetData(4, ref blockDimension);
             //DA.GetData(4, ref RAM);
             DA.GetData(5, ref CPUs);
@@ -124,6 +125,26 @@ namespace Eddy
             Mesh combinedMeshes = new Mesh();
             MeshingParameters mp = new MeshingParameters();
 
+            //string windowsVersion = Utilities.GetOSInfo();
+            bool isWindows7 = Utilities.IsWindows7;
+            string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+
+            //if (windowsVersion == "Windows 7" || windowsVersion == "Windows 8")
+            //{
+            //    if (!baseWorkingDirectory.StartsWith(userFolder, StringComparison.InvariantCultureIgnoreCase))
+            //    {
+            //        AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "For Windows 7 and 8, the working directory must be in the user folder because of contrainst with a deprecated Docker version.."); return;
+            //    }
+            //}
+
+            if (isWindows7)
+            {
+                if (!baseWorkingDirectory.StartsWith(userFolder, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "For Windows 7 and 8, the working directory must be in the user folder because of contrainst with a deprecated Docker version.."); return;
+                }
+            }
 
 
 
@@ -138,7 +159,7 @@ namespace Eddy
 
             if (terrain.Count == 0)
             {
-               // AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "If you don't provide a terrain, Eddy will use a standard ground plane."); return;
+                // AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "If you don't provide a terrain, Eddy will use a standard ground plane."); return;
 
             }
             else // (terrain.Count > 0)
@@ -164,7 +185,7 @@ namespace Eddy
 
                 }
             }
-                                          
+
 
 
             if (geometries == null)
@@ -210,17 +231,19 @@ namespace Eddy
             if (Utilities.CheckLicence() == true)
             {
 
-               
+
 
 
 
                 //Fix paths
 
                 baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
+                //string OFbaseWorkingDirectory = Utilities.reformatWorkingDir(baseWorkingDirectory);
 
 
 
-                OFBoxDomain DOMBOX = new OFBoxDomain(inputBreps, combinedMeshes, terrainMeshes, BCond, blockDimension,CPUs, baseWorkingDirectory);
+
+                OFBoxDomain DOMBOX = new OFBoxDomain(inputBreps, combinedMeshes, terrainMeshes, BCond, blockDimension, CPUs, baseWorkingDirectory);
 
                 if (CPUs == -1)
                 {
@@ -321,7 +344,7 @@ namespace Eddy
 
                 STLExport.ExportBinary(meshStlFilenameBuildings, combinedMeshes);
 
-                                         
+
 
 
                 if (terrain.Count > 0)
@@ -336,7 +359,7 @@ namespace Eddy
                     STLExport.ExportBinary(meshStlFilenameGroundPerim, DOMBOX.newBoxGroundPerim);
                 }
 
-              
+
 
 
 
