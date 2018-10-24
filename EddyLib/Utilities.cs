@@ -71,7 +71,7 @@ namespace EddyLib
             return dir;
         }
 
-        public static bool IsDockerRunning(string workingDirectory)
+        public static bool IsDockerRunning(string workingDirectory, bool isWindows7)
         {
 
             bool running = false;
@@ -79,12 +79,21 @@ namespace EddyLib
 
             var lines = Utilities.FileReader(fp);
 
-            foreach (string line in lines)
+            if (isWindows7 == false)
             {
-                if (line.StartsWith("Containers"))
+                
+                foreach (string line in lines)
                 {
-                    running = true;
+                    if (line.StartsWith("Containers"))
+                    {
+                        running = true;
+                    }
                 }
+            }
+            else
+            {
+                // Assume that Docker is always running for Windows 7 for now
+                running = true;
             }
 
             return running;
@@ -116,14 +125,8 @@ namespace EddyLib
             return output;
         }
 
-        public static bool IsWindows7
-        {
-            get
-            {
-                return (Environment.OSVersion.Version.Major == 6 &
+        public static bool IsWindows7 => (Environment.OSVersion.Version.Major == 6 &
                   Environment.OSVersion.Version.Minor == 1);
-            }
-        }
 
 
         public static string GetOSInfo()
