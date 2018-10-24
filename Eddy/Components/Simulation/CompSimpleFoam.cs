@@ -152,7 +152,7 @@ namespace Eddy
 
                 Utilities.WriteDockerInfo(DOM.baseWorkingDirectory);
                 bool dockerRunning = false;
-                if (Utilities.IsDockerRunning(DOM.baseWorkingDirectory))
+                if (Utilities.IsDockerRunning(DOM.baseWorkingDirectory, DOM.IsWindows7))
                 {
                     dockerRunning = true;
                 }

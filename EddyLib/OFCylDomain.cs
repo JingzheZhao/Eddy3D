@@ -309,6 +309,7 @@ namespace EddyLib
             //stringifyPatches2(outMesh);
             //stringyfyDomain2();
 
+            this.IsWindows7 = Utilities.IsWindows7;
 
         }
 

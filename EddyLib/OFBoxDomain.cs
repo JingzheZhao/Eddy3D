@@ -44,6 +44,9 @@ namespace EddyLib
 
         public Mesh BuildingGeometry;
 
+
+        
+
         //// Delete later
         //public Plane pl;
         //public Point3d center;
@@ -246,7 +249,7 @@ namespace EddyLib
             this.autoCPUCalc = false;
 
 
-
+            this.IsWindows7 =Utilities.IsWindows7;
 
 
         }

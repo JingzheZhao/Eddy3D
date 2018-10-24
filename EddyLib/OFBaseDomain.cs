@@ -74,6 +74,8 @@ namespace EddyLib
 
         public int turbulenceModel;
 
+        public bool IsWindows7 = false;
+
 
 
 

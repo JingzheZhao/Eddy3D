@@ -81,7 +81,7 @@ namespace EddyLib
 
             if (isWindows7 == false)
             {
-                
+
                 foreach (string line in lines)
                 {
                     if (line.StartsWith("Containers"))
