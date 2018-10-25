@@ -121,7 +121,8 @@ namespace EddyLib
         {
             string output = workingDirectory.Replace(@"\", @"/");
             output = output.Replace(@":", @"/");
-            output = "//c//" + output;
+            //output = "//c//" + output;
+            output = "//" + output;
             return output;
         }
 
