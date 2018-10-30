@@ -212,7 +212,7 @@ namespace Eddy
                         if (run == true)
                         {
 
-                            ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.baseWorkingDirectory);
+                            ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.OFbaseWorkingDirectory);
                             Process p = new Process();
                             p.StartInfo = psi;
                             p.Start();
@@ -272,7 +272,7 @@ namespace Eddy
 
                         if (run == true)
                         {
-                            ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.baseWorkingDirectory);
+                            ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.OFbaseWorkingDirectory);
                             Process p = new Process();
                             p.StartInfo = psi;
                             p.Start();

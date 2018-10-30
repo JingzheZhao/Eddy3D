@@ -182,8 +182,10 @@ namespace EddyLib
         {
             string output = workingDirectory.Replace(@"\", @"/");
             output = output.Replace(@":", @"/");
+            
             //output = "//c//" + output;
             output = "//" + output;
+            output = output.Replace(@"//C//", @"//c//");
             return output;
         }
 
@@ -635,8 +637,8 @@ namespace EddyLib
         {
             bool licence = false;
             //DateTime dateNow = Utilities.GetNistTime();
-            DateTime dateCompile = new DateTime(2018, 9, 25, 0, 00, 00).ToUniversalTime();
-            TimeSpan licenceDuration = new TimeSpan(120, 0, 0, 0);
+            DateTime dateCompile = new DateTime(2018, 10, 25, 0, 00, 00).ToUniversalTime();
+            TimeSpan licenceDuration = new TimeSpan(60, 0, 0, 0);
             DateTime expiresAt = dateCompile.Add(licenceDuration);
 
             //try
