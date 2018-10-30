@@ -238,7 +238,7 @@ namespace Eddy
                 //Fix paths
 
                 baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
-                //string OFbaseWorkingDirectory = Utilities.reformatWorkingDir(baseWorkingDirectory);
+                //string OFbaseWorkingDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory);
 
 
 

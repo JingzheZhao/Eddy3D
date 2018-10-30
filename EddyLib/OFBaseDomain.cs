@@ -76,6 +76,8 @@ namespace EddyLib
 
         public bool IsWindows7 = false;
 
+        public List<double> runtimes = new List<double>();
+
 
 
 

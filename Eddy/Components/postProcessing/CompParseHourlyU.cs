@@ -165,8 +165,8 @@ namespace Eddy
                 for (int c = 0; c < numberOfWindDirs; c++)
                 {
 
-                    ReductionFile.Append(Math.Sqrt(Math.Pow(listOfAnnualData[c][r].X,2)* Math.Pow(listOfAnnualData[c][r].Y,2)* Math.Pow(listOfAnnualData[c][r].Z,2) )+ ",");
-                    
+                    //ReductionFile.Append(Math.Sqrt(Math.Pow(listOfAnnualData[c][r].X,2)* Math.Pow(listOfAnnualData[c][r].Y,2)* Math.Pow(listOfAnnualData[c][r].Z,2) )+ ",");
+                    ReductionFile.Append(Math.Round(listOfAnnualData[c][r].Length,3) + ",");
                 }
                 ReductionFile.AppendLine("");
             }

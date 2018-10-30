@@ -71,6 +71,67 @@ namespace EddyLib
             return dir;
         }
 
+
+        public static double CalculateRunTimeFromLog(string simulationDirectory, int iter)
+        {
+
+
+            string path = simulationDirectory + @"\log";
+
+
+
+            
+
+
+            //DateTime timeBegin = new DateTime();
+            //DateTime timeEnd = new DateTime();
+            //TimeSpan timeSpan = timeEnd - timeBegin;
+            //TimeSpan timeElapsed;
+
+
+            var time1 = "";
+            var time2 = "";
+            double timeEnd = 0;
+
+            if (File.Exists(path))
+            {
+                string[] lines = File.ReadAllLines(path);
+
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    var l = lines[i];
+                    if (l.EndsWith("simpleFoam"))
+                    {
+                        time1 = lines[i + 2].Replace("Time", "").Remove(0, 5);
+
+
+                        //timeBegin = DateTime.Parse(time1, System.Globalization.CultureInfo.CurrentCulture);
+
+                    }
+                    if (l.StartsWith("SIMPLE solution converged"))
+                    {
+                        time2 = lines[i - 3].Split("ClockTime".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[3].Replace("=", "").Replace("s", "").Trim();//.Replace("s", "")
+
+                        //timeElapsed = TimeSpan.FromSeconds(double.Parse(time2));
+                    }
+                    else if (l.EndsWith(iter.ToString()))
+                    {
+                        time2 = lines[i + 10].Split("ClockTime".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[3].Replace("=", "").Replace("s", "").Trim();//.Replace("s", "")
+
+                        //timeElapsed = TimeSpan.FromSeconds(double.Parse(time2));
+                    }
+
+                }
+
+                timeEnd = double.Parse(time2) / 60;
+            }
+            else
+            {
+                timeEnd = 0;
+            }
+            return timeEnd;
+        }
+
         public static bool IsDockerRunning(string workingDirectory, bool isWindows7)
         {
 
@@ -117,7 +178,7 @@ namespace EddyLib
 
         }
 
-        public static string reformatWorkingDir(string workingDirectory)
+        public static string ReformatWorkingDir(string workingDirectory)
         {
             string output = workingDirectory.Replace(@"\", @"/");
             output = output.Replace(@":", @"/");

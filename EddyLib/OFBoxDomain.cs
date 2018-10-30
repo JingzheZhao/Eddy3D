@@ -231,12 +231,12 @@ namespace EddyLib
             this.meshConstantDirectory = baseWorkingDirectory + @"\mesh\constant\";
             this.meshWorkingDirectory = baseWorkingDirectory + @"\mesh\";
 
-            this.OFbaseWorkingDirectory = Utilities.reformatWorkingDir(baseWorkingDirectory);
-            this.OFmeshStlDirectory = Utilities.reformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\triSurface\");
-            this.OFmeshPolyMeshDirectory = Utilities.reformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\polyMesh\");
-            this.OFmeshSystemDirectory = Utilities.reformatWorkingDir(baseWorkingDirectory + @"\mesh\system\");
-            this.OFmeshConstantDirectory = Utilities.reformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\");
-            this.OFmeshWorkingDirectory = Utilities.reformatWorkingDir(baseWorkingDirectory + @"\mesh\");
+            this.OFbaseWorkingDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory);
+            this.OFmeshStlDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\triSurface\");
+            this.OFmeshPolyMeshDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\polyMesh\");
+            this.OFmeshSystemDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\system\");
+            this.OFmeshConstantDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\");
+            this.OFmeshWorkingDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\");
 
 
 

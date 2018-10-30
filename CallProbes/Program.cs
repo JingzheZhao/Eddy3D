@@ -1,21 +1,19 @@
 ﻿using CommandLine;
 using CommandLine.Text;
+using EddyLib;
+using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using EddyLib;
-using Rhino.Geometry;
 
 namespace CallProbes
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             // Check licence
 
@@ -53,7 +51,7 @@ namespace CallProbes
                     var numberOfWindDirs = windDirs.Length;
 
 
-                    
+
 
 
                     try
@@ -151,10 +149,29 @@ namespace CallProbes
                         for (int i = 0; i < lines.Length; i++)
                         {
                             var l = lines[i];
-                            if (l.Contains("Uref")) URef = double.Parse(l.Replace("Uref", "").Replace(";", "").Trim());
-                            if (l.Contains("z0")) z0 = double.Parse(l.Replace("z0 uniform", "").Replace(";", "").Trim());
-                            if (l.Contains("Zref")) zref = double.Parse(l.Replace("Zref", "").Replace(";", "").Trim());
+
+
+
+                            if (l.Contains("Uref"))
+                            {
+                                URef = double.Parse(l.Replace("Uref", "").Replace(";", "").Trim());
+                            }
+
+                            if (l.Contains("z0"))
+                            {
+                                z0 = double.Parse(l.Replace("z0 uniform", "").Replace(";", "").Trim());
+                            }
+
+                            if (l.Contains("Zref"))
+                            {
+                                zref = double.Parse(l.Replace("Zref", "").Replace(";", "").Trim());
+                            }
                         }
+
+
+
+                        
+
 
 
 
@@ -243,7 +260,7 @@ namespace CallProbes
 
                             }
 
-                            
+
 
                             ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + options.WorkingDir);
                             Process p = new Process
@@ -462,7 +479,7 @@ namespace CallProbes
 
 
     // Define a class to receive parsed values
-    class Options
+    internal class Options
     {
 
         [Option('d', "workingDir", Required = true,
