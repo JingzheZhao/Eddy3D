@@ -135,9 +135,6 @@ namespace EddyLib
 
             Interval zInter;
 
-
-            // If terrain is used, scale down Z to make sure all points are inside the domain
-
             this.terrainMesh = terrain;
 
             if (terrain.DisjointMeshCount == 0)
@@ -151,8 +148,10 @@ namespace EddyLib
             }
 
 
-            
-                       
+            // If terrain is used, scale down Z to make sure all points are inside the domain
+
+
+
 
             xCells = (int)((Math.Abs(xInter.Length)) / blockDimension);
             yCells = (int)((Math.Abs(yInter.Length)) / blockDimension);
@@ -160,11 +159,10 @@ namespace EddyLib
 
 
 
-            var pl = new Plane(center, localCoordSystem.ZAxis, -1 * localCoordSystem.YAxis);
-            pl.Rotate(((-1 * windDir) - 90) * Math.PI / 180, localCoordSystem.XAxis);
-            pl.Origin = center;
-
-           
+            var pl = new Plane(center, localCoordSystem.ZAxis, -1 * localCoordSystem.YAxis)
+            {
+                Origin = center
+            };
 
             //Plane newPlaneGround = new Plane()
             newBoxDomain = new Box(pl, xInter, yInter, zInter);
