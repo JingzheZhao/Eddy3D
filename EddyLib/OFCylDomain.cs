@@ -133,8 +133,8 @@ namespace EddyLib
             //var scaleCyclDomainHeight = height > dimY ? height : dimY;
 
 
-            Plane localSystem = Plane.WorldZX;
-            localSystem.Origin = center;
+            Plane localSystem = new Plane(center, Vector3d.XAxis, Vector3d.ZAxis);
+           // localSystem.Origin = center;
 
             localSystem.Translate(-Vector3d.YAxis * dimY);
             var projAreaList = new List<double>();
