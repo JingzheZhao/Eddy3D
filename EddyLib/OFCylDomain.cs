@@ -1,6 +1,7 @@
 ﻿using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 
@@ -141,8 +142,9 @@ namespace EddyLib
             {
                 Plane localCopy = new Plane(localSystem);
                 localCopy.Rotate(5 * i * Math.PI / 180, Vector3d.ZAxis, center);
+                projAreaList.Add(ProjectedBuildingArea(localCopy, geometry, 5, this.baseWorkingDirectory + @"\FrontageImage" + i + ".png"));
 
-                projAreaList.Add(ProjectedBuildingArea(localCopy, geometry));
+           
             }
 
             frontageBuildingArea = projAreaList.Max();

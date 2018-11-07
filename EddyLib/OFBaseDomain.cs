@@ -1,7 +1,7 @@
 ﻿using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
-
+using System.Drawing;
 
 namespace EddyLib
 {
@@ -116,7 +116,7 @@ namespace EddyLib
 
         }
 
-        public static double ProjectedBuildingArea(Plane localSystem, Mesh buildings)
+        public static double ProjectedBuildingArea(Plane localSystem, Mesh buildings, double spacing , string path)
         {
 
             Plane worldXY = Plane.WorldXY;
@@ -134,18 +134,35 @@ namespace EddyLib
             Box box = new Box(localSystem, interval, interval2, interval3);
 
 
+            int y = (int)Math.Round(interval.Length / spacing);
+            int z = (int)Math.Round(interval2.Length / spacing);
+           
 
-            //Todo:
-            int z = 30;
-            int y = 30;
 
             double incrY = interval.Length / y;
             double incrZ = interval2.Length / z;
+
             //Todo: Adapt length to actual domain dimension
             double raylen = 99999999999;
 
             List<Point3d> points = new List<Point3d>();
             List<Ray3d> rays = new List<Ray3d>();
+
+             List<bool> hits = new List<bool>();
+            int hitcount = 0;
+
+
+
+ using (var FrontageImage = new Bitmap(y, z))
+
+            { 
+            using (Graphics graph = Graphics.FromImage(FrontageImage))
+            {
+                Rectangle ImageSize = new Rectangle(0, 0, y, z);
+                graph.FillRectangle(Brushes.White, ImageSize);
+            }
+
+
             for (int i = 0; i < z; i++)
             {
 
@@ -154,28 +171,31 @@ namespace EddyLib
 
                     var pt = localSystem.PointAt((0.5 * incrY) + interval.Min + j * incrY, (0.5 * incrZ) + interval2.Min + i * incrZ);
                     points.Add(pt);
-                    rays.Add(new Ray3d(pt, localSystem.ZAxis * raylen));
 
+                    var ray = new Ray3d(pt, localSystem.ZAxis * raylen);
 
-                }
-            }
+                    rays.Add(ray);
 
-
-            List<bool> hits = new List<bool>();
-            int hitcount = 0;
-            for (int i = 0; i < rays.Count; i++)
-            {
-                double d = Rhino.Geometry.Intersect.Intersection.MeshRay(buildings, rays[i]);
-                if (d > 0)
+                    double d = Rhino.Geometry.Intersect.Intersection.MeshRay(buildings, ray);
+                     if (d > 0)
                 {
                     hitcount++;
                     hits.Add(true);
+
+                        FrontageImage.SetPixel(j, i, Color.Black);
+
                 }
-                else { hits.Add(false); }
-            };
+                else { hits.Add(false);
+                        FrontageImage.SetPixel(j, i, Color.White);
+                    }
+                }
+            }
 
+                FrontageImage.Save(path, System.Drawing.Imaging.ImageFormat.Png);
 
+}
 
+            
 
             return incrY * incrZ * hitcount;
         }

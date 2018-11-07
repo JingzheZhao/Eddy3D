@@ -1,5 +1,6 @@
 ﻿using Rhino.Geometry;
 using System;
+using System.Drawing;
 
 namespace EddyLib
 {
@@ -102,9 +103,9 @@ namespace EddyLib
 
             //Create Box Domain
             //Find frontfacing areas in wind direction
-
-            frontageBuildingArea = ProjectedBuildingArea(localCoordSystem, BuildingGeometry);
-
+           
+            frontageBuildingArea = ProjectedBuildingArea(localCoordSystem, BuildingGeometry, 5, this.baseWorkingDirectory + @"\FrontageImage" + windDir + ".png");
+            
 
             double scaleRectDomainZ = 6 * dimZ;
 
