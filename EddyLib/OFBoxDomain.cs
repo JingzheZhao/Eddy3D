@@ -121,8 +121,7 @@ namespace EddyLib
             locationInMesh = center + 4 * vecPlusZ * dimZ;
 
 
-            /// TODO:
-            /// Implement correct handling of multiple wind directions
+           
             var windDir = BCond.windDir[0];
 
             var windDirVector = BCond.flowDir[0];
@@ -136,7 +135,7 @@ namespace EddyLib
             Box box;
             Plane newLocal;
             frontageBuildingArea = ProjectedBuildingArea(windDirVector, BuildingGeometry, 1, 
-                this.baseWorkingDirectory + @"\FrontageImage" + windDir + ".png", 
+                this.baseWorkingDirectory + @"\FrontageImages\FrontageImage" + windDir + ".png", 
                 out newLocal, out box);
             
 
@@ -194,8 +193,8 @@ namespace EddyLib
             };
 
             //Plane newPlaneGround = new Plane()
-            newBoxDomain = box;
-
+            //newBoxDomain = box;
+            newBoxDomain = new Box(pl, xInter, yInter, zInter);
 
 
             //Point3d[] cornersGroundPlane;

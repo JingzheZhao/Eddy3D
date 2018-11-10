@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 
 namespace EddyLib
 {
@@ -116,8 +117,13 @@ namespace EddyLib
 
         }
 
-        public static double ProjectedBuildingArea(Vector3d windDir, Mesh buildings, double spacing, string path, out Plane newLocal , out Box box)
+        public double ProjectedBuildingArea(Vector3d windDir, Mesh buildings, double spacing, string path, out Plane newLocal, out Box box)
         {
+            if (!Directory.Exists(this.baseWorkingDirectory + @"\FrontageImages\"))
+            {
+                Directory.CreateDirectory(this.baseWorkingDirectory + @"\FrontageImages\");
+            }
+
             var up = Vector3d.ZAxis;
             var forward = windDir;
             forward.Unitize();
@@ -175,7 +181,7 @@ namespace EddyLib
                     for (int xx = 0; xx < x; xx++)
                     {
                         var pt = newLocal.PointAt((0.5 * incrX) + xx * incrX, -0.1, (0.5 * incrZ) + zz * incrZ);
-                     
+
                         points.Add(pt);
 
                         var ray = new Ray3d(pt, newLocal.YAxis * raylen);

@@ -145,7 +145,7 @@ namespace EddyLib
                 Box box;
                 Plane newLocal;
                 projAreaList.Add(ProjectedBuildingArea(localCopy, geometry, 1,
-                    this.baseWorkingDirectory + @"\FrontageImage" + i + ".png",
+                    this.baseWorkingDirectory + @"\FrontageImages\FrontageImage" + (i*5) + ".png",
                     out newLocal, out box));
 
            
