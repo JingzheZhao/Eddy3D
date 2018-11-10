@@ -116,34 +116,47 @@ namespace EddyLib
 
         }
 
-        public static double ProjectedBuildingArea(Plane localSystem, Mesh buildings, double spacing, string path)
+        public static double ProjectedBuildingArea(Vector3d windDir, Mesh buildings, double spacing, string path, out Plane newLocal , out Box box)
         {
+            var up = Vector3d.ZAxis;
+            var forward = windDir;
+            forward.Unitize();
+            var right = Vector3d.CrossProduct(forward, up);
+            right.Unitize();
+
+
+            Plane local = new Plane(Point3d.Origin, right, forward);
+
 
             Plane worldXY = Plane.WorldXY;
-            Transform xform = Transform.ChangeBasis(worldXY, localSystem);
+            Transform xform = Transform.ChangeBasis(worldXY, local);
+            Transform xformBack = Transform.ChangeBasis(local, worldXY);
 
 
             BoundingBox empty = BoundingBox.Empty;
-
-
             BoundingBox boundingBox = buildings.GetBoundingBox(xform);
             empty.Union(boundingBox);
-            Interval interval = new Interval(empty.Min.X, empty.Max.X);   // y
-            Interval interval2 = new Interval(empty.Min.Y, empty.Max.Y);  // z
-            Interval interval3 = new Interval(empty.Min.Z, empty.Max.Z);
-            Box box = new Box(localSystem, interval, interval2, interval3);
 
 
-            int y = (int)Math.Round(interval.Length / spacing);
-            int z = (int)Math.Round(interval2.Length / spacing);
+            Interval intervalX = new Interval(empty.Min.X, empty.Max.X);
+            Interval intervalY = new Interval(empty.Min.Y, empty.Max.Y);
+            Interval intervalZ = new Interval(empty.Min.Z, empty.Max.Z);
+            box = new Box(local, intervalX, intervalY, intervalZ);
+
+            Point3d newO = empty.Min;
+            // Transform xformBack;
+            // xform.TryGetInverse(out xformBack);
+            newO.Transform(xformBack);
+
+            newLocal = new Plane(newO, right, forward);
 
 
+            int x = (int)Math.Round(intervalX.Length / spacing);
+            int z = (int)Math.Round(intervalZ.Length / spacing);
 
-            double incrY = interval.Length / y;
-            double incrZ = interval2.Length / z;
-
-            //Todo: Adapt length to actual domain dimension
-            double raylen = 99999999999;
+            double incrX = intervalX.Length / x;
+            double incrZ = intervalZ.Length / z;
+            double raylen = intervalY.Length;
 
             List<Point3d> points = new List<Point3d>();
             List<Ray3d> rays = new List<Ray3d>();
@@ -153,26 +166,19 @@ namespace EddyLib
 
 
 
-            using (var FrontageImage = new Bitmap(z, y))
+            using (var FrontageImage = new Bitmap(x, z))
 
             {
-                //using (Graphics graph = Graphics.FromImage(FrontageImage))
-                //{
-                //    Rectangle ImageSize = new Rectangle(0, 0, y, z);
-                //    graph.FillRectangle(Brushes.White, ImageSize);
-                //}
-
-
-                for (int i = 0; i < z; i++)
+                for (int zz = 0; zz < z; zz++)
                 {
 
-                    for (int j = 0; j < y; j++)
+                    for (int xx = 0; xx < x; xx++)
                     {
-
-                        var pt = localSystem.PointAt((0.5 * incrY) + interval.Min + j * incrY, (0.5 * incrZ) + interval2.Min + i * incrZ);
+                        var pt = newLocal.PointAt((0.5 * incrX) + xx * incrX, -0.1, (0.5 * incrZ) + zz * incrZ);
+                     
                         points.Add(pt);
 
-                        var ray = new Ray3d(pt, localSystem.ZAxis * raylen);
+                        var ray = new Ray3d(pt, newLocal.YAxis * raylen);
 
                         rays.Add(ray);
 
@@ -182,24 +188,24 @@ namespace EddyLib
                             hitcount++;
                             hits.Add(true);
 
-                            FrontageImage.SetPixel(i, j, Color.Black);
+                            FrontageImage.SetPixel(xx, zz, Color.Black);
 
                         }
                         else
                         {
                             hits.Add(false);
-                            FrontageImage.SetPixel(i, j, Color.White);
+                            FrontageImage.SetPixel(xx, zz, Color.White);
                         }
                     }
                 }
-                FrontageImage.RotateFlip(RotateFlipType.Rotate180FlipNone);
+                FrontageImage.RotateFlip(RotateFlipType.RotateNoneFlipY);
                 FrontageImage.Save(path, System.Drawing.Imaging.ImageFormat.Png);
 
             }
 
 
 
-            return incrY * incrZ * hitcount;
+            return incrX * incrZ * hitcount;
         }
     }
 }

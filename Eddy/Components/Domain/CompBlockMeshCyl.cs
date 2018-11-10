@@ -41,7 +41,7 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddBrepParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
-            pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, @"C:\Users\%USERNAME%\Eddy\");
+            pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Eddy"));
 
 
             pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.item);
@@ -89,6 +89,10 @@ namespace Eddy
             //bool Run = false;
             //  string command = @"blockMesh";
             string baseWorkingDirectory = "";
+            DA.GetData(1, ref baseWorkingDirectory);
+
+            if (!Directory.Exists(baseWorkingDirectory)) { Directory.CreateDirectory(baseWorkingDirectory); }
+
 
             //public Box DomainBoundaryBox;
             List<GeometryBase> _domain = new List<GeometryBase>();
@@ -109,7 +113,7 @@ namespace Eddy
             
 
 
-            DA.GetData(1, ref baseWorkingDirectory);
+            
 
             BoundaryConditions BCond = null;
             DA.GetData(2, ref BCond);

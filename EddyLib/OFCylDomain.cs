@@ -140,9 +140,13 @@ namespace EddyLib
             var projAreaList = new List<double>();
             for (int i = 0; i < 72; i++)
             {
-                Plane localCopy = new Plane(localSystem);
-                localCopy.Rotate(5 * i * Math.PI / 180, Vector3d.ZAxis, center);
-                projAreaList.Add(ProjectedBuildingArea(localCopy, geometry, 1, this.baseWorkingDirectory + @"\FrontageImage" + i + ".png"));
+                Vector3d localCopy = Vector3d.YAxis;
+                localCopy.Rotate(5 * i * Math.PI / 180, Vector3d.ZAxis);
+                Box box;
+                Plane newLocal;
+                projAreaList.Add(ProjectedBuildingArea(localCopy, geometry, 1,
+                    this.baseWorkingDirectory + @"\FrontageImage" + i + ".png",
+                    out newLocal, out box));
 
            
             }
