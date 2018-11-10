@@ -56,6 +56,38 @@ namespace EddyLib
 
         public OFBoxDomain(Brep inputBreps, Mesh geometry, Mesh terrain, BoundaryConditions BCond, double _blockDim, int CPUs, string baseWorkingDirectory = @"C:\temp")
         {
+            this.BCInflow = BCond;
+
+            this.baseWorkingDirectory = baseWorkingDirectory;
+            this.meshStlDirectory = baseWorkingDirectory + @"\mesh\constant\triSurface\";
+            this.meshPolyMeshDirectory = baseWorkingDirectory + @"\mesh\constant\polyMesh\";
+            this.meshSystemDirectory = baseWorkingDirectory + @"\mesh\system\";
+            this.meshConstantDirectory = baseWorkingDirectory + @"\mesh\constant\";
+            this.meshWorkingDirectory = baseWorkingDirectory + @"\mesh\";
+
+            this.OFbaseWorkingDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory);
+            this.OFmeshStlDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\triSurface\");
+            this.OFmeshPolyMeshDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\polyMesh\");
+            this.OFmeshSystemDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\system\");
+            this.OFmeshConstantDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\");
+            this.OFmeshWorkingDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\");
+
+
+
+            //needed for meshing purposes at this point in time
+            this.iter = 1000;
+            this.writeInterval = 10;
+            this.keepTimeSteps = 2;
+
+            this.inputBreps = inputBreps;
+            this.autoCPUCalc = false;
+
+
+            this.IsWindows7 = Utilities.IsWindows7;
+
+
+
+
             blockDimension = _blockDim;
             BuildingGeometry = geometry;
             this.CPUs = CPUs;
@@ -104,7 +136,7 @@ namespace EddyLib
             //Create Box Domain
             //Find frontfacing areas in wind direction
            
-            frontageBuildingArea = ProjectedBuildingArea(localCoordSystem, BuildingGeometry, 5, this.baseWorkingDirectory + @"\FrontageImage" + windDir + ".png");
+            frontageBuildingArea = ProjectedBuildingArea(localCoordSystem, BuildingGeometry, 1, this.baseWorkingDirectory + @"\FrontageImage" + windDir + ".png");
             
 
             double scaleRectDomainZ = 6 * dimZ;
@@ -223,35 +255,7 @@ namespace EddyLib
 
 
 
-            this.BCInflow = BCond;
-
-            this.baseWorkingDirectory = baseWorkingDirectory;
-            this.meshStlDirectory = baseWorkingDirectory + @"\mesh\constant\triSurface\";
-            this.meshPolyMeshDirectory = baseWorkingDirectory + @"\mesh\constant\polyMesh\";
-            this.meshSystemDirectory = baseWorkingDirectory + @"\mesh\system\";
-            this.meshConstantDirectory = baseWorkingDirectory + @"\mesh\constant\";
-            this.meshWorkingDirectory = baseWorkingDirectory + @"\mesh\";
-
-            this.OFbaseWorkingDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory);
-            this.OFmeshStlDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\triSurface\");
-            this.OFmeshPolyMeshDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\polyMesh\");
-            this.OFmeshSystemDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\system\");
-            this.OFmeshConstantDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\");
-            this.OFmeshWorkingDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\");
-
-
-
-            //needed for meshing purposes at this point in time
-            this.iter = 1000;
-            this.writeInterval = 10;
-            this.keepTimeSteps = 2;
-
-            this.inputBreps = inputBreps;
-            this.autoCPUCalc = false;
-
-
-            this.IsWindows7 =Utilities.IsWindows7;
-
+         
 
         }
 

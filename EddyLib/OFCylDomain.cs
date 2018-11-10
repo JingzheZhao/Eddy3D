@@ -142,7 +142,7 @@ namespace EddyLib
             {
                 Plane localCopy = new Plane(localSystem);
                 localCopy.Rotate(5 * i * Math.PI / 180, Vector3d.ZAxis, center);
-                projAreaList.Add(ProjectedBuildingArea(localCopy, geometry, 5, this.baseWorkingDirectory + @"\FrontageImage" + i + ".png"));
+                projAreaList.Add(ProjectedBuildingArea(localCopy, geometry, 1, this.baseWorkingDirectory + @"\FrontageImage" + i + ".png"));
 
            
             }

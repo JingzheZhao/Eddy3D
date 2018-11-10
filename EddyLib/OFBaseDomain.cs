@@ -101,7 +101,7 @@ namespace EddyLib
         }
 
 
-     
+
 
 
 
@@ -116,7 +116,7 @@ namespace EddyLib
 
         }
 
-        public static double ProjectedBuildingArea(Plane localSystem, Mesh buildings, double spacing , string path)
+        public static double ProjectedBuildingArea(Plane localSystem, Mesh buildings, double spacing, string path)
         {
 
             Plane worldXY = Plane.WorldXY;
@@ -136,7 +136,7 @@ namespace EddyLib
 
             int y = (int)Math.Round(interval.Length / spacing);
             int z = (int)Math.Round(interval2.Length / spacing);
-           
+
 
 
             double incrY = interval.Length / y;
@@ -148,54 +148,56 @@ namespace EddyLib
             List<Point3d> points = new List<Point3d>();
             List<Ray3d> rays = new List<Ray3d>();
 
-             List<bool> hits = new List<bool>();
+            List<bool> hits = new List<bool>();
             int hitcount = 0;
 
 
 
- using (var FrontageImage = new Bitmap(y, z))
+            using (var FrontageImage = new Bitmap(z, y))
 
-            { 
-            using (Graphics graph = Graphics.FromImage(FrontageImage))
             {
-                Rectangle ImageSize = new Rectangle(0, 0, y, z);
-                graph.FillRectangle(Brushes.White, ImageSize);
-            }
+                //using (Graphics graph = Graphics.FromImage(FrontageImage))
+                //{
+                //    Rectangle ImageSize = new Rectangle(0, 0, y, z);
+                //    graph.FillRectangle(Brushes.White, ImageSize);
+                //}
 
 
-            for (int i = 0; i < z; i++)
-            {
-
-                for (int j = 0; j < y; j++)
+                for (int i = 0; i < z; i++)
                 {
 
-                    var pt = localSystem.PointAt((0.5 * incrY) + interval.Min + j * incrY, (0.5 * incrZ) + interval2.Min + i * incrZ);
-                    points.Add(pt);
+                    for (int j = 0; j < y; j++)
+                    {
 
-                    var ray = new Ray3d(pt, localSystem.ZAxis * raylen);
+                        var pt = localSystem.PointAt((0.5 * incrY) + interval.Min + j * incrY, (0.5 * incrZ) + interval2.Min + i * incrZ);
+                        points.Add(pt);
 
-                    rays.Add(ray);
+                        var ray = new Ray3d(pt, localSystem.ZAxis * raylen);
 
-                    double d = Rhino.Geometry.Intersect.Intersection.MeshRay(buildings, ray);
-                     if (d > 0)
-                {
-                    hitcount++;
-                    hits.Add(true);
+                        rays.Add(ray);
 
-                        FrontageImage.SetPixel(j, i, Color.Black);
+                        double d = Rhino.Geometry.Intersect.Intersection.MeshRay(buildings, ray);
+                        if (d > 0)
+                        {
+                            hitcount++;
+                            hits.Add(true);
 
-                }
-                else { hits.Add(false);
-                        FrontageImage.SetPixel(j, i, Color.White);
+                            FrontageImage.SetPixel(i, j, Color.Black);
+
+                        }
+                        else
+                        {
+                            hits.Add(false);
+                            FrontageImage.SetPixel(i, j, Color.White);
+                        }
                     }
                 }
-            }
-
+                FrontageImage.RotateFlip(RotateFlipType.Rotate180FlipNone);
                 FrontageImage.Save(path, System.Drawing.Imaging.ImageFormat.Png);
 
-}
+            }
 
-            
+
 
             return incrY * incrZ * hitcount;
         }
