@@ -37,7 +37,9 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, @"C:\Users\%USERNAME%\Eddy\");
+            
+
+            pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Eddy"));
 
             pManager.AddBrepParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
             pManager.AddGeometryParameter("Terrain", "Terrain", "Terrain Geometry. Make sure the terrain geometry is bigger than the ground plane of the wind tunnel.", GH_ParamAccess.list);
@@ -80,19 +82,20 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-
-
+string baseWorkingDirectory = "";
+            DA.GetData(0, ref baseWorkingDirectory);
+            if (!Directory.Exists(baseWorkingDirectory)) { Directory.CreateDirectory(baseWorkingDirectory); }
 
 
             //public Box DomainBoundaryBox;
             List<GeometryBase> geometries = new List<GeometryBase>();
-            string baseWorkingDirectory = "";
+            
 
             List<GeometryBase> terrain = new List<GeometryBase>();
 
 
 
-            DA.GetData(0, ref baseWorkingDirectory);
+            
 
             DA.GetDataList(1, geometries);
             DA.GetDataList(2, terrain);

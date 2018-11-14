@@ -119,24 +119,30 @@ namespace EddyLib
             center = BBox.Center + 0.5 * vecMinusZ * dimZ;
             locationInMesh = center + 4 * vecPlusZ * dimZ;
 
+
+           
             var windDir = BCond.windDir[0];
+
+            var windDirVector = BCond.flowDir[0];
+
+
             //Vector3d vecWindDir = new Vector3d(Math.Sin(windDir * Math.PI / 180), Math.Cos(windDir * Math.PI / 180), 0);
-
-
             //Plane localCoordSystem = Plane.WorldZX;
-            var localCoordSystem = Plane.WorldZX;
-            localCoordSystem.Rotate(((-1 * windDir) - 90) * Math.PI / 180, localCoordSystem.XAxis);
-            localCoordSystem.Origin = center;
-
-            localCoordSystem.Translate(localCoordSystem.YAxis * dimY);
-
-
 
             //Create Box Domain
             //Find frontfacing areas in wind direction
+<<<<<<< HEAD
 
             frontageBuildingArea = ProjectedBuildingArea(localCoordSystem, BuildingGeometry, 1, this.baseWorkingDirectory + @"\FrontageImage" + windDir + ".png");
 
+=======
+            Box box;
+            Plane newLocal;
+            frontageBuildingArea = ProjectedBuildingArea(windDirVector, BuildingGeometry, 1, 
+                this.baseWorkingDirectory + @"\FrontageImages\FrontageImage" + windDir + ".png", 
+                out newLocal, out box);
+            
+>>>>>>> 9a09489efd69b7d21b26031ae03d1037aaaef811
 
             double scaleRectDomainZ = 6 * dimZ;
 
@@ -151,11 +157,6 @@ namespace EddyLib
             double scaleRectDomainYDownstream = 15.5 * dimZ + dimY;
             double scaleRectDomainYUpstreamCore = -scaleRectDomainX;
             double scaleRectDomainYDownstreamCore = scaleRectDomainX;
-
-
-
-
-
 
 
             Interval xInter = new Interval(-scaleRectDomainX, scaleRectDomainX);
@@ -193,14 +194,14 @@ namespace EddyLib
 
 
 
-            var pl = new Plane(center, localCoordSystem.ZAxis, -1 * localCoordSystem.YAxis)
+            var pl = new Plane(center, newLocal.XAxis, newLocal.YAxis)
             {
                 Origin = center
             };
 
             //Plane newPlaneGround = new Plane()
+            //newBoxDomain = box;
             newBoxDomain = new Box(pl, xInter, yInter, zInter);
-
 
 
             //Point3d[] cornersGroundPlane;

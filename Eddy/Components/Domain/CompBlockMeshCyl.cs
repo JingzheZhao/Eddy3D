@@ -40,11 +40,16 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
+<<<<<<< HEAD
 
             pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, @"C:\Users\%USERNAME%\Eddy\");
             pManager.AddBrepParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
             pManager.AddGeometryParameter("Terrain", "Terrain", "Terrain Geometry. Make sure the terrain geometry is bigger than the ground plane of the wind tunnel.", GH_ParamAccess.list);
 
+=======
+            pManager.AddBrepParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
+            pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Eddy"));
+>>>>>>> 9a09489efd69b7d21b26031ae03d1037aaaef811
 
 
             pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.item);
@@ -92,7 +97,14 @@ namespace Eddy
             //bool Run = false;
             //  string command = @"blockMesh";
             string baseWorkingDirectory = "";
+<<<<<<< HEAD
             DA.GetData(0, ref baseWorkingDirectory);
+=======
+            DA.GetData(1, ref baseWorkingDirectory);
+
+            if (!Directory.Exists(baseWorkingDirectory)) { Directory.CreateDirectory(baseWorkingDirectory); }
+
+>>>>>>> 9a09489efd69b7d21b26031ae03d1037aaaef811
 
             //public Box DomainBoundaryBox;
             List<GeometryBase> _domain = new List<GeometryBase>();
@@ -107,7 +119,17 @@ namespace Eddy
                     domain.Add(g);
                 }
             }
+<<<<<<< HEAD
                                                                           
+=======
+
+
+
+            
+
+
+            
+>>>>>>> 9a09489efd69b7d21b26031ae03d1037aaaef811
 
             BoundaryConditions BCond = null;
             DA.GetData(3, ref BCond);
