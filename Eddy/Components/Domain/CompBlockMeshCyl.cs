@@ -40,8 +40,11 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddBrepParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
+
             pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, @"C:\Users\%USERNAME%\Eddy\");
+            pManager.AddBrepParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
+            pManager.AddGeometryParameter("Terrain", "Terrain", "Terrain Geometry. Make sure the terrain geometry is bigger than the ground plane of the wind tunnel.", GH_ParamAccess.list);
+
 
 
             pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.item);
@@ -58,7 +61,7 @@ namespace Eddy
 
             pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
 
-
+            pManager[2].Optional = true;
         }
 
         /// <summary>
@@ -89,10 +92,11 @@ namespace Eddy
             //bool Run = false;
             //  string command = @"blockMesh";
             string baseWorkingDirectory = "";
+            DA.GetData(0, ref baseWorkingDirectory);
 
             //public Box DomainBoundaryBox;
             List<GeometryBase> _domain = new List<GeometryBase>();
-            DA.GetDataList(0, _domain);
+            DA.GetDataList(1, _domain);
 
 
             List<GeometryBase> domain = new List<GeometryBase>();
@@ -103,18 +107,12 @@ namespace Eddy
                     domain.Add(g);
                 }
             }
-
-
-
-            
-
-
-            DA.GetData(1, ref baseWorkingDirectory);
+                                                                          
 
             BoundaryConditions BCond = null;
-            DA.GetData(2, ref BCond);
+            DA.GetData(3, ref BCond);
             GH_ObjectWrapper gobj = null;
-            if (!DA.GetData(2, ref gobj)) { }
+            if (!DA.GetData(3, ref gobj)) { }
             if ((gobj.Value is BoundaryConditions))
             {
                 BCond = ((BoundaryConditions)gobj.Value);
@@ -122,7 +120,8 @@ namespace Eddy
             else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid boundary condition object"); return; }
 
 
-
+            List<GeometryBase> terrain = new List<GeometryBase>();
+            DA.GetDataList(2, terrain);
 
 
             int CPUs = 1;
@@ -201,6 +200,38 @@ namespace Eddy
 
             //}
 
+            Mesh terrainMeshes = new Mesh();
+
+            if (terrain.Count == 0)
+            {
+                // AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "If you don't provide a terrain, Eddy will use a standard ground plane."); return;
+
+            }
+            else // (terrain.Count > 0)
+            {
+                foreach (GeometryBase b in terrain)
+                {
+
+                    if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
+                    {
+                        Mesh obj = (Mesh)b;
+                        terrainMeshes.Append(obj);
+                    }
+                    else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
+                    {
+                        Brep obj = (Brep)b;
+                        var m = Mesh.CreateFromBrep(obj, mp);
+                        foreach (Mesh mm in m)
+                        {
+                            terrainMeshes.Append(mm);
+                        }
+                    }
+
+
+                }
+            }
+
+
 
             foreach (GeometryBase b in domain)
             {
@@ -251,7 +282,7 @@ namespace Eddy
             {
 
 
-                OFCylDomain DOMCYL = new OFCylDomain(inputBreps, combinedMeshes, BCond, divisionsOuterCirc, gradingPerim, divPerim, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory)
+                OFCylDomain DOMCYL = new OFCylDomain(inputBreps, combinedMeshes, terrainMeshes, BCond, divisionsOuterCirc, gradingPerim, divPerim, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory)
                 {
                     CPUs = CPUs
                 };

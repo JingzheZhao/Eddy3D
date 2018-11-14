@@ -1,7 +1,6 @@
 ﻿using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Text;
 
@@ -54,7 +53,7 @@ namespace EddyLib
 
 
 
-        public OFCylDomain(Brep inputBreps, Mesh geometry, BoundaryConditions BCond, int divOuterCircle, int gradingPerim, int divPerim, int _CPU, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0, string baseWorkingDirectory = @"C:\temp")
+        public OFCylDomain(Brep inputBreps, Mesh geometry, Mesh terrain, BoundaryConditions BCond, int divOuterCircle, int gradingPerim, int divPerim, int _CPU, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0, string baseWorkingDirectory = @"C:\temp")
         {
             this.gradingPerim = gradingPerim;
 
@@ -65,12 +64,12 @@ namespace EddyLib
             this.meshConstantDirectory = baseWorkingDirectory + @"\mesh\constant\";
             this.meshWorkingDirectory = baseWorkingDirectory + @"\mesh\";
 
-            this.OFbaseWorkingDirectory =   Utilities.ReformatWorkingDir(baseWorkingDirectory);
-            this.OFmeshStlDirectory =       Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\triSurface\");
-            this.OFmeshPolyMeshDirectory =  Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\polyMesh\");
-            this.OFmeshSystemDirectory =    Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\system\");
+            this.OFbaseWorkingDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory);
+            this.OFmeshStlDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\triSurface\");
+            this.OFmeshPolyMeshDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\polyMesh\");
+            this.OFmeshSystemDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\system\");
             this.OFmeshConstantDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\");
-            this.OFmeshWorkingDirectory =   Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\");
+            this.OFmeshWorkingDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\");
 
 
             //needed for meshing purposes at this point in time
@@ -134,7 +133,7 @@ namespace EddyLib
 
 
             Plane localSystem = new Plane(center, Vector3d.XAxis, Vector3d.ZAxis);
-           // localSystem.Origin = center;
+            // localSystem.Origin = center;
 
             localSystem.Translate(-Vector3d.YAxis * dimY);
             var projAreaList = new List<double>();
@@ -144,7 +143,7 @@ namespace EddyLib
                 localCopy.Rotate(5 * i * Math.PI / 180, Vector3d.ZAxis, center);
                 projAreaList.Add(ProjectedBuildingArea(localCopy, geometry, 1, this.baseWorkingDirectory + @"\FrontageImage" + i + ".png"));
 
-           
+
             }
 
             frontageBuildingArea = projAreaList.Max();
@@ -211,6 +210,28 @@ namespace EddyLib
 
             this.inputBreps = inputBreps;
             this.autoCPUCalc = false;
+
+
+
+            // If terrain is used, scale down Z to make sure all points are inside the domain
+            // Zinter is call divisionsZ for CylDomain which is an int instead of an Interval
+
+            this.terrainMesh = terrain;
+            Interval zInter;
+
+            if (terrain.DisjointMeshCount == 0)
+            {
+                zInter = new Interval(0, height);
+            }
+            else
+            {
+                var bboxTerrain = terrain.GetBoundingBox(true);
+                zInter = new Interval(bboxTerrain.Min.Z - 0.1, height);
+            }
+
+            // Translate Interval to int
+
+            divisionsZ = (int)Math.Abs(zInter.Length);
 
         }
 

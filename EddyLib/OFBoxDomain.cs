@@ -1,6 +1,5 @@
 ﻿using Rhino.Geometry;
 using System;
-using System.Drawing;
 
 namespace EddyLib
 {
@@ -46,7 +45,7 @@ namespace EddyLib
         public Mesh BuildingGeometry;
 
 
-        
+
 
         //// Delete later
         //public Plane pl;
@@ -135,9 +134,9 @@ namespace EddyLib
 
             //Create Box Domain
             //Find frontfacing areas in wind direction
-           
+
             frontageBuildingArea = ProjectedBuildingArea(localCoordSystem, BuildingGeometry, 1, this.baseWorkingDirectory + @"\FrontageImage" + windDir + ".png");
-            
+
 
             double scaleRectDomainZ = 6 * dimZ;
 
@@ -168,6 +167,8 @@ namespace EddyLib
 
             Interval zInter;
 
+
+            // If terrain is used, scale down Z to make sure all points are inside the domain
             this.terrainMesh = terrain;
 
             if (terrain.DisjointMeshCount == 0)
@@ -181,7 +182,7 @@ namespace EddyLib
             }
 
 
-            // If terrain is used, scale down Z to make sure all points are inside the domain
+
 
 
 
@@ -255,7 +256,7 @@ namespace EddyLib
 
 
 
-         
+
 
         }
 
