@@ -103,27 +103,46 @@ namespace EddyLib
             var dimZ = zMax - zMin;
 
 
+
+
+            // If terrain is used, scale down Z to make sure all points are inside the domain
+            // Zinter is call divisionsZ for CylDomain which is an int instead of an Interval
+            var zDomain = BBox.Min.Z;
+            var dimZ_Terrain = dimZ;
+
+            this.terrainMesh = terrain;
+            var bboxTerrain = terrain.GetBoundingBox(true);
+
+            if (terrain.Faces.Count > 0)
+            {
+
+                if (bboxTerrain.Min.Z < zDomain)
+                {
+                    zDomain = bboxTerrain.Min.Z;
+                    dimZ_Terrain = zMax - bboxTerrain.Min.Z;
+                }
+
+            }
+
+
+
+            //Create ground plane of BBox
+            //center needs dimZ to stay at ground level but also respect terrain if its being used; 0.1 = safety factor
+            //center = (BBox.Center + 0.5 * -Vector3d.ZAxis * dimZ) + zTerrainScaling * Vector3d.ZAxis;
+            center = new Point3d(BBox.Center.X, BBox.Center.Y, zDomain);
+
+
+
             // Check standard inputs for height
 
             if (sizeHeight == 0)
             {
-                height = 6 * dimZ;
+                height = 6 * dimZ + (BBox.Min.Z - bboxTerrain.Min.Z);
             }
             else
             {
                 height = sizeHeight;
             }
-
-
-            //Create ground plane of BBox
-            //center needs dimZ to stay at ground level
-            center = BBox.Center + 0.5 * -Vector3d.ZAxis * dimZ;
-
-
-
-
-            //Create Circular Domain Ground
-
 
 
 
@@ -144,7 +163,7 @@ namespace EddyLib
                 Box box;
                 Plane newLocal;
                 projAreaList.Add(ProjectedBuildingArea(localCopy, geometry, 1,
-                    this.baseWorkingDirectory + @"\FrontageImages\FrontageImage" + (i*5) + ".png",
+                    this.baseWorkingDirectory + @"\FrontageImages\FrontageImage" + (i * 5) + ".png",
                     out newLocal, out box));
 
 
@@ -169,10 +188,7 @@ namespace EddyLib
             }
 
 
-            // point inside cdf domain - needed for meshing and finding the void space for fluid
-            locationInMesh = center + (Vector3d.ZAxis * (height - 0.1));
-            // move into periphery
-            locationInMesh += radius * 0.6 * Vector3d.XAxis;
+
 
 
 
@@ -188,6 +204,11 @@ namespace EddyLib
             {
                 this.sizeInnerR = sizeInnerRect;
             }
+
+
+
+
+
 
 
             MakeCircMeshPlane(center, this.sizeInnerR, _divOutercircle, radius, height, gradingPerim, divPerim);
@@ -217,30 +238,17 @@ namespace EddyLib
 
 
 
-            // If terrain is used, scale down Z to make sure all points are inside the domain
-            // Zinter is call divisionsZ for CylDomain which is an int instead of an Interval
-
-            this.terrainMesh = terrain;
-            Interval zInter;
-
-            if (terrain.DisjointMeshCount == 0)
-            {
-                zInter = new Interval(0, height);
-            }
-            else
-            {
-                var bboxTerrain = terrain.GetBoundingBox(true);
-                zInter = new Interval(bboxTerrain.Min.Z - 0.1, height);
-            }
-
-            // Translate Interval to int
-
-            divisionsZ = (int)Math.Abs(zInter.Length);
 
         }
 
         public void MakeCircMeshPlane(Point3d center, double sizeInnerRect, int divisionsY, double circleRadius, double height, int gradingPerim, int divPerim)
         {
+   
+            // point inside cdf domain - needed for meshing and finding the void space for fluid
+            locationInMesh = center + (Vector3d.ZAxis * (height - 0.1));
+            // move into periphery
+            locationInMesh += radius * 0.6 * Vector3d.XAxis;
+
             List<Point3d> pointsOnCircle = new List<Point3d>();
             var pl = new Plane(center, Vector3d.ZAxis);
 
@@ -470,173 +478,173 @@ namespace EddyLib
         //}
 
 
-        public List<Point3d> MakeCylMeshPoints5deg(Point3d center, double radius, double height, double scaleFactorInnerRect = 0.5)
-        {
+        //        public List<Point3d> MakeCylMeshPoints5deg(Point3d center, double radius, double height, double scaleFactorInnerRect = 0.5)
+        //        {
 
-            Plane pl = new Plane(center, Vector3d.ZAxis);
-            Interval inter = new Interval(-radius * scaleFactorInnerRect, radius * scaleFactorInnerRect);
+        //            Plane pl = new Plane(center, Vector3d.ZAxis);
+        //            Interval inter = new Interval(-radius * scaleFactorInnerRect, radius * scaleFactorInnerRect);
 
-            Rectangle3d innerRect = new Rectangle3d(pl, inter, inter);
+        //            Rectangle3d innerRect = new Rectangle3d(pl, inter, inter);
 
-            List<Point3d> outerRingPointsLower = new List<Point3d>();
-            List<Point3d> pointsOnInnerRectLower = new List<Point3d>();
-            List<Point3d> gridPointsLower = new List<Point3d>();
+        //            List<Point3d> outerRingPointsLower = new List<Point3d>();
+        //            List<Point3d> pointsOnInnerRectLower = new List<Point3d>();
+        //            List<Point3d> gridPointsLower = new List<Point3d>();
 
-            List<Point3d> outerRingPointsUpper = new List<Point3d>();
-            List<Point3d> pointsOnInnerRectUpper = new List<Point3d>();
-            List<Point3d> gridPointsUpper = new List<Point3d>();
+        //            List<Point3d> outerRingPointsUpper = new List<Point3d>();
+        //            List<Point3d> pointsOnInnerRectUpper = new List<Point3d>();
+        //            List<Point3d> gridPointsUpper = new List<Point3d>();
 
-            Point3d pt0 = center + Vector3d.YAxis * radius;
-
-
-
-
-
-            for (int i = 0; i < 72; i++)
-            {
-
-                double angle = 2 * Math.PI / (72) * i;
-                var t = Transform.Rotation(angle, center);
-
-                //rotate points
-                Point3d point = pt0;
-                point.Transform(t);
-                //add to list
-                outerRingPointsLower.Add(point);
-                //make line
-                Line ln = new Line(center, point);
-
-                //eventuell debuggen
-                var cinter = Rhino.Geometry.Intersect.Intersection.CurveCurve(innerRect.ToNurbsCurve(), ln.ToNurbsCurve(), 0.1, 0.1);
-                foreach (var ievent in cinter)
-                {
-                    if (ievent.IsPoint)
-                    {
-                        pointsOnInnerRectLower.Add(ievent.PointA);
-                    }
-                }
-                //----------
-            }
-
-            // vertical lines 
-            int[] list1 = {
-                0, 1, 2, 3, 4, 5, 6, 7, 8, 71, 70, 69, 68, 67, 66, 65, 64
-            };
-
-            int[] list2 = { 36,
-35,
-34,
-33,
-32,
-31,
-30,
-29,
-28,
-37,
-38,
-39,
-40,
-41,
-42,
-43,
-44 };
-
-            // horizontal lines
-            int[] list3 = {
-10,
-11,
-12,
-13,
-14,
-15,
-16,
-17,
-18,
-19,
-20,
-21,
-22,
-23,
-24,
-25,
-26 };
-
-            int[] list4 = {
-62,
-61,
-60,
-59,
-58,
-57,
-56,
-55,
-54,
-53,
-52,
-51,
-50,
-49,
-48,
-47,
-46 };
+        //            Point3d pt0 = center + Vector3d.YAxis * radius;
 
 
 
 
-            for (int j = 0; j < list3.Length; j++)
-            {
-                Line lnH = new Line(pointsOnInnerRectLower[list3[j]], pointsOnInnerRectLower[list4[j]]);
 
-                for (int i = 0; i < list1.Length; i++)
-                {
-                    Line lnV = new Line(pointsOnInnerRectLower[list1[i]], pointsOnInnerRectLower[list2[i]]);
+        //            for (int i = 0; i < 72; i++)
+        //            {
 
-                    Point3d interPoint;
-                    double a;
-                    double b;
-                    if (Rhino.Geometry.Intersect.Intersection.LineLine(lnH, lnV, out a, out b))
-                    {
+        //                double angle = 2 * Math.PI / (72) * i;
+        //                var t = Transform.Rotation(angle, center);
 
-                        interPoint = lnH.PointAt(a);
+        //                //rotate points
+        //                Point3d point = pt0;
+        //                point.Transform(t);
+        //                //add to list
+        //                outerRingPointsLower.Add(point);
+        //                //make line
+        //                Line ln = new Line(center, point);
 
-                        gridPointsLower.Add(interPoint);
+        //                //eventuell debuggen
+        //                var cinter = Rhino.Geometry.Intersect.Intersection.CurveCurve(innerRect.ToNurbsCurve(), ln.ToNurbsCurve(), 0.1, 0.1);
+        //                foreach (var ievent in cinter)
+        //                {
+        //                    if (ievent.IsPoint)
+        //                    {
+        //                        pointsOnInnerRectLower.Add(ievent.PointA);
+        //                    }
+        //                }
+        //                //----------
+        //            }
 
-                    }
-                    else
-                    {
-                        // throw exception here... lines should always intersect
-                    }
-                }
-            }
+        //            // vertical lines 
+        //            int[] list1 = {
+        //                0, 1, 2, 3, 4, 5, 6, 7, 8, 71, 70, 69, 68, 67, 66, 65, 64
+        //            };
+
+        //            int[] list2 = { 36,
+        //35,
+        //34,
+        //33,
+        //32,
+        //31,
+        //30,
+        //29,
+        //28,
+        //37,
+        //38,
+        //39,
+        //40,
+        //41,
+        //42,
+        //43,
+        //44 };
+
+        //            // horizontal lines
+        //            int[] list3 = {
+        //10,
+        //11,
+        //12,
+        //13,
+        //14,
+        //15,
+        //16,
+        //17,
+        //18,
+        //19,
+        //20,
+        //21,
+        //22,
+        //23,
+        //24,
+        //25,
+        //26 };
+
+        //            int[] list4 = {
+        //62,
+        //61,
+        //60,
+        //59,
+        //58,
+        //57,
+        //56,
+        //55,
+        //54,
+        //53,
+        //52,
+        //51,
+        //50,
+        //49,
+        //48,
+        //47,
+        //46 };
 
 
 
-            foreach (var p in outerRingPointsLower)
-            {
 
-                outerRingPointsUpper.Add(p + Vector3d.ZAxis * height);
-            }
-            foreach (var p in pointsOnInnerRectLower)
-            {
-                pointsOnInnerRectUpper.Add(p + Vector3d.ZAxis * height);
-            }
-            foreach (var p in gridPointsLower)
-            {
-                gridPointsUpper.Add(p + Vector3d.ZAxis * height);
-            }
+        //            for (int j = 0; j < list3.Length; j++)
+        //            {
+        //                Line lnH = new Line(pointsOnInnerRectLower[list3[j]], pointsOnInnerRectLower[list4[j]]);
+
+        //                for (int i = 0; i < list1.Length; i++)
+        //                {
+        //                    Line lnV = new Line(pointsOnInnerRectLower[list1[i]], pointsOnInnerRectLower[list2[i]]);
+
+        //                    Point3d interPoint;
+        //                    double a;
+        //                    double b;
+        //                    if (Rhino.Geometry.Intersect.Intersection.LineLine(lnH, lnV, out a, out b))
+        //                    {
+
+        //                        interPoint = lnH.PointAt(a);
+
+        //                        gridPointsLower.Add(interPoint);
+
+        //                    }
+        //                    else
+        //                    {
+        //                        // throw exception here... lines should always intersect
+        //                    }
+        //                }
+        //            }
 
 
 
-            //List<Point3d> 
-            ListOfAllPointsInMagicOrder = outerRingPointsLower.Concat(pointsOnInnerRectLower).Concat(gridPointsLower).Concat(outerRingPointsUpper).Concat(pointsOnInnerRectUpper).Concat(gridPointsUpper).ToList();
-            cellSizeInner = Math.Abs(ListOfAllPointsInMagicOrder[281].X - ListOfAllPointsInMagicOrder[280].X);
-            cellSizeOuter = (ListOfAllPointsInMagicOrder[432] - ListOfAllPointsInMagicOrder[117]).Length;
-            distanceInnerOuter = (ListOfAllPointsInMagicOrder[45] - ListOfAllPointsInMagicOrder[117]).Length;
-            equalDivisions = (int)Math.Round(distanceInnerOuter / cellSizeOuter);
+        //            foreach (var p in outerRingPointsLower)
+        //            {
 
-            return ListOfAllPointsInMagicOrder;
+        //                outerRingPointsUpper.Add(p + Vector3d.ZAxis * height);
+        //            }
+        //            foreach (var p in pointsOnInnerRectLower)
+        //            {
+        //                pointsOnInnerRectUpper.Add(p + Vector3d.ZAxis * height);
+        //            }
+        //            foreach (var p in gridPointsLower)
+        //            {
+        //                gridPointsUpper.Add(p + Vector3d.ZAxis * height);
+        //            }
 
-        }
+
+
+        //            //List<Point3d> 
+        //            ListOfAllPointsInMagicOrder = outerRingPointsLower.Concat(pointsOnInnerRectLower).Concat(gridPointsLower).Concat(outerRingPointsUpper).Concat(pointsOnInnerRectUpper).Concat(gridPointsUpper).ToList();
+        //            cellSizeInner = Math.Abs(ListOfAllPointsInMagicOrder[281].X - ListOfAllPointsInMagicOrder[280].X);
+        //            cellSizeOuter = (ListOfAllPointsInMagicOrder[432] - ListOfAllPointsInMagicOrder[117]).Length;
+        //            distanceInnerOuter = (ListOfAllPointsInMagicOrder[45] - ListOfAllPointsInMagicOrder[117]).Length;
+        //            equalDivisions = (int)Math.Round(distanceInnerOuter / cellSizeOuter);
+
+        //            return ListOfAllPointsInMagicOrder;
+
+        //        }
 
 
         public string StringyfyDomain()

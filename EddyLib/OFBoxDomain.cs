@@ -120,7 +120,7 @@ namespace EddyLib
             locationInMesh = center + 4 * vecPlusZ * dimZ;
 
 
-           
+
             var windDir = BCond.windDir[0];
 
             var windDirVector = BCond.flowDir[0];
@@ -131,18 +131,13 @@ namespace EddyLib
 
             //Create Box Domain
             //Find frontfacing areas in wind direction
-<<<<<<< HEAD
 
-            frontageBuildingArea = ProjectedBuildingArea(localCoordSystem, BuildingGeometry, 1, this.baseWorkingDirectory + @"\FrontageImage" + windDir + ".png");
-
-=======
             Box box;
             Plane newLocal;
-            frontageBuildingArea = ProjectedBuildingArea(windDirVector, BuildingGeometry, 1, 
-                this.baseWorkingDirectory + @"\FrontageImages\FrontageImage" + windDir + ".png", 
+            frontageBuildingArea = ProjectedBuildingArea(windDirVector, BuildingGeometry, 1,
+                this.baseWorkingDirectory + @"\FrontageImages\FrontageImage" + windDir + ".png",
                 out newLocal, out box);
-            
->>>>>>> 9a09489efd69b7d21b26031ae03d1037aaaef811
+
 
             double scaleRectDomainZ = 6 * dimZ;
 
