@@ -78,57 +78,68 @@ namespace EddyLib
 
             string path = simulationDirectory + @"\log";
 
-
-
-            
-
-
-            //DateTime timeBegin = new DateTime();
-            //DateTime timeEnd = new DateTime();
-            //TimeSpan timeSpan = timeEnd - timeBegin;
-            //TimeSpan timeElapsed;
-
-
-            var time1 = "";
-            var time2 = "";
             double timeEnd = 0;
+            string[] lines = File.ReadAllLines(path);
 
-            if (File.Exists(path))
+            try
             {
-                string[] lines = File.ReadAllLines(path);
+                //DateTime timeBegin = new DateTime();
+                //DateTime timeEnd = new DateTime();
+                //TimeSpan timeSpan = timeEnd - timeBegin;
+                //TimeSpan timeElapsed;
 
-                for (int i = 0; i < lines.Length; i++)
+
+                //var time1 = "0";
+                var time2 = "0";
+
+
+                if (File.Exists(path) && lines.Count() > 1)
                 {
-                    var l = lines[i];
-                    if (l.EndsWith("simpleFoam"))
+
+
+                    for (int i = 0; i < lines.Length; i++)
                     {
-                        time1 = lines[i + 2].Replace("Time", "").Remove(0, 5);
+                        var l = lines[i];
+                        //if (l.EndsWith("simpleFoam"))
+                        //{
+                        //    time1 = lines[i + 2].Replace("Time", "").Remove(0, 5);
 
 
-                        //timeBegin = DateTime.Parse(time1, System.Globalization.CultureInfo.CurrentCulture);
+                        //    //timeBegin = DateTime.Parse(time1, System.Globalization.CultureInfo.CurrentCulture);
+
+                        //}
+                        if (l.StartsWith("SIMPLE solution converged"))
+                        {
+                            time2 = lines[i - 3].Split("ClockTime".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[3].Replace("=", "").Replace("s", "").Trim();//.Replace("s", "")
+
+                            //timeElapsed = TimeSpan.FromSeconds(double.Parse(time2));
+                        }
+                        else if (l.EndsWith(iter.ToString()))
+                        {
+                            time2 = lines[i + 10].Split("ClockTime".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[3].Replace("=", "").Replace("s", "").Trim();//.Replace("s", "")
+
+                            //timeElapsed = TimeSpan.FromSeconds(double.Parse(time2));
+                        }
 
                     }
-                    if (l.StartsWith("SIMPLE solution converged"))
-                    {
-                        time2 = lines[i - 3].Split("ClockTime".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[3].Replace("=", "").Replace("s", "").Trim();//.Replace("s", "")
 
-                        //timeElapsed = TimeSpan.FromSeconds(double.Parse(time2));
-                    }
-                    else if (l.EndsWith(iter.ToString()))
-                    {
-                        time2 = lines[i + 10].Split("ClockTime".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[3].Replace("=", "").Replace("s", "").Trim();//.Replace("s", "")
 
-                        //timeElapsed = TimeSpan.FromSeconds(double.Parse(time2));
-                    }
-
+                    timeEnd = double.Parse(time2) / 60;
                 }
-
-                timeEnd = double.Parse(time2) / 60;
+                else
+                {
+                    timeEnd = 0;
+                }
             }
-            else
+            catch (Exception)
             {
-                timeEnd = 0;
+
+                throw;
             }
+
+
+
+
             return timeEnd;
         }
 
@@ -182,7 +193,7 @@ namespace EddyLib
         {
             string output = workingDirectory.Replace(@"\", @"/");
             output = output.Replace(@":", @"/");
-            
+
             //output = "//c//" + output;
             output = "//" + output;
             output = output.Replace(@"//C//", @"//c//");
@@ -472,10 +483,10 @@ namespace EddyLib
 
 
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
 
-                    throw;
+                    throw new System.ArgumentException(e.Message);
                 }
             }
             return lines;

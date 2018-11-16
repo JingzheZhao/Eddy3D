@@ -140,8 +140,8 @@ FoamFile
             type triSurfaceMesh;
             name ground;
         }");
-
-            if(dom.DomainMeshGroundPerim != null)
+            //Check for both Box and Cyl if there is a terrain. Unfortunately ground are called differently. TODO!!!
+            if ((dom is OFBoxDomain && dom.DomainMeshGroundPerim != null) || (dom is OFCylDomain && dom.terrainMesh.Faces.Count == 0))
             {
                 sb.Append(@"	
         ground_perim.stl
@@ -150,12 +150,7 @@ FoamFile
             name ground_perim;
         }");
             }
-
-
-            if (dom.terrainMesh!= null)
-            {
-                if (dom.terrainMesh.DisjointMeshCount == 0) { sb.Append(ground_perim); };
-            }
+            //if (dom.terrainMesh.Faces.Count == 0) { sb.Append(ground_perim); }
             sb.Append(@"	
         " + refinementGeometry + @"
     }
@@ -1965,15 +1960,15 @@ RAS
 
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine(@"docker run -v """ + DOM.OFbaseWorkingDirectory + "\\"+DOM.BCInflow.windDir[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; blockMesh | tee  log""");
+            sb.AppendLine(@"docker run -v """ + DOM.OFbaseWorkingDirectory + "\\" + DOM.BCInflow.windDir[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; blockMesh | tee  log""");
             if (DOM.CPUs > 1)
             {
 
-                sb.AppendLine(@"docker run -v """ + DOM.OFbaseWorkingDirectory+"\\"+DOM.BCInflow.windDir[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatureExtract | tee -a  log""");
-                sb.AppendLine(@"docker run -v """ + DOM.OFbaseWorkingDirectory + "\\"+DOM.BCInflow.windDir[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamDecompose.py --clear . " + DOM.CPUs + @" | tee -a  log""");
-                sb.AppendLine(@"docker run -v """ + DOM.OFbaseWorkingDirectory + "\\"+DOM.BCInflow.windDir[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; foamJob -parallel -screen snappyHexMesh -overwrite | tee -a  log""");
-                sb.AppendLine(@"docker run -v """ + DOM.OFbaseWorkingDirectory + "\\"+DOM.BCInflow.windDir[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructParMesh -constant | tee -a  log""");
-                sb.AppendLine(@"docker run -v """ + DOM.OFbaseWorkingDirectory + "\\"+DOM.BCInflow.windDir[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite | tee -a  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.OFbaseWorkingDirectory + "\\" + DOM.BCInflow.windDir[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatureExtract | tee -a  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.OFbaseWorkingDirectory + "\\" + DOM.BCInflow.windDir[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamDecompose.py --clear . " + DOM.CPUs + @" | tee -a  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.OFbaseWorkingDirectory + "\\" + DOM.BCInflow.windDir[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; foamJob -parallel -screen snappyHexMesh -overwrite | tee -a  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.OFbaseWorkingDirectory + "\\" + DOM.BCInflow.windDir[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructParMesh -constant | tee -a  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.OFbaseWorkingDirectory + "\\" + DOM.BCInflow.windDir[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite | tee -a  log""");
                 sb.AppendLine(@"docker run -v """ + DOM.OFbaseWorkingDirectory + "\\" + DOM.BCInflow.windDir[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a  log""");
 #if DEBUG
 
@@ -1983,8 +1978,8 @@ RAS
             }
             else
             {
-                sb.AppendLine(@"docker run -v """ + DOM.OFbaseWorkingDirectory + "\\"+DOM.BCInflow.windDir[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatureExtract | tee  log; snappyHexMesh -overwrite  | tee  log; checkMesh | tee  log""");
-                sb.AppendLine(@"docker run -v """ + DOM.OFbaseWorkingDirectory + "\\"+DOM.BCInflow.windDir[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite | tee -a  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.OFbaseWorkingDirectory + "\\" + DOM.BCInflow.windDir[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatureExtract | tee  log; snappyHexMesh -overwrite  | tee  log; checkMesh | tee  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.OFbaseWorkingDirectory + "\\" + DOM.BCInflow.windDir[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite | tee -a  log""");
                 sb.AppendLine(@"docker run -v """ + DOM.OFbaseWorkingDirectory + "\\" + DOM.BCInflow.windDir[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a  log""");
 #if DEBUG
 
@@ -2111,6 +2106,11 @@ RAS
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""blockMesh | tee  log"" -f """ + DOM.OFmeshWorkingDirectory + " \"");
+#if DEBUG
+
+            sb.AppendLine("PAUSE");
+
+#endif
             return sb.ToString();
         }
 

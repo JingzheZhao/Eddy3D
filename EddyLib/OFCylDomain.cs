@@ -53,6 +53,8 @@ namespace EddyLib
 
 
 
+
+
         public OFCylDomain(Brep inputBreps, Mesh geometry, Mesh terrain, BoundaryConditions BCond, int divOuterCircle, int gradingPerim, int divPerim, int _CPU, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0, string baseWorkingDirectory = @"C:\temp")
         {
             this.gradingPerim = gradingPerim;
@@ -243,7 +245,7 @@ namespace EddyLib
 
         public void MakeCircMeshPlane(Point3d center, double sizeInnerRect, int divisionsY, double circleRadius, double height, int gradingPerim, int divPerim)
         {
-   
+
             // point inside cdf domain - needed for meshing and finding the void space for fluid
             locationInMesh = center + (Vector3d.ZAxis * (height - 0.1));
             // move into periphery
@@ -305,6 +307,13 @@ namespace EddyLib
 
 
 
+
+
+
+
+
+
+
             this.coreTop.Append(m);
             this.coreTop.Translate(Vector3d.ZAxis * height);
 
@@ -322,27 +331,26 @@ namespace EddyLib
             this.side.Flip(true, true, true);
             //  B = side;
 
+
+
             // Order is important!!! for stringifyDomain
             //this.DomainMeshGround.Append(perim);
             this.DomainMeshGround.Append(core);
             this.DomainMeshGroundPerim.Append(perim);
-
-
             this.DomainMesh.Append(perim);
             this.DomainMesh.Append(core);
             this.DomainMesh.Append(perimTop);
             this.DomainMesh.Append(coreTop);
             this.DomainMesh.Append(side);
             this.DomainMesh.Normals.ComputeNormals();
-
             this.DomainMesh.Weld(Math.PI);
 
-            this.pointsOnCircle = pointsOnCircle;
 
-            //stringifyBlocks2(perim, core, perimTop, coreTop, divisionsY, divisionsZ);
-            //stringyfyVertexList2(outMesh);
-            //stringifyPatches2(outMesh);
-            //stringyfyDomain2();
+
+
+
+
+            this.pointsOnCircle = pointsOnCircle;
 
             this.IsWindows7 = Utilities.IsWindows7;
 

@@ -349,8 +349,22 @@ namespace Eddy
 
 
                 STLExport.ExportBinary(meshStlFilenameBuildings, combinedMeshes);
-                STLExport.ExportBinary(meshStlFilenameGround, DOMCYL.DomainMeshGround);
-                STLExport.ExportBinary(meshStlFilenameGroundPerim, DOMCYL.DomainMeshGroundPerim);
+                
+                
+
+
+                if (terrain.Count > 0)
+                {
+                    //No perim if we use a terrain                    
+                    STLExport.ExportBinary(meshStlFilenameGround, terrainMeshes);
+                }
+                else
+                {
+                    STLExport.ExportBinary(meshStlFilenameGround, DOMCYL.DomainMeshGround);
+                    STLExport.ExportBinary(meshStlFilenameGroundPerim, DOMCYL.DomainMeshGroundPerim);
+                }
+
+
 
 
                 if (!Directory.Exists(DOMCYL.meshSystemDirectory))

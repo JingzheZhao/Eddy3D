@@ -219,6 +219,8 @@ namespace EddyLib
 
             MeshingParameters mpGround = MeshingParameters.Default;
 
+            // Add terrain to ground mesh if it exists
+
             if (terrain.DisjointMeshCount == 0)
             {
                 this.newBoxGround = Mesh.CreateFromPlanarBoundary(plGroundCore.ToNurbsCurve(), mpGround);
