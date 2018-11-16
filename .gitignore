@@ -288,5 +288,6 @@ __pycache__/
 *.xsd.cs
 
 # Compiled files
-*.exe
-*.exe
+**.exe
+**.dll
+
