@@ -76,129 +76,133 @@ namespace EddyLib
         {
 
 
-            string path = simulationDirectory + @"\log";
+
+            string logFilePath = simulationDirectory + @"\log";
 
             double timeEnd = 0;
-            string[] lines = File.ReadAllLines(path);
 
-            try
+            if (File.Exists(logFilePath))
             {
-                //DateTime timeBegin = new DateTime();
-                //DateTime timeEnd = new DateTime();
-                //TimeSpan timeSpan = timeEnd - timeBegin;
-                //TimeSpan timeElapsed;
 
-
-                //var time1 = "0";
-                var time2 = "0";
-
-
-                if (File.Exists(path) && lines.Count() > 1)
+                try
                 {
+                    String line;
+                    List<String> lines = new List<String>();
 
 
-                    for (int i = 0; i < lines.Length; i++)
+                    //var time1 = "0";
+                    var time2 = "0";
+
+                    using (var fs = new FileStream(logFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (var sr = new StreamReader(fs, System.Text.Encoding.Default))
                     {
-                        var l = lines[i];
-                        //if (l.EndsWith("simpleFoam"))
-                        //{
-                        //    time1 = lines[i + 2].Replace("Time", "").Remove(0, 5);
 
 
-                        //    //timeBegin = DateTime.Parse(time1, System.Globalization.CultureInfo.CurrentCulture);
+                        while ((line = sr.ReadLine()) != null)
+                        {
+                            lines.Add(line);
+                        }
+                    }
 
-                        //}
-                        if (l.StartsWith("SIMPLE solution converged"))
+
+                    foreach (string lline in lines)
+                    {
+                        //DateTime timeBegin = new DateTime();
+                        //DateTime timeEnd = new DateTime();
+                        //TimeSpan timeSpan = timeEnd - timeBegin;
+                        //TimeSpan timeElapsed;
+                        int i = 0;
+
+
+
+                        if (lline.StartsWith("SIMPLE solution converged"))
                         {
                             time2 = lines[i - 3].Split("ClockTime".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[3].Replace("=", "").Replace("s", "").Trim();//.Replace("s", "")
 
                             //timeElapsed = TimeSpan.FromSeconds(double.Parse(time2));
                         }
-                        else if (l.EndsWith(iter.ToString()))
+                        else if (lline.EndsWith(iter.ToString()))
                         {
                             time2 = lines[i + 10].Split("ClockTime".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[3].Replace("=", "").Replace("s", "").Trim();//.Replace("s", "")
 
                             //timeElapsed = TimeSpan.FromSeconds(double.Parse(time2));
                         }
-
+                        else
+                        {
+                            timeEnd = 0;
+                        }
+                        timeEnd = double.Parse(time2) / 60;
+                        i++;
                     }
 
 
-                    timeEnd = double.Parse(time2) / 60;
+                }
+                catch (Exception)
+                {
+
+                    throw;
+                }
+            }
+  
+                return timeEnd;
+            }
+
+            public static bool IsDockerRunning(string workingDirectory, bool isWindows7)
+            {
+
+                bool running = false;
+                string fp = workingDirectory + @"\dockerStatus";
+
+                var lines = Utilities.FileReader(fp);
+
+                if (isWindows7 == false)
+                {
+
+                    foreach (string line in lines)
+                    {
+                        if (line.StartsWith("Containers"))
+                        {
+                            running = true;
+                        }
+                    }
                 }
                 else
                 {
-                    timeEnd = 0;
+                    // Assume that Docker is always running for Windows 7 for now
+                    running = true;
                 }
+
+                return running;
             }
-            catch (Exception)
+
+            public static void WriteDockerInfo(string workingDirectory)
             {
+                System.Diagnostics.Process p = new System.Diagnostics.Process();
+                p.StartInfo.FileName = @"C:\Windows\System32\cmd.exe";
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.RedirectStandardInput = true;
+                p.StartInfo.CreateNoWindow = true;
+                p.Start();
+                StreamWriter dockerInfo = p.StandardInput;
+                String str = @"docker info > " + workingDirectory + @"\dockerStatus";
+                dockerInfo.WriteLine(str);
+                dockerInfo.Flush();
+                dockerInfo.Close();
+                p.WaitForExit();
 
-                throw;
+
             }
 
-
-
-
-            return timeEnd;
-        }
-
-        public static bool IsDockerRunning(string workingDirectory, bool isWindows7)
-        {
-
-            bool running = false;
-            string fp = workingDirectory + @"\dockerStatus";
-
-            var lines = Utilities.FileReader(fp);
-
-            if (isWindows7 == false)
+            public static string ReformatWorkingDir(string workingDirectory)
             {
+                string output = workingDirectory.Replace(@"\", @"/");
+                output = output.Replace(@":", @"/");
 
-                foreach (string line in lines)
-                {
-                    if (line.StartsWith("Containers"))
-                    {
-                        running = true;
-                    }
-                }
+                //output = "//c//" + output;
+                output = "//" + output;
+                output = output.Replace(@"//C//", @"//c//");
+                return output;
             }
-            else
-            {
-                // Assume that Docker is always running for Windows 7 for now
-                running = true;
-            }
-
-            return running;
-        }
-
-        public static void WriteDockerInfo(string workingDirectory)
-        {
-            System.Diagnostics.Process p = new System.Diagnostics.Process();
-            p.StartInfo.FileName = @"C:\Windows\System32\cmd.exe";
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.RedirectStandardInput = true;
-            p.StartInfo.CreateNoWindow = true;
-            p.Start();
-            StreamWriter dockerInfo = p.StandardInput;
-            String str = @"docker info > " + workingDirectory + @"\dockerStatus";
-            dockerInfo.WriteLine(str);
-            dockerInfo.Flush();
-            dockerInfo.Close();
-            p.WaitForExit();
-
-
-        }
-
-        public static string ReformatWorkingDir(string workingDirectory)
-        {
-            string output = workingDirectory.Replace(@"\", @"/");
-            output = output.Replace(@":", @"/");
-
-            //output = "//c//" + output;
-            output = "//" + output;
-            output = output.Replace(@"//C//", @"//c//");
-            return output;
-        }
 
         public static bool IsWindows7 => (Environment.OSVersion.Version.Major == 6 &
                   Environment.OSVersion.Version.Minor == 1);

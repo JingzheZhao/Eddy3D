@@ -255,7 +255,7 @@ namespace CallProbes
                                 // Write the dicts
 
                                 //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + pointName, StringTemplates.sampleProbes(listOfPoints, pointName, options.mode));
-                                command.Append(@"postProcess -case " + windDirs[i] + " -func " + pointName + @" -latestTime | tee  " + windDirs[i] + @"/log_probes;");
+                                command.Append(@"postProcess -case " + windDirs[i] + " -func " + pointName + @" -latestTime | tee -a  " + windDirs[i] + @"/log_probes;");
 
 
                             }
