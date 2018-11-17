@@ -105,34 +105,34 @@ namespace EddyLib
                     }
 
 
-                    foreach (string lline in lines)
+                    foreach (var lline in lines.Select((value, index) => new { value, index }))
                     {
-                        //DateTime timeBegin = new DateTime();
-                        //DateTime timeEnd = new DateTime();
-                        //TimeSpan timeSpan = timeEnd - timeBegin;
-                        //TimeSpan timeElapsed;
-                        int i = 0;
+                        // Use x.value and x.index in here
 
 
-
-                        if (lline.StartsWith("SIMPLE solution converged"))
+                        if (lline.value.StartsWith("SIMPLE solution converged"))
                         {
-                            time2 = lines[i - 3].Split("ClockTime".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[3].Replace("=", "").Replace("s", "").Trim();//.Replace("s", "")
+                            time2 = lines[lline.index - 3].Split("ClockTime".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[3].Replace("=", "").Replace("s", "").Trim();//.Replace("s", "")
 
                             //timeElapsed = TimeSpan.FromSeconds(double.Parse(time2));
                         }
-                        else if (lline.EndsWith(iter.ToString()))
+
+                        if (lline.value.EndsWith(iter.ToString()))
                         {
-                            time2 = lines[i + 10].Split("ClockTime".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[3].Replace("=", "").Replace("s", "").Trim();//.Replace("s", "")
+                            time2 = lines[lline.index + 10].Split("ClockTime".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[3].Replace("=", "").Replace("s", "").Trim();//.Replace("s", "")
+                            break;
+
 
                             //timeElapsed = TimeSpan.FromSeconds(double.Parse(time2));
                         }
+
                         else
                         {
                             timeEnd = 0;
                         }
+
+
                         timeEnd = double.Parse(time2) / 60;
-                        i++;
                     }
 
 
@@ -143,66 +143,66 @@ namespace EddyLib
                     throw;
                 }
             }
-  
-                return timeEnd;
-            }
 
-            public static bool IsDockerRunning(string workingDirectory, bool isWindows7)
+            return timeEnd;
+        }
+
+        public static bool IsDockerRunning(string workingDirectory, bool isWindows7)
+        {
+
+            bool running = false;
+            string fp = workingDirectory + @"\dockerStatus";
+
+            var lines = Utilities.FileReader(fp);
+
+            if (isWindows7 == false)
             {
 
-                bool running = false;
-                string fp = workingDirectory + @"\dockerStatus";
-
-                var lines = Utilities.FileReader(fp);
-
-                if (isWindows7 == false)
+                foreach (string line in lines)
                 {
-
-                    foreach (string line in lines)
+                    if (line.StartsWith("Containers"))
                     {
-                        if (line.StartsWith("Containers"))
-                        {
-                            running = true;
-                        }
+                        running = true;
                     }
                 }
-                else
-                {
-                    // Assume that Docker is always running for Windows 7 for now
-                    running = true;
-                }
-
-                return running;
             }
-
-            public static void WriteDockerInfo(string workingDirectory)
+            else
             {
-                System.Diagnostics.Process p = new System.Diagnostics.Process();
-                p.StartInfo.FileName = @"C:\Windows\System32\cmd.exe";
-                p.StartInfo.UseShellExecute = false;
-                p.StartInfo.RedirectStandardInput = true;
-                p.StartInfo.CreateNoWindow = true;
-                p.Start();
-                StreamWriter dockerInfo = p.StandardInput;
-                String str = @"docker info > " + workingDirectory + @"\dockerStatus";
-                dockerInfo.WriteLine(str);
-                dockerInfo.Flush();
-                dockerInfo.Close();
-                p.WaitForExit();
-
-
+                // Assume that Docker is always running for Windows 7 for now
+                running = true;
             }
 
-            public static string ReformatWorkingDir(string workingDirectory)
-            {
-                string output = workingDirectory.Replace(@"\", @"/");
-                output = output.Replace(@":", @"/");
+            return running;
+        }
 
-                //output = "//c//" + output;
-                output = "//" + output;
-                output = output.Replace(@"//C//", @"//c//");
-                return output;
-            }
+        public static void WriteDockerInfo(string workingDirectory)
+        {
+            System.Diagnostics.Process p = new System.Diagnostics.Process();
+            p.StartInfo.FileName = @"C:\Windows\System32\cmd.exe";
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.RedirectStandardInput = true;
+            p.StartInfo.CreateNoWindow = true;
+            p.Start();
+            StreamWriter dockerInfo = p.StandardInput;
+            String str = @"docker info > " + workingDirectory + @"\dockerStatus";
+            dockerInfo.WriteLine(str);
+            dockerInfo.Flush();
+            dockerInfo.Close();
+            p.WaitForExit();
+
+
+        }
+
+        public static string ReformatWorkingDir(string workingDirectory)
+        {
+            string output = workingDirectory.Replace(@"\", @"/");
+            output = output.Replace(@":", @"/");
+
+            //output = "//c//" + output;
+            output = "//" + output;
+            output = output.Replace(@"//C//", @"//c//");
+            return output;
+        }
 
         public static bool IsWindows7 => (Environment.OSVersion.Version.Major == 6 &
                   Environment.OSVersion.Version.Minor == 1);
