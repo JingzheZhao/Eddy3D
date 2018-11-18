@@ -184,7 +184,7 @@ namespace EddyLib
             p.StartInfo.CreateNoWindow = true;
             p.Start();
             StreamWriter dockerInfo = p.StandardInput;
-            String str = @"docker info > " + workingDirectory + @"\dockerStatus";
+            String str = @"docker info > """ + workingDirectory + @"\dockerStatus""";
             dockerInfo.WriteLine(str);
             dockerInfo.Flush();
             dockerInfo.Close();

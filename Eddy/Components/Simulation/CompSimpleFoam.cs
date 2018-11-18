@@ -157,11 +157,9 @@ namespace Eddy
                 {
                     dockerRunning = true;
                 }
-                if (dockerRunning == false)
+                else
                 {
-
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"It seems that Docker is not running. Please start the application ""Docker for Windows"".");
-
                 }
 
 
