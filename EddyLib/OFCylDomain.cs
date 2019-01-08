@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 
 
+
 namespace EddyLib
 {
     public class OFCylDomain : OFBaseDomain
@@ -50,7 +51,7 @@ namespace EddyLib
         public double sizeInnerR;
         public List<Point3d> pointsOnCircle;
 
-
+        public List<Polyline> concentricDivisions;
 
 
 
@@ -126,7 +127,7 @@ namespace EddyLib
 
             }
 
-
+            
 
             //Create ground plane of BBox
             //center needs dimZ to stay at ground level but also respect terrain if its being used; 0.1 = safety factor
@@ -243,6 +244,9 @@ namespace EddyLib
 
         }
 
+        
+
+
         public void MakeCircMeshPlane(Point3d center, double sizeInnerRect, int divisionsY, double circleRadius, double height, int gradingPerim, int divPerim)
         {
 
@@ -256,10 +260,11 @@ namespace EddyLib
 
             var xinter = new Interval(-sizeInnerRect, sizeInnerRect);
 
+            
 
             var m = Mesh.CreateFromPlane(pl, xinter, xinter, divisionsY, divisionsY); // creates the inner rectangle with arbitrary subdivision
-            this.core.Append(m);
-            this.core.Flip(true, true, true);
+            this.coreBottom.Append(m);
+            this.coreBottom.Flip(true, true, true);
 
             double minRad = Math.Sqrt(2 * (sizeInnerRect * sizeInnerRect)) * 1.1; // *1.1 to account for collapsing face on boundary
             double circRad = circleRadius;
@@ -288,60 +293,120 @@ namespace EddyLib
 
             var c = new Circle(center, circRad);
 
-            var poly = core.GetNakedEdges()[0]; //returns a polygon with line segments for each mesh cell
+            var poly = coreBottom.GetNakedEdges()[0]; //returns a polygon with line segments for each mesh cell       
 
-            for (int i = 0; i < poly.Count; i++)
+
+            // Points on circle from intersection check
+            pointsOnCircle = GetPointsOnCircle(center, circRad, poly);
+
+            ////////////////////
+            //Visualize divisions inside cylindrical perimeter
+            ////////////////////
+
+
+            // Points on inner rectangle from naked edges
+            Point3d[] pointsOnRect;
+            m.GetNakedEdges()[0].ToNurbsCurve().DivideByCount(divisionsY * 4, true, out pointsOnRect);
+
+
+            var radialDivisions = new List<Polyline>();
+            for (int i = 0; i < pointsOnRect.Length; i++)
             {
-                var vec = center - poly[i];
-                vec.Unitize();
-                vec *= (circleRadius + 1);
-                double t1;
-                double t2;
-                Point3d p1;
-                Point3d p2;
-                var inter = Rhino.Geometry.Intersect.Intersection.LineCircle(new Line(center, vec), c, out t1, out p1, out t2, out p2);
-                //if(inter == LineCircleIntersection.Single)
-                pointsOnCircle.Add(p1);
+
+                radialDivisions.Add(new Polyline(new Point3d[] { pointsOnRect[i], pointsOnCircle[i] }));
+
+            }
+
+            //Point3d[][] divPointsCut = new Point3d[pointsOnRect.Length][];
+            var divPointsCut = new List<Point3d[]>();
+
+            for (int i = 0; i < pointsOnRect.Length; i++)
+            {
+                Point3d[] ar;
+                new PolylineCurve(radialDivisions[i]).DivideByCount(divPerim, true, out ar);
+                divPointsCut.Add(ar);
+                //divPointsCut[i] = ar;       
+            }
+
+
+
+            var fullList = new List<Point3d>();
+            foreach (Point3d[] ar in divPointsCut)
+            {
+                foreach (Point3d pt in ar)
+                {
+                    fullList.Add(pt);
+                }
+            }
+
+            //var flippedMatrix = new List<Point3d>();
+            /*
+            foreach (Point3d[] ar in divPointsCut){
+              foreach (Point3d pt in ar){
+                flippedMatrix.Add(pt);
+              }
+            }*/
+
+
+
+            for (int j = 0; j < divPerim; j++)
+            {
+
+                var innerRadialList = new List<Point3d>();
+                // Go through all loops and add the vertices with the correct stepsize
+                for (int i = 0; i < (pointsOnCircle.Count) * divPerim; i++)
+                {
+
+
+                    innerRadialList.Add(fullList[(i + j)]);
+                    i += divPerim;
+
+
+                }
+                //Add the last vertex to close the loop
+                innerRadialList.Add(fullList[j]);
+                //Add them all to a list
+                concentricDivisions.Add(new Polyline(innerRadialList));
 
             }
 
 
 
+       
 
 
 
 
-
-
+            ////////////////
 
             this.coreTop.Append(m);
             this.coreTop.Translate(Vector3d.ZAxis * height);
 
 
-            this.perim = PerimeterRing(poly, pointsOnCircle);
+            this.perimBottom = PerimeterRing(poly, pointsOnCircle);
             //perimTop = new Mesh();
-            this.perimTop.Append(perim);
+            this.perimTop.Append(perimBottom);
             this.perimTop.Translate(Vector3d.ZAxis * height);
 
             this.perimTop.Flip(true, true, true);
 
 
-            this.side = SideWalls(pointsOnCircle, height);
-            this.side.Normals.ComputeNormals();
-            this.side.Flip(true, true, true);
+            this.sides = SideWalls(pointsOnCircle, height);
+            this.sides.Normals.ComputeNormals();
+            this.sides.Flip(true, true, true);
             //  B = side;
 
 
 
             // Order is important!!! for stringifyDomain
             //this.DomainMeshGround.Append(perim);
-            this.DomainMeshGround.Append(core);
-            this.DomainMeshGroundPerim.Append(perim);
-            this.DomainMesh.Append(perim);
-            this.DomainMesh.Append(core);
+            this.DomainMeshGround.Append(coreBottom);
+            this.DomainMeshGroundPerim.Append(perimBottom);
+            this.DomainMesh.Append(perimBottom);
+            this.DomainMesh.Append(coreBottom);
             this.DomainMesh.Append(perimTop);
             this.DomainMesh.Append(coreTop);
-            this.DomainMesh.Append(side);
+            this.DomainMesh.Append(sides);
             this.DomainMesh.Normals.ComputeNormals();
             this.DomainMesh.Weld(Math.PI);
 
@@ -3521,6 +3586,28 @@ mergePatchPairs
             return m;
         }
 
+        public List<Point3d> GetPointsOnCircle(Point3d center, double circleRadius, Polyline poly)
+        {
+            List<Point3d> pointsOnCircle = new List<Point3d>();
+            var c = new Circle(center, circleRadius);
+
+            for (int i = 0; i < poly.Count; i++)
+            {
+                var vec = center - poly[i];
+                vec.Unitize();
+                vec *= (circleRadius + 1);
+                double t1;
+                double t2;
+                Point3d p1;
+                Point3d p2;
+                var inter = Rhino.Geometry.Intersect.Intersection.LineCircle(new Line(center, vec), c, out t1, out p1, out t2, out p2);
+                //if(inter == LineCircleIntersection.Single)
+                pointsOnCircle.Add(p1);
+
+            }
+            return pointsOnCircle;
+        }
+
         public Mesh PerimeterRing(Polyline poly, List<Point3d> pointsOnCircle)
         {
             var mOutBottom = new Mesh();
@@ -3542,12 +3629,12 @@ mergePatchPairs
         {
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
 
-            int c1 = this.perim.Faces.Count;
-            int c2 = this.perim.Faces.Count + this.core.Faces.Count + this.perimTop.Faces.Count;
+            int c1 = this.perimBottom.Faces.Count;
+            int c2 = this.perimBottom.Faces.Count + this.coreBottom.Faces.Count + this.perimTop.Faces.Count;
             // counter for cores and perimeters
-            int c3 = this.perim.Faces.Count + this.core.Faces.Count;
+            int c3 = this.perimBottom.Faces.Count + this.coreBottom.Faces.Count;
 
-            for (int i = 0; i < this.perim.Faces.Count; i++)
+            for (int i = 0; i < this.perimBottom.Faces.Count; i++)
             {
                 //perimeter blocks
                 //Changed order because we had to flip core mesh plane
@@ -3557,7 +3644,7 @@ mergePatchPairs
 
             }
             sb.AppendLine("//core");
-            for (int i = 0; i < this.core.Faces.Count; i++)
+            for (int i = 0; i < this.coreBottom.Faces.Count; i++)
             {   //core blocks //Changed order because we had to flip core mesh plane
                 sb.AppendLine("hex (" + this.DomainMesh.Faces[i + c1].A + " " + this.DomainMesh.Faces[i + c1].D + " " + this.DomainMesh.Faces[i + c1].C + " " + this.DomainMesh.Faces[i + c1].B + " " +
                     ((this.DomainMesh.Faces[i + c2].A)) + " " + (this.DomainMesh.Faces[i + c2].B) + " " + (this.DomainMesh.Faces[i + c2].C) + " " +
@@ -3572,10 +3659,10 @@ mergePatchPairs
         {
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
 
-            int counter = this.perim.Faces.Count + this.core.Faces.Count + this.perimTop.Faces.Count + this.coreTop.Faces.Count;
+            int counter = this.perimBottom.Faces.Count + this.coreBottom.Faces.Count + this.perimTop.Faces.Count + this.coreTop.Faces.Count;
 
 
-            for (int i = 0; i < this.side.Faces.Count; i++)
+            for (int i = 0; i < this.sides.Faces.Count; i++)
             {
                 sb.AppendLine("patch" + i + @"
         {
@@ -3605,7 +3692,7 @@ mergePatchPairs
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
 
             int c1 = this.perimTop.Faces.Count + this.coreTop.Faces.Count;
-            int c2 = this.perim.Faces.Count + this.core.Faces.Count + this.perimTop.Faces.Count;
+            int c2 = this.perimBottom.Faces.Count + this.coreBottom.Faces.Count + this.perimTop.Faces.Count;
             sb.AppendLine(@"top
 {
 type symmetry;
@@ -3628,7 +3715,7 @@ faces
         {
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
 
-            int c1 = this.perim.Faces.Count + this.core.Faces.Count;
+            int c1 = this.perimBottom.Faces.Count + this.coreBottom.Faces.Count;
             //int c2 = this.perim.Faces.Count + this.core.Faces.Count + this.perimTop.Faces.Count + this.coreTop.Faces.Count;
 
             sb.AppendLine(@"ground

@@ -422,6 +422,7 @@ void plastic Generic_20
 
                 DA.SetData(1, DOMCYL);
                 DA.SetData(2, DOMCYL.DomainMesh);
+                //DA.SetData(3, DOMCYL.concentricDivisions);
 
 
                 string logFile = "";

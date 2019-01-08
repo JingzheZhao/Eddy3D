@@ -55,11 +55,11 @@ namespace EddyLib
         public Mesh terrainMesh;
 
 
-        public Mesh perim = new Mesh();
-        public Mesh core = new Mesh();
+        public Mesh perimBottom = new Mesh();
+        public Mesh coreBottom = new Mesh();
         public Mesh perimTop = new Mesh();
         public Mesh coreTop = new Mesh();
-        public Mesh side = new Mesh();
+        public Mesh sides = new Mesh();
 
         public BoundaryConditions BCInflow;
 
