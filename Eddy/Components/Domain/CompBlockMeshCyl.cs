@@ -72,6 +72,7 @@ namespace Eddy
             pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.item);
             pManager.AddGenericParameter("Domain", "Dom", "Domain", GH_ParamAccess.item);
             pManager.AddGenericParameter("Cylinder", "Cyl", "Cylinder", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Div", "Div", "Div", GH_ParamAccess.list);
         }
 
 
@@ -422,7 +423,7 @@ void plastic Generic_20
 
                 DA.SetData(1, DOMCYL);
                 DA.SetData(2, DOMCYL.DomainMesh);
-                //DA.SetData(3, DOMCYL.concentricDivisions);
+                DA.SetDataList(3, DOMCYL.concentricDivisions);
 
 
                 string logFile = "";

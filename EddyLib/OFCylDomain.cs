@@ -347,7 +347,7 @@ namespace EddyLib
               }
             }*/
 
-
+            List<Polyline> concentricDivisions = new List<Polyline>();
 
             for (int j = 0; j < divPerim; j++)
             {
@@ -366,13 +366,14 @@ namespace EddyLib
                 //Add the last vertex to close the loop
                 innerRadialList.Add(fullList[j]);
                 //Add them all to a list
+
+                
                 concentricDivisions.Add(new Polyline(innerRadialList));
 
             }
+            
+            this.concentricDivisions = concentricDivisions;
 
-
-
-       
 
 
 
