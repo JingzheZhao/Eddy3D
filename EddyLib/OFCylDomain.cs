@@ -127,7 +127,7 @@ namespace EddyLib
 
             }
 
-            
+
 
             //Create ground plane of BBox
             //center needs dimZ to stay at ground level but also respect terrain if its being used; 0.1 = safety factor
@@ -244,7 +244,7 @@ namespace EddyLib
 
         }
 
-        
+
 
 
         public void MakeCircMeshPlane(Point3d center, double sizeInnerRect, int divisionsY, double circleRadius, double height, int gradingPerim, int divPerim)
@@ -260,7 +260,7 @@ namespace EddyLib
 
             var xinter = new Interval(-sizeInnerRect, sizeInnerRect);
 
-            
+
 
             var m = Mesh.CreateFromPlane(pl, xinter, xinter, divisionsY, divisionsY); // creates the inner rectangle with arbitrary subdivision
             this.coreBottom.Append(m);
@@ -298,85 +298,15 @@ namespace EddyLib
 
             // Points on circle from intersection check
             pointsOnCircle = GetPointsOnCircle(center, circRad, poly);
-
+            // Points on inner rectangle from naked edges
+            var pointsOnRect = GetPointsOnRect(divisionsY, m);
+                                   
             ////////////////////
             //Visualize divisions inside cylindrical perimeter
             ////////////////////
-
-
-            // Points on inner rectangle from naked edges
-            Point3d[] pointsOnRect;
-            m.GetNakedEdges()[0].ToNurbsCurve().DivideByCount(divisionsY * 4, true, out pointsOnRect);
-
-
-            var radialDivisions = new List<Polyline>();
-            for (int i = 0; i < pointsOnRect.Length; i++)
-            {
-
-                radialDivisions.Add(new Polyline(new Point3d[] { pointsOnRect[i], pointsOnCircle[i] }));
-
-            }
-
-            //Point3d[][] divPointsCut = new Point3d[pointsOnRect.Length][];
-            var divPointsCut = new List<Point3d[]>();
-
-            for (int i = 0; i < pointsOnRect.Length; i++)
-            {
-                Point3d[] ar;
-                new PolylineCurve(radialDivisions[i]).DivideByCount(divPerim, true, out ar);
-                divPointsCut.Add(ar);
-                //divPointsCut[i] = ar;       
-            }
-
-
-
-            var fullList = new List<Point3d>();
-            foreach (Point3d[] ar in divPointsCut)
-            {
-                foreach (Point3d pt in ar)
-                {
-                    fullList.Add(pt);
-                }
-            }
-
-            //var flippedMatrix = new List<Point3d>();
-            /*
-            foreach (Point3d[] ar in divPointsCut){
-              foreach (Point3d pt in ar){
-                flippedMatrix.Add(pt);
-              }
-            }*/
-
-            List<Polyline> concentricDivisions = new List<Polyline>();
-
-            for (int j = 0; j < divPerim; j++)
-            {
-
-                var innerRadialList = new List<Point3d>();
-                // Go through all loops and add the vertices with the correct stepsize
-                for (int i = 0; i < (pointsOnCircle.Count) * divPerim; i++)
-                {
-
-
-                    innerRadialList.Add(fullList[(i + j)]);
-                    i += divPerim;
-
-
-                }
-                //Add the last vertex to close the loop
-                innerRadialList.Add(fullList[j]);
-                //Add them all to a list
-
-                
-                concentricDivisions.Add(new Polyline(innerRadialList));
-
-            }
-            
-            this.concentricDivisions = concentricDivisions;
-
-
-
-
+                                   
+            this.concentricDivisions = GetConcenctricPolyDivisions(pointsOnRect, pointsOnCircle, divPerim);
+                      
 
             ////////////////
 
@@ -3567,7 +3497,7 @@ mergePatchPairs
             return flowDir;
         }
 
-        public Mesh SideWalls(List<Point3d> pt, double h)
+        private Mesh SideWalls(List<Point3d> pt, double h)
         {
 
             int vcount = 0;
@@ -3587,7 +3517,7 @@ mergePatchPairs
             return m;
         }
 
-        public List<Point3d> GetPointsOnCircle(Point3d center, double circleRadius, Polyline poly)
+        private List<Point3d> GetPointsOnCircle(Point3d center, double circleRadius, Polyline poly)
         {
             List<Point3d> pointsOnCircle = new List<Point3d>();
             var c = new Circle(center, circleRadius);
@@ -3609,7 +3539,17 @@ mergePatchPairs
             return pointsOnCircle;
         }
 
-        public Mesh PerimeterRing(Polyline poly, List<Point3d> pointsOnCircle)
+
+        private Point3d[] GetPointsOnRect(int divisions, Mesh m)
+        {
+            Point3d[] pointsOnRect;
+            m.GetNakedEdges()[0].ToNurbsCurve().DivideByCount(divisions * 4, true, out pointsOnRect);
+            return pointsOnRect;
+        }
+
+
+
+        private Mesh PerimeterRing(Polyline poly, List<Point3d> pointsOnCircle)
         {
             var mOutBottom = new Mesh();
             int vcount = 0;
@@ -3733,6 +3673,70 @@ faces
         }");
             return sb.ToString();
         }
+
+        private List<Polyline>GetConcenctricPolyDivisions(Point3d[] pointsOnRect, List<Point3d> pointsOnCircle, int divPerim)
+        {
+
+            // Add radial polylines from divisions
+
+            var radialDivisions = new List<Polyline>();
+            for (int i = 0; i < pointsOnRect.Length; i++)
+            {
+                radialDivisions.Add(new Polyline(new Point3d[] { pointsOnRect[i], pointsOnCircle[i] }));
+            }
+
+            // Create list with arrays of all intersections
+            // This needs adaptation if grading should be implemented
+
+
+            var divPointsCut = new List<Point3d[]>();
+            for (int i = 0; i < pointsOnRect.Length; i++)
+            {
+                Point3d[] ar;
+                new PolylineCurve(radialDivisions[i]).DivideByCount(divPerim, true, out ar);
+                divPointsCut.Add(ar);
+            }
+
+            // Create a list with all points
+
+            var fullList = new List<Point3d>();
+            foreach (Point3d[] ar in divPointsCut)
+            {
+                foreach (Point3d pt in ar)
+                {
+                    fullList.Add(pt);
+                }
+            }
+
+
+            List<Polyline> concentricDivisions = new List<Polyline>();
+
+            for (int j = 0; j < divPerim; j++)
+            {
+
+                var innerRadialList = new List<Point3d>();
+                // Go through all loops and add the vertices with the correct stepsize
+                for (int i = 0; i < (pointsOnCircle.Count) * divPerim; i++)
+                {
+
+
+                    innerRadialList.Add(fullList[(i + j)]);
+                    i += divPerim;
+
+
+                }
+                //Add the last vertex to close the loop
+                innerRadialList.Add(fullList[j]);
+                
+                //Add them all to one list
+
+                concentricDivisions.Add(new Polyline(innerRadialList));
+
+            }
+            return concentricDivisions;
+        }
+        
+
 
         public string StringyfyDomain2()
         {
