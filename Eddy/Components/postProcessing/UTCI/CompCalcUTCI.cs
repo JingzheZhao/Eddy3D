@@ -22,7 +22,7 @@ namespace Eddy
 {
     public class CompCalcUTCI : GH_Component
     {
-       
+
 
 
 
@@ -48,7 +48,7 @@ namespace Eddy
             pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
             //pManager.AddIntegerParameter("windDirs", "windDirs", "windDirs", GH_ParamAccess.list);
             //pManager.AddTextParameter("pointName", "pointName", "pointName", GH_ParamAccess.item);
-            
+
             pManager.AddPointParameter("Probes", "Probes", "Probes", GH_ParamAccess.list);
 
 
@@ -63,8 +63,6 @@ namespace Eddy
             //pManager.AddGenericParameter("Points", "Points", "Points", GH_ParamAccess.list);
             //pManager.AddGenericParameter("Result", "Result", "Result", GH_ParamAccess.tree);
         }
-
-
 
         /// <summary>
         /// This is the method that actually does the work.
@@ -102,7 +100,7 @@ namespace Eddy
             var DiffRad = RadianceFiles.loadILL(DOM.baseWorkingDirectory + @"\Rad\CallRay.dif.ill");
             var DirRad = RadianceFiles.loadILL(DOM.baseWorkingDirectory + @"\Rad\CallRay.dir.ill");
 
-            
+
 
             int sensorPointCount = DiffRad[0].Length;
             //1 because here only for one wind direction
@@ -115,18 +113,10 @@ namespace Eddy
 
 
 
-
-           
-            
-            //  Console.ReadKey();
-
-
-
-
         }
 
 
-    }
+    
 
 
         /// <summary>

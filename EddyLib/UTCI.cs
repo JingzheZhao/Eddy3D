@@ -1,16 +1,18 @@
-﻿using Rhino.Geometry;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace EddyLib
 {
     public static class UTCI
     {
 
-        public static double GetUTCI2(double TaC, double RH, double Wsp, double mrt)
+        private static double GetUTCI2(double TaC, double RH, double Wsp, double mrt)
         {
             double v = Wsp;//wind speed
 
@@ -144,7 +146,10 @@ namespace EddyLib
             for (int i = 0; i < sensorPointCount; i++)
             {
                 var l = ReductionData[i];
-                if (l.Contains("∞")) ReductionData[i] = l.Replace("∞", "0");
+                if (l.Contains("∞"))
+                {
+                    ReductionData[i] = l.Replace("∞", "0");
+                }
             }
             return ReductionData;
         }
@@ -196,21 +201,54 @@ namespace EddyLib
 
         public static int GetConditionOfPerson(double UTCI)
         {
-                        
-            int cOfPerson = 0;            
 
-            if (UTCI < -40) cOfPerson = -5;
-            else if ((-40 <= UTCI) && (UTCI < -27)) cOfPerson = -4;
-            else if ((-27 <= UTCI) && (UTCI < -13)) cOfPerson = -3;
-            else if ((-13 <= UTCI) && (UTCI < 0)) cOfPerson = -2;
-            else if ((0 <= UTCI) && (UTCI < 9)) cOfPerson = -1;
-            else if ((9 <= UTCI) && (UTCI < 26)) cOfPerson = 0;
-            else if ((26 <= UTCI) && (UTCI < 28)) cOfPerson = 1;
-            else if ((28 <= UTCI) && (UTCI < 32)) cOfPerson = 2;
-            else if ((32 <= UTCI) && (UTCI < 38)) cOfPerson = 3;
-            else if ((38 <= UTCI) && (UTCI < 46)) cOfPerson = 4;
-            else cOfPerson = 5;
-                        
+            int cOfPerson = 0;
+
+            if (UTCI < -40)
+            {
+                cOfPerson = -5;
+            }
+            else if ((-40 <= UTCI) && (UTCI < -27))
+            {
+                cOfPerson = -4;
+            }
+            else if ((-27 <= UTCI) && (UTCI < -13))
+            {
+                cOfPerson = -3;
+            }
+            else if ((-13 <= UTCI) && (UTCI < 0))
+            {
+                cOfPerson = -2;
+            }
+            else if ((0 <= UTCI) && (UTCI < 9))
+            {
+                cOfPerson = -1;
+            }
+            else if ((9 <= UTCI) && (UTCI < 26))
+            {
+                cOfPerson = 0;
+            }
+            else if ((26 <= UTCI) && (UTCI < 28))
+            {
+                cOfPerson = 1;
+            }
+            else if ((28 <= UTCI) && (UTCI < 32))
+            {
+                cOfPerson = 2;
+            }
+            else if ((32 <= UTCI) && (UTCI < 38))
+            {
+                cOfPerson = 3;
+            }
+            else if ((38 <= UTCI) && (UTCI < 46))
+            {
+                cOfPerson = 4;
+            }
+            else
+            {
+                cOfPerson = 5;
+            }
+
             return cOfPerson;
         }
 
@@ -250,8 +288,8 @@ namespace EddyLib
             //var x0 = ReductionArray[nextUpIndex][probeIndex];
             //var x1_x0 = ReductionArray[nextLowIndex][probeIndex] - ReductionArray[nextUpIndex][probeIndex];
             //var y_y0 = distanceToLower + distanceToUpper;
-            var weightingLow = 1-( distanceToLower / (distanceToLower + distanceToUpper));
-            var weightingUp = 1- (distanceToUpper / (distanceToLower + distanceToUpper));
+            var weightingLow = 1 - (distanceToLower / (distanceToLower + distanceToUpper));
+            var weightingUp = 1 - (distanceToUpper / (distanceToLower + distanceToUpper));
             var nextLowerReduction = ReductionArray[nextLowIndex][probeIndex];
             var nextUpperReduction = ReductionArray[nextUpIndex][probeIndex];
 
@@ -273,11 +311,14 @@ namespace EddyLib
             int NextLower = windDirs[0];
 
             for (int i = 0; i < windDirs.Count(); i++)
+            {
                 if (windDirs[i] < UTCIWindDir)
                 {
                     NextLower = windDirs[i];
                     lowerIndex = i;
                 }
+            }
+
             return lowerIndex;
         }
 
@@ -290,23 +331,220 @@ namespace EddyLib
             int NextUpper = windDirs[0];
 
             for (int i = 0; i > windDirs.Count(); i++)
+            {
                 if (windDirs[i] > UTCIWindDir)
                 {
                     NextUpper = windDirs[i];
                     upperIndex = i;
                 }
+            }
+
             return upperIndex;
         }
 
+        public static void CalculateUTCI(int numberOfHours, int sensorPointCount, Weather weather, double[][] DirRad, double[][] DiffRad, double[,] windReduction, double probingHeight, double z0, double zref, double Uref, out bool[,] uncertaintyMRTArray, out bool[,] uncertaintyWindArray, out Stopwatch sw, out double[,] Utci)
+        {
+
+            sw = new Stopwatch();
+            sw.Start();
+
+            int cnt = 0;
+
+            uncertaintyMRTArray = new bool[numberOfHours, sensorPointCount];
+            uncertaintyWindArray = new bool[numberOfHours, sensorPointCount];
+            Utci = new double[numberOfHours, sensorPointCount];
+
+            var tempUtci = Utci;
+            var tempuncertaintyMRTArray = uncertaintyMRTArray;
+            var tempuncertaintyWindArray = uncertaintyWindArray;
 
 
-       
+            using (var progress = new ASCIIProgressBar())
+            {
+
+                //for (int j = 0; j < sensorPointCount; j++)
+                //{
+
+                Parallel.For(0, sensorPointCount,
+              j =>
+              {
+                  cnt++;
+                  progress.Report((double)cnt / sensorPointCount);
+
+                  for (int i = 0; i < numberOfHours; i++)
+                  {
+
+                      tempuncertaintyWindArray[i, j] = false;
+                      tempuncertaintyMRTArray[i, j] = false;
+
+                      // Check for extreme mrts
+
+                      double mrt = UTCI.GetMRT2(weather.DryBulbTemp[i], weather.RelativeHumidity[i], DiffRad[i][j], DirRad[i][j], weather.SolarElevation[i], weather.DryBulbTemp[i], weather.Wst, weather.Hst, weather.BodyA, weather.GrRef, 0.95)[0];
+
+                      if (mrt < weather.DryBulbTemp[i] - 30)
+                      {
+                          mrt = 30;
+                          tempuncertaintyMRTArray[i, j] = true;
+                      }
+                      if (mrt > weather.DryBulbTemp[i] + 70)
+                      {
+                          mrt = 70;
+                          tempuncertaintyMRTArray[i, j] = true;
+                      }
+
+                      // Check for extreme windspeeds
+
+                      double resultingWindSpeedforUTCI = windReduction[i, j] * UTCI.GetUAtProbingHeightFromEPW(weather.WindSpeed[i], z0, zref, probingHeight);
+
+                      if (windReduction[i, j] * UTCI.GetUAtProbingHeightFromEPW(weather.WindSpeed[i], z0, zref, probingHeight) > 17)
+                      {
+                          resultingWindSpeedforUTCI = 17;
+                          tempUtci[i, j] = UTCI.GetUTCI2(weather.DryBulbTemp[i], weather.RelativeHumidity[i], resultingWindSpeedforUTCI, mrt);
+                          tempuncertaintyWindArray[i, j] = true;
+                      }
+                      else if (resultingWindSpeedforUTCI < 0.5)
+                      {
+                          resultingWindSpeedforUTCI = 0.5;
+                          tempUtci[i, j] = UTCI.GetUTCI2(weather.DryBulbTemp[i], weather.RelativeHumidity[i], resultingWindSpeedforUTCI, mrt);
+                          tempuncertaintyWindArray[i, j] = true;
+                      }
+                      else
+                      {
+                          tempUtci[i, j] = UTCI.GetUTCI2(weather.DryBulbTemp[i], weather.RelativeHumidity[i], resultingWindSpeedforUTCI, mrt);
+                      }
+
+                      //double cOfPerson = 0;
+
+                      //if (Utci[i, j] < -40) cOfPerson = -5;
+                      //else if ((-40 <= Utci[i, j]) && (Utci[i, j] < -27)) cOfPerson = -4;
+                      //else if ((-27 <= Utci[i, j]) && (Utci[i, j] < -13)) cOfPerson = -3;
+                      //else if ((-13 <= Utci[i, j]) && (Utci[i, j] < 0)) cOfPerson = -2;
+                      //else if ((0 <= Utci[i, j]) && (Utci[i, j] < 9)) cOfPerson = -1;
+                      //else if ((9 <= Utci[i, j]) && (Utci[i, j] < 26)) cOfPerson = 0;
+                      //else if ((26 <= Utci[i, j]) && (Utci[i, j] < 28)) cOfPerson = 1;
+                      //else if ((28 <= Utci[i, j]) && (Utci[i, j] < 32)) cOfPerson = 2;
+                      //else if ((32 <= Utci[i, j]) && (Utci[i, j] < 38)) cOfPerson = 3;
+                      //else if ((38 <= Utci[i, j]) && (Utci[i, j] < 46)) cOfPerson = 4;
+                      //else cOfPerson = 5;
+
+                      //conditionOfPerson[i, j] = cOfPerson;
+
+                  }
+                  // Console.WriteLine("Sensor " + j + " done.");
+                  //  }
+              });
+
+                Utci = tempUtci;
+                uncertaintyMRTArray = tempuncertaintyMRTArray;
+                uncertaintyWindArray = tempuncertaintyWindArray;
+
+            }//end using prog bar
+
+            Console.WriteLine(Utilities.ConvertComputeTimes(sw.ElapsedMilliseconds));
+        }
+
+
+        public static void WriteUTCIDataToCSV(string workingDir, int numberOfHours, int sensorPointCount, bool verboseMode, bool[,] uncertaintyMRTArray, bool[,] uncertaintyWindArray, double[,] UTCIArray, int[] debug, Weather weather, StringBuilder errorLog, double probingHeight, double[][] DiffRad, double[][] DirRad, double[,] windReduction,
+        double URef = 5,
+        double zref = 10,
+        double z0 = 1)
+        {
 
 
 
 
+            //Write Array to file
+            StringBuilder sbUtci = new StringBuilder();
+            for (int j = 0; j < sensorPointCount; j++)
+            {
+                for (int i = 0; i < numberOfHours; i++)
+                {
+                    sbUtci.Append(String.Format("{0:0.0}", UTCIArray[i, j]) + ",");
+                }
+                sbUtci.AppendLine("");
+            }
+            File.WriteAllText(workingDir + @"\UTCI.csv", sbUtci.ToString());
+
+            // Uncertainty output for UTCI calculations
+
+            StringBuilder sbUtciUncertainty = new StringBuilder();
+            sbUtciUncertainty.AppendLine("The calculated UTCI values lie outside of uncertainty (U) bounds for the following sensor points and hours either because of low/high wind velocities or MRT values:");
+            int counter = 0;
+            for (int j = 0; j < sensorPointCount; j++)
+            {
+
+                //Percentage for each sensorpoint
+                int cntSensorPercent = 0;
+                sbUtciUncertainty.Append("SP: " + j + ",");
+                for (int i = 0; i < numberOfHours; i++)
+                {
+
+                    if (uncertaintyMRTArray[i, j] == true || uncertaintyWindArray[i, j] == true)
+                    {
+                        cntSensorPercent++;
+                    }
+                }
+
+                sbUtciUncertainty.Append("\t" + (int)Math.Round((double)(100 * cntSensorPercent) / numberOfHours) + " % U,\tHours: ");
+                cntSensorPercent = 0;
+                //Hours for each sensorpoint
+                for (int i = 0; i < numberOfHours; i++)
+                {
+                    if (uncertaintyMRTArray[i, j] == true || uncertaintyWindArray[i, j] == true)
+                    {
 
 
+                        sbUtciUncertainty.Append(i + ",");
+                        counter++;
+                    }
+                }
+                sbUtciUncertainty.AppendLine("");
+            }
+            sbUtciUncertainty.AppendLine("Total incidents of uncertainty: " + counter + " or " + Math.Round((double)counter * 100 / (numberOfHours * sensorPointCount), 0) + " % overall annual uncertainty");
+            File.WriteAllText(workingDir + @"\UTCI.uncertainty", sbUtciUncertainty.ToString());
+
+
+            //Write Debug info to file
+#if DEBUG
+            StringBuilder sbUtciDEBUG = new StringBuilder();
+
+            sbUtciDEBUG.AppendLine(@"UTCI for sensor point " + debug[1] + " over all hours of the year:");
+
+            for (int i = 0; i < numberOfHours; i++)
+            {
+
+                sbUtciDEBUG.Append(String.Format("{0:0.0}", UTCIArray[i, debug[1]]) + ",");
+            }
+            sbUtciDEBUG.Append(Environment.NewLine); sbUtciDEBUG.Append(Environment.NewLine);
+            sbUtciDEBUG.AppendLine("Detailed Values for sensor point " + debug[1] + " at hour " + debug[0] + ":");
+            sbUtciDEBUG.AppendLine("Air temperature: " + weather.DryBulbTemp[debug[0]]);
+            sbUtciDEBUG.AppendLine("MRT: " + String.Format("{0:0.0}", UTCI.GetMRT2(weather.DryBulbTemp[debug[0]], weather.RelativeHumidity[debug[0]], DiffRad[debug[0]][debug[1]], DirRad[debug[0]][debug[1]], weather.SolarElevation[debug[0]], weather.DryBulbTemp[debug[0]], weather.Wst, weather.Hst, weather.BodyA, weather.GrRef, 0.95)[0]));
+            sbUtciDEBUG.AppendLine("Vapour pressure: " + weather.Pressure[debug[0]]);
+            sbUtciDEBUG.AppendLine("Relative humidity: " + weather.RelativeHumidity[debug[0]]);
+
+
+            sbUtciDEBUG.AppendLine("Wind speed from .epw: " + String.Format("{0:0.0}", weather.WindSpeed[debug[0]]));
+            sbUtciDEBUG.AppendLine("probingHeight from CFD: " + String.Format("{0:0.0}", probingHeight));
+            sbUtciDEBUG.AppendLine("Scaled-down wind velocity from .epw: " + String.Format("{0:0.0}", UTCI.GetUAtProbingHeightFromEPW(weather.WindSpeed[debug[0]], z0, zref, probingHeight)));
+            sbUtciDEBUG.AppendLine("Wind reduction from CFD: " + String.Format("{0:0.0}", windReduction[debug[0], debug[1]]));
+            sbUtciDEBUG.AppendLine("Resulting wind velocity for UTCI calculation: " + String.Format("{0:0.0}", windReduction[debug[0], debug[1]] * UTCI.GetUAtProbingHeightFromEPW(weather.WindSpeed[debug[0]], z0, zref, probingHeight)));
+
+            sbUtciDEBUG.AppendLine("UTCI: " + String.Format("{0:0.0}", UTCIArray[debug[0], debug[1]]));
+            sbUtciDEBUG.AppendLine("");
+            File.WriteAllText(workingDir + @"\UTCI_debug_hour_" + debug[0] + "_probe_" + debug[1] + ".csv", sbUtciDEBUG.ToString());
+#endif
+
+
+
+            if (verboseMode)
+            {
+                File.WriteAllText(workingDir + @"\UTCI.err", errorLog.ToString());
+            }
+
+
+
+
+        }
 
 
 
@@ -324,25 +562,8 @@ namespace EddyLib
             return pa_temp;
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        public static double[] GetMRT2(double Tair, double Rh, double D, double I, double Sh, double Tc,
+        
+        private static double[] GetMRT2(double Tair, double Rh, double D, double I, double Sh, double Tc,
         double W, double H, double Ab, double Gr, double Eb)
         {
 
@@ -394,7 +615,7 @@ namespace EddyLib
 
 
 
-        public static double UTCI_approx(double Ta, double ehPa, double Tmrt, double va)
+        private static double UTCI_approx(double Ta, double ehPa, double Tmrt, double va)
         {
 
             //!~DOUBLE PRECISION Function value is the UTCI in degree Celsius
@@ -631,7 +852,8 @@ namespace EddyLib
 
             return UTCI_approx;
         }
-        public static double es(double ta)
+
+        private static double es(double ta)
         {
             //!~ **********************************************
             //!~calculates saturation vapour pressure over water in hPa for input air temperature(ta) in celsius according to:
@@ -680,13 +902,34 @@ namespace EddyLib
             foreach (int v in Vals)
             {
 
-                if (v == 3) sH += 1;
-                else if (v == 2) mH += 1;
-                else if (v == 1) lH += 1;
-                else if (v == 0) nS += 1;
-                else if (v == -1) lC += 1;
-                else if (v == -2) mC += 1;
-                else if (v == -3) sC += 1;
+                if (v == 3)
+                {
+                    sH += 1;
+                }
+                else if (v == 2)
+                {
+                    mH += 1;
+                }
+                else if (v == 1)
+                {
+                    lH += 1;
+                }
+                else if (v == 0)
+                {
+                    nS += 1;
+                }
+                else if (v == -1)
+                {
+                    lC += 1;
+                }
+                else if (v == -2)
+                {
+                    mC += 1;
+                }
+                else if (v == -3)
+                {
+                    sC += 1;
+                }
                 // else RhinoApp.WriteLine("Wrong UTCI value");
             }
 
@@ -699,6 +942,7 @@ namespace EddyLib
             StrngHeat = Math.Round((double)sH / Vals.Count, 3);
 
         }
+
         public static void UTCI_ConditionOfPerson(List<double> UTCI, ref object conditionOfPerson)
         {
             List<double> rtl = new List<double>();
@@ -709,13 +953,34 @@ namespace EddyLib
 
 
                 condition = UTCI[i];
-                if (UTCI[i] < -13) condition = -3;
-                else if ((-13 <= UTCI[i]) && (UTCI[i] < 0)) condition = -2;
-                else if ((0 <= UTCI[i]) && (UTCI[i] < 9)) condition = -1;
-                else if ((9 <= UTCI[i]) && (UTCI[i] < 26)) condition = 0;
-                else if ((26 <= UTCI[i]) && (UTCI[i] < 28)) condition = 1;
-                else if ((28 <= UTCI[i]) && (UTCI[i] < 32)) condition = 2;
-                else condition = 3;
+                if (UTCI[i] < -13)
+                {
+                    condition = -3;
+                }
+                else if ((-13 <= UTCI[i]) && (UTCI[i] < 0))
+                {
+                    condition = -2;
+                }
+                else if ((0 <= UTCI[i]) && (UTCI[i] < 9))
+                {
+                    condition = -1;
+                }
+                else if ((9 <= UTCI[i]) && (UTCI[i] < 26))
+                {
+                    condition = 0;
+                }
+                else if ((26 <= UTCI[i]) && (UTCI[i] < 28))
+                {
+                    condition = 1;
+                }
+                else if ((28 <= UTCI[i]) && (UTCI[i] < 32))
+                {
+                    condition = 2;
+                }
+                else
+                {
+                    condition = 3;
+                }
 
                 rtl.Add(condition);
             }
@@ -728,13 +993,34 @@ namespace EddyLib
 
             foreach (int v in Vals)
             {
-                if (v == 3) cl.Add(System.Drawing.Color.Red);
-                else if (v == 2) cl.Add(System.Drawing.Color.DarkOrange);
-                else if (v == 1) cl.Add(System.Drawing.Color.Yellow);
-                else if (v == 0) cl.Add(System.Drawing.Color.Green);
-                else if (v == -1) cl.Add(System.Drawing.Color.Cyan);
-                else if (v == -2) cl.Add(System.Drawing.Color.Blue);
-                else if (v == -3) cl.Add(System.Drawing.Color.BlueViolet);
+                if (v == 3)
+                {
+                    cl.Add(System.Drawing.Color.Red);
+                }
+                else if (v == 2)
+                {
+                    cl.Add(System.Drawing.Color.DarkOrange);
+                }
+                else if (v == 1)
+                {
+                    cl.Add(System.Drawing.Color.Yellow);
+                }
+                else if (v == 0)
+                {
+                    cl.Add(System.Drawing.Color.Green);
+                }
+                else if (v == -1)
+                {
+                    cl.Add(System.Drawing.Color.Cyan);
+                }
+                else if (v == -2)
+                {
+                    cl.Add(System.Drawing.Color.Blue);
+                }
+                else if (v == -3)
+                {
+                    cl.Add(System.Drawing.Color.BlueViolet);
+                }
                 // else RhinoApp.WriteLine("Wrong UTCI value");
             }
 
@@ -743,7 +1029,7 @@ namespace EddyLib
         }
 
 
-        public static double[] GetMRT(double Tair, double Rh, double D, double I, double Sh, double Tc,
+        private static double[] GetMRT(double Tair, double Rh, double D, double I, double Sh, double Tc,
 double W, double H, double Ab, double Gr, double Eb)
         {
 
