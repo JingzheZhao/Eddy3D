@@ -48,9 +48,8 @@ namespace Eddy
             pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
             //pManager.AddIntegerParameter("windDirs", "windDirs", "windDirs", GH_ParamAccess.list);
             //pManager.AddTextParameter("pointName", "pointName", "pointName", GH_ParamAccess.item);
-
-            pManager.AddPointParameter("Probes", "Probes", "Probes", GH_ParamAccess.list);
-
+            pManager.AddIntegerParameter("Hour", "Hour", "Hour", GH_ParamAccess.item);
+            pManager.AddVectorParameter("U", "U", "U", GH_ParamAccess.list);
 
 
         }
@@ -60,8 +59,8 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            //pManager.AddGenericParameter("Points", "Points", "Points", GH_ParamAccess.list);
-            //pManager.AddGenericParameter("Result", "Result", "Result", GH_ParamAccess.tree);
+            pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
+            pManager.AddGenericParameter("MRT", "MRT", "MRT", GH_ParamAccess.tree);
         }
 
         /// <summary>
@@ -86,37 +85,92 @@ namespace Eddy
             if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
 
+
+            // Hour of the year
+            int hour = 0;
+            DA.GetData(1, ref hour);
+
+
+            List<Vector3d> velocityProbes = new List<Vector3d>();
+            DA.GetDataList(2, velocityProbes);
+
+
+
+
+            Console.WriteLine("Load weather data...");
+
             //Weather data...
 
             Weather weather = new Weather();
             weather.LoadWeatherData(DOM.BCInflow.weather);
 
-            List<Point3d> probes = new List<Point3d>();
-            DA.GetDataList(1, probes);
 
-            //Radiation data...
+            //  Load radiation datasets
+            //  [x][]  time
+            //  [][x]  points
 
+            Console.WriteLine("Loading: Radiation data...");
 
-            var DiffRad = RadianceFiles.loadILL(DOM.baseWorkingDirectory + @"\Rad\CallRay.dif.ill");
+            var DiffRad = RadianceFiles.loadILL(DOM.baseWorkingDirectory+ @"\Rad\CallRay.dif.ill");
             var DirRad = RadianceFiles.loadILL(DOM.baseWorkingDirectory + @"\Rad\CallRay.dir.ill");
-
-
+                        
 
             int sensorPointCount = DiffRad[0].Length;
-            //1 because here only for one wind direction
             double[,] Utci = new double[1, sensorPointCount];
+            //double[,] conditionOfPerson = new double[8760, sensorPointCount];
+            
+
+            Console.WriteLine("Loading: Wind data");
+            
+            //var windDirList = new List<double> { 0, 45, 90, 135, 180, 225, 270, 315 };
+            //var windDirList = new List<double>();// { 0, 45, 90, 135, 180, 225, 270, 315 };
+            //List<int> windDirList = options.windDirs;
 
 
+            var windDirList = DOM.BCInflow.windDirs;   
+            var numberOfWindDirs = windDirList.Count;
+
+
+            // load Reduction data
+            // -----------------
+
+
+
+            
+            // Parse ABL data from simulation directory                    
+
+            double URef = DOM.BCInflow.URef;
+            double zref = DOM.BCInflow.zref;
+            double z0 = DOM.BCInflow.z0;
+
+          
 
             Console.WriteLine("Starting UTCI calc...");
-            Stopwatch sw = new Stopwatch(); sw.Start();
 
+            // UTCI here
+
+
+            var UtciList = new List<double>();
+            var MRTList = new List<double>();
+
+          
+            for (int p = 0; p< velocityProbes.Count; p++)
+            {
+                var mrt = UTCI.GetMRT2(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], DiffRad[hour][p], DirRad[hour][p], weather.SolarElevation[hour], weather.DryBulbTemp[hour], weather.Wst, weather.Hst, weather.BodyA, weather.GrRef, 0.95)[0];
+                var utci = UTCI.GetUTCI2(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], velocityProbes[p].Length, mrt);
+
+                MRTList.Add(mrt);
+                UtciList.Add(utci);
+            }
+
+            DA.SetDataList(0, UtciList);
+            DA.SetDataList(1, MRTList);
 
 
         }
 
 
-    
+
 
 
         /// <summary>

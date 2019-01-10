@@ -256,10 +256,10 @@ namespace Eddy
                             di.Delete();
                         }
 
-                        for (int l = 0; l < DOM.BCInflow.windDir.Count; l++)
+                        for (int l = 0; l < DOM.BCInflow.windDirs.Count; l++)
                         {
 
-                            var cpuPath = DOM.baseWorkingDirectory + DOM.BCInflow.windDir[l] + @"\processor" + i;
+                            var cpuPath = DOM.baseWorkingDirectory + DOM.BCInflow.windDirs[l] + @"\processor" + i;
 
                             if (Directory.Exists(cpuPath))
                             {

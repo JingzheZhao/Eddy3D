@@ -90,12 +90,12 @@ namespace Eddy
 
 
 
-                for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
+                for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                 {
-                    fullProbeFilePath.Add(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\postProcessing\cp_Probes.csv");
+                    fullProbeFilePath.Add(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\postProcessing\cp_Probes.csv");
                 }
 
-                var numberOfWindDirs = DOM.BCInflow.windDir.Count();
+                var numberOfWindDirs = DOM.BCInflow.windDirs.Count();
                 var numberOfProbes = File.ReadAllLines(fullProbeFilePath[0]).Count();
 
 
@@ -137,9 +137,9 @@ namespace Eddy
                 //Write Array to file
                 System.Text.StringBuilder sb = new System.Text.StringBuilder();
 
-                for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
+                for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                 {
-                    sb.Append(DOM.BCInflow.windDir[i] + ",");
+                    sb.Append(DOM.BCInflow.windDirs[i] + ",");
 
                 }
                 sb.AppendLine("");

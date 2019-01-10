@@ -38,7 +38,7 @@ namespace Eddy
 
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddNumberParameter("wDir", "wDir", "wDir", GH_ParamAccess.list);
+            pManager.AddIntegerParameter("wDir", "wDir", "wDir", GH_ParamAccess.list);
             pManager.AddNumberParameter("Uref", "Uref", "Uref", GH_ParamAccess.item, 5);
             pManager.AddNumberParameter("zref", "zref", "zref", GH_ParamAccess.item, 10);
             pManager.AddNumberParameter("z0", "z0", "z0", GH_ParamAccess.item, 1);
@@ -66,7 +66,7 @@ namespace Eddy
         {
             //windDir.Add(0);
 
-            List<double> windDir = new List<double>();
+            List<int> windDir = new List<int>();
             List<Vector3d> flowDir = new List<Vector3d>();
             double Uref = 0;
             double zref = 0;

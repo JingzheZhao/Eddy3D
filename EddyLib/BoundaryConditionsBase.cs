@@ -21,7 +21,7 @@ namespace EddyLib
         public double z0 = 1;
         public double zref = 10;
         public double zGround = 0;
-        public List<double> windDir = new List<double>();
+        public List<int> windDirs = new List<int>();
         public List<Vector3d> flowDir = new List<Vector3d>();
         public BoundaryType btype;
 
@@ -49,7 +49,7 @@ namespace EddyLib
         //    flowDir.Add(Vector3d.YAxis);
         //}
 
-        public BoundaryConditions(BoundaryType type, List<double> dirs, double _uref, double _zref, double _z0, double _zground, string weather)
+        public BoundaryConditions(BoundaryType type, List<int> dirs, double _uref, double _zref, double _z0, double _zground, string weather)
         {
             this.weather = weather;
             double pedestrianHeight = 1.5;
@@ -75,16 +75,16 @@ namespace EddyLib
             this.epsilon = Epsilon(this.k, this.eddy_viscosity_ratio, this.nu);
             this.omega = Omega(this.epsilon, this.k);
 
-            foreach (double d in dirs)
+            foreach (int d in dirs)
             {
-                this.windDir.Add(d);
+                this.windDirs.Add(d);
                 this.flowDir.Add(new Vector3d(Math.Sin(d * Math.PI / 180), Math.Cos(d * Math.PI / 180), 0));
             }
         }
 
         // This is the overload for the constantU BCond where zGround is missing
 
-        public BoundaryConditions(BoundaryType type, List<double> dirs, double _uref, double _z0, string weather)
+        public BoundaryConditions(BoundaryType type, List<int> dirs, double _uref, double _z0, string weather)
         {
             this.weather = weather;
             double pedestrianHeight = 1.5;
@@ -112,9 +112,9 @@ namespace EddyLib
 
 
 
-            foreach (double d in dirs)
+            foreach (int d in dirs)
             {
-                this.windDir.Add(d);
+                this.windDirs.Add(d);
                 this.flowDir.Add(new Vector3d(Math.Sin(d * Math.PI / 180), Math.Cos(d * Math.PI / 180), 0));
             }
         }

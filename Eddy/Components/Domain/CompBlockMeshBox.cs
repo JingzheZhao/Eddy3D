@@ -151,7 +151,7 @@ string baseWorkingDirectory = "";
 
 
 
-            if (BCond.windDir.Count > 1)
+            if (BCond.windDirs.Count > 1)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "For box-shaped domains you can only pass one wind direction per simulation setup."); return;
             }

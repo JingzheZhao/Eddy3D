@@ -53,7 +53,7 @@ namespace Eddy
             //param.AddNamedValue("Provide custom file.", 1);
 
             //pManager.AddTextParameter("fP", "fP", "fP", GH_ParamAccess.item, "");
-            pManager.AddNumberParameter("Sel", "Sel", @"Provide a list of integers for the wind directions that you would like to load, e.g. ""0,35"" .""", GH_ParamAccess.list, 0);
+            pManager.AddIntegerParameter("Sel", "Sel", @"Provide a list of integers for the wind directions that you would like to load, e.g. ""0,35"" .""", GH_ParamAccess.list, 0);
             pManager.AddTextParameter("X", "X", @"Provide bounds for the x-axis, e.g. ""0:5000""", GH_ParamAccess.item, ":");
             pManager.AddTextParameter("Y", "Y", @"Provide bounds for the y-axis, e.g. ""0.00001:1""", GH_ParamAccess.item, ":");
             
@@ -106,7 +106,7 @@ namespace Eddy
             string fullFilePath = "";
             //DA.GetData(1, ref mode);
 
-            List<double> selectionList = new List<double>();
+            List<int> selectionList = new List<int>();
 
             DA.GetDataList(1, selectionList);
             DA.GetData(2, ref x0x1);
@@ -117,7 +117,7 @@ namespace Eddy
 
             // Build intersection of two lists
 
-            var selection = DOM.BCInflow.windDir.Intersect(selectionList).ToList();
+            var selection = DOM.BCInflow.windDirs.Intersect(selectionList).ToList();
 
             foreach (double dir in selection)
             {

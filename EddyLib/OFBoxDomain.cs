@@ -121,7 +121,7 @@ namespace EddyLib
 
 
 
-            var windDir = BCond.windDir[0];
+            var windDir = BCond.windDirs[0];
 
             var windDirVector = BCond.flowDir[0];
 

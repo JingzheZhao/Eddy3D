@@ -57,8 +57,8 @@ namespace CallOC
                             Console.WriteLine("Direct radiation (ill): {0}", options.DirRad);
                             errorLog.AppendLine(String.Format("Direct radiation (ill): {0}", options.DirRad));
 
-                            Console.WriteLine("Wind velocity scaling factors (csv): {0}", options.WindScaling);
-                            errorLog.AppendLine(String.Format("Wind velocity scaling factors (csv): {0}", options.WindScaling));
+                            Console.WriteLine("Wind velocity scaling factors (csv): {0}", options.WindReductionDataPath);
+                            errorLog.AppendLine(String.Format("Wind velocity scaling factors (csv): {0}", options.WindReductionDataPath));
 
                             Console.WriteLine("Working directory: {0}", options.WorkingDir);
                             errorLog.AppendLine(String.Format("Working directory: {0}", options.WorkingDir));
@@ -72,38 +72,22 @@ namespace CallOC
                         bool fileMissing = false;
                         if (!Directory.Exists(options.WorkingDir)) { Console.WriteLine(options.WorkingDir + " not found. Exiting"); fileMissing = true; }
                         if (!File.Exists(options.Weather) || new FileInfo(options.Weather).Length == 0) { Console.WriteLine(options.Weather + " not found or empty. Exiting"); fileMissing = true; }
-                        if (!File.Exists(options.WindScaling) || new FileInfo(options.WindScaling).Length == 0) { Console.WriteLine(options.WindScaling + " not found or empty. Exiting"); fileMissing = true; }
+                        if (!File.Exists(options.WindReductionDataPath) || new FileInfo(options.WindReductionDataPath).Length == 0) { Console.WriteLine(options.WindReductionDataPath + " not found or empty. Exiting"); fileMissing = true; }
                         if (!File.Exists(options.DifRad) || new FileInfo(options.DifRad).Length == 0) { Console.WriteLine(options.DifRad + " not found or empty. Exiting"); fileMissing = true; }
                         if (!File.Exists(options.DirRad) || new FileInfo(options.DirRad).Length == 0) { Console.WriteLine(options.DirRad + " not found or empty. Exiting"); fileMissing = true; }
                         if (new FileInfo(options.WorkingDir + @"\Rad\sensors.pts").Length == 0) { Console.WriteLine(options.WorkingDir + @"\Rad\sensors.pts" + " not found or empty. Exiting"); fileMissing = true; }
                         if (fileMissing == true) { System.Threading.Thread.Sleep(8000); return; }
 
-                        // Error checks for CFD data
+                   
+
+                        if (options.windDirs.Length < 8)
+                        {
+                            //Console.WriteLine(@"Error: You need to simulate at least 8 wind direction, preferrably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
+                            errorLog.AppendLine(@"Warning: You should simulate at least 8 wind direction, preferably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI calculation since the calculation interpolation between the simulated wind directions and the wind direction from the weather file..");
+                            //throw new System.ArgumentException(@"Error: You need to simulate at least 8 wind direction, preferably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
+                        }
 
 
-
-
-
-
-
-                        //if (numberOfWindDirsSimulated < 8)
-                        //{
-                        //    //Console.WriteLine(@"Error: You need to simulate at least 8 wind direction, preferrably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
-                        //    errorLog.AppendLine(@"Error: You need to simulate at least 8 wind direction, preferably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
-                        //    throw new System.ArgumentException(@"Error: You need to simulate at least 8 wind direction, preferably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
-
-                        //}
-
-
-
-
-
-
-
-
-                        //  Load radiation datasets
-                        //  [x][]  time
-                        //  [][x]  points
 
                         Console.WriteLine("Load weather data...");
 
@@ -111,6 +95,10 @@ namespace CallOC
                         weather.LoadWeatherData(options.Weather);
 
 
+
+                        //  Load radiation datasets
+                        //  [x][]  time
+                        //  [][x]  points
 
                         Console.WriteLine("Loading: Radiation data...");
 
@@ -120,9 +108,11 @@ namespace CallOC
 
 
 
+                        var numberOfHours = 8760;
+
 
                         int sensorPointCount = DiffRad[0].Length;
-                        double[,] Utci = new double[8760, sensorPointCount];
+                        double[,] Utci = new double[numberOfHours, sensorPointCount];
                         //double[,] conditionOfPerson = new double[8760, sensorPointCount];
 
 
@@ -151,59 +141,20 @@ namespace CallOC
                         // -----------------
 
 
-                        var ReductionData = UTCI.GetReductionData(options.WindScaling, sensorPointCount);
+                        var ReductionData = UTCI.LoadReductionArrayFromCSV(options.WindReductionDataPath, sensorPointCount);
 
-                        var windReduction = UTCI.GetWindReduction(ReductionData, 8760, sensorPointCount, windDirList, weather);
-
-
-
-
-
-
-
-
-
-
-
-
-
-                        //Write Reduction Array to file
-
-                        //System.Text.StringBuilder ReductionFile = new System.Text.StringBuilder();
-
-                        //for (int i = 0; i < numberOfWindDirs; i++)
-                        //{
-                        //    ReductionFile.Append(windDirList[i] + ",");
-
-                        //}
-
-                        //ReductionFile.AppendLine("");
-                        //for (int j = 0; j < sensorPointCount; j++)
-                        //{
-                        //    for (int i = 0; i < 8760; i++)
-                        //    {
-
-                        //        ReductionFile.Append(String.Format("{0:0.###}",windReduction[i, j]) + ",");
-
-                        //    }
-                        //    ReductionFile.AppendLine("");
-                        //}
-                        //File.WriteAllText(Path.GetDirectoryName(options.windScaling) + @"\WindReductionData2.csv", ReductionFile.ToString());
-
+                        var windReduction = UTCI.GetWindReduction(ReductionData, numberOfHours, sensorPointCount, windDirList, weather);
 
                         //// Importing probeHeight from probe file to scale U down to pedestrian level
                         Console.WriteLine("Parsing height of probes to scale down wind velocity from weather file.");
 
-
+      
 
                         double[][] probes = EddyLib.RadianceFiles.readPTS(options.WorkingDir + @"\Rad\sensors.pts");
 
                         var arbitraryProbePoint = new Point3d(probes[0][0], probes[0][1], probes[0][2]);
 
                         var probingHeight = arbitraryProbePoint.Z;
-
-
-
 
                         // Parse ABL data from simulation directory                    
 
@@ -249,16 +200,16 @@ namespace CallOC
 
                         Stopwatch sw = new Stopwatch();
 
-                        var uncertaintyMRTArray = new bool[8760, sensorPointCount];
-                        var uncertaintyWindArray = new bool[8760, sensorPointCount];
+                        var uncertaintyMRTArray = new bool[numberOfHours, sensorPointCount];
+                        var uncertaintyWindArray = new bool[numberOfHours, sensorPointCount];
 
-                        UTCI.CalculateUTCI(8760, sensorPointCount, weather, DirRad, DiffRad, windReduction, probingHeight, z0, zref, URef, out uncertaintyMRTArray, out uncertaintyWindArray, out sw, out Utci);
+                        UTCI.CalculateUTCIArray(numberOfHours, sensorPointCount, weather, DirRad, DiffRad, windReduction, probingHeight, z0, zref, URef, out uncertaintyMRTArray, out uncertaintyWindArray, out sw, out Utci);
 
                         Console.WriteLine(Utilities.ConvertComputeTimes(sw.ElapsedMilliseconds));
 
                         Console.WriteLine("Writing UTCI results...");
 
-                        UTCI.WriteUTCIDataToCSV(options.WorkingDir, 8760, sensorPointCount, options.Verbose, uncertaintyMRTArray, uncertaintyWindArray, Utci, debug, weather, errorLog, probingHeight, DiffRad, DirRad, windReduction, URef, zref, z0);
+                        UTCI.WriteUTCIDataToCSV(options.WorkingDir, numberOfHours, sensorPointCount, options.Verbose, uncertaintyMRTArray, uncertaintyWindArray, Utci, debug, weather, errorLog, probingHeight, DiffRad, DirRad, windReduction, URef, zref, z0);
 
                         Console.WriteLine("Done");
 
@@ -314,9 +265,9 @@ internal class Options
     HelpText = "List of wind directions")]
     public string windDirs { get; set; }
 
-    [Option('u', "windScaling", Required = true,
+    [Option('u', "windReduction", Required = true,
     HelpText = "Wind velocity scaling factors (csv)")]
-    public string WindScaling { get; set; }
+    public string WindReductionDataPath { get; set; }
 
     [Option('d', "workingDir", Required = true,
     HelpText = "Working directory.")]

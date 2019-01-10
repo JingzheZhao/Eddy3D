@@ -143,18 +143,18 @@ namespace Eddy
 
 
             // Check if U file is in last iteration
-            for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
+            for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
             {
-                string iter = Utilities.GetLastIterationInSimfolder(DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDir[i]).ToString();
-                string fp = DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDir[i] + @"\" + iter + @"\U";
+                string iter = Utilities.GetLastIterationInSimfolder(DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDirs[i]).ToString();
+                string fp = DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDirs[i] + @"\" + iter + @"\U";
                 if (Convert.ToUInt32(iter) == 0)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The wind direction """ + DOM.BCInflow.windDir[i] + @""" has not been simulated yet.");
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The wind direction """ + DOM.BCInflow.windDirs[i] + @""" has not been simulated yet.");
                 }
 
                 if (!File.Exists(fp))
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The simulation folder of the wind direction """ + DOM.BCInflow.windDir[i] + @""" misses the velocity (U) result file. Please make sure that U is calculated for this particular timestep (change WriteInterval) and recompute the solution.");
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The simulation folder of the wind direction """ + DOM.BCInflow.windDirs[i] + @""" misses the velocity (U) result file. Please make sure that U is calculated for this particular timestep (change WriteInterval) and recompute the solution.");
                 }
             }
 
@@ -199,14 +199,14 @@ namespace Eddy
 
 
 
-                        for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
+                        for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                         {
-                            var path = DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + enumeratedProbeName;
+                            var path = DOM.baseWorkingDirectory + DOM.BCInflow.windDirs[i] + @"\system\" + enumeratedProbeName;
 
-                            File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + "controlDict", StringTemplates.ControlDict(DOM, null, i));
+                            File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDirs[i] + @"\system\" + "controlDict", StringTemplates.ControlDict(DOM, null, i));
                             File.WriteAllText(path, StringTemplates.SampleProbes(listOfPoints, enumeratedProbeName, OFField));
 
-                            command.Append(@"postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + enumeratedProbeName + @" -latestTime | tee  " + DOM.BCInflow.windDir[i] + @"/log_probes;");
+                            command.Append(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime | tee  " + DOM.BCInflow.windDirs[i] + @"/log_probes;");
 
 
                         }
@@ -224,12 +224,12 @@ namespace Eddy
 
                         //Thread.Sleep(2 * numberOfProbes);
 
-                        for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
+                        for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                         {
 
 
 
-                            var caseDir = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i];
+                            var caseDir = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i];
                             string pathToProbeFile = ParsingProbes.GetLastProcProssDir(enumeratedProbeName, caseDir, OFField);
                             if (File.Exists(pathToProbeFile))
                             {
@@ -258,16 +258,16 @@ namespace Eddy
                         //string pointName = "U_Probes";
                         //string cleanedOFField = Regex.Replace(fieldName, @"[^a-zA-Z]", "");
 
-                        for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
+                        for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                         {
 
                             // Write the dicts
 
-                            var path = DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + enumeratedProbeName;
+                            var path = DOM.baseWorkingDirectory + DOM.BCInflow.windDirs[i] + @"\system\" + enumeratedProbeName;
 
                             File.WriteAllText(path, StringTemplates.SampleProbes(listOfPoints, enumeratedProbeName, OFField));
 
-                            command.Append(@"postProcess -case " + DOM.BCInflow.windDir[i] + " -func " + enumeratedProbeName + @" -latestTime | tee  " + DOM.BCInflow.windDir[i] + @"/log_probes;");
+                            command.Append(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime | tee  " + DOM.BCInflow.windDirs[i] + @"/log_probes;");
 
 
                         }
@@ -286,12 +286,12 @@ namespace Eddy
 
 
 
-                        for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
+                        for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                         {
                             // Parse values
 
 
-                            var caseDir = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i];
+                            var caseDir = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i];
                             string pathToProbeFile = ParsingProbes.GetLastProcProssDir(enumeratedProbeName, caseDir, OFField);
                             if (File.Exists(pathToProbeFile))
                             {

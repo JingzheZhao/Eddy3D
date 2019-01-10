@@ -81,12 +81,12 @@ namespace Eddy
 
             //Build paths as list
 
-            for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
+            for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
             {
-                fullProbeFilePath.Add(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\postProcessing\U_Probes.csv");
+                fullProbeFilePath.Add(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\postProcessing\U_Probes.csv");
             }
 
-            var numberOfWindDirs = DOM.BCInflow.windDir.Count();
+            var numberOfWindDirs = DOM.BCInflow.windDirs.Count();
             var numberOfProbes = File.ReadAllLines(fullProbeFilePath[0]).Count();
             //string[] abc = replacedString.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 
@@ -128,9 +128,9 @@ namespace Eddy
             //Write U Array to file
             System.Text.StringBuilder UFile = new System.Text.StringBuilder();
 
-            for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
+            for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
             {
-                UFile.AppendLine(DOM.BCInflow.windDir[i] + ", , ,");
+                UFile.AppendLine(DOM.BCInflow.windDirs[i] + ", , ,");
                 UFile.AppendLine("x, y, z,");
             }
 
@@ -152,9 +152,9 @@ namespace Eddy
 
             System.Text.StringBuilder ReductionFile = new System.Text.StringBuilder();
 
-            for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
+            for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
             {
-                ReductionFile.Append(DOM.BCInflow.windDir[i] + ",");
+                ReductionFile.Append(DOM.BCInflow.windDirs[i] + ",");
 
             }
 

@@ -167,11 +167,11 @@ namespace Eddy
                     string pointName = "cp_Probes";
                     string OFfield = "total(p)_coeff";
 
-                    for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
+                    for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                     {
 
-                        File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + "controlDict", StringTemplates.ControlDict(DOM, null, i));
-                        File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.SampleProbes(listOfPoints, pointName, OFfield));
+                        File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDirs[i] + @"\system\" + "controlDict", StringTemplates.ControlDict(DOM, null, i));
+                        File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDirs[i] + @"\system\" + pointName, StringTemplates.SampleProbes(listOfPoints, pointName, OFfield));
 
 
 
@@ -189,13 +189,13 @@ namespace Eddy
                     string pointName = "U_Probes";
                     string OFfield = "U";
 
-                    for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
+                    for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                     {
 
 
                         // Write the dicts
 
-                        File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[i] + @"\system\" + pointName, StringTemplates.SampleProbes(listOfPoints, pointName, OFfield));
+                        File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDirs[i] + @"\system\" + pointName, StringTemplates.SampleProbes(listOfPoints, pointName, OFfield));
 
 
 
