@@ -155,7 +155,7 @@ namespace EddyLib
 
 
 
-        public static double GetWindReductionFactor(int probeIndex, double[][] ReductionArray, int numberOfProbes, List<double> windDirs, double windVelWeatherFile, double windDirWeatherFile)
+        public static double GetWindReductionFactor(int probeIndex, double[][] ReductionArray, int numberOfProbes, List<int> windDirs, double windVelWeatherFile, double windDirWeatherFile)
         {
 
             int numberOfWindDirs = windDirs.Count();
@@ -166,8 +166,8 @@ namespace EddyLib
 
 
 
-            var nextLowIndex = NextLowerIndex(windDirs, windDirWeatherFile);
-            var nextUpIndex = NextUpperIndex(windDirs, windDirWeatherFile);
+            var nextLowIndex = ReturnNextLowerIndex(windDirs, windDirWeatherFile);
+            var nextUpIndex = ReturnNextUpperIndex(windDirs, windDirWeatherFile);
 
             var nextLowDir = windDirs[nextLowIndex];
             var nextUpDir = windDirs[nextUpIndex];
@@ -204,12 +204,12 @@ namespace EddyLib
         }
 
 
-        private static int NextLowerIndex(List<double> windDirs, double UTCIWindDir)
+        private static int ReturnNextLowerIndex(List<int> windDirs, double UTCIWindDir)
         {
 
 
             int lowerIndex = 0;
-            double NextLower = windDirs[0];
+            int NextLower = windDirs[0];
 
             for (int i = 0; i < windDirs.Count(); i++)
                 if (windDirs[i] < UTCIWindDir)
@@ -222,11 +222,11 @@ namespace EddyLib
 
 
 
-        private static int NextUpperIndex(List<double> windDirs, double UTCIWindDir)
+        private static int ReturnNextUpperIndex(List<int> windDirs, double UTCIWindDir)
         {
 
             int upperIndex = 0;
-            double NextUpper = windDirs[0];
+            int NextUpper = windDirs[0];
 
             for (int i = 0; i > windDirs.Count(); i++)
                 if (windDirs[i] > UTCIWindDir)

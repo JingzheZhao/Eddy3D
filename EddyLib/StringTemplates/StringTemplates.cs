@@ -2192,11 +2192,12 @@ RAS
             dirs = dirs.TrimEnd(',');
 
             string workDir = DOM.baseWorkingDirectory.Trim('\\');
-
-
+            string uref = DOM.BCInflow.URef.ToString();
+            string z0 = DOM.BCInflow.z0.ToString();
+            string zref = DOM.BCInflow.zref.ToString();
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallProbes.exe\" " + "-d " + "\"" + workDir + "\" " + "-p " + "\"" + workDir + @"\Rad\sensors.pts" + "\"" + " -w " + dirs + " -m 1");
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallProbes.exe\" " + "-d " + "\"" + workDir + "\" " + "-p " + "\"" + workDir + @"\Rad\sensors.pts" + "\"" + " -w " + dirs + " -m 1" + " -u " + uref + " -r " + z0+ " -z " + zref);
 
 #if DEBUG
 
@@ -2227,12 +2228,14 @@ RAS
             string dif = "-f " + "\"" + workDir + @"\Rad\CallRay.dif.ill" + "\"";
             string dir = "-r " + "\"" + workDir + @"\Rad\CallRay.dir.ill" + "\"";
             string u = "-u " + "\"" + workDir + @"\WindReductionData.csv" + "\"";
+            // windDirs
+            string o = "-o " + dirs;
 
 
             StringBuilder sb = new StringBuilder();
             //sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallProbes.exe\" "+ "-w " + "\"" +workDir + "\" " + "-p " + "\"" + workDir + @"\Rad\sensors.pts" + "\"" + " -d " + dirs + " -m 1");
             //sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallRay.exe\" "  + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCInflow.weather + "\"");
-            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallOC.exe\" " + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCInflow.weather + "\" " + dif + " " + dir + " " + u);
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallOC.exe\" " + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCInflow.weather + "\" " + dif + " " + dir + " " + o + " " + u);
 
 #if DEBUG
 

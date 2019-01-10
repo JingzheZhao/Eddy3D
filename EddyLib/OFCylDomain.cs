@@ -49,8 +49,7 @@ namespace EddyLib
         public int gradingPerim;
 
         public double sizeInnerR;
-        public List<Point3d> pointsOnCircle;
-
+        
         public List<Polyline> concentricDivisions;
 
 
@@ -416,8 +415,7 @@ namespace EddyLib
 
 
 
-            this.pointsOnCircle = pointsOnCircle;
-
+            
             this.IsWindows7 = Utilities.IsWindows7;
 
         }

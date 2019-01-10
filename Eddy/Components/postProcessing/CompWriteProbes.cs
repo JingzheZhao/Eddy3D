@@ -134,6 +134,8 @@ namespace Eddy
 
             }
 
+            // Export probes file
+            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_probes.bat"), StringTemplates.Run_Probes(DOM));
 
 
             // export pts file for Daysim

@@ -321,22 +321,23 @@ namespace EddyLib
         {
             var sortedWorkingDir = Directory.EnumerateDirectories(simWorkingDirectory);
             var filteredListOfFolders = new List<String>();
+            filteredListOfFolders.Add("0");
 
-            foreach (string s in sortedWorkingDir)
-            {
+            //foreach (string s in sortedWorkingDir)
+            //{
 
-                var filter = s.Remove(0, simWorkingDirectory.Length + 1);
-                if (filter != null)
-                {
-                    filteredListOfFolders.Add(filter);
-                }
-                //Add 0 if there is no iteration folder
-                else
-                {
-                    filteredListOfFolders.Add("0");
-                }
+            //    var filter = s.Remove(0, simWorkingDirectory.Length + 1);
+            //    if (filter != null)
+            //    {
+            //        filteredListOfFolders.Add(filter);
+            //    }
+            //    //Add 0 if there is no iteration folder
+            //    else
+            //    {
+            //        filteredListOfFolders.Add("0");
+            //    }
 
-            }
+            //}
 
 
 
@@ -930,6 +931,10 @@ namespace EddyLib
                     }
                 }
             }
+
+
+
+           
 
         }//EOC
     }

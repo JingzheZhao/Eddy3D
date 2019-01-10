@@ -44,6 +44,9 @@ namespace CallOC
                             Console.WriteLine("Working directory: {0}", options.WorkingDir);
                             errorLog.AppendLine(String.Format("Working directory: {0}", options.WorkingDir));
 
+                            Console.WriteLine("Wind directions: {0}", options.windDirs.ToString());
+                            errorLog.AppendLine(String.Format("Wind directions: {0}", options.windDirs.ToString()));
+
 #if DEBUG
                             if (options.Hourandpoint != null)
                             {
@@ -69,94 +72,40 @@ namespace CallOC
 
                         // Error checks for CFD data
 
-                        // load  data
-                        // -----------------
-                        var ReductionData = File.ReadAllLines(options.WindScaling).Skip(1).ToArray();
-
-                        var numberOfWindDirsSimulated = ReductionData[0].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Count();
-
-                        if (numberOfWindDirsSimulated < 8)
-                        {
-                            //Console.WriteLine(@"Error: You need to simulate at least 8 wind direction, preferrably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
-                            errorLog.AppendLine(@"Error: You need to simulate at least 8 wind direction, preferably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
-                            throw new System.ArgumentException(@"Error: You need to simulate at least 8 wind direction, preferably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
-
-                        }
 
 
 
 
 
 
-                        // load weather data
-                        // -----------------
-                        string[] epwData = File.ReadAllLines(options.Weather);
+                        //if (numberOfWindDirsSimulated < 8)
+                        //{
+                        //    //Console.WriteLine(@"Error: You need to simulate at least 8 wind direction, preferrably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
+                        //    errorLog.AppendLine(@"Error: You need to simulate at least 8 wind direction, preferably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
+                        //    throw new System.ArgumentException(@"Error: You need to simulate at least 8 wind direction, preferably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
 
-                        // get header data
-                        string[] ln1 = epwData[0].Split(',');
+                        //}
 
-                        var Location = System.Text.RegularExpressions.Regex.Replace((ln1[1]), @"\s+", "");
-                        var Latitude = Double.Parse(ln1[6]);
-                        var Longitude = Double.Parse(ln1[7]);
-                        var TimeZone = Double.Parse(ln1[8]);
 
-                        // get hourly data
-                        string[] epwNoHeader = epwData.Skip(8).Take(8760).ToArray(); // new ArraySegment<string>(epwData, 8, 8760).Array;//.ToArray();
 
-                        var DryBulbTemp = epwNoHeader.Select(o => Double.Parse(o.Split(',')[6])).ToArray(); // Dry Bulb Temperature
-                        var DewPointTemp = epwNoHeader.Select(o => Double.Parse(o.Split(',')[7])).ToArray(); // Dew Point Temperature
-                        var RelativeHumidity = epwNoHeader.Select(o => Double.Parse(o.Split(',')[8])).ToArray(); // Relative Humidity
-                        var Pressure = epwNoHeader.Select(o => Double.Parse(o.Split(',')[9])).ToArray(); // Barometric Pressure
-                        var WindSpeed = epwNoHeader.Select(o => Double.Parse(o.Split(',')[21])).ToArray(); // WindSpeed
-                        var WindDirection = epwNoHeader.Select(o => Double.Parse(o.Split(',')[20])).ToArray(); // Wind Direction
-                        var DirectNormalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[14])).ToArray(); // Direct Normal Radiation
-                        var DiffuseHorizontalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[15])).ToArray(); // Diffuse Horizontal Illuminance
-                                                                                                                            //var GlobalHorizontalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[13])); // Global Horizontal Illuminance
-                                                                                                                            //var SkyCover = epwNoHeader.Select(o => Double.Parse(o.Split(',')[22])); // Global Horizontal Illuminance
 
-                        var Yr = epwNoHeader.Select(o => Double.Parse(o.Split(',')[0])).ToArray();
-                        var Mo = epwNoHeader.Select(o => Double.Parse(o.Split(',')[1])).ToArray();
-                        var Dy = epwNoHeader.Select(o => Double.Parse(o.Split(',')[2])).ToArray();
-                        var Hr = epwNoHeader.Select(o => Double.Parse(o.Split(',')[3])).ToArray();
-                        var DateTime = epwNoHeader.Select(o => o.Split(',')[0] + "." + o.Split(',')[1] + "." + o.Split(',')[2] + " " + o.Split(',')[3]).ToArray();
 
-                        Console.WriteLine("Calculating: Solar Geometry");
-                        var sg = new SolarGeometry();
 
-                        var SolarElevation = new List<double>();
-                        var SolarAzi = new List<double>();
-                        for (int i = 0; i < Yr.Length; i++)
-                        {
-                            double _el = sg.solarelevation(Latitude, Longitude, Yr[i], Mo[i], Dy[i], Hr[i], 0, 0, TimeZone, 0);
-                            double _az = sg.solarazimuth(Latitude, Longitude, Yr[i], Mo[i], Dy[i], Hr[i], 0, 0, TimeZone, 0);
 
-                            if (_el > 0)
-                            {
-                                SolarElevation.Add(_el);
-                                SolarAzi.Add(_az);
-                            }
-                            else
-                            {
-                                SolarElevation.Add(0);
-                                SolarAzi.Add(0);
-                            }
-
-                        }
-
-                        // constants that should be dealt with later
-                        //-----------------------
-
-                        double Wst, Hst, BodyA, GrRef;
-                        Wst = 30;
-                        Hst = 30;
-                        BodyA = 0.5;
-                        GrRef = 0.2;
 
                         //  Load radiation datasets
                         //  [x][]  time
                         //  [][x]  points
-                        Console.WriteLine("Loading: Radiation data");
 
+                        Console.WriteLine("Load weather data...");
+
+                        Weather weather = new Weather();
+                        weather.LoadWeatherData(options.Weather);
+
+
+
+                        Console.WriteLine("Loading: Radiation data...");
+                                                                       
 
                         var DiffRad = RadianceFiles.loadILL(options.DifRad);
                         var DirRad = RadianceFiles.loadILL(options.DirRad);
@@ -174,33 +123,35 @@ namespace CallOC
 
                         Console.WriteLine("Loading: Wind data");
 
-                        var windDirList = new List<double> { 0, 45, 90, 135, 180, 225, 270, 315 };
+                        
+
+                        //var windDirList = new List<double> { 0, 45, 90, 135, 180, 225, 270, 315 };
+                        //var windDirList = new List<double>();// { 0, 45, 90, 135, 180, 225, 270, 315 };
+                        //List<int> windDirList = options.windDirs;
+
+                        var windDirArray = options.windDirs.Split(',');
+                        List<int> windDirList = new List<int>();
+                        for  (int i = 0; i < windDirArray.Length; i++)                         {
+                            windDirList.Add(int.Parse(windDirArray[i]));
+                        }
 
                         var numberOfWindDirs = windDirList.Count;
 
 
+                        // load  data
+                        // -----------------
 
-#if DEBUG
-                        int[] debug = new int[2];
+                        var ReductionData = File.ReadAllLines(options.WindScaling).Skip(1).ToArray();
 
-                        for (int i = 0; i < 2; i++)
-                        {
-                            debug[i] = int.Parse(options.Hourandpoint.Split(',')[i]);
-                        }
-#endif
-
-
-
+                        var numberOfWindDirsSimulated = ReductionData[0].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Count();
+                        
                         for (int i = 0; i < sensorPointCount; i++)
                         {
                             var l = ReductionData[i];
                             if (l.Contains("∞")) ReductionData[i] = l.Replace("∞", "0");
                         }
 
-
-
-
-
+                        
                         // Array of Reduction data
 
                         double[,] windReduction = new double[8760, sensorPointCount];
@@ -230,13 +181,30 @@ namespace CallOC
                                 progress.Report((double)cntReduction / sensorPointCount);
                                 for (int i = 0; i < 8760; i++)
                                 {
-
+                                    
                                     // hours of weather file in iterator missing
-                                    windReduction[i, j] = UTCI.GetWindReductionFactor(j, ReductionArray, sensorPointCount, windDirList, WindSpeed[i], WindDirection[i]);
-                                }
+                                    windReduction[i, j] = UTCI.GetWindReductionFactor(j, ReductionArray, sensorPointCount, windDirList, weather.WindSpeed[i], weather.WindDirection[i]);
+                                } 
                             }
 
                         }
+
+                        
+
+#if DEBUG
+                        int[] debug = new int[2];
+
+                        for (int i = 0; i < 2; i++)
+                        {
+                            debug[i] = int.Parse(options.Hourandpoint.Split(',')[i]);
+                        }
+#endif
+
+
+
+
+
+                        
 
                         //Write Reduction Array to file
 
@@ -302,6 +270,11 @@ namespace CallOC
 
 
 
+                      
+
+                        
+
+
 
                         Console.WriteLine("Starting UTCI calc...");
                         Stopwatch sw = new Stopwatch(); sw.Start();
@@ -326,7 +299,7 @@ namespace CallOC
                           {
                               cnt++;
                               progress.Report((double)cnt / sensorPointCount);
-
+                              
                               for (int i = 0; i < 8760; i++)
                               {
 
@@ -336,14 +309,14 @@ namespace CallOC
 
                                   // Check for extreme mrts
 
-                                  double mrt = UTCI.GetMRT2(DryBulbTemp[i], RelativeHumidity[i], DiffRad[i][j], DirRad[i][j], SolarElevation[i], DryBulbTemp[i], Wst, Hst, BodyA, GrRef, 0.95)[0];
+                                  double mrt = UTCI.GetMRT2(weather.DryBulbTemp[i], weather.RelativeHumidity[i], DiffRad[i][j], DirRad[i][j], weather.SolarElevation[i], weather.DryBulbTemp[i], weather.Wst, weather.Hst, weather.BodyA, weather.GrRef, 0.95)[0];
 
-                                  if (mrt < DryBulbTemp[i] - 30)
+                                  if (mrt < weather.DryBulbTemp[i] - 30)
                                   {
                                       mrt = 30;
                                       uncertaintyMRTArray[i, j] = true;
                                   }
-                                  if (mrt > DryBulbTemp[i] + 70)
+                                  if (mrt > weather.DryBulbTemp[i] + 70)
                                   {
                                       mrt = 70;
                                       uncertaintyMRTArray[i, j] = true;
@@ -352,23 +325,23 @@ namespace CallOC
 
                                   // Check for extreme windspeeds
 
-                                  double resultingWindSpeedforUTCI = windReduction[i, j] * UTCI.GetUAtProbingHeightFromEPW(WindSpeed[i], z0, zref, probingHeight);
+                                  double resultingWindSpeedforUTCI = windReduction[i, j] * UTCI.GetUAtProbingHeightFromEPW(weather.WindSpeed[i], z0, zref, probingHeight);
 
-                                  if (windReduction[i, j] * UTCI.GetUAtProbingHeightFromEPW(WindSpeed[i], z0, zref, probingHeight) > 17)
+                                  if (windReduction[i, j] * UTCI.GetUAtProbingHeightFromEPW(weather.WindSpeed[i], z0, zref, probingHeight) > 17)
                                   {
                                       resultingWindSpeedforUTCI = 17;
-                                      Utci[i, j] = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], resultingWindSpeedforUTCI, mrt);
+                                      Utci[i, j] = UTCI.GetUTCI2(weather.DryBulbTemp[i], weather.RelativeHumidity[i], resultingWindSpeedforUTCI, mrt);
                                       uncertaintyWindArray[i, j] = true;
                                   }
                                   else if (resultingWindSpeedforUTCI < 0.5)
                                   {
                                       resultingWindSpeedforUTCI = 0.5;
-                                      Utci[i, j] = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], resultingWindSpeedforUTCI, mrt);
+                                      Utci[i, j] = UTCI.GetUTCI2(weather.DryBulbTemp[i], weather.RelativeHumidity[i], resultingWindSpeedforUTCI, mrt);
                                       uncertaintyWindArray[i, j] = true;
                                   }
                                   else
                                   {
-                                      Utci[i, j] = UTCI.GetUTCI2(DryBulbTemp[i], RelativeHumidity[i], resultingWindSpeedforUTCI, mrt);
+                                      Utci[i, j] = UTCI.GetUTCI2(weather.DryBulbTemp[i], weather.RelativeHumidity[i], resultingWindSpeedforUTCI, mrt);
                                   }
 
 
@@ -527,6 +500,11 @@ namespace CallOC
                 Console.WriteLine("The licence for this tool expired.");
             }
         }
+
+        private static void system(string v)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     // Define a class to receive parsed values
@@ -544,13 +522,16 @@ namespace CallOC
         HelpText = "Direct radiation (ill)")]
         public string DirRad { get; set; }
 
+        [Option('o', "windDirs", Required = true,
+        HelpText = "List of wind directions")]
+        public string windDirs { get; set; }
 
         [Option('u', "windScaling", Required = true,
         HelpText = "Wind velocity scaling factors (csv)")]
         public string WindScaling { get; set; }
 
         [Option('d', "workingDir", Required = true,
-                HelpText = "Working directory.")]
+        HelpText = "Working directory.")]
         public string WorkingDir { get; set; }
         //[Option('o', "output", Required = true,
         //HelpText = "Output file path")]

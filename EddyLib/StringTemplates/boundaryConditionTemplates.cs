@@ -651,11 +651,13 @@ value uniform 0;
     {
         type nutkAtmRoughWallFunction;
 #include	""ABLConditions"";
+     value		uniform 0;
     }
 ground_perim
     {
         type nutkAtmRoughWallFunction;
 #include	""ABLConditions"";
+     value		uniform 0;
     }
     building
     {

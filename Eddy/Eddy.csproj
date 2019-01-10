@@ -85,6 +85,7 @@
     <Compile Include="Components\postProcessing\CompWriteProbes.cs" />
     <Compile Include="Components\postProcessing\CompVisProbes.cs" />
     <Compile Include="Components\postProcessing\CompVisPatches.cs" />
+    <Compile Include="Components\postProcessing\UTCI\CompCalcUTCI.cs" />
     <Compile Include="Components\Residuals\CompWriteResiduals.cs" />
     <Compile Include="Components\preProcessing\CompCluster.cs" />
     <Compile Include="Components\Residuals\CompVisResiduals.cs" />

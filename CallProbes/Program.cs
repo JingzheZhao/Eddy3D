@@ -41,9 +41,10 @@ namespace CallProbes
 
 
 
-                    double URef = 5;
-                    double zref = 10;
-                    double z0 = 1;
+                    double URef = options.uref;
+                    double zref = options.zref;
+                    double z0 = options.z0;
+
                     // Read all variables from one file path. Variables are usually identical for all wind directions so this should be robust.
                     var filePath = options.WorkingDir + "\\" + options.WindDirs.Split(',')[0] + @"\0.org\ABLConditions";
 
@@ -80,11 +81,11 @@ namespace CallProbes
 
                         for (int i = 0; i < numberOfWindDirs; i++)
                         {
-                            var fp = options.WorkingDir + @"\" + windDirs[i] + @"\mesh\constant\polyMesh";
+                            var fp = options.WorkingDir + @"\" + windDirs[i] + @"\constant\polyMesh";
                             if (!Directory.Exists(fp))
                             {
-                                errorLog.AppendLine(@"The wind direction""" + windDirs[i] + @""" misses the ""\constant\polyMesh"" dictionary. Please make sure that directory exists.");
-                                throw new System.ArgumentException("The wind direction" + windDirs[i] + @" misses the ""\constant\polyMesh"" dictionary. Please make sure that directory exists.");
+                                errorLog.AppendLine(@"The wind direction """ + windDirs[i] + @""" misses the ""\constant\polyMesh"" dictionary. Please make sure that directory exists.");
+                                throw new System.ArgumentException("The wind direction " + windDirs[i] + @" misses the ""\constant\polyMesh"" dictionary. Please make sure that directory exists.");
                             }
                         }
 
@@ -170,7 +171,7 @@ namespace CallProbes
 
 
 
-                        
+
 
 
 
@@ -333,14 +334,20 @@ namespace CallProbes
 
                             var UData = new string[numberOfWindDirs][];
 
-                            UData[0] = File.ReadAllLines(fullProbeFilePath[0]);
-                            UData[1] = File.ReadAllLines(fullProbeFilePath[1]);
-                            UData[2] = File.ReadAllLines(fullProbeFilePath[2]);
-                            UData[3] = File.ReadAllLines(fullProbeFilePath[3]);
-                            UData[4] = File.ReadAllLines(fullProbeFilePath[4]);
-                            UData[5] = File.ReadAllLines(fullProbeFilePath[5]);
-                            UData[6] = File.ReadAllLines(fullProbeFilePath[6]);
-                            UData[7] = File.ReadAllLines(fullProbeFilePath[7]);
+                            for (int i= 0; i < numberOfWindDirs; i++)
+                            {
+                                UData[i] = File.ReadAllLines(fullProbeFilePath[i]);
+                            }
+
+
+                            //UData[0] = File.ReadAllLines(fullProbeFilePath[0]);
+                            //UData[1] = File.ReadAllLines(fullProbeFilePath[1]);
+                            //UData[2] = File.ReadAllLines(fullProbeFilePath[2]);
+                            //UData[3] = File.ReadAllLines(fullProbeFilePath[3]);
+                            //UData[4] = File.ReadAllLines(fullProbeFilePath[4]);
+                            //UData[5] = File.ReadAllLines(fullProbeFilePath[5]);
+                            //UData[6] = File.ReadAllLines(fullProbeFilePath[6]);
+                            //UData[7] = File.ReadAllLines(fullProbeFilePath[7]);
 
                             using (var progress = new ASCIIProgressBar())
                             {
@@ -493,6 +500,18 @@ namespace CallProbes
         [Option('w', "windDirs", Required = true,
         HelpText = "Wind directions as comma separated string - > 0,45,90")]
         public string WindDirs { get; set; }
+
+        [Option('u', "Uref", Required = true,
+        HelpText = "Reference velocity in m/s")]
+        public double uref { get; set; }
+
+        [Option('r', "z0", Required = true,
+        HelpText = "Roughness length")]
+        public double z0 { get; set; }
+
+        [Option('z', "zref", Required = true,
+        HelpText = "Reference height")]
+        public double zref { get; set; }
 
         [Option('m', "mode", Required = true, DefaultValue = 1,
         HelpText = "Mode: 0 = cp, 1 = U")]
