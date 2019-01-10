@@ -1,20 +1,19 @@
 ﻿using CommandLine;
 using CommandLine.Text;
+using EddyLib;
+using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using System.IO;
-using EddyLib;
-using System.Diagnostics;
-using Rhino.Geometry;
 
 namespace CallOC
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             // Check licence
 
@@ -62,11 +61,11 @@ namespace CallOC
 
 
                         bool fileMissing = false;
-                        if (!Directory.Exists(options.WorkingDir) ) { Console.WriteLine(options.WorkingDir + " not found. Exiting"); fileMissing = true; }
-                        if (!File.Exists(options.Weather)       || new FileInfo(options.Weather).Length == 0) { Console.WriteLine(options.Weather + " not found or empty. Exiting"); fileMissing = true; }
-                        if (!File.Exists(options.WindScaling)   || new FileInfo(options.WindScaling).Length == 0) { Console.WriteLine(options.WindScaling + " not found or empty. Exiting"); fileMissing = true; }
-                        if (!File.Exists(options.DifRad)        || new FileInfo(options.DifRad).Length == 0) { Console.WriteLine(options.DifRad + " not found or empty. Exiting"); fileMissing = true; }
-                        if (!File.Exists(options.DirRad)        || new FileInfo(options.DirRad).Length == 0) { Console.WriteLine(options.DirRad + " not found or empty. Exiting"); fileMissing = true; }
+                        if (!Directory.Exists(options.WorkingDir)) { Console.WriteLine(options.WorkingDir + " not found. Exiting"); fileMissing = true; }
+                        if (!File.Exists(options.Weather) || new FileInfo(options.Weather).Length == 0) { Console.WriteLine(options.Weather + " not found or empty. Exiting"); fileMissing = true; }
+                        if (!File.Exists(options.WindScaling) || new FileInfo(options.WindScaling).Length == 0) { Console.WriteLine(options.WindScaling + " not found or empty. Exiting"); fileMissing = true; }
+                        if (!File.Exists(options.DifRad) || new FileInfo(options.DifRad).Length == 0) { Console.WriteLine(options.DifRad + " not found or empty. Exiting"); fileMissing = true; }
+                        if (!File.Exists(options.DirRad) || new FileInfo(options.DirRad).Length == 0) { Console.WriteLine(options.DirRad + " not found or empty. Exiting"); fileMissing = true; }
                         if (new FileInfo(options.WorkingDir + @"\Rad\sensors.pts").Length == 0) { Console.WriteLine(options.WorkingDir + @"\Rad\sensors.pts" + " not found or empty. Exiting"); fileMissing = true; }
                         if (fileMissing == true) { System.Threading.Thread.Sleep(8000); return; }
 
@@ -105,7 +104,7 @@ namespace CallOC
 
 
                         Console.WriteLine("Loading: Radiation data...");
-                                                                       
+
 
                         var DiffRad = RadianceFiles.loadILL(options.DifRad);
                         var DirRad = RadianceFiles.loadILL(options.DirRad);
@@ -123,7 +122,7 @@ namespace CallOC
 
                         Console.WriteLine("Loading: Wind data");
 
-                        
+
 
                         //var windDirList = new List<double> { 0, 45, 90, 135, 180, 225, 270, 315 };
                         //var windDirList = new List<double>();// { 0, 45, 90, 135, 180, 225, 270, 315 };
@@ -131,65 +130,25 @@ namespace CallOC
 
                         var windDirArray = options.windDirs.Split(',');
                         List<int> windDirList = new List<int>();
-                        for  (int i = 0; i < windDirArray.Length; i++)                         {
+                        for (int i = 0; i < windDirArray.Length; i++)
+                        {
                             windDirList.Add(int.Parse(windDirArray[i]));
                         }
 
                         var numberOfWindDirs = windDirList.Count;
 
 
-                        // load  data
+                        // load Reduction data
                         // -----------------
 
-                        var ReductionData = File.ReadAllLines(options.WindScaling).Skip(1).ToArray();
 
-                        var numberOfWindDirsSimulated = ReductionData[0].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Count();
-                        
-                        for (int i = 0; i < sensorPointCount; i++)
-                        {
-                            var l = ReductionData[i];
-                            if (l.Contains("∞")) ReductionData[i] = l.Replace("∞", "0");
-                        }
+                        var ReductionData = UTCI.GetReductionData(options.WindScaling, sensorPointCount);
 
-                        
-                        // Array of Reduction data
-
-                        double[,] windReduction = new double[8760, sensorPointCount];
-
-                        int cntReduction = 0;
-                        using (var progress = new ASCIIProgressBar())
-                        {
+                        var windReduction = UTCI.GetWindReduction(ReductionData, 8760, sensorPointCount, windDirList, weather);
 
 
-                            var ReductionArray = new double[numberOfWindDirs][];
 
-                            for (int d = 0; d < numberOfWindDirs; d++)
-                            {
 
-                                ReductionArray[d] = new double[sensorPointCount];
-                                for (int p = 0; p < sensorPointCount; p++)
-                                {
-                                    ReductionArray[d][p] = double.Parse(ReductionData[p].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[d]);
-                                }
-                            }
-
-                            Console.WriteLine("Calculating: Wind reduction factors");
-
-                            for (int j = 0; j < sensorPointCount; j++)
-                            {
-                                cntReduction++;
-                                progress.Report((double)cntReduction / sensorPointCount);
-                                for (int i = 0; i < 8760; i++)
-                                {
-                                    
-                                    // hours of weather file in iterator missing
-                                    windReduction[i, j] = UTCI.GetWindReductionFactor(j, ReductionArray, sensorPointCount, windDirList, weather.WindSpeed[i], weather.WindDirection[i]);
-                                } 
-                            }
-
-                        }
-
-                        
 
 #if DEBUG
                         int[] debug = new int[2];
@@ -204,7 +163,7 @@ namespace CallOC
 
 
 
-                        
+
 
                         //Write Reduction Array to file
 
@@ -261,18 +220,29 @@ namespace CallOC
                             for (int i = 0; i < lines.Length; i++)
                             {
                                 var l = lines[i];
-                                if (l.Contains("Uref")) URef = double.Parse(l.Replace("Uref", "").Replace(";", "").Trim());
-                                if (l.Contains("z0")) z0 = double.Parse(l.Replace("z0 uniform", "").Replace(";", "").Trim());
-                                if (l.Contains("Zref")) zref = double.Parse(l.Replace("Zref", "").Replace(";", "").Trim());
+                                if (l.Contains("Uref"))
+                                {
+                                    URef = double.Parse(l.Replace("Uref", "").Replace(";", "").Trim());
+                                }
+
+                                if (l.Contains("z0"))
+                                {
+                                    z0 = double.Parse(l.Replace("z0 uniform", "").Replace(";", "").Trim());
+                                }
+
+                                if (l.Contains("Zref"))
+                                {
+                                    zref = double.Parse(l.Replace("Zref", "").Replace(";", "").Trim());
+                                }
                             }
                         }
                         catch (Exception e) { Console.WriteLine(e.Message); return; }
 
 
 
-                      
 
-                        
+
+
 
 
 
@@ -280,6 +250,8 @@ namespace CallOC
                         Stopwatch sw = new Stopwatch(); sw.Start();
 
 
+
+                        // UTCI here
 
 
                         int cnt = 0;
@@ -299,7 +271,7 @@ namespace CallOC
                           {
                               cnt++;
                               progress.Report((double)cnt / sensorPointCount);
-                              
+
                               for (int i = 0; i < 8760; i++)
                               {
 
@@ -487,59 +459,67 @@ namespace CallOC
 
 
 
+
+
+
+
+                }
+
+
+
                 }
 
                 catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                    System.Threading.Thread.Sleep(5000); return;
-                }
+            {
+                Console.WriteLine(e.Message);
+                System.Threading.Thread.Sleep(5000); return;
             }
+        }
             else
             {
                 Console.WriteLine("The licence for this tool expired.");
             }
-        }
+}
 
-        private static void system(string v)
-        {
-            throw new NotImplementedException();
-        }
+private static void system(string v)
+{
+    throw new NotImplementedException();
+}
     }
 
     // Define a class to receive parsed values
-    class Options
-    {
-        [Option('w', "weather", Required = true,
-        HelpText = "EPW weather file path.")]
-        public string Weather { get; set; }
+    internal class Options
+{
+    [Option('w', "weather", Required = true,
+    HelpText = "EPW weather file path.")]
+    public string Weather { get; set; }
 
-        [Option('f', "difRad", Required = true,
-        HelpText = "Diffuse radiation (ill)")]
-        public string DifRad { get; set; }
+    [Option('f', "difRad", Required = true,
+    HelpText = "Diffuse radiation (ill)")]
+    public string DifRad { get; set; }
 
-        [Option('r', "dirRad", Required = true,
-        HelpText = "Direct radiation (ill)")]
-        public string DirRad { get; set; }
+    [Option('r', "dirRad", Required = true,
+    HelpText = "Direct radiation (ill)")]
+    public string DirRad { get; set; }
 
-        [Option('o', "windDirs", Required = true,
-        HelpText = "List of wind directions")]
-        public string windDirs { get; set; }
+    [Option('o', "windDirs", Required = true,
+    HelpText = "List of wind directions")]
+    public string windDirs { get; set; }
 
-        [Option('u', "windScaling", Required = true,
-        HelpText = "Wind velocity scaling factors (csv)")]
-        public string WindScaling { get; set; }
+    [Option('u', "windScaling", Required = true,
+    HelpText = "Wind velocity scaling factors (csv)")]
+    public string WindScaling { get; set; }
 
-        [Option('d', "workingDir", Required = true,
-        HelpText = "Working directory.")]
-        public string WorkingDir { get; set; }
-        //[Option('o', "output", Required = true,
-        //HelpText = "Output file path")]
-        //public string output { get; set; }
+    [Option('d', "workingDir", Required = true,
+    HelpText = "Working directory.")]
+    public string WorkingDir { get; set; }
+    //[Option('o', "output", Required = true,
+    //HelpText = "Output file path")]
+    //public string output { get; set; }
 
-        [Option('l', "loud", DefaultValue = true,
-        HelpText = "Prints all messages to standard output.")]
-        public bool Verbose { get; set; }
+    [Option('l', "loud", DefaultValue = true,
+    HelpText = "Prints all messages to standard output.")]
+    public bool Verbose { get; set; }
 
 #if DEBUG
         [Option('b', "debug",
@@ -547,18 +527,18 @@ namespace CallOC
         public string Hourandpoint { get; set; }
 #endif
 
-        [ParserState]
-        public IParserState LastParserState { get; set; }
+    [ParserState]
+    public IParserState LastParserState { get; set; }
 
-        [HelpOption]
-        public string GetUsage()
-        {
-            return HelpText.AutoBuild(this,
-              (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current));
-        }
-
-
+    [HelpOption]
+    public string GetUsage()
+    {
+        return HelpText.AutoBuild(this,
+          (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current));
     }
+
+
+}
 
 
 }

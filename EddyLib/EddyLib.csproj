@@ -67,6 +67,7 @@
     <Compile Include="StringTemplates\boundaryConditionTemplates.cs" />
     <Compile Include="StringTemplates\StringTemplates.cs" />
     <Compile Include="UTCI.cs" />
+    <Compile Include="Weather.cs" />
     <Compile Include="Utilities.cs" />
   </ItemGroup>
   <ItemGroup>

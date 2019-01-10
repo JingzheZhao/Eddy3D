@@ -133,6 +133,67 @@ namespace EddyLib
             return UAtProbingHeightFromEPW;
         }
 
+
+        public static string[] GetReductionData(string filePath, int sensorPointCount)
+        {
+
+            var ReductionData = File.ReadAllLines(filePath).Skip(1).ToArray();
+
+            var numberOfWindDirsSimulated = ReductionData[0].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Count();
+
+            for (int i = 0; i < sensorPointCount; i++)
+            {
+                var l = ReductionData[i];
+                if (l.Contains("∞")) ReductionData[i] = l.Replace("∞", "0");
+            }
+            return ReductionData;
+        }
+
+
+        public static double[,] GetWindReduction(string[] ReductionData, int numberOfHours, int sensorPointCount, List<int> windDirList, Weather weather)
+        {
+
+            int numberOfWindDirs = windDirList.Count;
+
+            // Array of Reduction data
+
+            double[,] windReduction = new double[numberOfHours, sensorPointCount];
+
+            int cntReduction = 0;
+            using (var progress = new ASCIIProgressBar())
+            {
+
+
+                var ReductionArray = new double[numberOfWindDirs][];
+
+                for (int d = 0; d < numberOfWindDirs; d++)
+                {
+
+                    ReductionArray[d] = new double[sensorPointCount];
+                    for (int p = 0; p < sensorPointCount; p++)
+                    {
+                        ReductionArray[d][p] = double.Parse(ReductionData[p].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[d]);
+                    }
+                }
+
+                Console.WriteLine("Calculating: Wind reduction factors");
+
+                for (int j = 0; j < sensorPointCount; j++)
+                {
+                    cntReduction++;
+                    progress.Report((double)cntReduction / sensorPointCount);
+                    for (int i = 0; i < numberOfHours; i++)
+                    {
+
+                        // hours of weather file in iterator missing
+                        windReduction[i, j] = UTCI.GetWindReductionFactor(j, ReductionArray, sensorPointCount, windDirList, weather.WindSpeed[i], weather.WindDirection[i]);
+                    }
+                }
+
+            }
+            return windReduction;
+        }
+
         public static int GetConditionOfPerson(double UTCI)
         {
                         
@@ -238,6 +299,19 @@ namespace EddyLib
         }
 
 
+
+       
+
+
+
+
+
+
+
+
+
+
+
         private static double CalcPa2(double TaC, double RH)
         {
             double pa_temp = 0;
@@ -249,6 +323,24 @@ namespace EddyLib
 
             return pa_temp;
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         public static double[] GetMRT2(double Tair, double Rh, double D, double I, double Sh, double Tc,
         double W, double H, double Ab, double Gr, double Eb)
