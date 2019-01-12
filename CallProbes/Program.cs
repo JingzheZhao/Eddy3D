@@ -142,41 +142,11 @@ namespace CallProbes
 
 
 
-
-
-                        string[] lines = File.ReadAllLines(filePath);
-
-
-                        for (int i = 0; i < lines.Length; i++)
-                        {
-                            var l = lines[i];
-
-
-
-                            if (l.Contains("Uref"))
-                            {
-                                URef = double.Parse(l.Replace("Uref", "").Replace(";", "").Trim());
-                            }
-
-                            if (l.Contains("z0"))
-                            {
-                                z0 = double.Parse(l.Replace("z0 uniform", "").Replace(";", "").Trim());
-                            }
-
-                            if (l.Contains("Zref"))
-                            {
-                                zref = double.Parse(l.Replace("Zref", "").Replace(";", "").Trim());
-                            }
-                        }
+                        Utilities.ParseABLConditionsFromCaseFolder(filePath, out URef, out z0, out zref);
 
 
 
 
-
-
-
-
-                        //[prope][x,y,z]
                         double[][] probes = EddyLib.RadianceFiles.readPTS(options.Probes);
                         var numberOfProbes = probes.GetLength(0);
 

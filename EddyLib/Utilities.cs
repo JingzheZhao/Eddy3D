@@ -647,6 +647,40 @@ namespace EddyLib
             return outputList.ToArray();
         }
 
+        public static void ParseABLConditionsFromCaseFolder(string ABLConditionsFilePath, out double URef, out double z0, out double zref)
+        {
+
+            URef = 0.0;
+            zref = 0.0;
+            z0 = 0.0;
+
+            string[] lines = File.ReadAllLines(ABLConditionsFilePath);
+
+
+                        for (int i = 0; i<lines.Length; i++)
+                        {
+                            var l = lines[i];
+
+
+
+                            if (l.Contains("Uref"))
+                            {
+                                URef = double.Parse(l.Replace("Uref", "").Replace(";", "").Trim());
+                            }
+
+                            if (l.Contains("z0"))
+                            {
+                                z0 = double.Parse(l.Replace("z0 uniform", "").Replace(";", "").Trim());
+                            }
+
+                            if (l.Contains("Zref"))
+                            {
+                                zref = double.Parse(l.Replace("Zref", "").Replace(";", "").Trim());
+                            }
+                        }
+
+        }
+
 
 
         public static bool CheckLicence()

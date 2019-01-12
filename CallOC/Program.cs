@@ -167,28 +167,7 @@ namespace CallOC
                             var filePath = options.WorkingDir + "\\" + windDirList[0] + @"\0.org\ABLConditions";
                             if (!File.Exists(filePath)) { Console.WriteLine(filePath + " not found. Exiting"); return; }
 
-                            string[] lines = File.ReadAllLines(filePath);
-
-
-
-                            for (int i = 0; i < lines.Length; i++)
-                            {
-                                var l = lines[i];
-                                if (l.Contains("Uref"))
-                                {
-                                    URef = double.Parse(l.Replace("Uref", "").Replace(";", "").Trim());
-                                }
-
-                                if (l.Contains("z0"))
-                                {
-                                    z0 = double.Parse(l.Replace("z0 uniform", "").Replace(";", "").Trim());
-                                }
-
-                                if (l.Contains("Zref"))
-                                {
-                                    zref = double.Parse(l.Replace("Zref", "").Replace(";", "").Trim());
-                                }
-                            }
+                            Utilities.ParseABLConditionsFromCaseFolder(filePath, out URef, out z0, out zref);
                         }
                         catch (Exception e) { Console.WriteLine(e.Message); return; }
 
