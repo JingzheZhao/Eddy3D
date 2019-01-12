@@ -23,7 +23,7 @@ namespace CallOC
                     var options = new Options();
                     if (Parser.Default.ParseArguments(args, options))
                     {
-                      
+                        StringBuilder errorLog = new StringBuilder();
 
                         int[] debug = new int[2];
 #if DEBUG
@@ -31,8 +31,8 @@ namespace CallOC
                         for (int i = 0; i < 2; i++)
                         {
                             debug[i] = int.Parse(options.Hourandpoint.Split(',')[i]);
-                        }                        
-                        
+                        }
+
                         Console.WriteLine(@"%%% Debug mode is enabled. Make sure to pass a debug option ""hour"" and ""point"" such as -d 12,53.");
 
                         if (options.Hourandpoint != null)
@@ -44,7 +44,7 @@ namespace CallOC
                         }
 #endif
 
-                        StringBuilder errorLog = new StringBuilder();
+
 
                         if (options.Verbose)
                         {
@@ -65,9 +65,9 @@ namespace CallOC
 
                             Console.WriteLine("Wind directions: {0}", options.windDirs.ToString());
                             errorLog.AppendLine(String.Format("Wind directions: {0}", options.windDirs.ToString()));
-                            
+
                         }
-                        
+
 
                         bool fileMissing = false;
                         if (!Directory.Exists(options.WorkingDir)) { Console.WriteLine(options.WorkingDir + " not found. Exiting"); fileMissing = true; }
@@ -78,7 +78,7 @@ namespace CallOC
                         if (new FileInfo(options.WorkingDir + @"\Rad\sensors.pts").Length == 0) { Console.WriteLine(options.WorkingDir + @"\Rad\sensors.pts" + " not found or empty. Exiting"); fileMissing = true; }
                         if (fileMissing == true) { System.Threading.Thread.Sleep(8000); return; }
 
-                   
+
 
                         if (options.windDirs.Length < 8)
                         {
@@ -148,7 +148,7 @@ namespace CallOC
                         //// Importing probeHeight from probe file to scale U down to pedestrian level
                         Console.WriteLine("Parsing height of probes to scale down wind velocity from weather file.");
 
-      
+
 
                         double[][] probes = EddyLib.RadianceFiles.readPTS(options.WorkingDir + @"\Rad\sensors.pts");
 

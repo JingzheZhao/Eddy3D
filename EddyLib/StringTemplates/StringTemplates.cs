@@ -2229,7 +2229,7 @@ RAS
             string dir = "-r " + "\"" + workDir + @"\Rad\CallRay.dir.ill" + "\"";
             string u = "-u " + "\"" + workDir + @"\WindReductionData.csv" + "\"";
             // windDirs
-            string o = "-o " + dirs;
+            string o = "-o " + dirs;           
 
 
             StringBuilder sb = new StringBuilder();
@@ -2238,7 +2238,7 @@ RAS
             sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallOC.exe\" " + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCInflow.weather + "\" " + dif + " " + dir + " " + o + " " + u);
 
 #if DEBUG
-
+            sb.Append(" -b 0,0;");
             sb.AppendLine("PAUSE");
 
 #endif

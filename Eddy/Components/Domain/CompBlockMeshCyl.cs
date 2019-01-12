@@ -438,7 +438,7 @@ void plastic Generic_20
                 }
 
                 DA.SetData(0, logFile);
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Super!!");
+                //AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Super!!");
 
 
             }

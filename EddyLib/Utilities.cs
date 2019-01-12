@@ -317,42 +317,73 @@ namespace EddyLib
             return !Directory.EnumerateFileSystemEntries(path).Any();
         }
 
+
+
+        public static List<string> GetDirectories(string path, string searchPattern = "*",
+      SearchOption searchOption = SearchOption.TopDirectoryOnly)
+        {
+            if (searchOption == SearchOption.TopDirectoryOnly)
+                return Directory.GetDirectories(path, searchPattern).ToList();
+
+            var directories = new List<string>(GetDirectories(path, searchPattern));
+
+            for (var i = 0; i < directories.Count; i++)
+                directories.AddRange(GetDirectories(directories[i], searchPattern));
+
+            return directories;
+        }
+
+        private static List<string> GetDirectories(string path, string searchPattern)
+        {
+            try
+            {
+                return Directory.GetDirectories(path, searchPattern).ToList();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return new List<string>();
+            }
+        }
+
+        public static string ReplaceDoubleBackslashes(string input)
+        {
+            string output;
+            output = input.Replace(@"\\", @"\");
+            output = output.Replace(@"\\", @"\");
+            output = output.Replace(@"\\", @"\");
+            return output;
+        }
+
+
         public static int GetLastIterationInSimfolder(string simWorkingDirectory)
         {
-            var sortedWorkingDir = Directory.EnumerateDirectories(simWorkingDirectory);
-            var filteredListOfFolders = new List<String>();
-            filteredListOfFolders.Add("0");
 
-            //foreach (string s in sortedWorkingDir)
-            //{
-
-            //    var filter = s.Remove(0, simWorkingDirectory.Length + 1);
-            //    if (filter != null)
-            //    {
-            //        filteredListOfFolders.Add(filter);
-            //    }
-            //    //Add 0 if there is no iteration folder
-            //    else
-            //    {
-            //        filteredListOfFolders.Add("0");
-            //    }
-
-            //}
+            simWorkingDirectory = ReplaceDoubleBackslashes(simWorkingDirectory);
 
 
+            // Full path
+            var directoriesInDir = GetDirectories(simWorkingDirectory);
 
 
-            var filteredNumbers = filteredListOfFolders.Where(s => s.All(char.IsDigit));
+            // Without trailing path
+            var listOfDirs = new List<String>();
+            foreach (string str in directoriesInDir)
+            {
+                listOfDirs.Add(new DirectoryInfo(str).Name);
+            }
 
 
-            //Array.Sort(filtered, new Utilities.NumericComparer());
+            var filteredNumbers = listOfDirs.Where(s => s.All(char.IsDigit));
 
             var lastIteration = filteredNumbers.Max();
             int lastIterationInt = int.Parse(lastIteration);
 
+
             return lastIterationInt;
+
         }
 
+       
 
         public static int CPUAutoCalc(string meshWorkingDirectory, int CPUSetByUser)
         {

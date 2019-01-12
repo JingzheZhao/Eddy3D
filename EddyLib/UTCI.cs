@@ -522,9 +522,9 @@ namespace EddyLib
 
             sbUtciDEBUG.AppendLine("Wind speed from .epw: " + String.Format("{0:0.0}", weather.WindSpeed[debug[0]]));
             sbUtciDEBUG.AppendLine("probingHeight from CFD: " + String.Format("{0:0.0}", probingHeight));
-            sbUtciDEBUG.AppendLine("Scaled-down wind velocity from .epw: " + String.Format("{0:0.0}", UTCI.GetUAtProbingHeightFromEPW(weather.WindSpeed[debug[0]], z0, zref, probingHeight)));
+            sbUtciDEBUG.AppendLine("Scaled-down wind velocity from .epw: " + String.Format("{0:0.0}", UTCI.GetVelocityAtProbingHeightFromEPW(weather.WindSpeed[debug[0]], z0, zref, probingHeight)));
             sbUtciDEBUG.AppendLine("Wind reduction from CFD: " + String.Format("{0:0.0}", windReduction[debug[0], debug[1]]));
-            sbUtciDEBUG.AppendLine("Resulting wind velocity for UTCI calculation: " + String.Format("{0:0.0}", windReduction[debug[0], debug[1]] * UTCI.GetUAtProbingHeightFromEPW(weather.WindSpeed[debug[0]], z0, zref, probingHeight)));
+            sbUtciDEBUG.AppendLine("Resulting wind velocity for UTCI calculation: " + String.Format("{0:0.0}", windReduction[debug[0], debug[1]] * UTCI.GetVelocityAtProbingHeightFromEPW(weather.WindSpeed[debug[0]], z0, zref, probingHeight)));
 
             sbUtciDEBUG.AppendLine("UTCI: " + String.Format("{0:0.0}", UTCIArray[debug[0], debug[1]]));
             sbUtciDEBUG.AppendLine("");

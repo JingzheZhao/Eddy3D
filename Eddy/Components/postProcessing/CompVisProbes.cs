@@ -180,7 +180,7 @@ namespace Eddy
 
                 if (!File.Exists(fp))
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The simulation folder of the wind direction """ + DOM.BCInflow.windDirs[i] + @""" misses the velocity (U) result file. Please make sure that U is calculated for this particular timestep (change WriteInterval) and recompute the solution.");
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The last iteration """+iter+@""" of the wind direction """ + DOM.BCInflow.windDirs[i] + @""" misses the velocity (U) result file. Please make sure that U is calculated for this particular timestep (change WriteInterval) and recompute the solution.");
                 }
             }
 
@@ -230,6 +230,7 @@ namespace Eddy
                             File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDirs[i] + @"\system\" + pointName, StringTemplates.SampleProbes(listOfPoints, pointName, OFfield));
 
                             command.Append(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + pointName + @" -latestTime | tee  " + DOM.BCInflow.windDirs[i] + @"/log_probes;");
+
                         }
 
                         for (int i = 0; i < numberOfWindDirs; i++)

@@ -145,16 +145,14 @@ namespace Eddy
             // Check if U file is in last iteration
             for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
             {
-                string iter = Utilities.GetLastIterationInSimfolder(DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDirs[i]).ToString();
+                string path = DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDirs[i];
+                string iter = Utilities.GetLastIterationInSimfolder(path).ToString();
                 string fp = DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDirs[i] + @"\" + iter + @"\U";
-                if (Convert.ToUInt32(iter) == 0)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The wind direction """ + DOM.BCInflow.windDirs[i] + @""" has not been simulated yet.");
-                }
+
 
                 if (!File.Exists(fp))
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The simulation folder of the wind direction """ + DOM.BCInflow.windDirs[i] + @""" misses the velocity (U) result file. Please make sure that U is calculated for this particular timestep (change WriteInterval) and recompute the solution.");
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The last iteration """ + iter + @""" of the wind direction """ + DOM.BCInflow.windDirs[i] + @""" misses the velocity (U) result file. Please make sure that U is calculated for this particular timestep (change WriteInterval) and recompute the solution.");
                 }
             }
 
