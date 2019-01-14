@@ -99,7 +99,7 @@ namespace CallProbes
                         // Check if U file is in last iteration
                         for (int i = 0; i < numberOfWindDirs; i++)
                         {
-                            string iter = Utilities.GetLastIterationInSimfolder(options.WorkingDir + @"\" + windDirs[i]).ToString();
+                            string iter = Utilities.GetLastIterationFromDirectory(options.WorkingDir + @"\" + windDirs[i]).ToString();
                             string fp = options.WorkingDir + @"\" + windDirs[i] + @"\" + iter + @"\U";
 
 

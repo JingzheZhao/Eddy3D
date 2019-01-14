@@ -308,7 +308,7 @@ namespace Eddy
 
                         File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSolution"), StringTemplates.FvSolution(0));
                         File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\meshQualityDict"), StringTemplates.MeshQualityDict());
-                        File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\residuals"), StringTemplates.Residuals());
+                        File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\residuals"), StringTemplates.ResidualsDict());
 
 
                     }
@@ -374,7 +374,7 @@ namespace Eddy
 
                         File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSolution"), StringTemplates.FvSolution(mode));
                         File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\meshQualityDict"), StringTemplates.MeshQualityDict());
-                        File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\residuals"), StringTemplates.Residuals());
+                        File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\residuals"), StringTemplates.ResidualsDict());
 
 
 
@@ -425,6 +425,8 @@ namespace Eddy
                 for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                 {
                     File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + "_run_sim.bat"), StringTemplates.Run_sim(DOM, i));
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + "_run_sim_continue.bat"), StringTemplates.Run_sim_continue(DOM, i));
+
                 }
 
 
@@ -432,7 +434,7 @@ namespace Eddy
 
 
                 // Calculate runtimes of all simulation based on log file
-                
+
                 for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                 {
                     

@@ -1,18 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using Grasshopper.Kernel;
-using Rhino.Geometry;
-using System.Text;
-using Grasshopper.Kernel.Parameters;
-using System.Diagnostics;
-using Grasshopper.Kernel.Types;
-using SlavaGu.ConsoleAppLauncher;
-using System.Windows.Forms;
-using Grasshopper;
-using Eddy.Properties;
-using System.Linq;
+﻿using Eddy.Properties;
 using EddyLib;
+using Grasshopper.Kernel;
+using Grasshopper.Kernel.Types;
+using System;
+using System.Diagnostics;
+using System.IO;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -110,11 +102,6 @@ namespace Eddy
             DA.GetData(1, ref x0x1);
             DA.GetData(2, ref y0y1);
 
-            foreach (double dir in DOM.BCInflow.windDirs)
-            {
-                fullFilePath = DOM.baseWorkingDirectory + dir + @"\postProcessing\residuals\0\residuals.dat";
-                if (!File.Exists((fullFilePath))) { AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "The residual file for wind direction " + dir + " does not exist."); }
-            }
 
             try
             {
@@ -124,8 +111,13 @@ namespace Eddy
                 foreach (double dir in DOM.BCInflow.windDirs)
                 {
 
-                    
-                    fullFilePath = DOM.baseWorkingDirectory + dir + @"\postProcessing\residuals\0\residuals.dat";
+                    var p1 = DOM.baseWorkingDirectory + dir + @"\postProcessing\residuals\";
+                    fullFilePath = p1 + Utilities.GetLastIterationFromDirectory(p1) + "\\" + @"\\residuals.dat";
+                    if (!File.Exists(fullFilePath))
+                    {
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "The residual file for wind direction " + dir + " does not exist.");
+                    }
+
 
 
                     Process plotProcessPDF = new Process();
@@ -139,14 +131,13 @@ namespace Eddy
                     String strInputTextPDF = @"
 set title 'wind direction: " + dir + @"'
 set logscale y
-set logscale y
 set yrange [" + y0y1 + @"]
 set xrange [" + x0x1 + @"]
 set ylabel 'Residual'
 set xlabel 'Iteration'
 set format y ""10^{%T}""
 set datafile separator '\t'
-plot '" + fullFilePath + @"' u($0):2 with lines title 'Ux', '" + fullFilePath + @"' u($0):3 with lines title 'Uy', '" + fullFilePath + @"' u($0):4 with lines title 'Uz', '" + fullFilePath + @"' u($0):5 with lines title 'p', '" + fullFilePath + @"' u($0):6 with lines title 'omega', '" + fullFilePath + @"' u($0):7 with lines title 'k'
+plot '" + fullFilePath + @"' u($1):2 with lines title 'Ux', '" + fullFilePath + @"' u($1):3 with lines title 'Uy', '" + fullFilePath + @"' u($1):4 with lines title 'Uz', '" + fullFilePath + @"' u($1):5 with lines title 'p', '" + fullFilePath + @"' u($1):6 with lines title 'omega', '" + fullFilePath + @"' u($1):7 with lines title 'k'
 set terminal pdf
 set output '" + DOM.baseWorkingDirectory + @"residuals_" + dir + @".pdf'
 replot
@@ -198,24 +189,16 @@ replot
         /// Provides an Icon for every component that will be visible in the User Interface.
         /// Icons need to be 24x24 pixels.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
+        protected override System.Drawing.Bitmap Icon =>
                 // You can add image files to your project resources and access them like this:
-                return Resources.Eddy_residuals;
-            }
-        }
+                Resources.Eddy_residuals;
 
         /// <summary>
         /// Each component must have a unique Guid to identify it.
         /// It is vital this Guid doesn't change otherwise old ghx files
         /// that use the old ID will partially fail during loading.
         /// </summary>
-        public override Guid ComponentGuid
-        {
-            get { return new Guid("{26728D9C-4BE0-459D-ABF5-2708ED951CA3}"); }
-        }
+        public override Guid ComponentGuid => new Guid("{26728D9C-4BE0-459D-ABF5-2708ED951CA3}");
     }
 }
 
