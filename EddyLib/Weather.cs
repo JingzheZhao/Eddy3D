@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-
 namespace EddyLib
 {
     public class Weather
@@ -19,7 +18,7 @@ namespace EddyLib
         public double[] DiffuseHorizontalRadiation;
 
         public List<double> SolarElevation = new List<double>();
-        public List<double>  SolarAzi = new List<double>();
+        public List<double> SolarAzi = new List<double>();
 
 
         // constants that should be dealt with later
@@ -30,8 +29,6 @@ namespace EddyLib
         public double Hst = 30;
         public double BodyA = 0.5;
         public double GrRef = 0.2;
-
-
 
         public void LoadWeatherData(string filePath)
         {
@@ -71,7 +68,7 @@ namespace EddyLib
             Console.WriteLine("Calculating: Solar Geometry");
             var sg = new SolarGeometry();
 
-            
+
             for (int i = 0; i < Yr.Length; i++)
             {
                 double _el = sg.solarelevation(Latitude, Longitude, Yr[i], Mo[i], Dy[i], Hr[i], 0, 0, TimeZone, 0);
@@ -90,10 +87,79 @@ namespace EddyLib
 
             }
 
-            
+
         }
 
+
+        public string ClassifyClimateZone(string epwFilePath, string workingDirToSaveCSV)
+        {
+            string KC = "";
+
+            string line1Weather = File.ReadLines(epwFilePath).First(); // gets the first line from file.
+            double longitude = double.Parse(line1Weather.Split(',')[6]);
+            double latitude = double.Parse(line1Weather.Split(',')[7]);
+
+            string filePathKoeppen = workingDirToSaveCSV + @"\Koeppen.csv";
+            string[] txt = File.ReadAllLines(filePathKoeppen);
+
+            // Stupid formatting of this file creates 4 columns
+            int columnsCnt = 4;
+            var Matrix = CreateMatrix(txt.Length, columnsCnt);
+
+            if (!File.Exists(filePathKoeppen))
+            {
+                Utilities.DownLoadFile("http://www.rforscience.com/wpmain/wp-content/uploads/2014/06/Koeppen-Geiger-ASCII.txt", filePathKoeppen);
+            }
+
+            for (int i = 1; i < txt.Length; i++)
+            {
+                var line = System.Text.RegularExpressions.Regex.Split(txt[i], @"\s{1,}");
+                for (int c = 0; c < columnsCnt; c++)
+                {
+                    // Data is stored in column 1-3, column 0 is empty
+                    Matrix[i][c] = line[c];
+                }
+            }
+
+            string climateClass = "";
+            double delta = 0.3;
+
+            // - 1 because of header line; -2 ??
+
+            for (int i = 1; i < txt.Length; i++)
+            {
+                // Data is stored in column 1-3, column 0 is empty
+                if (Math.Abs(longitude - double.Parse(Matrix[i][1])) < delta && Math.Abs(latitude - double.Parse(Matrix[i][2])) < delta)
+                {
+                    climateClass = Matrix[i][3];
+                }
+            }
+            KC = climateClass;
+
+            return KC;
+        }
+
+        // <Custom additional code> 
+        private static string[][] CreateMatrix(int rows, int columns)
+        {
+            var matrix = new string[rows][];
+
+            for (int i = 0; i < matrix.Length; i++)
+            {
+                matrix[i] = new string[columns];
+            }
+
+            return matrix;
+        }
+
+
+
+
+
+
     }
+
+
 
 }
 

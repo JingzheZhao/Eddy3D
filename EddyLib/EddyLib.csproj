@@ -31,6 +31,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="RhinoCommon">
       <HintPath>..\Dependencies\RhinoCommon.dll</HintPath>
       <Private>False</Private>

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 
 
@@ -997,12 +998,21 @@ namespace EddyLib
                 }
             }
 
-
-
            
 
+
+
         }//EOC
+
+        public static void DownLoadFile(string URL, string FilePath)
+        {
+            WebClient webClient = new WebClient();
+            webClient.DownloadFile(URL, FilePath);
+
+        }
     }
+
+
 
 }
 
