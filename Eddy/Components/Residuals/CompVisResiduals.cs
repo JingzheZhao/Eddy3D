@@ -119,11 +119,7 @@ namespace Eddy
 
             var selection = DOM.BCInflow.windDirs.Intersect(selectionList).ToList();
 
-            foreach (double dir in selection)
-            {
-                fullFilePath = DOM.baseWorkingDirectory + dir + @"\postProcessing\residuals\0\residuals.dat";
-                if (!File.Exists((fullFilePath))) { AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "The residual file for wind direction " + dir + " does not exist."); }
-            }
+           
 
 
             if (run == true)
@@ -138,7 +134,12 @@ namespace Eddy
                     {
 
 
-                        fullFilePath = DOM.baseWorkingDirectory + dir + @"\postProcessing\residuals\0\residuals.dat";
+                        var p1 = DOM.baseWorkingDirectory + dir + @"\postProcessing\residuals\";
+                        fullFilePath = p1 + Utilities.GetLastIterationFromDirectory(p1) + "\\" + @"\\residuals.dat";
+                        if (!File.Exists(fullFilePath))
+                        {
+                            AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "The residual file for wind direction " + dir + " does not exist.");
+                        }
 
 
                         var fields = Utilities.FileReader(fullFilePath)[1];
@@ -163,14 +164,13 @@ namespace Eddy
                         String strInputText = @"
 set title 'wind direction: " + dir + @"'
 set logscale y
-set logscale y
 set yrange [" + y0y1 + @"]
 set xrange [" + x0x1 + @"]
 set ylabel 'Residual'
 set xlabel 'Iteration'
 set format y ""10^{%T}""
 set datafile separator '\t'
-plot '" + fullFilePath + @"' u($0):2 with lines title '" + field1 + "','" + fullFilePath + @"' u($0):3 with lines title '" + field2 + "','" + fullFilePath + @"' u($0):4 with lines title '" + field3 + "','" + fullFilePath + @"' u($0):5 with lines title '" + field4 + "','" + fullFilePath + @"' u($0):6 with lines title '" + field5 + "','" + fullFilePath + @"' u($0):7 with lines title '" + field6+@"'
+plot '" + fullFilePath + @"' u($1):2 with lines title '" + field1 + "','" + fullFilePath + @"' u($1):3 with lines title '" + field2 + "','" + fullFilePath + @"' u($1):4 with lines title '" + field3 + "','" + fullFilePath + @"' u($1):5 with lines title '" + field4 + "','" + fullFilePath + @"' u($1):6 with lines title '" + field5 + "','" + fullFilePath + @"' u($1):7 with lines title '" + field6+@"'
 pause 90;replot
 ";
                         sw.WriteLine(strInputText);

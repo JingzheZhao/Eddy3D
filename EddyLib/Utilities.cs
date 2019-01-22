@@ -320,8 +320,7 @@ namespace EddyLib
 
 
 
-        public static List<string> GetDirectories(string path, string searchPattern = "*",
-      SearchOption searchOption = SearchOption.TopDirectoryOnly)
+        public static List<string> GetDirectories(string path, string searchPattern = "*",   SearchOption searchOption = SearchOption.TopDirectoryOnly)
         {
             if (searchOption == SearchOption.TopDirectoryOnly)
                 return Directory.GetDirectories(path, searchPattern).ToList();
@@ -356,7 +355,7 @@ namespace EddyLib
         }
 
 
-        public static int GetLastIterationInSimfolder(string simWorkingDirectory)
+        public static int GetLastIterationFromDirectory(string simWorkingDirectory)
         {
 
             simWorkingDirectory = ReplaceDoubleBackslashes(simWorkingDirectory);

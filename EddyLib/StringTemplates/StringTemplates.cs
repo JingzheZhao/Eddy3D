@@ -2029,6 +2029,37 @@ RAS
             return sb.ToString();
         }
 
+        public static string Run_sim_continue(OFBaseDomain DOM, int d)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            if (DOM.CPUs > 1)
+            {
+
+               
+                sb.AppendLine(@"docker run -v """ + DOM.OFbaseWorkingDirectory + DOM.BCInflow.windDirs[d] + @":/home/openfoam/"" --entrypoint="""" -it  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; mpirun -np " + DOM.CPUs + @" simpleFoam -parallel | tee -a  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.OFbaseWorkingDirectory + DOM.BCInflow.windDirs[d] + @":/home/openfoam/"" --entrypoint="""" -it  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructPar -latestTime | tee -a  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.OFbaseWorkingDirectory + DOM.BCInflow.windDirs[d] + @":/home/openfoam/"" --entrypoint="""" -it  hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a log""");
+#if DEBUG
+
+                sb.AppendLine("PAUSE");
+
+#endif 
+            }
+            else
+            {
+                
+                sb.AppendLine(@"docker run -v """ + DOM.OFbaseWorkingDirectory + DOM.BCInflow.windDirs[d] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; simpleFoam | tee -a  log""");
+                sb.AppendLine(@"docker run -v """ + DOM.OFbaseWorkingDirectory + DOM.BCInflow.windDirs[d] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh | tee -a  log""");
+#if DEBUG
+
+                sb.AppendLine("PAUSE");
+
+#endif 
+            }
+            return sb.ToString();
+        }
+
         public static string Run_mesh_docker(OFBaseDomain DOM)
         {
 
@@ -2250,7 +2281,7 @@ RAS
 
 
 
-        public static string Residuals()
+        public static string ResidualsDict()
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
   =========                 |

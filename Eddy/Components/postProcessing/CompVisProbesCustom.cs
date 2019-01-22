@@ -146,7 +146,7 @@ namespace Eddy
             for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
             {
                 string path = DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDirs[i];
-                string iter = Utilities.GetLastIterationInSimfolder(path).ToString();
+                string iter = Utilities.GetLastIterationFromDirectory(path).ToString();
                 string fp = DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDirs[i] + @"\" + iter + @"\U";
 
 
