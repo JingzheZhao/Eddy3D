@@ -3517,21 +3517,22 @@ mergePatchPairs
 
         private List<Point3d> GetPointsOnCircle(Point3d center, double circleRadius, Polyline poly)
         {
-            List<Point3d> pointsOnCircle = new List<Point3d>();
-            var c = new Circle(center, circleRadius);
+            List<Point3d> pointsOnCircle = new List<Point3d>();            
+            var newCenter = new Point3d(center.X, center.Y, 0);
+            var c = new Circle(newCenter, circleRadius);
 
             for (int i = 0; i < poly.Count; i++)
             {
-                var vec = center - poly[i];
+                var vec = newCenter - poly[i];
                 vec.Unitize();
                 vec *= (circleRadius + 1);
                 double t1;
                 double t2;
                 Point3d p1;
                 Point3d p2;
-                var inter = Rhino.Geometry.Intersect.Intersection.LineCircle(new Line(center, vec), c, out t1, out p1, out t2, out p2);
-                //if(inter == LineCircleIntersection.Single)
-                pointsOnCircle.Add(p1);
+                var inter = Rhino.Geometry.Intersect.Intersection.LineCircle(new Line(newCenter, vec), c, out t1, out p1, out t2, out p2);
+                //Move all points in one plane                
+                pointsOnCircle.Add(new Point3d(p1.X, p1.Y, center.Z));
 
             }
             return pointsOnCircle;
