@@ -133,6 +133,9 @@ namespace EddyLib
 
         public void CalculateCPPressures(double buildingHeight)
         {
+            //height < 0 gives Nan
+            if (buildingHeight < 0) { buildingHeight = 0; };
+
             this.pinf = 1.2 * 0.5 * Math.Pow(((((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((buildingHeight + z0) / z0))), 2);
             this.pref = 1.2 * 0.5 * Math.Pow(((((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((buildingHeight + z0) / z0))), 2);
 
