@@ -265,6 +265,13 @@ namespace Eddy
                             for (int i = 0; i < numberOfProbes; i++)
                             {
                                 // TODO: move this out of loop later
+
+                                if (GH_Document.IsEscapeKeyDown())
+                                {
+                                    GH_Document GHDocument = OnPingDocument();
+                                    GHDocument.RequestAbortSolution();
+                                }
+
                                 valueHour.Add(HourlyUTCI[i, h], new Grasshopper.Kernel.Data.GH_Path(h));
 
 
