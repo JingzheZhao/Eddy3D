@@ -100,16 +100,20 @@ namespace EddyLib
             double latitude = double.Parse(line1Weather.Split(',')[7]);
 
             string filePathKoeppen = workingDirToSaveCSV + @"\Koeppen.csv";
+
+
+            if (!File.Exists(filePathKoeppen))
+            {
+                Utilities.DownLoadFile("http://www.rforscience.com/wpmain/wp-content/uploads/2014/06/Koeppen-Geiger-ASCII.txt", filePathKoeppen);
+            }
+
             string[] txt = File.ReadAllLines(filePathKoeppen);
 
             // Stupid formatting of this file creates 4 columns
             int columnsCnt = 4;
             var Matrix = CreateMatrix(txt.Length, columnsCnt);
 
-            if (!File.Exists(filePathKoeppen))
-            {
-                Utilities.DownLoadFile("http://www.rforscience.com/wpmain/wp-content/uploads/2014/06/Koeppen-Geiger-ASCII.txt", filePathKoeppen);
-            }
+            
 
             for (int i = 1; i < txt.Length; i++)
             {
