@@ -376,7 +376,7 @@ namespace EddyLib
 
                       // Check for extreme mrts
 
-                      double mrt = UTCI.GetMRT2(weather.DryBulbTemp[i], weather.RelativeHumidity[i], DiffRad[i][j], DirRad[i][j], weather.SolarElevation[i], weather.DryBulbTemp[i], weather.Wst, weather.Hst, weather.BodyA, weather.GrRef, 0.95)[0];
+                      double mrt = UTCI.GetMRT(weather.DryBulbTemp[i], weather.RelativeHumidity[i], DiffRad[i][j], DirRad[i][j], weather.SolarElevation[i], weather.DryBulbTemp[i], weather.Wst, weather.Hst, weather.BodyA, weather.GrRef, 0.95)[0];
 
                       if (mrt < weather.DryBulbTemp[i] - 30)
                       {
@@ -515,7 +515,7 @@ namespace EddyLib
             sbUtciDEBUG.Append(Environment.NewLine); sbUtciDEBUG.Append(Environment.NewLine);
             sbUtciDEBUG.AppendLine("Detailed Values for sensor point " + debug[1] + " at hour " + debug[0] + ":");
             sbUtciDEBUG.AppendLine("Air temperature: " + weather.DryBulbTemp[debug[0]]);
-            sbUtciDEBUG.AppendLine("MRT: " + String.Format("{0:0.0}", UTCI.GetMRT2(weather.DryBulbTemp[debug[0]], weather.RelativeHumidity[debug[0]], DiffRad[debug[0]][debug[1]], DirRad[debug[0]][debug[1]], weather.SolarElevation[debug[0]], weather.DryBulbTemp[debug[0]], weather.Wst, weather.Hst, weather.BodyA, weather.GrRef, 0.95)[0]));
+            sbUtciDEBUG.AppendLine("MRT: " + String.Format("{0:0.0}", UTCI.GetMRT(weather.DryBulbTemp[debug[0]], weather.RelativeHumidity[debug[0]], DiffRad[debug[0]][debug[1]], DirRad[debug[0]][debug[1]], weather.SolarElevation[debug[0]], weather.DryBulbTemp[debug[0]], weather.Wst, weather.Hst, weather.BodyA, weather.GrRef, 0.95)[0]));
             sbUtciDEBUG.AppendLine("Vapour pressure: " + weather.Pressure[debug[0]]);
             sbUtciDEBUG.AppendLine("Relative humidity: " + weather.RelativeHumidity[debug[0]]);
 
@@ -560,50 +560,7 @@ namespace EddyLib
         }
 
 
-        public static double[] GetMRT2(double Tair, double Rh, double D, double I, double Sh, double Tc,
-        double W, double H, double Ab, double Gr, double Eb)
-        {
-
-            double[] MRT = new double[2];
-
-            MRT[0] = Tair;
-            MRT[1] = Tair;
-
-            //Reference: http://www.academia.edu/13838171/The_Human_Bio-Meteorological_Chart_A_design_tool_for_outdoor_thermal_comfort
-
-            double y = Math.Log(Rh / 100) + 17.67 * Tair / (243.5 + Tair);
-            double Td = 243.5 * y / (17.67 - y);
-            double e = 0.7122 + 0.0056 * Td + 0.000073 * Math.Pow(Td, 2) + 0.00884;
-            double TsK = (Tair + 273) * Math.Pow(e, 0.25);
-            double TcK = Tc + 273;
-
-            double Fs = (Math.Atan(0.5 * W / (H - 1))) * 180 / Math.PI * 0.0056;
-            double Fc = 1 - Fs;
-
-            double Es = 0.95;
-            double Ec = 0.95;
-
-            double Fd = 0.50;
-            double f = 0.00000043 * Math.Pow(Sh, 3) - 0.000068 * Math.Pow(Sh, 2) + 0.0003 * Sh + 0.3081;
-
-            double IR = Math.Pow((1 / Eb * (Fs * Math.Pow(TsK, 4) * Es + Fc * Math.Pow(TcK, 4) * Ec)), 0.25);
-            double DF = Math.Pow(((D * Fd + (D + I * Math.Sin(Sh * Math.PI / 180)) * Gr) * Ab * 0.725 / (Eb * 5.67E-8)), 0.25);
-            double DR = Math.Pow((I * f * Ab * 0.725 / (Eb * 5.67E-8)), 0.25);
-
-            double MRTK = Math.Pow(Math.Pow(IR, 4) + Math.Pow(DF, 4) + Math.Pow(DR, 4), 0.25);
-            double MRTC = MRTK - 273;
-
-            MRT[0] = MRTC;
-            MRT[1] = IR - 273;
-            return MRT;
-        }
-
-
-
-
-
-
-
+       
 
         // not used
 
@@ -850,7 +807,7 @@ namespace EddyLib
         //    return UTCI_approx;
         //}
 
-        private static double es(double ta)
+        private static double es(double T_celcius)
         {
             //!~ **********************************************
             //!~calculates saturation vapour pressure over water in hPa for input air temperature(ta) in celsius according to:
@@ -858,8 +815,12 @@ namespace EddyLib
             //!~Proceedings of Third International Symposium on Humidity and Moisture; edited by National Physical Laboratory(NPL), London, 1998, pp. 214-221
             //!~http://www.thunderscientific.com/tech_info/reflibrary/its90formulas.pdf (retrieved 2008-10-01)
 
+            // es = saturation vapour pressure in Pa
+            // T is temperature in K
+            // g is list of coefficients for curve fit
 
-            double tk;
+
+            double T_kelvin;
             //int I;
             double[] g = {
                 -2.8365744E3,
@@ -871,12 +832,12 @@ namespace EddyLib
                 -1.8680009E-13,
                 2.7150305 };
 
-            tk = ta + 273.15;       //! air temp in K
-            double es = g[7] * Math.Log(tk);
+            T_kelvin = T_celcius + 273.15;       //! air temp in K
+            double es = g[7] * Math.Log(T_kelvin);
             //do i=0,6
             for (int i = 0; i < 6; i++)
             {
-                es = es + g[i] * Math.Pow(tk, (i - 2));
+                es = es + g[i] * Math.Pow(T_kelvin, (i - 2));
             }
             // end do
             es = Math.Exp(es) * 0.01;   //! *0.01: convert Pa to hPa
@@ -1026,40 +987,51 @@ namespace EddyLib
         }
 
 
-        private static double[] GetMRT(double Tair, double Rh, double D, double I, double Sh, double Tc,
-double W, double H, double Ab, double Gr, double Eb)
+        private static double[] GetMRT(double Tair, double RelHum, double DiffRad, double DirRad, double SolarElev, double T_celsius,
+double Wst, double Hst, double BodyA, double GrRef, double Eb)
         {
+            //Standard call
+            //UTCI.GetMRT(weather.DryBulbTemp[i], weather.RelativeHumidity[i], DiffRad[i][j], DirRad[i][j], weather.SolarElevation[i], weather.DryBulbTemp[i], weather.Wst, weather.Hst, weather.BodyA, weather.GrRef, 0.95)[0];
+
+            // Why do we assume Eb = 0.95 when calling function? Is Eb the same as Es/Ec? What is Eb?
+            // What is Hst and Wst?
+
 
             double[] MRT = new double[2];
 
             MRT[0] = Tair;
             MRT[1] = Tair;
 
-            //Reference: http://www.academia.edu/13838171/The_Human_Bio-Meteorological_Chart_A_design_tool_for_outdoor_thermal_comfort
+            //Reference: [1] http://www.academia.edu/13838171/The_Human_Bio-Meteorological_Chart_A_design_tool_for_outdoor_thermal_comfort
+            //Reference: [2] The calculation of the mean radiant temperature of a subject exposed to the solar radiation—a generalised algorithm
+            //Reference: [3] The Computation of Equivalent Potential Temperature - David Bolton
 
-            double y = Math.Log(Rh / 100) + 17.67 * Tair / (243.5 + Tair);
-            double Td = 243.5 * y / (17.67 - y);
-            double e = 0.7122 + 0.0056 * Td + 0.000073 * Math.Pow(Td, 2) + 0.00884;
-            double TsK = (Tair + 273) * Math.Pow(e, 0.25);
-            double TcK = Tc + 273;
+            double SBConst = 5.67E-8;
 
-            double Fs = (Math.Atan(0.5 * W / (H - 1))) * 180 / Math.PI * 0.0056;
-            double Fc = 1 - Fs;
+            double es = Math.Log(RelHum / 100) + 17.67 * Tair / (243.5 + Tair); // [3] for -30 -- 35°C
+            double T_dewP = 243.5 * es / (17.67 - es); // [3]
+            double e = 0.7122 + 0.0056 * T_dewP + 0.000073 * Math.Pow(T_dewP, 2) + 0.00884; // polinomial for curve fit [1]
+            double TSkyKelvin = (Tair + 273) * Math.Pow(e, 0.25);  // [1]
+            double T_celsius_kelvin = T_celsius + 273;
 
-            double Es = 0.95;
-            double Ec = 0.95;
+            double Fs = (Math.Atan(0.5 * Wst / (Hst - 1))) * 180 / Math.PI * 0.0056; // where does this come from?
+            // where FiS is the angle factor between the ith internal surface of the envelope and the subject, ei is its emissivity, Ai is the area of the interested surface, Ti the temperature, ri the reflection coefficient of the ith surface and Gi the radiation reaching the ith internal surface.
+            double Fc = 1 - Fs;  // remaining angle factor
 
-            double Fd = 0.50;
-            double f = 0.00000043 * Math.Pow(Sh, 3) - 0.000068 * Math.Pow(Sh, 2) + 0.0003 * Sh + 0.3081;
+            double Es = 0.95;  // Emissivities? Why 0.95?
+            double Ec = 0.95;  // Emissivities? 
 
-            double IR = Math.Pow((1 / Eb * (Fs * Math.Pow(TsK, 4) * Es + Fc * Math.Pow(TcK, 4) * Ec)), 0.25);
-            double DF = Math.Pow(((D * Fd + (D + I * Math.Sin(Sh * Math.PI / 180)) * Gr) * Ab * 0.725 / (Eb * 5.67E-8)), 0.25);
-            double DR = Math.Pow((I * f * Ab * 0.725 / (Eb * 5.67E-8)), 0.25);
+            double Fd = 0.50;  // Does this account for 50 % sky and 50 % ground? if yes then this should be an input that changes with respect to the canyon
+            double f = 0.00000043 * Math.Pow(SolarElev, 3) - 0.000068 * Math.Pow(SolarElev, 2) + 0.0003 * SolarElev + 0.3081; // Where does this come from?
 
-            double MRTK = Math.Pow(Math.Pow(IR, 4) + Math.Pow(DF, 4) + Math.Pow(DR, 4), 0.25);
-            double MRTC = MRTK - 273;
+            double IR = Math.Pow((1 / Eb * (Fs * Math.Pow(TSkyKelvin, 4) * Es + Fc * Math.Pow(T_celsius_kelvin, 4) * Ec)), 0.25);
+            double DF = Math.Pow(((DiffRad * Fd + (DiffRad + DirRad * Math.Sin(SolarElev * Math.PI / 180)) * GrRef) * BodyA * 0.725 / (Eb * SBConst)), 0.25);
+            double DR = Math.Pow((DirRad * f * BodyA * 0.725 / (Eb * SBConst)), 0.25);
 
-            MRT[0] = MRTC;
+            double MRTKelvin = Math.Pow(Math.Pow(IR, 4) + Math.Pow(DF, 4) + Math.Pow(DR, 4), 0.25);
+            double MRTCelsius = MRTKelvin - 273;
+
+            MRT[0] = MRTCelsius;
             MRT[1] = IR - 273;
             return MRT;
         }

@@ -55,7 +55,7 @@ namespace EddyLib
 
 
 
-        public OFCylDomain(Brep inputBreps, Mesh geometry, Mesh terrain, BoundaryConditions BCond, int divOuterCircle, int gradingPerim, int divPerim, int _CPU, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0, string baseWorkingDirectory = @"C:\temp")
+        public OFCylDomain(double weldconst, Brep inputBreps, Mesh geometry, Mesh terrain, BoundaryConditions BCond, int divOuterCircle, int gradingPerim, int divPerim, int _CPU, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0, string baseWorkingDirectory = @"C:\temp")
         {
             this.gradingPerim = gradingPerim;
 
@@ -213,7 +213,7 @@ namespace EddyLib
 
 
 
-            MakeCircMeshPlane(center, this.sizeInnerR, _divOutercircle, radius, height, gradingPerim, divPerim);
+            MakeCircMeshPlane(weldconst, center, this.sizeInnerR, _divOutercircle, radius, height, gradingPerim, divPerim);
 
 
             BCond.CalculateCPPressures(zMax);
@@ -246,7 +246,7 @@ namespace EddyLib
 
 
 
-        public void MakeCircMeshPlane(Point3d center, double sizeInnerRect, int divisionsY, double circleRadius, double height, int gradingPerim, int divPerim)
+        public void MakeCircMeshPlane(double weldconst, Point3d center, double sizeInnerRect, int divisionsY, double circleRadius, double height, int gradingPerim, int divPerim)
         {
 
             // point inside cdf domain - needed for meshing and finding the void space for fluid
@@ -338,7 +338,7 @@ namespace EddyLib
             this.DomainMesh.Append(coreTop);
             this.DomainMesh.Append(sides);
             this.DomainMesh.Normals.ComputeNormals();
-            this.DomainMesh.Weld(Math.PI);
+            this.DomainMesh.Weld(weldconst);
 
 
 
