@@ -106,6 +106,13 @@ namespace Eddy
 
                     for (int j = 0; j < data.GetUpperBound(1); j++)
                     {
+                        if (GH_Document.IsEscapeKeyDown())
+                        {
+                            GH_Document GHDocument = OnPingDocument();
+                            GHDocument.RequestAbortSolution();
+                        }
+
+
                         dataTree.Add(data[i, j], new Grasshopper.Kernel.Data.GH_Path(i));
                     }
                 }

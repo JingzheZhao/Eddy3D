@@ -159,6 +159,13 @@ namespace Eddy
                 var mrt = UTCI.GetMRT2(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], DiffRad[hour][p], DirRad[hour][p], weather.SolarElevation[hour], weather.DryBulbTemp[hour], weather.Wst, weather.Hst, weather.BodyA, weather.GrRef, 0.95)[0];
                 var utci = UTCI.GetUTCI2(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], velocityProbes[p].Length, mrt);
 
+                if (GH_Document.IsEscapeKeyDown())
+                {
+                    GH_Document GHDocument = OnPingDocument();
+                    GHDocument.RequestAbortSolution();
+                }
+
+
                 MRTList.Add(mrt);
                 UtciList.Add(utci);
             }

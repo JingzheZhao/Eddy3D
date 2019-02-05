@@ -108,11 +108,12 @@ namespace EddyLib
 
             string[] txt = File.ReadAllLines(filePathKoeppen);
 
+
             // Stupid formatting of this file creates 4 columns
             int columnsCnt = 4;
             var Matrix = CreateMatrix(txt.Length, columnsCnt);
 
-           
+
 
             for (int i = 1; i < txt.Length; i++)
             {
@@ -142,7 +143,7 @@ namespace EddyLib
             return KC;
         }
 
-        // <Custom additional code> 
+        // <Custom additional code>
         private static string[][] CreateMatrix(int rows, int columns)
         {
             var matrix = new string[rows][];
@@ -165,4 +166,3 @@ namespace EddyLib
 
 
 }
-
