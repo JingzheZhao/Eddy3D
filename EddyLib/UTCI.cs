@@ -254,32 +254,35 @@ namespace EddyLib
             return windReduction;
         }
 
-        private static double GetWindReductionFactor(int probeIndex, double[][] ReductionArray, int numberOfProbes, List<int> windDirs, double windVelWeatherFile, double windDirWeatherFile)
+        private static double GetWindReductionFactor(int probeIndex, double[][] ReductionArray, int numberOfProbes, List<int> windDirsSimulated, double windVelWeatherFile, double windDirFromWeatherFile)
         {
 
-            int numberOfWindDirs = windDirs.Count();
+            int numberOfWindDirs = windDirsSimulated.Count();
 
             // 0, 45, 90, 135, 180, 225, 270, 315, 360 
 
 
-            var nextLowIndex = ReturnNextLowerIndex(windDirs, windDirWeatherFile);
-            var nextUpIndex = ReturnNextUpperIndex(windDirs, windDirWeatherFile);
+            var nextLowIndex = ReturnNextLowerIndex(windDirsSimulated, windDirFromWeatherFile);
+            var nextUpIndex = ReturnNextUpperIndex(windDirsSimulated, windDirFromWeatherFile);
 
-            var nextLowDir = windDirs[nextLowIndex];
-            var nextUpDir = windDirs[nextUpIndex];
+            var nextLowDir = windDirsSimulated[nextLowIndex];
+            var nextUpDir = windDirsSimulated[nextUpIndex];
 
 
-            double distanceToLower = windDirWeatherFile - windDirs[nextLowIndex];
+            double distanceToLower = windDirFromWeatherFile - windDirsSimulated[nextLowIndex];
             double distanceToUpper;
 
             if (nextUpIndex == 0)
             {
-                distanceToUpper = Math.Abs((windDirWeatherFile - windDirs[nextUpIndex]) - 360);
+                distanceToUpper = Math.Abs((windDirFromWeatherFile - windDirsSimulated[nextUpIndex]) - 360);
             }
             else
             {
-                distanceToUpper = windDirWeatherFile - windDirs[nextUpIndex];
+                distanceToUpper = windDirFromWeatherFile - windDirsSimulated[nextUpIndex];
             }
+
+
+
 
             //var y1_y0 = distanceToUpper;
             //var x0 = ReductionArray[nextUpIndex][probeIndex];
@@ -323,11 +326,26 @@ namespace EddyLib
 
         private static int ReturnNextUpperIndex(List<int> windDirs, double UTCIWindDir)
         {
+            // Make sure that 360 input is equal to 0
+            if (UTCIWindDir == 360)
+            {
+                UTCIWindDir = 0;
+            }
 
-            int upperIndex = 0;
+
+            int upperIndex = windDirs.Count - 1;
             int NextUpper = windDirs[0];
 
-            for (int i = 0; i > windDirs.Count(); i++)
+            //Add 360 to enable comparison with "0" degrees
+            for (int i = 0; i < windDirs.Count; i++)
+            {
+                if (windDirs[i] == 0)
+                {
+                    windDirs.Add(360);
+                }
+            }
+
+            for (int i = windDirs.Count - 1; i > 0; i--)
             {
                 if (windDirs[i] > UTCIWindDir)
                 {
@@ -339,7 +357,7 @@ namespace EddyLib
             return upperIndex;
         }
 
-        public static void CalculateUTCIArray(int numberOfHours, int sensorPointCount, Weather weather, double[][] DirRad, double[][] DiffRad, double[,] windReduction, double probingHeight, double z0, double zref, double Uref, out bool[,] uncertaintyMRTArray, out bool[,] uncertaintyWindArray, out Stopwatch sw, out double[,] Utci)
+            public static void CalculateUTCIArray(int numberOfHours, int sensorPointCount, Weather weather, double[][] DirRad, double[][] DiffRad, double[,] windReduction, double probingHeight, double z0, double zref, double Uref, out bool[,] uncertaintyMRTArray, out bool[,] uncertaintyWindArray, out Stopwatch sw, out double[,] Utci)
         {
 
             sw = new Stopwatch();
