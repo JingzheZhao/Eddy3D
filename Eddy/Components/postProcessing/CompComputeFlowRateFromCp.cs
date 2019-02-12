@@ -5,6 +5,7 @@ using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 // In order to load the result of this wizard, you will also need to
@@ -40,15 +41,15 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
-            pManager.AddNumberParameter("cp values", "Cp", "List of two averaged cp values.", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Cd values", "Cd", "List of two discharge coeffiecients.", GH_ParamAccess.list);
+            pManager.AddNumberParameter("cp values", "Cp", "List cp values per mesh surface.", GH_ParamAccess.list);
+            //pManager.AddNumberParameter("cd values", "Cd", "List of cd values per mesh surface.", GH_ParamAccess.list);
             //pManager.AddGenericParameter("cp values", "Cp2", "List of cp values.", GH_ParamAccess.list);
             //pManager.AddGenericParameter("Area", "Area", "Area to be evaluated.", GH_ParamAccess.item);
-            pManager.AddMeshParameter("Mesh surfaces", "Mesh", "List of two mesh surfaces to be evaluated.", GH_ParamAccess.list);
-            //pManager.AddMeshParameter("Mesh", "Mesh2", "List of mesh surfaces to be evaluated.", GH_ParamAccess.item);
+            pManager.AddMeshParameter("Mesh surfaces", "Mesh", "List of mesh surfaces to be evaluated.", GH_ParamAccess.list);
+            pManager.AddMeshParameter("Volume", "Volume", "Volume to calculate the air change rate of a zone.", GH_ParamAccess.item);
 
             //pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item, false);
-
+            //pManager[4].Optional = true;
 
         }
 
@@ -58,8 +59,9 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             //pManager.AddGenericParameter("Points", "Points", "Points", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Result", "Res", "Result: Volumetric flow rate in m^3/s.", GH_ParamAccess.item);
-            //pManager.AddNumberParameter("Min", "Min", "Minimum value in m/s", GH_ParamAccess.item);
+            pManager.AddNumberParameter("FR", "FR", "Volumetric flow rate in m^3/s.", GH_ParamAccess.item);
+            pManager.AddNumberParameter("vCenter", "vCenter", "Velocity at center node in m/s under the assumption of a pipe flow.", GH_ParamAccess.item);
+            pManager.AddNumberParameter("ACR", "ACR", "Air change rate in 1/h", GH_ParamAccess.item);
             //pManager.AddNumberParameter("Max", "Max", "Maximum value in m/s", GH_ParamAccess.item);
         }
 
@@ -88,17 +90,24 @@ namespace Eddy
 
 
             var meshes = new List<Mesh>();
-            DA.GetDataList(2, cdList);
+            //DA.GetDataList(2, cdList);
 
-            DA.GetDataList(3, meshes);
+            DA.GetDataList(2, meshes);
 
 
-            if (cdList.Count == 0)
-            {
-                cdList.Add(0.7);
-                cdList.Add(0.7);
-            }
+            //if (cdList.Count == 0)
+            //{
 
+                foreach (Mesh m in meshes)
+                {
+                    cdList.Add(0.7);
+                }
+
+            //}
+
+            double volume = 0;
+
+            DA.GetData(3, ref volume);
 
             //private readonly List<double> cdList = new List<double> { 0.7, 0.7 };
 
@@ -108,115 +117,56 @@ namespace Eddy
 
 
 
-            double AverageCp1 = 0;
-            double AverageCp2 = 0;
-            double Min = 0;
-            double Max = 0;
+            //double AverageCp1 = 0;
+            //double AverageCp2 = 0;
 
-            double Area1 = 0;
-            double Area2 = 0;
+
+            //double Area1 = 0;
+            //double Area2 = 0;
             double VolumetricFlowRate = 0;
-
-            Mesh mesh1 = meshes[0];
-            Mesh mesh2 = meshes[1];
+            double FlowRateCenterNode = 0;
+            double ACR = 0;
+            //Mesh mesh1 = meshes[0];
+            //Mesh mesh2 = meshes[1];
 
             try
             {
 
 
-                var listOfInputCps1 = new List<double>();
-                var listOfInputCps2 = new List<double>();
+                var listOfInputCps = new List<double>();
 
-                DA.GetDataList(1, listOfInputCps1);
+                DA.GetDataList(1, listOfInputCps);
                 //DA.GetDataList(2, listOfInputCps2);
 
 
+                List<double> MeshAreas = new List<double>();
 
-
-
-                for (int i = 0; i < mesh1.Faces.Count; i++)
+                foreach (Mesh m in meshes)
                 {
-                    Area1 += (Utilities.MeshFaceArea(i, mesh1));
+                    double singleArea = 0;
+                    for (int i = 0; i < m.Faces.Count; i++)
+                    {
+                        singleArea += Utilities.MeshFaceArea(i, m);
+                    }
+                    MeshAreas.Add(singleArea);
                 }
 
-                for (int i = 0; i < mesh2.Faces.Count; i++)
+               
+                NVAnalysis nv1 = new NVAnalysis(listOfInputCps, MeshAreas, DOM.BCInflow.UatBuildingHeight, volume);
+                VolumetricFlowRate = nv1.FlowRate;
+
+                if (volume != 0)
                 {
-                    Area2 += (Utilities.MeshFaceArea(i, mesh2));
+                    ACR = nv1.ACR;
                 }
-
-
-
-                //int cnt1 = 0;
-
-
-                // Compute average flow rate for all probes
-
-
-
-                //foreach (double cp in listOfInputCps1)
-                //{
-                //    AverageCp1 += cp;                   
-                //    cnt1++;
-                //}
-
-
-                //AverageCp1 = AverageCp1 / cnt1; //
-                AverageCp1 = listOfInputCps1[0];
-
-                //
-
-                //int cnt2 = 0;
-                //
-                //// Compute average flow rate for all probes
-                //
-                //
-                //
-                //foreach (double cp in listOfInputCps2)
-                //{
-                //    AverageCp2 += cp;
-                //    cnt2++;
-                //}
-
-
-                //AverageCp2 = AverageCp2 / cnt2; //
-                AverageCp2 = listOfInputCps1[1];
-
-                // Airflow assessment in cross-ventilated buildings with operable façade elements
-                // P.KaravaaT.StathopoulosbA.K.Athienitisb
-                // https://www.sciencedirect.com/science/article/pii/S0360132310002271
-
-                //var C_D_general = 0.7;
-                var C_D_1 = cdList[0];
-                var C_D_2 = cdList[1];
-
-                var C_D_tot_A = ((C_D_1 * Area1 * C_D_2 * Area2) / Math.Sqrt(Math.Pow(C_D_1 * Area1, 2) + Math.Pow(C_D_2 * Area1, 2)));
-
-
-                double deltaCp = Math.Abs(AverageCp1 - AverageCp2);
-
-                VolumetricFlowRate = C_D_tot_A * DOM.BCInflow.UatBuildingHeight * Math.Sqrt(deltaCp);
-
-
-
             }
-
-
-
-
-
-
 
             catch (Exception e) { Console.WriteLine(e.Message); };// File.WriteAllText(DOM.baseWorkingDirectory + @"\FlowRate.err", errorLog.ToString()); return; }
 
-
-
-
-
             DA.SetData(0, VolumetricFlowRate);
-            //DA.SetData(1, Min);
-            //DA.SetData(2, Max);
-
-
+            DA.SetData(1, FlowRateCenterNode);
+            DA.SetData(2, ACR);
+           
         }
 
 

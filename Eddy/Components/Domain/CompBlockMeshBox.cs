@@ -37,7 +37,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            
+
 
             pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Eddy"));
 
@@ -73,7 +73,7 @@ namespace Eddy
 
         }
 
-        
+
         /// <summary>
         /// This is the method that actually does the work.
         /// </summary>
@@ -82,20 +82,20 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-string baseWorkingDirectory = "";
-            DA.GetData(0, ref baseWorkingDirectory);
+            string baseWorkingDirectory = "";
+            DA.GetData("Directory", ref baseWorkingDirectory);
             if (!Directory.Exists(baseWorkingDirectory)) { Directory.CreateDirectory(baseWorkingDirectory); }
 
 
             //public Box DomainBoundaryBox;
             List<GeometryBase> geometries = new List<GeometryBase>();
-            
+
 
             List<GeometryBase> terrain = new List<GeometryBase>();
 
 
 
-            
+
 
             DA.GetDataList(1, geometries);
             DA.GetDataList(2, terrain);

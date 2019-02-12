@@ -1003,6 +1003,18 @@ namespace EddyLib
 
         }//EOC
 
+        // <Custom additional code>
+        public static string[][] CreateMatrix(int rows, int columns)
+        {
+            var matrix = new string[rows][];
+
+            for (int i = 0; i < matrix.Length; i++)
+            {
+                matrix[i] = new string[columns];
+            }
+
+            return matrix;
+        }
         public static void DownLoadFile(string URL, string FilePath)
         {
             WebClient webClient = new WebClient();

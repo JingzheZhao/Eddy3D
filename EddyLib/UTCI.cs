@@ -1005,7 +1005,7 @@ namespace EddyLib
         }
 
 
-        private static double[] GetMRT(double Tair, double RelHum, double DiffRad, double DirRad, double SolarElev, double T_celsius,
+        public static double[] GetMRT(double Tair, double RelHum, double DiffRad, double DirRad, double SolarElev, double T_celsius,
 double Wst, double Hst, double BodyA, double GrRef, double Eb)
         {
             //Standard call
