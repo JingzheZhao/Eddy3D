@@ -43,7 +43,7 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
-            pManager.AddNumberParameter("cp values", "Cp", "List cp values per mesh surface.", GH_ParamAccess.list);
+            pManager.AddNumberParameter("cp values", "Cp", "List cp values per mesh surface.", GH_ParamAccess.tree);
             //pManager.AddNumberParameter("cd values", "Cd", "List of cd values per mesh surface.", GH_ParamAccess.list);
             //pManager.AddGenericParameter("cp values", "Cp2", "List of cp values.", GH_ParamAccess.list);
             //pManager.AddGenericParameter("Area", "Area", "Area to be evaluated.", GH_ParamAccess.item);
