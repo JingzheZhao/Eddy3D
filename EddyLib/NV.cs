@@ -67,6 +67,8 @@ namespace EddyLib
             var AverageCDCPPos = cdList.Where((x, index) => listOfCps.Select(cp => cp > 0).ToArray()[index]).Average();
             
 
+            // Do we need to compute a weighted average first?
+
             var C_D_tot_A = ((AverageCDCPPos * AverageAreaCpPos * AverageCDCPNeg * AverageAreaCpNeg) / Math.Sqrt(Math.Pow(AverageCDCPNeg * AverageAreaCpNeg, 2) + Math.Pow(AverageCDCPPos * AverageAreaCpPos, 2)));
 
 

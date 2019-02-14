@@ -1,6 +1,8 @@
 ﻿using Eddy.Properties;
 using EddyLib;
+using Grasshopper;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using System;
@@ -114,6 +116,11 @@ namespace Eddy
 
             StringBuilder errorLog = new StringBuilder();
 
+            //var cps = new DataTree<double>();
+            GH_Structure<GH_Number> cps;
+            DA.GetDataTree(1, out cps);
+
+
 
 
 
@@ -123,9 +130,9 @@ namespace Eddy
 
             //double Area1 = 0;
             //double Area2 = 0;
-            double VolumetricFlowRate = 0;
-            double FlowRateCenterNode = 0;
-            double ACR = 0;
+            var VolumetricFlowRate = new DataTree<double>(); 
+            var VelocityCenterNode = new DataTree<double>();
+            var ACR = new DataTree<double>();
             //Mesh mesh1 = meshes[0];
             //Mesh mesh2 = meshes[1];
 
@@ -133,11 +140,7 @@ namespace Eddy
             {
 
 
-                var listOfInputCps = new List<double>();
-
-                DA.GetDataList(1, listOfInputCps);
-                //DA.GetDataList(2, listOfInputCps2);
-
+               
 
                 List<double> MeshAreas = new List<double>();
 
@@ -151,21 +154,44 @@ namespace Eddy
                     MeshAreas.Add(singleArea);
                 }
 
-               
-                NVAnalysis nv1 = new NVAnalysis(listOfInputCps, MeshAreas, DOM.BCInflow.UatBuildingHeight, volume);
-                VolumetricFlowRate = nv1.FlowRate;
+                
 
-                if (volume != 0)
+
+
+                for (int i = 0; i < DOM.BCInflow.windDirs.Count; ++i)
                 {
-                    ACR = nv1.ACR;
+                    GH_Path path = new GH_Path(i);
+                    
+
+                    if (GH_Document.IsEscapeKeyDown())
+                    {
+                        GH_Document GHDocument = OnPingDocument();
+                        GHDocument.RequestAbortSolution();
+                    }
+
+
+                    NVAnalysis nv1 = new NVAnalysis(cps.Paths, MeshAreas, DOM.BCInflow.UatBuildingHeight, volume);
+
+
+
+
+                    VolumetricFlowRate.Branches[i].Add(nv1.FlowRate);
+                    VelocityCenterNode.Branches[i].Add(nv1.vCenter);
+
+
+                    if (volume != 0)
+                    {
+                        ACR.Add(nv1.ACR);
+                    }
+
                 }
             }
 
             catch (Exception e) { Console.WriteLine(e.Message); };// File.WriteAllText(DOM.baseWorkingDirectory + @"\FlowRate.err", errorLog.ToString()); return; }
 
-            DA.SetData(0, VolumetricFlowRate);
-            DA.SetData(1, FlowRateCenterNode);
-            DA.SetData(2, ACR);
+            DA.SetDataTree(0, VolumetricFlowRate);
+            DA.SetDataTree(1, VelocityCenterNode);
+            DA.SetDataTree(2, ACR);
            
         }
 
