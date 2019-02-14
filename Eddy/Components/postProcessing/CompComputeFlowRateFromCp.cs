@@ -117,10 +117,21 @@ namespace Eddy
             StringBuilder errorLog = new StringBuilder();
 
             //var cps = new DataTree<double>();
-            GH_Structure<GH_Number> cps;
-            DA.GetDataTree(1, out cps);
+            GH_Structure<GH_Number> cps_ghnumber;
+            DA.GetDataTree(1, out cps_ghnumber);
 
+            int cnt = 0;
+            var cps = new DataTree<double>();
+            foreach (var b in cps_ghnumber.Branches)
+            {
+                var path = cps_ghnumber.get_Path(cnt);
+                cnt++;
+                foreach (var i in b) {
 
+                    cps.Add((double)i.Value, path);
+
+                }
+            }
 
 
 
@@ -154,14 +165,12 @@ namespace Eddy
                     MeshAreas.Add(singleArea);
                 }
 
-                
 
 
 
-                for (int i = 0; i < DOM.BCInflow.windDirs.Count; ++i)
-                {
-                    GH_Path path = new GH_Path(i);
-                    
+                if (cps.Paths.Count != DOM.BCInflow.windDirs.Count) return;
+                foreach (var path in cps.Paths)
+                { 
 
                     if (GH_Document.IsEscapeKeyDown())
                     {
@@ -170,21 +179,51 @@ namespace Eddy
                     }
 
 
-                    NVAnalysis nv1 = new NVAnalysis(cps.Paths, MeshAreas, DOM.BCInflow.UatBuildingHeight, volume);
+                    NVAnalysis nv1 = new NVAnalysis(cps.Branch(path), MeshAreas, DOM.BCInflow.UatBuildingHeight, volume);
 
 
 
 
-                    VolumetricFlowRate.Branches[i].Add(nv1.FlowRate);
-                    VelocityCenterNode.Branches[i].Add(nv1.vCenter);
+                    VolumetricFlowRate.Add(nv1.FlowRate, path);
+                    VelocityCenterNode.Add(nv1.vCenter, path);
 
 
                     if (volume != 0)
                     {
-                        ACR.Add(nv1.ACR);
+                        ACR.Add(nv1.ACR, path);
                     }
-
                 }
+
+
+
+
+                //for (int i = 0; i < DOM.BCInflow.windDirs.Count; ++i)
+                //{
+                //    GH_Path path = new GH_Path(i);
+                    
+
+                //    if (GH_Document.IsEscapeKeyDown())
+                //    {
+                //        GH_Document GHDocument = OnPingDocument();
+                //        GHDocument.RequestAbortSolution();
+                //    }
+
+
+                //    NVAnalysis nv1 = new NVAnalysis(cps.Paths, MeshAreas, DOM.BCInflow.UatBuildingHeight, volume);
+
+
+
+
+                //    VolumetricFlowRate.Branches[i].Add(nv1.FlowRate);
+                //    VelocityCenterNode.Branches[i].Add(nv1.vCenter);
+
+
+                //    if (volume != 0)
+                //    {
+                //        ACR.Add(nv1.ACR);
+                //    }
+
+                //}
             }
 
             catch (Exception e) { Console.WriteLine(e.Message); };// File.WriteAllText(DOM.baseWorkingDirectory + @"\FlowRate.err", errorLog.ToString()); return; }
