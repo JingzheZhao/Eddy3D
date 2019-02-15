@@ -48,7 +48,7 @@ namespace Eddy
             //pManager.AddGenericParameter("cp values", "Cp2", "List of cp values.", GH_ParamAccess.list);
             //pManager.AddGenericParameter("Area", "Area", "Area to be evaluated.", GH_ParamAccess.item);
             pManager.AddMeshParameter("Mesh surfaces", "Mesh", "List of mesh surfaces to be evaluated.", GH_ParamAccess.list);
-            pManager.AddMeshParameter("Volume", "Volume", "Volume to calculate the air change rate of a zone.", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Volume", "Volume", "Volume to calculate the air change rate of a zone.", GH_ParamAccess.item);
 
             //pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item, false);
             //pManager[4].Optional = true;
