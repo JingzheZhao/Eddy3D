@@ -339,15 +339,15 @@ namespace Eddy
 
 
 
-                var meshStlFilenameBuildings = DOMCYL.baseWorkingDirectory + @"\mesh\constant\triSurface\building.stl";
-                var meshStlFilenameGround = DOMCYL.baseWorkingDirectory + @"\mesh\constant\triSurface\ground.stl";
-                var meshStlFilenameGroundPerim = DOMCYL.baseWorkingDirectory + @"\mesh\constant\triSurface\ground_perim.stl";
-                var meshBoundaryConditionsDirectory = DOMCYL.baseWorkingDirectory + @"\mesh\0.org\";
+                var meshStlFilenameBuildings = DOMCYL.baseWorkingDir + @"\mesh\constant\triSurface\building.stl";
+                var meshStlFilenameGround = DOMCYL.baseWorkingDir + @"\mesh\constant\triSurface\ground.stl";
+                var meshStlFilenameGroundPerim = DOMCYL.baseWorkingDir + @"\mesh\constant\triSurface\ground_perim.stl";
+                var meshBoundaryConditionsDirectory = DOMCYL.baseWorkingDir + @"\mesh\0.org\";
 
 
-                if (!Directory.Exists(DOMCYL.meshStlDirectory))
+                if (!Directory.Exists(DOMCYL.meshStlDir))
                 {
-                    Directory.CreateDirectory(DOMCYL.meshStlDirectory);
+                    Directory.CreateDirectory(DOMCYL.meshStlDir);
                 }
 
 
@@ -370,13 +370,13 @@ namespace Eddy
 
 
 
-                if (!Directory.Exists(DOMCYL.meshSystemDirectory))
+                if (!Directory.Exists(DOMCYL.meshSystemDir))
                 {
-                    Directory.CreateDirectory(DOMCYL.meshSystemDirectory);
+                    Directory.CreateDirectory(DOMCYL.meshSystemDir);
                 }
-                if (!Directory.Exists(DOMCYL.meshConstantDirectory))
+                if (!Directory.Exists(DOMCYL.meshConstantDir))
                 {
-                    Directory.CreateDirectory(DOMCYL.meshConstantDirectory);
+                    Directory.CreateDirectory(DOMCYL.meshConstantDir);
                 }
                 if (!Directory.Exists(meshBoundaryConditionsDirectory))
                 {
@@ -384,9 +384,9 @@ namespace Eddy
                 }
 
 
-                File.WriteAllText(DOMCYL.meshSystemDirectory + @"\blockMeshDict", DOMCYL.StringyfyDomain2());
-                File.WriteAllText(DOMCYL.baseWorkingDirectory + @"\mesh\case.foam", "");
-                File.WriteAllText(DOMCYL.meshSystemDirectory + @"\controlDict", StringTemplates.ControlDict(DOMCYL, null, 0));
+                File.WriteAllText(DOMCYL.meshSystemDir + @"\blockMeshDict", DOMCYL.StringyfyDomain2());
+                File.WriteAllText(DOMCYL.baseWorkingDir + @"\mesh\case.foam", "");
+                File.WriteAllText(DOMCYL.meshSystemDir + @"\controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(DOMCYL, null, 0));
 
                 if (!File.Exists(baseWorkingDirectory + @"\mesh\log"))
                 {
@@ -398,9 +398,9 @@ namespace Eddy
 
 
                 //export RAD for DAYSIM
-                if (!Directory.Exists(DOMCYL.baseWorkingDirectory + @"Rad\"))
+                if (!Directory.Exists(DOMCYL.baseWorkingDir + @"Rad\"))
                 {
-                    Directory.CreateDirectory(DOMCYL.baseWorkingDirectory + @"Rad\");
+                    Directory.CreateDirectory(DOMCYL.baseWorkingDir + @"Rad\");
                 }
                 string radMat = @"
 void plastic Generic_20
@@ -412,8 +412,8 @@ void plastic Generic_20
                 daysimMesh.Append(combinedMeshes);
                 // Todo: add ground plane to the above mesh
 
-                File.WriteAllText(DOMCYL.baseWorkingDirectory + @"Rad\materials.rad", radMat);
-                RadianceFiles.MeshProc(daysimMesh, DOMCYL.baseWorkingDirectory + @"Rad\scene.rad", "Generic_20");
+                File.WriteAllText(DOMCYL.baseWorkingDir + @"Rad\materials.rad", radMat);
+                RadianceFiles.MeshProc(daysimMesh, DOMCYL.baseWorkingDir + @"Rad\scene.rad", "Generic_20");
 
 
 

@@ -134,7 +134,7 @@ namespace Eddy
                     {
 
 
-                        var p1 = DOM.baseWorkingDirectory + dir + @"\postProcessing\residuals\";
+                        var p1 = DOM.baseWorkingDir + dir + @"\postProcessing\residuals\";
                         fullFilePath = p1 + Utilities.GetLastIterationFromDirectory(p1) + "\\" + @"\\residuals.dat";
                         if (!File.Exists(fullFilePath))
                         {

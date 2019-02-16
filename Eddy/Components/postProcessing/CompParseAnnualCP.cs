@@ -92,7 +92,7 @@ namespace Eddy
 
                 for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                 {
-                    fullProbeFilePath.Add(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\postProcessing\cp_Probes.csv");
+                    fullProbeFilePath.Add(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\postProcessing\cp_Probes.csv");
                 }
 
                 var numberOfWindDirs = DOM.BCInflow.windDirs.Count();
@@ -153,7 +153,7 @@ namespace Eddy
                     }
                     sb.AppendLine("");
                 }
-                File.WriteAllText(DOM.baseWorkingDirectory + @"\annualCPData.csv", sb.ToString());
+                File.WriteAllText(DOM.baseWorkingDir + @"\annualCPData.csv", sb.ToString());
 
 
             }

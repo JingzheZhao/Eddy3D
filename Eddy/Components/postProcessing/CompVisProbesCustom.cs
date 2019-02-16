@@ -145,9 +145,9 @@ namespace Eddy
             // Check if U file is in last iteration
             for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
             {
-                string path = DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDirs[i];
+                string path = DOM.baseWorkingDir + @"\" + DOM.BCInflow.windDirs[i];
                 string iter = Utilities.GetLastIterationFromDirectory(path).ToString();
-                string fp = DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDirs[i] + @"\" + iter + @"\U";
+                string fp = DOM.baseWorkingDir + @"\" + DOM.BCInflow.windDirs[i] + @"\" + iter + @"\U";
 
 
                 if (!File.Exists(fp))
@@ -157,18 +157,18 @@ namespace Eddy
             }
 
             // Export probes file
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_probes.bat"), StringTemplates.Run_Probes(DOM));
+            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_probes.bat"), EddyLib.StringTemplatesRun_Probes(DOM));
 
 
             // export pts file for Daysim
-            if (!Directory.Exists(DOM.baseWorkingDirectory + @"Rad\"))
+            if (!Directory.Exists(DOM.baseWorkingDir + @"Rad\"))
             {
-                Directory.CreateDirectory(DOM.baseWorkingDirectory + @"Rad\");
+                Directory.CreateDirectory(DOM.baseWorkingDir + @"Rad\");
             }
 
-            RadianceFiles.writePTS(DOM.baseWorkingDirectory + @"\Rad\sensors.pts", listOfPoints);
+            RadianceFiles.writePTS(DOM.baseWorkingDir + @"\Rad\sensors.pts", listOfPoints);
 
-            if (Utilities.IsDirectoryEmpty(DOM.meshPolyMeshDirectory) == true)
+            if (Utilities.IsDirectoryEmpty(DOM.meshPolyMeshDir) == true)
             {
                 throw new System.ArgumentException("The mesh folder is empty. Can't retrieve probes from a mesh that does not exist.");
             }
@@ -199,10 +199,10 @@ namespace Eddy
 
                         for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                         {
-                            var path = DOM.baseWorkingDirectory + DOM.BCInflow.windDirs[i] + @"\system\" + enumeratedProbeName;
+                            var path = DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + enumeratedProbeName;
 
-                            File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDirs[i] + @"\system\" + "controlDict", StringTemplates.ControlDict(DOM, null, i));
-                            File.WriteAllText(path, StringTemplates.SampleProbes(listOfPoints, enumeratedProbeName, OFField));
+                            File.WriteAllText(DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + "controlDict", EddyLib.StringTemplatesControlDict(DOM, null, i));
+                            File.WriteAllText(path, EddyLib.StringTemplatesSampleProbes(listOfPoints, enumeratedProbeName, OFField));
 
                             command.Append(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime | tee  " + DOM.BCInflow.windDirs[i] + @"/log_probes;");
 
@@ -212,7 +212,7 @@ namespace Eddy
                         if (run == true)
                         {
 
-                            ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.OFbaseWorkingDirectory);
+                            ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.OFbaseWorkingDir);
                             Process p = new Process();
                             p.StartInfo = psi;
                             p.Start();
@@ -227,7 +227,7 @@ namespace Eddy
 
 
 
-                            var caseDir = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i];
+                            var caseDir = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i];
                             string pathToProbeFile = ParsingProbes.GetLastProcProssDir(enumeratedProbeName, caseDir, OFField);
                             if (File.Exists(pathToProbeFile))
                             {
@@ -261,9 +261,9 @@ namespace Eddy
 
                             // Write the dicts
 
-                            var path = DOM.baseWorkingDirectory + DOM.BCInflow.windDirs[i] + @"\system\" + enumeratedProbeName;
+                            var path = DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + enumeratedProbeName;
 
-                            File.WriteAllText(path, StringTemplates.SampleProbes(listOfPoints, enumeratedProbeName, OFField));
+                            File.WriteAllText(path, EddyLib.StringTemplatesSampleProbes(listOfPoints, enumeratedProbeName, OFField));
 
                             command.Append(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime | tee  " + DOM.BCInflow.windDirs[i] + @"/log_probes;");
 
@@ -272,7 +272,7 @@ namespace Eddy
 
                         if (run == true)
                         {
-                            ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.OFbaseWorkingDirectory);
+                            ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.OFbaseWorkingDir);
                             Process p = new Process();
                             p.StartInfo = psi;
                             p.Start();
@@ -289,7 +289,7 @@ namespace Eddy
                             // Parse values
 
 
-                            var caseDir = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i];
+                            var caseDir = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i];
                             string pathToProbeFile = ParsingProbes.GetLastProcProssDir(enumeratedProbeName, caseDir, OFField);
                             if (File.Exists(pathToProbeFile))
                             {

@@ -102,7 +102,7 @@ namespace Eddy
                 //// Fill datatrees from CSV
 
 
-                var path = DOM.baseWorkingDirectory + @"\UTCI.csv";
+                var path = DOM.baseWorkingDir + @"\UTCI.csv";
 
 
 
@@ -126,7 +126,7 @@ namespace Eddy
 
 
 
-                        int comfortCnt = 0;
+                        //int comfortCnt = 0;
 
                         for (int i = 0; i < annualHours; i++)
                         {

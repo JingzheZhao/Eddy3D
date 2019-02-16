@@ -111,8 +111,8 @@ namespace Eddy
 
             Console.WriteLine("Loading: Radiation data...");
 
-            var DiffRad = RadianceFiles.loadILL(DOM.baseWorkingDirectory+ @"\Rad\CallRay.dif.ill");
-            var DirRad = RadianceFiles.loadILL(DOM.baseWorkingDirectory + @"\Rad\CallRay.dir.ill");
+            var DiffRad = RadianceFiles.loadILL(DOM.baseWorkingDir+ @"\Rad\CallRay.dif.ill");
+            var DirRad = RadianceFiles.loadILL(DOM.baseWorkingDir + @"\Rad\CallRay.dir.ill");
                         
 
             int sensorPointCount = DiffRad[0].Length;

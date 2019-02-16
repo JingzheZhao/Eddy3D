@@ -13,20 +13,22 @@ namespace EddyLib
         public Point3d locationInMesh;
 
         // settings
-        public string meshPolyMeshDirectory;
-        public string meshWorkingDirectory;
-        public string meshSystemDirectory;
-        public string meshConstantDirectory;
-        public string meshStlDirectory;
-        public string baseWorkingDirectory;
+        public string meshPolyMeshDir;
+        public string meshWorkingDir;
+        public string meshSystemDir;
+        public string meshConstantDir;
+        public string meshStlDir;
+        public string baseWorkingDir;
 
         //directories for OF call
-        public string OFmeshWorkingDirectory;
-        public string OFmeshPolyMeshDirectory;
-        public string OFmeshSystemDirectory;
-        public string OFmeshConstantDirectory;
-        public string OFmeshStlDirectory;
-        public string OFbaseWorkingDirectory;
+        public string OFmeshWorkingDir;
+        public string OFmeshPolyMeshDir;
+        public string OFmeshSystemDir;
+        public string OFmeshConstantDir;
+        public string OFmeshStlDir;
+        public string OFbaseWorkingDir;
+
+
 
         public int CPUs;
 
@@ -119,9 +121,9 @@ namespace EddyLib
 
         public double ProjectedBuildingArea(Vector3d windDir, Mesh buildings, double spacing, string path, out Plane newLocal, out Box box)
         {
-            if (!Directory.Exists(this.baseWorkingDirectory + @"\FrontageImages\"))
+            if (!Directory.Exists(this.baseWorkingDir + @"\FrontageImages\"))
             {
-                Directory.CreateDirectory(this.baseWorkingDirectory + @"\FrontageImages\");
+                Directory.CreateDirectory(this.baseWorkingDir + @"\FrontageImages\");
             }
 
             var up = Vector3d.ZAxis;

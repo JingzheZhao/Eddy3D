@@ -59,19 +59,19 @@ namespace EddyLib
         {
             this.gradingPerim = gradingPerim;
 
-            this.baseWorkingDirectory = baseWorkingDirectory;
-            this.meshStlDirectory = baseWorkingDirectory + @"\mesh\constant\triSurface\";
-            this.meshPolyMeshDirectory = baseWorkingDirectory + @"\mesh\constant\polyMesh\";
-            this.meshSystemDirectory = baseWorkingDirectory + @"\mesh\system\";
-            this.meshConstantDirectory = baseWorkingDirectory + @"\mesh\constant\";
-            this.meshWorkingDirectory = baseWorkingDirectory + @"\mesh\";
+            this.baseWorkingDir = baseWorkingDirectory;
+            this.meshStlDir = baseWorkingDirectory + @"\mesh\constant\triSurface\";
+            this.meshPolyMeshDir = baseWorkingDirectory + @"\mesh\constant\polyMesh\";
+            this.meshSystemDir = baseWorkingDirectory + @"\mesh\system\";
+            this.meshConstantDir = baseWorkingDirectory + @"\mesh\constant\";
+            this.meshWorkingDir = baseWorkingDirectory + @"\mesh\";
 
-            this.OFbaseWorkingDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory);
-            this.OFmeshStlDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\triSurface\");
-            this.OFmeshPolyMeshDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\polyMesh\");
-            this.OFmeshSystemDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\system\");
-            this.OFmeshConstantDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\");
-            this.OFmeshWorkingDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\");
+            this.OFbaseWorkingDir = Utilities.ReformatWorkingDir(baseWorkingDirectory);
+            this.OFmeshStlDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\triSurface\");
+            this.OFmeshPolyMeshDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\polyMesh\");
+            this.OFmeshSystemDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\system\");
+            this.OFmeshConstantDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\");
+            this.OFmeshWorkingDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\");
 
 
             //needed for meshing purposes at this point in time
@@ -165,7 +165,7 @@ namespace EddyLib
                 Box box;
                 Plane newLocal;
                 projAreaList.Add(ProjectedBuildingArea(localCopy, geometry, 1,
-                    this.baseWorkingDirectory + @"\FrontageImages\FrontageImage" + (i * 5) + ".png",
+                    this.baseWorkingDir + @"\FrontageImages\FrontageImage" + (i * 5) + ".png",
                     out newLocal, out box));
 
 

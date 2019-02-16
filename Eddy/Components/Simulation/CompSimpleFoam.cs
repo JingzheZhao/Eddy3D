@@ -4,7 +4,6 @@ using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
 using System;
-using System.Collections.Generic;
 using System.IO;
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -121,8 +120,8 @@ namespace Eddy
 
 
             DA.GetData(1, ref iter);
-            DA.GetData(3, ref keepTimeSteps);
             DA.GetData(2, ref writeInterval);
+            DA.GetData(3, ref keepTimeSteps);
             DA.GetData(4, ref turb);
             DA.GetData(5, ref mode);
 
@@ -151,9 +150,9 @@ namespace Eddy
 
                 // Check if Docker is running
 
-                Utilities.WriteDockerInfo(DOM.baseWorkingDirectory);
+                Utilities.WriteDockerInfo(DOM.baseWorkingDir);
                 bool dockerRunning = false;
-                if (Utilities.IsDockerRunning(DOM.baseWorkingDirectory, DOM.IsWindows7))
+                if (Utilities.IsDockerRunning(DOM.baseWorkingDir, DOM.IsWindows7))
                 {
                     dockerRunning = true;
                 }
@@ -175,7 +174,7 @@ namespace Eddy
                 // Check for killed processes
                 for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                 {
-                    if (Utilities.DidProcessGetKilled(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i]) == true)
+                    if (Utilities.DidProcessGetKilled(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i]) == true)
                     {
                         AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Some processes got killed probably because to little RAM was available. Try to increase the RAM acclocated for the Docker virtual machine.");
                     }
@@ -185,7 +184,7 @@ namespace Eddy
                 //Autocalc number of CPUs
                 if (DOM.autoCPUCalc == true)
                 {
-                    DOM.CPUs = Utilities.CPUAutoCalc(DOM.meshWorkingDirectory, DOM.CPUs);
+                    DOM.CPUs = Utilities.CPUAutoCalc(DOM.meshWorkingDir, DOM.CPUs);
                 }
 
 
@@ -193,22 +192,20 @@ namespace Eddy
                 for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                 {
 
-                    var simStlDir = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\constant\triSurface\";
-                    var simStlFilenameBuildings = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\constant\triSurface\building.stl";
-                    var simStlFilenameGround = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\constant\triSurface\ground.stl";
+                    var simStlDir = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\constant\triSurface\";
+                    var simStlFilenameBuildings = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\constant\triSurface\building.stl";
+                    var simStlFilenameGround = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\constant\triSurface\ground.stl";
+                    var simConstantDir = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\constant\";
+                    var simBoundaryConditionsDir = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\0.org\";
 
                     if (!Directory.Exists(simStlDir))
                     {
                         Directory.CreateDirectory(simStlDir);
                     }
 
-
-                    string simConstantDir = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\constant\";
-                    string simBoundaryConditionsDir = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\0.org\";
-
-                    if (!Directory.Exists(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\"))
+                    if (!Directory.Exists(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\"))
                     {
-                        Directory.CreateDirectory(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\");
+                        Directory.CreateDirectory(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\");
                     }
                     if (!Directory.Exists(simConstantDir))
                     {
@@ -219,30 +216,27 @@ namespace Eddy
                         Directory.CreateDirectory(simBoundaryConditionsDir);
                     }
 
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\" + "controlDict"), StringTemplates.ControlDict(DOM, null, i));
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\case.foam"), "");
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\" + "controlDict"), EddyLib.StrTemp.OFExecDicts.ControlDict(DOM, null, i));
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\case.foam"), "");
 
                     // Not working currently: Symbolic dir junctions only for cylindrical domain, and, if they exist, delete them for boxDomain
 
                     //if (DOM is OFCylDomain)
                     //{
-                    string symbolicPath = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\constant\polyMesh";
+                    string symbolicPath = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\constant\polyMesh";
                     if (Directory.Exists(symbolicPath) && !SymlinkCreator.IsSymbolic(symbolicPath))
                     {
                         SymlinkCreator.Delete(symbolicPath);
-                        SymlinkCreator.Create(symbolicPath, DOM.meshConstantDirectory + @"\polyMesh");
+                        SymlinkCreator.Create(symbolicPath, DOM.meshConstantDir + @"\polyMesh");
                     }
                     else
                     {
-                        SymlinkCreator.Create(symbolicPath, DOM.meshConstantDirectory + @"\polyMesh");
+                        SymlinkCreator.Create(symbolicPath, DOM.meshConstantDir + @"\polyMesh");
                     }
-                    //}
-                    //else
-                    //{
-                    //    SymlinkCreator.Delete(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[i] + @"\constant\polyMesh");
-                    //}
 
-
+                    //Constant folder
+                    File.WriteAllText(Path.Combine(simConstantDir + "turbulenceProperties"), EddyLib.StrTemp.OFExecDicts.TurbulenceProperties(DOM));
+                    File.WriteAllText(Path.Combine(simConstantDir + "transportProperties"), EddyLib.StrTemp.OFExecDicts.TransportProperties());
 
 
 
@@ -250,196 +244,166 @@ namespace Eddy
                     {
                         if (DOM.BCInflow.btype is BoundaryType.abl)
                         {
-                            File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), BoundaryConditionTemplates.UBoxABL(DOM, i));
-                            File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions(DOM, i));
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), EddyLib.StrTemp.BCDicts.UBoxABL(DOM, i));
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), EddyLib.StrTemp.BCDicts.ABLConditions(DOM, i));
                         }
-                        if (DOM.BCInflow.btype is BoundaryType.constant) { File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), BoundaryConditionTemplates.UBoxConstU(DOM, i)); }
+                        if (DOM.BCInflow.btype is BoundaryType.constant) { File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), EddyLib.StrTemp.BCDicts.UBoxConstU(DOM, i)); }
 
                         //REmove this later
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions_Cyl(DOM, i));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), EddyLib.StrTemp.BCDicts.ABLCond_Cyl(DOM, i));
                         //REmove this later
 
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "p"), BoundaryConditionTemplates.P(DOM));
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "omega"), BoundaryConditionTemplates.Omega(DOM));
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "k"), BoundaryConditionTemplates.K(DOM));
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "epsilon"), BoundaryConditionTemplates.Epsilon(DOM));
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "nut"), BoundaryConditionTemplates.Nut(DOM));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "p"), EddyLib.StrTemp.BCDicts.P(DOM));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "omega"), EddyLib.StrTemp.BCDicts.Omega(DOM));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "k"), EddyLib.StrTemp.BCDicts.K(DOM));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "epsilon"), EddyLib.StrTemp.BCDicts.Epsilon(DOM));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "nut"), EddyLib.StrTemp.BCDicts.Nut(DOM));
 
 
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions(DOM, i));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), EddyLib.StrTemp.BCDicts.InitialConditions(DOM, i));
 
-                        File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\snappyHexMeshDict"), StringTemplates.SnappyHexMeshDict(DOM));
-                        File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\surfaceFeatureExtractDict"), StringTemplates.SurfaceFeatureExtractDict());
+                        File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\snappyHexMeshDict"), EddyLib.StrTemp.OFExecDicts.SnappyHexMeshDict(DOM));
+                        File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\surfaceFeatureExtractDict"), EddyLib.StrTemp.OFExecDicts.SurfaceFeatureExtractDict());
 
                         if (mode == 0)
                         {
-                            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), StringTemplates.FvSchemesAccurate());
+                            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesAccurate());
                         }
                         else if (mode == 1)
                         {
-                            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), StringTemplates.FvSchemesRobust1());
+                            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesRobust1());
                         }
                         else if (mode == 2)
                         {
-                            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), StringTemplates.FvSchemesOrtho70_80());
+                            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesOrtho70_80());
                         }
                         else if (mode == 3)
                         {
-                            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), StringTemplates.FvSchemesOrtho60_70());
+                            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesOrtho60_70());
                         }
                         else if (mode == 4)
                         {
-                            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), StringTemplates.FvSchemesOrtho40_60());
+                            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesOrtho40_60());
                         }
 
                         else if (mode == 5)
 
                         {
-                            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), StringTemplates.FvSchemesAccurate());
+                            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesAccurate());
                         }
                         else if (mode == 6)
                         {
-                            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), StringTemplates.FvSchemesAccurateOscillatory());
+                            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesAccurateOscillatory());
                         }
                         else if (mode == 7)
                         {
-                            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), StringTemplates.FvSchemesRobust1());
+                            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesRobust1());
                         }
 
-                        File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSolution"), StringTemplates.FvSolution(0));
-                        File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\meshQualityDict"), StringTemplates.MeshQualityDict());
-                        File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\residuals"), StringTemplates.ResidualsDict());
+                        File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSolution"), EddyLib.StrTemp.OFExecDicts.FvSolution(0));
+                        File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\meshQualityDict"), EddyLib.StrTemp.OFExecDicts.MeshQualityDict());
+                        File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\residuals"), EddyLib.StrTemp.OFExecDicts.ResidualsDict());
 
 
                     }
-                    else
+                    else if (DOM is OFCylDomain)
                     {
                         if (DOM.BCInflow.btype is BoundaryType.abl)
                         {
-                            File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), BoundaryConditionTemplates.U_CylABL(DOM, i));
-                            File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions_Cyl(DOM, i));
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), EddyLib.StrTemp.BCDicts.U_CylABL(DOM, i));
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), EddyLib.StrTemp.BCDicts.ABLCond_Cyl(DOM, i));
                         }
-                        if (DOM.BCInflow.btype is BoundaryType.constant) { File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), BoundaryConditionTemplates.UCylConstU(DOM, i)); }
+                        if (DOM.BCInflow.btype is BoundaryType.constant) { File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), EddyLib.StrTemp.BCDicts.UCylConstU(DOM, i)); }
 
                         //REmove this later
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), BoundaryConditionTemplates.ABLConditions_Cyl(DOM, i));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), EddyLib.StrTemp.BCDicts.ABLCond_Cyl(DOM, i));
                         //REmove this later
 
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "p"), BoundaryConditionTemplates.P_Cyl(DOM, i));
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "omega"), BoundaryConditionTemplates.Omega_Cyl(DOM, i));
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "k"), BoundaryConditionTemplates.K_Cyl(DOM, i));
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "epsilon"), BoundaryConditionTemplates.Epsilon_Cyl(DOM, i));
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "nut"), BoundaryConditionTemplates.Nut_Cyl(DOM, i));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "p"), EddyLib.StrTemp.BCDicts.P_Cyl(DOM, i));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "omega"), EddyLib.StrTemp.BCDicts.Omega_Cyl(DOM, i));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "k"), EddyLib.StrTemp.BCDicts.K_Cyl(DOM, i));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "epsilon"), EddyLib.StrTemp.BCDicts.Epsilon_Cyl(DOM, i));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "nut"), EddyLib.StrTemp.BCDicts.Nut_Cyl(DOM, i));
 
 
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), BoundaryConditionTemplates.InitialConditions(DOM, i));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), EddyLib.StrTemp.BCDicts.InitialConditions(DOM, i));
 
-                        File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\snappyHexMeshDict"), StringTemplates.SnappyHexMeshDict(DOM));
-                        File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\surfaceFeatureExtractDict"), StringTemplates.SurfaceFeatureExtractDict());
+                        File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\snappyHexMeshDict"), EddyLib.StrTemp.OFExecDicts.SnappyHexMeshDict(DOM));
+                        File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\surfaceFeatureExtractDict"), EddyLib.StrTemp.OFExecDicts.SurfaceFeatureExtractDict());
                         if (mode == 0)
                         {
-                            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), StringTemplates.FvSchemesAccurate());
+                            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesAccurate());
                         }
                         else if (mode == 1)
                         {
-                            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), StringTemplates.FvSchemesRobust1());
+                            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesRobust1());
                         }
                         else if (mode == 2)
                         {
-                            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), StringTemplates.FvSchemesOrtho70_80());
+                            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesOrtho70_80());
                         }
                         else if (mode == 3)
                         {
-                            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), StringTemplates.FvSchemesOrtho60_70());
+                            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesOrtho60_70());
                         }
                         else if (mode == 4)
                         {
-                            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), StringTemplates.FvSchemesOrtho40_60());
+                            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesOrtho40_60());
                         }
-
                         else if (mode == 5)
 
                         {
-                            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), StringTemplates.FvSchemesAccurate());
+                            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesAccurate());
                         }
                         else if (mode == 6)
                         {
-                            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), StringTemplates.FvSchemesAccurateOscillatory());
+                            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesAccurateOscillatory());
                         }
                         else if (mode == 7)
                         {
-                            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), StringTemplates.FvSchemesRobust1());
+                            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesRobust1());
                         }
 
-
-                        File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSolution"), StringTemplates.FvSolution(mode));
-                        File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\meshQualityDict"), StringTemplates.MeshQualityDict());
-                        File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\system\residuals"), StringTemplates.ResidualsDict());
-
+                        File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSolution"), EddyLib.StrTemp.OFExecDicts.FvSolution(mode));
+                        File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\meshQualityDict"), EddyLib.StrTemp.OFExecDicts.MeshQualityDict());
+                        File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\residuals"), EddyLib.StrTemp.OFExecDicts.ResidualsDict());
 
 
                     }
 
-                    //Constant folder
-                    File.WriteAllText(Path.Combine(simConstantDir + "turbulenceProperties"), StringTemplates.TurbulenceProperties(DOM));
-                    File.WriteAllText(Path.Combine(simConstantDir + "transportProperties"), StringTemplates.TransportProperties());
-
-
+                    
 
                 }
+              
+              
+                
+                // Batch files depending on type
+                
 
-
-                ////Batch files depending on type
-
-
-                //if (DOM is OFBoxDomain)
-                //{
-
-                //    for (int i = 0; i < DOM.BCInflow.windDir.Count; i++)
-                //    {
-                //        File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_mesh_" + DOM.BCInflow.windDir[i] + @".bat"), StringTemplates.Run_Mesh_Box(DOM, i));
-                //    }
-                //    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run.bat"), StringTemplates.Run(DOM));
-                //    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_sim_all.bat"), StringTemplates.RunSimOnly(DOM));
-                //    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_ray.bat"), StringTemplates.Run_RayTrace(DOM));
-                //    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_probes.bat"), StringTemplates.Run_Probes(DOM));
-                //    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_utci.bat"), StringTemplates.Run_UTCI(DOM));
-                //}
-                //else
-                //{
-                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_mesh.bat"), StringTemplates.Run_Mesh_Cyl(DOM));
-                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run.bat"), StringTemplates.Run(DOM));
-                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_sim_all.bat"), StringTemplates.RunSimOnly(DOM));
-                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_ray.bat"), StringTemplates.Run_RayTrace(DOM));
-                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_probes.bat"), StringTemplates.Run_Probes(DOM));
-                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_utci.bat"), StringTemplates.Run_UTCI(DOM));
-                //}
-
-
-
-
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_mesh.bat"), EddyLib.StrTemp.DockerBatFiles.Run_Mesh_Cyl(DOM));
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run.bat"), EddyLib.StrTemp.DockerBatFiles.Run(DOM));
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_sim_all.bat"), EddyLib.StrTemp.DockerBatFiles.RunSimOnly(DOM));
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_ray.bat"), EddyLib.StrTemp.DockerBatFiles.Run_RayTrace(DOM));
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_probes.bat"), EddyLib.StrTemp.DockerBatFiles.Run_Probes(DOM));
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_utci.bat"), EddyLib.StrTemp.DockerBatFiles.Run_UTCI(DOM));
 #if DEBUG
-                File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_blockMesh.bat"), StringTemplates.BlockMesh(DOM));
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_blockMesh.bat"), EddyLib.StrTemp.DockerBatFiles.run_blockMesh(DOM));
 #endif
 
                 for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                 {
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + "_run_sim.bat"), StringTemplates.Run_sim(DOM, i));
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + "_run_sim_continue.bat"), StringTemplates.Run_sim_continue(DOM, i));
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + "_run_sim.bat"), EddyLib.StrTemp.DockerBatFiles.Run_sim(DOM, i));
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + "_run_sim_continue.bat"), EddyLib.StrTemp.DockerBatFiles.Run_sim_continue(DOM, i));
 
                 }
 
-
-
-
+                
 
                 // Calculate runtimes of all simulation based on log file
 
                 for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                 {
-                    
-                    DOM.runtimes.Add(Utilities.CalculateRunTimeFromLog(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i], DOM.iter));
-
+                    DOM.runtimes.Add(Utilities.CalculateRunTimeFromLog(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i], DOM.iter));
                 }
 
                 DA.SetData(0, DOM);

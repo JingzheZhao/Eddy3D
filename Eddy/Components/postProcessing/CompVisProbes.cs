@@ -151,7 +151,7 @@ namespace Eddy
 
             for (int i = 0; i < numberOfWindDirs; i++)
             {
-                var fp = DOM.baseWorkingDirectory + @"\mesh\constant\polyMesh";
+                var fp = DOM.baseWorkingDir + @"\mesh\constant\polyMesh";
                 if (!Directory.Exists(fp))
                 {
                     errorLog.AppendLine(@"The wind direction """ + DOM.BCInflow.windDirs[i] + @""" misses the ""\constant\polyMesh"" dictionary. Please make sure that directory exists.");
@@ -165,7 +165,7 @@ namespace Eddy
 
             for (int i = 0; i < numberOfWindDirs; i++)
             {
-                var ABLfilePath = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\0.org\ABLConditions";
+                var ABLfilePath = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\0.org\ABLConditions";
                 if (!File.Exists(ABLfilePath)) { Console.WriteLine(ABLfilePath + " not found. Exiting"); errorLog.AppendLine(ABLfilePath + " not found. Exiting"); }
             }
 
@@ -173,9 +173,9 @@ namespace Eddy
             // Check if U file is in last iteration
             for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
             {
-                string path = DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDirs[i];
+                string path = DOM.baseWorkingDir + @"\" + DOM.BCInflow.windDirs[i];
                 string iter = Utilities.GetLastIterationFromDirectory(path).ToString();
-                string fp = DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDirs[i] + @"\" + iter + @"\U";
+                string fp = DOM.baseWorkingDir + @"\" + DOM.BCInflow.windDirs[i] + @"\" + iter + @"\U";
 
 
                 if (!File.Exists(fp))
@@ -185,17 +185,17 @@ namespace Eddy
             }
 
             // Export probes file
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_probes.bat"), StringTemplates.Run_Probes(DOM));
+            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_probes.bat"), EddyLib.StrTemp.DockerBatFiles.Run_Probes(DOM));
 
 
             // export pts file for Daysim
-            if (!Directory.Exists(DOM.baseWorkingDirectory + @"Rad\"))
+            if (!Directory.Exists(DOM.baseWorkingDir + @"Rad\"))
             {
-                Directory.CreateDirectory(DOM.baseWorkingDirectory + @"Rad\");
+                Directory.CreateDirectory(DOM.baseWorkingDir + @"Rad\");
             }
-            RadianceFiles.writePTS(DOM.baseWorkingDirectory + @"\Rad\sensors.pts", listOfPoints);
+            RadianceFiles.writePTS(DOM.baseWorkingDir + @"\Rad\sensors.pts", listOfPoints);
 
-            if (Utilities.IsDirectoryEmpty(DOM.meshPolyMeshDirectory) == true)
+            if (Utilities.IsDirectoryEmpty(DOM.meshPolyMeshDir) == true)
             {
                 throw new System.ArgumentException("The mesh folder is empty. Can't retrieve probes from a mesh that does not exist.");
             }
@@ -226,8 +226,8 @@ namespace Eddy
                         for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                         {
 
-                            File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDirs[i] + @"\system\" + "controlDict", StringTemplates.ControlDict(DOM, null, i));
-                            File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDirs[i] + @"\system\" + pointName, StringTemplates.SampleProbes(listOfPoints, pointName, OFfield));
+                            File.WriteAllText(DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + "controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(DOM, null, i));
+                            File.WriteAllText(DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + pointName, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, pointName, OFfield));
 
                             command.Append(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + pointName + @" -latestTime | tee  " + DOM.BCInflow.windDirs[i] + @"/log_probes;");
 
@@ -236,7 +236,7 @@ namespace Eddy
                         for (int i = 0; i < numberOfWindDirs; i++)
 
                         {
-                            var fp = DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDirs[i] + @"\system\cp_Probes";
+                            var fp = DOM.baseWorkingDir + @"\" + DOM.BCInflow.windDirs[i] + @"\system\cp_Probes";
                             if (!File.Exists(fp))
                             {
 
@@ -250,7 +250,7 @@ namespace Eddy
 
                         if (run == true)
                         {
-                            ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.OFbaseWorkingDirectory);
+                            ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.OFbaseWorkingDir);
                             Process p = new Process
                             {
                                 StartInfo = psi
@@ -268,7 +268,7 @@ namespace Eddy
 
 
 
-                            var caseDir = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i];
+                            var caseDir = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i];
                             string pathToProbeFile = ParsingProbes.GetLastProcProssDir(pointName, caseDir, OFfield);
                             if (File.Exists(pathToProbeFile))
                             {
@@ -305,7 +305,7 @@ namespace Eddy
 
                             // Write the dicts
 
-                            File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDirs[i] + @"\system\" + pointName, StringTemplates.SampleProbes(listOfPoints, pointName, OFfield));
+                            File.WriteAllText(DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + pointName, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, pointName, OFfield));
 
                             command.Append(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + pointName + @" -latestTime | tee  " + DOM.BCInflow.windDirs[i] + @"/log_probes;");
 
@@ -315,7 +315,7 @@ namespace Eddy
                         for (int i = 0; i < numberOfWindDirs; i++)
 
                         {
-                            var fp = DOM.baseWorkingDirectory + @"\" + DOM.BCInflow.windDirs[i] + @"\system\U_Probes";
+                            var fp = DOM.baseWorkingDir + @"\" + DOM.BCInflow.windDirs[i] + @"\system\U_Probes";
                             if (!File.Exists(fp))
                             {
                                 errorLog.AppendLine(@"The wind direction """ + DOM.BCInflow.windDirs[i] + @""" misses the probing dictionary for U values. Possible solution: Please connect the ""writeProbes"" component and recompute the solution.");
@@ -326,7 +326,7 @@ namespace Eddy
                         if (run == true)
                         {
 
-                            ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.OFbaseWorkingDirectory);
+                            ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.OFbaseWorkingDir);
                             Process p = new Process
                             {
                                 StartInfo = psi
@@ -341,7 +341,7 @@ namespace Eddy
                         {
                             // Parse values
 
-                            var caseDir = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i];
+                            var caseDir = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i];
                             string pathToProbeFile = ParsingProbes.GetLastProcProssDir(pointName, caseDir, OFfield);
                             if (File.Exists(pathToProbeFile))
                             {
@@ -362,7 +362,7 @@ namespace Eddy
                 }
 
 
-                catch (Exception e) { Console.WriteLine(e.Message); File.WriteAllText(DOM.baseWorkingDirectory + @"\Probes.err", errorLog.ToString()); return; }
+                catch (Exception e) { Console.WriteLine(e.Message); File.WriteAllText(DOM.baseWorkingDir + @"\Probes.err", errorLog.ToString()); return; }
 
 
 

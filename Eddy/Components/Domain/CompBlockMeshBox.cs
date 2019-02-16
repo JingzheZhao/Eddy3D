@@ -325,10 +325,10 @@ namespace Eddy
 
                 //////
 
-                var meshStlFilenameBuildings = DOMBOX.baseWorkingDirectory + @"\mesh\constant\triSurface\building.stl";
-                var meshStlFilenameGround = DOMBOX.baseWorkingDirectory + @"\mesh\constant\triSurface\ground.stl";
-                var meshStlFilenameGroundPerim = DOMBOX.baseWorkingDirectory + @"\mesh\constant\triSurface\ground_perim.stl";
-                var meshBoundaryConditionsDirectory = DOMBOX.baseWorkingDirectory + @"\mesh\0.org\";
+                var meshStlFilenameBuildings = DOMBOX.baseWorkingDir + @"\mesh\constant\triSurface\building.stl";
+                var meshStlFilenameGround = DOMBOX.baseWorkingDir + @"\mesh\constant\triSurface\ground.stl";
+                var meshStlFilenameGroundPerim = DOMBOX.baseWorkingDir + @"\mesh\constant\triSurface\ground_perim.stl";
+                var meshBoundaryConditionsDirectory = DOMBOX.baseWorkingDir + @"\mesh\0.org\";
 
 
                 if (!Directory.Exists(baseWorkingDirectory))
@@ -337,9 +337,9 @@ namespace Eddy
                 }
 
 
-                if (!Directory.Exists(DOMBOX.meshStlDirectory))
+                if (!Directory.Exists(DOMBOX.meshStlDir))
                 {
-                    Directory.CreateDirectory(DOMBOX.meshStlDirectory);
+                    Directory.CreateDirectory(DOMBOX.meshStlDir);
                 }
 
 
@@ -366,13 +366,13 @@ namespace Eddy
 
 
 
-                if (!Directory.Exists(DOMBOX.meshSystemDirectory))
+                if (!Directory.Exists(DOMBOX.meshSystemDir))
                 {
-                    Directory.CreateDirectory(DOMBOX.meshSystemDirectory);
+                    Directory.CreateDirectory(DOMBOX.meshSystemDir);
                 }
-                if (!Directory.Exists(DOMBOX.meshConstantDirectory))
+                if (!Directory.Exists(DOMBOX.meshConstantDir))
                 {
-                    Directory.CreateDirectory(DOMBOX.meshConstantDirectory);
+                    Directory.CreateDirectory(DOMBOX.meshConstantDir);
                 }
                 if (!Directory.Exists(meshBoundaryConditionsDirectory))
                 {
@@ -380,9 +380,9 @@ namespace Eddy
                 }
 
 
-                File.WriteAllText(DOMBOX.meshSystemDirectory + @"\blockMeshDict", StringTemplates.BlockMeshDict(DOMBOX));
-                File.WriteAllText(DOMBOX.baseWorkingDirectory + @"\mesh\case.foam", "");
-                File.WriteAllText(DOMBOX.meshSystemDirectory + @"\controlDict", StringTemplates.ControlDict(DOMBOX, null, 0));
+                File.WriteAllText(DOMBOX.meshSystemDir + @"\blockMeshDict", EddyLib.StrTemp.OFExecDicts.BlockMeshDict(DOMBOX));
+                File.WriteAllText(DOMBOX.baseWorkingDir + @"\mesh\case.foam", "");
+                File.WriteAllText(DOMBOX.meshSystemDir + @"\controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(DOMBOX, null, 0));
 
                 if (!File.Exists(baseWorkingDirectory + @"\mesh\log"))
                 {
@@ -392,9 +392,9 @@ namespace Eddy
 
 
                 //export RAD for DAYSIM
-                if (!Directory.Exists(DOMBOX.baseWorkingDirectory + @"Rad\"))
+                if (!Directory.Exists(DOMBOX.baseWorkingDir + @"Rad\"))
                 {
-                    Directory.CreateDirectory(DOMBOX.baseWorkingDirectory + @"Rad\");
+                    Directory.CreateDirectory(DOMBOX.baseWorkingDir + @"Rad\");
                 }
                 string radMat = @"
 void plastic Generic_20
@@ -406,8 +406,8 @@ void plastic Generic_20
                 daysimMesh.Append(combinedMeshes);
                 // Todo: add ground plane to the above mesh
 
-                File.WriteAllText(DOMBOX.baseWorkingDirectory + @"Rad\materials.rad", radMat);
-                RadianceFiles.MeshProc(daysimMesh, DOMBOX.baseWorkingDirectory + @"Rad\scene.rad", "Generic_20");
+                File.WriteAllText(DOMBOX.baseWorkingDir + @"Rad\materials.rad", radMat);
+                RadianceFiles.MeshProc(daysimMesh, DOMBOX.baseWorkingDir + @"Rad\scene.rad", "Generic_20");
 
 
                 string logFile = "";

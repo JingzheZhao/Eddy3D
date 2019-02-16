@@ -135,15 +135,15 @@ namespace Eddy
             }
 
             // Export probes file
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_probes.bat"), StringTemplates.Run_Probes(DOM));
+            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_probes.bat"), EddyLib.StringTemplatesRun_Probes(DOM));
 
 
             // export pts file for Daysim
-            if (!Directory.Exists(DOM.baseWorkingDirectory + @"Rad\"))
+            if (!Directory.Exists(DOM.baseWorkingDir + @"Rad\"))
             {
-                Directory.CreateDirectory(DOM.baseWorkingDirectory + @"Rad\");
+                Directory.CreateDirectory(DOM.baseWorkingDir + @"Rad\");
             }
-            RadianceFiles.writePTS(DOM.baseWorkingDirectory + @"\Rad\sensors.pts", listOfPoints);
+            RadianceFiles.writePTS(DOM.baseWorkingDir + @"\Rad\sensors.pts", listOfPoints);
 
 
 
@@ -170,8 +170,8 @@ namespace Eddy
                     for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                     {
 
-                        File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDirs[i] + @"\system\" + "controlDict", StringTemplates.ControlDict(DOM, null, i));
-                        File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDirs[i] + @"\system\" + pointName, StringTemplates.SampleProbes(listOfPoints, pointName, OFfield));
+                        File.WriteAllText(DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + "controlDict", EddyLib.StringTemplatesControlDict(DOM, null, i));
+                        File.WriteAllText(DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + pointName, EddyLib.StringTemplatesSampleProbes(listOfPoints, pointName, OFfield));
 
 
 
@@ -195,7 +195,7 @@ namespace Eddy
 
                         // Write the dicts
 
-                        File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDirs[i] + @"\system\" + pointName, StringTemplates.SampleProbes(listOfPoints, pointName, OFfield));
+                        File.WriteAllText(DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + pointName, EddyLib.StringTemplatesSampleProbes(listOfPoints, pointName, OFfield));
 
 
 

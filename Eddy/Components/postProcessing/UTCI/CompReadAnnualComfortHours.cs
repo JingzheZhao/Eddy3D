@@ -104,7 +104,7 @@ namespace Eddy
             //// Fill datatrees from CSV
 
 
-            var path = DOM.baseWorkingDirectory + @"\UTCI.csv";
+            var path = DOM.baseWorkingDir + @"\UTCI.csv";
             List<double> ComfortHoursList = new List<double>();
 
 
@@ -116,7 +116,7 @@ namespace Eddy
 
 
 
-            var allLines = File.ReadAllLines(DOM.baseWorkingDirectory + @"\UTCI.csv");
+            var allLines = File.ReadAllLines(DOM.baseWorkingDir + @"\UTCI.csv");
             var numberOfProbes = allLines.Count();
 
 

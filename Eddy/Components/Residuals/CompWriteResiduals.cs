@@ -111,7 +111,7 @@ namespace Eddy
                 foreach (double dir in DOM.BCInflow.windDirs)
                 {
 
-                    var p1 = DOM.baseWorkingDirectory + dir + @"\postProcessing\residuals\";
+                    var p1 = DOM.baseWorkingDir + dir + @"\postProcessing\residuals\";
                     fullFilePath = p1 + Utilities.GetLastIterationFromDirectory(p1) + "\\" + @"\\residuals.dat";
                     if (!File.Exists(fullFilePath))
                     {
@@ -139,7 +139,7 @@ set format y ""10^{%T}""
 set datafile separator '\t'
 plot '" + fullFilePath + @"' u($1):2 with lines title 'Ux', '" + fullFilePath + @"' u($1):3 with lines title 'Uy', '" + fullFilePath + @"' u($1):4 with lines title 'Uz', '" + fullFilePath + @"' u($1):5 with lines title 'p', '" + fullFilePath + @"' u($1):6 with lines title 'omega', '" + fullFilePath + @"' u($1):7 with lines title 'k'
 set terminal pdf
-set output '" + DOM.baseWorkingDirectory + @"residuals_" + dir + @".pdf'
+set output '" + DOM.baseWorkingDir + @"residuals_" + dir + @".pdf'
 replot
 ";
                     swPDF.WriteLine(strInputTextPDF);

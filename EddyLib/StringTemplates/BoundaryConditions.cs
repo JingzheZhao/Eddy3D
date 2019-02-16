@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 using Rhino.Geometry;
 
 
-namespace EddyLib
+namespace EddyLib.StrTemp
 {
-    public class BoundaryConditionTemplates
+    public class BCDicts
     {
-        public static string ABLConditions_Cyl(OFBaseDomain DOM, int d)
+        public static string ABLCond_Cyl(OFBaseDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\

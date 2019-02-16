@@ -133,8 +133,8 @@
 
 //                for (int l = 0; l < DOM.BCInflow.windDir.Count; l++)
 //                {
-//                    File.WriteAllText(DOM.baseWorkingDirectory +  DOM.BCInflow.windDir[l] + @"\system\" + "controlDict", StringTemplates.controlDict(DOM, null, l));
-//                    File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[l]   + @"\system\" + "topoSetDict", StringTemplates.topoSetDict(allTopo));
+//                    File.WriteAllText(DOM.baseWorkingDirectory +  DOM.BCInflow.windDir[l] + @"\system\" + "controlDict", EddyLib.StringTemplatescontrolDict(DOM, null, l));
+//                    File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[l]   + @"\system\" + "topoSetDict", EddyLib.StringTemplatestopoSetDict(allTopo));
                 
 
 

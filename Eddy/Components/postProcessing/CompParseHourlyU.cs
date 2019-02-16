@@ -83,7 +83,7 @@ namespace Eddy
 
             for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
             {
-                fullProbeFilePath.Add(DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\postProcessing\U_Probes.csv");
+                fullProbeFilePath.Add(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\postProcessing\U_Probes.csv");
             }
 
             var numberOfWindDirs = DOM.BCInflow.windDirs.Count();
@@ -146,7 +146,7 @@ namespace Eddy
                 }
                 UFile.AppendLine("");
             }
-            File.WriteAllText(DOM.baseWorkingDirectory + @"\hourlyU.csv", UFile.ToString());
+            File.WriteAllText(DOM.baseWorkingDir + @"\hourlyU.csv", UFile.ToString());
 
             //Write Reduction Array to file
 
@@ -170,7 +170,7 @@ namespace Eddy
                 }
                 ReductionFile.AppendLine("");
             }
-            File.WriteAllText(DOM.baseWorkingDirectory + @"\WindReductionData.csv", ReductionFile.ToString());
+            File.WriteAllText(DOM.baseWorkingDir + @"\WindReductionData.csv", ReductionFile.ToString());
 
 
 

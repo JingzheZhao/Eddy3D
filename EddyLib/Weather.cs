@@ -95,7 +95,7 @@ namespace EddyLib
             }
             catch (Exception e)
             {
-                throw;
+                throw e;
             }
 
 

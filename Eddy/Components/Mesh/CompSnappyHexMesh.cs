@@ -177,7 +177,7 @@ namespace Eddy
             }
 
             // Check for killed processes
-            if (Utilities.DidProcessGetKilled(DOM.meshWorkingDirectory) == true)
+            if (Utilities.DidProcessGetKilled(DOM.meshWorkingDir) == true)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Some processes got killed probably because to little RAM was available. Try to increase the RAM acclocated for the Docker virtual machine.");
             }
@@ -187,9 +187,9 @@ namespace Eddy
             if (Clean == true)
             {
 
-                if (Directory.Exists(DOM.meshPolyMeshDirectory))
+                if (Directory.Exists(DOM.meshPolyMeshDir))
                 {
-                    System.IO.DirectoryInfo di = new DirectoryInfo(DOM.meshPolyMeshDirectory);
+                    System.IO.DirectoryInfo di = new DirectoryInfo(DOM.meshPolyMeshDir);
                     foreach (FileInfo file in di.GetFiles())
                     {
                         file.Delete();
@@ -200,9 +200,9 @@ namespace Eddy
                     }
                 }
 
-                if (Directory.Exists(DOM.meshConstantDirectory + @"extendedFeatureEdgeMesh"))
+                if (Directory.Exists(DOM.meshConstantDir + @"extendedFeatureEdgeMesh"))
                 {
-                    System.IO.DirectoryInfo di = new DirectoryInfo(DOM.meshConstantDirectory + @"extendedFeatureEdgeMesh");
+                    System.IO.DirectoryInfo di = new DirectoryInfo(DOM.meshConstantDir + @"extendedFeatureEdgeMesh");
                     foreach (FileInfo file in di.GetFiles())
                     {
                         file.Delete();
@@ -220,7 +220,7 @@ namespace Eddy
 
                     for (int i = 0; i < DOM.CPUs; i++)
                     {
-                        var path = DOM.meshWorkingDirectory + @"\processor" + i;
+                        var path = DOM.meshWorkingDir + @"\processor" + i;
                         if (Directory.Exists(path))
                         {
                             System.IO.DirectoryInfo di = new DirectoryInfo(path);
@@ -241,7 +241,7 @@ namespace Eddy
 
                     for (int i = 0; i < DOM.CPUs; i++)
                     {
-                        var meshPath = DOM.meshWorkingDirectory + @"\processor" + i;
+                        var meshPath = DOM.meshWorkingDir + @"\processor" + i;
                         if (Directory.Exists(meshPath))
                         {
                             System.IO.DirectoryInfo di = new DirectoryInfo(meshPath);
@@ -259,7 +259,7 @@ namespace Eddy
                         for (int l = 0; l < DOM.BCInflow.windDirs.Count; l++)
                         {
 
-                            var cpuPath = DOM.baseWorkingDirectory + DOM.BCInflow.windDirs[l] + @"\processor" + i;
+                            var cpuPath = DOM.baseWorkingDir + DOM.BCInflow.windDirs[l] + @"\processor" + i;
 
                             if (Directory.Exists(cpuPath))
                             {
@@ -287,9 +287,9 @@ namespace Eddy
 
 
 
-            var meshStlDir = DOM.meshWorkingDirectory + @"\constant\triSurface\";
-            var meshStlFilenameBuildings = DOM.meshWorkingDirectory + @"\constant\triSurface\building.stl";
-            var meshStlFilenameGround = DOM.meshWorkingDirectory + @"\constant\triSurface\ground.stl";
+            var meshStlDir = DOM.meshWorkingDir + @"\constant\triSurface\";
+            var meshStlFilenameBuildings = DOM.meshWorkingDir + @"\constant\triSurface\building.stl";
+            var meshStlFilenameGround = DOM.meshWorkingDir + @"\constant\triSurface\ground.stl";
 
             if (!Directory.Exists(meshStlDir))
             {
@@ -297,12 +297,12 @@ namespace Eddy
             }
 
 
-            if (!File.Exists(DOM.meshWorkingDirectory + @"\log"))
+            if (!File.Exists(DOM.meshWorkingDir + @"\log"))
             {
-                File.WriteAllText(DOM.meshWorkingDirectory + @"\log", "");
+                File.WriteAllText(DOM.meshWorkingDir + @"\log", "");
             }
 
-            string meshSystemDir = DOM.meshWorkingDirectory + @"\system\";
+            string meshSystemDir = DOM.meshWorkingDir + @"\system\";
 
             if (!Directory.Exists(meshSystemDir))
             {
@@ -315,19 +315,19 @@ namespace Eddy
 
 
 
-            File.WriteAllText(Path.Combine(meshSystemDir + "snappyHexMeshDict"), StringTemplates.SnappyHexMeshDict(DOM));
-            File.WriteAllText(Path.Combine(meshSystemDir + "surfaceFeatureExtractDict"), StringTemplates.SurfaceFeatureExtractDict());
-            File.WriteAllText(Path.Combine(meshSystemDir + "fvSchemes"), StringTemplates.FvSchemesRobust1());
-            File.WriteAllText(Path.Combine(meshSystemDir + "fvSolution"), StringTemplates.FvSolution(0));
-            File.WriteAllText(Path.Combine(meshSystemDir + "meshQualityDict"), StringTemplates.MeshQualityDict());
+            File.WriteAllText(Path.Combine(meshSystemDir + "snappyHexMeshDict"), EddyLib.StringTemplatesSnappyHexMeshDict(DOM));
+            File.WriteAllText(Path.Combine(meshSystemDir + "surfaceFeatureExtractDict"), EddyLib.StringTemplatesSurfaceFeatureExtractDict());
+            File.WriteAllText(Path.Combine(meshSystemDir + "fvSchemes"), EddyLib.StringTemplatesFvSchemesRobust1());
+            File.WriteAllText(Path.Combine(meshSystemDir + "fvSolution"), EddyLib.StringTemplatesFvSolution(0));
+            File.WriteAllText(Path.Combine(meshSystemDir + "meshQualityDict"), EddyLib.StringTemplatesMeshQualityDict());
 
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDirectory + "\\" + "run_checkBadMesh.bat"), StringTemplates.Run_checkBadMesh(DOM));
+            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_checkBadMesh.bat"), EddyLib.StringTemplatesRun_checkBadMesh(DOM));
 
 
             //Autocalc number of CPUs
             if (DOM.autoCPUCalc == true)
             {
-                DOM.CPUs = Utilities.CPUAutoCalc(DOM.meshWorkingDirectory, DOM.CPUs);
+                DOM.CPUs = Utilities.CPUAutoCalc(DOM.meshWorkingDir, DOM.CPUs);
             }
 
 
@@ -338,7 +338,7 @@ namespace Eddy
 
             string logFile = "";
 
-            using (FileStream stream = File.Open(DOM.meshWorkingDirectory + @"\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (FileStream stream = File.Open(DOM.meshWorkingDir + @"\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
                 using (StreamReader reader = new StreamReader(stream))
                 {
