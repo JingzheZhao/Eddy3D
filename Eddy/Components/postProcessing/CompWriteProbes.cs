@@ -135,7 +135,7 @@ namespace Eddy
             }
 
             // Export probes file
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_probes.bat"), EddyLib.StringTemplatesRun_Probes(DOM));
+            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_probes.bat"), EddyLib.StrTemp.BatFiles.Run_Probes(DOM));
 
 
             // export pts file for Daysim
@@ -170,8 +170,8 @@ namespace Eddy
                     for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                     {
 
-                        File.WriteAllText(DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + "controlDict", EddyLib.StringTemplatesControlDict(DOM, null, i));
-                        File.WriteAllText(DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + pointName, EddyLib.StringTemplatesSampleProbes(listOfPoints, pointName, OFfield));
+                        File.WriteAllText(DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + "controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(DOM, null, i));
+                        File.WriteAllText(DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + pointName, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, pointName, OFfield));
 
 
 
@@ -195,7 +195,7 @@ namespace Eddy
 
                         // Write the dicts
 
-                        File.WriteAllText(DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + pointName, EddyLib.StringTemplatesSampleProbes(listOfPoints, pointName, OFfield));
+                        File.WriteAllText(DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + pointName, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, pointName, OFfield));
 
 
 

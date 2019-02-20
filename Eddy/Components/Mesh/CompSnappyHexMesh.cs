@@ -302,11 +302,11 @@ namespace Eddy
                 File.WriteAllText(DOM.meshWorkingDir + @"\log", "");
             }
 
-            string meshSystemDir = DOM.meshWorkingDir + @"\system\";
+         
 
-            if (!Directory.Exists(meshSystemDir))
+            if (!Directory.Exists(DOM.meshSystemDir))
             {
-                Directory.CreateDirectory(meshSystemDir);
+                Directory.CreateDirectory(DOM.meshSystemDir);
             }
 
             Point3d locationInMesh = new Point3d();
@@ -315,13 +315,15 @@ namespace Eddy
 
 
 
-            File.WriteAllText(Path.Combine(meshSystemDir + "snappyHexMeshDict"), EddyLib.StringTemplatesSnappyHexMeshDict(DOM));
-            File.WriteAllText(Path.Combine(meshSystemDir + "surfaceFeatureExtractDict"), EddyLib.StringTemplatesSurfaceFeatureExtractDict());
-            File.WriteAllText(Path.Combine(meshSystemDir + "fvSchemes"), EddyLib.StringTemplatesFvSchemesRobust1());
-            File.WriteAllText(Path.Combine(meshSystemDir + "fvSolution"), EddyLib.StringTemplatesFvSolution(0));
-            File.WriteAllText(Path.Combine(meshSystemDir + "meshQualityDict"), EddyLib.StringTemplatesMeshQualityDict());
+            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "snappyHexMeshDict"),         EddyLib.StrTemp.OFExecDicts.SnappyHexMeshDict(DOM));
+            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "surfaceFeatureExtractDict"), EddyLib.StrTemp.OFExecDicts.SurfaceFeatureExtractDict());
+            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "fvSchemes"),                 EddyLib.StrTemp.OFExecDicts.FvSchemesRobust1());
+            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "fvSolution"),                EddyLib.StrTemp.OFExecDicts.FvSolution(0));
+            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "meshQualityDict"),           EddyLib.StrTemp.OFExecDicts.MeshQualityDict());
+            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "decomposeParDict"),          EddyLib.StrTemp.OFExecDicts.DecomposeParDict(DOM));
 
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_checkBadMesh.bat"), EddyLib.StringTemplatesRun_checkBadMesh(DOM));
+            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "run_checkBadMesh.bat"),     EddyLib.StrTemp.BatFiles.Run_checkBadMesh(DOM));
+
 
 
             //Autocalc number of CPUs

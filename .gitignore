@@ -290,4 +290,5 @@ __pycache__/
 # Compiled files
 **.exe
 **.dll
-
+*.exe
+*.dll

@@ -148,20 +148,35 @@ namespace Eddy
 
 
 
-                // Check if Docker is running
+                // Check if Docker is running if Docker is the sim engine
 
-                Utilities.WriteDockerInfo(DOM.baseWorkingDir);
-                bool dockerRunning = false;
-                if (Utilities.IsDockerRunning(DOM.baseWorkingDir, DOM.IsWindows7))
+                if (DOM.simEngine == 0)
                 {
-                    dockerRunning = true;
-                }
-                else
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Blank, @"It seems that Docker is not running. Please start the application ""Docker for Windows"".");
-                }
+
+                    Utilities.WriteDockerInfo(DOM.baseWorkingDir);
+                    bool dockerRunning = false;
+                    if (Utilities.IsDockerRunning(DOM.baseWorkingDir, DOM.IsWindows7))
+                    {
+                        dockerRunning = true;
+                    }
+                    else
+                    {
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Blank, @"It seems that Docker is not running. Please start the application ""Docker for Windows"".");
+                    }
+
+                    // Check for killed processes
 
 
+                    for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
+                    {
+                        if (Utilities.DidProcessGetKilled(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i]) == true)
+                        {
+                            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Some processes got killed probably because to little RAM was available. Try to increase the RAM acclocated for the Docker virtual machine.");
+                        }
+
+                    }
+
+                }
 
 
 
@@ -171,15 +186,7 @@ namespace Eddy
                 }
 
 
-                // Check for killed processes
-                for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
-                {
-                    if (Utilities.DidProcessGetKilled(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i]) == true)
-                    {
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Some processes got killed probably because to little RAM was available. Try to increase the RAM acclocated for the Docker virtual machine.");
-                    }
 
-                }
 
                 //Autocalc number of CPUs
                 if (DOM.autoCPUCalc == true)
@@ -197,6 +204,7 @@ namespace Eddy
                     var simStlFilenameGround = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\constant\triSurface\ground.stl";
                     var simConstantDir = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\constant\";
                     var simBoundaryConditionsDir = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\0.org\";
+                    var simBoundaryConditionsDirTemp = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\0\";
 
                     if (!Directory.Exists(simStlDir))
                     {
@@ -214,6 +222,10 @@ namespace Eddy
                     if (!Directory.Exists(simBoundaryConditionsDir))
                     {
                         Directory.CreateDirectory(simBoundaryConditionsDir);
+                    }
+                    if (!Directory.Exists(simBoundaryConditionsDirTemp))
+                    {
+                        Directory.CreateDirectory(simBoundaryConditionsDirTemp);
                     }
 
                     File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\" + "controlDict"), EddyLib.StrTemp.OFExecDicts.ControlDict(DOM, null, i));
@@ -246,11 +258,18 @@ namespace Eddy
                         {
                             File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), EddyLib.StrTemp.BCDicts.UBoxABL(DOM, i));
                             File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), EddyLib.StrTemp.BCDicts.ABLConditions(DOM, i));
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "U"), EddyLib.StrTemp.BCDicts.UBoxABL(DOM, i));
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "ABLConditions"), EddyLib.StrTemp.BCDicts.ABLConditions(DOM, i));
                         }
-                        if (DOM.BCInflow.btype is BoundaryType.constant) { File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), EddyLib.StrTemp.BCDicts.UBoxConstU(DOM, i)); }
+                        if (DOM.BCInflow.btype is BoundaryType.constant)
+                        {
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), EddyLib.StrTemp.BCDicts.UBoxConstU(DOM, i));
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "U"), EddyLib.StrTemp.BCDicts.UBoxConstU(DOM, i));
+                        }
 
                         //REmove this later
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), EddyLib.StrTemp.BCDicts.ABLCond_Cyl(DOM, i));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "ABLConditions"), EddyLib.StrTemp.BCDicts.ABLCond_Cyl(DOM, i));
                         //REmove this later
 
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "p"), EddyLib.StrTemp.BCDicts.P(DOM));
@@ -259,8 +278,15 @@ namespace Eddy
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "epsilon"), EddyLib.StrTemp.BCDicts.Epsilon(DOM));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "nut"), EddyLib.StrTemp.BCDicts.Nut(DOM));
 
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "p"), EddyLib.StrTemp.BCDicts.P(DOM));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "omega"), EddyLib.StrTemp.BCDicts.Omega(DOM));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "k"), EddyLib.StrTemp.BCDicts.K(DOM));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "epsilon"), EddyLib.StrTemp.BCDicts.Epsilon(DOM));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "nut"), EddyLib.StrTemp.BCDicts.Nut(DOM));
+
 
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), EddyLib.StrTemp.BCDicts.InitialConditions(DOM, i));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "initialConditions"), EddyLib.StrTemp.BCDicts.InitialConditions(DOM, i));
 
                         File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\snappyHexMeshDict"), EddyLib.StrTemp.OFExecDicts.SnappyHexMeshDict(DOM));
                         File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\surfaceFeatureExtractDict"), EddyLib.StrTemp.OFExecDicts.SurfaceFeatureExtractDict());
@@ -312,11 +338,18 @@ namespace Eddy
                         {
                             File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), EddyLib.StrTemp.BCDicts.U_CylABL(DOM, i));
                             File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), EddyLib.StrTemp.BCDicts.ABLCond_Cyl(DOM, i));
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "U"), EddyLib.StrTemp.BCDicts.U_CylABL(DOM, i));
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "ABLConditions"), EddyLib.StrTemp.BCDicts.ABLCond_Cyl(DOM, i));
                         }
-                        if (DOM.BCInflow.btype is BoundaryType.constant) { File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), EddyLib.StrTemp.BCDicts.UCylConstU(DOM, i)); }
+                        if (DOM.BCInflow.btype is BoundaryType.constant)
+                        {
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), EddyLib.StrTemp.BCDicts.UCylConstU(DOM, i));
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "U"), EddyLib.StrTemp.BCDicts.UCylConstU(DOM, i));
+                        }
 
                         //REmove this later
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), EddyLib.StrTemp.BCDicts.ABLCond_Cyl(DOM, i));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "ABLConditions"), EddyLib.StrTemp.BCDicts.ABLCond_Cyl(DOM, i));
                         //REmove this later
 
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "p"), EddyLib.StrTemp.BCDicts.P_Cyl(DOM, i));
@@ -325,8 +358,15 @@ namespace Eddy
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "epsilon"), EddyLib.StrTemp.BCDicts.Epsilon_Cyl(DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "nut"), EddyLib.StrTemp.BCDicts.Nut_Cyl(DOM, i));
 
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "p"), EddyLib.StrTemp.BCDicts.P_Cyl(DOM, i));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "omega"), EddyLib.StrTemp.BCDicts.Omega_Cyl(DOM, i));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "k"), EddyLib.StrTemp.BCDicts.K_Cyl(DOM, i));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "epsilon"), EddyLib.StrTemp.BCDicts.Epsilon_Cyl(DOM, i));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "nut"), EddyLib.StrTemp.BCDicts.Nut_Cyl(DOM, i));
+
 
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), EddyLib.StrTemp.BCDicts.InitialConditions(DOM, i));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "initialConditions"), EddyLib.StrTemp.BCDicts.InitialConditions(DOM, i));
 
                         File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\snappyHexMeshDict"), EddyLib.StrTemp.OFExecDicts.SnappyHexMeshDict(DOM));
                         File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\surfaceFeatureExtractDict"), EddyLib.StrTemp.OFExecDicts.SurfaceFeatureExtractDict());
@@ -367,37 +407,38 @@ namespace Eddy
                         File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\fvSolution"), EddyLib.StrTemp.OFExecDicts.FvSolution(mode));
                         File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\meshQualityDict"), EddyLib.StrTemp.OFExecDicts.MeshQualityDict());
                         File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\residuals"), EddyLib.StrTemp.OFExecDicts.ResidualsDict());
+                        File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\system\decomposeParDict"), EddyLib.StrTemp.OFExecDicts.DecomposeParDict(DOM));
 
 
                     }
 
-                    
+
 
                 }
-              
-              
-                
-                // Batch files depending on type
-                
 
-                File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_mesh.bat"), EddyLib.StrTemp.DockerBatFiles.Run_Mesh_Cyl(DOM));
-                File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run.bat"), EddyLib.StrTemp.DockerBatFiles.Run(DOM));
-                File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_sim_all.bat"), EddyLib.StrTemp.DockerBatFiles.RunSimOnly(DOM));
-                File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_ray.bat"), EddyLib.StrTemp.DockerBatFiles.Run_RayTrace(DOM));
-                File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_probes.bat"), EddyLib.StrTemp.DockerBatFiles.Run_Probes(DOM));
-                File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_utci.bat"), EddyLib.StrTemp.DockerBatFiles.Run_UTCI(DOM));
+
+
+                // Batch files depending on type
+
+
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_mesh.bat"), EddyLib.StrTemp.BatFiles.Run_Mesh_Cyl(DOM));
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run.bat"), EddyLib.StrTemp.BatFiles.Run(DOM));
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_sim_all.bat"), EddyLib.StrTemp.BatFiles.RunSimOnly(DOM));
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_ray.bat"), EddyLib.StrTemp.BatFiles.Run_RayTrace(DOM));
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_probes.bat"), EddyLib.StrTemp.BatFiles.Run_Probes(DOM));
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_utci.bat"), EddyLib.StrTemp.BatFiles.Run_UTCI(DOM));
 #if DEBUG
-                File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_blockMesh.bat"), EddyLib.StrTemp.DockerBatFiles.run_blockMesh(DOM));
+                File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_blockMesh.bat"), EddyLib.StrTemp.BatFiles.run_blockMesh(DOM));
 #endif
 
                 for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                 {
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + "_run_sim.bat"), EddyLib.StrTemp.DockerBatFiles.Run_sim(DOM, i));
-                    File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + "_run_sim_continue.bat"), EddyLib.StrTemp.DockerBatFiles.Run_sim_continue(DOM, i));
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + "_run_sim.bat"), EddyLib.StrTemp.BatFiles.Run_sim(DOM, i));
+                    File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + "_run_sim_continue.bat"), EddyLib.StrTemp.BatFiles.Run_sim_continue(DOM, i));
 
                 }
 
-                
+
 
                 // Calculate runtimes of all simulation based on log file
 

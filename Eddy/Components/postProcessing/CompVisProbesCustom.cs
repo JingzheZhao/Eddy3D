@@ -157,7 +157,7 @@ namespace Eddy
             }
 
             // Export probes file
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_probes.bat"), EddyLib.StringTemplatesRun_Probes(DOM));
+            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_probes.bat"), EddyLib.StrTemp.BatFiles.Run_Probes(DOM));
 
 
             // export pts file for Daysim
@@ -201,8 +201,8 @@ namespace Eddy
                         {
                             var path = DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + enumeratedProbeName;
 
-                            File.WriteAllText(DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + "controlDict", EddyLib.StringTemplatesControlDict(DOM, null, i));
-                            File.WriteAllText(path, EddyLib.StringTemplatesSampleProbes(listOfPoints, enumeratedProbeName, OFField));
+                            File.WriteAllText(DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + "controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(DOM, null, i));
+                            File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, enumeratedProbeName, OFField));
 
                             command.Append(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime | tee  " + DOM.BCInflow.windDirs[i] + @"/log_probes;");
 
@@ -263,7 +263,7 @@ namespace Eddy
 
                             var path = DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + enumeratedProbeName;
 
-                            File.WriteAllText(path, EddyLib.StringTemplatesSampleProbes(listOfPoints, enumeratedProbeName, OFField));
+                            File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, enumeratedProbeName, OFField));
 
                             command.Append(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime | tee  " + DOM.BCInflow.windDirs[i] + @"/log_probes;");
 

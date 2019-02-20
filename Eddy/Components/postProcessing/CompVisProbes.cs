@@ -185,7 +185,7 @@ namespace Eddy
             }
 
             // Export probes file
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_probes.bat"), EddyLib.StrTemp.DockerBatFiles.Run_Probes(DOM));
+            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_probes.bat"), EddyLib.StrTemp.BatFiles.Run_Probes(DOM));
 
 
             // export pts file for Daysim

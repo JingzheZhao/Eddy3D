@@ -81,8 +81,10 @@ namespace EddyLib
 
         public List<double> runtimes = new List<double>();
 
+        // Globals for simulation
 
-
+        public int simEngine = 1; // 0 = Docker, 1 = BlueCFD
+        public string installDirBlueCFD = @"C:\OpenFOAM\";
 
 
         public static BoundingBox GetRefinementBox(Plane localSystem, Mesh buildings, double padding = 0)
@@ -103,9 +105,7 @@ namespace EddyLib
             //return new Box(localSystem, refBoxinterval, refBoxinterval2, refBoxinterval3);
         }
 
-
-
-
+               
 
 
         public Cylinder GetRefinementCyl(Point3d center, Mesh buildings, double paddingXY = 0, double paddingZ = 0.3)

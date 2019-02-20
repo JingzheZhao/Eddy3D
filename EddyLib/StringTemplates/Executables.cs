@@ -1915,9 +1915,6 @@ RAS
         }
 
 
-
-
-
         public static string ResidualsDict()
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
@@ -1946,14 +1943,30 @@ fields (U p epsilon omega  k);
 ";
         }
 
+        public static string DecomposeParDict(OFBaseDomain DOM)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(@"// * * * * * * * * * //
+            FoamFile
+{
+                version 0.5;
+                format ascii;
+                root ""ROOT"";
+	case ""CASE"";
 
+    class dictionary;
+        object nix;
+    }
+    method scotch;
+    numberOfSubdomains " + DOM.CPUs + @";
+scotchCoeffs
+{
+}");
+            return sb.ToString();
 
-
-
+        }
 
 
     }
 
-
-    
 }
