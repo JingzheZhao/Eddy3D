@@ -19,16 +19,20 @@ namespace EddyLib.StrTemp
         private static readonly List<string> RCBlockMeshSingleCPU = new List<string> {
         "blockMesh"};
 
-        private static readonly List<string> RCSimMultiCPU = new List<string> {
-        "decomposePar",
-        "foamJob -s -p renumberMesh -overwrite",
-        "foamJob -s -p potentialFoam",
-        "foamJob -s -p simpleFoam",
-        "reconstructPar -latestTime",
-        "checkMesh" };
+        private static List<string> RCSimMultiCPU(OFBaseDomain DOM)
+        {
+            List<string> lst = new List<string>();
+            lst.Add("decomposePar");
+            lst.Add("mpirun -np " + DOM.CPUs + @" renumberMesh -overwrite -parallel");
+            lst.Add("mpirun -np " + DOM.CPUs + @" potentialFoam");
+            lst.Add("mpirun -np " + DOM.CPUs + @" simpleFoam");
+            lst.Add("reconstructPar -latestTime");
+            lst.Add("checkMesh");
+            return lst;
+        }
 
         private static readonly List<string> RCSimSingleCPU = new List<string> {
-        "renumberMesh -overwrite ",
+        "renumberMesh -overwrite",
         "potentialFoam",
         "simpleFoam",
         "checkMesh"};
@@ -37,18 +41,26 @@ namespace EddyLib.StrTemp
         "simpleFoam",
         "checkMesh"};
 
-        private static readonly List<string> RCSimContinueMultiCPU = new List<string> {
-        "simpleFoam",
-        "checkMesh"};
+        private static List<string> RCSimContinueMultiCPU(OFBaseDomain DOM)
+        {
+            List<string> lst = new List<string>();
+            lst.Add("mpirun -np " + DOM.CPUs + @" simpleFoam");
+            lst.Add("reconstructPar -latestTime");
+            lst.Add("checkMesh");
+            return lst;
+        };
 
-        private static readonly List<string> RCMeshMultiCPU = new List<string> {
-        "blockMesh",
-        "surfaceFeatureExtract",
-        "decomposePar",
-        "foamJob -parallel -screen snappyHexMesh -overwrite",
-        "reconstructParMesh -constant",
-        "renumberMesh -overwrite",
-        "checkMesh" };
+        private static List<string> RCMeshMultiCPU(OFBaseDomain DOM)
+        {
+            List<string> lst = new List<string>();
+            lst.Add("blockMesh");
+            lst.Add("surfaceFeatureExtract");
+            lst.Add("mpirun -np " + DOM.CPUs + @" snappyHexMesh -overwrite");
+            lst.Add("reconstructParMesh -constant");
+            lst.Add("renumberMesh -overwrite");
+            lst.Add("checkMesh");
+            return lst;
+        }
 
         private static readonly List<string> RCMeshSingleCPU = new List<string> {
         "blockMesh",
@@ -83,7 +95,7 @@ namespace EddyLib.StrTemp
             {
                 if (DOM.CPUs > 1)
                 {
-                    foreach (string str in RCMeshMultiCPU)
+                    foreach (string str in RCMeshMultiCPU(DOM))
                     {
                         sb.Append(DockerPrefixPath(DOM) + str + AppendSuffix());
                     }
@@ -110,7 +122,7 @@ namespace EddyLib.StrTemp
             {
                 if (DOM.CPUs > 1)
                 {
-                    sb.Append(TempBlueCFD(RCMeshMultiCPU, DOM.meshWorkingDir));
+                    sb.Append(TempBlueCFD(RCMeshMultiCPU(DOM), DOM.meshWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
@@ -181,7 +193,7 @@ namespace EddyLib.StrTemp
                 if (DOM.CPUs > 1)
                 {
 
-                    foreach (string str in RCSimMultiCPU)
+                    foreach (string str in RCSimMultiCPU(DOM))
                     {
                         sb.Append(DockerPrefixPath(DOM, d) + str + AppendSuffix());
                     }
@@ -205,7 +217,7 @@ namespace EddyLib.StrTemp
             {
                 if (DOM.CPUs > 1)
                 {
-                    sb.Append(TempBlueCFD(RCSimMultiCPU, caseWorkingDir));
+                    sb.Append(TempBlueCFD(RCSimMultiCPU(DOM), caseWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
@@ -537,7 +549,7 @@ cd ""{1}""" + System.Environment.NewLine, installationPath, caseDir));
 
             foreach (string str in commands)
             {
-                sb.AppendLine(str);
+                sb.AppendLine(str + " " +  AppendSuffix());
             }
 
             return sb.ToString();

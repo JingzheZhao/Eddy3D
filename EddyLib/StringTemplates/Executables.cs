@@ -519,11 +519,15 @@ FoamFile
 libs
 (
         ""libOpenFOAM.so""
-        ""libsimpleSwakFunctionObjects.so""
-        ""libswakFunctionObjects.so""
-        ""libgroovyBC.so""
         ""libutilityFunctionObjects.so""
-        ""libsolverFunctionObjects.so""
+        ""libsolverFunctionObjects.so""");
+        if (DOM.simEngine == 0)
+            {
+                sb.Append(@"""libsimpleSwakFunctionObjects.so""        
+                ""libswakFunctionObjects.so""        
+                ""libgroovyBC.so""");      
+             } 
+        sb.Append(@"           
 );
             application simpleFoam;
             startFrom latestTime;
