@@ -27,7 +27,7 @@ namespace Eddy
     {
 
 
-      
+
 
 
 
@@ -113,7 +113,6 @@ namespace Eddy
 
 
 
-            int fieldType = 0;
             List<Point3d> listOfPoints = new List<Point3d>();
 
             bool run = false;
@@ -127,28 +126,10 @@ namespace Eddy
             DA.GetData(4, ref run);
 
 
-            ParsingProbes.ReformatOFFields(OFFieldInt, out string OFField, out fieldType);
-                                 
-            // Inclusion check for probes
+            ParsingProbes.ReformatOFFields(OFFieldInt, out string OFField, out int fieldType);
 
-            // Filter the list
-            int kept = 0;
-            for (int i = 0; i < listOfPoints.Count; i++)
-            {
-                // Test whether this is an element that we want to keep.
-                if (DOM.inputBreps.IsPointInside(listOfPoints[i], 0.01, true) == false)
-                {
-                    // Add it to the list of kept elements.
-                    listOfPoints[kept] = listOfPoints[i];
-                    kept++;
-                }
-            }
-            // Unfortunately IList has no Resize method. So instead we
-            // remove the last element of the list until: elements.Count == kept.
-            while (kept < listOfPoints.Count)
-            {
-                listOfPoints.RemoveAt(listOfPoints.Count - 1);
-            }
+            //Discard points outside
+            listOfPoints = Utilities.DiscardPointsOutsideDomain(listOfPoints, DOM);
             var numberOfProbes = listOfPoints.Count();
 
 
@@ -210,11 +191,6 @@ namespace Eddy
                         StringBuilder command = new StringBuilder();
 
 
-                        //string pointName = "cp_Probes";                        
-                        //string cleanedOFField = Regex.Replace(OFField, @"[^a-zA-Z]", "");
-
-
-
                         for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                         {
                             var path = DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + enumeratedProbeName;
@@ -226,18 +202,12 @@ namespace Eddy
                             // Write the dicts
                             if (DOM.simEngine == 0)
                             {
-
-
                                 command.Append(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime | tee  " + DOM.BCInflow.windDirs[i] + @"/log_probes;");
                             }
                             else
                             {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
-
                                 command.AppendLine(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime");
-
                             }
-
-
                         }
 
                         if (run == true)
@@ -251,16 +221,7 @@ namespace Eddy
                             {
                                 //Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString(), "type log" }, DOM.baseWorkingDir), false, true, true);
                                 Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, DOM.baseWorkingDir), false, true, true);
-
                             }
-
-
-
-                            //ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.OFbaseWorkingDir);
-                            //Process p = new Process();
-                            //p.StartInfo = psi;
-                            //p.Start();
-                            //p.WaitForExit();
 
                         }
 
@@ -268,8 +229,6 @@ namespace Eddy
 
                         for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                         {
-
-
 
                             var caseDir = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i];
                             string pathToProbeFile = ParsingProbes.GetFullPathToProbeFile(enumeratedProbeName, caseDir, OFField);
@@ -287,8 +246,6 @@ namespace Eddy
 
                             }
                         }
-
-
 
                     }
 
@@ -315,14 +272,11 @@ namespace Eddy
                                 var path = DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + enumeratedProbeName;
                                 File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, enumeratedProbeName, OFField));
                                 command.AppendLine(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime");
-
                             }
-
                         }
 
                         if (run == true)
                         {
-
                             if (DOM.simEngine == 0)
                             {
                                 Utilities.StartProcessCMD(@" -e """ + command + @""" -f " + "\"" + DOM.OFbaseWorkingDir, false, true, false, Utilities.AssemblyDirectory + @"\CallOF.exe");
@@ -332,20 +286,12 @@ namespace Eddy
                                 // Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString(), "type log" }, DOM.baseWorkingDir), false, true, true);
                                 Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, DOM.baseWorkingDir), false, true, true);
                             }
-
                         }
                         //Thread.Sleep(2 * numberOfProbes);
 
-
-
-
-
                         for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                         {
-                            // Parse values
-
-
-
+                           
                             var caseDir = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i];
                             string pathToProbeFile = ParsingProbes.GetFullPathToProbeFile(enumeratedProbeName, caseDir, OFField);
                             if (File.Exists(pathToProbeFile))
@@ -362,9 +308,6 @@ namespace Eddy
                                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The file  """ + pathToProbeFile + @""" does not exist. Please run the probing component.");
 
                             }
-
-
-
 
                         }
                     }
