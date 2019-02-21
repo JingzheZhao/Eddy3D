@@ -23,9 +23,9 @@ namespace EddyLib.StrTemp
         {
             List<string> lst = new List<string>();
             lst.Add("decomposePar");
-            lst.Add("mpirun -np " + DOM.CPUs + @" renumberMesh -overwrite -parallel");
-            lst.Add("mpirun -np " + DOM.CPUs + @" potentialFoam");
-            lst.Add("mpirun -np " + DOM.CPUs + @" simpleFoam");
+            lst.Add("mpiexec -np " + DOM.CPUs + @" renumberMesh -overwrite -parallel");
+            lst.Add("mpiexec -np " + DOM.CPUs + @" potentialFoam");
+            lst.Add("mpiexec -np " + DOM.CPUs + @" simpleFoam");
             lst.Add("reconstructPar -latestTime");
             lst.Add("checkMesh");
             return lst;
@@ -44,7 +44,7 @@ namespace EddyLib.StrTemp
         private static List<string> RCSimContinueMultiCPU(OFBaseDomain DOM)
         {
             List<string> lst = new List<string>();
-            lst.Add("mpirun -np " + DOM.CPUs + @" simpleFoam");
+            lst.Add("mpiexec -np " + DOM.CPUs + @" simpleFoam");
             lst.Add("reconstructPar -latestTime");
             lst.Add("checkMesh");
             return lst;
@@ -55,7 +55,7 @@ namespace EddyLib.StrTemp
             List<string> lst = new List<string>();
             lst.Add("blockMesh");
             lst.Add("surfaceFeatureExtract");
-            lst.Add("mpirun -np " + DOM.CPUs + @" snappyHexMesh -overwrite");
+            lst.Add("mpiexec -np " + DOM.CPUs + @" snappyHexMesh -overwrite");
             lst.Add("reconstructParMesh -constant");
             lst.Add("renumberMesh -overwrite");
             lst.Add("checkMesh");
@@ -348,7 +348,7 @@ namespace EddyLib.StrTemp
         //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""pyFoamDecompose.py --clear . " + DOM.CPUs + @"| tee -a  log "" -f """ + DOM.OFbaseWorkingDir + DOM.BCInflow.windDirs[d] + " \"");
         //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""foamJob -s -p renumberMesh -overwrite | tee -a  log "" -f """ + DOM.OFbaseWorkingDir + DOM.BCInflow.windDirs[d] + " \"");
         //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""foamJob -s -p potentialFoam | tee -a  log "" -f """ + DOM.OFbaseWorkingDir + DOM.BCInflow.windDirs[d] + " \"");
-        //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""mpirun -np " + DOM.CPUs + @" simpleFoam -parallel | tee -a  log "" -f """ + DOM.OFbaseWorkingDir + DOM.BCInflow.windDirs[d] + " \"");
+        //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""mpiexec -np " + DOM.CPUs + @" simpleFoam -parallel | tee -a  log "" -f """ + DOM.OFbaseWorkingDir + DOM.BCInflow.windDirs[d] + " \"");
         //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""reconstructPar -latestTime | tee -a  log; "" -f """ + DOM.OFbaseWorkingDir + DOM.BCInflow.windDirs[d] + " \"");
         //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a  log "" -f """ + DOM.OFbaseWorkingDir + DOM.BCInflow.windDirs[d] + " \"");
         //#if DEBUG
