@@ -178,21 +178,29 @@ namespace EddyLib
 
         public static void WriteDockerInfo(string workingDirectory)
         {
-            System.Diagnostics.Process p = new System.Diagnostics.Process();
-            p.StartInfo.FileName = @"C:\Windows\System32\cmd.exe";
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.RedirectStandardInput = true;
-            p.StartInfo.CreateNoWindow = true;
-            p.Start();
-            StreamWriter dockerInfo = p.StandardInput;
-            String str = @"docker info > """ + workingDirectory + @"\dockerStatus""";
-            dockerInfo.WriteLine(str);
-            dockerInfo.Flush();
-            dockerInfo.Close();
-            p.WaitForExit();
-
+            StartProcessCMD(@"docker info > """ + workingDirectory + @"\dockerStatus""",true, true, true);          
 
         }
+
+        public static void StartProcessCMD(string argument,bool createnowindow,  bool waitforexit = false, bool close = false, string executable = @"C:\Windows\System32\cmd.exe")
+        {
+            System.Diagnostics.Process p = new System.Diagnostics.Process();
+            p.StartInfo.FileName = executable;
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.RedirectStandardInput = true;            
+            p.StartInfo.CreateNoWindow = createnowindow;
+            p.Start();
+            StreamWriter sw = p.StandardInput;
+            String strInputText = argument;
+            sw.WriteLine(strInputText);
+
+            sw.Flush();
+            if (waitforexit) { p.WaitForExit(); }
+            if (close) { p.Close(); }                    
+
+        }
+
+
 
         public static string ReformatWorkingDir(string workingDirectory)
         {
@@ -319,6 +327,31 @@ namespace EddyLib
         }
 
 
+        public static List<Point3d> DiscardPointsOutsideDomain(List<Point3d> listOfPoints, OFBaseDomain DOM)
+        {
+
+            // Inclusion check for probes
+
+            // Filter the list
+            int kept = 0;
+            for (int i = 0; i < listOfPoints.Count; i++)
+            {
+                // Test whether this is an element that we want to keep.
+                if (DOM.inputBreps.IsPointInside(listOfPoints[i], 0.01, true) == false)
+                {
+                    // Add it to the list of kept elements.
+                    listOfPoints[kept] = listOfPoints[i];
+                    kept++;
+                }
+            }
+            // Unfortunately IList has no Resize method. So instead we
+            // remove the last element of the list until: elements.Count == kept.
+            while (kept < listOfPoints.Count)
+            {
+                listOfPoints.RemoveAt(listOfPoints.Count - 1);
+            }
+            return listOfPoints;
+        }
 
         public static List<string> GetDirectories(string path, string searchPattern = "*",   SearchOption searchOption = SearchOption.TopDirectoryOnly)
         {

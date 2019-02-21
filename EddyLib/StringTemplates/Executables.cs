@@ -539,7 +539,7 @@ libs
             writeInterval   " + DOM.writeInterval + @";
             purgeWrite      " + DOM.keepTimeSteps + @";
             writeFormat binary;
-            writePrecision  6;
+            writePrecision  8;
             writeCompression uncompressed;
             timeFormat general;
             timePrecision   6;

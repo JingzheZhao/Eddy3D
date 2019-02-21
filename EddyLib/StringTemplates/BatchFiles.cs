@@ -48,7 +48,7 @@ namespace EddyLib.StrTemp
             lst.Add("reconstructPar -latestTime");
             lst.Add("checkMesh");
             return lst;
-        };
+        }
 
         private static List<string> RCMeshMultiCPU(OFBaseDomain DOM)
         {
@@ -80,10 +80,17 @@ namespace EddyLib.StrTemp
             sb.AppendLine(@"docker run - v """ + DOM.OFbaseWorkingDir + DOM.BCInflow.windDirs[d] + @":/ home / openfoam / ""--entrypoint = """" - it hfdresearch / swak4foamandpyfoam:latest - v4.1 bash - c ""source / opt / openfoam4 / etc / bashrc; cd / home / openfoam;");
             return sb.ToString();
         }
-        private static string AppendSuffix()
+        private static string AppendSuffixDocker()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("| tee - a  log");
+            sb.AppendLine("| tee -a  log");
+            return sb.ToString();
+        }
+
+        private static string AppendSuffixWin()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("> log");
             return sb.ToString();
         }
 
@@ -97,7 +104,7 @@ namespace EddyLib.StrTemp
                 {
                     foreach (string str in RCMeshMultiCPU(DOM))
                     {
-                        sb.Append(DockerPrefixPath(DOM) + str + AppendSuffix());
+                        sb.Append(DockerPrefixPath(DOM) + str + AppendSuffixDocker());
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -109,7 +116,7 @@ namespace EddyLib.StrTemp
 
                     foreach (string str in RCMeshSingleCPU)
                     {
-                        sb.Append(DockerPrefixPath(DOM) + str + AppendSuffix());
+                        sb.Append(DockerPrefixPath(DOM) + str + AppendSuffixDocker());
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -122,14 +129,14 @@ namespace EddyLib.StrTemp
             {
                 if (DOM.CPUs > 1)
                 {
-                    sb.Append(TempBlueCFD(RCMeshMultiCPU(DOM), DOM.meshWorkingDir));
+                    sb.Append(TempBlueCFDSuf(RCMeshMultiCPU(DOM), DOM.meshWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
                 }
                 else
                 {
-                    sb.Append(TempBlueCFD(RCMeshSingleCPU, DOM.meshWorkingDir));
+                    sb.Append(TempBlueCFDSuf(RCMeshSingleCPU, DOM.meshWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
@@ -195,7 +202,7 @@ namespace EddyLib.StrTemp
 
                     foreach (string str in RCSimMultiCPU(DOM))
                     {
-                        sb.Append(DockerPrefixPath(DOM, d) + str + AppendSuffix());
+                        sb.Append(DockerPrefixPath(DOM, d) + str + AppendSuffixDocker());
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -205,7 +212,7 @@ namespace EddyLib.StrTemp
                 {
                     foreach (string str in RCSimSingleCPU)
                     {
-                        sb.Append(DockerPrefixPath(DOM, d) + str + AppendSuffix());
+                        sb.Append(DockerPrefixPath(DOM, d) + str + AppendSuffixDocker());
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -217,14 +224,14 @@ namespace EddyLib.StrTemp
             {
                 if (DOM.CPUs > 1)
                 {
-                    sb.Append(TempBlueCFD(RCSimMultiCPU(DOM), caseWorkingDir));
+                    sb.Append(TempBlueCFDSuf(RCSimMultiCPU(DOM), caseWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
                 }
                 else
                 {
-                    sb.Append(TempBlueCFD(RCSimSingleCPU, caseWorkingDir));
+                    sb.Append(TempBlueCFDSuf(RCSimSingleCPU, caseWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
@@ -249,9 +256,9 @@ namespace EddyLib.StrTemp
                 if (DOM.CPUs > 1)
                 {
 
-                    foreach (string str in RCSimContinueMultiCPU)
+                    foreach (string str in RCSimContinueMultiCPU(DOM))
                     {
-                        sb.Append(DockerPrefixPath(DOM, d) + str + AppendSuffix());
+                        sb.Append(DockerPrefixPath(DOM, d) + str + AppendSuffixDocker());
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -261,7 +268,7 @@ namespace EddyLib.StrTemp
                 {
                     foreach (string str in RCSimContinueSingleCPU)
                     {
-                        sb.Append(DockerPrefixPath(DOM, d) + str + AppendSuffix());
+                        sb.Append(DockerPrefixPath(DOM, d) + str + AppendSuffixDocker());
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -273,14 +280,14 @@ namespace EddyLib.StrTemp
             {
                 if (DOM.CPUs > 1)
                 {
-                    sb.Append(TempBlueCFD(RCSimContinueMultiCPU, caseWorkingDir));
+                    sb.Append(TempBlueCFDSuf(RCSimContinueMultiCPU(DOM), caseWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
                 }
                 else
                 {
-                    sb.Append(TempBlueCFD(RCSimContinueSingleCPU, caseWorkingDir));
+                    sb.Append(TempBlueCFDSuf(RCSimContinueSingleCPU, caseWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
@@ -373,7 +380,7 @@ namespace EddyLib.StrTemp
 
                 foreach (string str in RCBlockMeshSingleCPU)
                 {
-                    sb.Append(DockerPrefixPath(DOM) + str + AppendSuffix());
+                    sb.Append(DockerPrefixPath(DOM) + str + AppendSuffixDocker());
                 }
 #if DEBUG
                 sb.AppendLine("PAUSE");
@@ -384,7 +391,7 @@ namespace EddyLib.StrTemp
 
                 foreach (string str in RCBlockMeshSingleCPU)
                 {
-                    sb.Append(TempBlueCFD(RCBlockMeshSingleCPU, DOM.meshWorkingDir));
+                    sb.Append(TempBlueCFDSuf(RCBlockMeshSingleCPU, DOM.meshWorkingDir));
                 }
 #if DEBUG
                 sb.AppendLine("PAUSE");
@@ -401,7 +408,7 @@ namespace EddyLib.StrTemp
 
                 foreach (string str in RCCheckMeshSingleCPU)
                 {
-                    sb.Append(DockerPrefixPath(DOM) + str + AppendSuffix());
+                    sb.Append(DockerPrefixPath(DOM) + str + AppendSuffixDocker());
                 }
 #if DEBUG
                 sb.AppendLine("PAUSE");
@@ -412,7 +419,7 @@ namespace EddyLib.StrTemp
 
                 foreach (string str in RCCheckMeshSingleCPU)
                 {
-                    sb.Append(TempBlueCFD(RCMeshSingleCPU, DOM.meshWorkingDir));
+                    sb.Append(TempBlueCFDSuf(RCMeshSingleCPU, DOM.meshWorkingDir));
                 }
 #if DEBUG
                 sb.AppendLine("PAUSE");
@@ -538,7 +545,7 @@ namespace EddyLib.StrTemp
 
 
 
-        private static string TempBlueCFD
+        private static string TempBlueCFDSuf
             (List<string> commands, string caseDir, string installationPath = @"C:\OpenFOAM\")
         {
             StringBuilder sb = new StringBuilder();
@@ -549,13 +556,31 @@ cd ""{1}""" + System.Environment.NewLine, installationPath, caseDir));
 
             foreach (string str in commands)
             {
-                sb.AppendLine(str + " " +  AppendSuffix());
+                //sb.AppendLine(str + " " +  AppendSuffixWin());
+                sb.AppendLine(str);
             }
 
             return sb.ToString();
 
         }
 
+        public static string TempBlueCFD
+            (List<string> commands, string caseDir, string installationPath = @"C:\OpenFOAM\")
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(string.Format(@"cd ""{0}""
+call setvars.bat
+set PATH =% HOME %\msys64\usr\bin;% PATH %
+cd ""{1}""" + System.Environment.NewLine, installationPath, caseDir));
+
+            foreach (string str in commands)
+            {
+                sb.AppendLine(str);
+            }
+
+            return sb.ToString();
+
+        }
 
 
     }
