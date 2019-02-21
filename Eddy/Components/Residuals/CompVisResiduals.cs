@@ -151,41 +151,24 @@ namespace Eddy
                         var field4 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[4];
                         var field5 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[5];
                         var field6 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[6];
-                    
 
-
-                        Process plotProcess = new Process();
-                        plotProcess.StartInfo.FileName = @"C:\Program Files\gnuplot\bin\gnuplot.exe";
-                        plotProcess.StartInfo.UseShellExecute = false;
-                        plotProcess.StartInfo.RedirectStandardInput = true;
-                        plotProcess.StartInfo.CreateNoWindow = true;
-                        plotProcess.Start();
-                        StreamWriter sw = plotProcess.StandardInput;
-                        String strInputText = @"
+                        string arg = @"
 set title 'wind direction: " + dir + @"'
 set logscale y
-set yrange [" + y0y1 + @"]
-set xrange [" + x0x1 + @"]
+set yrange[" + y0y1 + @"]
+set xrange[" + x0x1 + @"]
 set ylabel 'Residual'
 set xlabel 'Iteration'
-set format y ""10^{%T}""
+set format y ""10 ^{% T}
+                        ""
 set datafile separator '\t'
 plot '" + fullFilePath + @"' u($1):2 with lines title '" + field1 + "','" + fullFilePath + @"' u($1):3 with lines title '" + field2 + "','" + fullFilePath + @"' u($1):4 with lines title '" + field3 + "','" + fullFilePath + @"' u($1):5 with lines title '" + field4 + "','" + fullFilePath + @"' u($1):6 with lines title '" + field5 + "','" + fullFilePath + @"' u($1):7 with lines title '" + field6+@"'
-pause 90;replot
+pause 90; replot
 ";
-                        sw.WriteLine(strInputText);
 
-                        sw.Flush();
+                        Utilities.StartProcessCMD(arg, true, false, true, @"C:\Program Files\gnuplot\bin\gnuplot.exe");
 
-
-
-                        //MessageBox.Show("Close the gnuplot Window? " );
-
-
-                        sw.Close();
-                        //plotProcess.WaitForExit();
-                        //plotProcess.Kill();
-
+                    
                     }
 
                 }

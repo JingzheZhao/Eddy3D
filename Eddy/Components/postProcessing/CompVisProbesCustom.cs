@@ -7,7 +7,6 @@ using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -19,10 +18,16 @@ using System.Text;
 
 namespace Eddy
 {
+
+
+
+
+
     public class CompVisProbesCustom : GH_Component
     {
 
 
+      
 
 
 
@@ -34,9 +39,11 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public CompVisProbesCustom()
-          : base("VisProbesCustom", "VisProbesCustom", "PostProcessing", "Eddy", "PostProcessing")
+          : base("VisProbes", "VisProbes", "PostProcessing", "Eddy", "PostProcessing")
         {
         }
+
+
 
 
 
@@ -46,17 +53,26 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
-            pManager.AddPointParameter("points", "points", "points", GH_ParamAccess.list);
-            pManager.AddTextParameter("pointName", "pointName", "pointName", GH_ParamAccess.item);
+            pManager.AddPointParameter("Points", "Points", "Points", GH_ParamAccess.list);
+            pManager.AddTextParameter("Name", "Name", "Name", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Field", "Field", "Field", GH_ParamAccess.item, 0);
+            Param_Integer param = pManager[3] as Param_Integer;
+            param.AddNamedValue("U", 0);
+            param.AddNamedValue("total(p)_coeff", 1);
+            param.AddNamedValue("p", 2);
+            param.AddNamedValue("epsilon", 3);
+            param.AddNamedValue("omega", 4);
+            param.AddNamedValue("k", 5);
+            param.AddNamedValue("nut", 6);
+            param.AddNamedValue("phi", 7);
+            //pManager.AddIntegerParameter("FieldType", "FieldType", "FieldType", GH_ParamAccess.item, 1);
+            //Param_Integer param2 = pManager[4] as Param_Integer;
+            //param2.AddNamedValue("Scalar", 0);
+            //param2.AddNamedValue("Vector", 1);
 
-            pManager.AddTextParameter("Field", "Field", "Field", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("FieldType", "FieldType", "FieldType", GH_ParamAccess.item, 1);
-            Param_Integer param = pManager[4] as Param_Integer;
-            param.AddNamedValue("scalar", 0);
-            param.AddNamedValue("vector", 1);
 
+            pManager.AddBooleanParameter("Run", "Run", "Run the probing component.", GH_ParamAccess.item, false);
 
-            pManager.AddBooleanParameter("Run", "Run", "Clean the directory", GH_ParamAccess.item, false);
 
 
         }
@@ -96,21 +112,23 @@ namespace Eddy
 
 
 
+
             int fieldType = 0;
             List<Point3d> listOfPoints = new List<Point3d>();
 
             bool run = false;
-            String OFField = "";
-            String enumeratedProbeName = "";
+            int OFFieldInt = 0;
+            string enumeratedProbeName = "";
 
             DA.GetDataList(1, listOfPoints);
             DA.GetData(2, ref enumeratedProbeName);
-            DA.GetData(3, ref OFField);
-            DA.GetData(4, ref fieldType);
-            DA.GetData(5, ref run);
+            DA.GetData(3, ref OFFieldInt);
+            //DA.GetData(4, ref fieldType);
+            DA.GetData(4, ref run);
 
 
-
+            ParsingProbes.ReformatOFFields(OFFieldInt, out string OFField, out fieldType);
+                                 
             // Inclusion check for probes
 
             // Filter the list
@@ -201,10 +219,23 @@ namespace Eddy
                         {
                             var path = DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + enumeratedProbeName;
 
+                            // cp parsing
                             File.WriteAllText(DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + "controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(DOM, null, i));
                             File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, enumeratedProbeName, OFField));
 
-                            command.Append(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime | tee  " + DOM.BCInflow.windDirs[i] + @"/log_probes;");
+                            // Write the dicts
+                            if (DOM.simEngine == 0)
+                            {
+
+
+                                command.Append(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime | tee  " + DOM.BCInflow.windDirs[i] + @"/log_probes;");
+                            }
+                            else
+                            {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
+
+                                command.AppendLine(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime");
+
+                            }
 
 
                         }
@@ -212,11 +243,24 @@ namespace Eddy
                         if (run == true)
                         {
 
-                            ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.OFbaseWorkingDir);
-                            Process p = new Process();
-                            p.StartInfo = psi;
-                            p.Start();
-                            p.WaitForExit();
+                            if (DOM.simEngine == 0)
+                            {
+                                Utilities.StartProcessCMD(@" -e """ + command + @""" -f " + "\"" + DOM.OFbaseWorkingDir, false, true, false, Utilities.AssemblyDirectory + @"\CallOF.exe");
+                            }
+                            else
+                            {
+                                //Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString(), "type log" }, DOM.baseWorkingDir), false, true, true);
+                                Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, DOM.baseWorkingDir), false, true, true);
+
+                            }
+
+
+
+                            //ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.OFbaseWorkingDir);
+                            //Process p = new Process();
+                            //p.StartInfo = psi;
+                            //p.Start();
+                            //p.WaitForExit();
 
                         }
 
@@ -228,7 +272,7 @@ namespace Eddy
 
 
                             var caseDir = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i];
-                            string pathToProbeFile = ParsingProbes.GetLastProcProssDir(enumeratedProbeName, caseDir, OFField);
+                            string pathToProbeFile = ParsingProbes.GetFullPathToProbeFile(enumeratedProbeName, caseDir, OFField);
                             if (File.Exists(pathToProbeFile))
                             {
                                 ParsingProbes Numbers = new ParsingProbes(listOfPoints, enumeratedProbeName, caseDir, OFField, fieldType);
@@ -260,23 +304,35 @@ namespace Eddy
                         {
 
                             // Write the dicts
+                            if (DOM.simEngine == 0)
+                            {
+                                var path = DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + enumeratedProbeName;
+                                File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, enumeratedProbeName, OFField));
+                                command.Append(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime | tee  " + DOM.BCInflow.windDirs[i] + @"/log_probes;");
+                            }
+                            else
+                            {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
+                                var path = DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + enumeratedProbeName;
+                                File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, enumeratedProbeName, OFField));
+                                command.AppendLine(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime");
 
-                            var path = DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + enumeratedProbeName;
-
-                            File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, enumeratedProbeName, OFField));
-
-                            command.Append(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime | tee  " + DOM.BCInflow.windDirs[i] + @"/log_probes;");
-
+                            }
 
                         }
 
                         if (run == true)
                         {
-                            ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", @" -e """ + command + @""" -f " + "\"" + DOM.OFbaseWorkingDir);
-                            Process p = new Process();
-                            p.StartInfo = psi;
-                            p.Start();
-                            p.WaitForExit();
+
+                            if (DOM.simEngine == 0)
+                            {
+                                Utilities.StartProcessCMD(@" -e """ + command + @""" -f " + "\"" + DOM.OFbaseWorkingDir, false, true, false, Utilities.AssemblyDirectory + @"\CallOF.exe");
+                            }
+                            else
+                            {
+                                // Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString(), "type log" }, DOM.baseWorkingDir), false, true, true);
+                                Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, DOM.baseWorkingDir), false, true, true);
+                            }
+
                         }
                         //Thread.Sleep(2 * numberOfProbes);
 
@@ -289,11 +345,12 @@ namespace Eddy
                             // Parse values
 
 
+
                             var caseDir = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i];
-                            string pathToProbeFile = ParsingProbes.GetLastProcProssDir(enumeratedProbeName, caseDir, OFField);
+                            string pathToProbeFile = ParsingProbes.GetFullPathToProbeFile(enumeratedProbeName, caseDir, OFField);
                             if (File.Exists(pathToProbeFile))
                             {
-                                
+
                                 var Vectors = new ParsingProbes(listOfPoints, enumeratedProbeName, caseDir, OFField, fieldType);
 
                                 // Create datatree

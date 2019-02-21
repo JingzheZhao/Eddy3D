@@ -119,16 +119,7 @@ namespace Eddy
                     }
 
 
-
-                    Process plotProcessPDF = new Process();
-                    plotProcessPDF.StartInfo.FileName = @"""C:\Program Files\gnuplot\bin\gnuplot.exe""";
-                    plotProcessPDF.StartInfo.UseShellExecute = false;
-                    plotProcessPDF.StartInfo.RedirectStandardInput = true;
-                    plotProcessPDF.StartInfo.CreateNoWindow = true;
-                    plotProcessPDF.Start();
-                    StreamWriter swPDF = plotProcessPDF.StandardInput;
-                    //String strInputText = "plot sin(x)\n";
-                    String strInputTextPDF = @"
+                    string arg = @"
 set title 'wind direction: " + dir + @"'
 set logscale y
 set yrange [" + y0y1 + @"]
@@ -142,36 +133,10 @@ set terminal pdf
 set output '" + DOM.baseWorkingDir + @"residuals_" + dir + @".pdf'
 replot
 ";
-                    swPDF.WriteLine(strInputTextPDF);
-                    swPDF.Flush();
-                    //MessageBox.Show("Close the gnuplot Window? " );
-                    swPDF.Close();
-                    //plotProcess.Close();
 
+                    Utilities.StartProcessCMD(arg, true, false, true, @"C:\Program Files\gnuplot\bin\gnuplot.exe");
 
-
-
-                    //var labels = new List<string>();
-                    //labels.Add("Ux");
-                    //labels.Add("Uy");
-                    //labels.Add("Uz");
-                    //labels.Add("p");
-                    //labels.Add("omega");
-                    //labels.Add("k");
-
-                    //DA.SetDataList(0, labels);
-
-                    //var resid = new DataTree<double>();
-
-                    //resid.AddRange(Ux, new Grasshopper.Kernel.Data.GH_Path(0));
-                    //resid.AddRange(Uy, new Grasshopper.Kernel.Data.GH_Path(1));
-                    //resid.AddRange(Uz, new Grasshopper.Kernel.Data.GH_Path(2));
-                    //resid.AddRange(p, new Grasshopper.Kernel.Data.GH_Path(3));
-                    //resid.AddRange(omega, new Grasshopper.Kernel.Data.GH_Path(4));
-                    //resid.AddRange(k, new Grasshopper.Kernel.Data.GH_Path(5));
-
-                    //DA.SetDataTree(1, resid);
-
+                                   
                 }
             }
 

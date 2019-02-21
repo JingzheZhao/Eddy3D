@@ -178,21 +178,29 @@ namespace EddyLib
 
         public static void WriteDockerInfo(string workingDirectory)
         {
-            System.Diagnostics.Process p = new System.Diagnostics.Process();
-            p.StartInfo.FileName = @"C:\Windows\System32\cmd.exe";
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.RedirectStandardInput = true;
-            p.StartInfo.CreateNoWindow = true;
-            p.Start();
-            StreamWriter dockerInfo = p.StandardInput;
-            String str = @"docker info > """ + workingDirectory + @"\dockerStatus""";
-            dockerInfo.WriteLine(str);
-            dockerInfo.Flush();
-            dockerInfo.Close();
-            p.WaitForExit();
-
+            StartProcessCMD(@"docker info > """ + workingDirectory + @"\dockerStatus""",true, true, true);          
 
         }
+
+        public static void StartProcessCMD(string argument,bool createnowindow,  bool waitforexit = false, bool close = false, string executable = @"C:\Windows\System32\cmd.exe")
+        {
+            System.Diagnostics.Process p = new System.Diagnostics.Process();
+            p.StartInfo.FileName = executable;
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.RedirectStandardInput = true;            
+            p.StartInfo.CreateNoWindow = createnowindow;
+            p.Start();
+            StreamWriter sw = p.StandardInput;
+            String strInputText = argument;
+            sw.WriteLine(strInputText);
+
+            sw.Flush();
+            if (waitforexit) { p.WaitForExit(); }
+            if (close) { p.Close(); }                    
+
+        }
+
+
 
         public static string ReformatWorkingDir(string workingDirectory)
         {

@@ -73,7 +73,7 @@ namespace EddyLib
         private void ParsingNumbers(List<Point3d> listOfPoints, string enumeratedProbeName, string workingDirectory, string OFfield)
         {
 
-            string fullPath = GetLastProcProssDir(enumeratedProbeName, workingDirectory, OFfield);
+            string fullPath = GetFullPathToProbeFile(enumeratedProbeName, workingDirectory, OFfield);
 
             var counterPoints = listOfPoints.Count;
 
@@ -96,7 +96,7 @@ namespace EddyLib
         private void ParsingVectors(List<Point3d> listOfPoints, string pointName, string workingDirectory, string OFfield)
         {
 
-            string fullPath = GetLastProcProssDir(pointName, workingDirectory, OFfield);
+            string fullPath = GetFullPathToProbeFile(pointName, workingDirectory, OFfield);
 
             var counterPoints = listOfPoints.Count;
 
@@ -119,14 +119,20 @@ namespace EddyLib
 
         }
 
-        public static string GetLastProcProssDir(string enumeratedProbeName, string workingDirectory, string field)
+        public static string GetFullPathToProbeFile(string enumeratedProbeName, string workingDirectory, string field)
         {
-            
+            // Here, the data has to be written already
+
+
             string PostProcessingDirectory = workingDirectory + @"\postProcessing\";
 
 
             //replace this with input
             string basePath = PostProcessingDirectory + enumeratedProbeName;
+
+            //if (!Directory.Exists(basePath)){
+            //    Directory.CreateDirectory(basePath);
+            //}
 
             //string[] filePathResults = new string[counterPoints];
             var directoriesBasePath = Directory.GetDirectories(basePath);
@@ -151,10 +157,57 @@ namespace EddyLib
             return fullPath;
         }
 
-        
 
 
-     
+        public static void ReformatOFFields(int OFFieldInt, out string OFField, out int fieldType)
+        {
+            OFField = "";
+            fieldType = 0;
+            if (OFFieldInt == 0)
+            {
+                fieldType = 1;
+                OFField = "U";
+            }
+            else if (OFFieldInt == 1)
+            {
+                OFField = "total(p)_coeff";
+                fieldType = 0;
+            }
+            else if (OFFieldInt == 2)
+            {
+                OFField = "p";
+                fieldType = 0;
+            }
+
+            else if (OFFieldInt == 3)
+            {
+                OFField = "epsilon";
+                fieldType = 0;
+            }
+            else if (OFFieldInt == 4)
+            {
+                OFField = "omega";
+                fieldType = 0;
+            }
+            else if (OFFieldInt == 5)
+            {
+                OFField = "k";
+                fieldType = 0;
+            }
+
+            else if (OFFieldInt == 6)
+            {
+                OFField = "nut";
+                fieldType = 0;
+            }
+            else
+            {
+                OFField = "phi";
+                fieldType = 1;
+            }
+        }
+
+
 
 
     }
