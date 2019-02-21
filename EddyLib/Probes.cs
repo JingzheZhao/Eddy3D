@@ -11,7 +11,7 @@ using System.Collections;
 
 namespace EddyLib
 {
-    public class ParsingProbes
+    public class Probes
     {
 
         public double[] numberValues;
@@ -24,7 +24,7 @@ namespace EddyLib
         private readonly string caseDirectory;
 
 
-        public ParsingProbes(List<Point3d> ListOfPoints, string enumeratedProbeName, string caseDirectory, string OFfield, int fieldtype)
+        public Probes(List<Point3d> ListOfPoints, string enumeratedProbeName, string caseDirectory, string OFfield, int fieldtype)
         {
             listOfPoints = ListOfPoints;
             

@@ -126,7 +126,7 @@ namespace Eddy
             DA.GetData(4, ref run);
 
 
-            ParsingProbes.ReformatOFFields(OFFieldInt, out string OFField, out int fieldType);
+            Probes.ReformatOFFields(OFFieldInt, out string OFField, out int fieldType);
 
             //Discard points outside
             listOfPoints = Utilities.DiscardPointsOutsideDomain(listOfPoints, DOM);
@@ -231,10 +231,10 @@ namespace Eddy
                         {
 
                             var caseDir = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i];
-                            string pathToProbeFile = ParsingProbes.GetFullPathToProbeFile(enumeratedProbeName, caseDir, OFField);
+                            string pathToProbeFile = Probes.GetFullPathToProbeFile(enumeratedProbeName, caseDir, OFField);
                             if (File.Exists(pathToProbeFile))
                             {
-                                ParsingProbes Numbers = new ParsingProbes(listOfPoints, enumeratedProbeName, caseDir, OFField, fieldType);
+                                Probes Numbers = new Probes(listOfPoints, enumeratedProbeName, caseDir, OFField, fieldType);
 
                                 // Create datatree
 
@@ -293,11 +293,11 @@ namespace Eddy
                         {
                            
                             var caseDir = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i];
-                            string pathToProbeFile = ParsingProbes.GetFullPathToProbeFile(enumeratedProbeName, caseDir, OFField);
+                            string pathToProbeFile = Probes.GetFullPathToProbeFile(enumeratedProbeName, caseDir, OFField);
                             if (File.Exists(pathToProbeFile))
                             {
 
-                                var Vectors = new ParsingProbes(listOfPoints, enumeratedProbeName, caseDir, OFField, fieldType);
+                                var Vectors = new Probes(listOfPoints, enumeratedProbeName, caseDir, OFField, fieldType);
 
                                 // Create datatree
 
