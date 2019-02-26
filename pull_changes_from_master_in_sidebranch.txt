@@ -1,3 +1,0 @@
-git checkout IBPC2018_Workshop
-git merge master
-git commit X
