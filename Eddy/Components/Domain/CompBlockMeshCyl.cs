@@ -290,7 +290,7 @@ namespace Eddy
             {
 
 
-                OFCylDomain DOMCYL = new OFCylDomain(weldconst, inputBreps, combinedMeshes, terrainMeshes, BCond, divisionsOuterCirc, gradingPerim, divPerim, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory)
+                OFCylDomain DOMCYL = new OFCylDomain(inputBreps, combinedMeshes, terrainMeshes, BCond, divisionsOuterCirc, gradingPerim, divPerim, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory)
                 {
                     CPUs = CPUs
                 };
