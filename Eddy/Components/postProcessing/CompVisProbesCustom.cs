@@ -193,6 +193,14 @@ namespace Eddy
 
                         for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                         {
+                            var pathToPointFile = DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\constant\polyMesh\points";
+                            if (!File.Exists(pathToPointFile))
+                            {
+                                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The file  """ + pathToPointFile + @""" does not exist. Please make sure that a mesh with point exists.");
+                                return;
+                            }
+
+
                             var path = DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + enumeratedProbeName;
 
                             // cp parsing
@@ -259,6 +267,12 @@ namespace Eddy
 
                         for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
                         {
+                            var pathToPointFile = DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\constant\polyMesh\points";
+                            if (!File.Exists(pathToPointFile))
+                            {
+                                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The file  """ + pathToPointFile + @""" does not exist. Please make sure that a mesh with point exists.");
+                                return;
+                            }
 
                             // Write the dicts
                             if (DOM.simEngine == 0)
