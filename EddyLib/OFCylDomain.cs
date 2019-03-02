@@ -49,13 +49,13 @@ namespace EddyLib
         public int gradingPerim;
 
         public double sizeInnerR;
-        
+
         public List<Polyline> concentricDivisions;
 
 
 
 
-        public OFCylDomain(double weldconst, Brep inputBreps, Mesh geometry, Mesh terrain, BoundaryConditions BCond, int divOuterCircle, int gradingPerim, int divPerim, int _CPU, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0, string baseWorkingDirectory = @"C:\temp")
+        public OFCylDomain(Brep inputBreps, Mesh geometry, Mesh terrain, BoundaryConditions BCond, int divOuterCircle, int gradingPerim, int divPerim, int _CPU, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0, string baseWorkingDirectory = @"C:\temp")
         {
             this.gradingPerim = gradingPerim;
 
@@ -213,7 +213,7 @@ namespace EddyLib
 
 
 
-            MakeCircMeshPlane(weldconst, center, this.sizeInnerR, _divOutercircle, radius, height, gradingPerim, divPerim);
+            MakeCircMeshPlane(center, this.sizeInnerR, _divOutercircle, radius, height, gradingPerim, divPerim);
 
 
             BCond.CalculateCPPressures(zMax);
@@ -246,7 +246,7 @@ namespace EddyLib
 
 
 
-        public void MakeCircMeshPlane(double weldconst, Point3d center, double sizeInnerRect, int divisionsY, double circleRadius, double height, int gradingPerim, int divPerim)
+        public void MakeCircMeshPlane(Point3d center, double sizeInnerRect, int divisionsY, double circleRadius, double height, int gradingPerim, int divPerim)
         {
 
             // point inside cdf domain - needed for meshing and finding the void space for fluid
@@ -299,13 +299,13 @@ namespace EddyLib
             pointsOnCircle = GetPointsOnCircle(center, circRad, poly);
             // Points on inner rectangle from naked edges
             var pointsOnRect = GetPointsOnRect(divisionsY, m);
-                                   
+
             ////////////////////
             //Visualize divisions inside cylindrical perimeter
             ////////////////////
-                                   
+
             this.concentricDivisions = GetConcenctricPolyDivisions(pointsOnRect, pointsOnCircle, divPerim);
-                      
+
 
             ////////////////
 
@@ -323,10 +323,19 @@ namespace EddyLib
 
             this.sides = SideWalls(pointsOnCircle, height);
             this.sides.Normals.ComputeNormals();
-            this.sides.Flip(true, true, true);
-            //  B = side;
 
 
+            // Test to make sure that all vecs point outwards
+
+            var firstIndex = this.sides.Faces[0].A;
+            var firstPoint = this.sides.Vertices[firstIndex];
+            var firstNormal = this.sides.FaceNormals[0];
+            var vec = firstPoint-center;
+            double dot = vec * firstNormal;
+            if (dot < 0)
+            {
+                this.sides.Flip(true, true, true);
+            }
 
             // Order is important!!! for stringifyDomain
             //this.DomainMeshGround.Append(perim);
@@ -338,14 +347,14 @@ namespace EddyLib
             this.DomainMesh.Append(coreTop);
             this.DomainMesh.Append(sides);
             this.DomainMesh.Normals.ComputeNormals();
-            this.DomainMesh.Weld(weldconst);
+            this.DomainMesh.Weld(Math.PI);
 
 
 
 
 
 
-            
+
             this.IsWindows7 = Utilities.IsWindows7;
 
         }
@@ -3517,7 +3526,7 @@ mergePatchPairs
 
         private List<Point3d> GetPointsOnCircle(Point3d center, double circleRadius, Polyline poly)
         {
-            List<Point3d> pointsOnCircle = new List<Point3d>();            
+            List<Point3d> pointsOnCircle = new List<Point3d>();
             var newCenter = new Point3d(center.X, center.Y, 0);
             var c = new Circle(newCenter, circleRadius);
 
@@ -3673,7 +3682,7 @@ faces
             return sb.ToString();
         }
 
-        private List<Polyline>GetConcenctricPolyDivisions(Point3d[] pointsOnRect, List<Point3d> pointsOnCircle, int divPerim)
+        private List<Polyline> GetConcenctricPolyDivisions(Point3d[] pointsOnRect, List<Point3d> pointsOnCircle, int divPerim)
         {
 
             // Add radial polylines from divisions
@@ -3726,7 +3735,7 @@ faces
                 }
                 //Add the last vertex to close the loop
                 innerRadialList.Add(fullList[j]);
-                
+
                 //Add them all to one list
 
                 concentricDivisions.Add(new Polyline(innerRadialList));
@@ -3734,7 +3743,7 @@ faces
             }
             return concentricDivisions;
         }
-        
+
 
 
         public string StringyfyDomain2()
