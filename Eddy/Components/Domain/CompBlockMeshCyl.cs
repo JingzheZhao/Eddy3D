@@ -60,7 +60,7 @@ namespace Eddy
 
 
             pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
-            pManager.AddNumberParameter("const", "const", "const.", GH_ParamAccess.item, 1);
+           
 
             pManager[2].Optional = true;
         }
@@ -151,9 +151,7 @@ namespace Eddy
             //DA.GetData(6, ref RAM);
             DA.GetData(10, ref CPUs);
             //DA.GetData(10, ref Run);
-            double weldconst = 0;
-            DA.GetData(11, ref weldconst);
-
+            
 
             Mesh combinedMeshes = new Mesh();
             MeshingParameters mp = new MeshingParameters();
