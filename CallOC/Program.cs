@@ -44,8 +44,6 @@ namespace CallOC
                         }
 #endif
 
-
-
                         if (options.Verbose)
                         {
                             Console.WriteLine("EPW weather file path: {0}", options.Weather);
@@ -152,9 +150,9 @@ namespace CallOC
 
                         double[][] probes = EddyLib.RadianceFiles.readPTS(options.WorkingDir + @"\Rad\sensors.pts");
 
-                        var arbitraryProbePoint = new Point3d(probes[0][0], probes[0][1], probes[0][2]);
+                        //var arbitraryProbePoint = new Point3d(probes[0][0], probes[0][1], probes[0][2]);
 
-                        var probingHeight = arbitraryProbePoint.Z;
+                        //var probingHeight = arbitraryProbePoint.Z;
 
                         // Parse ABL data from simulation directory                    
 
@@ -182,13 +180,13 @@ namespace CallOC
                         var uncertaintyMRTArray = new bool[numberOfHours, sensorPointCount];
                         var uncertaintyWindArray = new bool[numberOfHours, sensorPointCount];
 
-                        UTCI.CalculateUTCIArray(numberOfHours, sensorPointCount, weather, DirRad, DiffRad, windReduction, probingHeight, z0, zref, URef, out uncertaintyMRTArray, out uncertaintyWindArray, out sw, out Utci);
+                        UTCI.CalculateUTCIArray(probes, numberOfHours, weather, DirRad, DiffRad, windReduction, z0, zref, URef, out uncertaintyMRTArray, out uncertaintyWindArray, out sw, out Utci);
 
                         Console.WriteLine(Utilities.ConvertComputeTimes(sw.ElapsedMilliseconds));
 
                         Console.WriteLine("Writing UTCI results...");
 
-                        UTCI.WriteUTCIDataToCSV(options.WorkingDir, numberOfHours, sensorPointCount, options.Verbose, uncertaintyMRTArray, uncertaintyWindArray, Utci, debug, weather, errorLog, probingHeight, DiffRad, DirRad, windReduction, URef, zref, z0);
+                        UTCI.WriteUTCIDataToCSV(options.WorkingDir, probes, numberOfHours, options.Verbose, uncertaintyMRTArray, uncertaintyWindArray, Utci, debug, weather, errorLog, DiffRad, DirRad, windReduction, URef, zref, z0);
 
                         Console.WriteLine("Done");
 

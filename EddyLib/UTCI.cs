@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Rhino.Geometry;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -11,6 +12,7 @@ namespace EddyLib
 {
     public static class UTCI
     {
+        public static object Options { get; private set; }
 
         public static double GetUTCI2(double TaC, double RH, double Wsp, double mrt)
         {
@@ -136,7 +138,7 @@ namespace EddyLib
         }
 
 
-      
+
 
         public static int GetConditionOfPerson(double UTCI)
         {
@@ -357,8 +359,11 @@ namespace EddyLib
             return upperIndex;
         }
 
-            public static void CalculateUTCIArray(int numberOfHours, int sensorPointCount, Weather weather, double[][] DirRad, double[][] DiffRad, double[,] windReduction, double probingHeight, double z0, double zref, double Uref, out bool[,] uncertaintyMRTArray, out bool[,] uncertaintyWindArray, out Stopwatch sw, out double[,] Utci)
+        public static void CalculateUTCIArray(double[][] probes, int numberOfHours, Weather weather, double[][] DirRad, double[][] DiffRad, double[,] windReduction, double z0, double zref, double Uref, out bool[,] uncertaintyMRTArray, out bool[,] uncertaintyWindArray, out Stopwatch sw, out double[,] Utci)
         {
+
+            int sensorPointCount = probes.Length;
+
 
             sw = new Stopwatch();
             sw.Start();
@@ -385,6 +390,9 @@ namespace EddyLib
               {
                   cnt++;
                   progress.Report((double)cnt / sensorPointCount);
+
+                  var currentProbingPoint = new Point3d(probes[j][0], probes[j][1], probes[j][2]);
+                  var probingHeight = currentProbingPoint.Z;
 
                   for (int i = 0; i < numberOfHours; i++)
                   {
@@ -459,13 +467,15 @@ namespace EddyLib
         }
 
 
-        public static void WriteUTCIDataToCSV(string workingDir, int numberOfHours, int sensorPointCount, bool verboseMode, bool[,] uncertaintyMRTArray, bool[,] uncertaintyWindArray, double[,] UTCIArray, int[] debug, Weather weather, StringBuilder errorLog, double probingHeight, double[][] DiffRad, double[][] DirRad, double[,] windReduction,
+        public static void WriteUTCIDataToCSV(string workingDir, double[][] probes,
+            int numberOfHours, bool verboseMode, bool[,] uncertaintyMRTArray, bool[,] uncertaintyWindArray, double[,] UTCIArray, int[] debug, Weather weather, StringBuilder errorLog, double[][] DiffRad, double[][] DirRad, double[,] windReduction,
         double URef = 5,
         double zref = 10,
         double z0 = 1)
         {
 
-
+          
+            int sensorPointCount = probes.Length;
 
 
             //Write Array to file
@@ -525,6 +535,10 @@ namespace EddyLib
 
             sbUtciDEBUG.AppendLine(@"UTCI for sensor point " + debug[1] + " over all hours of the year:");
 
+
+            var currentProbingPoint = new Point3d(probes[debug[1]][0], probes[debug[1]][1], probes[debug[1]][2]);
+            var probingHeight = currentProbingPoint.Z;
+
             for (int i = 0; i < numberOfHours; i++)
             {
 
@@ -539,7 +553,7 @@ namespace EddyLib
 
 
             sbUtciDEBUG.AppendLine("Wind speed from .epw: " + String.Format("{0:0.0}", weather.WindSpeed[debug[0]]));
-            sbUtciDEBUG.AppendLine("probingHeight from CFD: " + String.Format("{0:0.0}", probingHeight));
+            //sbUtciDEBUG.AppendLine("probingHeight from CFD: " + String.Format("{0:0.0}", probingHeight));
             sbUtciDEBUG.AppendLine("Scaled-down wind velocity from .epw: " + String.Format("{0:0.0}", UTCI.GetVelocityAtProbingHeightFromEPW(weather.WindSpeed[debug[0]], z0, zref, probingHeight)));
             sbUtciDEBUG.AppendLine("Wind reduction from CFD: " + String.Format("{0:0.0}", windReduction[debug[0], debug[1]]));
             sbUtciDEBUG.AppendLine("Resulting wind velocity for UTCI calculation: " + String.Format("{0:0.0}", windReduction[debug[0], debug[1]] * UTCI.GetVelocityAtProbingHeightFromEPW(weather.WindSpeed[debug[0]], z0, zref, probingHeight)));
@@ -578,7 +592,7 @@ namespace EddyLib
         }
 
 
-       
+
 
         // not used
 
