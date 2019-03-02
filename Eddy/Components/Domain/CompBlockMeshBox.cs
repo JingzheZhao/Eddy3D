@@ -260,10 +260,10 @@ namespace Eddy
 
                 //DOM = OFDomainBuilder(domain, workingDirectory);
 
-                if ((DOMBOX.xCells * blockDimension) > DOMBOX.dimX || (DOMBOX.yCells * blockDimension) > DOMBOX.dimY || (DOMBOX.zCells * blockDimension) > DOMBOX.dimZ)
-                {
-                    //  AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Your block dimensions need to be smaller than the domain.");
-                }
+                //if ((DOMBOX.xCells * blockDimension) > DOMBOX.dimX || (DOMBOX.yCells * blockDimension) > DOMBOX.dimY || (DOMBOX.zCells * blockDimension) > DOMBOX.dimZ)
+                //{
+                //    //  AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Your block dimensions need to be smaller than the domain.");
+                //}
 
 
 
