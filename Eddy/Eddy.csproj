@@ -77,11 +77,12 @@
     <Compile Include="Components\Misc\CompCellSize.cs" />
     <Compile Include="Components\postProcessing\CompComputeFlowRateFromU.cs" />
     <Compile Include="Components\postProcessing\CompVisProbesCustom.cs" />
-    <Compile Include="Components\postProcessing\UTCI\CompReadUTCIProbewise.cs" />
-    <Compile Include="Components\postProcessing\UTCI\CompReadAnnualComfortHours.cs" />
-    <Compile Include="Components\postProcessing\UTCI\CompReadAnnualHumanConditions.cs" />
+    <Compile Include="Components\postProcessing\UTCI\ReadResults.cs" />
+    <Compile Include="Components\postProcessing\UTCI\ReadUTCIByProbe.cs" />
+    <Compile Include="Components\postProcessing\UTCI\ReadComfortHours.cs" />
+    <Compile Include="Components\postProcessing\UTCI\ReadHumanConditions.cs" />
     <Compile Include="Components\postProcessing\UTCI\CompReadUTCILadybug.cs" />
-    <Compile Include="Components\postProcessing\UTCI\CompReadUTCIHourly.cs" />
+    <Compile Include="Components\postProcessing\UTCI\ReadUTCIByHour.cs" />
     <Compile Include="Components\postProcessing\CompWriteProbes.cs" />
     <Compile Include="Components\postProcessing\CompVisProbes.cs" />
     <Compile Include="Components\postProcessing\CompVisPatches.cs" />
