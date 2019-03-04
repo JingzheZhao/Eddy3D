@@ -310,7 +310,7 @@ namespace EddyLib
             //Visualize divisions inside cylindrical perimeter
             ////////////////////
 
-            //concentricDivisions = GetConcenctricPolyDivisions(pointsOnRect, pointsOnCircle, divPerim, divsRadial);
+            concentricDivisions = GetConcenctricPolyDivisions(pointsOnRect, pointsOnCircle, divPerim, divsRadial);
 
 
             ////////////////
@@ -1174,7 +1174,7 @@ faces
 
 
             //this.radialDivisions = radialDivisions;
-            //this.concentricDivisions = concentricDivisions;
+            this.concentricDivisions = concentricDivisions;
             //this.fullList = fullList;
             //this.divPointsCut = divPointsCut;
 
