@@ -200,7 +200,19 @@ namespace EddyLib
 
         }
 
+        public static IEnumerable<List<T>> splitList<T>(List<T> locations, int nSize = 30)
+        {
+            for (int i = 0; i < locations.Count; i += nSize)
+            {
+                yield return locations.GetRange(i, Math.Min(nSize, locations.Count - i));
+            }
+        }
 
+        public static Point3d[] RightShift(Point3d[] array)
+        {
+            // the last element (because we're skipping all but one)... then all but the last one.
+            return array.Skip(array.Length - 1).Concat(array.Take(array.Length - 1)).ToArray();
+        }
 
         public static string ReformatWorkingDir(string workingDirectory)
         {

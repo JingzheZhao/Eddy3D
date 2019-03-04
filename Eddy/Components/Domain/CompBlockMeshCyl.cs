@@ -131,18 +131,18 @@ namespace Eddy
 
 
             int CPUs = 1;
-            int divisionsOuterCirc = 1;
+            int divsRadial = 1;
             int gradingPerim = 1;
-            int divPerim = 1;
+            int divsConcentric = 1;
             double sizeInnerRect = 0;
             double sizeOuterCirc = 0;
             double sizeHeight = 0;
 
 
 
-            DA.GetData(4, ref divisionsOuterCirc);
+            DA.GetData(4, ref divsRadial);
             DA.GetData(5, ref gradingPerim);
-            DA.GetData(6, ref divPerim);
+            DA.GetData(6, ref divsConcentric);
             DA.GetData(7, ref sizeInnerRect);
             DA.GetData(8, ref sizeOuterCirc);
             DA.GetData(9, ref sizeHeight);
@@ -288,7 +288,7 @@ namespace Eddy
             {
 
 
-                OFCylDomain DOMCYL = new OFCylDomain(inputBreps, combinedMeshes, terrainMeshes, BCond, divisionsOuterCirc, gradingPerim, divPerim, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory)
+                OFCylDomain DOMCYL = new OFCylDomain(inputBreps, combinedMeshes, terrainMeshes, BCond, divsRadial, gradingPerim, divsConcentric, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory)
                 {
                     CPUs = CPUs
                 };
