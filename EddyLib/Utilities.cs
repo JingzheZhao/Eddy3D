@@ -200,12 +200,24 @@ namespace EddyLib
 
         }
 
-        public static IEnumerable<List<T>> splitList<T>(List<T> locations, int nSize = 30)
+        public static IEnumerable<List<T>> splitListGen<T>(List<T> locations, int nSize)
         {
             for (int i = 0; i < locations.Count; i += nSize)
             {
                 yield return locations.GetRange(i, Math.Min(nSize, locations.Count - i));
             }
+        }
+
+        public static List<List<Point3d>> splitPointList(List<Point3d> locations, int nSize)
+        {
+            var list = new List<List<Point3d>>();
+
+            for (int i = 0; i < locations.Count; i += nSize)
+            {
+                list.Add(locations.GetRange(i, Math.Min(nSize, locations.Count - i)));
+            }
+
+            return list;
         }
 
         public static Point3d[] RightShift(Point3d[] array)

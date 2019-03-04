@@ -58,8 +58,8 @@ namespace EddyLib
         //public List<Polyline> radialDivisions;
         //public List<Point3d> fullList;
         //public List<Point3d[]> divPointsCut;
-        //public Point3d[] pointsOnCircle;
-        //public Point3d[] pointsOnRect;
+        public Point3d[] pointsOnCircle;
+        public Point3d[] pointsOnRect;
 
 
 
@@ -310,7 +310,7 @@ namespace EddyLib
             //Visualize divisions inside cylindrical perimeter
             ////////////////////
 
-            concentricDivisions = GetConcenctricPolyDivisions(pointsOnRect, pointsOnCircle, divPerim, divsRadial);
+            concentricDivisions = GetConcenctricPolyDivisions(pointsOnRect, pointsOnCircle, divPerim);
 
 
             ////////////////
@@ -950,7 +950,7 @@ mergePatchPairs
                 pointsOnCircle.Add(new Point3d(p1.X, p1.Y, center.Z));
 
             }
-            //this.pointsOnCircle = pointsOnCircle.ToArray();
+            this.pointsOnCircle = pointsOnCircle.ToArray();
             return pointsOnCircle.ToArray();
         }
 
@@ -958,7 +958,7 @@ mergePatchPairs
         private Point3d[] GetPointsOnRect(int divisions, Mesh m)
         {
             m.GetNakedEdges()[0].ToNurbsCurve().DivideByCount(divisions * 4, true, out Point3d[] pointsOnRect);
-            //this.pointsOnRect = pointsOnRect;
+            this.pointsOnRect = pointsOnRect;
             return pointsOnRect;
         }
                
@@ -1087,14 +1087,14 @@ faces
             return sb.ToString();
         }
 
-        private List<Polyline> GetConcenctricPolyDivisions(Point3d[] pointsOnRect, Point3d[] pointsOnCircle, int divPerim, int divRadius)
+        private List<Polyline> GetConcenctricPolyDivisions(Point3d[] pointsOnRect, Point3d[] pointsOnCircle, int divPerim)
         {
 
 
 
             // Shift pointsOnCircle to the right by one to get correct order
-
-            pointsOnCircle = Utilities.RightShift(pointsOnCircle);
+            // not necessary because the GetPointsOnCircle yields one duplicate point
+            //  pointsOnCircle = RightShift(pointsOnCircle);
 
 
             // Add radial polylines from divisions
@@ -1129,7 +1129,6 @@ faces
                 }
             }
 
-
             List<Polyline> concentricDivisions = new List<Polyline>();
             var innerRadialList = new List<Point3d>();
 
@@ -1148,27 +1147,27 @@ faces
                 //Add the last vertex to close the loop
                 innerRadialList.Add(fullList[j]);
 
-
             }
 
             // Cull duplicates from that list
             var innerRadialListNoDupes = new List<Point3d>();
             innerRadialListNoDupes = innerRadialList.Distinct().ToList();
 
-            //Split up every concentric ring and add them to a final list    
+            //Split up every concentric ring and add them to a final list
 
-            var lists = Utilities.splitList(innerRadialListNoDupes, pointsOnRect.Length);
+            var lists = Utilities.splitPointList(innerRadialListNoDupes, pointsOnRect.Length);
 
             // Close the loop for every list (add last element)
 
-            foreach (List<Point3d> list in lists)
+            foreach (List<Point3d> l in lists)
             {
-                list.Add(list[0]);
+                l.Add(l[0]);
+                //l.Concat(new[] { (Point3d)l.ElementAt(0) });
             }
 
-            foreach (List<Point3d> list in lists)
+            foreach (List<Point3d> l in lists)
             {
-                concentricDivisions.Add(new Polyline(list));
+                concentricDivisions.Add(new Polyline(l));
             }
 
 
