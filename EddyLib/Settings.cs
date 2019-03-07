@@ -12,30 +12,7 @@ namespace EddyLib
 {
     class Settings
     {
-        //public string WindowsVersion { get; set; }
-        
-        //private static XmlSerializer xs;
 
-        //static Settings()
-        //{
-        //    xs = new XmlSerializer(typeof(Settings));
-        //}
-
-        //public void SaveToFile(string NameFile)
-        //{
-        //    using (Streamwriter sr = new Streamwriter(NameFile))
-        //    {
-        //        xs.Serialize(sr, this));
-        //    }
-        //}
-
-        //public static Settings ReadFromFile(string NameFile)
-        //{
-        //    using (StreamReader sr = new StreamReader(NameFile))
-        //    {
-        //        return xs.Deserialize(sr) as Settings;
-        //    }
-        //}
 
 
         public static int getCurrentRAM()

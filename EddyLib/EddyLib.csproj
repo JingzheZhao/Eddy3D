@@ -49,6 +49,9 @@
   <ItemGroup>
     <Compile Include="ASCIProgressBar.cs" />
     <Compile Include="BoundaryConditionsBase.cs" />
+    <Compile Include="OFResult.cs" />
+    <Compile Include="OFRunSettings.cs" />
+    <Compile Include="OFMeshSettings.cs" />
     <Compile Include="Residuals.cs" />
     <Compile Include="Streamwriter.cs" />
     <Compile Include="StringTemplates\BatchFiles.cs" />

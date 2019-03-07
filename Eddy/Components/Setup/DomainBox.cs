@@ -1,7 +1,6 @@
 ﻿using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
-using Microsoft.VisualBasic.Devices;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
@@ -15,7 +14,7 @@ using System.IO;
 
 namespace Eddy
 {
-    public class BlockMesh : GH_Component
+    public class BlockMeshBox : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -24,12 +23,10 @@ namespace Eddy
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-
-
-        public BlockMesh()
-          : base("DomainCyl", "DomainCyl",
-              "DomainCyl",
-              "Eddy", "Domain")
+        public BlockMeshBox()
+          : base("DomainBox", "DomainBox",
+              "DomainBox",
+              "Eddy", "Setup")
         {
         }
 
@@ -41,26 +38,22 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
 
+
             pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Eddy"));
+
             pManager.AddBrepParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
             pManager.AddGeometryParameter("Terrain", "Terrain", "Terrain Geometry. Make sure the terrain geometry is bigger than the ground plane of the wind tunnel.", GH_ParamAccess.list);
 
 
-
             pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.item);
 
+            pManager.AddNumberParameter("BaseMesh", "BaseMesh", "BaseMesh", GH_ParamAccess.item, 5);
 
-            pManager.AddIntegerParameter("Radial divisions", "RadDiv", "Radial divisions", GH_ParamAccess.item, 1);
-            pManager.AddIntegerParameter("Concentric grading", "ConcGrad", "Concentric grading", GH_ParamAccess.item, 1);
-            pManager.AddIntegerParameter("Concentric divisions", "ConcDiv", "Concentric Divisions", GH_ParamAccess.item, 1);
-
-            pManager.AddNumberParameter("Size of inner rectangle", "InnerR", "Size of inner rectangle", GH_ParamAccess.item, 0);
-            pManager.AddNumberParameter("Size of outer radius", "OuterR", "Size of outer radius", GH_ParamAccess.item, 0);
-            pManager.AddNumberParameter("Height", "Height", "Height", GH_ParamAccess.item, 0);
-
-
+            //pManager.AddGenericParameter("RAM", "RAM", "RAM", GH_ParamAccess.item);
             pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
-           
+
+            //pManager.AddBooleanParameter("Clean", "Clean", "Clean", GH_ParamAccess.item, false);
+
 
             pManager[2].Optional = true;
         }
@@ -71,11 +64,9 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Domain", "Dom", "Domain", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Cylinder", "Cyl", "Cylinder", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Div", "Div", "Div", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Domain", "Dom", "Simulation Domain", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Box", "Box", "Domain", GH_ParamAccess.item);
         }
-
 
 
         /// <summary>
@@ -86,79 +77,51 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-
-
-
-
-            //string filepath = @"C:\OF\";
-            //bool Run = false;
-            //  string command = @"blockMesh";
             string baseWorkingDirectory = "";
-
-            DA.GetData(0, ref baseWorkingDirectory);
-
-
+            DA.GetData("Directory", ref baseWorkingDirectory);
             if (!Directory.Exists(baseWorkingDirectory)) { Directory.CreateDirectory(baseWorkingDirectory); }
 
 
             //public Box DomainBoundaryBox;
-            List<GeometryBase> _domain = new List<GeometryBase>();
-            DA.GetDataList(1, _domain);
+            List<GeometryBase> geometries = new List<GeometryBase>();
 
-
-            List<GeometryBase> domain = new List<GeometryBase>();
-            foreach (var g in _domain)
-            {
-                if (g != null)
-                {
-                    domain.Add(g);
-                }
-            }
 
             List<GeometryBase> terrain = new List<GeometryBase>();
+
+
+
+
+
+            DA.GetDataList(1, geometries);
             DA.GetDataList(2, terrain);
-            
-            BoundaryConditions BCond = null;
-            DA.GetData(3, ref BCond);
+
+            double blockDimension = 0;
+            //    double RAM = 0;
+            int CPUs = 1;
+
+            BoundaryConditions BCond;
             GH_ObjectWrapper gobj = null;
             if (!DA.GetData(3, ref gobj)) { }
+
             if ((gobj.Value is BoundaryConditions))
             {
-                BCond = ((BoundaryConditions)gobj.Value);
+                BCond = (BoundaryConditions)gobj.Value;
             }
             else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid boundary condition object"); return; }
-                                  
-
-
-            int CPUs = 1;
-            int divsRadial = 1;
-            int gradingPerim = 1;
-            int divsConcentric = 1;
-            double sizeInnerRect = 0;
-            double sizeOuterCirc = 0;
-            double sizeHeight = 0;
 
 
 
-            DA.GetData(4, ref divsRadial);
-            DA.GetData(5, ref gradingPerim);
-            DA.GetData(6, ref divsConcentric);
-            DA.GetData(7, ref sizeInnerRect);
-            DA.GetData(8, ref sizeOuterCirc);
-            DA.GetData(9, ref sizeHeight);
 
 
-            //DA.GetData(6, ref RAM);
-            DA.GetData(10, ref CPUs);
-            //DA.GetData(10, ref Run);
-            
+            DA.GetData(4, ref blockDimension);
+            //DA.GetData(4, ref RAM);
+            DA.GetData(5, ref CPUs);
+            //DA.GetData(6, ref Run);
+
+
 
             Mesh combinedMeshes = new Mesh();
             MeshingParameters mp = new MeshingParameters();
-
-            //Error handling
-
-            // //c//c//temp/abc/mesh/
 
             //string windowsVersion = Utilities.GetOSInfo();
             bool isWindows7 = Utilities.IsWindows7;
@@ -182,30 +145,14 @@ namespace Eddy
             }
 
 
-            if (CPUs > Environment.ProcessorCount)
+
+            if (BCond.windDirs.Count > 1)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that many CPUs.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "For box-shaped domains you can only pass one wind direction per simulation setup."); return;
             }
 
 
 
-            var totalGBRam = Convert.ToInt32((new ComputerInfo().TotalPhysicalMemory / (Math.Pow(1024, 2))) + 0.5);
-            //if (RAM < 0 || RAM > totalGBRam)
-            //{
-            //    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that much RAM available.");
-            //}
-            //if (divisionsZ <= 0)
-            //{
-            //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Divisions must be greater than 0.");
-
-            //}
-            //if (scaleFactorInnerRect <= 0 || scaleFactorInnerRect >= Math.Sqrt(0.5) )
-            //{ 
-            //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Scale factor must be greater than 0 and less than 0.7.");
-
-            //}
-
-            
             Mesh terrainMeshes = new Mesh();
 
             if (terrain.Count == 0)
@@ -239,35 +186,39 @@ namespace Eddy
 
 
 
-            foreach (GeometryBase b in domain)
+            if (geometries == null)
             {
-
-                if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
-                {
-                    Mesh obj = new Mesh();
-                    obj = (Mesh)b;
-                    combinedMeshes.Append(obj);
-                }
-                else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
-                {
-                    Brep obj = (Brep)b;
-                    var m = Mesh.CreateFromBrep(obj, mp);
-                    foreach (Mesh mm in m)
-                    {
-                        combinedMeshes.Append(mm);
-                    }
-                }
-
-
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please reference an input geometry."); return;
             }
+            else
+            {
+                foreach (GeometryBase b in geometries)
+                {
+
+                    if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
+                    {
+                        Mesh obj = (Mesh)b;
+                        combinedMeshes.Append(obj);
+                    }
+                    else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
+                    {
+                        Brep obj = (Brep)b;
+                        var m = Mesh.CreateFromBrep(obj, mp);
+                        foreach (Mesh mm in m)
+                        {
+                            combinedMeshes.Append(mm);
+                        }
+                    }
 
 
+                }
+            }
 
             // Those Breps are currently necessary to perform the point inclusion check for the probing components
 
             Brep inputBreps = new Brep();
 
-            foreach (GeometryBase g in domain)
+            foreach (GeometryBase g in geometries)
             {
 
                 inputBreps.Append(Brep.TryConvertBrep(g));
@@ -275,27 +226,59 @@ namespace Eddy
 
 
 
-            //Fix paths
-
-            baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
-            //string OFbaseWorkingDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory);
-
-
-
-
-
             if (Utilities.CheckLicence() == true)
             {
 
 
-                OFCylDomain DOMCYL = new OFCylDomain(inputBreps, combinedMeshes, terrainMeshes, BCond, divsRadial, gradingPerim, divsConcentric, CPUs, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory)
-                {
-                    CPUs = CPUs
-                };
+
+
+
+                //Fix paths
+
+                baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
+                //string OFbaseWorkingDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory);
+
+
+
+
+                OFBoxDomain DOMBOX = new OFBoxDomain(inputBreps, combinedMeshes, terrainMeshes, BCond, blockDimension, CPUs, baseWorkingDirectory);
+
                 if (CPUs == -1)
                 {
-                    DOMCYL.autoCPUCalc = true;
+                    DOMBOX.autoCPUCalc = true;
                 }
+
+
+
+
+
+
+                //DOM = OFDomainBuilder(domain, workingDirectory);
+
+                //if ((DOMBOX.xCells * blockDimension) > DOMBOX.dimX || (DOMBOX.yCells * blockDimension) > DOMBOX.dimY || (DOMBOX.zCells * blockDimension) > DOMBOX.dimZ)
+                //{
+                //    //  AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Your block dimensions need to be smaller than the domain.");
+                //}
+
+
+
+
+
+                if (CPUs > Environment.ProcessorCount)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that many CPUs.");
+                }
+
+                //var totalGBRam = Convert.ToInt32((new ComputerInfo().TotalPhysicalMemory / (Math.Pow(1024, 2))) + 0.5);
+                //if (RAM < 0 || RAM > totalGBRam)
+                //{
+                //    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that much RAM available.");
+                //}
+
+
+
+
+
 
                 //if (Settings.getCurrentRAM() != RAM)
                 //{
@@ -335,46 +318,56 @@ namespace Eddy
                 //}
 
 
+                //////
+
+                var meshStlFilenameBuildings = DOMBOX.baseWorkingDir + @"\mesh\constant\triSurface\building.stl";
+                var meshStlFilenameGround = DOMBOX.baseWorkingDir + @"\mesh\constant\triSurface\ground.stl";
+                var meshStlFilenameGroundPerim = DOMBOX.baseWorkingDir + @"\mesh\constant\triSurface\ground_perim.stl";
+                var meshBoundaryConditionsDirectory = DOMBOX.baseWorkingDir + @"\mesh\0.org\";
 
 
-                var meshStlFilenameBuildings = DOMCYL.baseWorkingDir + @"\mesh\constant\triSurface\building.stl";
-                var meshStlFilenameGround = DOMCYL.baseWorkingDir + @"\mesh\constant\triSurface\ground.stl";
-                var meshStlFilenameGroundPerim = DOMCYL.baseWorkingDir + @"\mesh\constant\triSurface\ground_perim.stl";
-                var meshBoundaryConditionsDirectory = DOMCYL.baseWorkingDir + @"\mesh\0.org\";
-
-
-                if (!Directory.Exists(DOMCYL.meshStlDir))
+                if (!Directory.Exists(baseWorkingDirectory))
                 {
-                    Directory.CreateDirectory(DOMCYL.meshStlDir);
+                    Directory.CreateDirectory(baseWorkingDirectory);
                 }
 
 
+                if (!Directory.Exists(DOMBOX.meshStlDir))
+                {
+                    Directory.CreateDirectory(DOMBOX.meshStlDir);
+                }
+
+
+                // STL export
+
                 STLExport.ExportBinary(meshStlFilenameBuildings, combinedMeshes);
-                
-                
+
+
 
 
                 if (terrain.Count > 0)
                 {
-                    //No perim if we use a terrain                    
-                    STLExport.ExportBinary(meshStlFilenameGround, terrainMeshes);
+                    //No perim if we use a terrain
+                    DOMBOX.newBoxGround.Translate(Vector3d.ZAxis * 0.001);
+                    STLExport.ExportBinary(meshStlFilenameGround, DOMBOX.newBoxGround);
                 }
                 else
                 {
-                    STLExport.ExportBinary(meshStlFilenameGround, DOMCYL.DomainMeshGround);
-                    STLExport.ExportBinary(meshStlFilenameGroundPerim, DOMCYL.DomainMeshGroundPerim);
+                    STLExport.ExportBinary(meshStlFilenameGround, DOMBOX.newBoxGround);
+                    STLExport.ExportBinary(meshStlFilenameGroundPerim, DOMBOX.newBoxGroundPerim);
                 }
 
 
 
 
-                if (!Directory.Exists(DOMCYL.meshSystemDir))
+
+                if (!Directory.Exists(DOMBOX.meshSystemDir))
                 {
-                    Directory.CreateDirectory(DOMCYL.meshSystemDir);
+                    Directory.CreateDirectory(DOMBOX.meshSystemDir);
                 }
-                if (!Directory.Exists(DOMCYL.meshConstantDir))
+                if (!Directory.Exists(DOMBOX.meshConstantDir))
                 {
-                    Directory.CreateDirectory(DOMCYL.meshConstantDir);
+                    Directory.CreateDirectory(DOMBOX.meshConstantDir);
                 }
                 if (!Directory.Exists(meshBoundaryConditionsDirectory))
                 {
@@ -382,9 +375,9 @@ namespace Eddy
                 }
 
 
-                File.WriteAllText(DOMCYL.meshSystemDir + @"\blockMeshDict", DOMCYL.StringyfyDomain2());
-                File.WriteAllText(DOMCYL.baseWorkingDir + @"\mesh\case.foam", "");
-                File.WriteAllText(DOMCYL.meshSystemDir + @"\controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(DOMCYL, null, 0));
+                File.WriteAllText(DOMBOX.meshSystemDir + @"\blockMeshDict", EddyLib.StrTemp.OFExecDicts.BlockMeshDict(DOMBOX));
+                File.WriteAllText(DOMBOX.baseWorkingDir + @"\mesh\case.foam", "");
+                File.WriteAllText(DOMBOX.meshSystemDir + @"\controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(DOMBOX, null, 0));
 
                 if (!File.Exists(baseWorkingDirectory + @"\mesh\log"))
                 {
@@ -393,12 +386,10 @@ namespace Eddy
 
 
 
-
-
                 //export RAD for DAYSIM
-                if (!Directory.Exists(DOMCYL.baseWorkingDir + @"Rad\"))
+                if (!Directory.Exists(DOMBOX.baseWorkingDir + @"Rad\"))
                 {
-                    Directory.CreateDirectory(DOMCYL.baseWorkingDir + @"Rad\");
+                    Directory.CreateDirectory(DOMBOX.baseWorkingDir + @"Rad\");
                 }
                 string radMat = @"
 void plastic Generic_20
@@ -410,20 +401,8 @@ void plastic Generic_20
                 daysimMesh.Append(combinedMeshes);
                 // Todo: add ground plane to the above mesh
 
-                File.WriteAllText(DOMCYL.baseWorkingDir + @"Rad\materials.rad", radMat);
-                RadianceFiles.MeshProc(daysimMesh, DOMCYL.baseWorkingDir + @"Rad\scene.rad", "Generic_20");
-
-
-
-
-                //if (Run == true)
-                //{
-
-                //}
-
-                DA.SetData(1, DOMCYL);
-                DA.SetData(2, DOMCYL.DomainMesh);
-                DA.SetDataList(3, DOMCYL.concentricDivisions);
+                File.WriteAllText(DOMBOX.baseWorkingDir + @"Rad\materials.rad", radMat);
+                RadianceFiles.MeshProc(daysimMesh, DOMBOX.baseWorkingDir + @"Rad\scene.rad", "Generic_20");
 
 
                 string logFile = "";
@@ -433,12 +412,27 @@ void plastic Generic_20
                     using (StreamReader reader = new StreamReader(stream))
                     {
                         logFile = reader.ReadToEnd();
+                        //while (!reader.EndOfStream)
+                        //{
+
+                        //}
 
                     }
                 }
 
                 DA.SetData(0, logFile);
                 //AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Super!!");
+
+
+
+
+
+
+                DA.SetData(1, DOMBOX);
+                //if (mode == 0)
+                //{
+                DA.SetData(2, DOMBOX.newBoxDomain);
+
 
 
             }
@@ -457,14 +451,14 @@ void plastic Generic_20
         protected override System.Drawing.Bitmap Icon =>
                 // You can add image files to your project resources and access them like this:
                 //return Resources.IconForThisComponent;
-                Properties.Resources.Eddy_domCyl;
+                Properties.Resources.Eddy_domBox;
 
         /// <summary>
         /// Each component must have a unique Guid to identify it. 
         /// It is vital this Guid doesn't change otherwise old ghx files 
         /// that use the old ID will partially fail during loading.
         /// </summary>
-        public override Guid ComponentGuid => new Guid("{DDB7971A-EBAD-4A6F-8BFB-E77FE24F73BD}");
+        public override Guid ComponentGuid => new Guid("{0AD4BDF7-33AC-492D-ABF0-622A5488C8E2}");
     }
 
 }

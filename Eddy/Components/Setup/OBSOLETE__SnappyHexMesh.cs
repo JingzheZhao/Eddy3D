@@ -25,7 +25,7 @@ namespace Eddy
         public SnappyHexMesh()
           : base("Mesh", "Mesh",
               "Mesh",
-              "Eddy", "Mesh")
+              "Eddy", "Setup")
         {
         }
 
@@ -182,7 +182,7 @@ namespace Eddy
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Some processes got killed probably because to little RAM was available. Try to increase the RAM acclocated for the Docker virtual machine.");
             }
 
-            //CLEAN UP THE OF MESS
+            //CLEAN UP THE MESS
 
             if (Clean == true)
             {

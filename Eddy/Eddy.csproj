@@ -67,13 +67,14 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Components\BCond\CompBCondConstantU.cs" />
+    <Compile Include="Components\Settings\RunSettings.cs" />
+    <Compile Include="Components\Setup\BCondConstantU.cs" />
     <Compile Include="Components\OSSettings.cs" />
     <Compile Include="Components\postProcessing\CompComputeFlowRateFromCp.cs" />
     <Compile Include="Components\postProcessing\CompParseHourlyU.cs" />
     <Compile Include="Components\postProcessing\CompParseAnnualCP.cs" />
-    <Compile Include="Components\BCond\CompBCondABL.cs" />
-    <Compile Include="Components\Domain\CompBlockMeshCyl.cs" />
+    <Compile Include="Components\Setup\BCondABL.cs" />
+    <Compile Include="Components\Setup\DomainCyl.cs" />
     <Compile Include="Components\Misc\CompCellSize.cs" />
     <Compile Include="Components\postProcessing\CompComputeFlowRateFromU.cs" />
     <Compile Include="Components\postProcessing\CompVisProbesCustom.cs" />
@@ -88,8 +89,9 @@
     <Compile Include="Components\postProcessing\CompVisPatches.cs" />
     <Compile Include="Components\postProcessing\UTCI\CompCalcUTCI.cs" />
     <Compile Include="Components\Residuals\CompWriteResiduals.cs" />
-    <Compile Include="Components\preProcessing\CompCluster.cs" />
+    <Compile Include="Components\Misc\CompCluster.cs" />
     <Compile Include="Components\Residuals\CompVisResiduals.cs" />
+    <Compile Include="Components\Settings\MeshSettings.cs" />
     <Compile Include="Licensing\LicenseTest.cs" />
     <Compile Include="Licensing\ModifyRegistry.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -97,12 +99,12 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Components\Domain\CompBlockMeshBox.cs" />
+    <Compile Include="Components\Setup\DomainBox.cs" />
     <Compile Include="Components\Simulation\CompSimpleFoam.cs" />
-    <Compile Include="Components\Mesh\CompSnappyHexMesh.cs" />
+    <Compile Include="Components\Setup\OBSOLETE__SnappyHexMesh.cs" />
     <Compile Include="Components\Misc\CompClean.cs" />
     <Compile Include="Licensing\License.cs" />
-    <Compile Include="Components\Mesh\CompGeometryExport.cs" />
+    <Compile Include="Components\Misc\CompGeometryExport.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
