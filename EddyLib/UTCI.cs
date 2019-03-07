@@ -131,13 +131,83 @@ namespace EddyLib
 
         }
 
+
+
+
         public static double GetVelocityAtProbingHeightFromEPW(double URef, double z0, double zref, double probingHeight)
         {
             var UAtProbingHeightFromEPW = ((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((probingHeight + z0) / z0);
-            return UAtProbingHeightFromEPW;
+            return UAtProbingHeightFromEPW;         
+
         }
 
 
+        public static double[] ReadComfortHoursFromCSV(string baseWorkingDir, List<int> hoursToEvaluate)
+        {
+
+            //// Fill datatrees from CSV
+
+            var path = baseWorkingDir + @"\UTCI.csv";
+            List<double> ComfortHoursList = new List<double>();
+
+            var allLines = File.ReadAllLines(path);
+            var numberOfProbes = allLines.Count();
+
+
+            // Fill array once; fastest method so far
+
+            double[,] HourlyUTCI = new double[numberOfProbes, 8760];
+
+            //double[,] HourlyHumanConditions = new double[numberOfProbes, 8760];
+            double[] ComfortHours = new double[numberOfProbes];
+
+            System.Threading.Tasks.Parallel.For(0, numberOfProbes,
+                    i =>
+                      {
+
+                          //              if (GH_Document.IsEscapeKeyDown())
+                          //              {
+                          //                  private GH_Document GHDocument = OnPingDocument();
+                          //GHDocument.RequestAbortSolution();
+                          //              }
+
+                          for (int h = 0; h < 8760; h++)
+                          {
+                              HourlyUTCI[i, h] = double.Parse(allLines[i].Split(',')[h]);
+                          }
+
+                      });
+
+            //var hoursToEvaluate = Utilities.GetEvalHoursFromLB(ladybugAnalysisPeriod);
+
+
+
+            //system.threading.tasks.parallel.for (0, numberofprobes,
+            //  i =>
+            //  {
+
+            for (int probes = 0; probes < numberOfProbes; probes++)
+            {
+
+
+                int comfortCnt = 0;
+                foreach (int hour in hoursToEvaluate)
+                {
+                    if (UTCI.GetConditionOfPerson(HourlyUTCI[probes, hour]) == 0)
+                    {
+                        //HourlyHumanConditions[i,hour]=UTCI.GetConditionOfPerson(HourlyUTCI[i, hour]);
+                        comfortCnt++;
+
+                    }
+
+                }
+                ComfortHours[probes] = Math.Round((double)comfortCnt * 100 / hoursToEvaluate.Count, 1);
+                //});
+            }
+
+            return ComfortHours;
+
+        }
 
 
         public static int GetConditionOfPerson(double UTCI)
@@ -400,9 +470,9 @@ namespace EddyLib
                       tempuncertaintyWindArray[i, j] = false;
                       tempuncertaintyMRTArray[i, j] = false;
 
-                      // Check for extreme mrts
+              // Check for extreme mrts
 
-                      double mrt = UTCI.GetMRT(weather.DryBulbTemp[i], weather.RelativeHumidity[i], DiffRad[i][j], DirRad[i][j], weather.SolarElevation[i], weather.DryBulbTemp[i], weather.Wst, weather.Hst, weather.BodyA, weather.GrRef, 0.95)[0];
+              double mrt = UTCI.GetMRT(weather.DryBulbTemp[i], weather.RelativeHumidity[i], DiffRad[i][j], DirRad[i][j], weather.SolarElevation[i], weather.DryBulbTemp[i], weather.Wst, weather.Hst, weather.BodyA, weather.GrRef, 0.95)[0];
 
                       if (mrt < weather.DryBulbTemp[i] - 30)
                       {
@@ -415,9 +485,9 @@ namespace EddyLib
                           tempuncertaintyMRTArray[i, j] = true;
                       }
 
-                      // Check for extreme windspeeds
+              // Check for extreme windspeeds
 
-                      double resultingWindSpeedforUTCI = windReduction[i, j] * UTCI.GetVelocityAtProbingHeightFromEPW(weather.WindSpeed[i], z0, zref, probingHeight);
+              double resultingWindSpeedforUTCI = windReduction[i, j] * UTCI.GetVelocityAtProbingHeightFromEPW(weather.WindSpeed[i], z0, zref, probingHeight);
 
                       if (windReduction[i, j] * UTCI.GetVelocityAtProbingHeightFromEPW(weather.WindSpeed[i], z0, zref, probingHeight) > 17)
                       {
@@ -436,26 +506,26 @@ namespace EddyLib
                           tempUtci[i, j] = UTCI.GetUTCI2(weather.DryBulbTemp[i], weather.RelativeHumidity[i], resultingWindSpeedforUTCI, mrt);
                       }
 
-                      //double cOfPerson = 0;
+              //double cOfPerson = 0;
 
-                      //if (Utci[i, j] < -40) cOfPerson = -5;
-                      //else if ((-40 <= Utci[i, j]) && (Utci[i, j] < -27)) cOfPerson = -4;
-                      //else if ((-27 <= Utci[i, j]) && (Utci[i, j] < -13)) cOfPerson = -3;
-                      //else if ((-13 <= Utci[i, j]) && (Utci[i, j] < 0)) cOfPerson = -2;
-                      //else if ((0 <= Utci[i, j]) && (Utci[i, j] < 9)) cOfPerson = -1;
-                      //else if ((9 <= Utci[i, j]) && (Utci[i, j] < 26)) cOfPerson = 0;
-                      //else if ((26 <= Utci[i, j]) && (Utci[i, j] < 28)) cOfPerson = 1;
-                      //else if ((28 <= Utci[i, j]) && (Utci[i, j] < 32)) cOfPerson = 2;
-                      //else if ((32 <= Utci[i, j]) && (Utci[i, j] < 38)) cOfPerson = 3;
-                      //else if ((38 <= Utci[i, j]) && (Utci[i, j] < 46)) cOfPerson = 4;
-                      //else cOfPerson = 5;
+              //if (Utci[i, j] < -40) cOfPerson = -5;
+              //else if ((-40 <= Utci[i, j]) && (Utci[i, j] < -27)) cOfPerson = -4;
+              //else if ((-27 <= Utci[i, j]) && (Utci[i, j] < -13)) cOfPerson = -3;
+              //else if ((-13 <= Utci[i, j]) && (Utci[i, j] < 0)) cOfPerson = -2;
+              //else if ((0 <= Utci[i, j]) && (Utci[i, j] < 9)) cOfPerson = -1;
+              //else if ((9 <= Utci[i, j]) && (Utci[i, j] < 26)) cOfPerson = 0;
+              //else if ((26 <= Utci[i, j]) && (Utci[i, j] < 28)) cOfPerson = 1;
+              //else if ((28 <= Utci[i, j]) && (Utci[i, j] < 32)) cOfPerson = 2;
+              //else if ((32 <= Utci[i, j]) && (Utci[i, j] < 38)) cOfPerson = 3;
+              //else if ((38 <= Utci[i, j]) && (Utci[i, j] < 46)) cOfPerson = 4;
+              //else cOfPerson = 5;
 
-                      //conditionOfPerson[i, j] = cOfPerson;
+              //conditionOfPerson[i, j] = cOfPerson;
 
-                  }
-                  // Console.WriteLine("Sensor " + j + " done.");
-                  //  }
-              });
+          }
+          // Console.WriteLine("Sensor " + j + " done.");
+          //  }
+      });
 
                 Utci = tempUtci;
                 uncertaintyMRTArray = tempuncertaintyMRTArray;
@@ -474,7 +544,7 @@ namespace EddyLib
         double z0 = 1)
         {
 
-          
+
             int sensorPointCount = probes.Length;
 
 
@@ -1020,7 +1090,7 @@ namespace EddyLib
 
 
         public static double[] GetMRT(double Tair, double RelHum, double DiffRad, double DirRad, double SolarElev, double T_celsius,
-double Wst, double Hst, double BodyA, double GrRef, double Eb)
+        double Wst, double Hst, double BodyA, double GrRef, double Eb)
         {
             //Standard call
             //UTCI.GetMRT(weather.DryBulbTemp[i], weather.RelativeHumidity[i], DiffRad[i][j], DirRad[i][j], weather.SolarElevation[i], weather.DryBulbTemp[i], weather.Wst, weather.Hst, weather.BodyA, weather.GrRef, 0.95)[0];
@@ -1047,7 +1117,7 @@ double Wst, double Hst, double BodyA, double GrRef, double Eb)
             double T_celsius_kelvin = T_celsius + 273;
 
             double Fs = (Math.Atan(0.5 * Wst / (Hst - 1))) * 180 / Math.PI * 0.0056; // where does this come from?
-            // where FiS is the angle factor between the ith internal surface of the envelope and the subject, ei is its emissivity, Ai is the area of the interested surface, Ti the temperature, ri the reflection coefficient of the ith surface and Gi the radiation reaching the ith internal surface.
+                                                                                     // where FiS is the angle factor between the ith internal surface of the envelope and the subject, ei is its emissivity, Ai is the area of the interested surface, Ti the temperature, ri the reflection coefficient of the ith surface and Gi the radiation reaching the ith internal surface.
             double Fc = 1 - Fs;  // remaining angle factor
 
             double Es = 0.95;  // Emissivities? Why 0.95?

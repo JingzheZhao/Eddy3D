@@ -1,29 +1,25 @@
-﻿using Eddy.Properties;
+﻿
+using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
+using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-
+using System.Windows.Forms;
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
 // folder in Grasshopper.
 // You can use the _GrasshopperDeveloperSettings Rhino command for that.
-
 namespace Eddy
 {
     public class ReadComfortHours : GH_Component
     {
-
         // exposure
-        public override GH_Exposure Exposure
-        {
-            get { return GH_Exposure.hidden; }
-        }
-
-
+        //public override GH_Exposure Exposure
+        //{
+        //    get { return GH_Exposure.hidden; }
+        //}
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
         /// constructor without any arguments.
@@ -35,35 +31,41 @@ namespace Eddy
           : base("ReadComfortHours", "ReadComfortHours", "Read annual accumulated comfort hours in % from UTCI.", "Eddy", "UTCI")
         {
         }
-
-
-
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
+        /// 
+
+        protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
+        {
+            base.AppendAdditionalComponentMenuItems(menu);
+            Menu_AppendItem(menu, "Use Ladybug Analysis period.", Menu_DoClick, true, !LadybugAnalysisPeriod);
+        }
+
+        private void Menu_DoClick(object sender, EventArgs e)
+        {
+            LadybugAnalysisPeriod = !LadybugAnalysisPeriod;
+            ExpireSolution(true);
+
+        }
+        public bool LadybugAnalysisPeriod = true;
+
+
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Simulation", "Sim", "Sim", GH_ParamAccess.item);
-            pManager.AddTextParameter("Interval", "Int", "Interval to be avaluated. May either be a single hour (mode 1) or a Ladybug analysisPeriod (mode 2).", GH_ParamAccess.list);
 
+            pManager.AddGenericParameter("Interval", "Int", "Interval to be avaluated. May either be intervals of hours or Ladybug analysisPeriods.", GH_ParamAccess.list);
+            pManager.AddNumberParameter("UTCI", "UTCI", "List of UTCI values.", GH_ParamAccess.list);
             pManager.AddBooleanParameter("Run", "Run", "Run the component", GH_ParamAccess.item, false);
-
         }
-
         /// <summary>
         /// Registers all the output parameters for this component.
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-
             pManager.AddGenericParameter("ComfortHours", "CH", "Annual comfort hours in %.", GH_ParamAccess.list);
-
-
-
         }
-
-
-
         /// <summary>
         /// This is the method that actually does the work.
         /// </summary>
@@ -71,124 +73,67 @@ namespace Eddy
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-
             OFBaseDomain DOM = null;
-
-
             GH_ObjectWrapper gobj = null;
             if (!DA.GetData(0, ref gobj)) { }
-
             if ((gobj.Value is OFBaseDomain))
             {
                 DOM = (OFBaseDomain)gobj.Value;
             }
             if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
-
             bool Run = false;
-
-            //int annualHours = 8760;
-
-            List<string> dateTimeInput = new List<string>();
-
-            // Get interval
-
-            DA.GetDataList(1, dateTimeInput);
-
-            var ladybugAnalysisPeriod = dateTimeInput;
-
-
-
             DA.GetData(2, ref Run);
-
-
 
             if (!Run)
             {
                 return;
             }
 
-            //// Fill datatrees from CSV
-
-
-            var path = DOM.baseWorkingDir + @"\UTCI.csv";
-            List<double> ComfortHoursList = new List<double>();
 
 
 
-            if (ladybugAnalysisPeriod == null || ladybugAnalysisPeriod.Count != 2)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid analysis periode object."); return;
-            }
-
-
-
-            var allLines = File.ReadAllLines(DOM.baseWorkingDir + @"\UTCI.csv");
-            var numberOfProbes = allLines.Count();
-
-
-            // Fill array once; fastest method so far
-
-            double[,] HourlyUTCI = new double[numberOfProbes, 8760];
-            //double[,] HourlyHumanConditions = new double[numberOfProbes, 8760];
             double[] ComfortHours = new double[numberOfProbes];
 
 
-
-
-
-            System.Threading.Tasks.Parallel.For(0, numberOfProbes,
-                
-
-            i =>
-              {
-
-                  if (GH_Document.IsEscapeKeyDown())
-                  {
-                      GH_Document GHDocument = OnPingDocument();
-                      GHDocument.RequestAbortSolution();
-                  }
-
-                  for (int h = 0; h < 8760; h++)
-                  {
-                      HourlyUTCI[i, h] = double.Parse(allLines[i].Split(',')[h]);
-                  }
-
-
-              });
-
-            var hoursToEvaluate = Utilities.ExportEvaluationHours(ladybugAnalysisPeriod);
-
-            //System.Threading.Tasks.Parallel.For(0, numberOfProbes,
-            //  i =>
-            //  {
-
-            for (int probes = 0; probes < numberOfProbes; probes++)
+            if (LadybugAnalysisPeriod)
             {
 
+                List<List<string>> ladybugAnalysisPeriod = new List<List<string>>();
+                // Get interval
+                DA.GetDataList(1, ladybugAnalysisPeriod);                
 
-                int comfortCnt = 0;
-                foreach (int hour in hoursToEvaluate)
+                if (ladybugAnalysisPeriod == null || ladybugAnalysisPeriod.Count != 2)
                 {
-                    if (UTCI.GetConditionOfPerson(HourlyUTCI[probes, hour]) == 0)
-                    {
-                        //HourlyHumanConditions[i,hour]=UTCI.GetConditionOfPerson(HourlyUTCI[i, hour]);
-                        comfortCnt++;
-
-                    }
-
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid analysis periode object."); return;
                 }
-                ComfortHours[probes] = Math.Round((double)comfortCnt * 100 / hoursToEvaluate.Count, 1);
-                //});
+
             }
 
+            else
+            {
+                List<Interval> intervals = new List<Interval>();
+                DA.GetDataList(1, intervals);
+
+                List<List<int>> fullInputList = new List<List<int>>();
+
+                // Make list of list of hours
+
+                foreach (Interval inter in intervals)
+                {
+                    fullInputList.Add(Utilities.GetEvalHoursFromInterval(inter));
+                }
+
+               
+
+
+
+            }
+
+
+    
+
             DA.SetDataList(0, ComfortHours);
-
-
         }
-
-
-
-
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface.
         /// Icons need to be 24x24 pixels.
@@ -196,7 +141,6 @@ namespace Eddy
         protected override System.Drawing.Bitmap Icon =>
                 // You can add image files to your project resources and access them like this:
                 Resources.Eddy_parseU;
-
         /// <summary>
         /// Each component must have a unique Guid to identify it. 
         /// It is vital this Guid doesn't change otherwise old ghx files 
