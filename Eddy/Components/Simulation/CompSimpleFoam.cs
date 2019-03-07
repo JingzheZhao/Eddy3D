@@ -185,7 +185,16 @@ namespace Eddy
 
             }
 
+            //string logFile = "";
 
+            //using (FileStream stream = File.Open(baseWorkingDirectory + @"\mesh\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            //{
+            //    using (StreamReader reader = new StreamReader(stream))
+            //    {
+            //        logFile = reader.ReadToEnd();
+
+            //    }
+            //}
 
 
 
@@ -259,7 +268,7 @@ namespace Eddy
             }
 
 
-            RunFoamSimulation.Run(DOM,MeshSettings, RunSettings, baseWorkingDirectory);
+            RunFoamSimulation.Run(DOM, MeshSettings, RunSettings, baseWorkingDirectory);
 
             #endregion
 

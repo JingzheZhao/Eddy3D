@@ -101,7 +101,6 @@
     </Compile>
     <Compile Include="Components\Setup\DomainBox.cs" />
     <Compile Include="Components\Simulation\CompSimpleFoam.cs" />
-    <Compile Include="Components\Setup\OBSOLETE__SnappyHexMesh.cs" />
     <Compile Include="Components\Misc\CompClean.cs" />
     <Compile Include="Licensing\License.cs" />
     <Compile Include="Components\Misc\CompGeometryExport.cs" />

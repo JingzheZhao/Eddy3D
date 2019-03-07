@@ -70,7 +70,6 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.item);
             pManager.AddGenericParameter("Domain", "Dom", "Domain", GH_ParamAccess.item);
             pManager.AddGenericParameter("Cylinder", "Cyl", "Cylinder", GH_ParamAccess.item);
             pManager.AddGenericParameter("Div", "Div", "Div", GH_ParamAccess.list);
@@ -145,26 +144,6 @@ namespace Eddy
 
             Mesh combinedMeshes = new Mesh();
             MeshingParameters mp = new MeshingParameters();
-
-            //Error handling
-
-            // //c//c//temp/abc/mesh/
-
-            ////string windowsVersion = Utilities.GetOSInfo();
-            //bool isWindows7 = Utilities.IsWindows7;
-            //string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-
-
-
-            
-            //if (isWindows7)
-            //{
-            //    if (!baseWorkingDirectory.StartsWith(userFolder, StringComparison.InvariantCultureIgnoreCase))
-            //    {
-            //        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "For Windows 7 and 8, the working directory must be in the user folder because of constraint with a deprecated Docker version.."); return;
-            //    }
-            //}
-
 
 
 
@@ -259,27 +238,10 @@ namespace Eddy
              
 
                
+                DA.SetData(0, DOMCYL);
+                DA.SetData(1, DOMCYL.DomainMesh);
+                DA.SetDataList(2, DOMCYL.concentricDivisions);
 
-
-
-
-                DA.SetData(1, DOMCYL);
-                DA.SetData(2, DOMCYL.DomainMesh);
-                DA.SetDataList(3, DOMCYL.concentricDivisions);
-
-
-                string logFile = "";
-
-                using (FileStream stream = File.Open(baseWorkingDirectory + @"\mesh\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                {
-                    using (StreamReader reader = new StreamReader(stream))
-                    {
-                        logFile = reader.ReadToEnd();
-
-                    }
-                }
-
-                DA.SetData(0, logFile);
 
 
             }

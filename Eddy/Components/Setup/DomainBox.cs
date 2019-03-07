@@ -230,8 +230,6 @@ namespace Eddy
 
 
                 DA.SetData(0, DOMBOX);
-                //if (mode == 0)
-                //{
                 DA.SetData(1, DOMBOX.newBoxDomain);
 
 
