@@ -61,8 +61,8 @@ namespace CallOC
                             Console.WriteLine("Working directory: {0}", options.WorkingDir);
                             errorLog.AppendLine(String.Format("Working directory: {0}", options.WorkingDir));
 
-                            Console.WriteLine("Wind directions: {0}", options.windDirs.ToString());
-                            errorLog.AppendLine(String.Format("Wind directions: {0}", options.windDirs.ToString()));
+                            Console.WriteLine("Wind directions: {0}", options.WindDirs.ToString());
+                            errorLog.AppendLine(String.Format("Wind directions: {0}", options.WindDirs.ToString()));
 
                         }
 
@@ -78,7 +78,7 @@ namespace CallOC
 
 
 
-                        if (options.windDirs.Length < 8)
+                        if (options.WindDirs.Length < 8)
                         {
                             //Console.WriteLine(@"Error: You need to simulate at least 8 wind direction, preferrably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
                             errorLog.AppendLine(@"Warning: You should simulate at least 8 wind direction, preferably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI calculation since the calculation interpolation between the simulated wind directions and the wind direction from the weather file..");
@@ -125,7 +125,7 @@ namespace CallOC
                         //var windDirList = new List<double>();// { 0, 45, 90, 135, 180, 225, 270, 315 };
                         //List<int> windDirList = options.windDirs;
 
-                        var windDirArray = options.windDirs.Split(',');
+                        var windDirArray = options.WindDirs.Split(',');
                         List<int> windDirList = new List<int>();
                         for (int i = 0; i < windDirArray.Length; i++)
                         {
@@ -139,9 +139,8 @@ namespace CallOC
                         // -----------------
 
 
-                        var ReductionData = UTCI.LoadReductionArrayFromCSV(options.WindReductionDataPath, sensorPointCount);
-
-                        var windReduction = UTCI.GetWindReduction(ReductionData, numberOfHours, sensorPointCount, windDirList, weather);
+                        var ReductionDataCSV = UTCI.LoadWindReductionArrayFromCSV(options.WindReductionDataPath);
+                        var windReduction = UTCI.GetWindReduction(ReductionDataCSV, numberOfHours, windDirList, weather);
 
                         //// Importing probeHeight from probe file to scale U down to pedestrian level
                         Console.WriteLine("Parsing height of probes to scale down wind velocity from weather file.");
@@ -180,13 +179,13 @@ namespace CallOC
                         var uncertaintyMRTArray = new bool[numberOfHours, sensorPointCount];
                         var uncertaintyWindArray = new bool[numberOfHours, sensorPointCount];
 
-                        UTCI.CalculateUTCIArray(probes, numberOfHours, weather, DirRad, DiffRad, windReduction, z0, zref, URef, out uncertaintyMRTArray, out uncertaintyWindArray, out sw, out Utci);
+                        UTCI.CalcUTCIArray(probes, numberOfHours, weather, DirRad, DiffRad, windReduction, z0, zref, URef, out uncertaintyMRTArray, out uncertaintyWindArray, out sw, out Utci);
 
                         Console.WriteLine(Utilities.ConvertComputeTimes(sw.ElapsedMilliseconds));
 
                         Console.WriteLine("Writing UTCI results...");
 
-                        UTCI.WriteUTCIDataToCSV(options.WorkingDir, probes, numberOfHours, options.Verbose, uncertaintyMRTArray, uncertaintyWindArray, Utci, debug, weather, errorLog, DiffRad, DirRad, windReduction, URef, zref, z0);
+                        UTCI.WriteUTCIToCSV(options.WorkingDir, probes, numberOfHours, options.Verbose, uncertaintyMRTArray, uncertaintyWindArray, Utci, debug, weather, errorLog, DiffRad, DirRad, windReduction, URef, zref, z0);
 
                         Console.WriteLine("Done");
 
@@ -240,7 +239,7 @@ internal class Options
 
     [Option('o', "windDirs", Required = true,
     HelpText = "List of wind directions")]
-    public string windDirs { get; set; }
+    public string WindDirs { get; set; }
 
     [Option('u', "windReduction", Required = true,
     HelpText = "Wind velocity scaling factors (csv)")]

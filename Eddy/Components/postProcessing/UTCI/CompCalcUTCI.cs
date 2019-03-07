@@ -157,7 +157,7 @@ namespace Eddy
             for (int p = 0; p< velocityProbes.Count; p++)
             {
                 var mrt = UTCI.GetMRT(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], DiffRad[hour][p], DirRad[hour][p], weather.SolarElevation[hour], weather.DryBulbTemp[hour], weather.Wst, weather.Hst, weather.BodyA, weather.GrRef, 0.95)[0];
-                var utci = UTCI.GetUTCI2(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], velocityProbes[p].Length, mrt);
+                var utci = UTCI.CalcUTCIForPoint(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], velocityProbes[p].Length, mrt);
 
                 if (GH_Document.IsEscapeKeyDown())
                 {
