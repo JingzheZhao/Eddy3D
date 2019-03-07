@@ -11,11 +11,13 @@ namespace EddyLib
         OFBaseDomain Domain;
         OFRunSettings RunSettings;
         OFMeshSettings MeshSettings;
+        string WorkingDirectory;
 
-        public OFResult(OFBaseDomain Domain, OFRunSettings RunSettings, OFMeshSettings MeshSettings) {
+        public OFResult(OFBaseDomain Domain, OFRunSettings RunSettings, OFMeshSettings MeshSettings, string workDir) {
             this.Domain = Domain;
             this.RunSettings = RunSettings;
             this.MeshSettings = MeshSettings;
+            this.WorkingDirectory = workDir;
         }
 
     }

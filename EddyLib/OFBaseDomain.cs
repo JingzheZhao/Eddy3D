@@ -28,25 +28,13 @@ namespace EddyLib
         public string OFmeshStlDir;
         public string OFbaseWorkingDir;
 
-
-
-        public int CPUs;
-
         public double frontageBuildingArea;
-
-        //simulation inputs
-
-        public int iter;
-        public int writeInterval;
-        public int keepTimeSteps;
-
 
         public Cylinder refinementCylinder;
         public BoundingBox refinementBox;
         public BoundingBox BBox;
 
         //Building Meshes for probes component
-        //public Mesh combinedMeshes;
         public Brep inputBreps;
 
 
@@ -54,8 +42,8 @@ namespace EddyLib
         public Mesh DomainMesh = new Mesh();
         public Mesh DomainMeshGround = new Mesh();
         public Mesh DomainMeshGroundPerim = new Mesh();
-        public Mesh terrainMesh;
-
+        public Mesh TerrainMesh = new Mesh();
+        public Mesh CombinedMesh; // TODO: What is this??
 
         public Mesh perimBottom = new Mesh();
         public Mesh coreBottom = new Mesh();
@@ -65,26 +53,15 @@ namespace EddyLib
 
         public BoundaryConditions BCInflow;
 
-        public int accBuildings;
-        public int accGround;
-        public int accFeatures;
-        public int accRefinement;
-        public int meshingMode;
-        public int nLayers;
 
-        public bool autoCPUCalc;
+
         public int numberOfCellsInMesh;
 
-        public int turbulenceModel;
 
-        public bool IsWindows7 = false;
 
         public List<double> runtimes = new List<double>();
 
-        // Globals for simulation
 
-        public int simEngine = 1; // 0 = Docker, 1 = BlueCFD
-        public string installDirBlueCFD = @"C:\OpenFOAM\";
 
 
         public static BoundingBox GetRefinementBox(Plane localSystem, Mesh buildings, double padding = 0)
@@ -98,11 +75,6 @@ namespace EddyLib
             refBox.Min = new Point3d(refBox.Min.X - padding, refBox.Min.Y - padding, refBox.Min.Z);
 
             return boundingBox;
-
-            // Interval refBoxinterval = new Interval(refBox.Min.X, refBox.Max.X);   // y
-            // Interval refBoxinterval2 = new Interval(refBox.Min.Y, refBox.Max.Y);  // z
-            // Interval refBoxinterval3 = new Interval(refBox.Min.Z, refBox.Max.Z);
-            //return new Box(localSystem, refBoxinterval, refBoxinterval2, refBoxinterval3);
         }
 
                

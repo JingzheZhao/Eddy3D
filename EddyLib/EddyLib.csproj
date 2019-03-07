@@ -53,6 +53,9 @@
     <Compile Include="OFRunSettings.cs" />
     <Compile Include="OFMeshSettings.cs" />
     <Compile Include="Residuals.cs" />
+    <Compile Include="RunBlockMesh.cs" />
+    <Compile Include="RunFoamSimulation.cs" />
+    <Compile Include="RunSnappy.cs" />
     <Compile Include="Streamwriter.cs" />
     <Compile Include="StringTemplates\BatchFiles.cs" />
     <Compile Include="SymbolicLink.cs" />

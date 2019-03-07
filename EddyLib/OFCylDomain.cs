@@ -15,15 +15,6 @@ namespace EddyLib
         public double radius;
         public double height;
 
-
-
-        //public int xCells;
-        //public int yCells;
-        //public int zCells;
-
-
-
-
         private readonly List<string> MeshFaceLabel = new List<string>();
         private readonly List<int> topFaceID = new List<int>();
         private readonly List<int> bottomFaceID = new List<int>();
@@ -35,7 +26,6 @@ namespace EddyLib
         public int divisionsX = 1;
         public int _divOutercircle;
         public int divisionsZ;
-
         public int cellDivisionsPerim;
 
 
@@ -54,17 +44,22 @@ namespace EddyLib
 
 
         // Remove this later
-
-        //public List<Polyline> radialDivisions;
-        //public List<Point3d> fullList;
-        //public List<Point3d[]> divPointsCut;
         public Point3d[] pointsOnCircle;
         public Point3d[] pointsOnRect;
 
 
 
-        public OFCylDomain(Brep inputBreps, Mesh geometry, Mesh terrain, BoundaryConditions BCond, int divsRadial, int gradingPerim, int divsPerim, int _CPU, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0, string baseWorkingDirectory = @"C:\temp")
+
+      
+  
+
+
+
+        public OFCylDomain(Brep inputBreps, Mesh combindedMesh, Mesh terrain, BoundaryConditions BCond, int divsRadial, int gradingPerim, int divsPerim, int _CPU, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0, string baseWorkingDirectory = @"C:\temp")
         {
+            this.CombinedMesh = combindedMesh;
+
+
             this.gradingPerim = gradingPerim;
 
             baseWorkingDir = baseWorkingDirectory;
@@ -82,21 +77,14 @@ namespace EddyLib
             OFmeshWorkingDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\");
 
 
-            //needed for meshing purposes at this point in time
-            iter = 1000;
-            writeInterval = 10;
-            keepTimeSteps = 2;
 
-
-
-            CPUs = _CPU;
 
 
             divisionsX = 1;
             _divOutercircle = divsRadial;
             //divisionsZ = _divisionsZ;
 
-            BBox = geometry.GetBoundingBox(true);
+            BBox = combindedMesh.GetBoundingBox(true);
 
 
 
@@ -120,7 +108,7 @@ namespace EddyLib
             var zDomain = BBox.Min.Z;
             var dimZ_Terrain = dimZ;
 
-            terrainMesh = terrain;
+            TerrainMesh = terrain;
             var bboxTerrain = terrain.GetBoundingBox(true);
 
             if (terrain.Faces.Count > 0)
@@ -170,7 +158,7 @@ namespace EddyLib
             {
                 Vector3d localCopy = Vector3d.YAxis;
                 localCopy.Rotate(5 * i * Math.PI / 180, Vector3d.ZAxis);
-                projAreaList.Add(ProjectedBuildingArea(localCopy, geometry, 1,
+                projAreaList.Add(ProjectedBuildingArea(localCopy, combindedMesh, 1,
                     baseWorkingDir + @"\FrontageImages\FrontageImage" + (i * 5) + ".png",
                     out Plane newLocal, out Box box));
 
@@ -242,7 +230,7 @@ namespace EddyLib
 
 
             this.inputBreps = inputBreps;
-            autoCPUCalc = false;
+
 
 
 
@@ -362,7 +350,7 @@ namespace EddyLib
 
 
 
-            IsWindows7 = Utilities.IsWindows7;
+     
 
         }
 

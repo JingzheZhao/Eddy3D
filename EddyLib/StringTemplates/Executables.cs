@@ -141,7 +141,7 @@ FoamFile
             name ground;
         }");
             //Check for both Box and Cyl if there is a terrain. Unfortunately ground are called differently. TODO!!!
-            if ((dom is OFBoxDomain && dom.DomainMeshGroundPerim != null) || (dom is OFCylDomain && dom.terrainMesh.Faces.Count == 0))
+            if ((dom is OFBoxDomain && dom.DomainMeshGroundPerim != null) || (dom is OFCylDomain && dom.TerrainMesh.Faces.Count == 0))
             {
                 sb.Append(@"	
         ground_perim.stl

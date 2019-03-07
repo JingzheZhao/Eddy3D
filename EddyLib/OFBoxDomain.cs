@@ -75,23 +75,11 @@ namespace EddyLib
    
 
 
-            //needed for meshing purposes at this point in time
-            this.iter = 1000;
-            this.writeInterval = 10;
-            this.keepTimeSteps = 2;
-
-            this.inputBreps = inputBreps;
-            this.autoCPUCalc = false;
-
-
-            this.IsWindows7 = Utilities.IsWindows7;
-
 
 
 
             blockDimension = _blockDim;
             BuildingGeometry = geometry;
-            this.CPUs = CPUs;
 
             BBox = BuildingGeometry.GetBoundingBox(true);
 
@@ -167,7 +155,7 @@ namespace EddyLib
 
 
             // If terrain is used, scale down Z to make sure all points are inside the domain
-            this.terrainMesh = terrain;
+            this.TerrainMesh = terrain;
 
             if (terrain.DisjointMeshCount == 0)
             {

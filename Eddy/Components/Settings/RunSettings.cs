@@ -100,6 +100,11 @@ namespace Eddy
             DA.GetData(5, ref _CPUs);
 
 
+            //TODO: Handle SimEngine
+
+
+
+
             //Make sure that all fields are always written
             if (_iter < _writeInterval)
             {
@@ -113,6 +118,10 @@ namespace Eddy
             }
 
 
+            var os = OSType.Windows10;
+            if (Utilities.IsWindows7) os = OSType.Windows7;
+
+
             DA.SetData(0, new OFRunSettings() {
 
             iter = _iter,
@@ -120,8 +129,8 @@ namespace Eddy
             keepTimeSteps = _keepTimeSteps,
             mode = _mode,
             turb = _turb,
-            CPUs = _CPUs
-
+            CPUs = _CPUs,
+            ostype = os
         });
 
         }

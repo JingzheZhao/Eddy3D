@@ -148,7 +148,7 @@ namespace EddyLib
             return timeEnd;
         }
 
-        public static bool IsDockerRunning(string workingDirectory, bool isWindows7)
+        public static bool IsDockerRunning(string workingDirectory, OSType ostype)
         {
 
             bool running = false;
@@ -156,7 +156,7 @@ namespace EddyLib
 
             var lines = Utilities.FileReader(fp);
 
-            if (isWindows7 == false)
+            if (OSType.Windows7 != ostype)
             {
 
                 foreach (string line in lines)
