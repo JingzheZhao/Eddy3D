@@ -303,13 +303,13 @@ namespace EddyLib
 
             // Points on circle from intersection check            
             var pointsOnCircle = GetPointsOnCircle(center, circRad, poly);
-            // Points on inner rectangle from naked edges
-            var pointsOnRect = GetPointsOnRect(divisionsY, m);
+            
 
             ////////////////////
             //Visualize divisions inside cylindrical perimeter
             ////////////////////
-
+            // Points on inner rectangle from naked edges
+            var pointsOnRect = GetPointsOnRect(divisionsY, m);
             concentricDivisions = GetConcenctricPolyDivisions(pointsOnRect, pointsOnCircle, divPerim);
 
 
@@ -354,6 +354,7 @@ namespace EddyLib
             DomainMesh.Append(sides);
             DomainMesh.Normals.ComputeNormals();
             DomainMesh.Weld(Math.PI);
+            DomainMesh.Vertices.CombineIdentical(true, true);
 
 
 

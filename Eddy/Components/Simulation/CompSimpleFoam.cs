@@ -5,6 +5,7 @@ using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
 using System;
 using System.IO;
+using System.Windows.Forms;
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
 // folder in Grasshopper.
@@ -14,6 +15,14 @@ namespace Eddy
 {
     public class SimpleFoam : GH_Component
     {
+
+
+
+
+
+
+
+
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
         /// constructor without any arguments.
@@ -29,6 +38,19 @@ namespace Eddy
         }
 
 
+        protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
+        {
+            base.AppendAdditionalComponentMenuItems(menu);
+            Menu_AppendItem(menu, "Use Docker OpenFOAM", Menu_DoClick, true, !runWithBlueCFD);
+        }
+
+        private void Menu_DoClick(object sender, EventArgs e)
+        {
+            runWithBlueCFD = !runWithBlueCFD;
+            ExpireSolution(true);
+
+        }
+        public bool runWithBlueCFD = true;
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -80,6 +102,9 @@ namespace Eddy
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            if (runWithBlueCFD) { this.Message = "BlueCFD"; }
+            else { this.Message = "Docker"; }
+
             //string filepath = @"C:\OF\";
 
 

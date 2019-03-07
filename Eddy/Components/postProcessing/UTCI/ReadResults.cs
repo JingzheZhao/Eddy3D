@@ -233,6 +233,9 @@ namespace Eddy
 
             if (Run)
             {
+
+
+
                 if (ResultType == "Hours")
                 {
                     //TODO: implement logic
