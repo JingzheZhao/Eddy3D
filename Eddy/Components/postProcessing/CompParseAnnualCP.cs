@@ -59,16 +59,8 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-            OFBaseDomain DOM = null;
-
-            GH_ObjectWrapper gobj = null;
-            if (!DA.GetData(0, ref gobj)) { }
-
-            if ((gobj.Value is OFBaseDomain))
-            {
-                DOM = (OFBaseDomain)gobj.Value;
-            }
-            if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
+            OFResult RES = null;
+            DA.GetData(0, ref RES);
 
             bool run = false;
             DA.GetData(1, ref run);
@@ -90,12 +82,12 @@ namespace Eddy
 
 
 
-                for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
+                for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
                 {
-                    fullProbeFilePath.Add(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\postProcessing\cp_Probes.csv");
+                    fullProbeFilePath.Add(RES.WorkingDirectory + "\\" + RES.Domain.BCond.windDirs[i] + @"\postProcessing\cp_Probes.csv");
                 }
 
-                var numberOfWindDirs = DOM.BCInflow.windDirs.Count();
+                var numberOfWindDirs = RES.Domain.BCond.windDirs.Count();
                 var numberOfProbes = File.ReadAllLines(fullProbeFilePath[0]).Count();
 
 
@@ -137,9 +129,9 @@ namespace Eddy
                 //Write Array to file
                 System.Text.StringBuilder sb = new System.Text.StringBuilder();
 
-                for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
+                for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
                 {
-                    sb.Append(DOM.BCInflow.windDirs[i] + ",");
+                    sb.Append(RES.Domain.BCond.windDirs[i] + ",");
 
                 }
                 sb.AppendLine("");
@@ -153,7 +145,7 @@ namespace Eddy
                     }
                     sb.AppendLine("");
                 }
-                File.WriteAllText(DOM.baseWorkingDir + @"\annualCPData.csv", sb.ToString());
+                File.WriteAllText(RES.WorkingDirectory + @"\annualCPData.csv", sb.ToString());
 
 
             }

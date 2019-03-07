@@ -51,7 +51,7 @@ namespace EddyLib
         public Mesh coreTop = new Mesh();
         public Mesh sides = new Mesh();
 
-        public BoundaryConditions BCInflow;
+        public BoundaryConditions BCond;
 
 
 

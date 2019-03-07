@@ -124,7 +124,7 @@
 //                    {
 //                        for (int i = 0; i < allTopo.Count; i++)
 //                        {
-//                            string filePath = DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[l] + @"\constant\triSurface\" + topoName + i + ".stl";
+//                            string filePath = RES.WorkingDirectoryectory + "\\" + DOM.BCInflow.windDir[l] + @"\constant\triSurface\" + topoName + i + ".stl";
 //                            STLExport.ExportBinary(filePath, allTopo[i]);
 //                        }
 //                    }
@@ -133,13 +133,13 @@
 
 //                for (int l = 0; l < DOM.BCInflow.windDir.Count; l++)
 //                {
-//                    File.WriteAllText(DOM.baseWorkingDirectory +  DOM.BCInflow.windDir[l] + @"\system\" + "controlDict", EddyLib.StringTemplatescontrolDict(DOM, null, l));
-//                    File.WriteAllText(DOM.baseWorkingDirectory + DOM.BCInflow.windDir[l]   + @"\system\" + "topoSetDict", EddyLib.StringTemplatestopoSetDict(allTopo));
+//                    File.WriteAllText(RES.WorkingDirectoryectory +  DOM.BCInflow.windDir[l] + @"\system\" + "controlDict", EddyLib.StringTemplatescontrolDict(DOM, null, l));
+//                    File.WriteAllText(RES.WorkingDirectoryectory + DOM.BCInflow.windDir[l]   + @"\system\" + "topoSetDict", EddyLib.StringTemplatestopoSetDict(allTopo));
                 
 
 
 
-//                string postProcessDirectory = DOM.baseWorkingDirectory + DOM.BCInflow.windDir[l] + @"\PostProcessing\";
+//                string postProcessDirectory = RES.WorkingDirectoryectory + DOM.BCInflow.windDir[l] + @"\PostProcessing\";
 //                int counterTopo = 0;
 
 
@@ -148,7 +148,7 @@
 
 
                 
-//                ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", " -e " + command + " -f " + "\"" + DOM.baseWorkingDirectory + "\\" + DOM.BCInflow.windDir[l] + " \"");
+//                ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", " -e " + command + " -f " + "\"" + RES.WorkingDirectoryectory + "\\" + DOM.BCInflow.windDir[l] + " \"");
 //                Process p = new Process();
 //                p.StartInfo = psi;
 //                p.Start();

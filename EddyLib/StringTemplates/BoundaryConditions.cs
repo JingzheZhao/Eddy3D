@@ -31,17 +31,17 @@ FoamFile
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 
-        Uref		" + DOM.BCInflow.URef + @";
+        Uref		" + DOM.BCond.URef + @";
 
-        Zref		" + DOM.BCInflow.zref + @";
+        Zref		" + DOM.BCond.zref + @";
 
-        z0 uniform " + DOM.BCInflow.z0 + @";
+        z0 uniform " + DOM.BCond.z0 + @";
 
-        flowDir (" + DOM.BCInflow.flowDir[d].X + " " + DOM.BCInflow.flowDir[d].Y + " " + DOM.BCInflow.flowDir[d].Z + @");
+        flowDir (" + DOM.BCond.flowDir[d].X + " " + DOM.BCond.flowDir[d].Y + " " + DOM.BCond.flowDir[d].Z + @");
 
         zDir (0 0 1);
 
-        zGround uniform " + DOM.BCInflow.zGround + @";
+        zGround uniform " + DOM.BCond.zGround + @";
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 "
@@ -111,7 +111,7 @@ value		$internalField;
    
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++) {
-                double dot = DOM.BCInflow.flowDir[d] * DOM.sides.FaceNormals[i]; //check
+                double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i]; //check
                 if (dot > 0) {
                     sb.AppendLine("patch" + i);
                     sb.Append(@"{	type atmBoundaryLayerInletEpsilon;
@@ -177,7 +177,7 @@ internalField uniform $turbulentKE;
    
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++) {
-                double dot = DOM.BCInflow.flowDir[d] * DOM.sides.FaceNormals[i]; //check
+                double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i]; //check
                 if (dot > 0) {
                     sb.AppendLine("patch" + i);
                     sb.Append(@"{      type atmBoundaryLayerInletK;
@@ -282,7 +282,7 @@ value		$internalField;
    
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++) {
-                double dot = DOM.BCInflow.flowDir[d] * DOM.sides.FaceNormals[i]; //check
+                double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i]; //check
                 if (dot > 0) {
                     sb.AppendLine("patch" + i);
                     sb.Append(@"{  	type fixedValue;
@@ -359,7 +359,7 @@ internalField uniform $pressure;
    
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++) {
-                double dot = DOM.BCInflow.flowDir[d] * DOM.sides.FaceNormals[i]; //check
+                double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i]; //check
                 if (dot > 0) {
                     sb.AppendLine("patch" + i);
                     sb.AppendLine(@"{ type zeroGradient;}"); }
@@ -436,12 +436,12 @@ symmetry
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
-                double dot = DOM.BCInflow.flowDir[d] * DOM.sides.FaceNormals[i]; //check
+                double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i]; //check
                 if (dot > 0)
                 {
                     sb.AppendLine("patch" + i);
                     sb.AppendLine(@"{type            fixedValue;
-value           uniform (" + DOM.BCInflow.flowDir[d].X* DOM.BCInflow.URef + " " + DOM.BCInflow.flowDir[d].Y* DOM.BCInflow.URef + " " + DOM.BCInflow.flowDir[d].Z* DOM.BCInflow.URef + @" );
+value           uniform (" + DOM.BCond.flowDir[d].X* DOM.BCond.URef + " " + DOM.BCond.flowDir[d].Y* DOM.BCond.URef + " " + DOM.BCond.flowDir[d].Z* DOM.BCond.URef + @" );
 }");
                 }
                 else
@@ -532,7 +532,7 @@ symmetry
 ");
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++) {
-                double dot = DOM.BCInflow.flowDir[d] * DOM.sides.FaceNormals[i]; //check
+                double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i]; //check
                 if (dot > 0) {
                     sb.AppendLine("patch" + i);
                     sb.AppendLine(@"{ type atmBoundaryLayerInletVelocity;
@@ -628,7 +628,7 @@ boundaryField
    
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++) {
-                double dot = DOM.BCInflow.flowDir[d] * DOM.sides.FaceNormals[i]; //check
+                double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i]; //check
                 if (dot > 0) {
                     sb.AppendLine("patch" + i);
                     sb.AppendLine(@" 
@@ -689,12 +689,12 @@ FoamFile
     object ABLConditions;
         }
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-        Uref		" + DOM.BCInflow.URef + @";
-        Zref		" + DOM.BCInflow.zref + @";
-        z0 uniform " + DOM.BCInflow.z0 + @";
-        flowDir (" + DOM.BCInflow.flowDir[d].X +" "+ DOM.BCInflow.flowDir[d].Y +" "+ DOM.BCInflow.flowDir[d].Z+ @");
+        Uref		" + DOM.BCond.URef + @";
+        Zref		" + DOM.BCond.zref + @";
+        z0 uniform " + DOM.BCond.z0 + @";
+        flowDir (" + DOM.BCond.flowDir[d].X +" "+ DOM.BCond.flowDir[d].Y +" "+ DOM.BCond.flowDir[d].Z+ @");
         zDir (0 0 1);
-        zGround uniform " + DOM.BCInflow.zGround + @";
+        zGround uniform " + DOM.BCond.zGround + @";
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 ";
         }
@@ -716,11 +716,11 @@ FoamFile
     object initialConditions;
         }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-flowVelocity (" + DOM.BCInflow.flowDir[d].X * DOM.BCInflow.URef + " "+ DOM.BCInflow.flowDir[d].Y* DOM.BCInflow.URef + " "+ DOM.BCInflow.flowDir[d].Z * DOM.BCInflow.URef + @");
+flowVelocity (" + DOM.BCond.flowDir[d].X * DOM.BCond.URef + " "+ DOM.BCond.flowDir[d].Y* DOM.BCond.URef + " "+ DOM.BCond.flowDir[d].Z * DOM.BCond.URef + @");
 pressure    0;
-turbulentKE "      + Math.Round(DOM.BCInflow.k,4)          + @";
-turbulentEpsilon "  + Math.Round(DOM.BCInflow.epsilon,4)    + @";
-turbulentOmega	"  + Math.Round(DOM.BCInflow.omega,4)      + @";
+turbulentKE "      + Math.Round(DOM.BCond.k,4)          + @";
+turbulentEpsilon "  + Math.Round(DOM.BCond.epsilon,4)    + @";
+turbulentOmega	"  + Math.Round(DOM.BCond.omega,4)      + @";
 #inputMode		merge;
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 ";
@@ -1059,7 +1059,7 @@ inlet
             
 
                 sb.Append(@"type fixedValue;
-        value uniform (" + DOM.BCInflow.flowDir[i].X * DOM.BCInflow.URef + " " + DOM.BCInflow.flowDir[i].Y * DOM.BCInflow.URef + " " + DOM.BCInflow.flowDir[i].Z * DOM.BCInflow.URef + @");
+        value uniform (" + DOM.BCond.flowDir[i].X * DOM.BCond.URef + " " + DOM.BCond.flowDir[i].Y * DOM.BCond.URef + " " + DOM.BCond.flowDir[i].Z * DOM.BCond.URef + @");
 }");
 
           

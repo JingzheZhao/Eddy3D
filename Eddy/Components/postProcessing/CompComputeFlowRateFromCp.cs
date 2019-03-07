@@ -77,16 +77,8 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-            OFBaseDomain DOM = null;
-
-            GH_ObjectWrapper gobj = null;
-            if (!DA.GetData(0, ref gobj)) { }
-
-            if ((gobj.Value is OFBaseDomain))
-            {
-                DOM = (OFBaseDomain)gobj.Value;
-            }
-            if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
+            OFResult RES = null;
+            DA.GetData(0, ref RES);
 
             var cdList = new List<double>();
 
@@ -168,7 +160,7 @@ namespace Eddy
 
 
 
-                if (cps.Paths.Count != DOM.BCInflow.windDirs.Count) return;
+                if (cps.Paths.Count != RES.Domain.BCond.windDirs.Count) return;
                 foreach (var path in cps.Paths)
                 { 
 
@@ -179,7 +171,7 @@ namespace Eddy
                     }
 
 
-                    NVAnalysis nv1 = new NVAnalysis(cps.Branch(path), MeshAreas, DOM.BCInflow.UatBuildingHeight, volume);
+                    NVAnalysis nv1 = new NVAnalysis(cps.Branch(path), MeshAreas, RES.Domain.BCond.UatBuildingHeight, volume);
 
 
 
@@ -226,7 +218,7 @@ namespace Eddy
                 //}
             }
 
-            catch (Exception e) { Console.WriteLine(e.Message); };// File.WriteAllText(DOM.baseWorkingDirectory + @"\FlowRate.err", errorLog.ToString()); return; }
+            catch (Exception e) { Console.WriteLine(e.Message); };// File.WriteAllText(RES.WorkingDirectoryectory + @"\FlowRate.err", errorLog.ToString()); return; }
 
             DA.SetDataTree(0, VolumetricFlowRate);
             DA.SetDataTree(1, VelocityCenterNode);

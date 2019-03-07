@@ -112,7 +112,7 @@
             
 
 
-//            var allLines = File.ReadAllLines(DOM.baseWorkingDirectory + @"\UTCI.csv");
+//            var allLines = File.ReadAllLines(RES.WorkingDirectoryectory + @"\UTCI.csv");
 //            var numberOfProbes = allLines.Count();
 
 
@@ -202,7 +202,7 @@
 
 //                // Parse UTCI uncertaintly from file
 
-//                var uncertaintyLine = File.ReadLines(DOM.baseWorkingDirectory + @"\UTCI.uncertainty").Last();
+//                var uncertaintyLine = File.ReadLines(RES.WorkingDirectoryectory + @"\UTCI.uncertainty").Last();
 //                var uncertaintyNUM = double.Parse(uncertaintyLine.Split('%')[0].Split(':')[1].Split('r')[1]);
 
 

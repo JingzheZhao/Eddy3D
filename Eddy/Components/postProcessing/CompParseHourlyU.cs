@@ -58,16 +58,8 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-            OFBaseDomain DOM = null;
-
-            GH_ObjectWrapper gobj = null;
-            if (!DA.GetData(0, ref gobj)) { }
-
-            if ((gobj.Value is OFBaseDomain))
-            {
-                DOM = (OFBaseDomain)gobj.Value;
-            }
-            if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
+            OFResult RES = null;
+            DA.GetData(0, ref RES);
 
 
             List<Point3d> points = new List<Point3d>();
@@ -81,12 +73,12 @@ namespace Eddy
 
             //Build paths as list
 
-            for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
+            for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
             {
-                fullProbeFilePath.Add(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\postProcessing\U_Probes.csv");
+                fullProbeFilePath.Add(RES.WorkingDirectory + "\\" + RES.Domain.BCond.windDirs[i] + @"\postProcessing\U_Probes.csv");
             }
 
-            var numberOfWindDirs = DOM.BCInflow.windDirs.Count();
+            var numberOfWindDirs = RES.Domain.BCond.windDirs.Count();
             var numberOfProbes = File.ReadAllLines(fullProbeFilePath[0]).Count();
             //string[] abc = replacedString.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 
@@ -101,7 +93,7 @@ namespace Eddy
                 //int counter = 1;
                 for (int c = 0; c < numberOfProbes; c++)
                 {
-                    listOfAnnualData[r][c] = new Vector3d(double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[0])/DOM.BCInflow.UPedestrianHeight, double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1]) / DOM.BCInflow.UPedestrianHeight, double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[2]) / DOM.BCInflow.UPedestrianHeight);
+                    listOfAnnualData[r][c] = new Vector3d(double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[0])/RES.Domain.BCond.UPedestrianHeight, double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1]) / RES.Domain.BCond.UPedestrianHeight, double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[2]) / RES.Domain.BCond.UPedestrianHeight);
                     //counter += 3;
                 }
             }
@@ -128,9 +120,9 @@ namespace Eddy
             //Write U Array to file
             System.Text.StringBuilder UFile = new System.Text.StringBuilder();
 
-            for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
+            for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
             {
-                UFile.AppendLine(DOM.BCInflow.windDirs[i] + ", , ,");
+                UFile.AppendLine(RES.Domain.BCond.windDirs[i] + ", , ,");
                 UFile.AppendLine("x, y, z,");
             }
 
@@ -146,15 +138,15 @@ namespace Eddy
                 }
                 UFile.AppendLine("");
             }
-            File.WriteAllText(DOM.baseWorkingDir + @"\hourlyU.csv", UFile.ToString());
+            File.WriteAllText(RES.WorkingDirectory + @"\hourlyU.csv", UFile.ToString());
 
             //Write Reduction Array to file
 
             System.Text.StringBuilder ReductionFile = new System.Text.StringBuilder();
 
-            for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
+            for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
             {
-                ReductionFile.Append(DOM.BCInflow.windDirs[i] + ",");
+                ReductionFile.Append(RES.Domain.BCond.windDirs[i] + ",");
 
             }
 
@@ -170,7 +162,7 @@ namespace Eddy
                 }
                 ReductionFile.AppendLine("");
             }
-            File.WriteAllText(DOM.baseWorkingDir + @"\WindReductionData.csv", ReductionFile.ToString());
+            File.WriteAllText(RES.WorkingDirectory + @"\WindReductionData.csv", ReductionFile.ToString());
 
 
 

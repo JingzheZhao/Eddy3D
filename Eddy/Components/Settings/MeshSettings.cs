@@ -93,7 +93,7 @@ namespace Eddy
 
             DA.SetData(0, new OFMeshSettings() {
 
-            accBuilding = _accBuilding,
+            accBuildings = _accBuilding,
             accFeatures = _accFeatures,
             accRefinement = _accRefinement,
             accGround = _accGround,

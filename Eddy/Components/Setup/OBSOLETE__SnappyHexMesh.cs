@@ -1,91 +1,91 @@
-﻿using Eddy.Properties;
-using EddyLib;
-using Grasshopper.Kernel;
-using Grasshopper.Kernel.Parameters;
-using Grasshopper.Kernel.Types;
-using Rhino.Geometry;
-using System;
-using System.IO;
-// In order to load the result of this wizard, you will also need to
-// add the output bin/ folder of this project to the list of loaded
-// folder in Grasshopper.
-// You can use the _GrasshopperDeveloperSettings Rhino command for that.
-
-namespace Eddy
-{
-    public class SnappyHexMesh : GH_Component
-    {
-        /// <summary>
-        /// Each implementation of GH_Component must provide a public 
-        /// constructor without any arguments.
-        /// Category represents the Tab in which the component will appear, 
-        /// Subcategory the panel. If you use non-existing tab or panel names, 
-        /// new tabs/panels will automatically be created.
-        /// </summary>
-        public SnappyHexMesh()
-          : base("Mesh", "Mesh",
-              "Mesh",
-              "Eddy", "Setup")
-        {
-        }
-
-
-
-        /// <summary>
-        /// Registers all the input parameters for this component.
-        /// </summary>
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
-        {
-            pManager.AddGenericParameter("Domain", "Dom", "Simulation Domain", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("AccBuilding", "AccBuilding", "Specify accuracy of building mesh.", GH_ParamAccess.item, 2);
-            pManager.AddIntegerParameter("AccFeatures", "AccFeatures", "Specify accuracy of building features (corners) mesh.", GH_ParamAccess.item, 2);
-            pManager.AddIntegerParameter("AccRefinement", "AccRefinement", "Specify accuracy of bounding box mesh.", GH_ParamAccess.item, 0);
-            pManager.AddIntegerParameter("AccGround", "AccGround", "Specify accuracy of ground mesh.", GH_ParamAccess.item, 2);
-            pManager.AddIntegerParameter("nLayer", "nLay", "Number of mesh layers.", GH_ParamAccess.item, 3);
-            pManager.AddIntegerParameter("Mode", "Mode", @"Mode: 
-0: No snapping, no layers
-1: With Snapping, no layers
-2: With Snapping, with layers", GH_ParamAccess.item, 2);
-            Param_Integer param = pManager[6] as Param_Integer;
-            param.AddNamedValue("No snapping, no layers", 0);
-            param.AddNamedValue("With Snapping, no layers", 1);
-            param.AddNamedValue("With Snapping, with layers", 2);
-            pManager.AddBooleanParameter("Clean", "Clean", "Clean the mesh.", GH_ParamAccess.item, false);
+﻿//using Eddy.Properties;
+//using EddyLib;
+//using Grasshopper.Kernel;
+//using Grasshopper.Kernel.Parameters;
+//using Grasshopper.Kernel.Types;
+//using Rhino.Geometry;
+//using System;
+//using System.IO;
+//// In order to load the result of this wizard, you will also need to
+//// add the output bin/ folder of this project to the list of loaded
+//// folder in Grasshopper.
+//// You can use the _GrasshopperDeveloperSettings Rhino command for that.
+
+//namespace Eddy
+//{
+//    public class SnappyHexMesh : GH_Component
+//    {
+//        /// <summary>
+//        /// Each implementation of GH_Component must provide a public 
+//        /// constructor without any arguments.
+//        /// Category represents the Tab in which the component will appear, 
+//        /// Subcategory the panel. If you use non-existing tab or panel names, 
+//        /// new tabs/panels will automatically be created.
+//        /// </summary>
+//        public SnappyHexMesh()
+//          : base("Mesh", "Mesh",
+//              "Mesh",
+//              "Eddy", "Setup")
+//        {
+//        }
+
+
+
+//        /// <summary>
+//        /// Registers all the input parameters for this component.
+//        /// </summary>
+//        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+//        {
+//            pManager.AddGenericParameter("Domain", "Dom", "Simulation Domain", GH_ParamAccess.item);
+//            pManager.AddIntegerParameter("AccBuilding", "AccBuilding", "Specify accuracy of building mesh.", GH_ParamAccess.item, 2);
+//            pManager.AddIntegerParameter("AccFeatures", "AccFeatures", "Specify accuracy of building features (corners) mesh.", GH_ParamAccess.item, 2);
+//            pManager.AddIntegerParameter("AccRefinement", "AccRefinement", "Specify accuracy of bounding box mesh.", GH_ParamAccess.item, 0);
+//            pManager.AddIntegerParameter("AccGround", "AccGround", "Specify accuracy of ground mesh.", GH_ParamAccess.item, 2);
+//            pManager.AddIntegerParameter("nLayer", "nLay", "Number of mesh layers.", GH_ParamAccess.item, 3);
+//            pManager.AddIntegerParameter("Mode", "Mode", @"Mode: 
+//0: No snapping, no layers
+//1: With Snapping, no layers
+//2: With Snapping, with layers", GH_ParamAccess.item, 2);
+//            Param_Integer param = pManager[6] as Param_Integer;
+//            param.AddNamedValue("No snapping, no layers", 0);
+//            param.AddNamedValue("With Snapping, no layers", 1);
+//            param.AddNamedValue("With Snapping, with layers", 2);
+//            pManager.AddBooleanParameter("Clean", "Clean", "Clean the mesh.", GH_ParamAccess.item, false);
 
-        }
+//        }
 
-        /// <summary>
-        /// Registers all the output parameters for this component.
-        /// </summary>
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
-        {
-            pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Mesh", "Mesh", "Mesh", GH_ParamAccess.item);
-            //pManager.AddGenericParameter("Cyl", "C", "Domain", GH_ParamAccess.item);
-        }
-
-
-
-        /// <summary>
-        /// This is the method that actually does the work.
-        /// </summary>
-        /// <param name="DA">The DA object can be used to retrieve data from input parameters and 
-        /// to store data in output parameters.</param>
-        protected override void SolveInstance(IGH_DataAccess DA)
-        {
+//        /// <summary>
+//        /// Registers all the output parameters for this component.
+//        /// </summary>
+//        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+//        {
+//            pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.item);
+//            pManager.AddGenericParameter("Mesh", "Mesh", "Mesh", GH_ParamAccess.item);
+//            //pManager.AddGenericParameter("Cyl", "C", "Domain", GH_ParamAccess.item);
+//        }
+
+
+
+//        /// <summary>
+//        /// This is the method that actually does the work.
+//        /// </summary>
+//        /// <param name="DA">The DA object can be used to retrieve data from input parameters and 
+//        /// to store data in output parameters.</param>
+//        protected override void SolveInstance(IGH_DataAccess DA)
+//        {
 
 
-            //// EDDY LIC CHECK
-            //Test.WriteHardwareId();
-            //if (Test.Validate() || Test.ValidateTrial())
-            //{
-            //}
-            //else
-            //{
-            //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Your trial period is over.");
-            //    return;
-            //}
-            //// END EDDY LIC CHECK
+//            //// EDDY LIC CHECK
+//            //Test.WriteHardwareId();
+//            //if (Test.Validate() || Test.ValidateTrial())
+//            //{
+//            //}
+//            //else
+//            //{
+//            //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Your trial period is over.");
+//            //    return;
+//            //}
+//            //// END EDDY LIC CHECK
 
 
 
@@ -93,290 +93,290 @@ namespace Eddy
 
 
 
-            bool Clean = false;
+//            bool Clean = false;
 
 
-            //OFDomainBuilder DOM = null;
-            //if (!DA.GetData(0, ref DOM)) { return; }
-            //if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
+//            //OFDomainBuilder DOM = null;
+//            //if (!DA.GetData(0, ref DOM)) { return; }
+//            //if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
 
-            // we can use class inheritance 
-            OFCylDomain CylDom;
-            OFBoxDomain BoxDom;
-            OFBaseDomain DOM;
+//            // we can use class inheritance 
+//            OFCylDomain CylDom;
+//            OFBoxDomain BoxDom;
+//            OFBaseDomain DOM;
 
-            GH_ObjectWrapper gobj = null;
-            if (!DA.GetData(0, ref gobj)) { }
+//            GH_ObjectWrapper gobj = null;
+//            if (!DA.GetData(0, ref gobj)) { }
 
-            if ((gobj.Value is OFCylDomain))
-            {
-                CylDom = (OFCylDomain)gobj.Value;
-                DOM = (OFBaseDomain)gobj.Value;
-            }
-            else if ((gobj.Value is OFBoxDomain))
-            {
-                BoxDom = (OFBoxDomain)gobj.Value;
-                DOM = (OFBaseDomain)gobj.Value;
-            }
+//            if ((gobj.Value is OFCylDomain))
+//            {
+//                CylDom = (OFCylDomain)gobj.Value;
+//                DOM = (OFBaseDomain)gobj.Value;
+//            }
+//            else if ((gobj.Value is OFBoxDomain))
+//            {
+//                BoxDom = (OFBoxDomain)gobj.Value;
+//                DOM = (OFBaseDomain)gobj.Value;
+//            }
 
-            else
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid domain object"); return;
-            }
+//            else
+//            {
+//                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid domain object"); return;
+//            }
 
 
 
 
 
-            //string command = "";
+//            //string command = "";
 
 
-            string SingleCPU = @"""surfaceFeatureExtract;snappyHexMesh -overwrite """; //-overwrite
-            string MultipleCPU = @"""surfaceFeatureExtract;pyFoamDecompose.py --clear . " + DOM.CPUs + @"; foamJob -parallel -screen snappyHexMesh -overwrite""";
+//            string SingleCPU = @"""surfaceFeatureExtract;snappyHexMesh -overwrite """; //-overwrite
+//            string MultipleCPU = @"""surfaceFeatureExtract;pyFoamDecompose.py --clear . " + DOM.CPUs + @"; foamJob -parallel -screen snappyHexMesh -overwrite""";
 
 
 
 
-            int accBuilding = 3;
-            int accFeatures = 3;
-            int accRefinement = 3;
-            int accGround = 3;
-            int nLayers = 3;
-            int mode = 2;
+//            int accBuilding = 3;
+//            int accFeatures = 3;
+//            int accRefinement = 3;
+//            int accGround = 3;
+//            int nLayers = 3;
+//            int mode = 2;
 
 
 
-            DA.GetData(1, ref accBuilding);
-            DA.GetData(2, ref accFeatures);
-            DA.GetData(3, ref accRefinement);
-            DA.GetData(4, ref accGround);
-            DA.GetData(5, ref nLayers);
-            DA.GetData(6, ref mode);
-            DA.GetData(7, ref Clean);
-
-            DOM.accBuildings = accBuilding;
-            DOM.accFeatures = accFeatures;
-            DOM.accRefinement = accRefinement;
-            DOM.accGround = accGround;
-            DOM.nLayers = nLayers;
-
-            //needed for meshing purposes at this point in time
-            DOM.iter = 1000;
-            DOM.writeInterval = 10;
-            DOM.keepTimeSteps = 2;
-
-            DOM.meshingMode = mode;
-
-
-
-
-            if (accBuilding >= 5 || accFeatures >= 5 || accRefinement >= 5 || accGround >= 5 || nLayers >= 5)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "A high number of refinment stages might significantly slow down mesh creation. Try to create a reasonable fine mesh with the Domain component.");
-            }
-
-            // Check for killed processes
-            if (Utilities.DidProcessGetKilled(DOM.meshWorkingDir) == true)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Some processes got killed probably because to little RAM was available. Try to increase the RAM acclocated for the Docker virtual machine.");
-            }
-
-            //CLEAN UP THE MESS
-
-            if (Clean == true)
-            {
+//            DA.GetData(1, ref accBuilding);
+//            DA.GetData(2, ref accFeatures);
+//            DA.GetData(3, ref accRefinement);
+//            DA.GetData(4, ref accGround);
+//            DA.GetData(5, ref nLayers);
+//            DA.GetData(6, ref mode);
+//            DA.GetData(7, ref Clean);
+
+//            DOM.accBuildings = accBuilding;
+//            DOM.accFeatures = accFeatures;
+//            DOM.accRefinement = accRefinement;
+//            DOM.accGround = accGround;
+//            DOM.nLayers = nLayers;
+
+//            //needed for meshing purposes at this point in time
+//            DOM.iter = 1000;
+//            DOM.writeInterval = 10;
+//            DOM.keepTimeSteps = 2;
+
+//            DOM.meshingMode = mode;
+
+
+
+
+//            if (accBuilding >= 5 || accFeatures >= 5 || accRefinement >= 5 || accGround >= 5 || nLayers >= 5)
+//            {
+//                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "A high number of refinment stages might significantly slow down mesh creation. Try to create a reasonable fine mesh with the Domain component.");
+//            }
+
+//            // Check for killed processes
+//            if (Utilities.DidProcessGetKilled(DOM.meshWorkingDir) == true)
+//            {
+//                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Some processes got killed probably because to little RAM was available. Try to increase the RAM acclocated for the Docker virtual machine.");
+//            }
+
+//            //CLEAN UP THE MESS
+
+//            if (Clean == true)
+//            {
 
-                if (Directory.Exists(DOM.meshPolyMeshDir))
-                {
-                    System.IO.DirectoryInfo di = new DirectoryInfo(DOM.meshPolyMeshDir);
-                    foreach (FileInfo file in di.GetFiles())
-                    {
-                        file.Delete();
-                    }
-                    foreach (DirectoryInfo dir in di.GetDirectories())
-                    {
-                        dir.Delete(true);
-                    }
-                }
+//                if (Directory.Exists(DOM.meshPolyMeshDir))
+//                {
+//                    System.IO.DirectoryInfo di = new DirectoryInfo(DOM.meshPolyMeshDir);
+//                    foreach (FileInfo file in di.GetFiles())
+//                    {
+//                        file.Delete();
+//                    }
+//                    foreach (DirectoryInfo dir in di.GetDirectories())
+//                    {
+//                        dir.Delete(true);
+//                    }
+//                }
 
-                if (Directory.Exists(DOM.meshConstantDir + @"extendedFeatureEdgeMesh"))
-                {
-                    System.IO.DirectoryInfo di = new DirectoryInfo(DOM.meshConstantDir + @"extendedFeatureEdgeMesh");
-                    foreach (FileInfo file in di.GetFiles())
-                    {
-                        file.Delete();
-                    }
-                    foreach (DirectoryInfo dir in di.GetDirectories())
-                    {
-                        dir.Delete(true);
-                    }
-                }
+//                if (Directory.Exists(DOM.meshConstantDir + @"extendedFeatureEdgeMesh"))
+//                {
+//                    System.IO.DirectoryInfo di = new DirectoryInfo(DOM.meshConstantDir + @"extendedFeatureEdgeMesh");
+//                    foreach (FileInfo file in di.GetFiles())
+//                    {
+//                        file.Delete();
+//                    }
+//                    foreach (DirectoryInfo dir in di.GetDirectories())
+//                    {
+//                        dir.Delete(true);
+//                    }
+//                }
 
 
-                if (DOM.CPUs > 1)
-                {
+//                if (DOM.CPUs > 1)
+//                {
 
 
-                    for (int i = 0; i < DOM.CPUs; i++)
-                    {
-                        var path = DOM.meshWorkingDir + @"\processor" + i;
-                        if (Directory.Exists(path))
-                        {
-                            System.IO.DirectoryInfo di = new DirectoryInfo(path);
-                            foreach (FileInfo file in di.GetFiles())
-                            {
-                                file.Delete();
-                            }
-                            foreach (DirectoryInfo dir in di.GetDirectories())
-                            {
-                                dir.Delete(true);
-                            }
-                            di.Delete();
+//                    for (int i = 0; i < DOM.CPUs; i++)
+//                    {
+//                        var path = DOM.meshWorkingDir + @"\processor" + i;
+//                        if (Directory.Exists(path))
+//                        {
+//                            System.IO.DirectoryInfo di = new DirectoryInfo(path);
+//                            foreach (FileInfo file in di.GetFiles())
+//                            {
+//                                file.Delete();
+//                            }
+//                            foreach (DirectoryInfo dir in di.GetDirectories())
+//                            {
+//                                dir.Delete(true);
+//                            }
+//                            di.Delete();
 
-                        }
-                    }
+//                        }
+//                    }
 
-                    // Delete proc folders
+//                    // Delete proc folders
 
-                    for (int i = 0; i < DOM.CPUs; i++)
-                    {
-                        var meshPath = DOM.meshWorkingDir + @"\processor" + i;
-                        if (Directory.Exists(meshPath))
-                        {
-                            System.IO.DirectoryInfo di = new DirectoryInfo(meshPath);
-                            foreach (FileInfo file in di.GetFiles())
-                            {
-                                file.Delete();
-                            }
-                            foreach (DirectoryInfo dir in di.GetDirectories())
-                            {
-                                dir.Delete(true);
-                            }
-                            di.Delete();
-                        }
+//                    for (int i = 0; i < DOM.CPUs; i++)
+//                    {
+//                        var meshPath = DOM.meshWorkingDir + @"\processor" + i;
+//                        if (Directory.Exists(meshPath))
+//                        {
+//                            System.IO.DirectoryInfo di = new DirectoryInfo(meshPath);
+//                            foreach (FileInfo file in di.GetFiles())
+//                            {
+//                                file.Delete();
+//                            }
+//                            foreach (DirectoryInfo dir in di.GetDirectories())
+//                            {
+//                                dir.Delete(true);
+//                            }
+//                            di.Delete();
+//                        }
 
-                        for (int l = 0; l < DOM.BCInflow.windDirs.Count; l++)
-                        {
+//                        for (int l = 0; l < RES.Domain.BCond.windDirs.Count; l++)
+//                        {
 
-                            var cpuPath = DOM.baseWorkingDir + DOM.BCInflow.windDirs[l] + @"\processor" + i;
+//                            var cpuPath = RES.WorkingDirectory + RES.Domain.BCond.windDirs[l] + @"\processor" + i;
 
-                            if (Directory.Exists(cpuPath))
-                            {
-                                System.IO.DirectoryInfo di = new DirectoryInfo(cpuPath);
-                                foreach (FileInfo file in di.GetFiles())
-                                {
-                                    file.Delete();
-                                }
-                                foreach (DirectoryInfo dir in di.GetDirectories())
-                                {
-                                    dir.Delete(true);
-                                }
-                                di.Delete();
+//                            if (Directory.Exists(cpuPath))
+//                            {
+//                                System.IO.DirectoryInfo di = new DirectoryInfo(cpuPath);
+//                                foreach (FileInfo file in di.GetFiles())
+//                                {
+//                                    file.Delete();
+//                                }
+//                                foreach (DirectoryInfo dir in di.GetDirectories())
+//                                {
+//                                    dir.Delete(true);
+//                                }
+//                                di.Delete();
 
-                            }
+//                            }
 
-                        }
-                    }
-                }
+//                        }
+//                    }
+//                }
 
-            }
+//            }
 
 
 
 
 
 
-            var meshStlDir = DOM.meshWorkingDir + @"\constant\triSurface\";
-            var meshStlFilenameBuildings = DOM.meshWorkingDir + @"\constant\triSurface\building.stl";
-            var meshStlFilenameGround = DOM.meshWorkingDir + @"\constant\triSurface\ground.stl";
+//            var meshStlDir = DOM.meshWorkingDir + @"\constant\triSurface\";
+//            var meshStlFilenameBuildings = DOM.meshWorkingDir + @"\constant\triSurface\building.stl";
+//            var meshStlFilenameGround = DOM.meshWorkingDir + @"\constant\triSurface\ground.stl";
 
-            if (!Directory.Exists(meshStlDir))
-            {
-                Directory.CreateDirectory(meshStlDir);
-            }
+//            if (!Directory.Exists(meshStlDir))
+//            {
+//                Directory.CreateDirectory(meshStlDir);
+//            }
 
 
-            if (!File.Exists(DOM.meshWorkingDir + @"\log"))
-            {
-                File.WriteAllText(DOM.meshWorkingDir + @"\log", "");
-            }
+//            if (!File.Exists(DOM.meshWorkingDir + @"\log"))
+//            {
+//                File.WriteAllText(DOM.meshWorkingDir + @"\log", "");
+//            }
 
          
 
-            if (!Directory.Exists(DOM.meshSystemDir))
-            {
-                Directory.CreateDirectory(DOM.meshSystemDir);
-            }
+//            if (!Directory.Exists(DOM.meshSystemDir))
+//            {
+//                Directory.CreateDirectory(DOM.meshSystemDir);
+//            }
 
-            Point3d locationInMesh = new Point3d();
-            locationInMesh = DOM.locationInMesh;
-
-
-
-
-            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "snappyHexMeshDict"),         EddyLib.StrTemp.OFExecDicts.SnappyHexMeshDict(DOM));
-            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "surfaceFeatureExtractDict"), EddyLib.StrTemp.OFExecDicts.SurfaceFeatureExtractDict());
-            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "fvSchemes"),                 EddyLib.StrTemp.OFExecDicts.FvSchemesRobust1());
-            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "fvSolution"),                EddyLib.StrTemp.OFExecDicts.FvSolution(0));
-            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "meshQualityDict"),           EddyLib.StrTemp.OFExecDicts.MeshQualityDict());
-            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "decomposeParDict"),          EddyLib.StrTemp.OFExecDicts.DecomposeParDict(DOM));
-
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "run_checkBadMesh.bat"),     EddyLib.StrTemp.BatFiles.Run_checkBadMesh(DOM));
-
-
-
-            //Autocalc number of CPUs
-            if (DOM.autoCPUCalc == true)
-            {
-                DOM.CPUs = Utilities.CPUAutoCalc(DOM.meshWorkingDir, DOM.CPUs);
-            }
+//            Point3d locationInMesh = new Point3d();
+//            locationInMesh = DOM.locationInMesh;
 
 
 
 
-            string command = DOM.CPUs > 1 ? MultipleCPU : SingleCPU;
+//            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "snappyHexMeshDict"),         EddyLib.StrTemp.OFExecDicts.SnappyHexMeshDict(DOM));
+//            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "surfaceFeatureExtractDict"), EddyLib.StrTemp.OFExecDicts.SurfaceFeatureExtractDict());
+//            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "fvSchemes"),                 EddyLib.StrTemp.OFExecDicts.FvSchemesRobust1());
+//            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "fvSolution"),                EddyLib.StrTemp.OFExecDicts.FvSolution(0));
+//            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "meshQualityDict"),           EddyLib.StrTemp.OFExecDicts.MeshQualityDict());
+//            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "decomposeParDict"),          EddyLib.StrTemp.OFExecDicts.DecomposeParDict(DOM));
+
+//            File.WriteAllText(Path.Combine(RES.WorkingDirectory + "run_checkBadMesh.bat"),     EddyLib.StrTemp.BatFiles.Run_checkBadMesh(DOM));
 
 
-            string logFile = "";
 
-            using (FileStream stream = File.Open(DOM.meshWorkingDir + @"\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            {
-                using (StreamReader reader = new StreamReader(stream))
-                {
-                    logFile = reader.ReadToEnd();
+//            //Autocalc number of CPUs
+//            if (DOM.autoCPUCalc == true)
+//            {
+//                DOM.CPUs = Utilities.CPUAutoCalc(DOM.meshWorkingDir, DOM.CPUs);
+//            }
 
-                    //while (!reader.EndOfStream)
-                    //{
 
-                    //}
 
-                }
-            }
 
-            DA.SetData(0, logFile);
+//            string command = DOM.CPUs > 1 ? MultipleCPU : SingleCPU;
+
+
+//            string logFile = "";
+
+//            using (FileStream stream = File.Open(DOM.meshWorkingDir + @"\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+//            {
+//                using (StreamReader reader = new StreamReader(stream))
+//                {
+//                    logFile = reader.ReadToEnd();
+
+//                    //while (!reader.EndOfStream)
+//                    //{
+
+//                    //}
+
+//                }
+//            }
+
+//            DA.SetData(0, logFile);
 
 
            
 
 
-            DA.SetData(1, DOM);
+//            DA.SetData(1, DOM);
 
-        }
+//        }
 
-        /// <summary>
-        /// Provides an Icon for every component that will be visible in the User Interface.
-        /// Icons need to be 24x24 pixels.
-        /// </summary>
-        protected override System.Drawing.Bitmap Icon =>
-                // You can add image files to your project resources and access them like this:
-                Resources.Eddy_snappy;// return null;
+//        /// <summary>
+//        /// Provides an Icon for every component that will be visible in the User Interface.
+//        /// Icons need to be 24x24 pixels.
+//        /// </summary>
+//        protected override System.Drawing.Bitmap Icon =>
+//                // You can add image files to your project resources and access them like this:
+//                Resources.Eddy_snappy;// return null;
 
-        /// <summary>
-        /// Each component must have a unique Guid to identify it. 
-        /// It is vital this Guid doesn't change otherwise old ghx files 
-        /// that use the old ID will partially fail during loading.
-        /// </summary>
-        public override Guid ComponentGuid => new Guid("{6836B42F-FB09-48AF-BF41-A85D9D8FD913}");
-    }
-}
+//        /// <summary>
+//        /// Each component must have a unique Guid to identify it. 
+//        /// It is vital this Guid doesn't change otherwise old ghx files 
+//        /// that use the old ID will partially fail during loading.
+//        /// </summary>
+//        public override Guid ComponentGuid => new Guid("{6836B42F-FB09-48AF-BF41-A85D9D8FD913}");
+//    }
+//}

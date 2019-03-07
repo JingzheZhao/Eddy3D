@@ -36,7 +36,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Res", "Res", "Res", GH_ParamAccess.item);
 
             //pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 0);
             //Param_Integer param = pManager[1] as Param_Integer;
@@ -76,19 +76,10 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-            OFBaseDomain DOM = null;
+            
 
-            GH_ObjectWrapper gobj = null;
-            if (!DA.GetData(0, ref gobj)) { }
-
-            if ((gobj.Value is EddyLib.OFBaseDomain))
-            {
-                DOM = (OFBaseDomain)gobj.Value;
-            }
-            if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
-
-
-
+            OFResult RES = null;
+            DA.GetData(0, ref RES);
 
 
             string x0x1 = ":";
@@ -108,10 +99,10 @@ namespace Eddy
 
                 // Open the file(s) to read from.
 
-                foreach (double dir in DOM.BCInflow.windDirs)
+                foreach (double dir in RES.Domain.BCond.windDirs)
                 {
 
-                    var p1 = DOM.baseWorkingDir + dir + @"\postProcessing\residuals\";
+                    var p1 = RES.WorkingDirectory + dir + @"\postProcessing\residuals\";
                     fullFilePath = p1 + Utilities.GetLastIterationFromDirectory(p1) + "\\" + @"\\residuals.dat";
                     if (!File.Exists(fullFilePath))
                     {
@@ -130,7 +121,7 @@ set format y ""10^{%T}""
 set datafile separator '\t'
 plot '" + fullFilePath + @"' u($1):2 with lines title 'Ux', '" + fullFilePath + @"' u($1):3 with lines title 'Uy', '" + fullFilePath + @"' u($1):4 with lines title 'Uz', '" + fullFilePath + @"' u($1):5 with lines title 'p', '" + fullFilePath + @"' u($1):6 with lines title 'omega', '" + fullFilePath + @"' u($1):7 with lines title 'k'
 set terminal pdf
-set output '" + DOM.baseWorkingDir + @"residuals_" + dir + @".pdf'
+set output '" + RES.WorkingDirectory + @"residuals_" + dir + @".pdf'
 replot
 ";
 

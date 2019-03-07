@@ -19,13 +19,13 @@ namespace EddyLib.StrTemp
         private static readonly List<string> RCBlockMeshSingleCPU = new List<string> {
         "blockMesh"};
 
-        private static List<string> RCSimMultiCPU(OFBaseDomain DOM)
+        private static List<string> RCSimMultiCPU(OFRunSettings RunSettings)
         {
             List<string> lst = new List<string>();
             lst.Add("decomposePar");
-            lst.Add("mpiexec -np " + DOM.CPUs + @" renumberMesh -overwrite -parallel");
-            lst.Add("mpiexec -np " + DOM.CPUs + @" potentialFoam");
-            lst.Add("mpiexec -np " + DOM.CPUs + @" simpleFoam");
+            lst.Add("mpiexec -np " + RunSettings.CPUs + @" renumberMesh -overwrite -parallel");
+            lst.Add("mpiexec -np " + RunSettings.CPUs + @" potentialFoam");
+            lst.Add("mpiexec -np " + RunSettings.CPUs + @" simpleFoam");
             lst.Add("reconstructPar -latestTime");
             lst.Add("checkMesh");
             return lst;
@@ -41,21 +41,21 @@ namespace EddyLib.StrTemp
         "simpleFoam",
         "checkMesh"};
 
-        private static List<string> RCSimContinueMultiCPU(OFBaseDomain DOM)
+        private static List<string> RCSimContinueMultiCPU(OFRunSettings RunSettings)
         {
             List<string> lst = new List<string>();
-            lst.Add("mpiexec -np " + DOM.CPUs + @" simpleFoam");
+            lst.Add("mpiexec -np " + RunSettings.CPUs + @" simpleFoam");
             lst.Add("reconstructPar -latestTime");
             lst.Add("checkMesh");
             return lst;
         }
 
-        private static List<string> RCMeshMultiCPU(OFBaseDomain DOM)
+        private static List<string> RCMeshMultiCPU(OFRunSettings RunSettings)
         {
             List<string> lst = new List<string>();
             lst.Add("blockMesh");
             lst.Add("surfaceFeatureExtract");
-            lst.Add("mpiexec -np " + DOM.CPUs + @" snappyHexMesh -overwrite");
+            lst.Add("mpiexec -np " + RunSettings.CPUs + @" snappyHexMesh -overwrite");
             lst.Add("reconstructParMesh -constant");
             lst.Add("renumberMesh -overwrite");
             lst.Add("checkMesh");
@@ -71,13 +71,13 @@ namespace EddyLib.StrTemp
         private static string DockerPrefixPath(OFBaseDomain DOM)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine(@"docker run - v """ + DOM.OFbaseWorkingDir + DOM.BCInflow.windDirs[0] + @":/ home / openfoam / ""--entrypoint = """" - it hfdresearch / swak4foamandpyfoam:latest - v4.1 bash - c ""source / opt / openfoam4 / etc / bashrc; cd / home / openfoam;");
+            sb.AppendLine(@"docker run - v """ + DOM.OFbaseWorkingDir + DOM.BCond.windDirs[0] + @":/ home / openfoam / ""--entrypoint = """" - it hfdresearch / swak4foamandpyfoam:latest - v4.1 bash - c ""source / opt / openfoam4 / etc / bashrc; cd / home / openfoam;");
             return sb.ToString();
         }
         private static string DockerPrefixPath(OFBaseDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine(@"docker run - v """ + DOM.OFbaseWorkingDir + DOM.BCInflow.windDirs[d] + @":/ home / openfoam / ""--entrypoint = """" - it hfdresearch / swak4foamandpyfoam:latest - v4.1 bash - c ""source / opt / openfoam4 / etc / bashrc; cd / home / openfoam;");
+            sb.AppendLine(@"docker run - v """ + DOM.OFbaseWorkingDir + DOM.BCond.windDirs[d] + @":/ home / openfoam / ""--entrypoint = """" - it hfdresearch / swak4foamandpyfoam:latest - v4.1 bash - c ""source / opt / openfoam4 / etc / bashrc; cd / home / openfoam;");
             return sb.ToString();
         }
         private static string AppendSuffixDocker()
@@ -94,15 +94,15 @@ namespace EddyLib.StrTemp
             return sb.ToString();
         }
 
-        public static string Run_Mesh_Cyl(OFBaseDomain DOM)
+        public static string Run_Mesh_Cyl(OFRunSettings RunSettings, OFBaseDomain DOM)
         {
             StringBuilder sb = new StringBuilder();
 
-            if (DOM.simEngine == 0)//Docker
+            if (RunSettings.simEngine == 0)//Docker
             {
-                if (DOM.CPUs > 1)
+                if (RunSettings.CPUs > 1)
                 {
-                    foreach (string str in RCMeshMultiCPU(DOM))
+                    foreach (string str in RCMeshMultiCPU(RunSettings))
                     {
                         sb.Append(DockerPrefixPath(DOM) + str + AppendSuffixDocker());
                     }
@@ -127,9 +127,9 @@ namespace EddyLib.StrTemp
             }
             else
             {
-                if (DOM.CPUs > 1)
+                if (RunSettings.CPUs > 1)
                 {
-                    sb.Append(TempBlueCFDSuf(RCMeshMultiCPU(DOM), DOM.meshWorkingDir));
+                    sb.Append(TempBlueCFDSuf(RCMeshMultiCPU(RunSettings), DOM.meshWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
@@ -188,19 +188,19 @@ namespace EddyLib.StrTemp
 
 
 
-        public static string Run_sim(OFBaseDomain DOM, int d)
+        public static string Run_sim(OFRunSettings RunSettings, OFBaseDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
 
-            string caseWorkingDir = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[d];
+            string caseWorkingDir = DOM.baseWorkingDir + "\\" + DOM.BCond.windDirs[d];
 
-            if (DOM.simEngine == 0)//Docker
+            if (RunSettings.simEngine == 0)//Docker
             {
 
-                if (DOM.CPUs > 1)
+                if (RunSettings.CPUs > 1)
                 {
 
-                    foreach (string str in RCSimMultiCPU(DOM))
+                    foreach (string str in RCSimMultiCPU(RunSettings))
                     {
                         sb.Append(DockerPrefixPath(DOM, d) + str + AppendSuffixDocker());
                     }
@@ -222,9 +222,9 @@ namespace EddyLib.StrTemp
             }
             else
             {
-                if (DOM.CPUs > 1)
+                if (RunSettings.CPUs > 1)
                 {
-                    sb.Append(TempBlueCFDSuf(RCSimMultiCPU(DOM), caseWorkingDir));
+                    sb.Append(TempBlueCFDSuf(RCSimMultiCPU(RunSettings), caseWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
@@ -243,20 +243,20 @@ namespace EddyLib.StrTemp
             return sb.ToString();
         }
 
-        public static string Run_sim_continue(OFBaseDomain DOM, int d)
+        public static string Run_sim_continue(OFRunSettings RunSettings, OFBaseDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
 
-            string caseWorkingDir = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[d];
+            string caseWorkingDir = DOM.baseWorkingDir + "\\" + DOM.BCond.windDirs[d];
 
 
-            if (DOM.simEngine == 0)//Docker
+            if (RunSettings.simEngine == 0)//Docker
             {
 
-                if (DOM.CPUs > 1)
+                if (RunSettings.CPUs > 1)
                 {
 
-                    foreach (string str in RCSimContinueMultiCPU(DOM))
+                    foreach (string str in RCSimContinueMultiCPU(RunSettings))
                     {
                         sb.Append(DockerPrefixPath(DOM, d) + str + AppendSuffixDocker());
                     }
@@ -278,9 +278,9 @@ namespace EddyLib.StrTemp
             }
             else
             {
-                if (DOM.CPUs > 1)
+                if (RunSettings.CPUs > 1)
                 {
-                    sb.Append(TempBlueCFDSuf(RCSimContinueMultiCPU(DOM), caseWorkingDir));
+                    sb.Append(TempBlueCFDSuf(RCSimContinueMultiCPU(RunSettings), caseWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
@@ -372,10 +372,10 @@ namespace EddyLib.StrTemp
         //            return sb.ToString();
         //        }
 
-        public static string run_blockMesh(OFBaseDomain DOM)
+        public static string run_blockMesh(OFRunSettings RunSettings, OFBaseDomain DOM)
         {
             StringBuilder sb = new StringBuilder();
-            if (DOM.simEngine == 0)//Docker
+            if (RunSettings.simEngine == 0)//Docker
             {
 
                 foreach (string str in RCBlockMeshSingleCPU)
@@ -400,10 +400,10 @@ namespace EddyLib.StrTemp
             return sb.ToString();
         }
 
-        public static string Run_checkBadMesh(OFBaseDomain DOM)
+        public static string Run_checkBadMesh(OFRunSettings RunSettings, OFBaseDomain DOM)
         {
             StringBuilder sb = new StringBuilder();
-            if (DOM.simEngine == 0)//Docker
+            if (RunSettings.simEngine == 0)//Docker
             {
 
                 foreach (string str in RCCheckMeshSingleCPU)
@@ -433,7 +433,7 @@ namespace EddyLib.StrTemp
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(@"call """ + DOM.baseWorkingDir + @"run_mesh.bat""");
-            foreach (int i in DOM.BCInflow.windDirs)
+            foreach (int i in DOM.BCond.windDirs)
             {
 
                 sb.AppendLine(@"call """ + DOM.baseWorkingDir + i + @"_run_sim.bat""");
@@ -452,7 +452,7 @@ namespace EddyLib.StrTemp
         public static string RunSimOnly(OFBaseDomain DOM)
         {
             StringBuilder sb = new StringBuilder();
-            foreach (int i in DOM.BCInflow.windDirs)
+            foreach (int i in DOM.BCond.windDirs)
             {
                 //sb.AppendLine("start " + DOM.baseWorkingDirectory +i + "_run_sim.bat");
                 sb.AppendLine("call " + DOM.baseWorkingDir + i + "_run_sim.bat");
@@ -469,7 +469,7 @@ namespace EddyLib.StrTemp
         {
             string workDir = DOM.baseWorkingDir.Trim('\\');
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallRay.exe\" " + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCInflow.weather + "\"");
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallRay.exe\" " + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCond.weather + "\"");
 #if DEBUG
 
             sb.AppendLine("PAUSE");
@@ -484,7 +484,7 @@ namespace EddyLib.StrTemp
             //@ Patrick WIP
 
             string dirs = "";
-            foreach (var d in DOM.BCInflow.windDirs)
+            foreach (var d in DOM.BCond.windDirs)
             {
                 dirs += (d.ToString() + ',');
             }
@@ -492,9 +492,9 @@ namespace EddyLib.StrTemp
             dirs = dirs.TrimEnd(',');
 
             string workDir = DOM.baseWorkingDir.Trim('\\');
-            string uref = DOM.BCInflow.URef.ToString();
-            string z0 = DOM.BCInflow.z0.ToString();
-            string zref = DOM.BCInflow.zref.ToString();
+            string uref = DOM.BCond.URef.ToString();
+            string z0 = DOM.BCond.z0.ToString();
+            string zref = DOM.BCond.zref.ToString();
 
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallProbes.exe\" " + "-d " + "\"" + workDir + "\" " + "-p " + "\"" + workDir + @"\Rad\sensors.pts" + "\"" + " -w " + dirs + " -m 1" + " -u " + uref + " -r " + z0 + " -z " + zref);
@@ -514,7 +514,7 @@ namespace EddyLib.StrTemp
             //@ Patrick WIP
 
             string dirs = "";
-            foreach (var d in DOM.BCInflow.windDirs)
+            foreach (var d in DOM.BCond.windDirs)
             {
                 dirs += (d.ToString() + ',');
             }
@@ -532,7 +532,7 @@ namespace EddyLib.StrTemp
             StringBuilder sb = new StringBuilder();
             //sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallProbes.exe\" "+ "-w " + "\"" +workDir + "\" " + "-p " + "\"" + workDir + @"\Rad\sensors.pts" + "\"" + " -d " + dirs + " -m 1");
             //sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallRay.exe\" "  + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCInflow.weather + "\"");
-            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallOC.exe\" " + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCInflow.weather + "\" " + dif + " " + dir + " " + o + " " + u);
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallOC.exe\" " + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCond.weather + "\" " + dif + " " + dir + " " + o + " " + u);
 
 #if DEBUG
             sb.Append(" -b 0,0;");

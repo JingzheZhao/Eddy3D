@@ -68,9 +68,9 @@
     <Compile Include="OFLaunch.cs" />
     <Compile Include="Probes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RadianceFiles.cs" />
+    <Compile Include="Radiance\RadianceFiles.cs" />
     <Compile Include="Settings.cs" />
-    <Compile Include="SolarGeometry.cs" />
+    <Compile Include="Radiance\SolarGeometry.cs" />
     <Compile Include="STLExport.cs" />
     <Compile Include="StringTemplates\BoundaryConditions.cs" />
     <Compile Include="StringTemplates\Executables.cs" />

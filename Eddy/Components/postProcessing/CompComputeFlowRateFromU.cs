@@ -171,7 +171,7 @@ namespace Eddy
             }
 
 
-            catch (Exception e) { Console.WriteLine(e.Message); };// File.WriteAllText(DOM.baseWorkingDirectory + @"\FlowRate.err", errorLog.ToString()); return; }
+            catch (Exception e) { Console.WriteLine(e.Message); };// File.WriteAllText(RES.WorkingDirectoryectory + @"\FlowRate.err", errorLog.ToString()); return; }
 
 
 

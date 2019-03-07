@@ -71,18 +71,8 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-            OFBaseDomain DOM = null;
-
-
-
-            GH_ObjectWrapper gobj = null;
-            if (!DA.GetData(0, ref gobj)) { }
-
-            if ((gobj.Value is OFBaseDomain))
-            {
-                DOM = (OFBaseDomain)gobj.Value;
-            }
-            if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
+            OFResult RES = null;
+            DA.GetData(0, ref RES);
 
 
 
@@ -102,7 +92,7 @@ namespace Eddy
             //Weather data...
 
             Weather weather = new Weather();
-            weather.LoadWeatherData(DOM.BCInflow.weather);
+            weather.LoadWeatherData(RES.Domain.BCond.weather);
 
 
             //  Load radiation datasets
@@ -111,8 +101,8 @@ namespace Eddy
 
             Console.WriteLine("Loading: Radiation data...");
 
-            var DiffRad = RadianceFiles.loadILL(DOM.baseWorkingDir+ @"\Rad\CallRay.dif.ill");
-            var DirRad = RadianceFiles.loadILL(DOM.baseWorkingDir + @"\Rad\CallRay.dir.ill");
+            var DiffRad = RadianceFiles.loadILL(RES.WorkingDirectory+ @"\Rad\CallRay.dif.ill");
+            var DirRad = RadianceFiles.loadILL(RES.WorkingDirectory + @"\Rad\CallRay.dir.ill");
                         
 
             int sensorPointCount = DiffRad[0].Length;
@@ -127,7 +117,7 @@ namespace Eddy
             //List<int> windDirList = options.windDirs;
 
 
-            var windDirList = DOM.BCInflow.windDirs;   
+            var windDirList = RES.Domain.BCond.windDirs;   
             var numberOfWindDirs = windDirList.Count;
 
 
@@ -139,9 +129,9 @@ namespace Eddy
             
             // Parse ABL data from simulation directory                    
 
-            double URef = DOM.BCInflow.URef;
-            double zref = DOM.BCInflow.zref;
-            double z0 = DOM.BCInflow.z0;
+            double URef = RES.Domain.BCond.URef;
+            double zref = RES.Domain.BCond.zref;
+            double z0 = RES.Domain.BCond.z0;
 
           
 

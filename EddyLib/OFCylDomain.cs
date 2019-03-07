@@ -222,7 +222,7 @@ namespace EddyLib
                 BCond.SetUatBuildingHeightABL(zMax);
             }
 
-            BCInflow = BCond;
+            base.BCond = BCond;
 
             // refinement Cylinder
             //refinementCylinder = getRefinementCyl(center, geometry, 0.3, 0.3);

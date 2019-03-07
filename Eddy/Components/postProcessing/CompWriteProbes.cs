@@ -77,20 +77,8 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-            OFBaseDomain DOM = null;
-
-
-
-            GH_ObjectWrapper gobj = null;
-            if (!DA.GetData(0, ref gobj)) { }
-
-            if ((gobj.Value is OFBaseDomain))
-            {
-                DOM = (OFBaseDomain)gobj.Value;
-            }
-            if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
-
-
+            OFResult RES = null;
+            DA.GetData(0, ref RES);
 
 
             int mode = 0;
@@ -110,7 +98,7 @@ namespace Eddy
             for (int i = 0; i < listOfPoints.Count; i++)
             {
                 // Test whether this is an element that we want to keep.
-                if (DOM.inputBreps.IsPointInside(listOfPoints[i], 0.01, true) == false)
+                if (RES.Domain.inputBreps.IsPointInside(listOfPoints[i], 0.01, true) == false)
                 {
                     // Add it to the list of kept elements.
                     listOfPoints[kept] = listOfPoints[i];
@@ -135,15 +123,15 @@ namespace Eddy
             }
 
             // Export probes file
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_probes.bat"), EddyLib.StrTemp.BatFiles.Run_Probes(DOM));
+            File.WriteAllText(Path.Combine(RES.WorkingDirectory + "\\" + "run_probes.bat"), EddyLib.StrTemp.BatFiles.Run_Probes(RES.Domain));
 
 
             // export pts file for Daysim
-            if (!Directory.Exists(DOM.baseWorkingDir + @"Rad\"))
+            if (!Directory.Exists(RES.WorkingDirectory + @"Rad\"))
             {
-                Directory.CreateDirectory(DOM.baseWorkingDir + @"Rad\");
+                Directory.CreateDirectory(RES.WorkingDirectory + @"Rad\");
             }
-            RadianceFiles.writePTS(DOM.baseWorkingDir + @"\Rad\sensors.pts", listOfPoints);
+            RadianceFiles.writePTS(RES.WorkingDirectory + @"\Rad\sensors.pts", listOfPoints);
 
 
 
@@ -167,11 +155,11 @@ namespace Eddy
                     string pointName = "cp_Probes";
                     string OFfield = "total(p)_coeff";
 
-                    for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
+                    for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
                     {
 
-                        File.WriteAllText(DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + "controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(DOM, null, i));
-                        File.WriteAllText(DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + pointName, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, pointName, OFfield));
+                        File.WriteAllText(RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + "controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(RES.RunSettings,RES.Domain, null, i));
+                        File.WriteAllText(RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + pointName, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, pointName, OFfield));
 
 
 
@@ -189,13 +177,13 @@ namespace Eddy
                     string pointName = "U_Probes";
                     string OFfield = "U";
 
-                    for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
+                    for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
                     {
 
 
                         // Write the dicts
 
-                        File.WriteAllText(DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + pointName, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, pointName, OFfield));
+                        File.WriteAllText(RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + pointName, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, pointName, OFfield));
 
 
 

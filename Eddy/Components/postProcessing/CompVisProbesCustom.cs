@@ -52,7 +52,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Res", "Res", "Res", GH_ParamAccess.item);
             pManager.AddPointParameter("Points", "Points", "Points", GH_ParamAccess.list);
             pManager.AddTextParameter("Name", "Name", "Name", GH_ParamAccess.item);
             pManager.AddIntegerParameter("Field", "Field", "Field", GH_ParamAccess.item, 0);
@@ -96,20 +96,8 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-            OFBaseDomain DOM = null;
-
-
-
-            GH_ObjectWrapper gobj = null;
-            if (!DA.GetData(0, ref gobj)) { }
-
-            if ((gobj.Value is OFBaseDomain))
-            {
-                DOM = (OFBaseDomain)gobj.Value;
-            }
-            if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
-
-
+            OFResult RES = null;
+            DA.GetData(0, ref RES);           
 
 
 
@@ -129,7 +117,7 @@ namespace Eddy
             Probes.ReformatOFFields(OFFieldInt, out string OFField, out int fieldType);
 
             //Discard points outside
-            listOfPoints = Utilities.DiscardPointsOutsideDomain(listOfPoints, DOM);
+            listOfPoints = Utilities.DiscardPointsOutsideDomain(listOfPoints, RES.Domain);
             var numberOfProbes = listOfPoints.Count();
 
 
@@ -142,32 +130,32 @@ namespace Eddy
 
 
             // Check if U file is in last iteration
-            for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
+            for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
             {
-                string path = DOM.baseWorkingDir + @"\" + DOM.BCInflow.windDirs[i];
+                string path = RES.WorkingDirectory + @"\" + RES.Domain.BCond.windDirs[i];
                 string iter = Utilities.GetLastIterationFromDirectory(path).ToString();
-                string fp = DOM.baseWorkingDir + @"\" + DOM.BCInflow.windDirs[i] + @"\" + iter + @"\U";
+                string fp = RES.WorkingDirectory + @"\" + RES.Domain.BCond.windDirs[i] + @"\" + iter + @"\U";
 
 
                 if (!File.Exists(fp))
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The last iteration """ + iter + @""" of the wind direction """ + DOM.BCInflow.windDirs[i] + @""" misses the velocity (U) result file. Please make sure that U is calculated for this particular timestep (change WriteInterval) and recompute the solution.");
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The last iteration """ + iter + @""" of the wind direction """ + RES.Domain.BCond.windDirs[i] + @""" misses the velocity (U) result file. Please make sure that U is calculated for this particular timestep (change WriteInterval) and recompute the solution.");
                 }
             }
 
             // Export probes file
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_probes.bat"), EddyLib.StrTemp.BatFiles.Run_Probes(DOM));
+            File.WriteAllText(Path.Combine(RES.WorkingDirectory + "\\" + "run_probes.bat"), EddyLib.StrTemp.BatFiles.Run_Probes(RES.Domain));
 
 
             // export pts file for Daysim
-            if (!Directory.Exists(DOM.baseWorkingDir + @"Rad\"))
+            if (!Directory.Exists(RES.WorkingDirectory + @"Rad\"))
             {
-                Directory.CreateDirectory(DOM.baseWorkingDir + @"Rad\");
+                Directory.CreateDirectory(RES.WorkingDirectory + @"Rad\");
             }
 
-            RadianceFiles.writePTS(DOM.baseWorkingDir + @"\Rad\sensors.pts", listOfPoints);
+            RadianceFiles.writePTS(RES.WorkingDirectory + @"\Rad\sensors.pts", listOfPoints);
 
-            if (Utilities.IsDirectoryEmpty(DOM.meshPolyMeshDir) == true)
+            if (Utilities.IsDirectoryEmpty(RES.Domain.meshPolyMeshDir) == true)
             {
                 throw new System.ArgumentException("The mesh folder is empty. Can't retrieve probes from a mesh that does not exist.");
             }
@@ -191,9 +179,9 @@ namespace Eddy
                         StringBuilder command = new StringBuilder();
 
 
-                        for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
+                        for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
                         {
-                            var pathToPointFile = DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\constant\polyMesh\points";
+                            var pathToPointFile = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\constant\polyMesh\points";
                             if (!File.Exists(pathToPointFile))
                             {
                                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The file  """ + pathToPointFile + @""" does not exist. Please make sure that a mesh with point exists.");
@@ -201,44 +189,44 @@ namespace Eddy
                             }
 
 
-                            var path = DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + enumeratedProbeName;
+                            var path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + enumeratedProbeName;
 
                             // cp parsing
-                            File.WriteAllText(DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + "controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(DOM, null, i));
+                            File.WriteAllText(RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + "controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(RES.RunSettings, RES.Domain, null, i));
                             File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, enumeratedProbeName, OFField));
 
                             // Write the dicts
-                            if (DOM.simEngine == 0)
+                            if (RES.RunSettings.simEngine == 0)
                             {
-                                command.Append(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime | tee  " + DOM.BCInflow.windDirs[i] + @"/log_probes;");
+                                command.Append(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime | tee  " + RES.Domain.BCond.windDirs[i] + @"/log_probes;");
                             }
                             else
                             {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
-                                command.AppendLine(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime");
+                                command.AppendLine(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime");
                             }
                         }
 
                         if (run == true)
                         {
 
-                            if (DOM.simEngine == 0)
+                            if (RES.RunSettings.simEngine == 0)
                             {
-                                Utilities.StartProcessCMD(@" -e """ + command + @""" -f " + "\"" + DOM.OFbaseWorkingDir, false, true, false, Utilities.AssemblyDirectory + @"\CallOF.exe");
+                                Utilities.StartProcessCMD(@" -e """ + command + @""" -f " + "\"" + RES.Domain.OFbaseWorkingDir, false, true, false, Utilities.AssemblyDirectory + @"\CallOF.exe");
                             }
                             else
                             {
-                                //Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString(), "type log" }, DOM.baseWorkingDir), false, true, true);
-                                Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, DOM.baseWorkingDir), false, true, true);
+                                //Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString(), "type log" }, RES.WorkingDirectory), false, true, true);
+                                Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory), false, true, true);
                             }
 
                         }
 
                         //Thread.Sleep(2 * numberOfProbes);
 
-                        for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
+                        for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
                         {
 
-                            var caseDir = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i];
+                            var caseDir = RES.WorkingDirectory + "\\" + RES.Domain.BCond.windDirs[i];
                             string pathToProbeFile = Probes.GetFullPathToProbeFile(enumeratedProbeName, caseDir, OFField);
                             if (File.Exists(pathToProbeFile))
                             {
@@ -265,9 +253,9 @@ namespace Eddy
                         //string pointName = "U_Probes";
                         //string cleanedOFField = Regex.Replace(fieldName, @"[^a-zA-Z]", "");
 
-                        for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
+                        for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
                         {
-                            var pathToPointFile = DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\constant\polyMesh\points";
+                            var pathToPointFile = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\constant\polyMesh\points";
                             if (!File.Exists(pathToPointFile))
                             {
                                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The file  """ + pathToPointFile + @""" does not exist. Please make sure that a mesh with point exists.");
@@ -275,38 +263,38 @@ namespace Eddy
                             }
 
                             // Write the dicts
-                            if (DOM.simEngine == 0)
+                            if (RES.RunSettings.simEngine == 0)
                             {
-                                var path = DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + enumeratedProbeName;
+                                var path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + enumeratedProbeName;
                                 File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, enumeratedProbeName, OFField));
-                                command.Append(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime | tee  " + DOM.BCInflow.windDirs[i] + @"/log_probes;");
+                                command.Append(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime | tee  " + RES.Domain.BCond.windDirs[i] + @"/log_probes;");
                             }
                             else
                             {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
-                                var path = DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + enumeratedProbeName;
+                                var path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + enumeratedProbeName;
                                 File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, enumeratedProbeName, OFField));
-                                command.AppendLine(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime");
+                                command.AppendLine(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime");
                             }
                         }
 
                         if (run == true)
                         {
-                            if (DOM.simEngine == 0)
+                            if (RES.RunSettings.simEngine == 0)
                             {
-                                Utilities.StartProcessCMD(@" -e """ + command + @""" -f " + "\"" + DOM.OFbaseWorkingDir, false, true, false, Utilities.AssemblyDirectory + @"\CallOF.exe");
+                                Utilities.StartProcessCMD(@" -e """ + command + @""" -f " + "\"" + RES.Domain.OFbaseWorkingDir, false, true, false, Utilities.AssemblyDirectory + @"\CallOF.exe");
                             }
                             else
                             {
-                                // Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString(), "type log" }, DOM.baseWorkingDir), false, true, true);
-                                Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, DOM.baseWorkingDir), false, true, true);
+                                // Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString(), "type log" }, RES.WorkingDirectory), false, true, true);
+                                Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory), false, true, true);
                             }
                         }
                         //Thread.Sleep(2 * numberOfProbes);
 
-                        for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
+                        for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
                         {
                            
-                            var caseDir = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i];
+                            var caseDir = RES.WorkingDirectory + "\\" + RES.Domain.BCond.windDirs[i];
                             string pathToProbeFile = Probes.GetFullPathToProbeFile(enumeratedProbeName, caseDir, OFField);
                             if (File.Exists(pathToProbeFile))
                             {

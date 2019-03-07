@@ -1,9 +1,7 @@
 ﻿using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
-using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
-using Rhino.Geometry;
 using System;
 using System.IO;
 using System.Windows.Forms;
@@ -165,7 +163,27 @@ namespace Eddy
 
             #region RUN BLOCKMESH
 
+            if (DOM is OFBoxDomain)
+            {
+                if (DOM.BCond.windDirs.Count > 1)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "For box-shaped domains you can only pass one wind direction per simulation setup."); return;
+                }
 
+
+                RunBlockMesh.RunBox((OFBoxDomain)DOM, MeshSettings, RunSettings, baseWorkingDirectory);
+                
+
+            }
+            else
+            {
+
+
+                RunBlockMesh.RunCyl((OFCylDomain)DOM, MeshSettings, RunSettings, baseWorkingDirectory);
+                
+
+
+            }
 
 
 
@@ -179,7 +197,7 @@ namespace Eddy
 
             #region RUN SNAPPY HEX
 
-            if (MeshSettings.accBuilding >= 5 || MeshSettings.accFeatures >= 5 || MeshSettings.accRefinement >= 5 || MeshSettings.accGround >= 5 || MeshSettings.nLayers >= 5)
+            if (MeshSettings.accBuildings >= 5 || MeshSettings.accFeatures >= 5 || MeshSettings.accRefinement >= 5 || MeshSettings.accGround >= 5 || MeshSettings.nLayers >= 5)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "A high number of refinment stages might significantly slow down mesh creation. Try to create a reasonable fine mesh with the Domain component.");
             }
@@ -210,9 +228,9 @@ namespace Eddy
             if (RunSettings.simEngine == SimEngine.Docker)
             {
 
-                Utilities.WriteDockerInfo(DOM.baseWorkingDir);
+                Utilities.WriteDockerInfo(baseWorkingDirectory);
                 bool dockerRunning = false;
-                if (Utilities.IsDockerRunning(DOM.baseWorkingDir, RunSettings.ostype))
+                if (Utilities.IsDockerRunning(baseWorkingDirectory, RunSettings.ostype))
                 {
                     dockerRunning = true;
                 }
@@ -224,9 +242,9 @@ namespace Eddy
                 // Check for killed processes
 
 
-                for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
+                for (int i = 0; i < DOM.BCond.windDirs.Count; i++)
                 {
-                    if (Utilities.DidProcessGetKilled(DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i]) == true)
+                    if (Utilities.DidProcessGetKilled(baseWorkingDirectory + "\\" + DOM.BCond.windDirs[i]) == true)
                     {
                         AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Some processes got killed probably because to little RAM was available. Try to increase the RAM acclocated for the Docker virtual machine.");
                     }
@@ -241,7 +259,7 @@ namespace Eddy
             }
 
 
-            RunFoamSimulation.Run(DOM, RunSettings, baseWorkingDirectory);
+            RunFoamSimulation.Run(DOM,MeshSettings, RunSettings, baseWorkingDirectory);
 
             #endregion
 
@@ -253,8 +271,8 @@ namespace Eddy
 
 
         }
-    
-        
+
+
 
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface.

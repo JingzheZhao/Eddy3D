@@ -55,7 +55,7 @@ namespace EddyLib
 
         public OFBoxDomain(Brep inputBreps, Mesh geometry, Mesh terrain, BoundaryConditions BCond, double _blockDim, int CPUs, string baseWorkingDirectory = @"C:\temp")
         {
-            this.BCInflow = BCond;
+            this.BCond = BCond;
 
             this.baseWorkingDir = baseWorkingDirectory;
             this.meshStlDir = baseWorkingDirectory + @"\mesh\constant\triSurface\";

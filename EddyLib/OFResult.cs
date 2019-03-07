@@ -1,19 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace EddyLib
+﻿namespace EddyLib
 {
- public   class OFResult
+    public class OFResult
     {
-        OFBaseDomain Domain;
-        OFRunSettings RunSettings;
-        OFMeshSettings MeshSettings;
-        string WorkingDirectory;
+        public readonly OFBaseDomain Domain;
+        public readonly OFRunSettings RunSettings;
+        public readonly OFMeshSettings MeshSettings;
+        public readonly string WorkingDirectory;
 
-        public OFResult(OFBaseDomain Domain, OFRunSettings RunSettings, OFMeshSettings MeshSettings, string workDir) {
+        public OFResult(OFBaseDomain Domain, OFRunSettings RunSettings, OFMeshSettings MeshSettings, string workDir)
+        {
             this.Domain = Domain;
             this.RunSettings = RunSettings;
             this.MeshSettings = MeshSettings;

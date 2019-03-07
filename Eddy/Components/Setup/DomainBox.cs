@@ -63,7 +63,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.item);
+          
             pManager.AddGenericParameter("Domain", "Dom", "Simulation Domain", GH_ParamAccess.item);
             pManager.AddGenericParameter("Box", "Box", "Domain", GH_ParamAccess.item);
         }
@@ -126,30 +126,9 @@ namespace Eddy
             //string windowsVersion = Utilities.GetOSInfo();
             bool isWindows7 = Utilities.IsWindows7;
             string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-
-
-            //if (windowsVersion == "Windows 7" || windowsVersion == "Windows 8")
-            //{
-            //    if (!baseWorkingDirectory.StartsWith(userFolder, StringComparison.InvariantCultureIgnoreCase))
-            //    {
-            //        AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "For Windows 7 and 8, the working directory must be in the user folder because of contrainst with a deprecated Docker version.."); return;
-            //    }
-            //}
-
-            if (isWindows7)
-            {
-                if (!baseWorkingDirectory.StartsWith(userFolder, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "For Windows 7 and 8, the working directory must be in the user folder because of constraint with a deprecated Docker version.."); return;
-                }
-            }
-
-
-
-            if (BCond.windDirs.Count > 1)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "For box-shaped domains you can only pass one wind direction per simulation setup."); return;
-            }
+            
+         
+            
 
 
 
@@ -243,195 +222,17 @@ namespace Eddy
 
                 OFBoxDomain DOMBOX = new OFBoxDomain(inputBreps, combinedMeshes, terrainMeshes, BCond, blockDimension, CPUs, baseWorkingDirectory);
 
-                if (CPUs == -1)
-                {
-                    DOMBOX.autoCPUCalc = true;
-                }
+                
+               
 
 
 
 
 
-
-                //DOM = OFDomainBuilder(domain, workingDirectory);
-
-                //if ((DOMBOX.xCells * blockDimension) > DOMBOX.dimX || (DOMBOX.yCells * blockDimension) > DOMBOX.dimY || (DOMBOX.zCells * blockDimension) > DOMBOX.dimZ)
-                //{
-                //    //  AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Your block dimensions need to be smaller than the domain.");
-                //}
-
-
-
-
-
-                if (CPUs > Environment.ProcessorCount)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that many CPUs.");
-                }
-
-                //var totalGBRam = Convert.ToInt32((new ComputerInfo().TotalPhysicalMemory / (Math.Pow(1024, 2))) + 0.5);
-                //if (RAM < 0 || RAM > totalGBRam)
-                //{
-                //    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that much RAM available.");
-                //}
-
-
-
-
-
-
-                //if (Settings.getCurrentRAM() != RAM)
-                //{
-
-
-
-                //    string newRAM = "Set-VM -StaticMemory -Name MobyLinuxVM -MemoryStartupBytes " + RAM + "GB";
-                //    //var totalGBRam = 0 ;
-
-                //    ProcessStartInfo psiNewRAM = new ProcessStartInfo(@"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe");
-                //    psiNewRAM.Verb = "runas";
-                //    psiNewRAM.Arguments = newRAM;
-
-                //    Process pRAM = new Process();
-                //    pRAM.StartInfo = psiNewRAM;
-                //    pRAM.Start();
-                //    pRAM.WaitForExit();
-
-                //}
-
-                //if (Settings.getCurrentCPUs(DOM) != CPUs)
-                //{
-
-                //    string newCPUs = @"Stop-VM -Name MobyLinuxVM;Set-VMProcessor MobyLinuxVM -Count '" + CPUs+ "';Start-VM -Name MobyLinuxVM";
-                //    //var totalGBRam = 0 ;
-
-
-                //    ProcessStartInfo psiNewCPUs = new ProcessStartInfo(@"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe");
-                //    psiNewCPUs.Verb = "runas";
-                //    psiNewCPUs.Arguments = newCPUs;
-
-                //    Process pRAM = new Process();
-                //    pRAM.StartInfo = psiNewCPUs;
-                //    pRAM.Start();
-                //    pRAM.WaitForExit();
-
-                //}
-
-
-                //////
-
-                var meshStlFilenameBuildings = DOMBOX.baseWorkingDir + @"\mesh\constant\triSurface\building.stl";
-                var meshStlFilenameGround = DOMBOX.baseWorkingDir + @"\mesh\constant\triSurface\ground.stl";
-                var meshStlFilenameGroundPerim = DOMBOX.baseWorkingDir + @"\mesh\constant\triSurface\ground_perim.stl";
-                var meshBoundaryConditionsDirectory = DOMBOX.baseWorkingDir + @"\mesh\0.org\";
-
-
-                if (!Directory.Exists(baseWorkingDirectory))
-                {
-                    Directory.CreateDirectory(baseWorkingDirectory);
-                }
-
-
-                if (!Directory.Exists(DOMBOX.meshStlDir))
-                {
-                    Directory.CreateDirectory(DOMBOX.meshStlDir);
-                }
-
-
-                // STL export
-
-                STLExport.ExportBinary(meshStlFilenameBuildings, combinedMeshes);
-
-
-
-
-                if (terrain.Count > 0)
-                {
-                    //No perim if we use a terrain
-                    DOMBOX.newBoxGround.Translate(Vector3d.ZAxis * 0.001);
-                    STLExport.ExportBinary(meshStlFilenameGround, DOMBOX.newBoxGround);
-                }
-                else
-                {
-                    STLExport.ExportBinary(meshStlFilenameGround, DOMBOX.newBoxGround);
-                    STLExport.ExportBinary(meshStlFilenameGroundPerim, DOMBOX.newBoxGroundPerim);
-                }
-
-
-
-
-
-                if (!Directory.Exists(DOMBOX.meshSystemDir))
-                {
-                    Directory.CreateDirectory(DOMBOX.meshSystemDir);
-                }
-                if (!Directory.Exists(DOMBOX.meshConstantDir))
-                {
-                    Directory.CreateDirectory(DOMBOX.meshConstantDir);
-                }
-                if (!Directory.Exists(meshBoundaryConditionsDirectory))
-                {
-                    Directory.CreateDirectory(meshBoundaryConditionsDirectory);
-                }
-
-
-                File.WriteAllText(DOMBOX.meshSystemDir + @"\blockMeshDict", EddyLib.StrTemp.OFExecDicts.BlockMeshDict(DOMBOX));
-                File.WriteAllText(DOMBOX.baseWorkingDir + @"\mesh\case.foam", "");
-                File.WriteAllText(DOMBOX.meshSystemDir + @"\controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(DOMBOX, null, 0));
-
-                if (!File.Exists(baseWorkingDirectory + @"\mesh\log"))
-                {
-                    File.WriteAllText(baseWorkingDirectory + @"\mesh\log", "");
-                }
-
-
-
-                //export RAD for DAYSIM
-                if (!Directory.Exists(DOMBOX.baseWorkingDir + @"Rad\"))
-                {
-                    Directory.CreateDirectory(DOMBOX.baseWorkingDir + @"Rad\");
-                }
-                string radMat = @"
-void plastic Generic_20
-0
-0
-5 0.2 0.2 0.2 0 0 
-";
-                Mesh daysimMesh = new Mesh();
-                daysimMesh.Append(combinedMeshes);
-                // Todo: add ground plane to the above mesh
-
-                File.WriteAllText(DOMBOX.baseWorkingDir + @"Rad\materials.rad", radMat);
-                RadianceFiles.MeshProc(daysimMesh, DOMBOX.baseWorkingDir + @"Rad\scene.rad", "Generic_20");
-
-
-                string logFile = "";
-
-                using (FileStream stream = File.Open(baseWorkingDirectory + @"\mesh\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                {
-                    using (StreamReader reader = new StreamReader(stream))
-                    {
-                        logFile = reader.ReadToEnd();
-                        //while (!reader.EndOfStream)
-                        //{
-
-                        //}
-
-                    }
-                }
-
-                DA.SetData(0, logFile);
-                //AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Super!!");
-
-
-
-
-
-
-                DA.SetData(1, DOMBOX);
+                DA.SetData(0, DOMBOX);
                 //if (mode == 0)
                 //{
-                DA.SetData(2, DOMBOX.newBoxDomain);
+                DA.SetData(1, DOMBOX.newBoxDomain);
 
 
 

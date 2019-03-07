@@ -85,7 +85,7 @@ boundary
         ";
         }
 
-        public static string SnappyHexMeshDict(OFBaseDomain dom)
+        public static string SnappyHexMeshDict(OFMeshSettings MeshSettings, OFBaseDomain dom)
         {
             string refinementGeometry = "";
             //string ground_perim = @"ground_perim.stl
@@ -125,8 +125,8 @@ FoamFile
 }
 
     castellatedMesh true;");
-            sb.Append("snap "); if (dom.meshingMode == 1 || dom.meshingMode == 2) { sb.AppendLine("true;"); } else { sb.AppendLine("false;"); }
-            sb.Append("addLayers "); if (dom.meshingMode == 2) { sb.AppendLine("true;"); } else { sb.AppendLine("false;"); }
+            sb.Append("snap "); if (MeshSettings.snappySetting == SnappySetting.BlocksSnapping || MeshSettings.snappySetting == SnappySetting.BlocksSnappingLayers) { sb.AppendLine("true;"); } else { sb.AppendLine("false;"); }
+            sb.Append("addLayers "); if (MeshSettings.snappySetting == SnappySetting.BlocksSnappingLayers) { sb.AppendLine("true;"); } else { sb.AppendLine("false;"); }
             sb.Append(@"geometry
     {
         building.stl
@@ -159,14 +159,14 @@ FoamFile
     {
         features
         (
-            {file ""building.eMesh""; level " + (dom.accFeatures) + @" ;}
-            {file ""ground.eMesh""; level " + (dom.accFeatures) + @" ;}
+            {file ""building.eMesh""; level " + (MeshSettings.accFeatures) + @" ;}
+            {file ""ground.eMesh""; level " + (MeshSettings.accFeatures) + @" ;}
         );
         refinementSurfaces
         {
             building
             {
-                level (" + (dom.accBuildings - 1) + @" " + dom.accBuildings + @");
+                level (" + (MeshSettings.accBuildings - 1) + @" " + MeshSettings.accBuildings + @");
                 patchInfo
                 {
                     type wall;
@@ -175,7 +175,7 @@ FoamFile
 
             ground
             {
-                level (" + (dom.accGround) + @" " + (dom.accGround) + @");
+                level (" + (MeshSettings.accGround) + @" " + (MeshSettings.accGround) + @");
                 patchInfo
                 {
                     type wall;
@@ -183,7 +183,7 @@ FoamFile
             }
             ground_perim
             {
-                level (" + (dom.accGround - 1) + @" " + (dom.accGround) + @");
+                level (" + (MeshSettings.accGround - 1) + @" " + (MeshSettings.accGround) + @");
                 patchInfo
                 {
                     type wall;
@@ -194,8 +194,8 @@ FoamFile
         refinementRegions
         {
 
-refinementBox {mode inside; levels ((" + dom.accRefinement + @" " + dom.accRefinement + @"));}
-//refinementCylinder {mode inside; levels ((" + dom.accRefinement + " " + dom.accRefinement + @"));}
+refinementBox {mode inside; levels ((" + MeshSettings.accRefinement + @" " + MeshSettings.accRefinement + @"));}
+//refinementCylinder {mode inside; levels ((" + MeshSettings.accRefinement + " " + MeshSettings.accRefinement + @"));}
 
 
         }
@@ -264,15 +264,15 @@ snapControls
         {
             building
             {
-                nSurfaceLayers " + dom.nLayers + @";
+                nSurfaceLayers " + MeshSettings.nLayers + @";
             }
             ground
             {
-                nSurfaceLayers " + dom.nLayers + @";
+                nSurfaceLayers " + MeshSettings.nLayers + @";
             }
             ground_perim
             {
-                nSurfaceLayers " + dom.nLayers + @";
+                nSurfaceLayers " + MeshSettings.nLayers + @";
             }
         }
 
@@ -498,7 +498,7 @@ mergeTolerance 1E-6;
 ");
             return sb.ToString();
         }
-        public static string ControlDict(OFBaseDomain DOM, List<Mesh> topologies, int numberOfTopologies)
+        public static string ControlDict(OFRunSettings RunSettings , OFBaseDomain DOM, List<Mesh> topologies, int numberOfTopologies)
         {
             var sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -521,7 +521,7 @@ libs
         ""libOpenFOAM.so""
         ""libutilityFunctionObjects.so""
         ""libsolverFunctionObjects.so""");
-        if (DOM.simEngine == 0)
+        if (RunSettings.simEngine ==  SimEngine.Docker)
             {
                 sb.Append(@"""libsimpleSwakFunctionObjects.so""        
                 ""libswakFunctionObjects.so""        
@@ -533,11 +533,11 @@ libs
             startFrom latestTime;
             startTime       1;
             stopAt endTime;
-            endTime         " + DOM.iter + @";
+            endTime         " + RunSettings.iter + @";
             deltaT          1;
             writeControl timeStep;
-            writeInterval   " + DOM.writeInterval + @";
-            purgeWrite      " + DOM.keepTimeSteps + @";
+            writeInterval   " + RunSettings.writeInterval + @";
+            purgeWrite      " + RunSettings.keepTimeSteps + @";
             writeFormat binary;
             writePrecision  8;
             writeCompression uncompressed;
@@ -549,13 +549,13 @@ libs
 #includeFunc residuals
 ");
             //if (topologies != null) {
-            sb.Append(EddyLib.StrTemp.OFExecDicts.FunctionObjCP(DOM, topologies, numberOfTopologies).ToString());
+            sb.Append(EddyLib.StrTemp.OFExecDicts.FunctionObjCP(DOM,RunSettings, topologies, numberOfTopologies).ToString());
             //}
             //else { sb.Append(@"};"); }
 
             return sb.ToString();
         }
-        public static string FunctionObjCP(OFBaseDomain DOM, List<Mesh> evaluationTopology, int d)
+        public static string FunctionObjCP(OFBaseDomain DOM, OFRunSettings RunSettings, List<Mesh> evaluationTopology, int d)
         {
             var sb = new StringBuilder();
             sb.Append(@"cp2
@@ -564,10 +564,10 @@ libs
                     libs (""libfieldFunctionObjects.so"");
                     enabled yes;
                     writeControl timeStep;
-                    writeInterval " + DOM.writeInterval + @";
-                    UInf (" + DOM.BCInflow.Uinf[d].X + " " + DOM.BCInflow.Uinf[d].Y + " " + DOM.BCInflow.Uinf[d].Z + @");     // the undistrubed velocity at building height
-                    pInf " + DOM.BCInflow.pinf + @";        // the dynamic undisturbed pressure at building height
-                    pRef " + DOM.BCInflow.pref + @";        // the dynamic pressure at reference height (usually 10 m)
+                    writeInterval " + RunSettings.writeInterval + @";
+                    UInf (" + DOM.BCond.Uinf[d].X + " " + DOM.BCond.Uinf[d].Y + " " + DOM.BCond.Uinf[d].Z + @");     // the undistrubed velocity at building height
+                    pInf " + DOM.BCond.pinf + @";        // the dynamic undisturbed pressure at building height
+                    pRef " + DOM.BCond.pref + @";        // the dynamic pressure at reference height (usually 10 m)
                     rhoInf              1.2;
                     calcTotal yes;
                     calcCoeff yes;
@@ -1880,7 +1880,7 @@ nu              nu [0 2 -1 0 0 0 0] 1.5e-05;
 // ************************************************************************* //
 ";
         }
-        public static string TurbulenceProperties(OFBaseDomain DOM)
+        public static string TurbulenceProperties(OFRunSettings RunSettings)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -1904,7 +1904,7 @@ simulationType RAS;
 RAS
 {
     RASModel         ");
-            if (DOM.turbulenceModel == 2) { sb.Append("kOmegaSST;"); } else if (DOM.turbulenceModel == 1) { sb.Append("RNGkEpsilon;"); } else { sb.Append("kEpsilon;"); }
+            if (RunSettings.turbModel == TurbModel.kOmegaSST) { sb.Append("kOmegaSST;"); } else if (RunSettings.turbModel == TurbModel.RNGkEpsilon) { sb.Append("RNGkEpsilon;"); } else { sb.Append("kEpsilon;"); }
             sb.AppendLine(@"
     turbulence on;
 
@@ -1947,7 +1947,7 @@ fields (U p epsilon omega  k);
 ";
         }
 
-        public static string DecomposeParDict(OFBaseDomain DOM)
+        public static string DecomposeParDict(OFRunSettings RunSettings)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(@"// * * * * * * * * * //
@@ -1962,7 +1962,7 @@ fields (U p epsilon omega  k);
         object nix;
     }
     method scotch;
-    numberOfSubdomains " + DOM.CPUs + @";
+    numberOfSubdomains " + RunSettings.CPUs + @";
 scotchCoeffs
 {
 }");

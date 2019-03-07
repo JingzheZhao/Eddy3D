@@ -151,7 +151,7 @@
 
 //            for (int i = 0; i < numberOfWindDirs; i++)
 //            {
-//                var fp = DOM.baseWorkingDir + @"\mesh\constant\polyMesh";
+//                var fp = RES.WorkingDirectory + @"\mesh\constant\polyMesh";
 //                if (!Directory.Exists(fp))
 //                {
 //                    errorLog.AppendLine(@"The wind direction """ + DOM.BCInflow.windDirs[i] + @""" misses the ""\constant\polyMesh"" dictionary. Please make sure that directory exists.");
@@ -165,7 +165,7 @@
 
 //            for (int i = 0; i < numberOfWindDirs; i++)
 //            {
-//                var ABLfilePath = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i] + @"\0.org\ABLConditions";
+//                var ABLfilePath = RES.WorkingDirectory + "\\" + DOM.BCInflow.windDirs[i] + @"\0.org\ABLConditions";
 //                if (!File.Exists(ABLfilePath)) { Console.WriteLine(ABLfilePath + " not found. Exiting"); errorLog.AppendLine(ABLfilePath + " not found. Exiting"); }
 //            }
 
@@ -173,9 +173,9 @@
 //            // Check if U file is in last iteration
 //            for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
 //            {
-//                string path = DOM.baseWorkingDir + @"\" + DOM.BCInflow.windDirs[i];
+//                string path = RES.WorkingDirectory + @"\" + DOM.BCInflow.windDirs[i];
 //                string iter = Utilities.GetLastIterationFromDirectory(path).ToString();
-//                string fp = DOM.baseWorkingDir + @"\" + DOM.BCInflow.windDirs[i] + @"\" + iter + @"\U";
+//                string fp = RES.WorkingDirectory + @"\" + DOM.BCInflow.windDirs[i] + @"\" + iter + @"\U";
 
 
 //                if (!File.Exists(fp))
@@ -185,15 +185,15 @@
 //            }
 
 //            // Export probes file
-//            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "\\" + "run_probes.bat"), EddyLib.StrTemp.BatFiles.Run_Probes(DOM));
+//            File.WriteAllText(Path.Combine(RES.WorkingDirectory + "\\" + "run_probes.bat"), EddyLib.StrTemp.BatFiles.Run_Probes(DOM));
 
 
 //            // export pts file for Daysim
-//            if (!Directory.Exists(DOM.baseWorkingDir + @"Rad\"))
+//            if (!Directory.Exists(RES.WorkingDirectory + @"Rad\"))
 //            {
-//                Directory.CreateDirectory(DOM.baseWorkingDir + @"Rad\");
+//                Directory.CreateDirectory(RES.WorkingDirectory + @"Rad\");
 //            }
-//            RadianceFiles.writePTS(DOM.baseWorkingDir + @"\Rad\sensors.pts", listOfPoints);
+//            RadianceFiles.writePTS(RES.WorkingDirectory + @"\Rad\sensors.pts", listOfPoints);
 
 //            if (Utilities.IsDirectoryEmpty(DOM.meshPolyMeshDir) == true)
 //            {
@@ -226,8 +226,8 @@
 //                        for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
 //                        {
 
-//                            File.WriteAllText(DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + "controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(DOM, null, i));
-//                            File.WriteAllText(DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + pointName, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, pointName, OFfield));
+//                            File.WriteAllText(RES.WorkingDirectory + DOM.BCInflow.windDirs[i] + @"\system\" + "controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(DOM, null, i));
+//                            File.WriteAllText(RES.WorkingDirectory + DOM.BCInflow.windDirs[i] + @"\system\" + pointName, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, pointName, OFfield));
 
 //                            command.Append(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + pointName + @" -latestTime | tee  " + DOM.BCInflow.windDirs[i] + @"/log_probes;");
 
@@ -236,7 +236,7 @@
 //                        for (int i = 0; i < numberOfWindDirs; i++)
 
 //                        {
-//                            var fp = DOM.baseWorkingDir + @"\" + DOM.BCInflow.windDirs[i] + @"\system\cp_Probes";
+//                            var fp = RES.WorkingDirectory + @"\" + DOM.BCInflow.windDirs[i] + @"\system\cp_Probes";
 //                            if (!File.Exists(fp))
 //                            {
 
@@ -269,7 +269,7 @@
 
 
 
-//                            var caseDir = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i];
+//                            var caseDir = RES.WorkingDirectory + "\\" + DOM.BCInflow.windDirs[i];
 //                            string pathToProbeFile = ParsingProbes.GetLastProcProssDir(pointName, caseDir, OFfield);
 //                            if (File.Exists(pathToProbeFile))
 //                            {
@@ -306,7 +306,7 @@
 
 //                            // Write the dicts
 
-//                            File.WriteAllText(DOM.baseWorkingDir + DOM.BCInflow.windDirs[i] + @"\system\" + pointName, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, pointName, OFfield));
+//                            File.WriteAllText(RES.WorkingDirectory + DOM.BCInflow.windDirs[i] + @"\system\" + pointName, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, pointName, OFfield));
 
 //                            command.Append(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + pointName + @" -latestTime | tee  " + DOM.BCInflow.windDirs[i] + @"/log_probes;");
 
@@ -316,7 +316,7 @@
 //                        for (int i = 0; i < numberOfWindDirs; i++)
 
 //                        {
-//                            var fp = DOM.baseWorkingDir + @"\" + DOM.BCInflow.windDirs[i] + @"\system\U_Probes";
+//                            var fp = RES.WorkingDirectory + @"\" + DOM.BCInflow.windDirs[i] + @"\system\U_Probes";
 //                            if (!File.Exists(fp))
 //                            {
 //                                errorLog.AppendLine(@"The wind direction """ + DOM.BCInflow.windDirs[i] + @""" misses the probing dictionary for U values. Possible solution: Please connect the ""writeProbes"" component and recompute the solution.");
@@ -344,7 +344,7 @@
 //                        {
 //                            // Parse values
 
-//                            var caseDir = DOM.baseWorkingDir + "\\" + DOM.BCInflow.windDirs[i];
+//                            var caseDir = RES.WorkingDirectory + "\\" + DOM.BCInflow.windDirs[i];
 //                            string pathToProbeFile = ParsingProbes.GetLastProcProssDir(pointName, caseDir, OFfield);
 //                            if (File.Exists(pathToProbeFile))
 //                            {
@@ -365,7 +365,7 @@
 //                }
 
 
-//                catch (Exception e) { Console.WriteLine(e.Message); File.WriteAllText(DOM.baseWorkingDir + @"\Probes.err", errorLog.ToString()); return; }
+//                catch (Exception e) { Console.WriteLine(e.Message); File.WriteAllText(RES.WorkingDirectory + @"\Probes.err", errorLog.ToString()); return; }
 
 
 

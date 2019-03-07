@@ -85,18 +85,19 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-            OFBaseDomain DOM = null;
+            //OFBaseDomain DOM = null;
 
-            GH_ObjectWrapper gobj = null;
-            if (!DA.GetData(0, ref gobj)) { }
+            //GH_ObjectWrapper gobj = null;
+            //if (!DA.GetData(0, ref gobj)) { }
 
-            if ((gobj.Value is EddyLib.OFBaseDomain))
-            {
-                DOM = (OFBaseDomain)gobj.Value;
-            }
-            if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
+            //if ((gobj.Value is EddyLib.OFBaseDomain))
+            //{
+            //    DOM = (OFBaseDomain)gobj.Value;
+            //}
+            //if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
-
+            OFResult RES = null;
+            DA.GetData(0, ref RES);
 
             bool run = false;
 
@@ -117,7 +118,7 @@ namespace Eddy
 
             // Build intersection of two lists
 
-            var selection = DOM.BCInflow.windDirs.Intersect(selectionList).ToList();
+            var selection = RES.Domain.BCond.windDirs.Intersect(selectionList).ToList();
 
            
 
@@ -134,7 +135,7 @@ namespace Eddy
                     {
 
 
-                        var p1 = DOM.baseWorkingDir + dir + @"\postProcessing\residuals\";
+                        var p1 = RES.WorkingDirectory + dir + @"\postProcessing\residuals\";
                         fullFilePath = p1 + Utilities.GetLastIterationFromDirectory(p1) + "\\" + @"\\residuals.dat";
                         if (!File.Exists(fullFilePath))
                         {

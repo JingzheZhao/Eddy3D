@@ -1,19 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EddyLib
 {
-    public enum SimEngine {
+    public enum SimEngine
+    {
         Docker,
         BlueCFD
     }
-    public enum OSType {
+    public enum OSType
+    {
         Windows10,
         Windows7,
         Linux
+    }
+    public enum TurbModel
+    {
+        kEpsilon,
+        kOmegaSST,       
+        RNGkEpsilon
     }
 
     public class OFRunSettings
@@ -24,8 +28,9 @@ namespace EddyLib
         public int mode = 0;
         public int turb = 0;
         public int CPUs = 1;
-        public SimEngine simEngine =SimEngine.Docker;
+        public SimEngine simEngine = SimEngine.Docker;
         public OSType ostype = OSType.Windows10;
+        public TurbModel turbModel = TurbModel.kEpsilon;
 
         public override string ToString()
         {
@@ -36,7 +41,9 @@ mode = {3}
 turb = {4}
 CPUs = {5}
 Engine = {6}
-OS = {7}", iter, writeInterval, keepTimeSteps, mode, turb, CPUs, simEngine.ToString(), ostype.ToString());
+OS = {7}
+Turbulence Model = {8}", iter, writeInterval, keepTimeSteps, mode, turb, CPUs, simEngine.ToString(), ostype.ToString(), turbModel);
 
+        }
+    }
 }
-    }}

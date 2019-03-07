@@ -90,16 +90,8 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-            OFBaseDomain DOM = null;
-
-            GH_ObjectWrapper gobj = null;
-            if (!DA.GetData(0, ref gobj)) { }
-
-            if ((gobj.Value is OFBaseDomain))
-            {
-                DOM = (OFBaseDomain)gobj.Value;
-            }
-            if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
+            OFResult RES = null;
+            DA.GetData(0, ref RES);
 
 
 
@@ -150,7 +142,7 @@ namespace Eddy
                 //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please connect a number slider that represent 8760 hours of the year as a maximum range."); return;
                 //}
 
-                var path = DOM.baseWorkingDir + @"\UTCI.csv";
+                var path = RES.WorkingDirectory + @"\UTCI.csv";
 
                 var allLines = File.ReadAllLines(path);
                 var numberOfProbes = allLines.Count();
@@ -209,7 +201,7 @@ namespace Eddy
 
 
 
-                var allLines = File.ReadAllLines(DOM.baseWorkingDir + @"\UTCI.csv");
+                var allLines = File.ReadAllLines(RES.WorkingDirectory + @"\UTCI.csv");
                 var numberOfProbes = allLines.Count();
 
 
@@ -345,7 +337,7 @@ namespace Eddy
 
                 // Read uncertainty file
 
-                var uncertaintyLine = File.ReadLines(DOM.baseWorkingDir + @"\UTCI.uncertainty").Last();
+                var uncertaintyLine = File.ReadLines(RES.WorkingDirectory + @"\UTCI.uncertainty").Last();
                 var uncertaintyVal = double.Parse(uncertaintyLine.Split('%')[0].Split(':')[1].Split('r')[1]);
 
 

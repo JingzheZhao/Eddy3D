@@ -1,17 +1,13 @@
 ﻿using Rhino.Geometry;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EddyLib
 {
     public class RunSnappy
     {
 
-        static public void Run( OFBaseDomain DOM, OFMeshSettings MeshSettings, OFRunSettings RunSettings, out string logFile ) {
+        public static void Run(OFBaseDomain DOM, OFMeshSettings MeshSettings, OFRunSettings RunSettings, out string logFile)
+        {
 
             string SingleCPU = @"""surfaceFeatureExtract;snappyHexMesh -overwrite """; //-overwrite
             string MultipleCPU = @"""surfaceFeatureExtract;pyFoamDecompose.py --clear . " + RunSettings.CPUs + @"; foamJob -parallel -screen snappyHexMesh -overwrite""";
@@ -91,10 +87,10 @@ namespace EddyLib
                             di.Delete();
                         }
 
-                        for (int l = 0; l < DOM.BCInflow.windDirs.Count; l++)
+                        for (int l = 0; l < DOM.BCond.windDirs.Count; l++)
                         {
 
-                            var cpuPath = DOM.baseWorkingDir + DOM.BCInflow.windDirs[l] + @"\processor" + i;
+                            var cpuPath = DOM.baseWorkingDir + DOM.BCond.windDirs[l] + @"\processor" + i;
 
                             if (Directory.Exists(cpuPath))
                             {
@@ -151,16 +147,16 @@ namespace EddyLib
             locationInMesh = DOM.locationInMesh;
 
 
+            
 
-
-            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "snappyHexMeshDict"), EddyLib.StrTemp.OFExecDicts.SnappyHexMeshDict(DOM));
+            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "snappyHexMeshDict"), EddyLib.StrTemp.OFExecDicts.SnappyHexMeshDict(MeshSettings, DOM));
             File.WriteAllText(Path.Combine(DOM.meshSystemDir + "surfaceFeatureExtractDict"), EddyLib.StrTemp.OFExecDicts.SurfaceFeatureExtractDict());
             File.WriteAllText(Path.Combine(DOM.meshSystemDir + "fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesRobust1());
             File.WriteAllText(Path.Combine(DOM.meshSystemDir + "fvSolution"), EddyLib.StrTemp.OFExecDicts.FvSolution(0));
             File.WriteAllText(Path.Combine(DOM.meshSystemDir + "meshQualityDict"), EddyLib.StrTemp.OFExecDicts.MeshQualityDict());
-            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "decomposeParDict"), EddyLib.StrTemp.OFExecDicts.DecomposeParDict(DOM));
+            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "decomposeParDict"), EddyLib.StrTemp.OFExecDicts.DecomposeParDict(RunSettings));
 
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "run_checkBadMesh.bat"), EddyLib.StrTemp.BatFiles.Run_checkBadMesh(DOM));
+            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "run_checkBadMesh.bat"), EddyLib.StrTemp.BatFiles.Run_checkBadMesh(RunSettings, DOM));
 
 
 
@@ -176,7 +172,7 @@ namespace EddyLib
             string command = RunSettings.CPUs > 1 ? MultipleCPU : SingleCPU;
 
 
-             logFile = "";
+            logFile = "";
 
             using (FileStream stream = File.Open(DOM.meshWorkingDir + @"\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {

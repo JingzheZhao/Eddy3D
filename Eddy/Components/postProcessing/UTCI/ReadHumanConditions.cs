@@ -79,18 +79,8 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-            OFBaseDomain DOM = null;
-
-
-
-            GH_ObjectWrapper gobj = null;
-            if (!DA.GetData(0, ref gobj)) { }
-
-            if ((gobj.Value is OFBaseDomain))
-            {
-                DOM = (OFBaseDomain)gobj.Value;
-            }
-            if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
+            OFResult RES = null;
+            DA.GetData(0, ref RES);
 
             bool Run = false;
 
@@ -106,7 +96,7 @@ namespace Eddy
                 //// Fill datatrees from CSV
 
 
-                var path = DOM.baseWorkingDir + @"\UTCI.csv";
+                var path = RES.WorkingDirectory + @"\UTCI.csv";
 
 
 
