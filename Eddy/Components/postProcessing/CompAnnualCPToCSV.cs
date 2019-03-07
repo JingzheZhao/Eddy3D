@@ -25,7 +25,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public ParseAnnualCP()
-          : base("ParseAnnualCP", "ParseAnnualCP", "ParseAnnualCP", "Eddy", "PostProcessing")
+          : base("AnnualCPToCSV", "AnnualCPToCSV", "AnnualCPToCSV", "Eddy", "PostProcessing")
         {
         }
 

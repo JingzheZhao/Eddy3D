@@ -20,7 +20,11 @@ namespace Eddy
     public class CompComputeFlowRateFromCp : GH_Component
     {
 
-
+        // exposure
+        public override GH_Exposure Exposure
+        {
+            get { return GH_Exposure.hidden; }
+        }
 
 
         /// <summary>
