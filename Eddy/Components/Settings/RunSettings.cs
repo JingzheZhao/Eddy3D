@@ -1,15 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using EddyLib;
 using Grasshopper.Kernel;
-using Rhino.Geometry;
-using System.Text;
 using Grasshopper.Kernel.Parameters;
-using System.Diagnostics;
-using System.Threading;
-using System.Linq;
-using Eddy.Properties;
-using EddyLib;
+using System;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -83,16 +75,16 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-    int _iter = 1000;
-    int _writeInterval = 10;
-    int _keepTimeSteps = 2;
-    int _mode = 0;
-    int _turb = 0;
-    int _CPUs = 1;
+            int _iter = 1000;
+            int _writeInterval = 10;
+            int _keepTimeSteps = 2;
+            int _mode = 0;
+            int _turb = 0;
+            int _CPUs = 1;
 
 
 
-        DA.GetData(0, ref _iter);
+            DA.GetData(0, ref _iter);
             DA.GetData(1, ref _writeInterval);
             DA.GetData(2, ref _keepTimeSteps);
             DA.GetData(3, ref _mode);
@@ -119,19 +111,22 @@ namespace Eddy
 
 
             var os = OSType.Windows10;
-            if (Utilities.IsWindows7) os = OSType.Windows7;
+            if (Utilities.IsWindows7)
+            {
+                os = OSType.Windows7;
+            }
 
+            DA.SetData(0, new OFRunSettings()
+            {
 
-            DA.SetData(0, new OFRunSettings() {
-
-            iter = _iter,
-            writeInterval = _writeInterval,
-            keepTimeSteps = _keepTimeSteps,
-            mode = _mode,
-            turb = _turb,
-            CPUs = _CPUs,
-            ostype = os
-        });
+                iter = _iter,
+                writeInterval = _writeInterval,
+                keepTimeSteps = _keepTimeSteps,
+                mode = _mode,
+                turb = _turb,
+                CPUs = _CPUs,
+                ostype = os
+            });
 
         }
 
@@ -139,23 +134,15 @@ namespace Eddy
         /// Provides an Icon for every component that will be visible in the User Interface.
         /// Icons need to be 24x24 pixels.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
+        protected override System.Drawing.Bitmap Icon =>
                 // You can add image files to your project resources and access them like this:
-                return null;
-            }
-        }
+                null;
 
         /// <summary>
         /// Each component must have a unique Guid to identify it. 
         /// It is vital this Guid doesn't change otherwise old ghx files 
         /// that use the old ID will partially fail during loading.
         /// </summary>
-        public override Guid ComponentGuid
-        {
-            get { return new Guid("{5898D6B7-6BDB-4A36-A0E8-FD0278D54A25}"); }
-        }
+        public override Guid ComponentGuid => new Guid("{5898D6B7-6BDB-4A36-A0E8-FD0278D54A25}");
     }
 }

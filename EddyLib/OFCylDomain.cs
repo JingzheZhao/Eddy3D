@@ -1123,7 +1123,7 @@ faces
             var divPointsCut = new List<Point3d[]>();
             for (int i = 0; i < pointsOnRect.Length; i++)
             {
-                var ar = new Point3d[pointsOnRect.Length];
+                Point3d[] ar = new Point3d[pointsOnRect.Length];
                 new PolylineCurve(radialDivisions[i]).DivideByCount(divPerim, true, out ar);
                 divPointsCut.Add(ar);
             }

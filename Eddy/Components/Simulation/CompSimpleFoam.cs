@@ -250,13 +250,9 @@ namespace Eddy
             {
 
                 Utilities.WriteDockerInfo(baseWorkingDirectory);
-                bool dockerRunning = false;
-                if (Utilities.IsDockerRunning(baseWorkingDirectory, RunSettings.ostype))
-                {
-                    dockerRunning = true;
-                }
-                else
-                {
+                
+                if (!Utilities.IsDockerRunning(baseWorkingDirectory, RunSettings.ostype))
+                {                 
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Blank, @"It seems that Docker is not running. Please start the application ""Docker for Windows"".");
                 }
 

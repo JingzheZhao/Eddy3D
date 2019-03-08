@@ -51,12 +51,14 @@ namespace EddyLib
             this.meshSystemDir = baseWorkingDirectory + @"\mesh\system\";
             this.meshConstantDir = baseWorkingDirectory + @"\mesh\constant\";
             this.meshWorkingDir = baseWorkingDirectory + @"\mesh\";
+
             this.OFbaseWorkingDir = Utilities.ReformatWorkingDir(baseWorkingDirectory);
             this.OFmeshStlDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\triSurface\");
             this.OFmeshPolyMeshDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\polyMesh\");
             this.OFmeshSystemDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\system\");
             this.OFmeshConstantDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\");
             this.OFmeshWorkingDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\");
+
             this.meshStlFilenameBuildings = baseWorkingDirectory + @"\mesh\constant\triSurface\building.stl";
             this.meshStlFilenameGround = baseWorkingDirectory + @"\mesh\constant\triSurface\ground.stl";
             this.meshStlFilenameGroundPerim = baseWorkingDirectory + @"\mesh\constant\triSurface\ground_perim.stl";
