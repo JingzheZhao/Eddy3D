@@ -103,10 +103,7 @@ void plastic Generic_20
         public static void RunBox(OFBoxDomain DOMBOX, OFMeshSettings MeshSettings, OFRunSettings RunSettings, string workDir)
         {
 
-            var meshStlFilenameBuildings = DOMBOX.baseWorkingDir + @"\mesh\constant\triSurface\building.stl";
-            var meshStlFilenameGround = DOMBOX.baseWorkingDir + @"\mesh\constant\triSurface\ground.stl";
-            var meshStlFilenameGroundPerim = DOMBOX.baseWorkingDir + @"\mesh\constant\triSurface\ground_perim.stl";
-            var meshBoundaryConditionsDirectory = DOMBOX.baseWorkingDir + @"\mesh\0.org\";
+            
 
 
             if (!Directory.Exists(workDir))

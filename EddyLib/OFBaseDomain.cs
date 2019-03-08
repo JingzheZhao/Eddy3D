@@ -12,21 +12,7 @@ namespace EddyLib
         public Point3d center;
         public Point3d locationInMesh;
 
-        // settings
-        public string meshPolyMeshDir;
-        public string meshWorkingDir;
-        public string meshSystemDir;
-        public string meshConstantDir;
-        public string meshStlDir;
-        public string baseWorkingDir;
-
-        //directories for OF call
-        public string OFmeshWorkingDir;
-        public string OFmeshPolyMeshDir;
-        public string OFmeshSystemDir;
-        public string OFmeshConstantDir;
-        public string OFmeshStlDir;
-        public string OFbaseWorkingDir;
+        
 
         public double frontageBuildingArea;
 
