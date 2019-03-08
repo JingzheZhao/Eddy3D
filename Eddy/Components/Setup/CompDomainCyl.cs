@@ -5,7 +5,6 @@ using Microsoft.VisualBasic.Devices;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
-using System.IO;
 
 
 // In order to load the result of this wizard, you will also need to
@@ -41,28 +40,27 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
 
-            pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Eddy"));
             pManager.AddBrepParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
             pManager.AddGeometryParameter("Terrain", "Terrain", "Terrain Geometry. Make sure the terrain geometry is bigger than the ground plane of the wind tunnel.", GH_ParamAccess.list);
 
-
-
             pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.item);
 
+            pManager.AddNumberParameter("Block size", "BS", "Block size", GH_ParamAccess.item, 20);
+            //pManager.AddIntegerParameter("Concentric grading", "ConcGrad", "Concentric grading", GH_ParamAccess.item, 1);
+            //pManager.AddIntegerParameter("Concentric divisions", "ConcDiv", "Concentric Divisions", GH_ParamAccess.item, 1);
 
-            pManager.AddIntegerParameter("Radial divisions", "RadDiv", "Radial divisions", GH_ParamAccess.item, 1);
-            pManager.AddIntegerParameter("Concentric grading", "ConcGrad", "Concentric grading", GH_ParamAccess.item, 1);
-            pManager.AddIntegerParameter("Concentric divisions", "ConcDiv", "Concentric Divisions", GH_ParamAccess.item, 1);
-
-            pManager.AddNumberParameter("Size of inner rectangle", "InnerR", "Size of inner rectangle", GH_ParamAccess.item, 0);
-            pManager.AddNumberParameter("Size of outer radius", "OuterR", "Size of outer radius", GH_ParamAccess.item, 0);
-            pManager.AddNumberParameter("Height", "Height", "Height", GH_ParamAccess.item, 0);
+            pManager.AddNumberParameter("Size of inner rectangle", "InnerR", "Size of inner rectangle", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Size of outer radius", "OuterR", "Size of outer radius", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Height", "Height", "Height", GH_ParamAccess.item);
 
 
-         //   pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
-           
 
-            pManager[2].Optional = true;
+
+            //   pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
+
+
+            pManager[1].Optional = true;
+
         }
 
         /// <summary>
@@ -71,7 +69,7 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("Domain", "Dom", "Domain", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Cylinder", "Cyl", "Cylinder", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Mesh", "Mesh", "Mesh", GH_ParamAccess.item);
             pManager.AddGenericParameter("Div", "Div", "Div", GH_ParamAccess.list);
         }
 
@@ -85,21 +83,15 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-            string baseWorkingDirectory = "";
-
-            DA.GetData(0, ref baseWorkingDirectory);
-
-
-            if (!Directory.Exists(baseWorkingDirectory)) { Directory.CreateDirectory(baseWorkingDirectory); }
 
 
             //public Box DomainBoundaryBox;
-            List<GeometryBase> _domain = new List<GeometryBase>();
-            DA.GetDataList(1, _domain);
+            List<GeometryBase> geometry = new List<GeometryBase>();
+            DA.GetDataList("Geometry", geometry);
 
 
             List<GeometryBase> domain = new List<GeometryBase>();
-            foreach (var g in _domain)
+            foreach (var g in geometry)
             {
                 if (g != null)
                 {
@@ -108,36 +100,34 @@ namespace Eddy
             }
 
             List<GeometryBase> terrain = new List<GeometryBase>();
-            DA.GetDataList(2, terrain);
-            
+            DA.GetDataList("Terrain", terrain);
+
             BoundaryConditions BCond = null;
-            DA.GetData(3, ref BCond);
+            DA.GetData("BCond", ref BCond);
             GH_ObjectWrapper gobj = null;
-            if (!DA.GetData(3, ref gobj)) { }
+            if (!DA.GetData("BCond", ref gobj)) { }
             if ((gobj.Value is BoundaryConditions))
             {
                 BCond = ((BoundaryConditions)gobj.Value);
             }
             else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid boundary condition object"); return; }
-                                  
 
 
-           // int CPUs = 1;
-            int divsRadial = 1;
-            int gradingPerim = 1;
-            int divsConcentric = 1;
+
+            // int CPUs = 1;
+            double coreBlockSize = 20;
+            //int gradingPerim = 1;
+            //int divsConcentric = 1;
             double sizeInnerRect = 0;
             double sizeOuterCirc = 0;
             double sizeHeight = 0;
 
-
-
-            DA.GetData(4, ref divsRadial);
-            DA.GetData(5, ref gradingPerim);
-            DA.GetData(6, ref divsConcentric);
-            DA.GetData(7, ref sizeInnerRect);
-            DA.GetData(8, ref sizeOuterCirc);
-            DA.GetData(9, ref sizeHeight);
+            DA.GetData("Block size", ref coreBlockSize);
+            //DA.GetData(5, ref gradingPerim);
+            //DA.GetData(6, ref divsConcentric);
+            DA.GetData("Size of inner rectangle", ref sizeInnerRect);
+            DA.GetData("Size of outer radius", ref sizeOuterCirc);
+            DA.GetData("Height", ref sizeHeight);
 
 
 
@@ -148,10 +138,6 @@ namespace Eddy
 
 
 
-
-            var totalGBRam = Convert.ToInt32((new ComputerInfo().TotalPhysicalMemory / (Math.Pow(1024, 2))) + 0.5);
-
-            
             Mesh terrainMeshes = new Mesh();
 
             if (terrain.Count == 0)
@@ -221,12 +207,6 @@ namespace Eddy
 
 
 
-            //Fix paths
-
-            baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
-            //string OFbaseWorkingDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory);
-
-
 
 
 
@@ -234,10 +214,8 @@ namespace Eddy
             {
 
 
-                OFCylDomain DOMCYL = new OFCylDomain(inputBreps, combinedMeshes, terrainMeshes, BCond, divsRadial, gradingPerim, divsConcentric, 1, sizeInnerRect, sizeOuterCirc, sizeHeight, baseWorkingDirectory);
-             
-
-               
+                OFCylDomain DOMCYL = new OFCylDomain(inputBreps, combinedMeshes, terrainMeshes, BCond, coreBlockSize, sizeInnerRect, sizeOuterCirc, sizeHeight);
+                               
                 DA.SetData(0, DOMCYL);
                 DA.SetData(1, DOMCYL.DomainMesh);
                 DA.SetDataList(2, DOMCYL.concentricDivisions);

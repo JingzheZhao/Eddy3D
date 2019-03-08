@@ -97,8 +97,7 @@ namespace Eddy
             accFeatures = _accFeatures,
             accRefinement = _accRefinement,
             accGround = _accGround,
-            nLayers = _nLayers,
-            mode = _mode
+            nLayers = _nLayers
 
             });
 

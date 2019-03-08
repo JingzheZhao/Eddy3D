@@ -16,10 +16,7 @@ namespace EddyLib
         public static void RunCyl(OFCylDomain DOMCYL, OFMeshSettings MeshSettings, OFRunSettings RunSettings, string workDir)
         {
 
-            var meshStlFilenameBuildings = DOMCYL.baseWorkingDir + @"\mesh\constant\triSurface\building.stl";
-            var meshStlFilenameGround = DOMCYL.baseWorkingDir + @"\mesh\constant\triSurface\ground.stl";
-            var meshStlFilenameGroundPerim = DOMCYL.baseWorkingDir + @"\mesh\constant\triSurface\ground_perim.stl";
-            var meshBoundaryConditionsDirectory = DOMCYL.baseWorkingDir + @"\mesh\0.org\";
+           
 
 
             if (!Directory.Exists(DOMCYL.meshStlDir))
@@ -28,7 +25,7 @@ namespace EddyLib
             }
 
 
-            STLExport.ExportBinary(meshStlFilenameBuildings, DOMCYL.CombinedMesh);
+            STLExport.ExportBinary(MeshSettings.meshStlFilenameBuildings, DOMCYL.CombinedMesh);
 
 
 
@@ -36,12 +33,12 @@ namespace EddyLib
             if (DOMCYL.TerrainMesh.Faces.Count > 0)
             {
                 //No perim if we use a terrain                    
-                STLExport.ExportBinary(meshStlFilenameGround, DOMCYL.TerrainMesh);
+                STLExport.ExportBinary(MeshSettings.meshStlFilenameGround, DOMCYL.TerrainMesh);
             }
             else
             {
-                STLExport.ExportBinary(meshStlFilenameGround, DOMCYL.DomainMeshGround);
-                STLExport.ExportBinary(meshStlFilenameGroundPerim, DOMCYL.DomainMeshGroundPerim);
+                STLExport.ExportBinary(MeshSettings.meshStlFilenameGround, DOMCYL.DomainMeshGround);
+                STLExport.ExportBinary(MeshSettings.meshStlFilenameGroundPerim, DOMCYL.DomainMeshGroundPerim);
             }
 
 
@@ -55,9 +52,9 @@ namespace EddyLib
             {
                 Directory.CreateDirectory(DOMCYL.meshConstantDir);
             }
-            if (!Directory.Exists(meshBoundaryConditionsDirectory))
+            if (!Directory.Exists(MeshSettings.meshBoundaryConditionsDirectory))
             {
-                Directory.CreateDirectory(meshBoundaryConditionsDirectory);
+                Directory.CreateDirectory(MeshSettings.meshBoundaryConditionsDirectory);
             }
 
 

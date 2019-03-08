@@ -115,19 +115,13 @@ namespace EddyLib
 
 
 
+            
 
+            
 
-
-
-
-
-            var meshStlDir = DOM.meshWorkingDir + @"\constant\triSurface\";
-            var meshStlFilenameBuildings = DOM.meshWorkingDir + @"\constant\triSurface\building.stl";
-            var meshStlFilenameGround = DOM.meshWorkingDir + @"\constant\triSurface\ground.stl";
-
-            if (!Directory.Exists(meshStlDir))
+            if (!Directory.Exists(MeshSettings.meshStlDir))
             {
-                Directory.CreateDirectory(meshStlDir);
+                Directory.CreateDirectory(MeshSettings.meshStlDir);
             }
 
 

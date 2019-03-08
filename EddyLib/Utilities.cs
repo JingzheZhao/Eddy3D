@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-
+using System.Threading;
 
 namespace EddyLib
 {
@@ -178,7 +178,7 @@ namespace EddyLib
 
         public static void WriteDockerInfo(string workingDirectory)
         {
-            StartProcessCMD(@"docker info > """ + workingDirectory + @"\dockerStatus""",true, true, true);          
+            StartProcessCMD(@"docker info > """ + workingDirectory + @"\dockerStatus""",true, false, false, true);          
 
         }
 
@@ -199,6 +199,31 @@ namespace EddyLib
             if (close) { p.Close(); }                    
 
         }
+
+        public static void StartProcessCMD(string argument, bool createnowindow, bool waitforexit = false, bool close = false,bool startInNewThread = false, string executable = @"C:\Windows\System32\cmd.exe")
+        {
+            System.Diagnostics.Process p = new System.Diagnostics.Process();
+            p.StartInfo.FileName = executable;
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.RedirectStandardInput = true;
+            p.StartInfo.CreateNoWindow = createnowindow;
+
+            ThreadStart ths = new ThreadStart(() => p.Start());
+            Thread th = new Thread(ths);
+            th.Start();
+
+            StreamWriter sw = p.StandardInput;
+            String strInputText = argument;
+            sw.WriteLine(strInputText);
+
+            sw.Flush();
+            if (waitforexit) { p.WaitForExit(); }
+            if (close) { p.Close(); }
+
+            
+
+        }
+
 
         public static IEnumerable<List<T>> splitListGen<T>(List<T> locations, int nSize)
         {

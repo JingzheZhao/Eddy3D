@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualBasic.Devices;
+using System;
 
 namespace EddyLib
 {
@@ -28,9 +29,10 @@ namespace EddyLib
         public int mode = 0;
         public int turb = 0;
         public int CPUs = 1;
-        public SimEngine simEngine = SimEngine.Docker;
+        public SimEngine simEngine = SimEngine.BlueCFD;
         public OSType ostype = OSType.Windows10;
         public TurbModel turbModel = TurbModel.kEpsilon;
+        public int totalGBRam = Convert.ToInt32((new ComputerInfo().TotalPhysicalMemory / (Math.Pow(1024, 2))) + 0.5);
 
         public override string ToString()
         {

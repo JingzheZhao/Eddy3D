@@ -74,7 +74,7 @@
     <Compile Include="Components\postProcessing\CompParseHourlyU.cs" />
     <Compile Include="Components\postProcessing\CompParseAnnualCP.cs" />
     <Compile Include="Components\Setup\BCondABL.cs" />
-    <Compile Include="Components\Setup\DomainCyl.cs" />
+    <Compile Include="Components\Setup\CompDomainCyl.cs" />
     <Compile Include="Components\Misc\CompCellSize.cs" />
     <Compile Include="Components\postProcessing\CompComputeFlowRateFromU.cs" />
     <Compile Include="Components\postProcessing\CompVisProbesCustom.cs" />
@@ -99,7 +99,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Components\Setup\DomainBox.cs" />
+    <Compile Include="Components\Setup\CompDomainBox.cs" />
     <Compile Include="Components\Simulation\CompSimpleFoam.cs" />
     <Compile Include="Components\Misc\CompClean.cs" />
     <Compile Include="Licensing\License.cs" />

@@ -39,23 +39,20 @@ namespace Eddy
         {
 
 
-            pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Eddy"));
-
+          
             pManager.AddBrepParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
             pManager.AddGeometryParameter("Terrain", "Terrain", "Terrain Geometry. Make sure the terrain geometry is bigger than the ground plane of the wind tunnel.", GH_ParamAccess.list);
 
 
             pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.item);
 
-            pManager.AddNumberParameter("BaseMesh", "BaseMesh", "BaseMesh", GH_ParamAccess.item, 5);
+            pManager.AddNumberParameter("Block size", "BS", "Block size", GH_ParamAccess.item, 20);
 
             //pManager.AddGenericParameter("RAM", "RAM", "RAM", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
+            
+        
 
-            //pManager.AddBooleanParameter("Clean", "Clean", "Clean", GH_ParamAccess.item, false);
-
-
-            pManager[2].Optional = true;
+            pManager[1].Optional = true;
         }
 
         /// <summary>
@@ -65,7 +62,7 @@ namespace Eddy
         {
           
             pManager.AddGenericParameter("Domain", "Dom", "Simulation Domain", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Box", "Box", "Domain", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Mesh", "Mesh", "Mesh", GH_ParamAccess.item);
         }
 
 
@@ -77,31 +74,24 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-            string baseWorkingDirectory = "";
-            DA.GetData("Directory", ref baseWorkingDirectory);
-            if (!Directory.Exists(baseWorkingDirectory)) { Directory.CreateDirectory(baseWorkingDirectory); }
-
-
+            
             //public Box DomainBoundaryBox;
             List<GeometryBase> geometries = new List<GeometryBase>();
-
-
             List<GeometryBase> terrain = new List<GeometryBase>();
 
 
 
+          
 
-
-            DA.GetDataList(1, geometries);
-            DA.GetDataList(2, terrain);
+            DA.GetDataList("Geometry", geometries);
+            DA.GetDataList("Terrain", terrain);
 
             double blockDimension = 0;
-            //    double RAM = 0;
-            int CPUs = 1;
+            
 
             BoundaryConditions BCond;
             GH_ObjectWrapper gobj = null;
-            if (!DA.GetData(3, ref gobj)) { }
+            if (!DA.GetData("BCond", ref gobj)) { }
 
             if ((gobj.Value is BoundaryConditions))
             {
@@ -113,11 +103,8 @@ namespace Eddy
 
 
 
-            DA.GetData(4, ref blockDimension);
-            //DA.GetData(4, ref RAM);
-            DA.GetData(5, ref CPUs);
-            //DA.GetData(6, ref Run);
-
+            DA.GetData("Block size", ref blockDimension);
+            
 
 
             Mesh combinedMeshes = new Mesh();
@@ -209,30 +196,10 @@ namespace Eddy
             {
 
 
-
-
-
-                //Fix paths
-
-                baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
-                //string OFbaseWorkingDirectory = Utilities.ReformatWorkingDir(baseWorkingDirectory);
-
-
-
-
-                OFBoxDomain DOMBOX = new OFBoxDomain(inputBreps, combinedMeshes, terrainMeshes, BCond, blockDimension, CPUs, baseWorkingDirectory);
-
-                
-               
-
-
-
-
+                OFBoxDomain DOMBOX = new OFBoxDomain(inputBreps, combinedMeshes, terrainMeshes, BCond, blockDimension);
 
                 DA.SetData(0, DOMBOX);
-                DA.SetData(1, DOMBOX.newBoxDomain);
-
-
+                DA.SetData(1, DOMBOX.BoxWithDivs);
 
             }
             else

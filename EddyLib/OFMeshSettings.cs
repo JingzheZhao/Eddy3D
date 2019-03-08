@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EddyLib
 {
@@ -16,15 +12,61 @@ namespace EddyLib
 
     public class OFMeshSettings
     {
-       public int accBuildings = 3;
-       public int accFeatures = 3;
-       public int accRefinement = 3;
-       public int accGround = 3;
-       public int nLayers = 3;
-       public int mode = 2;
+        public int accBuildings = 2;
+        public int accFeatures = 2;
+        public int accRefinement = 2;
+        public int accGround = 2;
+        public int nLayers = 2;
+
 
         public SnappySetting snappySetting = SnappySetting.Blocks;
+
+        public string baseWorkingDir;
+        public string meshStlDir;
+        public string meshPolyMeshDir;
+        public string meshSystemDir;
+        public string meshConstantDir;
+        public string meshWorkingDir;
+        public string OFbaseWorkingDir;
+        public string OFmeshStlDir;
+        public string OFmeshPolyMeshDir;
+        public string OFmeshSystemDir;
+        public string OFmeshConstantDir;
+        public string OFmeshWorkingDir;
+        public string meshStlFilenameBuildings;
+        public string meshStlFilenameGround;
+        public string meshStlFilenameGroundPerim;
+        public string meshBoundaryConditionsDirectory;
         
+
+
+
+        public void SetDirectories(string baseWorkingDirectory = @"C:\temp")
+        {
+
+
+            this.baseWorkingDir = baseWorkingDirectory;
+            this.meshStlDir = baseWorkingDirectory + @"\mesh\constant\triSurface\";
+            this.meshPolyMeshDir = baseWorkingDirectory + @"\mesh\constant\polyMesh\";
+            this.meshSystemDir = baseWorkingDirectory + @"\mesh\system\";
+            this.meshConstantDir = baseWorkingDirectory + @"\mesh\constant\";
+            this.meshWorkingDir = baseWorkingDirectory + @"\mesh\";
+            this.OFbaseWorkingDir = Utilities.ReformatWorkingDir(baseWorkingDirectory);
+            this.OFmeshStlDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\triSurface\");
+            this.OFmeshPolyMeshDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\polyMesh\");
+            this.OFmeshSystemDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\system\");
+            this.OFmeshConstantDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\");
+            this.OFmeshWorkingDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\");
+            this.meshStlFilenameBuildings = baseWorkingDirectory + @"\mesh\constant\triSurface\building.stl";
+            this.meshStlFilenameGround = baseWorkingDirectory + @"\mesh\constant\triSurface\ground.stl";
+            this.meshStlFilenameGroundPerim = baseWorkingDirectory + @"\mesh\constant\triSurface\ground_perim.stl";
+            this.meshBoundaryConditionsDirectory = baseWorkingDirectory + @"\mesh\0.org\";
+            
+
+
+        }
+
+
 
         public override string ToString()
         {
@@ -33,8 +75,8 @@ accFeatures = {1}
 accRefinement = {2}
 accGround = {3}
 nLayers = {4}
-mode = {5}
-Snappy Settings = {6}", accBuildings, accFeatures, accRefinement, accGround, nLayers, mode, snappySetting);
+Snappy Settings = {5}", accBuildings, accFeatures, accRefinement, accGround, nLayers, snappySetting);
 
+        }
+    }
 }
-    }}

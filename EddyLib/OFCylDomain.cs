@@ -24,9 +24,9 @@ namespace EddyLib
 
 
         public int divisionsX = 1;
-        public int _divOutercircle;
+        public int divsRadial;
         public int divisionsZ;
-        public int cellDivisionsPerim;
+        public int divPerim;
 
 
 
@@ -36,7 +36,7 @@ namespace EddyLib
         public int equalDivisions;
 
 
-        public int gradingPerim;
+        public double gradingPerim;
 
         public double sizeInnerR;
 
@@ -49,42 +49,16 @@ namespace EddyLib
 
 
 
-
-      
-  
-
-
-
-        public OFCylDomain(Brep inputBreps, Mesh combindedMesh, Mesh terrain, BoundaryConditions BCond, int divsRadial, int gradingPerim, int divsPerim, int _CPU, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0, string baseWorkingDirectory = @"C:\temp")
+        public OFCylDomain(Brep inputBreps, Mesh combinedMesh, Mesh terrain, BoundaryConditions BCond, double coreBlockSize, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0)
         {
-            this.CombinedMesh = combindedMesh;
+            this.CombinedMesh = combinedMesh;
 
 
-            this.gradingPerim = gradingPerim;
-
-            baseWorkingDir = baseWorkingDirectory;
-            meshStlDir = baseWorkingDirectory + @"\mesh\constant\triSurface\";
-            meshPolyMeshDir = baseWorkingDirectory + @"\mesh\constant\polyMesh\";
-            meshSystemDir = baseWorkingDirectory + @"\mesh\system\";
-            meshConstantDir = baseWorkingDirectory + @"\mesh\constant\";
-            meshWorkingDir = baseWorkingDirectory + @"\mesh\";
-
-            OFbaseWorkingDir = Utilities.ReformatWorkingDir(baseWorkingDirectory);
-            OFmeshStlDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\triSurface\");
-            OFmeshPolyMeshDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\polyMesh\");
-            OFmeshSystemDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\system\");
-            OFmeshConstantDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\");
-            OFmeshWorkingDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\");
+            this.gradingPerim = 1.2;          
 
 
 
-
-
-            divisionsX = 1;
-            _divOutercircle = divsRadial;
-            //divisionsZ = _divisionsZ;
-
-            BBox = combindedMesh.GetBoundingBox(true);
+            BBox = combinedMesh.GetBoundingBox(true);
 
 
 
@@ -158,7 +132,7 @@ namespace EddyLib
             {
                 Vector3d localCopy = Vector3d.YAxis;
                 localCopy.Rotate(5 * i * Math.PI / 180, Vector3d.ZAxis);
-                projAreaList.Add(ProjectedBuildingArea(localCopy, combindedMesh, 1,
+                projAreaList.Add(ProjectedBuildingArea(localCopy, combinedMesh, 1,
                     baseWorkingDir + @"\FrontageImages\FrontageImage" + (i * 5) + ".png",
                     out Plane newLocal, out Box box));
 
@@ -203,11 +177,19 @@ namespace EddyLib
 
 
 
+            divisionsX = 1;
+
+
+            this.divsRadial = RadialDivsFromBlockSize(coreBlockSize, sizeInnerR);
+            //divisionsZ = _divisionsZ;
+
+
+           
 
 
 
 
-            MakeCircMeshPlane(center, sizeInnerR, _divOutercircle, radius, height, gradingPerim, divsPerim, divsRadial);
+            MakeCircMeshPlane(center, sizeInnerR, divsRadial, radius, height);
 
 
             BCond.CalculateCPPressures(zMax);
@@ -240,7 +222,7 @@ namespace EddyLib
 
 
 
-        public void MakeCircMeshPlane(Point3d center, double sizeInnerRect, int divisionsY, double circleRadius, double height, int gradingPerim, int divPerim, int divsRadial)
+        public void MakeCircMeshPlane(Point3d center, double sizeInnerRect, int divsRadial, double circleRadius, double height)
         {
 
             // point inside cdf domain - needed for meshing and finding the void space for fluid
@@ -249,13 +231,15 @@ namespace EddyLib
             locationInMesh += radius * 0.6 * Vector3d.XAxis;
 
 
+            
+
             var pl = new Plane(center, Vector3d.ZAxis);
 
             var xinter = new Interval(-sizeInnerRect, sizeInnerRect);
 
 
 
-            var m = Mesh.CreateFromPlane(pl, xinter, xinter, divisionsY, divisionsY); // creates the inner rectangle with arbitrary subdivision
+            var m = Mesh.CreateFromPlane(pl, xinter, xinter, divsRadial, divsRadial); // creates the inner rectangle with arbitrary subdivision
             coreBottom.Append(m);
             coreBottom.Flip(true, true, true);
 
@@ -266,9 +250,9 @@ namespace EddyLib
                 circRad = minRad;
             }
 
-            var cellSizeCore = 2 * (sizeInnerRect / divisionsY);
+            var cellSizeCore = 2 * (sizeInnerRect / divsRadial);
             //Math.Abs was just a workaround fix
-            cellDivisionsPerim = divPerim;
+            
             //this.cellDivisionsPerim = Math.Abs((int)Math.Round((circRad - (2 * sizeInnerRect)) / cellSizeCore));
 
 
@@ -289,19 +273,31 @@ namespace EddyLib
             var poly = coreBottom.GetNakedEdges()[0]; //returns a polygon with line segments for each mesh cell       
 
 
-            // Points on circle from intersection check            
+           
+           
+         
+
+            var pointsOnRect = GetPointsOnRect(divsRadial, m);
             var pointsOnCircle = GetPointsOnCircle(center, circRad, poly);
-            
+
+            var blockDimensionCore = BlockDimensionCore(pointsOnRect);
+            this.divPerim = DivisionsPerim(pointsOnRect, pointsOnCircle, blockDimensionCore);
+
+
+
 
             ////////////////////
             //Visualize divisions inside cylindrical perimeter
             ////////////////////
             // Points on inner rectangle from naked edges
-            var pointsOnRect = GetPointsOnRect(divisionsY, m);
+
             concentricDivisions = GetConcenctricPolyDivisions(pointsOnRect, pointsOnCircle, divPerim);
 
-
             ////////////////
+            ///
+
+            
+           
 
             coreTop.Append(m);
             coreTop.Translate(Vector3d.ZAxis * height);
@@ -352,6 +348,31 @@ namespace EddyLib
 
      
 
+        }
+
+        private static int DivisionsPerim(Point3d[] core, Point3d[] perim, double blockDim)
+        {
+          
+            var blockDimensionPerim = new Vector3d(perim[0].X, perim[0].Y, perim[0].Z) - new Vector3d(core[0].X, core[0].Y, core[0].Z);
+
+            return (int)(blockDimensionPerim.Length / blockDim / 1.41);
+        }
+        private static double BlockDimensionCore(Point3d[] core)
+        {                      
+
+            var blockDimensionCore = new Vector3d(core[1].X, core[1].Y, core[1].Z) - new Vector3d(core[0].X, core[0].Y, core[0].Z);
+
+            return blockDimensionCore.Length;
+        }
+
+        private static int RadialDivsFromBlockSize(double blockSize, double sizeInnerRect)
+        {
+
+            int radialDivs = 0;
+
+            radialDivs = (int)(sizeInnerRect / blockSize);
+
+            return radialDivs;
         }
 
 
@@ -693,7 +714,7 @@ blocks
 ");
 
 
-            sb.AppendLine(StringyfyBlocks(DomainMesh, inputGroundVertices, inputTopVertices, divisionsX, _divOutercircle, divisionsZ));
+            sb.AppendLine(StringyfyBlocks(DomainMesh, inputGroundVertices, inputTopVertices, divisionsX, divsRadial, divisionsZ));
 
 
             sb.AppendLine(@"
@@ -983,7 +1004,7 @@ mergePatchPairs
                 //Changed order because we had to flip core mesh plane
                 sb.AppendLine("hex (" + DomainMesh.Faces[i].A + " " + DomainMesh.Faces[i].D + " " + DomainMesh.Faces[i].C + " " + DomainMesh.Faces[i].B + " " +
                     ((DomainMesh.Faces[i + c3].A)) + " " + (DomainMesh.Faces[i + c3].B) + " " + (DomainMesh.Faces[i + c3].C) + " " +
-                    (DomainMesh.Faces[i + c3].D) + ") (" + divisionsX + " " + (cellDivisionsPerim) + " " + divisionsZ + ") simpleGrading (1 " + gradingPerim + " 1)");
+                    (DomainMesh.Faces[i + c3].D) + ") (" + divisionsX + " " + (divPerim) + " " + divisionsZ + ") simpleGrading (1 " + gradingPerim + " 1)");
 
             }
             sb.AppendLine("//core");

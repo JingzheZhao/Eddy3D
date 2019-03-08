@@ -61,6 +61,10 @@ namespace Eddy
             pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Eddy"));
 
 
+            pManager.AddBooleanParameter("RunMsh", "RunMsh", "RunMsh", GH_ParamAccess.item, false);
+
+            pManager.AddBooleanParameter("RunSim", "RunSim", "RunSim", GH_ParamAccess.item, false);
+
         }
 
         /// <summary>
@@ -117,13 +121,15 @@ namespace Eddy
             // meshing settings
             //-----------------
 
-            OFMeshSettings MeshSettings = new OFMeshSettings(); // sets default mesh settings
+            OFMeshSettings MeshSettings = new OFMeshSettings(); // sets default mesh settings            
+
             GH_ObjectWrapper gobjMeshSet = null;
             if (DA.GetData(1, ref gobjMeshSet)) { }
             if ((gobj.Value is OFMeshSettings))
             {
                 MeshSettings = (OFMeshSettings)gobjMeshSet.Value;
             }
+            MeshSettings.SetDirectories();
 
             // run settings
             //-----------------

@@ -36,7 +36,7 @@ namespace EddyLib
 
 
         public Box newBoxDomain;
-
+        public Mesh BoxWithDivs;
 
         public double diameter;
         public double blockDimension;
@@ -53,33 +53,21 @@ namespace EddyLib
         //// Delete later
 
 
-        public OFBoxDomain(Brep inputBreps, Mesh geometry, Mesh terrain, BoundaryConditions BCond, double _blockDim, int CPUs, string baseWorkingDirectory = @"C:\temp")
+        public OFBoxDomain(Brep inputBreps, Mesh combinedMesh, Mesh terrain, BoundaryConditions BCond, double _blockDim)
         {
             this.BCond = BCond;
 
-            this.baseWorkingDir = baseWorkingDirectory;
-            this.meshStlDir = baseWorkingDirectory + @"\mesh\constant\triSurface\";
-            this.meshPolyMeshDir = baseWorkingDirectory + @"\mesh\constant\polyMesh\";
-            this.meshSystemDir = baseWorkingDirectory + @"\mesh\system\";
-            this.meshConstantDir = baseWorkingDirectory + @"\mesh\constant\";
-            this.meshWorkingDir = baseWorkingDirectory + @"\mesh\";
-
-            this.OFbaseWorkingDir = Utilities.ReformatWorkingDir(baseWorkingDirectory);
-            this.OFmeshStlDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\triSurface\");
-            this.OFmeshPolyMeshDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\polyMesh\");
-            this.OFmeshSystemDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\system\");
-            this.OFmeshConstantDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\");
-            this.OFmeshWorkingDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\");
+            
 
 
-   
+            this.CombinedMesh = combinedMesh;
 
 
 
 
 
             blockDimension = _blockDim;
-            BuildingGeometry = geometry;
+            BuildingGeometry = combinedMesh;
 
             BBox = BuildingGeometry.GetBoundingBox(true);
 
@@ -243,6 +231,8 @@ namespace EddyLib
             BCond.CalculateCPPressures(zMax);
 
 
+            this.BoxWithDivs = Mesh.CreateFromBox(newBoxDomain, xCells, yCells, zCells);
+            
 
 
 
