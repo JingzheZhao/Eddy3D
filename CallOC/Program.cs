@@ -115,8 +115,7 @@ namespace CallOC
 
 
 
-                        ////  Todo: implement wind scaling factor load here -- @Patrick
-
+                       
                         Console.WriteLine("Loading: Wind data");
 
 
