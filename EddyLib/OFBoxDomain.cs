@@ -112,9 +112,7 @@ namespace EddyLib
 
             Box box;
             Plane newLocal;
-            frontageBuildingArea = ProjectedBuildingArea(windDirVector, BuildingGeometry, 1,
-                this.baseWorkingDir + @"\FrontageImages\FrontageImage" + windDir + ".png",
-                out newLocal, out box);
+            frontageBuildingArea = RunBlockMesh.ProjectedBuildingArea(windDirVector, BuildingGeometry, 1, out newLocal, out box);
 
 
             double scaleRectDomainZ = 6 * dimZ;

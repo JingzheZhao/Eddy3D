@@ -118,18 +118,7 @@ namespace Eddy
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid domain object"); return;
             }
 
-            // meshing settings
-            //-----------------
 
-            OFMeshSettings MeshSettings = new OFMeshSettings(); // sets default mesh settings            
-
-            GH_ObjectWrapper gobjMeshSet = null;
-            if (DA.GetData(1, ref gobjMeshSet)) { }
-            if ((gobj.Value is OFMeshSettings))
-            {
-                MeshSettings = (OFMeshSettings)gobjMeshSet.Value;
-            }
-            MeshSettings.SetDirectories();
 
             // run settings
             //-----------------
@@ -141,6 +130,9 @@ namespace Eddy
             {
                 RunSettings = (OFRunSettings)gobjRunSet.Value;
             }
+
+
+
 
 
             // working directory
@@ -160,9 +152,23 @@ namespace Eddy
             }
             baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
 
+            
+
+            // meshing settings
+            //-----------------
+
+            OFMeshSettings MeshSettings = new OFMeshSettings(); // sets default mesh settings            
+
+            GH_ObjectWrapper gobjMeshSet = null;
+            if (DA.GetData(1, ref gobjMeshSet)) { }
+            if ((gobj.Value is OFMeshSettings))
+            {
+                MeshSettings = (OFMeshSettings)gobjMeshSet.Value;
+            }
+            MeshSettings.SetDirectories(baseWorkingDirectory);
 
 
-
+            
 
 
             // @ Patrick: Make all of these regions static functions that live in the EddyLib DLL
@@ -218,7 +224,7 @@ namespace Eddy
             }
 
             // Check for killed processes
-            if (Utilities.DidProcessGetKilled(DOM.meshWorkingDir) == true)
+            if (Utilities.DidProcessGetKilled(MeshSettings.meshWorkingDir) == true)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Some processes got killed probably because to little RAM was available. Try to increase the RAM acclocated for the Docker virtual machine.");
                 return;

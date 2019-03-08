@@ -41,8 +41,8 @@ namespace CallProbes
 
 
 
-                    double URef = options.uref;
-                    double zref = options.zref;
+                    double URef = options.Uref;
+                    double zref = options.Zref;
                     double z0 = options.z0;
 
                     // Read all variables from one file path. Variables are usually identical for all wind directions so this should be robust.
@@ -119,7 +119,7 @@ namespace CallProbes
 
                         for (int i = 0; i < numberOfWindDirs; i++)
                         {
-                            listOfDirsInfo.Add((@"C:\Temp\" + windDirs[i] + @"\postProcessing\"));
+                            listOfDirsInfo.Add((options.WorkingDir + windDirs[i] + @"\postProcessing\"));
 
                         }
 
@@ -473,7 +473,7 @@ namespace CallProbes
 
         [Option('u', "Uref", Required = true,
         HelpText = "Reference velocity in m/s")]
-        public double uref { get; set; }
+        public double Uref { get; set; }
 
         [Option('r', "z0", Required = true,
         HelpText = "Roughness length")]
@@ -481,7 +481,7 @@ namespace CallProbes
 
         [Option('z', "zref", Required = true,
         HelpText = "Reference height")]
-        public double zref { get; set; }
+        public double Zref { get; set; }
 
         [Option('m', "mode", Required = true, DefaultValue = 1,
         HelpText = "Mode: 0 = cp, 1 = U")]

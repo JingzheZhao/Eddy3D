@@ -62,7 +62,7 @@ namespace Eddy
         {
           
             pManager.AddGenericParameter("Domain", "Dom", "Simulation Domain", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Mesh", "Mesh", "Mesh", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Mesh", "Msh", "Mesh", GH_ParamAccess.item);
         }
 
 

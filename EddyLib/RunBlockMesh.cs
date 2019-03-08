@@ -1,10 +1,9 @@
 ﻿using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EddyLib
 {
@@ -16,12 +15,12 @@ namespace EddyLib
         public static void RunCyl(OFCylDomain DOMCYL, OFMeshSettings MeshSettings, OFRunSettings RunSettings, string workDir)
         {
 
-           
 
 
-            if (!Directory.Exists(DOMCYL.meshStlDir))
+
+            if (!Directory.Exists(MeshSettings.meshStlDir))
             {
-                Directory.CreateDirectory(DOMCYL.meshStlDir);
+                Directory.CreateDirectory(MeshSettings.meshStlDir);
             }
 
 
@@ -44,13 +43,13 @@ namespace EddyLib
 
 
 
-            if (!Directory.Exists(DOMCYL.meshSystemDir))
+            if (!Directory.Exists(MeshSettings.meshSystemDir))
             {
-                Directory.CreateDirectory(DOMCYL.meshSystemDir);
+                Directory.CreateDirectory(MeshSettings.meshSystemDir);
             }
-            if (!Directory.Exists(DOMCYL.meshConstantDir))
+            if (!Directory.Exists(MeshSettings.meshConstantDir))
             {
-                Directory.CreateDirectory(DOMCYL.meshConstantDir);
+                Directory.CreateDirectory(MeshSettings.meshConstantDir);
             }
             if (!Directory.Exists(MeshSettings.meshBoundaryConditionsDirectory))
             {
@@ -58,10 +57,13 @@ namespace EddyLib
             }
 
 
-            File.WriteAllText(DOMCYL.meshSystemDir + @"\blockMeshDict", DOMCYL.StringyfyDomain2());
-            File.WriteAllText(DOMCYL.baseWorkingDir + @"\mesh\case.foam", "");
-            File.WriteAllText(DOMCYL.meshSystemDir + @"\controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(RunSettings, DOMCYL, null, 0));
+            File.WriteAllText(MeshSettings.meshSystemDir + @"\blockMeshDict", DOMCYL.StringyfyDomain2());
+            File.WriteAllText(MeshSettings.baseWorkingDir + @"\mesh\case.foam", "");
+            File.WriteAllText(MeshSettings.meshSystemDir + @"\controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(RunSettings, DOMCYL, null, 0));
 
+
+
+            
             if (!File.Exists(workDir + @"\mesh\log"))
             {
                 File.WriteAllText(workDir + @"\mesh\log", "");
@@ -75,9 +77,9 @@ namespace EddyLib
 
 
             //export RAD for DAYSIM
-            if (!Directory.Exists(DOMCYL.baseWorkingDir + @"Rad\"))
+            if (!Directory.Exists(MeshSettings.baseWorkingDir + @"Rad\"))
             {
-                Directory.CreateDirectory(DOMCYL.baseWorkingDir + @"Rad\");
+                Directory.CreateDirectory(MeshSettings.baseWorkingDir + @"Rad\");
             }
 
 
@@ -92,8 +94,8 @@ void plastic Generic_20
             daysimMesh.Append(DOMCYL.CombinedMesh);
             // Todo: add ground plane to the above mesh
 
-            File.WriteAllText(DOMCYL.baseWorkingDir + @"Rad\materials.rad", radMat);
-            RadianceFiles.MeshProc(daysimMesh, DOMCYL.baseWorkingDir + @"Rad\scene.rad", "Generic_20");
+            File.WriteAllText(MeshSettings.baseWorkingDir + @"Rad\materials.rad", radMat);
+            RadianceFiles.MeshProc(daysimMesh, MeshSettings.baseWorkingDir + @"Rad\scene.rad", "Generic_20");
 
 
 
@@ -103,7 +105,7 @@ void plastic Generic_20
         public static void RunBox(OFBoxDomain DOMBOX, OFMeshSettings MeshSettings, OFRunSettings RunSettings, string workDir)
         {
 
-            
+
 
 
             if (!Directory.Exists(workDir))
@@ -112,15 +114,15 @@ void plastic Generic_20
             }
 
 
-            if (!Directory.Exists(DOMBOX.meshStlDir))
+            if (!Directory.Exists(MeshSettings.meshStlDir))
             {
-                Directory.CreateDirectory(DOMBOX.meshStlDir);
+                Directory.CreateDirectory(MeshSettings.meshStlDir);
             }
 
 
             // STL export
 
-            STLExport.ExportBinary(meshStlFilenameBuildings, DOMBOX.CombinedMesh);
+            STLExport.ExportBinary(MeshSettings.meshStlFilenameBuildings, DOMBOX.CombinedMesh);
 
 
 
@@ -129,38 +131,38 @@ void plastic Generic_20
             {
                 //No perim if we use a terrain
                 DOMBOX.newBoxGround.Translate(Vector3d.ZAxis * 0.001);
-                STLExport.ExportBinary(meshStlFilenameGround, DOMBOX.newBoxGround);
+                STLExport.ExportBinary(MeshSettings.meshStlFilenameGround, DOMBOX.newBoxGround);
             }
             else
             {
-                STLExport.ExportBinary(meshStlFilenameGround, DOMBOX.newBoxGround);
-                STLExport.ExportBinary(meshStlFilenameGroundPerim, DOMBOX.newBoxGroundPerim);
+                STLExport.ExportBinary(MeshSettings.meshStlFilenameGround, DOMBOX.newBoxGround);
+                STLExport.ExportBinary(MeshSettings.meshStlFilenameGroundPerim, DOMBOX.newBoxGroundPerim);
             }
 
 
 
 
 
-            if (!Directory.Exists(DOMBOX.meshSystemDir))
+            if (!Directory.Exists(MeshSettings.meshSystemDir))
             {
-                Directory.CreateDirectory(DOMBOX.meshSystemDir);
+                Directory.CreateDirectory(MeshSettings.meshSystemDir);
             }
-            if (!Directory.Exists(DOMBOX.meshConstantDir))
+            if (!Directory.Exists(MeshSettings.meshConstantDir))
             {
-                Directory.CreateDirectory(DOMBOX.meshConstantDir);
+                Directory.CreateDirectory(MeshSettings.meshConstantDir);
             }
-            if (!Directory.Exists(meshBoundaryConditionsDirectory))
+            if (!Directory.Exists(MeshSettings.meshBoundaryConditionsDirectory))
             {
-                Directory.CreateDirectory(meshBoundaryConditionsDirectory);
+                Directory.CreateDirectory(MeshSettings.meshBoundaryConditionsDirectory);
             }
 
 
 
 
 
-            File.WriteAllText(DOMBOX.meshSystemDir + @"\blockMeshDict", EddyLib.StrTemp.OFExecDicts.BlockMeshDict(DOMBOX));
-            File.WriteAllText(DOMBOX.baseWorkingDir + @"\mesh\case.foam", "");
-            File.WriteAllText(DOMBOX.meshSystemDir + @"\controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(RunSettings, DOMBOX, null, 0));
+            File.WriteAllText(MeshSettings.meshSystemDir + @"\blockMeshDict", EddyLib.StrTemp.OFExecDicts.BlockMeshDict(DOMBOX));
+            File.WriteAllText(MeshSettings.baseWorkingDir + @"\mesh\case.foam", "");
+            File.WriteAllText(MeshSettings.meshSystemDir + @"\controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(RunSettings, DOMBOX, null, 0));
 
             if (!File.Exists(workDir + @"\mesh\log"))
             {
@@ -170,9 +172,9 @@ void plastic Generic_20
 
 
             //export RAD for DAYSIM
-            if (!Directory.Exists(DOMBOX.baseWorkingDir + @"Rad\"))
+            if (!Directory.Exists(MeshSettings.baseWorkingDir + @"Rad\"))
             {
-                Directory.CreateDirectory(DOMBOX.baseWorkingDir + @"Rad\");
+                Directory.CreateDirectory(MeshSettings.baseWorkingDir + @"Rad\");
             }
             string radMat = @"
 void plastic Generic_20
@@ -184,8 +186,8 @@ void plastic Generic_20
             daysimMesh.Append(DOMBOX.CombinedMesh);
             // Todo: add ground plane to the above mesh
 
-            File.WriteAllText(DOMBOX.baseWorkingDir + @"Rad\materials.rad", radMat);
-            RadianceFiles.MeshProc(daysimMesh, DOMBOX.baseWorkingDir + @"Rad\scene.rad", "Generic_20");
+            File.WriteAllText(MeshSettings.baseWorkingDir + @"Rad\materials.rad", radMat);
+            RadianceFiles.MeshProc(daysimMesh, MeshSettings.baseWorkingDir + @"Rad\scene.rad", "Generic_20");
 
 
             string logFile = "";
@@ -204,6 +206,199 @@ void plastic Generic_20
             }
         }
 
+        public static double ProjectedBuildingArea(Vector3d windDir, Mesh buildings, double spacing, out Plane newLocal, out Box box)
+        {
+          
+
+                       
+            var up = Vector3d.ZAxis;
+            var forward = windDir;
+            forward.Unitize();
+            var right = Vector3d.CrossProduct(forward, up);
+            right.Unitize();
+
+
+            Plane local = new Plane(Point3d.Origin, right, forward);
+
+
+            Plane worldXY = Plane.WorldXY;
+            Transform xform = Transform.ChangeBasis(worldXY, local);
+            Transform xformBack = Transform.ChangeBasis(local, worldXY);
+
+
+            BoundingBox empty = BoundingBox.Empty;
+            BoundingBox boundingBox = buildings.GetBoundingBox(xform);
+            empty.Union(boundingBox);
+
+
+            Interval intervalX = new Interval(empty.Min.X, empty.Max.X);
+            Interval intervalY = new Interval(empty.Min.Y, empty.Max.Y);
+            Interval intervalZ = new Interval(empty.Min.Z, empty.Max.Z);
+            box = new Box(local, intervalX, intervalY, intervalZ);
+
+            Point3d newO = empty.Min;
+            // Transform xformBack;
+            // xform.TryGetInverse(out xformBack);
+            newO.Transform(xformBack);
+
+            newLocal = new Plane(newO, right, forward);
+
+
+            int x = (int)Math.Round(intervalX.Length / spacing);
+            int z = (int)Math.Round(intervalZ.Length / spacing);
+
+            double incrX = intervalX.Length / x;
+            double incrZ = intervalZ.Length / z;
+            double raylen = intervalY.Length;
+
+            List<Point3d> points = new List<Point3d>();
+            List<Ray3d> rays = new List<Ray3d>();
+
+            List<bool> hits = new List<bool>();
+            int hitcount = 0;
+
+
+
+            ////using (var FrontageImage = new Bitmap(x, z))
+
+            //{
+                for (int zz = 0; zz < z; zz++)
+                {
+
+                    for (int xx = 0; xx < x; xx++)
+                    {
+                        var pt = newLocal.PointAt((0.5 * incrX) + xx * incrX, -0.1, (0.5 * incrZ) + zz * incrZ);
+
+                        points.Add(pt);
+
+                        var ray = new Ray3d(pt, newLocal.YAxis * raylen);
+
+                        rays.Add(ray);
+
+                        double d = Rhino.Geometry.Intersect.Intersection.MeshRay(buildings, ray);
+                        if (d > 0)
+                        {
+                            hitcount++;
+                            hits.Add(true);
+
+                            //FrontageImage.SetPixel(xx, zz, Color.Black);
+
+                        }
+                        else
+                        {
+                            hits.Add(false);
+                            //FrontageImage.SetPixel(xx, zz, Color.White);
+                        }
+                    }
+                }
+                //FrontageImage.RotateFlip(RotateFlipType.RotateNoneFlipY);
+                //FrontageImage.Save(pathToSavePNGs, System.Drawing.Imaging.ImageFormat.Png);
+
+            //}
+
+
+
+            return incrX * incrZ * hitcount;
+        }
+
+
+        public static double ProjectedBuildingArea(Vector3d windDir, Mesh buildings, double spacing, string pathToSavePNGs, string baseWorkingDir, out Plane newLocal, out Box box)
+        {
+            if (!Directory.Exists(baseWorkingDir + @"\FrontageImages\"))
+            {
+                Directory.CreateDirectory(baseWorkingDir + @"\FrontageImages\");
+            }
+
+
+            var up = Vector3d.ZAxis;
+            var forward = windDir;
+            forward.Unitize();
+            var right = Vector3d.CrossProduct(forward, up);
+            right.Unitize();
+
+
+            Plane local = new Plane(Point3d.Origin, right, forward);
+
+
+            Plane worldXY = Plane.WorldXY;
+            Transform xform = Transform.ChangeBasis(worldXY, local);
+            Transform xformBack = Transform.ChangeBasis(local, worldXY);
+
+
+            BoundingBox empty = BoundingBox.Empty;
+            BoundingBox boundingBox = buildings.GetBoundingBox(xform);
+            empty.Union(boundingBox);
+
+
+            Interval intervalX = new Interval(empty.Min.X, empty.Max.X);
+            Interval intervalY = new Interval(empty.Min.Y, empty.Max.Y);
+            Interval intervalZ = new Interval(empty.Min.Z, empty.Max.Z);
+            box = new Box(local, intervalX, intervalY, intervalZ);
+
+            Point3d newO = empty.Min;
+            // Transform xformBack;
+            // xform.TryGetInverse(out xformBack);
+            newO.Transform(xformBack);
+
+            newLocal = new Plane(newO, right, forward);
+
+
+            int x = (int)Math.Round(intervalX.Length / spacing);
+            int z = (int)Math.Round(intervalZ.Length / spacing);
+
+            double incrX = intervalX.Length / x;
+            double incrZ = intervalZ.Length / z;
+            double raylen = intervalY.Length;
+
+            List<Point3d> points = new List<Point3d>();
+            List<Ray3d> rays = new List<Ray3d>();
+
+            List<bool> hits = new List<bool>();
+            int hitcount = 0;
+
+
+
+            using (var FrontageImage = new Bitmap(x, z))
+
+            {
+                for (int zz = 0; zz < z; zz++)
+                {
+
+                    for (int xx = 0; xx < x; xx++)
+                    {
+                        var pt = newLocal.PointAt((0.5 * incrX) + xx * incrX, -0.1, (0.5 * incrZ) + zz * incrZ);
+
+                        points.Add(pt);
+
+                        var ray = new Ray3d(pt, newLocal.YAxis * raylen);
+
+                        rays.Add(ray);
+
+                        double d = Rhino.Geometry.Intersect.Intersection.MeshRay(buildings, ray);
+                        if (d > 0)
+                        {
+                            hitcount++;
+                            hits.Add(true);
+
+                            FrontageImage.SetPixel(xx, zz, Color.Black);
+
+                        }
+                        else
+                        {
+                            hits.Add(false);
+                            FrontageImage.SetPixel(xx, zz, Color.White);
+                        }
+                    }
+                }
+                FrontageImage.RotateFlip(RotateFlipType.RotateNoneFlipY);
+                FrontageImage.Save(pathToSavePNGs, System.Drawing.Imaging.ImageFormat.Png);
+
+            }
+
+
+
+            return incrX * incrZ * hitcount;
+        }
 
     }
 

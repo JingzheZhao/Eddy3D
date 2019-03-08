@@ -18,9 +18,9 @@ namespace EddyLib
             if (Clean == true)
             {
 
-                if (Directory.Exists(DOM.meshPolyMeshDir))
+                if (Directory.Exists(MeshSettings.meshPolyMeshDir))
                 {
-                    System.IO.DirectoryInfo di = new DirectoryInfo(DOM.meshPolyMeshDir);
+                    System.IO.DirectoryInfo di = new DirectoryInfo(MeshSettings.meshPolyMeshDir);
                     foreach (FileInfo file in di.GetFiles())
                     {
                         file.Delete();
@@ -31,9 +31,9 @@ namespace EddyLib
                     }
                 }
 
-                if (Directory.Exists(DOM.meshConstantDir + @"extendedFeatureEdgeMesh"))
+                if (Directory.Exists(MeshSettings.meshConstantDir + @"extendedFeatureEdgeMesh"))
                 {
-                    System.IO.DirectoryInfo di = new DirectoryInfo(DOM.meshConstantDir + @"extendedFeatureEdgeMesh");
+                    System.IO.DirectoryInfo di = new DirectoryInfo(MeshSettings.meshConstantDir + @"extendedFeatureEdgeMesh");
                     foreach (FileInfo file in di.GetFiles())
                     {
                         file.Delete();
@@ -51,7 +51,7 @@ namespace EddyLib
 
                     for (int i = 0; i < RunSettings.CPUs; i++)
                     {
-                        var path = DOM.meshWorkingDir + @"\processor" + i;
+                        var path = MeshSettings.meshWorkingDir + @"\processor" + i;
                         if (Directory.Exists(path))
                         {
                             System.IO.DirectoryInfo di = new DirectoryInfo(path);
@@ -72,7 +72,7 @@ namespace EddyLib
 
                     for (int i = 0; i < RunSettings.CPUs; i++)
                     {
-                        var meshPath = DOM.meshWorkingDir + @"\processor" + i;
+                        var meshPath = MeshSettings.meshWorkingDir + @"\processor" + i;
                         if (Directory.Exists(meshPath))
                         {
                             System.IO.DirectoryInfo di = new DirectoryInfo(meshPath);
@@ -90,7 +90,7 @@ namespace EddyLib
                         for (int l = 0; l < DOM.BCond.windDirs.Count; l++)
                         {
 
-                            var cpuPath = DOM.baseWorkingDir + DOM.BCond.windDirs[l] + @"\processor" + i;
+                            var cpuPath = MeshSettings.baseWorkingDir + DOM.BCond.windDirs[l] + @"\processor" + i;
 
                             if (Directory.Exists(cpuPath))
                             {
@@ -125,16 +125,16 @@ namespace EddyLib
             }
 
 
-            if (!File.Exists(DOM.meshWorkingDir + @"\log"))
+            if (!File.Exists(MeshSettings.meshWorkingDir + @"\log"))
             {
-                File.WriteAllText(DOM.meshWorkingDir + @"\log", "");
+                File.WriteAllText(MeshSettings.meshWorkingDir + @"\log", "");
             }
 
 
 
-            if (!Directory.Exists(DOM.meshSystemDir))
+            if (!Directory.Exists(MeshSettings.meshSystemDir))
             {
-                Directory.CreateDirectory(DOM.meshSystemDir);
+                Directory.CreateDirectory(MeshSettings.meshSystemDir);
             }
 
             Point3d locationInMesh = new Point3d();
@@ -143,21 +143,21 @@ namespace EddyLib
 
             
 
-            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "snappyHexMeshDict"), EddyLib.StrTemp.OFExecDicts.SnappyHexMeshDict(MeshSettings, DOM));
-            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "surfaceFeatureExtractDict"), EddyLib.StrTemp.OFExecDicts.SurfaceFeatureExtractDict());
-            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesRobust1());
-            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "fvSolution"), EddyLib.StrTemp.OFExecDicts.FvSolution(0));
-            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "meshQualityDict"), EddyLib.StrTemp.OFExecDicts.MeshQualityDict());
-            File.WriteAllText(Path.Combine(DOM.meshSystemDir + "decomposeParDict"), EddyLib.StrTemp.OFExecDicts.DecomposeParDict(RunSettings));
+            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "snappyHexMeshDict"), EddyLib.StrTemp.OFExecDicts.SnappyHexMeshDict(MeshSettings, DOM));
+            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "surfaceFeatureExtractDict"), EddyLib.StrTemp.OFExecDicts.SurfaceFeatureExtractDict());
+            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesRobust1());
+            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "fvSolution"), EddyLib.StrTemp.OFExecDicts.FvSolution(0));
+            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "meshQualityDict"), EddyLib.StrTemp.OFExecDicts.MeshQualityDict());
+            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "decomposeParDict"), EddyLib.StrTemp.OFExecDicts.DecomposeParDict(RunSettings));
 
-            File.WriteAllText(Path.Combine(DOM.baseWorkingDir + "run_checkBadMesh.bat"), EddyLib.StrTemp.BatFiles.Run_checkBadMesh(RunSettings, DOM));
+            File.WriteAllText(Path.Combine(MeshSettings.baseWorkingDir + "run_checkBadMesh.bat"), EddyLib.StrTemp.BatFiles.Run_checkBadMesh(RunSettings, MeshSettings,DOM));
 
 
 
             //Autocalc number of CPUs
             if (RunSettings.CPUs == -1)
             {
-                RunSettings.CPUs = Utilities.CPUAutoCalc(DOM.meshWorkingDir, RunSettings.CPUs);
+                RunSettings.CPUs = Utilities.CPUAutoCalc(MeshSettings.meshWorkingDir, RunSettings.CPUs);
             }
 
 
@@ -168,7 +168,14 @@ namespace EddyLib
 
             logFile = "";
 
-            using (FileStream stream = File.Open(DOM.meshWorkingDir + @"\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+
+            if (!File.Exists(MeshSettings.baseWorkingDir + @"\mesh\log"))
+            {
+                File.WriteAllText(MeshSettings.baseWorkingDir + @"\mesh\log", "");
+            }
+
+
+            using (FileStream stream = File.Open(MeshSettings.meshWorkingDir + @"\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
                 using (StreamReader reader = new StreamReader(stream))
                 {

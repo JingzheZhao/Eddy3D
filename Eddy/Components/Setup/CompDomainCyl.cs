@@ -61,6 +61,10 @@ namespace Eddy
 
             pManager[1].Optional = true;
 
+            pManager[4].Optional = true;
+            pManager[5].Optional = true;
+            pManager[6].Optional = true;
+
         }
 
         /// <summary>
@@ -69,7 +73,7 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("Domain", "Dom", "Domain", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Mesh", "Mesh", "Mesh", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Mesh", "Msh", "Mesh", GH_ParamAccess.item);
             pManager.AddGenericParameter("Div", "Div", "Div", GH_ParamAccess.list);
         }
 

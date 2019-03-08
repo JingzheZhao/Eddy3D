@@ -19,7 +19,7 @@ namespace EddyLib
                 //Autocalc number of CPUs
                 if (RunSettings.CPUs == -1)
                 {
-                    RunSettings.CPUs = Utilities.CPUAutoCalc(DOM.meshWorkingDir, RunSettings.CPUs);   // TODO: take out all work dirs from dom!!!
+                    RunSettings.CPUs = Utilities.CPUAutoCalc(MeshSettings.meshWorkingDir, RunSettings.CPUs);   // TODO: take out all work dirs from dom!!!
                 }
 
 
@@ -67,11 +67,11 @@ namespace EddyLib
                     if (Directory.Exists(symbolicPath) && !SymlinkCreator.IsSymbolic(symbolicPath))
                     {
                         SymlinkCreator.Delete(symbolicPath);
-                        SymlinkCreator.Create(symbolicPath, DOM.meshConstantDir + @"\polyMesh");
+                        SymlinkCreator.Create(symbolicPath,  MeshSettings.meshConstantDir + @"\polyMesh");
                     }
                     else
                     {
-                        SymlinkCreator.Create(symbolicPath, DOM.meshConstantDir + @"\polyMesh");
+                        SymlinkCreator.Create(symbolicPath, MeshSettings.meshConstantDir + @"\polyMesh");
                     }
 
                     //Constant folder
@@ -249,20 +249,20 @@ namespace EddyLib
                 // Batch files depending on type
 
 
-                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_mesh.bat"), EddyLib.StrTemp.BatFiles.Run_Mesh_Cyl(RunSettings, DOM));
-                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run.bat"), EddyLib.StrTemp.BatFiles.Run(DOM));
-                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_sim_all.bat"), EddyLib.StrTemp.BatFiles.RunSimOnly(DOM));
-                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_ray.bat"), EddyLib.StrTemp.BatFiles.Run_RayTrace(DOM));
-                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_probes.bat"), EddyLib.StrTemp.BatFiles.Run_Probes(DOM));
-                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_utci.bat"), EddyLib.StrTemp.BatFiles.Run_UTCI(DOM));
+                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_mesh.bat"), EddyLib.StrTemp.BatFiles.Run_Mesh_Cyl(RunSettings,MeshSettings, DOM));
+                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run.bat"), EddyLib.StrTemp.BatFiles.Run(DOM, MeshSettings));
+                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_sim_all.bat"), EddyLib.StrTemp.BatFiles.RunSimOnly(DOM, MeshSettings));
+                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_ray.bat"), EddyLib.StrTemp.BatFiles.Run_RayTrace(DOM, MeshSettings));
+                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_probes.bat"), EddyLib.StrTemp.BatFiles.Run_Probes(DOM, MeshSettings));
+                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_utci.bat"), EddyLib.StrTemp.BatFiles.Run_UTCI(DOM, MeshSettings));
 #if DEBUG
-                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_blockMesh.bat"), EddyLib.StrTemp.BatFiles.run_blockMesh(RunSettings, DOM));
+                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_blockMesh.bat"), EddyLib.StrTemp.BatFiles.Run_blockMesh(RunSettings, DOM, MeshSettings));
 #endif
 
                 for (int i = 0; i < DOM.BCond.windDirs.Count; i++)
                 {
-                    File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "_run_sim.bat"), EddyLib.StrTemp.BatFiles.Run_sim(RunSettings, DOM, i));
-                    File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "_run_sim_continue.bat"), EddyLib.StrTemp.BatFiles.Run_sim_continue(RunSettings, DOM, i));
+                    File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "_run_sim.bat"), EddyLib.StrTemp.BatFiles.Run_sim(MeshSettings,RunSettings, DOM, i));
+                    File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "_run_sim_continue.bat"), EddyLib.StrTemp.BatFiles.Run_sim_continue(MeshSettings,RunSettings, DOM, i));
 
                 }
 

@@ -144,7 +144,7 @@ namespace Eddy
             }
 
             // Export probes file
-            File.WriteAllText(Path.Combine(RES.WorkingDirectory + "\\" + "run_probes.bat"), EddyLib.StrTemp.BatFiles.Run_Probes(RES.Domain));
+            File.WriteAllText(Path.Combine(RES.WorkingDirectory + "\\" + "run_probes.bat"), EddyLib.StrTemp.BatFiles.Run_Probes(RES.Domain,RES.MeshSettings));
 
 
             // export pts file for Daysim
@@ -155,7 +155,7 @@ namespace Eddy
 
             RadianceFiles.writePTS(RES.WorkingDirectory + @"\Rad\sensors.pts", listOfPoints);
 
-            if (Utilities.IsDirectoryEmpty(RES.Domain.meshPolyMeshDir) == true)
+            if (Utilities.IsDirectoryEmpty(RES.MeshSettings.meshPolyMeshDir) == true)
             {
                 throw new System.ArgumentException("The mesh folder is empty. Can't retrieve probes from a mesh that does not exist.");
             }
@@ -211,7 +211,7 @@ namespace Eddy
 
                             if (RES.RunSettings.simEngine == 0)
                             {
-                                Utilities.StartProcessCMD(@" -e """ + command + @""" -f " + "\"" + RES.Domain.OFbaseWorkingDir, false, true, false, Utilities.AssemblyDirectory + @"\CallOF.exe");
+                                Utilities.StartProcessCMD(@" -e """ + command + @""" -f " + "\"" + RES.MeshSettings.OFbaseWorkingDir, false, true, false, Utilities.AssemblyDirectory + @"\CallOF.exe");
                             }
                             else
                             {
@@ -281,7 +281,7 @@ namespace Eddy
                         {
                             if (RES.RunSettings.simEngine == 0)
                             {
-                                Utilities.StartProcessCMD(@" -e """ + command + @""" -f " + "\"" + RES.Domain.OFbaseWorkingDir, false, true, false, Utilities.AssemblyDirectory + @"\CallOF.exe");
+                                Utilities.StartProcessCMD(@" -e """ + command + @""" -f " + "\"" + RES.MeshSettings.OFbaseWorkingDir, false, true, false, Utilities.AssemblyDirectory + @"\CallOF.exe");
                             }
                             else
                             {

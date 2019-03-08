@@ -51,10 +51,10 @@ namespace EddyLib
 
         public OFCylDomain(Brep inputBreps, Mesh combinedMesh, Mesh terrain, BoundaryConditions BCond, double coreBlockSize, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0)
         {
-            this.CombinedMesh = combinedMesh;
+            CombinedMesh = combinedMesh;
 
 
-            this.gradingPerim = 1.2;          
+            gradingPerim = 1.2;
 
 
 
@@ -123,22 +123,22 @@ namespace EddyLib
             //var scaleCyclDomainHeight = height > dimY ? height : dimY;
 
 
-            Plane localSystem = new Plane(center, Vector3d.XAxis, Vector3d.ZAxis);
-            // localSystem.Origin = center;
+            //Plane localSystem = new Plane(center, Vector3d.XAxis, Vector3d.ZAxis);
+            //// localSystem.Origin = center;
+            //localSystem.Translate(-Vector3d.YAxis * dimY);
 
-            localSystem.Translate(-Vector3d.YAxis * dimY);
+
+
             var projAreaList = new List<double>();
             for (int i = 0; i < 72; i++)
             {
                 Vector3d localCopy = Vector3d.YAxis;
                 localCopy.Rotate(5 * i * Math.PI / 180, Vector3d.ZAxis);
-                projAreaList.Add(ProjectedBuildingArea(localCopy, combinedMesh, 1,
-                    baseWorkingDir + @"\FrontageImages\FrontageImage" + (i * 5) + ".png",
-                    out Plane newLocal, out Box box));
+                projAreaList.Add(RunBlockMesh.ProjectedBuildingArea(localCopy, combinedMesh, 1, out Plane newLocal, out Box box));
 
 
             }
-
+                          
             frontageBuildingArea = projAreaList.Max();
 
 
@@ -180,11 +180,11 @@ namespace EddyLib
             divisionsX = 1;
 
 
-            this.divsRadial = RadialDivsFromBlockSize(coreBlockSize, sizeInnerR);
+            divsRadial = RadialDivsFromBlockSize(coreBlockSize, sizeInnerR);
             //divisionsZ = _divisionsZ;
 
 
-           
+
 
 
 
@@ -231,7 +231,7 @@ namespace EddyLib
             locationInMesh += radius * 0.6 * Vector3d.XAxis;
 
 
-            
+
 
             var pl = new Plane(center, Vector3d.ZAxis);
 
@@ -252,7 +252,7 @@ namespace EddyLib
 
             var cellSizeCore = 2 * (sizeInnerRect / divsRadial);
             //Math.Abs was just a workaround fix
-            
+
             //this.cellDivisionsPerim = Math.Abs((int)Math.Round((circRad - (2 * sizeInnerRect)) / cellSizeCore));
 
 
@@ -273,15 +273,15 @@ namespace EddyLib
             var poly = coreBottom.GetNakedEdges()[0]; //returns a polygon with line segments for each mesh cell       
 
 
-           
-           
-         
+
+
+
 
             var pointsOnRect = GetPointsOnRect(divsRadial, m);
             var pointsOnCircle = GetPointsOnCircle(center, circRad, poly);
 
             var blockDimensionCore = BlockDimensionCore(pointsOnRect);
-            this.divPerim = DivisionsPerim(pointsOnRect, pointsOnCircle, blockDimensionCore);
+            divPerim = DivisionsPerim(pointsOnRect, pointsOnCircle, blockDimensionCore);
 
 
 
@@ -296,8 +296,8 @@ namespace EddyLib
             ////////////////
             ///
 
-            
-           
+
+
 
             coreTop.Append(m);
             coreTop.Translate(Vector3d.ZAxis * height);
@@ -346,19 +346,19 @@ namespace EddyLib
 
 
 
-     
+
 
         }
 
         private static int DivisionsPerim(Point3d[] core, Point3d[] perim, double blockDim)
         {
-          
-            var blockDimensionPerim = new Vector3d(perim[0].X, perim[0].Y, perim[0].Z) - new Vector3d(core[0].X, core[0].Y, core[0].Z);
+
+            Vector3d blockDimensionPerim = new Vector3d(perim[0].X, perim[0].Y, perim[0].Z) - new Vector3d(core[0].X, core[0].Y, core[0].Z);
 
             return (int)(blockDimensionPerim.Length / blockDim / 1.41);
         }
         private static double BlockDimensionCore(Point3d[] core)
-        {                      
+        {
 
             var blockDimensionCore = new Vector3d(core[1].X, core[1].Y, core[1].Z) - new Vector3d(core[0].X, core[0].Y, core[0].Z);
 
@@ -971,7 +971,7 @@ mergePatchPairs
             this.pointsOnRect = pointsOnRect;
             return pointsOnRect;
         }
-               
+
         private Mesh PerimeterRing(Polyline poly, Point3d[] pointsOnCircle)
         {
             var mOutBottom = new Mesh();

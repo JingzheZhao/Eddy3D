@@ -41,7 +41,7 @@ namespace EddyLib
 
 
 
-        public void SetDirectories(string baseWorkingDirectory = @"C:\temp")
+        public void SetDirectories(string baseWorkingDirectory)
         {
 
 
