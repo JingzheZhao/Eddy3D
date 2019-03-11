@@ -104,7 +104,7 @@ namespace EddyLib.StrTemp
         {
             StringBuilder sb = new StringBuilder();
 
-            if (RunSettings.simEngine == 0)//Docker
+            if (RunSettings.simEngine == SimEngine.Docker)//Docker
             {
                 if (RunSettings.CPUs > 1)
                 {
@@ -135,14 +135,14 @@ namespace EddyLib.StrTemp
             {
                 if (RunSettings.CPUs > 1)
                 {
-                    sb.Append(TempBlueCFDSuf(RCMeshMultiCPU(RunSettings), MeshSettings.OFbaseWorkingDir));
+                    sb.Append(TempBlueCFDSuf(RCMeshMultiCPU(RunSettings), MeshSettings.meshWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
                 }
                 else
                 {
-                    sb.Append(TempBlueCFDSuf(RCMeshSingleCPU, MeshSettings.OFbaseWorkingDir));
+                    sb.Append(TempBlueCFDSuf(RCMeshSingleCPU, MeshSettings.meshWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
@@ -200,7 +200,7 @@ namespace EddyLib.StrTemp
 
             string caseWorkingDir = MeshSettings.baseWorkingDir + "\\" + DOM.BCond.windDirs[d];
 
-            if (RunSettings.simEngine == 0)//Docker
+            if (RunSettings.simEngine == SimEngine.Docker)//Docker
             {
 
                 if (RunSettings.CPUs > 1)
@@ -256,7 +256,7 @@ namespace EddyLib.StrTemp
             string caseWorkingDir = MeshSettings.baseWorkingDir + "\\" + DOM.BCond.windDirs[d];
 
 
-            if (RunSettings.simEngine == 0)//Docker
+            if (RunSettings.simEngine == SimEngine.Docker)//Docker
             {
 
                 if (RunSettings.CPUs > 1)
@@ -381,7 +381,7 @@ namespace EddyLib.StrTemp
         public static string Run_blockMesh(OFRunSettings RunSettings, OFBaseDomain DOM, OFMeshSettings MeshSettings)
         {
             StringBuilder sb = new StringBuilder();
-            if (RunSettings.simEngine == 0)//Docker
+            if (RunSettings.simEngine == SimEngine.Docker)//Docker
             {
 
                 foreach (string str in RCBlockMeshSingleCPU)
@@ -409,7 +409,7 @@ namespace EddyLib.StrTemp
         public static string Run_checkBadMesh(OFRunSettings RunSettings, OFMeshSettings MeshSettings,  OFBaseDomain DOM)
         {
             StringBuilder sb = new StringBuilder();
-            if (RunSettings.simEngine == 0)//Docker
+            if (RunSettings.simEngine == SimEngine.Docker)//Docker
             {
 
                 foreach (string str in RCCheckMeshSingleCPU)

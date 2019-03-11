@@ -200,27 +200,32 @@ namespace EddyLib
 
         }
 
-        public static void StartProcessCMD(string argument, bool createnowindow, bool waitforexit = false, bool close = false,bool startInNewThread = false, string executable = @"C:\Windows\System32\cmd.exe")
+        public static void StartProcessCMD(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, string executable = "")
         {
             System.Diagnostics.Process p = new System.Diagnostics.Process();
             p.StartInfo.FileName = executable;
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.RedirectStandardInput = true;
-            p.StartInfo.CreateNoWindow = createnowindow;
+            p.StartInfo.CreateNoWindow = false;
+            //p.Start();
+            //StreamWriter sw = p.StandardInput;
+            //String strInputText = argument;
+            //sw.WriteLine(strInputText);
+
 
             ThreadStart ths = new ThreadStart(() => p.Start());
             Thread th = new Thread(ths);
             th.Start();
 
-            StreamWriter sw = p.StandardInput;
-            String strInputText = argument;
-            sw.WriteLine(strInputText);
 
-            sw.Flush();
-            if (waitforexit) { p.WaitForExit(); }
+            //sw.Flush();
+            if (waitforexit)
+            {
+                Console.ReadLine();
+                p.WaitForExit();
+            }
             if (close) { p.Close(); }
 
-            
 
         }
 

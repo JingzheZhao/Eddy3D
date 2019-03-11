@@ -75,77 +75,82 @@ namespace Eddy
 
 
 
-            if (Run == true)
+            List<String> listOfDataToDelete = new List<string>();
+
+
+
+            //   Delete files in workingDir 
+
+            var workingDirectoryInfo = new DirectoryInfo(workingDirectory);
+
+            var listOfDirs = workingDirectoryInfo.EnumerateDirectories("*");
+
+            var systemDirectoryInfo = new DirectoryInfo(workingDirectory + @"\mesh\system\");
+            var listOfSystemFiles = systemDirectoryInfo.EnumerateFiles("*");
+
+
+
+            var constantDirectoryInfo = new DirectoryInfo(workingDirectory + @"mesh\constant\");
+            var polyMeshDirectoryInfo = new DirectoryInfo(workingDirectory + @"mesh\constant\polyMesh\");
+            var extendedFeatureEdgeMeshDirectoryInfo = new DirectoryInfo(workingDirectory + @"\constant\extendedFeatureEdgeMesh\");
+
+           
+
+
+            if (!Run)
             {
-
-                List<String> listOfDataToDelete = new List<string>();
-
-
-
-                //   Delete files in workingDir 
-
-                var workingDirectoryInfo = new DirectoryInfo(workingDirectory);
-
-                var listOfDirs = workingDirectoryInfo.EnumerateDirectories("*");
-
-                var systemDirectoryInfo = new DirectoryInfo(workingDirectory + @"\system\");
-                var listOfSystemFiles = systemDirectoryInfo.EnumerateFiles("*");
-
-                var constantDirectoryInfo = new DirectoryInfo(workingDirectory + @"\constant\");
-                var polyMeshDirectoryInfo = new DirectoryInfo(workingDirectory + @"\constant\polyMesh\");
-                var extendedFeatureEdgeMeshDirectoryInfo = new DirectoryInfo(workingDirectory + @"\constant\extendedFeatureEdgeMesh\");
-
-                foreach (var file in listOfSystemFiles)
-                {
-                    file.Delete();
-                }
-
-                // Delete files in subfolders
-
-                foreach (String element in listOfDirs.Select(x => x.Name))
-                {
-                    if (element.ToLower() == "system" || element.ToLower() == "constant" || element.ToLower() == "0.org")
-                    {
-                        continue;
-                    }
-                    try
-                    {
-                        String newWorkingDirectory = workingDirectory + @"\" + element;
-                        var subFolderWorkingDirInfo = new DirectoryInfo(newWorkingDirectory);
-
-                        foreach (var file in subFolderWorkingDirInfo.EnumerateFiles("*"))
-                        {
-                            file.Delete();
-                            Directory.Delete(newWorkingDirectory, true);
-                        }
-                        foreach (var file in systemDirectoryInfo.EnumerateFiles("*"))
-                        {
-                            if (System.Text.RegularExpressions.Regex.IsMatch(file.ToString(), "Probes"))
-                            {
-                                file.Delete();
-                            }
-                        }
-
-
-                        foreach (var file in extendedFeatureEdgeMeshDirectoryInfo.EnumerateFiles("*"))
-                        {
-                            file.Delete();
-                        }
-                        foreach (var file in polyMeshDirectoryInfo.EnumerateFiles("*"))
-                        {
-                            file.Delete();
-                        }
-
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine("The process failed: {0}", e.Message);
-                    }
-                }
-
-
-
+                return;
             }
+
+
+
+
+
+            // Delete files in subfolders
+
+            foreach (String element in listOfDirs.Select(x => x.Name))
+            {
+                if (element.ToLower() == "system" || element.ToLower() == "constant" || element.ToLower() == "0.org")
+                {
+                    continue;
+                }
+                try
+                {
+                    String newWorkingDirectory = workingDirectory + @"\" + element;
+                    var subFolderWorkingDirInfo = new DirectoryInfo(newWorkingDirectory);
+
+                    foreach (var file in subFolderWorkingDirInfo.EnumerateFiles("*"))
+                    {
+                        file.Delete();        
+                    }
+
+
+                    foreach (var file in systemDirectoryInfo.EnumerateFiles("*"))
+                    {
+                        if (System.Text.RegularExpressions.Regex.IsMatch(file.ToString(), "Probes"))
+                        {
+                            file.Delete();
+                        }
+                    }
+
+
+                    foreach (var file in extendedFeatureEdgeMeshDirectoryInfo.EnumerateFiles("*"))
+                    {
+                        file.Delete();
+                    }
+                    foreach (var file in polyMeshDirectoryInfo.EnumerateFiles("*"))
+                    {
+                        file.Delete();
+                    }
+
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("The process failed: {0}", e.Message);
+                }
+            }
+
+
 
         }
 

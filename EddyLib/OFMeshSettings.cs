@@ -41,7 +41,7 @@ namespace EddyLib
 
         // BlockMesh
 
-        private double gradingPerim;
+        private readonly double gradingPerim;
 
         //public double GradingPerim { get => gradingPerim; set => gradingPerim = value; }
 

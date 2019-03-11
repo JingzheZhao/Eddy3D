@@ -55,12 +55,13 @@ namespace Eddy
             simulationMode.AddNamedValue("robust but diffusive", 7);
 
             pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
-            pManager.AddIntegerParameter("Operation System", "OS", "Operation System.", GH_ParamAccess.item, -1); // Nothing specified
+            pManager.AddIntegerParameter("Operation System", "OS", "Operation System.", GH_ParamAccess.item, 0); // Nothing specified
             Param_Integer os = pManager[6] as Param_Integer;
-            os.AddNamedValue("Windows 7 & 8", 0);
-            os.AddNamedValue("Windows 10", 1);
-            os.AddNamedValue("Linux", 2);
-            os.AddNamedValue("Mac OS", 3);
+            os.AddNamedValue("Auto detect", 0);
+            os.AddNamedValue(@"Windows 7 + 8", 1);
+            os.AddNamedValue("Windows 10", 2);
+            os.AddNamedValue("Linux", 3);
+            os.AddNamedValue("Mac OS", 4);
         }
 
         /// <summary>
@@ -117,19 +118,28 @@ namespace Eddy
 
 
             var os = OSType.Windows10;
-            if (Utilities.IsWindows7 && _OS == -1)
+            if (Utilities.GetOSInfo() == "Windows 7"  && _OS == 0)
             {
                 os = OSType.Windows7;
             }
-            else if (_OS == 0)
+
+            else if (Utilities.GetOSInfo() == "Windows 10" && _OS == 0)
+            {
+                os = OSType.Windows10;
+            } 
+            else if (Utilities.GetOSInfo() == "Windows 8" && _OS == 0)
             {
                 os = OSType.Windows7;
             }
             else if (_OS == 1)
             {
-                os = OSType.Windows10;
+                os = OSType.Windows7;
             }
             else if (_OS == 2)
+            {
+                os = OSType.Windows10;
+            }
+            else if (_OS == 3)
             {
                 os = OSType.Linux;
             }

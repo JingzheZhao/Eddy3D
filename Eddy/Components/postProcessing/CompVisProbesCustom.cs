@@ -196,7 +196,7 @@ namespace Eddy
                             File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, enumeratedProbeName, OFField));
 
                             // Write the dicts
-                            if (RES.RunSettings.simEngine == 0)
+                            if (RES.RunSettings.simEngine == SimEngine.Docker)
                             {
                                 command.Append(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime | tee  " + RES.Domain.BCond.windDirs[i] + @"/log_probes;");
                             }
@@ -209,7 +209,7 @@ namespace Eddy
                         if (run == true)
                         {
 
-                            if (RES.RunSettings.simEngine == 0)
+                            if (RES.RunSettings.simEngine == SimEngine.Docker)
                             {
                                 Utilities.StartProcessCMD(@" -e """ + command + @""" -f " + "\"" + RES.MeshSettings.OFbaseWorkingDir, false, true, false, Utilities.AssemblyDirectory + @"\CallOF.exe");
                             }
@@ -263,7 +263,7 @@ namespace Eddy
                             }
 
                             // Write the dicts
-                            if (RES.RunSettings.simEngine == 0)
+                            if (RES.RunSettings.simEngine == SimEngine.Docker)
                             {
                                 var path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + enumeratedProbeName;
                                 File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, enumeratedProbeName, OFField));
@@ -279,7 +279,7 @@ namespace Eddy
 
                         if (run == true)
                         {
-                            if (RES.RunSettings.simEngine == 0)
+                            if (RES.RunSettings.simEngine == SimEngine.Docker)
                             {
                                 Utilities.StartProcessCMD(@" -e """ + command + @""" -f " + "\"" + RES.MeshSettings.OFbaseWorkingDir, false, true, false, Utilities.AssemblyDirectory + @"\CallOF.exe");
                             }

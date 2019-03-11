@@ -111,7 +111,7 @@ namespace Eddy
             MeshingParameters mp = new MeshingParameters();
 
             //string windowsVersion = Utilities.GetOSInfo();
-            bool isWindows7 = Utilities.IsWindows7;
+            //bool isWindows7 = Utilities.IsWindows7;
             string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             
          

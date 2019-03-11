@@ -52,18 +52,19 @@ namespace Eddy
         {
             pManager.AddGenericParameter("Domain", "Dom", "Domain", GH_ParamAccess.item);
 
+            pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Eddy"));
+
+
             pManager.AddGenericParameter("Mesh Settings", "MSet", "Mesh Settings", GH_ParamAccess.item);
             pManager[1].Optional = true;
 
             pManager.AddGenericParameter("Run Settings", "RSet", "Run Settings", GH_ParamAccess.item);
             pManager[2].Optional = true;
 
-            pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Eddy"));
 
+            pManager.AddBooleanParameter("Run Meshing", "RunMsh", "RunMsh", GH_ParamAccess.item, false);
 
-            pManager.AddBooleanParameter("RunMsh", "RunMsh", "RunMsh", GH_ParamAccess.item, false);
-
-            pManager.AddBooleanParameter("RunSim", "RunSim", "RunSim", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Run Simulation", "RunSim", "RunSim", GH_ParamAccess.item, false);
 
         }
 
@@ -86,7 +87,7 @@ namespace Eddy
         {
 
             // mode to select simulation environment
-            if (runWithBlueCFD) { Message = "BlueCFD"; }
+            if (runWithBlueCFD) { Message = "BlueCFD";  }
             else { Message = "Docker"; }
 
 
@@ -101,7 +102,7 @@ namespace Eddy
             OFBaseDomain DOM;
 
             GH_ObjectWrapper gobj = null;
-            if (!DA.GetData(0, ref gobj)) { }
+            if (!DA.GetData("Domain", ref gobj)) { }
 
             if ((gobj.Value is OFCylDomain))
             {
@@ -125,14 +126,20 @@ namespace Eddy
 
             OFRunSettings RunSettings = new OFRunSettings(); // sets default mesh settings
             GH_ObjectWrapper gobjRunSet = null;
-            if (DA.GetData(2, ref gobjRunSet))
+            if (DA.GetData("Run Settings", ref gobjRunSet))
             {
                 if (gobjRunSet.Value is OFRunSettings)
                 {
                     RunSettings = (OFRunSettings)gobjRunSet.Value;
+                   
                 }
             }
 
+        // Crashes Rhino
+            //if (!runWithBlueCFD)
+            //{
+            //    RunSettings.simEngine = SimEngine.Docker;
+            //}
 
 
 
@@ -144,12 +151,13 @@ namespace Eddy
             if (!Directory.Exists(baseWorkingDirectory)) { Directory.CreateDirectory(baseWorkingDirectory); }
 
             string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            if (RunSettings.ostype == OSType.Windows7)
+            if (RunSettings.ostype == OSType.Windows7 && (RunSettings.simEngine == SimEngine.Docker))
             {
-                if (!baseWorkingDirectory.StartsWith(userFolder, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "For Windows 7 and 8, the working directory must be in the user folder because of constraint with a deprecated Docker version.."); return;
-                }
+                //if (!baseWorkingDirectory.StartsWith(userFolder, StringComparison.InvariantCultureIgnoreCase))
+                //{
+                //    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "For Windows 7 and 8, the working directory must be in the user folder because of constraint with a deprecated Docker version.."); return;
+                //}
+               
             }
             baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
 
@@ -161,7 +169,7 @@ namespace Eddy
             OFMeshSettings MeshSettings = new OFMeshSettings(); // sets default mesh settings            
 
             GH_ObjectWrapper gobjMeshSet = null;
-            if (DA.GetData(1, ref gobjMeshSet)) { }
+            if (DA.GetData("Mesh Settings", ref gobjMeshSet)) { }
             if (gobjMeshSet.Value is OFMeshSettings)
             {
                 MeshSettings = (OFMeshSettings)gobjMeshSet.Value;
@@ -282,7 +290,29 @@ namespace Eddy
 
 
 
-            // @ Patrick: This component should output a Result Class - not just the domain. the domain shoudld not know the working directory...
+            #region START PROCESSES
+
+            bool runSimulation = false;
+            bool runMeshing = false;
+
+            DA.GetData("Run Simulation", ref runSimulation);
+            DA.GetData("Run Meshing", ref runMeshing);
+
+            if (runMeshing == true)
+            {
+                Utilities.StartProcessCMD("", false, true, false, true, baseWorkingDirectory + @"\run_mesh.bat");
+            }
+
+            if (runSimulation == true)
+            {
+                Utilities.StartProcessCMD("", false, true, false, true, baseWorkingDirectory + @"\run_sim_all.bat");
+            }
+
+           
+
+            #endregion
+
+
             OFResult RES = new OFResult(DOM, RunSettings, MeshSettings, baseWorkingDirectory);
             DA.SetData(0, RES);
 
