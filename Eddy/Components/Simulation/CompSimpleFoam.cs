@@ -86,8 +86,8 @@ namespace Eddy
         {
 
             // mode to select simulation environment
-            if (runWithBlueCFD) { this.Message = "BlueCFD"; }
-            else { this.Message = "Docker"; }
+            if (runWithBlueCFD) { Message = "BlueCFD"; }
+            else { Message = "Docker"; }
 
 
 
@@ -125,12 +125,13 @@ namespace Eddy
 
             OFRunSettings RunSettings = new OFRunSettings(); // sets default mesh settings
             GH_ObjectWrapper gobjRunSet = null;
-            if (DA.GetData(2, ref gobjRunSet)) { }
-            if ((gobj.Value is OFRunSettings))
+            if (DA.GetData(2, ref gobjRunSet))
             {
-                RunSettings = (OFRunSettings)gobjRunSet.Value;
+                if (gobjRunSet.Value is OFRunSettings)
+                {
+                    RunSettings = (OFRunSettings)gobjRunSet.Value;
+                }
             }
-
 
 
 
@@ -152,7 +153,7 @@ namespace Eddy
             }
             baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
 
-            
+
 
             // meshing settings
             //-----------------
@@ -161,14 +162,14 @@ namespace Eddy
 
             GH_ObjectWrapper gobjMeshSet = null;
             if (DA.GetData(1, ref gobjMeshSet)) { }
-            if ((gobj.Value is OFMeshSettings))
+            if (gobjMeshSet.Value is OFMeshSettings)
             {
                 MeshSettings = (OFMeshSettings)gobjMeshSet.Value;
             }
             MeshSettings.SetDirectories(baseWorkingDirectory);
 
 
-            
+
 
 
             // @ Patrick: Make all of these regions static functions that live in the EddyLib DLL
@@ -184,7 +185,7 @@ namespace Eddy
 
 
                 RunBlockMesh.RunBox((OFBoxDomain)DOM, MeshSettings, RunSettings, baseWorkingDirectory);
-                
+
 
             }
             else
@@ -192,7 +193,7 @@ namespace Eddy
 
 
                 RunBlockMesh.RunCyl((OFCylDomain)DOM, MeshSettings, RunSettings, baseWorkingDirectory);
-                
+
 
 
             }
@@ -232,9 +233,8 @@ namespace Eddy
 
 
             //TODO: output the logs somewhere!
-            string logfileOutput;
 
-            RunSnappy.Run(DOM, MeshSettings, RunSettings, out logfileOutput);
+            RunSnappy.Run(DOM, MeshSettings, RunSettings, out string logfileOutput);
 
 
             #endregion
@@ -250,9 +250,9 @@ namespace Eddy
             {
 
                 Utilities.WriteDockerInfo(baseWorkingDirectory);
-                
+
                 if (!Utilities.IsDockerRunning(baseWorkingDirectory, RunSettings.ostype))
-                {                 
+                {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Blank, @"It seems that Docker is not running. Please start the application ""Docker for Windows"".");
                 }
 

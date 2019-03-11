@@ -37,38 +37,40 @@ namespace EddyLib
         public string meshStlFilenameGround;
         public string meshStlFilenameGroundPerim;
         public string meshBoundaryConditionsDirectory;
-        
 
 
+        // BlockMesh
+
+        private double gradingPerim;
+
+        //public double GradingPerim { get => gradingPerim; set => gradingPerim = value; }
 
         public void SetDirectories(string baseWorkingDirectory)
         {
 
 
-            this.baseWorkingDir = baseWorkingDirectory;
-            this.meshStlDir = baseWorkingDirectory + @"\mesh\constant\triSurface\";
-            this.meshPolyMeshDir = baseWorkingDirectory + @"\mesh\constant\polyMesh\";
-            this.meshSystemDir = baseWorkingDirectory + @"\mesh\system\";
-            this.meshConstantDir = baseWorkingDirectory + @"\mesh\constant\";
-            this.meshWorkingDir = baseWorkingDirectory + @"\mesh\";
+            baseWorkingDir = baseWorkingDirectory;
+            meshStlDir = baseWorkingDirectory + @"\mesh\constant\triSurface\";
+            meshPolyMeshDir = baseWorkingDirectory + @"\mesh\constant\polyMesh\";
+            meshSystemDir = baseWorkingDirectory + @"\mesh\system\";
+            meshConstantDir = baseWorkingDirectory + @"\mesh\constant\";
+            meshWorkingDir = baseWorkingDirectory + @"\mesh\";
 
-            this.OFbaseWorkingDir = Utilities.ReformatWorkingDir(baseWorkingDirectory);
-            this.OFmeshStlDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\triSurface\");
-            this.OFmeshPolyMeshDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\polyMesh\");
-            this.OFmeshSystemDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\system\");
-            this.OFmeshConstantDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\");
-            this.OFmeshWorkingDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\");
+            OFbaseWorkingDir = Utilities.ReformatWorkingDir(baseWorkingDirectory);
+            OFmeshStlDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\triSurface\");
+            OFmeshPolyMeshDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\polyMesh\");
+            OFmeshSystemDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\system\");
+            OFmeshConstantDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\");
+            OFmeshWorkingDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\");
 
-            this.meshStlFilenameBuildings = baseWorkingDirectory + @"\mesh\constant\triSurface\building.stl";
-            this.meshStlFilenameGround = baseWorkingDirectory + @"\mesh\constant\triSurface\ground.stl";
-            this.meshStlFilenameGroundPerim = baseWorkingDirectory + @"\mesh\constant\triSurface\ground_perim.stl";
-            this.meshBoundaryConditionsDirectory = baseWorkingDirectory + @"\mesh\0.org\";
-            
+            meshStlFilenameBuildings = baseWorkingDirectory + @"\mesh\constant\triSurface\building.stl";
+            meshStlFilenameGround = baseWorkingDirectory + @"\mesh\constant\triSurface\ground.stl";
+            meshStlFilenameGroundPerim = baseWorkingDirectory + @"\mesh\constant\triSurface\ground_perim.stl";
+            meshBoundaryConditionsDirectory = baseWorkingDirectory + @"\mesh\0.org\";
+
 
 
         }
-
-
 
         public override string ToString()
         {

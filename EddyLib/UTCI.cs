@@ -839,7 +839,7 @@ namespace EddyLib
         //    return UTCI_approx;
         //}
 
-        private static double es(double T_celcius)
+        private static double Es(double T_celcius)
         {
             //!~ **********************************************
             //!~calculates saturation vapour pressure over water in hPa for input air temperature(ta) in celsius according to:

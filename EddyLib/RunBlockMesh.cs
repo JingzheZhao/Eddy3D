@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 
 namespace EddyLib
 {
@@ -63,7 +62,7 @@ namespace EddyLib
 
 
 
-            
+
             if (!File.Exists(workDir + @"\mesh\log"))
             {
                 File.WriteAllText(workDir + @"\mesh\log", "");
@@ -208,9 +207,9 @@ void plastic Generic_20
 
         public static double ProjectedBuildingArea(Vector3d windDir, Mesh buildings, double spacing, out Plane newLocal, out Box box)
         {
-          
 
-                       
+
+
             var up = Vector3d.ZAxis;
             var forward = windDir;
             forward.Unitize();
@@ -262,37 +261,37 @@ void plastic Generic_20
             ////using (var FrontageImage = new Bitmap(x, z))
 
             //{
-                for (int zz = 0; zz < z; zz++)
+            for (int zz = 0; zz < z; zz++)
+            {
+
+                for (int xx = 0; xx < x; xx++)
                 {
+                    var pt = newLocal.PointAt((0.5 * incrX) + xx * incrX, -0.1, (0.5 * incrZ) + zz * incrZ);
 
-                    for (int xx = 0; xx < x; xx++)
+                    points.Add(pt);
+
+                    var ray = new Ray3d(pt, newLocal.YAxis * raylen);
+
+                    rays.Add(ray);
+
+                    double d = Rhino.Geometry.Intersect.Intersection.MeshRay(buildings, ray);
+                    if (d > 0)
                     {
-                        var pt = newLocal.PointAt((0.5 * incrX) + xx * incrX, -0.1, (0.5 * incrZ) + zz * incrZ);
+                        hitcount++;
+                        hits.Add(true);
 
-                        points.Add(pt);
+                        //FrontageImage.SetPixel(xx, zz, Color.Black);
 
-                        var ray = new Ray3d(pt, newLocal.YAxis * raylen);
-
-                        rays.Add(ray);
-
-                        double d = Rhino.Geometry.Intersect.Intersection.MeshRay(buildings, ray);
-                        if (d > 0)
-                        {
-                            hitcount++;
-                            hits.Add(true);
-
-                            //FrontageImage.SetPixel(xx, zz, Color.Black);
-
-                        }
-                        else
-                        {
-                            hits.Add(false);
-                            //FrontageImage.SetPixel(xx, zz, Color.White);
-                        }
+                    }
+                    else
+                    {
+                        hits.Add(false);
+                        //FrontageImage.SetPixel(xx, zz, Color.White);
                     }
                 }
-                //FrontageImage.RotateFlip(RotateFlipType.RotateNoneFlipY);
-                //FrontageImage.Save(pathToSavePNGs, System.Drawing.Imaging.ImageFormat.Png);
+            }
+            //FrontageImage.RotateFlip(RotateFlipType.RotateNoneFlipY);
+            //FrontageImage.Save(pathToSavePNGs, System.Drawing.Imaging.ImageFormat.Png);
 
             //}
 

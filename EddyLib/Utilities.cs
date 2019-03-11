@@ -225,7 +225,7 @@ namespace EddyLib
         }
 
 
-        public static IEnumerable<List<T>> splitListGen<T>(List<T> locations, int nSize)
+        public static IEnumerable<List<T>> SplitListGen<T>(List<T> locations, int nSize)
         {
             for (int i = 0; i < locations.Count; i += nSize)
             {
@@ -233,7 +233,7 @@ namespace EddyLib
             }
         }
 
-        public static List<List<Point3d>> splitPointList(List<Point3d> locations, int nSize)
+        public static List<List<Point3d>> SplitPointList(List<Point3d> locations, int nSize)
         {
             var list = new List<List<Point3d>>();
 
@@ -801,7 +801,7 @@ namespace EddyLib
             bool licence = false;
             //DateTime dateNow = Utilities.GetNistTime();
             DateTime dateCompile = new DateTime(2019, 2, 25, 0, 00, 00).ToUniversalTime();
-            TimeSpan licenceDuration = new TimeSpan(150, 0, 0, 0);
+            TimeSpan licenceDuration = new TimeSpan(240, 0, 0, 0);
             DateTime expiresAt = dateCompile.Add(licenceDuration);
 
             //try

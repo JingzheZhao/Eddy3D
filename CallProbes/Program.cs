@@ -43,7 +43,7 @@ namespace CallProbes
 
                     double URef = options.Uref;
                     double zref = options.Zref;
-                    double z0 = options.z0;
+                    double z0 = options.Z0;
 
                     // Read all variables from one file path. Variables are usually identical for all wind directions so this should be robust.
                     var filePath = options.WorkingDir + "\\" + options.WindDirs.Split(',')[0] + @"\0.org\ABLConditions";
@@ -477,7 +477,7 @@ namespace CallProbes
 
         [Option('r', "z0", Required = true,
         HelpText = "Roughness length")]
-        public double z0 { get; set; }
+        public double Z0 { get; set; }
 
         [Option('z', "zref", Required = true,
         HelpText = "Reference height")]

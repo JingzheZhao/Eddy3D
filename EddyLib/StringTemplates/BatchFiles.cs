@@ -21,13 +21,15 @@ namespace EddyLib.StrTemp
 
         private static List<string> RCSimMultiCPU(OFRunSettings RunSettings)
         {
-            List<string> lst = new List<string>();
-            lst.Add("decomposePar");
-            lst.Add("mpiexec -np " + RunSettings.CPUs + @" renumberMesh -overwrite -parallel");
-            lst.Add("mpiexec -np " + RunSettings.CPUs + @" potentialFoam");
-            lst.Add("mpiexec -np " + RunSettings.CPUs + @" simpleFoam");
-            lst.Add("reconstructPar -latestTime");
-            lst.Add("checkMesh");
+            List<string> lst = new List<string>
+            {
+                "decomposePar",
+                "mpiexec -np " + RunSettings.CPUs + @" renumberMesh -overwrite -parallel",
+                "mpiexec -np " + RunSettings.CPUs + @" potentialFoam",
+                "mpiexec -np " + RunSettings.CPUs + @" simpleFoam",
+                "reconstructPar -latestTime",
+                "checkMesh"
+            };
             return lst;
         }
 
@@ -43,22 +45,26 @@ namespace EddyLib.StrTemp
 
         private static List<string> RCSimContinueMultiCPU(OFRunSettings RunSettings)
         {
-            List<string> lst = new List<string>();
-            lst.Add("mpiexec -np " + RunSettings.CPUs + @" simpleFoam");
-            lst.Add("reconstructPar -latestTime");
-            lst.Add("checkMesh");
+            List<string> lst = new List<string>
+            {
+                "mpiexec -np " + RunSettings.CPUs + @" simpleFoam",
+                "reconstructPar -latestTime",
+                "checkMesh"
+            };
             return lst;
         }
 
         private static List<string> RCMeshMultiCPU(OFRunSettings RunSettings)
         {
-            List<string> lst = new List<string>();
-            lst.Add("blockMesh");
-            lst.Add("surfaceFeatureExtract");
-            lst.Add("mpiexec -np " + RunSettings.CPUs + @" snappyHexMesh -overwrite");
-            lst.Add("reconstructParMesh -constant");
-            lst.Add("renumberMesh -overwrite");
-            lst.Add("checkMesh");
+            List<string> lst = new List<string>
+            {
+                "blockMesh",
+                "surfaceFeatureExtract",
+                "mpiexec -np " + RunSettings.CPUs + @" snappyHexMesh -overwrite",
+                "reconstructParMesh -constant",
+                "renumberMesh -overwrite",
+                "checkMesh"
+            };
             return lst;
         }
 

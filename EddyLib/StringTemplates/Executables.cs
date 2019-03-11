@@ -125,9 +125,9 @@ FoamFile
 }
 
     castellatedMesh true;");
-            sb.Append("snap "); if (MeshSettings.snappySetting == SnappySetting.BlocksSnapping || MeshSettings.snappySetting == SnappySetting.BlocksSnappingLayers) { sb.AppendLine("true;"); } else { sb.AppendLine("false;"); }
-            sb.Append("addLayers "); if (MeshSettings.snappySetting == SnappySetting.BlocksSnappingLayers) { sb.AppendLine("true;"); } else { sb.AppendLine("false;"); }
-            sb.Append(@"geometry
+            sb.AppendLine("snap "); if (MeshSettings.snappySetting == SnappySetting.BlocksSnapping || MeshSettings.snappySetting == SnappySetting.BlocksSnappingLayers) { sb.AppendLine("true;"); } else { sb.AppendLine("false;"); }
+            sb.AppendLine("addLayers "); if (MeshSettings.snappySetting == SnappySetting.BlocksSnappingLayers) { sb.AppendLine("true;"); } else { sb.AppendLine("false;"); }
+            sb.AppendLine(@"geometry
     {
         building.stl
         {
@@ -498,7 +498,7 @@ mergeTolerance 1E-6;
 ");
             return sb.ToString();
         }
-        public static string ControlDict(OFRunSettings RunSettings , OFBaseDomain DOM, List<Mesh> topologies, int numberOfTopologies)
+        public static string ControlDict(OFRunSettings RunSettings, OFBaseDomain DOM, List<Mesh> topologies, int numberOfTopologies)
         {
             var sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -521,13 +521,13 @@ libs
         ""libOpenFOAM.so""
         ""libutilityFunctionObjects.so""
         ""libsolverFunctionObjects.so""");
-        if (RunSettings.simEngine ==  SimEngine.Docker)
+            if (RunSettings.simEngine == SimEngine.Docker)
             {
                 sb.Append(@"""libsimpleSwakFunctionObjects.so""        
                 ""libswakFunctionObjects.so""        
-                ""libgroovyBC.so""");      
-             } 
-        sb.Append(@"           
+                ""libgroovyBC.so""");
+            }
+            sb.Append(@"           
 );
             application simpleFoam;
             startFrom latestTime;
@@ -549,7 +549,7 @@ libs
 #includeFunc residuals
 ");
             //if (topologies != null) {
-            sb.Append(EddyLib.StrTemp.OFExecDicts.FunctionObjCP(DOM,RunSettings, topologies, numberOfTopologies).ToString());
+            sb.Append(EddyLib.StrTemp.OFExecDicts.FunctionObjCP(DOM, RunSettings, topologies, numberOfTopologies).ToString());
             //}
             //else { sb.Append(@"};"); }
 
@@ -565,9 +565,9 @@ libs
                     enabled yes;
                     writeControl timeStep;
                     writeInterval " + RunSettings.writeInterval + @";
-                    UInf (" + DOM.BCond.Uinf[d].X + " " + DOM.BCond.Uinf[d].Y + " " + DOM.BCond.Uinf[d].Z + @");     // the undistrubed velocity at building height
-                    pInf " + DOM.BCond.pinf + @";        // the dynamic undisturbed pressure at building height
-                    pRef " + DOM.BCond.pref + @";        // the dynamic pressure at reference height (usually 10 m)
+                    UInf (" + Math.Round(DOM.BCond.Uinf[d].X, 1) + " " + Math.Round(DOM.BCond.Uinf[d].Y, 1) + " " + Math.Round(DOM.BCond.Uinf[d].Z, 1) + @");     // the undistrubed velocity at building height
+                    pInf " + Math.Round(DOM.BCond.pinf, 1) + @";        // the dynamic undisturbed pressure at building height
+                    pRef " + Math.Round(DOM.BCond.pref, 1) + @";        // the dynamic pressure at reference height (usually 10 m)
                     rhoInf              1.2;
                     calcTotal yes;
                     calcCoeff yes;

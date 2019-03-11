@@ -27,7 +27,7 @@ namespace EddyLib
         public int divsRadial;
         public int divisionsZ;
         public int divPerim;
-
+        public double gradingPerim;
 
 
         public double cellSizeInner;
@@ -36,7 +36,7 @@ namespace EddyLib
         public int equalDivisions;
 
 
-        public double gradingPerim;
+        
 
         public double sizeInnerR;
 
@@ -54,7 +54,7 @@ namespace EddyLib
             CombinedMesh = combinedMesh;
 
 
-            gradingPerim = 1.2;
+            gradingPerim = 1.0;
 
 
 
@@ -354,8 +354,8 @@ namespace EddyLib
         {
 
             Vector3d blockDimensionPerim = new Vector3d(perim[0].X, perim[0].Y, perim[0].Z) - new Vector3d(core[0].X, core[0].Y, core[0].Z);
-
-            return (int)(blockDimensionPerim.Length / blockDim / 1.41);
+            return (int)(blockDimensionPerim.Length / blockDim);
+            //return (int)(blockDimensionPerim.Length / blockDim / 1.41);
         }
         private static double BlockDimensionCore(Point3d[] core)
         {
@@ -1165,7 +1165,7 @@ faces
 
             //Split up every concentric ring and add them to a final list
 
-            var lists = Utilities.splitPointList(innerRadialListNoDupes, pointsOnRect.Length);
+            var lists = Utilities.SplitPointList(innerRadialListNoDupes, pointsOnRect.Length);
 
             // Close the loop for every list (add last element)
 

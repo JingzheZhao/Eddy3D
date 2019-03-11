@@ -12,7 +12,8 @@ namespace EddyLib
     {
         Windows10,
         Windows7,
-        Linux
+        Linux,
+        MaxOS
     }
     public enum TurbModel
     {

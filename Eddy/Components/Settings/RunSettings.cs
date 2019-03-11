@@ -35,7 +35,7 @@ namespace Eddy
         {
             pManager.AddIntegerParameter("Iterations", "Iter", "Specify the number of iterations to be simulated.", GH_ParamAccess.item, 1000);
             pManager.AddIntegerParameter("WriteInterval", "WriteInt", "Simulation write interval.", GH_ParamAccess.item, 20);
-            pManager.AddIntegerParameter("KeepTimeSteps", "TimeSteps", "Number of time steps to keep in simulation folder..", GH_ParamAccess.item, 2);
+            pManager.AddIntegerParameter("KeepTimeSteps", "TSteps", "Number of time steps to keep in simulation folder..", GH_ParamAccess.item, 2);
 
             pManager.AddIntegerParameter("Turbulence", "Turb", "Turbulence model.", GH_ParamAccess.item, 0);
             Param_Integer turb = pManager[3] as Param_Integer;
@@ -55,6 +55,12 @@ namespace Eddy
             simulationMode.AddNamedValue("robust but diffusive", 7);
 
             pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
+            pManager.AddIntegerParameter("Operation System", "OS", "Operation System.", GH_ParamAccess.item, -1); // Nothing specified
+            Param_Integer os = pManager[6] as Param_Integer;
+            os.AddNamedValue("Windows 7 & 8", 0);
+            os.AddNamedValue("Windows 10", 1);
+            os.AddNamedValue("Linux", 2);
+            os.AddNamedValue("Mac OS", 3);
         }
 
         /// <summary>
@@ -80,8 +86,8 @@ namespace Eddy
             int _keepTimeSteps = 2;
             int _mode = 0;
             int _turb = 0;
-            int _CPUs = 1;
-
+            int _CPUs = 0;
+            int _OS = -1;
 
 
             DA.GetData(0, ref _iter);
@@ -90,7 +96,7 @@ namespace Eddy
             DA.GetData(3, ref _mode);
             DA.GetData(4, ref _turb);
             DA.GetData(5, ref _CPUs);
-
+            DA.GetData(6, ref _OS);
 
             //TODO: Handle SimEngine
 
@@ -111,10 +117,26 @@ namespace Eddy
 
 
             var os = OSType.Windows10;
-            if (Utilities.IsWindows7)
+            if (Utilities.IsWindows7 && _OS == -1)
             {
                 os = OSType.Windows7;
             }
+            else if (_OS == 0)
+            {
+                os = OSType.Windows7;
+            }
+            else if (_OS == 1)
+            {
+                os = OSType.Windows10;
+            }
+            else if (_OS == 2)
+            {
+                os = OSType.Linux;
+            }
+            else {
+                os = OSType.MaxOS;
+            }
+
 
             DA.SetData(0, new OFRunSettings()
             {
@@ -126,6 +148,8 @@ namespace Eddy
                 turb = _turb,
                 CPUs = _CPUs,
                 ostype = os
+
+
             });
 
         }
