@@ -180,16 +180,20 @@ namespace EddyLib
 
         public static void WriteDockerInfo(string workingDirectory)
         {
+<<<<<<< HEAD
             StartProcessCMD(@"docker info > """ + workingDirectory + @"\dockerStatus""",true, false, false);          
+=======
+            StartProcessCMD(@"docker info > """ + workingDirectory + @"\dockerStatus""", true, true, true);
+>>>>>>> master
 
         }
 
-        public static void StartProcessCMD(string argument,bool createnowindow,  bool waitforexit = false, bool close = false, string executable = @"C:\Windows\System32\cmd.exe")
+        public static void StartProcessCMD(string argument, bool createnowindow, bool waitforexit = false, bool close = false, string executable = @"C:\Windows\System32\cmd.exe")
         {
             System.Diagnostics.Process p = new System.Diagnostics.Process();
             p.StartInfo.FileName = executable;
             p.StartInfo.UseShellExecute = false;
-            p.StartInfo.RedirectStandardInput = true;            
+            p.StartInfo.RedirectStandardInput = true;
             p.StartInfo.CreateNoWindow = createnowindow;
             p.Start();
             StreamWriter sw = p.StandardInput;
@@ -198,7 +202,7 @@ namespace EddyLib
 
             sw.Flush();
             if (waitforexit) { p.WaitForExit(); }
-            if (close) { p.Close(); }                    
+            if (close) { p.Close(); }
 
         }
 
@@ -409,15 +413,19 @@ namespace EddyLib
             return listOfPoints;
         }
 
-        public static List<string> GetDirectories(string path, string searchPattern = "*",   SearchOption searchOption = SearchOption.TopDirectoryOnly)
+        public static List<string> GetDirectories(string path, string searchPattern = "*", SearchOption searchOption = SearchOption.TopDirectoryOnly)
         {
             if (searchOption == SearchOption.TopDirectoryOnly)
+            {
                 return Directory.GetDirectories(path, searchPattern).ToList();
+            }
 
             var directories = new List<string>(GetDirectories(path, searchPattern));
 
             for (var i = 0; i < directories.Count; i++)
+            {
                 directories.AddRange(GetDirectories(directories[i], searchPattern));
+            }
 
             return directories;
         }
@@ -472,7 +480,7 @@ namespace EddyLib
 
         }
 
-       
+
 
         public static int CPUAutoCalc(string meshWorkingDirectory, int CPUSetByUser)
         {
@@ -590,9 +598,6 @@ namespace EddyLib
             {
                 try
                 {
-
-
-
                     using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     using (var sr = new StreamReader(fs, System.Text.Encoding.Default))
                     {
@@ -603,10 +608,6 @@ namespace EddyLib
                             lines.Add(line);
                         }
                     }
-
-
-
-
                 }
                 catch (Exception e)
                 {
@@ -617,7 +618,6 @@ namespace EddyLib
             return lines;
 
         }
-
 
         public static string ConvertComputeTimes(long elapsedMilliseconds)
         {
@@ -633,11 +633,92 @@ namespace EddyLib
             }
 
             return elapsedTime;
-
-
         }
 
-        public static List<int> ExportEvaluationHours(List<string> LBanalysis)
+        //private static int GetNumberOfHours(Interval inter)
+        //{
+        //    //Interval inter = new Interval(1000, 2000);
+        //    int numberOfHours = (int)(inter.T1 - inter.T0);
+        //    return numberOfHours;
+        //}
+
+        //public static List<int> ConcatAllLists(List<List<int>> inputList)
+        //{
+        //    var finalList = new List<int>();
+
+        //    for (int i = 0; i < inputList.Count; i++)
+        //    {
+        //        for (int j = 0; j < inputList[i].Count; i++)
+        //        {
+        //            finalList.Add(j);
+        //        }
+        //    }
+        //    return finalList;
+        //}
+
+        //public static List<List<int>> GetFullHoursListFromLB(List<List<string>> LBanalysisList)
+        //{
+        //    var fullHoursList = new List<List<int>>();
+        //    foreach (List<string> LBobj in LBanalysisList)
+        //    {
+        //        fullHoursList.Add(GetEvalHoursFromLB(LBobj));     
+        //    }
+        //    return fullHoursList;
+        //}
+
+        //public static List<List<int>> GetFullHoursListFromInt(List<Interval> list)
+        //{
+        //    var fullHoursList = new List<List<int>>();
+        //    foreach (Interval inter in list)
+        //    {
+        //        fullHoursList.Add(GetEvalHoursFromInterval(inter));
+        //    }
+        //    return fullHoursList;
+        //}
+
+        public static List<int> GetFullHoursListFromLB(List<string> LBanalysisList)
+        {
+            var fullHoursList = new List<int>();
+            //foreach (string LBobj in LBanalysisList)
+            //{
+                foreach (int hour in GetEvalHoursFromLB(LBanalysisList))
+                {
+                    fullHoursList.Add(hour);
+                }
+            //}
+            return fullHoursList;
+        }
+
+        public static List<int> GetFullHoursListFromInt(List<Interval> list)
+        {
+            var fullHoursList = new List<int>();
+            foreach (Interval inter in list)
+            {
+                foreach (int hour in GetEvalHoursFromInterval(inter))
+                {
+                    fullHoursList.Add(hour);
+                }
+            }
+            return fullHoursList;
+        }
+
+        private static List<int> GetEvalHoursFromInterval(Interval inter)
+        {
+            List<int> evalHours = new List<int>();
+
+            int startHour = (int)inter.T0;
+            int endHour = (int)inter.T1;
+
+            int numberOfHours = endHour - startHour;
+
+            for (int i = startHour; i < startHour + numberOfHours; i++)
+            {
+                evalHours.Add(i);
+            }
+            return evalHours;
+        }
+
+        private static List<int> GetEvalHoursFromLB(List<string> LBanalysis)
         {
             List<int> hoursToEvaluate = new List<int>();
 
@@ -677,16 +758,9 @@ namespace EddyLib
                             hoursToEvaluate.Add(cnt);
                         }
 
-
-
-
                     }
                 }
             }
-
-
-
-
 
             return hoursToEvaluate;
 
@@ -737,27 +811,27 @@ namespace EddyLib
             string[] lines = File.ReadAllLines(ABLConditionsFilePath);
 
 
-                        for (int i = 0; i<lines.Length; i++)
-                        {
-                            var l = lines[i];
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var l = lines[i];
 
 
 
-                            if (l.Contains("Uref"))
-                            {
-                                URef = double.Parse(l.Replace("Uref", "").Replace(";", "").Trim());
-                            }
+                if (l.Contains("Uref"))
+                {
+                    URef = double.Parse(l.Replace("Uref", "").Replace(";", "").Trim());
+                }
 
-                            if (l.Contains("z0"))
-                            {
-                                z0 = double.Parse(l.Replace("z0 uniform", "").Replace(";", "").Trim());
-                            }
+                if (l.Contains("z0"))
+                {
+                    z0 = double.Parse(l.Replace("z0 uniform", "").Replace(";", "").Trim());
+                }
 
-                            if (l.Contains("Zref"))
-                            {
-                                zref = double.Parse(l.Replace("Zref", "").Replace(";", "").Trim());
-                            }
-                        }
+                if (l.Contains("Zref"))
+                {
+                    zref = double.Parse(l.Replace("Zref", "").Replace(";", "").Trim());
+                }
+            }
 
         }
 
@@ -1046,7 +1120,7 @@ namespace EddyLib
                 }
             }
 
-           
+
 
 
 

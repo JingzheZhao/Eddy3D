@@ -18,14 +18,14 @@ namespace Eddy
     public class ParseHourlyU : GH_Component
     {
         /// <summary>
-        /// Each implementation of GH_Component must provide a public 
+        /// Each implementation of GH_Component must provide a public
         /// constructor without any arguments.
-        /// Category represents the Tab in which the component will appear, 
-        /// Subcategory the panel. If you use non-existing tab or panel names, 
+        /// Category represents the Tab in which the component will appear,
+        /// Subcategory the panel. If you use non-existing tab or panel names,
         /// new tabs/panels will automatically be created.
         /// </summary>
         public ParseHourlyU()
-          : base("ParseHourlyURed", "ParseHourlyURed", "ParseHourlyURed", "Eddy", "5 | PostProcessing")
+          : base("AnnualUToCSV", "AnnualUToCSV", "AnnualUToCSV", "Eddy", "postProcessing")
         {
         }
 
@@ -53,7 +53,7 @@ namespace Eddy
         /// <summary>
         /// This is the method that actually does the work.
         /// </summary>
-        /// <param name="DA">The DA object can be used to retrieve data from input parameters and 
+        /// <param name="DA">The DA object can be used to retrieve data from input parameters and
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
@@ -100,7 +100,7 @@ namespace Eddy
 
 
 
-            // Write Array to dataTree     
+            // Write Array to dataTree
 
 
 
@@ -110,7 +110,7 @@ namespace Eddy
             //    {
             //        UTree.Add(listOfAnnualData[c][r], new Grasshopper.Kernel.Data.GH_Path(c));
             //    }
-                
+
             //}
 
 
@@ -132,7 +132,7 @@ namespace Eddy
             {
                 for (int c = 0; c < numberOfWindDirs; c++)
                 {
-                    
+
                     UFile.AppendLine(listOfAnnualData[c][r] + ",");
 
                 }
@@ -153,7 +153,7 @@ namespace Eddy
             ReductionFile.AppendLine("");
             for (int r = 0; r < numberOfProbes; r++)
             {
-                
+
                 for (int c = 0; c < numberOfWindDirs; c++)
                 {
 
@@ -183,8 +183,8 @@ namespace Eddy
         }
 
         /// <summary>
-        /// Each component must have a unique Guid to identify it. 
-        /// It is vital this Guid doesn't change otherwise old ghx files 
+        /// Each component must have a unique Guid to identify it.
+        /// It is vital this Guid doesn't change otherwise old ghx files
         /// that use the old ID will partially fail during loading.
         /// </summary>
         public override Guid ComponentGuid

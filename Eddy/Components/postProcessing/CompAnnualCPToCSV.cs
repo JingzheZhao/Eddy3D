@@ -18,14 +18,14 @@ namespace Eddy
     public class ParseAnnualCP : GH_Component
     {
         /// <summary>
-        /// Each implementation of GH_Component must provide a public 
+        /// Each implementation of GH_Component must provide a public
         /// constructor without any arguments.
-        /// Category represents the Tab in which the component will appear, 
-        /// Subcategory the panel. If you use non-existing tab or panel names, 
+        /// Category represents the Tab in which the component will appear,
+        /// Subcategory the panel. If you use non-existing tab or panel names,
         /// new tabs/panels will automatically be created.
         /// </summary>
         public ParseAnnualCP()
-          : base("ParseAnnualCP", "ParseAnnualCP", "ParseAnnualCP", "Eddy", "5 | PostProcessing")
+          : base("AnnualCPToCSV", "AnnualCPToCSV", "AnnualCPToCSV", "Eddy", "PostProcessing")
         {
         }
 
@@ -54,7 +54,7 @@ namespace Eddy
         /// <summary>
         /// This is the method that actually does the work.
         /// </summary>
-        /// <param name="DA">The DA object can be used to retrieve data from input parameters and 
+        /// <param name="DA">The DA object can be used to retrieve data from input parameters and
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
@@ -163,8 +163,8 @@ namespace Eddy
                 Resources.Eddy_parseCp;//return null;
 
         /// <summary>
-        /// Each component must have a unique Guid to identify it. 
-        /// It is vital this Guid doesn't change otherwise old ghx files 
+        /// Each component must have a unique Guid to identify it.
+        /// It is vital this Guid doesn't change otherwise old ghx files
         /// that use the old ID will partially fail during loading.
         /// </summary>
         public override Guid ComponentGuid => new Guid("{ED246ABD-F3E7-4AEC-A24C-CD6ADA25A389}");

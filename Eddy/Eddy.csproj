@@ -71,10 +71,10 @@
     <Compile Include="Components\Setup\BCondConstantU.cs" />
     <Compile Include="Components\OSSettings.cs" />
     <Compile Include="Components\postProcessing\CompComputeFlowRateFromCp.cs" />
-    <Compile Include="Components\postProcessing\CompParseHourlyU.cs" />
-    <Compile Include="Components\postProcessing\CompParseAnnualCP.cs" />
-    <Compile Include="Components\Setup\BCondABL.cs" />
-    <Compile Include="Components\Setup\CompDomainCyl.cs" />
+    <Compile Include="Components\postProcessing\CompAnnualUToCSV.cs" />
+    <Compile Include="Components\postProcessing\CompAnnualCPToCSV.cs" />
+    <Compile Include="Components\BCond\CompBCondABL.cs" />
+    <Compile Include="Components\Domain\CompBlockMeshCyl.cs" />
     <Compile Include="Components\Misc\CompCellSize.cs" />
     <Compile Include="Components\postProcessing\CompComputeFlowRateFromU.cs" />
     <Compile Include="Components\postProcessing\CompVisProbesCustom.cs" />
@@ -183,7 +183,7 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>

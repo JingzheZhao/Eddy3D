@@ -138,9 +138,8 @@ namespace CallOC
                         // -----------------
 
 
-                        var ReductionData = UTCI.LoadReductionArrayFromCSV(options.WindReductionDataPath, sensorPointCount);
-
-                        var windReduction = UTCI.GetWindReduction(ReductionData, numberOfHours, sensorPointCount, windDirList, weather);
+                        var ReductionDataCSV = UTCI.LoadWindReductionArrayFromCSV(options.WindReductionDataPath);
+                        var windReduction = UTCI.GetWindReduction(ReductionDataCSV, numberOfHours, windDirList, weather);
 
                         //// Importing probeHeight from probe file to scale U down to pedestrian level
                         Console.WriteLine("Parsing height of probes to scale down wind velocity from weather file.");
@@ -179,13 +178,13 @@ namespace CallOC
                         var uncertaintyMRTArray = new bool[numberOfHours, sensorPointCount];
                         var uncertaintyWindArray = new bool[numberOfHours, sensorPointCount];
 
-                        UTCI.CalculateUTCIArray(probes, numberOfHours, weather, DirRad, DiffRad, windReduction, z0, zref, URef, out uncertaintyMRTArray, out uncertaintyWindArray, out sw, out Utci);
+                        UTCI.CalcUTCIArray(probes, numberOfHours, weather, DirRad, DiffRad, windReduction, z0, zref, URef, out uncertaintyMRTArray, out uncertaintyWindArray, out sw, out Utci);
 
                         Console.WriteLine(Utilities.ConvertComputeTimes(sw.ElapsedMilliseconds));
 
                         Console.WriteLine("Writing UTCI results...");
 
-                        UTCI.WriteUTCIDataToCSV(options.WorkingDir, probes, numberOfHours, options.Verbose, uncertaintyMRTArray, uncertaintyWindArray, Utci, debug, weather, errorLog, DiffRad, DirRad, windReduction, URef, zref, z0);
+                        UTCI.WriteUTCIToCSV(options.WorkingDir, probes, numberOfHours, options.Verbose, uncertaintyMRTArray, uncertaintyWindArray, Utci, debug, weather, errorLog, DiffRad, DirRad, windReduction, URef, zref, z0);
 
                         Console.WriteLine("Done");
 
