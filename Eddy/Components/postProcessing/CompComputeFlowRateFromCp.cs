@@ -7,7 +7,6 @@ using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 // In order to load the result of this wizard, you will also need to
@@ -80,10 +79,10 @@ namespace Eddy
             OFResult RES = null;
             DA.GetData(0, ref RES);
 
-            var cdList = new List<double>();
+            List<double> cdList = new List<double>();
 
 
-            var meshes = new List<Mesh>();
+            List<Mesh> meshes = new List<Mesh>();
             //DA.GetDataList(2, cdList);
 
             DA.GetDataList(2, meshes);
@@ -92,10 +91,10 @@ namespace Eddy
             //if (cdList.Count == 0)
             //{
 
-                foreach (Mesh m in meshes)
-                {
-                    cdList.Add(0.7);
-                }
+            foreach (Mesh m in meshes)
+            {
+                cdList.Add(0.7);
+            }
 
             //}
 
@@ -109,18 +108,18 @@ namespace Eddy
             StringBuilder errorLog = new StringBuilder();
 
             //var cps = new DataTree<double>();
-            GH_Structure<GH_Number> cps_ghnumber;
-            DA.GetDataTree(1, out cps_ghnumber);
+            DA.GetDataTree(1, out GH_Structure<GH_Number> cps_ghnumber);
 
             int cnt = 0;
-            var cps = new DataTree<double>();
-            foreach (var b in cps_ghnumber.Branches)
+            DataTree<double> cps = new DataTree<double>();
+            foreach (List<GH_Number> b in cps_ghnumber.Branches)
             {
-                var path = cps_ghnumber.get_Path(cnt);
+                GH_Path path = cps_ghnumber.get_Path(cnt);
                 cnt++;
-                foreach (var i in b) {
+                foreach (GH_Number i in b)
+                {
 
-                    cps.Add((double)i.Value, path);
+                    cps.Add(i.Value, path);
 
                 }
             }
@@ -133,9 +132,9 @@ namespace Eddy
 
             //double Area1 = 0;
             //double Area2 = 0;
-            var VolumetricFlowRate = new DataTree<double>(); 
-            var VelocityCenterNode = new DataTree<double>();
-            var ACR = new DataTree<double>();
+            DataTree<double> VolumetricFlowRate = new DataTree<double>();
+            DataTree<double> VelocityCenterNode = new DataTree<double>();
+            DataTree<double> ACR = new DataTree<double>();
             //Mesh mesh1 = meshes[0];
             //Mesh mesh2 = meshes[1];
 
@@ -143,7 +142,7 @@ namespace Eddy
             {
 
 
-               
+
 
                 List<double> MeshAreas = new List<double>();
 
@@ -160,9 +159,13 @@ namespace Eddy
 
 
 
-                if (cps.Paths.Count != RES.Domain.BCond.windDirs.Count) return;
-                foreach (var path in cps.Paths)
-                { 
+                if (cps.Paths.Count != RES.Domain.BCond.windDirs.Count)
+                {
+                    return;
+                }
+
+                foreach (GH_Path path in cps.Paths)
+                {
 
                     if (GH_Document.IsEscapeKeyDown())
                     {
@@ -192,7 +195,7 @@ namespace Eddy
                 //for (int i = 0; i < DOM.BCInflow.windDirs.Count; ++i)
                 //{
                 //    GH_Path path = new GH_Path(i);
-                    
+
 
                 //    if (GH_Document.IsEscapeKeyDown())
                 //    {
@@ -223,7 +226,7 @@ namespace Eddy
             DA.SetDataTree(0, VolumetricFlowRate);
             DA.SetDataTree(1, VelocityCenterNode);
             DA.SetDataTree(2, ACR);
-           
+
         }
 
 

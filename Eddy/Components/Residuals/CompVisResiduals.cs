@@ -45,7 +45,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Res", "Res", "Res", GH_ParamAccess.item);
 
             //pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 0);
             //Param_Integer param = pManager[1] as Param_Integer;

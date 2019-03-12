@@ -501,7 +501,7 @@ mergeTolerance 1E-6;
         }
         public static string ControlDict(OFRunSettings RunSettings, OFBaseDomain DOM, List<Mesh> topologies, int numberOfTopologies)
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
@@ -558,7 +558,7 @@ libs
         }
         public static string FunctionObjCP(OFBaseDomain DOM, OFRunSettings RunSettings, List<Mesh> evaluationTopology, int d)
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             sb.Append(@"cp2
 {
                     type pressure;
@@ -611,7 +611,7 @@ patch" + i + @"
         }
         public static string TopoSetDict(List<Mesh> evaluationTopology)
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      / F ield | OpenFOAM: The Open Source CFD Toolbox |
@@ -669,9 +669,9 @@ FoamFile
         }
 
 
-        public static string SampleProbes(List<Point3d> listOfPoints, string enumeratedProbeName, string cleanedOFField)
+        public static string SampleProbes(List<Point3d> listOfPoints, OFField ofField)
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
   | =========                 |                                                 |
   | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
@@ -680,7 +680,7 @@ FoamFile
   |    \\/     M anipulation  |                                                 |
   \*---------------------------------------------------------------------------*/
 
-" + enumeratedProbeName + @"
+" + ofField.ProbeName + @"
 {
 
                 type probes;
@@ -691,7 +691,7 @@ FoamFile
 
                 setFormat csv;
 
-                fields (" + cleanedOFField + @");
+                fields (" + ofField.FieldName + @");
 
                 probeLocations
                   (");

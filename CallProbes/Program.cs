@@ -19,25 +19,25 @@ namespace CallProbes
 
             if (Utilities.CheckLicence() == true)
             {
-                var options = new Options();
+                Options options = new Options();
                 if (CommandLine.Parser.Default.ParseArguments(args, options))
                 {
                     StringBuilder errorLog = new StringBuilder();
 
                     Console.WriteLine("Working directory: {0}", options.WorkingDir);
-                    errorLog.AppendLine(String.Format("Working directory: {0}", options.WorkingDir));
+                    errorLog.AppendLine(string.Format("Working directory: {0}", options.WorkingDir));
 
                     Console.WriteLine("Probes: {0}", options.Probes);
-                    errorLog.AppendLine(String.Format("Probes: {0}", options.Probes));
+                    errorLog.AppendLine(string.Format("Probes: {0}", options.Probes));
 
                     Console.WriteLine("Wind directions considered: {0}", options.WindDirs);
-                    errorLog.AppendLine(String.Format("Wind directions considered: {0}", options.WindDirs));
+                    errorLog.AppendLine(string.Format("Wind directions considered: {0}", options.WindDirs));
 
                     Console.WriteLine("Mode (0=cp;1=U): {0}", options.Mode);
-                    errorLog.AppendLine(String.Format("Mode (0=cp;1=U): {0}", options.Mode));
+                    errorLog.AppendLine(string.Format("Mode (0=cp;1=U): {0}", options.Mode));
 
                     Console.WriteLine("Verbose: {0}", options.Verbose);
-                    errorLog.AppendLine(String.Format("Verbose: {0}", options.Verbose));
+                    errorLog.AppendLine(string.Format("Verbose: {0}", options.Verbose));
 
 
 
@@ -46,10 +46,10 @@ namespace CallProbes
                     double z0 = options.Z0;
 
                     // Read all variables from one file path. Variables are usually identical for all wind directions so this should be robust.
-                    var filePath = options.WorkingDir + "\\" + options.WindDirs.Split(',')[0] + @"\0.org\ABLConditions";
+                    string filePath = options.WorkingDir + "\\" + options.WindDirs.Split(',')[0] + @"\0.org\ABLConditions";
 
-                    var windDirs = options.WindDirs.Split(',');
-                    var numberOfWindDirs = windDirs.Length;
+                    string[] windDirs = options.WindDirs.Split(',');
+                    int numberOfWindDirs = windDirs.Length;
 
 
 
@@ -71,7 +71,7 @@ namespace CallProbes
 
                         for (int i = 0; i < numberOfWindDirs; i++)
                         {
-                            var fp = options.WorkingDir + @"\" + windDirs[i] + @"\system\U_Probes";
+                            string fp = options.WorkingDir + @"\" + windDirs[i] + @"\system\U_Probes";
                             if (!File.Exists(fp))
                             {
                                 errorLog.AppendLine(@"The wind direction """ + windDirs[i] + @""" misses the probing dictionary. Please connect the ""writeProbes"" component and recompute the solution.");
@@ -81,7 +81,7 @@ namespace CallProbes
 
                         for (int i = 0; i < numberOfWindDirs; i++)
                         {
-                            var fp = options.WorkingDir + @"\" + windDirs[i] + @"\constant\polyMesh";
+                            string fp = options.WorkingDir + @"\" + windDirs[i] + @"\constant\polyMesh";
                             if (!Directory.Exists(fp))
                             {
                                 errorLog.AppendLine(@"The wind direction """ + windDirs[i] + @""" misses the ""\constant\polyMesh"" dictionary. Please make sure that directory exists.");
@@ -91,7 +91,7 @@ namespace CallProbes
 
                         for (int i = 0; i < numberOfWindDirs; i++)
                         {
-                            var ABLfilePath = options.WorkingDir + "\\" + options.WindDirs.Split(',')[i] + @"\0.org\ABLConditions";
+                            string ABLfilePath = options.WorkingDir + "\\" + options.WindDirs.Split(',')[i] + @"\0.org\ABLConditions";
                             if (!File.Exists(ABLfilePath)) { Console.WriteLine(ABLfilePath + " not found. Exiting"); errorLog.AppendLine(ABLfilePath + " not found. Exiting"); }
                         }
 
@@ -115,7 +115,7 @@ namespace CallProbes
 
 
                         // Delete files in subfolders
-                        var listOfDirsInfo = new List<string>();
+                        List<string> listOfDirsInfo = new List<string>();
 
                         for (int i = 0; i < numberOfWindDirs; i++)
                         {
@@ -148,7 +148,7 @@ namespace CallProbes
 
 
                         double[][] probes = EddyLib.RadianceFiles.readPTS(options.Probes);
-                        var numberOfProbes = probes.GetLength(0);
+                        int numberOfProbes = probes.GetLength(0);
 
                         List<Point3d> pointList = new List<Point3d>();
 
@@ -261,8 +261,10 @@ namespace CallProbes
 
                                 // Parse values
                                 //Thread.Sleep(2 * probes.GetLength(0));
-                                int fieldtype = 1; //vectors
-                                var U = new Probes(pointList, pointName, options.WorkingDir + "\\" + windDirs[i], OFfield, fieldtype);
+                                //int fieldtype = 1; //vectors
+
+                                OFField currField = new OFField(OFfield, pointName);
+                                Probes U = new Probes(pointList, options.WorkingDir + "\\" + windDirs[i], currField);
 
                                 // Create datatree
 
@@ -271,7 +273,7 @@ namespace CallProbes
                             }
 
 
-                            List<string> fullProbeFilePath = new List<String>();
+                            List<string> fullProbeFilePath = new List<string>();
 
                             //var numberOfProbes = File.ReadAllLines(fullProbeFilePath[0]).Count(); //defined above                    
                             //string[] abc = replacedString.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
@@ -283,7 +285,7 @@ namespace CallProbes
 
                             for (int i = 0; i < numberOfWindDirs; i++)
                             {
-                                var path = options.WorkingDir + "\\" + windDirs[i] + @"\postProcessing\U_Probes.csv";
+                                string path = options.WorkingDir + "\\" + windDirs[i] + @"\postProcessing\U_Probes.csv";
                                 if (!File.Exists(path)) { Console.WriteLine(path + " not found. Exiting"); errorLog.AppendLine(path + " not found. Exiting"); return; }
                                 fullProbeFilePath.Add(path);
                             }
@@ -302,13 +304,12 @@ namespace CallProbes
 
                             Vector3d[,] AnnualData = new Vector3d[numberOfWindDirs, numberOfProbes];
 
-                            var UData = new string[numberOfWindDirs][];
+                            string[][] UData = new string[numberOfWindDirs][];
 
-                            for (int i= 0; i < numberOfWindDirs; i++)
+                            for (int i = 0; i < numberOfWindDirs; i++)
                             {
                                 UData[i] = File.ReadAllLines(fullProbeFilePath[i]);
                             }
-
 
                             //UData[0] = File.ReadAllLines(fullProbeFilePath[0]);
                             //UData[1] = File.ReadAllLines(fullProbeFilePath[1]);
@@ -319,7 +320,7 @@ namespace CallProbes
                             //UData[6] = File.ReadAllLines(fullProbeFilePath[6]);
                             //UData[7] = File.ReadAllLines(fullProbeFilePath[7]);
 
-                            using (var progress = new ASCIIProgressBar())
+                            using (ASCIIProgressBar progress = new ASCIIProgressBar())
                             {
                                 int cnt = 0;
                                 Parallel.For(0, numberOfWindDirs,
@@ -350,7 +351,7 @@ namespace CallProbes
 
                             System.Text.StringBuilder UFile = new System.Text.StringBuilder();
 
-                            using (var progress = new ASCIIProgressBar())
+                            using (ASCIIProgressBar progress = new ASCIIProgressBar())
                             {
                                 int cnt = 0;
 
@@ -371,7 +372,7 @@ namespace CallProbes
                                     for (int c = 0; c < numberOfWindDirs; c++)
                                     {
 
-                                        UFile.Append(String.Format("{0:0.##}", AnnualData[c, r].X) + "," + String.Format("{0:0.##}", AnnualData[c, r].Y) + "," + String.Format("{0:0.##}", AnnualData[c, r].Z) + ",");
+                                        UFile.Append(string.Format("{0:0.##}", AnnualData[c, r].X) + "," + string.Format("{0:0.##}", AnnualData[c, r].Y) + "," + string.Format("{0:0.##}", AnnualData[c, r].Z) + ",");
                                         progress.Report((double)cnt / numberOfProbes * numberOfWindDirs);
                                         cnt++;
                                     }
@@ -394,14 +395,14 @@ namespace CallProbes
 
                             // Calculate the undisturbed velocity at probing height !!!This only makes sense for horizontal slices!!!
 
-                            using (var progress = new ASCIIProgressBar())
+                            using (ASCIIProgressBar progress = new ASCIIProgressBar())
                             {
                                 int cnt = 0;
 
 
 
-                                var probingHeight = pointList[0].Z;
-                                var UProbingHeight = ((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((probingHeight + z0) / z0);
+                                double probingHeight = pointList[0].Z;
+                                double UProbingHeight = ((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((probingHeight + z0) / z0);
 
 
                                 System.Text.StringBuilder ReductionFile = new System.Text.StringBuilder();
@@ -416,7 +417,7 @@ namespace CallProbes
                                 {
                                     for (int c = 0; c < numberOfWindDirs; c++)
                                     {
-                                        ReductionFile.Append(String.Format("{0:0.#}", Math.Round(Math.Sqrt(Math.Pow(AnnualData[c, r].X, 2) + Math.Pow(AnnualData[c, r].Y, 2) + Math.Pow(AnnualData[c, r].Z, 2)) / UProbingHeight, 3)) + ",");
+                                        ReductionFile.Append(string.Format("{0:0.#}", Math.Round(Math.Sqrt(Math.Pow(AnnualData[c, r].X, 2) + Math.Pow(AnnualData[c, r].Y, 2) + Math.Pow(AnnualData[c, r].Z, 2)) / UProbingHeight, 3)) + ",");
                                         progress.Report((double)cnt / numberOfProbes * numberOfWindDirs);
                                         cnt++;
                                     }

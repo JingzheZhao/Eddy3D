@@ -4,7 +4,6 @@ using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
-using System.IO;
 
 
 // In order to load the result of this wizard, you will also need to
@@ -26,7 +25,7 @@ namespace Eddy
         public BlockMeshBox()
           : base("DomainBox", "DomainBox",
               "DomainBox",
-              "Eddy", "Setup")
+              "Eddy", ".Setup")
         {
         }
 
@@ -39,7 +38,7 @@ namespace Eddy
         {
 
 
-          
+
             pManager.AddBrepParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
             pManager.AddGeometryParameter("Terrain", "Terrain", "Terrain Geometry. Make sure the terrain geometry is bigger than the ground plane of the wind tunnel.", GH_ParamAccess.list);
 
@@ -49,8 +48,8 @@ namespace Eddy
             pManager.AddNumberParameter("Block size", "BS", "Block size", GH_ParamAccess.item, 20);
 
             //pManager.AddGenericParameter("RAM", "RAM", "RAM", GH_ParamAccess.item);
-            
-        
+
+
 
             pManager[1].Optional = true;
         }
@@ -60,7 +59,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-          
+
             pManager.AddGenericParameter("Domain", "Dom", "Simulation Domain", GH_ParamAccess.item);
             pManager.AddGenericParameter("Mesh", "Msh", "Mesh", GH_ParamAccess.item);
         }
@@ -74,20 +73,20 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-            
+
             //public Box DomainBoundaryBox;
             List<GeometryBase> geometries = new List<GeometryBase>();
             List<GeometryBase> terrain = new List<GeometryBase>();
 
 
 
-          
+
 
             DA.GetDataList("Geometry", geometries);
             DA.GetDataList("Terrain", terrain);
 
             double blockDimension = 0;
-            
+
 
             BoundaryConditions BCond;
             GH_ObjectWrapper gobj = null;
@@ -104,7 +103,7 @@ namespace Eddy
 
 
             DA.GetData("Block size", ref blockDimension);
-            
+
 
 
             Mesh combinedMeshes = new Mesh();
@@ -113,9 +112,9 @@ namespace Eddy
             //string windowsVersion = Utilities.GetOSInfo();
             //bool isWindows7 = Utilities.IsWindows7;
             string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            
-         
-            
+
+
+
 
 
 

@@ -94,6 +94,8 @@ namespace EddyLib
                     //var time1 = "0";
                     var time2 = "0";
 
+                    // This causes issues if the logfile isn't there
+
                     using (var fs = new FileStream(logFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     using (var sr = new StreamReader(fs, System.Text.Encoding.Default))
                     {
@@ -138,10 +140,10 @@ namespace EddyLib
 
 
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
 
-                    throw;
+                    throw new System.ArgumentException(e.Message);
                 }
             }
 
@@ -178,7 +180,7 @@ namespace EddyLib
 
         public static void WriteDockerInfo(string workingDirectory)
         {
-            StartProcessCMD(@"docker info > """ + workingDirectory + @"\dockerStatus""",true, false, false, true);          
+            StartProcessCMD(@"docker info > """ + workingDirectory + @"\dockerStatus""",true, false, false);          
 
         }
 
@@ -200,13 +202,13 @@ namespace EddyLib
 
         }
 
-        public static void StartProcessCMD(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, string executable = "")
+        public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, string executable = @"C:\Windows\System32\cmd.exe")
         {
             System.Diagnostics.Process p = new System.Diagnostics.Process();
             p.StartInfo.FileName = executable;
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.RedirectStandardInput = true;
-            p.StartInfo.CreateNoWindow = false;
+            p.StartInfo.CreateNoWindow = createnowindow;
             //p.Start();
             //StreamWriter sw = p.StandardInput;
             //String strInputText = argument;
@@ -563,10 +565,10 @@ namespace EddyLib
                     }
 
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
 
-                    throw;
+                    throw new System.ArgumentException(e.Message);
                 }
             }
             return processGotKilled;
@@ -723,47 +725,7 @@ namespace EddyLib
             return area1 + area2;
         }
 
-        public static double[] FilterExtremeCPs(double[] inputList)
-        {
-            double[] outputList = new double[inputList.Length];
-
-
-            for (int i = 0; i < inputList.Length; i++)
-            {
-
-                if (inputList[i] < -1)
-                {
-                    outputList[i] = -1;
-                }
-                else if (inputList[i] > 1)
-                {
-                    outputList[i] = 1;
-                }
-                else
-                {
-                    outputList[i] = inputList[i];
-                }
-            }
-            return outputList;
-        }
-
-        public static Vector3d[] FilterExtremeVectorLengths(Vector3d[] inputList)
-        {
-            List<Vector3d> outputList = new List<Vector3d>();
-
-
-            for (int i = 0; i < inputList.Length; i++)
-            {
-
-                if (inputList[i].Length < 1000)
-                {
-                    outputList.Add(inputList[i]);
-
-                }
-            }
-
-            return outputList.ToArray();
-        }
+        
 
         public static void ParseABLConditionsFromCaseFolder(string ABLConditionsFilePath, out double URef, out double z0, out double zref)
         {

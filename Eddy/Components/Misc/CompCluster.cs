@@ -30,7 +30,7 @@ namespace Eddy
         public Cluster()
           : base("Cluster", "Cluster",
               "Cluster",
-              "Eddy", "Misc")
+              "Eddy", "PreProcessing")
         {
         }
 

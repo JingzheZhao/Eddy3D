@@ -30,7 +30,7 @@ namespace Eddy
         public MeshSettings()
           : base("Mesh Settings", "MSet",
               "Mesh Settings",
-              "Eddy", "Settings")
+              "Eddy", ".Settings")
         {
         }
 

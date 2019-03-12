@@ -26,7 +26,7 @@ namespace Eddy
         public GeometryExportComponent()
           : base("STLExporter", "STLExporter",
               "STLExporter",
-              "Eddy", "Misc")
+              "Eddy", "PreProcessing")
         {
         }
 

@@ -25,8 +25,8 @@ namespace EddyLib.StrTemp
             {
                 "decomposePar",
                 "mpiexec -np " + RunSettings.CPUs + @" renumberMesh -overwrite -parallel",
-                "mpiexec -np " + RunSettings.CPUs + @" potentialFoam",
-                "mpiexec -np " + RunSettings.CPUs + @" simpleFoam",
+                "mpiexec -np " + RunSettings.CPUs + @" potentialFoam -parallel",
+                "mpiexec -np " + RunSettings.CPUs + @" simpleFoam -parallel",
                 "reconstructPar -latestTime",
                 "checkMesh"
             };
@@ -47,7 +47,7 @@ namespace EddyLib.StrTemp
         {
             List<string> lst = new List<string>
             {
-                "mpiexec -np " + RunSettings.CPUs + @" simpleFoam",
+                "mpiexec -np " + RunSettings.CPUs + @" simpleFoam -parallel",
                 "reconstructPar -latestTime",
                 "checkMesh"
             };
@@ -74,13 +74,13 @@ namespace EddyLib.StrTemp
         "snappyHexMesh -overwrite",
         "checkMesh" };
 
-        private static string DockerPrefixPath(OFBaseDomain DOM,OFMeshSettings MeshSettings)
+        private static string DockerPrefixPath(OFBaseDomain DOM, OFMeshSettings MeshSettings)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(@"docker run - v """ + MeshSettings.OFbaseWorkingDir + DOM.BCond.windDirs[0] + @":/ home / openfoam / ""--entrypoint = """" - it hfdresearch / swak4foamandpyfoam:latest - v4.1 bash - c ""source / opt / openfoam4 / etc / bashrc; cd / home / openfoam;");
             return sb.ToString();
         }
-        private static string DockerPrefixPath(OFBaseDomain DOM, OFMeshSettings MeshSettings,int d)
+        private static string DockerPrefixPath(OFBaseDomain DOM, OFMeshSettings MeshSettings, int d)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(@"docker run - v """ + MeshSettings.OFbaseWorkingDir + DOM.BCond.windDirs[d] + @":/ home / openfoam / ""--entrypoint = """" - it hfdresearch / swak4foamandpyfoam:latest - v4.1 bash - c ""source / opt / openfoam4 / etc / bashrc; cd / home / openfoam;");
@@ -89,14 +89,21 @@ namespace EddyLib.StrTemp
         private static string AppendSuffixDocker()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("| tee -a  log");
+            sb.AppendLine("| tee -a log");
             return sb.ToString();
         }
+
+        //private static string AppendSuffixWin()
+        //{
+        //    StringBuilder sb = new StringBuilder();
+        //    sb.AppendLine("> log");
+        //    return sb.ToString();
+        //}
 
         private static string AppendSuffixWin()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("> log");
+            sb.Append("| tee -a log");
             return sb.ToString();
         }
 
@@ -110,7 +117,7 @@ namespace EddyLib.StrTemp
                 {
                     foreach (string str in RCMeshMultiCPU(RunSettings))
                     {
-                        sb.Append(DockerPrefixPath(DOM,MeshSettings) + str + AppendSuffixDocker());
+                        sb.Append(DockerPrefixPath(DOM, MeshSettings) + str + AppendSuffixDocker());
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -122,7 +129,7 @@ namespace EddyLib.StrTemp
 
                     foreach (string str in RCMeshSingleCPU)
                     {
-                        sb.Append(DockerPrefixPath(DOM,MeshSettings) + str + AppendSuffixDocker());
+                        sb.Append(DockerPrefixPath(DOM, MeshSettings) + str + AppendSuffixDocker());
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -135,14 +142,14 @@ namespace EddyLib.StrTemp
             {
                 if (RunSettings.CPUs > 1)
                 {
-                    sb.Append(TempBlueCFDSuf(RCMeshMultiCPU(RunSettings), MeshSettings.meshWorkingDir));
+                    sb.Append(TempBlueCFD(RCMeshMultiCPU(RunSettings), MeshSettings.meshWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
                 }
                 else
                 {
-                    sb.Append(TempBlueCFDSuf(RCMeshSingleCPU, MeshSettings.meshWorkingDir));
+                    sb.Append(TempBlueCFD(RCMeshSingleCPU, MeshSettings.meshWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
@@ -194,7 +201,7 @@ namespace EddyLib.StrTemp
 
 
 
-        public static string Run_sim(OFMeshSettings MeshSettings,OFRunSettings RunSettings, OFBaseDomain DOM, int d)
+        public static string Run_sim(OFMeshSettings MeshSettings, OFRunSettings RunSettings, OFBaseDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -208,7 +215,7 @@ namespace EddyLib.StrTemp
 
                     foreach (string str in RCSimMultiCPU(RunSettings))
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings,d) + str + AppendSuffixDocker());
+                        sb.Append(DockerPrefixPath(DOM, MeshSettings, d) + str + AppendSuffixDocker());
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -218,7 +225,7 @@ namespace EddyLib.StrTemp
                 {
                     foreach (string str in RCSimSingleCPU)
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings,d) + str + AppendSuffixDocker());
+                        sb.Append(DockerPrefixPath(DOM, MeshSettings, d) + str + AppendSuffixDocker());
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -230,14 +237,14 @@ namespace EddyLib.StrTemp
             {
                 if (RunSettings.CPUs > 1)
                 {
-                    sb.Append(TempBlueCFDSuf(RCSimMultiCPU(RunSettings), caseWorkingDir));
+                    sb.Append(TempBlueCFD(RCSimMultiCPU(RunSettings), caseWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
                 }
                 else
                 {
-                    sb.Append(TempBlueCFDSuf(RCSimSingleCPU, caseWorkingDir));
+                    sb.Append(TempBlueCFD(RCSimSingleCPU, caseWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
@@ -249,7 +256,7 @@ namespace EddyLib.StrTemp
             return sb.ToString();
         }
 
-        public static string Run_sim_continue(OFMeshSettings MeshSettings,OFRunSettings RunSettings, OFBaseDomain DOM, int d)
+        public static string Run_sim_continue(OFMeshSettings MeshSettings, OFRunSettings RunSettings, OFBaseDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -264,7 +271,7 @@ namespace EddyLib.StrTemp
 
                     foreach (string str in RCSimContinueMultiCPU(RunSettings))
                     {
-                        sb.Append(DockerPrefixPath(DOM,MeshSettings, d) + str + AppendSuffixDocker());
+                        sb.Append(DockerPrefixPath(DOM, MeshSettings, d) + str + AppendSuffixDocker());
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -274,7 +281,7 @@ namespace EddyLib.StrTemp
                 {
                     foreach (string str in RCSimContinueSingleCPU)
                     {
-                        sb.Append(DockerPrefixPath(DOM,MeshSettings, d) + str + AppendSuffixDocker());
+                        sb.Append(DockerPrefixPath(DOM, MeshSettings, d) + str + AppendSuffixDocker());
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -286,14 +293,14 @@ namespace EddyLib.StrTemp
             {
                 if (RunSettings.CPUs > 1)
                 {
-                    sb.Append(TempBlueCFDSuf(RCSimContinueMultiCPU(RunSettings), caseWorkingDir));
+                    sb.Append(TempBlueCFD(RCSimContinueMultiCPU(RunSettings), caseWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
                 }
                 else
                 {
-                    sb.Append(TempBlueCFDSuf(RCSimContinueSingleCPU, caseWorkingDir));
+                    sb.Append(TempBlueCFD(RCSimContinueSingleCPU, caseWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
@@ -383,7 +390,6 @@ namespace EddyLib.StrTemp
             StringBuilder sb = new StringBuilder();
             if (RunSettings.simEngine == SimEngine.Docker)//Docker
             {
-
                 foreach (string str in RCBlockMeshSingleCPU)
                 {
                     sb.Append(DockerPrefixPath(DOM, MeshSettings) + str + AppendSuffixDocker());
@@ -394,10 +400,9 @@ namespace EddyLib.StrTemp
             }
             else
             {
-
                 foreach (string str in RCBlockMeshSingleCPU)
                 {
-                    sb.Append(TempBlueCFDSuf(RCBlockMeshSingleCPU, MeshSettings.meshWorkingDir));
+                    sb.Append(TempBlueCFD(RCBlockMeshSingleCPU, MeshSettings.meshWorkingDir));
                 }
 #if DEBUG
                 sb.AppendLine("PAUSE");
@@ -406,15 +411,14 @@ namespace EddyLib.StrTemp
             return sb.ToString();
         }
 
-        public static string Run_checkBadMesh(OFRunSettings RunSettings, OFMeshSettings MeshSettings,  OFBaseDomain DOM)
+        public static string Run_checkBadMesh(OFRunSettings RunSettings, OFMeshSettings MeshSettings, OFBaseDomain DOM)
         {
             StringBuilder sb = new StringBuilder();
             if (RunSettings.simEngine == SimEngine.Docker)//Docker
             {
-
                 foreach (string str in RCCheckMeshSingleCPU)
                 {
-                    sb.Append(DockerPrefixPath(DOM,MeshSettings) + str + AppendSuffixDocker());
+                    sb.Append(DockerPrefixPath(DOM, MeshSettings) + str + AppendSuffixDocker());
                 }
 #if DEBUG
                 sb.AppendLine("PAUSE");
@@ -422,10 +426,9 @@ namespace EddyLib.StrTemp
             }
             else
             {
-
                 foreach (string str in RCCheckMeshSingleCPU)
                 {
-                    sb.Append(TempBlueCFDSuf(RCMeshSingleCPU, MeshSettings.meshWorkingDir));
+                    sb.Append(TempBlueCFD(RCCheckMeshSingleCPU, MeshSettings.meshWorkingDir));
                 }
 #if DEBUG
                 sb.AppendLine("PAUSE");
@@ -441,16 +444,13 @@ namespace EddyLib.StrTemp
             sb.AppendLine(@"call """ + MeshSettings.baseWorkingDir + @"run_mesh.bat""");
             foreach (int i in DOM.BCond.windDirs)
             {
-
                 sb.AppendLine(@"call """ + MeshSettings.baseWorkingDir + i + @"_run_sim.bat""");
             }
             sb.AppendLine(@"call """ + MeshSettings.baseWorkingDir + @"run_ray.bat""");
             sb.AppendLine(@"call """ + MeshSettings.baseWorkingDir + @"run_probes.bat""");
             sb.AppendLine(@"call """ + MeshSettings.baseWorkingDir + @"run_utci.bat""");
 #if DEBUG
-
             sb.AppendLine("PAUSE");
-
 #endif
             return sb.ToString();
         }
@@ -464,9 +464,7 @@ namespace EddyLib.StrTemp
                 sb.AppendLine("call " + MeshSettings.baseWorkingDir + i + "_run_sim.bat");
             }
 #if DEBUG
-
             sb.AppendLine("PAUSE");
-
 #endif
             return sb.ToString();
         }
@@ -548,45 +546,44 @@ namespace EddyLib.StrTemp
 
             return sb.ToString();
         }
+               
 
 
-
-        private static string TempBlueCFDSuf
-            (List<string> commands, string caseDir, string installationPath = @"C:\OpenFOAM\")
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.Append(string.Format(@"cd ""{0}""
-call setvars.bat
-set PATH =% HOME %\msys64\usr\bin;% PATH %
-cd ""{1}""" + System.Environment.NewLine, installationPath, caseDir));
-
-            foreach (string str in commands)
-            {
-                //sb.AppendLine(str + " " +  AppendSuffixWin());
-                sb.AppendLine(str);
-            }
-
-            return sb.ToString();
-
-        }
 
         public static string TempBlueCFD
             (List<string> commands, string caseDir, string installationPath = @"C:\OpenFOAM\")
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append(string.Format(@"cd ""{0}""
-call setvars.bat
-set PATH =% HOME %\msys64\usr\bin;% PATH %
+            sb.Append(string.Format(@"call ""{0}setvars.bat""
+set PATH=%HOME%\msys64\usr\bin;%PATH%
 cd ""{1}""" + System.Environment.NewLine, installationPath, caseDir));
 
             foreach (string str in commands)
             {
-                sb.AppendLine(str);
+                sb.AppendLine(str + " " + AppendSuffixWin());
+                //sb.AppendLine(str);
             }
 
             return sb.ToString();
 
         }
+
+//        public static string TempBlueCFD
+//            (List<string> commands, string caseDir, string installationPath = @"C:\OpenFOAM\")
+//        {
+//            StringBuilder sb = new StringBuilder();
+//            sb.Append(string.Format(@"call ""{0}""setvars.bat
+//set PATH =%HOME%\msys64\usr\bin;%PATH%
+//cd ""{1}""" + System.Environment.NewLine, installationPath, caseDir));
+
+//            foreach (string str in commands)
+//            {
+//                sb.AppendLine(str);
+//            }
+
+//            return sb.ToString();
+
+//        }
 
 
     }

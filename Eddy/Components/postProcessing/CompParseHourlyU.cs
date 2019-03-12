@@ -25,7 +25,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public ParseHourlyU()
-          : base("ParseHourlyURed", "ParseHourlyURed", "ParseHourlyURed", "Eddy", "postProcessing")
+          : base("ParseHourlyURed", "ParseHourlyURed", "ParseHourlyURed", "Eddy", "PostProcessing")
         {
         }
 

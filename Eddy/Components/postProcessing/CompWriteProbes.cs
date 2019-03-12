@@ -3,7 +3,6 @@ using EddyLib;
 using Grasshopper;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
-using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
@@ -33,7 +32,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public WriteProbes()
-          : base("WriteProbes", "WriteProbes", "WriteProbes", "Eddy", "postProcessing")
+          : base("WriteProbes", "WriteProbes", "WriteProbes", "Eddy", "PostProcessing")
         {
         }
 
@@ -44,14 +43,19 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
-            pManager.AddPointParameter("points", "points", "points", GH_ParamAccess.list);
-            //pManager.AddTextParameter("pointName", "pointName", "pointName", GH_ParamAccess.item);
-
-            pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 1);
-            Param_Integer param = pManager[2] as Param_Integer;
-            param.AddNamedValue("cp_Probes", 0);
-            param.AddNamedValue("U_Probes", 1);
+            pManager.AddGenericParameter("Result", "Res", "Res", GH_ParamAccess.item);
+            pManager.AddPointParameter("List of Points", "Points", "Points", GH_ParamAccess.list);
+            pManager.AddTextParameter("Name", "Name", "Name", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Field", "Field", "Field", GH_ParamAccess.item, 1);
+            Param_Integer param = pManager[3] as Param_Integer;
+            param.AddNamedValue("U", 0);
+            param.AddNamedValue("total(p)_coeff", 1);
+            param.AddNamedValue("p", 2);
+            param.AddNamedValue("epsilon", 3);
+            param.AddNamedValue("omega", 4);
+            param.AddNamedValue("k", 5);
+            param.AddNamedValue("nut", 6);
+            param.AddNamedValue("phi", 7);
 
             //pManager.AddBooleanParameter("Run", "Run", "Clean the directory", GH_ParamAccess.item, false);
 
@@ -78,15 +82,16 @@ namespace Eddy
         {
 
             OFResult RES = null;
-            DA.GetData(0, ref RES);
+            DA.GetData("Result", ref RES);
 
 
-            int mode = 0;
+            int OFFieldInt = 0;
             List<Point3d> listOfPoints = new List<Point3d>();
+            string probeName = "";
 
-            DA.GetDataList(1, listOfPoints);
-            //DA.GetData(2, ref pointName);
-            DA.GetData(2, ref mode);
+            DA.GetDataList("List of Points", listOfPoints);
+            DA.GetData("Name", ref probeName);
+            DA.GetData("Field", ref OFFieldInt);
             //DA.GetData(3, ref run);
 
 
@@ -112,7 +117,7 @@ namespace Eddy
                 listOfPoints.RemoveAt(listOfPoints.Count - 1);
             }
 
-            var numberOfProbes = listOfPoints.Count();
+            int numberOfProbes = listOfPoints.Count();
 
             // Error handling
 
@@ -135,7 +140,7 @@ namespace Eddy
 
 
 
-
+            OFField currField = new OFField(OFField.ReformatOFFields(OFFieldInt), probeName);
 
 
             if (numberOfProbes > 0)
@@ -145,45 +150,36 @@ namespace Eddy
                 uTree = new DataTree<Vector3d>();
 
 
-
-
-                if (mode == 0) // cp
+                if (OFFieldInt == 0) // cp
                 {
 
 
-
                     string pointName = "cp_Probes";
-                    string OFfield = "total(p)_coeff";
 
                     for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
                     {
 
-                        File.WriteAllText(RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + "controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(RES.RunSettings,RES.Domain, null, i));
-                        File.WriteAllText(RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + pointName, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, pointName, OFfield));
-
-
+                        File.WriteAllText(RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + "controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(RES.RunSettings, RES.Domain, null, i));
+                        File.WriteAllText(RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + pointName, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, currField));
 
                     }
 
 
-
-
                 }
 
-                if (mode == 1) // U
+                if (OFFieldInt == 1) // U
                 {
 
 
                     string pointName = "U_Probes";
-                    string OFfield = "U";
 
-                    for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
+                    foreach (int v in RES.Domain.BCond.windDirs)
                     {
 
 
                         // Write the dicts
 
-                        File.WriteAllText(RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + pointName, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, pointName, OFfield));
+                        File.WriteAllText(RES.WorkingDirectory + v + @"\system\" + pointName, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, currField));
 
 
 

@@ -26,7 +26,7 @@ namespace Eddy
         public SimpleFoam()
           : base("Simulation", "Simulation",
               "Simulation",
-              "Eddy", "Simulation")
+              "Eddy", ".Setup")
         {
         }
 
@@ -87,8 +87,9 @@ namespace Eddy
         {
 
             // mode to select simulation environment
-            if (runWithBlueCFD) { Message = "BlueCFD";  }
+            if (runWithBlueCFD) { Message = "BlueCFD"; }
             else { Message = "Docker"; }
+
 
 
 
@@ -131,11 +132,11 @@ namespace Eddy
                 if (gobjRunSet.Value is OFRunSettings)
                 {
                     RunSettings = (OFRunSettings)gobjRunSet.Value;
-                   
+
                 }
             }
 
-        // Crashes Rhino
+            // Crashes Rhino
             //if (!runWithBlueCFD)
             //{
             //    RunSettings.simEngine = SimEngine.Docker;
@@ -157,7 +158,7 @@ namespace Eddy
                 //{
                 //    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "For Windows 7 and 8, the working directory must be in the user folder because of constraint with a deprecated Docker version.."); return;
                 //}
-               
+
             }
             baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
 
@@ -278,6 +279,8 @@ namespace Eddy
 
             }
 
+
+
             if (RunSettings.iter == 0 || RunSettings.keepTimeSteps == 0 || RunSettings.writeInterval == 0)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide valid inputs.");
@@ -300,15 +303,15 @@ namespace Eddy
 
             if (runMeshing == true)
             {
-                Utilities.StartProcessCMD("", false, true, false, true, baseWorkingDirectory + @"\run_mesh.bat");
+                Utilities.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_mesh.bat");
             }
 
             if (runSimulation == true)
             {
-                Utilities.StartProcessCMD("", false, true, false, true, baseWorkingDirectory + @"\run_sim_all.bat");
+                Utilities.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_sim_all.bat");
             }
 
-           
+
 
             #endregion
 

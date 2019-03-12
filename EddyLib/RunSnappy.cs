@@ -14,7 +14,7 @@ namespace EddyLib
 
             // @ Patrick: Make cleaning function and handle behavior.. set to always true now
             //CLEAN UP THE MESS
-            bool Clean = true;
+            bool Clean = false;
             if (Clean == true)
             {
 
@@ -115,9 +115,9 @@ namespace EddyLib
 
 
 
-            
 
-            
+
+
 
             if (!Directory.Exists(MeshSettings.meshStlDir))
             {
@@ -141,7 +141,7 @@ namespace EddyLib
             locationInMesh = DOM.locationInMesh;
 
 
-            
+
 
             File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "snappyHexMeshDict"), EddyLib.StrTemp.OFExecDicts.SnappyHexMeshDict(MeshSettings, DOM));
             File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "surfaceFeatureExtractDict"), EddyLib.StrTemp.OFExecDicts.SurfaceFeatureExtractDict());
@@ -150,7 +150,7 @@ namespace EddyLib
             File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "meshQualityDict"), EddyLib.StrTemp.OFExecDicts.MeshQualityDict());
             File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "decomposeParDict"), EddyLib.StrTemp.OFExecDicts.DecomposeParDict(RunSettings));
 
-            File.WriteAllText(Path.Combine(MeshSettings.baseWorkingDir + "run_checkBadMesh.bat"), EddyLib.StrTemp.BatFiles.Run_checkBadMesh(RunSettings, MeshSettings,DOM));
+            File.WriteAllText(Path.Combine(MeshSettings.baseWorkingDir + "run_checkBadMesh.bat"), EddyLib.StrTemp.BatFiles.Run_checkBadMesh(RunSettings, MeshSettings, DOM));
 
 
 

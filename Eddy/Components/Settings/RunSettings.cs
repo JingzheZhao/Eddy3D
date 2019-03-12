@@ -22,7 +22,7 @@ namespace Eddy
         public RunSettings()
           : base("Run Settings", "RSet",
               "Run Settings",
-              "Eddy", "Settings")
+              "Eddy", ".Settings")
         {
         }
 

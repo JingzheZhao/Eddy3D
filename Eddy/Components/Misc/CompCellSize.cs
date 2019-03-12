@@ -29,7 +29,7 @@ namespace Eddy
         public CellSize()
           : base("CellSize", "CellSize",
               "CellSize",
-              "Eddy", "Mesh")
+              "Eddy", "PreProcessing")
         {
         }
 

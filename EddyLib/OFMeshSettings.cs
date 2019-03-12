@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace EddyLib
+﻿namespace EddyLib
 {
 
     public enum SnappySetting
@@ -41,7 +39,7 @@ namespace EddyLib
 
         // BlockMesh
 
-        private readonly double gradingPerim;
+        //private readonly double gradingPerim;
 
         //public double GradingPerim { get => gradingPerim; set => gradingPerim = value; }
 
@@ -74,7 +72,7 @@ namespace EddyLib
 
         public override string ToString()
         {
-            return String.Format(@"accBuilding = {0}
+            return string.Format(@"accBuilding = {0}
 accFeatures = {1}
 accRefinement = {2}
 accGround = {3}

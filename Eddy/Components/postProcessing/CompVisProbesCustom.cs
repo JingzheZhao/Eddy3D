@@ -3,7 +3,6 @@ using EddyLib;
 using Grasshopper;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
-using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
@@ -97,7 +96,7 @@ namespace Eddy
         {
 
             OFResult RES = null;
-            DA.GetData(0, ref RES);           
+            DA.GetData(0, ref RES);
 
 
 
@@ -114,11 +113,11 @@ namespace Eddy
             DA.GetData(4, ref run);
 
 
-            Probes.ReformatOFFields(OFFieldInt, out string OFField, out int fieldType);
+            //Probes.ReformatOFFields(OFFieldInt, out string OFField, out int fieldType);
 
             //Discard points outside
             listOfPoints = Utilities.DiscardPointsOutsideDomain(listOfPoints, RES.Domain);
-            var numberOfProbes = listOfPoints.Count();
+            int numberOfProbes = listOfPoints.Count();
 
 
             // Error handling
@@ -144,7 +143,7 @@ namespace Eddy
             }
 
             // Export probes file
-            File.WriteAllText(Path.Combine(RES.WorkingDirectory + "\\" + "run_probes.bat"), EddyLib.StrTemp.BatFiles.Run_Probes(RES.Domain,RES.MeshSettings));
+            File.WriteAllText(Path.Combine(RES.WorkingDirectory + "\\" + "run_probes.bat"), EddyLib.StrTemp.BatFiles.Run_Probes(RES.Domain, RES.MeshSettings));
 
 
             // export pts file for Daysim
@@ -161,19 +160,23 @@ namespace Eddy
             }
 
 
-            var treeDouble = new DataTree<double>();
-            var treeVector = new DataTree<Vector3d>();
+            DataTree<double> treeDouble = new DataTree<double>();
+            DataTree<Vector3d> treeVector = new DataTree<Vector3d>();
 
+            string ofField = OFField.ReformatOFFields(OFFieldInt);
+            OFField currField = new OFField(ofField, enumeratedProbeName);
 
             if (numberOfProbes > 0)
             {
+
 
 
                 try
                 {
 
 
-                    if (fieldType == 0) // double
+                    #region NUMBERS
+                    if (currField.FieldType == OFField.fieldType.number)
                     {
 
                         StringBuilder command = new StringBuilder();
@@ -181,7 +184,7 @@ namespace Eddy
 
                         for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
                         {
-                            var pathToPointFile = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\constant\polyMesh\points";
+                            string pathToPointFile = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\constant\polyMesh\points";
                             if (!File.Exists(pathToPointFile))
                             {
                                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The file  """ + pathToPointFile + @""" does not exist. Please make sure that a mesh with point exists.");
@@ -189,20 +192,20 @@ namespace Eddy
                             }
 
 
-                            var path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + enumeratedProbeName;
+                            string path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + currField.ProbeName;
 
                             // cp parsing
                             File.WriteAllText(RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + "controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(RES.RunSettings, RES.Domain, null, i));
-                            File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, enumeratedProbeName, OFField));
+                            File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, currField));
 
                             // Write the dicts
                             if (RES.RunSettings.simEngine == SimEngine.Docker)
                             {
-                                command.Append(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime | tee  " + RES.Domain.BCond.windDirs[i] + @"/log_probes;");
+                                command.Append(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + currField.ProbeName + @" -latestTime | tee  " + RES.Domain.BCond.windDirs[i] + @"/log_probes;");
                             }
                             else
                             {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
-                                command.AppendLine(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime");
+                                command.AppendLine(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + currField.ProbeName + @" -latestTime");
                             }
                         }
 
@@ -216,7 +219,7 @@ namespace Eddy
                             else
                             {
                                 //Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString(), "type log" }, RES.WorkingDirectory), false, true, true);
-                                Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory), false, true, true, false);
+                                Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory), false, true, true);
                             }
 
                         }
@@ -226,15 +229,15 @@ namespace Eddy
                         for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
                         {
 
-                            var caseDir = RES.WorkingDirectory + "\\" + RES.Domain.BCond.windDirs[i];
-                            string pathToProbeFile = Probes.GetFullPathToProbeFile(enumeratedProbeName, caseDir, OFField);
+                            string currentCaseDir = RES.WorkingDirectory + "\\" + RES.Domain.BCond.windDirs[i];
+                            string pathToProbeFile = Probes.GetFullPathToProbeFile(currentCaseDir, currField);
                             if (File.Exists(pathToProbeFile))
                             {
-                                Probes Numbers = new Probes(listOfPoints, enumeratedProbeName, caseDir, OFField, fieldType);
+                                Probes Numbers = new Probes(listOfPoints, currentCaseDir, currField);
 
                                 // Create datatree
 
-                                treeDouble.AddRange(Utilities.FilterExtremeCPs(Numbers.numberValues), new Grasshopper.Kernel.Data.GH_Path(i));
+                                treeDouble.AddRange(Numbers.ResultNum, new Grasshopper.Kernel.Data.GH_Path(i));
                             }
                             else
                             {
@@ -244,8 +247,10 @@ namespace Eddy
                         }
 
                     }
+                    #endregion
 
-                    if (fieldType == 1) //vector
+                    #region VECTORS
+                    if (currField.FieldType == OFField.fieldType.vector)
                     {
 
                         StringBuilder command = new StringBuilder();
@@ -255,7 +260,7 @@ namespace Eddy
 
                         for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
                         {
-                            var pathToPointFile = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\constant\polyMesh\points";
+                            string pathToPointFile = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\constant\polyMesh\points";
                             if (!File.Exists(pathToPointFile))
                             {
                                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The file  """ + pathToPointFile + @""" does not exist. Please make sure that a mesh with point exists.");
@@ -265,14 +270,14 @@ namespace Eddy
                             // Write the dicts
                             if (RES.RunSettings.simEngine == SimEngine.Docker)
                             {
-                                var path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + enumeratedProbeName;
-                                File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, enumeratedProbeName, OFField));
+                                string path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + enumeratedProbeName;
+                                File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, currField));
                                 command.Append(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime | tee  " + RES.Domain.BCond.windDirs[i] + @"/log_probes;");
                             }
                             else
                             {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
-                                var path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + enumeratedProbeName;
-                                File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, enumeratedProbeName, OFField));
+                                string path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + enumeratedProbeName;
+                                File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, currField));
                                 command.AppendLine(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime");
                             }
                         }
@@ -286,24 +291,23 @@ namespace Eddy
                             else
                             {
                                 // Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString(), "type log" }, RES.WorkingDirectory), false, true, true);
-                                Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory), false, true, true, false);
+                                Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory), false, true, true);
                             }
                         }
                         //Thread.Sleep(2 * numberOfProbes);
 
                         for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
                         {
-                           
-                            var caseDir = RES.WorkingDirectory + "\\" + RES.Domain.BCond.windDirs[i];
-                            string pathToProbeFile = Probes.GetFullPathToProbeFile(enumeratedProbeName, caseDir, OFField);
+
+                            string currentCaseDir = RES.WorkingDirectory + "\\" + RES.Domain.BCond.windDirs[i];
+                            string pathToProbeFile = Probes.GetFullPathToProbeFile(currentCaseDir, currField);
                             if (File.Exists(pathToProbeFile))
                             {
 
-                                var Vectors = new Probes(listOfPoints, enumeratedProbeName, caseDir, OFField, fieldType);
-
+                                Probes Vectors = new Probes(listOfPoints, currentCaseDir, currField);
                                 // Create datatree
 
-                                treeVector.AddRange(Vectors.vectorValues, new Grasshopper.Kernel.Data.GH_Path(i));
+                                treeVector.AddRange(Vectors.ResultVec, new Grasshopper.Kernel.Data.GH_Path(i));
                             }
                             else
                             {
@@ -313,21 +317,21 @@ namespace Eddy
 
                         }
                     }
+                    #endregion
 
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-
-                    throw;
+                    throw new System.ArgumentException(e.Message);
                 }
             }
 
-            if (fieldType == 0)
+            if (currField.FieldType == OFField.fieldType.number)
             {
                 DA.SetDataTree(1, treeDouble);
                 DA.SetDataList(0, listOfPoints);
             }
-            else if (fieldType == 1)
+            else if (currField.FieldType == OFField.fieldType.vector)
             {
                 DA.SetDataTree(1, treeVector);
                 DA.SetDataList(0, listOfPoints);
