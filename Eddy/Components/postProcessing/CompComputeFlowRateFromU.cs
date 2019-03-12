@@ -27,7 +27,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public CompComputeFlowRateFromU()
-          : base("ComputeFlowRateFromU", "FlowRateU", "Compute flow rates from velocity vectors", "Eddy", "PostProcessing")
+          : base("ComputeFlowRateFromU", "FlowRateU", "Compute flow rates from velocity vectors", "Eddy", "5 | PostProcessing")
         {
         }
         

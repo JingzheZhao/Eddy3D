@@ -34,7 +34,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public CompCalcUTCI()
-          : base("CalcUTCI", "CalcUTCI", "PostProcessing", "Eddy", "UTCI")
+          : base("CalcUTCI", "CalcUTCI", "PostProcessing", "Eddy", "6 | Outdoor Comfort")
         {
         }
 

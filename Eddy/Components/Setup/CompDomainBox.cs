@@ -25,7 +25,7 @@ namespace Eddy
         public BlockMeshBox()
           : base("DomainBox", "DomainBox",
               "DomainBox",
-              "Eddy", ".Setup")
+              "Eddy", "1 | Setup")
         {
         }
 

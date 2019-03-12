@@ -173,7 +173,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public ReadResults()
-          : base("Read Results", "Read", "Read Simulation Results", "Eddy", "UTCI")
+          : base("Read Results", "Read", "Read Simulation Results", "Eddy", "6 | Outdoor Comfort")
         {
         }
 

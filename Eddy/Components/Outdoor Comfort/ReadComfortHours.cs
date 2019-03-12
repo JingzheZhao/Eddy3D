@@ -32,7 +32,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public ReadComfortHours()
-          : base("ReadComfortHours", "ReadComfortHours", "Read annual accumulated comfort hours in % from UTCI.", "Eddy", "UTCI")
+          : base("ReadComfortHours", "ReadComfortHours", "Read annual accumulated comfort hours in % from UTCI.", "Eddy", "6 | Outdoor Comfort")
         {
         }
 

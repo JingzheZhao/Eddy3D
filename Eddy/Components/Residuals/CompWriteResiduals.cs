@@ -25,7 +25,7 @@ namespace Eddy
         public ResidualWriter()
         : base("WriteResiduals", "WriteResiduals",
         "Write",
-        "Eddy", "Residuals")
+        "Eddy", "4 | Residuals")
         {
         }
 

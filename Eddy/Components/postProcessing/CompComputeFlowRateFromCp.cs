@@ -30,7 +30,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public CompComputeFlowRateFromCp()
-              : base("ComputeFlowRateFromCp", "FlowRateCp", "Compute flow rates from pressure coefficients", "Eddy", "PostProcessing")
+              : base("ComputeFlowRateFromCp", "FlowRateCp", "Compute flow rates from pressure coefficients", "Eddy", "5 | PostProcessing")
         {
         }
 

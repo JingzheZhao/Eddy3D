@@ -38,7 +38,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public CompVisProbesCustom()
-          : base("VisProbes", "VisProbes", "PostProcessing", "Eddy", "PostProcessing")
+          : base("VisProbes", "VisProbes", "PostProcessing", "Eddy", "5 | PostProcessing")
         {
         }
 

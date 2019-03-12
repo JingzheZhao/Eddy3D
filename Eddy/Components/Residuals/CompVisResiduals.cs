@@ -34,7 +34,7 @@ namespace Eddy
         public VisResiduals()
         : base("VisResiduals", "VisResiduals",
         "Vis",
-        "Eddy", "Residuals")
+        "Eddy", "4 | Residuals")
         {
         }
 

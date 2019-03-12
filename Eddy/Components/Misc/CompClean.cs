@@ -29,7 +29,7 @@ namespace Eddy
         public Clean()
           : base("Clean", "Clean",
               "Clean",
-              "Eddy", "PreProcessing")
+              "Eddy", "3 | PreProcessing")
         {
         }
 

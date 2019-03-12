@@ -23,7 +23,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public BCondConstU()
-          : base("ConstU", "ConstU", "ConstU", "Eddy", ".Setup")
+          : base("ConstU", "ConstU", "ConstU", "Eddy", "1 | Setup")
         {
             //dirs.Add(0);
         }

@@ -28,7 +28,7 @@ namespace Eddy
         public BlockMesh()
           : base("DomainCyl", "DomainCyl",
               "DomainCyl",
-              "Eddy", ".Setup")
+              "Eddy", "1 | Setup")
         {
         }
 

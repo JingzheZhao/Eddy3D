@@ -29,7 +29,7 @@ namespace Eddy
         public CellSize()
           : base("CellSize", "CellSize",
               "CellSize",
-              "Eddy", "PreProcessing")
+              "Eddy", "3 | PreProcessing")
         {
         }
 
@@ -40,9 +40,9 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
-            pManager.AddNumberParameter("blockMeshCellSize", "blockMeshCellSize", "Cell size in meters", GH_ParamAccess.item);
-            pManager.AddNumberParameter("desiredCellSize", "desiredCellSize", "Cell size in meters", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Domain", "Dom", "Domain", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Block Size", "BS", "Cell size in meters", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Desired CellSize", "DS", "Cell size in meters", GH_ParamAccess.item);
             //pManager.AddBooleanParameter("", "Run", "Clean the directory", GH_ParamAccess.item, false);
 
         }
@@ -52,7 +52,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddIntegerParameter("Acc", "Acc", "Accuracy needed", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Acc in levels of refinement.", "Acc", "Accuracy needed.", GH_ParamAccess.item);
         }
 
 

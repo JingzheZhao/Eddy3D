@@ -32,7 +32,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public WriteProbes()
-          : base("WriteProbes", "WriteProbes", "WriteProbes", "Eddy", "PostProcessing")
+          : base("WriteProbes", "WriteProbes", "WriteProbes", "Eddy", "5 | PostProcessing")
         {
         }
 

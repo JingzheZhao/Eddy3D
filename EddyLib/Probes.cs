@@ -70,7 +70,7 @@ namespace EddyLib
             }
             else if (fieldName == "phi")
             {
-                FieldType = fieldType.vector;
+                FieldType = fieldType.number;
             }
         }
 

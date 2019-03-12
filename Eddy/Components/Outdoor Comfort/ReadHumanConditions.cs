@@ -40,7 +40,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public ReadHumanConditions()
-          : base("ReadHumanConditions", "ReadHumanConditions", "Read annual human conditions from UTCI.", "Eddy", "UTCI")
+          : base("ReadHumanConditions", "ReadHumanConditions", "Read annual human conditions from UTCI.", "Eddy", "6 | Outdoor Comfort")
         {
         }
 

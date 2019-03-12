@@ -40,7 +40,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public ReadUTCIHourly()
-          : base("ReadUTCIByHour", "ReadUTCIByHour", "ReadUTCIByHour", "Eddy", "UTCI")
+          : base("ReadUTCIByHour", "ReadUTCIByHour", "ReadUTCIByHour", "Eddy", "6 | Outdoor Comfort")
         {
         }
 

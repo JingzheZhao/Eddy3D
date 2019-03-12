@@ -43,7 +43,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public CompLoadUTCI()
-          : base("ReadUTCIByProbe", "ReadUTCIByProbe", "Read UTCI by probe", "Eddy", "UTCI")
+          : base("ReadUTCIByProbe", "ReadUTCIByProbe", "Read UTCI by probe", "Eddy", "6 | Outdoor Comfort")
         {
         }
 
