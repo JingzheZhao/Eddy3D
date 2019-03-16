@@ -180,11 +180,11 @@ namespace EddyLib
 
         public static void WriteDockerInfo(string workingDirectory)
         {
-<<<<<<< HEAD
-            StartProcessCMD(@"docker info > """ + workingDirectory + @"\dockerStatus""",true, false, false);          
-=======
-            StartProcessCMD(@"docker info > """ + workingDirectory + @"\dockerStatus""", true, true, true);
->>>>>>> master
+
+            StartProcessCMD(@"docker info > """ + workingDirectory + @"\dockerStatus""",true, false, false);        
+
+            //StartProcessCMD(@"docker info > """ + workingDirectory + @"\dockerStatus""", true, true, true);
+
 
         }
 
@@ -718,7 +718,7 @@ namespace EddyLib
             return evalHours;
         }
 
-        private static List<int> GetEvalHoursFromLB(List<string> LBanalysis)
+        public static List<int> GetEvalHoursFromLB(List<string> LBanalysis)
         {
             List<int> hoursToEvaluate = new List<int>();
 
@@ -1143,6 +1143,17 @@ namespace EddyLib
             WebClient webClient = new WebClient();
             webClient.DownloadFile(URL, FilePath);
 
+        }
+
+
+        public static double Rad2Deg(Vector3d windVec)
+        {
+            var vec1 = new Vector3d(0, 1, 0);
+            var vec2 = windVec;
+
+            var rad = Math.Acos(vec1 * vec2 / vec1.Length * vec2.Length);
+            var ang = rad * 180 / Math.PI;
+            return ang;
         }
     }
 

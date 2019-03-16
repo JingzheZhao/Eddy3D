@@ -22,10 +22,10 @@ namespace Eddy
     {
 
         // exposure
-        public override GH_Exposure Exposure
-        {
-            get { return GH_Exposure.hidden; }
-        }
+        //public override GH_Exposure Exposure
+        //{
+        //    get { return GH_Exposure.hidden; }
+        //}
 
 
 
@@ -38,8 +38,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public Cluster()
-          : base("Cluster", "Cluster",
-              "Cluster",
+          : base("Wind Rose Cluster", "Cluster", "Wind Rose Cluster",
               "Eddy", "3 | PreProcessing")
         {
         }
@@ -52,7 +51,7 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddNumberParameter("Dir", "Dir", "Wind directions (deg)", GH_ParamAccess.list);
-            pManager.AddIntegerParameter("Bins", "Bins", "Number of bins", GH_ParamAccess.item, 8);
+            pManager.AddIntegerParameter("Budget", "Budget", "Number of Wind Directions", GH_ParamAccess.item, 8);
 
         }
 
@@ -62,8 +61,9 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("Centroids", "C", "Centroids", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Clusters", "Cl", "Clusters", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Dist. Centroids", "DC", "Distinct Centroids", GH_ParamAccess.item);
 
+            pManager.AddGenericParameter("Clusters", "Cl", "Clusters", GH_ParamAccess.item);            
             pManager.AddGenericParameter("Breaks", "B", "Natural Breaks", GH_ParamAccess.item);
 
 
@@ -89,6 +89,7 @@ namespace Eddy
 
             var dirsRad = new List<double>();
             foreach (double d in dirsDeg){
+
                 dirsRad.Add(d * Math.PI / 180.0);
             }
 
@@ -110,12 +111,24 @@ namespace Eddy
 
             var results = KMeans.Cluster<KMpt>(kmd, bins, 5000,null,1);
             var Centroids = new List<double>();
+            var DistinctCentroids = new List<double>();
+
             foreach (int i in results.Centroids) {
 
                Centroids.Add(dirsDeg[i]);
             }
 
+            foreach (int i in results.Centroids.Distinct())
+            {
+
+                DistinctCentroids.Add(dirsDeg[i]);
+            }
+
+            
+
             var Clusters = new DataTree<Point3d>();
+            
+
             for (int i = 0; i <  results.Clusters.Length; i++)
             {
                 var c = results.Clusters[i];
@@ -124,23 +137,24 @@ namespace Eddy
                     //Clusters.Add(dirsDeg[pt.Id], new Grasshopper.Kernel.Data.GH_Path(i));
                     Clusters.Add(new Point3d(pt.X,pt.Y,pt.Z), new Grasshopper.Kernel.Data.GH_Path(i));
 
-
-
                 }
             }
 
-
+            DistinctCentroids.Sort();
+            var DistinctCentroidsClean = DistinctCentroids.Distinct();
+            
 
 
             DA.SetDataList(0, Centroids);
-
-            DA.SetDataTree(1, Clusters);
+            DA.SetDataList(1, DistinctCentroidsClean);
+            DA.SetDataTree(2, Clusters);
+            
 
 
 
 
             var breaks = JenksFisher.CreateJenksFisherBreaksArray(dirsDeg, bins);
-            DA.SetDataList(2, breaks);
+            DA.SetDataList(3, breaks);
 
 
         }

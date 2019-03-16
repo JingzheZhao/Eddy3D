@@ -68,13 +68,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\Settings\RunSettings.cs" />
+    <Compile Include="Components\Setup\BCondABL.cs" />
     <Compile Include="Components\Setup\BCondConstantU.cs" />
     <Compile Include="Components\OSSettings.cs" />
     <Compile Include="Components\postProcessing\CompComputeFlowRateFromCp.cs" />
     <Compile Include="Components\postProcessing\CompAnnualUToCSV.cs" />
     <Compile Include="Components\postProcessing\CompAnnualCPToCSV.cs" />
-    <Compile Include="Components\BCond\CompBCondABL.cs" />
-    <Compile Include="Components\Domain\CompBlockMeshCyl.cs" />
     <Compile Include="Components\Misc\CompCellSize.cs" />
     <Compile Include="Components\postProcessing\CompComputeFlowRateFromU.cs" />
     <Compile Include="Components\postProcessing\CompVisProbesCustom.cs" />
@@ -92,6 +91,7 @@
     <Compile Include="Components\Misc\CompCluster.cs" />
     <Compile Include="Components\Residuals\CompVisResiduals.cs" />
     <Compile Include="Components\Settings\MeshSettings.cs" />
+    <Compile Include="Components\Setup\CompDomainCyl.cs" />
     <Compile Include="Licensing\LicenseTest.cs" />
     <Compile Include="Licensing\ModifyRegistry.cs" />
     <Compile Include="Properties\Resources.Designer.cs">

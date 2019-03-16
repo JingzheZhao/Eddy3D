@@ -692,8 +692,9 @@ double Wst, double Hst, double BodyA, double GrRef, double Eb)
 
                         // Parse values
                         //Thread.Sleep(2 * probes.GetLength(0));
-                        int fieldtype = 1; //vectors
-                        var U = new Probes(pointList, pointName, WorkingDir + "\\" + simulatedWindDirList[i], OFfield, fieldtype);
+
+                        var ofField = new OFField(OFfield, pointName);
+                        var U = new Probes(pointList, WorkingDir + "\\" + simulatedWindDirList[i], ofField);
 
                         // Create datatree
 

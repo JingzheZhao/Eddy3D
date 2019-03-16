@@ -77,13 +77,13 @@ namespace EddyLib.StrTemp
         private static string DockerPrefixPath(OFBaseDomain DOM, OFMeshSettings MeshSettings)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine(@"docker run - v """ + MeshSettings.OFbaseWorkingDir + DOM.BCond.windDirs[0] + @":/ home / openfoam / ""--entrypoint = """" - it hfdresearch / swak4foamandpyfoam:latest - v4.1 bash - c ""source / opt / openfoam4 / etc / bashrc; cd / home / openfoam;");
+            sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + DOM.BCond.windDirs[0] + @":/home/openfoam/ ""--entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source/opt/openfoam4/etc/bashrc; cd /home/openfoam;");
             return sb.ToString();
         }
         private static string DockerPrefixPath(OFBaseDomain DOM, OFMeshSettings MeshSettings, int d)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine(@"docker run - v """ + MeshSettings.OFbaseWorkingDir + DOM.BCond.windDirs[d] + @":/ home / openfoam / ""--entrypoint = """" - it hfdresearch / swak4foamandpyfoam:latest - v4.1 bash - c ""source / opt / openfoam4 / etc / bashrc; cd / home / openfoam;");
+            sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + DOM.BCond.windDirs[d] + @":/home/openfoam/ ""--entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source/opt/openfoam4/etc/bashrc; cd /home/openfoam;");
             return sb.ToString();
         }
         private static string AppendSuffixDocker()
@@ -488,7 +488,7 @@ namespace EddyLib.StrTemp
             //@ Patrick WIP
 
             string dirs = "";
-            foreach (var d in DOM.BCond.windDirs)
+            foreach (int d in DOM.BCond.windDirs)
             {
                 dirs += (d.ToString() + ',');
             }
@@ -518,7 +518,7 @@ namespace EddyLib.StrTemp
             //@ Patrick WIP
 
             string dirs = "";
-            foreach (var d in DOM.BCond.windDirs)
+            foreach (int d in DOM.BCond.windDirs)
             {
                 dirs += (d.ToString() + ',');
             }
@@ -546,7 +546,7 @@ namespace EddyLib.StrTemp
 
             return sb.ToString();
         }
-               
+
 
 
 
@@ -568,22 +568,22 @@ cd ""{1}""" + System.Environment.NewLine, installationPath, caseDir));
 
         }
 
-//        public static string TempBlueCFD
-//            (List<string> commands, string caseDir, string installationPath = @"C:\OpenFOAM\")
-//        {
-//            StringBuilder sb = new StringBuilder();
-//            sb.Append(string.Format(@"call ""{0}""setvars.bat
-//set PATH =%HOME%\msys64\usr\bin;%PATH%
-//cd ""{1}""" + System.Environment.NewLine, installationPath, caseDir));
+        //        public static string TempBlueCFD
+        //            (List<string> commands, string caseDir, string installationPath = @"C:\OpenFOAM\")
+        //        {
+        //            StringBuilder sb = new StringBuilder();
+        //            sb.Append(string.Format(@"call ""{0}""setvars.bat
+        //set PATH =%HOME%\msys64\usr\bin;%PATH%
+        //cd ""{1}""" + System.Environment.NewLine, installationPath, caseDir));
 
-//            foreach (string str in commands)
-//            {
-//                sb.AppendLine(str);
-//            }
+        //            foreach (string str in commands)
+        //            {
+        //                sb.AppendLine(str);
+        //            }
 
-//            return sb.ToString();
+        //            return sb.ToString();
 
-//        }
+        //        }
 
 
     }

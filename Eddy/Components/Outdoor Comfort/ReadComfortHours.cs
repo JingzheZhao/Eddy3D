@@ -147,7 +147,7 @@ namespace Eddy
 
               });
 
-            var hoursToEvaluate = Utilities.ExportEvaluationHours(ladybugAnalysisPeriod);
+            var hoursToEvaluate = Utilities.GetEvalHoursFromLB(ladybugAnalysisPeriod);
 
             //System.Threading.Tasks.Parallel.For(0, numberOfProbes,
             //  i =>

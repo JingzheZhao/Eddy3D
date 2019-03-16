@@ -136,11 +136,11 @@ namespace Eddy
                 }
             }
 
-            // Crashes Rhino
-            //if (!runWithBlueCFD)
-            //{
-            //    RunSettings.simEngine = SimEngine.Docker;
-            //}
+            //crashes rhino
+            if (!runWithBlueCFD)
+            {
+                RunSettings.simEngine = SimEngine.Docker;
+            }
 
 
 
