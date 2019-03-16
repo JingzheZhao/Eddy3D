@@ -154,7 +154,7 @@ namespace Eddy
                 iter = _iter,
                 writeInterval = _writeInterval,
                 keepTimeSteps = _keepTimeSteps,
-                mode = _mode,
+                Schemes = _mode,
                 turb = _turb,
                 CPUs = _CPUs,
                 ostype = os

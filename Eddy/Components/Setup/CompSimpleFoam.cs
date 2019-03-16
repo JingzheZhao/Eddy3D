@@ -43,7 +43,8 @@ namespace Eddy
             ExpireSolution(true);
 
         }
-        public bool runWithBlueCFD = true;
+        //public bool runWithBlueCFD = true;
+        public bool runWithBlueCFD;
 
         /// <summary>
         /// Registers all the input parameters for this component.

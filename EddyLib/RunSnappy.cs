@@ -150,7 +150,7 @@ namespace EddyLib
             File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "meshQualityDict"), EddyLib.StrTemp.OFExecDicts.MeshQualityDict());
             File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "decomposeParDict"), EddyLib.StrTemp.OFExecDicts.DecomposeParDict(RunSettings));
 
-            File.WriteAllText(Path.Combine(MeshSettings.baseWorkingDir + "run_checkBadMesh.bat"), EddyLib.StrTemp.BatFiles.Run_checkBadMesh(RunSettings, MeshSettings, DOM));
+            File.WriteAllText(Path.Combine(MeshSettings.baseWorkingDir + "run_checkBadMesh.bat"), EddyLib.StrTemp.BatFiles.Run_checkBadMesh(RunSettings, MeshSettings, DOM, StrTemp.Mode.Meshing));
 
 
 

@@ -22,12 +22,12 @@ namespace EddyLib
                 for (int i = 0; i < DOM.BCond.windDirs.Count; i++)
                 {
 
-                    var simStlDir = WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\constant\triSurface\";
-                    var simStlFilenameBuildings = WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\constant\triSurface\building.stl";
-                    var simStlFilenameGround = WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\constant\triSurface\ground.stl";
-                    var simConstantDir = WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\constant\";
-                    var simBoundaryConditionsDir = WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\0.org\";
-                    var simBoundaryConditionsDirTemp = WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\0\";
+                    string simStlDir = WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\constant\triSurface\";
+                    string simStlFilenameBuildings = WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\constant\triSurface\building.stl";
+                    string simStlFilenameGround = WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\constant\triSurface\ground.stl";
+                    string simConstantDir = WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\constant\";
+                    string simBoundaryConditionsDir = WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\0.org\";
+                    string simBoundaryConditionsDirTemp = WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\0\";
 
                     if (!Directory.Exists(simStlDir))
                     {
@@ -114,37 +114,37 @@ namespace EddyLib
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\snappyHexMeshDict"), EddyLib.StrTemp.OFExecDicts.SnappyHexMeshDict(MeshSettings, DOM));
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\surfaceFeatureExtractDict"), EddyLib.StrTemp.OFExecDicts.SurfaceFeatureExtractDict());
 
-                        if (RunSettings.mode == 0)
+                        if (RunSettings.Schemes == 0)
                         {
                             File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesAccurate());
                         }
-                        else if (RunSettings.mode == 1)
+                        else if (RunSettings.Schemes == 1)
                         {
                             File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesRobust1());
                         }
-                        else if (RunSettings.mode == 2)
+                        else if (RunSettings.Schemes == 2)
                         {
                             File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesOrtho70_80());
                         }
-                        else if (RunSettings.mode == 3)
+                        else if (RunSettings.Schemes == 3)
                         {
                             File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesOrtho60_70());
                         }
-                        else if (RunSettings.mode == 4)
+                        else if (RunSettings.Schemes == 4)
                         {
                             File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesOrtho40_60());
                         }
 
-                        else if (RunSettings.mode == 5)
+                        else if (RunSettings.Schemes == 5)
 
                         {
                             File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesAccurate());
                         }
-                        else if (RunSettings.mode == 6)
+                        else if (RunSettings.Schemes == 6)
                         {
                             File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesAccurateOscillatory());
                         }
-                        else if (RunSettings.mode == 7)
+                        else if (RunSettings.Schemes == 7)
                         {
                             File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesRobust1());
                         }
@@ -193,41 +193,39 @@ namespace EddyLib
 
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\snappyHexMeshDict"), EddyLib.StrTemp.OFExecDicts.SnappyHexMeshDict(MeshSettings, DOM));
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\surfaceFeatureExtractDict"), EddyLib.StrTemp.OFExecDicts.SurfaceFeatureExtractDict());
-                        if (RunSettings.mode == 0)
+                        if (RunSettings.Schemes == 0)
                         {
                             File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesAccurate());
                         }
-                        else if (RunSettings.mode == 1)
+                        else if (RunSettings.Schemes == 1)
                         {
                             File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesRobust1());
                         }
-                        else if (RunSettings.mode == 2)
+                        else if (RunSettings.Schemes == 2)
                         {
                             File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesOrtho70_80());
                         }
-                        else if (RunSettings.mode == 3)
+                        else if (RunSettings.Schemes == 3)
                         {
                             File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesOrtho60_70());
                         }
-                        else if (RunSettings.mode == 4)
+                        else if (RunSettings.Schemes == 4)
                         {
                             File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesOrtho40_60());
                         }
-                        else if (RunSettings.mode == 5)
+                        else if (RunSettings.Schemes == 5)
 
                         {
                             File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesAccurate());
                         }
-                        else if (RunSettings.mode == 6)
+                        else if (RunSettings.Schemes == 6)
                         {
                             File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesAccurateOscillatory());
                         }
-                        else if (RunSettings.mode == 7)
-                        {
-                            File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesRobust1());
-                        }
+                        else if (RunSettings.Schemes == 7)
+                        { File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesRobust1()); }
 
-                        File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSolution"), EddyLib.StrTemp.OFExecDicts.FvSolution(RunSettings.mode));
+                        File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSolution"), EddyLib.StrTemp.OFExecDicts.FvSolution(RunSettings.Schemes));
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\meshQualityDict"), EddyLib.StrTemp.OFExecDicts.MeshQualityDict());
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\residuals"), EddyLib.StrTemp.OFExecDicts.ResidualsDict());
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\decomposeParDict"), EddyLib.StrTemp.OFExecDicts.DecomposeParDict(RunSettings));
@@ -239,25 +237,20 @@ namespace EddyLib
 
                 }
 
-
-
-                // Batch files depending on type
-
-
-                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_mesh.bat"), EddyLib.StrTemp.BatFiles.Run_Mesh_Cyl(RunSettings, MeshSettings, DOM));
+                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_mesh.bat"), EddyLib.StrTemp.BatFiles.Run_Mesh_Cyl(RunSettings, MeshSettings, DOM, StrTemp.Mode.Meshing));
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run.bat"), EddyLib.StrTemp.BatFiles.Run(DOM, MeshSettings));
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_sim_all.bat"), EddyLib.StrTemp.BatFiles.RunSimOnly(DOM, MeshSettings));
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_ray.bat"), EddyLib.StrTemp.BatFiles.Run_RayTrace(DOM, MeshSettings));
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_probes.bat"), EddyLib.StrTemp.BatFiles.Run_Probes(DOM, MeshSettings));
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_utci.bat"), EddyLib.StrTemp.BatFiles.Run_UTCI(DOM, MeshSettings));
 #if DEBUG
-                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_blockMesh.bat"), EddyLib.StrTemp.BatFiles.Run_blockMesh(RunSettings, DOM, MeshSettings));
+                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_blockMesh.bat"), EddyLib.StrTemp.BatFiles.Run_blockMesh(RunSettings, DOM, MeshSettings, StrTemp.Mode.Meshing));
 #endif
 
                 for (int i = 0; i < DOM.BCond.windDirs.Count; i++)
                 {
-                    File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "_run_sim.bat"), EddyLib.StrTemp.BatFiles.Run_sim(MeshSettings, RunSettings, DOM, i));
-                    File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "_run_sim_continue.bat"), EddyLib.StrTemp.BatFiles.Run_sim_continue(MeshSettings, RunSettings, DOM, i));
+                    File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "_run_sim.bat"), EddyLib.StrTemp.BatFiles.Run_sim(MeshSettings, RunSettings, DOM, StrTemp.Mode.Simulation, i));
+                    File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "_run_sim_continue.bat"), EddyLib.StrTemp.BatFiles.Run_sim_continue(MeshSettings, RunSettings, DOM, StrTemp.Mode.Simulation, i));
 
                 }
 

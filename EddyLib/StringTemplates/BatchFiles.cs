@@ -3,6 +3,15 @@ using System.Text;
 
 namespace EddyLib.StrTemp
 {
+
+    public enum Mode
+    {
+        Simulation,
+        Meshing
+    }
+
+
+
     public class BatFiles
     {
         //Run commands as list
@@ -74,18 +83,57 @@ namespace EddyLib.StrTemp
         "snappyHexMesh -overwrite",
         "checkMesh" };
 
-        private static string DockerPrefixPath(OFBaseDomain DOM, OFMeshSettings MeshSettings)
+
+
+
+        private static string DockerPrefixPath(OFBaseDomain DOM, OFMeshSettings MeshSettings, OFRunSettings RunSettings, Mode mode)
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + DOM.BCond.windDirs[0] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+            if (mode == Mode.Simulation && RunSettings.ostype == OSType.Windows7)
+            {
+                sb.Append(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + DOM.BCond.windDirs[0] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+            }
+            else if (mode == Mode.Meshing && RunSettings.ostype == OSType.Windows7)
+            {
+                sb.Append(@"docker run -v """ + MeshSettings.OFmeshWorkingDir + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+            }
+            if (mode == Mode.Simulation)
+            {
+                sb.Append(@"docker run -v """ + MeshSettings.baseWorkingDir + DOM.BCond.windDirs[0] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+            }
+            else
+            {
+                sb.Append(@"docker run -v """ + MeshSettings.meshWorkingDir + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+            }
+
             return sb.ToString();
         }
-        private static string DockerPrefixPath(OFBaseDomain DOM, OFMeshSettings MeshSettings, int d)
+        private static string DockerPrefixPath(OFBaseDomain DOM, OFMeshSettings MeshSettings, OFRunSettings RunSettings, Mode mode, int d)
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + DOM.BCond.windDirs[d] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+
+            if (mode == Mode.Simulation)
+            {
+                sb.Append(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + +DOM.BCond.windDirs[d] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+            }
+            else if (mode == Mode.Meshing && RunSettings.ostype == OSType.Windows7)
+            {
+                sb.Append(@"docker run -v """ + MeshSettings.OFmeshWorkingDir + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+            }
+
+            if (mode == Mode.Simulation)
+            {
+                sb.Append(@"docker run -v """ + MeshSettings.baseWorkingDir + +DOM.BCond.windDirs[d] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+            }
+            else
+            {
+                sb.Append(@"docker run -v """ + MeshSettings.meshWorkingDir + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+            }
             return sb.ToString();
         }
+
+
+
         private static string AppendSuffixDocker()
         {
             StringBuilder sb = new StringBuilder();
@@ -108,7 +156,7 @@ namespace EddyLib.StrTemp
             return sb.ToString();
         }
 
-        public static string Run_Mesh_Cyl(OFRunSettings RunSettings, OFMeshSettings MeshSettings, OFBaseDomain DOM)
+        public static string Run_Mesh_Cyl(OFRunSettings RunSettings, OFMeshSettings MeshSettings, OFBaseDomain DOM, Mode mode)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -118,7 +166,7 @@ namespace EddyLib.StrTemp
                 {
                     foreach (string str in RCMeshMultiCPU(RunSettings))
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings) + str + AppendSuffixDocker());
+                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str + AppendSuffixDocker());
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -130,7 +178,7 @@ namespace EddyLib.StrTemp
 
                     foreach (string str in RCMeshSingleCPU)
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings) + str + AppendSuffixDocker());
+                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str + AppendSuffixDocker());
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -202,7 +250,7 @@ namespace EddyLib.StrTemp
 
 
 
-        public static string Run_sim(OFMeshSettings MeshSettings, OFRunSettings RunSettings, OFBaseDomain DOM, int d)
+        public static string Run_sim(OFMeshSettings MeshSettings, OFRunSettings RunSettings, OFBaseDomain DOM, Mode mode, int d)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -216,7 +264,7 @@ namespace EddyLib.StrTemp
 
                     foreach (string str in RCSimMultiCPU(RunSettings))
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings, d) + str + AppendSuffixDocker());
+                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str + AppendSuffixDocker());
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -226,7 +274,7 @@ namespace EddyLib.StrTemp
                 {
                     foreach (string str in RCSimSingleCPU)
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings, d) + str + AppendSuffixDocker());
+                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str + AppendSuffixDocker());
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -257,7 +305,7 @@ namespace EddyLib.StrTemp
             return sb.ToString();
         }
 
-        public static string Run_sim_continue(OFMeshSettings MeshSettings, OFRunSettings RunSettings, OFBaseDomain DOM, int d)
+        public static string Run_sim_continue(OFMeshSettings MeshSettings, OFRunSettings RunSettings, OFBaseDomain DOM, Mode mode, int d)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -272,7 +320,7 @@ namespace EddyLib.StrTemp
 
                     foreach (string str in RCSimContinueMultiCPU(RunSettings))
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings, d) + str + AppendSuffixDocker());
+                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str + AppendSuffixDocker());
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -282,7 +330,7 @@ namespace EddyLib.StrTemp
                 {
                     foreach (string str in RCSimContinueSingleCPU)
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings, d) + str + AppendSuffixDocker());
+                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str + AppendSuffixDocker());
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -386,14 +434,14 @@ namespace EddyLib.StrTemp
         //            return sb.ToString();
         //        }
 
-        public static string Run_blockMesh(OFRunSettings RunSettings, OFBaseDomain DOM, OFMeshSettings MeshSettings)
+        public static string Run_blockMesh(OFRunSettings RunSettings, OFBaseDomain DOM, OFMeshSettings MeshSettings, Mode mode)
         {
             StringBuilder sb = new StringBuilder();
             if (RunSettings.simEngine == SimEngine.Docker)//Docker
             {
                 foreach (string str in RCBlockMeshSingleCPU)
                 {
-                    sb.Append(DockerPrefixPath(DOM, MeshSettings) + str + AppendSuffixDocker());
+                    sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str + AppendSuffixDocker());
                 }
 #if DEBUG
                 sb.AppendLine("PAUSE");
@@ -412,14 +460,14 @@ namespace EddyLib.StrTemp
             return sb.ToString();
         }
 
-        public static string Run_checkBadMesh(OFRunSettings RunSettings, OFMeshSettings MeshSettings, OFBaseDomain DOM)
+        public static string Run_checkBadMesh(OFRunSettings RunSettings, OFMeshSettings MeshSettings, OFBaseDomain DOM, Mode mode)
         {
             StringBuilder sb = new StringBuilder();
             if (RunSettings.simEngine == SimEngine.Docker)//Docker
             {
                 foreach (string str in RCCheckMeshSingleCPU)
                 {
-                    sb.Append(DockerPrefixPath(DOM, MeshSettings) + str + AppendSuffixDocker());
+                    sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str + AppendSuffixDocker());
                 }
 #if DEBUG
                 sb.AppendLine("PAUSE");
