@@ -77,19 +77,20 @@ namespace EddyLib.StrTemp
         private static string DockerPrefixPath(OFBaseDomain DOM, OFMeshSettings MeshSettings)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + DOM.BCond.windDirs[0] + @":/home/openfoam/ ""--entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source/opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+            sb.Append(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + DOM.BCond.windDirs[0] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
             return sb.ToString();
         }
         private static string DockerPrefixPath(OFBaseDomain DOM, OFMeshSettings MeshSettings, int d)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + DOM.BCond.windDirs[d] + @":/home/openfoam/ ""--entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source/opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+            sb.Append(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + DOM.BCond.windDirs[d] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
             return sb.ToString();
         }
         private static string AppendSuffixDocker()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("| tee -a log");
+            sb.Append(" | tee -a log\"");
+            sb.AppendLine("");
             return sb.ToString();
         }
 
