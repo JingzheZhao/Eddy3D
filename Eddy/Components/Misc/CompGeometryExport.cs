@@ -152,7 +152,7 @@ namespace Eddy
             get
             {
                 // You can add image files to your project resources and access them like this:
-                return Resources.Eddy_geoExport;
+                return Resources.Eddy_modelSTLexport;
             }
         }
 

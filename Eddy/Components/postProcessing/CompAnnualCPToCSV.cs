@@ -25,7 +25,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public ParseAnnualCP()
-          : base("AnnualCPToCSV", "AnnualCPToCSV", "AnnualCPToCSV", "Eddy", "PostProcessing")
+          : base("AnnualCPToCSV", "AnnualCPToCSV", "AnnualCPToCSV", "Eddy", "5 | PostProcessing")
         {
         }
 
@@ -160,7 +160,7 @@ namespace Eddy
         /// </summary>
         protected override System.Drawing.Bitmap Icon =>
                 // You can add image files to your project resources and access them like this:
-                Resources.Eddy_parseCp;//return null;
+                Resources.Eddy_annual;//return null;
 
         /// <summary>
         /// Each component must have a unique Guid to identify it.

@@ -315,17 +315,17 @@ namespace EddyLib
             sides.Normals.ComputeNormals();
 
 
-            // Test to make sure that all vecs point outwards
+            //// Test to make sure that all vecs point outwards
 
-            var firstIndex = sides.Faces[0].A;
-            var firstPoint = sides.Vertices[firstIndex];
-            var firstNormal = sides.FaceNormals[0];
-            var vec = firstPoint - center;
-            double dot = vec * firstNormal;
-            if (dot < 0)
-            {
-                sides.Flip(true, true, true);
-            }
+            //var firstIndex = sides.Faces[0].A;
+            //var firstPoint = sides.Vertices[firstIndex];
+            //var firstNormal = sides.FaceNormals[0];
+            //var vec = firstPoint - center;
+            //double dot = vec * firstNormal;
+            //if (dot < 0)
+            //{
+            //    sides.Flip(true, true, true);
+            //}
 
             // Order is important!!! for stringifyDomain
             //this.DomainMeshGround.Append(perim);

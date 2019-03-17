@@ -1,4 +1,5 @@
-﻿using EddyLib;
+﻿using Eddy.Properties;
+using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
 using System;
@@ -170,7 +171,7 @@ namespace Eddy
         /// </summary>
         protected override System.Drawing.Bitmap Icon =>
                 // You can add image files to your project resources and access them like this:
-                null;
+                Resources.Eddy_run_settings;
 
         /// <summary>
         /// Each component must have a unique Guid to identify it. 

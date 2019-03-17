@@ -107,14 +107,9 @@ namespace Eddy
         /// Provides an Icon for every component that will be visible in the User Interface.
         /// Icons need to be 24x24 pixels.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
+        protected override System.Drawing.Bitmap Icon =>
                 // You can add image files to your project resources and access them like this:
-                return null;
-            }
-        }
+                Resources.Eddy_mesh_settings;
 
         /// <summary>
         /// Each component must have a unique Guid to identify it. 

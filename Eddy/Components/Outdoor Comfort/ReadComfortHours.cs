@@ -186,7 +186,7 @@ namespace Eddy
         /// </summary>
         protected override System.Drawing.Bitmap Icon =>
                 // You can add image files to your project resources and access them like this:
-                Resources.Eddy_parseU;
+                Resources.Eddy_readUTCI;
 
         /// <summary>
         /// Each component must have a unique Guid to identify it. 

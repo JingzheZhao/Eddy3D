@@ -219,7 +219,7 @@ pause 90; replot
             get
             {
                 // You can add image files to your project resources and access them like this:
-                return Resources.Eddy_residuals;
+                return Resources.Eddy_stability;
             }
         }
 

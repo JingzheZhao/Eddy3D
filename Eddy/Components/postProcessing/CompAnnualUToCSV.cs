@@ -25,7 +25,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public ParseHourlyU()
-          : base("AnnualUToCSV", "AnnualUToCSV", "AnnualUToCSV", "Eddy", "postProcessing")
+          : base("AnnualUToCSV", "AnnualUToCSV", "AnnualUToCSV", "Eddy", "5 | PostProcessing")
         {
         }
 
@@ -177,7 +177,7 @@ namespace Eddy
             get
             {
 
-                return Resources.Eddy_parseU;
+                return Resources.Eddy_annual;
 
             }
         }

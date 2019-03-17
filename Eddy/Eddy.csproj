@@ -125,13 +125,6 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <None Include="Resources\AS_face.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\ED_boxDomain.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\ED_cylDomain.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EddyLib\EddyLib.csproj">
@@ -143,45 +136,65 @@
     <None Include="Resources\Eddy_cluster.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Eddy_domBox.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_domCyl.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_foam.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_geoExport.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_parseCp.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_parseU.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_probes.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_residuals.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_snappy.png" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\Eddy_abl.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_block.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_cellsize.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Eddy_clean.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="Resources\Eddy_resizeMesh.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_run_settings.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_simulation.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_stability.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_visualProbs.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_writeProbs.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_analysisCul.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_annual.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_calUTCI.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_castU.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_domainBox.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_flow.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_mesh.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_mesh_settings.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_modelSTLexport.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_readUTCI.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_blockmesh copy.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_blockmesh.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
