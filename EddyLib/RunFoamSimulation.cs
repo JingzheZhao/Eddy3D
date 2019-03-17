@@ -152,7 +152,7 @@ namespace EddyLib
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSolution"), EddyLib.StrTemp.OFExecDicts.FvSolution(0));
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\meshQualityDict"), EddyLib.StrTemp.OFExecDicts.MeshQualityDict());
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\residuals"), EddyLib.StrTemp.OFExecDicts.ResidualsDict());
-
+                        File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\decomposeParDict"), EddyLib.StrTemp.OFExecDicts.DecomposeParDict(RunSettings));
 
                     }
                     else if (DOM is OFCylDomain)

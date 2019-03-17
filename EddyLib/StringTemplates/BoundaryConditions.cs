@@ -427,7 +427,7 @@ boundaryField
 {
 
 symmetry
-    {
+{
         type symmetry;
 }
 
@@ -440,19 +440,20 @@ symmetry
                 if (dot > 0)
                 {
                     sb.AppendLine("patch" + i);
-                    sb.AppendLine(@"{type            fixedValue;
-value           uniform (" + DOM.BCond.flowDir[d].X* DOM.BCond.URef + " " + DOM.BCond.flowDir[d].Y* DOM.BCond.URef + " " + DOM.BCond.flowDir[d].Z* DOM.BCond.URef + @" );
+                    sb.AppendLine(@"
+{   type            fixedValue;
+    value           uniform (" + DOM.BCond.flowDir[d].X* DOM.BCond.URef + " " + DOM.BCond.flowDir[d].Y* DOM.BCond.URef + " " + DOM.BCond.flowDir[d].Z* DOM.BCond.URef + @" );
 }");
                 }
                 else
                 {
                     sb.AppendLine("patch" + i);
                     sb.AppendLine(@"
-    {
-        type inletOutlet;
-        value $internalField;
-        inletValue uniform (0 0 0);
-    }");
+{
+    type inletOutlet;
+    value $internalField;
+    inletValue uniform (0 0 0);
+}");
                 }
             }
 
