@@ -78,7 +78,7 @@ namespace EddyLib
             foreach (int d in dirs)
             {
                 this.windDirs.Add(d);
-                this.flowDir.Add(new Vector3d(Math.Sin(d * Math.PI / 180), Math.Cos(d * Math.PI / 180), 0));
+                this.flowDir.Add(new Vector3d(-1 * Math.Sin(d * Math.PI / 180), -1*Math.Cos( d * Math.PI / 180), 0));
             }
         }
 
@@ -115,7 +115,7 @@ namespace EddyLib
             foreach (int d in dirs)
             {
                 this.windDirs.Add(d);
-                this.flowDir.Add(new Vector3d(Math.Sin(d * Math.PI / 180), Math.Cos(d * Math.PI / 180), 0));
+                this.flowDir.Add(new Vector3d(-1 * Math.Sin(d * Math.PI / 180), -1 * Math.Cos( d * Math.PI / 180), 0));
             }
         }
 
