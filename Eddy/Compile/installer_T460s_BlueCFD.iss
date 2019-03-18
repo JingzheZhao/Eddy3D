@@ -20,7 +20,7 @@ AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 CreateAppDir=no
-OutputDir=Installer{#MyAppVersion}
+OutputDir={#MyAppVersion}
 OutputBaseFilename=Eddy_BlueCFD
 Compression=lzma
 SolidCompression=yes
@@ -29,37 +29,16 @@ SolidCompression=yes
 #define GrasshopperLib "{userappdata}\Grasshopper\Libraries"
 #define OFInstallDir   "C:\OpenFOAM"
 
+#include "USERESL.txt"
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
-Source: "C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\Eddy\bin\CallBatchRunner.exe"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\Eddy\bin\CallOC.exe"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\Eddy\bin\CallOF.exe"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\Eddy\bin\CallProbes.exe"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\Eddy\bin\CallRay.exe"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\Eddy\bin\CommandLine.dll"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\Eddy\bin\ConsoleAppLauncher.dll"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\Eddy\bin\CsvHelper.dll"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\Eddy\bin\Eddy.gha"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\Eddy\bin\EddyLib.dll"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\Eddy\bin\RhinoCommon.dll"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\Patrick Kastner\Box Sync\PatrickESL\Eddy\blueCFD-Core-2017-2-win64-setup.exe"; DestDir: "{#OFInstallDir}"; AfterInstall: RunOtherInstaller
-Source: "C:\OpenFOAM\*"; DestDir: "{#OFInstallDir}\"; Flags: ignoreversion recursesubdirs
-; NOTE: Don't use "Flags: ignoreversion" on any shared system files
+#include "Eddy.txt"
+#include "Gnuplot.txt"
+#include "BlueCFD.txt"
 
 
-[Code]
-procedure RunOtherInstaller;
-var
-  ResultCode: Integer;
-begin
-  if not Exec(ExpandConstant('{#OFInstallDir}\blueCFD-Core-2017-2-win64-setup.exe'), '', '', SW_SHOWNORMAL,
-    ewWaitUntilTerminated, ResultCode)
-  then
-    MsgBox('Other installer failed to run!' + #13#10 +
-      SysErrorMessage(ResultCode), mbError, MB_OK);
-end;
 
 

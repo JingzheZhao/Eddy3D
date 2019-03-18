@@ -631,6 +631,64 @@ namespace EddyLib
 
         }
 
+
+        public static bool processDirectory(string startLocation, bool simDir)
+        {
+            bool result = true;
+            foreach (var directory in Directory.GetDirectories(startLocation))
+            {
+
+                if (simDir)
+                {
+
+                    if (directory.EndsWith("polyMesh"))
+                    {
+                        result = false;
+                        continue;
+                    }
+                }
+
+                bool directoryResult = processDirectory(directory, simDir);
+                result &= directoryResult;
+
+
+
+                //if (Directory.GetFiles(directory, "*.dvr").Any())
+                //{
+                //    result = false;
+                //    continue;
+                //}
+
+                foreach (var file in Directory.GetFiles(directory))
+                {
+                    try
+                    {
+                        File.Delete(file);
+                    }
+                    catch (IOException)
+                    {
+                        // error handling
+                        result = directoryResult = false;
+                    }
+                }
+
+                if (!directoryResult) continue;
+                try
+                {
+                    Directory.Delete(directory, false);
+                }
+                catch (IOException)
+                {
+                    // error handling
+                    result = false;
+                }
+            }
+
+            return result;
+        }
+
+
+
         public static string ConvertComputeTimes(long elapsedMilliseconds)
         {
             string elapsedTime = "";

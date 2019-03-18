@@ -40,11 +40,11 @@ namespace Eddy
         private void Menu_DoClick(object sender, EventArgs e)
         {
             runWithBlueCFD = !runWithBlueCFD;
-            ExpireSolution(true);
+            //ExpireSolution(true);
 
         }
-        //public bool runWithBlueCFD = true;
-        public bool runWithBlueCFD;
+        public bool runWithBlueCFD = true;
+        //public bool runWithBlueCFD;
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -52,19 +52,14 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Domain", "Dom", "Domain", GH_ParamAccess.item);
-
             pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Eddy"));
-
-
             pManager.AddGenericParameter("Mesh Settings", "MSet", "Mesh Settings", GH_ParamAccess.item);
             pManager[1].Optional = true;
 
             pManager.AddGenericParameter("Run Settings", "RSet", "Run Settings", GH_ParamAccess.item);
             pManager[2].Optional = true;
 
-
             pManager.AddBooleanParameter("Run Meshing", "RunMsh", "RunMsh", GH_ParamAccess.item, false);
-
             pManager.AddBooleanParameter("Run Simulation", "RunSim", "RunSim", GH_ParamAccess.item, false);
 
         }
@@ -90,10 +85,7 @@ namespace Eddy
             // mode to select simulation environment
             if (runWithBlueCFD) { Message = "BlueCFD"; }
             else { Message = "Docker"; }
-
-
-
-
+                                 
             // read inputs
             //------------
 
@@ -120,9 +112,7 @@ namespace Eddy
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid domain object"); return;
             }
-
-
-
+                       
             // run settings
             //-----------------
 
@@ -142,9 +132,7 @@ namespace Eddy
             {
                 RunSettings.simEngine = SimEngine.Docker;
             }
-
-
-
+                       
             // working directory
             //------------------
 
@@ -162,9 +150,7 @@ namespace Eddy
 
             }
             baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
-
-
-
+                       
             // meshing settings
             //-----------------
 
@@ -177,10 +163,6 @@ namespace Eddy
                 MeshSettings = (OFMeshSettings)gobjMeshSet.Value;
             }
             MeshSettings.SetDirectories(baseWorkingDirectory);
-
-
-
-
 
             // @ Patrick: Make all of these regions static functions that live in the EddyLib DLL
 
@@ -223,10 +205,6 @@ namespace Eddy
 
             #endregion
 
-
-
-
-
             #region RUN SNAPPY HEX
 
             if (MeshSettings.accBuildings >= 5 || MeshSettings.accFeatures >= 5 || MeshSettings.accRefinement >= 5 || MeshSettings.accGround >= 5 || MeshSettings.nLayers >= 5)
@@ -248,9 +226,6 @@ namespace Eddy
 
 
             #endregion
-
-
-
 
             #region RUN SIMULATION
 
@@ -292,8 +267,6 @@ namespace Eddy
 
             #endregion
 
-
-
             #region START PROCESSES
 
             bool runSimulation = false;
@@ -318,15 +291,10 @@ namespace Eddy
 
             #endregion
 
-
             OFResult RES = new OFResult(DOM, RunSettings, MeshSettings, baseWorkingDirectory);
             DA.SetData(0, RES);
-
-
         }
-
-
-
+               
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface.
         /// Icons need to be 24x24 pixels.

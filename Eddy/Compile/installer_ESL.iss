@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Eddy"
-#define MyAppVersion "0.1"
+#define MyAppVersion "0.2"
 #define MyAppPublisher "Patrick Kastner, Timur Dogan"
 #define MyAppURL "http://www.eddy3d.com"
 #define MyAppExeName "Eddy"
@@ -11,7 +11,7 @@
 ; NOTE: The value of AppId uniquely identifies this application.
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{3C425235-7F01-4F57-AA54-AF9313FB6CF5}
+AppId={{9A556759-FCEE-44BA-B145-42EA1CBDAF5B}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
@@ -20,29 +20,27 @@ AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 CreateAppDir=no
-OutputDir=Installer{#MyAppVersion}
+OutputDir={#MyAppVersion}
 OutputBaseFilename=Eddy
 Compression=lzma
 SolidCompression=yes
 
 [ISPP]
 #define GrasshopperLib "{userappdata}\Grasshopper\Libraries"
+#define OFInstallDir   "C:\OpenFOAM"
 
+#include "USERESL.txt"
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
-Source: "C:\Users\pkastner\Documents\GitHub\WindTunnel\Eddy\bin\CallBatchRunner.exe"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\pkastner\Documents\GitHub\WindTunnel\Eddy\bin\CallOC.exe"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\pkastner\Documents\GitHub\WindTunnel\Eddy\bin\CallOF.exe"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\pkastner\Documents\GitHub\WindTunnel\Eddy\bin\CallProbes.exe"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\pkastner\Documents\GitHub\WindTunnel\Eddy\bin\CallRay.exe"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\pkastner\Documents\GitHub\WindTunnel\Eddy\bin\CommandLine.dll"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\pkastner\Documents\GitHub\WindTunnel\Eddy\bin\ConsoleAppLauncher.dll"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\pkastner\Documents\GitHub\WindTunnel\Eddy\bin\CsvHelper.dll"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\pkastner\Documents\GitHub\WindTunnel\Eddy\bin\Eddy.gha"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\pkastner\Documents\GitHub\WindTunnel\Eddy\bin\EddyLib.dll"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\pkastner\Documents\GitHub\WindTunnel\Eddy\bin\RhinoCommon.dll"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-; NOTE: Don't use "Flags: ignoreversion" on any shared system files
+#include "Eddy.txt"
+#include "Gnuplot.txt"
+;include "BlueCFD.txt"
+
+
+[Code]
+
+#include "GnuplotCode.txt"
 

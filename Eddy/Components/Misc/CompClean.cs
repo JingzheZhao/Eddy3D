@@ -1,14 +1,12 @@
-﻿using System;
+﻿using Eddy.Properties;
+using EddyLib;
+using Grasshopper.Kernel;
+using Grasshopper.Kernel.Parameters;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using Grasshopper.Kernel;
-using Rhino.Geometry;
-using System.Text;
-using Grasshopper.Kernel.Parameters;
-using System.Diagnostics;
-using System.Threading;
 using System.Linq;
-using Eddy.Properties;
+using System.Text.RegularExpressions;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -41,6 +39,11 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Mode", "Mode", "Which directories to delete", GH_ParamAccess.item, 1);
+            Param_Integer param = pManager[1] as Param_Integer;
+            param.AddNamedValue("Mesh Directory", 0);
+            param.AddNamedValue("Simulation Directories", 1);
+            param.AddNamedValue("Both", 2);
             pManager.AddBooleanParameter("Run", "Run", "Clean the directory", GH_ParamAccess.item, false);
 
         }
@@ -65,36 +68,12 @@ namespace Eddy
 
             bool Run = false;
             string workingDirectory = "";
-
+            int Mode = 1;
 
 
             DA.GetData(0, ref workingDirectory);
-            DA.GetData(1, ref Run);
-
-
-
-
-
-            List<String> listOfDataToDelete = new List<string>();
-
-
-
-            //   Delete files in workingDir 
-
-            var workingDirectoryInfo = new DirectoryInfo(workingDirectory);
-
-            var listOfDirs = workingDirectoryInfo.EnumerateDirectories("*");
-
-            var systemDirectoryInfo = new DirectoryInfo(workingDirectory + @"\mesh\system\");
-            var listOfSystemFiles = systemDirectoryInfo.EnumerateFiles("*");
-
-
-
-            var constantDirectoryInfo = new DirectoryInfo(workingDirectory + @"mesh\constant\");
-            var polyMeshDirectoryInfo = new DirectoryInfo(workingDirectory + @"mesh\constant\polyMesh\");
-            var extendedFeatureEdgeMeshDirectoryInfo = new DirectoryInfo(workingDirectory + @"\constant\extendedFeatureEdgeMesh\");
-
-           
+            DA.GetData(1, ref Mode);
+            DA.GetData(2, ref Run);
 
 
             if (!Run)
@@ -103,78 +82,53 @@ namespace Eddy
             }
 
 
+            List<string> windDirDirectories = Directory.GetDirectories(workingDirectory, "*",
+  SearchOption.TopDirectoryOnly)
+  .Where(f => Regex.IsMatch(f, @"[\\/]\d+$")).ToList();
+
+            string meshDirectory = workingDirectory + @"\mesh";
 
 
-
-            // Delete files in subfolders
-
-            foreach (String element in listOfDirs.Select(x => x.Name))
+            if (Mode == 1 || Mode == 2)
             {
-                if (element.ToLower() == "system" || element.ToLower() == "constant" || element.ToLower() == "0.org")
+
+
+
+                foreach (string directory in windDirDirectories)
                 {
-                    continue;
+                    Utilities.processDirectory(directory, true);
                 }
-                try
-                {
-                    String newWorkingDirectory = workingDirectory + @"\" + element;
-                    var subFolderWorkingDirInfo = new DirectoryInfo(newWorkingDirectory);
-
-                    foreach (var file in subFolderWorkingDirInfo.EnumerateFiles("*"))
-                    {
-                        file.Delete();        
-                    }
 
 
-                    foreach (var file in systemDirectoryInfo.EnumerateFiles("*"))
-                    {
-                        if (System.Text.RegularExpressions.Regex.IsMatch(file.ToString(), "Probes"))
-                        {
-                            file.Delete();
-                        }
-                    }
 
 
-                    foreach (var file in extendedFeatureEdgeMeshDirectoryInfo.EnumerateFiles("*"))
-                    {
-                        file.Delete();
-                    }
-                    foreach (var file in polyMeshDirectoryInfo.EnumerateFiles("*"))
-                    {
-                        file.Delete();
-                    }
-
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("The process failed: {0}", e.Message);
-                }
             }
 
+            if (Mode == 0)
+            {
 
 
+                Utilities.processDirectory(meshDirectory, false);
+
+            }
         }
+
+
+
 
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface.
         /// Icons need to be 24x24 pixels.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
-                // You can add image files to your project resources and access them like this:
-                return Resources.Eddy_clean;
-            }
-        }
+        protected override System.Drawing.Bitmap Icon =>
+                    // You can add image files to your project resources and access them like this:
+                    Resources.Eddy_clean;
 
         /// <summary>
         /// Each component must have a unique Guid to identify it. 
         /// It is vital this Guid doesn't change otherwise old ghx files 
         /// that use the old ID will partially fail during loading.
         /// </summary>
-        public override Guid ComponentGuid
-        {
-            get { return new Guid("{EE4594E9-FF2E-4E07-8156-957F1F9E08EE}"); }
-        }
+        public override Guid ComponentGuid => new Guid("{EE4594E9-FF2E-4E07-8156-957F1F9E08EE}");
     }
 }

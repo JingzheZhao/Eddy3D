@@ -21,7 +21,7 @@ AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 CreateAppDir=no
 OutputDir={#MyAppVersion}
-OutputBaseFilename=Eddy
+OutputBaseFilename=Eddy_BlueCFD
 Compression=lzma
 SolidCompression=yes
 
@@ -29,7 +29,7 @@ SolidCompression=yes
 #define GrasshopperLib "{userappdata}\Grasshopper\Libraries"
 #define OFInstallDir   "C:\OpenFOAM"
 
-#include "UserT460s.txt"
+#include "USERESL.txt"
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -37,7 +37,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Files]
 #include "Eddy.txt"
 #include "Gnuplot.txt"
-;#include "BlueCFD.txt"
+#include "BlueCFD.txt"
 
 
 

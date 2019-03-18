@@ -1,0 +1,4 @@
+#define GnuplotInstallDir   "C:\Program Files\gnuplot"
+Source: "C:\Users\{#User}\Box Sync\PatrickESL\Eddy\Installer\gp526-win64-mingw_2.exe"; DestDir: "{#GnuplotInstallDir}"; AfterInstall: GnuplotInstall
+
+

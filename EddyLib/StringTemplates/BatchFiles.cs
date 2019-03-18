@@ -33,7 +33,7 @@ namespace EddyLib.StrTemp
             List<string> lst = new List<string>
             {
                 "decomposePar",
-                "mpiexec -np " + RunSettings.CPUs + @" renumberMesh -overwrite -parallel",
+                "mpiexec -np " + RunSettings.CPUs + @" renumberMesh -overwrite",
                 "mpiexec -np " + RunSettings.CPUs + @" potentialFoam -parallel",
                 "mpiexec -np " + RunSettings.CPUs + @" simpleFoam -parallel",
                 "reconstructPar -latestTime",
