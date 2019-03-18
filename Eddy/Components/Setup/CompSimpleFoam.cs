@@ -304,11 +304,13 @@ namespace Eddy
 
             if (runMeshing == true)
             {
+                Utilities.DeletePhi(MeshSettings, DOM);
                 Utilities.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_mesh.bat");
             }
 
             if (runSimulation == true)
             {
+                Utilities.DeletePhi(MeshSettings, DOM);
                 Utilities.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_sim_all.bat");
             }
 

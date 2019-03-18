@@ -73,7 +73,7 @@ namespace EddyLib
                     File.WriteAllText(Path.Combine(simConstantDir + "turbulenceProperties"), EddyLib.StrTemp.OFExecDicts.TurbulenceProperties(RunSettings));
                     File.WriteAllText(Path.Combine(simConstantDir + "transportProperties"), EddyLib.StrTemp.OFExecDicts.TransportProperties());
 
-
+                    Utilities.DeletePhi(MeshSettings, DOM);
 
                     if (DOM is OFBoxDomain)
                     {
@@ -253,6 +253,8 @@ namespace EddyLib
                     File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "_run_sim_continue.bat"), EddyLib.StrTemp.BatFiles.Run_sim_continue(MeshSettings, RunSettings, DOM, StrTemp.Mode.Simulation, i));
 
                 }
+
+
 
 
 

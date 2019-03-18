@@ -38,16 +38,16 @@ namespace EddyLib
         {
             get
             {
-                var dir = AppDomain.CurrentDomain.BaseDirectory;
-                var localDir = Assembly.GetExecutingAssembly().GetDirectoryPath();
-                var dir1 = System.IO.Path.GetDirectoryName(new System.Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath);
+                string dir = AppDomain.CurrentDomain.BaseDirectory;
+                string localDir = Assembly.GetExecutingAssembly().GetDirectoryPath();
+                string dir1 = System.IO.Path.GetDirectoryName(new System.Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath);
 
 
-                var bla1 = Assembly.GetEntryAssembly();    //gives you the entrypoint assembly for the process.
-                var bla2 = Assembly.GetCallingAssembly();   // gives you the assembly from which the current method was called.
-                var bla3 = Assembly.GetExecutingAssembly(); // gives you the assembly in which the currently executing code is defined
-                var bla4 = Assembly.GetAssembly(typeof(OFBaseDomain));  // gives you the assembly in which the specified type is defined.
-                var loc = bla4.Location;
+                Assembly bla1 = Assembly.GetEntryAssembly();    //gives you the entrypoint assembly for the process.
+                Assembly bla2 = Assembly.GetCallingAssembly();   // gives you the assembly from which the current method was called.
+                Assembly bla3 = Assembly.GetExecutingAssembly(); // gives you the assembly in which the currently executing code is defined
+                Assembly bla4 = Assembly.GetAssembly(typeof(OFBaseDomain));  // gives you the assembly in which the specified type is defined.
+                string loc = bla4.Location;
                 string path2 = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase);
 
                 string codeBase = Assembly.GetExecutingAssembly().CodeBase;
@@ -61,6 +61,18 @@ namespace EddyLib
 
         //(c) Vasian Cepa 2005
         // Version 2 http://www.codeproject.com/Articles/11016/Numeric-String-Sort-in-C
+
+        public static void DeletePhi(OFMeshSettings MeshSettings, OFBaseDomain DOM)
+        {
+            foreach (int dir in DOM.BCond.windDirs)
+            {
+                string phiPath = MeshSettings.baseWorkingDir + dir + @"\0\phi";
+                if (File.Exists(phiPath)) { File.Delete(phiPath); }
+                string logPath = MeshSettings.baseWorkingDir + dir + @"\log";
+                if (File.Exists(logPath)) { File.Delete(logPath); }
+            }
+        }
+
 
 
         public static string FixDirectories(string dir)
@@ -87,17 +99,17 @@ namespace EddyLib
 
                 try
                 {
-                    String line;
-                    List<String> lines = new List<String>();
+                    string line;
+                    List<string> lines = new List<string>();
 
 
                     //var time1 = "0";
-                    var time2 = "0";
+                    string time2 = "0";
 
                     // This causes issues if the logfile isn't there
 
-                    using (var fs = new FileStream(logFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                    using (var sr = new StreamReader(fs, System.Text.Encoding.Default))
+                    using (FileStream fs = new FileStream(logFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (StreamReader sr = new StreamReader(fs, System.Text.Encoding.Default))
                     {
 
 
@@ -156,7 +168,7 @@ namespace EddyLib
             bool running = false;
             string fp = workingDirectory + @"\dockerStatus";
 
-            var lines = Utilities.FileReader(fp);
+            List<string> lines = Utilities.FileReader(fp);
 
             if (OSType.Windows7 != ostype)
             {
@@ -181,7 +193,7 @@ namespace EddyLib
         public static void WriteDockerInfo(string workingDirectory)
         {
 
-            StartProcessCMD(@"docker info > """ + workingDirectory + @"\dockerStatus""",true, false, false);        
+            StartProcessCMD(@"docker info > """ + workingDirectory + @"\dockerStatus""", true, false, false);
 
             //StartProcessCMD(@"docker info > """ + workingDirectory + @"\dockerStatus""", true, true, true);
 
@@ -197,7 +209,7 @@ namespace EddyLib
             p.StartInfo.CreateNoWindow = createnowindow;
             p.Start();
             StreamWriter sw = p.StandardInput;
-            String strInputText = argument;
+            string strInputText = argument;
             sw.WriteLine(strInputText);
 
             sw.Flush();
@@ -246,7 +258,7 @@ namespace EddyLib
 
         public static List<List<Point3d>> SplitPointList(List<Point3d> locations, int nSize)
         {
-            var list = new List<List<Point3d>>();
+            List<List<Point3d>> list = new List<List<Point3d>>();
 
             for (int i = 0; i < locations.Count; i += nSize)
             {
@@ -420,9 +432,9 @@ namespace EddyLib
                 return Directory.GetDirectories(path, searchPattern).ToList();
             }
 
-            var directories = new List<string>(GetDirectories(path, searchPattern));
+            List<string> directories = new List<string>(GetDirectories(path, searchPattern));
 
-            for (var i = 0; i < directories.Count; i++)
+            for (int i = 0; i < directories.Count; i++)
             {
                 directories.AddRange(GetDirectories(directories[i], searchPattern));
             }
@@ -459,20 +471,20 @@ namespace EddyLib
 
 
             // Full path
-            var directoriesInDir = GetDirectories(simWorkingDirectory);
+            List<string> directoriesInDir = GetDirectories(simWorkingDirectory);
 
 
             // Without trailing path
-            var listOfDirs = new List<String>();
+            List<string> listOfDirs = new List<string>();
             foreach (string str in directoriesInDir)
             {
                 listOfDirs.Add(new DirectoryInfo(str).Name);
             }
 
 
-            var filteredNumbers = listOfDirs.Where(s => s.All(char.IsDigit));
+            IEnumerable<string> filteredNumbers = listOfDirs.Where(s => s.All(char.IsDigit));
 
-            var lastIteration = filteredNumbers.Max();
+            string lastIteration = filteredNumbers.Max();
             int lastIterationInt = int.Parse(lastIteration);
 
 
@@ -490,7 +502,7 @@ namespace EddyLib
 
             if (File.Exists(meshWorkingDirectory + @"\log"))
             {
-                var logFile = File.ReadAllLines(meshWorkingDirectory + @"\log");
+                string[] logFile = File.ReadAllLines(meshWorkingDirectory + @"\log");
                 foreach (string line in logFile)
                 {
                     if (line.StartsWith("    cells:"))
@@ -551,12 +563,12 @@ namespace EddyLib
             {
                 try
                 {
-                    String line;
-                    List<String> lines = new List<String>();
+                    string line;
+                    List<string> lines = new List<string>();
 
 
-                    using (var fs = new FileStream(logFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                    using (var sr = new StreamReader(fs, System.Text.Encoding.Default))
+                    using (FileStream fs = new FileStream(logFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (StreamReader sr = new StreamReader(fs, System.Text.Encoding.Default))
                     {
 
 
@@ -588,18 +600,18 @@ namespace EddyLib
         }
 
 
-        public static List<String> FileReader(string filePath)
+        public static List<string> FileReader(string filePath)
         {
 
-            String line;
-            List<String> lines = new List<String>();
+            string line;
+            List<string> lines = new List<string>();
 
             if (File.Exists(filePath))
             {
                 try
                 {
-                    using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                    using (var sr = new StreamReader(fs, System.Text.Encoding.Default))
+                    using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (StreamReader sr = new StreamReader(fs, System.Text.Encoding.Default))
                     {
 
 
@@ -678,20 +690,20 @@ namespace EddyLib
 
         public static List<int> GetFullHoursListFromLB(List<string> LBanalysisList)
         {
-            var fullHoursList = new List<int>();
+            List<int> fullHoursList = new List<int>();
             //foreach (string LBobj in LBanalysisList)
             //{
-                foreach (int hour in GetEvalHoursFromLB(LBanalysisList))
-                {
-                    fullHoursList.Add(hour);
-                }
+            foreach (int hour in GetEvalHoursFromLB(LBanalysisList))
+            {
+                fullHoursList.Add(hour);
+            }
             //}
             return fullHoursList;
         }
 
         public static List<int> GetFullHoursListFromInt(List<Interval> list)
         {
-            var fullHoursList = new List<int>();
+            List<int> fullHoursList = new List<int>();
             foreach (Interval inter in list)
             {
                 foreach (int hour in GetEvalHoursFromInterval(inter))
@@ -723,11 +735,11 @@ namespace EddyLib
             List<int> hoursToEvaluate = new List<int>();
 
             int month_start = int.Parse(LBanalysis[0].Split(',')[0].Split('(')[1]) - 1;
-            var month_end = int.Parse(LBanalysis[1].Split(',')[0].Split('(')[1]);
-            var day_start = int.Parse(LBanalysis[0].Split(',')[1]) - 1;
-            var day_end = int.Parse(LBanalysis[1].Split(',')[1]);
-            var hour_start = int.Parse(LBanalysis[0].Split(',')[2].Split(')')[0]) - 1;
-            var hour_end = int.Parse(LBanalysis[1].Split(',')[2].Split(')')[0]);
+            int month_end = int.Parse(LBanalysis[1].Split(',')[0].Split('(')[1]);
+            int day_start = int.Parse(LBanalysis[0].Split(',')[1]) - 1;
+            int day_end = int.Parse(LBanalysis[1].Split(',')[1]);
+            int hour_start = int.Parse(LBanalysis[0].Split(',')[2].Split(')')[0]) - 1;
+            int hour_end = int.Parse(LBanalysis[1].Split(',')[2].Split(')')[0]);
 
             if (month_end > 12) { month_end = 12; }
             if (day_end > 31) { day_end = 31; }
@@ -735,7 +747,7 @@ namespace EddyLib
 
             int cnt = 0;
 
-            var hours = hour_end - hour_start;
+            int hours = hour_end - hour_start;
 
             for (int m = 0; m < 12; m++) // 0-11
             {
@@ -799,7 +811,7 @@ namespace EddyLib
             return area1 + area2;
         }
 
-        
+
 
         public static void ParseABLConditionsFromCaseFolder(string ABLConditionsFilePath, out double URef, out double z0, out double zref)
         {
@@ -813,7 +825,7 @@ namespace EddyLib
 
             for (int i = 0; i < lines.Length; i++)
             {
-                var l = lines[i];
+                string l = lines[i];
 
 
 
@@ -970,8 +982,8 @@ namespace EddyLib
                 }
 
                 //WE style, special case
-                bool sp1 = Char.IsLetterOrDigit(s1, 0);
-                bool sp2 = Char.IsLetterOrDigit(s2, 0);
+                bool sp1 = char.IsLetterOrDigit(s1, 0);
+                bool sp2 = char.IsLetterOrDigit(s2, 0);
                 if (sp1 && !sp2)
                 {
                     return 1;
@@ -986,17 +998,17 @@ namespace EddyLib
                 int r = 0; // temp result
                 while (true)
                 {
-                    bool c1 = Char.IsDigit(s1, i1);
-                    bool c2 = Char.IsDigit(s2, i2);
+                    bool c1 = char.IsDigit(s1, i1);
+                    bool c2 = char.IsDigit(s2, i2);
                     if (!c1 && !c2)
                     {
-                        bool letter1 = Char.IsLetter(s1, i1);
-                        bool letter2 = Char.IsLetter(s2, i2);
+                        bool letter1 = char.IsLetter(s1, i1);
+                        bool letter2 = char.IsLetter(s2, i2);
                         if ((letter1 && letter2) || (!letter1 && !letter2))
                         {
                             if (letter1 && letter2)
                             {
-                                r = Char.ToLower(s1[i1]).CompareTo(Char.ToLower(s2[i2]));
+                                r = char.ToLower(s1[i1]).CompareTo(char.ToLower(s2[i2]));
                             }
                             else
                             {
@@ -1101,7 +1113,7 @@ namespace EddyLib
                 nzStart = start;
                 end = start;
                 bool countZeros = true;
-                while (Char.IsDigit(s, end))
+                while (char.IsDigit(s, end))
                 {
                     if (countZeros && s[end].Equals('0'))
                     {
@@ -1129,7 +1141,7 @@ namespace EddyLib
         // <Custom additional code>
         public static string[][] CreateMatrix(int rows, int columns)
         {
-            var matrix = new string[rows][];
+            string[][] matrix = new string[rows][];
 
             for (int i = 0; i < matrix.Length; i++)
             {
@@ -1148,11 +1160,11 @@ namespace EddyLib
 
         public static double Rad2Deg(Vector3d windVec)
         {
-            var vec1 = new Vector3d(0, 1, 0);
-            var vec2 = windVec;
+            Vector3d vec1 = new Vector3d(0, 1, 0);
+            Vector3d vec2 = windVec;
 
-            var rad = Math.Acos(vec1 * vec2 / vec1.Length * vec2.Length);
-            var ang = rad * 180 / Math.PI;
+            double rad = Math.Acos(vec1 * vec2 / vec1.Length * vec2.Length);
+            double ang = rad * 180 / Math.PI;
             return ang;
         }
     }
