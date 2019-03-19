@@ -114,17 +114,17 @@ namespace Eddy
 
 
 
-           
-            BoundaryConditions BCond = new BoundaryConditions(BoundaryType.abl,new List<int>() { 0 },5, 1, ""); // sets default BC settings
+
+            BoundaryConditions bCond = new BoundaryConditions(BoundaryType.abl, new List<int>() { 0 }, 5, 1, ""); // sets default BC settings
             GH_ObjectWrapper gobj = null;
-            if (!DA.GetData("BCond", ref gobj)) { }
-
-            if ((gobj.Value is BoundaryConditions))
+            if (DA.GetData("BCond", ref gobj))
             {
-                BCond = (BoundaryConditions)gobj.Value;
+                if ((gobj.Value is BoundaryConditions))
+                {
+                    bCond = (BoundaryConditions)gobj.Value;
+                }
+                else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid boundary condition object"); return; }
             }
-            else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid boundary condition object"); return; }
-
 
 
 
@@ -133,7 +133,7 @@ namespace Eddy
 
 
 
-            Mesh BuildingGeometry = new Mesh();
+            Mesh buildingGeometry = new Mesh();
             MeshingParameters mp = new MeshingParameters();
 
             //string windowsVersion = Utilities.GetOSInfo();
@@ -190,7 +190,7 @@ namespace Eddy
                     if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
                     {
                         Mesh obj = (Mesh)b;
-                        BuildingGeometry.Append(obj);
+                        buildingGeometry.Append(obj);
                     }
                     else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
                     {
@@ -198,7 +198,7 @@ namespace Eddy
                         Mesh[] m = Mesh.CreateFromBrep(obj, mp);
                         foreach (Mesh mm in m)
                         {
-                            BuildingGeometry.Append(mm);
+                            buildingGeometry.Append(mm);
                         }
                     }
 
@@ -206,14 +206,19 @@ namespace Eddy
                 }
             }
 
-          
 
+            // Check if lowest point in Domain is z_low < 0, then we cannot use a ABL
+
+            if (buildingGeometry.GetBoundingBox(true).Min.Z < 0 && bCond.btype == BoundaryType.abl)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "If your simulation domain extends below z = 0, you cannot use an ABL Boundary Condition. Please use the Constant U Boundary Condition."); return;
+            }
 
             if (Utilities.CheckLicence() == true)
             {
 
 
-                OFBoxDomain DOMBOX = new OFBoxDomain(BuildingGeometry, terrainMeshes, BCond, blockDimension);
+                OFBoxDomain DOMBOX = new OFBoxDomain(buildingGeometry, terrainMeshes, bCond, blockDimension);
 
                 DA.SetData(0, DOMBOX);
                 DA.SetData(1, DOMBOX.DomainMesh);

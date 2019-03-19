@@ -39,7 +39,7 @@ namespace EddyLib
         //Meshes from Cycl Domain
         public Mesh CylDomainMesh = new Mesh();
         public Mesh CylDomainMeshGround = new Mesh();
-        public Mesh CylDomainMeshGroundPerim = new Mesh();        
+        public Mesh CylDomainMeshGroundPerim = new Mesh();
         public Mesh CylCombinedMesh; // TODO: What is this??
 
         public Mesh perimBottom = new Mesh();
@@ -59,7 +59,7 @@ namespace EddyLib
 
 
 
-        public OFCylDomain(Mesh BuildingGeometry, Mesh terrain, BoundaryConditions BCond, double coreBlockSize, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0)
+        public OFCylDomain(Mesh BuildingGeometry, Mesh terrain, BoundaryConditions bCond, double coreBlockSize, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0)
         {
             gradingPerim = 1.0;
 
@@ -89,7 +89,7 @@ namespace EddyLib
             double zDomain = BBox.Min.Z;
             double dimZ_Terrain = dimZ;
 
-            this.TerrainMesh = terrain;
+            TerrainMesh = terrain;
             BoundingBox bboxTerrain = terrain.GetBoundingBox(true);
 
             if (terrain.Faces.Count > 0)
@@ -199,19 +199,19 @@ namespace EddyLib
             MakeCircMeshPlane(Cetner, sizeInnerR, divsRadial, radius, height);
 
 
-            BCond.CalculateCPPressures(zMax);
+            bCond.CalculateCPPressures(zMax, bCond.btype, bCond.URef);
 
 
-            if (BCond.btype == BoundaryType.constant)
+            if (bCond.btype == BoundaryType.constant)
             {
-                BCond.SetUatBuildingHeightUconst();
+                bCond.SetUatBuildingHeightUconst();
             }
-            if (BCond.btype == BoundaryType.abl)
+            if (bCond.btype == BoundaryType.abl)
             {
-                BCond.SetUatBuildingHeightABL(zMax);
+                bCond.SetUatBuildingHeightABL(zMax);
             }
 
-            base.BCond = BCond;
+            BCond = bCond;
 
             // refinement Cylinder
             //refinementCylinder = getRefinementCyl(center, geometry, 0.3, 0.3);
@@ -346,7 +346,7 @@ namespace EddyLib
             CylDomainMesh.Weld(Math.PI);
             CylDomainMesh.Vertices.CombineIdentical(true, true);
 
-            this.DomainMesh = CylDomainMesh;
+            DomainMesh = CylDomainMesh;
 
 
 
@@ -360,15 +360,15 @@ namespace EddyLib
 
         private static int DivisionsPerim(Point3d[] core, Point3d[] perim, double blockDim)
         {
-            
+
             Vector3d blockDimensionPerim = new Vector3d(perim[0].X, perim[0].Y, perim[0].Z) - new Vector3d(core[0].X, core[0].Y, core[0].Z);
             int divPerim = (int)(blockDimensionPerim.Length / blockDim);
             if (divPerim == 0)
             {
                 divPerim = 1;
-            }            
+            }
 
-            return  divPerim;
+            return divPerim;
             //return (int)(blockDimensionPerim.Length / blockDim / 1.41);
         }
         private static double BlockDimensionCore(Point3d[] core)
@@ -817,7 +817,7 @@ faces
 
         private List<Polyline> GetConcenctricPolyDivisions(Point3d[] pointsOnRect, Point3d[] pointsOnCircle, int divPerim)
         {
-           
+
 
 
 

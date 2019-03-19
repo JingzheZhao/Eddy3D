@@ -126,7 +126,7 @@ namespace Eddy
             GH_ObjectWrapper gobj = null;
             if (DA.GetData("BCond", ref gobj))
             {
-                if ((gobj.Value is BoundaryConditions))
+                if (gobj.Value is BoundaryConditions)
                 {
                     bCond = ((BoundaryConditions)gobj.Value);
                 }
@@ -152,6 +152,9 @@ namespace Eddy
 
             if (sizeInnerRect < coreBlockSize && sizeInnerRect != 0)
             { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Size of inner rectangle must be larger than the Block Size."); return; }
+
+
+     
 
 
 
@@ -214,8 +217,14 @@ namespace Eddy
             }
 
 
+            // Check if lowest point in Domain is z_low < 0, then we cannot use a ABL
 
-            if (Utilities.CheckLicence() == true)
+            if (buildingGeometry.GetBoundingBox(true).Min.Z < 0 && bCond.btype == BoundaryType.abl) {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "If your simulation domain extends below z = 0, you cannot use an ABL Boundary Condition. Please use the Constant U Boundary Condition."); return;
+            }
+
+
+                if (Utilities.CheckLicence() == true)
             {
 
 

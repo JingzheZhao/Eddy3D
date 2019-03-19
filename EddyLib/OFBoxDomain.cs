@@ -29,7 +29,7 @@ namespace EddyLib
         public int yCells;
         public int zCells;
 
-        
+
         public Mesh DomainMeshGround;
         public Mesh DomainMeshGroundPerim;
         public Box DomainBox;
@@ -39,18 +39,18 @@ namespace EddyLib
         public double blockDimension;
 
 
-      
-        
+
+
 
 
         public OFBoxDomain(Mesh buildingGeometry, Mesh terrainMesh, BoundaryConditions bCond, double _blockDim)
         {
-            this.BCond = bCond;
+            BCond = bCond;
 
-            this.BuildingGeometry = buildingGeometry;
-                                 
+            BuildingGeometry = buildingGeometry;
 
-            blockDimension = _blockDim;           
+
+            blockDimension = _blockDim;
 
             BBox = buildingGeometry.GetBoundingBox(true);
 
@@ -82,9 +82,9 @@ namespace EddyLib
 
 
 
-            var windDir = bCond.windDirs[0];
+            int windDir = bCond.windDirs[0];
 
-            var windDirVector = bCond.flowDir[0];
+            Vector3d windDirVector = bCond.flowDir[0];
 
 
             //Vector3d vecWindDir = new Vector3d(Math.Sin(windDir * Math.PI / 180), Math.Cos(windDir * Math.PI / 180), 0);
@@ -99,9 +99,9 @@ namespace EddyLib
             double scaleRectDomainZ = 6 * dimZ;
 
             // New Dimensions in X; take blocking ratio into account
-            var scaleRectDomainXblockingRatio = FrontageBuildingArea * 100 / 3 / scaleRectDomainZ / 2;
-            var scaleRectDomainXHeight = (5 * dimZ) + dimX / 2;
-            var scaleRectDomainX = scaleRectDomainXblockingRatio > scaleRectDomainXHeight ? scaleRectDomainXblockingRatio : scaleRectDomainXHeight;
+            double scaleRectDomainXblockingRatio = FrontageBuildingArea * 100 / 3 / scaleRectDomainZ / 2;
+            double scaleRectDomainXHeight = (5 * dimZ) + dimX / 2;
+            double scaleRectDomainX = scaleRectDomainXblockingRatio > scaleRectDomainXHeight ? scaleRectDomainXblockingRatio : scaleRectDomainXHeight;
 
             //New Dimensions in Y \cite{Tominaga2008,Franke2007}
 
@@ -122,7 +122,7 @@ namespace EddyLib
 
 
             // If terrain is used, scale down Z to make sure all points are inside the domain
-            this.TerrainMesh = terrainMesh;
+            TerrainMesh = terrainMesh;
 
             if (terrainMesh.DisjointMeshCount == 0)
             {
@@ -130,22 +130,22 @@ namespace EddyLib
             }
             else
             {
-                var bboxTerrain = terrainMesh.GetBoundingBox(true);
+                BoundingBox bboxTerrain = terrainMesh.GetBoundingBox(true);
                 zInter = new Interval(bboxTerrain.Min.Z - 0.1, scaleRectDomainZ);
             }
-            
+
             xCells = (int)((Math.Abs(xInter.Length)) / blockDimension);
             yCells = (int)((Math.Abs(yInter.Length)) / blockDimension);
             zCells = (int)((Math.Abs(zInter.Length)) / blockDimension);
-            
-            var pl = new Plane(Cetner, newLocal.XAxis, newLocal.YAxis)
+
+            Plane pl = new Plane(Cetner, newLocal.XAxis, newLocal.YAxis)
             {
                 Origin = Cetner
             };
 
             //Plane newPlaneGround = new Plane()
             //newBoxDomain = box;
-            this.DomainBox = new Box(pl, xInter, yInter, zInter);
+            DomainBox = new Box(pl, xInter, yInter, zInter);
 
 
             //Point3d[] cornersGroundPlane;
@@ -172,14 +172,14 @@ namespace EddyLib
 
             if (terrainMesh.DisjointMeshCount == 0)
             {
-                this.DomainMeshGround = Mesh.CreateFromPlanarBoundary(plGroundCore.ToNurbsCurve(), mpGround);
-                this.DomainMeshGroundPerim = new Mesh();
-                this.DomainMeshGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim1.ToNurbsCurve(), mpGround));
-                this.DomainMeshGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim2.ToNurbsCurve(), mpGround));
+                DomainMeshGround = Mesh.CreateFromPlanarBoundary(plGroundCore.ToNurbsCurve(), mpGround);
+                DomainMeshGroundPerim = new Mesh();
+                DomainMeshGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim1.ToNurbsCurve(), mpGround));
+                DomainMeshGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim2.ToNurbsCurve(), mpGround));
             }
             else
             {
-                this.DomainMeshGround = terrainMesh;
+                DomainMeshGround = terrainMesh;
             }
 
 
@@ -199,10 +199,10 @@ namespace EddyLib
 
 
 
-            bCond.CalculateCPPressures(zMax);
+            bCond.CalculateCPPressures(zMax, bCond.btype, bCond.URef);
 
 
-            this.DomainMesh = Mesh.CreateFromBox(DomainBox, xCells, yCells, zCells);
+            DomainMesh = Mesh.CreateFromBox(DomainBox, xCells, yCells, zCells);
             //this.DomainMesh = Mesh.CreateFromBox(DomainBox);
 
 
