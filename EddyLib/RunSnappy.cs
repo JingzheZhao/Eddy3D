@@ -138,7 +138,7 @@ namespace EddyLib
             }
 
             Point3d locationInMesh = new Point3d();
-            locationInMesh = DOM.locationInMesh;
+            locationInMesh = DOM.LocationInMesh;
 
 
 

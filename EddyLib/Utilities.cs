@@ -399,30 +399,27 @@ namespace EddyLib
         }
 
 
-        public static List<Point3d> DiscardPointsOutsideDomain(List<Point3d> listOfPoints, OFBaseDomain DOM)
+        public static List<Point3d> DiscardPoints(List<Point3d> listOfPoints, OFBaseDomain DOM)
         {
 
-            // Inclusion check for probes
-
-            // Filter the list
-            int kept = 0;
+       
+            var newList = new List<Point3d>();
+         
+       
             for (int i = 0; i < listOfPoints.Count; i++)
             {
-                // Test whether this is an element that we want to keep.
-                if (DOM.inputBreps.IsPointInside(listOfPoints[i], 0.01, true) == false)
+              
+                if (DOM.DomainMesh.IsPointInside(listOfPoints[i], 0.01, true))
                 {
-                    // Add it to the list of kept elements.
-                    listOfPoints[kept] = listOfPoints[i];
-                    kept++;
+                    if (!DOM.BuildingGeometry.IsPointInside(listOfPoints[i], 0.01, true))
+                    {      
+                        newList.Add(listOfPoints[i]);
+                  }
                 }
             }
-            // Unfortunately IList has no Resize method. So instead we
-            // remove the last element of the list until: elements.Count == kept.
-            while (kept < listOfPoints.Count)
-            {
-                listOfPoints.RemoveAt(listOfPoints.Count - 1);
-            }
-            return listOfPoints;
+                                  
+
+            return newList;
         }
 
         public static List<string> GetDirectories(string path, string searchPattern = "*", SearchOption searchOption = SearchOption.TopDirectoryOnly)

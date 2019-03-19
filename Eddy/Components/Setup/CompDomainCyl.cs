@@ -48,13 +48,9 @@ namespace Eddy
             //pManager.AddIntegerParameter("Concentric grading", "ConcGrad", "Concentric grading", GH_ParamAccess.item, 1);
             //pManager.AddIntegerParameter("Concentric divisions", "ConcDiv", "Concentric Divisions", GH_ParamAccess.item, 1);
 
-            pManager.AddNumberParameter("Size of inner rectangle", "InnerR", "Size of inner rectangle", GH_ParamAccess.item, 40);
-            pManager.AddNumberParameter("Size of outer radius", "OuterR", "Size of outer radius", GH_ParamAccess.item, 100);
-            pManager.AddNumberParameter("Height", "Height", "Height", GH_ParamAccess.item, 50);
-
-
-
-
+            pManager.AddNumberParameter("Size of inner rectangle", "InnerR", "Size of inner rectangle", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Size of outer radius", "OuterR", "Size of outer radius", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Height", "Height", "Height", GH_ParamAccess.item);
             //   pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
 
 
@@ -126,13 +122,13 @@ namespace Eddy
 
 
 
-            BoundaryConditions BCond = null;
+            BoundaryConditions bCond = null;
             GH_ObjectWrapper gobj = null;
             if (DA.GetData("BCond", ref gobj))
             {
                 if ((gobj.Value is BoundaryConditions))
                 {
-                    BCond = ((BoundaryConditions)gobj.Value);
+                    bCond = ((BoundaryConditions)gobj.Value);
                 }
                 else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid boundary condition object"); return; }
             }
@@ -142,9 +138,9 @@ namespace Eddy
             double coreBlockSize = 20;
             //int gradingPerim = 1;
             //int divsConcentric = 1;
-            double sizeInnerRect = 40;
-            double sizeOuterCirc = 100;
-            double sizeHeight = 50;
+            double sizeInnerRect = 1;
+            double sizeOuterCirc = 1;
+            double sizeHeight = 1;
 
             DA.GetData("Block size", ref coreBlockSize);
             DA.GetData("Size of inner rectangle", ref sizeInnerRect);
@@ -159,11 +155,8 @@ namespace Eddy
 
 
 
-            Mesh combinedMeshes = new Mesh();
+            Mesh buildingGeometry = new Mesh();
             MeshingParameters mp = new MeshingParameters();
-
-
-
 
             Mesh terrainMeshes = new Mesh();
 
@@ -205,7 +198,7 @@ namespace Eddy
                 {
                     Mesh obj = new Mesh();
                     obj = (Mesh)b;
-                    combinedMeshes.Append(obj);
+                    buildingGeometry.Append(obj);
                 }
                 else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
                 {
@@ -213,7 +206,7 @@ namespace Eddy
                     Mesh[] m = Mesh.CreateFromBrep(obj, mp);
                     foreach (Mesh mm in m)
                     {
-                        combinedMeshes.Append(mm);
+                        buildingGeometry.Append(mm);
                     }
                 }
 
@@ -222,25 +215,11 @@ namespace Eddy
 
 
 
-            // Those Breps are currently necessary to perform the point inclusion check for the probing components
-
-            Brep inputBreps = new Brep();
-
-            foreach (GeometryBase g in domain)
-            {
-                inputBreps.Append(Brep.TryConvertBrep(g));
-            }
-
-
-
-
-
-
             if (Utilities.CheckLicence() == true)
             {
 
 
-                OFCylDomain DOMCYL = new OFCylDomain(inputBreps, combinedMeshes, terrainMeshes, BCond, coreBlockSize, sizeInnerRect, sizeOuterCirc, sizeHeight);
+                OFCylDomain DOMCYL = new OFCylDomain(buildingGeometry, terrainMeshes, bCond, coreBlockSize, sizeInnerRect, sizeOuterCirc, sizeHeight);
 
                 DA.SetData(0, DOMCYL);
                 DA.SetData(1, DOMCYL.DomainMesh);

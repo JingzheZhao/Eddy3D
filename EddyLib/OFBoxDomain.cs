@@ -29,12 +29,9 @@ namespace EddyLib
         public int yCells;
         public int zCells;
 
-        //public BoundingBox BBox;
+        
         public Mesh newBoxGround;
         public Mesh newBoxGroundPerim;
-
-
-
         public Box newBoxDomain;
         public Mesh BoxWithDivs;
 
@@ -42,34 +39,20 @@ namespace EddyLib
         public double blockDimension;
 
 
-        public Mesh BuildingGeometry;
+      
+        
 
 
-
-
-        //// Delete later
-        //public Plane pl;
-        //public Point3d center;
-        //// Delete later
-
-
-        public OFBoxDomain(Brep inputBreps, Mesh combinedMesh, Mesh terrain, BoundaryConditions BCond, double _blockDim)
+        public OFBoxDomain(Mesh buildingGeometry, Mesh terrainMesh, BoundaryConditions bCond, double _blockDim)
         {
-            this.BCond = BCond;
+            this.BCond = bCond;
 
-            
+            this.BuildingGeometry = buildingGeometry;
+                                 
 
+            blockDimension = _blockDim;           
 
-            this.CombinedMesh = combinedMesh;
-
-
-
-
-
-            blockDimension = _blockDim;
-            BuildingGeometry = combinedMesh;
-
-            BBox = BuildingGeometry.GetBoundingBox(true);
+            BBox = buildingGeometry.GetBoundingBox(true);
 
             xMin = BBox.Min.X;
             xMax = BBox.Max.X;
@@ -94,14 +77,14 @@ namespace EddyLib
 
 
             //Create ground plane of BBox
-            center = BBox.Center + 0.5 * vecMinusZ * dimZ;
-            locationInMesh = center + 4 * vecPlusZ * dimZ;
+            Cetner = BBox.Center + 0.5 * vecMinusZ * dimZ;
+            LocationInMesh = Cetner + 4 * vecPlusZ * dimZ;
 
 
 
-            var windDir = BCond.windDirs[0];
+            var windDir = bCond.windDirs[0];
 
-            var windDirVector = BCond.flowDir[0];
+            var windDirVector = bCond.flowDir[0];
 
 
             //Vector3d vecWindDir = new Vector3d(Math.Sin(windDir * Math.PI / 180), Math.Cos(windDir * Math.PI / 180), 0);
@@ -110,13 +93,13 @@ namespace EddyLib
             //Create Box Domain
             //Find frontfacing areas in wind direction
 
-            frontageBuildingArea = RunBlockMesh.ProjectedBuildingArea(windDirVector, BuildingGeometry, 1, out Plane newLocal, out Box box);
+            FrontageBuildingArea = RunBlockMesh.ProjectedBuildingArea(windDirVector, buildingGeometry, 1, out Plane newLocal, out Box box);
 
 
             double scaleRectDomainZ = 6 * dimZ;
 
             // New Dimensions in X; take blocking ratio into account
-            var scaleRectDomainXblockingRatio = frontageBuildingArea * 100 / 3 / scaleRectDomainZ / 2;
+            var scaleRectDomainXblockingRatio = FrontageBuildingArea * 100 / 3 / scaleRectDomainZ / 2;
             var scaleRectDomainXHeight = (5 * dimZ) + dimX / 2;
             var scaleRectDomainX = scaleRectDomainXblockingRatio > scaleRectDomainXHeight ? scaleRectDomainXblockingRatio : scaleRectDomainXHeight;
 
@@ -139,33 +122,25 @@ namespace EddyLib
 
 
             // If terrain is used, scale down Z to make sure all points are inside the domain
-            this.TerrainMesh = terrain;
+            this.TerrainMesh = terrainMesh;
 
-            if (terrain.DisjointMeshCount == 0)
+            if (terrainMesh.DisjointMeshCount == 0)
             {
                 zInter = new Interval(0, scaleRectDomainZ);
             }
             else
             {
-                var bboxTerrain = terrain.GetBoundingBox(true);
+                var bboxTerrain = terrainMesh.GetBoundingBox(true);
                 zInter = new Interval(bboxTerrain.Min.Z - 0.1, scaleRectDomainZ);
             }
-
-
-
-
-
-
-
+            
             xCells = (int)((Math.Abs(xInter.Length)) / blockDimension);
             yCells = (int)((Math.Abs(yInter.Length)) / blockDimension);
             zCells = (int)((Math.Abs(zInter.Length)) / blockDimension);
-
-
-
-            var pl = new Plane(center, newLocal.XAxis, newLocal.YAxis)
+            
+            var pl = new Plane(Cetner, newLocal.XAxis, newLocal.YAxis)
             {
-                Origin = center
+                Origin = Cetner
             };
 
             //Plane newPlaneGround = new Plane()
@@ -195,7 +170,7 @@ namespace EddyLib
 
             // Add terrain to ground mesh if it exists
 
-            if (terrain.DisjointMeshCount == 0)
+            if (terrainMesh.DisjointMeshCount == 0)
             {
                 this.newBoxGround = Mesh.CreateFromPlanarBoundary(plGroundCore.ToNurbsCurve(), mpGround);
                 this.newBoxGroundPerim = new Mesh();
@@ -204,7 +179,7 @@ namespace EddyLib
             }
             else
             {
-                this.newBoxGround = terrain;
+                this.newBoxGround = terrainMesh;
             }
 
 
@@ -213,18 +188,18 @@ namespace EddyLib
             // refinement Cylinder
             //refinementCylinder = getRefinementCyl(center, geometry, 10);
 
-            if (BCond.btype == BoundaryType.constant)
+            if (bCond.btype == BoundaryType.constant)
             {
-                BCond.SetUatBuildingHeightUconst();
+                bCond.SetUatBuildingHeightUconst();
             }
-            if (BCond.btype == BoundaryType.abl)
+            if (bCond.btype == BoundaryType.abl)
             {
-                BCond.SetUatBuildingHeightABL(zMax);
+                bCond.SetUatBuildingHeightABL(zMax);
             }
 
 
 
-            BCond.CalculateCPPressures(zMax);
+            bCond.CalculateCPPressures(zMax);
 
 
             this.BoxWithDivs = Mesh.CreateFromBox(newBoxDomain, xCells, yCells, zCells);
@@ -243,7 +218,7 @@ namespace EddyLib
             "Cells in x: " + xCells + "\n" +
             "Cells in y: " + xCells + "\n" +
             "Cells in z: " + zCells + "\n" +
-            "Projected area: " + Math.Round(frontageBuildingArea)
+            "Projected area: " + Math.Round(FrontageBuildingArea)
 
 
             ;

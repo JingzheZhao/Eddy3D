@@ -94,28 +94,10 @@ namespace Eddy
             DA.GetData("Field", ref OFFieldInt);
             //DA.GetData(3, ref run);
 
-
-
-            // Inclusion check for probes
-
-            // Filter the list
-            int kept = 0;
-            for (int i = 0; i < listOfPoints.Count; i++)
-            {
-                // Test whether this is an element that we want to keep.
-                if (RES.Domain.inputBreps.IsPointInside(listOfPoints[i], 0.01, true) == false)
-                {
-                    // Add it to the list of kept elements.
-                    listOfPoints[kept] = listOfPoints[i];
-                    kept++;
-                }
-            }
-            // Unfortunately IList has no Resize method. So instead we
-            // remove the last element of the list until: elements.Count == kept.
-            while (kept < listOfPoints.Count)
-            {
-                listOfPoints.RemoveAt(listOfPoints.Count - 1);
-            }
+            
+            listOfPoints = Utilities.DiscardPoints(listOfPoints, RES.Domain);
+            
+          
 
             int numberOfProbes = listOfPoints.Count();
 

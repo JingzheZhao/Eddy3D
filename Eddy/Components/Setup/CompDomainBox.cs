@@ -132,7 +132,7 @@ namespace Eddy
 
 
 
-            Mesh combinedMeshes = new Mesh();
+            Mesh BuildingGeometry = new Mesh();
             MeshingParameters mp = new MeshingParameters();
 
             //string windowsVersion = Utilities.GetOSInfo();
@@ -189,7 +189,7 @@ namespace Eddy
                     if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
                     {
                         Mesh obj = (Mesh)b;
-                        combinedMeshes.Append(obj);
+                        BuildingGeometry.Append(obj);
                     }
                     else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
                     {
@@ -197,7 +197,7 @@ namespace Eddy
                         Mesh[] m = Mesh.CreateFromBrep(obj, mp);
                         foreach (Mesh mm in m)
                         {
-                            combinedMeshes.Append(mm);
+                            BuildingGeometry.Append(mm);
                         }
                     }
 
@@ -205,22 +205,14 @@ namespace Eddy
                 }
             }
 
-            // Those Breps are currently necessary to perform the point inclusion check for the probing components
-
-            Brep inputBreps = new Brep();
-
-            foreach (GeometryBase g in domain)
-            {
-                inputBreps.Append(Brep.TryConvertBrep(g));
-            }
-
+          
 
 
             if (Utilities.CheckLicence() == true)
             {
 
 
-                OFBoxDomain DOMBOX = new OFBoxDomain(inputBreps, combinedMeshes, terrainMeshes, BCond, blockDimension);
+                OFBoxDomain DOMBOX = new OFBoxDomain(BuildingGeometry, terrainMeshes, BCond, blockDimension);
 
                 DA.SetData(0, DOMBOX);
                 DA.SetData(1, DOMBOX.BoxWithDivs);

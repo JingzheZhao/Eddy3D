@@ -96,9 +96,9 @@ boundary
             //";
             string Cylinder = @"refinementCylinder{
 type searchableCylinder; 
-point1 (" + dom.refinementCylinder.Center.ToString().Replace(',', ' ') + @");
-point2 (" + (dom.refinementCylinder.Center + Vector3d.ZAxis * dom.refinementCylinder.Height2).ToString().Replace(',', ' ') + @");
-radius " + dom.refinementCylinder.CircleAt(0.5).Radius + @";
+point1 (" + dom.RefinementCylinder.Center.ToString().Replace(',', ' ') + @");
+point2 (" + (dom.RefinementCylinder.Center + Vector3d.ZAxis * dom.RefinementCylinder.Height2).ToString().Replace(',', ' ') + @");
+radius " + dom.RefinementCylinder.CircleAt(0.5).Radius + @";
 }";
 
             string Box = @"refinementBox{
@@ -142,7 +142,7 @@ FoamFile
             name ground;
         }");
             //Check for both Box and Cyl if there is a terrain. Unfortunately ground are called differently. TODO!!!
-            if ((dom is OFBoxDomain && dom.DomainMeshGroundPerim != null) || (dom is OFCylDomain && dom.TerrainMesh.Faces.Count == 0))
+            if (dom.TerrainMesh.Faces.Count == 0)
             {
                 sb.Append(@"	
         ground_perim.stl
@@ -201,7 +201,7 @@ refinementBox {mode inside; levels ((" + MeshSettings.accRefinement + @" " + Mes
 
         }
 
-        locationInMesh ( " + dom.locationInMesh.X + " " + dom.locationInMesh.Y + " " + dom.locationInMesh.Z + @" );
+        locationInMesh ( " + dom.LocationInMesh.X + " " + dom.LocationInMesh.Y + " " + dom.LocationInMesh.Z + @" );
         //maxLocalCells 15000000;
         //maxGlobalCells 50000000;
         //minRefinementCells 5;

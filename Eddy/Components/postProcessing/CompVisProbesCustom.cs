@@ -116,7 +116,7 @@ namespace Eddy
             //Probes.ReformatOFFields(OFFieldInt, out string OFField, out int fieldType);
 
             //Discard points outside
-            listOfPoints = Utilities.DiscardPointsOutsideDomain(listOfPoints, RES.Domain);
+            listOfPoints = Utilities.DiscardPoints(listOfPoints, RES.Domain);
             int numberOfProbes = listOfPoints.Count();
 
 

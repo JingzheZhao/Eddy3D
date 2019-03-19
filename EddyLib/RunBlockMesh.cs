@@ -23,7 +23,7 @@ namespace EddyLib
             }
 
 
-            STLExport.ExportBinary(MeshSettings.meshStlFilenameBuildings, DOMCYL.CombinedMesh);
+            STLExport.ExportBinary(MeshSettings.meshStlFilenameBuildings, DOMCYL.BuildingGeometry);
 
 
 
@@ -35,8 +35,8 @@ namespace EddyLib
             }
             else
             {
-                STLExport.ExportBinary(MeshSettings.meshStlFilenameGround, DOMCYL.DomainMeshGround);
-                STLExport.ExportBinary(MeshSettings.meshStlFilenameGroundPerim, DOMCYL.DomainMeshGroundPerim);
+                STLExport.ExportBinary(MeshSettings.meshStlFilenameGround, DOMCYL.CylDomainMeshGround);
+                STLExport.ExportBinary(MeshSettings.meshStlFilenameGroundPerim, DOMCYL.CylDomainMeshGroundPerim);
             }
 
 
@@ -90,7 +90,7 @@ void plastic Generic_20
 5 0.2 0.2 0.2 0 0 
 ";
             Mesh daysimMesh = new Mesh();
-            daysimMesh.Append(DOMCYL.CombinedMesh);
+            daysimMesh.Append(DOMCYL.BuildingGeometry);
             // Todo: add ground plane to the above mesh
 
             File.WriteAllText(MeshSettings.baseWorkingDir + @"Rad\materials.rad", radMat);
@@ -121,7 +121,7 @@ void plastic Generic_20
 
             // STL export
 
-            STLExport.ExportBinary(MeshSettings.meshStlFilenameBuildings, DOMBOX.CombinedMesh);
+            STLExport.ExportBinary(MeshSettings.meshStlFilenameBuildings, DOMBOX.BuildingGeometry);
 
 
 
@@ -182,7 +182,7 @@ void plastic Generic_20
 5 0.2 0.2 0.2 0 0 
 ";
             Mesh daysimMesh = new Mesh();
-            daysimMesh.Append(DOMBOX.CombinedMesh);
+            daysimMesh.Append(DOMBOX.BuildingGeometry);
             // Todo: add ground plane to the above mesh
 
             File.WriteAllText(MeshSettings.baseWorkingDir + @"Rad\materials.rad", radMat);

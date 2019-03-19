@@ -10,7 +10,7 @@ namespace EddyLib.StrTemp
 {
     public class BCDicts
     {
-        public static string ABLCond_Cyl(OFBaseDomain DOM, int d)
+        public static string ABLCond(OFBaseDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -51,7 +51,7 @@ FoamFile
         }
 
         
-        public static string Epsilon_Cyl(OFBaseDomain DOM, int d)
+        public static string Epsilon_Cyl(OFCylDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -138,7 +138,7 @@ inletValue uniform $turbulentEpsilon;
 ");
             return sb.ToString();
         }
-        public static string K_Cyl(OFBaseDomain DOM, int d)
+        public static string K_Cyl(OFCylDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -221,7 +221,7 @@ ground_perim
             ");
             return sb.ToString();
         }
-        public static string Omega_Cyl(OFBaseDomain DOM, int d)
+        public static string Omega_Cyl(OFCylDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(@"
@@ -311,7 +311,7 @@ value		$internalField;
             return sb.ToString();
 
         }
-        public static string P_Cyl(OFBaseDomain DOM, int d)
+        public static string P_Cyl(OFCylDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -393,7 +393,7 @@ internalField uniform $pressure;
 
         }
 
-        public static string UCylConstU(OFBaseDomain DOM, int d)
+        public static string UCylConstU(OFCylDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -491,7 +491,7 @@ building
         }
 
    
-        public static string U_CylABL(OFBaseDomain DOM, int d)
+        public static string U_CylABL(OFCylDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -590,7 +590,7 @@ building
             return sb.ToString();
 
         }
-        public static string Nut_Cyl(OFBaseDomain DOM, int d)
+        public static string Nut_Cyl(OFCylDomain DOM, int d)
         {
                          
             StringBuilder sb = new StringBuilder();

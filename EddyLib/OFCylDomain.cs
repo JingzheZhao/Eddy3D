@@ -36,7 +36,17 @@ namespace EddyLib
         public int equalDivisions;
 
 
+        //Meshes from Cycl Domain
+        public Mesh CylDomainMesh = new Mesh();
+        public Mesh CylDomainMeshGround = new Mesh();
+        public Mesh CylDomainMeshGroundPerim = new Mesh();        
+        public Mesh CylCombinedMesh; // TODO: What is this??
 
+        public Mesh perimBottom = new Mesh();
+        public Mesh coreBottom = new Mesh();
+        public Mesh perimTop = new Mesh();
+        public Mesh coreTop = new Mesh();
+        public Mesh sides = new Mesh();
 
         public double sizeInnerR;
 
@@ -49,16 +59,13 @@ namespace EddyLib
 
 
 
-        public OFCylDomain(Brep inputBreps, Mesh combinedMesh, Mesh terrain, BoundaryConditions BCond, double coreBlockSize, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0)
+        public OFCylDomain(Mesh BuildingGeometry, Mesh terrain, BoundaryConditions BCond, double coreBlockSize, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0)
         {
-            CombinedMesh = combinedMesh;
-
-
             gradingPerim = 1.0;
 
+            this.BuildingGeometry = BuildingGeometry;
 
-
-            BBox = combinedMesh.GetBoundingBox(true);
+            BBox = BuildingGeometry.GetBoundingBox(true);
 
 
 
@@ -82,7 +89,7 @@ namespace EddyLib
             double zDomain = BBox.Min.Z;
             double dimZ_Terrain = dimZ;
 
-            TerrainMesh = terrain;
+            this.TerrainMesh = terrain;
             BoundingBox bboxTerrain = terrain.GetBoundingBox(true);
 
             if (terrain.Faces.Count > 0)
@@ -101,7 +108,7 @@ namespace EddyLib
             //Create ground plane of BBox
             //center needs dimZ to stay at ground level but also respect terrain if its being used; 0.1 = safety factor
             //center = (BBox.Center + 0.5 * -Vector3d.ZAxis * dimZ) + zTerrainScaling * Vector3d.ZAxis;
-            center = new Point3d(BBox.Center.X, BBox.Center.Y, zDomain);
+            Cetner = new Point3d(BBox.Center.X, BBox.Center.Y, zDomain);
 
 
 
@@ -134,16 +141,16 @@ namespace EddyLib
             {
                 Vector3d localCopy = Vector3d.YAxis;
                 localCopy.Rotate(5 * i * Math.PI / 180, Vector3d.ZAxis);
-                projAreaList.Add(RunBlockMesh.ProjectedBuildingArea(localCopy, combinedMesh, 1, out Plane newLocal, out Box box));
+                projAreaList.Add(RunBlockMesh.ProjectedBuildingArea(localCopy, BuildingGeometry, 1, out Plane newLocal, out Box box));
 
 
             }
 
-            frontageBuildingArea = projAreaList.Max();
+            FrontageBuildingArea = projAreaList.Max();
 
 
             // New Dimensions in X; take blocking ratio into account
-            double scaleCyclDomainBlockingRatio = frontageBuildingArea * 100 / 3 / height / 2;
+            double scaleCyclDomainBlockingRatio = FrontageBuildingArea * 100 / 3 / height / 2;
 
 
             // Check standard inputs for radius
@@ -189,7 +196,7 @@ namespace EddyLib
 
 
 
-            MakeCircMeshPlane(center, sizeInnerR, divsRadial, radius, height);
+            MakeCircMeshPlane(Cetner, sizeInnerR, divsRadial, radius, height);
 
 
             BCond.CalculateCPPressures(zMax);
@@ -211,9 +218,6 @@ namespace EddyLib
             //refinementBox = getRefinementBox(localSystem, geometry, 0.3);
 
 
-            this.inputBreps = inputBreps;
-
-
 
 
 
@@ -225,12 +229,12 @@ namespace EddyLib
         public void MakeCircMeshPlane(Point3d center, double sizeInnerRect, int divsRadial, double circleRadius, double height)
         {
 
-            
+
 
             // point inside cdf domain - needed for meshing and finding the void space for fluid
-            locationInMesh = center + (Vector3d.ZAxis * (height - 0.1));
+            LocationInMesh = center + (Vector3d.ZAxis * (height - 0.1));
             // move into periphery
-            locationInMesh += radius * 0.6 * Vector3d.XAxis;
+            LocationInMesh += radius * 0.6 * Vector3d.XAxis;
 
 
 
@@ -331,16 +335,18 @@ namespace EddyLib
 
             // Order is important!!! for stringifyDomain
             //this.DomainMeshGround.Append(perim);
-            DomainMeshGround.Append(coreBottom);
-            DomainMeshGroundPerim.Append(perimBottom);
-            DomainMesh.Append(perimBottom);
-            DomainMesh.Append(coreBottom);
-            DomainMesh.Append(perimTop);
-            DomainMesh.Append(coreTop);
-            DomainMesh.Append(sides);
-            DomainMesh.Normals.ComputeNormals();
-            DomainMesh.Weld(Math.PI);
-            DomainMesh.Vertices.CombineIdentical(true, true);
+            CylDomainMeshGround.Append(coreBottom);
+            CylDomainMeshGroundPerim.Append(perimBottom);
+            CylDomainMesh.Append(perimBottom);
+            CylDomainMesh.Append(coreBottom);
+            CylDomainMesh.Append(perimTop);
+            CylDomainMesh.Append(coreTop);
+            CylDomainMesh.Append(sides);
+            CylDomainMesh.Normals.ComputeNormals();
+            CylDomainMesh.Weld(Math.PI);
+            CylDomainMesh.Vertices.CombineIdentical(true, true);
+
+            this.DomainMesh = CylDomainMesh;
 
 
 
@@ -378,302 +384,6 @@ namespace EddyLib
         }
 
 
-        //private void MakeCylMesh(List<Point3d> allPoints, int divisionsX, int divisionsY, int divisionsZ, double windDir)
-        //{
-        //    DomainMesh = new Mesh();
-
-        //    // add all vertices to the mesh
-        //    foreach (Point3d xx in allPoints) DomainMesh.Vertices.Add(xx);
-
-        //    // generate mesh faces from ring points (lower)
-        //    for (int i = 0; i < allPoints.Count / 12 - 1; i++)
-        //    {
-        //        DomainMesh.Faces.AddFace(i, i + 1, allPoints.Count / 12 + i + 1, allPoints.Count / 12 + i);
-        //        MeshFaceLabel.Add("GroundRing");
-        //    }
-        //    //last Face in list
-        //    DomainMesh.Faces.AddFace(allPoints.Count / 12 - 1, 0, allPoints.Count / 12, allPoints.Count / 12 + allPoints.Count / 12 - 1);
-        //    MeshFaceLabel.Add("GroundRing");
-
-        //    // generate mesh faces from ring points (upper)
-        //    for (int i = allPoints.Count / 2; i < allPoints.Count / 2 + allPoints.Count / 12 - 1; i++)
-        //    {
-        //        DomainMesh.Faces.AddFace(i, i + 1, allPoints.Count / 12 + i + 1, allPoints.Count / 12 + i);
-        //        MeshFaceLabel.Add("TopRing");
-        //    }
-        //    //last Face in list
-        //    DomainMesh.Faces.AddFace(allPoints.Count / 2 + allPoints.Count / 12 - 1, allPoints.Count / 2, allPoints.Count / 12 + allPoints.Count / 2, allPoints.Count / 2 + (2 * allPoints.Count / 12) - 1);
-        //    MeshFaceLabel.Add("TopRing");
-
-        //    for (int i = 0; i < allPoints.Count / 12 - 1; i++)
-        //    {
-        //        DomainMesh.Faces.AddFace(i, i + 1, allPoints.Count / 2 + i + 1, allPoints.Count / 2 + i);
-        //        MeshFaceLabel.Add("Patches");
-        //    }
-        //    //last Face in list
-        //    DomainMesh.Faces.AddFace(allPoints.Count / 12 - 1, 0, allPoints.Count / 2, allPoints.Count / 2 + allPoints.Count / 12 - 1);
-        //    MeshFaceLabel.Add("Patches");
-
-
-
-        //    ///------
-        //    ///------
-
-
-        //    for (int i = 0; i < inputTopVertices.Length - 3; i = i + 4)
-        //    {
-        //        DomainMesh.Faces.AddFace(inputGroundVertices[i], inputGroundVertices[i + 1], inputGroundVertices[i + 2], inputGroundVertices[i + 3]);
-        //        MeshFaceLabel.Add("GroundBox");
-        //    }
-        //    for (int i = 0; i < inputTopVertices.Length - 3; i = i + 4)
-        //    {
-        //        DomainMesh.Faces.AddFace(inputTopVertices[i], inputTopVertices[i + 1], inputTopVertices[i + 2], inputTopVertices[i + 3]);
-        //        MeshFaceLabel.Add("TopBox");
-        //    }
-
-
-        //    DomainMesh.FaceNormals.ComputeFaceNormals();
-
-
-        //    ///
-        //    /// Mesh is complete...
-        //    /// 
-
-
-        //    ParseGroundMesh();
-
-        //    // compute inlet outlet normals:
-
-
-
-
-        //    /// check for Patch /... figure out inlet outlet
-        //    double windDirRad = RoundToNearest5(windDir) * Math.PI / 180;
-        //    Vector3d windVec = new Vector3d(Math.Sin(windDirRad), Math.Cos(windDirRad), 0);
-        //    windVec.Unitize();
-
-        //    for (int i = 0; i < DomainMesh.Faces.Count; i++)
-        //    {
-
-        //        // face normals are not guaranteed to point outwards
-        //        if (MeshFaceLabel[i].Contains("Ground"))
-        //        {
-        //            bottomFaceID.Add(i);
-        //        }
-        //        else if (MeshFaceLabel[i].Contains("Top"))
-        //        {
-        //            topFaceID.Add(i);
-        //        }
-        //        else
-        //        {
-        //            //if (MeshFaceLabel[i] != "Patches") continue;
-        //            double dot = windVec * DomainMesh.FaceNormals[i];
-        //            if (dot > 0)
-        //            {
-        //                outletFaceID.Add(i);
-        //            }
-        //            else
-        //            {
-        //                inletFaceID.Add(i);
-        //            }
-
-        //        }
-        //    }
-
-
-        //}
-
-
-
-        //private void ParseGroundMesh()
-        //{
-
-        //    DomainMeshGround = new Mesh();
-        //    DomainMeshGround.Vertices.AddVertices(DomainMesh.Vertices);
-
-        //    for (int i = 0; i < DomainMesh.Faces.Count; i++)
-        //    {
-
-        //        // face normals are not guaranteed to point outwards
-        //        if (MeshFaceLabel[i].Contains("Ground"))
-        //        {
-        //            DomainMeshGround.Faces.AddFace(DomainMesh.Faces[i]);
-
-        //        }
-        //    }
-
-        //    DomainMeshGround.Vertices.CullUnused();
-
-        //}
-
-
-        //        public List<Point3d> MakeCylMeshPoints5deg(Point3d center, double radius, double height, double scaleFactorInnerRect = 0.5)
-        //        {
-
-        //            Plane pl = new Plane(center, Vector3d.ZAxis);
-        //            Interval inter = new Interval(-radius * scaleFactorInnerRect, radius * scaleFactorInnerRect);
-
-        //            Rectangle3d innerRect = new Rectangle3d(pl, inter, inter);
-
-        //            List<Point3d> outerRingPointsLower = new List<Point3d>();
-        //            List<Point3d> pointsOnInnerRectLower = new List<Point3d>();
-        //            List<Point3d> gridPointsLower = new List<Point3d>();
-
-        //            List<Point3d> outerRingPointsUpper = new List<Point3d>();
-        //            List<Point3d> pointsOnInnerRectUpper = new List<Point3d>();
-        //            List<Point3d> gridPointsUpper = new List<Point3d>();
-
-        //            Point3d pt0 = center + Vector3d.YAxis * radius;
-
-
-
-
-
-        //            for (int i = 0; i < 72; i++)
-        //            {
-
-        //                double angle = 2 * Math.PI / (72) * i;
-        //                var t = Transform.Rotation(angle, center);
-
-        //                //rotate points
-        //                Point3d point = pt0;
-        //                point.Transform(t);
-        //                //add to list
-        //                outerRingPointsLower.Add(point);
-        //                //make line
-        //                Line ln = new Line(center, point);
-
-        //                //eventuell debuggen
-        //                var cinter = Rhino.Geometry.Intersect.Intersection.CurveCurve(innerRect.ToNurbsCurve(), ln.ToNurbsCurve(), 0.1, 0.1);
-        //                foreach (var ievent in cinter)
-        //                {
-        //                    if (ievent.IsPoint)
-        //                    {
-        //                        pointsOnInnerRectLower.Add(ievent.PointA);
-        //                    }
-        //                }
-        //                //----------
-        //            }
-
-        //            // vertical lines 
-        //            int[] list1 = {
-        //                0, 1, 2, 3, 4, 5, 6, 7, 8, 71, 70, 69, 68, 67, 66, 65, 64
-        //            };
-
-        //            int[] list2 = { 36,
-        //35,
-        //34,
-        //33,
-        //32,
-        //31,
-        //30,
-        //29,
-        //28,
-        //37,
-        //38,
-        //39,
-        //40,
-        //41,
-        //42,
-        //43,
-        //44 };
-
-        //            // horizontal lines
-        //            int[] list3 = {
-        //10,
-        //11,
-        //12,
-        //13,
-        //14,
-        //15,
-        //16,
-        //17,
-        //18,
-        //19,
-        //20,
-        //21,
-        //22,
-        //23,
-        //24,
-        //25,
-        //26 };
-
-        //            int[] list4 = {
-        //62,
-        //61,
-        //60,
-        //59,
-        //58,
-        //57,
-        //56,
-        //55,
-        //54,
-        //53,
-        //52,
-        //51,
-        //50,
-        //49,
-        //48,
-        //47,
-        //46 };
-
-
-
-
-        //            for (int j = 0; j < list3.Length; j++)
-        //            {
-        //                Line lnH = new Line(pointsOnInnerRectLower[list3[j]], pointsOnInnerRectLower[list4[j]]);
-
-        //                for (int i = 0; i < list1.Length; i++)
-        //                {
-        //                    Line lnV = new Line(pointsOnInnerRectLower[list1[i]], pointsOnInnerRectLower[list2[i]]);
-
-        //                    Point3d interPoint;
-        //                    double a;
-        //                    double b;
-        //                    if (Rhino.Geometry.Intersect.Intersection.LineLine(lnH, lnV, out a, out b))
-        //                    {
-
-        //                        interPoint = lnH.PointAt(a);
-
-        //                        gridPointsLower.Add(interPoint);
-
-        //                    }
-        //                    else
-        //                    {
-        //                        // throw exception here... lines should always intersect
-        //                    }
-        //                }
-        //            }
-
-
-
-        //            foreach (var p in outerRingPointsLower)
-        //            {
-
-        //                outerRingPointsUpper.Add(p + Vector3d.ZAxis * height);
-        //            }
-        //            foreach (var p in pointsOnInnerRectLower)
-        //            {
-        //                pointsOnInnerRectUpper.Add(p + Vector3d.ZAxis * height);
-        //            }
-        //            foreach (var p in gridPointsLower)
-        //            {
-        //                gridPointsUpper.Add(p + Vector3d.ZAxis * height);
-        //            }
-
-
-
-        //            //List<Point3d> 
-        //            ListOfAllPointsInMagicOrder = outerRingPointsLower.Concat(pointsOnInnerRectLower).Concat(gridPointsLower).Concat(outerRingPointsUpper).Concat(pointsOnInnerRectUpper).Concat(gridPointsUpper).ToList();
-        //            cellSizeInner = Math.Abs(ListOfAllPointsInMagicOrder[281].X - ListOfAllPointsInMagicOrder[280].X);
-        //            cellSizeOuter = (ListOfAllPointsInMagicOrder[432] - ListOfAllPointsInMagicOrder[117]).Length;
-        //            distanceInnerOuter = (ListOfAllPointsInMagicOrder[45] - ListOfAllPointsInMagicOrder[117]).Length;
-        //            equalDivisions = (int)Math.Round(distanceInnerOuter / cellSizeOuter);
-
-        //            return ListOfAllPointsInMagicOrder;
-
-        //        }
 
 
         public string StringyfyDomain()
@@ -1277,7 +987,7 @@ mergePatchPairs
         {
             return "Cyclic Domain:\n" +
             "Smallest cell size in center: " + cellSizeInner + " m\n" +
-            "Projected area: " + Math.Round(frontageBuildingArea, 1)
+            "Projected area: " + Math.Round(FrontageBuildingArea, 1)
 
 
 

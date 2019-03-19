@@ -9,43 +9,30 @@ namespace EddyLib
     // class for all common domain properties, every domain type inherits this
     public class OFBaseDomain
     {
-        public Point3d center;
-        public Point3d locationInMesh;
+        public Point3d Cetner;
+        public Point3d LocationInMesh;
 
         
 
-        public double frontageBuildingArea;
+        public double FrontageBuildingArea;
 
-        public Cylinder refinementCylinder;
-        public BoundingBox refinementBox;
+        public Cylinder RefinementCylinder;        
         public BoundingBox BBox;
 
-        //Building Meshes for probes component
-        public Brep inputBreps;
+        public Mesh TerrainMesh;
+        public Mesh DomainMesh;
+        public Mesh BuildingGeometry;
 
-
-        //Meshes from Cycl Domain
-        public Mesh DomainMesh = new Mesh();
-        public Mesh DomainMeshGround = new Mesh();
-        public Mesh DomainMeshGroundPerim = new Mesh();
-        public Mesh TerrainMesh = new Mesh();
-        public Mesh CombinedMesh; // TODO: What is this??
-
-        public Mesh perimBottom = new Mesh();
-        public Mesh coreBottom = new Mesh();
-        public Mesh perimTop = new Mesh();
-        public Mesh coreTop = new Mesh();
-        public Mesh sides = new Mesh();
 
         public BoundaryConditions BCond;
 
 
 
-        public int numberOfCellsInMesh;
+        public int NumberOFCellsInMesh;
 
 
 
-        public List<double> runtimes = new List<double>();
+        public List<double> Runtimes = new List<double>();
 
 
 
@@ -64,8 +51,6 @@ namespace EddyLib
         }
 
                
-
-
         public Cylinder GetRefinementCyl(Point3d center, Mesh buildings, double paddingXY = 0, double paddingZ = 0.3)
         {
 
