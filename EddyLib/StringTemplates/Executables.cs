@@ -29,14 +29,14 @@ convertToMeters 1;
 
 vertices
 (
-(" + DOM.newBoxDomain.GetCorners()[0].X + " " + DOM.newBoxDomain.GetCorners()[0].Y + " " + DOM.newBoxDomain.GetCorners()[0].Z + @")
-(" + DOM.newBoxDomain.GetCorners()[1].X + " " + DOM.newBoxDomain.GetCorners()[1].Y + " " + DOM.newBoxDomain.GetCorners()[1].Z + @")
-(" + DOM.newBoxDomain.GetCorners()[2].X + " " + DOM.newBoxDomain.GetCorners()[2].Y + " " + DOM.newBoxDomain.GetCorners()[2].Z + @")
-(" + DOM.newBoxDomain.GetCorners()[3].X + " " + DOM.newBoxDomain.GetCorners()[3].Y + " " + DOM.newBoxDomain.GetCorners()[3].Z + @")
-(" + DOM.newBoxDomain.GetCorners()[4].X + " " + DOM.newBoxDomain.GetCorners()[4].Y + " " + DOM.newBoxDomain.GetCorners()[4].Z + @")
-(" + DOM.newBoxDomain.GetCorners()[5].X + " " + DOM.newBoxDomain.GetCorners()[5].Y + " " + DOM.newBoxDomain.GetCorners()[5].Z + @")
-(" + DOM.newBoxDomain.GetCorners()[6].X + " " + DOM.newBoxDomain.GetCorners()[6].Y + " " + DOM.newBoxDomain.GetCorners()[6].Z + @")
-(" + DOM.newBoxDomain.GetCorners()[7].X + " " + DOM.newBoxDomain.GetCorners()[7].Y + " " + DOM.newBoxDomain.GetCorners()[7].Z + @")
+(" + DOM.DomainBox.GetCorners()[0].X + " " + DOM.DomainBox.GetCorners()[0].Y + " " + DOM.DomainBox.GetCorners()[0].Z + @")
+(" + DOM.DomainBox.GetCorners()[1].X + " " + DOM.DomainBox.GetCorners()[1].Y + " " + DOM.DomainBox.GetCorners()[1].Z + @")
+(" + DOM.DomainBox.GetCorners()[2].X + " " + DOM.DomainBox.GetCorners()[2].Y + " " + DOM.DomainBox.GetCorners()[2].Z + @")
+(" + DOM.DomainBox.GetCorners()[3].X + " " + DOM.DomainBox.GetCorners()[3].Y + " " + DOM.DomainBox.GetCorners()[3].Z + @")
+(" + DOM.DomainBox.GetCorners()[4].X + " " + DOM.DomainBox.GetCorners()[4].Y + " " + DOM.DomainBox.GetCorners()[4].Z + @")
+(" + DOM.DomainBox.GetCorners()[5].X + " " + DOM.DomainBox.GetCorners()[5].Y + " " + DOM.DomainBox.GetCorners()[5].Z + @")
+(" + DOM.DomainBox.GetCorners()[6].X + " " + DOM.DomainBox.GetCorners()[6].Y + " " + DOM.DomainBox.GetCorners()[6].Z + @")
+(" + DOM.DomainBox.GetCorners()[7].X + " " + DOM.DomainBox.GetCorners()[7].Y + " " + DOM.DomainBox.GetCorners()[7].Z + @")
 );
 blocks
 (

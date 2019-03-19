@@ -360,9 +360,15 @@ namespace EddyLib
 
         private static int DivisionsPerim(Point3d[] core, Point3d[] perim, double blockDim)
         {
-
+            
             Vector3d blockDimensionPerim = new Vector3d(perim[0].X, perim[0].Y, perim[0].Z) - new Vector3d(core[0].X, core[0].Y, core[0].Z);
-            return (int)(blockDimensionPerim.Length / blockDim);
+            int divPerim = (int)(blockDimensionPerim.Length / blockDim);
+            if (divPerim == 0)
+            {
+                divPerim = 1;
+            }            
+
+            return  divPerim;
             //return (int)(blockDimensionPerim.Length / blockDim / 1.41);
         }
         private static double BlockDimensionCore(Point3d[] core)
@@ -811,6 +817,7 @@ faces
 
         private List<Polyline> GetConcenctricPolyDivisions(Point3d[] pointsOnRect, Point3d[] pointsOnCircle, int divPerim)
         {
+           
 
 
 

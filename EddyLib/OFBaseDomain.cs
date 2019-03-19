@@ -19,6 +19,8 @@ namespace EddyLib
         public Cylinder RefinementCylinder;        
         public BoundingBox BBox;
 
+        // 3 Main meshes
+        
         public Mesh TerrainMesh;
         public Mesh DomainMesh;
         public Mesh BuildingGeometry;

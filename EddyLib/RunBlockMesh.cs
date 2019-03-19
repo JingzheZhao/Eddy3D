@@ -129,13 +129,13 @@ void plastic Generic_20
             if (DOMBOX.TerrainMesh.Faces.Count > 0)
             {
                 //No perim if we use a terrain
-                DOMBOX.newBoxGround.Translate(Vector3d.ZAxis * 0.001);
-                STLExport.ExportBinary(MeshSettings.meshStlFilenameGround, DOMBOX.newBoxGround);
+                DOMBOX.DomainMeshGround.Translate(Vector3d.ZAxis * 0.001);
+                STLExport.ExportBinary(MeshSettings.meshStlFilenameGround, DOMBOX.DomainMeshGround);
             }
             else
             {
-                STLExport.ExportBinary(MeshSettings.meshStlFilenameGround, DOMBOX.newBoxGround);
-                STLExport.ExportBinary(MeshSettings.meshStlFilenameGroundPerim, DOMBOX.newBoxGroundPerim);
+                STLExport.ExportBinary(MeshSettings.meshStlFilenameGround, DOMBOX.DomainMeshGround);
+                STLExport.ExportBinary(MeshSettings.meshStlFilenameGroundPerim, DOMBOX.DomainMeshGroundPerim);
             }
 
 

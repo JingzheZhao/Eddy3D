@@ -52,6 +52,7 @@ namespace Eddy
 
 
             pManager[1].Optional = true;
+            pManager[2].Optional = true;
         }
 
         /// <summary>
@@ -113,8 +114,8 @@ namespace Eddy
 
 
 
-
-            BoundaryConditions BCond;
+           
+            BoundaryConditions BCond = new BoundaryConditions(BoundaryType.abl,new List<int>() { 0 },5, 1, ""); // sets default BC settings
             GH_ObjectWrapper gobj = null;
             if (!DA.GetData("BCond", ref gobj)) { }
 
@@ -215,7 +216,7 @@ namespace Eddy
                 OFBoxDomain DOMBOX = new OFBoxDomain(BuildingGeometry, terrainMeshes, BCond, blockDimension);
 
                 DA.SetData(0, DOMBOX);
-                DA.SetData(1, DOMBOX.BoxWithDivs);
+                DA.SetData(1, DOMBOX.DomainMesh);
 
             }
             else

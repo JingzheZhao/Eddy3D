@@ -30,10 +30,10 @@ namespace EddyLib
         public int zCells;
 
         
-        public Mesh newBoxGround;
-        public Mesh newBoxGroundPerim;
-        public Box newBoxDomain;
-        public Mesh BoxWithDivs;
+        public Mesh DomainMeshGround;
+        public Mesh DomainMeshGroundPerim;
+        public Box DomainBox;
+        //public Mesh BoxWithDivs;
 
         public double diameter;
         public double blockDimension;
@@ -145,12 +145,12 @@ namespace EddyLib
 
             //Plane newPlaneGround = new Plane()
             //newBoxDomain = box;
-            newBoxDomain = new Box(pl, xInter, yInter, zInter);
+            this.DomainBox = new Box(pl, xInter, yInter, zInter);
 
 
             //Point3d[] cornersGroundPlane;
             //Point3d[] = cornersGroundPlane;
-            Point3d[] cornersGroundPlane = newBoxDomain.GetCorners();
+            Point3d[] cornersGroundPlane = DomainBox.GetCorners();
 
             // newMinGroundPlane1 = cornersGroundPlane[1];
             // newMaxGroundPlane2 = cornersGroundPlane[3];
@@ -172,14 +172,14 @@ namespace EddyLib
 
             if (terrainMesh.DisjointMeshCount == 0)
             {
-                this.newBoxGround = Mesh.CreateFromPlanarBoundary(plGroundCore.ToNurbsCurve(), mpGround);
-                this.newBoxGroundPerim = new Mesh();
-                this.newBoxGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim1.ToNurbsCurve(), mpGround));
-                this.newBoxGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim2.ToNurbsCurve(), mpGround));
+                this.DomainMeshGround = Mesh.CreateFromPlanarBoundary(plGroundCore.ToNurbsCurve(), mpGround);
+                this.DomainMeshGroundPerim = new Mesh();
+                this.DomainMeshGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim1.ToNurbsCurve(), mpGround));
+                this.DomainMeshGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim2.ToNurbsCurve(), mpGround));
             }
             else
             {
-                this.newBoxGround = terrainMesh;
+                this.DomainMeshGround = terrainMesh;
             }
 
 
@@ -202,8 +202,8 @@ namespace EddyLib
             bCond.CalculateCPPressures(zMax);
 
 
-            this.BoxWithDivs = Mesh.CreateFromBox(newBoxDomain, xCells, yCells, zCells);
-            
+            this.DomainMesh = Mesh.CreateFromBox(DomainBox, xCells, yCells, zCells);
+            //this.DomainMesh = Mesh.CreateFromBox(DomainBox);
 
 
 

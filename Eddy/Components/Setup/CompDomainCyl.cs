@@ -55,6 +55,7 @@ namespace Eddy
 
 
             pManager[1].Optional = true;
+            pManager[2].Optional = true;
             pManager[4].Optional = true;
             pManager[5].Optional = true;
             pManager[6].Optional = true;
@@ -121,8 +122,7 @@ namespace Eddy
 
 
 
-
-            BoundaryConditions bCond = null;
+            BoundaryConditions bCond = new BoundaryConditions(BoundaryType.abl, new List<int>() { 0 }, 5, 1, ""); // sets default BC settings            
             GH_ObjectWrapper gobj = null;
             if (DA.GetData("BCond", ref gobj))
             {
@@ -138,9 +138,9 @@ namespace Eddy
             double coreBlockSize = 20;
             //int gradingPerim = 1;
             //int divsConcentric = 1;
-            double sizeInnerRect = 1;
-            double sizeOuterCirc = 1;
-            double sizeHeight = 1;
+            double sizeInnerRect = 0;
+            double sizeOuterCirc = 0;
+            double sizeHeight = 0;
 
             DA.GetData("Block size", ref coreBlockSize);
             DA.GetData("Size of inner rectangle", ref sizeInnerRect);
@@ -150,7 +150,7 @@ namespace Eddy
 
             // Check Domain dimensions
 
-            if (sizeInnerRect < coreBlockSize)
+            if (sizeInnerRect < coreBlockSize && sizeInnerRect != 0)
             { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Size of inner rectangle must be larger than the Block Size."); return; }
 
 

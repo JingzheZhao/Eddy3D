@@ -402,7 +402,8 @@ namespace EddyLib
         public static List<Point3d> DiscardPoints(List<Point3d> listOfPoints, OFBaseDomain DOM)
         {
 
-       
+            
+
             var newList = new List<Point3d>();
          
        
