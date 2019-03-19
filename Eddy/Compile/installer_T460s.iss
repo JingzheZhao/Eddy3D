@@ -41,3 +41,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 
 
+[Code]
+
+#include "GnuplotCode.txt"
+;#include "BlueCFDCode.txt"

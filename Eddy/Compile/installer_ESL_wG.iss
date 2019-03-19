@@ -21,7 +21,7 @@ AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 CreateAppDir=no
 OutputDir={#MyAppVersion}
-OutputBaseFilename=Eddy_BlueCFD
+OutputBaseFilename=Eddy_wG
 Compression=lzma
 SolidCompression=yes
 
@@ -36,13 +36,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
 #include "Eddy.txt"
-#include "Gnuplot.txt"
-#include "BlueCFD.txt"
 
-
+   
 [Code]
-
-#include "GnuplotCode.txt"
-#include "BlueCFDCode.txt"
-
 

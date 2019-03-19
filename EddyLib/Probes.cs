@@ -282,6 +282,30 @@ namespace EddyLib
         //    return outputList;
         //}
 
+        public static double[] FilterExtremeProbingValues(double[] inputList)
+        {
+            double[] outputList = new double[inputList.Length];
+
+
+            for (int i = 0; i < inputList.Length; i++)
+            {
+
+                if (inputList[i] < -10000)
+                {
+                    outputList[i] = 0;
+                }
+                else if (inputList[i] > 10000)
+                {
+                    outputList[i] = 0;
+                }
+                else
+                {
+                    outputList[i] = inputList[i];
+                }
+            }
+            return outputList;
+        }
+
         public static Vector3d[] FilterExtremeVectorLengths(Vector3d[] inputList)
         {
             List<Vector3d> outputList = new List<Vector3d>();

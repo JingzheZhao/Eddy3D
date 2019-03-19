@@ -600,7 +600,7 @@ namespace EddyLib.StrTemp
 
 
         public static string TempBlueCFD
-            (List<string> commands, string caseDir, string installationPath = @"C:\OpenFOAM\")
+            (List<string> commands, string caseDir, string installationPath = @"C:\Program Files\blueCFD-Core-2017\")
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(string.Format(@"call ""{0}setvars.bat""

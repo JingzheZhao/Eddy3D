@@ -237,7 +237,7 @@ namespace Eddy
 
                                 // Create datatree
 
-                                treeDouble.AddRange(Numbers.ResultNum, new Grasshopper.Kernel.Data.GH_Path(i));
+                                treeDouble.AddRange(Probes.FilterExtremeProbingValues(Numbers.ResultNum), new Grasshopper.Kernel.Data.GH_Path(i));
                             }
                             else
                             {

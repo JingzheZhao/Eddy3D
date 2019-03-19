@@ -1,5 +1,5 @@
 Source: "C:\Users\{#User}\Box Sync\PatrickESL\Eddy\Installer\blueCFD-Core-2017-2-win64-setup.exe"; DestDir: "{#OFInstallDir}"; AfterInstall: BlueCFDInstall
-Source: "C:\OpenFOAM\*"; DestDir: "{#OFInstallDir}\"; Flags: ignoreversion recursesubdirs
+; Source: "C:\OpenFOAM\*"; DestDir: "{#OFInstallDir}\"; Flags: ignoreversion recursesubdirs
 
 
 

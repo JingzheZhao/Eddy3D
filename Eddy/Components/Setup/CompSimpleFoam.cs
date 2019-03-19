@@ -40,11 +40,29 @@ namespace Eddy
         private void Menu_DoClick(object sender, EventArgs e)
         {
             runWithBlueCFD = !runWithBlueCFD;
-            //ExpireSolution(true);
+            ExpireSolution(true);
 
         }
         public bool runWithBlueCFD = true;
         //public bool runWithBlueCFD;
+
+
+        public override bool Write(GH_IO.Serialization.GH_IWriter writer)
+        {
+            // First add our own field.
+            writer.SetBoolean("runWithBlueCFD", runWithBlueCFD);
+            // Then call the base class implementation.
+            return base.Write(writer);
+        }
+        public override bool Read(GH_IO.Serialization.GH_IReader reader)
+        {
+            // First read our own field.
+            runWithBlueCFD = reader.GetBoolean("runWithBlueCFD");
+            // Then call the base class implementation.
+            return base.Read(reader);
+        }
+
+
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -53,11 +71,12 @@ namespace Eddy
         {
             pManager.AddGenericParameter("Domain", "Dom", "Domain", GH_ParamAccess.item);
             pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Eddy"));
-            pManager.AddGenericParameter("Mesh Settings", "MSet", "Mesh Settings", GH_ParamAccess.item);
             pManager[1].Optional = true;
+            pManager.AddGenericParameter("Mesh Settings", "MSet", "Mesh Settings", GH_ParamAccess.item);
+            pManager[2].Optional = true;
 
             pManager.AddGenericParameter("Run Settings", "RSet", "Run Settings", GH_ParamAccess.item);
-            pManager[2].Optional = true;
+            pManager[3].Optional = true;
 
             pManager.AddBooleanParameter("Run Meshing", "RunMsh", "RunMsh", GH_ParamAccess.item, false);
             pManager.AddBooleanParameter("Run Simulation", "RunSim", "RunSim", GH_ParamAccess.item, false);
@@ -154,13 +173,15 @@ namespace Eddy
             // meshing settings
             //-----------------
 
-            OFMeshSettings MeshSettings = new OFMeshSettings(); // sets default mesh settings            
-
+            OFMeshSettings MeshSettings = new OFMeshSettings(); // sets default mesh settings          
+            
             GH_ObjectWrapper gobjMeshSet = null;
-            if (DA.GetData("Mesh Settings", ref gobjMeshSet)) { }
-            if (gobjMeshSet.Value is OFMeshSettings)
-            {
-                MeshSettings = (OFMeshSettings)gobjMeshSet.Value;
+            if (DA.GetData("Mesh Settings", ref gobjMeshSet)) {
+                if (gobjMeshSet.Value is OFMeshSettings)
+                {
+                    MeshSettings = (OFMeshSettings)gobjMeshSet.Value;
+                }
+                
             }
             MeshSettings.SetDirectories(baseWorkingDirectory);
 

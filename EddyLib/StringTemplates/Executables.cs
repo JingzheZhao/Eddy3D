@@ -687,7 +687,7 @@ FoamFile
                 libs (""libsampling.so"");
                 writeControl writeTime;
 
-                interpolationScheme cellPoint;
+                interpolationScheme cellPointFace;
 
                 setFormat csv;
 

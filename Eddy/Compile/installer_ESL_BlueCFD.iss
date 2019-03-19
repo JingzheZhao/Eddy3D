@@ -7,7 +7,7 @@
 #define MyAppURL "http://www.eddy3d.com"
 #define MyAppExeName "Eddy"
 
-[Setup]
+[Setup]               
 ; NOTE: The value of AppId uniquely identifies this application.
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
@@ -22,8 +22,11 @@ AppUpdatesURL={#MyAppURL}
 CreateAppDir=no
 OutputDir={#MyAppVersion}
 OutputBaseFilename=Eddy_BlueCFD
-Compression=lzma
+Compression=lzma2
 SolidCompression=yes
+LZMANumBlockThreads=8
+CompressionThreads=8
+
 
 [ISPP]
 #define GrasshopperLib "{userappdata}\Grasshopper\Libraries"
@@ -40,4 +43,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 #include "BlueCFD.txt"
 
 
+[Code]
+
+#include "GnuplotCode.txt"
+#include "BlueCFDCode.txt"
 

@@ -1,7 +1,6 @@
 ﻿using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
-using Microsoft.VisualBasic.Devices;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
@@ -40,7 +39,7 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
 
-            pManager.AddBrepParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
+            pManager.AddGeometryParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
             pManager.AddGeometryParameter("Terrain", "Terrain", "Terrain Geometry. Make sure the terrain geometry is bigger than the ground plane of the wind tunnel.", GH_ParamAccess.list);
 
             pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.item);
@@ -49,9 +48,9 @@ namespace Eddy
             //pManager.AddIntegerParameter("Concentric grading", "ConcGrad", "Concentric grading", GH_ParamAccess.item, 1);
             //pManager.AddIntegerParameter("Concentric divisions", "ConcDiv", "Concentric Divisions", GH_ParamAccess.item, 1);
 
-            pManager.AddNumberParameter("Size of inner rectangle", "InnerR", "Size of inner rectangle", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Size of outer radius", "OuterR", "Size of outer radius", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Height", "Height", "Height", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Size of inner rectangle", "InnerR", "Size of inner rectangle", GH_ParamAccess.item, 40);
+            pManager.AddNumberParameter("Size of outer radius", "OuterR", "Size of outer radius", GH_ParamAccess.item, 100);
+            pManager.AddNumberParameter("Height", "Height", "Height", GH_ParamAccess.item, 50);
 
 
 
@@ -60,7 +59,6 @@ namespace Eddy
 
 
             pManager[1].Optional = true;
-
             pManager[4].Optional = true;
             pManager[5].Optional = true;
             pManager[6].Optional = true;
@@ -87,52 +85,77 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-
-
-            //public Box DomainBoundaryBox;
-            List<GeometryBase> geometry = new List<GeometryBase>();
-            DA.GetDataList("Geometry", geometry);
-
-
+            //DOMAIN GEOMETRY
+            List<IGH_GeometricGoo> geoGooDomain = new List<IGH_GeometricGoo>();
+            DA.GetDataList("Geometry", geoGooDomain);
             List<GeometryBase> domain = new List<GeometryBase>();
-            foreach (var g in geometry)
+
+
+            foreach (IGH_GeometricGoo g in geoGooDomain)
             {
                 if (g != null)
                 {
-                    domain.Add(g);
+                    if (g.CastTo<GeometryBase>(out GeometryBase gb))
+                    {
+                        domain.Add(gb);
+                    }
+
+
                 }
             }
 
+            //TERRAIN GEOMETRY
+            List<IGH_GeometricGoo> terrainGoo = new List<IGH_GeometricGoo>();
             List<GeometryBase> terrain = new List<GeometryBase>();
-            DA.GetDataList("Terrain", terrain);
+            DA.GetDataList("Terrain", terrainGoo);
+
+            foreach (IGH_GeometricGoo g in terrainGoo)
+            {
+                if (g != null)
+                {
+                    if (g.CastTo<GeometryBase>(out GeometryBase gb))
+                    {
+                        terrain.Add(gb);
+                    }
+
+
+                }
+            }
+
+
+
+
 
             BoundaryConditions BCond = null;
-            DA.GetData("BCond", ref BCond);
             GH_ObjectWrapper gobj = null;
-            if (!DA.GetData("BCond", ref gobj)) { }
-            if ((gobj.Value is BoundaryConditions))
+            if (DA.GetData("BCond", ref gobj))
             {
-                BCond = ((BoundaryConditions)gobj.Value);
+                if ((gobj.Value is BoundaryConditions))
+                {
+                    BCond = ((BoundaryConditions)gobj.Value);
+                }
+                else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid boundary condition object"); return; }
             }
-            else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid boundary condition object"); return; }
-
 
 
             // int CPUs = 1;
             double coreBlockSize = 20;
             //int gradingPerim = 1;
             //int divsConcentric = 1;
-            double sizeInnerRect = 0;
-            double sizeOuterCirc = 0;
-            double sizeHeight = 0;
+            double sizeInnerRect = 40;
+            double sizeOuterCirc = 100;
+            double sizeHeight = 50;
 
             DA.GetData("Block size", ref coreBlockSize);
-            //DA.GetData(5, ref gradingPerim);
-            //DA.GetData(6, ref divsConcentric);
             DA.GetData("Size of inner rectangle", ref sizeInnerRect);
             DA.GetData("Size of outer radius", ref sizeOuterCirc);
             DA.GetData("Height", ref sizeHeight);
 
+
+            // Check Domain dimensions
+
+            if (sizeInnerRect < coreBlockSize)
+            { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Size of inner rectangle must be larger than the Block Size."); return; }
 
 
 
@@ -162,7 +185,7 @@ namespace Eddy
                     else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
                     {
                         Brep obj = (Brep)b;
-                        var m = Mesh.CreateFromBrep(obj, mp);
+                        Mesh[] m = Mesh.CreateFromBrep(obj, mp);
                         foreach (Mesh mm in m)
                         {
                             terrainMeshes.Append(mm);
@@ -187,7 +210,7 @@ namespace Eddy
                 else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
                 {
                     Brep obj = (Brep)b;
-                    var m = Mesh.CreateFromBrep(obj, mp);
+                    Mesh[] m = Mesh.CreateFromBrep(obj, mp);
                     foreach (Mesh mm in m)
                     {
                         combinedMeshes.Append(mm);
@@ -205,7 +228,6 @@ namespace Eddy
 
             foreach (GeometryBase g in domain)
             {
-
                 inputBreps.Append(Brep.TryConvertBrep(g));
             }
 
@@ -219,7 +241,7 @@ namespace Eddy
 
 
                 OFCylDomain DOMCYL = new OFCylDomain(inputBreps, combinedMeshes, terrainMeshes, BCond, coreBlockSize, sizeInnerRect, sizeOuterCirc, sizeHeight);
-                               
+
                 DA.SetData(0, DOMCYL);
                 DA.SetData(1, DOMCYL.DomainMesh);
                 DA.SetDataList(2, DOMCYL.concentricDivisions);

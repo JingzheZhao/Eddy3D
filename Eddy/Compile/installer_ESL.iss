@@ -37,10 +37,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Files]
 #include "Eddy.txt"
 #include "Gnuplot.txt"
-;include "BlueCFD.txt"
-
-
+   
 [Code]
 
 #include "GnuplotCode.txt"
-

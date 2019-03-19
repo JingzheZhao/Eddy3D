@@ -36,7 +36,7 @@ namespace EddyLib
         public int equalDivisions;
 
 
-        
+
 
         public double sizeInnerR;
 
@@ -63,27 +63,27 @@ namespace EddyLib
 
 
 
-            var xMin = BBox.Min.X;
-            var xMax = BBox.Max.X;
-            var yMin = BBox.Min.Y;
-            var yMax = BBox.Max.Y;
-            var zMin = BBox.Min.Z;
-            var zMax = BBox.Max.Z;
+            double xMin = BBox.Min.X;
+            double xMax = BBox.Max.X;
+            double yMin = BBox.Min.Y;
+            double yMax = BBox.Max.Y;
+            double zMin = BBox.Min.Z;
+            double zMax = BBox.Max.Z;
 
-            var dimX = xMax - xMin;
-            var dimY = yMax - yMin;
-            var dimZ = zMax - zMin;
+            double dimX = xMax - xMin;
+            double dimY = yMax - yMin;
+            double dimZ = zMax - zMin;
 
 
 
 
             // If terrain is used, scale down Z to make sure all points are inside the domain
             // Zinter is call divisionsZ for CylDomain which is an int instead of an Interval
-            var zDomain = BBox.Min.Z;
-            var dimZ_Terrain = dimZ;
+            double zDomain = BBox.Min.Z;
+            double dimZ_Terrain = dimZ;
 
             TerrainMesh = terrain;
-            var bboxTerrain = terrain.GetBoundingBox(true);
+            BoundingBox bboxTerrain = terrain.GetBoundingBox(true);
 
             if (terrain.Faces.Count > 0)
             {
@@ -119,7 +119,7 @@ namespace EddyLib
 
 
 
-            var scaleCyclDomainHeight = (15.5 * dimZ) + dimY;
+            double scaleCyclDomainHeight = (15.5 * dimZ) + dimY;
             //var scaleCyclDomainHeight = height > dimY ? height : dimY;
 
 
@@ -129,7 +129,7 @@ namespace EddyLib
 
 
 
-            var projAreaList = new List<double>();
+            List<double> projAreaList = new List<double>();
             for (int i = 0; i < 72; i++)
             {
                 Vector3d localCopy = Vector3d.YAxis;
@@ -138,12 +138,12 @@ namespace EddyLib
 
 
             }
-                          
+
             frontageBuildingArea = projAreaList.Max();
 
 
             // New Dimensions in X; take blocking ratio into account
-            var scaleCyclDomainBlockingRatio = frontageBuildingArea * 100 / 3 / height / 2;
+            double scaleCyclDomainBlockingRatio = frontageBuildingArea * 100 / 3 / height / 2;
 
 
             // Check standard inputs for radius
@@ -225,6 +225,8 @@ namespace EddyLib
         public void MakeCircMeshPlane(Point3d center, double sizeInnerRect, int divsRadial, double circleRadius, double height)
         {
 
+            
+
             // point inside cdf domain - needed for meshing and finding the void space for fluid
             locationInMesh = center + (Vector3d.ZAxis * (height - 0.1));
             // move into periphery
@@ -233,13 +235,13 @@ namespace EddyLib
 
 
 
-            var pl = new Plane(center, Vector3d.ZAxis);
+            Plane pl = new Plane(center, Vector3d.ZAxis);
 
-            var xinter = new Interval(-sizeInnerRect, sizeInnerRect);
+            Interval xinter = new Interval(-sizeInnerRect, sizeInnerRect);
 
-
-
-            var m = Mesh.CreateFromPlane(pl, xinter, xinter, divsRadial, divsRadial); // creates the inner rectangle with arbitrary subdivision
+            // Throws exeption if 0
+            if (divsRadial < 1) { divsRadial = 1; }
+            Mesh m = Mesh.CreateFromPlane(pl, xinter, xinter, divsRadial, divsRadial); // creates the inner rectangle with arbitrary subdivision
             coreBottom.Append(m);
             coreBottom.Flip(true, true, true);
 
@@ -250,7 +252,7 @@ namespace EddyLib
                 circRad = minRad;
             }
 
-            var cellSizeCore = 2 * (sizeInnerRect / divsRadial);
+            double cellSizeCore = 2 * (sizeInnerRect / divsRadial);
             //Math.Abs was just a workaround fix
 
             //this.cellDivisionsPerim = Math.Abs((int)Math.Round((circRad - (2 * sizeInnerRect)) / cellSizeCore));
@@ -268,19 +270,19 @@ namespace EddyLib
             }
 
 
-            var c = new Circle(center, circRad);
+            Circle c = new Circle(center, circRad);
 
-            var poly = coreBottom.GetNakedEdges()[0]; //returns a polygon with line segments for each mesh cell       
-
-
+            Polyline poly = coreBottom.GetNakedEdges()[0]; //returns a polygon with line segments for each mesh cell       
 
 
 
 
-            var pointsOnRect = GetPointsOnRect(divsRadial, m);
-            var pointsOnCircle = GetPointsOnCircle(center, circRad, poly);
 
-            var blockDimensionCore = BlockDimensionCore(pointsOnRect);
+
+            Point3d[] pointsOnRect = GetPointsOnRect(divsRadial, m);
+            Point3d[] pointsOnCircle = GetPointsOnCircle(center, circRad, poly);
+
+            double blockDimensionCore = BlockDimensionCore(pointsOnRect);
             divPerim = DivisionsPerim(pointsOnRect, pointsOnCircle, blockDimensionCore);
 
 
@@ -360,7 +362,7 @@ namespace EddyLib
         private static double BlockDimensionCore(Point3d[] core)
         {
 
-            var blockDimensionCore = new Vector3d(core[1].X, core[1].Y, core[1].Z) - new Vector3d(core[0].X, core[0].Y, core[0].Z);
+            Vector3d blockDimensionCore = new Vector3d(core[1].X, core[1].Y, core[1].Z) - new Vector3d(core[0].X, core[0].Y, core[0].Z);
 
             return blockDimensionCore.Length;
         }
@@ -816,10 +818,10 @@ mergePatchPairs
         private static string StringyfyBlocks(Mesh m, int[] inputGroundFaces, int[] inputTopFaces, int divisionsX, int divisionsY, int divisionsZ)
         {
 
-            var fullList = m.Vertices.ToPoint3dArray().ToList();
+            List<Point3d> fullList = m.Vertices.ToPoint3dArray().ToList();
 
-            List<String> blocksFromArcsA = new List<String>();
-            List<String> blocksFromArcsB = new List<String>();
+            List<string> blocksFromArcsA = new List<string>();
+            List<string> blocksFromArcsB = new List<string>();
 
             for (int i = 0; i < fullList.Count / 12; i++)
             {
@@ -926,7 +928,7 @@ mergePatchPairs
         {
 
             int vcount = 0;
-            var m = new Mesh();
+            Mesh m = new Mesh();
             for (int i = 0; i < pt.Length - 1; i++)
             {
                 m.Vertices.Add(pt[i]);
@@ -945,17 +947,17 @@ mergePatchPairs
         private Point3d[] GetPointsOnCircle(Point3d center, double circleRadius, Polyline poly)
         {
             List<Point3d> pointsOnCircle = new List<Point3d>();
-            var newCenter = new Point3d(center.X, center.Y, 0);
-            var c = new Circle(newCenter, circleRadius);
+            Point3d newCenter = new Point3d(center.X, center.Y, 0);
+            Circle c = new Circle(newCenter, circleRadius);
 
             // -1 would avoid duplicates but other methods (PerimeterRing) depend on having one duplicate point
 
             for (int i = 0; i < poly.Count; i++)
             {
-                var vec = newCenter - poly[i];
+                Vector3d vec = newCenter - poly[i];
                 vec.Unitize();
                 vec *= (circleRadius + 1);
-                var inter = Rhino.Geometry.Intersect.Intersection.LineCircle(new Line(newCenter, vec), c, out double t1, out Point3d p1, out double t2, out Point3d p2);
+                Rhino.Geometry.Intersect.LineCircleIntersection inter = Rhino.Geometry.Intersect.Intersection.LineCircle(new Line(newCenter, vec), c, out double t1, out Point3d p1, out double t2, out Point3d p2);
                 //Move all points in one plane                
                 pointsOnCircle.Add(new Point3d(p1.X, p1.Y, center.Z));
 
@@ -974,7 +976,7 @@ mergePatchPairs
 
         private Mesh PerimeterRing(Polyline poly, Point3d[] pointsOnCircle)
         {
-            var mOutBottom = new Mesh();
+            Mesh mOutBottom = new Mesh();
             int vcount = 0;
             for (int i = 0; i < poly.Count - 1; i++)
             {
@@ -1109,7 +1111,7 @@ faces
 
             // Add radial polylines from divisions
 
-            var radialDivisions = new List<Polyline>();
+            List<Polyline> radialDivisions = new List<Polyline>();
             for (int i = 0; i < pointsOnRect.Length; i++)
             {
                 radialDivisions.Add(new Polyline(new Point3d[] { pointsOnRect[i], pointsOnCircle[i] }));
@@ -1120,7 +1122,7 @@ faces
             // This needs adaptation if grading should be implemented
 
 
-            var divPointsCut = new List<Point3d[]>();
+            List<Point3d[]> divPointsCut = new List<Point3d[]>();
             for (int i = 0; i < pointsOnRect.Length; i++)
             {
                 Point3d[] ar = new Point3d[pointsOnRect.Length];
@@ -1130,7 +1132,7 @@ faces
 
             // Create one sequential list with all points from inside to outside
 
-            var fullList = new List<Point3d>();
+            List<Point3d> fullList = new List<Point3d>();
             foreach (Point3d[] ar in divPointsCut)
             {
                 foreach (Point3d pt in ar)
@@ -1140,7 +1142,7 @@ faces
             }
 
             List<Polyline> concentricDivisions = new List<Polyline>();
-            var innerRadialList = new List<Point3d>();
+            List<Point3d> innerRadialList = new List<Point3d>();
 
             for (int j = 0; j < divPerim; j++)
             {
@@ -1160,12 +1162,12 @@ faces
             }
 
             // Cull duplicates from that list
-            var innerRadialListNoDupes = new List<Point3d>();
+            List<Point3d> innerRadialListNoDupes = new List<Point3d>();
             innerRadialListNoDupes = innerRadialList.Distinct().ToList();
 
             //Split up every concentric ring and add them to a final list
 
-            var lists = Utilities.SplitPointList(innerRadialListNoDupes, pointsOnRect.Length);
+            List<List<Point3d>> lists = Utilities.SplitPointList(innerRadialListNoDupes, pointsOnRect.Length);
 
             // Close the loop for every list (add last element)
 

@@ -39,7 +39,7 @@ namespace Eddy
 
 
 
-            pManager.AddBrepParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
+            pManager.AddGeometryParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
             pManager.AddGeometryParameter("Terrain", "Terrain", "Terrain Geometry. Make sure the terrain geometry is bigger than the ground plane of the wind tunnel.", GH_ParamAccess.list);
 
 
@@ -74,18 +74,44 @@ namespace Eddy
         {
 
 
-            //public Box DomainBoundaryBox;
-            List<GeometryBase> geometries = new List<GeometryBase>();
+            //DOMAIN GEOMETRY
+            List<IGH_GeometricGoo> geoGooDomain = new List<IGH_GeometricGoo>();
+            DA.GetDataList("Geometry", geoGooDomain);
+            List<GeometryBase> domain = new List<GeometryBase>();
+
+
+            foreach (IGH_GeometricGoo g in geoGooDomain)
+            {
+                if (g != null)
+                {
+                    if (g.CastTo<GeometryBase>(out GeometryBase gb))
+                    {
+                        domain.Add(gb);
+                    }
+
+
+                }
+            }
+
+            //TERRAIN GEOMETRY
+            List<IGH_GeometricGoo> terrainGoo = new List<IGH_GeometricGoo>();
             List<GeometryBase> terrain = new List<GeometryBase>();
+            DA.GetDataList("Terrain", terrainGoo);
+
+            foreach (IGH_GeometricGoo g in terrainGoo)
+            {
+                if (g != null)
+                {
+                    if (g.CastTo<GeometryBase>(out GeometryBase gb))
+                    {
+                        terrain.Add(gb);
+                    }
 
 
+                }
+            }
 
 
-
-            DA.GetDataList("Geometry", geometries);
-            DA.GetDataList("Terrain", terrain);
-
-            double blockDimension = 0;
 
 
             BoundaryConditions BCond;
@@ -101,7 +127,7 @@ namespace Eddy
 
 
 
-
+            double blockDimension = 20;
             DA.GetData("Block size", ref blockDimension);
 
 
@@ -138,7 +164,7 @@ namespace Eddy
                     else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
                     {
                         Brep obj = (Brep)b;
-                        var m = Mesh.CreateFromBrep(obj, mp);
+                        Mesh[] m = Mesh.CreateFromBrep(obj, mp);
                         foreach (Mesh mm in m)
                         {
                             terrainMeshes.Append(mm);
@@ -151,13 +177,13 @@ namespace Eddy
 
 
 
-            if (geometries == null)
+            if (domain == null)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please reference an input geometry."); return;
             }
             else
             {
-                foreach (GeometryBase b in geometries)
+                foreach (GeometryBase b in domain)
                 {
 
                     if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
@@ -168,7 +194,7 @@ namespace Eddy
                     else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
                     {
                         Brep obj = (Brep)b;
-                        var m = Mesh.CreateFromBrep(obj, mp);
+                        Mesh[] m = Mesh.CreateFromBrep(obj, mp);
                         foreach (Mesh mm in m)
                         {
                             combinedMeshes.Append(mm);
@@ -183,9 +209,8 @@ namespace Eddy
 
             Brep inputBreps = new Brep();
 
-            foreach (GeometryBase g in geometries)
+            foreach (GeometryBase g in domain)
             {
-
                 inputBreps.Append(Brep.TryConvertBrep(g));
             }
 
