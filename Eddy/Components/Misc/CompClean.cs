@@ -111,6 +111,7 @@ namespace Eddy
                 Utilities.processDirectory(meshDirectory, false);
 
             }
+            ExpireSolution(true);
         }
 
 

@@ -126,7 +126,7 @@ namespace EddyLib
 
 
 
-            double scaleCyclDomainHeight = (15.5 * dimZ) + dimY;
+            double scaleCylDomainFromItsHeight = (15.5 * dimZ) + dimY;
             //var scaleCyclDomainHeight = height > dimY ? height : dimY;
 
 
@@ -150,32 +150,29 @@ namespace EddyLib
 
 
             // New Dimensions in X; take blocking ratio into account
-            double scaleCyclDomainBlockingRatio = FrontageBuildingArea * 100 / 3 / height / 2;
+            double scaleCylDomainFromBlockingRatio = FrontageBuildingArea * 100 / 3 / height / 2;
 
 
             // Check standard inputs for radius
 
             if (sizeOuterCirc == 0)
             {
-                radius = scaleCyclDomainBlockingRatio > scaleCyclDomainHeight ? scaleCyclDomainBlockingRatio : scaleCyclDomainHeight;
+                radius = scaleCylDomainFromBlockingRatio > scaleCylDomainFromItsHeight ? scaleCylDomainFromBlockingRatio : scaleCylDomainFromItsHeight;
             }
             else
             {
                 radius = sizeOuterCirc;
             }
 
-
-
-
-
-
+                                          
             //old domain
             //var allPoints = MakeCylMeshPoints5deg(center, radius, height, scaleFactorInnerRect);
             //MakeCylMesh(allPoints, divisionsX, divisionsY, divisionsZ, windDir);
 
             if (sizeInnerRect == 0)
             {
-                sizeInnerR = BBox.Diagonal.Length / Math.Sqrt(2);
+                //sizeInnerR = BBox.Diagonal.Length / Math.Sqrt(2);
+                sizeInnerR = radius * 0.35;
             }
             else
             {
@@ -184,7 +181,6 @@ namespace EddyLib
 
 
 
-            divisionsX = 1;
 
 
             divsRadial = RadialDivsFromBlockSize(coreBlockSize, sizeInnerR);

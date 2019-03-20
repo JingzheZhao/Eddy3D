@@ -510,7 +510,7 @@ namespace EddyLib.StrTemp
             foreach (int i in DOM.BCond.windDirs)
             {
                 //sb.AppendLine("start " + MeshSettings.baseWorkingDirectory +i + "_run_sim.bat");
-                sb.AppendLine("call " + MeshSettings.baseWorkingDir + i + "_run_sim.bat");
+                sb.AppendLine("call \"" + MeshSettings.baseWorkingDir + i + "_run_sim.bat\"");
             }
 #if DEBUG
             sb.AppendLine("PAUSE");

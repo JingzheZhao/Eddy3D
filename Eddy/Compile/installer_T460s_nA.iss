@@ -21,27 +21,28 @@ AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 CreateAppDir=no
 OutputDir={#MyAppVersion}
-OutputBaseFilename=Eddy
+OutputBaseFilename=Eddy_{#MyAppVersion}
 Compression=lzma
 SolidCompression=yes
+PrivilegesRequired=lowest
 
 [ISPP]
 #define GrasshopperLib "{userappdata}\Grasshopper\Libraries"
 #define OFInstallDir   "C:\OpenFOAM"
 
-#include "UserT460s.txt"
+#include "Strings\UserT460s.txt"
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
-#include "Eddy.txt"
-#include "Gnuplot.txt"
+#include "Strings\Eddy.txt"
+
 
 
 
 
 [Code]
 
-#include "GnuplotCode.txt"
+
 

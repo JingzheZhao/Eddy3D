@@ -8,6 +8,4 @@ Source: "C:\Users\{#User}\Documents\GitHub\WindTunnel\Eddy\bin\ConsoleAppLaunche
 Source: "C:\Users\{#User}\Documents\GitHub\WindTunnel\Eddy\bin\CsvHelper.dll"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
 Source: "C:\Users\{#User}\Documents\GitHub\WindTunnel\Eddy\bin\Eddy.gha"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
 Source: "C:\Users\{#User}\Documents\GitHub\WindTunnel\Eddy\bin\EddyLib.dll"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\{#User}\Documents\GitHub\WindTunnel\Eddy\bin\RhinoCommon.dll"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
-Source: "C:\Windows\System32\msmpi.dll"; DestDir: "C:\Windows\System32\"; DestName: "msmpi.dll.bak"; Flags: recursesubdirs

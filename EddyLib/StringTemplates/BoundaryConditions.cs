@@ -112,7 +112,7 @@ value		$internalField;
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++) {
                 double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i]; //check
-                if (dot > 0) {
+                if (dot < 0) {
                     sb.AppendLine("patch" + i);
                     sb.Append(@"{	type atmBoundaryLayerInletEpsilon;
         #include	""ABLConditions"";
@@ -178,7 +178,7 @@ internalField uniform $turbulentKE;
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++) {
                 double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i]; //check
-                if (dot > 0) {
+                if (dot < 0) {
                     sb.AppendLine("patch" + i);
                     sb.Append(@"{      type atmBoundaryLayerInletK;
 #include	""ABLConditions"";
@@ -283,7 +283,7 @@ value		$internalField;
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++) {
                 double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i]; //check
-                if (dot > 0) {
+                if (dot < 0) {
                     sb.AppendLine("patch" + i);
                     sb.Append(@"{  	type fixedValue;
 value	$internalField;
@@ -360,7 +360,7 @@ internalField uniform $pressure;
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++) {
                 double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i]; //check
-                if (dot > 0) {
+                if (dot < 0) {
                     sb.AppendLine("patch" + i);
                     sb.AppendLine(@"{ type zeroGradient;}"); }
                 else
@@ -437,7 +437,7 @@ symmetry
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
                 double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i]; //check
-                if (dot > 0)
+                if (dot < 0)
                 {
                     sb.AppendLine("patch" + i);
                     sb.AppendLine(@"
@@ -534,7 +534,7 @@ symmetry
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++) {
                 double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i]; //check
-                if (dot > 0) {
+                if (dot < 0) {
                     sb.AppendLine("patch" + i);
                     sb.AppendLine(@"{ type atmBoundaryLayerInletVelocity;
         #include ""ABLConditions"";
@@ -630,7 +630,7 @@ boundaryField
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++) {
                 double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i]; //check
-                if (dot > 0) {
+                if (dot < 0) {
                     sb.AppendLine("patch" + i);
                     sb.AppendLine(@" 
 {      

@@ -22,27 +22,28 @@ AppUpdatesURL={#MyAppURL}
 CreateAppDir=no
 OutputDir={#MyAppVersion}
 OutputBaseFilename=Eddy_BlueCFD
-Compression=lzma
+Compression=lzma2
 SolidCompression=yes
 
 [ISPP]
 #define GrasshopperLib "{userappdata}\Grasshopper\Libraries"
 #define OFInstallDir   "C:\OpenFOAM"
 
-#include "USERESL.txt"
+#include "Strings\USERT460s.txt"
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
-#include "Eddy.txt"
-#include "Gnuplot.txt"
-#include "BlueCFD.txt"
+#include "Strings\Eddy.txt"
+#include "Strings\MPI.txt"
+#include "Strings\Gnuplot.txt"
+#include "Strings\BlueCFD.txt"
 
 
 [Code]
 
-#include "GnuplotCode.txt"
-#include "BlueCFDCode.txt"
+#include "Strings\GnuplotCode.txt"
+#include "Strings\BlueCFDCode.txt"
 
 
