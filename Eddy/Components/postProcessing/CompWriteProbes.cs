@@ -22,6 +22,11 @@ namespace Eddy
         private DataTree<Vector3d> uTree = new DataTree<Vector3d>();
 
 
+        // exposure
+        public override GH_Exposure Exposure
+        {
+            get { return GH_Exposure.hidden; }
+        }
 
 
         /// <summary>

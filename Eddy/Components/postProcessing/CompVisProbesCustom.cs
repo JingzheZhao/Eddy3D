@@ -201,11 +201,11 @@ namespace Eddy
                             // Write the dicts
                             if (RES.RunSettings.simEngine == SimEngine.Docker)
                             {
-                                command.Append(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + currField.ProbeName + @" -latestTime | tee  " + RES.Domain.BCond.windDirs[i] + @"/log_probes;");
+                                command.Append(@"postProcess -func " + currField.ProbeName + @" -latestTime | tee  " + RES.Domain.BCond.windDirs[i] + @"/log_probes;");
                             }
                             else
                             {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
-                                command.AppendLine(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + currField.ProbeName + @" -latestTime");
+                                command.Append(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + currField.ProbeName + @" -latestTime");
                             }
                         }
 
@@ -214,7 +214,8 @@ namespace Eddy
 
                             if (RES.RunSettings.simEngine == SimEngine.Docker)
                             {
-                                Utilities.StartProcessCMD(@" -e """ + command + @""" -f " + "\"" + RES.MeshSettings.OFbaseWorkingDir, false, true, false, Utilities.AssemblyDirectory + @"\CallOF.exe");
+                                var arg = EddyLib.StrTemp.BatFiles.DockerPrefixPath(RES.Domain, RES.MeshSettings, RES.RunSettings, EddyLib.StrTemp.Mode.Simulation) + command;
+                                Utilities.StartProcessCMD(arg, false, true, false);
                             }
                             else
                             {
@@ -230,14 +231,17 @@ namespace Eddy
                         {
 
                             string currentCaseDir = RES.WorkingDirectory + "\\" + RES.Domain.BCond.windDirs[i];
-                            string pathToProbeFile = Probes.GetFullPathToProbeFile(currentCaseDir, currField);
+                            string pathToProbeFile = Probes.GetFullPathToProbedResults(currentCaseDir, currField);
                             if (File.Exists(pathToProbeFile))
                             {
-                                Probes Numbers = new Probes(listOfPoints, currentCaseDir, currField);
 
-                                // Create datatree
+                               
+                                    Probes Numbers = new Probes(listOfPoints, currentCaseDir, currField);
+                                    // Create datatree
+                                    treeDouble.AddRange(Probes.FilterExtremeProbingValues(Numbers.ResultNum), new Grasshopper.Kernel.Data.GH_Path(i));
 
-                                treeDouble.AddRange(Probes.FilterExtremeProbingValues(Numbers.ResultNum), new Grasshopper.Kernel.Data.GH_Path(i));
+                               
+
                             }
                             else
                             {
@@ -272,13 +276,13 @@ namespace Eddy
                             {
                                 string path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + enumeratedProbeName;
                                 File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, currField));
-                                command.Append(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime | tee  " + RES.Domain.BCond.windDirs[i] + @"/log_probes;");
+                                command.Append(@"postProcess -func " + currField.ProbeName + @" -latestTime | tee  " + RES.Domain.BCond.windDirs[i] + @"/log_probes;");
                             }
                             else
                             {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
                                 string path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + enumeratedProbeName;
                                 File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, currField));
-                                command.AppendLine(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime");
+                                command.Append(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime");
                             }
                         }
 
@@ -286,7 +290,8 @@ namespace Eddy
                         {
                             if (RES.RunSettings.simEngine == SimEngine.Docker)
                             {
-                                Utilities.StartProcessCMD(@" -e """ + command + @""" -f " + "\"" + RES.MeshSettings.OFbaseWorkingDir, false, true, false, Utilities.AssemblyDirectory + @"\CallOF.exe");
+                                var arg = EddyLib.StrTemp.BatFiles.DockerPrefixPath(RES.Domain, RES.MeshSettings, RES.RunSettings, EddyLib.StrTemp.Mode.Simulation) + command;
+                                Utilities.StartProcessCMD(arg , false, true, false);
                             }
                             else
                             {
@@ -300,14 +305,17 @@ namespace Eddy
                         {
 
                             string currentCaseDir = RES.WorkingDirectory + "\\" + RES.Domain.BCond.windDirs[i];
-                            string pathToProbeFile = Probes.GetFullPathToProbeFile(currentCaseDir, currField);
+                            string pathToProbeFile = Probes.GetFullPathToProbedResults(currentCaseDir, currField);
                             if (File.Exists(pathToProbeFile))
                             {
 
-                                Probes Vectors = new Probes(listOfPoints, currentCaseDir, currField);
-                                // Create datatree
+                            
 
-                                treeVector.AddRange(Vectors.ResultVec, new Grasshopper.Kernel.Data.GH_Path(i));
+                                    Probes Vectors = new Probes(listOfPoints, currentCaseDir, currField);
+                                    // Create datatree
+
+                                    treeVector.AddRange(Vectors.ResultVec, new Grasshopper.Kernel.Data.GH_Path(i));
+                               
                             }
                             else
                             {
@@ -320,9 +328,11 @@ namespace Eddy
                     #endregion
 
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    throw new System.ArgumentException(e.Message);
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"This data does not exist yet. Please run the probing component.");
+                    //throw new System.ArgumentException("This data does not exist yet. Please run the probing component.");
+
                 }
             }
 

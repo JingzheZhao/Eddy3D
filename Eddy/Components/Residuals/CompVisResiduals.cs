@@ -1,19 +1,11 @@
-﻿using System;
+﻿using Eddy.Properties;
+using EddyLib;
+using Grasshopper.Kernel;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using Grasshopper.Kernel;
-using Rhino.Geometry;
-using System.Text;
-using Grasshopper.Kernel.Parameters;
-using System.Diagnostics;
-using Grasshopper.Kernel.Types;
-using SlavaGu.ConsoleAppLauncher;
-using System.Windows.Forms;
-using Grasshopper;
-using Eddy.Properties;
 using System.Linq;
-using EddyLib;
-using System.Text.RegularExpressions;
+using System.Windows.Forms;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -22,7 +14,7 @@ using System.Text.RegularExpressions;
 
 namespace Eddy
 {
-    public class VisResiduals : GH_Component
+    public class Residuals : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public
@@ -31,11 +23,42 @@ namespace Eddy
         /// Subcategory the panel. If you use non-existing tab or panel names,
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public VisResiduals()
-        : base("VisResiduals", "VisResiduals",
-        "Vis",
-        "Eddy", "4 | Residuals")
+        public Residuals()
+        : base("Residuals", "Residuals", "Vis", "Eddy", "4 | Residuals")
         {
+        }
+
+
+        protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
+        {
+            base.AppendAdditionalComponentMenuItems(menu);
+            Menu_AppendItem(menu, "Write Residuals", Menu_DoClick, true, !visResiduals);
+        }
+
+        // !visResiduals == writeResiduals
+
+        private void Menu_DoClick(object sender, EventArgs e)
+        {
+            visResiduals = !visResiduals;
+            ExpireSolution(true);
+
+        }
+        public bool visResiduals = true;
+
+
+        public override bool Write(GH_IO.Serialization.GH_IWriter writer)
+        {
+            // First add our own field.
+            writer.SetBoolean("visResiduals", visResiduals);
+            // Then call the base class implementation.
+            return base.Write(writer);
+        }
+        public override bool Read(GH_IO.Serialization.GH_IReader reader)
+        {
+            // First read our own field.
+            visResiduals = reader.GetBoolean("visResiduals");
+            // Then call the base class implementation.
+            return base.Read(reader);
         }
 
 
@@ -53,16 +76,17 @@ namespace Eddy
             //param.AddNamedValue("Provide custom file.", 1);
 
             //pManager.AddTextParameter("fP", "fP", "fP", GH_ParamAccess.item, "");
-            pManager.AddIntegerParameter("Sel", "Sel", @"Provide a list of integers for the wind directions that you would like to load, e.g. ""0,35"" .""", GH_ParamAccess.list, 0);
+            pManager.AddIntegerParameter("Sel", "Sel", @"Provide a list of integers for the wind directions that you would like to load, e.g. ""0,35"" .""", GH_ParamAccess.list);
             pManager.AddTextParameter("X", "X", @"Provide bounds for the x-axis, e.g. ""0:5000""", GH_ParamAccess.item, ":");
             pManager.AddTextParameter("Y", "Y", @"Provide bounds for the y-axis, e.g. ""0.00001:1""", GH_ParamAccess.item, ":");
-            
 
-            pManager.AddBooleanParameter("Live", "Live", "Run the component for a live preview", GH_ParamAccess.item, false);
+
+            pManager.AddBooleanParameter("Run", "Run", "Run the component for a live preview", GH_ParamAccess.item, false);
 
 
             pManager[1].Optional = true;
             pManager[2].Optional = true;
+            pManager[3].Optional = true;
 
         }
 
@@ -84,17 +108,11 @@ namespace Eddy
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            // mode to select simulation environment
+            if (visResiduals) { Message = "Visualize"; }
+            else { Message = "Write"; }
 
-            //OFBaseDomain DOM = null;
 
-            //GH_ObjectWrapper gobj = null;
-            //if (!DA.GetData(0, ref gobj)) { }
-
-            //if ((gobj.Value is EddyLib.OFBaseDomain))
-            //{
-            //    DOM = (OFBaseDomain)gobj.Value;
-            //}
-            //if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
             OFResult RES = null;
             DA.GetData(0, ref RES);
@@ -105,37 +123,38 @@ namespace Eddy
             string y0y1 = ":";
 
             string fullFilePath = "";
-            //DA.GetData(1, ref mode);
+
 
             List<int> selectionList = new List<int>();
 
             DA.GetDataList(1, selectionList);
             DA.GetData(2, ref x0x1);
             DA.GetData(3, ref y0y1);
-
             DA.GetData(4, ref run);
 
 
-            // Build intersection of two lists
-
-            var selection = RES.Domain.BCond.windDirs.Intersect(selectionList).ToList();
-
-           
-
-
-            if (run == true)
+            List<int> selection = new List<int>();
+            if (selectionList.Count != 0)
             {
+                selection = RES.Domain.BCond.windDirs.Intersect(selectionList).ToList();
+            }
 
 
+
+            if (run != true) { return; }
+
+
+
+            if (visResiduals)
+            {
                 try
                 {
-                    
 
                     foreach (double dir in selection)
                     {
 
 
-                        var p1 = RES.WorkingDirectory + dir + @"\postProcessing\residuals\";
+                        string p1 = RES.WorkingDirectory + dir + @"\postProcessing\residuals\";
                         fullFilePath = p1 + Utilities.GetLastIterationFromDirectory(p1) + "\\" + @"\\residuals.dat";
                         if (!File.Exists(fullFilePath))
                         {
@@ -143,15 +162,15 @@ namespace Eddy
                         }
 
 
-                        var fields = Utilities.FileReader(fullFilePath)[1];
+                        string fields = Utilities.FileReader(fullFilePath)[1];
 
 
-                        var field1 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[1];
-                        var field2 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[2];
-                        var field3 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[3];
-                        var field4 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[4];
-                        var field5 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[5];
-                        var field6 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[6];
+                        string field1 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[1];
+                        string field2 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[2];
+                        string field3 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[3];
+                        string field4 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[4];
+                        string field5 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[5];
+                        string field6 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[6];
 
                         string arg = @"
 set title 'wind direction: " + dir + @"'
@@ -163,39 +182,16 @@ set xlabel 'Iteration'
 set format y ""10 ^{% T}
                         ""
 set datafile separator '\t'
-plot '" + fullFilePath + @"' u($1):2 with lines title '" + field1 + "','" + fullFilePath + @"' u($1):3 with lines title '" + field2 + "','" + fullFilePath + @"' u($1):4 with lines title '" + field3 + "','" + fullFilePath + @"' u($1):5 with lines title '" + field4 + "','" + fullFilePath + @"' u($1):6 with lines title '" + field5 + "','" + fullFilePath + @"' u($1):7 with lines title '" + field6+@"'
+plot '" + fullFilePath + @"' u($1):2 with lines title '" + field1 + "','" + fullFilePath + @"' u($1):3 with lines title '" + field2 + "','" + fullFilePath + @"' u($1):4 with lines title '" + field3 + "','" + fullFilePath + @"' u($1):5 with lines title '" + field4 + "','" + fullFilePath + @"' u($1):6 with lines title '" + field5 + "','" + fullFilePath + @"' u($1):7 with lines title '" + field6 + @"'
 pause 90; replot
 ";
 
                         Utilities.StartProcessCMD(arg, true, false, true, @"C:\Program Files\gnuplot\bin\gnuplot.exe");
 
-                    
+
                     }
 
                 }
-
-                //var labels = new List<string>();
-                //labels.Add("Ux");
-                //labels.Add("Uy");
-                //labels.Add("Uz");
-                //labels.Add("p");
-                //labels.Add("omega");
-                //labels.Add("k");
-
-                //DA.SetDataList(0, labels);
-
-                //var resid = new DataTree<double>();
-
-                //resid.AddRange(Ux, new Grasshopper.Kernel.Data.GH_Path(0));
-                //resid.AddRange(Uy, new Grasshopper.Kernel.Data.GH_Path(1));
-                //resid.AddRange(Uz, new Grasshopper.Kernel.Data.GH_Path(2));
-                //resid.AddRange(p, new Grasshopper.Kernel.Data.GH_Path(3));
-                //resid.AddRange(omega, new Grasshopper.Kernel.Data.GH_Path(4));
-                //resid.AddRange(k, new Grasshopper.Kernel.Data.GH_Path(5));
-
-                //DA.SetDataTree(1, resid);
-
-
 
 
 
@@ -207,30 +203,73 @@ pause 90; replot
                 }
             }
 
+            else
+            {
+
+                try
+                {
+
+                    // Open the file(s) to read from.
+
+                    foreach (double dir in selection)
+                    {
+
+                        string p1 = RES.WorkingDirectory + dir + @"\postProcessing\residuals\";
+                        fullFilePath = p1 + Utilities.GetLastIterationFromDirectory(p1) + "\\" + @"\\residuals.dat";
+                        if (!File.Exists(fullFilePath))
+                        {
+                            AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "The residual file for wind direction " + dir + " does not exist.");
+                        }
+
+
+                        string arg = @"
+set title 'wind direction: " + dir + @"'
+set logscale y
+set yrange [" + y0y1 + @"]
+set xrange [" + x0x1 + @"]
+set ylabel 'Residual'
+set xlabel 'Iteration'
+set format y ""10^{%T}""
+set datafile separator '\t'
+plot '" + fullFilePath + @"' u($1):2 with lines title 'Ux', '" + fullFilePath + @"' u($1):3 with lines title 'Uy', '" + fullFilePath + @"' u($1):4 with lines title 'Uz', '" + fullFilePath + @"' u($1):5 with lines title 'p', '" + fullFilePath + @"' u($1):6 with lines title 'omega', '" + fullFilePath + @"' u($1):7 with lines title 'k'
+set terminal pdf
+set output '" + RES.WorkingDirectory + @"residuals_" + dir + @".pdf'
+replot
+";
+
+                        Utilities.StartProcessCMD(arg, true, false, true, @"C:\Program Files\gnuplot\bin\gnuplot.exe");
+
+
+                    }
+                }
+
+                catch (Exception e)
+                {
+                    // Let the user know what went wrong.
+                    Console.WriteLine("The file(s) could not be read:");
+                    Console.WriteLine(e.Message);
+                }
+
+            }
+
         }
+
+
 
 
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface.
         /// Icons need to be 24x24 pixels.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
+        protected override System.Drawing.Bitmap Icon =>
                 // You can add image files to your project resources and access them like this:
-                return Resources.Eddy_stability;
-            }
-        }
+                Resources.Eddy_stability;
 
         /// <summary>
         /// Each component must have a unique Guid to identify it.
         /// It is vital this Guid doesn't change otherwise old ghx files
         /// that use the old ID will partially fail during loading.
         /// </summary>
-        public override Guid ComponentGuid
-        {
-            get { return new Guid("{2936A937-4F42-4873-B65D-D02417D73D06}"); }
-        }
+        public override Guid ComponentGuid => new Guid("{2936A937-4F42-4873-B65D-D02417D73D06}");
     }
 }

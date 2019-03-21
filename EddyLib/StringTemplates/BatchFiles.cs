@@ -86,49 +86,50 @@ namespace EddyLib.StrTemp
 
 
 
-        private static string DockerPrefixPath(OFBaseDomain DOM, OFMeshSettings MeshSettings, OFRunSettings RunSettings, Mode mode)
+        public static string DockerPrefixPath(OFBaseDomain DOM, OFMeshSettings MeshSettings, OFRunSettings RunSettings, Mode mode)
         {
             StringBuilder sb = new StringBuilder();
             if (mode == Mode.Simulation && RunSettings.ostype == OSType.Windows7)
             {
-                sb.Append(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + DOM.BCond.windDirs[0] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+                sb.Append(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + DOM.BCond.windDirs[0] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
             }
             else if (mode == Mode.Meshing && RunSettings.ostype == OSType.Windows7)
             {
-                sb.Append(@"docker run -v """ + MeshSettings.OFmeshWorkingDir + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+                sb.Append(@"docker run -v """ + MeshSettings.OFmeshWorkingDir + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
             }
-            if (mode == Mode.Simulation)
+            else if (mode == Mode.Simulation)
             {
-                sb.Append(@"docker run -v """ + MeshSettings.baseWorkingDir + DOM.BCond.windDirs[0] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+                sb.Append(@"docker run -v """ + MeshSettings.baseWorkingDir + DOM.BCond.windDirs[0] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
             }
-            else
+            else if (mode == Mode.Meshing)
             {
-                sb.Append(@"docker run -v """ + MeshSettings.meshWorkingDir + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+                sb.Append(@"docker run -v """ + MeshSettings.meshWorkingDir + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
             }
 
             return sb.ToString();
         }
-        private static string DockerPrefixPath(OFBaseDomain DOM, OFMeshSettings MeshSettings, OFRunSettings RunSettings, Mode mode, int d)
+        public static string DockerPrefixPath(OFBaseDomain DOM, OFMeshSettings MeshSettings, OFRunSettings RunSettings, Mode mode, int d)
         {
             StringBuilder sb = new StringBuilder();
 
-            if (mode == Mode.Simulation)
+            if (mode == Mode.Simulation && RunSettings.ostype == OSType.Windows7)
             {
-                sb.Append(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + +DOM.BCond.windDirs[d] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+                sb.Append(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + +DOM.BCond.windDirs[d] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
             }
             else if (mode == Mode.Meshing && RunSettings.ostype == OSType.Windows7)
             {
-                sb.Append(@"docker run -v """ + MeshSettings.OFmeshWorkingDir + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+                sb.Append(@"docker run -v """ + MeshSettings.OFmeshWorkingDir + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
             }
 
-            if (mode == Mode.Simulation)
+            else if (mode == Mode.Simulation)
             {
-                sb.Append(@"docker run -v """ + MeshSettings.baseWorkingDir + +DOM.BCond.windDirs[d] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+                sb.Append(@"docker run -v """ + MeshSettings.baseWorkingDir + +DOM.BCond.windDirs[d] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
             }
-            else
+            else if (mode == Mode.Meshing)
             {
-                sb.Append(@"docker run -v """ + MeshSettings.meshWorkingDir + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+                sb.Append(@"docker run -v """ + MeshSettings.meshWorkingDir + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
             }
+
             return sb.ToString();
         }
 
@@ -214,16 +215,16 @@ namespace EddyLib.StrTemp
 
 
         //            StringBuilder sb = new StringBuilder();
-        //            sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; blockMesh " + AppendSuffix());
+        //            sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; blockMesh " + AppendSuffix());
         //            if (DOM.CPUs > 1)
         //            {
 
-        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatureExtract " + AppendSuffix());
-        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamDecompose.py --clear . " + DOM.CPUs + @" " + AppendSuffix());
-        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; foamJob -parallel -screen snappyHexMesh -overwrite " + AppendSuffix());
-        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructParMesh -constant " + AppendSuffix());
-        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite " + AppendSuffix());
-        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh " + AppendSuffix());
+        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatureExtract " + AppendSuffix());
+        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamDecompose.py --clear . " + DOM.CPUs + @" " + AppendSuffix());
+        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; foamJob -parallel -screen snappyHexMesh -overwrite " + AppendSuffix());
+        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructParMesh -constant " + AppendSuffix());
+        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite " + AppendSuffix());
+        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh " + AppendSuffix());
         //#if DEBUG
 
         //                sb.AppendLine("PAUSE");
@@ -232,9 +233,9 @@ namespace EddyLib.StrTemp
         //            }
         //            else
         //            {
-        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatureExtract | tee  -a log; snappyHexMesh -overwrite  | tee  -a log; checkMesh | tee -a log""");
-        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite " + AppendSuffix());
-        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -it hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh " + AppendSuffix());
+        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatureExtract | tee  -a log; snappyHexMesh -overwrite  | tee  -a log; checkMesh | tee -a log""");
+        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite " + AppendSuffix());
+        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh " + AppendSuffix());
         //#if DEBUG
 
         ////                sb.AppendLine("PAUSE");

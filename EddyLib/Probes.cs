@@ -142,7 +142,7 @@ namespace EddyLib
             listOfPoints = ListOfPoints;
 
             this.caseDirectory = caseDirectory;
-            string fullPath = GetFullPathToProbeFile(caseDirectory, ofField);
+            string fullPath = GetFullPathToProbedResults(caseDirectory, ofField);
 
             //Number       
             if (ofField.FieldType == OFField.fieldType.number)
@@ -222,8 +222,13 @@ namespace EddyLib
             valueString = sb.ToString();
         }
 
-        public static string GetFullPathToProbeFile(string workingDirectory, OFField ofField)
+
+    
+
+
+        public static string GetFullPathToProbedResults(string workingDirectory, OFField ofField)
         {
+
 
             // Here, the data has to be written already
             string PostProcessingDirectory = workingDirectory + @"\postProcessing\";
@@ -243,7 +248,10 @@ namespace EddyLib
             string latestTime = Path.GetFileName(latestTimedirectoriesBasePath);
 
             string fullPath = basePath + @"\" + latestTime + @"\" + ofField.FieldName;
+
             return fullPath;
+
+
         }
 
         public string GetLastIterationPath(string workingDirectory)

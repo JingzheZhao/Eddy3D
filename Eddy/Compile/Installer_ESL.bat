@@ -6,4 +6,5 @@ del /s /q /f "C:\Users\pkastner\Documents\GitHub\WindTunnel\Eddy\bin\*.xml"
 move /Y *.exe ..\bin
 move /Y *.dll ..\bin
 "C:\Program Files (x86)\Inno Setup 5\ISCC.exe" /Qp "C:\Users\%USERNAME%\Documents\Github\Windtunnel\Eddy\Compile\installer_ESL.iss"
+call Zip.bat
 PAUSE

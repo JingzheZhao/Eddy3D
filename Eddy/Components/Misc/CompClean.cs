@@ -88,8 +88,14 @@ namespace Eddy
 
             string meshDirectory = workingDirectory + @"\mesh";
 
+            if (Mode == 0)
+            {
+                Utilities.processDirectory(meshDirectory, false);
 
-            if (Mode == 1 || Mode == 2)
+            }
+
+
+            else if (Mode == 1)
             {
 
 
@@ -99,18 +105,23 @@ namespace Eddy
                     Utilities.processDirectory(directory, true);
                 }
 
-
-
-
             }
 
-            if (Mode == 0)
+
+            else
             {
-
-
                 Utilities.processDirectory(meshDirectory, false);
 
+                foreach (string directory in windDirDirectories)
+                {
+                    Utilities.processDirectory(directory, true);
+                }
+
             }
+
+
+
+
             ExpireSolution(true);
         }
 
