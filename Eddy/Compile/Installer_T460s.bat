@@ -6,4 +6,5 @@ del /s /q /f "C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\Eddy\bin\*.xm
 move /Y *.exe ..\bin
 move /Y *.dll ..\bin
 "C:\Program Files (x86)\Inno Setup 5\ISCC.exe" /Qp "C:\Users\%USERNAME%\Documents\Github\Windtunnel\Eddy\Compile\installer_T460s.iss"
+call Zip.bat
 PAUSE
