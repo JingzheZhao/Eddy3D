@@ -141,7 +141,7 @@ namespace EddyLib
             {
                 Vector3d localCopy = Vector3d.YAxis;
                 localCopy.Rotate(5 * i * Math.PI / 180, Vector3d.ZAxis);
-                projAreaList.Add(RunBlockMesh.ProjectedBuildingArea(localCopy, BuildingGeometry, 1, out Plane newLocal, out Box box));
+                projAreaList.Add(RunBlockMesh.ProjectedBuildingArea(localCopy, BuildingGeometry, 10, out Plane newLocal, out Box box));
 
 
             }

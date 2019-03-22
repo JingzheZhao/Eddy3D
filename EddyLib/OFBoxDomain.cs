@@ -93,7 +93,7 @@ namespace EddyLib
             //Create Box Domain
             //Find frontfacing areas in wind direction
 
-            FrontageBuildingArea = RunBlockMesh.ProjectedBuildingArea(windDirVector, buildingGeometry, 1, out Plane newLocal, out Box box);
+            FrontageBuildingArea = RunBlockMesh.ProjectedBuildingArea(windDirVector, buildingGeometry, 10, out Plane newLocal, out Box box);
 
 
             double scaleRectDomainZ = 6 * dimZ;
