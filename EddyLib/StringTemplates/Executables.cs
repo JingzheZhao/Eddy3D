@@ -126,8 +126,8 @@ FoamFile
 }
 
     castellatedMesh true;");
-            sb.AppendLine("snap "); if (MeshSettings.snappySetting == SnappySetting.BlocksSnapping || MeshSettings.snappySetting == SnappySetting.BlocksSnappingLayers) { sb.AppendLine("true;"); } else { sb.AppendLine("false;"); }
-            sb.AppendLine("addLayers "); if (MeshSettings.snappySetting == SnappySetting.BlocksSnappingLayers) { sb.AppendLine("true;"); } else { sb.AppendLine("false;"); }
+            sb.AppendLine("snap "); if (MeshSettings.snappySetting == SnappySetting.BlocksSnapping || MeshSettings.snappySetting == SnappySetting.BlocksSnappingLayers) { sb.Append("true;"); } else { sb.Append("false;"); }
+            sb.AppendLine("addLayers "); if (MeshSettings.snappySetting == SnappySetting.BlocksSnappingLayers) { sb.Append("true;"); } else { sb.Append("false;"); }
             sb.AppendLine(@"geometry
     {
         building.stl
