@@ -138,6 +138,10 @@ namespace Eddy
             {
                 selection = RES.Domain.BCond.windDirs.Intersect(selectionList).ToList();
             }
+            else
+            {
+                selection.Add(0);
+            }
 
 
 
