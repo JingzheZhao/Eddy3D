@@ -31,7 +31,7 @@ Now restart the system and try again.
 - Done
 
 
-# Troubleshooting
+Troubleshooting
 ------------
 
 > Solution exception: Could not load file or assembly...
@@ -39,7 +39,7 @@ Now restart the system and try again.
 Navigate to the folder you downloaded the files to and tick the 'unblock' box in the file properties.
 
 
-# Changelog
+Changelog
 ------------
 
 ## 0.2.1
