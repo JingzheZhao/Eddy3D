@@ -160,6 +160,9 @@
   <data name="Eddy_modelSTLexport" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_modelSTLexport.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="Eddy_paraview" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_paraview.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="Eddy_readUTCI" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_readUTCI.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>

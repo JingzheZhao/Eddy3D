@@ -42,8 +42,7 @@ namespace EddyLib.StrTemp
             return lst;
         }
 
-        private static readonly List<string> RCSimSingleCPU = new List<string> {
-        "renumberMesh -overwrite",
+        private static readonly List<string> RCSimSingleCPU = new List<string> {        
         "potentialFoam",
         "simpleFoam",
         "checkMesh"};
@@ -81,6 +80,7 @@ namespace EddyLib.StrTemp
         "blockMesh",
         "surfaceFeatureExtract",
         "snappyHexMesh -overwrite",
+        "renumberMesh -overwrite",
         "checkMesh" };
 
 
@@ -132,6 +132,13 @@ namespace EddyLib.StrTemp
 
             return sb.ToString();
         }
+
+
+
+
+
+
+
 
 
 

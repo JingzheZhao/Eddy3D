@@ -52,7 +52,7 @@ namespace EddyLib
                     }
 
                     File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\" + "controlDict"), EddyLib.StrTemp.OFExecDicts.ControlDict(RunSettings, DOM, null, i));
-                    File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\case.foam"), "");
+                    File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\"+ DOM.BCond.windDirs[i]+".foam"), "");
 
                     // Not working currently: Symbolic dir junctions only for cylindrical domain, and, if they exist, delete them for boxDomain
 

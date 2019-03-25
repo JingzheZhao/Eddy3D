@@ -72,6 +72,7 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\postProcessing\CompParaview.cs" />
     <Compile Include="Components\Settings\RunSettings.cs" />
     <Compile Include="Components\Setup\BCondABL.cs" />
     <Compile Include="Components\Setup\BCondConstantU.cs" />
@@ -199,6 +200,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Eddy_blockmesh.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_paraview.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

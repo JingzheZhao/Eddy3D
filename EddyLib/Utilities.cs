@@ -402,23 +402,23 @@ namespace EddyLib
         public static List<Point3d> DiscardPoints(List<Point3d> listOfPoints, OFBaseDomain DOM)
         {
 
-            
 
-            var newList = new List<Point3d>();
-         
-       
+
+            List<Point3d> newList = new List<Point3d>();
+
+
             for (int i = 0; i < listOfPoints.Count; i++)
             {
-              
+
                 if (DOM.DomainMesh.IsPointInside(listOfPoints[i], 0.01, true))
                 {
                     if (!DOM.BuildingGeometry.IsPointInside(listOfPoints[i], 0.01, true))
-                    {      
+                    {
                         newList.Add(listOfPoints[i]);
-                  }
+                    }
                 }
             }
-                                  
+
 
             return newList;
         }
@@ -641,7 +641,7 @@ namespace EddyLib
         public static bool processDirectory(string startLocation, bool simDir)
         {
             bool result = true;
-            foreach (var directory in Directory.GetDirectories(startLocation))
+            foreach (string directory in Directory.GetDirectories(startLocation))
             {
 
                 if (simDir)
@@ -665,7 +665,7 @@ namespace EddyLib
                 //    continue;
                 //}
 
-                foreach (var file in Directory.GetFiles(directory))
+                foreach (string file in Directory.GetFiles(directory))
                 {
                     try
                     {
@@ -678,7 +678,11 @@ namespace EddyLib
                     }
                 }
 
-                if (!directoryResult) continue;
+                if (!directoryResult)
+                {
+                    continue;
+                }
+
                 try
                 {
                     Directory.Delete(directory, false);
@@ -910,6 +914,48 @@ namespace EddyLib
             }
 
         }
+
+
+        public static string GetParaviewPath(int version)
+        {
+            string matchingvalues = "";
+
+            string str4 = @"C:\Program Files (x86)\";
+            string str5 = @"C:\Program Files\";
+            string para = "ParaView";
+
+            string paraviewPath = "";
+
+            if (version == 4)
+            {
+
+                DirectoryInfo[] di = new DirectoryInfo(str4).GetDirectories();
+                List<string> list = new List<string>();
+
+                foreach (DirectoryInfo d in di)
+                {
+                    list.Add(d.ToString());
+                }
+                matchingvalues = list.LastOrDefault(stringToCheck => stringToCheck.StartsWith(para));
+                paraviewPath = str4 + matchingvalues + @"\bin\paraview.exe";
+            }
+
+            else
+            {
+                DirectoryInfo[] di = new DirectoryInfo(str5).GetDirectories();
+                List<string> list = new List<string>();
+
+                foreach (DirectoryInfo d in di)
+                {
+                    list.Add(d.ToString());
+                }
+                matchingvalues = list.LastOrDefault(stringToCheck => stringToCheck.StartsWith(para));
+                paraviewPath = str5 + matchingvalues + @"\bin\paraview.exe";
+            }
+            
+            return paraviewPath;
+        }
+
 
 
 
