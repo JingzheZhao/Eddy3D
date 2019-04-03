@@ -9,7 +9,7 @@ namespace EddyLib
     // class for all common domain properties, every domain type inherits this
     public class OFBaseDomain
     {
-        public Point3d Cetner;
+        public Point3d Center;
         public Point3d LocationInMesh;
 
         

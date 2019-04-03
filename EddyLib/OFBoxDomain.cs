@@ -39,11 +39,7 @@ namespace EddyLib
         public double blockDimension;
 
 
-
-
-
-
-        public OFBoxDomain(Mesh buildingGeometry, Mesh terrainMesh, BoundaryConditions bCond, double _blockDim)
+        public OFBoxDomain(Mesh buildingGeometry, Mesh terrainMesh, BoundaryConditions bCond, double _blockDim, double length = 0, double width  = 0, double height = 0)
         {
             BCond = bCond;
 
@@ -77,8 +73,8 @@ namespace EddyLib
 
 
             //Create ground plane of BBox
-            Cetner = BBox.Center + 0.5 * vecMinusZ * dimZ;
-            LocationInMesh = Cetner + 4 * vecPlusZ * dimZ;
+            Center = BBox.Center + 0.5 * vecMinusZ * dimZ;
+            LocationInMesh = Center + 4 * vecPlusZ * dimZ;
 
 
 
@@ -95,8 +91,12 @@ namespace EddyLib
 
             FrontageBuildingArea = RunBlockMesh.ProjectedBuildingArea(windDirVector, buildingGeometry, 10, out Plane newLocal, out Box box);
 
+            double scaleRectDomainZ = 0;
 
-            double scaleRectDomainZ = 6 * dimZ;
+            if (height == 0) { scaleRectDomainZ = 6 * dimZ; }
+            else { scaleRectDomainZ = height; }
+
+
 
             // New Dimensions in X; take blocking ratio into account
             double scaleRectDomainXblockingRatio = FrontageBuildingArea * 100 / 3 / scaleRectDomainZ / 2;
@@ -111,8 +111,27 @@ namespace EddyLib
             double scaleRectDomainYDownstreamCore = scaleRectDomainX;
 
 
-            Interval xInter = new Interval(-scaleRectDomainX, scaleRectDomainX);
-            Interval yInter = new Interval(scaleRectDomainYUpstream, scaleRectDomainYDownstream);
+            Interval xInter = new Interval(0, 0);
+            if (width == 0)
+            {
+                xInter = new Interval(-scaleRectDomainX, scaleRectDomainX);
+            }
+            else
+            {
+                xInter = new Interval(-width / 2, width / 2);
+            }
+
+            Interval yInter = new Interval(0, 0);
+            if (length == 0)
+            {
+                yInter = new Interval(scaleRectDomainYUpstream, scaleRectDomainYDownstream);
+            }
+            else
+            {
+                yInter = new Interval(length / 22*-5.5, length / 22*15.5);
+            }
+
+
 
             Interval yInterPerim1 = new Interval(-scaleRectDomainX, scaleRectDomainYUpstream);
             Interval yInterPerim2 = new Interval(scaleRectDomainX, scaleRectDomainYDownstream);
@@ -138,29 +157,20 @@ namespace EddyLib
             yCells = (int)((Math.Abs(yInter.Length)) / blockDimension);
             zCells = (int)((Math.Abs(zInter.Length)) / blockDimension);
 
-            Plane pl = new Plane(Cetner, newLocal.XAxis, newLocal.YAxis)
+            Plane pl = new Plane(Center, newLocal.XAxis, newLocal.YAxis)
             {
-                Origin = Cetner
+                Origin = Center
             };
 
-            //Plane newPlaneGround = new Plane()
-            //newBoxDomain = box;
+
+            // Create the new Domain
             DomainBox = new Box(pl, xInter, yInter, zInter);
+            _ = DomainBox.GetCorners();
 
 
-            //Point3d[] cornersGroundPlane;
-            //Point3d[] = cornersGroundPlane;
-            Point3d[] cornersGroundPlane = DomainBox.GetCorners();
-
-            // newMinGroundPlane1 = cornersGroundPlane[1];
-            // newMaxGroundPlane2 = cornersGroundPlane[3];
-
-            //Rectangle3d plGround = new Rectangle3d(pl, xInter, yInter);
             Rectangle3d plGroundCore = new Rectangle3d(pl, xInter, xInter);
             Rectangle3d plGroundPerim1 = new Rectangle3d(pl, xInter, yInterPerim1);
             Rectangle3d plGroundPerim2 = new Rectangle3d(pl, xInter, yInterPerim2);
-
-            //Rectangle3d plGround = new Rectangle3d(pl, newMin, newMax);
 
 
 

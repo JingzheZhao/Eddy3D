@@ -169,10 +169,10 @@ namespace EddyLib
             logFile = "";
 
 
-            if (!File.Exists(MeshSettings.baseWorkingDir + @"\mesh\log"))
-            {
-                File.WriteAllText(MeshSettings.baseWorkingDir + @"\mesh\log", "");
-            }
+            //if (!File.Exists(MeshSettings.baseWorkingDir + @"\mesh\log"))
+            //{
+            //    File.WriteAllText(MeshSettings.baseWorkingDir + @"\mesh\log", "");
+            //}
 
 
             using (FileStream stream = File.Open(MeshSettings.meshWorkingDir + @"\log", FileMode.Open, FileAccess.Read, FileShare.Read))

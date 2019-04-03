@@ -108,7 +108,7 @@ namespace EddyLib
             //Create ground plane of BBox
             //center needs dimZ to stay at ground level but also respect terrain if its being used; 0.1 = safety factor
             //center = (BBox.Center + 0.5 * -Vector3d.ZAxis * dimZ) + zTerrainScaling * Vector3d.ZAxis;
-            Cetner = new Point3d(BBox.Center.X, BBox.Center.Y, zDomain);
+            Center = new Point3d(BBox.Center.X, BBox.Center.Y, zDomain);
 
 
 
@@ -192,7 +192,7 @@ namespace EddyLib
 
 
 
-            MakeCircMeshPlane(Cetner, sizeInnerR, divsRadial, radius, height);
+            MakeCircMeshPlane(Center, sizeInnerR, divsRadial, radius, height);
 
 
             bCond.CalculateCPPressures(zMax, bCond.btype, bCond.URef);
