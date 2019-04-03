@@ -42,7 +42,7 @@ namespace EddyLib.StrTemp
             return lst;
         }
 
-        private static readonly List<string> RCSimSingleCPU = new List<string> {        
+        private static readonly List<string> RCSimSingleCPU = new List<string> {
         "potentialFoam",
         "simpleFoam",
         "checkMesh"};
@@ -83,6 +83,8 @@ namespace EddyLib.StrTemp
         "renumberMesh -overwrite",
         "checkMesh" };
 
+
+        private static readonly List<string> divU = new List<string> { "postProcess -func div(U)" };
 
 
 
@@ -132,13 +134,6 @@ namespace EddyLib.StrTemp
 
             return sb.ToString();
         }
-
-
-
-
-
-
-
 
 
 
@@ -358,6 +353,63 @@ namespace EddyLib.StrTemp
                 else
                 {
                     sb.Append(TempBlueCFD(RCSimContinueSingleCPU, caseWorkingDir));
+#if DEBUG
+                    sb.AppendLine("PAUSE");
+#endif
+                }
+
+            }
+
+
+            return sb.ToString();
+        }
+
+
+        public static string Run_divU(OFMeshSettings MeshSettings, OFRunSettings RunSettings, OFBaseDomain DOM, Mode mode, int d)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            string caseWorkingDir = MeshSettings.baseWorkingDir + "\\" + DOM.BCond.windDirs[d];
+
+
+            if (RunSettings.simEngine == SimEngine.Docker)//Docker
+            {
+
+                if (RunSettings.CPUs > 1)
+                {
+
+                    foreach (string str in divU)
+                    {
+                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str + AppendSuffixDocker());
+                    }
+#if DEBUG
+                    sb.AppendLine("PAUSE");
+#endif
+                }
+                else
+                {
+                    foreach (string str in divU)
+                    {
+                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str + AppendSuffixDocker());
+                    }
+#if DEBUG
+                    sb.AppendLine("PAUSE");
+#endif
+                }
+
+            }
+            else
+            {
+                if (RunSettings.CPUs > 1)
+                {
+                    sb.Append(TempBlueCFD(divU, caseWorkingDir));
+#if DEBUG
+                    sb.AppendLine("PAUSE");
+#endif
+                }
+                else
+                {
+                    sb.Append(TempBlueCFD(divU, caseWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif

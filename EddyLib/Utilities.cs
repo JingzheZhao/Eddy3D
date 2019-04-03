@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading;
+using Deedle;
 
 namespace EddyLib
 {
@@ -952,12 +953,11 @@ namespace EddyLib
                 matchingvalues = list.LastOrDefault(stringToCheck => stringToCheck.StartsWith(para));
                 paraviewPath = str5 + matchingvalues + @"\bin\paraview.exe";
             }
-            
+
             return paraviewPath;
         }
 
-
-
+        
 
         public static bool CheckLicence()
         {

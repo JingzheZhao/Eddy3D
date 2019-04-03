@@ -75,6 +75,9 @@ namespace EddyLib
 
                     Utilities.DeletePhi(MeshSettings, DOM);
 
+
+                 
+
                     if (DOM is OFBoxDomain)
                     {
                         if (DOM.BCond.btype is BoundaryType.abl)
@@ -244,6 +247,7 @@ namespace EddyLib
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_ray.bat"), EddyLib.StrTemp.BatFiles.Run_RayTrace(DOM, MeshSettings));
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_probes.bat"), EddyLib.StrTemp.BatFiles.Run_Probes(DOM, MeshSettings));
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_utci.bat"), EddyLib.StrTemp.BatFiles.Run_UTCI(DOM, MeshSettings));
+                
 #if DEBUG
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_blockMesh.bat"), EddyLib.StrTemp.BatFiles.Run_blockMesh(RunSettings, DOM, MeshSettings, StrTemp.Mode.Meshing));
 #endif
@@ -252,6 +256,8 @@ namespace EddyLib
                 {
                     File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "_run_sim.bat"), EddyLib.StrTemp.BatFiles.Run_sim(MeshSettings, RunSettings, DOM, StrTemp.Mode.Simulation, i));
                     File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "_run_sim_continue.bat"), EddyLib.StrTemp.BatFiles.Run_sim_continue(MeshSettings, RunSettings, DOM, StrTemp.Mode.Simulation, i));
+                    File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "_run_divU.bat"), EddyLib.StrTemp.BatFiles.Run_divU(MeshSettings, RunSettings, DOM, StrTemp.Mode.Simulation, i));
+
 
                 }
 

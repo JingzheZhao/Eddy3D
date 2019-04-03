@@ -1117,6 +1117,7 @@ divSchemes
     div(phi,omega)  bounded Gauss upwind grad(U);
     div((nuEff*dev2(T(grad(U))))) Gauss linear;
     div(phi,time)   bounded Gauss upwind grad(U);
+    div(U) Gauss linear;
 }
 
 laplacianSchemes
@@ -1191,6 +1192,7 @@ divSchemes
     div(phi,omega)   Gauss upwind;
     div((nuEff*dev2(T(grad(U))))) Gauss linear;
     div(phi,time)   Gauss upwind;
+    div(U) Gauss linear;
 }
 
 laplacianSchemes
