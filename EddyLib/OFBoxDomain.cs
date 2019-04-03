@@ -39,7 +39,7 @@ namespace EddyLib
         public double blockDimension;
 
 
-        public OFBoxDomain(Mesh buildingGeometry, Mesh terrainMesh, BoundaryConditions bCond, double _blockDim, double length = 0, double width  = 0, double height = 0)
+        public OFBoxDomain(Mesh buildingGeometry, Mesh terrainMesh, BoundaryConditions bCond, double _blockDim, double length = 0, double width = 0, double height = 0)
         {
             BCond = bCond;
 
@@ -106,11 +106,8 @@ namespace EddyLib
             //New Dimensions in Y \cite{Tominaga2008,Franke2007}
 
             double scaleRectDomainYUpstream = -(5.5 * dimZ + dimY);
-            double scaleRectDomainYDownstream = 15.5 * dimZ + dimY;
-            double scaleRectDomainYUpstreamCore = -scaleRectDomainX;
-            double scaleRectDomainYDownstreamCore = scaleRectDomainX;
-
-
+            double scaleRectDomainYDownstream = 15.5 * dimZ + dimY;         
+            
             Interval xInter = new Interval(0, 0);
             if (width == 0)
             {
@@ -128,13 +125,12 @@ namespace EddyLib
             }
             else
             {
-                yInter = new Interval(length / 22*-5.5, length / 22*15.5);
+                yInter = new Interval(length / 22 * -5.5, length / 22 * 15.5);
             }
 
 
-
-            Interval yInterPerim1 = new Interval(-scaleRectDomainX, scaleRectDomainYUpstream);
-            Interval yInterPerim2 = new Interval(scaleRectDomainX, scaleRectDomainYDownstream);
+            Interval yInterPerim1 = new Interval(-xInter.T0, yInter.T0);
+            Interval yInterPerim2 = new Interval(xInter.T0, yInter.T1);
 
 
             Interval zInter;
