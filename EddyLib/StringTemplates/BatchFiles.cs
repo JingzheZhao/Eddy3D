@@ -18,6 +18,20 @@ namespace EddyLib.StrTemp
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         private static readonly List<string> RCCheckMeshSingleCPU = new List<string> {
         "foamToVTK -faceSet highAspectRatioCells -ascii",
         "foamToVTK -faceSet nonOrthoFaces -ascii",
@@ -68,7 +82,8 @@ namespace EddyLib.StrTemp
             {
                 "blockMesh",
                 "surfaceFeatureExtract",
-                "mpiexec -np " + RunSettings.CPUs + @" snappyHexMesh -overwrite",
+                "decomposePar",
+                "mpiexec -np " + RunSettings.CPUs + @" snappyHexMesh -overwrite -parallel",
                 "reconstructParMesh -constant",
                 "renumberMesh -overwrite",
                 "checkMesh"
