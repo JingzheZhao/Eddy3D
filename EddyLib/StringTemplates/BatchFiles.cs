@@ -82,7 +82,7 @@ namespace EddyLib.StrTemp
             {
                 "blockMesh",
                 "surfaceFeatureExtract",
-                "decomposePar",
+                "decomposePar -force",
                 "mpiexec -np " + RunSettings.CPUs + @" snappyHexMesh -overwrite -parallel",
                 "reconstructParMesh -constant",
                 "renumberMesh -overwrite",

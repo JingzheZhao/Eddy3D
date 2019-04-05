@@ -72,11 +72,7 @@ namespace EddyLib
             dimZ = zMax - zMin;
 
 
-            //Create ground plane of BBox
-            Center = BBox.Center + 0.5 * vecMinusZ * dimZ;
-            LocationInMesh = Center + 4 * vecPlusZ * dimZ;
-
-
+          
 
             int windDir = bCond.windDirs[0];
 
@@ -133,25 +129,32 @@ namespace EddyLib
             Interval yInterPerim2 = new Interval(xInter.T0, yInter.T1);
 
 
+          
+
+
+
+            // If terrain is used, scale down Z to make sure all points are inside the domain
             Interval zInter;
 
 
             // If terrain is used, scale down Z to make sure all points are inside the domain
-            TerrainMesh = terrainMesh;
+            // Zinter is call divisionsZ for CylDomain which is an int instead of an Interval
+            this.TerrainMesh = terrainMesh;
 
-            if (terrainMesh.DisjointMeshCount == 0)
-            {
-                zInter = new Interval(0, scaleRectDomainZ);
-            }
-            else
-            {
-                BoundingBox bboxTerrain = terrainMesh.GetBoundingBox(true);
-                zInter = new Interval(bboxTerrain.Min.Z - 0.1, scaleRectDomainZ);
-            }
+            double zDomain = OFBaseDomain.GetZMinTerrain(terrainMesh, BBox);
+            
+            zInter = new Interval(zDomain, scaleRectDomainZ+Math.Abs(zDomain));
+           
 
             xCells = (int)((Math.Abs(xInter.Length)) / blockDimension);
             yCells = (int)((Math.Abs(yInter.Length)) / blockDimension);
             zCells = (int)((Math.Abs(zInter.Length)) / blockDimension);
+
+
+            //Create ground plane of BBox
+            Center = BBox.Center + 0.5 * vecMinusZ * zInter.Length;
+            LocationInMesh = Center + 4 * vecPlusZ * dimZ;
+
 
             Plane pl = new Plane(Center, newLocal.XAxis, newLocal.YAxis)
             {
@@ -176,7 +179,7 @@ namespace EddyLib
 
             // Add terrain to ground mesh if it exists
 
-            if (terrainMesh.DisjointMeshCount == 0)
+            if (terrainMesh.Faces.Count == 0)
             {
                 DomainMeshGround = Mesh.CreateFromPlanarBoundary(plGroundCore.ToNurbsCurve(), mpGround);
                 DomainMeshGroundPerim = new Mesh();
