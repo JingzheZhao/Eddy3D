@@ -57,7 +57,7 @@ namespace EddyLib
 
 
             File.WriteAllText(MeshSettings.meshSystemDir + @"\blockMeshDict", DOMCYL.StringyfyDomain2());
-            File.WriteAllText(MeshSettings.baseWorkingDir + @"\mesh\case.foam", "");
+            File.WriteAllText(MeshSettings.baseWorkingDir + @"\mesh\mesh.foam", "");
             File.WriteAllText(MeshSettings.meshSystemDir + @"\controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(RunSettings, DOMCYL, null, 0));
 
 
@@ -160,7 +160,7 @@ void plastic Generic_20
 
 
             File.WriteAllText(MeshSettings.meshSystemDir + @"\blockMeshDict", EddyLib.StrTemp.OFExecDicts.BlockMeshDict(DOMBOX));
-            File.WriteAllText(MeshSettings.baseWorkingDir + @"\mesh\case.foam", "");
+            File.WriteAllText(MeshSettings.baseWorkingDir + @"\mesh\mesh.foam", "");
             File.WriteAllText(MeshSettings.meshSystemDir + @"\controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(RunSettings, DOMBOX, null, 0));
 
             if (!File.Exists(workDir + @"\mesh\log"))

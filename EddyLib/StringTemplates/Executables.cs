@@ -141,7 +141,7 @@ FoamFile
             type triSurfaceMesh;
             name ground;
         }");
-            //Check for both Box and Cyl if there is a terrain. Unfortunately ground are called differently. TODO!!!
+
             if (dom.TerrainMesh.Faces.Count == 0)
             {
                 sb.Append(@"	
@@ -181,18 +181,20 @@ FoamFile
                 {
                     type wall;
                 }
-            }
-            ground_perim
+            }");
+            if (dom.TerrainMesh.Faces.Count == 0)
+            {
+                sb.Append(@"ground_perim
             {
                 level (" + (MeshSettings.accGround - 1) + @" " + (MeshSettings.accGround) + @");
                 patchInfo
                 {
                     type wall;
                 }
+            }");
             }
-        }
-
-        refinementRegions
+            sb.Append(@"}
+refinementRegions
         {
 
 refinementBox {mode inside; levels ((" + MeshSettings.accRefinement + @" " + MeshSettings.accRefinement + @"));}
@@ -271,10 +273,15 @@ snapControls
             {
                 nSurfaceLayers " + MeshSettings.nLayers + @";
             }
-            ground_perim
+");
+            if (dom.TerrainMesh.Faces.Count == 0)
+            {
+                sb.Append(@"ground_perim
             {
                 nSurfaceLayers " + MeshSettings.nLayers + @";
-            }
+            }");
+}
+            sb.Append(@"
         }
 
    featureAngle              100;
@@ -499,6 +506,8 @@ mergeTolerance 1E-6;
 ");
             return sb.ToString();
         }
+
+
         public static string ControlDict(OFRunSettings RunSettings, OFBaseDomain DOM, List<Mesh> topologies, int numberOfTopologies)
         {
             StringBuilder sb = new StringBuilder();
