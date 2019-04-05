@@ -81,29 +81,9 @@ namespace EddyLib
             double dimY = yMax - yMin;
             double dimZ = zMax - zMin;
 
-
-
-
             // If terrain is used, scale down Z to make sure all points are inside the domain
             // Zinter is call divisionsZ for CylDomain which is an int instead of an Interval
-            double zDomain = BBox.Min.Z;
-            double dimZ_Terrain = dimZ;
-
-            TerrainMesh = terrain;
-            BoundingBox bboxTerrain = terrain.GetBoundingBox(true);
-
-            if (terrain.Faces.Count > 0)
-            {
-
-                if (bboxTerrain.Min.Z < zDomain)
-                {
-                    zDomain = bboxTerrain.Min.Z;
-                    dimZ_Terrain = zMax - bboxTerrain.Min.Z;
-                }
-
-            }
-
-
+            double zDomain = OFBaseDomain.GetZMinTerrain(terrain, BBox);            
 
             //Create ground plane of BBox
             //center needs dimZ to stay at ground level but also respect terrain if its being used; 0.1 = safety factor
@@ -116,7 +96,7 @@ namespace EddyLib
 
             if (sizeHeight == 0)
             {
-                height = 6 * dimZ + (BBox.Min.Z - bboxTerrain.Min.Z);
+                height = 6 * dimZ + (BBox.Min.Z - zDomain);
             }
             else
             {
