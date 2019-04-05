@@ -296,13 +296,13 @@ snapControls
         //// is the thickness of the layer furthest away from the wall.
         //// Relative to undistorted size of cell outside layer.
         //// See relativeSizes parameter.
-        //finalLayerThickness 0.3;
+        finalLayerThickness 0.3;
 
         //// Minimum thickness of cell layer. If for any reason layer
         //// cannot be above minThickness do not add layer.
         //// Relative to undistorted size of cell outside layer.
         //// See relativeSizes parameter.
-        //minThickness 0.1;
+        minThickness 0.1;
 
         //// If points get not extruded do nGrow layers of connected faces that are
         //// also not grown. This helps convergence of the layer addition process
