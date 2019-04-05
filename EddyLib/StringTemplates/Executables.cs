@@ -260,7 +260,7 @@ snapControls
     {
         //// Are the thickness parameters below relative to the undistorted
         //// size of the refined cell outside layer (true) or absolute sizes (false).
-        //relativeSizes true;
+        relativeSizes true;
 
         // Per final patch (so not geometry!) the layer information
         layers
