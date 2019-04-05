@@ -213,13 +213,13 @@ refinementBox {mode inside; levels ((" + MeshSettings.accRefinement + @" " + Mes
         //planarAngle 30;
         //maxLoadUnbalance 0.10;
 
-maxLocalCells       100000;
+maxLocalCells       4000000;
     maxGlobalCells      100000000;
-    minRefinementCells  10;
-    maxLoadUnbalance    0.10;
+    minRefinementCells  1;
+    maxLoadUnbalance    0.20;
     nCellsBetweenLevels 3;
     resolveFeatureAngle 30;
-    allowFreeStandingZoneFaces true;
+    allowFreeStandingZoneFaces false;
     }
 
     
@@ -237,10 +237,10 @@ maxLocalCells       100000;
 //    }
 snapControls
 {
-    nSmoothPatch    3;
+    nSmoothPatch    5;
     tolerance       2.0;
-    nSolveIter      100;
-    nRelaxIter      5;
+    nSolveIter      150;
+    nRelaxIter      8;
 
     nFeatureSnapIter 10;
 
@@ -284,43 +284,19 @@ snapControls
             sb.Append(@"
         }
 
-   featureAngle              100;
-    slipFeatureAngle          30;
-
-    nLayerIter                50;
-    nRelaxedIter              20;
-    nRelaxIter                5;
-
-    nGrow                     0;
-
-    nSmoothSurfaceNormals     1;
-    nSmoothNormals            3;
-    nSmoothThickness          10;
-    maxFaceThicknessRatio     0.5;
-    maxThicknessToMedialRatio 0.3;
-
-    minMedialAxisAngle        90;
-    nMedialAxisIter           10;
-
-    nBufferCellsNoExtrude     0;
-    additionalReporting       false;
-
-relativeSizes       true;
-    expansionRatio      1.2;
-    finalLayerThickness 0.5;
-    minThickness        1e-3;
+  
 
 //    nSmoothDisplacement       0;
 //    detectExtrusionIsland     false;
 
         //// Expansion factor for layer mesh
-        //expansionRatio 1.2;
+        expansionRatio 1.0;
 
         //// Wanted thickness of final added cell layer. If multiple layers
         //// is the thickness of the layer furthest away from the wall.
         //// Relative to undistorted size of cell outside layer.
         //// See relativeSizes parameter.
-        //finalLayerThickness 0.7;
+        //finalLayerThickness 0.3;
 
         //// Minimum thickness of cell layer. If for any reason layer
         //// cannot be above minThickness do not add layer.
@@ -332,49 +308,53 @@ relativeSizes       true;
         //// also not grown. This helps convergence of the layer addition process
         //// close to features.
         //// Note: changed(corrected) w.r.t 17x! (didn't do anything in 17x)
-        //nGrow 0;
+        nGrow 0;
 
-        //// Advanced settings
+        // Advanced settings
 
-        //// When not to extrude surface. 0 is flat surface, 90 is when two faces
-        //// are perpendicular
-        //featureAngle 180;
+    // When not to extrude surface. 0 is flat surface, 90 is when two faces
+    // are perpendicular
+    featureAngle 180;
+
+    // At non-patched sides allow mesh to slip if extrusion direction makes
+    // angle larger than slipFeatureAngle.
+    slipFeatureAngle 75;
 
         //// Maximum number of snapping relaxation iterations. Should stop
         //// before upon reaching a correct mesh.
-        //nRelaxIter 5;
+        nRelaxIter 8;
 
         //// Number of smoothing iterations of surface normals
-        //nSmoothSurfaceNormals 1;
+        nSmoothSurfaceNormals 2;
 
         //// Number of smoothing iterations of interior mesh movement direction
-        //nSmoothNormals 3;
+        nSmoothNormals 5;
 
         //// Smooth layer thickness over surface patches
-        //nSmoothThickness 10;
+        nSmoothThickness 10;
 
         //// Stop layer growth on highly warped cells
-        //maxFaceThicknessRatio 0.5;
+        maxFaceThicknessRatio 0.5;
 
         //// Reduce layer growth where ratio thickness to medial
         //// distance is large
-        //maxThicknessToMedialRatio 0.3;
+        maxThicknessToMedialRatio 0.3;
 
         //// Angle used to pick up medial axis points
         //// Note: changed(corrected) w.r.t 16x! 90 degrees corresponds to 130 in 16x.
-        //minMedianAxisAngle 90;
+        minMedianAxisAngle 90;
 
         //// Create buffer region for new layer terminations
-        //nBufferCellsNoExtrude 0;
+        nBufferCellsNoExtrude 0;
 
 
         //// Overall max number of layer addition iterations. The mesher will exit
         //// if it reaches this number of iterations; possibly with an illegal
         //// mesh.
-        //nLayerIter 50;
+        nLayerIter 50;
 
         ////max number of iterations after which the controls in the relaxed sub dictionary of meshQuality are used (typically 20).
-        //nRelaxedIter 20;
+        nRelaxedIter 20;
     }
 
   // Generic mesh quality settings. At any undoable phase these determine
@@ -388,14 +368,14 @@ maxBoundarySkewness 20;
 
 maxInternalSkewness 4;
 
-maxConcave 80;
+maxConcave 40;
 
 // Minimum cell pyramid volume; case dependent
-minVol 1e-13;
+minVol 1e-20;
 
 //  1e-15 (small positive) to enable tracking
 // -1e+30 (large negative) for best layer insertion
-minTetQuality 1e-15;
+minTetQuality -1e+30;
 
 // if >0 : preserve single cells with all points on the surface if the
 // resulting volume after snapping (by approximation) is larger than
@@ -405,11 +385,11 @@ minTetQuality 1e-15;
 
 minArea          -1;
 
-minTwist          0.02;
+minTwist          0.01;
 
 minDeterminant    0.001;
 
-minFaceWeight     0.05;
+minFaceWeight     0.02;
 
 minVolRatio       0.01;
 
