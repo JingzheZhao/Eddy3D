@@ -79,9 +79,9 @@ internalField uniform $turbulentEpsilon;
 
 boundaryField
 {
-    symmetry
+    frontAndBack
     {
-        type symmetry;
+        type slip;
     }
 
     ground
@@ -167,9 +167,9 @@ internalField uniform $turbulentKE;
 
             boundaryField
 {
-                symmetry
+                frontAndBack
     {
-                    type symmetry;
+                    type slip;
                 }
 
              ");
@@ -250,9 +250,9 @@ internalField uniform $turbulentOmega;
 
 boundaryField
 {
-    symmetry
+    frontAndBack
     {
-        type symmetry;
+        type slip;
     }
 
     ground
@@ -341,9 +341,9 @@ internalField uniform $pressure;
         boundaryField
 {
 
-            symmetry
+            frontAndBack
     {
-                type symmetry;
+                type slip;
             }
 
 
@@ -426,9 +426,9 @@ internalField uniform $flowVelocity;
 boundaryField
 {
 
-symmetry
+frontAndBack
 {
-        type symmetry;
+        type slip;
 }
 
 
@@ -524,9 +524,9 @@ internalField uniform $flowVelocity;
 boundaryField
 {
 
-symmetry
+frontAndBack
     {
-        type symmetry;
+        type slip;
 }
 
 
@@ -620,9 +620,10 @@ internalField uniform $turbulentKE;
 
 boundaryField
 {
-    symmetry
+    frontAndBack
     {
-        type symmetry;
+        type calculated; 
+        value uniform 0;
     }
 ");
 
@@ -749,9 +750,9 @@ FoamFile
 internalField uniform $turbulentEpsilon;
 boundaryField
 {
-    symmetry
+    frontAndBack
     {
-        type symmetry;
+        type slip;
     }
     ground
     {
@@ -811,9 +812,9 @@ dimensions      [0 2 -2 0 0 0 0];
 internalField uniform $turbulentKE;
             boundaryField
 {
-                symmetry
+                frontAndBack
     {
-                    type symmetry;
+                    type slip;
                 }
                 outlet
     {
@@ -869,9 +870,9 @@ dimensions [0 0 -1 0 0 0 0];
 internalField uniform $turbulentOmega;
 boundaryField
 {
-    symmetry
+    frontAndBack
     {
-        type symmetry;
+        type slip;
     }
     ground
     {
@@ -932,9 +933,9 @@ dimensions      [0 2 -2 0 0 0 0];
 internalField uniform $pressure;
         boundaryField
 {
-            symmetry
+            frontAndBack
     {
-                type symmetry;
+                type slip;
             }
             building
     {
@@ -986,9 +987,9 @@ dimensions [0 1 -1 0 0 0 0];
 internalField uniform $flowVelocity;
 boundaryField
 {
-symmetry
+frontAndBack
     {
-        type symmetry;
+        type slip;
 }
 inlet
     {");
@@ -1050,9 +1051,9 @@ dimensions [0 1 -1 0 0 0 0];
 internalField uniform $flowVelocity;
 boundaryField
 {
-symmetry
+frontAndBack
     {
-        type symmetry;
+        type slip;
 }
 inlet
     {
@@ -1116,9 +1117,10 @@ dimensions [0 2 -1 0 0 0 0];
 internalField uniform $turbulentKE;
 boundaryField
 {
-    symmetry
+    frontAndBack
     {
-        type symmetry;
+      	type calculated;
+        value uniform 0;    
     }
     outlet
     {

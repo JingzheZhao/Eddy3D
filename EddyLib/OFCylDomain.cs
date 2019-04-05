@@ -498,7 +498,7 @@ mergePatchPairs
 
             sb.AppendLine("top");
             sb.AppendLine("{");
-            sb.AppendLine("type symmetry;");
+            sb.AppendLine("type patch;");
             sb.AppendLine("faces");
             sb.AppendLine("(");
             foreach (int i in topFaceID)
@@ -773,7 +773,7 @@ mergePatchPairs
             int c2 = perimBottom.Faces.Count + coreBottom.Faces.Count + perimTop.Faces.Count;
             sb.AppendLine(@"top
 {
-type symmetry;
+type patch;
 faces
 (");
             for (int i = 0; i < perimTop.Faces.Count; i++)

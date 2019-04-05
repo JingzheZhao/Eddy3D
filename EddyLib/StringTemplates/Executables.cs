@@ -73,7 +73,7 @@ boundary
 }
         frontAndBack
 {
-        type symmetry;
+        type patch;
         faces
         (
                         (1 2 5 6)
