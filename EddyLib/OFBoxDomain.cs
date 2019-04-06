@@ -153,7 +153,7 @@ namespace EddyLib
 
             //Create ground plane of BBox
             Center = BBox.Center + 0.5 * vecMinusZ * zInter.Length;
-            LocationInMesh = Center + 4 * vecPlusZ * dimZ;
+            LocationInMesh = BBox.Center + 1 * vecPlusZ * dimZ;
 
 
             Plane pl = new Plane(Center, newLocal.XAxis, newLocal.YAxis)
@@ -165,6 +165,8 @@ namespace EddyLib
             // Create the new Domain
             DomainBox = new Box(pl, xInter, yInter, zInter);
             _ = DomainBox.GetCorners();
+
+            
 
 
             Rectangle3d plGroundCore = new Rectangle3d(pl, xInter, xInter);
