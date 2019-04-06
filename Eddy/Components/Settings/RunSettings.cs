@@ -44,8 +44,15 @@ namespace Eddy
             turb.AddNamedValue("RNGkEpsilon (more accurate)", 1);
             turb.AddNamedValue("kOmegaSST (most accurate)", 2);
 
+            pManager.AddIntegerParameter("Relaxation factors", "Relax", "Relaxation factors", GH_ParamAccess.item, 0);
+            Param_Integer relaxationFactors = pManager[4] as Param_Integer;
+            relaxationFactors.AddNamedValue("OpenFOAM", 0);
+            relaxationFactors.AddNamedValue("Fluent", 1);
+            relaxationFactors.AddNamedValue("SimScale", 2);
+
+
             pManager.AddIntegerParameter("Mode", "Mode", "Robustness of the solver", GH_ParamAccess.item, 0);
-            Param_Integer simulationMode = pManager[4] as Param_Integer;
+            Param_Integer simulationMode = pManager[5] as Param_Integer;
             simulationMode.AddNamedValue("quick", 0);
             simulationMode.AddNamedValue("robust", 1);
             simulationMode.AddNamedValue("orthogonal (70-80)", 2);
@@ -57,7 +64,7 @@ namespace Eddy
 
             pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
             pManager.AddIntegerParameter("Operation System", "OS", "Operation System.", GH_ParamAccess.item, 0); // Nothing specified
-            Param_Integer os = pManager[6] as Param_Integer;
+            Param_Integer os = pManager[7] as Param_Integer;
             os.AddNamedValue("Auto detect", 0);
             os.AddNamedValue(@"Windows 7 + 8", 1);
             os.AddNamedValue("Windows 10", 2);
@@ -90,15 +97,19 @@ namespace Eddy
             int _turb = 0;
             int _CPUs = 0;
             int _OS = -1;
+            int _relaxationFactors = 0;
 
 
             DA.GetData(0, ref _iter);
             DA.GetData(1, ref _writeInterval);
             DA.GetData(2, ref _keepTimeSteps);
-            DA.GetData(3, ref _mode);
-            DA.GetData(4, ref _turb);
-            DA.GetData(5, ref _CPUs);
-            DA.GetData(6, ref _OS);
+
+            DA.GetData("Relaxation factors", ref _relaxationFactors);
+
+            DA.GetData(4, ref _mode);
+            DA.GetData(5, ref _turb);
+            DA.GetData(6, ref _CPUs);
+            DA.GetData(7, ref _OS);
 
             //TODO: Handle SimEngine
 
@@ -112,14 +123,25 @@ namespace Eddy
             }
 
 
+
             if (_CPUs > Environment.ProcessorCount)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that many CPUs.");
             }
 
 
+            var relaxationFactors = RelaxationFactors.OpenFOAM;
+            if (_relaxationFactors == 0) { relaxationFactors = RelaxationFactors.OpenFOAM; }
+            else if (_relaxationFactors == 1) { relaxationFactors = RelaxationFactors.Fluent; }
+            else { relaxationFactors = RelaxationFactors.SimScale; }
+
+
+
+
+
+
             var os = OSType.Windows10;
-            if (Utilities.GetOSInfo() == "Windows 7"  && _OS == 0)
+            if (Utilities.GetOSInfo() == "Windows 7" && _OS == 0)
             {
                 os = OSType.Windows7;
             }
@@ -127,7 +149,7 @@ namespace Eddy
             else if (Utilities.GetOSInfo() == "Windows 10" && _OS == 0)
             {
                 os = OSType.Windows10;
-            } 
+            }
             else if (Utilities.GetOSInfo() == "Windows 8" && _OS == 0)
             {
                 os = OSType.Windows7;
@@ -144,7 +166,8 @@ namespace Eddy
             {
                 os = OSType.Linux;
             }
-            else {
+            else
+            {
                 os = OSType.MaxOS;
             }
 
@@ -158,7 +181,8 @@ namespace Eddy
                 Schemes = _mode,
                 turb = _turb,
                 CPUs = _CPUs,
-                ostype = os
+                ostype = os,
+                relaxationFactors = relaxationFactors
 
 
             });

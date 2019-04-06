@@ -1139,7 +1139,82 @@ wallDist
 ";
         }
 
-        public static string FvSchemesRobust1()
+        public static string FvSchemesSimscale()
+        {
+            return
+        @"/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.2                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         steadyState;
+}
+
+
+
+gradSchemes
+{
+    default cellMDLimited Gauss linear 1.0;
+}
+
+divSchemes
+{
+    default          Gauss upwind;
+    div(phi,U)       Gauss upwind;
+    //div(phi,k)       Gauss upwind;
+    //div(phi,epsilon) Gauss upwind;
+    div(phi,k)       Gauss linear;
+    div(phi,epsilon) Gauss linear;
+    div(phi,omega)   Gauss upwind;
+    div((nuEff*dev2(T(grad(U))))) Gauss linear;
+    div(phi,time)   Gauss upwind;
+    div(U) Gauss linear;
+}
+
+laplacianSchemes
+{
+    default         Gauss linear corrected;
+    laplacian(nuEff,time) Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         corrected;
+}
+
+fluxRequired
+{
+    default         no;
+    p;
+}
+wallDist
+{
+	method meshWave;
+}
+
+// ************************************************************************* //
+";
+        }
+
+            public static string FvSchemesRobust1()
         {//A robust numerical scheme but diffusive
             return
         @"/*--------------------------------*- C++ -*----------------------------------*\
@@ -1644,7 +1719,7 @@ wallDist
         //;");
         //            return sb.ToString();
         //        }
-        public static string FvSolution(int mode)
+        public static string FvSolution(OFRunSettings RunSettings)
         {
             StringBuilder sb = new StringBuilder(); sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
@@ -1667,43 +1742,44 @@ solvers
     p
     {
         solver GAMG;
-        tolerance 1e-6;
-        relTol 0.1;
+        tolerance 1e-9;
+        relTol 0.0001;
         smoother GaussSeidel;
-        nPreSweeps 0;
-        nPostSweeps 2;
+        nPreSweeps 2;
+        nPostSweeps 1;
         cacheAgglomeration on;
         agglomerator faceAreaPair;
-        nCellsInCoarsestLevel 100;
+        nCellsInCoarsestLevel 10;
         mergeLevels 1;
     } 
 
     ""(k|omega|epsilon)""
     {
         solver          smoothSolver;
-        smoother        symGaussSeidel;
-        tolerance       1e-6;
-        relTol          0.1;
+        smoother        GaussSeidel;
+        tolerance       1e-9;
+        relTol          0.0001;
     }   
     U
     {
-        solver PBiCG;
+        solver smoothSolver;
+        smoother GaussSeidel;
         preconditioner DILU;
-        tolerance 1e-8;
-        relTol 0.0;
+        tolerance 1e-9;
+        relTol 0.0001;
     } 
 	Phi
     {
         solver          GAMG;
         smoother        GaussSeidel;
-        tolerance       1e-6;
-        relTol          0.1;
+        tolerance       1e-9;
+        relTol          0.0001;
     }
 }
 
 SIMPLE
 {");
-            if (mode == 0) { sb.Append(@"nNonOrthogonalCorrectors 1;"); }
+            if (RunSettings.relaxationFactors == RelaxationFactors.OpenFOAM) { sb.Append(@"nNonOrthogonalCorrectors 1;"); }
             else { sb.Append(@"nNonOrthogonalCorrectors 4;"); }
             sb.AppendLine(@"
     residualControl
@@ -1722,7 +1798,7 @@ potentialFlow
     nNonOrthogonalCorrectors 40;
 }
 ");
-            if (mode == 0)
+            if (RunSettings.relaxationFactors == RelaxationFactors.Fluent)
             {
                 sb.Append(@"relaxationFactors
 {
@@ -1740,7 +1816,7 @@ potentialFlow
 }"
 );
             }
-            else { sb.Append(@"relaxationFactors
+            else if (RunSettings.relaxationFactors == RelaxationFactors.OpenFOAM) { sb.Append(@"relaxationFactors
 {
     fields
     {
@@ -1752,6 +1828,20 @@ potentialFlow
         k               0.7;
        epsilon          0.7;
 	   omega			0.7;
+    }
+}"); }
+            else if (RunSettings.relaxationFactors == RelaxationFactors.SimScale) { sb.Append(@"relaxationFactors
+{
+    fields
+    {
+        p               0.3;
+    }
+    equations
+    {
+        U               0.3;
+        k               0.3;
+       epsilon          0.3;
+	   omega			0.3;
     }
 }"); }
 

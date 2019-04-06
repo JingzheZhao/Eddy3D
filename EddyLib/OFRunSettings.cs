@@ -15,6 +15,14 @@ namespace EddyLib
         Linux,
         MaxOS
     }
+
+    public enum RelaxationFactors
+    {
+        OpenFOAM,
+        Fluent,
+        SimScale
+    }
+
     public enum TurbModel
     {
         kEpsilon,
@@ -34,6 +42,7 @@ namespace EddyLib
         public OSType ostype = OSType.Windows10;
         public TurbModel turbModel = TurbModel.kEpsilon;
         public int totalGBRam = Convert.ToInt32((new ComputerInfo().TotalPhysicalMemory / (Math.Pow(1024, 2))) + 0.5);
+        public RelaxationFactors relaxationFactors = RelaxationFactors.OpenFOAM;
 
         public override string ToString()
         {
@@ -45,7 +54,8 @@ turb = {4}
 CPUs = {5}
 Engine = {6}
 OS = {7}
-Turbulence Model = {8}", iter, writeInterval, keepTimeSteps, Schemes, turb, CPUs, simEngine.ToString(), ostype.ToString(), turbModel);
+Turbulence Model = {8}
+Relaxation Factors = {9}", iter, writeInterval, keepTimeSteps, Schemes, turb, CPUs, simEngine.ToString(), ostype.ToString(), turbModel, relaxationFactors.ToString());
 
         }
     }
