@@ -548,7 +548,7 @@ libs
         public static string FunctionObjCP(OFBaseDomain DOM, OFRunSettings RunSettings, List<Mesh> evaluationTopology, int d)
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append(@"cp2
+            sb.Append(@"pressureCoefficients
 {
                     type pressure;
                     libs (""libfieldFunctionObjects.so"");
