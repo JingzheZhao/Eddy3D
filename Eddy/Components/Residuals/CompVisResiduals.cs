@@ -140,7 +140,7 @@ namespace Eddy
             }
             else
             {
-                selection.Add(0);
+                selection.Add(RES.Domain.BCond.windDirs[0]);
             }
 
 
