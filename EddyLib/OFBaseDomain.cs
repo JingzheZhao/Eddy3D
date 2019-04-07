@@ -9,7 +9,7 @@ namespace EddyLib
     // class for all common domain properties, every domain type inherits this
     public class OFBaseDomain
     {
-        public Point3d Center;
+        public Point3d CenterGround;
         public Point3d LocationInMesh;
 
         
@@ -22,7 +22,7 @@ namespace EddyLib
         // 3 Main meshes
         
         public Mesh TerrainMesh;
-        public Mesh DomainMesh;
+        public Mesh DomainMesh;        
         public Mesh BuildingGeometry;
 
 
@@ -35,6 +35,8 @@ namespace EddyLib
 
 
         public List<double> Runtimes = new List<double>();
+
+        public bool hasTerrain;
 
 
 

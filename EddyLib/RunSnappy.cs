@@ -163,7 +163,7 @@ namespace EddyLib
 
 
 
-            string command = RunSettings.CPUs > 1 ? MultipleCPU : SingleCPU;
+         
 
 
             logFile = "";

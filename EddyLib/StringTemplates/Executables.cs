@@ -142,7 +142,7 @@ FoamFile
             name ground;
         }");
 
-            if (dom.TerrainMesh.Faces.Count == 0)
+            if (!dom.hasTerrain)
             {
                 sb.Append(@"	
         ground_perim.stl
@@ -182,7 +182,7 @@ FoamFile
                     type wall;
                 }
             }");
-            if (dom.TerrainMesh.Faces.Count == 0)
+            if (!dom.hasTerrain)
             {
                 sb.Append(@"ground_perim
             {
@@ -213,7 +213,7 @@ refinementBox {mode inside; levels ((" + MeshSettings.accRefinement + @" " + Mes
         //planarAngle 30;
         //maxLoadUnbalance 0.10;
 
-maxLocalCells       4000000;
+    maxLocalCells       4000000;
     maxGlobalCells      100000000;
     minRefinementCells  1;
     maxLoadUnbalance    0.20;
@@ -274,7 +274,7 @@ snapControls
                 nSurfaceLayers " + MeshSettings.nLayers + @";
             }
 ");
-            if (dom.TerrainMesh.Faces.Count == 0)
+            if (!dom.hasTerrain)
             {
                 sb.Append(@"ground_perim
             {

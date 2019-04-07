@@ -67,12 +67,12 @@ namespace EddyLib
 
             //CFD Online
 
-            eddy_viscosity_ratio = 10;
+            eddy_viscosity_ratio = 5;
             Tu = 5;
             nu = 1.5e-05;
 
             k = K(Tu, URef);
-            epsilon = Epsilon(k, eddy_viscosity_ratio, nu);
+            epsilon = Epsilon(btype, k, eddy_viscosity_ratio, nu);
             omega = Omega(epsilon, k);
 
             foreach (int d in dirs)
@@ -103,12 +103,12 @@ namespace EddyLib
 
             //CFD Online
 
-            eddy_viscosity_ratio = 10;
+            eddy_viscosity_ratio = 5;
             Tu = 5; //in percent
             nu = 1.5e-05;
 
             k = K(Tu, URef);
-            epsilon = Epsilon(k, eddy_viscosity_ratio, nu);
+            epsilon = Epsilon(btype,k, eddy_viscosity_ratio, nu);
             omega = Omega(epsilon, k);
 
 
@@ -156,7 +156,7 @@ namespace EddyLib
 
                 foreach (Vector3d d in flowDir)
                 {
-                    Uinf.Add(d*Uref);
+                    Uinf.Add(d * Uref);
                 }
 
                 pinf = 1.2 * 0.5 * Math.Pow(Uref, 2);
@@ -165,9 +165,22 @@ namespace EddyLib
 
         }
 
-        public double Epsilon(double k, double eddy_viscosity_ratio, double nu)
+        public double Epsilon(BoundaryType btype, double k, double eddy_viscosity_ratio, double nu)
         {
-            double epsilon = 0.09 * Math.Pow(k, 2) / (nu * eddy_viscosity_ratio);
+
+            if (btype == BoundaryType.abl)
+            {
+
+                double epsilon = 0.09 * Math.Pow(k, 2) / (nu * eddy_viscosity_ratio);
+
+            }
+            else
+            {
+                int L = 10;
+                double Cmu = 0.09;
+                epsilon = Math.Pow(Cmu, 0.75) * Math.Pow(k, 1.5) / L;
+            }
+
             return epsilon;
         }
 

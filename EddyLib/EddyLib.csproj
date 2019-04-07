@@ -75,6 +75,7 @@
     <Compile Include="RunSnappy.cs" />
     <Compile Include="Streamwriter.cs" />
     <Compile Include="StringTemplates\BatchFiles.cs" />
+    <Compile Include="StringTemplates\BoundaryConditions.cs" />
     <Compile Include="SymbolicLink.cs" />
     <Compile Include="Daysim.cs" />
     <Compile Include="JenksFisherNaturalBreaks.cs" />
@@ -89,7 +90,6 @@
     <Compile Include="Settings.cs" />
     <Compile Include="Radiance\SolarGeometry.cs" />
     <Compile Include="STLExport.cs" />
-    <Compile Include="StringTemplates\BoundaryConditions.cs" />
     <Compile Include="StringTemplates\Executables.cs" />
     <Compile Include="UTCI.cs" />
     <Compile Include="NV.cs" />

@@ -38,7 +38,7 @@ namespace EddyLib
         public double diameter;
         public double blockDimension;
 
-
+        
         public OFBoxDomain(Mesh buildingGeometry, Mesh terrainMesh, BoundaryConditions bCond, double _blockDim, double length = 0, double width = 0, double height = 0)
         {
             BCond = bCond;
@@ -72,7 +72,7 @@ namespace EddyLib
             dimZ = zMax - zMin;
 
 
-          
+
 
             int windDir = bCond.windDirs[0];
 
@@ -102,8 +102,8 @@ namespace EddyLib
             //New Dimensions in Y \cite{Tominaga2008,Franke2007}
 
             double scaleRectDomainYUpstream = -(5.5 * dimZ + dimY);
-            double scaleRectDomainYDownstream = 15.5 * dimZ + dimY;         
-            
+            double scaleRectDomainYDownstream = 15.5 * dimZ + dimY;
+
             Interval xInter = new Interval(0, 0);
             if (width == 0)
             {
@@ -128,23 +128,19 @@ namespace EddyLib
             Interval yInterPerim1 = new Interval(-xInter.T0, yInter.T0);
             Interval yInterPerim2 = new Interval(xInter.T0, yInter.T1);
 
-
-          
-
-
-
+                                          
             // If terrain is used, scale down Z to make sure all points are inside the domain
             Interval zInter;
 
 
             // If terrain is used, scale down Z to make sure all points are inside the domain
             // Zinter is call divisionsZ for CylDomain which is an int instead of an Interval
-            this.TerrainMesh = terrainMesh;
+            
 
             double zDomain = OFBaseDomain.GetZMinTerrain(terrainMesh, BBox);
-            
-            zInter = new Interval(zDomain, scaleRectDomainZ+Math.Abs(zDomain));
-           
+
+            zInter = new Interval(zDomain, scaleRectDomainZ + Math.Abs(zDomain));
+
 
             xCells = (int)((Math.Abs(xInter.Length)) / blockDimension);
             yCells = (int)((Math.Abs(yInter.Length)) / blockDimension);
@@ -152,30 +148,23 @@ namespace EddyLib
 
 
             //Create ground plane of BBox
-            Center = BBox.Center + 0.5 * vecMinusZ * zInter.Length;
+            CenterGround = BBox.Center + 0.5 * vecMinusZ;
             LocationInMesh = BBox.Center + 1 * vecPlusZ * dimZ;
 
 
-            Plane pl = new Plane(Center, newLocal.XAxis, newLocal.YAxis)
+            Plane pl = new Plane(CenterGround, newLocal.XAxis, newLocal.YAxis)
             {
-                Origin = Center
+                Origin = CenterGround
             };
-
 
             // Create the new Domain
             DomainBox = new Box(pl, xInter, yInter, zInter);
             _ = DomainBox.GetCorners();
 
-            
-
-
             Rectangle3d plGroundCore = new Rectangle3d(pl, xInter, xInter);
             Rectangle3d plGroundPerim1 = new Rectangle3d(pl, xInter, yInterPerim1);
             Rectangle3d plGroundPerim2 = new Rectangle3d(pl, xInter, yInterPerim2);
-
-
-
-
+                                 
 
             MeshingParameters mpGround = MeshingParameters.Default;
 
@@ -183,21 +172,21 @@ namespace EddyLib
 
             if (terrainMesh.Faces.Count == 0)
             {
-                DomainMeshGround = Mesh.CreateFromPlanarBoundary(plGroundCore.ToNurbsCurve(), mpGround);
+                double tolerance = 0.01;
+                DomainMeshGround = Mesh.CreateFromPlanarBoundary(plGroundCore.ToNurbsCurve(), mpGround, tolerance); 
                 DomainMeshGroundPerim = new Mesh();
-                DomainMeshGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim1.ToNurbsCurve(), mpGround));
-                DomainMeshGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim2.ToNurbsCurve(), mpGround));
+                DomainMeshGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim1.ToNurbsCurve(), mpGround, tolerance));
+                DomainMeshGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim2.ToNurbsCurve(), mpGround, tolerance));
             }
             else
             {
-                DomainMeshGround = terrainMesh;
+                this.hasTerrain = true;
+                this.TerrainMesh = terrainMesh;
+                this.DomainMeshGround = terrainMesh;
             }
 
+            
 
-
-
-            // refinement Cylinder
-            //refinementCylinder = getRefinementCyl(center, geometry, 10);
 
             if (bCond.btype == BoundaryType.constant)
             {
@@ -213,8 +202,7 @@ namespace EddyLib
             bCond.CalculateCPPressures(zMax, bCond.btype, bCond.URef);
 
 
-            DomainMesh = Mesh.CreateFromBox(DomainBox, xCells, yCells, zCells);
-            //this.DomainMesh = Mesh.CreateFromBox(DomainBox);
+            this.DomainMesh = Mesh.CreateFromBox(DomainBox, xCells, yCells, zCells);          
 
 
 
@@ -229,11 +217,9 @@ namespace EddyLib
             "Cells in x: " + xCells + "\n" +
             "Cells in y: " + xCells + "\n" +
             "Cells in z: " + zCells + "\n" +
-            "Projected area: " + Math.Round(FrontageBuildingArea)
-
-
+            "Projected area: " + Math.Round(this.FrontageBuildingArea)
             ;
-            // return base.ToString();
+
         }
 
 

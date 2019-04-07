@@ -13,9 +13,7 @@ namespace EddyLib
 
         public static void RunCyl(OFCylDomain DOMCYL, OFMeshSettings MeshSettings, OFRunSettings RunSettings, string workDir)
         {
-
-
-
+                        
 
             if (!Directory.Exists(MeshSettings.meshStlDir))
             {
@@ -24,11 +22,9 @@ namespace EddyLib
 
 
             STLExport.ExportBinary(MeshSettings.meshStlFilenameBuildings, DOMCYL.BuildingGeometry);
+                        
 
-
-
-
-            if (DOMCYL.TerrainMesh.Faces.Count > 0)
+            if (DOMCYL.hasTerrain)
             {
                 //No perim if we use a terrain                    
                 STLExport.ExportBinary(MeshSettings.meshStlFilenameGround, DOMCYL.TerrainMesh);
@@ -38,9 +34,7 @@ namespace EddyLib
                 STLExport.ExportBinary(MeshSettings.meshStlFilenameGround, DOMCYL.CylDomainMeshGround);
                 STLExport.ExportBinary(MeshSettings.meshStlFilenameGroundPerim, DOMCYL.CylDomainMeshGroundPerim);
             }
-
-
-
+                       
 
             if (!Directory.Exists(MeshSettings.meshSystemDir))
             {
@@ -126,7 +120,7 @@ void plastic Generic_20
 
 
 
-            if (DOMBOX.TerrainMesh.Faces.Count > 0)
+            if (DOMBOX.hasTerrain)
             {
                 //No perim if we use a terrain
                 DOMBOX.DomainMeshGround.Translate(Vector3d.ZAxis * 0.001);
