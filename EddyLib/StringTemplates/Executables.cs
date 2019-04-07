@@ -73,7 +73,7 @@ boundary
 }
         frontAndBack
 {
-        type symmetry;
+        type patch;
         faces
         (
                         (1 2 5 6)
@@ -141,8 +141,8 @@ FoamFile
             type triSurfaceMesh;
             name ground;
         }");
-            //Check for both Box and Cyl if there is a terrain. Unfortunately ground are called differently. TODO!!!
-            if (dom.TerrainMesh.Faces.Count == 0)
+
+            if (!dom.hasTerrain)
             {
                 sb.Append(@"	
         ground_perim.stl
@@ -181,18 +181,20 @@ FoamFile
                 {
                     type wall;
                 }
-            }
-            ground_perim
+            }");
+            if (!dom.hasTerrain)
+            {
+                sb.Append(@"ground_perim
             {
                 level (" + (MeshSettings.accGround - 1) + @" " + (MeshSettings.accGround) + @");
                 patchInfo
                 {
                     type wall;
                 }
+            }");
             }
-        }
-
-        refinementRegions
+            sb.Append(@"}
+refinementRegions
         {
 
 refinementBox {mode inside; levels ((" + MeshSettings.accRefinement + @" " + MeshSettings.accRefinement + @"));}
@@ -211,13 +213,13 @@ refinementBox {mode inside; levels ((" + MeshSettings.accRefinement + @" " + Mes
         //planarAngle 30;
         //maxLoadUnbalance 0.10;
 
-maxLocalCells       100000;
+    maxLocalCells       4000000;
     maxGlobalCells      100000000;
-    minRefinementCells  10;
-    maxLoadUnbalance    0.10;
+    minRefinementCells  1;
+    maxLoadUnbalance    0.20;
     nCellsBetweenLevels 3;
     resolveFeatureAngle 30;
-    allowFreeStandingZoneFaces true;
+    allowFreeStandingZoneFaces false;
     }
 
     
@@ -235,10 +237,10 @@ maxLocalCells       100000;
 //    }
 snapControls
 {
-    nSmoothPatch    3;
+    nSmoothPatch    5;
     tolerance       2.0;
-    nSolveIter      100;
-    nRelaxIter      5;
+    nSolveIter      150;
+    nRelaxIter      8;
 
     nFeatureSnapIter 10;
 
@@ -258,7 +260,7 @@ snapControls
     {
         //// Are the thickness parameters below relative to the undistorted
         //// size of the refined cell outside layer (true) or absolute sizes (false).
-        //relativeSizes true;
+        relativeSizes true;
 
         // Per final patch (so not geometry!) the layer information
         layers
@@ -271,103 +273,88 @@ snapControls
             {
                 nSurfaceLayers " + MeshSettings.nLayers + @";
             }
-            ground_perim
+");
+            if (!dom.hasTerrain)
+            {
+                sb.Append(@"ground_perim
             {
                 nSurfaceLayers " + MeshSettings.nLayers + @";
-            }
+            }");
+}
+            sb.Append(@"
         }
 
-   featureAngle              100;
-    slipFeatureAngle          30;
-
-    nLayerIter                50;
-    nRelaxedIter              20;
-    nRelaxIter                5;
-
-    nGrow                     0;
-
-    nSmoothSurfaceNormals     1;
-    nSmoothNormals            3;
-    nSmoothThickness          10;
-    maxFaceThicknessRatio     0.5;
-    maxThicknessToMedialRatio 0.3;
-
-    minMedialAxisAngle        90;
-    nMedialAxisIter           10;
-
-    nBufferCellsNoExtrude     0;
-    additionalReporting       false;
-
-relativeSizes       true;
-    expansionRatio      1.2;
-    finalLayerThickness 0.5;
-    minThickness        1e-3;
+  
 
 //    nSmoothDisplacement       0;
 //    detectExtrusionIsland     false;
 
         //// Expansion factor for layer mesh
-        //expansionRatio 1.2;
+        expansionRatio 1.0;
 
         //// Wanted thickness of final added cell layer. If multiple layers
         //// is the thickness of the layer furthest away from the wall.
         //// Relative to undistorted size of cell outside layer.
         //// See relativeSizes parameter.
-        //finalLayerThickness 0.7;
+        finalLayerThickness 0.3;
 
         //// Minimum thickness of cell layer. If for any reason layer
         //// cannot be above minThickness do not add layer.
         //// Relative to undistorted size of cell outside layer.
         //// See relativeSizes parameter.
-        //minThickness 0.1;
+        minThickness 0.1;
 
         //// If points get not extruded do nGrow layers of connected faces that are
         //// also not grown. This helps convergence of the layer addition process
         //// close to features.
         //// Note: changed(corrected) w.r.t 17x! (didn't do anything in 17x)
-        //nGrow 0;
+        nGrow 0;
 
-        //// Advanced settings
+        // Advanced settings
 
-        //// When not to extrude surface. 0 is flat surface, 90 is when two faces
-        //// are perpendicular
-        //featureAngle 180;
+    // When not to extrude surface. 0 is flat surface, 90 is when two faces
+    // are perpendicular
+    featureAngle 180;
+
+    // At non-patched sides allow mesh to slip if extrusion direction makes
+    // angle larger than slipFeatureAngle.
+    slipFeatureAngle 75;
 
         //// Maximum number of snapping relaxation iterations. Should stop
         //// before upon reaching a correct mesh.
-        //nRelaxIter 5;
+        nRelaxIter 8;
 
         //// Number of smoothing iterations of surface normals
-        //nSmoothSurfaceNormals 1;
+        nSmoothSurfaceNormals 2;
 
         //// Number of smoothing iterations of interior mesh movement direction
-        //nSmoothNormals 3;
+        nSmoothNormals 5;
 
         //// Smooth layer thickness over surface patches
-        //nSmoothThickness 10;
+        nSmoothThickness 10;
 
         //// Stop layer growth on highly warped cells
-        //maxFaceThicknessRatio 0.5;
+        maxFaceThicknessRatio 0.5;
 
         //// Reduce layer growth where ratio thickness to medial
         //// distance is large
-        //maxThicknessToMedialRatio 0.3;
+        maxThicknessToMedialRatio 0.3;
 
         //// Angle used to pick up medial axis points
         //// Note: changed(corrected) w.r.t 16x! 90 degrees corresponds to 130 in 16x.
-        //minMedianAxisAngle 90;
+        minMedianAxisAngle 90;
 
         //// Create buffer region for new layer terminations
-        //nBufferCellsNoExtrude 0;
+        nBufferCellsNoExtrude 0;
 
 
         //// Overall max number of layer addition iterations. The mesher will exit
         //// if it reaches this number of iterations; possibly with an illegal
         //// mesh.
-        //nLayerIter 50;
+        nLayerIter 50;
 
         ////max number of iterations after which the controls in the relaxed sub dictionary of meshQuality are used (typically 20).
-        //nRelaxedIter 20;
+        nRelaxedIter 20;
     }
 
   // Generic mesh quality settings. At any undoable phase these determine
@@ -381,14 +368,14 @@ maxBoundarySkewness 20;
 
 maxInternalSkewness 4;
 
-maxConcave 80;
+maxConcave 40;
 
 // Minimum cell pyramid volume; case dependent
-minVol 1e-13;
+minVol 1e-20;
 
 //  1e-15 (small positive) to enable tracking
 // -1e+30 (large negative) for best layer insertion
-minTetQuality 1e-15;
+minTetQuality -1e+30;
 
 // if >0 : preserve single cells with all points on the surface if the
 // resulting volume after snapping (by approximation) is larger than
@@ -398,11 +385,11 @@ minTetQuality 1e-15;
 
 minArea          -1;
 
-minTwist          0.02;
+minTwist          0.01;
 
 minDeterminant    0.001;
 
-minFaceWeight     0.05;
+minFaceWeight     0.02;
 
 minVolRatio       0.01;
 
@@ -499,6 +486,8 @@ mergeTolerance 1E-6;
 ");
             return sb.ToString();
         }
+
+
         public static string ControlDict(OFRunSettings RunSettings, OFBaseDomain DOM, List<Mesh> topologies, int numberOfTopologies)
         {
             StringBuilder sb = new StringBuilder();
@@ -559,7 +548,7 @@ libs
         public static string FunctionObjCP(OFBaseDomain DOM, OFRunSettings RunSettings, List<Mesh> evaluationTopology, int d)
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append(@"cp2
+            sb.Append(@"pressureCoefficients
 {
                     type pressure;
                     libs (""libfieldFunctionObjects.so"");
@@ -1117,6 +1106,7 @@ divSchemes
     div(phi,omega)  bounded Gauss upwind grad(U);
     div((nuEff*dev2(T(grad(U))))) Gauss linear;
     div(phi,time)   bounded Gauss upwind grad(U);
+    div(U) Gauss linear;
 }
 
 laplacianSchemes
@@ -1149,7 +1139,82 @@ wallDist
 ";
         }
 
-        public static string FvSchemesRobust1()
+        public static string FvSchemesSimscale()
+        {
+            return
+        @"/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.2                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         steadyState;
+}
+
+
+
+gradSchemes
+{
+    default cellMDLimited Gauss linear 1.0;
+}
+
+divSchemes
+{
+    default          Gauss upwind;
+    div(phi,U)       Gauss upwind;
+    //div(phi,k)       Gauss upwind;
+    //div(phi,epsilon) Gauss upwind;
+    div(phi,k)       Gauss linear;
+    div(phi,epsilon) Gauss linear;
+    div(phi,omega)   Gauss upwind;
+    div((nuEff*dev2(T(grad(U))))) Gauss linear;
+    div(phi,time)   Gauss upwind;
+    div(U) Gauss linear;
+}
+
+laplacianSchemes
+{
+    default         Gauss linear corrected;
+    laplacian(nuEff,time) Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         corrected;
+}
+
+fluxRequired
+{
+    default         no;
+    p;
+}
+wallDist
+{
+	method meshWave;
+}
+
+// ************************************************************************* //
+";
+        }
+
+            public static string FvSchemesRobust1()
         {//A robust numerical scheme but diffusive
             return
         @"/*--------------------------------*- C++ -*----------------------------------*\
@@ -1191,6 +1256,7 @@ divSchemes
     div(phi,omega)   Gauss upwind;
     div((nuEff*dev2(T(grad(U))))) Gauss linear;
     div(phi,time)   Gauss upwind;
+    div(U) Gauss linear;
 }
 
 laplacianSchemes
@@ -1653,7 +1719,7 @@ wallDist
         //;");
         //            return sb.ToString();
         //        }
-        public static string FvSolution(int mode)
+        public static string FvSolution(OFRunSettings RunSettings)
         {
             StringBuilder sb = new StringBuilder(); sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
@@ -1676,43 +1742,44 @@ solvers
     p
     {
         solver GAMG;
-        tolerance 1e-6;
-        relTol 0.1;
+        tolerance 1e-9;
+        relTol 0.0001;
         smoother GaussSeidel;
-        nPreSweeps 0;
-        nPostSweeps 2;
+        nPreSweeps 2;
+        nPostSweeps 1;
         cacheAgglomeration on;
         agglomerator faceAreaPair;
-        nCellsInCoarsestLevel 100;
+        nCellsInCoarsestLevel 10;
         mergeLevels 1;
     } 
 
     ""(k|omega|epsilon)""
     {
         solver          smoothSolver;
-        smoother        symGaussSeidel;
-        tolerance       1e-6;
-        relTol          0.1;
+        smoother        GaussSeidel;
+        tolerance       1e-9;
+        relTol          0.0001;
     }   
     U
     {
-        solver PBiCG;
+        solver smoothSolver;
+        smoother GaussSeidel;
         preconditioner DILU;
-        tolerance 1e-8;
-        relTol 0.0;
+        tolerance 1e-9;
+        relTol 0.0001;
     } 
 	Phi
     {
         solver          GAMG;
         smoother        GaussSeidel;
-        tolerance       1e-6;
-        relTol          0.1;
+        tolerance       1e-9;
+        relTol          0.0001;
     }
 }
 
 SIMPLE
 {");
-            if (mode == 0) { sb.Append(@"nNonOrthogonalCorrectors 1;"); }
+            if (RunSettings.relaxationFactors == RelaxationFactors.OpenFOAM) { sb.Append(@"nNonOrthogonalCorrectors 1;"); }
             else { sb.Append(@"nNonOrthogonalCorrectors 4;"); }
             sb.AppendLine(@"
     residualControl
@@ -1731,7 +1798,7 @@ potentialFlow
     nNonOrthogonalCorrectors 40;
 }
 ");
-            if (mode == 0)
+            if (RunSettings.relaxationFactors == RelaxationFactors.Fluent)
             {
                 sb.Append(@"relaxationFactors
 {
@@ -1749,7 +1816,7 @@ potentialFlow
 }"
 );
             }
-            else { sb.Append(@"relaxationFactors
+            else if (RunSettings.relaxationFactors == RelaxationFactors.OpenFOAM) { sb.Append(@"relaxationFactors
 {
     fields
     {
@@ -1761,6 +1828,20 @@ potentialFlow
         k               0.7;
        epsilon          0.7;
 	   omega			0.7;
+    }
+}"); }
+            else if (RunSettings.relaxationFactors == RelaxationFactors.SimScale) { sb.Append(@"relaxationFactors
+{
+    fields
+    {
+        p               0.3;
+    }
+    equations
+    {
+        U               0.3;
+        k               0.3;
+       epsilon          0.3;
+	   omega			0.3;
     }
 }"); }
 

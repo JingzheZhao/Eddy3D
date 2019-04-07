@@ -59,7 +59,7 @@ namespace EddyLib
 
 
 
-        public OFCylDomain(Mesh BuildingGeometry, Mesh terrain, BoundaryConditions bCond, double coreBlockSize, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0)
+        public OFCylDomain(Mesh BuildingGeometry, Mesh terrainMesh, BoundaryConditions bCond, double coreBlockSize, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0)
         {
             gradingPerim = 1.0;
 
@@ -81,34 +81,23 @@ namespace EddyLib
             double dimY = yMax - yMin;
             double dimZ = zMax - zMin;
 
-
-
-
             // If terrain is used, scale down Z to make sure all points are inside the domain
             // Zinter is call divisionsZ for CylDomain which is an int instead of an Interval
+            
+
             double zDomain = BBox.Min.Z;
-            double dimZ_Terrain = dimZ;
 
-            TerrainMesh = terrain;
-            BoundingBox bboxTerrain = terrain.GetBoundingBox(true);
-
-            if (terrain.Faces.Count > 0)
+            if (terrainMesh.Faces.Count > 0)
             {
-
-                if (bboxTerrain.Min.Z < zDomain)
-                {
-                    zDomain = bboxTerrain.Min.Z;
-                    dimZ_Terrain = zMax - bboxTerrain.Min.Z;
-                }
-
+                this.TerrainMesh = terrainMesh;
+                this.hasTerrain = true;
+                zDomain = OFBaseDomain.GetZMinTerrain(terrainMesh, BBox);
             }
-
-
 
             //Create ground plane of BBox
             //center needs dimZ to stay at ground level but also respect terrain if its being used; 0.1 = safety factor
             //center = (BBox.Center + 0.5 * -Vector3d.ZAxis * dimZ) + zTerrainScaling * Vector3d.ZAxis;
-            Cetner = new Point3d(BBox.Center.X, BBox.Center.Y, zDomain);
+            this.CenterGround = new Point3d(BBox.Center.X, BBox.Center.Y, zDomain);
 
 
 
@@ -116,7 +105,7 @@ namespace EddyLib
 
             if (sizeHeight == 0)
             {
-                height = 6 * dimZ + (BBox.Min.Z - bboxTerrain.Min.Z);
+                height = 6 * dimZ + (BBox.Min.Z - zDomain);
             }
             else
             {
@@ -164,7 +153,7 @@ namespace EddyLib
                 radius = sizeOuterCirc;
             }
 
-                                          
+
             //old domain
             //var allPoints = MakeCylMeshPoints5deg(center, radius, height, scaleFactorInnerRect);
             //MakeCylMesh(allPoints, divisionsX, divisionsY, divisionsZ, windDir);
@@ -192,7 +181,7 @@ namespace EddyLib
 
 
 
-            MakeCircMeshPlane(Cetner, sizeInnerR, divsRadial, radius, height);
+            MakeCircMeshPlane(CenterGround, sizeInnerR, divsRadial, radius, height);
 
 
             bCond.CalculateCPPressures(zMax, bCond.btype, bCond.URef);
@@ -342,7 +331,9 @@ namespace EddyLib
             CylDomainMesh.Weld(Math.PI);
             CylDomainMesh.Vertices.CombineIdentical(true, true);
 
-            DomainMesh = CylDomainMesh;
+
+            
+            this.DomainMesh = CylDomainMesh;
 
 
 
@@ -496,9 +487,9 @@ mergePatchPairs
             sb.AppendLine("}");
 
 
-            sb.AppendLine("top");
+            sb.AppendLine("frontAndBack");
             sb.AppendLine("{");
-            sb.AppendLine("type symmetry;");
+            sb.AppendLine("type patch;");
             sb.AppendLine("faces");
             sb.AppendLine("(");
             foreach (int i in topFaceID)
@@ -771,9 +762,9 @@ mergePatchPairs
 
             int c1 = perimTop.Faces.Count + coreTop.Faces.Count;
             int c2 = perimBottom.Faces.Count + coreBottom.Faces.Count + perimTop.Faces.Count;
-            sb.AppendLine(@"top
+            sb.AppendLine(@"frontAndBack
 {
-type symmetry;
+type patch;
 faces
 (");
             for (int i = 0; i < perimTop.Faces.Count; i++)

@@ -13,9 +13,7 @@ namespace EddyLib
 
         public static void RunCyl(OFCylDomain DOMCYL, OFMeshSettings MeshSettings, OFRunSettings RunSettings, string workDir)
         {
-
-
-
+                        
 
             if (!Directory.Exists(MeshSettings.meshStlDir))
             {
@@ -24,11 +22,9 @@ namespace EddyLib
 
 
             STLExport.ExportBinary(MeshSettings.meshStlFilenameBuildings, DOMCYL.BuildingGeometry);
+                        
 
-
-
-
-            if (DOMCYL.TerrainMesh.Faces.Count > 0)
+            if (DOMCYL.hasTerrain)
             {
                 //No perim if we use a terrain                    
                 STLExport.ExportBinary(MeshSettings.meshStlFilenameGround, DOMCYL.TerrainMesh);
@@ -38,9 +34,7 @@ namespace EddyLib
                 STLExport.ExportBinary(MeshSettings.meshStlFilenameGround, DOMCYL.CylDomainMeshGround);
                 STLExport.ExportBinary(MeshSettings.meshStlFilenameGroundPerim, DOMCYL.CylDomainMeshGroundPerim);
             }
-
-
-
+                       
 
             if (!Directory.Exists(MeshSettings.meshSystemDir))
             {
@@ -57,7 +51,7 @@ namespace EddyLib
 
 
             File.WriteAllText(MeshSettings.meshSystemDir + @"\blockMeshDict", DOMCYL.StringyfyDomain2());
-            File.WriteAllText(MeshSettings.baseWorkingDir + @"\mesh\case.foam", "");
+            File.WriteAllText(MeshSettings.baseWorkingDir + @"\mesh\mesh.foam", "");
             File.WriteAllText(MeshSettings.meshSystemDir + @"\controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(RunSettings, DOMCYL, null, 0));
 
 
@@ -126,7 +120,7 @@ void plastic Generic_20
 
 
 
-            if (DOMBOX.TerrainMesh.Faces.Count > 0)
+            if (DOMBOX.hasTerrain)
             {
                 //No perim if we use a terrain
                 DOMBOX.DomainMeshGround.Translate(Vector3d.ZAxis * 0.001);
@@ -160,7 +154,7 @@ void plastic Generic_20
 
 
             File.WriteAllText(MeshSettings.meshSystemDir + @"\blockMeshDict", EddyLib.StrTemp.OFExecDicts.BlockMeshDict(DOMBOX));
-            File.WriteAllText(MeshSettings.baseWorkingDir + @"\mesh\case.foam", "");
+            File.WriteAllText(MeshSettings.baseWorkingDir + @"\mesh\mesh.foam", "");
             File.WriteAllText(MeshSettings.meshSystemDir + @"\controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(RunSettings, DOMBOX, null, 0));
 
             if (!File.Exists(workDir + @"\mesh\log"))

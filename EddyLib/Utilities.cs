@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading;
+using Deedle;
 
 namespace EddyLib
 {
@@ -68,8 +69,8 @@ namespace EddyLib
             {
                 string phiPath = MeshSettings.baseWorkingDir + dir + @"\0\phi";
                 if (File.Exists(phiPath)) { File.Delete(phiPath); }
-                string logPath = MeshSettings.baseWorkingDir + dir + @"\log";
-                if (File.Exists(logPath)) { File.Delete(logPath); }
+                //string logPath = MeshSettings.baseWorkingDir + dir + @"\log";
+                //if (File.Exists(logPath)) { File.Delete(logPath); }
             }
         }
 
@@ -84,83 +85,83 @@ namespace EddyLib
             return dir;
         }
 
-
-        public static double CalculateRunTimeFromLog(string simulationDirectory, int iter)
-        {
-
-
-
-            string logFilePath = simulationDirectory + @"\log";
-
-            double timeEnd = 0;
-
-            if (File.Exists(logFilePath))
-            {
-
-                try
-                {
-                    string line;
-                    List<string> lines = new List<string>();
+        // This doesnt work atm because tee.exe puts write lock on log file
+        //public static double CalculateRunTimeFromLog(string simulationDirectory, int iter)
+        //{
 
 
-                    //var time1 = "0";
-                    string time2 = "0";
 
-                    // This causes issues if the logfile isn't there
+        //    string logFilePath = simulationDirectory + @"\log";
 
-                    using (FileStream fs = new FileStream(logFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                    using (StreamReader sr = new StreamReader(fs, System.Text.Encoding.Default))
-                    {
+        //    double timeEnd = 0;
 
+        //    if (File.Exists(logFilePath))
+        //    {
 
-                        while ((line = sr.ReadLine()) != null)
-                        {
-                            lines.Add(line);
-                        }
-                    }
+        //        try
+        //        {
+        //            string line;
+        //            List<string> lines = new List<string>();
 
 
-                    foreach (var lline in lines.Select((value, index) => new { value, index }))
-                    {
-                        // Use x.value and x.index in here
+        //            //var time1 = "0";
+        //            string time2 = "0";
+
+        //            // This causes issues if the logfile isn't there
+
+        //            using (FileStream fs = new FileStream(logFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+        //            using (StreamReader sr = new StreamReader(fs, System.Text.Encoding.Default))
+        //            {
 
 
-                        if (lline.value.StartsWith("SIMPLE solution converged"))
-                        {
-                            time2 = lines[lline.index - 3].Split("ClockTime".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[3].Replace("=", "").Replace("s", "").Trim();//.Replace("s", "")
-
-                            //timeElapsed = TimeSpan.FromSeconds(double.Parse(time2));
-                        }
-
-                        if (lline.value.EndsWith(iter.ToString()))
-                        {
-                            time2 = lines[lline.index + 10].Split("ClockTime".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[3].Replace("=", "").Replace("s", "").Trim();//.Replace("s", "")
-                            break;
+        //                while ((line = sr.ReadLine()) != null)
+        //                {
+        //                    lines.Add(line);
+        //                }
+        //            }
 
 
-                            //timeElapsed = TimeSpan.FromSeconds(double.Parse(time2));
-                        }
-
-                        else
-                        {
-                            timeEnd = 0;
-                        }
+        //            foreach (var lline in lines.Select((value, index) => new { value, index }))
+        //            {
+        //                // Use x.value and x.index in here
 
 
-                        timeEnd = double.Parse(time2) / 60;
-                    }
+        //                if (lline.value.StartsWith("SIMPLE solution converged"))
+        //                {
+        //                    time2 = lines[lline.index - 3].Split("ClockTime".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[3].Replace("=", "").Replace("s", "").Trim();//.Replace("s", "")
+
+        //                    //timeElapsed = TimeSpan.FromSeconds(double.Parse(time2));
+        //                }
+
+        //                if (lline.value.EndsWith(iter.ToString()))
+        //                {
+        //                    time2 = lines[lline.index + 10].Split("ClockTime".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[3].Replace("=", "").Replace("s", "").Trim();//.Replace("s", "")
+        //                    break;
 
 
-                }
-                catch (Exception e)
-                {
+        //                    //timeElapsed = TimeSpan.FromSeconds(double.Parse(time2));
+        //                }
 
-                    throw new System.ArgumentException(e.Message);
-                }
-            }
+        //                else
+        //                {
+        //                    timeEnd = 0;
+        //                }
 
-            return timeEnd;
-        }
+
+        //                timeEnd = double.Parse(time2) / 60;
+        //            }
+
+
+        //        }
+        //        catch (Exception e)
+        //        {
+
+        //            throw new System.ArgumentException(e.Message);
+        //        }
+        //    }
+
+        //    return timeEnd;
+        //}
 
         public static bool IsDockerRunning(string workingDirectory, OSType ostype)
         {
@@ -236,12 +237,12 @@ namespace EddyLib
             th.Start();
 
 
-            //sw.Flush();
-            if (waitforexit)
-            {
-                Console.ReadLine();
-                p.WaitForExit();
-            }
+            ////sw.Flush();
+            //if (waitforexit)
+            //{
+            //    Console.ReadLine();
+            //    p.WaitForExit();
+            //}
             if (close) { p.Close(); }
 
 
@@ -952,12 +953,11 @@ namespace EddyLib
                 matchingvalues = list.LastOrDefault(stringToCheck => stringToCheck.StartsWith(para));
                 paraviewPath = str5 + matchingvalues + @"\bin\paraview.exe";
             }
-            
+
             return paraviewPath;
         }
 
-
-
+        
 
         public static bool CheckLicence()
         {

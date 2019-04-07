@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>EddyLib</RootNamespace>
     <AssemblyName>EddyLib</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <NuGetPackageImportStamp>
@@ -33,9 +33,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Deedle, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Deedle.2.0.1\lib\net45\Deedle.dll</HintPath>
+    </Reference>
     <Reference Include="Eto, Version=2.5.0.0, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
       <HintPath>..\packages\RhinoCommon.6.13.19058.371\lib\net45\Eto.dll</HintPath>
     </Reference>
+    <Reference Include="FSharp.Core, Version=4.5.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="GH_IO, Version=6.13.19058.370, Culture=neutral, PublicKeyToken=6a29997d2e6b4f97, processorArchitecture=MSIL">
       <HintPath>..\packages\Grasshopper.6.13.19058.371\lib\net45\GH_IO.dll</HintPath>
     </Reference>
@@ -71,6 +75,7 @@
     <Compile Include="RunSnappy.cs" />
     <Compile Include="Streamwriter.cs" />
     <Compile Include="StringTemplates\BatchFiles.cs" />
+    <Compile Include="StringTemplates\BoundaryConditions.cs" />
     <Compile Include="SymbolicLink.cs" />
     <Compile Include="Daysim.cs" />
     <Compile Include="JenksFisherNaturalBreaks.cs" />
@@ -85,7 +90,6 @@
     <Compile Include="Settings.cs" />
     <Compile Include="Radiance\SolarGeometry.cs" />
     <Compile Include="STLExport.cs" />
-    <Compile Include="StringTemplates\BoundaryConditions.cs" />
     <Compile Include="StringTemplates\Executables.cs" />
     <Compile Include="UTCI.cs" />
     <Compile Include="NV.cs" />

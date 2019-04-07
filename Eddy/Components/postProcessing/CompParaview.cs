@@ -103,6 +103,8 @@ namespace Eddy
             }
 
 
+
+
             string paraViewPath = "\"" + EddyLib.Utilities.GetParaviewPath(version) + "\" " + "\"" + RES.WorkingDirectory + RES.Domain.BCond.windDirs[0] + "\\" + RES.Domain.BCond.windDirs[0] + @".foam" + "\"";
             EddyLib.Utilities.StartProcessCMD(paraViewPath, true, false, false);
         }
