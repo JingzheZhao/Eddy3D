@@ -33,6 +33,16 @@ namespace Eddy
 
 
 
+
+        private IGH_DocumentObject[] AllCanvasObjects()
+        {
+            var doc = OnPingDocument();
+            if (doc == null)
+                return new IGH_DocumentObject[0];
+            return doc.Objects.ToArray();
+        }
+
+
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
@@ -76,49 +86,60 @@ namespace Eddy
             DA.GetData(2, ref Run);
 
 
-            if (!Run)
-            {
-                return;
-            }
-
-
-            List<string> windDirDirectories = Directory.GetDirectories(workingDirectory, "*",
-  SearchOption.TopDirectoryOnly)
-  .Where(f => Regex.IsMatch(f, @"[\\/]\d+$")).ToList();
-
-            string meshDirectory = workingDirectory + @"\mesh";
-
-            if (Mode == 0)
-            {
-                Utilities.processDirectory(meshDirectory, false);
-
-            }
-
-
-            else if (Mode == 1)
+            if (Run)
             {
 
 
 
-                foreach (string directory in windDirDirectories)
+                List<string> windDirDirectories = Directory.GetDirectories(workingDirectory, "*",
+        SearchOption.TopDirectoryOnly)
+        .Where(f => Regex.IsMatch(f, @"[\\/]\d+$")).ToList();
+
+                string meshDirectory = workingDirectory + @"\mesh";
+
+                if (Mode == 0)
                 {
-                    Utilities.processDirectory(directory, true);
+                    Utilities.processDirectory(meshDirectory, false);
+
+
                 }
 
-            }
 
-
-            else
-            {
-                Utilities.processDirectory(meshDirectory, false);
-
-                foreach (string directory in windDirDirectories)
+                else if (Mode == 1)
                 {
-                    Utilities.processDirectory(directory, true);
+
+
+
+                    foreach (string directory in windDirDirectories)
+                    {
+                        Utilities.processDirectory(directory, true);
+                    }
+
                 }
 
-            }
 
+                else
+                {
+                    Utilities.processDirectory(meshDirectory, false);
+
+                    foreach (string directory in windDirDirectories)
+                    {
+                        Utilities.processDirectory(directory, true);
+                    }
+
+                }
+
+
+
+
+                foreach (IGH_DocumentObject obj in Grasshopper.Instances.ActiveCanvas.Document.ActiveObjects())
+                {
+                    //var slider = obj as Grasshopper.Kernel.Special.GH_NumberSlider;
+                    if (obj == null) continue;
+                    //slider.Attributes.Selected = true;
+                    obj.ExpireSolution(true);
+                }
+            }
 
         }
 

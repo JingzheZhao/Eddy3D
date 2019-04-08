@@ -40,10 +40,14 @@ namespace Eddy
         private void Menu_DoClick(object sender, EventArgs e)
         {
             visResiduals = !visResiduals;
+
             ExpireSolution(true);
+
 
         }
         public bool visResiduals = true;
+
+
 
 
         public override bool Write(GH_IO.Serialization.GH_IWriter writer)

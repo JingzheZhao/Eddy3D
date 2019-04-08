@@ -126,7 +126,7 @@
 //                //}
 //                //if (IntervalAsNumber == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
-                
+
 
 //                var IntervalAsNumber = (int)double.Parse(dateTimeInput[0]);
 
