@@ -171,7 +171,7 @@ namespace EddyLib
             if (btype == BoundaryType.abl)
             {
 
-                double epsilon = 0.09 * Math.Pow(k, 2) / (nu * eddy_viscosity_ratio);
+                epsilon = 0.09 * Math.Pow(k, 2) / (nu * eddy_viscosity_ratio);
 
             }
             else
