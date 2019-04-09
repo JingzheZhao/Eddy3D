@@ -131,7 +131,8 @@ namespace EddyLib
 
         }
 
-        public static void CalcUTCIArray(double[][] probes, int numberOfHours, Weather weather, double[][] DirRad, double[][] DiffRad, double[,] windReduction, double z0, double zref, double Uref, out bool[,] uncertaintyMRTArray, out bool[,] uncertaintyWindArray, out Stopwatch sw, out double[,] Utci)
+
+        public static void CalculateUTCIArray(double[][] probes, int numberOfHours, Weather weather, double[][] DirRad, double[][] DiffRad, double[,] windReduction, double z0, double zref, double Uref, out bool[,] uncertaintyMRTArray, out bool[,] uncertaintyWindArray, out Stopwatch sw, out double[,] Utci)
         {
 
             int sensorPointCount = probes.Length;
@@ -237,6 +238,8 @@ namespace EddyLib
 
             Console.WriteLine(Utilities.ConvertComputeTimes(sw.ElapsedMilliseconds));
         }
+
+
 
         public static double[] GetMRT(double Tair, double RelHum, double DiffRad, double DirRad, double SolarElev, double T_celsius,
 double Wst, double Hst, double BodyA, double GrRef, double Eb)
@@ -907,6 +910,8 @@ double Wst, double Hst, double BodyA, double GrRef, double Eb)
             }
 
 
+           
+
 
 
             //var y1_y0 = distanceToUpper;
@@ -977,114 +982,6 @@ double Wst, double Hst, double BodyA, double GrRef, double Eb)
             }
 
             return upperIndex;
-        }
-
-
-        public static void CalculateUTCIArray(double[][] probes, int numberOfHours, Weather weather, double[][] DirRad, double[][] DiffRad, double[,] windReduction, double z0, double zref, double Uref, out bool[,] uncertaintyMRTArray, out bool[,] uncertaintyWindArray, out Stopwatch sw, out double[,] Utci)
-        {
-
-            int sensorPointCount = probes.Length;
-
-
-            sw = new Stopwatch();
-            sw.Start();
-
-            int cnt = 0;
-
-            uncertaintyMRTArray = new bool[numberOfHours, sensorPointCount];
-            uncertaintyWindArray = new bool[numberOfHours, sensorPointCount];
-            Utci = new double[numberOfHours, sensorPointCount];
-
-            var tempUtci = Utci;
-            var tempuncertaintyMRTArray = uncertaintyMRTArray;
-            var tempuncertaintyWindArray = uncertaintyWindArray;
-
-
-            using (var progress = new ASCIIProgressBar())
-            {
-
-                //for (int j = 0; j < sensorPointCount; j++)
-                //{
-
-                Parallel.For(0, sensorPointCount,
-              j =>
-              {
-                  cnt++;
-                  progress.Report((double)cnt / sensorPointCount);
-
-                  var currentProbingPoint = new Point3d(probes[j][0], probes[j][1], probes[j][2]);
-                  var probingHeight = currentProbingPoint.Z;
-
-                  for (int i = 0; i < numberOfHours; i++)
-                  {
-
-                      tempuncertaintyWindArray[i, j] = false;
-                      tempuncertaintyMRTArray[i, j] = false;
-
-              // Check for extreme mrts
-
-              double mrt = UTCI.GetMRT(weather.DryBulbTemp[i], weather.RelativeHumidity[i], DiffRad[i][j], DirRad[i][j], weather.SolarElevation[i], weather.DryBulbTemp[i], weather.Wst, weather.Hst, weather.BodyA, weather.GrRef, 0.95)[0];
-
-                      if (mrt < weather.DryBulbTemp[i] - 30)
-                      {
-                          mrt = 30;
-                          tempuncertaintyMRTArray[i, j] = true;
-                      }
-                      if (mrt > weather.DryBulbTemp[i] + 70)
-                      {
-                          mrt = 70;
-                          tempuncertaintyMRTArray[i, j] = true;
-                      }
-
-              // Check for extreme windspeeds
-
-              double resultingWindSpeedforUTCI = windReduction[i, j] * UTCI.GetVelocityAtProbingHeightFromEPW(weather.WindSpeed[i], z0, zref, probingHeight);
-
-                      if (windReduction[i, j] * UTCI.GetVelocityAtProbingHeightFromEPW(weather.WindSpeed[i], z0, zref, probingHeight) > 17)
-                      {
-                          resultingWindSpeedforUTCI = 17;
-                          tempUtci[i, j] = UTCI.CalcUTCIForPoint(weather.DryBulbTemp[i], weather.RelativeHumidity[i], resultingWindSpeedforUTCI, mrt);
-                          tempuncertaintyWindArray[i, j] = true;
-                      }
-                      else if (resultingWindSpeedforUTCI < 0.5)
-                      {
-                          resultingWindSpeedforUTCI = 0.5;
-                          tempUtci[i, j] = UTCI.CalcUTCIForPoint(weather.DryBulbTemp[i], weather.RelativeHumidity[i], resultingWindSpeedforUTCI, mrt);
-                          tempuncertaintyWindArray[i, j] = true;
-                      }
-                      else
-                      {
-                          tempUtci[i, j] = UTCI.CalcUTCIForPoint(weather.DryBulbTemp[i], weather.RelativeHumidity[i], resultingWindSpeedforUTCI, mrt);
-                      }
-
-              //double cOfPerson = 0;
-
-              //if (Utci[i, j] < -40) cOfPerson = -5;
-              //else if ((-40 <= Utci[i, j]) && (Utci[i, j] < -27)) cOfPerson = -4;
-              //else if ((-27 <= Utci[i, j]) && (Utci[i, j] < -13)) cOfPerson = -3;
-              //else if ((-13 <= Utci[i, j]) && (Utci[i, j] < 0)) cOfPerson = -2;
-              //else if ((0 <= Utci[i, j]) && (Utci[i, j] < 9)) cOfPerson = -1;
-              //else if ((9 <= Utci[i, j]) && (Utci[i, j] < 26)) cOfPerson = 0;
-              //else if ((26 <= Utci[i, j]) && (Utci[i, j] < 28)) cOfPerson = 1;
-              //else if ((28 <= Utci[i, j]) && (Utci[i, j] < 32)) cOfPerson = 2;
-              //else if ((32 <= Utci[i, j]) && (Utci[i, j] < 38)) cOfPerson = 3;
-              //else if ((38 <= Utci[i, j]) && (Utci[i, j] < 46)) cOfPerson = 4;
-              //else cOfPerson = 5;
-
-              //conditionOfPerson[i, j] = cOfPerson;
-
-          }
-          // Console.WriteLine("Sensor " + j + " done.");
-          //  }
-      });
-
-                Utci = tempUtci;
-                uncertaintyMRTArray = tempuncertaintyMRTArray;
-                uncertaintyWindArray = tempuncertaintyWindArray;
-
-            }//end using prog bar
-
-            Console.WriteLine(Utilities.ConvertComputeTimes(sw.ElapsedMilliseconds));
         }
 
 

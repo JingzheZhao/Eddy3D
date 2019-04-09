@@ -56,6 +56,9 @@ namespace EddyLib
                 AverageCpNeg = listOfInputCpsNeg.Average();
             }
             
+           
+            
+            
 
             // returns the corresponding areas where the cps were negative
             double AverageAreaCpNeg = AreaList.Where((x, index) => listOfCps.Select(cp => cp < 0).ToArray()[index]).ToList().Average();
@@ -65,6 +68,7 @@ namespace EddyLib
 
             var AverageCDCPNeg = cdList.Where((x, index) => listOfCps.Select(cp => cp < 0).ToArray()[index]).Average();
             var AverageCDCPPos = cdList.Where((x, index) => listOfCps.Select(cp => cp > 0).ToArray()[index]).Average();
+            
             
 
             // Do we need to compute a weighted average first?
