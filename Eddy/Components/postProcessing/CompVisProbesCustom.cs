@@ -243,7 +243,7 @@ namespace Eddy
                             }
                             else
                             {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
-                                command.Append(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + currField.ProbeName + @" -latestTime;");
+                                command.AppendLine(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + currField.ProbeName + @" -latestTime");
                             }
                         }
 
@@ -320,7 +320,7 @@ namespace Eddy
                             {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
                                 string path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + enumeratedProbeName;
                                 File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, currField));
-                                command.Append(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime;");
+                                command.AppendLine(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime");
                             }
                         }
 
