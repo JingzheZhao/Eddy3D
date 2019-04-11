@@ -33,6 +33,7 @@ namespace EddyLib.StrTemp
 
 
         private static readonly List<string> RCCheckMeshSingleCPU = new List<string> {
+        "checkMesh",
         "foamToVTK -faceSet highAspectRatioCells -ascii",
         "foamToVTK -faceSet nonOrthoFaces -ascii",
         "foamToVTK -faceSet skewFaces -ascii",
@@ -50,28 +51,24 @@ namespace EddyLib.StrTemp
                 "mpiexec -np " + RunSettings.CPUs + @" renumberMesh -overwrite",
                 "mpiexec -np " + RunSettings.CPUs + @" potentialFoam -parallel",
                 "mpiexec -np " + RunSettings.CPUs + @" simpleFoam -parallel",
-                "reconstructPar -latestTime",
-                "checkMesh"
+                "reconstructPar -latestTime"
             };
             return lst;
         }
 
         private static readonly List<string> RCSimSingleCPU = new List<string> {
         "potentialFoam",
-        "simpleFoam",
-        "checkMesh"};
+        "simpleFoam"};
 
         private static readonly List<string> RCSimContinueSingleCPU = new List<string> {
-        "simpleFoam",
-        "checkMesh"};
+        "simpleFoam"};
 
         private static List<string> RCSimContinueMultiCPU(OFRunSettings RunSettings)
         {
             List<string> lst = new List<string>
             {
                 "mpiexec -np " + RunSettings.CPUs + @" simpleFoam -parallel",
-                "reconstructPar -latestTime",
-                "checkMesh"
+                "reconstructPar -latestTime"
             };
             return lst;
         }
@@ -85,8 +82,7 @@ namespace EddyLib.StrTemp
                 "decomposePar -force",
                 "mpiexec -np " + RunSettings.CPUs + @" snappyHexMesh -overwrite -parallel",
                 "reconstructParMesh -constant",
-                "renumberMesh -overwrite",
-                "checkMesh"
+                "renumberMesh -overwrite"
             };
             return lst;
         }
@@ -95,8 +91,7 @@ namespace EddyLib.StrTemp
         "blockMesh",
         "surfaceFeatureExtract",
         "snappyHexMesh -overwrite",
-        "renumberMesh -overwrite",
-        "checkMesh" };
+        "renumberMesh -overwrite"};
 
 
         private static readonly List<string> divU = new List<string> { "postProcess -func div(U)" };
@@ -535,7 +530,7 @@ namespace EddyLib.StrTemp
             return sb.ToString();
         }
 
-        public static string Run_checkBadMesh(OFRunSettings RunSettings, OFMeshSettings MeshSettings, OFBaseDomain DOM, Mode mode)
+        public static string Run_checkMesh(OFRunSettings RunSettings, OFMeshSettings MeshSettings, OFBaseDomain DOM, Mode mode)
         {
             StringBuilder sb = new StringBuilder();
             if (RunSettings.simEngine == SimEngine.Docker)//Docker
@@ -550,10 +545,10 @@ namespace EddyLib.StrTemp
             }
             else
             {
-                foreach (string str in RCCheckMeshSingleCPU)
-                {
+                //foreach (string str in RCCheckMeshSingleCPU)
+                //{
                     sb.Append(TempBlueCFD(RCCheckMeshSingleCPU, MeshSettings.meshWorkingDir));
-                }
+                //}
 #if DEBUG
                 sb.AppendLine("PAUSE");
 #endif
@@ -691,6 +686,26 @@ cd ""{1}""" + System.Environment.NewLine, installationPath, caseDir));
             return sb.ToString();
 
         }
+
+        public static string BlueCFDEnvVars
+            (List<string> commands, string caseDir, string installationPath = @"C:\Program Files\blueCFD-Core-2017\")
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(string.Format(@"call ""{0}setvars.bat""
+set PATH=%HOME%\msys64\usr\bin;%PATH%
+cd ""{1}""" + System.Environment.NewLine, installationPath, caseDir));
+
+            foreach (string str in commands)
+            {
+                sb.AppendLine(str + " " + AppendSuffixWin());
+                //sb.AppendLine(str);
+            }
+
+            return sb.ToString();
+
+        }
+
+
 
         //        public static string TempBlueCFD
         //            (List<string> commands, string caseDir, string installationPath = @"C:\OpenFOAM\")

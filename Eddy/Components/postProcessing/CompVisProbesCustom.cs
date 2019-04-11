@@ -26,6 +26,36 @@ namespace Eddy
     {
 
 
+        protected override void AppendAdditionalComponentMenuItems(System.Windows.Forms.ToolStripDropDown menu)
+        {
+            base.AppendAdditionalComponentMenuItems(menu);
+            Menu_AppendItem(menu, "Do not cull any probing points.", Menu_DoClick, true, !Culling);
+        }
+
+        private void Menu_DoClick(object sender, EventArgs e)
+        {
+            Culling = !Culling;
+            ExpireSolution(true);
+
+        }
+        public bool Culling = true;
+
+
+
+        public override bool Write(GH_IO.Serialization.GH_IWriter writer)
+        {
+            // First add our own field.
+            writer.SetBoolean("Culling", Culling);
+            // Then call the base class implementation.
+            return base.Write(writer);
+        }
+        public override bool Read(GH_IO.Serialization.GH_IReader reader)
+        {
+            // First read our own field.
+            Culling = reader.GetBoolean("Culling");
+            // Then call the base class implementation.
+            return base.Read(reader);
+        }
 
 
 
@@ -95,9 +125,17 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
+            // mode to select simulation environment
+            if (Culling) { Message = "Cull points outside Simulation Domain."; }
+            else { Message = "Use probing points as is."; }
+
+
+                      
+
+
             OFResult RES = null;
             DA.GetData(0, ref RES);
-
+                                  
 
 
             List<Point3d> listOfPoints = new List<Point3d>();
@@ -205,7 +243,7 @@ namespace Eddy
                             }
                             else
                             {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
-                                command.Append(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + currField.ProbeName + @" -latestTime");
+                                command.Append(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + currField.ProbeName + @" -latestTime;");
                             }
                         }
 
@@ -282,7 +320,7 @@ namespace Eddy
                             {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
                                 string path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + enumeratedProbeName;
                                 File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, currField));
-                                command.Append(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime");
+                                command.Append(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime;");
                             }
                         }
 
