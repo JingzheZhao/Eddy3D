@@ -30,7 +30,7 @@ namespace EddyLib
         //CFD Online
 
         private double eddy_viscosity_ratio = 10;
-        private double Tu = 0.5;
+        private double Tu = 2; // % https://www.cfd-online.com/Tools/turbulence.php Medium turbulence case
         private double nu = 1.5e-05;
 
 
@@ -178,17 +178,17 @@ namespace EddyLib
         {
             // view-source:https://www.cfd-online.com/Tools/turbulence.php
 
-            if (btype == BoundaryType.abl)
-            {
+            //if (btype == BoundaryType.abl)
+            //{
                 //epsilon = this.Cmu * Math.Pow(k, 2) / (nu * eddy_viscosity_ratio);
                 epsilon = this.Cmu * Math.Pow(k, 2) / (this.nu * this.eddy_viscosity_ratio);
-            }
-            else
-            {
-                // from openfoam testcase
-                int L = 10;
-                epsilon = Math.Pow(this.Cmu, 0.75) * Math.Pow(k, 1.5) / L;
-            }
+            //}
+            //else
+            //{
+            //    // from openfoam testcase
+            //    int L = 10;
+            //    epsilon = Math.Pow(this.Cmu, 0.75) * Math.Pow(k, 1.5) / L;
+            //}
 
             return epsilon;
         }
