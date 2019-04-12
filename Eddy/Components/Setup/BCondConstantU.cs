@@ -94,6 +94,15 @@ namespace Eddy
 
             BoundaryConditions BCInflow = new BoundaryConditions(BoundaryType.constant, windDir, Uref, z0, weather);
 
+
+            // Check if anything causes a 0 BC
+
+            if (BCInflow.epsilon == 0 || BCInflow.k == 0 || BCInflow.omega == 0)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Something is causing a turbulence boundary condition to be 0, please change the setup of the simulation domain.");
+            }
+
+
             DA.SetData(0, BCInflow);
 
         }
