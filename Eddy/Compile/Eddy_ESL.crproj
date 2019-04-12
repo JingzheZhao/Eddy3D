@@ -1,9 +1,10 @@
 <project outputDir="C:\Users\pkastner\Documents\GitHub\WindTunnel\Eddy\Compile" baseDir="C:\Users\pkastner\Documents\GitHub\WindTunnel\Eddy\bin" xmlns="http://confuser.codeplex.com">
   <rule pattern="true" preset="maximum" inherit="false" />
-  <module path="EddyLib.dll" />
   <module path="CallBatchRunner.exe" />
   <module path="CallOC.exe" />
   <module path="CallOF.exe" />
   <module path="CallProbes.exe" />
   <module path="CallRay.exe" />
+  <module path="Eddy.gha" />
+  <module path="EddyLib.dll" />
 </project>

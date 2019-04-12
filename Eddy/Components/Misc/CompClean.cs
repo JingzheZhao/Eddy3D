@@ -130,7 +130,7 @@ namespace Eddy
                 }
 
 
-
+                
 
                 foreach (IGH_DocumentObject obj in Grasshopper.Instances.ActiveCanvas.Document.ActiveObjects())
                 {

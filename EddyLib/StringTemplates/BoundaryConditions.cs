@@ -345,7 +345,7 @@ boundaryField
     ground
     {
         type omegaWallFunction;
-Cmu             0.09;
+        Cmu             0.09;
         kappa           0.4;
         E               9.8;
         value           $internalField;
@@ -353,7 +353,7 @@ Cmu             0.09;
  ground_perim
     {
         type omegaWallFunction;
-Cmu             0.09;
+        Cmu             0.09;
         kappa           0.4;
         E               9.8;
         value           $internalField;
@@ -963,7 +963,7 @@ boundaryField
     ground
     {
         type omegaWallFunction;
-Cmu             0.09;
+        Cmu             0.09;
         kappa           0.4;
         E               9.8;
         value           $internalField;
@@ -971,7 +971,7 @@ Cmu             0.09;
 ground_perim
     {
         type omegaWallFunction;
-Cmu             0.09;
+        Cmu             0.09;
         kappa           0.4;
         E               9.8;
         value           $internalField;
