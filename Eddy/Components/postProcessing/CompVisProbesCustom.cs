@@ -29,7 +29,7 @@ namespace Eddy
         protected override void AppendAdditionalComponentMenuItems(System.Windows.Forms.ToolStripDropDown menu)
         {
             base.AppendAdditionalComponentMenuItems(menu);
-            Menu_AppendItem(menu, "Do not cull any probing points.", Menu_DoClick, true, !Culling);
+            Menu_AppendItem(menu, "No Culling of Probing Points", Menu_DoClick, true, !Culling);
         }
 
         private void Menu_DoClick(object sender, EventArgs e)
@@ -126,8 +126,8 @@ namespace Eddy
         {
 
             // mode to select simulation environment
-            if (Culling) { Message = "Cull points outside Simulation Domain."; }
-            else { Message = "Use probing points as is."; }
+            if (Culling) { Message = "Cull Points"; }
+            else { Message = "No Nulling"; }
 
 
                       
@@ -153,10 +153,15 @@ namespace Eddy
 
             //Probes.ReformatOFFields(OFFieldInt, out string OFField, out int fieldType);
 
-            //Discard points outside
-            listOfPoints = Utilities.DiscardPoints(listOfPoints, RES.Domain);
-            int numberOfProbes = listOfPoints.Count();
+       
 
+            if (Culling)
+            {
+                //Discard points outside
+                listOfPoints = Utilities.DiscardPoints(listOfPoints, RES.Domain);                
+            }
+
+            int numberOfProbes = listOfPoints.Count();
 
             // Error handling
 
