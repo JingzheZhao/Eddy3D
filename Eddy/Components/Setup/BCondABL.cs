@@ -22,7 +22,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public BCondABLComp()
-          : base("ABL", "ABL", "Atmospheric Boundary Layer", "Eddy", "1 | Setup")
+          : base("ABL", "ABL", "Atmospheric Boundary Layer Boundary Condition", "Eddy", "1 | Setup")
         {
             //dirs.Add(0);
         }

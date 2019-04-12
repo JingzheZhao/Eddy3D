@@ -23,9 +23,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public BlockMeshBox()
-          : base("DomainBox", "DomainBox",
-              "DomainBox",
-              "Eddy", "1 | Setup")
+          : base("Box-shaped Domain", "DomainBox", "Box-shaped Domain", "Eddy", "1 | Setup")
         {
         }
 
@@ -38,22 +36,22 @@ namespace Eddy
         {
             pManager.AddGeometryParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
             pManager.AddGeometryParameter("Terrain", "Terrain", "Terrain Geometry. Make sure the terrain geometry is bigger than the ground plane of the wind tunnel.", GH_ParamAccess.list);
-            
+
             pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.item);
 
             pManager[1].Optional = true;
             pManager[2].Optional = true;
 
             pManager.AddNumberParameter("Block size", "BS", "Block size", GH_ParamAccess.item, 20);
-            
+
             pManager.AddNumberParameter("Length", "L", "Length of wind tunnel", GH_ParamAccess.item);
             pManager.AddNumberParameter("Width", "W", "Width of wind tunnel", GH_ParamAccess.item);
             pManager.AddNumberParameter("Height", "H", "Height of wind tunnel", GH_ParamAccess.item);
-                                    
+
             pManager[4].Optional = true;
             pManager[5].Optional = true;
-            pManager[6].Optional = true;    
-                       
+            pManager[6].Optional = true;
+
         }
 
         /// <summary>
@@ -70,7 +68,7 @@ namespace Eddy
         /// </summary>
         /// <param name="DA">The DA object can be used to retrieve data from input parameters and 
         /// to store data in output parameters.</param>
-        
+
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
@@ -78,7 +76,7 @@ namespace Eddy
             List<IGH_GeometricGoo> geoGooDomain = new List<IGH_GeometricGoo>();
             DA.GetDataList("Geometry", geoGooDomain);
             List<GeometryBase> domain = new List<GeometryBase>();
-            
+
             foreach (IGH_GeometricGoo g in geoGooDomain)
             {
                 if (g != null)
@@ -105,7 +103,7 @@ namespace Eddy
                     }
                 }
             }
-                                 
+
             BoundaryConditions bCond = new BoundaryConditions(BoundaryType.abl, new List<int>() { 0 }, 5, 1, ""); // sets default BC settings
             GH_ObjectWrapper gobj = null;
             if (DA.GetData("BCond", ref gobj))
