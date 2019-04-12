@@ -23,7 +23,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public BCondConstU()
-          : base("ConstU", "ConstU", "ConstU", "Eddy", "1 | Setup")
+          : base("Uniform Flow", "Uniform Flow", "Uniform Flow Boundary Condition", "Eddy", "1 | Setup")
         {
             //dirs.Add(0);
         }
