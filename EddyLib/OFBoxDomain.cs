@@ -20,9 +20,7 @@ namespace EddyLib
         public double dimZ;
         public double dim;
 
-        //Calculated boundary
-        public Point3d newMin;
-        public Point3d newMax;
+        
 
 
         public int xCells;
@@ -148,7 +146,7 @@ namespace EddyLib
 
 
             //Create ground plane of BBox
-            CenterGround = BBox.Center + 0.5 * vecMinusZ;
+            CenterGround = BBox.Center + 0.5 * vecMinusZ * dimZ;
             LocationInMesh = BBox.Center + 1 * vecPlusZ * dimZ;
 
 
