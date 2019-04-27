@@ -39,16 +39,4 @@ Troubleshooting
 Navigate to the folder you downloaded the files to and tick the 'unblock' box in the file properties.
 
 
-Changelog
-------------
-
-## 0.2.1
-
-- New component: ParaView can now be opened from the canvas
-- Fixes: 
-  - The ParaView are now called as their respective wind directions which helps to distinguish them if more than one if opened in ParaView
-
-## 0.1.0
-
-- First release
 
