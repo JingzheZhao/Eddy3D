@@ -72,8 +72,7 @@ namespace EddyLib
             var dimZ = zMax - zMin;
 
 
-            var CenterGround = BBoxCrude.Center + 0.5 * -Vector3d.ZAxis * dimZ;
-            LocationInMesh = BBox.Center + 1 * Vector3d.ZAxis * dimZ;
+
 
 
             ////////////
@@ -193,6 +192,12 @@ namespace EddyLib
             */
 
             DomainBox = new Box(orientedPlane, xInter, yInter, zInter);
+
+
+            // Pick location in Mesh
+
+            Point3d maxPoint = DomainBox.GetCorners()[7];
+            LocationInMesh = new Point3d(maxPoint.X - 1, maxPoint.Y - 1, maxPoint.Z - 1);
 
 
 

@@ -78,13 +78,13 @@ namespace EddyLib
 
             Vector3d windDirVector = BCond.flowDir[0];
 
-            // Rotate the Plane based on wind vector area
+            // Rotate the Plane based on wind vector area  
 
-            
+
             Plane orientedPlane = GetOrientedBasePlane(windDirVector, BuildingGeometry, BBoxCrude.Center);
 
             // Create BBox with respect to new plane (new coordinates)
-            BBox = BuildingGeometry.GetBoundingBox(orientedPlane);
+            BBox = BuildingGeometry.GetBoundingBox(Plane.WorldXY);
 
 
             var xMin = BBox.Min.X;
@@ -94,20 +94,17 @@ namespace EddyLib
             var zMin = BBox.Min.Z;
             var zMax = BBox.Max.Z;
 
-            var  dimX = xMax - xMin;
-            var  dimY = yMax - yMin;
-            var  dimZ = zMax - zMin;
+            var dimX = xMax - xMin;
+            var dimY = yMax - yMin;
+            var dimZ = zMax - zMin;
 
-          
 
-         
-            var CenterGround = BBoxCrude.Center + 0.5 * -Vector3d.ZAxis * dimZ;
 
             // If terrain is used, scale down Z to make sure all points are inside the domain
             // Zinter is call divisionsZ for CylDomain which is an int instead of an Interval
 
 
-          
+
 
             if (terrainMesh.Faces.Count > 0)
             {
@@ -118,8 +115,8 @@ namespace EddyLib
             if (hasTerrain)
             {
                 this.TerrainMesh = terrainMesh;
-                double zMinTerrain = OFBaseDomain.GetZMinTerrain(terrainMesh, BBox, orientedPlane);
-                this.CenterGround = new Point3d(BBox.Center.X, BBox.Center.Y, zMinTerrain);            
+                double zMinTerrain = OFBaseDomain.GetZMinTerrain(terrainMesh, BBox, Plane.WorldXY);
+                this.CenterGround = new Point3d(BBox.Center.X, BBox.Center.Y, zMinTerrain);
 
             }
             else
@@ -128,10 +125,15 @@ namespace EddyLib
 
             }
 
+            //var CenterGround = BBoxCrude.Center + 0.9 * -Vector3d.ZAxis * dimZ;
+
+
+
+
             //Create ground plane of BBox
             //center needs dimZ to stay at ground level but also respect terrain if its being used; 0.1 = safety factor
             //center = (BBox.Center + 0.5 * -Vector3d.ZAxis * dimZ) + zTerrainScaling * Vector3d.ZAxis;
-            
+
 
 
 
@@ -157,13 +159,13 @@ namespace EddyLib
             //// localSystem.Origin = center;
             //localSystem.Translate(-Vector3d.YAxis * dimY);
 
-                            
+
             for (int i = 0; i < 72; i++)
             {
                 Vector3d localCopy = Vector3d.YAxis;
                 localCopy.Rotate(5 * i * Math.PI / 180, Vector3d.ZAxis);
-                
-               
+
+
                 Bitmap FI;
                 this.FrontageBuildingAreas[i * 5] = OFBaseDomain.GetProjectedBuildingArea(i * 5, BuildingGeometry, out FI);
                 this.FrontagePNGs[i * 5] = FI;
@@ -188,7 +190,8 @@ namespace EddyLib
             }
             else
             {
-                radius = sizeOuterCirc;
+                // Radius, not Durchmesser
+                radius = sizeOuterCirc / 2;
             }
 
 
@@ -212,7 +215,7 @@ namespace EddyLib
 
             divsRadial = RadialDivsFromBlockSize(coreBlockSize, sizeInnerR);
             //divisionsZ = _divisionsZ;
-                                                  
+
 
             MakeCircMeshPlane(CenterGround, sizeInnerR, divsRadial, radius, height);
 
@@ -294,7 +297,7 @@ namespace EddyLib
 
             Circle c = new Circle(center, circRad);
 
-            Polyline poly = coreBottom.GetNakedEdges()[0]; //returns a polygon with line segments for each mesh cell       
+            Polyline poly = coreBottom.GetNakedEdges()[0]; //returns a polygon with line segments for each mesh cell
 
 
 
@@ -365,9 +368,8 @@ namespace EddyLib
             CylDomainMesh.Vertices.CombineIdentical(true, true);
 
 
-            
-            this.DomainMesh = CylDomainMesh;
 
+            this.DomainMesh = CylDomainMesh;
 
 
 
@@ -693,7 +695,13 @@ mergePatchPairs
                 Vector3d vec = newCenter - poly[i];
                 vec.Unitize();
                 vec *= (circleRadius + 1);
-                Rhino.Geometry.Intersect.LineCircleIntersection inter = Rhino.Geometry.Intersect.Intersection.LineCircle(new Line(newCenter, vec), c, out double t1, out Point3d p1, out double t2, out Point3d p2);
+
+                double t1;
+                Point3d p1;
+                double t2;
+                Point3d p2;
+
+                Rhino.Geometry.Intersect.LineCircleIntersection inter = Rhino.Geometry.Intersect.Intersection.LineCircle(new Line(newCenter, vec), c, out t1, out p1, out t2, out p2);
                 //Move all points in one plane                
                 pointsOnCircle.Add(new Point3d(p1.X, p1.Y, center.Z));
 
@@ -705,7 +713,8 @@ mergePatchPairs
 
         private Point3d[] GetPointsOnRect(int divisions, Mesh m)
         {
-            m.GetNakedEdges()[0].ToNurbsCurve().DivideByCount(divisions * 4, true, out Point3d[] pointsOnRect);
+            Point3d[] pointsOnRect;
+            m.GetNakedEdges()[0].ToNurbsCurve().DivideByCount(divisions * 4, true, out pointsOnRect);
             this.pointsOnRect = pointsOnRect;
             return pointsOnRect;
         }
