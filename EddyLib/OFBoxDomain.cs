@@ -1,5 +1,6 @@
 ﻿using Rhino.Geometry;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 
 namespace EddyLib
@@ -249,7 +250,17 @@ namespace EddyLib
             yCells = (int)((Math.Abs(yInter.Length)) / blockDimension);
             zCells = (int)((Math.Abs(zInter.Length)) / blockDimension);
 
+
+
+
             this.DomainMesh = Mesh.CreateFromBox(DomainBox, xCells, yCells, zCells);
+
+
+            // Show only intersection of domain and terrain
+
+            IEnumerable<Mesh> first = new List<Mesh>() { DomainMesh };
+            IEnumerable<Mesh> second = new List<Mesh>() { TerrainMesh }; 
+            this.DomainMeshIntersection = Mesh.CreateBooleanIntersection(first, second); 
 
 
 

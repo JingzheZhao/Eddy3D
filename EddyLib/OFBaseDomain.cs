@@ -24,7 +24,8 @@ namespace EddyLib
         // 3 Main meshes
         
         public Mesh TerrainMesh;
-        public Mesh DomainMesh;        
+        public Mesh DomainMesh;
+        public Mesh[] DomainMeshIntersection;
         public Mesh BuildingGeometry;
 
 

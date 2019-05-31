@@ -2,6 +2,8 @@
 using EddyLib;
 using Grasshopper.Kernel;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Windows.Forms;
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -61,7 +63,10 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Res", "Res", "Res", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Dirs", "Dirs", "Dirs", GH_ParamAccess.list);
             pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item);
+
+            pManager[1].Optional = true;
         }
 
         /// <summary>
@@ -94,8 +99,27 @@ namespace Eddy
             OFResult RES = null;
             DA.GetData(0, ref RES);
 
+            List<int> dirs = new List<int>();
+            DA.GetDataList("Dirs", dirs);
+
+            if (dirs.Count == 0)
+            {
+                dirs.Add(RES.Domain.BCond.windDirs[0]);
+            }
+
+
+
             bool run = false;
             DA.GetData("Run", ref run);
+
+
+            // Write load script
+
+            var scriptPath = RES.WorkingDirectory + "openParaview.py";
+            var scriptContent = Utilities.GetParaviewLoadScript(RES.WorkingDirectory, dirs);
+
+            File.WriteAllText(scriptPath, scriptContent);
+
 
             if (!run)
             {
@@ -104,9 +128,12 @@ namespace Eddy
 
 
 
+            // "C:\\Program Files\\ParaView 5.6.0-Windows-msvc2015-64bit\\bin\\paraview.exe\" \"C:\\testDomain\\259\\259.foam
+            string paraViewPath = "\"" + EddyLib.Utilities.GetParaviewPath(version) + "\" " + @"--script=" + "\"" + scriptPath + "\"";
+            EddyLib.Utilities.StartProcessCMD(paraViewPath, true, false, true);
 
-            string paraViewPath = "\"" + EddyLib.Utilities.GetParaviewPath(version) + "\" " + "\"" + RES.WorkingDirectory + RES.Domain.BCond.windDirs[0] + "\\" + RES.Domain.BCond.windDirs[0] + @".foam" + "\"";
-            EddyLib.Utilities.StartProcessCMD(paraViewPath, true, false, false);
+
+
         }
 
         /// <summary>

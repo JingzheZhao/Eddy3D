@@ -258,12 +258,12 @@ namespace Eddy
                             if (RES.RunSettings.simEngine == SimEngine.Docker)
                             {
                                 var arg = EddyLib.StrTemp.BatFiles.DockerPrefixPath(RES.Domain, RES.MeshSettings, RES.RunSettings, EddyLib.StrTemp.Mode.Simulation) + command;
-                                Utilities.StartProcessCMD(arg, false, true, false);
+                                Utilities.StartProcessCMDNT(arg, false, true, false);
                             }
                             else
                             {
                                 //Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString(), "type log" }, RES.WorkingDirectory), false, true, true);
-                                Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory), false, true, true);
+                                Utilities.StartProcessCMDNT(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory), false, true, true);
                             }
 
                         }
@@ -335,12 +335,12 @@ namespace Eddy
                             if (RES.RunSettings.simEngine == SimEngine.Docker)
                             {
                                 var arg = EddyLib.StrTemp.BatFiles.DockerPrefixPath(RES.Domain, RES.MeshSettings, RES.RunSettings, EddyLib.StrTemp.Mode.Simulation) + command;
-                                Utilities.StartProcessCMD(arg , false, true, false);
+                                Utilities.StartProcessCMDNT(arg , false, true, false);
                             }
                             else
                             {
                                 // Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString(), "type log" }, RES.WorkingDirectory), false, true, true);
-                                Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory), false, true, true);
+                                Utilities.StartProcessCMDNT(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory), false, true, true);
                             }
                         }
                         //Thread.Sleep(2 * numberOfProbes);

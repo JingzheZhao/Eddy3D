@@ -66,7 +66,7 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("Domain", "Dom", "Domain", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Mesh", "Msh", "Mesh", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Mesh", "Msh", "Mesh", GH_ParamAccess.list);
             pManager.AddGenericParameter("Div", "Div", "Div", GH_ParamAccess.list);
         }
 
@@ -229,8 +229,17 @@ namespace Eddy
                 OFCylDomain DOMCYL = new OFCylDomain(buildingGeometry, terrainMeshes, bCond, coreBlockSize, sizeInnerRect, sizeOuterCirc, sizeHeight);
 
                 DA.SetData(0, DOMCYL);
-                DA.SetData(1, DOMCYL.DomainMesh);
-                DA.SetDataList(2, DOMCYL.concentricDivisions);
+
+                if (DOMCYL.hasTerrain)
+                {
+                    DA.SetDataList(1, DOMCYL.DomainMeshIntersection);                    
+                }
+                else
+                {
+                    DA.SetData(1, DOMCYL.DomainMesh);
+                    DA.SetDataList(2, DOMCYL.concentricDivisions);
+                }
+                
 
 
 

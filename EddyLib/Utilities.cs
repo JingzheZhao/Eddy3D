@@ -11,6 +11,7 @@ using System.Threading;
 using Deedle;
 using Grasshopper;
 using Grasshopper.Kernel.Data;
+using System.Text;
 
 namespace EddyLib
 {
@@ -461,6 +462,16 @@ namespace EddyLib
             output = input.Replace(@"\\", @"\");
             output = output.Replace(@"\\", @"\");
             output = output.Replace(@"\\", @"\");
+            return output;
+        }
+
+        public static string InsertDoubleBackslashes(string input)
+        {
+            string output;
+
+            output = input.Replace(@"\", @"\\");
+            output = output.Replace(@"\\\", @"\\");
+            output = output.Replace(@"\\\\", @"\\");
             return output;
         }
 
@@ -929,6 +940,40 @@ namespace EddyLib
 
         }
 
+        public static string GetParaviewLoadScript(String baseWorkingDir, List<int> dirs)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            sb.AppendLine("from paraview.simple import *");
+
+            // build strings
+                                 
+            // building and ground
+
+            sb.AppendLine(@"building = OpenDataFile(""" + Utilities.InsertDoubleBackslashes(baseWorkingDir) + @"mesh\\constant\\triSurface\\building.stl"")");
+            sb.AppendLine(@"ground = OpenDataFile(""" + Utilities.InsertDoubleBackslashes(baseWorkingDir) + @"mesh\\constant\\triSurface\\ground.stl"")");
+                        
+
+            foreach (int dir in dirs)
+            {
+                sb.AppendLine("case_" + dir + @" = OpenDataFile(""" + Utilities.InsertDoubleBackslashes(baseWorkingDir) + dir + @"\\" + dir + @".foam"")");
+            }
+
+
+            sb.AppendLine("Show(building)");
+            sb.AppendLine("Show(ground)");
+
+            foreach (int dir in dirs)
+            {
+                sb.AppendLine("Show(case_"+dir+@")");
+            }
+
+            sb.AppendLine("ResetCamera()");
+
+            return sb.ToString();
+
+            
+        }
 
         public static string GetParaviewPath(int version)
         {
@@ -970,7 +1015,7 @@ namespace EddyLib
             return paraviewPath;
         }
 
-        
+
 
         public static bool CheckLicence()
         {

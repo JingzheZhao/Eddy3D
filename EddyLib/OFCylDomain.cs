@@ -318,7 +318,7 @@ namespace EddyLib
             ////////////////////
             // Points on inner rectangle from naked edges
 
-            concentricDivisions = GetConcenctricPolyDivisions(pointsOnRect, pointsOnCircle, divPerim);
+            this.concentricDivisions = GetConcenctricPolyDivisions(pointsOnRect, pointsOnCircle, divPerim, height );
 
             ////////////////
             ///
@@ -368,14 +368,13 @@ namespace EddyLib
             CylDomainMesh.Vertices.CombineIdentical(true, true);
 
 
-
             this.DomainMesh = CylDomainMesh;
 
+            // Show only intersection of domain and terrain
 
-
-
-
-
+            IEnumerable<Mesh> first = new Mesh[] { DomainMesh };
+            IEnumerable<Mesh> second = new Mesh[] { TerrainMesh };
+            this.DomainMeshIntersection = Mesh.CreateBooleanIntersection(first, second);
 
 
         }
@@ -844,7 +843,7 @@ faces
             return sb.ToString();
         }
 
-        private List<Polyline> GetConcenctricPolyDivisions(Point3d[] pointsOnRect, Point3d[] pointsOnCircle, int divPerim)
+        private List<Polyline> GetConcenctricPolyDivisions(Point3d[] pointsOnRect, Point3d[] pointsOnCircle, int divPerim, double topOfDomain)
         {
 
 
@@ -887,7 +886,8 @@ faces
                 }
             }
 
-            List<Polyline> concentricDivisions = new List<Polyline>();
+            List<Polyline> concentricDivisionsBottom = new List<Polyline>();
+            List<Polyline> concentricDivisionsTop = new List<Polyline>();
             List<Point3d> innerRadialList = new List<Point3d>();
 
             for (int j = 0; j < divPerim; j++)
@@ -919,26 +919,36 @@ faces
 
             foreach (List<Point3d> l in lists)
             {
-                l.Add(l[0]);
-                //l.Concat(new[] { (Point3d)l.ElementAt(0) });
+                l.Add(l[0]);           
             }
+
+
+            // Copy everything to the top        
+
+            var vec = Vector3d.ZAxis * topOfDomain;
+            var xf = Rhino.Geometry.Transform.Translation(vec);
+
+
 
             foreach (List<Point3d> l in lists)
             {
-                concentricDivisions.Add(new Polyline(l));
+                var pl = new Polyline(l);
+
+                // Bottom
+                concentricDivisionsBottom.Add(pl);
+
+                // Top
+                pl.Transform(xf);
+                concentricDivisionsTop.Add(pl);
+
             }
 
 
+            // Merge both lists
 
-            //this.radialDivisions = radialDivisions;
-            this.concentricDivisions = concentricDivisions;
-            //this.fullList = fullList;
-            //this.divPointsCut = divPointsCut;
-
+            var concentricDivisions = concentricDivisionsBottom.Union(concentricDivisionsTop).ToList();
+            
             return concentricDivisions;
-
-
-
 
         }
 

@@ -194,7 +194,7 @@ plot '" + fullFilePath + @"' u($1):2 with lines title '" + field1 + "','" + full
 pause 3600; replot
 ";
 
-                        Utilities.StartProcessCMD(arg, true, false, true, @"C:\Program Files\gnuplot\bin\gnuplot.exe");
+                        Utilities.StartProcessCMDNT(arg, true, false, false,true, @"C:\Program Files\gnuplot\bin\gnuplot.exe");
 
 
                     }
@@ -245,7 +245,7 @@ set output '" + RES.WorkingDirectory + @"residuals_" + dir + @".pdf'
 replot
 ";
 
-                        Utilities.StartProcessCMD(arg, true, false, true, @"C:\Program Files\gnuplot\bin\gnuplot.exe");
+                        Utilities.StartProcessCMDNT(arg, true, false, false, true, @"C:\Program Files\gnuplot\bin\gnuplot.exe");
 
 
                     }

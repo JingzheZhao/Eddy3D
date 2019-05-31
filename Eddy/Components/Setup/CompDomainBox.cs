@@ -60,7 +60,7 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("Domain", "Dom", "Simulation Domain", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Mesh", "Msh", "Mesh", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Mesh", "Msh", "Mesh", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -213,8 +213,18 @@ namespace Eddy
 
                 OFBoxDomain DOMBOX = new OFBoxDomain(buildingGeometry, terrainMeshes, bCond, blockDimension, length, width, height);
 
-                DA.SetData(0, DOMBOX);
-                DA.SetData(1, DOMBOX.DomainMesh);
+                DA.SetData(0, DOMBOX);                
+
+                if (DOMBOX.hasTerrain)
+                {
+                    DA.SetDataList(1, DOMBOX.DomainMeshIntersection);
+                }
+                else
+                {
+                    DA.SetData(1, DOMBOX.DomainMesh);        
+                }
+
+
 
             }
             else
