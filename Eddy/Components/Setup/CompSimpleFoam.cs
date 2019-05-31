@@ -211,6 +211,19 @@ namespace Eddy
 
             }
 
+            // Export Frontage PNGs
+
+            //var directory = baseWorkingDirectory + @"FrontageImages\";
+            //foreach (int dir in DOM.BCond.windDirs)
+            //{
+            //    RunBlockMesh.SaveFrontagePNGs(directory, dir, DOM.FrontagePNGs);
+            //}
+            
+
+
+
+
+
             //string logFile = "";
 
             //using (FileStream stream = File.Open(baseWorkingDirectory + @"\mesh\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))

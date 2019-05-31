@@ -325,6 +325,7 @@ namespace Eddy
                             {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
                                 string path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + enumeratedProbeName;
                                 File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, currField));
+                                // Todo: check here if we need a semicolon to sepaate the command from the suffix
                                 command.AppendLine(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime");
                             }
                         }

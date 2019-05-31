@@ -91,13 +91,22 @@ namespace Eddy
                 windDir.Add(0);
             }
 
-            
+            for (int i = 0; i < windDir.Count; i++)
+            {
+                if (windDir[i] > 359)
+                {
+                    int j = windDir[i] / 360;
+                    windDir[i] = windDir[i] - (360 * j);
+                }
+                else { windDir[i] = windDir[i]; }
+            }
+
 
             BoundaryConditions BCInflow = new BoundaryConditions(BoundaryType.abl, windDir, Uref, zref, z0, zGround, weather);
 
             // Check if anything causes a 0 BC
 
-            if(BCInflow.epsilon == 0 || BCInflow.k == 0 || BCInflow.omega == 0)
+            if (BCInflow.epsilon == 0 || BCInflow.k == 0 || BCInflow.omega == 0)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Something is causing a turbulence boundary condition to be 0, please change the setup of the simulation domain.");
             }

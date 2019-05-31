@@ -12,9 +12,11 @@ namespace EddyLib
         public Point3d CenterGround;
         public Point3d LocationInMesh;
 
-        
 
-        public double FrontageBuildingArea;
+
+        public double[] FrontageBuildingAreas = new double[360];
+        public double MaxFrontageBuildingArea;
+        public Bitmap[] FrontagePNGs = new Bitmap[360];
 
         public Cylinder RefinementCylinder;        
         public BoundingBox BBox;
@@ -39,6 +41,22 @@ namespace EddyLib
         public bool hasTerrain;
 
 
+        public static Plane GetOrientedBasePlane(Vector3d windDir, Mesh buildings, Point3d CenterGround)
+        {
+
+            var up = Vector3d.ZAxis;
+            var forward = windDir;
+            forward.Unitize();
+            var right = Vector3d.CrossProduct(forward, up);
+            right.Unitize();
+
+            var boundingBox = buildings.GetBoundingBox(true);
+            Point3d newO = boundingBox.Min;
+
+            var orientedBasePlane = new Plane(CenterGround, right, forward);
+
+            return orientedBasePlane;
+        }
 
 
         public static BoundingBox GetRefinementBox(Plane localSystem, Mesh buildings, double padding = 0)
@@ -67,15 +85,23 @@ namespace EddyLib
         }
 
 
-        public static double GetZMinTerrain(Mesh terrain, BoundingBox Box)
+        public static double GetZMinTerrain(Mesh terrain, BoundingBox Box, Plane orientedlocalPlane)
         {
 
             // If terrain is used, scale down Z to make sure all points are inside the domain
             // Zinter is call divisionsZ for CylDomain which is an int instead of an Interval
-            double zDomain = Box.Min.Z;         
 
-         
-            BoundingBox bboxTerrain = terrain.GetBoundingBox(true);
+
+            Plane worldXY = Plane.WorldXY;
+            Transform xform = Transform.ChangeBasis(worldXY, orientedlocalPlane);
+            var refBox = BoundingBox.Empty;
+            BoundingBox bboxTerrain = terrain.GetBoundingBox(xform);
+
+
+            double zDomain = Box.Min.Z;
+
+
+            //BoundingBox bboxTerrain = terrain.GetBoundingBox(orientedlocalPlane);
 
             if (terrain.Faces.Count > 0)
             {
@@ -83,7 +109,7 @@ namespace EddyLib
                 if (bboxTerrain.Min.Z < zDomain)
                 {
                     zDomain = bboxTerrain.Min.Z;
-         
+
                 }
 
             }
@@ -93,6 +119,262 @@ namespace EddyLib
 
         }
 
-       
+        public static double GetProjectedBuildingArea(int windDir, Mesh buildings, out Bitmap FrontageImage)
+        {
+
+            // Spacing in meters between rays
+            double spacing = 2;
+
+
+
+            Vector3d windDirVec = Utilities.Dir2Vec(windDir);
+
+
+
+            var up = Vector3d.ZAxis;
+            var forward = windDirVec;
+            forward.Unitize();
+            var right = Vector3d.CrossProduct(forward, up);
+            right.Unitize();
+
+
+
+            var CenterGround = buildings.GetBoundingBox(true).Center + 0.5 * -Vector3d.ZAxis * (buildings.GetBoundingBox(true).Max.Z - buildings.GetBoundingBox(true).Min.Z);
+
+
+            BoundingBox empty = BoundingBox.Empty;
+            BoundingBox boundingBox = buildings.GetBoundingBox(true);
+            empty.Union(boundingBox);
+
+            //var startPoint = new Point3d(empty.Min.X, empty.Min.Y, empty.Min.Z);
+
+            Plane local = new Plane(CenterGround, right, forward);
+
+
+
+            var BBox = empty;
+
+
+            var xMin = BBox.Min.X;
+            var xMax = BBox.Max.X;
+            var yMin = BBox.Min.Y;
+            var yMax = BBox.Max.Y;
+            var zMin = BBox.Min.Z;
+            var zMax = BBox.Max.Z;
+
+            var dimX = xMax - xMin;
+            var dimY = yMax - yMin;
+            var dimZ = zMax - zMin;
+
+
+            Interval intervalX = new Interval(empty.Min.X, empty.Max.X);
+            Interval intervalZ = new Interval(empty.Min.Z, empty.Max.Z);
+
+
+
+            int x = (int)Math.Round(intervalX.Length / spacing);
+            int z = (int)Math.Round(intervalZ.Length / spacing);
+
+            double incrX = intervalX.Length / x;
+            double incrZ = intervalZ.Length / z;
+            double raylen = 9999;
+
+            List<Point3d> points = new List<Point3d>();
+            List<Ray3d> rays = new List<Ray3d>();
+            //testVecs = new List<Vector3d>();
+
+            List<bool> hits = new List<bool>();
+            int hitcount = 0;
+
+                                 
+            using (var FI = new Bitmap(x, z))
+
+            {               
+
+                for (int zz = 0; zz < z; zz++)
+                {
+
+                    for (int xx = 0; xx < x; xx++)
+                    {
+
+
+                        var centerZ = (0.5 * incrZ);
+                        var centerX = (0.5 * incrX);
+
+                        var pt = local.PointAt(centerX + xx * incrX - 0.5 * dimX, -50, centerZ + zz * incrZ);
+
+                        points.Add(pt);
+
+
+
+                        var ray = new Ray3d(pt, local.YAxis * raylen);
+                        var vec = new Vector3d(local.YAxis * raylen);
+
+                        rays.Add(ray);
+                        //testVecs.Add(vec);
+
+
+
+                        double d = Rhino.Geometry.Intersect.Intersection.MeshRay(buildings, ray);
+                        if (d > 0)
+                        {
+                            hitcount++;
+                            hits.Add(true);
+
+                            FI.SetPixel(xx, zz, Color.Black);
+
+                        }
+                        else
+                        {
+                            hits.Add(false);
+                            FI.SetPixel(xx, zz, Color.White);
+                        }
+
+
+                    }
+                }
+
+
+                FrontageImage = FI;
+                //Needs to be rotated and flipped to represend the view from the wind direction
+                FrontageImage.RotateFlip(RotateFlipType.Rotate180FlipX);
+
+            }
+
+            return incrX * incrZ * hitcount;
+        }
+
+        public static double GetProjectedBuildingArea(int windDir, Mesh buildings, out Bitmap FrontageImage, out List<Vector3d> testVecs)
+        {
+
+            // Spacing in meters between rays
+            double spacing = 2;
+
+
+
+            Vector3d windDirVec = Utilities.Dir2Vec(windDir);
+
+
+
+            var up = Vector3d.ZAxis;
+            var forward = windDirVec;
+            forward.Unitize();
+            var right = Vector3d.CrossProduct(forward, up);
+            right.Unitize();
+
+
+
+            var CenterGround = buildings.GetBoundingBox(true).Center + 0.5 * -Vector3d.ZAxis * (buildings.GetBoundingBox(true).Max.Z - buildings.GetBoundingBox(true).Min.Z);
+
+
+            BoundingBox empty = BoundingBox.Empty;
+            BoundingBox boundingBox = buildings.GetBoundingBox(true);
+            empty.Union(boundingBox);
+
+            //var startPoint = new Point3d(empty.Min.X, empty.Min.Y, empty.Min.Z);
+
+            Plane local = new Plane(CenterGround, right, forward);
+
+
+
+            var BBox = empty;
+
+
+            var xMin = BBox.Min.X;
+            var xMax = BBox.Max.X;
+            var yMin = BBox.Min.Y;
+            var yMax = BBox.Max.Y;
+            var zMin = BBox.Min.Z;
+            var zMax = BBox.Max.Z;
+
+            var dimX = xMax - xMin;
+            var dimY = yMax - yMin;
+            var dimZ = zMax - zMin;
+
+
+            Interval intervalX = new Interval(empty.Min.X, empty.Max.X);
+            //Interval intervalY = new Interval(empty.Min.Y, empty.Max.Y);
+            Interval intervalZ = new Interval(empty.Min.Z, empty.Max.Z);
+
+
+
+            int x = (int)Math.Round(intervalX.Length / spacing);
+            int z = (int)Math.Round(intervalZ.Length / spacing);
+
+            double incrX = intervalX.Length / x;
+            double incrZ = intervalZ.Length / z;
+            double raylen = 9999;
+
+            List<Point3d> points = new List<Point3d>();
+            List<Ray3d> rays = new List<Ray3d>();
+            testVecs = new List<Vector3d>();
+
+            List<bool> hits = new List<bool>();
+            int hitcount = 0;
+
+
+
+
+
+            using (var FI = new Bitmap(x, z))
+
+            {
+
+
+
+                for (int zz = 0; zz < z; zz++)
+                {
+
+                    for (int xx = 0; xx < x; xx++)
+                    {
+
+                        //var pt = local.PointAt((0.5 * incrX) + xx * incrX, -0.1, (0.5 * incrZ) + zz * incrZ);
+                        var centerZ = (0.5 * incrZ);
+                        var centerX = (0.5 * incrX);
+
+                        var pt = local.PointAt(centerX + xx * incrX - 0.5 * dimX, -50, centerZ + zz * incrZ);
+
+                        points.Add(pt);
+
+
+
+                        var ray = new Ray3d(pt, local.YAxis * raylen);
+                        var vec = new Vector3d(local.YAxis * raylen);
+
+                        rays.Add(ray);
+                        testVecs.Add(vec);
+
+
+
+                        double d = Rhino.Geometry.Intersect.Intersection.MeshRay(buildings, ray);
+                        if (d > 0)
+                        {
+                            hitcount++;
+                            hits.Add(true);
+
+                            FI.SetPixel(xx, zz, Color.Black);
+
+                        }
+                        else
+                        {
+                            hits.Add(false);
+                            FI.SetPixel(xx, zz, Color.White);
+                        }
+
+
+                    }
+                }
+
+
+                FrontageImage = FI;
+                //Needs to be rotated and flipped to represend the view from the wind direction
+                FrontageImage.RotateFlip(RotateFlipType.Rotate180FlipX);
+
+            }
+
+            return incrX * incrZ * hitcount;
+        }
+
+
     }
 }

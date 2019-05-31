@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
+using System.Drawing;
 
 
 namespace EddyLib
@@ -53,51 +53,85 @@ namespace EddyLib
         public List<Polyline> concentricDivisions;
 
 
+      
+
+
         // Remove this later
         public Point3d[] pointsOnCircle;
         public Point3d[] pointsOnRect;
 
 
 
-        public OFCylDomain(Mesh BuildingGeometry, Mesh terrainMesh, BoundaryConditions bCond, double coreBlockSize, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0)
+        public OFCylDomain(Mesh BuildingGeometry, Mesh terrainMesh, BoundaryConditions BCond, double coreBlockSize, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0)
         {
             gradingPerim = 1.0;
 
+            this.BCond = BCond;
             this.BuildingGeometry = BuildingGeometry;
 
-            BBox = BuildingGeometry.GetBoundingBox(true);
+            var BBoxCrude = BuildingGeometry.GetBoundingBox(true);
 
 
 
 
-            double xMin = BBox.Min.X;
-            double xMax = BBox.Max.X;
-            double yMin = BBox.Min.Y;
-            double yMax = BBox.Max.Y;
-            double zMin = BBox.Min.Z;
-            double zMax = BBox.Max.Z;
+            // Box-shaped tunnel can only have 1 windDir which is the 1st windDir
 
-            double dimX = xMax - xMin;
-            double dimY = yMax - yMin;
-            double dimZ = zMax - zMin;
+            Vector3d windDirVector = BCond.flowDir[0];
+
+            // Rotate the Plane based on wind vector area
+
+            
+            Plane orientedPlane = GetOrientedBasePlane(windDirVector, BuildingGeometry, BBoxCrude.Center);
+
+            // Create BBox with respect to new plane (new coordinates)
+            BBox = BuildingGeometry.GetBoundingBox(orientedPlane);
+
+
+            var xMin = BBox.Min.X;
+            var xMax = BBox.Max.X;
+            var yMin = BBox.Min.Y;
+            var yMax = BBox.Max.Y;
+            var zMin = BBox.Min.Z;
+            var zMax = BBox.Max.Z;
+
+            var  dimX = xMax - xMin;
+            var  dimY = yMax - yMin;
+            var  dimZ = zMax - zMin;
+
+          
+
+         
+            var CenterGround = BBoxCrude.Center + 0.5 * -Vector3d.ZAxis * dimZ;
 
             // If terrain is used, scale down Z to make sure all points are inside the domain
             // Zinter is call divisionsZ for CylDomain which is an int instead of an Interval
-            
 
-            double zDomain = BBox.Min.Z;
+
+          
 
             if (terrainMesh.Faces.Count > 0)
             {
-                this.TerrainMesh = terrainMesh;
                 this.hasTerrain = true;
-                zDomain = OFBaseDomain.GetZMinTerrain(terrainMesh, BBox);
+            }
+
+
+            if (hasTerrain)
+            {
+                this.TerrainMesh = terrainMesh;
+                double zMinTerrain = OFBaseDomain.GetZMinTerrain(terrainMesh, BBox, orientedPlane);
+                this.CenterGround = new Point3d(BBox.Center.X, BBox.Center.Y, zMinTerrain);            
+
+            }
+            else
+            {
+                this.CenterGround = new Point3d(BBox.Center.X, BBox.Center.Y, zMin);
+
             }
 
             //Create ground plane of BBox
             //center needs dimZ to stay at ground level but also respect terrain if its being used; 0.1 = safety factor
             //center = (BBox.Center + 0.5 * -Vector3d.ZAxis * dimZ) + zTerrainScaling * Vector3d.ZAxis;
-            this.CenterGround = new Point3d(BBox.Center.X, BBox.Center.Y, zDomain);
+            
 
 
 
@@ -105,7 +139,7 @@ namespace EddyLib
 
             if (sizeHeight == 0)
             {
-                height = 6 * dimZ + (BBox.Min.Z - zDomain);
+                height = 6 * dimZ + (BBox.Min.Z - CenterGround.Z);
             }
             else
             {
@@ -115,7 +149,7 @@ namespace EddyLib
 
 
 
-            double scaleCylDomainFromItsHeight = (15.5 * dimZ) + dimY;
+            double scaleDomByHeight = (15.5 * dimZ) + dimY;
             //var scaleCyclDomainHeight = height > dimY ? height : dimY;
 
 
@@ -123,30 +157,34 @@ namespace EddyLib
             //// localSystem.Origin = center;
             //localSystem.Translate(-Vector3d.YAxis * dimY);
 
-
-
-            List<double> projAreaList = new List<double>();
+                            
             for (int i = 0; i < 72; i++)
             {
                 Vector3d localCopy = Vector3d.YAxis;
                 localCopy.Rotate(5 * i * Math.PI / 180, Vector3d.ZAxis);
-                projAreaList.Add(RunBlockMesh.ProjectedBuildingArea(localCopy, BuildingGeometry, 10, out Plane newLocal, out Box box));
+                
+               
+                Bitmap FI;
+                this.FrontageBuildingAreas[i * 5] = OFBaseDomain.GetProjectedBuildingArea(i * 5, BuildingGeometry, out FI);
+                this.FrontagePNGs[i * 5] = FI;
+
+                //projAreaList.Add(RunBlockMesh.GetProjectedBuildingAreas(BCond.flowDir[0], orientedPlane, BuildingGeometry));
 
 
             }
 
-            FrontageBuildingArea = projAreaList.Max();
+            MaxFrontageBuildingArea = FrontageBuildingAreas.Max();
 
 
             // New Dimensions in X; take blocking ratio into account
-            double scaleCylDomainFromBlockingRatio = FrontageBuildingArea * 100 / 3 / height / 2;
+            double scaleCylDomainFromBlockingRatio = MaxFrontageBuildingArea * 100 / 3 / height / 2;
 
 
             // Check standard inputs for radius
 
             if (sizeOuterCirc == 0)
             {
-                radius = scaleCylDomainFromBlockingRatio > scaleCylDomainFromItsHeight ? scaleCylDomainFromBlockingRatio : scaleCylDomainFromItsHeight;
+                radius = scaleCylDomainFromBlockingRatio > scaleDomByHeight ? scaleCylDomainFromBlockingRatio : scaleDomByHeight;
             }
             else
             {
@@ -174,29 +212,24 @@ namespace EddyLib
 
             divsRadial = RadialDivsFromBlockSize(coreBlockSize, sizeInnerR);
             //divisionsZ = _divisionsZ;
-
-
-
-
-
-
+                                                  
 
             MakeCircMeshPlane(CenterGround, sizeInnerR, divsRadial, radius, height);
 
 
-            bCond.CalculateCPPressures(zMax, bCond.btype, bCond.URef);
+            BCond.CalculateCPPressures(zMax, BCond.btype, BCond.URef);
 
 
-            if (bCond.btype == BoundaryType.constant)
+            if (BCond.btype == BoundaryType.constant)
             {
-                bCond.SetUatBuildingHeightUconst();
+                BCond.SetUatBuildingHeightUconst();
             }
-            if (bCond.btype == BoundaryType.abl)
+            if (BCond.btype == BoundaryType.abl)
             {
-                bCond.SetUatBuildingHeightABL(zMax);
+                BCond.SetUatBuildingHeightABL(zMax);
             }
 
-            BCond = bCond;
+            base.BCond = BCond;
 
             // refinement Cylinder
             //refinementCylinder = getRefinementCyl(center, geometry, 0.3, 0.3);
@@ -981,7 +1014,7 @@ mergePatchPairs
         {
             return "Cyclic Domain:\n" +
             "Smallest cell size in center: " + cellSizeInner + " m\n" +
-            "Projected area: " + Math.Round(FrontageBuildingArea, 1)
+            "Projected area: " + Math.Round(this.MaxFrontageBuildingArea, 1)
 
 
 

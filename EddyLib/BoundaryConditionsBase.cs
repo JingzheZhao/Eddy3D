@@ -29,7 +29,7 @@ namespace EddyLib
 
         //CFD Online
 
-        private double eddy_viscosity_ratio = 10;
+        private double eddyViscosityRatio = 10;
         private double Tu = 2; // % https://www.cfd-online.com/Tools/turbulence.php Medium turbulence case
         private double nu = 1.5e-05;
 
@@ -80,7 +80,7 @@ namespace EddyLib
 
 
             k = K(Tu, URef);
-            epsilon = Epsilon(btype, k, eddy_viscosity_ratio, nu);
+            epsilon = Epsilon(btype, k, eddyViscosityRatio, nu);
             omega = Omega(epsilon, k);
 
             foreach (int d in dirs)
@@ -117,7 +117,7 @@ namespace EddyLib
 
 
             k = K(Tu, URef);
-            epsilon = Epsilon(btype, k, eddy_viscosity_ratio, nu);
+            epsilon = Epsilon(btype, k, eddyViscosityRatio, nu);
             omega = Omega(epsilon, k);
 
 
@@ -125,9 +125,10 @@ namespace EddyLib
             foreach (int d in dirs)
             {
                 windDirs.Add(d);
-                flowDir.Add(new Vector3d(-1 * Math.Sin(d * Math.PI / 180), -1 * Math.Cos(d * Math.PI / 180), 0));
+                flowDir.Add(Utilities.Dir2Vec(d));
             }
         }
+
 
         public void SetUatBuildingHeightABL(double maxBuildingHeight)
         {
@@ -144,10 +145,12 @@ namespace EddyLib
         public void CalculateCPPressures(double buildingHeight, BoundaryType btype, double Uref)
         {
 
+            //height < 0 gives Nan
+            if (buildingHeight < 0) { buildingHeight = 0; };
+
             if (btype == BoundaryType.abl)
             {
-                //height < 0 gives Nan
-                if (buildingHeight < 0) { buildingHeight = 0; };
+
 
                 foreach (Vector3d d in flowDir)
                 {
@@ -160,8 +163,6 @@ namespace EddyLib
 
             else
             {
-                //height < 0 gives Nan
-                if (buildingHeight < 0) { buildingHeight = 0; };
 
                 foreach (Vector3d d in flowDir)
                 {
@@ -180,8 +181,8 @@ namespace EddyLib
 
             //if (btype == BoundaryType.abl)
             //{
-                //epsilon = this.Cmu * Math.Pow(k, 2) / (nu * eddy_viscosity_ratio);
-                epsilon = this.Cmu * Math.Pow(k, 2) / (this.nu * this.eddy_viscosity_ratio);
+            //epsilon = this.Cmu * Math.Pow(k, 2) / (nu * eddy_viscosity_ratio);
+            epsilon = this.Cmu * Math.Pow(k, 2) / (this.nu * this.eddyViscosityRatio);
             //}
             //else
             //{

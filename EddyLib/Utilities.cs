@@ -9,6 +9,8 @@ using System.Net;
 using System.Reflection;
 using System.Threading;
 using Deedle;
+using Grasshopper;
+using Grasshopper.Kernel.Data;
 
 namespace EddyLib
 {
@@ -598,6 +600,17 @@ namespace EddyLib
 
         }
 
+        public static DataTree<T> ListOfListsToTree<T>(List<List<T>> list)
+        {
+            DataTree<T> tree = new DataTree<T>();
+            int i = 0;
+            foreach (List<T> innerList in list)
+            {
+                tree.AddRange(innerList, new GH_Path(new int[] { 0, i }));
+                i++;
+            }
+            return tree;
+        }
 
         public static List<string> FileReader(string filePath)
         {
@@ -1277,6 +1290,60 @@ namespace EddyLib
             double ang = rad * 180 / Math.PI;
             return ang;
         }
+
+
+        public static double Vec2Dir(Vector3d vec)
+        {
+
+            var res = Math.Atan2(vec.Y, vec.X) * 180 / Math.PI;
+            return res;
+
+        }
+
+        public static int Vec2DirOFCoord(Vector3d vec)
+        {
+            // Standard 0 deg is plus X
+
+
+            var transform = (Math.Atan2(vec.Y, vec.X) * 180 / Math.PI) + 90;
+
+            var deg = 0.0;
+
+            if (transform < 0)
+
+            {
+                deg = -1 * transform;
+            }
+            else if (transform <= 270 && transform > 0)
+            {
+                deg = 360 - transform;
+            }
+
+            else
+            { deg = transform; }
+
+
+            return (int)Math.Round(deg);
+
+        }
+
+
+        public static Vector3d Dir2Vec(double d)
+        {
+            return new Vector3d(-1 * Math.Sin(d * Math.PI / 180), -1 * Math.Cos(d * Math.PI / 180), 0);
+        }
+
+        public static Point3d CenterBottomBoundingBox(Mesh geometry)
+        {
+
+            BoundingBox empty = BoundingBox.Empty;
+            var box = geometry.GetBoundingBox(true);
+            empty.Union(box);
+            Point3d CenterGround = empty.Center + 0.5 * -Vector3d.ZAxis * (empty.Max.Z - empty.Min.Z);
+
+            return CenterGround;
+        }
+
     }
 
 

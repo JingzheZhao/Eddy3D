@@ -91,6 +91,15 @@ namespace Eddy
                 windDir.Add(0);
             }
 
+            for (int i = 0; i < windDir.Count; i++)
+            {
+                if (windDir[i] > 359)
+                {
+                    int j = windDir[i] / 360;
+                    windDir[i] = windDir[i] - (360 * j);
+                }
+                else { windDir[i] = windDir[i]; }
+            }
 
             BoundaryConditions BCInflow = new BoundaryConditions(BoundaryType.constant, windDir, Uref, z0, weather);
 

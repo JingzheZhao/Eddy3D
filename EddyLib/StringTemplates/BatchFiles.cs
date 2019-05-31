@@ -33,7 +33,7 @@ namespace EddyLib.StrTemp
 
 
         private static readonly List<string> RCCheckMeshSingleCPU = new List<string> {
-        "checkMesh",
+        "checkMesh -allGeometry -allTopology -writeAllFields -writeSets vtk",
         "foamToVTK -faceSet highAspectRatioCells -ascii",
         "foamToVTK -faceSet nonOrthoFaces -ascii",
         "foamToVTK -faceSet skewFaces -ascii",
