@@ -224,29 +224,38 @@ namespace EddyLib
 
         public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, string executable = @"C:\Windows\System32\cmd.exe")
         {
-            System.Diagnostics.Process p = new System.Diagnostics.Process();
-            p.StartInfo.FileName = executable;
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.RedirectStandardInput = true;
-            p.StartInfo.CreateNoWindow = createnowindow;
-            //p.Start();
-            //StreamWriter sw = p.StandardInput;
-            //String strInputText = argument;
-            //sw.WriteLine(strInputText);
+           System.Diagnostics.Process p = new System.Diagnostics.Process();
+    p.StartInfo.FileName = executable;
+    p.StartInfo.UseShellExecute = false;
+    p.StartInfo.RedirectStandardInput = true;
+    //p.StartInfo.RedirectStandardOutput = true;
+    p.StartInfo.CreateNoWindow = createnowindow;
+    //p.Start();
+
+    ThreadStart ths = new ThreadStart(() =>
+      {
+
+      p.Start();
+   
+      StreamWriter sw = p.StandardInput;
+      String strInputText = argument;
+      sw.WriteLine(strInputText);
+
+      // Window doesn't close with 
+      //sw.Flush();
+      });
 
 
-            ThreadStart ths = new ThreadStart(() => p.Start());
-            Thread th = new Thread(ths);
-            th.Start();
+    Thread th = new Thread(ths);
+    th.Start();
 
 
-            ////sw.Flush();
-            //if (waitforexit)
-            //{
-            //    Console.ReadLine();
-            //    p.WaitForExit();
-            //}
-            if (close) { p.Close(); }
+    if (waitforexit)
+    {
+        Console.ReadLine();
+        p.WaitForExit();
+    }
+    if (close) { p.Close(); }
 
 
         }
@@ -968,7 +977,133 @@ namespace EddyLib
                 sb.AppendLine("Show(case_"+dir+@")");
             }
 
-            sb.AppendLine("ResetCamera()");
+            sb.AppendLine(@"from paraview.simple import *
+#### disable automatic camera reset on 'Show'
+paraview.simple._DisableFirstRenderCameraReset()
+
+
+# find source
+sTLReader1 = FindSource('STLReader1')
+
+# find source
+sTLReader2 = FindSource('STLReader2')
+
+# get active source.
+openFOAMReader1 = GetActiveSource()
+
+# Properties modified on openFOAMReader1
+openFOAMReader1.CellArrays = ['U']
+
+# get active view
+renderView1 = GetActiveViewOrCreate('RenderView')
+# uncomment following to set a specific view size
+# renderView1.ViewSize = [2135, 550]
+
+# get display properties
+openFOAMReader1Display = GetDisplayProperties(openFOAMReader1, view = renderView1)
+
+# Properties modified on openFOAMReader1Display
+openFOAMReader1Display.SelectScaleArray = 'None'
+
+# get color transfer function/color map for 'p'
+pLUT = GetColorTransferFunction('p')
+
+# get opacity transfer function/opacity map for 'p'
+pPWF = GetOpacityTransferFunction('p')
+
+# Properties modified on openFOAMReader1Display
+openFOAMReader1Display.GlyphTableIndexArray = 'None'
+
+# Properties modified on openFOAMReader1Display
+openFOAMReader1Display.SetScaleArray = ['POINTS', 'U']
+
+# Properties modified on openFOAMReader1Display
+openFOAMReader1Display.OpacityArray = ['POINTS', 'U']
+
+# Properties modified on openFOAMReader1Display
+openFOAMReader1Display.OSPRayScaleArray = 'U'
+
+# get animation scene
+animationScene1 = GetAnimationScene()
+
+# update animation scene based on data timesteps
+animationScene1.UpdateAnimationUsingDataTimeSteps()
+
+# update the view to ensure updated data information
+renderView1.Update()
+
+# Properties modified on openFOAMReader1
+openFOAMReader1.Adddimensionalunitstoarraynames = 1
+
+# update the view to ensure updated data information
+renderView1.Update()
+
+# Properties modified on openFOAMReader1Display
+openFOAMReader1Display.SelectOrientationVectors = 'None'
+
+# Properties modified on openFOAMReader1Display
+openFOAMReader1Display.SetScaleArray = ['POINTS', 'U [m/s]']
+
+# Properties modified on openFOAMReader1Display
+openFOAMReader1Display.OpacityArray = ['POINTS', 'U [m/s]']
+
+# Properties modified on openFOAMReader1Display
+openFOAMReader1Display.OSPRayScaleArray = 'U [m/s]'
+
+# set scalar coloring
+ColorBy(openFOAMReader1Display, ('POINTS', 'U [m/s]', 'Magnitude'))
+
+# Hide the scalar bar for this color map if no visible data is colored by it.
+HideScalarBarIfNotNeeded(pLUT, renderView1)
+
+# rescale color and/or opacity maps used to include current data range
+openFOAMReader1Display.RescaleTransferFunctionToDataRange(True, False)
+
+# show color bar/color legend
+openFOAMReader1Display.SetScalarBarVisibility(renderView1, True)
+
+# get color transfer function/color map for 'Ums'
+umsLUT = GetColorTransferFunction('Ums')
+
+# get opacity transfer function/opacity map for 'Ums'
+umsPWF = GetOpacityTransferFunction('Ums')
+
+# reset view to fit data
+renderView1.ResetCamera()
+
+# Properties modified on renderView1
+renderView1.Background = [1.0, 1.0, 1.0]
+
+# get the material library
+materialLibrary1 = GetMaterialLibrary()
+
+# Apply a preset using its name. Note this may not work as expected when presets have duplicate names.
+umsLUT.ApplyPreset('Viridis (matplotlib)', True)
+
+# get color legend/bar for umsLUT in view renderView1
+umsLUTColorBar = GetScalarBar(umsLUT, renderView1)
+
+# Properties modified on umsLUTColorBar
+umsLUTColorBar.TitleColor = [0.0, 0.0, 0.0]
+umsLUTColorBar.TitleBold = 1
+umsLUTColorBar.LabelColor = [0.0, 0.0, 0.0]
+umsLUTColorBar.LabelBold = 1
+umsLUTColorBar.AutomaticLabelFormat = 0
+umsLUTColorBar.LabelFormat = '%-#6.1f'
+umsLUTColorBar.RangeLabelFormat = '%-#6.1f'
+
+#### saving camera placements for all active views
+
+# current camera placement for renderView1
+renderView1.CameraPosition = [-109.98370361328125, 1374.7207336425781, 8420.956940089278]
+renderView1.CameraFocalPoint = [-109.98370361328125, 1374.7207336425781, 594.7585678100586]
+renderView1.CameraParallelScale = 2025.5691894962097
+renderView1.CameraParallelProjection = 1
+
+#### uncomment the following to render all views
+# RenderAllViews()
+# alternatively, if you want to write images, you can use SaveScreenshot(...).
+");
 
             return sb.ToString();
 

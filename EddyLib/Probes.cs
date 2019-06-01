@@ -142,7 +142,7 @@ namespace EddyLib
             listOfPoints = ListOfPoints;
 
             this.caseDirectory = caseDirectory;
-            string fullPath = GetFullPathToProbedResults(caseDirectory, ofField);
+            string fullPath = GetIterationPathToProbedResults(caseDirectory, ofField);
 
             //Number       
             if (ofField.FieldType == OFField.fieldType.number)
@@ -226,7 +226,7 @@ namespace EddyLib
     
 
 
-        public static string GetFullPathToProbedResults(string workingDirectory, OFField ofField)
+        public static string GetIterationPathToProbedResults(string workingDirectory, OFField ofField)
         {
 
 
