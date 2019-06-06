@@ -125,7 +125,7 @@ namespace Eddy
                         for (int i = 0; i < annualHours; i++)
                         {
                             //UTCITree.Add(double.Parse(fields[i]), new Grasshopper.Kernel.Data.GH_Path(cnt));
-                            HumanConditionsTree.Add(UTCI.GetConditionOfPerson(double.Parse(fields[i])), new Grasshopper.Kernel.Data.GH_Path(cnt));
+                            HumanConditionsTree.Add(UTCI.CalcConditionOfPerson(double.Parse(fields[i])), new Grasshopper.Kernel.Data.GH_Path(cnt));
 
                             //if (UTCI.GetConditionOfPerson(double.Parse(fields[i])) == 0)
                             //{

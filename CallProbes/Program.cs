@@ -42,7 +42,7 @@ namespace CallProbes
 
                     var errorLogCalc = new StringBuilder();
 
-                    UTCI.WriteWindReductionArrayToCSV(options.WindDirs, options.WorkingDir, options.Mode, options.Uref, options.Zref, options.Z0, options.Probes, options.Verbose, out errorLogCalc);
+                    WindFactors.WriteWindReductionArrayToCSV(options.WindDirs, options.WorkingDir, options.Mode, options.Uref, options.Zref, options.Z0, options.Probes, options.Verbose, out errorLogCalc);
 
                     errorLog.Append(errorLogCalc);
 

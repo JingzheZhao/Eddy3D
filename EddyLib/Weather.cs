@@ -7,6 +7,7 @@ namespace EddyLib
 {
     public class Weather
     {
+        public string epwFilePath;
 
         public double[] DryBulbTemp;
         public double[] DewPointTemp;
@@ -52,6 +53,8 @@ namespace EddyLib
 
                 // get hourly data
                 string[] epwNoHeader = epwData.Skip(8).Take(8760).ToArray(); // new ArraySegment<string>(epwData, 8, 8760).Array;//.ToArray();
+
+                this.epwFilePath = filePath;
 
                 this.DryBulbTemp = epwNoHeader.Select(o => Double.Parse(o.Split(',')[6])).ToArray(); // Dry Bulb Temperature
                 this.DewPointTemp = epwNoHeader.Select(o => Double.Parse(o.Split(',')[7])).ToArray(); // Dew Point Temperature
@@ -146,9 +149,9 @@ namespace EddyLib
             for (int i = 1; i < txt.Length; i++)
             {
                 // Data is stored in column 1-3, column 0 is empty
-                if (Math.Abs(longitude - double.Parse(Matrix[i][1])) < delta && Math.Abs(latitude - double.Parse(Matrix[i][2])) < delta)
+                if (Math.Abs(longitude - Convert.ToDouble(Matrix[i][1])) < delta && Math.Abs(latitude - Convert.ToDouble(Matrix[i][2])) < delta)
                 {
-                    climateClass = Matrix[i][3];
+                    climateClass = Convert.ToString(Matrix[i][3]);
                 }
             }
             KC = climateClass;

@@ -74,6 +74,8 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\Misc\CompLBAnalPeriod2Hours.cs" />
+    <Compile Include="Components\Outdoor Comfort\CompCalcMRT.cs" />
     <Compile Include="Components\postProcessing\CompParaview.cs" />
     <Compile Include="Components\Settings\RunSettings.cs" />
     <Compile Include="Components\Setup\BCondABL.cs" />
@@ -205,6 +207,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Eddy_paraview.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_calMRT.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

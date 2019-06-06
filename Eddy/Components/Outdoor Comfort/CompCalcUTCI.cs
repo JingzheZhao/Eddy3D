@@ -50,11 +50,12 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Res", "Res", "Res", GH_ParamAccess.item);
             //pManager.AddIntegerParameter("windDirs", "windDirs", "windDirs", GH_ParamAccess.list);
             //pManager.AddTextParameter("pointName", "pointName", "pointName", GH_ParamAccess.item);
             pManager.AddIntegerParameter("Hour", "Hour", "Hour", GH_ParamAccess.item);
             pManager.AddVectorParameter("U", "U", "U", GH_ParamAccess.list);
+            pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item);
 
 
         }
@@ -90,14 +91,20 @@ namespace Eddy
             DA.GetDataList(2, velocityProbes);
 
 
-
+            bool run = false;
+            DA.GetData("Run", ref run);
+            if (!run)
+            {
+                return;
+            }
+                       
 
             Console.WriteLine("Load weather data...");
 
             //Weather data...
 
             Weather weather = new Weather();
-            weather.LoadWeatherData(RES.Domain.BCond.weather);
+            weather.LoadWeatherData(RES.Domain.BCond.epwFilePath);
 
 
             //  Load radiation datasets
@@ -151,8 +158,8 @@ namespace Eddy
           
             for (int p = 0; p< velocityProbes.Count; p++)
             {
-                var mrt = UTCI.GetMRT(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], DiffRad[hour][p], DirRad[hour][p], weather.SolarElevation[hour], weather.DryBulbTemp[hour], weather.Wst, weather.Hst, weather.BodyA, weather.GrRef, 0.95)[0];
-                var utci = UTCI.CalcUTCIForPoint(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], velocityProbes[p].Length, mrt);
+                var mrt = MRT.GetMRTForPointViaKessling(weather, hour, DiffRad[hour][p], DirRad[hour][p])[0];
+                var utci = UTCI.CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], velocityProbes[p].Length, mrt);
 
                 if (GH_Document.IsEscapeKeyDown())
                 {

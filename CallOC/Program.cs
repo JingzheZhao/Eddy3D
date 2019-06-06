@@ -110,7 +110,7 @@ namespace CallOC
 
 
                         int sensorPointCount = DiffRad[0].Length;
-                        double[,] Utci = new double[numberOfHours, sensorPointCount];
+                        
                         //double[,] conditionOfPerson = new double[8760, sensorPointCount];
 
 
@@ -138,8 +138,8 @@ namespace CallOC
                         // -----------------
 
 
-                        var ReductionDataCSV = UTCI.LoadWindReductionArrayFromCSV(options.WindReductionDataPath);
-                        var windReduction = UTCI.GetWindReduction(ReductionDataCSV, numberOfHours, windDirList, weather);
+                        var ReductionDataCSV = WindFactors.LoadWindReductionArrayFromCSV(options.WindReductionDataPath);
+                        var windReduction = WindFactors.GetWindReduction(ReductionDataCSV, numberOfHours, windDirList, weather);
 
                         //// Importing probeHeight from probe file to scale U down to pedestrian level
                         Console.WriteLine("Parsing height of probes to scale down wind velocity from weather file.");
@@ -173,19 +173,27 @@ namespace CallOC
 
                         // UTCI here
 
-                        Stopwatch sw = new Stopwatch();
+                    
+                       
 
-                        var uncertaintyMRTArray = new bool[numberOfHours, sensorPointCount];
-                        var uncertaintyWindArray = new bool[numberOfHours, sensorPointCount];
 
-                        UTCI.CalculateUTCIArray(probes, numberOfHours, weather, DirRad, DiffRad, windReduction, z0, zref, URef, out uncertaintyMRTArray, out uncertaintyWindArray, out sw, out Utci);
+                        double[,] Utci = new double[numberOfHours, sensorPointCount];
 
-                        Console.WriteLine(Utilities.ConvertComputeTimes(sw.ElapsedMilliseconds));
+                        UTCI utci = new UTCI(probes, numberOfHours, weather, DirRad, DiffRad, windReduction, z0, zref);
+
+
+                        
+                        Console.WriteLine(Utilities.ConvertComputeTimes(utci.elapsedTime));
 
                         Console.WriteLine("Writing UTCI results...");
 
-                        UTCI.WriteUTCIToCSV(options.WorkingDir, probes, numberOfHours, options.Verbose, uncertaintyMRTArray, uncertaintyWindArray, Utci, debug, weather, errorLog, DiffRad, DirRad, windReduction, URef, zref, z0);
+                        
 
+                        var bcond = new BoundaryConditions(BoundaryType.constant, new List<int> { 0 }, 5, 1, options.Weather);
+
+                        UTCI.UTCI2CSV(options.WorkingDir, utci, options.Verbose, debug, weather, bcond, errorLog, numberOfHours);
+                            
+                        
                         Console.WriteLine("Done");
 
                         //  Console.ReadKey();

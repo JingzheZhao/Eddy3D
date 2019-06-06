@@ -275,14 +275,14 @@ namespace Eddy
 
                             string currentCaseDir = RES.WorkingDirectory + "\\" + RES.Domain.BCond.windDirs[i];
                             // Todo: This throws exception if the folder doesn't exit, meaning if it wasn't run yet. Second, it throws an exception if the folder exists but is empty. here, it also won't find the iteration path.
-                            string pathToProbeFile = Probes.GetIterationPathToProbedResults(currentCaseDir, currField);
+                            string pathToProbeFile = Probing.GetIterationPathToProbedResults(currentCaseDir, currField);
                             if (File.Exists(pathToProbeFile))
                             {
 
 
-                                Probes Numbers = new Probes(listOfPoints, currentCaseDir, currField);
+                                Probing Numbers = new Probing(listOfPoints, currentCaseDir, currField);
                                 // Create datatree
-                                treeDouble.AddRange(Probes.FilterExtremeProbingValues(Numbers.ResultNum), new Grasshopper.Kernel.Data.GH_Path(i));
+                                treeDouble.AddRange(Probing.FilterExtremeProbingValues(Numbers.ResultNum), new Grasshopper.Kernel.Data.GH_Path(i));
 
 
 
@@ -350,13 +350,13 @@ namespace Eddy
                         {
 
                             string currentCaseDir = RES.WorkingDirectory + "\\" + RES.Domain.BCond.windDirs[i];
-                            string pathToProbeFile = Probes.GetIterationPathToProbedResults(currentCaseDir, currField);
+                            string pathToProbeFile = Probing.GetIterationPathToProbedResults(currentCaseDir, currField);
                             if (File.Exists(pathToProbeFile))
                             {
 
 
 
-                                Probes Vectors = new Probes(listOfPoints, currentCaseDir, currField);
+                                Probing Vectors = new Probing(listOfPoints, currentCaseDir, currField);
                                 // Create datatree
 
                                 treeVector.AddRange(Vectors.ResultVec, new Grasshopper.Kernel.Data.GH_Path(i));

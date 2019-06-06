@@ -41,6 +41,8 @@ namespace EddyLib
 
         public bool hasTerrain;
 
+        public double zMaxBuilding;
+
 
         public static Plane GetOrientedBasePlane(Vector3d windDir, Mesh buildings, Point3d CenterGround)
         {

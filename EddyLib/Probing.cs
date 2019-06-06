@@ -125,7 +125,7 @@ namespace EddyLib
 
 
     }
-    public class Probes
+    public class Probing
     {
 
         public double[] ResultNum;
@@ -137,7 +137,7 @@ namespace EddyLib
 
         private readonly string caseDirectory;
 
-        public Probes(List<Point3d> ListOfPoints, string caseDirectory, OFField ofField)
+        public Probing(List<Point3d> ListOfPoints, string caseDirectory, OFField ofField)
         {
             listOfPoints = ListOfPoints;
 

@@ -93,6 +93,7 @@ namespace EddyLib
             var yMax = BBox.Max.Y;
             var zMin = BBox.Min.Z;
             var zMax = BBox.Max.Z;
+            this.zMaxBuilding = zMax;
 
             var dimX = xMax - xMin;
             var dimY = yMax - yMin;
@@ -220,7 +221,8 @@ namespace EddyLib
             MakeCircMeshPlane(CenterGround, sizeInnerR, divsRadial, radius, height);
 
 
-            BCond.CalculateCPPressures(zMax, BCond.btype, BCond.URef);
+            BoundaryConditionsCP BCondCP = new BoundaryConditionsCP(zMax, BCond);
+            
 
 
             if (BCond.btype == BoundaryType.constant)

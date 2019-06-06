@@ -224,38 +224,38 @@ namespace EddyLib
 
         public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, string executable = @"C:\Windows\System32\cmd.exe")
         {
-           System.Diagnostics.Process p = new System.Diagnostics.Process();
-    p.StartInfo.FileName = executable;
-    p.StartInfo.UseShellExecute = false;
-    p.StartInfo.RedirectStandardInput = true;
-    //p.StartInfo.RedirectStandardOutput = true;
-    p.StartInfo.CreateNoWindow = createnowindow;
-    //p.Start();
+            System.Diagnostics.Process p = new System.Diagnostics.Process();
+            p.StartInfo.FileName = executable;
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.RedirectStandardInput = true;
+            //p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.CreateNoWindow = createnowindow;
+            //p.Start();
 
-    ThreadStart ths = new ThreadStart(() =>
-      {
+            ThreadStart ths = new ThreadStart(() =>
+              {
 
-      p.Start();
-   
-      StreamWriter sw = p.StandardInput;
-      String strInputText = argument;
-      sw.WriteLine(strInputText);
+                  p.Start();
 
-      // Window doesn't close with 
-      //sw.Flush();
+                  StreamWriter sw = p.StandardInput;
+                  String strInputText = argument;
+                  sw.WriteLine(strInputText);
+
+          // Window doesn't close with 
+          //sw.Flush();
       });
 
 
-    Thread th = new Thread(ths);
-    th.Start();
+            Thread th = new Thread(ths);
+            th.Start();
 
 
-    if (waitforexit)
-    {
-        Console.ReadLine();
-        p.WaitForExit();
-    }
-    if (close) { p.Close(); }
+            if (waitforexit)
+            {
+                Console.ReadLine();
+                p.WaitForExit();
+            }
+            if (close) { p.Close(); }
 
 
         }
@@ -832,6 +832,67 @@ namespace EddyLib
             return evalHours;
         }
 
+        public static T[,] To2D<T>(T[][] source)
+        {
+            try
+            {
+                int FirstDim = source.Length;
+                int SecondDim = source.GroupBy(row => row.Length).Single().Key; // throws InvalidOperationException if source is not rectangular
+
+                var result = new T[FirstDim, SecondDim];
+                for (int i = 0; i < FirstDim; ++i)
+                    for (int j = 0; j < SecondDim; ++j)
+                        result[i, j] = source[i][j];
+
+                return result;
+            }
+            catch (InvalidOperationException)
+            {
+                throw new InvalidOperationException("The given jagged array is not rectangular.");
+            }
+        }
+
+
+        public static TOutput[,] ConvertAll<TInput, TOutput>(TInput[,] array, Func<TInput, TOutput> converter)
+        {
+            int length0 = array.GetLength(0);
+            int length1 = array.GetLength(1);
+
+            var result = new TOutput[length0, length1];
+
+            for (int i = 0; i < length0; i++)
+                for (int j = 0; j < length1; j++)
+                    result[i, j] = converter(array[i, j]);
+
+            return result;
+        }
+
+        public static bool CheckForDuplicates(List<GeometryBase> geo)
+        {
+
+            bool equal = false;
+
+            for (int i = 0; i < geo.Count - 1; i++)
+            {
+
+                for (int j = 0; j < geo.Count; j++)
+                {
+                    if (i != j)
+                    {
+
+                        equal = GeometryBase.GeometryEquals(geo[i], geo[j]);
+                        if (equal == true)
+                        {
+                            break;
+                        }
+                    }
+
+                }
+            }
+
+            return equal;
+        }
+
         public static List<int> GetEvalHoursFromLB(List<string> LBanalysis)
         {
             List<int> hoursToEvaluate = new List<int>();
@@ -956,12 +1017,12 @@ namespace EddyLib
             sb.AppendLine("from paraview.simple import *");
 
             // build strings
-                                 
+
             // building and ground
 
             sb.AppendLine(@"building = OpenDataFile(""" + Utilities.InsertDoubleBackslashes(baseWorkingDir) + @"mesh\\constant\\triSurface\\building.stl"")");
             sb.AppendLine(@"ground = OpenDataFile(""" + Utilities.InsertDoubleBackslashes(baseWorkingDir) + @"mesh\\constant\\triSurface\\ground.stl"")");
-                        
+
 
             foreach (int dir in dirs)
             {
@@ -974,7 +1035,7 @@ namespace EddyLib
 
             foreach (int dir in dirs)
             {
-                sb.AppendLine("Show(case_"+dir+@")");
+                sb.AppendLine("Show(case_" + dir + @")");
             }
 
             sb.AppendLine(@"from paraview.simple import *
@@ -1107,7 +1168,7 @@ renderView1.CameraParallelProjection = 1
 
             return sb.ToString();
 
-            
+
         }
 
         public static string GetParaviewPath(int version)
@@ -1442,17 +1503,98 @@ renderView1.CameraParallelProjection = 1
         }//EOC
 
         // <Custom additional code>
-        public static string[][] CreateMatrix(int rows, int columns)
+        public static object[][] CreateMatrix(int rows, int columns)
         {
-            string[][] matrix = new string[rows][];
+            object[][] matrix = new object[rows][];
 
             for (int i = 0; i < matrix.Length; i++)
             {
-                matrix[i] = new string[columns];
+                matrix[i] = new object[columns];
             }
 
             return matrix;
         }
+
+
+        public static void JaggedArray2CSV(double[][] data, string filePath)
+        {
+
+            //writing output to csv
+
+            using (StreamWriter outfile = new StreamWriter(filePath))
+            {
+                for (int x = 0; x < data.Length; x++)
+                {
+                    string content = "";
+                    for (int y = 0; y < data[x].Length; y++)
+                    {
+                        content += data[x][y].ToString() + ",";
+                    }
+                    //trying to write data to csv
+                    outfile.WriteLine(content);
+                }
+
+
+            }
+        }
+
+        public static void _2DArray2CSV(double[,] data, string filePath, bool truncateDoubles, int truncateBy = 1)
+        {
+
+            //writing output to csv
+
+            if (!truncateDoubles)
+            {
+
+                using (StreamWriter outfile = new StreamWriter(filePath))
+                {
+                    for (int x = 0; x < data.GetUpperBound(0); x++)
+                    {
+                        string content = "";
+                        // +1 because it didn't return the correct number of point and I don't know why
+                        for (int y = 0; y < data.GetUpperBound(1)+1; y++)
+                        {
+                            content += data[x, y].ToString() + ",";
+                        }
+                        //trying to write data to csv
+                        outfile.WriteLine(content);
+                    }
+
+
+                }
+
+            }
+            else
+            {
+                using (StreamWriter outfile = new StreamWriter(filePath))
+                {
+                    for (int x = 0; x < data.GetUpperBound(0); x++)
+                    {
+                        string content = "";
+                        // +1 because it didn't return the correct number of point and I don't know why
+                        for (int y = 0; y < data.GetUpperBound(1)+1; y++)
+                        {
+                            content += Math.Round(data[x, y]).ToString() + ",";
+                        }
+                        //trying to write data to csv
+                        outfile.WriteLine(content);
+                    }
+
+
+                }
+            }
+        }
+
+            public static object[][] CSV2JaggedArray(String filePath)
+        {
+
+
+            object[][] data = File.ReadLines(filePath).Select(x => x.Split(',')).ToArray();
+
+            return data;
+        }
+
+
         public static void DownLoadFile(string URL, string FilePath)
         {
             WebClient webClient = new WebClient();

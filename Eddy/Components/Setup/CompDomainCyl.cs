@@ -83,7 +83,7 @@ namespace Eddy
             //DOMAIN GEOMETRY
             List<IGH_GeometricGoo> geoGooDomain = new List<IGH_GeometricGoo>();
             DA.GetDataList("Geometry", geoGooDomain);
-            List<GeometryBase> domain = new List<GeometryBase>();
+            List<GeometryBase> buildings = new List<GeometryBase>();
 
 
             foreach (IGH_GeometricGoo g in geoGooDomain)
@@ -92,7 +92,7 @@ namespace Eddy
                 {
                     if (g.CastTo<GeometryBase>(out GeometryBase gb))
                     {
-                        domain.Add(gb);
+                        buildings.Add(gb);
                     }
 
 
@@ -118,6 +118,15 @@ namespace Eddy
             }
 
 
+            if (Utilities.CheckForDuplicates(buildings))
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Duplicate Geometries might lead to a crashing simulation. Please find duplicates with ""SelDup"" and remove them.");
+            }
+
+            if (Utilities.CheckForDuplicates(terrain))
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Duplicate Geometries might lead to a crashing simulation. Please find duplicates with ""SelDup"" and remove them.");
+            }
 
 
             BoundaryConditions bCond = new BoundaryConditions(BoundaryType.abl, new List<int>() { 0 }, 5, 1, ""); // sets default BC settings            
@@ -192,7 +201,7 @@ namespace Eddy
 
 
 
-            foreach (GeometryBase b in domain)
+            foreach (GeometryBase b in buildings)
             {
 
                 if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)

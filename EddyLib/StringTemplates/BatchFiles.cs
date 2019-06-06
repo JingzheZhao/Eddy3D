@@ -592,7 +592,7 @@ namespace EddyLib.StrTemp
         {
             string workDir = MeshSettings.baseWorkingDir.Trim('\\');
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallRay.exe\" " + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCond.weather + "\"");
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallRay.exe\" " + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCond.epwFilePath + "\"");
 #if DEBUG
 
             sb.AppendLine("PAUSE");
@@ -655,7 +655,7 @@ namespace EddyLib.StrTemp
             StringBuilder sb = new StringBuilder();
             //sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallProbes.exe\" "+ "-w " + "\"" +workDir + "\" " + "-p " + "\"" + workDir + @"\Rad\sensors.pts" + "\"" + " -d " + dirs + " -m 1");
             //sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallRay.exe\" "  + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCInflow.weather + "\"");
-            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallOC.exe\" " + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCond.weather + "\" " + dif + " " + dir + " " + o + " " + u);
+            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallOC.exe\" " + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCond.epwFilePath + "\" " + dif + " " + dir + " " + o + " " + u);
 
 #if DEBUG
             sb.Append(" -b 0,0;");

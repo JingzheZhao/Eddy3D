@@ -79,10 +79,10 @@ namespace Eddy
             DA.GetData(2, ref zref);
             DA.GetData(3, ref z0);
             DA.GetData(4, ref zGround);
-            string weather = "";
-            DA.GetData(5, ref weather);
+            string epwFilePath = "";
+            DA.GetData(5, ref epwFilePath);
 
-            if (weather == "")
+            if (epwFilePath == "")
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Without a weather file (.epw) connected you will not be able to perform outdoor comfort calculations.");
             }
@@ -102,7 +102,7 @@ namespace Eddy
             }
 
 
-            BoundaryConditions BCInflow = new BoundaryConditions(BoundaryType.abl, windDir, Uref, zref, z0, zGround, weather);
+            BoundaryConditions BCInflow = new BoundaryConditions(BoundaryType.abl, windDir, Uref, zref, z0, zGround, epwFilePath);
 
             // Check if anything causes a 0 BC
 
