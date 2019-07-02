@@ -21,7 +21,6 @@ namespace EddyLib
         //static public string hardcodedAssemblyDir = @"C:\Users\pkastner\Documents\GitHub\WindTunnel\Eddy\bin\";
 
 
-
         public static string AssemblyVersion
         {
             get
@@ -241,9 +240,9 @@ namespace EddyLib
                   String strInputText = argument;
                   sw.WriteLine(strInputText);
 
-          // Window doesn't close with 
-          //sw.Flush();
-      });
+                  // Window doesn't close with 
+                  //sw.Flush();
+              });
 
 
             Thread th = new Thread(ths);
@@ -484,6 +483,13 @@ namespace EddyLib
             return output;
         }
 
+        public static string GetFileNameWithHighestEnumerator(string folder)
+        {
+            var path = Directory.GetFiles(folder, "*.dat").Select(fn => new FileInfo(fn)).OrderBy(f => f.Name).Last();
+            return path.ToString();
+
+        }
+
 
         public static int GetLastIterationFromDirectory(string simWorkingDirectory)
         {
@@ -514,6 +520,22 @@ namespace EddyLib
         }
 
 
+
+        public static Point3d[] Probes2Point3D(double[][] input)
+        {
+            int numberOfProbes = input.Count();
+
+            var outputList = new Point3d[numberOfProbes];
+
+            for (int i = 0; i < numberOfProbes; i++)
+            {
+
+                outputList[i] = new Point3d(input[i][0], input[i][1], input[i][2]);
+            }
+
+            return outputList;
+
+        }
 
         public static int CPUAutoCalc(string meshWorkingDirectory, int CPUSetByUser)
         {
@@ -1538,6 +1560,37 @@ renderView1.CameraParallelProjection = 1
             }
         }
 
+        public static double[,] TransposeRowsAndColumns(double[,] arr)
+        {
+            int rowCount = arr.GetLength(0);
+            int columnCount = arr.GetLength(1);
+            double[,] transposed = new double[columnCount, rowCount];
+            if (rowCount == columnCount)
+            {
+                transposed = (double[,])arr.Clone();
+                for (int i = 1; i < rowCount; i++)
+                {
+                    for (int j = 0; j < i; j++)
+                    {
+                        double temp = transposed[i, j];
+                        transposed[i, j] = transposed[j, i];
+                        transposed[j, i] = temp;
+                    }
+                }
+            }
+            else
+            {
+                for (int column = 0; column < columnCount; column++)
+                {
+                    for (int row = 0; row < rowCount; row++)
+                    {
+                        transposed[column, row] = arr[row, column];
+                    }
+                }
+            }
+            return transposed;
+        }
+
         public static void _2DArray2CSV(double[,] data, string filePath, bool truncateDoubles, int truncateBy = 1)
         {
 
@@ -1548,11 +1601,11 @@ renderView1.CameraParallelProjection = 1
 
                 using (StreamWriter outfile = new StreamWriter(filePath))
                 {
-                    for (int x = 0; x < data.GetUpperBound(0); x++)
+                    for (int x = 0; x <= data.GetUpperBound(0); x++)
                     {
                         string content = "";
-                        // +1 because it didn't return the correct number of point and I don't know why
-                        for (int y = 0; y < data.GetUpperBound(1)+1; y++)
+
+                        for (int y = 0; y <= data.GetUpperBound(1); y++)
                         {
                             content += data[x, y].ToString() + ",";
                         }
@@ -1568,13 +1621,13 @@ renderView1.CameraParallelProjection = 1
             {
                 using (StreamWriter outfile = new StreamWriter(filePath))
                 {
-                    for (int x = 0; x < data.GetUpperBound(0); x++)
+                    for (int x = 0; x <= data.GetUpperBound(0); x++)
                     {
                         string content = "";
-                        // +1 because it didn't return the correct number of point and I don't know why
-                        for (int y = 0; y < data.GetUpperBound(1)+1; y++)
+
+                        for (int y = 0; y <= data.GetUpperBound(1); y++)
                         {
-                            content += Math.Round(data[x, y]).ToString() + ",";
+                            content += Math.Round(data[x, y], truncateBy).ToString() + ",";
                         }
                         //trying to write data to csv
                         outfile.WriteLine(content);
@@ -1585,7 +1638,7 @@ renderView1.CameraParallelProjection = 1
             }
         }
 
-            public static object[][] CSV2JaggedArray(String filePath)
+        public static object[][] CSV2JaggedArray(String filePath)
         {
 
 

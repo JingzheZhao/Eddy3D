@@ -50,11 +50,12 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Res", "Res", "Res", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Result", "Res", "Result", GH_ParamAccess.item);
             //pManager.AddIntegerParameter("windDirs", "windDirs", "windDirs", GH_ParamAccess.list);
-            //pManager.AddTextParameter("pointName", "pointName", "pointName", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("Hour", "Hour", "Hour", GH_ParamAccess.item);
-            pManager.AddVectorParameter("U", "U", "U", GH_ParamAccess.list);
+            pManager.AddPointParameter("Probes", "Probes", "Probes", GH_ParamAccess.list);
+            //pManager.AddIntegerParameter("Hour", "Hour", "Hour", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Wind Factors", "WF", "WF", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Mean Radiant Temperature", "MRT", "MRT", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item);
 
 
@@ -65,8 +66,8 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
-            pManager.AddGenericParameter("MRT", "MRT", "MRT", GH_ParamAccess.tree);
+            pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.item);
+            //pManager.AddGenericParameter("MRT", "MRT", "MRT", GH_ParamAccess.tree);
         }
 
         /// <summary>
@@ -80,86 +81,72 @@ namespace Eddy
             OFResult RES = null;
             DA.GetData(0, ref RES);
 
-
-
             // Hour of the year
-            int hour = 0;
-            DA.GetData(1, ref hour);
+            //int hour = 0;
+            //DA.GetData(1, ref hour);
 
 
-            List<Vector3d> velocityProbes = new List<Vector3d>();
-            DA.GetDataList(2, velocityProbes);
 
 
             bool run = false;
             DA.GetData("Run", ref run);
-            if (!run)
+
+            UTCI utci = null;
+
+            if (run)
             {
-                return;
-            }
-                       
+                Console.WriteLine("Load weather data...");
 
-            Console.WriteLine("Load weather data...");
+                //Weather data...
 
-            //Weather data...
+                Weather weather = new Weather();
+                weather.LoadWeatherData(RES.Domain.BCond.epwFilePath);
 
-            Weather weather = new Weather();
-            weather.LoadWeatherData(RES.Domain.BCond.epwFilePath);
+                WindFactors windFactors = null;
+                DA.GetData("WF", ref windFactors);
 
+                int sensorPointCount = windFactors.windFactors.Length;
+                double[,] Utci = new double[8760, sensorPointCount];
+                //double[,] conditionOfPerson = new double[8760, sensorPointCount];
 
-            //  Load radiation datasets
-            //  [x][]  time
-            //  [][x]  points
-
-            Console.WriteLine("Loading: Radiation data...");
-
-            var DiffRad = RadianceFiles.loadILL(RES.WorkingDirectory+ @"\Rad\CallRay.dif.ill");
-            var DirRad = RadianceFiles.loadILL(RES.WorkingDirectory + @"\Rad\CallRay.dir.ill");
-                        
-
-            int sensorPointCount = DiffRad[0].Length;
-            double[,] Utci = new double[1, sensorPointCount];
-            //double[,] conditionOfPerson = new double[8760, sensorPointCount];
-            
-
-            Console.WriteLine("Loading: Wind data");
-            
-            //var windDirList = new List<double> { 0, 45, 90, 135, 180, 225, 270, 315 };
-            //var windDirList = new List<double>();// { 0, 45, 90, 135, 180, 225, 270, 315 };
-            //List<int> windDirList = options.windDirs;
+                Console.WriteLine("Loading: Wind data");
 
 
-            var windDirList = RES.Domain.BCond.windDirs;   
-            var numberOfWindDirs = windDirList.Count;
+                var windDirList = RES.Domain.BCond.windDirs;
+                var numberOfWindDirs = windDirList.Count;
 
-
-            // load Reduction data
-            // -----------------
+                var probes = new List<Point3d>();
+                DA.GetDataList("Probes", probes);
 
 
 
-            
-            // Parse ABL data from simulation directory                    
 
-            double URef = RES.Domain.BCond.URef;
-            double zref = RES.Domain.BCond.zref;
-            double z0 = RES.Domain.BCond.z0;
-
-          
-
-            Console.WriteLine("Starting UTCI calc...");
-
-            // UTCI here
+                //var windDirList = new List<double> { 0, 45, 90, 135, 180, 225, 270, 315 };
+                //var windDirList = new List<double>();// { 0, 45, 90, 135, 180, 225, 270, 315 };
+                //List<int> windDirList = options.windDirs;
 
 
-            var UtciList = new List<double>();
-            var MRTList = new List<double>();
 
-          
-            for (int p = 0; p< velocityProbes.Count; p++)
-            {
-                var mrt = MRT.GetMRTForPointViaKessling(weather, hour, DiffRad[hour][p], DirRad[hour][p])[0];
-                var utci = UTCI.CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], velocityProbes[p].Length, mrt);
+
+                // Loading MRT data
+
+                MRT mrt = null;
+                DA.GetData("MRT", ref mrt);
+
+
+                // load Reduction data
+                // -----------------
+
+                Console.WriteLine("Starting UTCI calc...");
+
+                // UTCI here
+
+
+
+
+
+                utci = new UTCI(probes.ToArray(), windFactors, weather, mrt, RES.Domain.BCond, RES.WorkingDirectory);
+
 
                 if (GH_Document.IsEscapeKeyDown())
                 {
@@ -168,19 +155,17 @@ namespace Eddy
                 }
 
 
-                MRTList.Add(mrt);
-                UtciList.Add(utci);
+
             }
 
-            DA.SetDataList(0, UtciList);
-            DA.SetDataList(1, MRTList);
+
+            if (utci != null)
+            {
+                DA.SetData(0, utci.Values);
+            }
 
 
         }
-
-
-
-
 
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface.

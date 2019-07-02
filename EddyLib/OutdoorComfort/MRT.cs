@@ -23,33 +23,38 @@ namespace EddyLib
         }
 
         public double[,] Values;
-        public MRT(Weather weather, MRTType type, double[][] DiffRad, double[][] DirRad, Point3d[] probes)
+        public MRT(Weather weather, MRTType type, double[][] DiffRad, double[][] DirRad, Point3d[] probes, bool calc)
         {
-            var numberOfProbes = probes.Length;
 
-            this.Values = new double[8760, numberOfProbes];
+            // If calc = false, the values must be set from the csv or external data
 
-            // Parallel.For 8761 is exclusive
-            System.Threading.Tasks.Parallel.For(0, 8761, h =>
+            if (calc)
+            {
+                var numberOfProbes = probes.Length;
 
+                this.Values = new double[8760, numberOfProbes];
+
+                System.Threading.Tasks.Parallel.For(0, 8760, h =>
+
+                     {
+                         for (int p = 0; p < numberOfProbes; p++)
+
+                             if (type == MRTType.kessling)
                              {
-                                 for (int p = 0; p < numberOfProbes; p++)
+                                 this.Values[h, p] = GetMRTForPointViaKessling(weather, h, DiffRad[h][p], DirRad[h][p])[0];
+                             }
 
-                                     if (type == MRTType.kessling)
-                                     {
-                                         this.Values[h, p] = GetMRTForPointViaKessling(weather, h, DiffRad[h][p], DirRad[h][p])[0];
-                                     }
-
-                             });
+                     });
+            }
         }
 
         public static double[] GetMRTForPointViaKessling(Weather weather, int hour, double DiffRad, double DirRad)
         {
             // Deconstruct Weather 
 
-            if (hour > 8760)
+            if (hour > 8759)
             {
-                throw new System.ArgumentException(@"Calculation of MRT for hours > 8760 not possible.");
+                throw new System.ArgumentException(@"Calculation of MRT for hours > 8759 not possible.");
             }
 
 

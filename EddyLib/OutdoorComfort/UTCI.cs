@@ -13,12 +13,7 @@ namespace EddyLib
     public class UTCI
 
     {
-
-
-
-      //  public static object Options { get; private set; }
-
-
+        //  public static object Options { get; private set; }
 
         //Outputs
 
@@ -33,35 +28,30 @@ namespace EddyLib
 
         // Inputs
 
-        public double[][] probes;
-        double[,] windReduction;
-        double[][] DiffRad;
-        double[][] DirRad;
+        public Point3d[] probes;
+        double[,] windReduction;      
         double z0;
         double zref;
 
 
-        public UTCI(double[][] probes, int numberOfHours, Weather weather, double[][] DirRad, double[][] DiffRad, double[,] windReduction, double z0, double zref)
+        public UTCI(Point3d[] pointProbes, WindFactors wf, Weather weather, MRT mrt, BoundaryConditions bcond, string workingDir)
         {
-
-            this.probes = probes;
-            this.windReduction = windReduction;
-            this.z0 = z0;
-            this.zref = zref;
-            this.DiffRad = DiffRad;
-            this.DirRad = DirRad;
+                                 
+            this.probes = pointProbes;
+            this.windReduction = wf.windFactors;
+            this.z0 = bcond.z0;
+            this.zref = bcond.zref;           
 
 
+            int numberOfHours = 8760;
+            int sensorPointCount = pointProbes.Length;
 
-            int sensorPointCount = probes.Length;
-
+                                          
 
             var sw = new Stopwatch();
             sw.Start();
 
             int cnt = 0;
-
-
 
             this.uncertaintyMRTArray = new bool[numberOfHours, sensorPointCount];
             this.uncertaintyWindArray = new bool[numberOfHours, sensorPointCount];
@@ -74,69 +64,60 @@ namespace EddyLib
 
             using (var progress = new ASCIIProgressBar())
             {
-
-                //for (int j = 0; j < sensorPointCount; j++)
-                //{
-
-                Parallel.For(0, sensorPointCount,
-              probe =>
-              {
-                  cnt++;
-                  progress.Report((double)cnt / sensorPointCount);
-
-                  var currentProbingPoint = new Point3d(probes[probe][0], probes[probe][1], probes[probe][2]);
-                  var probingHeight = currentProbingPoint.Z;
-
-                  for (int hour = 0; hour < numberOfHours; hour++)
-                  {
-
-                      tempuncertaintyWindArray[hour, probe] = false;
-                      tempuncertaintyMRTArray[hour, probe] = false;
-
-                      // Check for extreme mrts
-
-                      double mrt = MRT.GetMRTForPointViaKessling(weather, hour, DiffRad[hour][probe], DirRad[hour][probe])[0];
-
-                      if (mrt < weather.DryBulbTemp[hour] - 30)
+                Parallel.For(0, sensorPointCount, probe =>
                       {
-                          mrt = 30;
-                          tempuncertaintyMRTArray[hour, probe] = true;
-                      }
-                      if (mrt > weather.DryBulbTemp[hour] + 70)
-                      {
-                          mrt = 70;
-                          tempuncertaintyMRTArray[hour, probe] = true;
-                      }
+                          cnt++;
+                          progress.Report((double)cnt / sensorPointCount);
 
-                      // Check for extreme windspeeds
+                          var currentProbingPoint = pointProbes[probe];
+                          var probingHeight = currentProbingPoint.Z;
 
-                      double resultingWindSpeedforUTCI = windReduction[hour, probe] * WindFactors.GetVelocityAtProbingHeightFromEPW(weather.WindSpeed[hour], z0, zref, probingHeight);
+                          for (int hour = 0; hour < numberOfHours; hour++)
+                          {
 
-                      if (windReduction[hour, probe] * WindFactors.GetVelocityAtProbingHeightFromEPW(weather.WindSpeed[hour], z0, zref, probingHeight) > 17)
-                      {
-                          resultingWindSpeedforUTCI = 17;
-                          tempUtci[hour, probe] = UTCI.CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI, mrt);
-                          tempuncertaintyWindArray[hour, probe] = true;
-                      }
-                      else if (resultingWindSpeedforUTCI < 0.5)
-                      {
-                          resultingWindSpeedforUTCI = 0.5;
-                          tempUtci[hour, probe] = UTCI.CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI, mrt);
-                          tempuncertaintyWindArray[hour, probe] = true;
-                      }
-                      else
-                      {
-                          tempUtci[hour, probe] = UTCI.CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI, mrt);
-                      }
+                              tempuncertaintyWindArray[hour, probe] = false;
+                              tempuncertaintyMRTArray[hour, probe] = false;
 
+                              // Check for extreme mrts 
 
+                              double tempMRT = 0;
 
-                      this.Condition[hour, probe] = CalcConditionOfPerson(tempUtci[hour, probe]);
+                              if (mrt.Values[hour, probe] < weather.DryBulbTemp[hour] - 30)
+                              {
+                                  tempMRT = 30;
+                                  tempuncertaintyMRTArray[hour, probe] = true;
+                              }
+                              if (mrt.Values[hour, probe] > weather.DryBulbTemp[hour] + 70)
+                              {
+                                  tempMRT = 70;
+                                  tempuncertaintyMRTArray[hour, probe] = true;
+                              }
 
-                  }
-                  // Console.WriteLine("Sensor " + j + " done.");
-                  //  }
-              });
+                              // Check for extreme windspeeds
+
+                              double resultingWindSpeedforUTCI = windReduction[hour, probe] * WindFactors.GetVelocityAtProbingHeightFromEPW(weather.WindSpeed[hour], z0, zref, probingHeight);
+
+                              if (windReduction[hour, probe] * WindFactors.GetVelocityAtProbingHeightFromEPW(weather.WindSpeed[hour], z0, zref, probingHeight) > 17)
+                              {
+                                  resultingWindSpeedforUTCI = 17;
+                                  tempUtci[hour, probe] = UTCI.CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI, tempMRT);
+                                  tempuncertaintyWindArray[hour, probe] = true;
+                              }
+                              else if (resultingWindSpeedforUTCI < 0.5)
+                              {
+                                  resultingWindSpeedforUTCI = 0.5;
+                                  tempUtci[hour, probe] = UTCI.CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI, tempMRT);
+                                  tempuncertaintyWindArray[hour, probe] = true;
+                              }
+                              else
+                              {
+                                  tempUtci[hour, probe] = UTCI.CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI, tempMRT);
+                              }
+
+                              this.Condition[hour, probe] = CalcConditionOfPerson(tempUtci[hour, probe]);
+                          }
+
+                      });
 
                 this.Values = tempUtci;
                 uncertaintyMRTArray = tempuncertaintyMRTArray;
@@ -147,10 +128,6 @@ namespace EddyLib
             Console.WriteLine(Utilities.ConvertComputeTimes(sw.ElapsedMilliseconds));
             this.elapsedTime = sw.ElapsedMilliseconds;
         }
-
-
-
-
 
         public static double CalcUTCI(double TaC, double RH, double Wsp, double mrt)
         {
@@ -177,13 +154,9 @@ namespace EddyLib
              Additions made by Timur Dogan, Cornell AAP, ESL.
 
              */
-
-
             double utci_temp = 0;
 
-
-
-
+            #region utci_equation
             utci_temp = TaC + (6.07562052 * Math.Pow(10, -1)) +
               (-2.27712343 * Math.Pow(10, -2)) * TaC + (8.06470249 * Math.Pow(10, -4)) * TaC * TaC + (-1.54271372 * Math.Pow(10, -4)) * TaC * TaC * TaC + (-3.24651735 * Math.Pow(10, -6)) * TaC * TaC * TaC * TaC +
               (7.32602852 * Math.Pow(10, -8)) * TaC * TaC * TaC * TaC * TaC + (1.35959073 * Math.Pow(10, -9)) * TaC * TaC * TaC * TaC * TaC * TaC + (-2.2583652) * v + (8.80326035 * Math.Pow(10, -2)) * TaC * v + (2.16844454 * Math.Pow(10, -3)) * TaC * TaC * v +
@@ -238,6 +211,7 @@ namespace EddyLib
               (-6.80434415 * Math.Pow(10, -6)) * v * DMRT * Pa * Pa * Pa * Pa + (-9.77675906 * Math.Pow(10, -6)) * DMRT * DMRT * Pa * Pa * Pa * Pa + (8.82773108 * Math.Pow(10, -2)) * Pa * Pa * Pa * Pa * Pa + (-3.01859306 * Math.Pow(10, -3)) * TaC * Pa * Pa * Pa * Pa * Pa +
               (1.04452989 * Math.Pow(10, -3)) * v * Pa * Pa * Pa * Pa * Pa + (2.47090539 * Math.Pow(10, -4)) * DMRT * Pa * Pa * Pa * Pa * Pa + (1.48348065 * Math.Pow(10, -3)) * Pa * Pa * Pa * Pa * Pa * Pa
               ;
+            #endregion
 
             return utci_temp;
 
@@ -268,9 +242,6 @@ namespace EddyLib
 
 
         }
-
-
-
 
         public static double[] ReadComfortHoursFromCSV(string baseWorkingDir, List<int> hoursToEvaluate)
         {
@@ -395,7 +366,7 @@ namespace EddyLib
 
 
 
-        public static void UTCI2CSV(string workingDir, UTCI UTCI,  bool verboseMode,  int[] debugValue, Weather weather,  BoundaryConditions BCond, StringBuilder errorLog,  int numberOfHours = 8760)
+        public static void UTCI2CSV(string workingDir, UTCI utci, bool verboseMode, int[] debugValue, Weather weather, BoundaryConditions BCond, StringBuilder errorLog, int numberOfHours = 8760)
         {
 
 
@@ -405,7 +376,7 @@ namespace EddyLib
 
 
 
-            int sensorPointCount = UTCI.probes.Length;
+            int sensorPointCount = utci.probes.Length;
 
 
             //Write Array to file
@@ -414,7 +385,7 @@ namespace EddyLib
             {
                 for (int i = 0; i < numberOfHours; i++)
                 {
-                    sbUtci.Append(String.Format("{0:0.0}", UTCI.Values[i, j]) + ",");
+                    sbUtci.Append(String.Format("{0:0.0}", utci.Values[i, j]) + ",");
                 }
                 sbUtci.AppendLine("");
             }
@@ -434,7 +405,7 @@ namespace EddyLib
                 for (int i = 0; i < numberOfHours; i++)
                 {
 
-                    if (UTCI.uncertaintyMRTArray[i, probe] == true || UTCI.uncertaintyWindArray[i, probe] == true)
+                    if (utci.uncertaintyMRTArray[i, probe] == true || utci.uncertaintyWindArray[i, probe] == true)
                     {
                         cntSensorPercent++;
                     }
@@ -445,7 +416,7 @@ namespace EddyLib
                 //Hours for each sensorpoint
                 for (int hour = 0; hour < numberOfHours; hour++)
                 {
-                    if (UTCI.uncertaintyMRTArray[hour, probe] == true || UTCI.uncertaintyWindArray[hour, probe] == true)
+                    if (utci.uncertaintyMRTArray[hour, probe] == true || utci.uncertaintyWindArray[hour, probe] == true)
                     {
 
 
@@ -466,7 +437,7 @@ namespace EddyLib
             sbUtciDEBUG.AppendLine(@"UTCI for sensor point " + debugValue[1] + " over all hours of the year:");
 
 
-            var currentProbingPoint = new Point3d(UTCI.probes[debugValue[1]][0], UTCI.probes[debugValue[1]][1], UTCI.probes[debugValue[1]][2]);
+            var currentProbingPoint = new Point3d(utci.probes[debugValue[1]][0], utci.probes[debugValue[1]][1], utci.probes[debugValue[1]][2]);
             var probingHeight = currentProbingPoint.Z;
 
             // debugValue[0] = hour
@@ -475,12 +446,12 @@ namespace EddyLib
             for (int hour = 0; hour < numberOfHours; hour++)
             {
 
-                sbUtciDEBUG.Append(String.Format("{0:0.0}", UTCI.Values[hour, debugValue[1]]) + ",");
+                sbUtciDEBUG.Append(String.Format("{0:0.0}", utci.Values[hour, debugValue[1]]) + ",");
             }
             sbUtciDEBUG.Append(Environment.NewLine); sbUtciDEBUG.Append(Environment.NewLine);
             sbUtciDEBUG.AppendLine("Detailed Values for sensor point " + debugValue[1] + " at hour " + debugValue[0] + ":");
             sbUtciDEBUG.AppendLine("Air temperature: " + weather.DryBulbTemp[debugValue[0]]);
-            sbUtciDEBUG.AppendLine("MRT: " + String.Format("{0:0.0}", MRT.GetMRTForPointViaKessling(weather, debugValue[0], UTCI.DiffRad[debugValue[0]][debugValue[1]], UTCI.DirRad[debugValue[0]][debugValue[1]])[0]));
+            //sbUtciDEBUG.AppendLine("MRT: " + String.Format("{0:0.0}", mrt.Values[debugValue[0]][debugValue[1]]);
             sbUtciDEBUG.AppendLine("Vapour pressure: " + weather.Pressure[debugValue[0]]);
             sbUtciDEBUG.AppendLine("Relative humidity: " + weather.RelativeHumidity[debugValue[0]]);
 
@@ -488,10 +459,10 @@ namespace EddyLib
             sbUtciDEBUG.AppendLine("Wind speed from .epw: " + String.Format("{0:0.0}", weather.WindSpeed[debugValue[0]]));
             //sbUtciDEBUG.AppendLine("probingHeight from CFD: " + String.Format("{0:0.0}", probingHeight));
             sbUtciDEBUG.AppendLine("Scaled-down wind velocity from .epw: " + String.Format("{0:0.0}", WindFactors.GetVelocityAtProbingHeightFromEPW(weather.WindSpeed[debugValue[0]], BCond.z0, BCond.zref, probingHeight)));
-            sbUtciDEBUG.AppendLine("Wind reduction from CFD: " + String.Format("{0:0.0}", UTCI.windReduction[debugValue[0], debugValue[1]]));
-            sbUtciDEBUG.AppendLine("Resulting wind velocity for UTCI calculation: " + String.Format("{0:0.0}", UTCI.windReduction[debugValue[0], debugValue[1]] * WindFactors.GetVelocityAtProbingHeightFromEPW(weather.WindSpeed[debugValue[0]], BCond.z0, BCond.zref, probingHeight)));
+            sbUtciDEBUG.AppendLine("Wind reduction from CFD: " + String.Format("{0:0.0}", utci.windReduction[debugValue[0], debugValue[1]]));
+            sbUtciDEBUG.AppendLine("Resulting wind velocity for UTCI calculation: " + String.Format("{0:0.0}", utci.windReduction[debugValue[0], debugValue[1]] * WindFactors.GetVelocityAtProbingHeightFromEPW(weather.WindSpeed[debugValue[0]], BCond.z0, BCond.zref, probingHeight)));
 
-            sbUtciDEBUG.AppendLine("UTCI: " + String.Format("{0:0.0}", UTCI.Values[debugValue[0], debugValue[1]]));
+            sbUtciDEBUG.AppendLine("UTCI: " + String.Format("{0:0.0}", utci.Values[debugValue[0], debugValue[1]]));
             sbUtciDEBUG.AppendLine("");
             File.WriteAllText(workingDir + @"\UTCI_debug_hour_" + debugValue[0] + "_probe_" + debugValue[1] + ".csv", sbUtciDEBUG.ToString());
 #endif
@@ -520,7 +491,7 @@ namespace EddyLib
             return pa_temp;
         }
 
-        public static void UTCI_Binning(List<double> Vals, ref object StrngCold, ref object MdrtCold, ref object SlgtCold, ref object NoStress, ref object SlgtHeat, ref object MdrtHeat, ref object StrngHeat)
+        public static void Binning(List<double> Vals, ref object StrngCold, ref object MdrtCold, ref object SlgtCold, ref object NoStress, ref object SlgtHeat, ref object MdrtHeat, ref object StrngHeat)
         {
 
 
@@ -576,7 +547,7 @@ namespace EddyLib
 
         }
 
-        public static void UTCI_ConditionOfPerson(List<double> UTCI, ref object conditionOfPerson)
+        public static void ConditionOfPerson(List<double> UTCI, ref object conditionOfPerson)
         {
             List<double> rtl = new List<double>();
             double condition = 0;
@@ -620,7 +591,7 @@ namespace EddyLib
 
             conditionOfPerson = rtl;
         }
-        public static void UTCI_Colors(List<double> Vals, ref object Clrs)
+        public static void Colors(List<double> Vals, ref object Clrs)
         {
             List<Color> cl = new List<Color>();
 
@@ -977,8 +948,6 @@ namespace EddyLib
 
         //    return es;
         //}
-
-
 
 
     }

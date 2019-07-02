@@ -14,7 +14,7 @@ namespace CallOC
     {
         private static void Main(string[] args)
         {
-            // Check licence
+            //Check licence
 
             if (Utilities.CheckLicence() == true)
             {
@@ -110,12 +110,12 @@ namespace CallOC
 
 
                         int sensorPointCount = DiffRad[0].Length;
-                        
+
                         //double[,] conditionOfPerson = new double[8760, sensorPointCount];
 
 
 
-                       
+
                         Console.WriteLine("Loading: Wind data");
 
 
@@ -137,9 +137,8 @@ namespace CallOC
                         // load Reduction data
                         // -----------------
 
-
-                        var ReductionDataCSV = WindFactors.LoadWindReductionArrayFromCSV(options.WindReductionDataPath);
-                        var windReduction = WindFactors.GetWindReduction(ReductionDataCSV, numberOfHours, windDirList, weather);
+                        //var ReductionDataCSV = WindFactors.LoadWindReductionArrayFromCSV(options.WindReductionDataPath);
+                        //var windReduction = WindFactors.GetWindReduction(ReductionDataCSV, numberOfHours, windDirList, weather);
 
                         //// Importing probeHeight from probe file to scale U down to pedestrian level
                         Console.WriteLine("Parsing height of probes to scale down wind velocity from weather file.");
@@ -158,6 +157,9 @@ namespace CallOC
                         double zref = 10;
                         double z0 = 1;
 
+                        
+
+
                         try
                         {
                             var filePath = options.WorkingDir + "\\" + windDirList[0] + @"\0.org\ABLConditions";
@@ -167,33 +169,46 @@ namespace CallOC
                         }
                         catch (Exception e) { Console.WriteLine(e.Message); return; }
 
+                        BoundaryConditions bcond = new BoundaryConditions(BoundaryType.abl, windDirList, URef, z0, weather.epwFilePath);
 
+
+                        #region Wind Factors
+
+                        WindFactors wf = new WindFactors(options.WorkingDir, bcond, weather);
+
+                        #endregion
+
+
+                        #region MRT
+
+                        MRT mrt = new MRT(weather, MRT.MRTType.kessling, DiffRad, DirRad, Utilities.Probes2Point3D(probes), true);
+
+                        #endregion
+
+
+
+                        #region Calc UTCI                       
 
                         Console.WriteLine("Starting UTCI calc...");
 
-                        // UTCI here
 
-                    
-                       
-
+                        //var bcond = new BoundaryConditions(BoundaryType.constant, new List<int> { 0 }, 5, 1, options.Weather);
 
                         double[,] Utci = new double[numberOfHours, sensorPointCount];
+                        UTCI utci = new UTCI(Utilities.Probes2Point3D(probes), wf, weather,mrt, bcond, options.WorkingDir);
 
-                        UTCI utci = new UTCI(probes, numberOfHours, weather, DirRad, DiffRad, windReduction, z0, zref);
+                        #endregion
 
 
-                        
+                        #region Write UTCI
+
                         Console.WriteLine(Utilities.ConvertComputeTimes(utci.elapsedTime));
 
                         Console.WriteLine("Writing UTCI results...");
 
-                        
-
-                        var bcond = new BoundaryConditions(BoundaryType.constant, new List<int> { 0 }, 5, 1, options.Weather);
-
                         UTCI.UTCI2CSV(options.WorkingDir, utci, options.Verbose, debug, weather, bcond, errorLog, numberOfHours);
-                            
-                        
+                        #endregion
+
                         Console.WriteLine("Done");
 
                         //  Console.ReadKey();

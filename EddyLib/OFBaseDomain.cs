@@ -126,7 +126,8 @@ namespace EddyLib
         {
 
             // Spacing in meters between rays
-            double spacing = 2;
+            //Todo: checked this number how correct it is
+            double spacing = 10;
 
 
 

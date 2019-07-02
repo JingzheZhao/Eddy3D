@@ -20,7 +20,8 @@ using System.Threading.Tasks;
 
 namespace Eddy
 {
-    public class CompCalcMRT : GH_Component
+  
+    public class CompCalcWindFactors : GH_Component
     {
 
 
@@ -38,8 +39,8 @@ namespace Eddy
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public CompCalcMRT()
-          : base("CalcMRT", "CalcMRT", "PostProcessing", "Eddy", "6 | Outdoor Comfort")
+        public CompCalcWindFactors()
+          : base("Calculate WindFactors", "CalcWindFactors", "PostProcessing", "Eddy", "6 | Outdoor Comfort")
         {
         }
 
@@ -66,7 +67,7 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             //pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
-            pManager.AddGenericParameter("MRT", "MRT", "MRT", GH_ParamAccess.item);
+            pManager.AddGenericParameter("WF", "WF", "WF", GH_ParamAccess.item);
             // pManager.AddGenericParameter("MRT_T", "MRT_T", "MRT_T", GH_ParamAccess.tree);
         }
 
@@ -179,7 +180,7 @@ namespace Eddy
 
             var Matrix = new double[8760, numberOfProbes];
 
-            var csvMRT = RES.WorkingDirectory + @"MRT.csv";
+            var csvMRT = RES.WorkingDirectory + @"WindFactors.csv";
 
             MRT mrt = null;
 

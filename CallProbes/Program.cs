@@ -8,6 +8,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq;
+
 
 namespace CallProbes
 {
@@ -42,7 +44,9 @@ namespace CallProbes
 
                     var errorLogCalc = new StringBuilder();
 
-                    WindFactors.WriteWindReductionArrayToCSV(options.WindDirs, options.WorkingDir, options.Mode, options.Uref, options.Zref, options.Z0, options.Probes, options.Verbose, out errorLogCalc);
+                    BoundaryConditions bcond = new BoundaryConditions(BoundaryType.constant, options.WindDirs.Split(',').Select(Int32.Parse).ToList(), options.Uref, options.Z0, "");
+
+                    WindFactors.WriteWindReductionArrayToCSV(options.WindDirs, options.WorkingDir, bcond, options.Mode, options.Probes, options.Verbose, out errorLogCalc);
 
                     errorLog.Append(errorLogCalc);
 

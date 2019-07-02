@@ -14,7 +14,7 @@ namespace EddyLib
         public double[] RelativeHumidity;
         public double[] Pressure;
         public double[] WindSpeed;
-        public double[] WindDirection;
+        public int[] WindDirection;
         public double[] DirectNormalRadiation;
         public double[] DiffuseHorizontalRadiation;
 
@@ -61,7 +61,7 @@ namespace EddyLib
                 this.RelativeHumidity = epwNoHeader.Select(o => Double.Parse(o.Split(',')[8])).ToArray(); // Relative Humidity
                 this.Pressure = epwNoHeader.Select(o => Double.Parse(o.Split(',')[9])).ToArray(); // Barometric Pressure
                 this.WindSpeed = epwNoHeader.Select(o => Double.Parse(o.Split(',')[21])).ToArray(); // WindSpeed
-                this.WindDirection = epwNoHeader.Select(o => Double.Parse(o.Split(',')[20])).ToArray(); // Wind Direction
+                this.WindDirection = epwNoHeader.Select(o => Int32.Parse(o.Split(',')[20])).ToArray(); // Wind Direction
                 this.DirectNormalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[14])).ToArray(); // Direct Normal Radiation
                 this.DiffuseHorizontalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[15])).ToArray(); // Diffuse Horizontal Illuminance
                                                                                                                      //var GlobalHorizontalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[13])); // Global Horizontal Illuminance
