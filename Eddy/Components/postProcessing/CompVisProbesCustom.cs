@@ -68,7 +68,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public CompVisProbesCustom()
-          : base("VisProbes", "VisProbes", "PostProcessing", "Eddy", "5 | PostProcessing")
+          : base("Visualize Probes", "VisProbes", "PostProcessing", "Eddy", "5 | PostProcessing")
         {
         }
 
@@ -130,12 +130,12 @@ namespace Eddy
             else { Message = "No Culling"; }
 
 
-                      
+
 
 
             OFResult RES = null;
             DA.GetData(0, ref RES);
-                                  
+
 
 
             List<Point3d> listOfPoints = new List<Point3d>();
@@ -153,12 +153,12 @@ namespace Eddy
 
             //Probes.ReformatOFFields(OFFieldInt, out string OFField, out int fieldType);
 
-       
+
 
             if (Culling)
             {
                 //Discard points outside
-                listOfPoints = Utilities.DiscardPoints(listOfPoints, RES.Domain);                
+                listOfPoints = Utilities.DiscardPoints(listOfPoints, RES.Domain);
             }
 
             int numberOfProbes = listOfPoints.Count();
@@ -258,12 +258,12 @@ namespace Eddy
                             if (RES.RunSettings.simEngine == SimEngine.Docker)
                             {
                                 var arg = EddyLib.StrTemp.BatFiles.DockerPrefixPath(RES.Domain, RES.MeshSettings, RES.RunSettings, EddyLib.StrTemp.Mode.Simulation) + command;
-                                Utilities.StartProcessCMD(arg, false, true, false);
+                                Utilities.StartProcessCMDNT(arg, false, true, false, true);
                             }
                             else
                             {
                                 //Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString(), "type log" }, RES.WorkingDirectory), false, true, true);
-                                Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory), false, true, true);
+                                Utilities.StartProcessCMDNT(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory), false, true, false, true);
                             }
 
                         }
@@ -274,22 +274,23 @@ namespace Eddy
                         {
 
                             string currentCaseDir = RES.WorkingDirectory + "\\" + RES.Domain.BCond.windDirs[i];
-                            string pathToProbeFile = Probes.GetFullPathToProbedResults(currentCaseDir, currField);
+                            // Todo: This throws exception if the folder doesn't exit, meaning if it wasn't run yet. Second, it throws an exception if the folder exists but is empty. here, it also won't find the iteration path.
+                            string pathToProbeFile = Probing.GetIterationPathToProbedResults(currentCaseDir, currField);
                             if (File.Exists(pathToProbeFile))
                             {
 
-                               
-                                    Probes Numbers = new Probes(listOfPoints, currentCaseDir, currField);
-                                    // Create datatree
-                                    treeDouble.AddRange(Probes.FilterExtremeProbingValues(Numbers.ResultNum), new Grasshopper.Kernel.Data.GH_Path(i));
 
-                               
+                                Probing Numbers = new Probing(listOfPoints, currentCaseDir, currField);
+                                // Create datatree
+                                treeDouble.AddRange(Probing.FilterExtremeProbingValues(Numbers.ResultNum), new Grasshopper.Kernel.Data.GH_Path(i));
+
+
 
                             }
                             else
                             {
                                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The file  """ + pathToProbeFile + @""" does not exist. Please run the probing component.");
-
+                                return;
                             }
                         }
 
@@ -325,6 +326,7 @@ namespace Eddy
                             {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
                                 string path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + enumeratedProbeName;
                                 File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, currField));
+                                // Todo: check here if we need a semicolon to sepaate the command from the suffix
                                 command.AppendLine(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime");
                             }
                         }
@@ -334,12 +336,12 @@ namespace Eddy
                             if (RES.RunSettings.simEngine == SimEngine.Docker)
                             {
                                 var arg = EddyLib.StrTemp.BatFiles.DockerPrefixPath(RES.Domain, RES.MeshSettings, RES.RunSettings, EddyLib.StrTemp.Mode.Simulation) + command;
-                                Utilities.StartProcessCMD(arg , false, true, false);
+                                Utilities.StartProcessCMDNT(arg, false, true, false, true);
                             }
                             else
                             {
                                 // Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString(), "type log" }, RES.WorkingDirectory), false, true, true);
-                                Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory), false, true, true);
+                                Utilities.StartProcessCMDNT(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory), false, true, false, true);
                             }
                         }
                         //Thread.Sleep(2 * numberOfProbes);
@@ -348,17 +350,17 @@ namespace Eddy
                         {
 
                             string currentCaseDir = RES.WorkingDirectory + "\\" + RES.Domain.BCond.windDirs[i];
-                            string pathToProbeFile = Probes.GetFullPathToProbedResults(currentCaseDir, currField);
+                            string pathToProbeFile = Probing.GetIterationPathToProbedResults(currentCaseDir, currField);
                             if (File.Exists(pathToProbeFile))
                             {
 
-                            
 
-                                    Probes Vectors = new Probes(listOfPoints, currentCaseDir, currField);
-                                    // Create datatree
 
-                                    treeVector.AddRange(Vectors.ResultVec, new Grasshopper.Kernel.Data.GH_Path(i));
-                               
+                                Probing Vectors = new Probing(listOfPoints, currentCaseDir, currField);
+                                // Create datatree
+
+                                treeVector.AddRange(Vectors.ResultVec, new Grasshopper.Kernel.Data.GH_Path(i));
+
                             }
                             else
                             {

@@ -7,13 +7,14 @@ namespace EddyLib
 {
     public class Weather
     {
+        public string epwFilePath;
 
         public double[] DryBulbTemp;
         public double[] DewPointTemp;
         public double[] RelativeHumidity;
         public double[] Pressure;
         public double[] WindSpeed;
-        public double[] WindDirection;
+        public int[] WindDirection;
         public double[] DirectNormalRadiation;
         public double[] DiffuseHorizontalRadiation;
 
@@ -53,12 +54,14 @@ namespace EddyLib
                 // get hourly data
                 string[] epwNoHeader = epwData.Skip(8).Take(8760).ToArray(); // new ArraySegment<string>(epwData, 8, 8760).Array;//.ToArray();
 
+                this.epwFilePath = filePath;
+
                 this.DryBulbTemp = epwNoHeader.Select(o => Double.Parse(o.Split(',')[6])).ToArray(); // Dry Bulb Temperature
                 this.DewPointTemp = epwNoHeader.Select(o => Double.Parse(o.Split(',')[7])).ToArray(); // Dew Point Temperature
                 this.RelativeHumidity = epwNoHeader.Select(o => Double.Parse(o.Split(',')[8])).ToArray(); // Relative Humidity
                 this.Pressure = epwNoHeader.Select(o => Double.Parse(o.Split(',')[9])).ToArray(); // Barometric Pressure
                 this.WindSpeed = epwNoHeader.Select(o => Double.Parse(o.Split(',')[21])).ToArray(); // WindSpeed
-                this.WindDirection = epwNoHeader.Select(o => Double.Parse(o.Split(',')[20])).ToArray(); // Wind Direction
+                this.WindDirection = epwNoHeader.Select(o => Int32.Parse(o.Split(',')[20])).ToArray(); // Wind Direction
                 this.DirectNormalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[14])).ToArray(); // Direct Normal Radiation
                 this.DiffuseHorizontalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[15])).ToArray(); // Diffuse Horizontal Illuminance
                                                                                                                      //var GlobalHorizontalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[13])); // Global Horizontal Illuminance
@@ -146,9 +149,9 @@ namespace EddyLib
             for (int i = 1; i < txt.Length; i++)
             {
                 // Data is stored in column 1-3, column 0 is empty
-                if (Math.Abs(longitude - double.Parse(Matrix[i][1])) < delta && Math.Abs(latitude - double.Parse(Matrix[i][2])) < delta)
+                if (Math.Abs(longitude - Convert.ToDouble(Matrix[i][1])) < delta && Math.Abs(latitude - Convert.ToDouble(Matrix[i][2])) < delta)
                 {
-                    climateClass = Matrix[i][3];
+                    climateClass = Convert.ToString(Matrix[i][3]);
                 }
             }
             KC = climateClass;

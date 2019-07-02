@@ -194,7 +194,7 @@ plot '" + fullFilePath + @"' u($1):2 with lines title '" + field1 + "','" + full
 pause 3600; replot
 ";
 
-                        Utilities.StartProcessCMD(arg, true, false, true, @"C:\Program Files\gnuplot\bin\gnuplot.exe");
+                        Utilities.StartProcessCMDNT(arg, true, false, false, true, @"C:\Program Files\gnuplot\bin\gnuplot.exe");
 
 
                     }
@@ -223,7 +223,10 @@ pause 3600; replot
                     {
 
                         string p1 = RES.WorkingDirectory + dir + @"\postProcessing\residuals\";
-                        fullFilePath = p1 + Utilities.GetLastIterationFromDirectory(p1) + "\\" + @"\\residuals.dat";
+                        var fullDirectoryPath = p1 + Utilities.GetLastIterationFromDirectory(p1) + "\\";
+                        var fileName = Path.GetFileName(Utilities.GetFileNameWithHighestEnumerator(fullDirectoryPath));
+                        fullFilePath = fullDirectoryPath + fileName;
+
                         if (!File.Exists(fullFilePath))
                         {
                             AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "The residual file for wind direction " + dir + " does not exist.");
@@ -245,7 +248,7 @@ set output '" + RES.WorkingDirectory + @"residuals_" + dir + @".pdf'
 replot
 ";
 
-                        Utilities.StartProcessCMD(arg, true, false, true, @"C:\Program Files\gnuplot\bin\gnuplot.exe");
+                        Utilities.StartProcessCMDNT(arg, true, false, false, true, @"C:\Program Files\gnuplot\bin\gnuplot.exe");
 
 
                     }

@@ -547,6 +547,8 @@ libs
         }
         public static string FunctionObjCP(OFBaseDomain DOM, OFRunSettings RunSettings, List<Mesh> evaluationTopology, int d)
         {
+            BoundaryConditionsCP BCondCP = new BoundaryConditionsCP(DOM.zMaxBuilding, DOM.BCond);
+
             StringBuilder sb = new StringBuilder();
             sb.Append(@"pressureCoefficients
 {
@@ -555,9 +557,9 @@ libs
                     enabled yes;
                     writeControl timeStep;
                     writeInterval " + RunSettings.writeInterval + @";
-                    UInf (" + Math.Round(DOM.BCond.Uinf[d].X, 1) + " " + Math.Round(DOM.BCond.Uinf[d].Y, 1) + " " + Math.Round(DOM.BCond.Uinf[d].Z, 1) + @");     // the undistrubed velocity at building height
-                    pInf " + Math.Round(DOM.BCond.pinf, 1) + @";        // the dynamic undisturbed pressure at building height
-                    pRef " + Math.Round(DOM.BCond.pref, 1) + @";        // the dynamic pressure at reference height (usually 10 m)
+                    UInf (" + Math.Round(BCondCP.Uinf[d].X, 1) + " " + Math.Round(BCondCP.Uinf[d].Y, 1) + " " + Math.Round(BCondCP.Uinf[d].Z, 1) + @");     // the undistrubed velocity at building height
+                    pInf " + Math.Round(BCondCP.pinf, 1) + @";        // the dynamic undisturbed pressure at building height
+                    pRef " + Math.Round(BCondCP.pref, 1) + @";        // the dynamic pressure at reference height (usually 10 m)
                     rhoInf              1.2;
                     calcTotal yes;
                     calcCoeff yes;

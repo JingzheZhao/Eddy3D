@@ -9,6 +9,9 @@ using System.Net;
 using System.Reflection;
 using System.Threading;
 using Deedle;
+using Grasshopper;
+using Grasshopper.Kernel.Data;
+using System.Text;
 
 namespace EddyLib
 {
@@ -16,7 +19,6 @@ namespace EddyLib
     {
         //static public string hardcodedAssemblyDir = @"C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\";
         //static public string hardcodedAssemblyDir = @"C:\Users\pkastner\Documents\GitHub\WindTunnel\Eddy\bin\";
-
 
 
         public static string AssemblyVersion
@@ -257,24 +259,33 @@ namespace EddyLib
             p.StartInfo.FileName = executable;
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.RedirectStandardInput = true;
+            //p.StartInfo.RedirectStandardOutput = true;
             p.StartInfo.CreateNoWindow = createnowindow;
             //p.Start();
-            //StreamWriter sw = p.StandardInput;
-            //String strInputText = argument;
-            //sw.WriteLine(strInputText);
+
+            ThreadStart ths = new ThreadStart(() =>
+              {
+
+                  p.Start();
+
+                  StreamWriter sw = p.StandardInput;
+                  String strInputText = argument;
+                  sw.WriteLine(strInputText);
+
+                  // Window doesn't close with 
+                  //sw.Flush();
+              });
 
 
-            ThreadStart ths = new ThreadStart(() => p.Start());
             Thread th = new Thread(ths);
             th.Start();
 
 
-            ////sw.Flush();
-            //if (waitforexit)
-            //{
-            //    Console.ReadLine();
-            //    p.WaitForExit();
-            //}
+            if (waitforexit)
+            {
+                Console.ReadLine();
+                p.WaitForExit();
+            }
             if (close) { p.Close(); }
 
 
@@ -494,6 +505,23 @@ namespace EddyLib
             return output;
         }
 
+        public static string InsertDoubleBackslashes(string input)
+        {
+            string output;
+
+            output = input.Replace(@"\", @"\\");
+            output = output.Replace(@"\\\", @"\\");
+            output = output.Replace(@"\\\\", @"\\");
+            return output;
+        }
+
+        public static string GetFileNameWithHighestEnumerator(string folder)
+        {
+            var path = Directory.GetFiles(folder, "*.dat").Select(fn => new FileInfo(fn)).OrderBy(f => f.Name).Last();
+            return path.ToString();
+
+        }
+
 
         public static int GetLastIterationFromDirectory(string simWorkingDirectory)
         {
@@ -524,6 +552,22 @@ namespace EddyLib
         }
 
 
+
+        public static Point3d[] Probes2Point3D(double[][] input)
+        {
+            int numberOfProbes = input.Count();
+
+            var outputList = new Point3d[numberOfProbes];
+
+            for (int i = 0; i < numberOfProbes; i++)
+            {
+
+                outputList[i] = new Point3d(input[i][0], input[i][1], input[i][2]);
+            }
+
+            return outputList;
+
+        }
 
         public static int CPUAutoCalc(string meshWorkingDirectory, int CPUSetByUser)
         {
@@ -630,6 +674,17 @@ namespace EddyLib
 
         }
 
+        public static DataTree<T> ListOfListsToTree<T>(List<List<T>> list)
+        {
+            DataTree<T> tree = new DataTree<T>();
+            int i = 0;
+            foreach (List<T> innerList in list)
+            {
+                tree.AddRange(innerList, new GH_Path(new int[] { 0, i }));
+                i++;
+            }
+            return tree;
+        }
 
         public static List<string> FileReader(string filePath)
         {
@@ -864,6 +919,67 @@ namespace EddyLib
             return evalHours;
         }
 
+        public static T[,] To2D<T>(T[][] source)
+        {
+            try
+            {
+                int FirstDim = source.Length;
+                int SecondDim = source.GroupBy(row => row.Length).Single().Key; // throws InvalidOperationException if source is not rectangular
+
+                var result = new T[FirstDim, SecondDim];
+                for (int i = 0; i < FirstDim; ++i)
+                    for (int j = 0; j < SecondDim; ++j)
+                        result[i, j] = source[i][j];
+
+                return result;
+            }
+            catch (InvalidOperationException)
+            {
+                throw new InvalidOperationException("The given jagged array is not rectangular.");
+            }
+        }
+
+
+        public static TOutput[,] ConvertAll<TInput, TOutput>(TInput[,] array, Func<TInput, TOutput> converter)
+        {
+            int length0 = array.GetLength(0);
+            int length1 = array.GetLength(1);
+
+            var result = new TOutput[length0, length1];
+
+            for (int i = 0; i < length0; i++)
+                for (int j = 0; j < length1; j++)
+                    result[i, j] = converter(array[i, j]);
+
+            return result;
+        }
+
+        public static bool CheckForDuplicates(List<GeometryBase> geo)
+        {
+
+            bool equal = false;
+
+            for (int i = 0; i < geo.Count - 1; i++)
+            {
+
+                for (int j = 0; j < geo.Count; j++)
+                {
+                    if (i != j)
+                    {
+
+                        equal = GeometryBase.GeometryEquals(geo[i], geo[j]);
+                        if (equal == true)
+                        {
+                            break;
+                        }
+                    }
+
+                }
+            }
+
+            return equal;
+        }
+
         public static List<int> GetEvalHoursFromLB(List<string> LBanalysis)
         {
             List<int> hoursToEvaluate = new List<int>();
@@ -981,6 +1097,166 @@ namespace EddyLib
 
         }
 
+        public static string GetParaviewLoadScript(String baseWorkingDir, List<int> dirs)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            sb.AppendLine("from paraview.simple import *");
+
+            // build strings
+
+            // building and ground
+
+            sb.AppendLine(@"building = OpenDataFile(""" + Utilities.InsertDoubleBackslashes(baseWorkingDir) + @"mesh\\constant\\triSurface\\building.stl"")");
+            sb.AppendLine(@"ground = OpenDataFile(""" + Utilities.InsertDoubleBackslashes(baseWorkingDir) + @"mesh\\constant\\triSurface\\ground.stl"")");
+
+
+            foreach (int dir in dirs)
+            {
+                sb.AppendLine("case_" + dir + @" = OpenDataFile(""" + Utilities.InsertDoubleBackslashes(baseWorkingDir) + dir + @"\\" + dir + @".foam"")");
+            }
+
+
+            sb.AppendLine("Show(building)");
+            sb.AppendLine("Show(ground)");
+
+            foreach (int dir in dirs)
+            {
+                sb.AppendLine("Show(case_" + dir + @")");
+            }
+
+            sb.AppendLine(@"from paraview.simple import *
+#### disable automatic camera reset on 'Show'
+paraview.simple._DisableFirstRenderCameraReset()
+
+
+# find source
+sTLReader1 = FindSource('STLReader1')
+
+# find source
+sTLReader2 = FindSource('STLReader2')
+
+# get active source.
+openFOAMReader1 = GetActiveSource()
+
+# Properties modified on openFOAMReader1
+openFOAMReader1.CellArrays = ['U']
+
+# get active view
+renderView1 = GetActiveViewOrCreate('RenderView')
+# uncomment following to set a specific view size
+# renderView1.ViewSize = [2135, 550]
+
+# get display properties
+openFOAMReader1Display = GetDisplayProperties(openFOAMReader1, view = renderView1)
+
+# Properties modified on openFOAMReader1Display
+openFOAMReader1Display.SelectScaleArray = 'None'
+
+# get color transfer function/color map for 'p'
+pLUT = GetColorTransferFunction('p')
+
+# get opacity transfer function/opacity map for 'p'
+pPWF = GetOpacityTransferFunction('p')
+
+# Properties modified on openFOAMReader1Display
+openFOAMReader1Display.GlyphTableIndexArray = 'None'
+
+# Properties modified on openFOAMReader1Display
+openFOAMReader1Display.SetScaleArray = ['POINTS', 'U']
+
+# Properties modified on openFOAMReader1Display
+openFOAMReader1Display.OpacityArray = ['POINTS', 'U']
+
+# Properties modified on openFOAMReader1Display
+openFOAMReader1Display.OSPRayScaleArray = 'U'
+
+# get animation scene
+animationScene1 = GetAnimationScene()
+
+# update animation scene based on data timesteps
+animationScene1.UpdateAnimationUsingDataTimeSteps()
+
+# update the view to ensure updated data information
+renderView1.Update()
+
+# Properties modified on openFOAMReader1
+openFOAMReader1.Adddimensionalunitstoarraynames = 1
+
+# update the view to ensure updated data information
+renderView1.Update()
+
+# Properties modified on openFOAMReader1Display
+openFOAMReader1Display.SelectOrientationVectors = 'None'
+
+# Properties modified on openFOAMReader1Display
+openFOAMReader1Display.SetScaleArray = ['POINTS', 'U [m/s]']
+
+# Properties modified on openFOAMReader1Display
+openFOAMReader1Display.OpacityArray = ['POINTS', 'U [m/s]']
+
+# Properties modified on openFOAMReader1Display
+openFOAMReader1Display.OSPRayScaleArray = 'U [m/s]'
+
+# set scalar coloring
+ColorBy(openFOAMReader1Display, ('POINTS', 'U [m/s]', 'Magnitude'))
+
+# Hide the scalar bar for this color map if no visible data is colored by it.
+HideScalarBarIfNotNeeded(pLUT, renderView1)
+
+# rescale color and/or opacity maps used to include current data range
+openFOAMReader1Display.RescaleTransferFunctionToDataRange(True, False)
+
+# show color bar/color legend
+openFOAMReader1Display.SetScalarBarVisibility(renderView1, True)
+
+# get color transfer function/color map for 'Ums'
+umsLUT = GetColorTransferFunction('Ums')
+
+# get opacity transfer function/opacity map for 'Ums'
+umsPWF = GetOpacityTransferFunction('Ums')
+
+# reset view to fit data
+renderView1.ResetCamera()
+
+# Properties modified on renderView1
+renderView1.Background = [1.0, 1.0, 1.0]
+
+# get the material library
+materialLibrary1 = GetMaterialLibrary()
+
+# Apply a preset using its name. Note this may not work as expected when presets have duplicate names.
+umsLUT.ApplyPreset('Viridis (matplotlib)', True)
+
+# get color legend/bar for umsLUT in view renderView1
+umsLUTColorBar = GetScalarBar(umsLUT, renderView1)
+
+# Properties modified on umsLUTColorBar
+umsLUTColorBar.TitleColor = [0.0, 0.0, 0.0]
+umsLUTColorBar.TitleBold = 1
+umsLUTColorBar.LabelColor = [0.0, 0.0, 0.0]
+umsLUTColorBar.LabelBold = 1
+umsLUTColorBar.AutomaticLabelFormat = 0
+umsLUTColorBar.LabelFormat = '%-#6.1f'
+umsLUTColorBar.RangeLabelFormat = '%-#6.1f'
+
+#### saving camera placements for all active views
+
+# current camera placement for renderView1
+renderView1.CameraPosition = [-109.98370361328125, 1374.7207336425781, 8420.956940089278]
+renderView1.CameraFocalPoint = [-109.98370361328125, 1374.7207336425781, 594.7585678100586]
+renderView1.CameraParallelScale = 2025.5691894962097
+renderView1.CameraParallelProjection = 1
+
+#### uncomment the following to render all views
+# RenderAllViews()
+# alternatively, if you want to write images, you can use SaveScreenshot(...).
+");
+
+            return sb.ToString();
+
+
+        }
 
         public static string GetParaviewPath(int version)
         {
@@ -1022,7 +1298,7 @@ namespace EddyLib
             return paraviewPath;
         }
 
-        
+
 
         public static bool CheckLicence()
         {
@@ -1314,17 +1590,129 @@ namespace EddyLib
         }//EOC
 
         // <Custom additional code>
-        public static string[][] CreateMatrix(int rows, int columns)
+        public static object[][] CreateMatrix(int rows, int columns)
         {
-            string[][] matrix = new string[rows][];
+            object[][] matrix = new object[rows][];
 
             for (int i = 0; i < matrix.Length; i++)
             {
-                matrix[i] = new string[columns];
+                matrix[i] = new object[columns];
             }
 
             return matrix;
         }
+
+
+        public static void JaggedArray2CSV(double[][] data, string filePath)
+        {
+
+            //writing output to csv
+
+            using (StreamWriter outfile = new StreamWriter(filePath))
+            {
+                for (int x = 0; x < data.Length; x++)
+                {
+                    string content = "";
+                    for (int y = 0; y < data[x].Length; y++)
+                    {
+                        content += data[x][y].ToString() + ",";
+                    }
+                    //trying to write data to csv
+                    outfile.WriteLine(content);
+                }
+
+
+            }
+        }
+
+        public static double[,] TransposeRowsAndColumns(double[,] arr)
+        {
+            int rowCount = arr.GetLength(0);
+            int columnCount = arr.GetLength(1);
+            double[,] transposed = new double[columnCount, rowCount];
+            if (rowCount == columnCount)
+            {
+                transposed = (double[,])arr.Clone();
+                for (int i = 1; i < rowCount; i++)
+                {
+                    for (int j = 0; j < i; j++)
+                    {
+                        double temp = transposed[i, j];
+                        transposed[i, j] = transposed[j, i];
+                        transposed[j, i] = temp;
+                    }
+                }
+            }
+            else
+            {
+                for (int column = 0; column < columnCount; column++)
+                {
+                    for (int row = 0; row < rowCount; row++)
+                    {
+                        transposed[column, row] = arr[row, column];
+                    }
+                }
+            }
+            return transposed;
+        }
+
+        public static void _2DArray2CSV(double[,] data, string filePath, bool truncateDoubles, int truncateBy = 1)
+        {
+
+            //writing output to csv
+
+            if (!truncateDoubles)
+            {
+
+                using (StreamWriter outfile = new StreamWriter(filePath))
+                {
+                    for (int x = 0; x <= data.GetUpperBound(0); x++)
+                    {
+                        string content = "";
+
+                        for (int y = 0; y <= data.GetUpperBound(1); y++)
+                        {
+                            content += data[x, y].ToString() + ",";
+                        }
+                        //trying to write data to csv
+                        outfile.WriteLine(content);
+                    }
+
+
+                }
+
+            }
+            else
+            {
+                using (StreamWriter outfile = new StreamWriter(filePath))
+                {
+                    for (int x = 0; x <= data.GetUpperBound(0); x++)
+                    {
+                        string content = "";
+
+                        for (int y = 0; y <= data.GetUpperBound(1); y++)
+                        {
+                            content += Math.Round(data[x, y], truncateBy).ToString() + ",";
+                        }
+                        //trying to write data to csv
+                        outfile.WriteLine(content);
+                    }
+
+
+                }
+            }
+        }
+
+        public static object[][] CSV2JaggedArray(String filePath)
+        {
+
+
+            object[][] data = File.ReadLines(filePath).Select(x => x.Split(',')).ToArray();
+
+            return data;
+        }
+
+
         public static void DownLoadFile(string URL, string FilePath)
         {
             WebClient webClient = new WebClient();
@@ -1342,6 +1730,60 @@ namespace EddyLib
             double ang = rad * 180 / Math.PI;
             return ang;
         }
+
+
+        public static double Vec2Dir(Vector3d vec)
+        {
+
+            var res = Math.Atan2(vec.Y, vec.X) * 180 / Math.PI;
+            return res;
+
+        }
+
+        public static int Vec2DirOFCoord(Vector3d vec)
+        {
+            // Standard 0 deg is plus X
+
+
+            var transform = (Math.Atan2(vec.Y, vec.X) * 180 / Math.PI) + 90;
+
+            var deg = 0.0;
+
+            if (transform < 0)
+
+            {
+                deg = -1 * transform;
+            }
+            else if (transform <= 270 && transform > 0)
+            {
+                deg = 360 - transform;
+            }
+
+            else
+            { deg = transform; }
+
+
+            return (int)Math.Round(deg);
+
+        }
+
+
+        public static Vector3d Dir2Vec(double d)
+        {
+            return new Vector3d(-1 * Math.Sin(d * Math.PI / 180), -1 * Math.Cos(d * Math.PI / 180), 0);
+        }
+
+        public static Point3d CenterBottomBoundingBox(Mesh geometry)
+        {
+
+            BoundingBox empty = BoundingBox.Empty;
+            var box = geometry.GetBoundingBox(true);
+            empty.Union(box);
+            Point3d CenterGround = empty.Center + 0.5 * -Vector3d.ZAxis * (empty.Max.Z - empty.Min.Z);
+
+            return CenterGround;
+        }
+
     }
 
 

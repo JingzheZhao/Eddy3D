@@ -13,7 +13,7 @@ namespace EddyLib
 
         public static void RunCyl(OFCylDomain DOMCYL, OFMeshSettings MeshSettings, OFRunSettings RunSettings, string workDir)
         {
-                        
+
 
             if (!Directory.Exists(MeshSettings.meshStlDir))
             {
@@ -22,7 +22,7 @@ namespace EddyLib
 
 
             STLExport.ExportBinary(MeshSettings.meshStlFilenameBuildings, DOMCYL.BuildingGeometry);
-                        
+
 
             if (DOMCYL.hasTerrain)
             {
@@ -34,7 +34,7 @@ namespace EddyLib
                 STLExport.ExportBinary(MeshSettings.meshStlFilenameGround, DOMCYL.CylDomainMeshGround);
                 STLExport.ExportBinary(MeshSettings.meshStlFilenameGroundPerim, DOMCYL.CylDomainMeshGroundPerim);
             }
-                       
+
 
             if (!Directory.Exists(MeshSettings.meshSystemDir))
             {
@@ -98,9 +98,6 @@ void plastic Generic_20
         public static void RunBox(OFBoxDomain DOMBOX, OFMeshSettings MeshSettings, OFRunSettings RunSettings, string workDir)
         {
 
-
-
-
             if (!Directory.Exists(workDir))
             {
                 Directory.CreateDirectory(workDir);
@@ -118,8 +115,6 @@ void plastic Generic_20
             STLExport.ExportBinary(MeshSettings.meshStlFilenameBuildings, DOMBOX.BuildingGeometry);
 
 
-
-
             if (DOMBOX.hasTerrain)
             {
                 //No perim if we use a terrain
@@ -131,8 +126,6 @@ void plastic Generic_20
                 STLExport.ExportBinary(MeshSettings.meshStlFilenameGround, DOMBOX.DomainMeshGround);
                 STLExport.ExportBinary(MeshSettings.meshStlFilenameGroundPerim, DOMBOX.DomainMeshGroundPerim);
             }
-
-
 
 
 
@@ -148,8 +141,6 @@ void plastic Generic_20
             {
                 Directory.CreateDirectory(MeshSettings.meshBoundaryConditionsDirectory);
             }
-
-
 
 
 
@@ -199,199 +190,34 @@ void plastic Generic_20
             }
         }
 
-        public static double ProjectedBuildingArea(Vector3d windDir, Mesh buildings, double spacing, out Plane newLocal, out Box box)
+
+
+
+
+        public static void SaveFrontagePNGs(String dirToSavePNGs, int windDir, Bitmap[] bitmapArray)
         {
 
-
-
-            var up = Vector3d.ZAxis;
-            var forward = windDir;
-            forward.Unitize();
-            var right = Vector3d.CrossProduct(forward, up);
-            right.Unitize();
-
-
-            Plane local = new Plane(Point3d.Origin, right, forward);
-
-
-            Plane worldXY = Plane.WorldXY;
-            Transform xform = Transform.ChangeBasis(worldXY, local);
-            Transform xformBack = Transform.ChangeBasis(local, worldXY);
-
-
-            BoundingBox empty = BoundingBox.Empty;
-            BoundingBox boundingBox = buildings.GetBoundingBox(xform);
-            empty.Union(boundingBox);
-
-
-            Interval intervalX = new Interval(empty.Min.X, empty.Max.X);
-            Interval intervalY = new Interval(empty.Min.Y, empty.Max.Y);
-            Interval intervalZ = new Interval(empty.Min.Z, empty.Max.Z);
-            box = new Box(local, intervalX, intervalY, intervalZ);
-
-            Point3d newO = empty.Min;
-            // Transform xformBack;
-            // xform.TryGetInverse(out xformBack);
-            newO.Transform(xformBack);
-
-            newLocal = new Plane(newO, right, forward);
-
-
-            int x = (int)Math.Round(intervalX.Length / spacing);
-            int z = (int)Math.Round(intervalZ.Length / spacing);
-
-            double incrX = intervalX.Length / x;
-            double incrZ = intervalZ.Length / z;
-            double raylen = intervalY.Length;
-
-            List<Point3d> points = new List<Point3d>();
-            List<Ray3d> rays = new List<Ray3d>();
-
-            List<bool> hits = new List<bool>();
-            int hitcount = 0;
-
-
-
-            ////using (var FrontageImage = new Bitmap(x, z))
-
-            //{
-            for (int zz = 0; zz < z; zz++)
+            string folder = Path.GetDirectoryName(dirToSavePNGs);
+            if (!Directory.Exists(folder))
             {
-
-                for (int xx = 0; xx < x; xx++)
-                {
-                    var pt = newLocal.PointAt((0.5 * incrX) + xx * incrX, -0.1, (0.5 * incrZ) + zz * incrZ);
-
-                    points.Add(pt);
-
-                    var ray = new Ray3d(pt, newLocal.YAxis * raylen);
-
-                    rays.Add(ray);
-
-                    double d = Rhino.Geometry.Intersect.Intersection.MeshRay(buildings, ray);
-                    if (d > 0)
-                    {
-                        hitcount++;
-                        hits.Add(true);
-
-                        //FrontageImage.SetPixel(xx, zz, Color.Black);
-
-                    }
-                    else
-                    {
-                        hits.Add(false);
-                        //FrontageImage.SetPixel(xx, zz, Color.White);
-                    }
-                }
-            }
-            //FrontageImage.RotateFlip(RotateFlipType.RotateNoneFlipY);
-            //FrontageImage.Save(pathToSavePNGs, System.Drawing.Imaging.ImageFormat.Png);
-
-            //}
-
-
-
-            return incrX * incrZ * hitcount;
-        }
-
-
-        public static double ProjectedBuildingArea(Vector3d windDir, Mesh buildings, double spacing, string pathToSavePNGs, string baseWorkingDir, out Plane newLocal, out Box box)
-        {
-            if (!Directory.Exists(baseWorkingDir + @"\FrontageImages\"))
-            {
-                Directory.CreateDirectory(baseWorkingDir + @"\FrontageImages\");
+                Directory.CreateDirectory(folder);
             }
 
-
-            var up = Vector3d.ZAxis;
-            var forward = windDir;
-            forward.Unitize();
-            var right = Vector3d.CrossProduct(forward, up);
-            right.Unitize();
-
-
-            Plane local = new Plane(Point3d.Origin, right, forward);
-
-
-            Plane worldXY = Plane.WorldXY;
-            Transform xform = Transform.ChangeBasis(worldXY, local);
-            Transform xformBack = Transform.ChangeBasis(local, worldXY);
-
-
-            BoundingBox empty = BoundingBox.Empty;
-            BoundingBox boundingBox = buildings.GetBoundingBox(xform);
-            empty.Union(boundingBox);
-
-
-            Interval intervalX = new Interval(empty.Min.X, empty.Max.X);
-            Interval intervalY = new Interval(empty.Min.Y, empty.Max.Y);
-            Interval intervalZ = new Interval(empty.Min.Z, empty.Max.Z);
-            box = new Box(local, intervalX, intervalY, intervalZ);
-
-            Point3d newO = empty.Min;
-            // Transform xformBack;
-            // xform.TryGetInverse(out xformBack);
-            newO.Transform(xformBack);
-
-            newLocal = new Plane(newO, right, forward);
-
-
-            int x = (int)Math.Round(intervalX.Length / spacing);
-            int z = (int)Math.Round(intervalZ.Length / spacing);
-
-            double incrX = intervalX.Length / x;
-            double incrZ = intervalZ.Length / z;
-            double raylen = intervalY.Length;
-
-            List<Point3d> points = new List<Point3d>();
-            List<Ray3d> rays = new List<Ray3d>();
-
-            List<bool> hits = new List<bool>();
-            int hitcount = 0;
-
-
-
-            using (var FrontageImage = new Bitmap(x, z))
-
+            foreach (Bitmap bm in bitmapArray)
             {
-                for (int zz = 0; zz < z; zz++)
+                if (bm != null)
                 {
 
-                    for (int xx = 0; xx < x; xx++)
-                    {
-                        var pt = newLocal.PointAt((0.5 * incrX) + xx * incrX, -0.1, (0.5 * incrZ) + zz * incrZ);
+                    var filePath = dirToSavePNGs + "FA_" + windDir + ".png";
 
-                        points.Add(pt);
+                    bm.Save(filePath, System.Drawing.Imaging.ImageFormat.Png);
 
-                        var ray = new Ray3d(pt, newLocal.YAxis * raylen);
-
-                        rays.Add(ray);
-
-                        double d = Rhino.Geometry.Intersect.Intersection.MeshRay(buildings, ray);
-                        if (d > 0)
-                        {
-                            hitcount++;
-                            hits.Add(true);
-
-                            FrontageImage.SetPixel(xx, zz, Color.Black);
-
-                        }
-                        else
-                        {
-                            hits.Add(false);
-                            FrontageImage.SetPixel(xx, zz, Color.White);
-                        }
-                    }
                 }
-                FrontageImage.RotateFlip(RotateFlipType.RotateNoneFlipY);
-                FrontageImage.Save(pathToSavePNGs, System.Drawing.Imaging.ImageFormat.Png);
 
             }
 
-
-
-            return incrX * incrZ * hitcount;
         }
+
 
     }
 

@@ -42,7 +42,7 @@ namespace EddyLib
         public OSType ostype = OSType.Windows10;
         public TurbModel turbModel = TurbModel.kEpsilon;
         public int totalGBRam = Convert.ToInt32((new ComputerInfo().TotalPhysicalMemory / (Math.Pow(1024, 2))) + 0.5);
-        public RelaxationFactors relaxationFactors = RelaxationFactors.OpenFOAM;
+        public RelaxationFactors relaxationFactors = RelaxationFactors.Fluent;
 
         public override string ToString()
         {

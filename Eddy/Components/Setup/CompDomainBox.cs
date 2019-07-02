@@ -60,7 +60,7 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("Domain", "Dom", "Simulation Domain", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Mesh", "Msh", "Mesh", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Mesh", "Msh", "Mesh", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -75,7 +75,10 @@ namespace Eddy
             //DOMAIN GEOMETRY
             List<IGH_GeometricGoo> geoGooDomain = new List<IGH_GeometricGoo>();
             DA.GetDataList("Geometry", geoGooDomain);
-            List<GeometryBase> domain = new List<GeometryBase>();
+            List<GeometryBase> buildings = new List<GeometryBase>();
+
+                   
+
 
             foreach (IGH_GeometricGoo g in geoGooDomain)
             {
@@ -83,15 +86,20 @@ namespace Eddy
                 {
                     if (g.CastTo<GeometryBase>(out GeometryBase gb))
                     {
-                        domain.Add(gb);
+                        buildings.Add(gb);
                     }
                 }
             }
+
+          
+
+
 
             //TERRAIN GEOMETRY
             List<IGH_GeometricGoo> terrainGoo = new List<IGH_GeometricGoo>();
             List<GeometryBase> terrain = new List<GeometryBase>();
             DA.GetDataList("Terrain", terrainGoo);
+
 
             foreach (IGH_GeometricGoo g in terrainGoo)
             {
@@ -103,6 +111,18 @@ namespace Eddy
                     }
                 }
             }
+
+
+            if (Utilities.CheckForDuplicates(buildings))
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Duplicate Geometries might lead to a crashing simulation. Please find duplicates with ""SelDup"" and remove them.");
+            }
+
+            if (Utilities.CheckForDuplicates(terrain))
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Duplicate Geometries might lead to a crashing simulation. Please find duplicates with ""SelDup"" and remove them.");
+            }
+
 
             BoundaryConditions bCond = new BoundaryConditions(BoundaryType.abl, new List<int>() { 0 }, 5, 1, ""); // sets default BC settings
             GH_ObjectWrapper gobj = null;
@@ -171,13 +191,13 @@ namespace Eddy
 
 
 
-            if (domain == null)
+            if (buildings == null)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please reference an input geometry."); return;
             }
             else
             {
-                foreach (GeometryBase b in domain)
+                foreach (GeometryBase b in buildings)
                 {
 
                     if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
@@ -207,14 +227,28 @@ namespace Eddy
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "If your simulation domain extends below z = 0, you cannot use an ABL Boundary Condition. Please use the Constant U Boundary Condition."); return;
             }
 
+        
+
+           
+
             if (Utilities.CheckLicence() == true)
             {
 
 
                 OFBoxDomain DOMBOX = new OFBoxDomain(buildingGeometry, terrainMeshes, bCond, blockDimension, length, width, height);
 
-                DA.SetData(0, DOMBOX);
-                DA.SetData(1, DOMBOX.DomainMesh);
+                DA.SetData(0, DOMBOX);                
+
+                if (DOMBOX.hasTerrain)
+                {
+                    DA.SetDataList(1, DOMBOX.DomainMeshIntersection);
+                }
+                else
+                {
+                    DA.SetData(1, DOMBOX.DomainMesh);        
+                }
+
+
 
             }
             else

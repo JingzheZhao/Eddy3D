@@ -74,10 +74,15 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\Misc\CompLBAnalPeriod2Hours.cs" />
+    <Compile Include="Components\Outdoor Comfort\CompCalcWindFactors.cs" />
+    <Compile Include="Components\Outdoor Comfort\CompDeconstructMRT.cs" />
+    <Compile Include="Components\Outdoor Comfort\CompCalcMRT.cs" />
     <Compile Include="Components\postProcessing\CompParaview.cs" />
-    <Compile Include="Components\Settings\RunSettings.cs" />
-    <Compile Include="Components\Setup\BCondABL.cs" />
-    <Compile Include="Components\Setup\BCondConstantU.cs" />
+    <Compile Include="Components\Settings\CompRunSettings.cs" />
+    <Compile Include="Components\Setup\CompTemplates.cs" />
+    <Compile Include="Components\Setup\CompBCondABL.cs" />
+    <Compile Include="Components\Setup\CompBCondConstantU.cs" />
     <Compile Include="Components\OSSettings.cs" />
     <Compile Include="Components\postProcessing\CompComputeFlowRateFromCp.cs" />
     <Compile Include="Components\postProcessing\CompAnnualUToCSV.cs" />
@@ -98,7 +103,7 @@
     <Compile Include="Components\Residuals\CompWriteResiduals.cs" />
     <Compile Include="Components\Misc\CompCluster.cs" />
     <Compile Include="Components\Residuals\CompVisResiduals.cs" />
-    <Compile Include="Components\Settings\MeshSettings.cs" />
+    <Compile Include="Components\Settings\CompMeshSettings.cs" />
     <Compile Include="Components\Setup\CompDomainCyl.cs" />
     <Compile Include="Licensing\LicenseTest.cs" />
     <Compile Include="Licensing\ModifyRegistry.cs" />
@@ -205,6 +210,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Eddy_paraview.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_calMRT.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
