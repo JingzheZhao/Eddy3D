@@ -127,7 +127,7 @@ namespace Eddy
 
             // mode to select simulation environment
             if (Culling) { Message = "Cull Points"; }
-            else { Message = "No Nulling"; }
+            else { Message = "No Culling"; }
 
 
                       

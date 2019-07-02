@@ -33,9 +33,17 @@ namespace EddyLib
         public static void MeshProc(Mesh _m, string _fname, string _mat)
         {
             System.IO.StreamWriter sw = new System.IO.StreamWriter(_fname);
-            sw.WriteLine("#Grasshopper UrbanDaylight 2011 - Timur Dogan");
+            sw.WriteLine("#Grasshopper Eddy 2019");
             sw.WriteLine("");
             //_m.Faces.ConvertQuadsToTriangles();
+
+
+
+            //_m.Faces.ExtractDuplicateFaces();
+            _m.Faces.ConvertNonPlanarQuadsToTriangles(RhinoDoc.ActiveDoc.ModelAbsoluteTolerance, RhinoDoc.ActiveDoc.ModelAngleToleranceRadians, 0);
+            //_m.Faces.RemoveZeroAreaFaces();
+            _m.Faces.CullDegenerateFaces();
+            
 
             for (int i = 0; i < _m.Faces.Count; ++i)
             {

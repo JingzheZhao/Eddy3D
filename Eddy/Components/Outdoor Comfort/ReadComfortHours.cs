@@ -160,6 +160,9 @@ namespace Eddy
                 int comfortCnt = 0;
                 foreach (int hour in hoursToEvaluate)
                 {
+
+                    // Todo: this should be [hour, probe]), identical to everywhere else
+
                     if (UTCI.GetConditionOfPerson(HourlyUTCI[probes, hour]) == 0)
                     {
                         //HourlyHumanConditions[i,hour]=UTCI.GetConditionOfPerson(HourlyUTCI[i, hour]);

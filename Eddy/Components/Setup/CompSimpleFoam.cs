@@ -228,10 +228,7 @@ namespace Eddy
 
             #region RUN SNAPPY HEX
 
-            if (MeshSettings.accBuildings >= 5 || MeshSettings.accFeatures >= 5 || MeshSettings.accRefinement >= 5 || MeshSettings.accGround >= 5 || MeshSettings.nLayers >= 5)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "A high number of refinment stages might significantly slow down mesh creation. Try to create a reasonable fine mesh with the Domain component.");
-            }
+            
 
             // Check for killed processes
             if (Utilities.DidProcessGetKilled(MeshSettings.meshWorkingDir) == true)

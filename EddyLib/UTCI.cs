@@ -135,6 +135,10 @@ namespace EddyLib
         public static void CalculateUTCIArray(double[][] probes, int numberOfHours, Weather weather, double[][] DirRad, double[][] DiffRad, double[,] windReduction, double z0, double zref, double Uref, out bool[,] uncertaintyMRTArray, out bool[,] uncertaintyWindArray, out Stopwatch sw, out double[,] Utci)
         {
 
+            // [x][] time
+            // [][x] points
+
+
             int sensorPointCount = probes.Length;
 
 
