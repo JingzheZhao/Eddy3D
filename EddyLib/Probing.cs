@@ -130,12 +130,15 @@ namespace EddyLib
         private readonly List<Point3d> listOfPoints;
 
         private readonly string caseDirectory;
+        private readonly string baseWorkingDirectory;
+        private readonly int currWindDir;
 
-        public Probing(List<Point3d> ListOfPoints, string caseDirectory, OFField ofField)
+        public Probing(List<Point3d> ListOfPoints, string caseDirectory, string baseWorkingDirectory, OFField ofField, int currWindDir)
         {
             listOfPoints = ListOfPoints;
 
             this.caseDirectory = caseDirectory;
+            this.baseWorkingDirectory = baseWorkingDirectory;
             string fullPath = GetIterationPathToProbedResults(caseDirectory, ofField);
 
             //Number
@@ -153,7 +156,9 @@ namespace EddyLib
 
         private void WriteProbedResultToCSV(OFField ofField)
         {
-            string PostProcessingDirectory = caseDirectory + @"\postProcessing\";
+            string PostProcessDirCurrCase = caseDirectory + @"\postProcessing\";
+            string PostProcessDirBaseCase = baseWorkingDirectory + @"\postProcessing\";
+
             if (ofField.FieldType == OFField.fieldType.number)
             {
                 StringBuilder sb = new StringBuilder();
@@ -161,7 +166,8 @@ namespace EddyLib
                 {
                     sb.AppendLine(i.ToString());
                 }
-                File.WriteAllText(PostProcessingDirectory + ofField.ProbeName + ".csv", sb.ToString());
+                File.WriteAllText(PostProcessDirCurrCase + ofField.ProbeName + ".csv", sb.ToString());
+                File.WriteAllText(PostProcessDirBaseCase + currWindDir + ofField.ProbeName + ".csv", sb.ToString());
             }
             if (ofField.FieldType == OFField.fieldType.vector)
             {
@@ -170,7 +176,8 @@ namespace EddyLib
                 {
                     sb.AppendLine(i.ToString());
                 }
-                File.WriteAllText(PostProcessingDirectory + ofField.ProbeName + ".csv", sb.ToString());
+                File.WriteAllText(PostProcessDirCurrCase + ofField.ProbeName + ".csv", sb.ToString());
+                File.WriteAllText(PostProcessDirBaseCase + currWindDir + ofField.ProbeName + ".csv", sb.ToString());
             }
         }
 

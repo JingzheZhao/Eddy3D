@@ -412,7 +412,7 @@ namespace EddyLib
                         //Thread.Sleep(2 * probes.GetLength(0));
 
                         var ofField = new OFField(OFfield, pointName);
-                        var U = new Probing(pointList, WorkingDir + "\\" + simulatedWindDirList[i], ofField);
+                        var U = new Probing(pointList, WorkingDir + "\\" + simulatedWindDirList[i], WorkingDir, ofField, int.Parse(simulatedWindDirList[i]));
 
                         // Create datatree
 

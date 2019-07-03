@@ -238,7 +238,7 @@ namespace Eddy
                             string pathToProbeFile = Probing.GetIterationPathToProbedResults(currentCaseDir, currField);
                             if (File.Exists(pathToProbeFile))
                             {
-                                Probing Numbers = new Probing(listOfPoints, currentCaseDir, currField);
+                                Probing Numbers = new Probing(listOfPoints, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i]);
                                 // Create datatree
                                 treeDouble.AddRange(Probing.FilterExtremeProbingValues(Numbers.ResultNum), new Grasshopper.Kernel.Data.GH_Path(i));
                             }
@@ -307,7 +307,7 @@ namespace Eddy
                             string pathToProbeFile = Probing.GetIterationPathToProbedResults(currentCaseDir, currField);
                             if (File.Exists(pathToProbeFile))
                             {
-                                Probing Vectors = new Probing(listOfPoints, currentCaseDir, currField);
+                                Probing Vectors = new Probing(listOfPoints, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i]);
                                 // Create datatree
 
                                 treeVector.AddRange(Vectors.ResultVec, new Grasshopper.Kernel.Data.GH_Path(i));
