@@ -14,6 +14,5 @@
             this.MeshSettings = MeshSettings;
             this.WorkingDirectory = workDir;
         }
-
     }
 }

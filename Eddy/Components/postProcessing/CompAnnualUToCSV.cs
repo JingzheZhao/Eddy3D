@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Eddy.Properties;
+using EddyLib;
 using Grasshopper;
 using Grasshopper.Kernel;
-using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
-using EddyLib;
-using Eddy.Properties;
+
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
 // folder in Grasshopper.
@@ -35,7 +35,6 @@ namespace Eddy
             get { return GH_Exposure.hidden; }
         }
 
-
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
@@ -50,10 +49,8 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-           // pManager.AddGenericParameter("out", "out", "out", GH_ParamAccess.list);
+            // pManager.AddGenericParameter("out", "out", "out", GH_ParamAccess.list);
         }
-
-
 
         /// <summary>
         /// This is the method that actually does the work.
@@ -62,19 +59,15 @@ namespace Eddy
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-
             OFResult RES = null;
             DA.GetData(0, ref RES);
-
 
             List<Point3d> points = new List<Point3d>();
             //DA.GetDataList(1, points);
 
-
             DataTree<Vector3d> UTree = new DataTree<Vector3d>();
 
             List<string> fullProbeFilePath = new List<String>();
-
 
             //Build paths as list
 
@@ -87,7 +80,6 @@ namespace Eddy
             var numberOfProbes = File.ReadAllLines(fullProbeFilePath[0]).Count();
             //string[] abc = replacedString.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 
-
             // Array for output data
 
             var listOfAnnualData = new Vector3d[numberOfWindDirs][];
@@ -98,19 +90,12 @@ namespace Eddy
                 //int counter = 1;
                 for (int c = 0; c < numberOfProbes; c++)
                 {
-                    listOfAnnualData[r][c] = new Vector3d(double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[0])/RES.Domain.BCond.UPedestrianHeight, double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1]) / RES.Domain.BCond.UPedestrianHeight, double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[2]) / RES.Domain.BCond.UPedestrianHeight);
+                    listOfAnnualData[r][c] = new Vector3d(double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[0]) / RES.Domain.BCond.UPedestrianHeight, double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1]) / RES.Domain.BCond.UPedestrianHeight, double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[2]) / RES.Domain.BCond.UPedestrianHeight);
                     //counter += 3;
                 }
             }
 
-
-
-            
-
-
             // Write Array to dataTree
-
-
 
             //for (int c = 0; c < numberOfWindDirs; c++)
             //{
@@ -121,9 +106,7 @@ namespace Eddy
 
             //}
 
-
             //DA.SetDataTree(0, UTree);
-
 
             //Write U Array to file
             System.Text.StringBuilder UFile = new System.Text.StringBuilder();
@@ -140,9 +123,7 @@ namespace Eddy
             {
                 for (int c = 0; c < numberOfWindDirs; c++)
                 {
-
                     UFile.AppendLine(listOfAnnualData[c][r] + ",");
-
                 }
                 UFile.AppendLine("");
             }
@@ -155,25 +136,19 @@ namespace Eddy
             for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
             {
                 ReductionFile.Append(RES.Domain.BCond.windDirs[i] + ",");
-
             }
 
             ReductionFile.AppendLine("");
             for (int r = 0; r < numberOfProbes; r++)
             {
-
                 for (int c = 0; c < numberOfWindDirs; c++)
                 {
-
                     //ReductionFile.Append(Math.Sqrt(Math.Pow(listOfAnnualData[c][r].X,2)* Math.Pow(listOfAnnualData[c][r].Y,2)* Math.Pow(listOfAnnualData[c][r].Z,2) )+ ",");
-                    ReductionFile.Append(Math.Round(listOfAnnualData[c][r].Length,3) + ",");
+                    ReductionFile.Append(Math.Round(listOfAnnualData[c][r].Length, 3) + ",");
                 }
                 ReductionFile.AppendLine("");
             }
             File.WriteAllText(RES.WorkingDirectory + @"\WindReductionData.csv", ReductionFile.ToString());
-
-
-
         }
 
         /// <summary>
@@ -184,9 +159,7 @@ namespace Eddy
         {
             get
             {
-
                 return Resources.Eddy_annual;
-
             }
         }
 

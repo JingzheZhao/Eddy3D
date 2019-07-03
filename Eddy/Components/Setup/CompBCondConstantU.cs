@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using Eddy.Properties;
+using EddyLib;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
-using EddyLib;
-using Eddy.Properties;
+
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
 // folder in Grasshopper.
@@ -16,10 +17,10 @@ namespace Eddy
         //readonly List<double> defaultDir = new List<double>(0);
 
         /// <summary>
-        /// Each implementation of GH_Component must provide a public 
+        /// Each implementation of GH_Component must provide a public
         /// constructor without any arguments.
-        /// Category represents the Tab in which the component will appear, 
-        /// Subcategory the panel. If you use non-existing tab or panel names, 
+        /// Category represents the Tab in which the component will appear,
+        /// Subcategory the panel. If you use non-existing tab or panel names,
         /// new tabs/panels will automatically be created.
         /// </summary>
         public BCondConstU()
@@ -28,14 +29,10 @@ namespace Eddy
             //dirs.Add(0);
         }
 
-
-
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
-        /// 
-
-
+        ///
 
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
@@ -54,16 +51,13 @@ namespace Eddy
             pManager.AddGenericParameter("Bcond", "Bcond", "Bcond", GH_ParamAccess.item);
         }
 
-
-
         /// <summary>
         /// This is the method that actually does the work.
         /// </summary>
-        /// <param name="DA">The DA object can be used to retrieve data from input parameters and 
+        /// <param name="DA">The DA object can be used to retrieve data from input parameters and
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-
             //windDir.Add(0);
             List<int> windDir = new List<int>();
             List<Vector3d> flowDir = new List<Vector3d>();
@@ -71,7 +65,6 @@ namespace Eddy
             //double zref = 0;
             double z0 = 0;
             //double zGround = 0;
-
 
             DA.GetDataList(0, windDir);
             DA.GetData(1, ref Uref);
@@ -88,10 +81,8 @@ namespace Eddy
 
             // Translate dirs > 359 into correct format
             windDir = Utilities.NormalizeWindDirs(windDir);
-          
 
             BoundaryConditions BCInflow = new BoundaryConditions(BoundaryType.constant, windDir, Uref, z0, epwFilePath);
-
 
             // Check if anything causes a 0 BC
 
@@ -100,9 +91,7 @@ namespace Eddy
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Something is causing a turbulence boundary condition to be 0, please change the setup of the simulation domain.");
             }
 
-
             DA.SetData(0, BCInflow);
-
         }
 
         /// <summary>
@@ -120,8 +109,8 @@ namespace Eddy
         }
 
         /// <summary>
-        /// Each component must have a unique Guid to identify it. 
-        /// It is vital this Guid doesn't change otherwise old ghx files 
+        /// Each component must have a unique Guid to identify it.
+        /// It is vital this Guid doesn't change otherwise old ghx files
         /// that use the old ID will partially fail during loading.
         /// </summary>
         public override Guid ComponentGuid

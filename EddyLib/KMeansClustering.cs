@@ -5,21 +5,22 @@ using System.Reflection;
 
 namespace EddyLib
 {
-
-
     public class KMpt
     {
         #region Properties
 
         public int Id { get; set; }
+
         [KMeansValue]
         public double X { get; set; }
+
         [KMeansValue]
         public double Y { get; set; }
+
         [KMeansValue]
         public double Z { get; set; }
 
-        #endregion
+        #endregion Properties
 
         #region Constructors
 
@@ -47,11 +48,8 @@ namespace EddyLib
             this.Z = _z;
         }
 
-        #endregion
-
-
+        #endregion Constructors
     }
-
 
     //http://hardkjarni.blogspot.com/2013/08/simple-k-means-algorithm-in-c.html
 

@@ -1,12 +1,5 @@
-﻿using Rhino.Geometry;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
+using Rhino.Geometry;
 
 namespace EddyLib
 {
@@ -19,13 +12,12 @@ namespace EddyLib
         {
             kessling,
             abviewfactor,
-
         }
 
         public double[,] Values;
+
         public MRT(Weather weather, MRTType type, double[][] DiffRad, double[][] DirRad, Point3d[] probes, bool calc)
         {
-
             // If calc = false, the values must be set from the csv or external data
 
             if (calc)
@@ -43,35 +35,27 @@ namespace EddyLib
                              {
                                  this.Values[h, p] = GetMRTForPointViaKessling(weather, h, DiffRad[h][p], DirRad[h][p])[0];
                              }
-
                      });
             }
         }
 
         public static double[] GetMRTForPointViaKessling(Weather weather, int hour, double DiffRad, double DirRad)
         {
-            // Deconstruct Weather 
+            // Deconstruct Weather
 
             if (hour > 8759)
             {
                 throw new System.ArgumentException(@"Calculation of MRT for hours > 8759 not possible.");
             }
 
-
-
             double Tair = weather.DryBulbTemp[hour]; double RelHum = weather.RelativeHumidity[hour]; double SolarElev = weather.SolarElevation[hour]; double T_celsius = weather.DryBulbTemp[hour];
             double Wst = weather.Wst; double Hst = weather.Hst; double BodyA = weather.BodyA; double GrRef = weather.GrRef; double Eb = 0.95;
-
-
-
-
 
             //Standard call
             //UTCI.GetMRT(weather.DryBulbTemp[i], weather.RelativeHumidity[i], DiffRad[i][j], DirRad[i][j], weather.SolarElevation[i], weather.DryBulbTemp[i], weather.Wst, weather.Hst, weather.BodyA, weather.GrRef, 0.95)[0];
 
             // Why do we assume Eb = 0.95 when calling function? Is Eb the same as Es/Ec? What is Eb?
             // What is Hst and Wst?
-
 
             double[] MRT = new double[2];
 
@@ -82,10 +66,7 @@ namespace EddyLib
             //Reference: [2] The calculation of the mean radiant temperature of a subject exposed to the solar radiation—a generalised algorithm
             //Reference: [3] The Computation of Equivalent Potential Temperature - David Bolton
 
-
-
             double SBConst = 5.67E-8;
-
 
             double es = Math.Log(RelHum / 100) + 17.67 * Tair / (243.5 + Tair); // [3] for -30 -- 35°C
             double T_dewP = 243.5 * es / (17.67 - es); // [3]
@@ -114,12 +95,5 @@ namespace EddyLib
             MRT[1] = IR - 273;
             return MRT;
         }
-
-
-
-
-
-
-
     }
 }

@@ -1,34 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Drawing;
-using Rhino.Geometry;
-using System.IO;
-using Rhino;
 using System.Globalization;
+using System.IO;
 using System.Linq;
-
+using System.Text;
+using Rhino;
+using Rhino.Geometry;
 
 namespace EddyLib
 {
-
-
     //===========================================RADIANCE FILE PROC============================================
 
     public class RadianceFiles
     {
         // Radiance isn't exactly culture-aware, so we have to make everything here en-US
         private static readonly CultureInfo radianceCulture = new CultureInfo("en-US");
+
         private static string FormatPointAndNormal(Point3d p, Vector3d n) =>
            String.Format(radianceCulture, "{0:0.###} {1:0.###} {2:0.###} {3:0.###} {4:0.###} {5:0.###}", p.X, p.Y, p.Z, n.X, n.Y, n.Z);
+
         private static string FormatPoint(Point3d p) =>
         String.Format(radianceCulture, "{0:0.###} {1:0.###} {2:0.###}", p.X, p.Y, p.Z);
-
-        
-
-
 
         public static void MeshProc(Mesh _m, string _fname, string _mat)
         {
@@ -37,13 +29,10 @@ namespace EddyLib
             sw.WriteLine("");
             //_m.Faces.ConvertQuadsToTriangles();
 
-
-
             //_m.Faces.ExtractDuplicateFaces();
             _m.Faces.ConvertNonPlanarQuadsToTriangles(RhinoDoc.ActiveDoc.ModelAbsoluteTolerance, RhinoDoc.ActiveDoc.ModelAngleToleranceRadians, 0);
             //_m.Faces.RemoveZeroAreaFaces();
             _m.Faces.CullDegenerateFaces();
-            
 
             for (int i = 0; i < _m.Faces.Count; ++i)
             {
@@ -61,7 +50,6 @@ namespace EddyLib
                     sw.WriteLine(FormatPoint(_m.Vertices[v0]));
                     sw.WriteLine(FormatPoint(_m.Vertices[v1]));
                     sw.WriteLine(FormatPoint(_m.Vertices[v2]));
-
                 }
                 else
                 {
@@ -79,17 +67,11 @@ namespace EddyLib
                     sw.WriteLine(FormatPoint(_m.Vertices[v1]));
                     sw.WriteLine(FormatPoint(_m.Vertices[v2]));
                     sw.WriteLine(FormatPoint(_m.Vertices[v3]));
-
                 }
-
             }
 
             sw.Close();
         }
-
-
-
-
 
         public static void writePTS(string pts_path, List<Point3d> pts, List<Vector3d> pts_norm)
         {
@@ -118,15 +100,14 @@ namespace EddyLib
             double[][] points = new double[lines.Length][];
 
             for (int k = 0; k < lines.Length; k++)
-            {           
-                      string[] ptsString = lines[k].Split(' ').Take(3).ToArray();
-                      double[] pts = Array.ConvertAll<string, double>(ptsString, Double.Parse);
+            {
+                string[] ptsString = lines[k].Split(' ').Take(3).ToArray();
+                double[] pts = Array.ConvertAll<string, double>(ptsString, Double.Parse);
                 points[k] = pts;
             }
 
             return points;
         }
-
 
         public static double[,] readDatFile(string path)
         {
@@ -141,7 +122,6 @@ namespace EddyLib
             }
             return RGB;
         }
-
 
         public static double[,] readCSVFile(string path)
         {
@@ -184,11 +164,9 @@ namespace EddyLib
                     double[] hourDataDouble = Array.ConvertAll<string, double>(hourData, Double.Parse);
                     values[h - start] = hourDataDouble;
                 }
-
             }
             return values;
         }
-
 
         public static double[][] loadILL(string illFileName) // total illuminance data
         {
@@ -197,23 +175,17 @@ namespace EddyLib
             //string[] illLines = System.IO.File.ReadAllLines(illFileName);
             //return illLines.Select(l => Array.ConvertAll<string, double>(l.Split(new[] { ' ' }).Skip(4).ToArray(), Double.Parse)).ToArray();
 
-
             string[] lines = System.IO.File.ReadAllLines(illFileName);
             double[][] values = new double[lines.Length][];
-           
 
             for (int h = 0; h < lines.Length; h++)
             {
-                
-                    string[] hourData = lines[h].Split(' ').Skip(4).ToArray();
-                    double[] hourDataDouble = Array.ConvertAll<string, double>(hourData, Double.Parse);
-                    values[h] = hourDataDouble;
-               
-
+                string[] hourData = lines[h].Split(' ').Skip(4).ToArray();
+                double[] hourDataDouble = Array.ConvertAll<string, double>(hourData, Double.Parse);
+                values[h] = hourDataDouble;
             }
             return values;
         }
-
 
         public static void saveILLBin(string illFileName) // total illuminance data
         {
@@ -222,35 +194,28 @@ namespace EddyLib
             //string[] illLines = System.IO.File.ReadAllLines(illFileName);
             //return illLines.Select(l => Array.ConvertAll<string, double>(l.Split(new[] { ' ' }).Skip(4).ToArray(), Double.Parse)).ToArray();
 
-
             string[] lines = System.IO.File.ReadAllLines(illFileName);
             double[][] values = new double[lines.Length][];
 
-
             for (int h = 0; h < lines.Length; h++)
             {
-
                 string[] hourData = lines[h].Split(' ').Skip(4).ToArray();
                 double[] hourDataDouble = Array.ConvertAll<string, double>(hourData, Double.Parse);
                 values[h] = hourDataDouble;
-
-
             }
 
             writeBin(illFileName + ".bin", values);
         }
 
-        public static float[,] loadBin(string filename) 
+        public static float[,] loadBin(string filename)
         {
             // [i,   time
             //    j] points
-
 
             float[,] data;
 
             int iDim;
             int jDim;
-            
 
             //reading from the file
             // 1.
@@ -274,9 +239,8 @@ namespace EddyLib
                 int j = 0;
                 while (pos < length)
                 {
-      
                     float v = b.ReadSingle();
-                    data[i,j] = (v);
+                    data[i, j] = (v);
 
                     pos += sizeof(float);
 
@@ -287,17 +251,17 @@ namespace EddyLib
 
             return data;
         }
+
         public static void writeBin(string fileName, double[][] values)
         {
             // [i,   time
             //    j] points
 
-
             BinaryWriter bw;
             //create the file
             try
             {
-                bw = new BinaryWriter(new FileStream(fileName , FileMode.Create));
+                bw = new BinaryWriter(new FileStream(fileName, FileMode.Create));
             }
             catch (IOException e)
             {
@@ -311,7 +275,6 @@ namespace EddyLib
                 bw.Write((int)values.Length);
                 bw.Write((int)values[0].Length);
 
-
                 for (int i = 0; i < values.Length; i++)
                 {
                     for (int j = 0; j < values[i].Length; j++)
@@ -321,8 +284,6 @@ namespace EddyLib
                         bw.Write(fval);
                     }
                 }
-
-
             }
             catch (IOException e)
             {
@@ -331,11 +292,11 @@ namespace EddyLib
             }
             bw.Close();
         }
+
         public static void writeBin(string fileName, double[,] values)
         {
             // [i,   time
             //    j] points
-
 
             BinaryWriter bw;
             //create the file
@@ -355,7 +316,6 @@ namespace EddyLib
                 bw.Write((Int32)values.GetUpperBound(0));
                 bw.Write((Int32)values.GetUpperBound(1));
 
-
                 for (int i = 0; i < values.GetUpperBound(0); i++)
                 {
                     for (int j = 0; j < values.GetUpperBound(1); j++)
@@ -364,8 +324,6 @@ namespace EddyLib
                         bw.Write(fval);
                     }
                 }
-
-
             }
             catch (IOException e)
             {
@@ -383,26 +341,21 @@ namespace EddyLib
             string[] lines = System.IO.File.ReadAllLines(file).Where(x => !x.Trim().StartsWith("#")).ToArray();
             double[][] values = new double[lines.Length][];
 
-
             for (int h = 0; h < lines.Length; h++)
             {
-
                 string[] data = lines[h].Trim().Split('\t').ToArray();
                 double[] dataDouble = Array.ConvertAll<string, double>(data, Double.Parse);
                 values[h] = dataDouble;
-
-
             }
             return values;
         }
 
-
-        public static void writeDC(string file, double[][] dif , double[][] dir) // total illuminance data
+        public static void writeDC(string file, double[][] dif, double[][] dir) // total illuminance data
         {
             // [x][] lines
             // [][x] coeffs
             var sb = new StringBuilder();
-         
+
             for (int h = 0; h < dif.Length; h++)
             {
                 for (int c = 0; c < dif[h].Length; c++)
@@ -465,6 +418,5 @@ namespace EddyLib
             }
             File.WriteAllText(file, sb.ToString());
         }
-
     }
 }

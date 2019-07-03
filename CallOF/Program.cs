@@ -1,8 +1,8 @@
-﻿using CommandLine;
+﻿using System;
+using System.Text;
+using CommandLine;
 using CommandLine.Text;
 using SlavaGu.ConsoleAppLauncher;
-using System;
-using System.Text;
 
 namespace CallOF
 {
@@ -37,10 +37,6 @@ namespace CallOF
                     //errorLog.AppendLine(String.Format("Abort if error smaller than: {0}", options.MaxErr));
                 }
 
-
-
-
-
                 string app = "docker";
                 //string filepath = "/c/OF/";
                 string volumeDocker = "/home/openfoam/";
@@ -52,13 +48,11 @@ namespace CallOF
                 var app_argument = string.Format("run -v \"{0}:{1}\" {2} {3} bash -c \"{4}{5}{6}\"", options.FilePath.Trim(), volumeDocker, entryPoint, container, sourceEnvironment, options.Command, logging);
                 //Environment.SetEnvironmentVariable("PATH", @"C:\Program Files\Docker\Docker\Resources\bin");
 
-
                 //Show stdout after executed command
 
                 //Console.WriteLine(ConsoleApp.Run(app, app_argument).Output.Trim());
 
                 //Don't show stdout asynchronosly
-
 
                 try
                 {
@@ -72,7 +66,6 @@ namespace CallOF
                     p.WaitForExit();
                     p.Stop();
 
-
 #if DEBUG
 
                     Console.ReadKey();
@@ -81,21 +74,11 @@ namespace CallOF
                 }
                 catch (Exception e)
                 {
-
                     { Console.WriteLine(e.Message); };
-
-
                 }
-
-
-
-
             }
-
-
         }
     }
-
 
     // Define a class to receive parsed values
     internal class Options
@@ -132,8 +115,6 @@ namespace CallOF
         HelpText = "Prints all messages to standard output.")]
         public bool Verbose { get; set; }
 
-
-
         [ParserState]
         public IParserState LastParserState { get; set; }
 
@@ -144,8 +125,4 @@ namespace CallOF
               (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current));
         }
     }
-
-
-
-
 }

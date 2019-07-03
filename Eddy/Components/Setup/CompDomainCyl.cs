@@ -1,10 +1,9 @@
-﻿using EddyLib;
+﻿using System;
+using System.Collections.Generic;
+using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
-using System;
-using System.Collections.Generic;
-
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -16,27 +15,23 @@ namespace Eddy
     public class BlockMesh : GH_Component
     {
         /// <summary>
-        /// Each implementation of GH_Component must provide a public 
+        /// Each implementation of GH_Component must provide a public
         /// constructor without any arguments.
-        /// Category represents the Tab in which the component will appear, 
-        /// Subcategory the panel. If you use non-existing tab or panel names, 
+        /// Category represents the Tab in which the component will appear,
+        /// Subcategory the panel. If you use non-existing tab or panel names,
         /// new tabs/panels will automatically be created.
         /// </summary>
 
-
         public BlockMesh()
-          : base("Cylindrical Domain", "DomainCyl", "Cylindrical Domain",              "Eddy", "1 | Setup")
+          : base("Cylindrical Domain", "DomainCyl", "Cylindrical Domain", "Eddy", "1 | Setup")
         {
         }
-
-
 
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-
             pManager.AddGeometryParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
             pManager.AddGeometryParameter("Terrain", "Terrain", "Terrain Geometry. Make sure the terrain geometry is bigger than the ground plane of the wind tunnel.", GH_ParamAccess.list);
 
@@ -51,13 +46,11 @@ namespace Eddy
             pManager.AddNumberParameter("Height", "Height", "Height", GH_ParamAccess.item);
             //   pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
 
-
             pManager[1].Optional = true;
             pManager[2].Optional = true;
             pManager[4].Optional = true;
             pManager[5].Optional = true;
             pManager[6].Optional = true;
-
         }
 
         /// <summary>
@@ -70,21 +63,17 @@ namespace Eddy
             pManager.AddGenericParameter("Div", "Div", "Div", GH_ParamAccess.list);
         }
 
-
-
         /// <summary>
         /// This is the method that actually does the work.
         /// </summary>
-        /// <param name="DA">The DA object can be used to retrieve data from input parameters and 
+        /// <param name="DA">The DA object can be used to retrieve data from input parameters and
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-
             //DOMAIN GEOMETRY
             List<IGH_GeometricGoo> geoGooDomain = new List<IGH_GeometricGoo>();
             DA.GetDataList("Geometry", geoGooDomain);
             List<GeometryBase> buildings = new List<GeometryBase>();
-
 
             foreach (IGH_GeometricGoo g in geoGooDomain)
             {
@@ -94,8 +83,6 @@ namespace Eddy
                     {
                         buildings.Add(gb);
                     }
-
-
                 }
             }
 
@@ -112,11 +99,8 @@ namespace Eddy
                     {
                         terrain.Add(gb);
                     }
-
-
                 }
             }
-
 
             if (Utilities.CheckForDuplicates(buildings))
             {
@@ -128,8 +112,7 @@ namespace Eddy
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Duplicate Geometries might lead to a crashing simulation. Please find duplicates with ""SelDup"" and remove them.");
             }
 
-
-            BoundaryConditions bCond = new BoundaryConditions(BoundaryType.abl, new List<int>() { 0 }, 5, 1, ""); // sets default BC settings            
+            BoundaryConditions bCond = new BoundaryConditions(BoundaryType.abl, new List<int>() { 0 }, 5, 1, ""); // sets default BC settings
             GH_ObjectWrapper gobj = null;
             if (DA.GetData("BCond", ref gobj))
             {
@@ -139,7 +122,6 @@ namespace Eddy
                 }
                 else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid boundary condition object"); return; }
             }
-
 
             // int CPUs = 1;
             double coreBlockSize = 20;
@@ -154,16 +136,10 @@ namespace Eddy
             DA.GetData("Size of outer radius", ref sizeOuterCirc);
             DA.GetData("Height", ref sizeHeight);
 
-
             // Check Domain dimensions
 
             if (sizeInnerRect < coreBlockSize && sizeInnerRect != 0)
             { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Size of inner rectangle must be larger than the Block Size."); return; }
-
-
-     
-
-
 
             Mesh buildingGeometry = new Mesh();
             MeshingParameters mp = new MeshingParameters();
@@ -173,13 +149,11 @@ namespace Eddy
             if (terrain.Count == 0)
             {
                 // AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "If you don't provide a terrain, Eddy will use a standard ground plane."); return;
-
             }
             else // (terrain.Count > 0)
             {
                 foreach (GeometryBase b in terrain)
                 {
-
                     if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
                     {
                         Mesh obj = (Mesh)b;
@@ -194,16 +168,11 @@ namespace Eddy
                             terrainMeshes.Append(mm);
                         }
                     }
-
-
                 }
             }
 
-
-
             foreach (GeometryBase b in buildings)
             {
-
                 if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
                 {
                     Mesh obj = new Mesh();
@@ -219,46 +188,35 @@ namespace Eddy
                         buildingGeometry.Append(mm);
                     }
                 }
-
-
             }
-
 
             // Check if lowest point in Domain is z_low < 0, then we cannot use a ABL
 
-            if (buildingGeometry.GetBoundingBox(true).Min.Z < 0 && bCond.btype == BoundaryType.abl) {
+            if (buildingGeometry.GetBoundingBox(true).Min.Z < 0 && bCond.btype == BoundaryType.abl)
+            {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "If your simulation domain extends below z = 0, you cannot use an ABL Boundary Condition. Please use the Constant U Boundary Condition."); return;
             }
 
-
-                if (Utilities.CheckLicence() == true)
+            if (Utilities.CheckLicence() == true)
             {
-
-
                 OFCylDomain DOMCYL = new OFCylDomain(buildingGeometry, terrainMeshes, bCond, coreBlockSize, sizeInnerRect, sizeOuterCirc, sizeHeight);
 
                 DA.SetData(0, DOMCYL);
 
                 if (DOMCYL.hasTerrain)
                 {
-                    DA.SetDataList(1, DOMCYL.DomainMeshIntersection);                    
+                    DA.SetDataList(1, DOMCYL.DomainMeshIntersection);
                 }
                 else
                 {
                     DA.SetData(1, DOMCYL.DomainMesh);
                     DA.SetDataList(2, DOMCYL.concentricDivisions);
                 }
-                
-
-
-
             }
             else
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Licence expired.");
             }
-
-
         }
 
         /// <summary>
@@ -271,11 +229,10 @@ namespace Eddy
                 Properties.Resources.Eddy_analysisCul;
 
         /// <summary>
-        /// Each component must have a unique Guid to identify it. 
-        /// It is vital this Guid doesn't change otherwise old ghx files 
+        /// Each component must have a unique Guid to identify it.
+        /// It is vital this Guid doesn't change otherwise old ghx files
         /// that use the old ID will partially fail during loading.
         /// </summary>
         public override Guid ComponentGuid => new Guid("{DDB7971A-EBAD-4A6F-8BFB-E77FE24F73BD}");
     }
-
 }

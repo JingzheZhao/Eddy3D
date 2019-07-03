@@ -1,10 +1,9 @@
-﻿using EddyLib;
+﻿using System;
+using System.Collections.Generic;
+using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
-using System;
-using System.Collections.Generic;
-
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -16,18 +15,16 @@ namespace Eddy
     public class BlockMeshBox : GH_Component
     {
         /// <summary>
-        /// Each implementation of GH_Component must provide a public 
+        /// Each implementation of GH_Component must provide a public
         /// constructor without any arguments.
-        /// Category represents the Tab in which the component will appear, 
-        /// Subcategory the panel. If you use non-existing tab or panel names, 
+        /// Category represents the Tab in which the component will appear,
+        /// Subcategory the panel. If you use non-existing tab or panel names,
         /// new tabs/panels will automatically be created.
         /// </summary>
         public BlockMeshBox()
           : base("Box-shaped Domain", "DomainBox", "Box-shaped Domain", "Eddy", "1 | Setup")
         {
         }
-
-
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -51,7 +48,6 @@ namespace Eddy
             pManager[4].Optional = true;
             pManager[5].Optional = true;
             pManager[6].Optional = true;
-
         }
 
         /// <summary>
@@ -66,19 +62,15 @@ namespace Eddy
         /// <summary>
         /// This is the method that actually does the work.
         /// </summary>
-        /// <param name="DA">The DA object can be used to retrieve data from input parameters and 
+        /// <param name="DA">The DA object can be used to retrieve data from input parameters and
         /// to store data in output parameters.</param>
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-
             //DOMAIN GEOMETRY
             List<IGH_GeometricGoo> geoGooDomain = new List<IGH_GeometricGoo>();
             DA.GetDataList("Geometry", geoGooDomain);
             List<GeometryBase> buildings = new List<GeometryBase>();
-
-                   
-
 
             foreach (IGH_GeometricGoo g in geoGooDomain)
             {
@@ -91,15 +83,10 @@ namespace Eddy
                 }
             }
 
-          
-
-
-
             //TERRAIN GEOMETRY
             List<IGH_GeometricGoo> terrainGoo = new List<IGH_GeometricGoo>();
             List<GeometryBase> terrain = new List<GeometryBase>();
             DA.GetDataList("Terrain", terrainGoo);
-
 
             foreach (IGH_GeometricGoo g in terrainGoo)
             {
@@ -112,7 +99,6 @@ namespace Eddy
                 }
             }
 
-
             if (Utilities.CheckForDuplicates(buildings))
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Duplicate Geometries might lead to a crashing simulation. Please find duplicates with ""SelDup"" and remove them.");
@@ -122,7 +108,6 @@ namespace Eddy
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Duplicate Geometries might lead to a crashing simulation. Please find duplicates with ""SelDup"" and remove them.");
             }
-
 
             BoundaryConditions bCond = new BoundaryConditions(BoundaryType.abl, new List<int>() { 0 }, 5, 1, ""); // sets default BC settings
             GH_ObjectWrapper gobj = null;
@@ -135,12 +120,8 @@ namespace Eddy
                 else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid boundary condition object"); return; }
             }
 
-
-
             double blockDimension = 20;
             DA.GetData("Block size", ref blockDimension);
-
-
 
             Mesh buildingGeometry = new Mesh();
             MeshingParameters mp = new MeshingParameters();
@@ -148,7 +129,6 @@ namespace Eddy
             //string windowsVersion = Utilities.GetOSInfo();
             //bool isWindows7 = Utilities.IsWindows7;
             string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-
 
             double width = 0;
             double length = 0;
@@ -163,13 +143,11 @@ namespace Eddy
             if (terrain.Count == 0)
             {
                 // AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "If you don't provide a terrain, Eddy will use a standard ground plane."); return;
-
             }
             else // (terrain.Count > 0)
             {
                 foreach (GeometryBase b in terrain)
                 {
-
                     if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
                     {
                         Mesh obj = (Mesh)b;
@@ -184,12 +162,8 @@ namespace Eddy
                             terrainMeshes.Append(mm);
                         }
                     }
-
-
                 }
             }
-
-
 
             if (buildings == null)
             {
@@ -199,7 +173,6 @@ namespace Eddy
             {
                 foreach (GeometryBase b in buildings)
                 {
-
                     if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
                     {
                         Mesh obj = (Mesh)b;
@@ -214,11 +187,8 @@ namespace Eddy
                             buildingGeometry.Append(mm);
                         }
                     }
-
-
                 }
             }
-
 
             // Check if lowest point in Domain is z_low < 0, then we cannot use a ABL
 
@@ -227,17 +197,11 @@ namespace Eddy
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "If your simulation domain extends below z = 0, you cannot use an ABL Boundary Condition. Please use the Constant U Boundary Condition."); return;
             }
 
-        
-
-           
-
             if (Utilities.CheckLicence() == true)
             {
-
-
                 OFBoxDomain DOMBOX = new OFBoxDomain(buildingGeometry, terrainMeshes, bCond, blockDimension, length, width, height);
 
-                DA.SetData(0, DOMBOX);                
+                DA.SetData(0, DOMBOX);
 
                 if (DOMBOX.hasTerrain)
                 {
@@ -245,18 +209,13 @@ namespace Eddy
                 }
                 else
                 {
-                    DA.SetData(1, DOMBOX.DomainMesh);        
+                    DA.SetData(1, DOMBOX.DomainMesh);
                 }
-
-
-
             }
             else
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Licence expired.");
             }
-
-
         }
 
         /// <summary>
@@ -269,11 +228,10 @@ namespace Eddy
                 Properties.Resources.Eddy_domainBox;
 
         /// <summary>
-        /// Each component must have a unique Guid to identify it. 
-        /// It is vital this Guid doesn't change otherwise old ghx files 
+        /// Each component must have a unique Guid to identify it.
+        /// It is vital this Guid doesn't change otherwise old ghx files
         /// that use the old ID will partially fail during loading.
         /// </summary>
         public override Guid ComponentGuid => new Guid("{0AD4BDF7-33AC-492D-ABF0-622A5488C8E2}");
     }
-
 }

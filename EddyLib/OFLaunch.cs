@@ -1,15 +1,9 @@
 ﻿//using SlavaGu.ConsoleAppLauncher;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EddyLib
 {
-    class OFLaunch
+    internal class OFLaunch
     {
-
         public static void Run(string command, string filePath)
         {
             //string app = "docker";
@@ -26,6 +20,5 @@ namespace EddyLib
             ////Console.ReadKey();
             ////ConsoleApp.Result
         }
-
     }
 }

@@ -1,30 +1,22 @@
-﻿using CommandLine;
+﻿using System;
+using System.IO;
+using CommandLine;
 using CommandLine.Text;
 using EddyLib;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CallRay
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
-
             // Check licence
 
             if (Utilities.CheckLicence() == true)
             {
-
                 var options = new Options();
                 if (CommandLine.Parser.Default.ParseArguments(args, options))
                 {
-
-
                     string weaFileName = Path.GetFileName(options.Weather) + ".wea";
                     Console.WriteLine(options.WorkingDir);
                     Console.WriteLine(weaFileName);
@@ -48,19 +40,17 @@ namespace CallRay
                     Console.WriteLine("Done");
 
                     //   Console.ReadKey();
-                
-            }
+                }
             }
             else
             {
                 Console.WriteLine("The licence for this tool expired.");
             }
-
         }
     }
 
     // Define a class to receive parsed values
-    class Options
+    internal class Options
     {
         [Option('d', "workingDir", Required = true,
         HelpText = "Working directory.")]
@@ -86,8 +76,6 @@ namespace CallRay
         {
             return HelpText.AutoBuild(this,
               (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current));
-
         }
     }
-
 }

@@ -101,5 +101,4 @@ public class ASCIIProgressBar : IDisposable, IProgress<double>
             UpdateText(string.Empty);
         }
     }
-
 }

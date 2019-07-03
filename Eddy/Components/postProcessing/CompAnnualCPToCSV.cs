@@ -1,13 +1,13 @@
-﻿using Eddy.Properties;
-using EddyLib;
-using Grasshopper;
-using Grasshopper.Kernel;
-using Grasshopper.Kernel.Types;
-using Rhino.Geometry;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Eddy.Properties;
+using EddyLib;
+using Grasshopper;
+using Grasshopper.Kernel;
+using Rhino.Geometry;
+
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
 // folder in Grasshopper.
@@ -35,7 +35,6 @@ namespace Eddy
             get { return GH_Exposure.hidden; }
         }
 
-
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
@@ -54,8 +53,6 @@ namespace Eddy
             //pManager.AddGenericParameter("out", "out", "out", GH_ParamAccess.list);
         }
 
-
-
         /// <summary>
         /// This is the method that actually does the work.
         /// </summary>
@@ -63,7 +60,6 @@ namespace Eddy
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-
             OFResult RES = null;
             DA.GetData(0, ref RES);
 
@@ -73,20 +69,14 @@ namespace Eddy
             List<Point3d> points = new List<Point3d>();
             //DA.GetDataList(1, points);
 
-
             DataTree<double> cpTree = new DataTree<double>();
 
             List<string> fullProbeFilePath = new List<String>();
 
-
             //Build paths as list
-
 
             if (run == true)
             {
-
-
-
                 for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
                 {
                     fullProbeFilePath.Add(RES.WorkingDirectory + "\\" + RES.Domain.BCond.windDirs[i] + @"\postProcessing\cp_Probes.csv");
@@ -94,8 +84,6 @@ namespace Eddy
 
                 var numberOfWindDirs = RES.Domain.BCond.windDirs.Count();
                 var numberOfProbes = File.ReadAllLines(fullProbeFilePath[0]).Count();
-
-
 
                 // Array for output data
 
@@ -110,13 +98,7 @@ namespace Eddy
                     }
                 }
 
-
-
                 // Write Array to dataTree
-
-
-
-
 
                 //for (int c = 0; c < numberOfWindDirs; c++)
                 //{
@@ -127,9 +109,7 @@ namespace Eddy
 
                 //}
 
-
                 //DA.SetDataTree(0, cpTree);
-
 
                 //Write Array to file
                 System.Text.StringBuilder sb = new System.Text.StringBuilder();
@@ -137,7 +117,6 @@ namespace Eddy
                 for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
                 {
                     sb.Append(RES.Domain.BCond.windDirs[i] + ",");
-
                 }
                 sb.AppendLine("");
                 for (int r = 0; r < numberOfProbes; r++)
@@ -146,17 +125,11 @@ namespace Eddy
                     {
                         //sb.Append(points[r].X + ","+ points[r].Y + ","+points[r].Z + ",");
                         sb.Append(listOfAnnualData[c][r] + ",");
-
                     }
                     sb.AppendLine("");
                 }
                 File.WriteAllText(RES.WorkingDirectory + @"\annualCPData.csv", sb.ToString());
-
-
             }
-
-
-
         }
 
         /// <summary>

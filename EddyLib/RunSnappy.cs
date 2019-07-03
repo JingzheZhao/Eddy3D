@@ -1,14 +1,12 @@
-﻿using Rhino.Geometry;
-using System.IO;
+﻿using System.IO;
+using Rhino.Geometry;
 
 namespace EddyLib
 {
     public class RunSnappy
     {
-
         public static void Run(OFBaseDomain DOM, OFMeshSettings MeshSettings, OFRunSettings RunSettings, out string logFile)
         {
-
             //string SingleCPU = @"""surfaceFeatureExtract;snappyHexMesh -overwrite """; //-overwrite
             //string MultipleCPU = @"""surfaceFeatureExtract;pyFoamDecompose.py --clear . " + RunSettings.CPUs + @"; foamJob -parallel -screen snappyHexMesh -overwrite""";
 
@@ -17,7 +15,6 @@ namespace EddyLib
             bool Clean = false;
             if (Clean == true)
             {
-
                 if (Directory.Exists(MeshSettings.meshPolyMeshDir))
                 {
                     System.IO.DirectoryInfo di = new DirectoryInfo(MeshSettings.meshPolyMeshDir);
@@ -44,11 +41,8 @@ namespace EddyLib
                     }
                 }
 
-
                 if (RunSettings.CPUs > 1)
                 {
-
-
                     for (int i = 0; i < RunSettings.CPUs; i++)
                     {
                         var path = MeshSettings.meshWorkingDir + @"\processor" + i;
@@ -64,7 +58,6 @@ namespace EddyLib
                                 dir.Delete(true);
                             }
                             di.Delete();
-
                         }
                     }
 
@@ -89,7 +82,6 @@ namespace EddyLib
 
                         for (int l = 0; l < DOM.BCond.windDirs.Count; l++)
                         {
-
                             var cpuPath = MeshSettings.baseWorkingDir + DOM.BCond.windDirs[l] + @"\processor" + i;
 
                             if (Directory.Exists(cpuPath))
@@ -104,33 +96,21 @@ namespace EddyLib
                                     dir.Delete(true);
                                 }
                                 di.Delete();
-
                             }
-
                         }
                     }
                 }
-
             }
-
-
-
-
-
-
 
             if (!Directory.Exists(MeshSettings.meshStlDir))
             {
                 Directory.CreateDirectory(MeshSettings.meshStlDir);
             }
 
-
             if (!File.Exists(MeshSettings.meshWorkingDir + @"\log"))
             {
                 File.WriteAllText(MeshSettings.meshWorkingDir + @"\log", "");
             }
-
-
 
             if (!Directory.Exists(MeshSettings.meshSystemDir))
             {
@@ -139,9 +119,6 @@ namespace EddyLib
 
             Point3d locationInMesh = new Point3d();
             locationInMesh = DOM.LocationInMesh;
-
-
-
 
             File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "snappyHexMeshDict"), EddyLib.StrTemp.OFExecDicts.SnappyHexMeshDict(MeshSettings, DOM));
             File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "surfaceFeatureExtractDict"), EddyLib.StrTemp.OFExecDicts.SurfaceFeatureExtractDict());
@@ -152,28 +129,18 @@ namespace EddyLib
 
             File.WriteAllText(Path.Combine(MeshSettings.baseWorkingDir + "run_checkMesh.bat"), EddyLib.StrTemp.BatFiles.Run_checkMesh(RunSettings, MeshSettings, DOM, StrTemp.Mode.Meshing));
 
-
-
             //Autocalc number of CPUs
             if (RunSettings.CPUs == -1)
             {
                 RunSettings.CPUs = Utilities.CalcOptimCPU(MeshSettings.meshWorkingDir, RunSettings.CPUs);
             }
 
-
-
-
-         
-
-
             logFile = "";
-
 
             //if (!File.Exists(MeshSettings.baseWorkingDir + @"\mesh\log"))
             //{
             //    File.WriteAllText(MeshSettings.baseWorkingDir + @"\mesh\log", "");
             //}
-
 
             using (FileStream stream = File.Open(MeshSettings.meshWorkingDir + @"\log", FileMode.Open, FileAccess.Read, FileShare.Read))
             {
@@ -182,15 +149,6 @@ namespace EddyLib
                     logFile = reader.ReadToEnd();
                 }
             }
-
-
-
-
-
-
-
-
         }
-
     }
 }

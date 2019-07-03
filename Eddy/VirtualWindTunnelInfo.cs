@@ -13,6 +13,7 @@ namespace Eddy
                 return "VirtualWindTunnel";
             }
         }
+
         public override Bitmap Icon
         {
             get
@@ -21,6 +22,7 @@ namespace Eddy
                 return null;
             }
         }
+
         public override string Description
         {
             get
@@ -29,6 +31,7 @@ namespace Eddy
                 return "";
             }
         }
+
         public override Guid Id
         {
             get
@@ -45,6 +48,7 @@ namespace Eddy
                 return "";
             }
         }
+
         public override string AuthorContact
         {
             get

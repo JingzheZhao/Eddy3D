@@ -1,6 +1,6 @@
-﻿using Grasshopper.GUI.Canvas;
+﻿using System.Drawing;
+using Grasshopper.GUI.Canvas;
 using Grasshopper.Kernel;
-using System.Drawing;
 
 namespace Ironbug.Grasshopper.Component
 {
@@ -34,11 +34,9 @@ namespace Ironbug.Grasshopper.Component
             if (channel == GH_CanvasChannel.Objects)
             {
                 GH_Capsule button = GH_Capsule.CreateTextCapsule(ButtonBounds, ButtonBounds, GH_Palette.Black, "Right click", 2, 0);
-                button.Render(graphics, Selected,false, false);
+                button.Render(graphics, Selected, false, false);
                 button.Dispose();
             }
         }
-        
     }
-    
 }

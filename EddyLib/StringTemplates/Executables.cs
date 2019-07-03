@@ -1,8 +1,7 @@
-﻿using Rhino.Geometry;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
-
+using Rhino.Geometry;
 
 namespace EddyLib.StrTemp
 {
@@ -95,16 +94,16 @@ boundary
             //}
             //";
             string Cylinder = @"refinementCylinder{
-type searchableCylinder; 
+type searchableCylinder;
 point1 (" + dom.RefinementCylinder.Center.ToString().Replace(',', ' ') + @");
 point2 (" + (dom.RefinementCylinder.Center + Vector3d.ZAxis * dom.RefinementCylinder.Height2).ToString().Replace(',', ' ') + @");
 radius " + dom.RefinementCylinder.CircleAt(0.5).Radius + @";
 }";
 
             string Box = @"refinementBox{
-          type searchableBox;      
-          min (" + dom.BBox.Min.X + " " + +dom.BBox.Min.Y + " " + dom.BBox.Min.Z + @");  
-          max (" + dom.BBox.Max.X + " " + dom.BBox.Max.Y + " " + dom.BBox.Max.Z + @");  
+          type searchableBox;
+          min (" + dom.BBox.Min.X + " " + +dom.BBox.Min.Y + " " + dom.BBox.Min.Z + @");
+          max (" + dom.BBox.Max.X + " " + dom.BBox.Max.Y + " " + dom.BBox.Max.Z + @");
 }";
             refinementGeometry = Box;
             StringBuilder sb = new StringBuilder();
@@ -144,7 +143,7 @@ FoamFile
 
             if (!dom.hasTerrain)
             {
-                sb.Append(@"	
+                sb.Append(@"
         ground_perim.stl
         {
             type triSurfaceMesh;
@@ -152,7 +151,7 @@ FoamFile
         }");
             }
             //if (dom.terrainMesh.Faces.Count == 0) { sb.Append(ground_perim); }
-            sb.Append(@"	
+            sb.Append(@"
         " + refinementGeometry + @"
     }
 
@@ -196,11 +195,8 @@ FoamFile
             sb.Append(@"}
 refinementRegions
         {
-
 refinementBox {mode inside; levels ((" + MeshSettings.accRefinement + @" " + MeshSettings.accRefinement + @"));}
 //refinementCylinder {mode inside; levels ((" + MeshSettings.accRefinement + " " + MeshSettings.accRefinement + @"));}
-
-
         }
 
         locationInMesh ( " + dom.LocationInMesh.X + " " + dom.LocationInMesh.Y + " " + dom.LocationInMesh.Z + @" );
@@ -221,8 +217,6 @@ refinementBox {mode inside; levels ((" + MeshSettings.accRefinement + @" " + Mes
     resolveFeatureAngle 30;
     allowFreeStandingZoneFaces false;
     }
-
-    
 
 //snapControls
 //    {
@@ -249,12 +243,6 @@ snapControls
     implicitFeatureSnap    true;
 }
 
-
- 
-
-
-
-
     // Settings for the layer addition.
     addLayersControls
     {
@@ -280,11 +268,9 @@ snapControls
             {
                 nSurfaceLayers " + MeshSettings.nLayers + @";
             }");
-}
+            }
             sb.Append(@"
         }
-
-  
 
 //    nSmoothDisplacement       0;
 //    detectExtrusionIsland     false;
@@ -347,7 +333,6 @@ snapControls
         //// Create buffer region for new layer terminations
         nBufferCellsNoExtrude 0;
 
-
         //// Overall max number of layer addition iterations. The mesher will exit
         //// if it reaches this number of iterations; possibly with an illegal
         //// mesh.
@@ -361,7 +346,6 @@ snapControls
   // where to undo.
   meshQualityControls
 {
-   
 maxNonOrtho 65;
 
 maxBoundarySkewness 20;
@@ -403,9 +387,6 @@ relaxed
 {
     maxNonOrtho   75;
 }
-
-
-
 
 ////- Maximum non-orthogonality allowed. Set to 180 to disable.
 //    maxNonOrtho 65;
@@ -454,7 +435,6 @@ relaxed
 //    //must be >0 for Fluent compatibility
 //    minTriangleTwist -1;
 
-
 //    // Advanced
 
 //    //- Number of error distribution iterations
@@ -469,7 +449,6 @@ relaxed
 //        //- Maximum non-orthogonality allowed. Set to 180 to disable.
 //        maxNonOrtho 75;
 //    }
-
 }
 
   // Write flags
@@ -486,7 +465,6 @@ mergeTolerance 1E-6;
 ");
             return sb.ToString();
         }
-
 
         public static string ControlDict(OFRunSettings RunSettings, OFBaseDomain DOM, List<Mesh> topologies, int numberOfTopologies)
         {
@@ -513,11 +491,11 @@ libs
         ""libsolverFunctionObjects.so""");
             if (RunSettings.simEngine == SimEngine.Docker)
             {
-                sb.Append(@"""libsimpleSwakFunctionObjects.so""        
-                ""libswakFunctionObjects.so""        
+                sb.Append(@"""libsimpleSwakFunctionObjects.so""
+                ""libswakFunctionObjects.so""
                 ""libgroovyBC.so""");
             }
-            sb.Append(@"           
+            sb.Append(@"
 );
             application simpleFoam;
             startFrom latestTime;
@@ -545,6 +523,7 @@ libs
 
             return sb.ToString();
         }
+
         public static string FunctionObjCP(OFBaseDomain DOM, OFRunSettings RunSettings, List<Mesh> evaluationTopology, int d)
         {
             BoundaryConditionsCP BCondCP = new BoundaryConditionsCP(DOM.zMaxBuilding, DOM.BCond);
@@ -564,8 +543,6 @@ libs
                     calcTotal yes;
                     calcCoeff yes;
                 }");
-
-
 
             if (evaluationTopology != null)
             {
@@ -595,11 +572,9 @@ patch" + i + @"
             }
             else { sb.Append(@"};"); }
 
-
-
             return sb.ToString();
-
         }
+
         public static string TopoSetDict(List<Mesh> evaluationTopology)
         {
             StringBuilder sb = new StringBuilder();
@@ -634,18 +609,18 @@ FoamFile
             sourceInfo
         {
                 surface triSurfaceMesh;
-                name patch" + i + @".stl;    
+                name patch" + i + @".stl;
             }
         }
 
         {
-            name surfaceSlaveCells; 
+            name surfaceSlaveCells;
             type cellSet;
             action new;
             source faceZoneToCell;
             sourceInfo
                 {
-                name patch" + i + @"; 
+                name patch" + i + @";
                 option slave;
             }
         }
@@ -656,9 +631,7 @@ FoamFile
         // ************************************************************************* //");
 
             return sb.ToString();
-
         }
-
 
         public static string SampleProbes(List<Point3d> listOfPoints, OFField ofField)
         {
@@ -673,7 +646,6 @@ FoamFile
 
 " + ofField.ProbeName + @"
 {
-
                 type probes;
                 libs (""libsampling.so"");
                 writeControl writeTime;
@@ -694,16 +666,13 @@ FoamFile
             }
 
             sb.Append(@");
-
         }
-
 
             // ************************************************************************* //");
 
             return sb.ToString();
-
-
         }
+
         //        public static string circularDomainM4(OFBoxDomain DOM)
         //        {
         //            return @"/*--------------------------------*- C++ -*----------------------------------*\
@@ -737,14 +706,14 @@ FoamFile
         //dnl *********USER***********
         //dnl ===      POINTS      ===
         //define(zLength, " + (6 * DOM.dimZ) + @")dnl
-        //define(coreWidth, " + (6 * DOM.dim) + @")dnl 
-        //define(diameter, " + (16.5 * DOM.dim) + @")dnl 
+        //define(coreWidth, " + (6 * DOM.dim) + @")dnl
+        //define(diameter, " + (16.5 * DOM.dim) + @")dnl
         ////define(rectangleWidth, 80)dnl //50
-        //define(cornerStretch, 1)dnl 
+        //define(cornerStretch, 1)dnl
         //define(arcStretch, 1)dnl
         //dnl ===    CELL COUNT    ===
-        //define(coreCount, " + Math.Round((DOM.dim / DOM.blockDimension)) + @")dnl 
-        //define(rectangleCount, " + Math.Round(((16.5 * DOM.dim) / DOM.blockDimension)) + @")dnl 
+        //define(coreCount, " + Math.Round((DOM.dim / DOM.blockDimension)) + @")dnl
+        //define(rectangleCount, " + Math.Round(((16.5 * DOM.dim) / DOM.blockDimension)) + @")dnl
         //define(zCount, " + Math.Round((DOM.dimZ / DOM.blockDimension)) + @")dnl
         //dnl ===BOUNDING RECTANGLE?===
         //define(boundRect, 1)dnl
@@ -775,7 +744,7 @@ FoamFile
         //dnl
         //define(zCount, 1)dnl
 
-        //vertices        
+        //vertices
         //(
         //    (  0  0  0 )          //0
         //    (  0  0  zLength )          //1
@@ -812,9 +781,9 @@ FoamFile
         //    (  cornerRadius negCornerRadius  0 )           //32
         //    (  cornerRadius negCornerRadius  zLength )    //33
 
-        //); 
+        //);
 
-        //blocks          
+        //blocks
         //LPAREN
         //    hex (2 10 0 16 3 11 1 17) (coreCount coreCount zCount) simpleGrading (1 1 1)          //1
         //    hex (10 4 12 0 11 5 13 1) (coreCount coreCount zCount) simpleGrading (1 1 1)          //2
@@ -829,10 +798,9 @@ FoamFile
         //    hex (24 32 16 8 25 33 17 9) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //11
         //    hex (32 18 2 16 33 19 3 17) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //12
 
-
         //RPAREN;
 
-        // edges           
+        // edges
         // (
         //     arc  2 10 ( coreArchLong   coreArchShort   0)
         //     arc  3 11 ( coreArchLong   coreArchShort   zLength)
@@ -975,16 +943,13 @@ FoamFile
 
         // RPAREN;
 
-
-        //mergePatchPairs 
+        //mergePatchPairs
         //(
         //);
 
         //// ************************************************************************* //
         //            ";
         //        }
-
-
 
         public static string MeshQualityDict()
         {
@@ -1059,17 +1024,16 @@ minVolRatio 0.01;
 //  compatibility
 minTriangleTwist -1;
 
-
 //- If >0 : preserve cells with all points on the surface if the
 //  resulting volume after snapping (by approximation) is larger than
 //  minVolCollapseRatio times old volume (i.e. not collapsed to flat cell).
 //  If <0 : delete always.
 //minVolCollapseRatio 0.1;
 
-
 // ************************************************************************* //
 ";
         }
+
         public static string FvSchemesAccurate()
         {// An accurate and stable numerical scheme
             return
@@ -1165,8 +1129,6 @@ ddtSchemes
     default         steadyState;
 }
 
-
-
 gradSchemes
 {
     default cellMDLimited Gauss linear 1.0;
@@ -1216,7 +1178,7 @@ wallDist
 ";
         }
 
-            public static string FvSchemesRobust1()
+        public static string FvSchemesRobust1()
         {//A robust numerical scheme but diffusive
             return
         @"/*--------------------------------*- C++ -*----------------------------------*\
@@ -1240,8 +1202,6 @@ ddtSchemes
     default         steadyState;
 }
 
-
-
 gradSchemes
 {
     default cellMDLimited Gauss linear 1.0;
@@ -1290,6 +1250,7 @@ wallDist
 // ************************************************************************* //
 ";
         }
+
         public static string FvSchemesAccurateOscillatory()
         {// An even more accurate but oscillatory scheme
             return
@@ -1313,8 +1274,6 @@ ddtSchemes
 {
     default         steadyState;
 }
-
-
 
 gradSchemes
 {
@@ -1363,6 +1322,7 @@ wallDist
 // ************************************************************************* //
 ";
         }
+
         public static string FvSchemesOrtho70_80()
         {
             // An accurate numerical scheme on orthogonal (70-80) meshes
@@ -1387,8 +1347,6 @@ ddtSchemes
 {
     default         steadyState;
 }
-
-
 
 gradSchemes
 {
@@ -1436,10 +1394,7 @@ wallDist
 
 // ************************************************************************* //
 ";
-
-
         }
-
 
         public static string FvSchemesOrtho60_70()
         {
@@ -1466,8 +1421,6 @@ ddtSchemes
     default         steadyState;
 }
 
-
-
 gradSchemes
 {
     default cellMDLimited Gauss linear 0.5;
@@ -1475,7 +1428,6 @@ gradSchemes
 
 divSchemes
 {
-    
     div(phi,U)       Gauss linearUpwind grad(U);
     //div(phi,k)       Gauss linearUpwind;
     //div(phi,epsilon) Gauss linearUpwind;
@@ -1515,6 +1467,7 @@ wallDist
 // ************************************************************************* //
 ";
         }
+
         public static string FvSchemesOrtho40_60()
         {
             // An accurate numerical scheme on orthogonal (40-60) meshes
@@ -1539,8 +1492,6 @@ ddtSchemes
 {
     default         steadyState;
 }
-
-
 
 gradSchemes
 {
@@ -1589,6 +1540,7 @@ wallDist
 // ************************************************************************* //
 ";
         }
+
         //        public static string fvSolution(int mode)
         //        {
         //            StringBuilder sb = new StringBuilder(); sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -1753,7 +1705,7 @@ solvers
         agglomerator faceAreaPair;
         nCellsInCoarsestLevel 10;
         mergeLevels 1;
-    } 
+    }
 
     ""(k|omega|epsilon)""
     {
@@ -1761,7 +1713,7 @@ solvers
         smoother        GaussSeidel;
         tolerance       1e-9;
         relTol          0.0001;
-    }   
+    }
     U
     {
         solver smoothSolver;
@@ -1769,7 +1721,7 @@ solvers
         preconditioner DILU;
         tolerance 1e-9;
         relTol 0.0001;
-    } 
+    }
 	Phi
     {
         solver          GAMG;
@@ -1858,6 +1810,7 @@ cache
 ;");
             return sb.ToString();
         }
+
         public static string SurfaceFeatureExtractDict()
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
@@ -1899,7 +1852,6 @@ building.stl
         openEdges       yes;
     }
 
-
     // Write options
 
         // Write features to obj format for PostProcessing
@@ -1929,7 +1881,6 @@ ground.stl
         openEdges       yes;
     }
 
-
     // Write options
 
         // Write features to obj format for PostProcessing
@@ -1939,6 +1890,7 @@ ground.stl
 // ************************************************************************* //
 ";
         }
+
         public static string TransportProperties()
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
@@ -1964,6 +1916,7 @@ nu              nu [0 2 -1 0 0 0 0] 1.5e-05;
 // ************************************************************************* //
 ";
         }
+
         public static string TurbulenceProperties(OFRunSettings RunSettings)
         {
             StringBuilder sb = new StringBuilder();
@@ -1993,7 +1946,6 @@ RAS
     turbulence on;
 
     printCoeffs on;
-
 }
 
 // ************************************************************************* //
@@ -2001,7 +1953,6 @@ RAS
 
             return sb.ToString();
         }
-
 
         public static string ResidualsDict()
         {
@@ -2051,10 +2002,6 @@ scotchCoeffs
 {
 }");
             return sb.ToString();
-
         }
-
-
     }
-
 }

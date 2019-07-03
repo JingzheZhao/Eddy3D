@@ -1,15 +1,13 @@
-﻿using Rhino.Geometry;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Rhino.Geometry;
 
 namespace EddyLib
 {
-
-
     public class OFField
     {
         public enum fieldType
@@ -17,6 +15,7 @@ namespace EddyLib
             vector,
             number
         }
+
         public string FieldName { get; set; }
         public string ProbeName { get; set; }
         public fieldType FieldType { get; set; }
@@ -25,9 +24,9 @@ namespace EddyLib
         {
             Setup(fieldName, probeName);
         }
+
         private void Setup(string fieldName, string probeName)
         {
-
             //param.AddNamedValue("U", 0);
             //param.AddNamedValue("total(p)_coeff", 1);
             //param.AddNamedValue("p", 2);
@@ -93,7 +92,6 @@ namespace EddyLib
                 ofField = "p";
                 //fieldType = 0;
             }
-
             else if (OFFieldInt == 3)
             {
                 ofField = "epsilon";
@@ -109,7 +107,6 @@ namespace EddyLib
                 ofField = "k";
                 //fieldType = 0;
             }
-
             else if (OFFieldInt == 6)
             {
                 ofField = "nut";
@@ -122,16 +119,13 @@ namespace EddyLib
             }
             return ofField;
         }
-
-
     }
+
     public class Probing
     {
-
         public double[] ResultNum;
         public Vector3d[] ResultVec;
         public string valueString;
-
 
         private readonly List<Point3d> listOfPoints;
 
@@ -144,7 +138,7 @@ namespace EddyLib
             this.caseDirectory = caseDirectory;
             string fullPath = GetIterationPathToProbedResults(caseDirectory, ofField);
 
-            //Number       
+            //Number
             if (ofField.FieldType == OFField.fieldType.number)
             {
                 ParsingNumbers(listOfPoints, caseDirectory, fullPath);
@@ -157,10 +151,8 @@ namespace EddyLib
             WriteProbedResultToCSV(ofField);
         }
 
-
         private void WriteProbedResultToCSV(OFField ofField)
         {
-
             string PostProcessingDirectory = caseDirectory + @"\postProcessing\";
             if (ofField.FieldType == OFField.fieldType.number)
             {
@@ -184,7 +176,6 @@ namespace EddyLib
 
         private void ParsingNumbers(List<Point3d> listOfPoints, string workingDirectory, string fullPath)
         {
-
             int counterPoints = listOfPoints.Count;
 
             StringBuilder sb = new StringBuilder();
@@ -194,16 +185,14 @@ namespace EddyLib
 
             for (int i = 0; i < counterPoints; i++)
             {
-                ResultNum[i] = double.Parse(lastLine.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[i + 1]); //this workes 
+                ResultNum[i] = double.Parse(lastLine.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[i + 1]); //this workes
                 sb.AppendLine(ResultNum[i].ToString());
             }
             valueString = sb.ToString();
-
         }
 
         private void ParsingVectors(List<Point3d> listOfPoints, string workingDirectory, string fullPath)
         {
-
             int counterPoints = listOfPoints.Count;
 
             StringBuilder sb = new StringBuilder();
@@ -222,14 +211,8 @@ namespace EddyLib
             valueString = sb.ToString();
         }
 
-
-    
-
-
         public static string GetIterationPathToProbedResults(string workingDirectory, OFField ofField)
         {
-
-
             // Here, the data has to be written already
             string PostProcessingDirectory = workingDirectory + @"\postProcessing\";
 
@@ -250,8 +233,6 @@ namespace EddyLib
             string fullPath = basePath + @"\" + latestTime + @"\" + ofField.FieldName;
 
             return fullPath;
-
-
         }
 
         public string GetLastIterationPath(string workingDirectory)
@@ -270,10 +251,8 @@ namespace EddyLib
         //{
         //    double[] outputList = new double[inputList.Length];
 
-
         //    for (int i = 0; i < inputList.Length; i++)
         //    {
-
         //        if (inputList[i] < -1)
         //        {
         //            outputList[i] = -1;
@@ -294,10 +273,8 @@ namespace EddyLib
         {
             double[] outputList = new double[inputList.Length];
 
-
             for (int i = 0; i < inputList.Length; i++)
             {
-
                 if (inputList[i] < -10000)
                 {
                     outputList[i] = 0;
@@ -318,20 +295,15 @@ namespace EddyLib
         {
             List<Vector3d> outputList = new List<Vector3d>();
 
-
             for (int i = 0; i < inputList.Length; i++)
             {
-
                 if (inputList[i].Length < 1000)
                 {
                     outputList.Add(inputList[i]);
-
                 }
             }
 
             return outputList.ToArray();
         }
-
     }
-
 }

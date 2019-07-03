@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+
 namespace EddyLib
 {
     /// <summary>
@@ -49,7 +50,6 @@ namespace EddyLib
 
             public override int GetHashCode()
             {
-
                 unchecked
                 {
                     var hashCode = 1519435568;
@@ -79,8 +79,6 @@ namespace EddyLib
             {
                 return Value.ToString() + " [" + Count.ToString() + "]";
             }
-
-
         }
 
         private List<ValueCountTuple> _values;
@@ -114,7 +112,7 @@ namespace EddyLib
         ///     The value sequence must be strictly increasing, all weights must be positive
         /// </param>
         /// <param name="numBreaks"> Number of breaks to find.</param>
-        private  JenksFisher(List<ValueCountTuple> tuples, int numBreaks)
+        private JenksFisher(List<ValueCountTuple> tuples, int numBreaks)
         {
             _values = new List<ValueCountTuple>();
             _numValues = tuples.Count;
@@ -144,7 +142,6 @@ namespace EddyLib
                     _previousSSM[i] = cwv * cwv / cw;
                 }
             }
-
         }
 
         /// <summary>
@@ -168,7 +165,6 @@ namespace EddyLib
         /// <returns>cumul. sum of the values*weight</returns>
         private double SumOfWeightedValues(int beginIndex, int endIndex)
         {
-
             double res = _values[endIndex].Value;
             res -= _values[beginIndex - 1].Value;
             return res;
@@ -295,7 +291,6 @@ namespace EddyLib
                         lastClassBreakIndex = classificator._classBreaks[classificator._classBreaksIndex + lastClassBreakIndex];
                     }
                 }
-
             }
 
             breaksArray[0] = tuples[0].Value; // break for the first class is the minimum of the dataset.
@@ -319,6 +314,5 @@ namespace EddyLib
             result.Sort();
             return result;
         }
-
     }
 }

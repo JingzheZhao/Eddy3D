@@ -2,12 +2,10 @@
 
 namespace EddyLib
 {
-
     public class SolarGeometry
     {
         public double solarazimuth(double lat, double lon, double year, double month, double day, double hours, double minutes, double seconds, double timezone, double dlstime)
         {
-
             //***********************************************************************/
             //* Name:    solarazimuth
             //* Type:    Main Function
@@ -219,7 +217,6 @@ namespace EddyLib
 
             solarZen = zenith - refractionCorrection;
 
-
             return azimuth;
             /*
                 if ((solarZen < 108.0)) {
@@ -235,13 +232,10 @@ namespace EddyLib
                   solarelevation = -999999;
                   cosZen = -999999;
                 }*/
-
         }
-
 
         public double solarelevation(double lat, double lon, double year, double month, double day, double hours, double minutes, double seconds, double timezone, double dlstime)
         {
-
             //***********************************************************************/
             //* Name:    solarazimuth
             //* Type:    Main Function
@@ -468,17 +462,6 @@ namespace EddyLib
             return 90.0 - solarZen;
         }
 
-
-
-
-
-
-
-
-
-
-
-
         //--------------------------------------------------------------------
         //This section contains subroutines used in calculating solar position
         //--------------------------------------------------------------------
@@ -489,12 +472,13 @@ namespace EddyLib
         {
             return (180.0 * angleRad / Math.PI);
         }
+
         public double deg2rad(double angleDeg)
         {
             return Math.PI * angleDeg / 180.0;
         }
-        //--------------------------------------------------------------------
 
+        //--------------------------------------------------------------------
 
         //Purpose:Julian day from calendar day
         //year : 4 digit year
@@ -515,8 +499,8 @@ namespace EddyLib
             double JD = Math.Floor(365.25 * (yr + 4716)) + Math.Floor(30.6001 * (mth + 1)) + day + B - 1524.5;
             return JD;
         }
-        //--------------------------------------------------------------------
 
+        //--------------------------------------------------------------------
 
         //Purpose: convert Julian Day to centuries since J2000.0
         //Arguments: jd - the Julian Day to convert
@@ -526,7 +510,6 @@ namespace EddyLib
             double T = (jd - 2451545.0) / 36525.0;
             return T;
         }
-
 
         //-----------------------------------------------------------------------
         // Name:    calGeomMeanLongSun
@@ -550,6 +533,7 @@ namespace EddyLib
             }
             return LO; // in degrees
         }
+
         //-----------------------------------------------------------------------
         // Name:    calGeomAnomalySun
         // Type:    Function
@@ -564,6 +548,7 @@ namespace EddyLib
             double M = 357.52911 + t * (35999.05029 - 0.0001537 * t);
             return M; // in degrees
         }
+
         //-----------------------------------------------------------------------
         // Name:    calcEccentricityEarthOrbit
         // Type:    Function
@@ -578,6 +563,7 @@ namespace EddyLib
             double e = 0.016708634 - t * (0.000042037 + 0.0000001267 * t);
             return e; // unitless
         }
+
         //-----------------------------------------------------------------------
         // Name:    calcSunEqOfCenter
         // Type:    Function
@@ -598,6 +584,7 @@ namespace EddyLib
             double C = sinm * (1.914602 - t * (0.004817 + 0.000014 * t)) + sin2m * (0.019993 - 0.000101 * t) + sin3m * 0.000289;
             return C; // in degrees
         }
+
         //-----------------------------------------------------------------------
         // Name:    calcSunTrueLong
         // Type:    Function
@@ -614,6 +601,7 @@ namespace EddyLib
             double O = lo + c;
             return O; // in degrees
         }
+
         //-----------------------------------------------------------------------
         // Name:    calcSunTrueAnomaly
         // Type:    Function
@@ -630,6 +618,7 @@ namespace EddyLib
             double v = m + c;
             return v; // in degrees
         }
+
         //-----------------------------------------------------------------------
         // Name:    calcSunRadVector
         // Type:    Function
@@ -646,8 +635,6 @@ namespace EddyLib
             double R = (1.000001018 * (1 - e * e)) / (1 + e * Math.Cos(deg2rad(v)));
             return R; // in AUs
         }
-
-
 
         //Functions to calculate Ascension
         //-----------------------------------------------
@@ -668,8 +655,6 @@ namespace EddyLib
             return lambda; // in degrees
         }
 
-
-
         //-----------------------------------------------------------------------
         // Name:    calcMeanObliquityOfEcliptic
         // Type:    Function
@@ -685,6 +670,7 @@ namespace EddyLib
             double eO = 23.0 + (26.0 + (seconds / 60.0)) / 60.0;
             return eO; // in degrees
         }
+
         //-----------------------------------------------------------------------
         // Name:    calcObliquityCorrection
         // Type:    Function
@@ -701,6 +687,7 @@ namespace EddyLib
             double e = eO + 0.00256 * Math.Cos(deg2rad(omega));
             return e; // in degrees
         }
+
         //-----------------------------------------------------------------------
         // Name:    calcSunRtAscension
         // Type:    Function
@@ -721,7 +708,6 @@ namespace EddyLib
             return alpha; // in degrees
         }
 
-
         //-----------------------------------------------------------------------
         // Name:    calcSunDeclination
         // Type:    Function
@@ -739,7 +725,6 @@ namespace EddyLib
             double theta = rad2deg(Math.Asin(sint));
             return theta; // in degrees
         }
-
 
         //-----------------------------------------------------------------------
         // Name:    calcEquationOfTime
@@ -769,13 +754,11 @@ namespace EddyLib
             return rad2deg(Etime) * 4.0; // in minutes of time
         }
 
-
         //----------------------------------------
         //Return the hour angle for the given location, decl, and time of day
         public double calcHourAngle(double time, double longitude, double eqtime)
         {
             return 15.0 * (time - (longitude / 15.0) - (eqtime / 60.0));
         }
-
     }
 }

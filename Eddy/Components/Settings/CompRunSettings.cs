@@ -1,8 +1,8 @@
-﻿using Eddy.Properties;
+﻿using System;
+using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
-using System;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -14,10 +14,10 @@ namespace Eddy
     public class RunSettings : GH_Component
     {
         /// <summary>
-        /// Each implementation of GH_Component must provide a public 
+        /// Each implementation of GH_Component must provide a public
         /// constructor without any arguments.
-        /// Category represents the Tab in which the component will appear, 
-        /// Subcategory the panel. If you use non-existing tab or panel names, 
+        /// Category represents the Tab in which the component will appear,
+        /// Subcategory the panel. If you use non-existing tab or panel names,
         /// new tabs/panels will automatically be created.
         /// </summary>
         public RunSettings()
@@ -26,8 +26,6 @@ namespace Eddy
               "Eddy", "2 | Settings")
         {
         }
-
-
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -49,7 +47,6 @@ namespace Eddy
             relaxationFactors.AddNamedValue("OpenFOAM", 0);
             relaxationFactors.AddNamedValue("Fluent", 1);
             relaxationFactors.AddNamedValue("SimScale", 2);
-
 
             pManager.AddIntegerParameter("Mode", "Mode", "Robustness of the solver", GH_ParamAccess.item, 0);
             Param_Integer simulationMode = pManager[5] as Param_Integer;
@@ -80,16 +77,13 @@ namespace Eddy
             pManager.AddGenericParameter("Run Settings", "RSet", "Run Settings", GH_ParamAccess.item);
         }
 
-
-
         /// <summary>
         /// This is the method that actually does the work.
         /// </summary>
-        /// <param name="DA">The DA object can be used to retrieve data from input parameters and 
+        /// <param name="DA">The DA object can be used to retrieve data from input parameters and
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-
             int _iter = 1000;
             int _writeInterval = 10;
             int _keepTimeSteps = 2;
@@ -98,7 +92,6 @@ namespace Eddy
             int _CPUs = 0;
             int _OS = -1;
             int _relaxationFactors = 0;
-
 
             DA.GetData(0, ref _iter);
             DA.GetData(1, ref _writeInterval);
@@ -113,39 +106,27 @@ namespace Eddy
 
             //TODO: Handle SimEngine
 
-
-
-
             //Make sure that all fields are always written
             if (_iter < _writeInterval)
             {
                 _writeInterval = _iter;
             }
 
-
-
             if (_CPUs > Environment.ProcessorCount)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that many CPUs.");
             }
-
 
             var relaxationFactors = RelaxationFactors.OpenFOAM;
             if (_relaxationFactors == 0) { relaxationFactors = RelaxationFactors.OpenFOAM; }
             else if (_relaxationFactors == 1) { relaxationFactors = RelaxationFactors.Fluent; }
             else { relaxationFactors = RelaxationFactors.SimScale; }
 
-
-
-
-
-
             var os = OSType.Windows10;
             if (Utilities.GetOSInfo() == "Windows 7" && _OS == 0)
             {
                 os = OSType.Windows7;
             }
-
             else if (Utilities.GetOSInfo() == "Windows 10" && _OS == 0)
             {
                 os = OSType.Windows10;
@@ -171,10 +152,8 @@ namespace Eddy
                 os = OSType.MaxOS;
             }
 
-
             DA.SetData(0, new OFRunSettings()
             {
-
                 iter = _iter,
                 writeInterval = _writeInterval,
                 keepTimeSteps = _keepTimeSteps,
@@ -183,10 +162,7 @@ namespace Eddy
                 CPUs = _CPUs,
                 ostype = os,
                 relaxationFactors = relaxationFactors
-
-
             });
-
         }
 
         /// <summary>
@@ -198,8 +174,8 @@ namespace Eddy
                 Resources.Eddy_run_settings;
 
         /// <summary>
-        /// Each component must have a unique Guid to identify it. 
-        /// It is vital this Guid doesn't change otherwise old ghx files 
+        /// Each component must have a unique Guid to identify it.
+        /// It is vital this Guid doesn't change otherwise old ghx files
         /// that use the old ID will partially fail during loading.
         /// </summary>
         public override Guid ComponentGuid => new Guid("{5898D6B7-6BDB-4A36-A0E8-FD0278D54A25}");

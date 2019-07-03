@@ -1,10 +1,11 @@
-﻿using Eddy.Properties;
+﻿using System;
+using System.IO;
+using System.Windows.Forms;
+using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
-using System;
-using System.IO;
-using System.Windows.Forms;
+
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
 // folder in Grasshopper.
@@ -14,13 +15,11 @@ namespace Eddy
 {
     public class SimpleFoam : GH_Component
     {
-
-
         /// <summary>
-        /// Each implementation of GH_Component must provide a public 
+        /// Each implementation of GH_Component must provide a public
         /// constructor without any arguments.
-        /// Category represents the Tab in which the component will appear, 
-        /// Subcategory the panel. If you use non-existing tab or panel names, 
+        /// Category represents the Tab in which the component will appear,
+        /// Subcategory the panel. If you use non-existing tab or panel names,
         /// new tabs/panels will automatically be created.
         /// </summary>
         public SimpleFoam()
@@ -29,7 +28,6 @@ namespace Eddy
               "Eddy", "1 | Setup")
         {
         }
-
 
         protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
         {
@@ -41,11 +39,10 @@ namespace Eddy
         {
             runWithBlueCFD = !runWithBlueCFD;
             ExpireSolution(true);
-
         }
+
         public bool runWithBlueCFD = true;
         //public bool runWithBlueCFD;
-
 
         public override bool Write(GH_IO.Serialization.GH_IWriter writer)
         {
@@ -54,6 +51,7 @@ namespace Eddy
             // Then call the base class implementation.
             return base.Write(writer);
         }
+
         public override bool Read(GH_IO.Serialization.GH_IReader reader)
         {
             // First read our own field.
@@ -61,8 +59,6 @@ namespace Eddy
             // Then call the base class implementation.
             return base.Read(reader);
         }
-
-
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -80,7 +76,6 @@ namespace Eddy
 
             pManager.AddBooleanParameter("Run Meshing", "RunMsh", "RunMsh", GH_ParamAccess.item, false);
             pManager.AddBooleanParameter("Run Simulation", "RunSim", "RunSim", GH_ParamAccess.item, false);
-
         }
 
         /// <summary>
@@ -91,20 +86,17 @@ namespace Eddy
             pManager.AddGenericParameter("Result", "Res", "Result", GH_ParamAccess.item);
         }
 
-
-
         /// <summary>
         /// This is the method that actually does the work.
         /// </summary>
-        /// <param name="DA">The DA object can be used to retrieve data from input parameters and 
+        /// <param name="DA">The DA object can be used to retrieve data from input parameters and
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-
             // mode to select simulation environment
             if (runWithBlueCFD) { Message = "BlueCFD"; }
             else { Message = "Docker"; }
-                                 
+
             // read inputs
             //------------
 
@@ -131,7 +123,7 @@ namespace Eddy
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid domain object"); return;
             }
-                       
+
             // run settings
             //-----------------
 
@@ -142,7 +134,6 @@ namespace Eddy
                 if (gobjRunSet.Value is OFRunSettings)
                 {
                     RunSettings = (OFRunSettings)gobjRunSet.Value;
-
                 }
             }
 
@@ -151,7 +142,7 @@ namespace Eddy
             {
                 RunSettings.simEngine = SimEngine.Docker;
             }
-                       
+
             // working directory
             //------------------
 
@@ -166,22 +157,21 @@ namespace Eddy
                 //{
                 //    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "For Windows 7 and 8, the working directory must be in the user folder because of constraint with a deprecated Docker version.."); return;
                 //}
-
             }
             baseWorkingDirectory = Utilities.Directories.FixDirectories(baseWorkingDirectory);
-                       
+
             // meshing settings
             //-----------------
 
-            OFMeshSettings MeshSettings = new OFMeshSettings(); // sets default mesh settings          
-            
+            OFMeshSettings MeshSettings = new OFMeshSettings(); // sets default mesh settings
+
             GH_ObjectWrapper gobjMeshSet = null;
-            if (DA.GetData("Mesh Settings", ref gobjMeshSet)) {
+            if (DA.GetData("Mesh Settings", ref gobjMeshSet))
+            {
                 if (gobjMeshSet.Value is OFMeshSettings)
                 {
                     MeshSettings = (OFMeshSettings)gobjMeshSet.Value;
                 }
-                
             }
             MeshSettings.SetDirectories(baseWorkingDirectory);
 
@@ -196,19 +186,11 @@ namespace Eddy
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "For box-shaped domains you can only pass one wind direction per simulation setup."); return;
                 }
 
-
                 RunBlockMesh.RunBox((OFBoxDomain)DOM, MeshSettings, RunSettings, baseWorkingDirectory);
-
-
             }
             else
             {
-
-
                 RunBlockMesh.RunCyl((OFCylDomain)DOM, MeshSettings, RunSettings, baseWorkingDirectory);
-
-
-
             }
 
             // Export Frontage PNGs
@@ -218,11 +200,6 @@ namespace Eddy
             //{
             //    RunBlockMesh.SaveFrontagePNGs(directory, dir, DOM.FrontagePNGs);
             //}
-            
-
-
-
-
 
             //string logFile = "";
 
@@ -235,13 +212,9 @@ namespace Eddy
             //    }
             //}
 
-
-
-            #endregion
+            #endregion RUN BLOCKMESH
 
             #region RUN SNAPPY HEX
-
-            
 
             // Check for killed processes
             if (Utilities.DidProcessGetKilled(MeshSettings.meshWorkingDir) == true)
@@ -250,13 +223,11 @@ namespace Eddy
                 return;
             }
 
-
             //TODO: output the logs somewhere!
 
             RunSnappy.Run(DOM, MeshSettings, RunSettings, out string logfileOutput);
 
-
-            #endregion
+            #endregion RUN SNAPPY HEX
 
             #region RUN SIMULATION
 
@@ -264,7 +235,6 @@ namespace Eddy
 
             if (RunSettings.simEngine == SimEngine.Docker)
             {
-
                 Utilities.Docker.WriteDockerInfo(baseWorkingDirectory);
 
                 if (!Utilities.Docker.IsDockerRunning(baseWorkingDirectory, RunSettings.ostype))
@@ -274,29 +244,23 @@ namespace Eddy
 
                 // Check for killed processes
 
-
                 for (int i = 0; i < DOM.BCond.windDirs.Count; i++)
                 {
                     if (Utilities.DidProcessGetKilled(baseWorkingDirectory + "\\" + DOM.BCond.windDirs[i]) == true)
                     {
                         AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Some processes got killed probably because to little RAM was available. Try to increase the RAM acclocated for the Docker virtual machine.");
                     }
-
                 }
-
             }
-
-
 
             if (RunSettings.iter == 0 || RunSettings.keepTimeSteps == 0 || RunSettings.writeInterval == 0)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide valid inputs.");
             }
 
-
             RunFoamSimulation.Run(DOM, MeshSettings, RunSettings, baseWorkingDirectory);
 
-            #endregion
+            #endregion RUN SIMULATION
 
             #region START PROCESSES
 
@@ -318,14 +282,12 @@ namespace Eddy
                 Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_sim_all.bat");
             }
 
-
-
-            #endregion
+            #endregion START PROCESSES
 
             OFResult RES = new OFResult(DOM, RunSettings, MeshSettings, baseWorkingDirectory);
             DA.SetData(0, RES);
         }
-               
+
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface.
         /// Icons need to be 24x24 pixels.
@@ -335,8 +297,8 @@ namespace Eddy
                 Resources.Eddy_simulation;//return null;
 
         /// <summary>
-        /// Each component must have a unique Guid to identify it. 
-        /// It is vital this Guid doesn't change otherwise old ghx files 
+        /// Each component must have a unique Guid to identify it.
+        /// It is vital this Guid doesn't change otherwise old ghx files
         /// that use the old ID will partially fail during loading.
         /// </summary>
         public override Guid ComponentGuid => new Guid("{7FF4A70C-DB4E-473C-BDC0-606CE58A979A}");

@@ -6,22 +6,16 @@ namespace EddyLib
     {
         public static void Run(OFBaseDomain DOM, OFMeshSettings MeshSettings, OFRunSettings RunSettings, string WorkDir)
         {
-
-
             if (Utilities.CheckLicence() == true)
             {
-
                 //Autocalc number of CPUs
                 if (RunSettings.CPUs == -1)
                 {
                     RunSettings.CPUs = Utilities.CalcOptimCPU(MeshSettings.meshWorkingDir, RunSettings.CPUs);   // TODO: take out all work dirs from dom!!!
                 }
 
-
-
                 for (int i = 0; i < DOM.BCond.windDirs.Count; i++)
                 {
-
                     string simStlDir = WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\constant\triSurface\";
                     string simStlFilenameBuildings = WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\constant\triSurface\building.stl";
                     string simStlFilenameGround = WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\constant\triSurface\ground.stl";
@@ -52,7 +46,7 @@ namespace EddyLib
                     }
 
                     File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\" + "controlDict"), EddyLib.StrTemp.OFExecDicts.ControlDict(RunSettings, DOM, null, i));
-                    File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\"+ DOM.BCond.windDirs[i]+".foam"), "");
+                    File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\" + DOM.BCond.windDirs[i] + ".foam"), "");
 
                     // Not working currently: Symbolic dir junctions only for cylindrical domain, and, if they exist, delete them for boxDomain
 
@@ -74,9 +68,6 @@ namespace EddyLib
                     File.WriteAllText(Path.Combine(simConstantDir + "transportProperties"), EddyLib.StrTemp.OFExecDicts.TransportProperties());
 
                     Utilities.DeletePhi(MeshSettings, DOM);
-
-
-                 
 
                     if (DOM is OFBoxDomain)
                     {
@@ -110,7 +101,6 @@ namespace EddyLib
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "epsilon"), EddyLib.StrTemp.BCDicts.Epsilon(DOM));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "nut"), EddyLib.StrTemp.BCDicts.Nut(DOM));
 
-
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), EddyLib.StrTemp.BCDicts.InitialConditions(DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "initialConditions"), EddyLib.StrTemp.BCDicts.InitialConditions(DOM, i));
 
@@ -135,7 +125,6 @@ namespace EddyLib
                             {
                                 File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesOrtho40_60());
                             }
-
                             else if (RunSettings.Schemes == 5)
 
                             {
@@ -159,11 +148,9 @@ namespace EddyLib
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\meshQualityDict"), EddyLib.StrTemp.OFExecDicts.MeshQualityDict());
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\residuals"), EddyLib.StrTemp.OFExecDicts.ResidualsDict());
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\decomposeParDict"), EddyLib.StrTemp.OFExecDicts.DecomposeParDict(RunSettings));
-
                     }
                     else if (DOM is OFCylDomain)
                     {
-
                         if (DOM.BCond.btype is BoundaryType.abl)
                         {
                             File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), EddyLib.StrTemp.BCDicts.U_CylABL((OFCylDomain)DOM, i));
@@ -193,7 +180,6 @@ namespace EddyLib
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "k"), EddyLib.StrTemp.BCDicts.K_Cyl((OFCylDomain)DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "epsilon"), EddyLib.StrTemp.BCDicts.Epsilon_Cyl((OFCylDomain)DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "nut"), EddyLib.StrTemp.BCDicts.Nut_Cyl((OFCylDomain)DOM, i));
-
 
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), EddyLib.StrTemp.BCDicts.InitialConditions(DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "initialConditions"), EddyLib.StrTemp.BCDicts.InitialConditions(DOM, i));
@@ -236,12 +222,7 @@ namespace EddyLib
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\meshQualityDict"), EddyLib.StrTemp.OFExecDicts.MeshQualityDict());
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\residuals"), EddyLib.StrTemp.OFExecDicts.ResidualsDict());
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\decomposeParDict"), EddyLib.StrTemp.OFExecDicts.DecomposeParDict(RunSettings));
-
-
                     }
-
-
-
                 }
 
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_mesh.bat"), EddyLib.StrTemp.BatFiles.Run_Mesh_Cyl(RunSettings, MeshSettings, DOM, StrTemp.Mode.Meshing));
@@ -250,7 +231,7 @@ namespace EddyLib
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_ray.bat"), EddyLib.StrTemp.BatFiles.Run_RayTrace(DOM, MeshSettings));
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_probes.bat"), EddyLib.StrTemp.BatFiles.Run_Probes(DOM, MeshSettings));
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_utci.bat"), EddyLib.StrTemp.BatFiles.Run_UTCI(DOM, MeshSettings));
-                
+
 #if DEBUG
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_blockMesh.bat"), EddyLib.StrTemp.BatFiles.Run_blockMesh(RunSettings, DOM, MeshSettings, StrTemp.Mode.Meshing));
 #endif
@@ -260,12 +241,7 @@ namespace EddyLib
                     File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "_run_sim.bat"), EddyLib.StrTemp.BatFiles.Run_sim(MeshSettings, RunSettings, DOM, StrTemp.Mode.Simulation, i));
                     File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "_run_sim_continue.bat"), EddyLib.StrTemp.BatFiles.Run_sim_continue(MeshSettings, RunSettings, DOM, StrTemp.Mode.Simulation, i));
                     File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "_run_divU.bat"), EddyLib.StrTemp.BatFiles.Run_divU(MeshSettings, RunSettings, DOM, StrTemp.Mode.Simulation, i));
-
-
                 }
-
-
-
 
                 // This doesnt work atm because tee.exe puts write lock on log file
 
@@ -274,16 +250,7 @@ namespace EddyLib
                 //{
                 //    DOM.Runtimes.Add(Utilities.CalculateRunTimeFromLog(WorkDir + "\\" + DOM.BCond.windDirs[i], RunSettings.iter));
                 //}
-
-
-
-
-
-
             }
-
-
-
         }
     }
 }

@@ -1,11 +1,11 @@
-﻿using Eddy.Properties;
-using EddyLib;
-using Grasshopper.Kernel;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using Eddy.Properties;
+using EddyLib;
+using Grasshopper.Kernel;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -28,7 +28,6 @@ namespace Eddy
         {
         }
 
-
         protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
         {
             base.AppendAdditionalComponentMenuItems(menu);
@@ -42,13 +41,9 @@ namespace Eddy
             visResiduals = !visResiduals;
 
             ExpireSolution(true);
-
-
         }
+
         public bool visResiduals = true;
-
-
-
 
         public override bool Write(GH_IO.Serialization.GH_IWriter writer)
         {
@@ -57,6 +52,7 @@ namespace Eddy
             // Then call the base class implementation.
             return base.Write(writer);
         }
+
         public override bool Read(GH_IO.Serialization.GH_IReader reader)
         {
             // First read our own field.
@@ -64,8 +60,6 @@ namespace Eddy
             // Then call the base class implementation.
             return base.Read(reader);
         }
-
-
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -84,14 +78,11 @@ namespace Eddy
             pManager.AddTextParameter("X", "X", @"Provide bounds for the x-axis, e.g. ""0:5000""", GH_ParamAccess.item, ":");
             pManager.AddTextParameter("Y", "Y", @"Provide bounds for the y-axis, e.g. ""0.00001:1""", GH_ParamAccess.item, ":");
 
-
             pManager.AddBooleanParameter("Run", "Run", "Run the component for a live preview", GH_ParamAccess.item, false);
-
 
             pManager[1].Optional = true;
             pManager[2].Optional = true;
             pManager[3].Optional = true;
-
         }
 
         /// <summary>
@@ -102,8 +93,6 @@ namespace Eddy
             //pManager.AddGenericParameter("Lab", "L", "Labels", GH_ParamAccess.list);
             //pManager.AddGenericParameter("Res", "R", "Residuals", GH_ParamAccess.tree);
         }
-
-
 
         /// <summary>
         /// This is the method that actually does the work.
@@ -116,8 +105,6 @@ namespace Eddy
             if (visResiduals) { Message = "Visualize"; }
             else { Message = "Write"; }
 
-
-
             OFResult RES = null;
             DA.GetData(0, ref RES);
 
@@ -128,14 +115,12 @@ namespace Eddy
 
             string fullFilePath = "";
 
-
             List<int> selectionList = new List<int>();
 
             DA.GetDataList(1, selectionList);
             DA.GetData(2, ref x0x1);
             DA.GetData(3, ref y0y1);
             DA.GetData(4, ref run);
-
 
             List<int> selection = new List<int>();
             if (selectionList.Count != 0)
@@ -147,21 +132,14 @@ namespace Eddy
                 selection.Add(RES.Domain.BCond.windDirs[0]);
             }
 
-
-
             if (run != true) { return; }
-
-
 
             if (visResiduals)
             {
                 try
                 {
-
                     foreach (double dir in selection)
                     {
-
-
                         string p1 = RES.WorkingDirectory + dir + @"\postProcessing\residuals\";
                         fullFilePath = p1 + Utilities.GetLastIterationFromDirectory(p1) + "\\" + @"\\residuals.dat";
                         if (!File.Exists(fullFilePath))
@@ -169,9 +147,7 @@ namespace Eddy
                             AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "The residual file for wind direction " + dir + " does not exist.");
                         }
 
-
                         string fields = Utilities.FileReader(fullFilePath)[1];
-
 
                         string field1 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[1];
                         string field2 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[2];
@@ -195,14 +171,8 @@ pause 3600; replot
 ";
 
                         Utilities.StartProcess.StartProcessCMDNT(arg, true, false, false, true, @"C:\Program Files\gnuplot\bin\gnuplot.exe");
-
-
                     }
-
                 }
-
-
-
                 catch (Exception e)
                 {
                     // Let the user know what went wrong.
@@ -210,18 +180,14 @@ pause 3600; replot
                     Console.WriteLine(e.Message);
                 }
             }
-
             else
             {
-
                 try
                 {
-
                     // Open the file(s) to read from.
 
                     foreach (double dir in selection)
                     {
-
                         string p1 = RES.WorkingDirectory + dir + @"\postProcessing\residuals\";
                         var fullDirectoryPath = p1 + Utilities.GetLastIterationFromDirectory(p1) + "\\";
                         var fileName = Path.GetFileName(Utilities.GetFileNameWithHighestEnumerator(fullDirectoryPath));
@@ -231,7 +197,6 @@ pause 3600; replot
                         {
                             AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "The residual file for wind direction " + dir + " does not exist.");
                         }
-
 
                         string arg = @"
 set title 'wind direction: " + dir + @"'
@@ -249,24 +214,16 @@ replot
 ";
 
                         Utilities.StartProcess.StartProcessCMDNT(arg, true, false, false, true, @"C:\Program Files\gnuplot\bin\gnuplot.exe");
-
-
                     }
                 }
-
                 catch (Exception e)
                 {
                     // Let the user know what went wrong.
                     Console.WriteLine("The file(s) could not be read:");
                     Console.WriteLine(e.Message);
                 }
-
             }
-
         }
-
-
-
 
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface.

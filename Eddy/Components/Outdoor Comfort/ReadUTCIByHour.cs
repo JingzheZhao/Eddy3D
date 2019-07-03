@@ -24,27 +24,23 @@
 //{
 //    public class ReadUTCIHourly : GH_Component
 //    {
-
 //        // exposure
 //        public override GH_Exposure Exposure
 //        {
 //            get { return GH_Exposure.hidden; }
 //        }
 
-
 //        /// <summary>
-//        /// Each implementation of GH_Component must provide a public 
+//        /// Each implementation of GH_Component must provide a public
 //        /// constructor without any arguments.
-//        /// Category represents the Tab in which the component will appear, 
-//        /// Subcategory the panel. If you use non-existing tab or panel names, 
+//        /// Category represents the Tab in which the component will appear,
+//        /// Subcategory the panel. If you use non-existing tab or panel names,
 //        /// new tabs/panels will automatically be created.
 //        /// </summary>
 //        public ReadUTCIHourly()
 //          : base("ReadUTCIByHour", "ReadUTCIByHour", "ReadUTCIByHour", "Eddy", "6 | Outdoor Comfort")
 //        {
 //        }
-
-
 
 //        /// <summary>
 //        /// Registers all the input parameters for this component.
@@ -70,54 +66,40 @@
 //        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
 //        {
 //            pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.tree);
-//            //pManager.AddGenericParameter("UTCIT", "UTCIT", "UTCIT in °C", GH_ParamAccess.tree);        
+//            //pManager.AddGenericParameter("UTCIT", "UTCIT", "UTCIT in °C", GH_ParamAccess.tree);
 //            //pManager.AddGenericParameter("HumanConditions", "HC", "HumanConditions", GH_ParamAccess.tree);
-//            //pManager.AddGenericParameter("ComfortHours", "CH", "ComfortHours in %", GH_ParamAccess.list);     
+//            //pManager.AddGenericParameter("ComfortHours", "CH", "ComfortHours in %", GH_ParamAccess.list);
 
 //            pManager.AddGenericParameter("U", "U", "Overall Uncertainty in %", GH_ParamAccess.item);
 
-
-
 //        }
-
-
 
 //        /// <summary>
 //        /// This is the method that actually does the work.
 //        /// </summary>
-//        /// <param name="DA">The DA object can be used to retrieve data from input parameters and 
+//        /// <param name="DA">The DA object can be used to retrieve data from input parameters and
 //        /// to store data in output parameters.</param>
 //        protected override void SolveInstance(IGH_DataAccess DA)
 //        {
-
 //            OFResult RES = null;
 //            DA.GetData(0, ref RES);
-
-
-
 
 //            bool Run = false;
 
 //            //int evaluationMode = 0;
 //            //DA.GetData(2, ref evaluationMode);
 
-
 //            List<string> dateTimeInput = new List<string>();
 //            DA.GetDataList(1, dateTimeInput);
-
 
 //            DA.GetData(2, ref Run);
 
 //            int annualHours = 8760;
 
-
-
 //            if (!Run) { return; }
-
 
 //            if (dateTimeInput.Count == 1)
 //            {
-
 //                //if (!DA.GetDataList(1, gobj2)) { }
 
 //                //if ((gobj2[0].Value is Int16 || gobj2[0].Value is Int32 || gobj2[0].Value is Int64 || gobj2[0].Value is Double))
@@ -126,16 +108,12 @@
 //                //}
 //                //if (IntervalAsNumber == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
-
-
 //                var IntervalAsNumber = (int)double.Parse(dateTimeInput[0]);
-
 
 //                //if (inputHour > 8759)
 //                //{
 //                //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please connect a number slider that represent 8760 hours of the year as a maximum range."); return;
 //                //}
-
 
 //                //if (dateTimeInput.Count > 1)
 //                //{
@@ -157,16 +135,12 @@
 
 //                }
 
-
 //                DA.SetDataList(0, HourlyUTCI);
-
 
 //            }
 
-
 //            if (dateTimeInput.Count == 2)
 //            {
-
 //                //// Fill datatrees from CSV
 
 //                //List<string> ladybugAnalysisPeriod = new List<string>();
@@ -179,7 +153,6 @@
 
 //                //foreach (GH_ObjectWrapper o in gobj2)
 //                //{
-
 //                //    if (o is String)
 //                //    {
 //                //        IntervalAsString.Add((String)o.Value);
@@ -192,18 +165,13 @@
 
 //                var ladybugAnalysisPeriod = dateTimeInput;
 
-
-
 //                if (ladybugAnalysisPeriod == null)
 //                {
 //                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid analysis periode object."); return;
 //                }
 
-
-
 //                var allLines = File.ReadAllLines(RES.WorkingDirectory + @"\UTCI.csv");
 //                var numberOfProbes = allLines.Count();
-
 
 //                // -1 because of python
 
@@ -214,32 +182,24 @@
 //                var hour_start = int.Parse(ladybugAnalysisPeriod[0].Split(',')[2].Split(')')[0]) - 1;
 //                var hour_end = int.Parse(ladybugAnalysisPeriod[1].Split(',')[2].Split(')')[0]);
 
-
-
 //                var hours = hour_end - hour_start;
 
 //                // Fill array once
 
 //                double[,] HourlyUTCI = new double[numberOfProbes, hours];
 
-
 //                System.Threading.Tasks.Parallel.For(0, numberOfProbes,
 //                  i =>
 //                  {
-
 //                      for (int h = 0; h < hours; h++)
 //                      {
 //                          HourlyUTCI[i, h] = double.Parse(allLines[i].Split(',')[h]);
 //                      }
 
-
 //                  });
-
-
 
 //                //double[] valueHour = new double[numberOfLines];
 //                var valueHour = new DataTree<double>();
-
 
 //                // Fill datatrees from array that has been filled before
 
@@ -249,7 +209,6 @@
 //                    {
 //                        for (int h = hour_start; h < hour_end; h++)
 //                        {
-
 //                            // Check if already gone through month
 //                            if (m == 2 && d > 29) { continue; }
 
@@ -270,22 +229,16 @@
 
 //                                valueHour.Add(HourlyUTCI[i, h], new Grasshopper.Kernel.Data.GH_Path(h));
 
-
-
 //                            }
 
 //                        }
 //                    }
 
-
 //                    DA.SetDataTree(0, valueHour);
-
-
 
 //                    //    var UTCITree = new DataTree<double>();
 //                    ////var HumanConditionsTree = new DataTree<int>();
 //                    ////var ComfortHoursList = new List<double>();
-
 
 //                    //using (Microsoft.VisualBasic.FileIO.TextFieldParser csvParser = new Microsoft.VisualBasic.FileIO.TextFieldParser(path))
 //                    //{
@@ -297,13 +250,10 @@
 //                    //    //csvParser.ReadLine();
 //                    //    int cnt = 0;
 
-
 //                    //    while (!csvParser.EndOfData)
 //                    //    {
 //                    //        // Read current line fields, pointer moves to the next line.
 //                    //        string[] fields = csvParser.ReadFields();
-
-
 
 //                    //        int comfortCnt = 0;
 
@@ -317,7 +267,6 @@
 //                    //                //comfortCnt++;
 //                    //            //}
 
-
 //                    //        }
 
 //                    //        //double cmftPercentage = Math.Round((double)comfortCnt * 100 / 8760, 1);
@@ -328,47 +277,30 @@
 //                    //    }
 //                    //}
 
-
-
-
 //                }
-
-
 
 //                // Read uncertainty file
 
 //                var uncertaintyLine = File.ReadLines(RES.WorkingDirectory + @"\UTCI.uncertainty").Last();
 //                var uncertaintyVal = double.Parse(uncertaintyLine.Split('%')[0].Split(':')[1].Split('r')[1]);
 
-
 //                //DA.SetDataTree(1, UTCITree);
 //                //DA.SetDataTree(2, HumanConditionsTree);
 //                //DA.SetDataList(3, ComfortHoursList);
 //                DA.SetData(1, uncertaintyVal);
 
-
 //            }
 
-
 //        }
-
-
-
 
 //        //for (int i = 0; i < numberOfProbes; i++)
 //        //{
 //        //    for (int h = 0; h < 8759; h++)
 //        //    {
-
 //        //        ConditionOfPerson.Add(UTCI.GetConditionOfPerson(HourlyUTCI[i, h]), new Grasshopper.Kernel.Data.GH_Path(h));
 //        //    }
 
 //        //}
-
-
-
-
-
 
 //        /// <summary>
 //        /// Provides an Icon for every component that will be visible in the User Interface.
@@ -384,8 +316,8 @@
 //        }
 
 //        /// <summary>
-//        /// Each component must have a unique Guid to identify it. 
-//        /// It is vital this Guid doesn't change otherwise old ghx files 
+//        /// Each component must have a unique Guid to identify it.
+//        /// It is vital this Guid doesn't change otherwise old ghx files
 //        /// that use the old ID will partially fail during loading.
 //        /// </summary>
 //        public override Guid ComponentGuid
@@ -394,4 +326,3 @@
 //        }
 //    }
 //}
-

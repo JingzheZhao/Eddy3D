@@ -29,8 +29,6 @@
 //        {
 //        }
 
-
-
 //        /// <summary>
 //        /// Registers all the input parameters for this component.
 //        /// </summary>
@@ -66,8 +64,6 @@
 //            //pManager.AddGenericParameter("Res", "R", "Residuals", GH_ParamAccess.tree);
 //        }
 
-
-
 //        /// <summary>
 //        /// This is the method that actually does the work.
 //        /// </summary>
@@ -75,12 +71,8 @@
 //        /// to store data in output parameters.</param>
 //        protected override void SolveInstance(IGH_DataAccess DA)
 //        {
-
-            
-
 //            OFResult RES = null;
 //            DA.GetData(0, ref RES);
-
 
 //            string x0x1 = ":";
 //            string y0y1 = ":";
@@ -93,22 +85,18 @@
 //            DA.GetData(1, ref x0x1);
 //            DA.GetData(2, ref y0y1);
 
-
 //            try
 //            {
-
 //                // Open the file(s) to read from.
 
 //                foreach (double dir in RES.Domain.BCond.windDirs)
 //                {
-
 //                    var p1 = RES.WorkingDirectory + dir + @"\postProcessing\residuals\";
 //                    fullFilePath = p1 + Utilities.GetLastIterationFromDirectory(p1) + "\\" + @"\\residuals.dat";
 //                    if (!File.Exists(fullFilePath))
 //                    {
 //                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "The residual file for wind direction " + dir + " does not exist.");
 //                    }
-
 
 //                    string arg = @"
 //set title 'wind direction: " + dir + @"'
@@ -127,7 +115,6 @@
 
 //                    Utilities.StartProcessCMD(arg, true, false, true, @"C:\Program Files\gnuplot\bin\gnuplot.exe");
 
-                                   
 //                }
 //            }
 
@@ -138,8 +125,6 @@
 //                Console.WriteLine(e.Message);
 //            }
 //        }
-
-
 
 //        /// <summary>
 //        /// Provides an Icon for every component that will be visible in the User Interface.
@@ -157,4 +142,3 @@
 //        public override Guid ComponentGuid => new Guid("{26728D9C-4BE0-459D-ABF5-2708ED951CA3}");
 //    }
 //}
-

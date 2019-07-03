@@ -1,32 +1,24 @@
-﻿using Rhino.Geometry;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Drawing;
 using System.IO;
+using Rhino.Geometry;
 
 namespace EddyLib
 {
     public class RunBlockMesh
     {
-
-
-
         public static void RunCyl(OFCylDomain DOMCYL, OFMeshSettings MeshSettings, OFRunSettings RunSettings, string workDir)
         {
-
-
             if (!Directory.Exists(MeshSettings.meshStlDir))
             {
                 Directory.CreateDirectory(MeshSettings.meshStlDir);
             }
 
-
             STLExport.ExportBinary(MeshSettings.meshStlFilenameBuildings, DOMCYL.BuildingGeometry);
-
 
             if (DOMCYL.hasTerrain)
             {
-                //No perim if we use a terrain                    
+                //No perim if we use a terrain
                 STLExport.ExportBinary(MeshSettings.meshStlFilenameGround, DOMCYL.TerrainMesh);
             }
             else
@@ -34,7 +26,6 @@ namespace EddyLib
                 STLExport.ExportBinary(MeshSettings.meshStlFilenameGround, DOMCYL.CylDomainMeshGround);
                 STLExport.ExportBinary(MeshSettings.meshStlFilenameGroundPerim, DOMCYL.CylDomainMeshGroundPerim);
             }
-
 
             if (!Directory.Exists(MeshSettings.meshSystemDir))
             {
@@ -49,25 +40,16 @@ namespace EddyLib
                 Directory.CreateDirectory(MeshSettings.meshBoundaryConditionsDirectory);
             }
 
-
             File.WriteAllText(MeshSettings.meshSystemDir + @"\blockMeshDict", DOMCYL.StringyfyDomain2());
             File.WriteAllText(MeshSettings.baseWorkingDir + @"\mesh\mesh.foam", "");
             File.WriteAllText(MeshSettings.meshSystemDir + @"\controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(RunSettings, DOMCYL, null, 0));
-
-
-
 
             if (!File.Exists(workDir + @"\mesh\log"))
             {
                 File.WriteAllText(workDir + @"\mesh\log", "");
             }
 
-
-
-
-
             //TODO: Move Daysim related code into its own class
-
 
             //export RAD for DAYSIM
             if (!Directory.Exists(MeshSettings.baseWorkingDir + @"Rad\"))
@@ -75,13 +57,11 @@ namespace EddyLib
                 Directory.CreateDirectory(MeshSettings.baseWorkingDir + @"Rad\");
             }
 
-
-
             string radMat = @"
 void plastic Generic_20
 0
 0
-5 0.2 0.2 0.2 0 0 
+5 0.2 0.2 0.2 0 0
 ";
             Mesh daysimMesh = new Mesh();
             daysimMesh.Append(DOMCYL.BuildingGeometry);
@@ -89,31 +69,23 @@ void plastic Generic_20
 
             File.WriteAllText(MeshSettings.baseWorkingDir + @"Rad\materials.rad", radMat);
             RadianceFiles.MeshProc(daysimMesh, MeshSettings.baseWorkingDir + @"Rad\scene.rad", "Generic_20");
-
-
-
-
         }
 
         public static void RunBox(OFBoxDomain DOMBOX, OFMeshSettings MeshSettings, OFRunSettings RunSettings, string workDir)
         {
-
             if (!Directory.Exists(workDir))
             {
                 Directory.CreateDirectory(workDir);
             }
-
 
             if (!Directory.Exists(MeshSettings.meshStlDir))
             {
                 Directory.CreateDirectory(MeshSettings.meshStlDir);
             }
 
-
             // STL export
 
             STLExport.ExportBinary(MeshSettings.meshStlFilenameBuildings, DOMBOX.BuildingGeometry);
-
 
             if (DOMBOX.hasTerrain)
             {
@@ -127,8 +99,6 @@ void plastic Generic_20
                 STLExport.ExportBinary(MeshSettings.meshStlFilenameGroundPerim, DOMBOX.DomainMeshGroundPerim);
             }
 
-
-
             if (!Directory.Exists(MeshSettings.meshSystemDir))
             {
                 Directory.CreateDirectory(MeshSettings.meshSystemDir);
@@ -142,8 +112,6 @@ void plastic Generic_20
                 Directory.CreateDirectory(MeshSettings.meshBoundaryConditionsDirectory);
             }
 
-
-
             File.WriteAllText(MeshSettings.meshSystemDir + @"\blockMeshDict", EddyLib.StrTemp.OFExecDicts.BlockMeshDict(DOMBOX));
             File.WriteAllText(MeshSettings.baseWorkingDir + @"\mesh\mesh.foam", "");
             File.WriteAllText(MeshSettings.meshSystemDir + @"\controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(RunSettings, DOMBOX, null, 0));
@@ -152,8 +120,6 @@ void plastic Generic_20
             {
                 File.WriteAllText(workDir + @"\mesh\log", "");
             }
-
-
 
             //export RAD for DAYSIM
             if (!Directory.Exists(MeshSettings.baseWorkingDir + @"Rad\"))
@@ -164,7 +130,7 @@ void plastic Generic_20
 void plastic Generic_20
 0
 0
-5 0.2 0.2 0.2 0 0 
+5 0.2 0.2 0.2 0 0
 ";
             Mesh daysimMesh = new Mesh();
             daysimMesh.Append(DOMBOX.BuildingGeometry);
@@ -172,7 +138,6 @@ void plastic Generic_20
 
             File.WriteAllText(MeshSettings.baseWorkingDir + @"Rad\materials.rad", radMat);
             RadianceFiles.MeshProc(daysimMesh, MeshSettings.baseWorkingDir + @"Rad\scene.rad", "Generic_20");
-
 
             string logFile = "";
 
@@ -183,20 +148,13 @@ void plastic Generic_20
                     logFile = reader.ReadToEnd();
                     //while (!reader.EndOfStream)
                     //{
-
                     //}
-
                 }
             }
         }
 
-
-
-
-
         public static void SaveFrontagePNGs(String dirToSavePNGs, int windDir, Bitmap[] bitmapArray)
         {
-
             string folder = Path.GetDirectoryName(dirToSavePNGs);
             if (!Directory.Exists(folder))
             {
@@ -207,18 +165,11 @@ void plastic Generic_20
             {
                 if (bm != null)
                 {
-
                     var filePath = dirToSavePNGs + "FA_" + windDir + ".png";
 
                     bm.Save(filePath, System.Drawing.Imaging.ImageFormat.Png);
-
                 }
-
             }
-
         }
-
-
     }
-
 }

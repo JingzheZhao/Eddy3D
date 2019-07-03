@@ -1,10 +1,11 @@
-﻿using Eddy.Properties;
-using EddyLib;
-using Grasshopper.Kernel;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
+using Eddy.Properties;
+using EddyLib;
+using Grasshopper.Kernel;
+
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
 // folder in Grasshopper.
@@ -36,11 +37,9 @@ namespace Eddy
         {
             paraViewVersion5 = !paraViewVersion5;
             ExpireSolution(true);
-
         }
+
         public bool paraViewVersion5 = true;
-
-
 
         public override bool Write(GH_IO.Serialization.GH_IWriter writer)
         {
@@ -49,6 +48,7 @@ namespace Eddy
             // Then call the base class implementation.
             return base.Write(writer);
         }
+
         public override bool Read(GH_IO.Serialization.GH_IReader reader)
         {
             // First read our own field.
@@ -74,10 +74,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-
         }
-
-
 
         /// <summary>
         /// This is the method that actually does the work.
@@ -86,7 +83,6 @@ namespace Eddy
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-
             int version = 0;
 
             // mode to select simulation environment
@@ -107,11 +103,8 @@ namespace Eddy
                 dirs.Add(RES.Domain.BCond.windDirs[0]);
             }
 
-
-
             bool run = false;
             DA.GetData("Run", ref run);
-
 
             // Write load script
 
@@ -120,20 +113,14 @@ namespace Eddy
 
             File.WriteAllText(scriptPath, scriptContent);
 
-
             if (!run)
             {
                 return;
             }
 
-
-
             // "C:\\Program Files\\ParaView 5.6.0-Windows-msvc2015-64bit\\bin\\paraview.exe\" \"C:\\testDomain\\259\\259.foam
             string paraViewPath = "\"" + EddyLib.Utilities.GetParaviewPath(version) + "\" " + @"--script=" + "\"" + scriptPath + "\"";
             EddyLib.Utilities.StartProcess.StartProcessCMDNT(paraViewPath, true, false, true);
-
-
-
         }
 
         /// <summary>

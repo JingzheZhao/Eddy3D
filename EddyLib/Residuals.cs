@@ -9,7 +9,6 @@
 //{
 //    public class ParsingResiduals
 //    {
-
 //        public List<List<double>> parseResiduals(string filePath)
 //        {
 //            List<List<double>> parsedResiduals = new List<List<double>>();
@@ -46,7 +45,6 @@
 //            parsedResiduals.Add(p);
 //            parsedResiduals.Add(omega);
 //            parsedResiduals.Add(k);
-
 
 //            return parsedResiduals;
 //        }

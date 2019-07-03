@@ -1,12 +1,10 @@
-﻿using CommandLine;
-using CommandLine.Text;
-using EddyLib;
-using Rhino.Geometry;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
+using CommandLine;
+using CommandLine.Text;
+using EddyLib;
 
 namespace CallOC
 {
@@ -39,8 +37,6 @@ namespace CallOC
                         {
                             Console.WriteLine("Debugging: {0}", options.Hourandpoint);
                             errorLog.AppendLine(String.Format("Debugging: {0}", options.Hourandpoint));
-
-
                         }
 #endif
 
@@ -63,9 +59,7 @@ namespace CallOC
 
                             Console.WriteLine("Wind directions: {0}", options.WindDirs.ToString());
                             errorLog.AppendLine(String.Format("Wind directions: {0}", options.WindDirs.ToString()));
-
                         }
-
 
                         bool fileMissing = false;
                         if (!Directory.Exists(options.WorkingDir)) { Console.WriteLine(options.WorkingDir + " not found. Exiting"); fileMissing = true; }
@@ -76,8 +70,6 @@ namespace CallOC
                         if (new FileInfo(options.WorkingDir + @"\Rad\sensors.pts").Length == 0) { Console.WriteLine(options.WorkingDir + @"\Rad\sensors.pts" + " not found or empty. Exiting"); fileMissing = true; }
                         if (fileMissing == true) { System.Threading.Thread.Sleep(8000); return; }
 
-
-
                         if (options.WindDirs.Length < 8)
                         {
                             //Console.WriteLine(@"Error: You need to simulate at least 8 wind direction, preferrably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
@@ -85,14 +77,10 @@ namespace CallOC
                             //throw new System.ArgumentException(@"Error: You need to simulate at least 8 wind direction, preferably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
                         }
 
-
-
                         Console.WriteLine("Load weather data...");
 
                         Weather weather = new Weather();
                         weather.LoadWeatherData(options.Weather);
-
-
 
                         //  Load radiation datasets
                         //  [x][]  time
@@ -100,14 +88,10 @@ namespace CallOC
 
                         Console.WriteLine("Loading: Radiation data...");
 
-
                         var DiffRad = RadianceFiles.loadILL(options.DifRad);
                         var DirRad = RadianceFiles.loadILL(options.DirRad);
 
-
-
                         var numberOfHours = 8760;
-
 
                         int sensorPointCount = DiffRad[0].Length;
 
@@ -128,7 +112,6 @@ namespace CallOC
 
                         var numberOfWindDirs = windDirList.Count;
 
-
                         // load Reduction data
                         // -----------------
 
@@ -138,21 +121,17 @@ namespace CallOC
                         //// Importing probeHeight from probe file to scale U down to pedestrian level
                         Console.WriteLine("Parsing height of probes to scale down wind velocity from weather file.");
 
-
-
                         double[][] probes = EddyLib.RadianceFiles.readPTS(options.WorkingDir + @"\Rad\sensors.pts");
 
                         //var arbitraryProbePoint = new Point3d(probes[0][0], probes[0][1], probes[0][2]);
 
                         //var probingHeight = arbitraryProbePoint.Z;
 
-                        // Parse ABL data from simulation directory                    
+                        // Parse ABL data from simulation directory
 
                         double URef = 5;
                         double zref = 10;
                         double z0 = 1;
-                                              
-
 
                         try
                         {
@@ -165,36 +144,30 @@ namespace CallOC
 
                         BoundaryConditions bcond = new BoundaryConditions(BoundaryType.abl, windDirList, URef, z0, weather.epwFilePath);
 
-
                         #region Wind Factors
 
-                        var velocityProbes = RadianceFiles.readCSVFile(options.AnnualVelocityProbes);                    
+                        var velocityProbes = RadianceFiles.readCSVFile(options.AnnualVelocityProbes);
 
                         WindFactors wf = new WindFactors(options.WorkingDir, bcond, weather, );
 
-                        #endregion
-
+                        #endregion Wind Factors
 
                         #region MRT
 
                         MRT mrt = new MRT(weather, MRT.MRTType.kessling, DiffRad, DirRad, Utilities.Probes2Point3D(probes), true);
 
-                        #endregion
+                        #endregion MRT
 
-
-
-                        #region Calc UTCI                       
+                        #region Calc UTCI
 
                         Console.WriteLine("Starting UTCI calc...");
-
 
                         //var bcond = new BoundaryConditions(BoundaryType.constant, new List<int> { 0 }, 5, 1, options.Weather);
 
                         double[,] Utci = new double[numberOfHours, sensorPointCount];
-                        UTCI utci = new UTCI(Utilities.Probes2Point3D(probes), wf, weather,mrt, bcond, options.WorkingDir);
+                        UTCI utci = new UTCI(Utilities.Probes2Point3D(probes), wf, weather, mrt, bcond, options.WorkingDir);
 
-                        #endregion
-
+                        #endregion Calc UTCI
 
                         #region Write UTCI
 
@@ -203,27 +176,19 @@ namespace CallOC
                         Console.WriteLine("Writing UTCI results...");
 
                         UTCI.UTCI2CSV(options.WorkingDir, utci, options.Verbose, debug, weather, bcond, errorLog, numberOfHours);
-                        #endregion
+
+                        #endregion Write UTCI
 
                         Console.WriteLine("Done");
 
                         //  Console.ReadKey();
-
                     }
-
                     else
                     {
                         // Console.WriteLine(options.GetUsage());
                         System.Threading.Thread.Sleep(5000); return;
                     }
-
                 }
-
-
-
-
-
-
                 catch (Exception e)
                 {
                     Console.WriteLine(e.Message);
@@ -236,8 +201,6 @@ namespace CallOC
             }
         }
     }
-
-
 }
 
 // Define a class to receive parsed values
@@ -266,6 +229,7 @@ internal class Options
     [Option('d', "workingDir", Required = true,
     HelpText = "Working directory.")]
     public string WorkingDir { get; set; }
+
     //[Option('o', "output", Required = true,
     //HelpText = "Output file path")]
     //public string output { get; set; }
@@ -275,9 +239,11 @@ internal class Options
     public bool Verbose { get; set; }
 
 #if DEBUG
+
     [Option('b', "debug",
     HelpText = "Select hour and probe for debugging as comma separated string -> 23,50 meaning 23rd hour for probe 50 ")]
     public string Hourandpoint { get; set; }
+
 #endif
 
     [ParserState]
@@ -289,9 +255,4 @@ internal class Options
         return HelpText.AutoBuild(this,
           (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current));
     }
-
-
 }
-
-
-

@@ -1,24 +1,25 @@
-﻿using Grasshopper.Kernel;
-using System;
-using Grasshopper;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Windows.Forms;
-using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Forms;
+using Grasshopper.Kernel;
 using Ironbug.Grasshopper.Component;
 
 namespace EddyLib
 {
     public class Eddy_Templates : GH_Component
     {
-        List<string> folderList = new List<string>();
-        List<List<string>> filesList = new List<List<string>>();
-        public Eddy_Templates()       
+        private List<string> folderList = new List<string>();
+        private List<List<string>> filesList = new List<List<string>>();
+
+        public Eddy_Templates()
 
               : base("Templates", "Templates", "Templates", "Eddy", "0 | Load Templates")
         {
         }
+
         public override Guid ComponentGuid => new Guid("{D8E619A8-BF03-422F-962B-0D52A05559DF}");
         //protected override System.Drawing.Bitmap Icon => Properties.Resources.HVACTemplate;
 
@@ -26,7 +27,6 @@ namespace EddyLib
         {
             pManager.AddTextParameter("Directory", "_dir", "Additional folder path to import Eddy templates.", GH_ParamAccess.list);
             pManager[0].Optional = true;
-
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
@@ -54,12 +54,9 @@ namespace EddyLib
                 {
                     this.folderList.Add(Path.GetDirectoryName(Path.Combine(dir, "test.txt")));
                     this.filesList.Add(fs);
-
                 }
             }
             DA.SetDataList(0, this.filesList.SelectMany(_ => _));
-
-
         }
 
         private Size GetMoveVector(PointF FromLocation)
@@ -106,7 +103,6 @@ namespace EddyLib
             }
         }
 
-
         protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
         {
             var newMenu = menu;
@@ -119,8 +115,6 @@ namespace EddyLib
                 menu.Items.Add(menuItem);
                 count++;
             }
-
-
         }
 
         private ToolStripMenuItem addFromFolder(string rootFolder, List<string> filesPerFolder)
@@ -140,7 +134,6 @@ namespace EddyLib
                     var r = true;
                     CreateTemplateFromXMLString(a.Tag.ToString(), ref r);
                     this.ExpireSolution(true);
-
                 };
 
                 Menu_AppendItem(t.DropDown, showName, ev, null, item);
@@ -153,9 +146,6 @@ namespace EddyLib
         {
             var att = new Eddy_ComponentButtonAttributes(this);
             this.Attributes = att;
-
         }
-
     }
-
 }

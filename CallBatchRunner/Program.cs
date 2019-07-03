@@ -1,25 +1,20 @@
-﻿using CommandLine;
-using CommandLine.Text;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CommandLine;
+using CommandLine.Text;
 
 namespace CallBatchRunner
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
-
             var options = new Options();
             if (CommandLine.Parser.Default.ParseArguments(args, options))
             {
-
                 if (!Directory.Exists(options.WorkingDir)) { Console.WriteLine(options.WorkingDir + " not found. Exiting"); return; }
 
                 string[] batchFiles = Directory.GetFiles(options.WorkingDir, options.Pattern, SearchOption.AllDirectories);  //"*.bat"
@@ -43,11 +38,9 @@ namespace CallBatchRunner
 +-----------------------------------------------------------" + i + @"
 +--------------------------------------------------------------
 ");
-                 
 
                     // launch procs here...
                     Console.WriteLine(batchFiles[i]);
-
 
                     var processInfo = new ProcessStartInfo("cmd.exe", "/c" + "\"" + batchFiles[i] + "\"");
                     //processInfo.CreateNoWindow = true;
@@ -65,7 +58,6 @@ namespace CallBatchRunner
 
                     if (options.Verbose) process.ErrorDataReceived += ((object sender, DataReceivedEventArgs e) =>
                     {
-
                         if (!String.IsNullOrWhiteSpace(e.Data)) Console.WriteLine("error>>" + e.Data);
                     });
 
@@ -75,22 +67,18 @@ namespace CallBatchRunner
 
                     Console.WriteLine("ExitCode: {0}", process.ExitCode);
                     process.Close();
-
                 }
                 );
                 stopw.Stop();
                 Console.WriteLine("Batch runner complete: " + stopw.Elapsed);
 
-
-
                 //Console.ReadKey();
-
             }
-
         }
     }
+
     // Define a class to receive parsed values
-    class Options
+    internal class Options
     {
         [Option('w', "workingDir", Required = true,
         HelpText = "Working directory.")]
@@ -100,17 +88,13 @@ namespace CallBatchRunner
         HelpText = "Number of parallel threads")]
         public int Threads { get; set; }
 
-
         [Option('p', "pattern", Required = true, DefaultValue = "*.bat",
         HelpText = "File search pattern")]
         public string Pattern { get; set; }
 
-
         [Option('l', "loud", DefaultValue = false,
             HelpText = "Prints all messages to standard output.")]
         public bool Verbose { get; set; }
-
-
 
         [ParserState]
         public IParserState LastParserState { get; set; }

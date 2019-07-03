@@ -18,27 +18,23 @@
 //{
 //    public class CompComputeFlowRateFromCp : GH_Component
 //    {
-
 //        // exposure
 //        public override GH_Exposure Exposure
 //        {
 //            get { return GH_Exposure.hidden; }
 //        }
 
-
 //        /// <summary>
-//        /// Each implementation of GH_Component must provide a public 
+//        /// Each implementation of GH_Component must provide a public
 //        /// constructor without any arguments.
-//        /// Category represents the Tab in which the component will appear, 
-//        /// Subcategory the panel. If you use non-existing tab or panel names, 
+//        /// Category represents the Tab in which the component will appear,
+//        /// Subcategory the panel. If you use non-existing tab or panel names,
 //        /// new tabs/panels will automatically be created.
 //        /// </summary>
 //        public CompComputeFlowRateFromCp()
 //              : base("ComputeFlowRateFromCp", "FlowRateCp", "Compute flow rates from pressure coefficients", "Eddy", "5 | PostProcessing")
 //        {
 //        }
-
-
 
 //        /// <summary>
 //        /// Registers all the input parameters for this component.
@@ -70,31 +66,25 @@
 //            //pManager.AddNumberParameter("Max", "Max", "Maximum value in m/s", GH_ParamAccess.item);
 //        }
 
-
-
 //        /// <summary>
 //        /// This is the method that actually does the work.
 //        /// </summary>
-//        /// <param name="DA">The DA object can be used to retrieve data from input parameters and 
+//        /// <param name="DA">The DA object can be used to retrieve data from input parameters and
 //        /// to store data in output parameters.</param>
 //        protected override void SolveInstance(IGH_DataAccess DA)
 //        {
-
 //            OFResult RES = null;
 //            DA.GetData(0, ref RES);
 
 //            List<double> cdList = new List<double>();
-
 
 //            List<Mesh> meshes = new List<Mesh>();
 //            //DA.GetDataList(2, cdList);
 
 //            DA.GetDataList(2, meshes);
 
-
 //            //if (cdList.Count == 0)
 //            //{
-
 //            foreach (Mesh m in meshes)
 //            {
 //                cdList.Add(0.7);
@@ -107,7 +97,6 @@
 //            DA.GetData(3, ref volume);
 
 //            //private readonly List<double> cdList = new List<double> { 0.7, 0.7 };
-
 
 //            StringBuilder errorLog = new StringBuilder();
 
@@ -122,17 +111,13 @@
 //                cnt++;
 //                foreach (GH_Number i in b)
 //                {
-
 //                    cps.Add(i.Value, path);
 
 //                }
 //            }
 
-
-
 //            //double AverageCp1 = 0;
 //            //double AverageCp2 = 0;
-
 
 //            //double Area1 = 0;
 //            //double Area2 = 0;
@@ -144,10 +129,6 @@
 
 //            try
 //            {
-
-
-
-
 //                List<double> MeshAreas = new List<double>();
 
 //                foreach (Mesh m in meshes)
@@ -160,9 +141,6 @@
 //                    MeshAreas.Add(singleArea);
 //                }
 
-
-
-
 //                if (cps.Paths.Count != RES.Domain.BCond.windDirs.Count)
 //                {
 //                    return;
@@ -170,22 +148,16 @@
 
 //                foreach (GH_Path path in cps.Paths)
 //                {
-
 //                    if (GH_Document.IsEscapeKeyDown())
 //                    {
 //                        GH_Document GHDocument = OnPingDocument();
 //                        GHDocument.RequestAbortSolution();
 //                    }
 
-
 //                    NVAnalysis nv1 = new NVAnalysis(cps.Branch(path), MeshAreas, RES.Domain.BCond.UatBuildingHeight, volume);
-
-
-
 
 //                    VolumetricFlowRate.Add(nv1.FlowRate, path);
 //                    VelocityCenterNode.Add(nv1.vCenter, path);
-
 
 //                    if (volume != 0)
 //                    {
@@ -193,13 +165,9 @@
 //                    }
 //                }
 
-
-
-
 //                //for (int i = 0; i < DOM.BCInflow.windDirs.Count; ++i)
 //                //{
 //                //    GH_Path path = new GH_Path(i);
-
 
 //                //    if (GH_Document.IsEscapeKeyDown())
 //                //    {
@@ -207,15 +175,10 @@
 //                //        GHDocument.RequestAbortSolution();
 //                //    }
 
-
 //                //    NVAnalysis nv1 = new NVAnalysis(cps.Paths, MeshAreas, DOM.BCInflow.UatBuildingHeight, volume);
-
-
-
 
 //                //    VolumetricFlowRate.Branches[i].Add(nv1.FlowRate);
 //                //    VelocityCenterNode.Branches[i].Add(nv1.vCenter);
-
 
 //                //    if (volume != 0)
 //                //    {
@@ -233,7 +196,6 @@
 
 //        }
 
-
 //        /// <summary>
 //        /// Provides an Icon for every component that will be visible in the User Interface.
 //        /// Icons need to be 24x24 pixels.
@@ -243,13 +205,10 @@
 //                Resources.Eddy_probes;
 
 //        /// <summary>
-//        /// Each component must have a unique Guid to identify it. 
-//        /// It is vital this Guid doesn't change otherwise old ghx files 
+//        /// Each component must have a unique Guid to identify it.
+//        /// It is vital this Guid doesn't change otherwise old ghx files
 //        /// that use the old ID will partially fail during loading.
 //        /// </summary>
 //        public override Guid ComponentGuid => new Guid("{C5789855-FF0B-4713-A33B-ECD2A594EC25}");
 //    }
 //}
-
-
-

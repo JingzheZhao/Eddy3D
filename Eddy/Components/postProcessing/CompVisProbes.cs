@@ -24,22 +24,17 @@
 //        private DataTree<double> cpTree = new DataTree<double>();
 //        private DataTree<Vector3d> uTree = new DataTree<Vector3d>();
 
-
-
-
 //        /// <summary>
-//        /// Each implementation of GH_Component must provide a public 
+//        /// Each implementation of GH_Component must provide a public
 //        /// constructor without any arguments.
-//        /// Category represents the Tab in which the component will appear, 
-//        /// Subcategory the panel. If you use non-existing tab or panel names, 
+//        /// Category represents the Tab in which the component will appear,
+//        /// Subcategory the panel. If you use non-existing tab or panel names,
 //        /// new tabs/panels will automatically be created.
 //        /// </summary>
 //        public CompVisProbes()
 //          : base("VisProbes", "VisProbes", "PostProcessing", "Eddy", "PostProcessing")
 //        {
 //        }
-
-
 
 //        /// <summary>
 //        /// Registers all the input parameters for this component.
@@ -55,9 +50,7 @@
 //            param.AddNamedValue("cp", 0);
 //            param.AddNamedValue("U", 1);
 
-
 //            pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item, false);
-
 
 //        }
 
@@ -70,19 +63,14 @@
 //            pManager.AddGenericParameter("Result", "Result", "Result", GH_ParamAccess.tree);
 //        }
 
-
-
 //        /// <summary>
 //        /// This is the method that actually does the work.
 //        /// </summary>
-//        /// <param name="DA">The DA object can be used to retrieve data from input parameters and 
+//        /// <param name="DA">The DA object can be used to retrieve data from input parameters and
 //        /// to store data in output parameters.</param>
 //        protected override void SolveInstance(IGH_DataAccess DA)
 //        {
-
 //            OFBaseDomain DOM = null;
-
-
 
 //            GH_ObjectWrapper gobj = null;
 //            if (!DA.GetData(0, ref gobj)) { }
@@ -93,9 +81,6 @@
 //            }
 //            if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
-
-
-
 //            int mode = 0;
 //            List<Point3d> listOfPoints = new List<Point3d>();
 
@@ -105,9 +90,6 @@
 //            //DA.GetData(2, ref pointName);
 //            DA.GetData(2, ref mode);
 //            DA.GetData(3, ref run);
-
-
-
 
 //            // Inclusion check for probes
 
@@ -132,7 +114,6 @@
 
 //            var numberOfProbes = listOfPoints.Count();
 
-
 //            // Error handling
 
 //            StringBuilder errorLog = new StringBuilder();
@@ -142,12 +123,7 @@
 //                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You need to pass a list of point to the component.");
 //            }
 
-
 //            var numberOfWindDirs = DOM.BCInflow.windDirs.Count;
-
-
-
-
 
 //            for (int i = 0; i < numberOfWindDirs; i++)
 //            {
@@ -159,7 +135,6 @@
 
 //                    throw new System.ArgumentException("The wind direction " + DOM.BCInflow.windDirs[i] + @" misses the ""\constant\polyMesh"" dictionary. Please make sure that directory exists.");
 
-
 //                }
 //            }
 
@@ -169,14 +144,12 @@
 //                if (!File.Exists(ABLfilePath)) { Console.WriteLine(ABLfilePath + " not found. Exiting"); errorLog.AppendLine(ABLfilePath + " not found. Exiting"); }
 //            }
 
-
 //            // Check if U file is in last iteration
 //            for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
 //            {
 //                string path = RES.WorkingDirectory + @"\" + DOM.BCInflow.windDirs[i];
 //                string iter = Utilities.GetLastIterationFromDirectory(path).ToString();
 //                string fp = RES.WorkingDirectory + @"\" + DOM.BCInflow.windDirs[i] + @"\" + iter + @"\U";
-
 
 //                if (!File.Exists(fp))
 //                {
@@ -186,7 +159,6 @@
 
 //            // Export probes file
 //            File.WriteAllText(Path.Combine(RES.WorkingDirectory + "\\" + "run_probes.bat"), EddyLib.StrTemp.BatFiles.Run_Probes(DOM));
-
 
 //            // export pts file for Daysim
 //            if (!Directory.Exists(RES.WorkingDirectory + @"Rad\"))
@@ -200,23 +172,15 @@
 //                throw new System.ArgumentException("The mesh folder is empty. Can't retrieve probes from a mesh that does not exist.");
 //            }
 
-
 //            if (numberOfProbes > 0)
 //            {
-
-
 //                try
 //                {
 //                    cpTree = new DataTree<double>();
 //                    uTree = new DataTree<Vector3d>();
 
-
 //                    if (mode == 0) // cp
 //                    {
-
-
-
-
 //                        StringBuilder command = new StringBuilder();
 
 //                        string pointName = "cp_Probes";
@@ -225,7 +189,6 @@
 
 //                        for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
 //                        {
-
 //                            File.WriteAllText(RES.WorkingDirectory + DOM.BCInflow.windDirs[i] + @"\system\" + "controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(DOM, null, i));
 //                            File.WriteAllText(RES.WorkingDirectory + DOM.BCInflow.windDirs[i] + @"\system\" + pointName, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, pointName, OFfield));
 
@@ -239,14 +202,12 @@
 //                            var fp = RES.WorkingDirectory + @"\" + DOM.BCInflow.windDirs[i] + @"\system\cp_Probes";
 //                            if (!File.Exists(fp))
 //                            {
-
 //                                errorLog.AppendLine(@"The wind direction """ + DOM.BCInflow.windDirs[i] + @""" misses the probing dictionary for cp values. Possible solution: Please connect the ""writeProbes"" component and recompute the solution.");
 //                                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The wind direction " + DOM.BCInflow.windDirs[i] + @" misses the ""\constant\polyMesh"" dictionary. Please make sure that directory exists.");
 
 //                                throw new System.ArgumentException("The wind direction " + DOM.BCInflow.windDirs[i] + @" misses the probing dictionary  for cp values. Possible solution: Please connect the component ""writeProbes"" and recompute the solution.");
 //                            }
 //                        }
-
 
 //                        if (run == true)
 //                        {
@@ -260,20 +221,14 @@
 //                            }
 //                        }
 
-
 //                        //Thread.Sleep(2 * numberOfProbes);
 
 //                        for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
 //                        {
-
-
-
-
 //                            var caseDir = RES.WorkingDirectory + "\\" + DOM.BCInflow.windDirs[i];
 //                            string pathToProbeFile = ParsingProbes.GetLastProcProssDir(pointName, caseDir, OFfield);
 //                            if (File.Exists(pathToProbeFile))
 //                            {
-
 //                                //string pointName = "cp_Probes";
 //                                //string OFfield = "total(p)_coeff";
 
@@ -287,14 +242,10 @@
 //                            }
 //                        }
 
-
 //                    }
 
 //                    if (mode == 1) // U
 //                    {
-
-
-
 //                        StringBuilder command = new StringBuilder();
 
 //                        string pointName = "U_Probes";
@@ -303,13 +254,11 @@
 
 //                        for (int i = 0; i < DOM.BCInflow.windDirs.Count; i++)
 //                        {
-
 //                            // Write the dicts
 
 //                            File.WriteAllText(RES.WorkingDirectory + DOM.BCInflow.windDirs[i] + @"\system\" + pointName, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, pointName, OFfield));
 
 //                            command.Append(@"postProcess -case " + DOM.BCInflow.windDirs[i] + " -func " + pointName + @" -latestTime | tee  " + DOM.BCInflow.windDirs[i] + @"/log_probes;");
-
 
 //                        }
 
@@ -326,7 +275,6 @@
 
 //                        if (run == true)
 //                        {
-
 //                            if (DOM.simEngine == 0)
 //                            {
 //                                Utilities.StartProcessCMD(@" -e """ + command + @""" -f " + "\"" + DOM.OFbaseWorkingDir, true, true, false, Utilities.AssemblyDirectory + @"\CallOF.exe");
@@ -348,7 +296,6 @@
 //                            string pathToProbeFile = ParsingProbes.GetLastProcProssDir(pointName, caseDir, OFfield);
 //                            if (File.Exists(pathToProbeFile))
 //                            {
-
 //                                var U = new ParsingProbes(listOfPoints, pointName, caseDir, OFfield, fieldtype);
 
 //                                // Create datatree
@@ -364,11 +311,7 @@
 //                    }
 //                }
 
-
 //                catch (Exception e) { Console.WriteLine(e.Message); File.WriteAllText(RES.WorkingDirectory + @"\Probes.err", errorLog.ToString()); return; }
-
-
-
 
 //            }
 
@@ -383,9 +326,7 @@
 //                DA.SetDataList(0, listOfPoints);
 //            }
 
-
 //        }
-
 
 //        /// <summary>
 //        /// Provides an Icon for every component that will be visible in the User Interface.
@@ -396,13 +337,10 @@
 //                Resources.Eddy_probes;
 
 //        /// <summary>
-//        /// Each component must have a unique Guid to identify it. 
-//        /// It is vital this Guid doesn't change otherwise old ghx files 
+//        /// Each component must have a unique Guid to identify it.
+//        /// It is vital this Guid doesn't change otherwise old ghx files
 //        /// that use the old ID will partially fail during loading.
 //        /// </summary>
 //        public override Guid ComponentGuid => new Guid("{D39A60E1-7086-4C6F-BFF1-492D84910227}");
 //    }
 //}
-
-
-

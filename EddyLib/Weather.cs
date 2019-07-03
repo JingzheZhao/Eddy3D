@@ -21,12 +21,12 @@ namespace EddyLib
         public List<double> SolarElevation = new List<double>();
         public List<double> SolarAzi = new List<double>();
 
-
         // constants that should be dealt with later
         //-----------------------
 
         //double Wst, Hst, BodyA, GrRef;
         public double Wst = 30;
+
         public double Hst = 30;
         public double BodyA = 0.5;
         public double GrRef = 0.2;
@@ -35,10 +35,8 @@ namespace EddyLib
 
         public void LoadWeatherData(string filePath)
         {
-
             try
             {
-
                 // load weather data
                 // -----------------
                 string[] epwData = File.ReadAllLines(filePath);
@@ -76,7 +74,6 @@ namespace EddyLib
                 Console.WriteLine("Calculating: Solar Geometry");
                 var sg = new SolarGeometry();
 
-
                 for (int i = 0; i < Yr.Length; i++)
                 {
                     double _el = sg.solarelevation(Latitude, Longitude, Yr[i], Mo[i], Dy[i], Hr[i], 0, 0, TimeZone, 0);
@@ -92,20 +89,13 @@ namespace EddyLib
                         SolarElevation.Add(0);
                         SolarAzi.Add(0);
                     }
-
                 }
-
             }
             catch (Exception e)
             {
                 throw e;
             }
-
-
-
         }
-
-
 
         public string ClassifyClimateZone(string epwFilePath, string workingDirToSaveCSV)
         {
@@ -124,12 +114,9 @@ namespace EddyLib
 
             string[] txt = File.ReadAllLines(filePathKoeppen);
 
-
             // Stupid formatting of this file creates 4 columns
             int columnsCnt = 4;
             var Matrix = Utilities.CreateJaggedMatrix(txt.Length, columnsCnt);
-
-
 
             for (int i = 1; i < txt.Length; i++)
             {
@@ -158,16 +145,5 @@ namespace EddyLib
 
             return KC;
         }
-
-
-
-
-
-
-
-
     }
-
-
-
 }

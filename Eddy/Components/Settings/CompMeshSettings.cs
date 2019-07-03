@@ -1,15 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using Grasshopper.Kernel;
-using Rhino.Geometry;
-using System.Text;
-using Grasshopper.Kernel.Parameters;
-using System.Diagnostics;
-using System.Threading;
-using System.Linq;
 using Eddy.Properties;
 using EddyLib;
+using Grasshopper.Kernel;
+using Grasshopper.Kernel.Parameters;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -21,10 +14,10 @@ namespace Eddy
     public class MeshSettings : GH_Component
     {
         /// <summary>
-        /// Each implementation of GH_Component must provide a public 
+        /// Each implementation of GH_Component must provide a public
         /// constructor without any arguments.
-        /// Category represents the Tab in which the component will appear, 
-        /// Subcategory the panel. If you use non-existing tab or panel names, 
+        /// Category represents the Tab in which the component will appear,
+        /// Subcategory the panel. If you use non-existing tab or panel names,
         /// new tabs/panels will automatically be created.
         /// </summary>
         public MeshSettings()
@@ -33,8 +26,6 @@ namespace Eddy
               "Eddy", "2 | Settings")
         {
         }
-
-
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -46,7 +37,7 @@ namespace Eddy
             pManager.AddIntegerParameter("AccRefinement", "AccRefinement", "Specify accuracy of bounding box mesh.", GH_ParamAccess.item, 0);
             pManager.AddIntegerParameter("AccGround", "AccGround", "Specify accuracy of ground mesh.", GH_ParamAccess.item, 2);
             pManager.AddIntegerParameter("nLayer", "nLay", "Number of mesh layers.", GH_ParamAccess.item, 3);
-            pManager.AddIntegerParameter("Mode", "Mode", @"Mode: 
+            pManager.AddIntegerParameter("Mode", "Mode", @"Mode:
 0: No snapping, no layers
 1: With Snapping, no layers
 2: With Snapping, with layers", GH_ParamAccess.item, 2);
@@ -64,24 +55,19 @@ namespace Eddy
             pManager.AddGenericParameter("Mesh Settings", "MSet", "Mesh Settings", GH_ParamAccess.item);
         }
 
-
-
         /// <summary>
         /// This is the method that actually does the work.
         /// </summary>
-        /// <param name="DA">The DA object can be used to retrieve data from input parameters and 
+        /// <param name="DA">The DA object can be used to retrieve data from input parameters and
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-
             int _accBuilding = 3;
             int _accFeatures = 3;
             int _accRefinement = 3;
             int _accGround = 3;
             int _nLayers = 3;
             int _mode = 2;
-
-
 
             DA.GetData(0, ref _accBuilding);
             DA.GetData(1, ref _accFeatures);
@@ -90,24 +76,20 @@ namespace Eddy
             DA.GetData(4, ref _nLayers);
             DA.GetData(5, ref _mode);
 
-
             if (_accBuilding >= 5 || _accFeatures >= 5 || _accRefinement >= 5 || _accGround >= 5 || _nLayers >= 5)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "A high number of refinment stages might significantly slow down mesh creation. Try to create a reasonable fine mesh with the Domain component and/or make sure to use more than one CPU.");
             }
 
-
-            DA.SetData(0, new OFMeshSettings() {
-
-            accBuildings = _accBuilding,
-            accFeatures = _accFeatures,
-            accRefinement = _accRefinement,
-            accGround = _accGround,
-            nLayers = _nLayers,
-            snappySetting = (SnappySetting) _mode
-
+            DA.SetData(0, new OFMeshSettings()
+            {
+                accBuildings = _accBuilding,
+                accFeatures = _accFeatures,
+                accRefinement = _accRefinement,
+                accGround = _accGround,
+                nLayers = _nLayers,
+                snappySetting = (SnappySetting)_mode
             });
-
         }
 
         /// <summary>
@@ -119,8 +101,8 @@ namespace Eddy
                 Resources.Eddy_mesh_settings;
 
         /// <summary>
-        /// Each component must have a unique Guid to identify it. 
-        /// It is vital this Guid doesn't change otherwise old ghx files 
+        /// Each component must have a unique Guid to identify it.
+        /// It is vital this Guid doesn't change otherwise old ghx files
         /// that use the old ID will partially fail during loading.
         /// </summary>
         public override Guid ComponentGuid

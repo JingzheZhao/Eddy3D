@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Runtime.InteropServices;
-
+﻿using System.Linq;
 
 namespace ArrayHelper
 
@@ -97,7 +94,7 @@ namespace ArrayHelper
     //    {
     //        BenchmarkRunner.Run<Benchmark>();
     //        //            var rnd = new Random();
-    //        //            
+    //        //
     //        //            var size = 100;
     //        //            var data = new double[size][];
     //        //            for (var i = 0; i < size; i++) {
@@ -121,7 +118,6 @@ namespace ArrayHelper
     //        //            Console.WriteLine("All Good!");
 
     //    }
-
 
     //public static class ArrayExt
     //{

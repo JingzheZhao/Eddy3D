@@ -1,19 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using Rhino.Geometry;
-
 
 namespace EddyLib.StrTemp
 {
     public class BCDicts
     {
-
         #region Generic
-
-
 
         public static string ABL(OFBaseDomain DOM, int d)
         {
@@ -42,6 +34,7 @@ FoamFile
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 ";
         }
+
         public static string InitialConditions(OFBaseDomain DOM, int d)
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
@@ -70,12 +63,7 @@ turbulentOmega	" + Math.Round(DOM.BCond.omega, 4) + @";
 ";
         }
 
-
-
-
-
-
-        #endregion
+        #endregion Generic
 
         #region Cyl
 
@@ -184,16 +172,14 @@ inletValue $internalField;
                 }
             }
 
-
             sb.AppendLine(@"
-
 }
-
 
 // ************************************************************************* //
 ");
             return sb.ToString();
         }
+
         public static string K_Cyl(OFCylDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
@@ -213,8 +199,6 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-
-
 dimensions      [0 2 -2 0 0 0 0];
 
 #include		""initialConditions"";
@@ -229,8 +213,6 @@ internalField uniform $turbulentKE;
                 }
 
              ");
-
-
 
             // Without terrain
 
@@ -280,8 +262,6 @@ inletValue $internalField;
                 }
             }
 
-
-
             sb.AppendLine(@"
                 ground
     {
@@ -299,15 +279,13 @@ ground_perim
                     type kqRWallFunction;
                     value       $internalField;
                 }
-
-
             }
-
 
             // ************************************************************************* //
             ");
             return sb.ToString();
         }
+
         public static string Omega_Cyl(OFCylDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
@@ -366,8 +344,6 @@ value		$internalField;
     }
     ");
 
-
-
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
                 double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i];
@@ -386,23 +362,18 @@ value	$internalField;
            type inletOutlet;
 inletValue	$internalField;
 value		$internalField;
-
     }");
                 }
             }
 
-
-
             sb.AppendLine(@"
-
 }
-
 
 // ************************************************************************* //
 ");
             return sb.ToString();
-
         }
+
         public static string P_Cyl(OFCylDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
@@ -422,8 +393,6 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-
-
 dimensions      [0 2 -2 0 0 0 0];
 
 #include		""initialConditions"";
@@ -432,23 +401,17 @@ internalField uniform $pressure;
 
         boundaryField
 {
-
             frontAndBack
     {
                 type slip;
             }
-
-
 
             building
     {
                 type zeroGradient;
             }
 
-
  ");
-
-
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
@@ -469,8 +432,6 @@ internalField uniform $pressure;
                 }
             }
 
-
-
             sb.AppendLine(@"
 
             ground
@@ -481,13 +442,11 @@ internalField uniform $pressure;
     {
                 type zeroGradient;
             }
-
         }
 
         // ************************************************************************* //
         ");
             return sb.ToString();
-
         }
 
         public static string UCylConstU(OFCylDomain DOM, int d)
@@ -510,24 +469,18 @@ FoamFile
     }
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-
-
 dimensions [0 1 -1 0 0 0 0];
-
 
 #include ""initialConditions"";
 
 internalField uniform $flowVelocity;
 
-
 boundaryField
 {
-
 frontAndBack
 {
         type slip;
 }
-
 
 ");
 
@@ -554,10 +507,6 @@ frontAndBack
                 }
             }
 
-
-
-
-
             sb.AppendLine(@"
 ground
     {
@@ -576,17 +525,12 @@ building
         type fixedValue;
         value uniform (0 0 0);
     }
-
-
 }
-
 
 // ************************************************************************* //
 ");
             return sb.ToString();
-
         }
-
 
         public static string U_CylABL(OFCylDomain DOM, int d)
         {
@@ -608,24 +552,18 @@ FoamFile
     }
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-
-
 dimensions [0 1 -1 0 0 0 0];
-
 
 #include ""initialConditions"";
 
 internalField uniform $flowVelocity;
 
-
 boundaryField
 {
-
 frontAndBack
     {
         type slip;
 }
-
 
 ");
 
@@ -651,18 +589,12 @@ frontAndBack
                 }
             }
 
-
             //            if (BCInflow.btype == BoundaryType.abl) {
-
             //            }
             //            else {
             //                sb.Append(@"type fixedValue;
             //        value uniform ("+ BCInflow.flowDir.X +" "+ BCInflow.flowDir.Y +" "+ BCInflow.flowDir.Z+ @");");
             //}
-
-
-
-
 
             sb.AppendLine(@"
 ground
@@ -682,19 +614,15 @@ building
         type fixedValue;
         value uniform (0 0 0);
     }
-
-
 }
-
 
 // ************************************************************************* //
 ");
             return sb.ToString();
-
         }
+
         public static string Nut_Cyl(OFCylDomain DOM, int d)
         {
-
             StringBuilder sb = new StringBuilder();
 
             sb.AppendLine(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -724,12 +652,10 @@ boundaryField
 {
     frontAndBack
     {
-        type calculated; 
+        type calculated;
         value uniform 0;
     }
 ");
-
-
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
@@ -737,9 +663,9 @@ boundaryField
                 if (dot < 0)
                 {
                     sb.AppendLine("patch" + i);
-                    sb.AppendLine(@" 
-{      
-type calculated; 
+                    sb.AppendLine(@"
+{
+type calculated;
 value uniform 0;
 }");
                 }
@@ -749,12 +675,10 @@ value uniform 0;
                     sb.AppendLine(@"
 {
 type calculated;
-value uniform 0; 
+value uniform 0;
 }");
                 }
             }
-
-
 
             sb.AppendLine(@"ground
     {
@@ -775,17 +699,14 @@ value uniform 0;
     }
 }
 
-
 // ************************************************************************* //
 ");
             return sb.ToString();
         }
 
-
-        #endregion
+        #endregion Cyl
 
         #region Box
-
 
         public static string Epsilon(OFBaseDomain DOM)
         {
@@ -850,7 +771,6 @@ building
                 }
                 "); }
 
-
             sb.Append(@"outlet
     {
         type    inletOutlet;
@@ -862,7 +782,6 @@ building
 ");
             return sb.ToString();
         }
-
 
         public static string K(OFBaseDomain DOM)
         {
@@ -930,8 +849,8 @@ internalField uniform $turbulentKE;
             // ************************************************************************* //
             ");
             return sb.ToString();
-
         }
+
         public static string Omega(OFBaseDomain DOM)
         {
             return @"
@@ -995,8 +914,8 @@ inletValue	$internalField;
 }
 // ************************************************************************* //
 ";
-
         }
+
         public static string P(OFBaseDomain DOM)
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
@@ -1047,8 +966,8 @@ ground_perim
         }
         // ************************************************************************* //
         ";
-
         }
+
         public static string UBoxABL(OFBaseDomain DOM, int i)
         {
             StringBuilder sb = new StringBuilder();
@@ -1083,8 +1002,6 @@ inlet
                 #include ""ABLConditions"";
 }");
 
-
-
             sb.Append(@"
 outlet
     {
@@ -1111,8 +1028,8 @@ building
 // ************************************************************************* //
 ");
             return sb.ToString();
-
         }
+
         public static string UBoxConstU(OFBaseDomain DOM, int i)
         {
             StringBuilder sb = new StringBuilder();
@@ -1145,12 +1062,9 @@ inlet
     {
 ");
 
-
             sb.Append(@"type fixedValue;
         value uniform (" + DOM.BCond.flowDir[i].X * DOM.BCond.URef + " " + DOM.BCond.flowDir[i].Y * DOM.BCond.URef + " " + DOM.BCond.flowDir[i].Z * DOM.BCond.URef + @");
 }");
-
-
 
             sb.Append(@"
 outlet
@@ -1178,8 +1092,8 @@ building
 // ************************************************************************* //
 ");
             return sb.ToString();
-
         }
+
         public static string Nut(OFBaseDomain DOM)
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
@@ -1206,12 +1120,12 @@ boundaryField
     frontAndBack
     {
       	type calculated;
-        value uniform 0;    
+        value uniform 0;
     }
     outlet
     {
 	type calculated;
-value uniform 0;       
+value uniform 0;
     }
     inlet
     {
@@ -1241,6 +1155,5 @@ value uniform 0;
         }
     }
 
-    #endregion
-
+    #endregion Box
 }

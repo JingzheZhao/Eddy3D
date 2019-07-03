@@ -1,21 +1,15 @@
-﻿using System.Runtime.InteropServices;
-using System.IO;
+﻿using System;
 using System.Diagnostics;
-using System;
+using System.IO;
 using System.Threading;
 
 namespace EddyLib
 {
     public class SymlinkCreator
     {
-
-
         public static void Create(string simDir, string meshDir)
         {
-
-
             string strCmdText;
-
 
             strCmdText = "/c MKLINK /J " + "\"" + simDir + "\"" + " " + "\"" + meshDir + "\"";
 
@@ -27,11 +21,9 @@ namespace EddyLib
             startInfo.UseShellExecute = false;
             startInfo.CreateNoWindow = true;
 
-
             Process SymLinks = new Process();
             SymLinks.StartInfo = startInfo;
             SymLinks.EnableRaisingEvents = true;
-
 
             if (!Directory.Exists(simDir))
             {
@@ -40,17 +32,10 @@ namespace EddyLib
                 // Check this later. This was added since some links sometimes were not created after deleting.
                 Thread.Sleep(500);
             }
-
-
-
-
-
         }
 
         public static void Delete(string simDir)
         {
-
-
             System.Diagnostics.Process delete = new System.Diagnostics.Process();
             delete.StartInfo.FileName = @"C:\Windows\System32\cmd.exe";
             delete.StartInfo.UseShellExecute = false;
@@ -61,9 +46,6 @@ namespace EddyLib
             delete.Start();
             StreamWriter sw = delete.StandardInput;
             String strInputText = "rd " + simDir;
-
-
-
 
             sw.WriteLine(strInputText);
 
@@ -77,8 +59,5 @@ namespace EddyLib
             FileInfo pathInfo = new FileInfo(path);
             return pathInfo.Attributes.HasFlag(FileAttributes.ReparsePoint);
         }
-
-
-
     }
 }

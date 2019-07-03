@@ -20,18 +20,16 @@
 //    public class PostProcessing : GH_Component
 //    {
 //        /// <summary>
-//        /// Each implementation of GH_Component must provide a public 
+//        /// Each implementation of GH_Component must provide a public
 //        /// constructor without any arguments.
-//        /// Category represents the Tab in which the component will appear, 
-//        /// Subcategory the panel. If you use non-existing tab or panel names, 
+//        /// Category represents the Tab in which the component will appear,
+//        /// Subcategory the panel. If you use non-existing tab or panel names,
 //        /// new tabs/panels will automatically be created.
 //        /// </summary>
 //        public PostProcessing()
 //          : base("Patches", "Patches","PostProcessing","Eddy","PostProcessing")
 //        {
 //        }
-
-
 
 //        /// <summary>
 //        /// Registers all the input parameters for this component.
@@ -40,15 +38,13 @@
 //        {
 //            pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
 //            pManager.AddGenericParameter("topo", "topologies", "topologies", GH_ParamAccess.list);
-           
+
 //            //pManager.AddTextParameter("topoName", "topoName", "topoName", GH_ParamAccess.item);
 //            pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 0);
 
 //            Param_Integer param = pManager[2] as Param_Integer;
 //            param.AddNamedValue("cp_Patches", 0);
 //            param.AddNamedValue("V_dot_Patches", 1);
-
-
 
 //        }
 
@@ -60,19 +56,14 @@
 //            pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.list);
 //        }
 
-
-
 //        /// <summary>
 //        /// This is the method that actually does the work.
 //        /// </summary>
-//        /// <param name="DA">The DA object can be used to retrieve data from input parameters and 
+//        /// <param name="DA">The DA object can be used to retrieve data from input parameters and
 //        /// to store data in output parameters.</param>
 //        protected override void SolveInstance(IGH_DataAccess DA)
 //        {
-
 //            OFBaseDomain DOM = null;
-
-
 
 //            GH_ObjectWrapper gobj = null;
 //            if (!DA.GetData(0, ref gobj)) { }
@@ -83,8 +74,6 @@
 //            }
 //            if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
-
-
 //            string topoName = "patch";
 //            int mode = 0;
 //            List<GeometryBase> topo = new List<GeometryBase>();
@@ -94,19 +83,15 @@
 //            //DA.GetDataList(2, points);
 //            //DA.GetData(2, ref topoName);
 
-
 //            DA.GetData(2, ref mode);
-            
 
 //            if (mode == 0)
 //            {
-
 //                List<Mesh> allTopo = new List<Mesh>();
 //                MeshingParameters mp = new MeshingParameters();
 
 //                foreach (GeometryBase b in topo)
 //                {
-
 //                    if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
 //                    {
 //                        Mesh obj = (Mesh)b;
@@ -135,26 +120,18 @@
 //                {
 //                    File.WriteAllText(RES.WorkingDirectoryectory +  DOM.BCInflow.windDir[l] + @"\system\" + "controlDict", EddyLib.StringTemplatescontrolDict(DOM, null, l));
 //                    File.WriteAllText(RES.WorkingDirectoryectory + DOM.BCInflow.windDir[l]   + @"\system\" + "topoSetDict", EddyLib.StringTemplatestopoSetDict(allTopo));
-                
-
-
 
 //                string postProcessDirectory = RES.WorkingDirectoryectory + DOM.BCInflow.windDir[l] + @"\PostProcessing\";
 //                int counterTopo = 0;
 
-
-//                //Start sample process                
+//                //Start sample process
 //                string command = @"""topoSet;simpleFoam""";
 
-
-                
 //                ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", " -e " + command + " -f " + "\"" + RES.WorkingDirectoryectory + "\\" + DOM.BCInflow.windDir[l] + " \"");
 //                Process p = new Process();
 //                p.StartInfo = psi;
 //                p.Start();
 //                p.WaitForExit();
-
-
 
 //                    if (!Directory.Exists(postProcessDirectory))
 //                    {
@@ -169,17 +146,13 @@
 
 //                        int counterIter = Directory.GetDirectories(dir[0]).Length;
 
-
 //                        string[] fullDir = new string[counterTopo];
 //                        string[] filePathResults = new string[counterTopo];
 //                        string[] dirLastIter = Directory.GetDirectories(dir[0]);
 
-
 //                        var item = dirLastIter[dirLastIter.Length - 1];
 
 //                        string lastIter = Path.GetFileName(item);
-
-
 
 //                        // Build filepath
 //                        for (int i = 0; i < counterTopo; i++)
@@ -187,13 +160,11 @@
 //                            fullDir[i] = basePath + topoName + i;
 //                        }
 
-
 //                        // Build get fileName
 
 //                        //filePathResults = Directory.GetFiles(fullDir[0]);
 //                        //string fileName = new String(Path.GetFileName(filePathResults[0]).Where(c => Char.IsLetter(c) | Char.IsPunctuation(c)).ToArray());;
 //                        //string fileName2 = Regex.Replace(filePathResults[0], @"[^A-Z]+", String.Empty);
-
 
 //                        List<String> fullPath = new List<String>();
 
@@ -202,10 +173,8 @@
 //                            fullPath.Add(fullDir[i] + @"\" + lastIter + @"\" + topoName + i);
 //                        }
 
-
 //                        double[] cpValues = new double[counterTopo];
 //                        var csv = new System.Text.StringBuilder();
-
 
 //                        for (int i = 0; i < counterTopo; i++)
 //                        {
@@ -227,15 +196,12 @@
 //                    }
 //                }
 
-               
-
-
 //            }
 
 //            if (mode == 1)
 //            {
 //                return;
-                
+
 //            }
 
 //        }
@@ -255,8 +221,8 @@
 //        }
 
 //        /// <summary>
-//        /// Each component must have a unique Guid to identify it. 
-//        /// It is vital this Guid doesn't change otherwise old ghx files 
+//        /// Each component must have a unique Guid to identify it.
+//        /// It is vital this Guid doesn't change otherwise old ghx files
 //        /// that use the old ID will partially fail during loading.
 //        /// </summary>
 //        public override Guid ComponentGuid

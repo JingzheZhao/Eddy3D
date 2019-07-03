@@ -1,19 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using Grasshopper.Kernel;
-using Rhino.Geometry;
-using System.Text;
-using System.Linq;
-using Grasshopper.Kernel.Parameters;
-using System.Diagnostics;
-using Grasshopper.Kernel.Types;
-using System.Text.RegularExpressions;
-using Grasshopper;
-using EddyLib;
 using Eddy.Properties;
-using System.Threading.Tasks;
-using Microsoft.VisualBasic.FileIO;
+using EddyLib;
+using Grasshopper;
+using Grasshopper.Kernel;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -30,21 +19,17 @@ namespace Eddy
             get { return GH_Exposure.hidden; }
         }
 
-
-
         /// <summary>
-        /// Each implementation of GH_Component must provide a public 
+        /// Each implementation of GH_Component must provide a public
         /// constructor without any arguments.
-        /// Category represents the Tab in which the component will appear, 
-        /// Subcategory the panel. If you use non-existing tab or panel names, 
+        /// Category represents the Tab in which the component will appear,
+        /// Subcategory the panel. If you use non-existing tab or panel names,
         /// new tabs/panels will automatically be created.
         /// </summary>
         public ReadHumanConditions()
           : base("ReadHumanConditions", "ReadHumanConditions", "Read annual human conditions from UTCI.", "Eddy", "6 | Outdoor Comfort")
         {
         }
-
-
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -54,7 +39,6 @@ namespace Eddy
             pManager.AddGenericParameter("Simulation", "Sim", "Sim", GH_ParamAccess.item);
 
             pManager.AddBooleanParameter("Run", "Run", "Run the component", GH_ParamAccess.item, false);
-
         }
 
         /// <summary>
@@ -62,43 +46,30 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-
             pManager.AddGenericParameter("HumanConditions", "HC", "HumanConditions accodring to the UTCI scale.", GH_ParamAccess.tree);
-
-
-
         }
-
-
 
         /// <summary>
         /// This is the method that actually does the work.
         /// </summary>
-        /// <param name="DA">The DA object can be used to retrieve data from input parameters and 
+        /// <param name="DA">The DA object can be used to retrieve data from input parameters and
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-
             OFResult RES = null;
             DA.GetData(0, ref RES);
 
             bool Run = false;
 
-
             DA.GetData(1, ref Run);
 
             int annualHours = 8760;
 
-
             if (Run)
             {
-
                 //// Fill datatrees from CSV
 
-
                 var path = RES.WorkingDirectory + @"\UTCI.csv";
-
-
 
                 var HumanConditionsTree = new DataTree<int>();
 
@@ -112,13 +83,10 @@ namespace Eddy
                     //csvParser.ReadLine();
                     int cnt = 0;
 
-
                     while (!csvParser.EndOfData)
                     {
                         // Read current line fields, pointer moves to the next line.
                         string[] fields = csvParser.ReadFields();
-
-
 
                         //int comfortCnt = 0;
 
@@ -131,8 +99,6 @@ namespace Eddy
                             //{
                             //comfortCnt++;
                             //}
-
-
                         }
 
                         //double cmftPercentage = Math.Round((double)comfortCnt * 100 / 8760, 1);
@@ -143,22 +109,9 @@ namespace Eddy
                     }
                 }
 
-
                 DA.SetDataTree(0, HumanConditionsTree);
-
-
             }
-
-
         }
-
-
-
-
-
-
-
-
 
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface.
@@ -174,8 +127,8 @@ namespace Eddy
         }
 
         /// <summary>
-        /// Each component must have a unique Guid to identify it. 
-        /// It is vital this Guid doesn't change otherwise old ghx files 
+        /// Each component must have a unique Guid to identify it.
+        /// It is vital this Guid doesn't change otherwise old ghx files
         /// that use the old ID will partially fail during loading.
         /// </summary>
         public override Guid ComponentGuid
@@ -184,5 +137,3 @@ namespace Eddy
         }
     }
 }
-
-

@@ -1,10 +1,9 @@
-﻿using Rhino.Geometry;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Drawing;
-
+using Rhino.Geometry;
 
 namespace EddyLib
 {
@@ -22,22 +21,20 @@ namespace EddyLib
         private readonly List<int> inletFaceID = new List<int>();
         public List<Point3d> ListOfAllPointsInMagicOrder;
 
-
         public int divisionsX = 1;
         public int divsRadial;
         public int divisionsZ;
         public int divPerim;
         public double gradingPerim;
 
-
         public double cellSizeInner;
         public double cellSizeOuter;
         public double distanceInnerOuter;
         public int equalDivisions;
 
-
         //Meshes from Cycl Domain
         public Mesh CylDomainMesh = new Mesh();
+
         public Mesh CylDomainMeshGround = new Mesh();
         public Mesh CylDomainMeshGroundPerim = new Mesh();
         public Mesh CylCombinedMesh; // TODO: What is this??
@@ -52,15 +49,10 @@ namespace EddyLib
 
         public List<Polyline> concentricDivisions;
 
-
-      
-
-
         // Remove this later
         public Point3d[] pointsOnCircle;
+
         public Point3d[] pointsOnRect;
-
-
 
         public OFCylDomain(Mesh BuildingGeometry, Mesh terrainMesh, BoundaryConditions BCond, double coreBlockSize, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0)
         {
@@ -71,21 +63,16 @@ namespace EddyLib
 
             var BBoxCrude = BuildingGeometry.GetBoundingBox(true);
 
-
-
-
             // Box-shaped tunnel can only have 1 windDir which is the 1st windDir
 
             Vector3d windDirVector = BCond.flowDir[0];
 
-            // Rotate the Plane based on wind vector area  
-
+            // Rotate the Plane based on wind vector area
 
             Plane orientedPlane = GetOrientedBasePlane(windDirVector, BuildingGeometry, BBoxCrude.Center);
 
             // Create BBox with respect to new plane (new coordinates)
             BBox = BuildingGeometry.GetBoundingBox(Plane.WorldXY);
-
 
             var xMin = BBox.Min.X;
             var xMax = BBox.Max.X;
@@ -99,44 +86,30 @@ namespace EddyLib
             var dimY = yMax - yMin;
             var dimZ = zMax - zMin;
 
-
-
             // If terrain is used, scale down Z to make sure all points are inside the domain
             // Zinter is call divisionsZ for CylDomain which is an int instead of an Interval
-
-
-
 
             if (terrainMesh.Faces.Count > 0)
             {
                 this.hasTerrain = true;
             }
 
-
             if (hasTerrain)
             {
                 this.TerrainMesh = terrainMesh;
                 double zMinTerrain = OFBaseDomain.GetZMinTerrain(terrainMesh, BBox, Plane.WorldXY);
                 this.CenterGround = new Point3d(BBox.Center.X, BBox.Center.Y, zMinTerrain);
-
             }
             else
             {
                 this.CenterGround = new Point3d(BBox.Center.X, BBox.Center.Y, zMin);
-
             }
 
             //var CenterGround = BBoxCrude.Center + 0.9 * -Vector3d.ZAxis * dimZ;
 
-
-
-
             //Create ground plane of BBox
             //center needs dimZ to stay at ground level but also respect terrain if its being used; 0.1 = safety factor
             //center = (BBox.Center + 0.5 * -Vector3d.ZAxis * dimZ) + zTerrainScaling * Vector3d.ZAxis;
-
-
-
 
             // Check standard inputs for height
 
@@ -149,39 +122,29 @@ namespace EddyLib
                 height = sizeHeight;
             }
 
-
-
-
             double scaleDomByHeight = (15.5 * dimZ) + dimY;
             //var scaleCyclDomainHeight = height > dimY ? height : dimY;
-
 
             //Plane localSystem = new Plane(center, Vector3d.XAxis, Vector3d.ZAxis);
             //// localSystem.Origin = center;
             //localSystem.Translate(-Vector3d.YAxis * dimY);
-
 
             for (int i = 0; i < 72; i++)
             {
                 Vector3d localCopy = Vector3d.YAxis;
                 localCopy.Rotate(5 * i * Math.PI / 180, Vector3d.ZAxis);
 
-
                 Bitmap FI;
                 this.FrontageBuildingAreas[i * 5] = OFBaseDomain.GetProjectedBuildingArea(i * 5, BuildingGeometry, out FI);
                 this.FrontagePNGs[i * 5] = FI;
 
                 //projAreaList.Add(RunBlockMesh.GetProjectedBuildingAreas(BCond.flowDir[0], orientedPlane, BuildingGeometry));
-
-
             }
 
             MaxFrontageBuildingArea = FrontageBuildingAreas.Max();
 
-
             // New Dimensions in X; take blocking ratio into account
             double scaleCylDomainFromBlockingRatio = MaxFrontageBuildingArea * 100 / 3 / height / 2;
-
 
             // Check standard inputs for radius
 
@@ -194,7 +157,6 @@ namespace EddyLib
                 // Radius, not Durchmesser
                 radius = sizeOuterCirc / 2;
             }
-
 
             //old domain
             //var allPoints = MakeCylMeshPoints5deg(center, radius, height, scaleFactorInnerRect);
@@ -210,20 +172,12 @@ namespace EddyLib
                 sizeInnerR = sizeInnerRect;
             }
 
-
-
-
-
             divsRadial = RadialDivsFromBlockSize(coreBlockSize, sizeInnerR);
             //divisionsZ = _divisionsZ;
 
-
             MakeCircMeshPlane(CenterGround, sizeInnerR, divsRadial, radius, height);
 
-
             BoundaryConditionsCP BCondCP = new BoundaryConditionsCP(zMax, BCond);
-            
-
 
             if (BCond.btype == BoundaryType.constant)
             {
@@ -239,28 +193,14 @@ namespace EddyLib
             // refinement Cylinder
             //refinementCylinder = getRefinementCyl(center, geometry, 0.3, 0.3);
             //refinementBox = getRefinementBox(localSystem, geometry, 0.3);
-
-
-
-
-
         }
-
-
-
 
         public void MakeCircMeshPlane(Point3d center, double sizeInnerRect, int divsRadial, double circleRadius, double height)
         {
-
-
-
             // point inside cdf domain - needed for meshing and finding the void space for fluid
             LocationInMesh = center + (Vector3d.ZAxis * (height - 0.1));
             // move into periphery
             LocationInMesh += radius * 0.6 * Vector3d.XAxis;
-
-
-
 
             Plane pl = new Plane(center, Vector3d.ZAxis);
 
@@ -284,7 +224,6 @@ namespace EddyLib
 
             //this.cellDivisionsPerim = Math.Abs((int)Math.Round((circRad - (2 * sizeInnerRect)) / cellSizeCore));
 
-
             // divisionsZ must be min 1
 
             if ((int)(height / cellSizeCore) < 1)
@@ -296,15 +235,9 @@ namespace EddyLib
                 divisionsZ = (int)(height / cellSizeCore);
             }
 
-
             Circle c = new Circle(center, circRad);
 
             Polyline poly = coreBottom.GetNakedEdges()[0]; //returns a polygon with line segments for each mesh cell
-
-
-
-
-
 
             Point3d[] pointsOnRect = GetPointsOnRect(divsRadial, m);
             Point3d[] pointsOnCircle = GetPointsOnCircle(center, circRad, poly);
@@ -312,25 +245,18 @@ namespace EddyLib
             double blockDimensionCore = BlockDimensionCore(pointsOnRect);
             divPerim = DivisionsPerim(pointsOnRect, pointsOnCircle, blockDimensionCore);
 
-
-
-
             ////////////////////
             //Visualize divisions inside cylindrical perimeter
             ////////////////////
             // Points on inner rectangle from naked edges
 
-            this.concentricDivisions = GetConcenctricPolyDivisions(pointsOnRect, pointsOnCircle, divPerim, height );
+            this.concentricDivisions = GetConcenctricPolyDivisions(pointsOnRect, pointsOnCircle, divPerim, height);
 
             ////////////////
             ///
 
-
-
-
             coreTop.Append(m);
             coreTop.Translate(Vector3d.ZAxis * height);
-
 
             perimBottom = PerimeterRing(poly, pointsOnCircle);
             //perimTop = new Mesh();
@@ -339,10 +265,8 @@ namespace EddyLib
 
             perimTop.Flip(true, true, true);
 
-
             sides = SideWalls(pointsOnCircle, height);
             sides.Normals.ComputeNormals();
-
 
             //// Test to make sure that all vecs point outwards
 
@@ -369,7 +293,6 @@ namespace EddyLib
             CylDomainMesh.Weld(Math.PI);
             CylDomainMesh.Vertices.CombineIdentical(true, true);
 
-
             this.DomainMesh = CylDomainMesh;
 
             // Show only intersection of domain and terrain
@@ -377,13 +300,10 @@ namespace EddyLib
             IEnumerable<Mesh> first = new Mesh[] { DomainMesh };
             IEnumerable<Mesh> second = new Mesh[] { TerrainMesh };
             this.DomainMeshIntersection = Mesh.CreateBooleanIntersection(first, second);
-
-
         }
 
         private static int DivisionsPerim(Point3d[] core, Point3d[] perim, double blockDim)
         {
-
             Vector3d blockDimensionPerim = new Vector3d(perim[0].X, perim[0].Y, perim[0].Z) - new Vector3d(core[0].X, core[0].Y, core[0].Z);
             int divPerim = (int)(blockDimensionPerim.Length / blockDim);
             if (divPerim == 0)
@@ -394,9 +314,9 @@ namespace EddyLib
             return divPerim;
             //return (int)(blockDimensionPerim.Length / blockDim / 1.41);
         }
+
         private static double BlockDimensionCore(Point3d[] core)
         {
-
             Vector3d blockDimensionCore = new Vector3d(core[1].X, core[1].Y, core[1].Z) - new Vector3d(core[0].X, core[0].Y, core[0].Z);
 
             return blockDimensionCore.Length;
@@ -404,7 +324,6 @@ namespace EddyLib
 
         private static int RadialDivsFromBlockSize(double blockSize, double sizeInnerRect)
         {
-
             int radialDivs = 0;
 
             radialDivs = (int)(sizeInnerRect / blockSize);
@@ -412,13 +331,9 @@ namespace EddyLib
             return radialDivs;
         }
 
-
-
-
         public string StringyfyDomain()
         {
             StringBuilder sb = new StringBuilder();
-
 
             sb.AppendLine(@"
 /*--------------------------------*- C++ -*----------------------------------*\
@@ -436,32 +351,29 @@ FoamFile
     object      blockMeshDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
- 
+
 convertToMeters 1;
- 
+
 //
-vertices        
+vertices
 (
 
 ");
 
             sb.AppendLine(StringyfyOFVertexList(DomainMesh.Vertices.ToPoint3dArray()));
 
-
             sb.AppendLine(@"
-); 
-blocks          
+);
+blocks
 (
 ");
 
-
             sb.AppendLine(StringyfyBlocks(DomainMesh, inputGroundVertices, inputTopVertices, divisionsX, divsRadial, divisionsZ));
-
 
             sb.AppendLine(@"
 );
- 
- edges           
+
+ edges
  (
  );
 boundary
@@ -469,29 +381,19 @@ boundary
 
 ");
 
-
-
             sb.AppendLine(StringyfyBoundaries(DomainMesh, outletFaceID, inletFaceID, topFaceID, bottomFaceID));
-
-
 
             sb.AppendLine(@"
  );
 
- 
-mergePatchPairs 
+mergePatchPairs
 (
 );");
             return sb.ToString();
-
-
         }
-
-
 
         private static string StringyfyBoundaries(Mesh m, List<int> outletFaceID, List<int> inletFaceID, List<int> topFaceID, List<int> bottomFaceID)
         {
-
             // make some text
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("inlet");
@@ -503,7 +405,6 @@ mergePatchPairs
             {
                 MeshFace mf = m.Faces[i];
                 sb.AppendLine("(" + mf.A + " " + mf.B + " " + mf.C + " " + mf.D + ")");
-
             }
             sb.AppendLine(");");
             sb.AppendLine("}");
@@ -517,11 +418,9 @@ mergePatchPairs
             {
                 MeshFace mf = m.Faces[i];
                 sb.AppendLine("(" + mf.A + " " + mf.B + " " + mf.C + " " + mf.D + ")");
-
             }
             sb.AppendLine(");");
             sb.AppendLine("}");
-
 
             sb.AppendLine("frontAndBack");
             sb.AppendLine("{");
@@ -532,7 +431,6 @@ mergePatchPairs
             {
                 MeshFace mf = m.Faces[i];
                 sb.AppendLine("(" + mf.A + " " + mf.B + " " + mf.C + " " + mf.D + ")");
-
             }
             sb.AppendLine(");");
             sb.AppendLine("}");
@@ -546,7 +444,6 @@ mergePatchPairs
             {
                 MeshFace mf = m.Faces[i];
                 sb.AppendLine("(" + mf.A + " " + mf.B + " " + mf.C + " " + mf.D + ")");
-
             }
             sb.AppendLine(");");
             sb.AppendLine("}");
@@ -556,7 +453,6 @@ mergePatchPairs
 
         private static string StringyfyBlocks(Mesh m, int[] inputGroundFaces, int[] inputTopFaces, int divisionsX, int divisionsY, int divisionsZ)
         {
-
             List<Point3d> fullList = m.Vertices.ToPoint3dArray().ToList();
 
             List<string> blocksFromArcsA = new List<string>();
@@ -572,30 +468,23 @@ mergePatchPairs
                 blocksFromArcsB.Add(m.Faces[i].A + " " + m.Faces[i].B + " " + m.Faces[i].C + " " + m.Faces[i].D + ") (" + divisionsX + " " + divisionsY + " " + divisionsZ + ") simpleGrading (1 1 1) ");
             }
 
-
             StringBuilder sb = new StringBuilder();
 
             for (int i = 0; i < blocksFromArcsA.Count; i++)
             {
-
                 sb.AppendLine(blocksFromArcsA[i] + blocksFromArcsB[i]);
             }
 
-
             ///------
             ///------
-
 
             for (int i = 0; i < inputGroundFaces.Length - 3; i = i + 4)
             {
-
                 sb.AppendLine("hex (" +
 
                     inputGroundFaces[i] + " " + inputGroundFaces[i + 1] + " " + inputGroundFaces[i + 2] + " " + inputGroundFaces[i + 3] + " " +
                     inputTopFaces[i] + " " + inputTopFaces[i + 1] + " " + inputTopFaces[i + 2] + " " + inputTopFaces[i + 3] + ") (1 1 " + divisionsZ + ") simpleGrading (1 1 1)  ");
             }
-
-
 
             return sb.ToString();
         }
@@ -658,14 +547,11 @@ mergePatchPairs
                 flowDir = 0;
             }
 
-
-
             return flowDir;
         }
 
         private Mesh SideWalls(Point3d[] pt, double h)
         {
-
             int vcount = 0;
             Mesh m = new Mesh();
             for (int i = 0; i < pt.Length - 1; i++)
@@ -675,7 +561,6 @@ mergePatchPairs
 
                 m.Vertices.Add(pt[i + 1] + Vector3d.ZAxis * h);
                 m.Vertices.Add(pt[i + 1]);
-
 
                 m.Faces.AddFace(new MeshFace(vcount, vcount + 1, vcount + 2, vcount + 3));
                 vcount += 4;
@@ -703,14 +588,12 @@ mergePatchPairs
                 Point3d p2;
 
                 Rhino.Geometry.Intersect.LineCircleIntersection inter = Rhino.Geometry.Intersect.Intersection.LineCircle(new Line(newCenter, vec), c, out t1, out p1, out t2, out p2);
-                //Move all points in one plane                
+                //Move all points in one plane
                 pointsOnCircle.Add(new Point3d(p1.X, p1.Y, center.Z));
-
             }
             this.pointsOnCircle = pointsOnCircle.ToArray();
             return pointsOnCircle.ToArray();
         }
-
 
         private Point3d[] GetPointsOnRect(int divisions, Mesh m)
         {
@@ -753,7 +636,6 @@ mergePatchPairs
                 sb.AppendLine("hex (" + DomainMesh.Faces[i].A + " " + DomainMesh.Faces[i].D + " " + DomainMesh.Faces[i].C + " " + DomainMesh.Faces[i].B + " " +
                     ((DomainMesh.Faces[i + c3].A)) + " " + (DomainMesh.Faces[i + c3].B) + " " + (DomainMesh.Faces[i + c3].C) + " " +
                     (DomainMesh.Faces[i + c3].D) + ") (" + divisionsX + " " + (divPerim) + " " + divisionsZ + ") simpleGrading (1 " + gradingPerim + " 1)");
-
             }
             sb.AppendLine("//core");
             for (int i = 0; i < coreBottom.Faces.Count; i++)
@@ -761,7 +643,6 @@ mergePatchPairs
                 sb.AppendLine("hex (" + DomainMesh.Faces[i + c1].A + " " + DomainMesh.Faces[i + c1].D + " " + DomainMesh.Faces[i + c1].C + " " + DomainMesh.Faces[i + c1].B + " " +
                     ((DomainMesh.Faces[i + c2].A)) + " " + (DomainMesh.Faces[i + c2].B) + " " + (DomainMesh.Faces[i + c2].C) + " " +
                     (DomainMesh.Faces[i + c2].D) + ") (" + divisionsX + " " + divisionsX + " " + divisionsZ + ") simpleGrading (1 1 1)");
-
             }
 
             return sb.ToString();
@@ -772,7 +653,6 @@ mergePatchPairs
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
 
             int counter = perimBottom.Faces.Count + coreBottom.Faces.Count + perimTop.Faces.Count + coreTop.Faces.Count;
-
 
             for (int i = 0; i < sides.Faces.Count; i++)
             {
@@ -788,6 +668,7 @@ mergePatchPairs
 
             return sb.ToString();
         }
+
         private string StringyfyVertexList2()
         {
             System.Text.StringBuilder stb = new System.Text.StringBuilder();
@@ -847,14 +728,9 @@ faces
 
         private List<Polyline> GetConcenctricPolyDivisions(Point3d[] pointsOnRect, Point3d[] pointsOnCircle, int divPerim, double topOfDomain)
         {
-
-
-
-
             // Shift pointsOnCircle to the right by one to get correct order
             // not necessary because the GetPointsOnCircle yields one duplicate point
             //  pointsOnCircle = RightShift(pointsOnCircle);
-
 
             // Add radial polylines from divisions
 
@@ -864,10 +740,8 @@ faces
                 radialDivisions.Add(new Polyline(new Point3d[] { pointsOnRect[i], pointsOnCircle[i] }));
             }
 
-
             // Create list with arrays of all intersections
             // This needs adaptation if grading should be implemented
-
 
             List<Point3d[]> divPointsCut = new List<Point3d[]>();
             for (int i = 0; i < pointsOnRect.Length; i++)
@@ -894,19 +768,14 @@ faces
 
             for (int j = 0; j < divPerim; j++)
             {
-
-
                 // Go through all loops and add the vertices with the correct stepsize
                 for (int i = 0; i < fullList.Count; i++)
                 {
-
                     innerRadialList.Add(fullList[(i + j)]);
                     i += divPerim;
-
                 }
                 //Add the last vertex to close the loop
                 innerRadialList.Add(fullList[j]);
-
             }
 
             // Cull duplicates from that list
@@ -921,16 +790,13 @@ faces
 
             foreach (List<Point3d> l in lists)
             {
-                l.Add(l[0]);           
+                l.Add(l[0]);
             }
 
-
-            // Copy everything to the top        
+            // Copy everything to the top
 
             var vec = Vector3d.ZAxis * topOfDomain;
             var xf = Rhino.Geometry.Transform.Translation(vec);
-
-
 
             foreach (List<Point3d> l in lists)
             {
@@ -942,24 +808,18 @@ faces
                 // Top
                 pl.Transform(xf);
                 concentricDivisionsTop.Add(pl);
-
             }
-
 
             // Merge both lists
 
             var concentricDivisions = concentricDivisionsBottom.Union(concentricDivisionsTop).ToList();
-            
+
             return concentricDivisions;
-
         }
-
-
 
         public string StringyfyDomain2()
         {
             StringBuilder sb = new StringBuilder();
-
 
             sb.AppendLine(@"
 /*--------------------------------*- C++ -*----------------------------------*\
@@ -977,32 +837,29 @@ FoamFile
     object      blockMeshDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
- 
+
 convertToMeters 1;
- 
+
 //
-vertices        
+vertices
 (
 
 ");
 
             sb.AppendLine(StringyfyVertexList2());
 
-
             sb.AppendLine(@"
-); 
-blocks          
+);
+blocks
 (
 ");
 
-
             sb.AppendLine(StringifyBlocks2());
-
 
             sb.AppendLine(@"
 );
- 
- edges           
+
+ edges
  (
  );
 boundary
@@ -1010,26 +867,18 @@ boundary
 
 ");
 
-
-
             sb.AppendLine(StringifyPatches2());
             sb.AppendLine(StringifyTop2());
             sb.AppendLine(StringifyGround2());
 
-
-
             sb.AppendLine(@"
  );
 
- 
-mergePatchPairs 
+mergePatchPairs
 (
 );");
             return sb.ToString();
-
-
         }
-
 
         public override string ToString()
         {
@@ -1037,14 +886,8 @@ mergePatchPairs
             "Smallest cell size in center: " + cellSizeInner + " m\n" +
             "Projected area: " + Math.Round(this.MaxFrontageBuildingArea, 1)
 
-
-
             ;
             // return base.ToString();
         }
-
-
     }
-
 }
-

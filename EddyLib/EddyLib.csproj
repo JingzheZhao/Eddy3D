@@ -71,12 +71,7 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ArrayHelper1.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ArrayHelper.cs</DependentUpon>
-    </Compile>
+  <ItemGroup>   
     <Compile Include="ASCIProgressBar.cs" />
     <Compile Include="Attributes\Eddy_ComponentAttributes.cs" />
     <Compile Include="Attributes\Eddy_ComponentButtonAttributes.cs" />

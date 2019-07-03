@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 using Microsoft.Win32;
+
 // it's required for reading/writing into the registry:
 // and for the MessageBox function:
 
@@ -12,8 +13,9 @@ namespace Eddy
     public class ModifyRegistry
     {
         private bool showError = false;
+
         /// <summary>
-        /// A property to show or hide error messages 
+        /// A property to show or hide error messages
         /// (default = false)
         /// </summary>
         public bool ShowError
@@ -22,7 +24,7 @@ namespace Eddy
             set { showError = value; }
         }
 
-       // private string subKey = "SOFTWARE\\" + Application.ProductName.ToUpper();
+        // private string subKey = "SOFTWARE\\" + Application.ProductName.ToUpper();
 
         private string subKey = "SOFTWARE\\TKDPK";
 
@@ -55,7 +57,7 @@ namespace Eddy
         /// <summary>
         /// To read a registry key.
         /// input: KeyName (string)
-        /// output: value (string) 
+        /// output: value (string)
         /// </summary>
         public string Read(string KeyName)
         {
@@ -91,7 +93,7 @@ namespace Eddy
         /// <summary>
         /// To write into a registry key.
         /// input: KeyName (string) , Value (object)
-        /// output: true or false 
+        /// output: true or false
         /// </summary>
         public bool Write(string KeyName, object Value)
         {
@@ -99,8 +101,8 @@ namespace Eddy
             {
                 // Setting
                 RegistryKey rk = baseRegistryKey;
-                // I have to use CreateSubKey 
-                // (create or open it if already exits), 
+                // I have to use CreateSubKey
+                // (create or open it if already exits),
                 // 'cause OpenSubKey open a subKey as read-only
                 RegistryKey sk1 = rk.CreateSubKey(subKey);
                 // Save the value
@@ -122,7 +124,7 @@ namespace Eddy
         /// <summary>
         /// To delete a registry key.
         /// input: KeyName (string)
-        /// output: true or false 
+        /// output: true or false
         /// </summary>
         public bool DeleteKey(string KeyName)
         {
@@ -153,7 +155,7 @@ namespace Eddy
         /// <summary>
         /// To delete a sub key and any child.
         /// input: void
-        /// output: true or false 
+        /// output: true or false
         /// </summary>
         public bool DeleteSubKeyTree()
         {

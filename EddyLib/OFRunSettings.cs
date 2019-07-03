@@ -1,5 +1,5 @@
-﻿using Microsoft.VisualBasic.Devices;
-using System;
+﻿using System;
+using Microsoft.VisualBasic.Devices;
 
 namespace EddyLib
 {
@@ -8,6 +8,7 @@ namespace EddyLib
         Docker,
         BlueCFD
     }
+
     public enum OSType
     {
         Windows10,
@@ -26,7 +27,7 @@ namespace EddyLib
     public enum TurbModel
     {
         kEpsilon,
-        kOmegaSST,       
+        kOmegaSST,
         RNGkEpsilon
     }
 
@@ -56,7 +57,6 @@ Engine = {6}
 OS = {7}
 Turbulence Model = {8}
 Relaxation Factors = {9}", iter, writeInterval, keepTimeSteps, Schemes, turb, CPUs, simEngine.ToString(), ostype.ToString(), turbModel, relaxationFactors.ToString());
-
         }
     }
 }

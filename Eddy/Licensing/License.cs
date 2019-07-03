@@ -14,9 +14,6 @@
 //// A great thank to Iberna (https://www.codeplex.com/site/users/view/lberna)
 //// for getHardDiskSerial algorithm.
 
-
-
-
 //[assembly: AllowPartiallyTrustedCallers()]
 //namespace Eddy
 //{
@@ -44,14 +41,13 @@
 //        }
 
 //        /// <summary>
-//        /// 
+//        ///
 //        /// </summary>
 //        /// <value></value>
 //        /// <returns></returns>
 //        /// <remarks></remarks>
 //        public virtual int MachineCode
 //        {
-
 //            get { return getMachineCode(); }
 //        }
 
@@ -59,27 +55,27 @@
 //        private static int getMachineCode()
 //        {
 //            //      * Copyright (C) 2012 Artem Los, All rights reserved.
-//            //      * 
+//            //      *
 //            //      * This code will generate a 5 digits long key, finger print, of the system
 //            //      * where this method is being executed. However, that might be changed in the
 //            //      * hash function "GetStableHash", by changing the amount of zeroes in
-//            //      * MUST_BE_LESS_OR_EQUAL_TO to the one you want to have. Ex 1000 will return 
+//            //      * MUST_BE_LESS_OR_EQUAL_TO to the one you want to have. Ex 1000 will return
 //            //      * 3 digits long hash.
-//            //      * 
+//            //      *
 //            //      * Please note, that you might also adjust the order of these, but remember to
-//            //      * keep them there because as it is stated at 
+//            //      * keep them there because as it is stated at
 //            //      * (http://www.codeproject.com/Articles/17973/How-To-Get-Hardware-Information-CPU-ID-MainBoard-I)
 //            //      * the processorID might be the same at some machines, which will generate same
 //            //      * hashes for several machines.
-//            //      * 
+//            //      *
 //            //      * The function will probably be implemented into SKGL Project at http://skgl.codeplex.com/
-//            //      * and Software Protector at http://softwareprotector.codeplex.com/, so I 
+//            //      * and Software Protector at http://softwareprotector.codeplex.com/, so I
 //            //      * release this code under the same terms and conditions as stated here:
 //            //      * http://skgl.codeplex.com/license
-//            //      * 
+//            //      *
 //            //      * Any questions, please contact me at
 //            //      *  * artem@artemlos.net
-//            //      
+//            //
 //            methods m = new methods();
 
 //            ManagementObjectSearcher searcher = new ManagementObjectSearcher("select * from Win32_Processor");
@@ -124,9 +120,7 @@
 //        [SecuritySafeCritical]
 //        private static string getHddSerialNumber()
 //        {
-
-
-//            // --- Win32 Disk 
+//            // --- Win32 Disk
 //            ManagementObjectSearcher searcher = new ManagementObjectSearcher("\\root\\cimv2", "select * from Win32_DiskPartition WHERE BootPartition=True");
 
 //            uint diskIndex = 999;
@@ -140,8 +134,6 @@
 //            if (diskIndex == 999)
 //                return string.Empty;
 
-
-
 //            // --- Win32 Disk Drive
 //            searcher = new ManagementObjectSearcher("SELECT * FROM Win32_DiskDrive where Index = " + diskIndex.ToString());
 
@@ -152,7 +144,6 @@
 //                break; // TODO: might not be correct. Was : Exit For
 //            }
 
-
 //            // I haven't found the disk drive. Fail
 //            if (string.IsNullOrEmpty(deviceName.Trim()))
 //                return string.Empty;
@@ -162,7 +153,6 @@
 //            {
 //                deviceName = deviceName.Replace("\\\\.\\", "%");
 //            }
-
 
 //            // --- Physical Media
 //            searcher = new ManagementObjectSearcher("SELECT * FROM Win32_PhysicalMedia WHERE Tag like '" + deviceName + "'");
@@ -180,7 +170,6 @@
 //    }
 //    public class SerialKeyConfiguration : BaseConfiguration
 //    {
-
 //        #region "V A R I A B L E S"
 //        private bool[] _Features = new bool[8] {
 //		false,
@@ -205,7 +194,6 @@
 //            get { return _addSplitChar; }
 //            set { _addSplitChar = value; }
 //        }
-
 
 //        #endregion
 
@@ -255,7 +243,7 @@
 //        }
 
 //        /// <summary>
-//        /// 
+//        ///
 //        /// </summary>
 //        /// <param name="timeLeft">For instance, 30 days</param>
 //        /// <param name="useMachineCode">Lock a serial key to a specific machine, given its "machine code". Should be 5 digits long.</param>
@@ -323,7 +311,6 @@
 
 //        }
 
-
 //    }
 //    #endregion
 
@@ -372,7 +359,6 @@
 //            }
 //        }
 
-
 //        private string _res = "";
 
 //        private void decodeKeyToString()
@@ -380,16 +366,13 @@
 //            // checking if the key already have been decoded.
 //            if (string.IsNullOrEmpty(_res) | _res == null)
 //            {
-
 //                string _stageOne = "";
 
 //                Key = Key.Replace("-", "");
 
 //                //if the admBlock has been changed, the getMixChars will be executed.
 
-
 //                _stageOne = Key;
-
 
 //                _stageOne = Key;
 
@@ -409,7 +392,6 @@
 //                    }
 //                }
 //                _res = _a._decrypt(_stageOne, Parola);
-
 
 //            }
 //        }
@@ -438,7 +420,7 @@
 //                string _calculatedHash = _a.getEightByteHash(_res.Substring(9, 19)).ToString().Substring(0, 9);
 //                // changed Math.Abs(_res.Substring(0, 17).GetHashCode).ToString.Substring(0, 8)
 
-//                //When the hashcode is calculated, it cannot be taken for sure, 
+//                //When the hashcode is calculated, it cannot be taken for sure,
 //                //that the same hash value will be generated.
 //                //learn more about this issue: http://msdn.microsoft.com/en-us/library/system.object.gethashcode.aspx
 //                if (_decodedHash == _calculatedHash)
@@ -453,7 +435,7 @@
 //            catch (Exception ex)
 //            {
 //                Debug.WriteLine(ex.Message);
-//                //if something goes wrong, for example, when decrypting, 
+//                //if something goes wrong, for example, when decrypting,
 //                //this function will return false, so that user knows that it is unvalid.
 //                //if the key is valid, there won't be any errors.
 //                return false;
@@ -549,7 +531,7 @@
 //        /// </summary>
 //        public bool[] Features
 //        {
-//            //we already have defined Features in the BaseConfiguration class. 
+//            //we already have defined Features in the BaseConfiguration class.
 //            //Here we only change it to Read Only.
 //            get { return _Features(); }
 //        }
@@ -576,7 +558,6 @@
 
 //    internal class methods : SerialKeyConfiguration
 //    {
-
 //        //The construction of the key
 //        protected internal string _encrypt(int _days, bool[] _tfg, string _secretPhase, int ID, System.DateTime _creationDate)
 //        {
@@ -615,10 +596,9 @@
 //            }
 //            else
 //            {
-//                // if password is set, return an encrypted 
+//                // if password is set, return an encrypted
 //                return base10ToBase26((getEightByteHash(result.ToString()) + _encText(result.ToString(), _secretPhase)));
 //            }
-
 
 //        }
 //        protected internal string _decrypt(string _key, string _secretPhase)
@@ -630,7 +610,7 @@
 //            }
 //            else
 //            {
-//                // if password is set, return an encrypted 
+//                // if password is set, return an encrypted
 //                string usefulInformation = base26ToBase10(_key);
 //                return usefulInformation.Substring(0, 9) + _decText(usefulInformation.Substring(9), _secretPhase);
 //            }
@@ -666,7 +646,6 @@
 //            int _bReturn = Convert.ToInt32(Convert.ToString(_num, 2));
 //            string _aReturn = Return_Lenght(_bReturn.ToString(), 8);
 //            bool[] _cReturn = new bool[8];
-
 
 //            for (int i = 0; i <= 7; i++)
 //            {
@@ -727,7 +706,7 @@
 
 //            if (s.Length <= 5)
 //            {
-//                //if the input string is shorter than 5, no need of blocks! 
+//                //if the input string is shorter than 5, no need of blocks!
 //                preHash[0] = getEightByteHash(s).ToString();
 //            }
 //            else if (s.Length > 5)
@@ -775,10 +754,10 @@
 //        protected internal string base10ToBase26(string s)
 //        {
 //            // This method is converting a base 10 number to base 26 number.
-//            // Remember that s is a decimal, and the size is limited. 
+//            // Remember that s is a decimal, and the size is limited.
 //            // In order to get size, type Decimal.MaxValue.
 //            //
-//            // Note that this method will still work, even though you only 
+//            // Note that this method will still work, even though you only
 //            // can add, subtract numbers in range of 15 digits.
 //            char[] allowedLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
 
@@ -787,7 +766,6 @@
 
 //            char[] result = new char[s.ToString().Length + 1];
 //            int j = 0;
-
 
 //            while ((num >= 26))
 //            {
@@ -819,7 +797,6 @@
 //            string allowedLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 //            System.Numerics.BigInteger result = new System.Numerics.BigInteger();
 
-
 //            for (int i = 0; i <= s.Length - 1; i += 1)
 //            {
 //                BigInteger pow = powof(26, (s.Length - i - 1));
@@ -833,7 +810,7 @@
 
 //        protected internal BigInteger powof(int x, int y)
 //        {
-//            // Because of the uncertain answer using Math.Pow and ^, 
+//            // Because of the uncertain answer using Math.Pow and ^,
 //            // this function is here to solve that issue.
 //            // It is currently using the MegaMath library to calculate.
 //            BigInteger newNum = 1;
@@ -841,7 +818,7 @@
 //            if (y == 0)
 //            {
 //                return 1;
-//                // if 0, return 1, e.g. x^0 = 1 (mathematicaly proven!) 
+//                // if 0, return 1, e.g. x^0 = 1 (mathematicaly proven!)
 //            }
 //            else if (y == 1)
 //            {
@@ -860,7 +837,6 @@
 //            }
 //        }
 //    }
-
 
 //    #endregion
 

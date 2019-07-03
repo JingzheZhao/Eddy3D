@@ -4,12 +4,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 
-
 namespace EddyLib
 {
     public class DaysimSettings
     {
-        public DaysimSettings() { }
+        public DaysimSettings()
+        {
+        }
 
         public int AB = 0;
         public int AD = 1024;
@@ -17,13 +18,10 @@ namespace EddyLib
         public int AR = 256;
         public double AA = 0.2;
 
-
         public string ProjectName = "CallRay";
         public string WorkDir = @"C:\temp";
         public string Weather = "";
-
     }
-
 
     public class Daysim
     {
@@ -44,21 +42,10 @@ namespace EddyLib
                 //}
                 string epwdatname = Path.GetFileNameWithoutExtension(weatherFilePath);
 
-
-
-
-
-
                 string arguments = "\"" + Path.GetFullPath(weatherFilePath) + "\" \"" +
                                    Path.GetFullPath(Path.Combine(targetPath, epwdatname + @".wea")) + "\"";
 
-
                 Debug.WriteLine(arguments);
-
-
-
-
-
 
                 ProcessStartInfo processInfo = new ProcessStartInfo
                 {
@@ -71,7 +58,6 @@ namespace EddyLib
                     CreateNoWindow = true
                 };
 
-
                 Process p = new Process
                 {
                     StartInfo = processInfo
@@ -80,7 +66,6 @@ namespace EddyLib
                 // p.ErrorDataReceived += DebugLog.CaptureError;
 
                 p.Start();
-
 
                 p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
                        Console.WriteLine("output>>" + e.Data);
@@ -95,24 +80,19 @@ namespace EddyLib
                 Console.WriteLine("ExitCode: {0}", p.ExitCode);
                 p.Close();
 
-
-
                 Debug.WriteLine("WEA FILE EXSISTS? " + File.Exists(Path.GetFullPath(Path.Combine(targetPath, epwdatname + @".wea"))).ToString());
-
-
             }
-
             catch
             {
                 Debug.WriteLine("SetWeather failed");
             }
         }
+
         public static void RunDaysim(DaysimSettings setCon)
         {
             Regex re = new Regex(@"\@(\w+)\@", RegexOptions.Compiled);
             try
             {
-
                 string workingDir = setCon.WorkDir;
 
                 string varNameBase = setCon.ProjectName;
@@ -122,9 +102,6 @@ namespace EddyLib
                 string AS = setCon.AS.ToString();
                 string AR = setCon.AR.ToString();
                 string AA = setCon.AA.ToString();
-
-
-
 
                 // PARSING PARAMS AND WEATHER
                 //---------------------------
@@ -150,8 +127,6 @@ namespace EddyLib
                         }
                     }
                     else { Debug.WriteLine("Check your weather!"); }
-
-
                 }
                 catch
                 {
@@ -171,11 +146,8 @@ namespace EddyLib
                 string sensor_punkte = "sensors.pts";
                 //string hea_dateiname = (workingDir + @"\input.hea");
 
-
                 string static_system_DIR = (varianten_name) + " " + ((varianten_name) + ".dc " + (varianten_name) + ".dir.ill");
                 string static_system_DIF = (varianten_name) + " " + ((varianten_name) + ".dc " + (varianten_name) + ".dif.ill");
-
-
 
                 var args = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
              {
@@ -199,7 +171,6 @@ namespace EddyLib
              {"ab" , AB                                                        },
              };
 
-
                 var argsDIF = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
              {
              {"projekt_name" , varianten_name                                                            },
@@ -222,9 +193,6 @@ namespace EddyLib
              {"ab" , AB                                                        },
              };
 
-
-
-
                 try
                 {
                     string output = re.Replace(HEACONTENT, match => args[match.Groups[1].Value]);
@@ -235,19 +203,14 @@ namespace EddyLib
                 }
                 catch (Exception e) { Console.WriteLine("hea file error " + e.Message + "  " + workingDir + @"\" + varianten_name + @".hea"); }
 
-
-
                 Stopwatch oneSimTime = new Stopwatch();
                 oneSimTime.Start();
 
                 //RhinoApp.WriteLine("# Exterior Raytrace " + index.ToString());
 
-
                 string pathvar = System.Environment.GetEnvironmentVariable("PATH");
                 System.Environment.SetEnvironmentVariable("PATH", pathvar + @";" + DaysimInstallation);
                 //  System.Environment.SetEnvironmentVariable("RAYPATH", @"C:\UD\bin\DAYSIM\lib\;C:\UD\bin\Radiance\lib\");
-
-
 
                 //run the daysim radiance executables
                 ProcessStartInfo startInfo = new ProcessStartInfo
@@ -255,11 +218,9 @@ namespace EddyLib
                     WorkingDirectory = DaysimInstallation
                 };
 
-
                 string pathvar2 = startInfo.EnvironmentVariables["PATH"];
                 startInfo.EnvironmentVariables["PATH"] = pathvar2 + @";" + DaysimInstallation; //@";C:\UD\bin\DAYSIM\bin_windows\;C:\UD\bin\Radiance\bin\;C:\UD\bin\DAYSIM;";
                                                                                                //  startInfo.EnvironmentVariables["RAYPATH"] = @"C:\UD\bin\DAYSIM\lib\;C:\UD\bin\Radiance\lib\";
-
 
                 startInfo.UseShellExecute = false;
                 startInfo.RedirectStandardError = true;
@@ -269,7 +230,6 @@ namespace EddyLib
 
                 //try
                 //{
-
                 //    startInfo.FileName = "radfiles2daysim";
                 //    startInfo.Arguments = workingDir + @"/" + varianten_name + @".hea -m -g";
                 //    p = Process.Start(startInfo);
@@ -292,7 +252,6 @@ namespace EddyLib
 
                 try
                 {
-
                     startInfo.FileName = "gen_dc";
                     startInfo.Arguments = workingDir + @"\" + (varianten_name) + @".hea -dif -af test_dif.amb";
                     p = Process.Start(startInfo);
@@ -313,7 +272,6 @@ namespace EddyLib
 
                 try
                 {
-
                     startInfo.FileName = "gen_dc";
                     startInfo.Arguments = workingDir + @"\" + (varianten_name) + @".hea -dir -af test_dif.amb";
                     p = Process.Start(startInfo);
@@ -332,14 +290,9 @@ namespace EddyLib
                 }
                 catch (Exception e) { Console.WriteLine("gen_dc dir error" + e.Message); }
 
-
-
-
-
                 //load dir and dif coefficients
                 var dirDC = EddyLib.RadianceFiles.loadDC(workingDir + @"\" + (varianten_name) + @".dir.dc");
                 var difDC = EddyLib.RadianceFiles.loadDC(workingDir + @"\" + (varianten_name) + @".dif.dc");
-
 
                 //try
                 //{
@@ -361,12 +314,10 @@ namespace EddyLib
                 //}
                 //catch (Exception e) { Console.WriteLine("hea -paste error" + e.Message); }
 
-
                 //DIRECT Rad
                 RadianceFiles.writeDC_DIR(workingDir + @"\" + (varianten_name) + @".dc", difDC, dirDC);
                 try
                 {
-
                     startInfo.FileName = "ds_illum";
                     startInfo.Arguments = workingDir + @"/" + (varianten_name) + @".hea";
                     p = Process.Start(startInfo);
@@ -385,13 +336,10 @@ namespace EddyLib
                 }
                 catch (Exception e) { Console.WriteLine("ds_illum error" + e.Message); }
 
-
-
                 //DIFFUSE Rad
                 RadianceFiles.writeDC_DIF(workingDir + @"\" + (varianten_name) + @".dc", difDC, dirDC);
                 try
                 {
-
                     startInfo.FileName = "ds_illum";
                     startInfo.Arguments = workingDir + @"/" + (varianten_name) + @".dif.hea";
                     p = Process.Start(startInfo);
@@ -412,7 +360,6 @@ namespace EddyLib
 
                 //try
                 //{
-
                 //    startInfo.FileName = "gen_directsunlight";
                 //    startInfo.Arguments = workingDir + @"/" + (varianten_name) + @".hea";
                 //    p = Process.Start(startInfo);
@@ -422,7 +369,6 @@ namespace EddyLib
 
                 //try
                 //{
-
                 //    startInfo.FileName = "gen_dc";
                 //    startInfo.Arguments = workingDir + @"/" + varianten_name + @".hea -paste";
                 //    p = Process.Start(startInfo);
@@ -443,11 +389,7 @@ namespace EddyLib
 
                 oneSimTime.Stop();
                 int oneSimTook = Convert.ToInt32(oneSimTime.ElapsedMilliseconds);
-
-
-
             }
-
             catch (Exception e)
             {
                 Console.WriteLine("runDAYSIM failed" + e.Message);
@@ -505,5 +447,4 @@ dp 512
 # pt .05
 # af test.amb";
     }
-
 }

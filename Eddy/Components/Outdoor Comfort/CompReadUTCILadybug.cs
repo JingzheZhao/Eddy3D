@@ -23,23 +23,17 @@
 //{
 //    public class UTCIReaderLadybug : GH_Component
 //    {
-
-
-
-
 //        /// <summary>
-//        /// Each implementation of GH_Component must provide a public 
+//        /// Each implementation of GH_Component must provide a public
 //        /// constructor without any arguments.
-//        /// Category represents the Tab in which the component will appear, 
-//        /// Subcategory the panel. If you use non-existing tab or panel names, 
+//        /// Category represents the Tab in which the component will appear,
+//        /// Subcategory the panel. If you use non-existing tab or panel names,
 //        /// new tabs/panels will automatically be created.
 //        /// </summary>
 //        public UTCIReaderLadybug()
 //          : base("UTCIReaderLB", "UTCIReaderLB", "UTCIReaderLB", "Eddy", "UTCI")
 //        {
 //        }
-
-
 
 //        /// <summary>
 //        /// Registers all the input parameters for this component.
@@ -51,9 +45,6 @@
 //            pManager.AddTextParameter("analysisPeriod", "analysisPeriod", "analysisPeriod", GH_ParamAccess.list);
 
 //            pManager.AddBooleanParameter("Run", "Run", "Run the component", GH_ParamAccess.item, false);
-
-
-
 
 //        }
 
@@ -70,19 +61,14 @@
 //            //pManager.AddGenericParameter("windRed", "windRed", "windRed", GH_ParamAccess.list);
 //        }
 
-
-
 //        /// <summary>
 //        /// This is the method that actually does the work.
 //        /// </summary>
-//        /// <param name="DA">The DA object can be used to retrieve data from input parameters and 
+//        /// <param name="DA">The DA object can be used to retrieve data from input parameters and
 //        /// to store data in output parameters.</param>
 //        protected override void SolveInstance(IGH_DataAccess DA)
 //        {
-
 //            OFBaseDomain DOM = null;
-
-
 
 //            GH_ObjectWrapper gobj = null;
 //            if (!DA.GetData(0, ref gobj)) { }
@@ -93,28 +79,18 @@
 //            }
 //            if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
-
 //            bool Run = false;
-
-
 
 //            List<string> ladybugAnalysisPeriod = new List<string>();
 
 //            DA.GetDataList(1, ladybugAnalysisPeriod);
 //            DA.GetData(2, ref Run);
 
-
 //            if (ladybugAnalysisPeriod == null)
 //            { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid analysis periode object."); return; }
 
-
-           
-            
-
-
 //            var allLines = File.ReadAllLines(RES.WorkingDirectoryectory + @"\UTCI.csv");
 //            var numberOfProbes = allLines.Count();
-
 
 //            // -1 because of python
 
@@ -125,38 +101,26 @@
 //            var hour_start = int.Parse(ladybugAnalysisPeriod[0].Split(',')[2].Split(')')[0]) - 1;
 //            var hour_end = int.Parse(ladybugAnalysisPeriod[1].Split(',')[2].Split(')')[0]);
 
-
 //            var hours = hour_end - hour_start;
 
 //            double[,] HourlyUTCI = new double[numberOfProbes, hours];
 
-
 //            if (Run)
 //            {
-
-
 //                System.Threading.Tasks.Parallel.For(0, numberOfProbes,
 //                  i =>
 //                  {
-
 //                      for (int h = 0; h < hours; h++)
 //                      {
 //                          HourlyUTCI[i, h] = double.Parse(allLines[i].Split(',')[h]);
 //                      }
 
-
 //                  });
-
-
-
 
 //                //double[] valueHour = new double[numberOfLines];
 //                var valueHour = new DataTree<double>();
-               
 
 //                // Fill datatrees
-
-
 
 //                for (int m = month_start; m < month_end; m++)
 //                {
@@ -164,7 +128,6 @@
 //                    {
 //                        for (int h = hour_start; h < hour_end; h++)
 //                        {
-
 //                            // Check if already gone through month
 //                            if (m == 2 && d > 29) { continue; }
 
@@ -177,43 +140,31 @@
 //                            {
 //                                // TODO: move this out of loop later
 //                                valueHour.Add(HourlyUTCI[i, h], new Grasshopper.Kernel.Data.GH_Path(h));
-                             
-                        
 
 //                            }
 
 //                        }
 //                    }
 //                }
-                
-                
 
 //                //for (int i = 0; i < numberOfProbes; i++)
 //                //{
 //                //    for (int h = 0; h < 8759; h++)
 //                //    {
-                        
-                        
 //                //    }
-                    
+
 //                //}
-
-
 
 //                // Parse UTCI uncertaintly from file
 
 //                var uncertaintyLine = File.ReadLines(RES.WorkingDirectoryectory + @"\UTCI.uncertainty").Last();
 //                var uncertaintyNUM = double.Parse(uncertaintyLine.Split('%')[0].Split(':')[1].Split('r')[1]);
 
-
-
-
 //                DA.SetDataTree(0, valueHour);
 //                //DA.SetDataList(1, AnnEx);
 //                DA.SetData(1, uncertaintyNUM);
 
 //            }
-
 
 //        }
 
@@ -231,8 +182,8 @@
 //        }
 
 //        /// <summary>
-//        /// Each component must have a unique Guid to identify it. 
-//        /// It is vital this Guid doesn't change otherwise old ghx files 
+//        /// Each component must have a unique Guid to identify it.
+//        /// It is vital this Guid doesn't change otherwise old ghx files
 //        /// that use the old ID will partially fail during loading.
 //        /// </summary>
 //        public override Guid ComponentGuid
@@ -241,6 +192,3 @@
 //        }
 //    }
 //}
-
-
-

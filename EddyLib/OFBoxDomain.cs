@@ -1,7 +1,7 @@
-﻿using Rhino.Geometry;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using Rhino.Geometry;
 
 namespace EddyLib
 {
@@ -9,6 +9,7 @@ namespace EddyLib
     {
         //BoundingBox
         public double width;
+
         public double length;
         public double height;
         // public double yMin;
@@ -20,13 +21,11 @@ namespace EddyLib
         // public double dimX;
         // public double dimY;
         // public double dimZ;
-        // public double dim;       
-
+        // public double dim;
 
         public int xCells;
         public int yCells;
         public int zCells;
-
 
         public Mesh DomainMeshGround;
         public Mesh DomainMeshGroundPerim;
@@ -36,15 +35,11 @@ namespace EddyLib
         public double diameter;
         public double blockDimension;
 
-
-
-
         public OFBoxDomain(Mesh BuildingGeometry, Mesh terrainMesh, BoundaryConditions BCond, double blockDimension, double length = 0, double width = 0, double height = 0)
         {
             this.BCond = BCond;
             this.BuildingGeometry = BuildingGeometry;
             this.blockDimension = blockDimension;
-
 
             var BBoxCrude = BuildingGeometry.GetBoundingBox(true);
 
@@ -54,12 +49,10 @@ namespace EddyLib
 
             // Rotate the Plane based on wind vector area
 
-
             Plane orientedPlane = GetOrientedBasePlane(windDirVector, BuildingGeometry, BBoxCrude.Center);
 
             // Create BBox with respect to new plane (new coordinates)
             BBox = BuildingGeometry.GetBoundingBox(orientedPlane);
-
 
             var xMin = BBox.Min.X;
             var xMax = BBox.Max.X;
@@ -73,10 +66,6 @@ namespace EddyLib
             var dimY = yMax - yMin;
             var dimZ = zMax - zMin;
 
-
-
-
-
             ////////////
             // Center ground order is not correct but it worked before by moving
             // Plane is wrongly projected
@@ -84,7 +73,6 @@ namespace EddyLib
 
             //Plane pl = new Plane(CenterGround, orientedPlane.XAxis, orientedPlane.YAxis);
             //this.pll = pl;
-
 
             // Define offsets to place the building geometry in the middle of the domain
 
@@ -100,7 +88,6 @@ namespace EddyLib
             if (height == 0) { scaleRectDomainZ = 6 * dimZ; }
             else { scaleRectDomainZ = height; }
 
-
             // X; take blocking ratio into account
 
             Bitmap FrontageImage;
@@ -110,7 +97,6 @@ namespace EddyLib
             double scaleRectDomainXblockingRatio = MaxFrontageBuildingArea * 100 / 3 / scaleRectDomainZ / 2;
             double scaleRectDomainXHeight = (5 * dimZ) + dimX / 2;
             double scaleRectDomainX = scaleRectDomainXblockingRatio > scaleRectDomainXHeight ? scaleRectDomainXblockingRatio : scaleRectDomainXHeight;
-
 
             double scaleRectDomainMinusXBP = -scaleRectDomainX - xOffset;
             double scaleRectDomainPlusXBP = scaleRectDomainX - xOffset;
@@ -122,7 +108,6 @@ namespace EddyLib
             double scaleRectDomainYDownstreamBP = 15.5 * dimZ + dimY - yOffset;
             double scaleRectDomainYUpstream = -length / 20 * 5;
             double scaleRectDomainYDownstream = length / 20 * 15;
-
 
             Interval xInter;
             Interval yInter;
@@ -152,10 +137,6 @@ namespace EddyLib
             // If terrain is used, scale down Z to make sure all points are inside the domain
             // Zinter is call divisionsZ for CylDomain which is an int instead of an Interval
 
-
-
-
-
             if (terrainMesh.Faces.Count > 0)
             {
                 this.hasTerrain = true;
@@ -172,9 +153,6 @@ namespace EddyLib
                 zInter = new Interval(zMin, zMin + scaleRectDomainZ);
             }
 
-
-                       
-
             // Create the new Domain from 8 minmax points
             // Doesn't work combined with rotating the domain
             /*
@@ -188,22 +166,18 @@ namespace EddyLib
             Point3d p7 = new Point3d(xInter.T1, yInter.T1, zInter.T1);
             Point3d p8 = new Point3d(xInter.T0, yInter.T1, zInter.T1);
 
-
             IEnumerable < Point3d > MinMaxPoints = new List<Point3d>() {p1,p2,p3,p4,p5,p6,p7,p8};
             this.minmax = MinMaxPoints;
             */
 
             DomainBox = new Box(orientedPlane, xInter, yInter, zInter);
 
-
             // Pick location in Mesh
 
             Point3d maxPoint = DomainBox.GetCorners()[7];
             LocationInMesh = new Point3d(maxPoint.X - 1, maxPoint.Y - 1, maxPoint.Z - 1);
 
-
-
-            // Create ground meshes 
+            // Create ground meshes
 
             MeshingParameters mpGround = MeshingParameters.Default;
 
@@ -230,8 +204,6 @@ namespace EddyLib
                 DomainMeshGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim2.ToNurbsCurve(), mpGround, tolerance));
             }
 
-
-
             // Set up BCs
             if (BCond.btype == EddyLib.BoundaryType.constant)
             {
@@ -242,35 +214,20 @@ namespace EddyLib
                 BCond.SetUatBuildingHeightABL(zMax);
             }
 
-                    
-
-
-
             // Create final Mesh
 
             xCells = (int)((Math.Abs(xInter.Length)) / blockDimension);
             yCells = (int)((Math.Abs(yInter.Length)) / blockDimension);
             zCells = (int)((Math.Abs(zInter.Length)) / blockDimension);
 
-
-
-
             this.DomainMesh = Mesh.CreateFromBox(DomainBox, xCells, yCells, zCells);
-
 
             // Show only intersection of domain and terrain
 
             IEnumerable<Mesh> first = new List<Mesh>() { DomainMesh };
-            IEnumerable<Mesh> second = new List<Mesh>() { TerrainMesh }; 
-            this.DomainMeshIntersection = Mesh.CreateBooleanIntersection(first, second); 
-
-
-
+            IEnumerable<Mesh> second = new List<Mesh>() { TerrainMesh };
+            this.DomainMeshIntersection = Mesh.CreateBooleanIntersection(first, second);
         }
-
-
-
-
 
         public override string ToString()
         {
@@ -283,15 +240,6 @@ namespace EddyLib
             "Cells in z: " + zCells + "\n" +
             "Projected area: " + Math.Round(this.MaxFrontageBuildingArea)
             ;
-
         }
-
-
-
-
-
-
-
-
     }
 }

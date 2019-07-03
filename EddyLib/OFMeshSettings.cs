@@ -1,6 +1,5 @@
 ﻿namespace EddyLib
 {
-
     public enum SnappySetting
     {
         Blocks,
@@ -15,7 +14,6 @@
         public int accRefinement = 2;
         public int accGround = 2;
         public int nLayers = 2;
-
 
         public SnappySetting snappySetting = SnappySetting.Blocks;
 
@@ -36,7 +34,6 @@
         public string meshStlFilenameGroundPerim;
         public string meshBoundaryConditionsDirectory;
 
-
         // BlockMesh
 
         //private readonly double gradingPerim;
@@ -45,8 +42,6 @@
 
         public void SetDirectories(string baseWorkingDirectory)
         {
-
-
             baseWorkingDir = baseWorkingDirectory;
             meshStlDir = baseWorkingDirectory + @"\mesh\constant\triSurface\";
             meshPolyMeshDir = baseWorkingDirectory + @"\mesh\constant\polyMesh\";
@@ -65,9 +60,6 @@
             meshStlFilenameGround = baseWorkingDirectory + @"\mesh\constant\triSurface\ground.stl";
             meshStlFilenameGroundPerim = baseWorkingDirectory + @"\mesh\constant\triSurface\ground_perim.stl";
             meshBoundaryConditionsDirectory = baseWorkingDirectory + @"\mesh\0.org\";
-
-
-
         }
 
         public override string ToString()
@@ -78,7 +70,6 @@ accRefinement = {2}
 accGround = {3}
 nLayers = {4}
 Snappy Settings = {5}", accBuildings, accFeatures, accRefinement, accGround, nLayers, snappySetting);
-
         }
     }
 }

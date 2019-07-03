@@ -21,7 +21,6 @@
 //{
 //    public class ReadResults : GH_Component
 //    {
-
 //        public string ResultType = "Hours";
 
 //        // override read write so that component remebers last state
@@ -36,7 +35,6 @@
 //            return base.Read(reader);
 //        }
 
-
 //        public override void CreateAttributes()
 //        {
 //            m_attributes = new CustomAttributes(this);
@@ -44,8 +42,6 @@
 
 //        public class CustomAttributes : GH_ComponentAttributes
 //        {
-
-
 //            public CustomAttributes(ReadResults owner) : base(owner) { }
 
 //            #region Custom layout logic
@@ -53,7 +49,6 @@
 //            private RectangleF isHumanCondition { get; set; }
 //            private RectangleF isUTCIByHour { get; set; }
 //            private RectangleF isUTCIByProbe { get; set; }
-
 
 //            protected override void Layout()
 //            {
@@ -123,7 +118,6 @@
 //                        //We need to draw everything outselves.
 //                        base.RenderComponentCapsule(canvas, graphics, true, true, false, true, true, true);
 
-
 //                        ReadResults comp = Owner as ReadResults;
 
 //                        GH_Capsule buttonHours = GH_Capsule.CreateCapsule(isComfortHours, comp.ResultType == "Hours" ? GH_Palette.Black : GH_Palette.White);
@@ -147,7 +141,6 @@
 //                        graphics.DrawString("UTCI/h", GH_FontServer.Standard, comp.ResultType == "UTCI/h" ? Brushes.White : Brushes.Black, isUTCIByHour, GH_TextRenderingConstants.CenterCenter);
 //                        graphics.DrawString("UTCI/p", GH_FontServer.Standard, comp.ResultType == "UTCI/p" ? Brushes.White : Brushes.Black, isUTCIByProbe, GH_TextRenderingConstants.CenterCenter);
 
-
 //                        break;
 //                    default:
 //                        base.Render(canvas, graphics, channel);
@@ -157,27 +150,17 @@
 //            #endregion
 //        }
 
-
-
-
-
-
-
-
-
 //        /// <summary>
-//        /// Each implementation of GH_Component must provide a public 
+//        /// Each implementation of GH_Component must provide a public
 //        /// constructor without any arguments.
-//        /// Category represents the Tab in which the component will appear, 
-//        /// Subcategory the panel. If you use non-existing tab or panel names, 
+//        /// Category represents the Tab in which the component will appear,
+//        /// Subcategory the panel. If you use non-existing tab or panel names,
 //        /// new tabs/panels will automatically be created.
 //        /// </summary>
 //        public ReadResults()
 //          : base("Read Results", "Read", "Read Simulation Results", "Eddy", "6 | Outdoor Comfort")
 //        {
 //        }
-
-
 
 //        /// <summary>
 //        /// Registers all the input parameters for this component.
@@ -198,16 +181,13 @@
 //            pManager.AddGenericParameter("Results", "Res", "Simulation Results", GH_ParamAccess.list);
 //        }
 
-
-
 //        /// <summary>
 //        /// This is the method that actually does the work.
 //        /// </summary>
-//        /// <param name="DA">The DA object can be used to retrieve data from input parameters and 
+//        /// <param name="DA">The DA object can be used to retrieve data from input parameters and
 //        /// to store data in output parameters.</param>
 //        protected override void SolveInstance(IGH_DataAccess DA)
 //        {
-
 //            OFBaseDomain DOM = null;
 //            GH_ObjectWrapper gobj = null;
 //            if (!DA.GetData(0, ref gobj)) { }
@@ -221,21 +201,13 @@
 //            Interval interval = new Interval();
 //            DA.GetData(1, ref interval);
 
-
 //            if(interval.T0 < 0 || interval.T1 > 8760) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Analysis interval must be between hour 0 and hour 8760"); return; }
-
-
 
 //            bool Run = false;
 //            DA.GetData(2, ref Run);
 
-
-
 //            if (Run)
 //            {
-
-
-
 //                if (ResultType == "Hours")
 //                {
 //                    //TODO: implement logic
@@ -253,15 +225,9 @@
 //                    //TODO: implement logic
 //                }
 
-
-
-
 //            }
 
 //        }
-
-
-
 
 //        /// <summary>
 //        /// Provides an Icon for every component that will be visible in the User Interface.
@@ -273,8 +239,8 @@
 //        Resources.Eddy_parseU;
 
 //        /// <summary>
-//        /// Each component must have a unique Guid to identify it. 
-//        /// It is vital this Guid doesn't change otherwise old ghx files 
+//        /// Each component must have a unique Guid to identify it.
+//        /// It is vital this Guid doesn't change otherwise old ghx files
 //        /// that use the old ID will partially fail during loading.
 //        /// </summary>
 //        public override Guid ComponentGuid => new Guid("{7D64BCD2-0F68-49E5-8A49-238D98BC347B}");

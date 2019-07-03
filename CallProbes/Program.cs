@@ -1,15 +1,9 @@
-﻿using CommandLine;
+﻿using System;
+using System.Linq;
+using System.Text;
+using CommandLine;
 using CommandLine.Text;
 using EddyLib;
-using Rhino.Geometry;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
-using System.Linq;
-
 
 namespace CallProbes
 {
@@ -41,7 +35,6 @@ namespace CallProbes
                     Console.WriteLine("Verbose: {0}", options.Verbose);
                     errorLog.AppendLine(string.Format("Verbose: {0}", options.Verbose));
 
-
                     var errorLogCalc = new StringBuilder();
 
                     BoundaryConditions bcond = new BoundaryConditions(BoundaryType.constant, options.WindDirs.Split(',').Select(Int32.Parse).ToList(), options.Uref, options.Z0, "");
@@ -49,12 +42,8 @@ namespace CallProbes
                     WindFactors.WriteWindReductionArrayToCSV(options.WindDirs, options.WorkingDir, bcond, options.Mode, options.Probes, options.Verbose, out errorLogCalc);
 
                     errorLog.Append(errorLogCalc);
-
-
                 }
-
             }
-
             else
             {
                 Console.WriteLine("The licence for this tool expired.");
@@ -62,11 +51,9 @@ namespace CallProbes
         }
     }
 
-
     // Define a class to receive parsed values
     internal class Options
     {
-
         [Option('d', "workingDir", Required = true,
         HelpText = "Working directory.")]
         public string WorkingDir { get; set; }
@@ -99,8 +86,6 @@ namespace CallProbes
         HelpText = "Prints all messages to standard output.")]
         public bool Verbose { get; set; }
 
-
-
         [ParserState]
         public IParserState LastParserState { get; set; }
 
@@ -111,6 +96,4 @@ namespace CallProbes
               (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current));
         }
     }
-
-
 }
