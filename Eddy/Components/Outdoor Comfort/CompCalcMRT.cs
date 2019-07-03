@@ -109,6 +109,16 @@ namespace Eddy
                 return;
             }
 
+
+            if (Utilities.HasWhiteSpace(RES.WorkingDirectory))
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "FilePath cannot contain whitespaces to perform any outdoor comfort calculations at this time.");
+                return;
+            }
+
+
+
+
             Weather weather = new Weather();
             weather.LoadWeatherData(RES.Domain.BCond.epwFilePath);
 
@@ -263,7 +273,7 @@ namespace Eddy
         /// It is vital this Guid doesn't change otherwise old ghx files 
         /// that use the old ID will partially fail during loading.
         /// </summary>
-        public override Guid ComponentGuid => new Guid("{F165ADD0-A047-409E-A008-DD9CF82605F3}");
+        public override Guid ComponentGuid => new Guid("{FE115CFE-B2B9-4DC6-8DBE-DDB43710090C}");
     }
 }
 

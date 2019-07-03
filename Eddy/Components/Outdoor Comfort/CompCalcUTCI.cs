@@ -79,7 +79,7 @@ namespace Eddy
         {
 
             OFResult RES = null;
-            DA.GetData(0, ref RES);
+            DA.GetData("Result", ref RES);
 
             // Hour of the year
             //int hour = 0;
@@ -103,7 +103,7 @@ namespace Eddy
                 weather.LoadWeatherData(RES.Domain.BCond.epwFilePath);
 
                 WindFactors windFactors = null;
-                DA.GetData("WF", ref windFactors);
+                DA.GetData("Wind Factors", ref windFactors);
 
                 int sensorPointCount = windFactors.windFactors.Length;
                 double[,] Utci = new double[8760, sensorPointCount];
@@ -131,7 +131,7 @@ namespace Eddy
                 // Loading MRT data
 
                 MRT mrt = null;
-                DA.GetData("MRT", ref mrt);
+                DA.GetData("Mean Radiant Temperature", ref mrt);
 
 
                 // load Reduction data
@@ -180,7 +180,7 @@ namespace Eddy
         /// It is vital this Guid doesn't change otherwise old ghx files 
         /// that use the old ID will partially fail during loading.
         /// </summary>
-        public override Guid ComponentGuid => new Guid("{FB51794A-B392-45D4-A5C2-3924735CFBB6}");
+        public override Guid ComponentGuid => new Guid("{266C9880-7107-4778-87FD-4F7DA64560F5}");
     }
 }
 

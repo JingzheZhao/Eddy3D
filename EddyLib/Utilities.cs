@@ -1,5 +1,4 @@
-﻿using Rhino.Geometry;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,19 +6,243 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using Deedle;
 using Grasshopper;
 using Grasshopper.Kernel.Data;
-using System.Text;
+using Rhino.Geometry;
 
 namespace EddyLib
 {
     public static class Utilities
     {
+        public class StartProcess
+        {
+            public static void StartProcessCMD(string argument, bool createnowindow, bool waitforexit = false, bool close = false, string executable = @"C:\Windows\System32\cmd.exe")
+            {
+                System.Diagnostics.Process p = new System.Diagnostics.Process();
+                p.StartInfo.FileName = executable;
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.RedirectStandardInput = true;
+                p.StartInfo.CreateNoWindow = createnowindow;
+                p.Start();
+                StreamWriter sw = p.StandardInput;
+                string strInputText = argument;
+                sw.WriteLine(strInputText);
+
+                sw.Flush();
+                if (waitforexit) { p.WaitForExit(); }
+                if (close) { p.Close(); }
+            }
+
+            public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, string executable = @"C:\Windows\System32\cmd.exe")
+            {
+                System.Diagnostics.Process p = new System.Diagnostics.Process();
+                p.StartInfo.FileName = executable;
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.RedirectStandardInput = true;
+                //p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.CreateNoWindow = createnowindow;
+                //p.Start();
+
+                ThreadStart ths = new ThreadStart(() =>
+                {
+                    p.Start();
+
+                    StreamWriter sw = p.StandardInput;
+                    String strInputText = argument;
+                    sw.WriteLine(strInputText);
+
+                    // Window doesn't close with
+                    //sw.Flush();
+                });
+
+                Thread th = new Thread(ths);
+                th.Start();
+
+                if (waitforexit)
+                {
+                    Console.ReadLine();
+                    p.WaitForExit();
+                }
+                if (close) { p.Close(); }
+            }
+        }
+
+        public class Directories
+        {
+            public static string FixDirectories(string dir)
+            {
+                if (!dir.EndsWith(@"\"))
+                {
+                    dir = dir + @"\";
+                }
+                return dir;
+            }
+
+            public static string ReformatWorkingDir(string workingDirectory)
+            {
+                string output = workingDirectory.Replace(@"\", @"/");
+                output = output.Replace(@":", @"/");
+
+                //output = "//c//" + output;
+                output = "//" + output;
+                output = output.Replace(@"//C//", @"//c//");
+                return output;
+            }
+
+            public static bool IsDirectoryEmpty(string path)
+            {
+                return !Directory.EnumerateFileSystemEntries(path).Any();
+            }
+
+            public static List<string> GetDirectories(string path, string searchPattern = "*", SearchOption searchOption = SearchOption.TopDirectoryOnly)
+            {
+                if (searchOption == SearchOption.TopDirectoryOnly)
+                {
+                    return Directory.GetDirectories(path, searchPattern).ToList();
+                }
+
+                List<string> directories = new List<string>(GetDirectories(path, searchPattern));
+
+                for (int i = 0; i < directories.Count; i++)
+                {
+                    directories.AddRange(GetDirectories(directories[i], searchPattern));
+                }
+
+                return directories;
+            }
+
+            private static List<string> GetDirectories(string path, string searchPattern)
+            {
+                try
+                {
+                    return Directory.GetDirectories(path, searchPattern).ToList();
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    return new List<string>();
+                }
+            }
+
+            public static string ReplaceDoubleBackslashes(string input)
+            {
+                string output;
+                output = input.Replace(@"\\", @"\");
+                output = output.Replace(@"\\", @"\");
+                output = output.Replace(@"\\", @"\");
+                return output;
+            }
+
+            public static string InsertDoubleBackslashes(string input)
+            {
+                string output;
+
+                output = input.Replace(@"\", @"\\");
+                output = output.Replace(@"\\\", @"\\");
+                output = output.Replace(@"\\\\", @"\\");
+                return output;
+            }
+
+            public static bool processDirectory(string startLocation, bool simDir)
+            {
+                bool result = true;
+                foreach (string directory in Directory.GetDirectories(startLocation))
+                {
+                    if (simDir)
+                    {
+                        if (directory.EndsWith("polyMesh"))
+                        {
+                            result = false;
+                            continue;
+                        }
+                    }
+
+                    bool directoryResult = processDirectory(directory, simDir);
+                    result &= directoryResult;
+
+                    //if (Directory.GetFiles(directory, "*.dvr").Any())
+                    //{
+                    //    result = false;
+                    //    continue;
+                    //}
+
+                    foreach (string file in Directory.GetFiles(directory))
+                    {
+                        try
+                        {
+                            File.Delete(file);
+                        }
+                        catch (IOException)
+                        {
+                            // error handling
+                            result = directoryResult = false;
+                        }
+                    }
+
+                    if (!directoryResult)
+                    {
+                        continue;
+                    }
+
+                    try
+                    {
+                        Directory.Delete(directory, false);
+                    }
+                    catch (IOException)
+                    {
+                        // error handling
+                        result = false;
+                    }
+                }
+
+                return result;
+            }
+        }
+
+        public class Docker
+        {
+            public static bool IsDockerRunning(string workingDirectory, OSType ostype)
+            {
+                bool running = false;
+                string fp = workingDirectory + @"\dockerStatus";
+
+                List<string> lines = Utilities.FileReader(fp);
+
+                if (OSType.Windows7 != ostype)
+                {
+                    foreach (string line in lines)
+                    {
+                        if (line.StartsWith("Containers"))
+                        {
+                            running = true;
+                        }
+                    }
+                }
+                else
+                {
+                    // Assume that Docker is always running for Windows 7 for now
+                    running = true;
+                }
+
+                return running;
+            }
+
+            public static void WriteDockerInfo(string workingDirectory)
+            {
+                StartProcess.StartProcessCMD(@"docker info > """ + workingDirectory + @"\dockerStatus""", true, false, false);
+
+                //StartProcessCMD(@"docker info > """ + workingDirectory + @"\dockerStatus""", true, true, true);
+            }
+        }
+
+        //public class Directories
+        //{
+        //}
+
         //static public string hardcodedAssemblyDir = @"C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\";
         //static public string hardcodedAssemblyDir = @"C:\Users\pkastner\Documents\GitHub\WindTunnel\Eddy\bin\";
-
 
         public static string AssemblyVersion
         {
@@ -45,7 +268,6 @@ namespace EddyLib
                 string localDir = Assembly.GetExecutingAssembly().GetDirectoryPath();
                 string dir1 = System.IO.Path.GetDirectoryName(new System.Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath);
 
-
                 Assembly bla1 = Assembly.GetEntryAssembly();    //gives you the entrypoint assembly for the process.
                 Assembly bla2 = Assembly.GetCallingAssembly();   // gives you the assembly from which the current method was called.
                 Assembly bla3 = Assembly.GetExecutingAssembly(); // gives you the assembly in which the currently executing code is defined
@@ -62,9 +284,6 @@ namespace EddyLib
 
         public static object GH_RuntimeMessageLevel { get; private set; }
 
-        //(c) Vasian Cepa 2005
-        // Version 2 http://www.codeproject.com/Articles/11016/Numeric-String-Sort-in-C
-
         public static void DeletePhi(OFMeshSettings MeshSettings, OFBaseDomain DOM)
         {
             foreach (int dir in DOM.BCond.windDirs)
@@ -75,18 +294,6 @@ namespace EddyLib
                 //if (File.Exists(logPath)) { File.Delete(logPath); }
             }
         }
-
-
-
-        public static string FixDirectories(string dir)
-        {
-            if (!dir.EndsWith(@"\"))
-            {
-                dir = dir + @"\";
-            }
-            return dir;
-        }
-
 
         public static T[,] TransposeRowsAndColumns<T>(this T[,] arr)
         {
@@ -122,21 +329,16 @@ namespace EddyLib
         // This doesnt work atm because tee.exe puts write lock on log file
         //public static double CalculateRunTimeFromLog(string simulationDirectory, int iter)
         //{
-
-
-
         //    string logFilePath = simulationDirectory + @"\log";
 
         //    double timeEnd = 0;
 
         //    if (File.Exists(logFilePath))
         //    {
-
         //        try
         //        {
         //            string line;
         //            List<string> lines = new List<string>();
-
 
         //            //var time1 = "0";
         //            string time2 = "0";
@@ -146,19 +348,15 @@ namespace EddyLib
         //            using (FileStream fs = new FileStream(logFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
         //            using (StreamReader sr = new StreamReader(fs, System.Text.Encoding.Default))
         //            {
-
-
         //                while ((line = sr.ReadLine()) != null)
         //                {
         //                    lines.Add(line);
         //                }
         //            }
 
-
         //            foreach (var lline in lines.Select((value, index) => new { value, index }))
         //            {
         //                // Use x.value and x.index in here
-
 
         //                if (lline.value.StartsWith("SIMPLE solution converged"))
         //                {
@@ -172,7 +370,6 @@ namespace EddyLib
         //                    time2 = lines[lline.index + 10].Split("ClockTime".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[3].Replace("=", "").Replace("s", "").Trim();//.Replace("s", "")
         //                    break;
 
-
         //                    //timeElapsed = TimeSpan.FromSeconds(double.Parse(time2));
         //                }
 
@@ -181,116 +378,18 @@ namespace EddyLib
         //                    timeEnd = 0;
         //                }
 
-
         //                timeEnd = double.Parse(time2) / 60;
         //            }
-
 
         //        }
         //        catch (Exception e)
         //        {
-
         //            throw new System.ArgumentException(e.Message);
         //        }
         //    }
 
         //    return timeEnd;
         //}
-
-        public static bool IsDockerRunning(string workingDirectory, OSType ostype)
-        {
-
-            bool running = false;
-            string fp = workingDirectory + @"\dockerStatus";
-
-            List<string> lines = Utilities.FileReader(fp);
-
-            if (OSType.Windows7 != ostype)
-            {
-
-                foreach (string line in lines)
-                {
-                    if (line.StartsWith("Containers"))
-                    {
-                        running = true;
-                    }
-                }
-            }
-            else
-            {
-                // Assume that Docker is always running for Windows 7 for now
-                running = true;
-            }
-
-            return running;
-        }
-
-        public static void WriteDockerInfo(string workingDirectory)
-        {
-
-            StartProcessCMD(@"docker info > """ + workingDirectory + @"\dockerStatus""", true, false, false);
-
-            //StartProcessCMD(@"docker info > """ + workingDirectory + @"\dockerStatus""", true, true, true);
-
-
-        }
-
-        public static void StartProcessCMD(string argument, bool createnowindow, bool waitforexit = false, bool close = false, string executable = @"C:\Windows\System32\cmd.exe")
-        {
-            System.Diagnostics.Process p = new System.Diagnostics.Process();
-            p.StartInfo.FileName = executable;
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.RedirectStandardInput = true;
-            p.StartInfo.CreateNoWindow = createnowindow;
-            p.Start();
-            StreamWriter sw = p.StandardInput;
-            string strInputText = argument;
-            sw.WriteLine(strInputText);
-
-            sw.Flush();
-            if (waitforexit) { p.WaitForExit(); }
-            if (close) { p.Close(); }
-
-        }
-
-        public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, string executable = @"C:\Windows\System32\cmd.exe")
-        {
-            System.Diagnostics.Process p = new System.Diagnostics.Process();
-            p.StartInfo.FileName = executable;
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.RedirectStandardInput = true;
-            //p.StartInfo.RedirectStandardOutput = true;
-            p.StartInfo.CreateNoWindow = createnowindow;
-            //p.Start();
-
-            ThreadStart ths = new ThreadStart(() =>
-              {
-
-                  p.Start();
-
-                  StreamWriter sw = p.StandardInput;
-                  String strInputText = argument;
-                  sw.WriteLine(strInputText);
-
-                  // Window doesn't close with 
-                  //sw.Flush();
-              });
-
-
-            Thread th = new Thread(ths);
-            th.Start();
-
-
-            if (waitforexit)
-            {
-                Console.ReadLine();
-                p.WaitForExit();
-            }
-            if (close) { p.Close(); }
-
-
-        }
-
 
         public static IEnumerable<List<T>> SplitListGen<T>(List<T> locations, int nSize)
         {
@@ -318,20 +417,8 @@ namespace EddyLib
             return array.Skip(array.Length - 1).Concat(array.Take(array.Length - 1)).ToArray();
         }
 
-        public static string ReformatWorkingDir(string workingDirectory)
-        {
-            string output = workingDirectory.Replace(@"\", @"/");
-            output = output.Replace(@":", @"/");
-
-            //output = "//c//" + output;
-            output = "//" + output;
-            output = output.Replace(@"//C//", @"//c//");
-            return output;
-        }
-
         public static bool IsWindows7 => (Environment.OSVersion.Version.Major == 6 &
                   Environment.OSVersion.Version.Minor == 1);
-
 
         public static string GetOSInfo()
         {
@@ -351,6 +438,7 @@ namespace EddyLib
                     case 0:
                         operatingSystem = "95";
                         break;
+
                     case 10:
                         if (vs.Revision.ToString() == "2222A")
                         {
@@ -362,9 +450,11 @@ namespace EddyLib
                         }
 
                         break;
+
                     case 90:
                         operatingSystem = "Me";
                         break;
+
                     default:
                         break;
                 }
@@ -376,9 +466,11 @@ namespace EddyLib
                     case 3:
                         operatingSystem = "NT 3.51";
                         break;
+
                     case 4:
                         operatingSystem = "NT 4.0";
                         break;
+
                     case 5:
                         if (vs.Minor == 0)
                         {
@@ -390,6 +482,7 @@ namespace EddyLib
                         }
 
                         break;
+
                     case 6:
                         if (vs.Minor == 0)
                         {
@@ -409,9 +502,11 @@ namespace EddyLib
                         }
 
                         break;
+
                     case 10:
                         operatingSystem = "10";
                         break;
+
                     default:
                         break;
                 }
@@ -436,24 +531,12 @@ namespace EddyLib
             return operatingSystem;
         }
 
-
-        public static bool IsDirectoryEmpty(string path)
-        {
-            return !Directory.EnumerateFileSystemEntries(path).Any();
-        }
-
-
         public static List<Point3d> DiscardPoints(List<Point3d> listOfPoints, OFBaseDomain DOM)
         {
-
-
-
             List<Point3d> newList = new List<Point3d>();
-
 
             for (int i = 0; i < listOfPoints.Count; i++)
             {
-
                 if (DOM.DomainMesh.IsPointInside(listOfPoints[i], 0.01, true))
                 {
                     if (!DOM.BuildingGeometry.IsPointInside(listOfPoints[i], 0.01, true))
@@ -463,75 +546,21 @@ namespace EddyLib
                 }
             }
 
-
             return newList;
-        }
-
-        public static List<string> GetDirectories(string path, string searchPattern = "*", SearchOption searchOption = SearchOption.TopDirectoryOnly)
-        {
-            if (searchOption == SearchOption.TopDirectoryOnly)
-            {
-                return Directory.GetDirectories(path, searchPattern).ToList();
-            }
-
-            List<string> directories = new List<string>(GetDirectories(path, searchPattern));
-
-            for (int i = 0; i < directories.Count; i++)
-            {
-                directories.AddRange(GetDirectories(directories[i], searchPattern));
-            }
-
-            return directories;
-        }
-
-        private static List<string> GetDirectories(string path, string searchPattern)
-        {
-            try
-            {
-                return Directory.GetDirectories(path, searchPattern).ToList();
-            }
-            catch (UnauthorizedAccessException)
-            {
-                return new List<string>();
-            }
-        }
-
-        public static string ReplaceDoubleBackslashes(string input)
-        {
-            string output;
-            output = input.Replace(@"\\", @"\");
-            output = output.Replace(@"\\", @"\");
-            output = output.Replace(@"\\", @"\");
-            return output;
-        }
-
-        public static string InsertDoubleBackslashes(string input)
-        {
-            string output;
-
-            output = input.Replace(@"\", @"\\");
-            output = output.Replace(@"\\\", @"\\");
-            output = output.Replace(@"\\\\", @"\\");
-            return output;
         }
 
         public static string GetFileNameWithHighestEnumerator(string folder)
         {
             var path = Directory.GetFiles(folder, "*.dat").Select(fn => new FileInfo(fn)).OrderBy(f => f.Name).Last();
             return path.ToString();
-
         }
-
 
         public static int GetLastIterationFromDirectory(string simWorkingDirectory)
         {
-
-            simWorkingDirectory = ReplaceDoubleBackslashes(simWorkingDirectory);
-
+            simWorkingDirectory = Directories.ReplaceDoubleBackslashes(simWorkingDirectory);
 
             // Full path
-            List<string> directoriesInDir = GetDirectories(simWorkingDirectory);
-
+            List<string> directoriesInDir = Directories.GetDirectories(simWorkingDirectory);
 
             // Without trailing path
             List<string> listOfDirs = new List<string>();
@@ -540,18 +569,13 @@ namespace EddyLib
                 listOfDirs.Add(new DirectoryInfo(str).Name);
             }
 
-
             IEnumerable<string> filteredNumbers = listOfDirs.Where(s => s.All(char.IsDigit));
 
             string lastIteration = filteredNumbers.Max();
             int lastIterationInt = int.Parse(lastIteration);
 
-
             return lastIterationInt;
-
         }
-
-
 
         public static Point3d[] Probes2Point3D(double[][] input)
         {
@@ -561,15 +585,33 @@ namespace EddyLib
 
             for (int i = 0; i < numberOfProbes; i++)
             {
-
                 outputList[i] = new Point3d(input[i][0], input[i][1], input[i][2]);
             }
 
             return outputList;
-
         }
 
-        public static int CPUAutoCalc(string meshWorkingDirectory, int CPUSetByUser)
+        public static Vector3d[] CSVVectorComponents2Vector3D(double[,] input)
+        {
+            //double[hours, windDirs]
+
+            int numberOfDirs = input.GetUpperBound(1);
+            int numberOfSensors = input.GetUpperBound(0);
+
+            var outputList = new Vector3d[numberOfDirs];
+
+            for (int p = 0; p < numberOfSensors; p++)
+            {
+                for (int dir = 0; dir < numberOfDirs; dir++)
+                {
+                    outputList[p] = new Vector3d(input[p, dir + 0], input[p, dir + 1], input[p, dir + 2]);
+                }
+            }
+
+            return outputList;
+        }
+
+        public static int CalcOptimCPU(string meshWorkingDirectory, int CPUSetByUser)
         {
             int CPU = CPUSetByUser;
             int numberOfCellsInMesh = 0;
@@ -597,7 +639,6 @@ namespace EddyLib
                         {
                             CPU = 1;
                         }
-
                     }
                     else
                     {
@@ -607,9 +648,7 @@ namespace EddyLib
                             CPU = 1;
                         }
                     }
-
                 }
-
             }
             else
             {
@@ -628,7 +667,6 @@ namespace EddyLib
             throw new NotImplementedException();
         }
 
-
         public static bool DidProcessGetKilled(string workingDirectory)
         {
             bool processGotKilled = false;
@@ -641,37 +679,26 @@ namespace EddyLib
                     string line;
                     List<string> lines = new List<string>();
 
-
                     using (FileStream fs = new FileStream(logFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     using (StreamReader sr = new StreamReader(fs, System.Text.Encoding.Default))
                     {
-
-
                         while ((line = sr.ReadLine()) != null)
                         {
                             lines.Add(line);
                         }
                     }
 
-
                     foreach (string lline in lines)
                     {
                         if (lline.EndsWith("(Killed).")) { processGotKilled = true; }
                     }
-
                 }
                 catch (Exception e)
                 {
-
                     throw new System.ArgumentException(e.Message);
                 }
             }
             return processGotKilled;
-
-
-
-
-
         }
 
         public static DataTree<T> ListOfListsToTree<T>(List<List<T>> list)
@@ -688,7 +715,6 @@ namespace EddyLib
 
         public static List<string> FileReader(string filePath)
         {
-
             string line;
             List<string> lines = new List<string>();
 
@@ -699,8 +725,6 @@ namespace EddyLib
                     using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     using (StreamReader sr = new StreamReader(fs, System.Text.Encoding.Default))
                     {
-
-
                         while ((line = sr.ReadLine()) != null)
                         {
                             lines.Add(line);
@@ -709,87 +733,20 @@ namespace EddyLib
                 }
                 catch (Exception e)
                 {
-
                     throw new System.ArgumentException(e.Message);
                 }
             }
             return lines;
-
         }
 
-
         private static Random random = new Random();
+
         public static string RandomString(int length)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             return new string(Enumerable.Repeat(chars, length)
               .Select(s => s[random.Next(s.Length)]).ToArray());
         }
-
-
-
-     
-
-        public static bool processDirectory(string startLocation, bool simDir)
-        {
-            bool result = true;
-            foreach (string directory in Directory.GetDirectories(startLocation))
-            {
-
-                if (simDir)
-                {
-
-                    if (directory.EndsWith("polyMesh"))
-                    {
-                        result = false;
-                        continue;
-                    }
-                }
-
-                bool directoryResult = processDirectory(directory, simDir);
-                result &= directoryResult;
-
-
-
-                //if (Directory.GetFiles(directory, "*.dvr").Any())
-                //{
-                //    result = false;
-                //    continue;
-                //}
-
-                foreach (string file in Directory.GetFiles(directory))
-                {
-                    try
-                    {
-                        File.Delete(file);
-                    }
-                    catch (IOException)
-                    {
-                        // error handling
-                        result = directoryResult = false;
-                    }
-                }
-
-                if (!directoryResult)
-                {
-                    continue;
-                }
-
-                try
-                {
-                    Directory.Delete(directory, false);
-                }
-                catch (IOException)
-                {
-                    // error handling
-                    result = false;
-                }
-            }
-
-            return result;
-        }
-
-
 
         public static string ConvertComputeTimes(long elapsedMilliseconds)
         {
@@ -833,7 +790,7 @@ namespace EddyLib
         //    var fullHoursList = new List<List<int>>();
         //    foreach (List<string> LBobj in LBanalysisList)
         //    {
-        //        fullHoursList.Add(GetEvalHoursFromLB(LBobj));     
+        //        fullHoursList.Add(GetEvalHoursFromLB(LBobj));
         //    }
         //    return fullHoursList;
         //}
@@ -910,7 +867,6 @@ namespace EddyLib
             }
         }
 
-
         public static TOutput[,] ConvertAll<TInput, TOutput>(TInput[,] array, Func<TInput, TOutput> converter)
         {
             int length0 = array.GetLength(0);
@@ -927,24 +883,20 @@ namespace EddyLib
 
         public static bool CheckForDuplicates(List<GeometryBase> geo)
         {
-
             bool equal = false;
 
             for (int i = 0; i < geo.Count - 1; i++)
             {
-
                 for (int j = 0; j < geo.Count; j++)
                 {
                     if (i != j)
                     {
-
                         equal = GeometryBase.GeometryEquals(geo[i], geo[j]);
                         if (equal == true)
                         {
                             break;
                         }
                     }
-
                 }
             }
 
@@ -976,10 +928,9 @@ namespace EddyLib
                 {
                     for (int h = 0; h < 24; h++) // 0-23
                     {
-                        // Check if already gone through month          
+                        // Check if already gone through month
 
                         if (m == 2 && d > 27) { continue; }
-
                         else if ((m == 4 || m == 6 || m == 9 || m == 10) && d > 29) { continue; }
                         //
 
@@ -990,13 +941,11 @@ namespace EddyLib
                         {
                             hoursToEvaluate.Add(cnt);
                         }
-
                     }
                 }
             }
 
             return hoursToEvaluate;
-
         }
 
         public static double MeshFaceArea(int meshfaceindex, Mesh m)
@@ -1032,23 +981,17 @@ namespace EddyLib
             return area1 + area2;
         }
 
-
-
         public static void ParseABLConditionsFromCaseFolder(string ABLConditionsFilePath, out double URef, out double z0, out double zref)
         {
-
             URef = 0.0;
             zref = 0.0;
             z0 = 0.0;
 
             string[] lines = File.ReadAllLines(ABLConditionsFilePath);
 
-
             for (int i = 0; i < lines.Length; i++)
             {
                 string l = lines[i];
-
-
 
                 if (l.Contains("Uref"))
                 {
@@ -1065,10 +1008,9 @@ namespace EddyLib
                     zref = double.Parse(l.Replace("Zref", "").Replace(";", "").Trim());
                 }
             }
-
         }
 
-        public static string GetParaviewLoadScript(String baseWorkingDir, List<int> dirs)
+        public static string PrepareParaviewLoadScript(String baseWorkingDir, List<int> dirs)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -1078,15 +1020,13 @@ namespace EddyLib
 
             // building and ground
 
-            sb.AppendLine(@"building = OpenDataFile(""" + Utilities.InsertDoubleBackslashes(baseWorkingDir) + @"mesh\\constant\\triSurface\\building.stl"")");
-            sb.AppendLine(@"ground = OpenDataFile(""" + Utilities.InsertDoubleBackslashes(baseWorkingDir) + @"mesh\\constant\\triSurface\\ground.stl"")");
-
+            sb.AppendLine(@"building = OpenDataFile(""" + Utilities.Directories.InsertDoubleBackslashes(baseWorkingDir) + @"mesh\\constant\\triSurface\\building.stl"")");
+            sb.AppendLine(@"ground = OpenDataFile(""" + Utilities.Directories.InsertDoubleBackslashes(baseWorkingDir) + @"mesh\\constant\\triSurface\\ground.stl"")");
 
             foreach (int dir in dirs)
             {
-                sb.AppendLine("case_" + dir + @" = OpenDataFile(""" + Utilities.InsertDoubleBackslashes(baseWorkingDir) + dir + @"\\" + dir + @".foam"")");
+                sb.AppendLine("case_" + dir + @" = OpenDataFile(""" + Utilities.Directories.InsertDoubleBackslashes(baseWorkingDir) + dir + @"\\" + dir + @".foam"")");
             }
-
 
             sb.AppendLine("Show(building)");
             sb.AppendLine("Show(ground)");
@@ -1099,7 +1039,6 @@ namespace EddyLib
             sb.AppendLine(@"from paraview.simple import *
 #### disable automatic camera reset on 'Show'
 paraview.simple._DisableFirstRenderCameraReset()
-
 
 # find source
 sTLReader1 = FindSource('STLReader1')
@@ -1225,8 +1164,6 @@ renderView1.CameraParallelProjection = 1
 ");
 
             return sb.ToString();
-
-
         }
 
         public static string GetParaviewPath(int version)
@@ -1241,7 +1178,6 @@ renderView1.CameraParallelProjection = 1
 
             if (version == 4)
             {
-
                 DirectoryInfo[] di = new DirectoryInfo(str4).GetDirectories();
                 List<string> list = new List<string>();
 
@@ -1252,7 +1188,6 @@ renderView1.CameraParallelProjection = 1
                 matchingvalues = list.LastOrDefault(stringToCheck => stringToCheck.StartsWith(para));
                 paraviewPath = str4 + matchingvalues + @"\bin\paraview.exe";
             }
-
             else
             {
                 DirectoryInfo[] di = new DirectoryInfo(str5).GetDirectories();
@@ -1269,7 +1204,19 @@ renderView1.CameraParallelProjection = 1
             return paraviewPath;
         }
 
+        public static bool HasWhiteSpace(string input)
+        {
+            bool hasWhiteSpace = false;
 
+            foreach (char ch in input)
+            {
+                if (Char.IsWhiteSpace(ch))
+                {
+                    hasWhiteSpace = true;
+                }
+            }
+            return hasWhiteSpace;
+        }
 
         public static bool CheckLicence()
         {
@@ -1281,7 +1228,6 @@ renderView1.CameraParallelProjection = 1
 
             //try
             //{
-
             //    DateTime dateTime = DateTime.MinValue;
             //    DateTime dateTimeUTC = DateTime.MinValue;
 
@@ -1291,7 +1237,7 @@ renderView1.CameraParallelProjection = 1
             //    request.Accept = "text/html, application/xhtml+xml, */*";
             //    request.UserAgent = "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)";
             //    request.ContentType = "application/x-www-form-urlencoded";
-            //    //request.ProtocolVersion = HttpVersion.Version11;            
+            //    //request.ProtocolVersion = HttpVersion.Version11;
             //    //request.CachePolicy = new RequestCachePolicy(System.Net.Cache.RequestCacheLevel.NoCacheNoStore); //No caching
             //    System.Net.HttpWebResponse response = (System.Net.HttpWebResponse)request.GetResponse();
             //    if (response.StatusCode == (System.Net.HttpStatusCode.OK))
@@ -1314,14 +1260,12 @@ renderView1.CameraParallelProjection = 1
             //    }
             //}
             //catch(Exception e) {
-
             //    Debug.WriteLine(e.Message);
 
             //    if (DateTime.Now > expiresAt) licence = false;
             //    else licence = true;
 
             //}
-
 
             if (DateTime.Now > expiresAt)
             {
@@ -1335,7 +1279,6 @@ renderView1.CameraParallelProjection = 1
             return licence;
         }
 
-
         //public static bool ArePointsOutsideBrep(Mesh GeometryToCheck, Mesh GeometryToCheckAgainst)
         //{
         //    bool ShapeInsideBrep = false;
@@ -1344,15 +1287,202 @@ renderView1.CameraParallelProjection = 1
         //    {
         //        if( GeometryToCheck.Vertices[i].X < GeometryToCheckAgainst.Vertices[i].X)
         //        {
-
         //        }
         //    }
-
 
         //    return ShapeInsideBrep;
         //}
 
+        public static object[][] CreateJaggedMatrix(int rows, int columns)
+        {
+            object[][] matrix = new object[rows][];
 
+            for (int i = 0; i < matrix.Length; i++)
+            {
+                matrix[i] = new object[columns];
+            }
+
+            return matrix;
+        }
+
+        public static void JaggedArray2CSV(double[][] data, string filePath)
+        {
+            //writing output to csv
+
+            using (StreamWriter outfile = new StreamWriter(filePath))
+            {
+                for (int x = 0; x < data.Length; x++)
+                {
+                    string content = "";
+                    for (int y = 0; y < data[x].Length; y++)
+                    {
+                        content += data[x][y].ToString() + ",";
+                    }
+                    //trying to write data to csv
+                    outfile.WriteLine(content);
+                }
+            }
+        }
+
+        public static double[,] TransposeRowsAndColumns(double[,] arr)
+        {
+            int rowCount = arr.GetLength(0);
+            int columnCount = arr.GetLength(1);
+            double[,] transposed = new double[columnCount, rowCount];
+            if (rowCount == columnCount)
+            {
+                transposed = (double[,])arr.Clone();
+                for (int i = 1; i < rowCount; i++)
+                {
+                    for (int j = 0; j < i; j++)
+                    {
+                        double temp = transposed[i, j];
+                        transposed[i, j] = transposed[j, i];
+                        transposed[j, i] = temp;
+                    }
+                }
+            }
+            else
+            {
+                for (int column = 0; column < columnCount; column++)
+                {
+                    for (int row = 0; row < rowCount; row++)
+                    {
+                        transposed[column, row] = arr[row, column];
+                    }
+                }
+            }
+            return transposed;
+        }
+
+        public static void _2DArray2CSV(double[,] data, string filePath, bool truncateDoubles, int truncateBy = 1)
+        {
+            //writing output to csv
+
+            if (!truncateDoubles)
+            {
+                using (StreamWriter outfile = new StreamWriter(filePath))
+                {
+                    for (int x = 0; x <= data.GetUpperBound(0); x++)
+                    {
+                        string content = "";
+
+                        for (int y = 0; y <= data.GetUpperBound(1); y++)
+                        {
+                            content += data[x, y].ToString() + ",";
+                        }
+                        //trying to write data to csv
+                        outfile.WriteLine(content);
+                    }
+                }
+            }
+            else
+            {
+                using (StreamWriter outfile = new StreamWriter(filePath))
+                {
+                    for (int x = 0; x <= data.GetUpperBound(0); x++)
+                    {
+                        string content = "";
+
+                        for (int y = 0; y <= data.GetUpperBound(1); y++)
+                        {
+                            content += Math.Round(data[x, y], truncateBy).ToString() + ",";
+                        }
+                        //trying to write data to csv
+                        outfile.WriteLine(content);
+                    }
+                }
+            }
+        }
+
+        public static object[][] CSV2JaggedArray(String filePath)
+        {
+            object[][] data = File.ReadLines(filePath).Select(x => x.Split(',')).ToArray();
+
+            return data;
+        }
+
+        public static void DownLoadFile(string URL, string FilePath)
+        {
+            WebClient webClient = new WebClient();
+            webClient.DownloadFile(URL, FilePath);
+        }
+
+        public static double Rad2Deg(Vector3d windVec)
+        {
+            Vector3d vec1 = new Vector3d(0, 1, 0);
+            Vector3d vec2 = windVec;
+
+            double rad = Math.Acos(vec1 * vec2 / vec1.Length * vec2.Length);
+            double ang = rad * 180 / Math.PI;
+            return ang;
+        }
+
+        public static double Vec2Dir(Vector3d vec)
+        {
+            var res = Math.Atan2(vec.Y, vec.X) * 180 / Math.PI;
+            return res;
+        }
+
+        public static int Vec2DirOFCoord(Vector3d vec)
+        {
+            // Standard 0 deg is plus X
+
+            var transform = (Math.Atan2(vec.Y, vec.X) * 180 / Math.PI) + 90;
+
+            var deg = 0.0;
+
+            if (transform < 0)
+
+            {
+                deg = -1 * transform;
+            }
+            else if (transform <= 270 && transform > 0)
+            {
+                deg = 360 - transform;
+            }
+            else
+            { deg = transform; }
+
+            return (int)Math.Round(deg);
+        }
+
+        public static List<int> NormalizeWindDirs(List<int> windDir)
+        {
+            if (windDir.Count == 0)
+            {
+                windDir.Add(0);
+            }
+
+            // Translate dirs > 359 into correct format
+
+            for (int i = 0; i < windDir.Count; i++)
+            {
+                if (windDir[i] > 359)
+                {
+                    int j = windDir[i] / 360;
+                    windDir[i] = windDir[i] - (360 * j);
+                }
+                else { windDir[i] = windDir[i]; }
+            }
+
+            return windDir;
+        }
+
+        public static Vector3d Dir2Vec(double d)
+        {
+            return new Vector3d(-1 * Math.Sin(d * Math.PI / 180), -1 * Math.Cos(d * Math.PI / 180), 0);
+        }
+
+        public static Point3d CenterBottomBoundingBox(Mesh geometry)
+        {
+            BoundingBox empty = BoundingBox.Empty;
+            var box = geometry.GetBoundingBox(true);
+            empty.Union(box);
+            Point3d CenterGround = empty.Center + 0.5 * -Vector3d.ZAxis * (empty.Max.Z - empty.Min.Z);
+
+            return CenterGround;
+        }
 
         public class NumericComparer : IComparer
         {
@@ -1368,8 +1498,6 @@ renderView1.CameraParallelProjection = 1
                 return -1;
             }
         }//EOC
-
-
 
         // emulates StrCmpLogicalW, but not fully
         public class StringLogicalComparer
@@ -1553,211 +1681,8 @@ renderView1.CameraParallelProjection = 1
                     }
                 }
             }
-
-
-
-
-
         }//EOC
 
         // <Custom additional code>
-        public static object[][] CreateMatrix(int rows, int columns)
-        {
-            object[][] matrix = new object[rows][];
-
-            for (int i = 0; i < matrix.Length; i++)
-            {
-                matrix[i] = new object[columns];
-            }
-
-            return matrix;
-        }
-
-
-        public static void JaggedArray2CSV(double[][] data, string filePath)
-        {
-
-            //writing output to csv
-
-            using (StreamWriter outfile = new StreamWriter(filePath))
-            {
-                for (int x = 0; x < data.Length; x++)
-                {
-                    string content = "";
-                    for (int y = 0; y < data[x].Length; y++)
-                    {
-                        content += data[x][y].ToString() + ",";
-                    }
-                    //trying to write data to csv
-                    outfile.WriteLine(content);
-                }
-
-
-            }
-        }
-
-        public static double[,] TransposeRowsAndColumns(double[,] arr)
-        {
-            int rowCount = arr.GetLength(0);
-            int columnCount = arr.GetLength(1);
-            double[,] transposed = new double[columnCount, rowCount];
-            if (rowCount == columnCount)
-            {
-                transposed = (double[,])arr.Clone();
-                for (int i = 1; i < rowCount; i++)
-                {
-                    for (int j = 0; j < i; j++)
-                    {
-                        double temp = transposed[i, j];
-                        transposed[i, j] = transposed[j, i];
-                        transposed[j, i] = temp;
-                    }
-                }
-            }
-            else
-            {
-                for (int column = 0; column < columnCount; column++)
-                {
-                    for (int row = 0; row < rowCount; row++)
-                    {
-                        transposed[column, row] = arr[row, column];
-                    }
-                }
-            }
-            return transposed;
-        }
-
-        public static void _2DArray2CSV(double[,] data, string filePath, bool truncateDoubles, int truncateBy = 1)
-        {
-
-            //writing output to csv
-
-            if (!truncateDoubles)
-            {
-
-                using (StreamWriter outfile = new StreamWriter(filePath))
-                {
-                    for (int x = 0; x <= data.GetUpperBound(0); x++)
-                    {
-                        string content = "";
-
-                        for (int y = 0; y <= data.GetUpperBound(1); y++)
-                        {
-                            content += data[x, y].ToString() + ",";
-                        }
-                        //trying to write data to csv
-                        outfile.WriteLine(content);
-                    }
-
-
-                }
-
-            }
-            else
-            {
-                using (StreamWriter outfile = new StreamWriter(filePath))
-                {
-                    for (int x = 0; x <= data.GetUpperBound(0); x++)
-                    {
-                        string content = "";
-
-                        for (int y = 0; y <= data.GetUpperBound(1); y++)
-                        {
-                            content += Math.Round(data[x, y], truncateBy).ToString() + ",";
-                        }
-                        //trying to write data to csv
-                        outfile.WriteLine(content);
-                    }
-
-
-                }
-            }
-        }
-
-        public static object[][] CSV2JaggedArray(String filePath)
-        {
-
-
-            object[][] data = File.ReadLines(filePath).Select(x => x.Split(',')).ToArray();
-
-            return data;
-        }
-
-
-        public static void DownLoadFile(string URL, string FilePath)
-        {
-            WebClient webClient = new WebClient();
-            webClient.DownloadFile(URL, FilePath);
-
-        }
-
-
-        public static double Rad2Deg(Vector3d windVec)
-        {
-            Vector3d vec1 = new Vector3d(0, 1, 0);
-            Vector3d vec2 = windVec;
-
-            double rad = Math.Acos(vec1 * vec2 / vec1.Length * vec2.Length);
-            double ang = rad * 180 / Math.PI;
-            return ang;
-        }
-
-
-        public static double Vec2Dir(Vector3d vec)
-        {
-
-            var res = Math.Atan2(vec.Y, vec.X) * 180 / Math.PI;
-            return res;
-
-        }
-
-        public static int Vec2DirOFCoord(Vector3d vec)
-        {
-            // Standard 0 deg is plus X
-
-
-            var transform = (Math.Atan2(vec.Y, vec.X) * 180 / Math.PI) + 90;
-
-            var deg = 0.0;
-
-            if (transform < 0)
-
-            {
-                deg = -1 * transform;
-            }
-            else if (transform <= 270 && transform > 0)
-            {
-                deg = 360 - transform;
-            }
-
-            else
-            { deg = transform; }
-
-
-            return (int)Math.Round(deg);
-
-        }
-
-
-        public static Vector3d Dir2Vec(double d)
-        {
-            return new Vector3d(-1 * Math.Sin(d * Math.PI / 180), -1 * Math.Cos(d * Math.PI / 180), 0);
-        }
-
-        public static Point3d CenterBottomBoundingBox(Mesh geometry)
-        {
-
-            BoundingBox empty = BoundingBox.Empty;
-            var box = geometry.GetBoundingBox(true);
-            empty.Union(box);
-            Point3d CenterGround = empty.Center + 0.5 * -Vector3d.ZAxis * (empty.Max.Z - empty.Min.Z);
-
-            return CenterGround;
-        }
-
     }
-
-
-
 }
-

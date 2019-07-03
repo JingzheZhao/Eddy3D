@@ -14,7 +14,7 @@ namespace EddyLib
                 //Autocalc number of CPUs
                 if (RunSettings.CPUs == -1)
                 {
-                    RunSettings.CPUs = Utilities.CPUAutoCalc(MeshSettings.meshWorkingDir, RunSettings.CPUs);   // TODO: take out all work dirs from dom!!!
+                    RunSettings.CPUs = Utilities.CalcOptimCPU(MeshSettings.meshWorkingDir, RunSettings.CPUs);   // TODO: take out all work dirs from dom!!!
                 }
 
 

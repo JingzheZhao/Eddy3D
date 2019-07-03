@@ -9,8 +9,8 @@ namespace EddyLib
         public static void Run(OFBaseDomain DOM, OFMeshSettings MeshSettings, OFRunSettings RunSettings, out string logFile)
         {
 
-            string SingleCPU = @"""surfaceFeatureExtract;snappyHexMesh -overwrite """; //-overwrite
-            string MultipleCPU = @"""surfaceFeatureExtract;pyFoamDecompose.py --clear . " + RunSettings.CPUs + @"; foamJob -parallel -screen snappyHexMesh -overwrite""";
+            //string SingleCPU = @"""surfaceFeatureExtract;snappyHexMesh -overwrite """; //-overwrite
+            //string MultipleCPU = @"""surfaceFeatureExtract;pyFoamDecompose.py --clear . " + RunSettings.CPUs + @"; foamJob -parallel -screen snappyHexMesh -overwrite""";
 
             // @ Patrick: Make cleaning function and handle behavior.. set to always true now
             //CLEAN UP THE MESS
@@ -157,7 +157,7 @@ namespace EddyLib
             //Autocalc number of CPUs
             if (RunSettings.CPUs == -1)
             {
-                RunSettings.CPUs = Utilities.CPUAutoCalc(MeshSettings.meshWorkingDir, RunSettings.CPUs);
+                RunSettings.CPUs = Utilities.CalcOptimCPU(MeshSettings.meshWorkingDir, RunSettings.CPUs);
             }
 
 

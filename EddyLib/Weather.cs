@@ -127,7 +127,7 @@ namespace EddyLib
 
             // Stupid formatting of this file creates 4 columns
             int columnsCnt = 4;
-            var Matrix = Utilities.CreateMatrix(txt.Length, columnsCnt);
+            var Matrix = Utilities.CreateJaggedMatrix(txt.Length, columnsCnt);
 
 
 

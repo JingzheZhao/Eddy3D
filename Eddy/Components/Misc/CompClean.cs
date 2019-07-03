@@ -99,7 +99,7 @@ namespace Eddy
 
                 if (Mode == 0)
                 {
-                    Utilities.processDirectory(meshDirectory, false);
+                    Utilities.Directories.processDirectory(meshDirectory, false);
 
 
                 }
@@ -112,7 +112,7 @@ namespace Eddy
 
                     foreach (string directory in windDirDirectories)
                     {
-                        Utilities.processDirectory(directory, true);
+                        Utilities.Directories.processDirectory(directory, true);
                     }
 
                 }
@@ -120,11 +120,11 @@ namespace Eddy
 
                 else
                 {
-                    Utilities.processDirectory(meshDirectory, false);
+                    Utilities.Directories.processDirectory(meshDirectory, false);
 
                     foreach (string directory in windDirDirectories)
                     {
-                        Utilities.processDirectory(directory, true);
+                        Utilities.Directories.processDirectory(directory, true);
                     }
 
                 }

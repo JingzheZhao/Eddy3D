@@ -167,17 +167,17 @@ namespace EddyLib
             var zMax = BBox.Max.Z;
 
             var dimX = xMax - xMin;
-            var dimY = yMax - yMin;
-            var dimZ = zMax - zMin;
+            //var dimY = yMax - yMin;
+            //var dimZ = zMax - zMin;
 
 
             Interval intervalX = new Interval(empty.Min.X, empty.Max.X);
             Interval intervalZ = new Interval(empty.Min.Z, empty.Max.Z);
 
-
-
-            int x = (int)Math.Round(intervalX.Length / spacing);
-            int z = (int)Math.Round(intervalZ.Length / spacing);
+            // condition ? consequent : alternative
+            
+            int x = (int)Math.Round(intervalX.Length / spacing) == 0 ? 1 : (int)Math.Round(intervalX.Length / spacing);
+            int z = (int)Math.Round(intervalZ.Length / spacing) == 0 ? 1 : (int)Math.Round(intervalZ.Length / spacing);
 
             double incrX = intervalX.Length / x;
             double incrZ = intervalZ.Length / z;

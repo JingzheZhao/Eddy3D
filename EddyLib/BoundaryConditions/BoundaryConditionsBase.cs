@@ -21,7 +21,7 @@ namespace EddyLib
         public double z0 = 1;
         public double zref = 10;
         public double zGround = 0;
-        public List<int> windDirs = new List<int>();
+        public readonly List<int> windDirs = new List<int>();
         public List<Vector3d> flowDir = new List<Vector3d>();
         public BoundaryType btype;
         public double Cmu = 0.09;

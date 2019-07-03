@@ -55,8 +55,8 @@ namespace CallOC
                             Console.WriteLine("Direct radiation (ill): {0}", options.DirRad);
                             errorLog.AppendLine(String.Format("Direct radiation (ill): {0}", options.DirRad));
 
-                            Console.WriteLine("Wind velocity scaling factors (csv): {0}", options.WindReductionDataPath);
-                            errorLog.AppendLine(String.Format("Wind velocity scaling factors (csv): {0}", options.WindReductionDataPath));
+                            Console.WriteLine("Wind velocity scaling factors (csv): {0}", options.AnnualVelocityProbes);
+                            errorLog.AppendLine(String.Format("Wind velocity scaling factors (csv): {0}", options.AnnualVelocityProbes));
 
                             Console.WriteLine("Working directory: {0}", options.WorkingDir);
                             errorLog.AppendLine(String.Format("Working directory: {0}", options.WorkingDir));
@@ -70,7 +70,7 @@ namespace CallOC
                         bool fileMissing = false;
                         if (!Directory.Exists(options.WorkingDir)) { Console.WriteLine(options.WorkingDir + " not found. Exiting"); fileMissing = true; }
                         if (!File.Exists(options.Weather) || new FileInfo(options.Weather).Length == 0) { Console.WriteLine(options.Weather + " not found or empty. Exiting"); fileMissing = true; }
-                        if (!File.Exists(options.WindReductionDataPath) || new FileInfo(options.WindReductionDataPath).Length == 0) { Console.WriteLine(options.WindReductionDataPath + " not found or empty. Exiting"); fileMissing = true; }
+                        if (!File.Exists(options.AnnualVelocityProbes) || new FileInfo(options.AnnualVelocityProbes).Length == 0) { Console.WriteLine(options.AnnualVelocityProbes + " not found or empty. Exiting"); fileMissing = true; }
                         if (!File.Exists(options.DifRad) || new FileInfo(options.DifRad).Length == 0) { Console.WriteLine(options.DifRad + " not found or empty. Exiting"); fileMissing = true; }
                         if (!File.Exists(options.DirRad) || new FileInfo(options.DirRad).Length == 0) { Console.WriteLine(options.DirRad + " not found or empty. Exiting"); fileMissing = true; }
                         if (new FileInfo(options.WorkingDir + @"\Rad\sensors.pts").Length == 0) { Console.WriteLine(options.WorkingDir + @"\Rad\sensors.pts" + " not found or empty. Exiting"); fileMissing = true; }
@@ -113,12 +113,7 @@ namespace CallOC
 
                         //double[,] conditionOfPerson = new double[8760, sensorPointCount];
 
-
-
-
                         Console.WriteLine("Loading: Wind data");
-
-
 
                         //var windDirList = new List<double> { 0, 45, 90, 135, 180, 225, 270, 315 };
                         //var windDirList = new List<double>();// { 0, 45, 90, 135, 180, 225, 270, 315 };
@@ -156,8 +151,7 @@ namespace CallOC
                         double URef = 5;
                         double zref = 10;
                         double z0 = 1;
-
-                        
+                                              
 
 
                         try
@@ -174,7 +168,9 @@ namespace CallOC
 
                         #region Wind Factors
 
-                        WindFactors wf = new WindFactors(options.WorkingDir, bcond, weather);
+                        var velocityProbes = RadianceFiles.readCSVFile(options.AnnualVelocityProbes);                    
+
+                        WindFactors wf = new WindFactors(options.WorkingDir, bcond, weather, );
 
                         #endregion
 
@@ -265,7 +261,7 @@ internal class Options
 
     [Option('u', "windReduction", Required = true,
     HelpText = "Wind velocity scaling factors (csv)")]
-    public string WindReductionDataPath { get; set; }
+    public string AnnualVelocityProbes { get; set; }
 
     [Option('d', "workingDir", Required = true,
     HelpText = "Working directory.")]

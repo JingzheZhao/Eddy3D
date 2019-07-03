@@ -1,14 +1,14 @@
-﻿using Eddy.Properties;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using Eddy.Properties;
 using EddyLib;
 using Grasshopper;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
 using Rhino.Geometry;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -17,15 +17,8 @@ using System.Text;
 
 namespace Eddy
 {
-
-
-
-
-
     public class CompVisProbesCustom : GH_Component
     {
-
-
         protected override void AppendAdditionalComponentMenuItems(System.Windows.Forms.ToolStripDropDown menu)
         {
             base.AppendAdditionalComponentMenuItems(menu);
@@ -36,11 +29,9 @@ namespace Eddy
         {
             Culling = !Culling;
             ExpireSolution(true);
-
         }
+
         public bool Culling = true;
-
-
 
         public override bool Write(GH_IO.Serialization.GH_IWriter writer)
         {
@@ -49,6 +40,7 @@ namespace Eddy
             // Then call the base class implementation.
             return base.Write(writer);
         }
+
         public override bool Read(GH_IO.Serialization.GH_IReader reader)
         {
             // First read our own field.
@@ -57,24 +49,17 @@ namespace Eddy
             return base.Read(reader);
         }
 
-
-
-
         /// <summary>
-        /// Each implementation of GH_Component must provide a public 
+        /// Each implementation of GH_Component must provide a public
         /// constructor without any arguments.
-        /// Category represents the Tab in which the component will appear, 
-        /// Subcategory the panel. If you use non-existing tab or panel names, 
+        /// Category represents the Tab in which the component will appear,
+        /// Subcategory the panel. If you use non-existing tab or panel names,
         /// new tabs/panels will automatically be created.
         /// </summary>
         public CompVisProbesCustom()
           : base("Visualize Probes", "VisProbes", "PostProcessing", "Eddy", "5 | PostProcessing")
         {
         }
-
-
-
-
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -99,11 +84,7 @@ namespace Eddy
             //param2.AddNamedValue("Scalar", 0);
             //param2.AddNamedValue("Vector", 1);
 
-
             pManager.AddBooleanParameter("Run", "Run", "Run the probing component.", GH_ParamAccess.item, false);
-
-
-
         }
 
         /// <summary>
@@ -115,28 +96,21 @@ namespace Eddy
             pManager.AddGenericParameter("Result", "Result", "Result", GH_ParamAccess.tree);
         }
 
-
-
         /// <summary>
         /// This is the method that actually does the work.
         /// </summary>
-        /// <param name="DA">The DA object can be used to retrieve data from input parameters and 
+        /// <param name="DA">The DA object can be used to retrieve data from input parameters and
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            #region Load Inputs
 
             // mode to select simulation environment
             if (Culling) { Message = "Cull Points"; }
             else { Message = "No Culling"; }
 
-
-
-
-
             OFResult RES = null;
             DA.GetData(0, ref RES);
-
-
 
             List<Point3d> listOfPoints = new List<Point3d>();
 
@@ -150,10 +124,7 @@ namespace Eddy
             //DA.GetData(4, ref fieldType);
             DA.GetData(4, ref run);
 
-
             //Probes.ReformatOFFields(OFFieldInt, out string OFField, out int fieldType);
-
-
 
             if (Culling)
             {
@@ -163,13 +134,14 @@ namespace Eddy
 
             int numberOfProbes = listOfPoints.Count();
 
-            // Error handling
+            #endregion Load Inputs
+
+            #region Error handling
 
             if (numberOfProbes < 1)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You need to pass a list of point to the component.");
             }
-
 
             // Check if U file is in last iteration
             for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
@@ -178,16 +150,16 @@ namespace Eddy
                 string iter = Utilities.GetLastIterationFromDirectory(path).ToString();
                 string fp = RES.WorkingDirectory + @"\" + RES.Domain.BCond.windDirs[i] + @"\" + iter + @"\U";
 
-
                 if (!File.Exists(fp))
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The last iteration """ + iter + @""" of the wind direction """ + RES.Domain.BCond.windDirs[i] + @""" misses the velocity (U) result file. Please make sure that U is calculated for this particular timestep (change WriteInterval) and recompute the solution.");
                 }
             }
 
+            #endregion Error handling
+
             // Export probes file
             File.WriteAllText(Path.Combine(RES.WorkingDirectory + "\\" + "run_probes.bat"), EddyLib.StrTemp.BatFiles.Run_Probes(RES.Domain, RES.MeshSettings));
-
 
             // export pts file for Daysim
             if (!Directory.Exists(RES.WorkingDirectory + @"Rad\"))
@@ -197,11 +169,10 @@ namespace Eddy
 
             RadianceFiles.writePTS(RES.WorkingDirectory + @"\Rad\sensors.pts", listOfPoints);
 
-            if (Utilities.IsDirectoryEmpty(RES.MeshSettings.meshPolyMeshDir) == true)
+            if (Utilities.Directories.IsDirectoryEmpty(RES.MeshSettings.meshPolyMeshDir) == true)
             {
                 throw new System.ArgumentException("The mesh folder is empty. Can't retrieve probes from a mesh that does not exist.");
             }
-
 
             DataTree<double> treeDouble = new DataTree<double>();
             DataTree<Vector3d> treeVector = new DataTree<Vector3d>();
@@ -211,19 +182,13 @@ namespace Eddy
 
             if (numberOfProbes > 0)
             {
-
-
-
                 try
                 {
-
-
                     #region NUMBERS
+
                     if (currField.FieldType == OFField.fieldType.number)
                     {
-
                         StringBuilder command = new StringBuilder();
-
 
                         for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
                         {
@@ -234,10 +199,8 @@ namespace Eddy
                                 return;
                             }
 
-
                             string path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + currField.ProbeName;
 
-                            // cp parsing
                             File.WriteAllText(RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + "controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(RES.RunSettings, RES.Domain, null, i));
                             File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, currField));
 
@@ -254,38 +217,30 @@ namespace Eddy
 
                         if (run == true)
                         {
-
                             if (RES.RunSettings.simEngine == SimEngine.Docker)
                             {
                                 var arg = EddyLib.StrTemp.BatFiles.DockerPrefixPath(RES.Domain, RES.MeshSettings, RES.RunSettings, EddyLib.StrTemp.Mode.Simulation) + command;
-                                Utilities.StartProcessCMDNT(arg, false, true, false, true);
+                                Utilities.StartProcess.StartProcessCMDNT(arg, false, true, false, true);
                             }
                             else
                             {
                                 //Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString(), "type log" }, RES.WorkingDirectory), false, true, true);
-                                Utilities.StartProcessCMDNT(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory), false, true, false, true);
+                                Utilities.StartProcess.StartProcessCMDNT(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory), false, true, false, true);
                             }
-
                         }
 
                         //Thread.Sleep(2 * numberOfProbes);
 
                         for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
                         {
-
                             string currentCaseDir = RES.WorkingDirectory + "\\" + RES.Domain.BCond.windDirs[i];
                             // Todo: This throws exception if the folder doesn't exit, meaning if it wasn't run yet. Second, it throws an exception if the folder exists but is empty. here, it also won't find the iteration path.
                             string pathToProbeFile = Probing.GetIterationPathToProbedResults(currentCaseDir, currField);
                             if (File.Exists(pathToProbeFile))
                             {
-
-
                                 Probing Numbers = new Probing(listOfPoints, currentCaseDir, currField);
                                 // Create datatree
                                 treeDouble.AddRange(Probing.FilterExtremeProbingValues(Numbers.ResultNum), new Grasshopper.Kernel.Data.GH_Path(i));
-
-
-
                             }
                             else
                             {
@@ -293,14 +248,14 @@ namespace Eddy
                                 return;
                             }
                         }
-
                     }
-                    #endregion
+
+                    #endregion NUMBERS
 
                     #region VECTORS
+
                     if (currField.FieldType == OFField.fieldType.vector)
                     {
-
                         StringBuilder command = new StringBuilder();
 
                         //string pointName = "U_Probes";
@@ -336,48 +291,40 @@ namespace Eddy
                             if (RES.RunSettings.simEngine == SimEngine.Docker)
                             {
                                 var arg = EddyLib.StrTemp.BatFiles.DockerPrefixPath(RES.Domain, RES.MeshSettings, RES.RunSettings, EddyLib.StrTemp.Mode.Simulation) + command;
-                                Utilities.StartProcessCMDNT(arg, false, true, false, true);
+                                Utilities.StartProcess.StartProcessCMDNT(arg, false, true, false, true);
                             }
                             else
                             {
                                 // Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString(), "type log" }, RES.WorkingDirectory), false, true, true);
-                                Utilities.StartProcessCMDNT(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory), false, true, false, true);
+                                Utilities.StartProcess.StartProcessCMDNT(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory), false, true, false, true);
                             }
                         }
                         //Thread.Sleep(2 * numberOfProbes);
 
                         for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
                         {
-
                             string currentCaseDir = RES.WorkingDirectory + "\\" + RES.Domain.BCond.windDirs[i];
                             string pathToProbeFile = Probing.GetIterationPathToProbedResults(currentCaseDir, currField);
                             if (File.Exists(pathToProbeFile))
                             {
-
-
-
                                 Probing Vectors = new Probing(listOfPoints, currentCaseDir, currField);
                                 // Create datatree
 
                                 treeVector.AddRange(Vectors.ResultVec, new Grasshopper.Kernel.Data.GH_Path(i));
-
                             }
                             else
                             {
                                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The file  """ + pathToProbeFile + @""" does not exist. Please run the probing component.");
-
                             }
-
                         }
                     }
-                    #endregion
 
+                    #endregion VECTORS
                 }
                 catch (Exception)
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"This data does not exist yet. Please run the probing component.");
                     //throw new System.ArgumentException("This data does not exist yet. Please run the probing component.");
-
                 }
             }
 
@@ -391,10 +338,7 @@ namespace Eddy
                 DA.SetDataTree(1, treeVector);
                 DA.SetDataList(0, listOfPoints);
             }
-
-
         }
-
 
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface.
@@ -405,13 +349,10 @@ namespace Eddy
                 Resources.Eddy_visualProbs;
 
         /// <summary>
-        /// Each component must have a unique Guid to identify it. 
-        /// It is vital this Guid doesn't change otherwise old ghx files 
+        /// Each component must have a unique Guid to identify it.
+        /// It is vital this Guid doesn't change otherwise old ghx files
         /// that use the old ID will partially fail during loading.
         /// </summary>
         public override Guid ComponentGuid => new Guid("{79224E0A-21EF-41C5-88B1-E44B860F5A4E}");
     }
 }
-
-
-

@@ -21,43 +21,195 @@ namespace EddyLib
         public int[] clstSimDirs;
         public double offSetAverage;
 
-        public WindFactors(string baseWorkingDir, BoundaryConditions bcond, Weather weather)
+        public WindFactors(string baseWorkingDir, BoundaryConditions bcond, Weather weather, Vector3d[,] velocityProbes)
         {
             //Todo fix
 
-
             StringBuilder errorlog;
 
-            var windFactorsFile = baseWorkingDir + @"WindFactors.csv";
+            var csvWindFactors = baseWorkingDir + @"WindFactors.csv";
+            var csvAnnualVelocityProbes = baseWorkingDir + @"AnnualU.csv";
 
-            if (!File.Exists(windFactorsFile))
+            string[] reductionData = null;
+
+            if (!File.Exists(csvWindFactors))
             {
                 WindFactors.WriteWindReductionArrayToCSV(bcond.windDirs.ToString(), baseWorkingDir, bcond, 1, baseWorkingDir + @"Rad\sensors.pts", true, out errorlog);
             }
-            else if (File.Exists(windFactorsFile))
+            else
             {
-                var numberOfPoints = File.ReadAllLines(windFactorsFile).Skip(1).Count();
- 
-                
+                //var numberOfPoints = File.ReadAllLines(windFactorsFile).Count();
+                reductionData = LoadWindReductionArrayFromCSV(csvWindFactors);
             }
 
-            var ReductionDataCSV = LoadWindReductionArrayFromCSV(baseWorkingDir);
-            this.windFactors = GetWindReduction(ReductionDataCSV, 8760, bcond.windDirs, weather);
+            this.windFactors = GetWindReduction(reductionData, 8760, bcond.windDirs, weather);
 
-
-            var closestWindDirs = GetClosestWindDirs(weather, bcond);
-
-
-            this.offSet = closestWindDirs.OffSet.ToArray();
-            this.offSetAverage = closestWindDirs.OffSet.Average();
-            this.clstSimDirs = closestWindDirs.ClstSimDirs.ToArray();
-            this.Indices = closestWindDirs.SimDirIndices.ToArray();
+            var (SimDirIndices, ClstSimDirs, OffSet, OffSetAverage) = GetClosestWindDirs(weather, bcond);
+            this.offSet = OffSet.ToArray();
+            this.offSetAverage = OffSet.Average();
+            this.clstSimDirs = ClstSimDirs.ToArray();
+            this.Indices = SimDirIndices.ToArray();
 
 
 
         }
 
-        (List<int> SimDirIndices, List<int> ClstSimDirs, List<int> OffSet, double OffSetAverage) GetClosestWindDirs(Weather weather, BoundaryConditions bcond)
+
+
+        private static void WriteAnnualVelocityProbes(BoundaryConditions bcond, string baseWorkingDir, string csvAnnualVelocityProbes)
+        {
+            List<string> fullProbeFilePath = new List<String>();
+
+            //Build paths as list
+
+            for (int i = 0; i < bcond.windDirs.Count; i++)
+            {
+                fullProbeFilePath.Add(baseWorkingDir + "\\" + bcond.windDirs[i] + @"\postProcessing\U_Probes.csv");
+            }
+
+            var numberOfWindDirs = bcond.windDirs.Count();
+            var numberOfProbes = File.ReadAllLines(fullProbeFilePath[0]).Count();
+            //string[] abc = replacedString.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+
+
+            // Array for output data
+
+            var listOfAnnualData = new Vector3d[numberOfWindDirs][];
+
+            for (int r = 0; r < numberOfWindDirs; r++)
+            {
+                listOfAnnualData[r] = new Vector3d[numberOfProbes];
+                //int counter = 1;
+                for (int c = 0; c < numberOfProbes; c++)
+                {
+                    listOfAnnualData[r][c] = new Vector3d(double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[0]) / bcond.UPedestrianHeight, double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1]) / bcond.UPedestrianHeight, double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[2]) / bcond.UPedestrianHeight);
+                    //counter += 3;
+                }
+            }
+
+
+            // Write Array to dataTree
+            //for (int c = 0; c < numberOfWindDirs; c++)
+            //{
+            //    for (int r = 0; r < numberOfProbes; r++)
+            //    {
+            //        UTree.Add(listOfAnnualData[c][r], new Grasshopper.Kernel.Data.GH_Path(c));
+            //    }
+
+            //}
+
+
+            //DA.SetDataTree(0, UTree);
+
+
+            //Write U Array to file
+            System.Text.StringBuilder UFile = new System.Text.StringBuilder();
+
+            for (int i = 0; i < bcond.windDirs.Count; i++)
+            {
+                UFile.AppendLine(bcond.windDirs[i] + ", , ,");
+                UFile.AppendLine("x, y, z,");
+            }
+
+            UFile.AppendLine("");
+
+            for (int r = 0; r < numberOfProbes; r++)
+            {
+                for (int c = 0; c < numberOfWindDirs; c++)
+                {
+
+                    UFile.AppendLine(listOfAnnualData[c][r] + ",");
+
+                }
+                UFile.AppendLine("");
+            }
+            File.WriteAllText(baseWorkingDir + @"\hourlyU.csv", UFile.ToString());
+
+            //Write Reduction Array to file
+
+            System.Text.StringBuilder ReductionFile = new System.Text.StringBuilder();
+
+            for (int i = 0; i < bcond.windDirs.Count; i++)
+            {
+                ReductionFile.Append(bcond.windDirs[i] + ",");
+
+            }
+
+            ReductionFile.AppendLine("");
+            for (int r = 0; r < numberOfProbes; r++)
+            {
+
+                for (int c = 0; c < numberOfWindDirs; c++)
+                {
+
+                    //ReductionFile.Append(Math.Sqrt(Math.Pow(listOfAnnualData[c][r].X,2)* Math.Pow(listOfAnnualData[c][r].Y,2)* Math.Pow(listOfAnnualData[c][r].Z,2) )+ ",");
+                    ReductionFile.Append(Math.Round(listOfAnnualData[c][r].Length, 3) + ",");
+                }
+                ReductionFile.AppendLine("");
+            }
+            File.WriteAllText(baseWorkingDir + csvAnnualVelocityProbes, ReductionFile.ToString());
+
+        }
+
+
+
+
+
+        //(List<int> SimDirIndices, List<int> ClstSimDirs, List<int> OffSet, double OffSetAverage) GetClosestWindDirs(Weather weather, BoundaryConditions bcond)
+        //{
+
+        //    /////////// closest indices
+        //    ///
+        //    var offSet = new List<int>();
+        //    var Indices = new List<int>();
+        //    var clstSimDirs = new List<int>();
+
+        //    foreach (int hour in weather.WindDirection)
+        //    {
+
+        //        int weatherDir = (int)weather.WindDirection[hour];
+        //        int closestIndex = 0;
+
+        //        if (bcond.windDirs.Contains(weatherDir))
+        //        {
+        //            closestIndex = bcond.windDirs.IndexOf(weather.WindDirection[hour]);
+        //        }
+        //        else
+        //        {
+        //            int distanceToUpper = 0;
+
+        //            var nextUpper = ReturnNextUpperIndex(bcond.windDirs, weatherDir, out distanceToUpper);
+
+        //            //distanceToUpper = distanceToUpper;
+
+
+        //            int distanceToLower = 0;
+
+        //            var nextLower = ReturnNextLowerIndex(bcond.windDirs, weatherDir, out distanceToLower);
+
+        //            //distanceToLower = distanceToLower;
+
+        //            // Pick smaller of the two
+        //            closestIndex = distanceToLower < distanceToUpper ? nextLower : nextUpper;
+
+
+        //            //_distanceToUpper = distanceToUpper;
+        //            //_distanceToLower = distanceToLower;
+
+
+        //        }
+
+        //        var distance = Math.Abs(bcond.windDirs[closestIndex] - weatherDir);
+        //        offSet.Add(distance);
+        //        Indices.Add(closestIndex);
+        //        clstSimDirs.Add(bcond.windDirs[closestIndex]);
+        //    }
+
+        //    return (Indices, clstSimDirs, offSet, offSet.Average()); // tuple literal
+
+        //}           
+
+        public Tuple<List<int>, List<int>, List<int>, double> GetClosestWindDirs(Weather weather, BoundaryConditions bcond)
         {
 
             /////////// closest indices
@@ -65,10 +217,10 @@ namespace EddyLib
             var offSet = new List<int>();
             var Indices = new List<int>();
             var clstSimDirs = new List<int>();
+            double offSetA = 0;
 
             foreach (int hour in weather.WindDirection)
             {
-
                 int weatherDir = (int)weather.WindDirection[hour];
                 int closestIndex = 0;
 
@@ -79,25 +231,13 @@ namespace EddyLib
                 else
                 {
                     int distanceToUpper = 0;
-
-                    var nextUpper = ReturnNextUpperIndex(bcond.windDirs, weatherDir, out distanceToUpper);
-
-                    //distanceToUpper = distanceToUpper;
-
-
                     int distanceToLower = 0;
 
+                    var nextUpper = ReturnNextUpperIndex(bcond.windDirs, weatherDir, out distanceToUpper);
                     var nextLower = ReturnNextLowerIndex(bcond.windDirs, weatherDir, out distanceToLower);
-
-                    //distanceToLower = distanceToLower;
 
                     // Pick smaller of the two
                     closestIndex = distanceToLower < distanceToUpper ? nextLower : nextUpper;
-
-
-                    //_distanceToUpper = distanceToUpper;
-                    //_distanceToLower = distanceToLower;
-
 
                 }
 
@@ -105,171 +245,16 @@ namespace EddyLib
                 offSet.Add(distance);
                 Indices.Add(closestIndex);
                 clstSimDirs.Add(bcond.windDirs[closestIndex]);
+                offSetA = offSet.Average();
             }
 
-            return (Indices, clstSimDirs, offSet, offSet.Average()); // tuple literal
-
+            return new Tuple<List<int>, List<int>, List<int>, double>(Indices, clstSimDirs, offSet, offSet.Average());
         }
-
-        private static int ReturnNextLowerIndexN(List<int> list, int compare)
-        {
-
-            // Take everything smaller than compare
-            var smaller = list.Where(x => x < compare);
-
-            // Take the max from that selection and then take the index
-            var lowerIndex = list.IndexOf(smaller.Max(y => y));
-
-            return lowerIndex;
-        }
-
-
-
-        private static int ReturnNextUpperIndexN(List<int> list, int compare)
-        {
-
-            // Take everything smaller than compare
-            var larger = list.Where(x => x > compare);
-
-            // Take the max from that selection and then take the index
-            var upperIndex = list.IndexOf(larger.Min(y => y));
-
-            return upperIndex;
-        }
-
-
-        private static int ReturnNextLowerIndex(List<int> list, int compare, out int distanceToLower)
-        {
-            int lowerIndex = 0;
-            int NextLower = list[0];
-
-            for (int i = 0; i < list.Count; i++)
-            {
-                if (list[i] < compare)
-                {
-                    NextLower = list[i];
-                    lowerIndex = i;
-                    continue;
-                }
-            }
-
-            distanceToLower = Math.Abs(list[lowerIndex] - compare);
-
-            return lowerIndex;
-        }
-        private static int ReturnNextUpperIndex(List<int> list, int compare, out int distanceToUpper)
-        {
-            // Make sure that 360 input is equal to 0
-            if (compare == 360)
-            {
-                compare = 0;
-            }
-
-
-            int upperIndex = list.Count - 1;
-            int NextUpper = list[0];
-
-            //Add 360 to enable comparison with "0" degrees
-            for (int i = 0; i < list.Count; i++)
-            {
-                if (list[i] == 0)
-                {
-                    list.Add(360);
-                }
-            }
-
-            for (int i = 0; i < list.Count; i++)
-            {
-                if (list[i] > compare)
-                {
-                    NextUpper = list[i];
-                    upperIndex = i;
-                    break;
-                }
-            }
-
-            if (upperIndex == 8)
-            {
-                upperIndex = 0;
-            }
-
-            distanceToUpper = Math.Abs(list[upperIndex] - compare);
-
-
-            return upperIndex;
-        }
-
-
-
 
         public static double GetVelocityAtProbingHeightFromEPW(double URef, double z0, double zref, double probingHeight)
         {
             var UAtProbingHeightFromEPW = ((0.41 * URef) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((probingHeight + z0) / z0);
             return UAtProbingHeightFromEPW;
-        }
-
-
-        public static string[] LoadWindReductionArrayFromCSV(string filePath)
-        {
-            var ReductionData = File.ReadAllLines(filePath).Skip(1).ToArray();
-            int sensorPointCount = ReductionData.Length;
-
-            var numberOfWindDirsSimulated = ReductionData[0].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Count();
-
-            for (int i = 0; i < sensorPointCount; i++)
-            {
-                var l = ReductionData[i];
-                if (l.Contains("∞"))
-                {
-                    ReductionData[i] = l.Replace("∞", "0");
-                }
-            }
-            return ReductionData;
-        }
-
-        public static double[,] GetWindReduction(string[] ReductionData, int numberOfHours, List<int> simulatedWindDirList, Weather weather)
-        {
-
-            int sensorPointCount = ReductionData.Length;
-            int numberOfWindDirs = simulatedWindDirList.Count;
-
-            // Array of Reduction data
-
-            double[,] windReduction = new double[numberOfHours, sensorPointCount];
-
-            int cntReduction = 0;
-            using (var progress = new ASCIIProgressBar())
-            {
-
-
-                var ReductionArray = new double[numberOfWindDirs][];
-
-                for (int d = 0; d < numberOfWindDirs; d++)
-                {
-
-                    ReductionArray[d] = new double[sensorPointCount];
-                    for (int p = 0; p < sensorPointCount; p++)
-                    {
-                        ReductionArray[d][p] = double.Parse(ReductionData[p].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[d]);
-                    }
-                }
-
-                Console.WriteLine("Calculating: Wind reduction factors");
-
-                for (int j = 0; j < sensorPointCount; j++)
-                {
-                    cntReduction++;
-                    progress.Report((double)cntReduction / sensorPointCount);
-                    for (int i = 0; i < numberOfHours; i++)
-                    {
-
-                        // hours of weather file in iterator missing
-                        windReduction[i, j] = WindFactors.GetWindReductionFactor(j, ReductionArray, sensorPointCount, simulatedWindDirList, weather.WindSpeed[i], weather.WindDirection[i]);
-                    }
-                }
-
-            }
-            return windReduction;
         }
 
         public static void WriteWindReductionArrayToCSV(string WindDirs, string WorkingDir, BoundaryConditions bcond, int Mode, string probesFilePath, bool Verbose, out StringBuilder errorLog)
@@ -294,7 +279,7 @@ namespace EddyLib
 
                 if (!Directory.Exists(WorkingDir)) { errorLog.AppendLine(WorkingDir + " not found. Exiting"); Console.WriteLine(WorkingDir + " not found. Exiting"); }
 
-                if (Utilities.IsDirectoryEmpty(WorkingDir + @"\mesh\constant\polyMesh"))
+                if (Utilities.Directories.IsDirectoryEmpty(WorkingDir + @"\mesh\constant\polyMesh"))
                 {
                     errorLog.AppendLine("The mesh folder is empty. Can't pull probes from a mesh that does not exist.");
                     //throw new System.ArgumentException("The mesh folder is empty. Can't pull probes from a mesh that does not exist.");
@@ -678,6 +663,70 @@ namespace EddyLib
             catch (Exception e) { Console.WriteLine(e.Message); File.WriteAllText(WorkingDir + @"\Probes.err", errorLog.ToString()); return; }
         }
 
+        // This returns the plain annual array
+        public static string[] LoadWindReductionArrayFromCSV(string filePath)
+        {
+            var ReductionData = File.ReadAllLines(filePath).ToArray();
+            //int sensorPointCount = ReductionData.Length;
+            //var sensorPointCount = ReductionData[0].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Count();
+
+            for (int i = 0; i < 8760; i++)
+            {
+                var l = ReductionData[i];
+                if (l.Contains("∞"))
+                {
+                    ReductionData[i] = l.Replace("∞", "0");
+                }
+            }
+            return ReductionData;
+
+        }
+
+        public static double[,] GetWindReduction(string[] ReductionData, int numberOfHours, List<int> simulatedWindDirs, Weather weather)
+        {
+
+            int sensorPointCount = ReductionData.Length;
+            int numberOfWindDirs = simulatedWindDirs.Count;
+
+            // Array of Reduction data
+
+            double[,] windReduction = new double[numberOfHours, sensorPointCount];
+
+            int cntReduction = 0;
+            using (var progress = new ASCIIProgressBar())
+            {
+
+
+                var ReductionArray = new double[numberOfWindDirs][];
+
+                for (int d = 0; d < numberOfWindDirs; d++)
+                {
+
+                    ReductionArray[d] = new double[sensorPointCount];
+                    for (int p = 0; p < sensorPointCount; p++)
+                    {
+                        ReductionArray[d][p] = double.Parse(ReductionData[p].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[d]);
+                    }
+                }
+
+                Console.WriteLine("Calculating: Wind reduction factors");
+
+                for (int j = 0; j < sensorPointCount; j++)
+                {
+                    cntReduction++;
+                    progress.Report((double)cntReduction / sensorPointCount);
+                    for (int i = 0; i < numberOfHours; i++)
+                    {
+
+                        // hours of weather file in iterator missing
+                        windReduction[i, j] = GetWindReductionFactor(j, ReductionArray, sensorPointCount, simulatedWindDirs, weather.WindSpeed[i], weather.WindDirection[i]);
+                    }
+                }
+
+            }
+            return windReduction;
+        }
+
 
         private static double GetWindReductionFactor(int probeIndex, double[][] ReductionArray, int numberOfProbes, List<int> windDirsSimulated, double windVelWeatherFile, double windDirFromWeatherFile)
         {
@@ -707,10 +756,6 @@ namespace EddyLib
             }
 
 
-
-
-
-
             //var y1_y0 = distanceToUpper;
             //var x0 = ReductionArray[nextUpIndex][probeIndex];
             //var x1_x0 = ReductionArray[nextLowIndex][probeIndex] - ReductionArray[nextUpIndex][probeIndex];
@@ -728,6 +773,9 @@ namespace EddyLib
 
             return windRedFactorInterpolated;
         }
+
+
+
 
 
         private static int ReturnNextLowerIndex(List<int> windDirs, double UTCIWindDir)
@@ -781,6 +829,91 @@ namespace EddyLib
             return upperIndex;
         }
 
+
+        private static int ReturnNextLowerIndexN(List<int> list, int compare)
+        {
+
+            // Take everything smaller than compare
+            var smaller = list.Where(x => x < compare);
+
+            // Take the max from that selection and then take the index
+            var lowerIndex = list.IndexOf(smaller.Max(y => y));
+
+            return lowerIndex;
+        }
+        private static int ReturnNextUpperIndexN(List<int> list, int compare)
+        {
+
+            // Take everything smaller than compare
+            var larger = list.Where(x => x > compare);
+
+            // Take the max from that selection and then take the index
+            var upperIndex = list.IndexOf(larger.Min(y => y));
+
+            return upperIndex;
+        }
+
+
+        private static int ReturnNextLowerIndex(List<int> list, int compare, out int distanceToLower)
+        {
+            int lowerIndex = 0;
+            int NextLower = list[0];
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i] < compare)
+                {
+                    NextLower = list[i];
+                    lowerIndex = i;
+                    continue;
+                }
+            }
+
+            distanceToLower = Math.Abs(list[lowerIndex] - compare);
+
+            return lowerIndex;
+        }
+        private static int ReturnNextUpperIndex(List<int> list, int compare, out int distanceToUpper)
+        {
+            // Make sure that 360 input is equal to 0
+            if (compare == 360)
+            {
+                compare = 0;
+            }
+
+
+            int upperIndex = list.Count - 1;
+            int NextUpper = list[0];
+
+            //Add 360 to enable comparison with "0" degrees
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i] == 0)
+                {
+                    list.Add(360);
+                }
+            }
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i] > compare)
+                {
+                    NextUpper = list[i];
+                    upperIndex = i;
+                    break;
+                }
+            }
+
+            if (upperIndex == 8)
+            {
+                upperIndex = 0;
+            }
+
+            distanceToUpper = Math.Abs(list[upperIndex] - compare);
+
+
+            return upperIndex;
+        }
 
 
 

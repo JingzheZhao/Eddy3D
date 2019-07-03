@@ -1,5 +1,4 @@
-﻿using Rhino.Geometry;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -7,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Rhino.Geometry;
 
 namespace EddyLib
 {
@@ -29,24 +29,19 @@ namespace EddyLib
         // Inputs
 
         public Point3d[] probes;
-        double[,] windReduction;      
-        double z0;
-        double zref;
-
+        private double[,] windReduction;
+        private double z0;
+        private double zref;
 
         public UTCI(Point3d[] pointProbes, WindFactors wf, Weather weather, MRT mrt, BoundaryConditions bcond, string workingDir)
         {
-                                 
             this.probes = pointProbes;
             this.windReduction = wf.windFactors;
             this.z0 = bcond.z0;
-            this.zref = bcond.zref;           
-
+            this.zref = bcond.zref;
 
             int numberOfHours = 8760;
             int sensorPointCount = pointProbes.Length;
-
-                                          
 
             var sw = new Stopwatch();
             sw.Start();
@@ -61,7 +56,6 @@ namespace EddyLib
             var tempuncertaintyMRTArray = uncertaintyMRTArray;
             var tempuncertaintyWindArray = uncertaintyWindArray;
 
-
             using (var progress = new ASCIIProgressBar())
             {
                 Parallel.For(0, sensorPointCount, probe =>
@@ -74,11 +68,10 @@ namespace EddyLib
 
                           for (int hour = 0; hour < numberOfHours; hour++)
                           {
-
                               tempuncertaintyWindArray[hour, probe] = false;
                               tempuncertaintyMRTArray[hour, probe] = false;
 
-                              // Check for extreme mrts 
+                              // Check for extreme mrts
 
                               double tempMRT = 0;
 
@@ -116,13 +109,11 @@ namespace EddyLib
 
                               this.Condition[hour, probe] = CalcConditionOfPerson(tempUtci[hour, probe]);
                           }
-
                       });
 
                 this.Values = tempUtci;
                 uncertaintyMRTArray = tempuncertaintyMRTArray;
                 uncertaintyWindArray = tempuncertaintyWindArray;
-
             }//end using prog bar
 
             Console.WriteLine(Utilities.ConvertComputeTimes(sw.ElapsedMilliseconds));
@@ -150,13 +141,13 @@ namespace EddyLib
              !~Copyright(C) 2009  Peter Broede
              For more information, please refer to utci.org
 
-
              Additions made by Timur Dogan, Cornell AAP, ESL.
 
              */
             double utci_temp = 0;
 
             #region utci_equation
+
             utci_temp = TaC + (6.07562052 * Math.Pow(10, -1)) +
               (-2.27712343 * Math.Pow(10, -2)) * TaC + (8.06470249 * Math.Pow(10, -4)) * TaC * TaC + (-1.54271372 * Math.Pow(10, -4)) * TaC * TaC * TaC + (-3.24651735 * Math.Pow(10, -6)) * TaC * TaC * TaC * TaC +
               (7.32602852 * Math.Pow(10, -8)) * TaC * TaC * TaC * TaC * TaC + (1.35959073 * Math.Pow(10, -9)) * TaC * TaC * TaC * TaC * TaC * TaC + (-2.2583652) * v + (8.80326035 * Math.Pow(10, -2)) * TaC * v + (2.16844454 * Math.Pow(10, -3)) * TaC * TaC * v +
@@ -211,15 +202,12 @@ namespace EddyLib
               (-6.80434415 * Math.Pow(10, -6)) * v * DMRT * Pa * Pa * Pa * Pa + (-9.77675906 * Math.Pow(10, -6)) * DMRT * DMRT * Pa * Pa * Pa * Pa + (8.82773108 * Math.Pow(10, -2)) * Pa * Pa * Pa * Pa * Pa + (-3.01859306 * Math.Pow(10, -3)) * TaC * Pa * Pa * Pa * Pa * Pa +
               (1.04452989 * Math.Pow(10, -3)) * v * Pa * Pa * Pa * Pa * Pa + (2.47090539 * Math.Pow(10, -4)) * DMRT * Pa * Pa * Pa * Pa * Pa + (1.48348065 * Math.Pow(10, -3)) * Pa * Pa * Pa * Pa * Pa * Pa
               ;
-            #endregion
+
+            #endregion utci_equation
 
             return utci_temp;
 
-
-
             // eval conditions
-
-
 
             /*
                 Color cl = new Color();
@@ -233,19 +221,12 @@ namespace EddyLib
                 else if (conditionOfPerson == -3) cl = (System.Drawing.Color.BlueViolet);
                 else RhinoApp.WriteLine("Wrong UTCI value");
 
-
                 Col = cl;
             */
-
-
-
-
-
         }
 
         public static double[] ReadComfortHoursFromCSV(string baseWorkingDir, List<int> hoursToEvaluate)
         {
-
             //// Fill datatrees from CSV
 
             var path = baseWorkingDir + @"\UTCI.csv";
@@ -253,7 +234,6 @@ namespace EddyLib
 
             var allLines = File.ReadAllLines(path);
             var numberOfProbes = allLines.Count();
-
 
             // Fill array once; fastest method so far
 
@@ -265,7 +245,6 @@ namespace EddyLib
             System.Threading.Tasks.Parallel.For(0, numberOfProbes,
                     i =>
                     {
-
                         //              if (GH_Document.IsEscapeKeyDown())
                         //              {
                         //                  private GH_Document GHDocument = OnPingDocument();
@@ -276,21 +255,15 @@ namespace EddyLib
                         {
                             HourlyUTCI[i, h] = double.Parse(allLines[i].Split(',')[h]);
                         }
-
                     });
 
             //var hoursToEvaluate = Utilities.GetEvalHoursFromLB(ladybugAnalysisPeriod);
 
-
-
             //system.threading.tasks.parallel.for (0, numberofprobes,
             //  i =>
             //  {
-
             for (int probes = 0; probes < numberOfProbes; probes++)
             {
-
-
                 int comfortCnt = 0;
                 foreach (int hour in hoursToEvaluate)
                 {
@@ -298,22 +271,17 @@ namespace EddyLib
                     {
                         //HourlyHumanConditions[i,hour]=UTCI.GetConditionOfPerson(HourlyUTCI[i, hour]);
                         comfortCnt++;
-
                     }
-
                 }
                 ComfortHours[probes] = Math.Round((double)comfortCnt * 100 / hoursToEvaluate.Count, 1);
                 //});
             }
 
             return ComfortHours;
-
         }
-
 
         public static int CalcConditionOfPerson(double UTCI)
         {
-
             int cOfPerson = 0;
 
             if (UTCI < -40)
@@ -364,20 +332,12 @@ namespace EddyLib
             return cOfPerson;
         }
 
-
-
         public static void UTCI2CSV(string workingDir, UTCI utci, bool verboseMode, int[] debugValue, Weather weather, BoundaryConditions BCond, StringBuilder errorLog, int numberOfHours = 8760)
         {
-
-
             //    string workingDir, double[][] probes, int numberOfHours, bool verboseMode, bool[,] uncertaintyMRTArray, bool[,] uncertaintyWindArray, double[,] UTCIArray, int[] debugValue, Weather weather, StringBuilder errorLog, double[][] DiffRad, double[][] DirRad, double[,] windReduction,
             //BoundaryConditions BCond
 
-
-
-
             int sensorPointCount = utci.probes.Length;
-
 
             //Write Array to file
             StringBuilder sbUtci = new StringBuilder();
@@ -398,13 +358,11 @@ namespace EddyLib
             int counter = 0;
             for (int probe = 0; probe < sensorPointCount; probe++)
             {
-
                 //Percentage for each sensorpoint
                 int cntSensorPercent = 0;
                 sbUtciUncertainty.Append("SP: " + probe + ",");
                 for (int i = 0; i < numberOfHours; i++)
                 {
-
                     if (utci.uncertaintyMRTArray[i, probe] == true || utci.uncertaintyWindArray[i, probe] == true)
                     {
                         cntSensorPercent++;
@@ -418,8 +376,6 @@ namespace EddyLib
                 {
                     if (utci.uncertaintyMRTArray[hour, probe] == true || utci.uncertaintyWindArray[hour, probe] == true)
                     {
-
-
                         sbUtciUncertainty.Append(hour + ",");
                         counter++;
                     }
@@ -429,13 +385,11 @@ namespace EddyLib
             sbUtciUncertainty.AppendLine("Total incidents of uncertainty: " + counter + " or " + Math.Round((double)counter * 100 / (numberOfHours * sensorPointCount), 0) + " % overall annual uncertainty");
             File.WriteAllText(workingDir + @"\UTCI.uncertainty", sbUtciUncertainty.ToString());
 
-
             //Write Debug info to file
 #if DEBUG
             StringBuilder sbUtciDEBUG = new StringBuilder();
 
             sbUtciDEBUG.AppendLine(@"UTCI for sensor point " + debugValue[1] + " over all hours of the year:");
-
 
             var currentProbingPoint = new Point3d(utci.probes[debugValue[1]][0], utci.probes[debugValue[1]][1], utci.probes[debugValue[1]][2]);
             var probingHeight = currentProbingPoint.Z;
@@ -445,7 +399,6 @@ namespace EddyLib
 
             for (int hour = 0; hour < numberOfHours; hour++)
             {
-
                 sbUtciDEBUG.Append(String.Format("{0:0.0}", utci.Values[hour, debugValue[1]]) + ",");
             }
             sbUtciDEBUG.Append(Environment.NewLine); sbUtciDEBUG.Append(Environment.NewLine);
@@ -454,7 +407,6 @@ namespace EddyLib
             //sbUtciDEBUG.AppendLine("MRT: " + String.Format("{0:0.0}", mrt.Values[debugValue[0]][debugValue[1]]);
             sbUtciDEBUG.AppendLine("Vapour pressure: " + weather.Pressure[debugValue[0]]);
             sbUtciDEBUG.AppendLine("Relative humidity: " + weather.RelativeHumidity[debugValue[0]]);
-
 
             sbUtciDEBUG.AppendLine("Wind speed from .epw: " + String.Format("{0:0.0}", weather.WindSpeed[debugValue[0]]));
             //sbUtciDEBUG.AppendLine("probingHeight from CFD: " + String.Format("{0:0.0}", probingHeight));
@@ -467,16 +419,10 @@ namespace EddyLib
             File.WriteAllText(workingDir + @"\UTCI_debug_hour_" + debugValue[0] + "_probe_" + debugValue[1] + ".csv", sbUtciDEBUG.ToString());
 #endif
 
-
-
             if (verboseMode)
             {
                 File.WriteAllText(workingDir + @"\UTCI.err", errorLog.ToString());
             }
-
-
-
-
         }
 
         private static double CalcPa(double TaC, double RH)
@@ -493,8 +439,6 @@ namespace EddyLib
 
         public static void Binning(List<double> Vals, ref object StrngCold, ref object MdrtCold, ref object SlgtCold, ref object NoStress, ref object SlgtHeat, ref object MdrtHeat, ref object StrngHeat)
         {
-
-
             int sC = 0;
             int mC = 0;
             int lC = 0;
@@ -505,7 +449,6 @@ namespace EddyLib
 
             foreach (int v in Vals)
             {
-
                 if (v == 3)
                 {
                     sH += 1;
@@ -544,7 +487,6 @@ namespace EddyLib
             SlgtHeat = Math.Round((double)lH / Vals.Count, 3);
             MdrtHeat = Math.Round((double)mH / Vals.Count, 3);
             StrngHeat = Math.Round((double)sH / Vals.Count, 3);
-
         }
 
         public static void ConditionOfPerson(List<double> UTCI, ref object conditionOfPerson)
@@ -554,8 +496,6 @@ namespace EddyLib
 
             for (int i = 0; i < UTCI.Count; i++)
             {
-
-
                 condition = UTCI[i];
                 if (UTCI[i] < -13)
                 {
@@ -591,6 +531,7 @@ namespace EddyLib
 
             conditionOfPerson = rtl;
         }
+
         public static void Colors(List<double> Vals, ref object Clrs)
         {
             List<Color> cl = new List<Color>();
@@ -629,7 +570,6 @@ namespace EddyLib
             }
 
             Clrs = cl;
-
         }
 
         // Not being used
@@ -645,7 +585,6 @@ namespace EddyLib
         //    // es = saturation vapour pressure in Pa
         //    // T is temperature in K
         //    // g is list of coefficients for curve fit
-
 
         //    double T_kelvin;
         //    //int I;
@@ -672,10 +611,8 @@ namespace EddyLib
         //    return es;
         //}
 
-
         //private static double UTCI_approx(double Ta, double ehPa, double Tmrt, double va)
         //{
-
         //    //!~DOUBLE PRECISION Function value is the UTCI in degree Celsius
         //    //!~computed by a 6th order approximating polynomial from the 4 Input paramters
         //    //!~
@@ -923,7 +860,6 @@ namespace EddyLib
         //    // T is temperature in K
         //    // g is list of coefficients for curve fit
 
-
         //    double T_kelvin;
         //    //int I;
         //    double[] g = {
@@ -948,7 +884,5 @@ namespace EddyLib
 
         //    return es;
         //}
-
-
     }
 }

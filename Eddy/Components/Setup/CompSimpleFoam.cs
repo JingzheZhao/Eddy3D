@@ -168,7 +168,7 @@ namespace Eddy
                 //}
 
             }
-            baseWorkingDirectory = Utilities.FixDirectories(baseWorkingDirectory);
+            baseWorkingDirectory = Utilities.Directories.FixDirectories(baseWorkingDirectory);
                        
             // meshing settings
             //-----------------
@@ -265,9 +265,9 @@ namespace Eddy
             if (RunSettings.simEngine == SimEngine.Docker)
             {
 
-                Utilities.WriteDockerInfo(baseWorkingDirectory);
+                Utilities.Docker.WriteDockerInfo(baseWorkingDirectory);
 
-                if (!Utilities.IsDockerRunning(baseWorkingDirectory, RunSettings.ostype))
+                if (!Utilities.Docker.IsDockerRunning(baseWorkingDirectory, RunSettings.ostype))
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Blank, @"It seems that Docker is not running. Please start the application ""Docker for Windows"".");
                 }
@@ -309,13 +309,13 @@ namespace Eddy
             if (runMeshing == true)
             {
                 Utilities.DeletePhi(MeshSettings, DOM);
-                Utilities.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_mesh.bat");
+                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_mesh.bat");
             }
 
             if (runSimulation == true)
             {
                 Utilities.DeletePhi(MeshSettings, DOM);
-                Utilities.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_sim_all.bat");
+                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_sim_all.bat");
             }
 
 

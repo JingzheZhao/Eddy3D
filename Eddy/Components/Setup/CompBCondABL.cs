@@ -84,22 +84,11 @@ namespace Eddy
 
             if (epwFilePath == "")
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Without a weather file (.epw) connected you will not be able to perform outdoor comfort calculations.");
-            }
-            if (windDir.Count == 0)
-            {
-                windDir.Add(0);
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Without a weather file (.epw) connected to your BC you will not be able to perform outdoor comfort calculations.");
             }
 
-            for (int i = 0; i < windDir.Count; i++)
-            {
-                if (windDir[i] > 359)
-                {
-                    int j = windDir[i] / 360;
-                    windDir[i] = windDir[i] - (360 * j);
-                }
-                else { windDir[i] = windDir[i]; }
-            }
+            // Translate dirs > 359 into correct format
+            windDir = Utilities.NormalizeWindDirs(windDir);
 
 
             BoundaryConditions BCInflow = new BoundaryConditions(BoundaryType.abl, windDir, Uref, zref, z0, zGround, epwFilePath);

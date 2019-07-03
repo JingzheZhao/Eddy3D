@@ -63,7 +63,7 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Res", "Res", "Res", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Dirs", "Dirs", "Dirs", GH_ParamAccess.list);
+            pManager.AddIntegerParameter("Dirs", "Dirs", "Dirs", GH_ParamAccess.list);
             pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item);
 
             pManager[1].Optional = true;
@@ -116,7 +116,7 @@ namespace Eddy
             // Write load script
 
             var scriptPath = RES.WorkingDirectory + "openParaview.py";
-            var scriptContent = Utilities.GetParaviewLoadScript(RES.WorkingDirectory, dirs);
+            var scriptContent = Utilities.PrepareParaviewLoadScript(RES.WorkingDirectory, dirs);
 
             File.WriteAllText(scriptPath, scriptContent);
 
@@ -130,7 +130,7 @@ namespace Eddy
 
             // "C:\\Program Files\\ParaView 5.6.0-Windows-msvc2015-64bit\\bin\\paraview.exe\" \"C:\\testDomain\\259\\259.foam
             string paraViewPath = "\"" + EddyLib.Utilities.GetParaviewPath(version) + "\" " + @"--script=" + "\"" + scriptPath + "\"";
-            EddyLib.Utilities.StartProcessCMDNT(paraViewPath, true, false, true);
+            EddyLib.Utilities.StartProcess.StartProcessCMDNT(paraViewPath, true, false, true);
 
 
 

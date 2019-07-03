@@ -54,12 +54,12 @@
             meshConstantDir = baseWorkingDirectory + @"\mesh\constant\";
             meshWorkingDir = baseWorkingDirectory + @"\mesh\";
 
-            OFbaseWorkingDir = Utilities.ReformatWorkingDir(baseWorkingDirectory);
-            OFmeshStlDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\triSurface\");
-            OFmeshPolyMeshDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\polyMesh\");
-            OFmeshSystemDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\system\");
-            OFmeshConstantDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\");
-            OFmeshWorkingDir = Utilities.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\");
+            OFbaseWorkingDir = Utilities.Directories.ReformatWorkingDir(baseWorkingDirectory);
+            OFmeshStlDir = Utilities.Directories.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\triSurface\");
+            OFmeshPolyMeshDir = Utilities.Directories.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\polyMesh\");
+            OFmeshSystemDir = Utilities.Directories.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\system\");
+            OFmeshConstantDir = Utilities.Directories.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\");
+            OFmeshWorkingDir = Utilities.Directories.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\");
 
             meshStlFilenameBuildings = baseWorkingDirectory + @"\mesh\constant\triSurface\building.stl";
             meshStlFilenameGround = baseWorkingDirectory + @"\mesh\constant\triSurface\ground.stl";
