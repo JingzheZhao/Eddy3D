@@ -52,7 +52,7 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             //pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.tree);
             //  pManager.AddGenericParameter("MRT_T", "MRT_T", "MRT_T", GH_ParamAccess.tree);
         }
 
@@ -64,7 +64,7 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             GH_ObjectWrapper gobj = null;
-            if (!DA.GetData("In", ref gobj)) { }
+            if (!DA.GetData(0, ref gobj)) { }
 
             if ((gobj.Value is MRT))
             {
