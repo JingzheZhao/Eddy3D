@@ -530,6 +530,21 @@ namespace EddyLib.StrTemp
         {
             string workDir = MeshSettings.baseWorkingDir.Trim('\\');
             StringBuilder sb = new StringBuilder();
+            sb.AppendLine(@"CallRay.exe
+CallRay 1.0.0.0
+Copyright c  2018
+
+ERROR(S):
+  -d / --workingDir required option is missing.
+  - w / --weather required option is missing.
+
+  - d, --workingDir    Required.Working directory.
+
+  - w, --weather       Required.EPW weather file path.
+
+  - l, --loud(Default: True) Prints all messages to standard output.
+
+  --help              Display this help screen.");
             sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallRay.exe\" " + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCond.epwFilePath + "\"");
 #if DEBUG
 

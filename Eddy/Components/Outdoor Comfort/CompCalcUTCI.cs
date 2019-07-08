@@ -86,7 +86,7 @@ namespace Eddy
                 WindFactors windFactors = null;
                 DA.GetData("Wind Factors", ref windFactors);
 
-                int sensorPointCount = windFactors.windFactors.Length;
+                int sensorPointCount = windFactors.Values.GetLength(1);
                 double[,] Utci = new double[8760, sensorPointCount];
                 //double[,] conditionOfPerson = new double[8760, sensorPointCount];
 
@@ -125,7 +125,7 @@ namespace Eddy
 
             if (utci != null)
             {
-                DA.SetData(0, utci.Values);
+                DA.SetData(0, utci);
             }
         }
 

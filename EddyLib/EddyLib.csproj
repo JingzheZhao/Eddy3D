@@ -71,7 +71,8 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
   </ItemGroup>
-  <ItemGroup>   
+  <ItemGroup>
+    <Compile Include="ArrayHelper.cs" />
     <Compile Include="ASCIProgressBar.cs" />
     <Compile Include="Attributes\Eddy_ComponentAttributes.cs" />
     <Compile Include="Attributes\Eddy_ComponentButtonAttributes.cs" />
@@ -114,12 +115,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ArrayHelper.cs">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ArrayHelper1.cs</LastGenOutput>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

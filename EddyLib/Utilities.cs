@@ -9,8 +9,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using Deedle;
-using Grasshopper;
-using Grasshopper.Kernel.Data;
 using Rhino.Geometry;
 
 namespace EddyLib
@@ -63,7 +61,7 @@ namespace EddyLib
 
                 if (waitforexit)
                 {
-                    Console.ReadLine();
+                    //Console.ReadLine();
                     p.WaitForExit();
                 }
                 if (close) { p.Close(); }
@@ -701,18 +699,6 @@ namespace EddyLib
             return processGotKilled;
         }
 
-        public static DataTree<T> ListOfListsToTree<T>(List<List<T>> list)
-        {
-            DataTree<T> tree = new DataTree<T>();
-            int i = 0;
-            foreach (List<T> innerList in list)
-            {
-                tree.AddRange(innerList, new GH_Path(new int[] { 0, i }));
-                i++;
-            }
-            return tree;
-        }
-
         public static List<string> FileReader(string filePath)
         {
             string line;
@@ -845,40 +831,6 @@ namespace EddyLib
                 evalHours.Add(i);
             }
             return evalHours;
-        }
-
-        public static T[,] To2D<T>(T[][] source)
-        {
-            try
-            {
-                int FirstDim = source.Length;
-                int SecondDim = source.GroupBy(row => row.Length).Single().Key; // throws InvalidOperationException if source is not rectangular
-
-                var result = new T[FirstDim, SecondDim];
-                for (int i = 0; i < FirstDim; ++i)
-                    for (int j = 0; j < SecondDim; ++j)
-                        result[i, j] = source[i][j];
-
-                return result;
-            }
-            catch (InvalidOperationException)
-            {
-                throw new InvalidOperationException("The given jagged array is not rectangular.");
-            }
-        }
-
-        public static TOutput[,] ConvertAll<TInput, TOutput>(TInput[,] array, Func<TInput, TOutput> converter)
-        {
-            int length0 = array.GetLength(0);
-            int length1 = array.GetLength(1);
-
-            var result = new TOutput[length0, length1];
-
-            for (int i = 0; i < length0; i++)
-                for (int j = 0; j < length1; j++)
-                    result[i, j] = converter(array[i, j]);
-
-            return result;
         }
 
         public static bool CheckForDuplicates(List<GeometryBase> geo)
@@ -1292,115 +1244,6 @@ renderView1.CameraParallelProjection = 1
 
         //    return ShapeInsideBrep;
         //}
-
-        public static object[][] CreateJaggedMatrix(int rows, int columns)
-        {
-            object[][] matrix = new object[rows][];
-
-            for (int i = 0; i < matrix.Length; i++)
-            {
-                matrix[i] = new object[columns];
-            }
-
-            return matrix;
-        }
-
-        public static void JaggedArray2CSV(double[][] data, string filePath)
-        {
-            //writing output to csv
-
-            using (StreamWriter outfile = new StreamWriter(filePath))
-            {
-                for (int x = 0; x < data.Length; x++)
-                {
-                    string content = "";
-                    for (int y = 0; y < data[x].Length; y++)
-                    {
-                        content += data[x][y].ToString() + ",";
-                    }
-                    //trying to write data to csv
-                    outfile.WriteLine(content);
-                }
-            }
-        }
-
-        public static double[,] TransposeRowsAndColumns(double[,] arr)
-        {
-            int rowCount = arr.GetLength(0);
-            int columnCount = arr.GetLength(1);
-            double[,] transposed = new double[columnCount, rowCount];
-            if (rowCount == columnCount)
-            {
-                transposed = (double[,])arr.Clone();
-                for (int i = 1; i < rowCount; i++)
-                {
-                    for (int j = 0; j < i; j++)
-                    {
-                        double temp = transposed[i, j];
-                        transposed[i, j] = transposed[j, i];
-                        transposed[j, i] = temp;
-                    }
-                }
-            }
-            else
-            {
-                for (int column = 0; column < columnCount; column++)
-                {
-                    for (int row = 0; row < rowCount; row++)
-                    {
-                        transposed[column, row] = arr[row, column];
-                    }
-                }
-            }
-            return transposed;
-        }
-
-        public static void _2DArray2CSV(double[,] data, string filePath, bool truncateDoubles, int truncateBy = 1)
-        {
-            //writing output to csv
-
-            if (!truncateDoubles)
-            {
-                using (StreamWriter outfile = new StreamWriter(filePath))
-                {
-                    for (int x = 0; x <= data.GetUpperBound(0); x++)
-                    {
-                        string content = "";
-
-                        for (int y = 0; y <= data.GetUpperBound(1); y++)
-                        {
-                            content += data[x, y].ToString() + ",";
-                        }
-                        //trying to write data to csv
-                        outfile.WriteLine(content);
-                    }
-                }
-            }
-            else
-            {
-                using (StreamWriter outfile = new StreamWriter(filePath))
-                {
-                    for (int x = 0; x <= data.GetUpperBound(0); x++)
-                    {
-                        string content = "";
-
-                        for (int y = 0; y <= data.GetUpperBound(1); y++)
-                        {
-                            content += Math.Round(data[x, y], truncateBy).ToString() + ",";
-                        }
-                        //trying to write data to csv
-                        outfile.WriteLine(content);
-                    }
-                }
-            }
-        }
-
-        public static object[][] CSV2JaggedArray(String filePath)
-        {
-            object[][] data = File.ReadLines(filePath).Select(x => x.Split(',')).ToArray();
-
-            return data;
-        }
 
         public static void DownLoadFile(string URL, string FilePath)
         {

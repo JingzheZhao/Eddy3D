@@ -196,7 +196,7 @@ namespace Eddy
                     GHDocument.RequestAbortSolution();
                 }
 
-                Utilities._2DArray2CSV(mrt.Values, csvMRT, true, 1);
+                ArrayHelper._2DArray2CSV(mrt.Values, csvMRT, true, 1);
 
                 DA.SetData(0, mrt);
             }

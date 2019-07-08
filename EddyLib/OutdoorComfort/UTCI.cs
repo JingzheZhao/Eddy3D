@@ -36,7 +36,7 @@ namespace EddyLib
         public UTCI(Point3d[] pointProbes, WindFactors wf, Weather weather, MRT mrt, BoundaryConditions bcond, string workingDir)
         {
             this.probes = pointProbes;
-            this.windReduction = wf.windFactors;
+            this.windReduction = wf.Values;
             this.z0 = bcond.z0;
             this.zref = bcond.zref;
 
@@ -51,6 +51,7 @@ namespace EddyLib
             this.uncertaintyMRTArray = new bool[numberOfHours, sensorPointCount];
             this.uncertaintyWindArray = new bool[numberOfHours, sensorPointCount];
             this.Values = new double[numberOfHours, sensorPointCount];
+            this.Condition = new double[numberOfHours, sensorPointCount];
 
             var tempUtci = this.Values;
             var tempuncertaintyMRTArray = uncertaintyMRTArray;

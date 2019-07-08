@@ -4,7 +4,7 @@ using Grasshopper.GUI.Canvas;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Attributes;
 
-namespace Ironbug.Grasshopper.Component
+namespace EddyLib
 {
     public class Eddy_ComponentAttributes : GH_ComponentAttributes
     {

@@ -116,7 +116,7 @@ namespace EddyLib
 
             // Stupid formatting of this file creates 4 columns
             int columnsCnt = 4;
-            var Matrix = Utilities.CreateJaggedMatrix(txt.Length, columnsCnt);
+            var Matrix = ArrayHelper.CreateJaggedMatrix(txt.Length, columnsCnt);
 
             for (int i = 1; i < txt.Length; i++)
             {

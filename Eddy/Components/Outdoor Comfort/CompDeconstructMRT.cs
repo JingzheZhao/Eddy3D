@@ -3,6 +3,8 @@ using Eddy.Properties;
 using EddyLib;
 using Grasshopper;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Data;
+using Grasshopper.Kernel.Types;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -36,7 +38,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Data", "Data", "Data", GH_ParamAccess.item);
+            pManager.AddGenericParameter("In", "In", "In", GH_ParamAccess.item);
             //pManager.AddIntegerParameter("windDirs", "windDirs", "windDirs", GH_ParamAccess.list);
             //pManager.AddTextParameter("pointName", "pointName", "pointName", GH_ParamAccess.item);
             // pManager.AddIntegerParameter("Hours", "H", "Hours", GH_ParamAccess.list);
@@ -50,7 +52,7 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             //pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Data", "Data", "Data", GH_ParamAccess.tree);
+            pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.item);
             //  pManager.AddGenericParameter("MRT_T", "MRT_T", "MRT_T", GH_ParamAccess.tree);
         }
 
@@ -61,19 +63,61 @@ namespace Eddy
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            MRT mrt = null;
+            GH_ObjectWrapper gobj = null;
+            if (!DA.GetData("In", ref gobj)) { }
 
-            DA.GetData(0, ref mrt);
-
-            DataTree<double> mrtTree = new DataTree<double>();
-
-            for (int h = 0; h < 8760; h++)
+            if ((gobj.Value is MRT))
             {
-                var tempRow = ArrayHelper.CustomArray<double>.GetRow(mrt.Values, h);
-                mrtTree.AddRange(tempRow, new Grasshopper.Kernel.Data.GH_Path(h));
-            }
+                MRT mrt = null;
 
-            DA.SetDataTree(0, mrtTree);
+                DA.GetData(0, ref mrt);
+
+                DataTree<double> tree = new DataTree<double>();
+
+                for (int h = 0; h < 8760; h++)
+                {
+                    var tempRow = ArrayHelper.CustomArray<double>.GetRow(mrt.Values, h);
+                    tree.AddRange(tempRow, new Grasshopper.Kernel.Data.GH_Path(h));
+                }
+
+                DA.SetDataTree(0, tree);
+            }
+            else if ((gobj.Value is WindFactors))
+            {
+                WindFactors wf = null;
+
+                DA.GetData(0, ref wf);
+
+                DataTree<double> tree = new DataTree<double>();
+
+                for (int h = 0; h < 8760; h++)
+                {
+                    var tempRow = ArrayHelper.CustomArray<double>.GetRow(wf.Values, h);
+                    tree.AddRange(tempRow, new Grasshopper.Kernel.Data.GH_Path(h));
+                }
+
+                DA.SetDataTree(0, tree);
+            }
+            else if ((gobj.Value is UTCI))
+            {
+                UTCI utci = null;
+
+                DA.GetData(0, ref utci);
+
+                DataTree<double> tree = new DataTree<double>();
+
+                for (int h = 0; h < 8760; h++)
+                {
+                    var tempRow = ArrayHelper.CustomArray<double>.GetRow(utci.Values, h);
+                    tree.AddRange(tempRow, new Grasshopper.Kernel.Data.GH_Path(h));
+                }
+
+                DA.SetDataTree(0, tree);
+            }
+            else
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid Outdoor Comfort object"); return;
+            }
         }
 
         /// <summary>

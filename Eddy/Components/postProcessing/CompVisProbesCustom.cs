@@ -5,9 +5,10 @@ using System.Linq;
 using System.Text;
 using Eddy.Properties;
 using EddyLib;
-using Grasshopper;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Parameters;
+using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 
 // In order to load the result of this wizard, you will also need to
@@ -174,8 +175,8 @@ namespace Eddy
                 throw new System.ArgumentException("The mesh folder is empty. Can't retrieve probes from a mesh that does not exist.");
             }
 
-            DataTree<double> treeDouble = new DataTree<double>();
-            DataTree<Vector3d> treeVector = new DataTree<Vector3d>();
+            GH_Structure<GH_Number> treeDouble = new GH_Structure<GH_Number>();
+            GH_Structure<GH_Vector> treeVector = new GH_Structure<GH_Vector>();
 
             string ofField = OFField.ReformatOFFields(OFFieldInt);
             OFField currField = new OFField(ofField, enumeratedProbeName);
@@ -240,7 +241,7 @@ namespace Eddy
                             {
                                 Probing Numbers = new Probing(listOfPoints, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i]);
                                 // Create datatree
-                                treeDouble.AddRange(Probing.FilterExtremeProbingValues(Numbers.ResultNum), new Grasshopper.Kernel.Data.GH_Path(i));
+                                treeDouble.AppendRange(Numbers.ResultNum, new Grasshopper.Kernel.Data.GH_Path(i));
                             }
                             else
                             {
@@ -309,8 +310,7 @@ namespace Eddy
                             {
                                 Probing Vectors = new Probing(listOfPoints, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i]);
                                 // Create datatree
-
-                                treeVector.AddRange(Vectors.ResultVec, new Grasshopper.Kernel.Data.GH_Path(i));
+                                treeVector.AppendRange(Vectors.ResultVec, new Grasshopper.Kernel.Data.GH_Path(i));
                             }
                             else
                             {
@@ -323,7 +323,7 @@ namespace Eddy
                 }
                 catch (Exception)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"This data does not exist yet. Please run the probing component.");
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Parsing of the probes failed. This data does not exist yet. Please run the probing component.");
                     //throw new System.ArgumentException("This data does not exist yet. Please run the probing component.");
                 }
             }

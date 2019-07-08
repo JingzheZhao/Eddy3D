@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using Grasshopper.Kernel;
-using Ironbug.Grasshopper.Component;
 
 namespace EddyLib
 {

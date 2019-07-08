@@ -121,7 +121,9 @@ namespace CallOC
                         //// Importing probeHeight from probe file to scale U down to pedestrian level
                         Console.WriteLine("Parsing height of probes to scale down wind velocity from weather file.");
 
-                        double[][] probes = EddyLib.RadianceFiles.readPTS(options.WorkingDir + @"\Rad\sensors.pts");
+                        var probesPath = options.WorkingDir + @"\Rad\sensors.pts";
+
+                        double[][] probes = EddyLib.RadianceFiles.readPTS(probesPath);
 
                         //var arbitraryProbePoint = new Point3d(probes[0][0], probes[0][1], probes[0][2]);
 
@@ -144,11 +146,17 @@ namespace CallOC
 
                         BoundaryConditions bcond = new BoundaryConditions(BoundaryType.abl, windDirList, URef, z0, weather.epwFilePath);
 
+                        #region Annual Velocities
+
+                        var dirs = Array.ConvertAll(options.WindDirs.Split(','), int.Parse);
+                        var vecs = AnnualVelocities.ReadAnnualVelocitiesFromCSV(options.AnnualVelocityProbes).Item2;
+                        AnnualVelocities av = new AnnualVelocities(dirs, vecs, options.AnnualVelocityProbes, true);
+
+                        #endregion Annual Velocities
+
                         #region Wind Factors
 
-                        var velocityProbes = RadianceFiles.readCSVFile(options.AnnualVelocityProbes);
-
-                        WindFactors wf = new WindFactors(options.WorkingDir, bcond, weather, );
+                        WindFactors wf = new WindFactors(options.WorkingDir, bcond, weather, av, options.Interpolate);
 
                         #endregion Wind Factors
 
@@ -229,6 +237,10 @@ internal class Options
     [Option('d', "workingDir", Required = true,
     HelpText = "Working directory.")]
     public string WorkingDir { get; set; }
+
+    [Option('i', "interpolation", Required = true,
+    HelpText = "Interpolate between wind directions.")]
+    public bool Interpolate { get; set; }
 
     //[Option('o', "output", Required = true,
     //HelpText = "Output file path")]

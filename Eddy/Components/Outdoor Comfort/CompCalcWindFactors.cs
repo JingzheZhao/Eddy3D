@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using Eddy.Properties;
+using System.Windows.Forms;
 using EddyLib;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Data;
+using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 
 // In order to load the result of this wizard, you will also need to
@@ -33,6 +35,36 @@ namespace Eddy
         {
         }
 
+        protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
+        {
+            base.AppendAdditionalComponentMenuItems(menu);
+            Menu_AppendItem(menu, "No interpolation", Menu_DoClick, true, !interpolate);
+        }
+
+        private void Menu_DoClick(object sender, EventArgs e)
+        {
+            interpolate = !interpolate;
+            ExpireSolution(true);
+        }
+
+        public bool interpolate = true;
+
+        public override bool Write(GH_IO.Serialization.GH_IWriter writer)
+        {
+            // First add our own field.
+            writer.SetBoolean("Interpolation", interpolate);
+            // Then call the base class implementation.
+            return base.Write(writer);
+        }
+
+        public override bool Read(GH_IO.Serialization.GH_IReader reader)
+        {
+            // First read our own field.
+            interpolate = reader.GetBoolean("Interpolation");
+            // Then call the base class implementation.
+            return base.Read(reader);
+        }
+
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
@@ -40,7 +72,7 @@ namespace Eddy
         {
             pManager.AddGenericParameter("Res", "Res", "Res", GH_ParamAccess.item);
             //pManager.AddIntegerParameter("windDirs", "windDirs", "windDirs", GH_ParamAccess.list);
-            pManager.AddNumberParameter("U", "U", "U", GH_ParamAccess.item);
+            pManager.AddVectorParameter("U", "U", "U", GH_ParamAccess.tree);
             // pManager.AddIntegerParameter("Hours", "H", "Hours", GH_ParamAccess.list);
             pManager.AddPointParameter("Probes", "Probes", "Probes", GH_ParamAccess.list);
             pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item);
@@ -63,6 +95,10 @@ namespace Eddy
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            // mode to select environment
+            if (!interpolate) { Message = "No interpolation"; }
+            else { Message = "Interpolation"; }
+
             OFResult RES = null;
             DA.GetData(0, ref RES);
 
@@ -73,13 +109,17 @@ namespace Eddy
             List<Point3d> probes = new List<Point3d>();
             DA.GetDataList("Probes", probes);
             var numberOfProbes = probes.Count;
-            var probesArr = probes.ToArray();
 
             bool run = false;
             DA.GetData("Run", ref run);
 
-            List<Vector3d> U = new List<Vector3d>();
-            DA.GetDataList("U", U);
+            // Do not use DataTree inside actual components, it is only meant to be used inside script components. Use GH_Structure instead. https://www.grasshopper3d.com/forum/topics/getdatatree-fro-a-datatree-point3d
+            // DataTree and GH_Structure are annoyingly similar yet non-overlapping classes.GH_Structure is used by Grasshopper itself to store data, DataTree is a version that was made specifically for the use inside script components.This part of the SDK is a mess but there's nothing we can do about it at this point.
+
+            //Grasshopper.Kernel.Data.GH_Structure<Grasshopper.Kernel.Types.IGH_Goo> U = null;
+            //DA.GetDataTree("U", out U);//
+            DA.GetDataTree("U", out GH_Structure<GH_Vector> U);
+            //DA.GetDataTree("U", out DataTree<Vector> U);
 
             #region Load weather
 
@@ -98,64 +138,55 @@ namespace Eddy
 
             #endregion Load weather
 
-            // this is all still MRT
+            var csvAnnualVelProbes = RES.WorkingDirectory + "AnnualVelocityProbes.csv";
 
-            var Matrix = new double[8760, numberOfProbes];
+            #region Annual Velocities
+
+            AnnualVelocities av = new AnnualVelocities(RES.Domain.BCond.windDirs.ToArray(), ArrayHelper.To2DArrayVec3d(U), csvAnnualVelProbes, true);
+
+            #endregion Annual Velocities
 
             var csvWindFactors = RES.WorkingDirectory + @"WindFactors.csv";
 
-            WindFactors wf = null;
+            WindFactors wf = new WindFactors(RES.WorkingDirectory, RES.Domain.BCond, weather, av, interpolate);
+            var numberOfProbesCSV = RadianceFiles.readCSVFile(csvAnnualVelProbes).GetLength(1);
 
             if (File.Exists(csvWindFactors) && !run)
             {
-                Matrix = RadianceFiles.readCSVFile(csvWindFactors);
-
-                var numberOfProbesCSV = Matrix.GetUpperBound(1) + 1;
-                if (numberOfProbesCSV == numberOfProbes)
+                if (numberOfProbesCSV != numberOfProbes)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated MRT results have been loaded.");
-
-                    wf = new WindFactors(RES.WorkingDirectory, RES.Domain.BCond, weather, U);
-                    wf.windFactors = Matrix;
-
-                    DA.SetData(0, wf);
-                }
-                else
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The precalculated MRT array has the wrong number of probing points. Please recalculate.");
+                    {
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The precalculated WindFactors array has the wrong number of probing points. Please recalculate.");
+                    }
                 }
             }
-
-            // Array casting
-            //var MRT = Matrix.Cast<double[]>().ToArray();
-            //double[][] MRT2 = ((object[][])Matrix).Select(x => x.Select(y => Convert.ToDouble(y)).ToArray()).ToArray();
 
             if (run)
             {
-                //  [x][]  time
-                //  [][x]  points
-
-                wf = new WindFactors(RES.WorkingDirectory, RES.Domain.BCond, weather);
-
-                if (GH_Document.IsEscapeKeyDown())
+                if (numberOfProbesCSV == numberOfProbes)
                 {
-                    GH_Document GHDocument = OnPingDocument();
-                    GHDocument.RequestAbortSolution();
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated WindFactors results have been loaded.");
                 }
 
-                Utilities._2DArray2CSV(wf.windFactors, csvWindFactors, true, 1);
-
-                DA.SetData(0, wf);
+                ArrayHelper._2DArray2CSV(wf.Values, csvWindFactors, true, 1);
             }
+
+            if (GH_Document.IsEscapeKeyDown())
+            {
+                GH_Document GHDocument = OnPingDocument();
+                GHDocument.RequestAbortSolution();
+            }
+
+            DA.SetData(0, wf);
         }
 
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface.
         /// Icons need to be 24x24 pixels.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon =>
-                // You can add image files to your project resources and access them like this:
-                Resources.Eddy_calMRT;
+        //protected override System.Drawing.Bitmap Icon =>
+        // You can add image files to your project resources and access them like this:
+        //Resources.Eddy_calMRT;
 
         /// <summary>
         /// Each component must have a unique Guid to identify it.

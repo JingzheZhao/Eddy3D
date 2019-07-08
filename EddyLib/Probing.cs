@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Grasshopper.Kernel;
+using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 
 namespace EddyLib
@@ -123,9 +125,11 @@ namespace EddyLib
 
     public class Probing
     {
-        public double[] ResultNum;
-        public Vector3d[] ResultVec;
-        public string valueString;
+        public GH_Number[] ResultNum;
+        public GH_Vector[] ResultVec;
+
+        //public string valueString;
+        public int correspondingWindDir;
 
         private readonly List<Point3d> listOfPoints;
 
@@ -151,6 +155,7 @@ namespace EddyLib
             {
                 ParsingVectors(listOfPoints, caseDirectory, fullPath);
             }
+            this.currWindDir = currWindDir;
             WriteProbedResultToCSV(ofField);
         }
 
@@ -159,25 +164,30 @@ namespace EddyLib
             string PostProcessDirCurrCase = caseDirectory + @"\postProcessing\";
             string PostProcessDirBaseCase = baseWorkingDirectory + @"\postProcessing\";
 
+            if (!Directory.Exists(PostProcessDirBaseCase))
+            {
+                Directory.CreateDirectory(PostProcessDirBaseCase);
+            }
+
             if (ofField.FieldType == OFField.fieldType.number)
             {
                 StringBuilder sb = new StringBuilder();
-                foreach (double i in ResultNum)
+                foreach (GH_Number i in ResultNum)
                 {
                     sb.AppendLine(i.ToString());
                 }
                 File.WriteAllText(PostProcessDirCurrCase + ofField.ProbeName + ".csv", sb.ToString());
-                File.WriteAllText(PostProcessDirBaseCase + currWindDir + ofField.ProbeName + ".csv", sb.ToString());
+                File.WriteAllText(PostProcessDirBaseCase + currWindDir + "_" + ofField.ProbeName + ".csv", sb.ToString());
             }
             if (ofField.FieldType == OFField.fieldType.vector)
             {
                 StringBuilder sb = new StringBuilder();
-                foreach (Vector3d i in ResultVec)
+                foreach (GH_Vector i in ResultVec)
                 {
                     sb.AppendLine(i.ToString());
                 }
                 File.WriteAllText(PostProcessDirCurrCase + ofField.ProbeName + ".csv", sb.ToString());
-                File.WriteAllText(PostProcessDirBaseCase + currWindDir + ofField.ProbeName + ".csv", sb.ToString());
+                File.WriteAllText(PostProcessDirBaseCase + currWindDir + "_" + ofField.ProbeName + ".csv", sb.ToString());
             }
         }
 
@@ -187,15 +197,18 @@ namespace EddyLib
 
             StringBuilder sb = new StringBuilder();
 
-            ResultNum = new double[counterPoints];
+            ResultNum = new GH_Number[counterPoints];
             string lastLine = File.ReadLines(fullPath).Where(line => line != "").Last();
 
             for (int i = 0; i < counterPoints; i++)
             {
-                ResultNum[i] = double.Parse(lastLine.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[i + 1]); //this workes
-                sb.AppendLine(ResultNum[i].ToString());
+                var temp = double.Parse(lastLine.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[i + 1]); //this workes
+                var target = new GH_Number(0);
+                var conversion = GH_Convert.ToGHNumber(temp, GH_Conversion.Both, ref target);
+                ResultNum[i] = target;
+                //sb.AppendLine(ResultNum[i].ToString());
             }
-            valueString = sb.ToString();
+            //this.valueString = sb.ToString();
         }
 
         private void ParsingVectors(List<Point3d> listOfPoints, string workingDirectory, string fullPath)
@@ -204,18 +217,21 @@ namespace EddyLib
 
             StringBuilder sb = new StringBuilder();
 
-            ResultVec = new Vector3d[counterPoints];
+            ResultVec = new GH_Vector[counterPoints];
             string lastLine = File.ReadLines(fullPath).Last();
             string replacedString = System.Text.RegularExpressions.Regex.Replace(lastLine, "[()]", "", RegexOptions.Compiled);
             string[] abc = replacedString.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
             int counter = 1;
             for (int i = 0; i < counterPoints; i++)
             {
-                ResultVec[i] = (new Vector3d(double.Parse(abc[counter]), double.Parse(abc[counter + 1]), double.Parse(abc[counter + 2])));
-                sb.AppendLine(ResultVec[i].ToString());
+                var temp = (new Vector3d(double.Parse(abc[counter]), double.Parse(abc[counter + 1]), double.Parse(abc[counter + 2])));
+                var target = new GH_Vector();
+                var conversion = GH_Convert.ToGHVector(temp, GH_Conversion.Both, ref target);
+                ResultVec[i] = target;
+                //sb.AppendLine(ResultVec[i].ToString());
                 counter += 3;
             }
-            valueString = sb.ToString();
+            //this.valueString = sb.ToString();
         }
 
         public static string GetIterationPathToProbedResults(string workingDirectory, OFField ofField)

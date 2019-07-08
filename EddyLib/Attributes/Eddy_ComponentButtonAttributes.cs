@@ -2,7 +2,7 @@
 using Grasshopper.GUI.Canvas;
 using Grasshopper.Kernel;
 
-namespace Ironbug.Grasshopper.Component
+namespace EddyLib
 {
     public class Eddy_ComponentButtonAttributes : Eddy_ComponentAttributes
     {
