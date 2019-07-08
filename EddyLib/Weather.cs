@@ -33,7 +33,7 @@ namespace EddyLib
 
         public object GH_RuntimeMessageLevel { get; private set; }
 
-        public void LoadWeatherData(string filePath)
+        public Weather(string filePath)
         {
             try
             {

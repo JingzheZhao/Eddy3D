@@ -37,8 +37,6 @@ namespace EddyLib
         {
             this.probes = pointProbes;
             this.windReduction = wf.Values;
-            this.z0 = bcond.z0;
-            this.zref = bcond.zref;
 
             int numberOfHours = 8760;
             int sensorPointCount = pointProbes.Length;
@@ -89,9 +87,9 @@ namespace EddyLib
 
                               // Check for extreme windspeeds
 
-                              double resultingWindSpeedforUTCI = windReduction[hour, probe] * WindFactors.GetVelocityAtProbingHeightFromEPW(weather.WindSpeed[hour], z0, zref, probingHeight);
+                              double resultingWindSpeedforUTCI = windReduction[hour, probe] * WindFactors.GetVelocityAtProbingHeightFromABL(weather.WindSpeed[hour], bcond, probingHeight);
 
-                              if (windReduction[hour, probe] * WindFactors.GetVelocityAtProbingHeightFromEPW(weather.WindSpeed[hour], z0, zref, probingHeight) > 17)
+                              if (windReduction[hour, probe] * WindFactors.GetVelocityAtProbingHeightFromABL(weather.WindSpeed[hour], bcond, probingHeight) > 17)
                               {
                                   resultingWindSpeedforUTCI = 17;
                                   tempUtci[hour, probe] = UTCI.CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI, tempMRT);
@@ -263,7 +261,7 @@ namespace EddyLib
             //system.threading.tasks.parallel.for (0, numberofprobes,
             //  i =>
             //  {
-            for (int probes = 0; probes < numberOfProbes; probes++)
+            Parallel.For(0, numberOfProbes, probes =>
             {
                 int comfortCnt = 0;
                 foreach (int hour in hoursToEvaluate)
@@ -276,7 +274,7 @@ namespace EddyLib
                 }
                 ComfortHours[probes] = Math.Round((double)comfortCnt * 100 / hoursToEvaluate.Count, 1);
                 //});
-            }
+            });
 
             return ComfortHours;
         }
@@ -342,14 +340,15 @@ namespace EddyLib
 
             //Write Array to file
             StringBuilder sbUtci = new StringBuilder();
-            for (int j = 0; j < sensorPointCount; j++)
+
+            Parallel.For(0, sensorPointCount, j =>
             {
                 for (int i = 0; i < numberOfHours; i++)
                 {
                     sbUtci.Append(String.Format("{0:0.0}", utci.Values[i, j]) + ",");
                 }
                 sbUtci.AppendLine("");
-            }
+            });
             File.WriteAllText(workingDir + @"\UTCI.csv", sbUtci.ToString());
 
             // Uncertainty output for UTCI calculations
@@ -357,7 +356,8 @@ namespace EddyLib
             StringBuilder sbUtciUncertainty = new StringBuilder();
             sbUtciUncertainty.AppendLine("The calculated UTCI values lie outside of uncertainty (U) bounds for the following sensor points and hours either because of low/high wind velocities or MRT values:");
             int counter = 0;
-            for (int probe = 0; probe < sensorPointCount; probe++)
+
+            Parallel.For(0, sensorPointCount, probe =>
             {
                 //Percentage for each sensorpoint
                 int cntSensorPercent = 0;
@@ -382,7 +382,7 @@ namespace EddyLib
                     }
                 }
                 sbUtciUncertainty.AppendLine("");
-            }
+            });
             sbUtciUncertainty.AppendLine("Total incidents of uncertainty: " + counter + " or " + Math.Round((double)counter * 100 / (numberOfHours * sensorPointCount), 0) + " % overall annual uncertainty");
             File.WriteAllText(workingDir + @"\UTCI.uncertainty", sbUtciUncertainty.ToString());
 
@@ -411,9 +411,9 @@ namespace EddyLib
 
             sbUtciDEBUG.AppendLine("Wind speed from .epw: " + String.Format("{0:0.0}", weather.WindSpeed[debugValue[0]]));
             //sbUtciDEBUG.AppendLine("probingHeight from CFD: " + String.Format("{0:0.0}", probingHeight));
-            sbUtciDEBUG.AppendLine("Scaled-down wind velocity from .epw: " + String.Format("{0:0.0}", WindFactors.GetVelocityAtProbingHeightFromEPW(weather.WindSpeed[debugValue[0]], BCond.z0, BCond.zref, probingHeight)));
+            sbUtciDEBUG.AppendLine("Scaled-down wind velocity from .epw: " + String.Format("{0:0.0}", WindFactors.GetVelocityAtProbingHeightFromABL(weather.WindSpeed[debugValue[0]], BCond, probingHeight)));
             sbUtciDEBUG.AppendLine("Wind reduction from CFD: " + String.Format("{0:0.0}", utci.windReduction[debugValue[0], debugValue[1]]));
-            sbUtciDEBUG.AppendLine("Resulting wind velocity for UTCI calculation: " + String.Format("{0:0.0}", utci.windReduction[debugValue[0], debugValue[1]] * WindFactors.GetVelocityAtProbingHeightFromEPW(weather.WindSpeed[debugValue[0]], BCond.z0, BCond.zref, probingHeight)));
+            sbUtciDEBUG.AppendLine("Resulting wind velocity for UTCI calculation: " + String.Format("{0:0.0}", utci.windReduction[debugValue[0], debugValue[1]] * WindFactors.GetVelocityAtProbingHeightFromABL(weather.WindSpeed[debugValue[0]], BCond, probingHeight)));
 
             sbUtciDEBUG.AppendLine("UTCI: " + String.Format("{0:0.0}", utci.Values[debugValue[0], debugValue[1]]));
             sbUtciDEBUG.AppendLine("");

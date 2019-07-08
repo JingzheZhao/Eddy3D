@@ -73,6 +73,8 @@ namespace Eddy
             DA.GetData("Run", ref run);
 
             UTCI utci = null;
+            WindFactors windFactors = null;
+            MRT mrt = null;
 
             if (run)
             {
@@ -80,11 +82,10 @@ namespace Eddy
 
                 //Weather data...
 
-                Weather weather = new Weather();
-                weather.LoadWeatherData(RES.Domain.BCond.epwFilePath);
+                Weather weather = new Weather(RES.Domain.BCond.epwFilePath);
 
-                WindFactors windFactors = null;
                 DA.GetData("Wind Factors", ref windFactors);
+                if (windFactors == null) return;
 
                 int sensorPointCount = windFactors.Values.GetLength(1);
                 double[,] Utci = new double[8760, sensorPointCount];
@@ -97,6 +98,7 @@ namespace Eddy
 
                 var probes = new List<Point3d>();
                 DA.GetDataList("Probes", probes);
+                if (probes == null) return;
 
                 //var windDirList = new List<double> { 0, 45, 90, 135, 180, 225, 270, 315 };
                 //var windDirList = new List<double>();// { 0, 45, 90, 135, 180, 225, 270, 315 };
@@ -104,8 +106,8 @@ namespace Eddy
 
                 // Loading MRT data
 
-                MRT mrt = null;
                 DA.GetData("Mean Radiant Temperature", ref mrt);
+                if (mrt == null) return;
 
                 // load Reduction data
                 // -----------------

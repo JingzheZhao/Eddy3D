@@ -214,7 +214,7 @@ namespace Eddy
             }
             else
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Licence expired.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Licence expired."); return;
             }
         }
 

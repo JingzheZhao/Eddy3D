@@ -219,7 +219,7 @@ namespace Eddy
             // Check for killed processes
             if (Utilities.DidProcessGetKilled(MeshSettings.meshWorkingDir) == true)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Some processes got killed probably because to little RAM was available. Try to increase the RAM acclocated for the Docker virtual machine.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Some processes got killed probably because to little RAM was available. Try to increase the RAM acclocated for the Docker virtual machine.");
                 return;
             }
 
@@ -248,7 +248,7 @@ namespace Eddy
                 {
                     if (Utilities.DidProcessGetKilled(baseWorkingDirectory + "\\" + DOM.BCond.windDirs[i]) == true)
                     {
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Some processes got killed probably because to little RAM was available. Try to increase the RAM acclocated for the Docker virtual machine.");
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Some processes got killed probably because to little RAM was available. Try to increase the RAM acclocated for the Docker virtual machine.");
                     }
                 }
             }
@@ -256,6 +256,7 @@ namespace Eddy
             if (RunSettings.iter == 0 || RunSettings.keepTimeSteps == 0 || RunSettings.writeInterval == 0)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide valid inputs.");
+                return;
             }
 
             RunFoamSimulation.Run(DOM, MeshSettings, RunSettings, baseWorkingDirectory);

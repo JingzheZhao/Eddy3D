@@ -96,8 +96,7 @@ namespace Eddy
                 return;
             }
 
-            Weather weather = new Weather();
-            weather.LoadWeatherData(RES.Domain.BCond.epwFilePath);
+            Weather weather = new Weather(RES.Domain.BCond.epwFilePath);
 
             double[][] DiffRad = null;
             double[][] DirRad = null;
@@ -176,6 +175,7 @@ namespace Eddy
                 else
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The precalculated MRT array has the wrong number of probing points. Please recalculate.");
+                    return;
                 }
             }
 

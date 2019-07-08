@@ -133,8 +133,7 @@ namespace Eddy
                 return;
             }
 
-            Weather weather = new Weather();
-            weather.LoadWeatherData(RES.Domain.BCond.epwFilePath);
+            Weather weather = new Weather(RES.Domain.BCond.epwFilePath);
 
             #endregion Load weather
 
@@ -148,7 +147,17 @@ namespace Eddy
 
             var csvWindFactors = RES.WorkingDirectory + @"WindFactors.csv";
 
-            WindFactors wf = new WindFactors(RES.WorkingDirectory, RES.Domain.BCond, weather, av, interpolate);
+            var sum = 0.0;
+            foreach (Point3d pp in probes) { sum += pp.Z; }
+            var probingHeight = sum / probes.Count;
+
+            if (probingHeight < RES.Domain.DomainMesh.GetBoundingBox(false).Min.Z || probingHeight > RES.Domain.DomainMesh.GetBoundingBox(false).Max.Z)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "You cannot probe that set of probes outside of the simulation domain.");
+                return;
+            }
+
+            WindFactors wf = new WindFactors(RES.WorkingDirectory, RES.Domain.BCond, weather, av, probingHeight, interpolate);
             var numberOfProbesCSV = RadianceFiles.readCSVFile(csvAnnualVelProbes).GetLength(1);
 
             if (File.Exists(csvWindFactors) && !run)
@@ -157,6 +166,7 @@ namespace Eddy
                 {
                     {
                         AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The precalculated WindFactors array has the wrong number of probing points. Please recalculate.");
+                        return;
                     }
                 }
             }

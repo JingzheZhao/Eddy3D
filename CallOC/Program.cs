@@ -79,8 +79,7 @@ namespace CallOC
 
                         Console.WriteLine("Load weather data...");
 
-                        Weather weather = new Weather();
-                        weather.LoadWeatherData(options.Weather);
+                        Weather weather = new Weather(options.Weather);
 
                         //  Load radiation datasets
                         //  [x][]  time
@@ -156,7 +155,7 @@ namespace CallOC
 
                         #region Wind Factors
 
-                        WindFactors wf = new WindFactors(options.WorkingDir, bcond, weather, av, options.Interpolate);
+                        WindFactors wf = new WindFactors(options.WorkingDir, bcond, weather, av, 1.75, options.Interpolate);
 
                         #endregion Wind Factors
 
