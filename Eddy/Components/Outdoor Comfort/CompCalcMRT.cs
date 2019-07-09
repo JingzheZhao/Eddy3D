@@ -98,11 +98,42 @@ namespace Eddy
 
             Weather weather = new Weather(RES.Domain.BCond.epwFilePath);
 
+            #region
+
+            //TODO: Move Daysim related code into its own class
+
+            //export RAD for DAYSIM
+            if (!Directory.Exists(RES.MeshSettings.baseWorkingDir + @"Rad\"))
+            {
+                Directory.CreateDirectory(RES.MeshSettings.baseWorkingDir + @"Rad\");
+            }
+
+            string radMat = @"
+void plastic Generic_20
+0
+0
+5 0.2 0.2 0.2 0 0
+";
+            Mesh daysimMesh = new Mesh();
+            daysimMesh.Append(RES.Domain.BuildingGeometry);
+            // Todo: add ground plane to the above mesh
+
+            File.WriteAllText(RES.MeshSettings.baseWorkingDir + @"Rad\materials.rad", radMat);
+            RadianceFiles.MeshProc(daysimMesh, RES.MeshSettings.baseWorkingDir + @"Rad\scene.rad", "Generic_20");
+
+            // Write Probes
+
+            RadianceFiles.writePTS(RES.WorkingDirectory + @"\Rad\sensors.pts", probes);
+
+            #endregion Load prerequisites
+
             double[][] DiffRad = null;
             double[][] DirRad = null;
 
             var difillFile = RES.WorkingDirectory + @"\Rad\CallRay.dif.ill";
             var dirillFile = RES.WorkingDirectory + @"\Rad\CallRay.dir.ill";
+
+            int sensorPointCountExisting = probes.Count;
 
             if (File.Exists(difillFile) && File.Exists(dirillFile))
             {
@@ -112,7 +143,6 @@ namespace Eddy
 
                 DiffRad = RadianceFiles.loadILL(difillFile);
                 DirRad = RadianceFiles.loadILL(dirillFile);
-                int sensorPointCountExisting = DiffRad[0].Length;
 
                 if (sensorPointCountExisting != numberOfProbes && run)
                 {

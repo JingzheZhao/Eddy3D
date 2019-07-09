@@ -114,7 +114,7 @@ namespace Eddy
 
             if (_CPUs > Environment.ProcessorCount)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system does not have that many CPUs.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system only has " + Environment.ProcessorCount + " CPUs.");
             }
 
             var relaxationFactors = RelaxationFactors.OpenFOAM;

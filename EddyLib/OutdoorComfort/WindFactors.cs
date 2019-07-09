@@ -756,7 +756,8 @@ namespace EddyLib
                         var velAtProbHeight = GetVelocityAtProbingHeightFromABL(weather.WindSpeed[h], bcond, probingHeight);
                         var velSim = annualVelocities[p, clstSimDirIdx[h]];
                         var velApproaching = GetVelocityAtProbingHeightFromABL(bcond.URef, bcond, probingHeight);
-                        var ratio = velApproaching / velSim;
+                        // Avoid Infinity
+                        var ratio = velApproaching == 0 ? 0.00000 : velSim / velApproaching;
 
                         // We need to multiply the normalized velocity with respect to the approaching flow for every probiing point and multiply that with the scaled-down, measured airport velocity.
 

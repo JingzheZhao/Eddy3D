@@ -76,10 +76,12 @@
   <ItemGroup>
     <Compile Include="Components\Misc\CompLBAnalPeriod2Hours.cs" />
     <Compile Include="Components\Outdoor Comfort\CompCalcWindFactors.cs" />
-    <Compile Include="Components\Outdoor Comfort\CompDeconstructMRT.cs" />
+    <Compile Include="Components\Outdoor Comfort\CompDeconstructOCData.cs" />
     <Compile Include="Components\Outdoor Comfort\CompCalcMRT.cs" />
     <Compile Include="Components\postProcessing\CompParaview.cs" />
-    <Compile Include="Components\Settings\CompRunSettings.cs" />
+    <Compile Include="..\..\..\..\Desktop\CompRunSettings.cs">
+      <Link>Components\Settings\CompRunSettings.cs</Link>
+    </Compile>
     <Compile Include="Components\Setup\CompTemplates.cs" />
     <Compile Include="Components\Setup\CompBCondABL.cs" />
     <Compile Include="Components\Setup\CompBCondConstantU.cs" />

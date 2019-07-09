@@ -48,27 +48,6 @@ namespace EddyLib
             {
                 File.WriteAllText(workDir + @"\mesh\log", "");
             }
-
-            //TODO: Move Daysim related code into its own class
-
-            //export RAD for DAYSIM
-            if (!Directory.Exists(MeshSettings.baseWorkingDir + @"Rad\"))
-            {
-                Directory.CreateDirectory(MeshSettings.baseWorkingDir + @"Rad\");
-            }
-
-            string radMat = @"
-void plastic Generic_20
-0
-0
-5 0.2 0.2 0.2 0 0
-";
-            Mesh daysimMesh = new Mesh();
-            daysimMesh.Append(DOMCYL.BuildingGeometry);
-            // Todo: add ground plane to the above mesh
-
-            File.WriteAllText(MeshSettings.baseWorkingDir + @"Rad\materials.rad", radMat);
-            RadianceFiles.MeshProc(daysimMesh, MeshSettings.baseWorkingDir + @"Rad\scene.rad", "Generic_20");
         }
 
         public static void RunBox(OFBoxDomain DOMBOX, OFMeshSettings MeshSettings, OFRunSettings RunSettings, string workDir)
@@ -120,24 +99,6 @@ void plastic Generic_20
             {
                 File.WriteAllText(workDir + @"\mesh\log", "");
             }
-
-            //export RAD for DAYSIM
-            if (!Directory.Exists(MeshSettings.baseWorkingDir + @"Rad\"))
-            {
-                Directory.CreateDirectory(MeshSettings.baseWorkingDir + @"Rad\");
-            }
-            string radMat = @"
-void plastic Generic_20
-0
-0
-5 0.2 0.2 0.2 0 0
-";
-            Mesh daysimMesh = new Mesh();
-            daysimMesh.Append(DOMBOX.BuildingGeometry);
-            // Todo: add ground plane to the above mesh
-
-            File.WriteAllText(MeshSettings.baseWorkingDir + @"Rad\materials.rad", radMat);
-            RadianceFiles.MeshProc(daysimMesh, MeshSettings.baseWorkingDir + @"Rad\scene.rad", "Generic_20");
 
             string logFile = "";
 

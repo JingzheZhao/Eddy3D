@@ -129,14 +129,15 @@ namespace EddyLib
             //// localSystem.Origin = center;
             //localSystem.Translate(-Vector3d.YAxis * dimY);
 
-            for (int i = 0; i < 72; i++)
+            // Changed this to 9 (was 72) for now...takes too long
+            for (int i = 0; i < 9; i++)
             {
                 Vector3d localCopy = Vector3d.YAxis;
-                localCopy.Rotate(5 * i * Math.PI / 180, Vector3d.ZAxis);
+                localCopy.Rotate(40 * i * Math.PI / 180, Vector3d.ZAxis);
 
                 Bitmap FI;
-                this.FrontageBuildingAreas[i * 5] = OFBaseDomain.GetProjectedBuildingArea(i * 5, BuildingGeometry, out FI);
-                this.FrontagePNGs[i * 5] = FI;
+                this.FrontageBuildingAreas[i * 40] = OFBaseDomain.GetProjectedBuildingArea(i * 40, BuildingGeometry, out FI);
+                this.FrontagePNGs[i * 40] = FI;
 
                 //projAreaList.Add(RunBlockMesh.GetProjectedBuildingAreas(BCond.flowDir[0], orientedPlane, BuildingGeometry));
             }

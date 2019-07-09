@@ -30,8 +30,6 @@ namespace EddyLib
 
         public Point3d[] probes;
         private double[,] windReduction;
-        private double z0;
-        private double zref;
 
         public UTCI(Point3d[] pointProbes, WindFactors wf, Weather weather, MRT mrt, BoundaryConditions bcond, string workingDir)
         {
