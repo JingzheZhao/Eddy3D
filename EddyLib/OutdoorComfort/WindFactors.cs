@@ -725,7 +725,7 @@ namespace EddyLib
             int numberOfWindDirs = windDirSim.Count();
             int sensorPointCount = annualVecProbes.GetLength(0);
             int numberOfHours = 8760;
-            int rounding = 2;
+            int rounding = 1;
 
             double[,] WF = new double[numberOfHours, sensorPointCount];
 
@@ -740,51 +740,58 @@ namespace EddyLib
 
                 var windDirsEPW = weather.WindDirection;
 
+                // Calculate indeces first
+
+                int[] nextIndexDown = new int[8760];
+                int[] nextIndexUp = new int[8760];
+
                 Parallel.For(0, numberOfHours, h =>
                 {
-                    for (int p = 0; p < sensorPointCount; p++)
-                    {
-                        var nextIndexDown = ReturnNextLowerIndexN(windDirSim, (int)windDirsEPW[h]);
-                        var nextIndexUp = ReturnNextUpperIndexN(windDirSim, (int)windDirsEPW[h]);
-
-                        var nextDirDown = windDirSim[nextIndexDown];
-                        var nextDirUp = windDirSim[nextIndexUp];
-
-                        double distanceToLower = Math.Abs(windDirsEPW[h] - nextDirDown);
-                        double distanceToUpper = Math.Abs(windDirsEPW[h] - nextDirUp);
-
-                        var velAtProbHeight = GetVelocityAtProbingHeightFromABL(weather.WindSpeed[h], bcond, probingHeight);
-                        var velSim = annualVelocities[p, clstSimDirIdx[h]];
-                        var velApproaching = GetVelocityAtProbingHeightFromABL(bcond.URef, bcond, probingHeight);
-                        // Avoid Infinity
-                        var ratio = velApproaching == 0 ? 0.00000 : velSim / velApproaching;
-
-                        // We need to multiply the normalized velocity with respect to the approaching flow for every probiing point and multiply that with the scaled-down, measured airport velocity.
-
-                        if (!interpolate)
-                        {
-                            WF[h, p] = Math.Round(velAtProbHeight * ratio, rounding);
-                        }
-                        else
-                        {
-                            //var y1_y0 = distanceToUpper;
-                            //var x0 = ReductionArray[nextUpIndex][probeIndex];
-                            //var x1_x0 = ReductionArray[nextLowIndex][probeIndex] - ReductionArray[nextUpIndex][probeIndex];
-                            //var y_y0 = distanceToLower + distanceToUpper;
-                            var weightingLow = 1 - (distanceToLower / (distanceToLower + distanceToUpper));
-                            var weightingUp = 1 - (distanceToUpper / (distanceToLower + distanceToUpper));
-                            var nextLowerVelocity = annualVelocities[p, nextIndexDown];
-                            var nextUpperVelocity = annualVelocities[p, nextIndexUp];
-
-                            var weighting = ((nextLowerVelocity * weightingLow) + (nextUpperVelocity * weightingUp));
-
-                            WF[h, p] = Math.Round(velAtProbHeight * ratio * weighting, rounding);
-                        }
-
-                        cntReduction++;
-                        progress.Report((double)cntReduction / sensorPointCount);
-                    }
+                    nextIndexDown[h] = ReturnNextLowerIndexN(windDirSim, (int)windDirsEPW[h]);
+                    nextIndexUp[h] = ReturnNextUpperIndexN(windDirSim, (int)windDirsEPW[h]);
                 });
+
+                Parallel.For(0, numberOfHours, h =>
+        {
+            for (int p = 0; p < sensorPointCount; p++)
+            {
+                var nextDirDown = windDirSim[nextIndexDown[h]];
+                var nextDirUp = windDirSim[nextIndexUp[h]];
+
+                double distanceToLower = Math.Abs(windDirsEPW[h] - nextDirDown);
+                double distanceToUpper = Math.Abs(windDirsEPW[h] - nextDirUp);
+
+                var velAtProbHeightEPW = GetVelocityAtProbingHeightFromABL(weather.WindSpeed[h], bcond, probingHeight);
+                var velSim = annualVelocities[p, clstSimDirIdx[h]];
+                var velApproaching = GetVelocityAtProbingHeightFromABL(bcond.URef, bcond, probingHeight);
+                // Avoid Infinity
+                var ratio = velApproaching == 0 ? 0.00000 : velSim / velApproaching;
+
+                // We need to multiply the normalized velocity with respect to the approaching flow for every probiing point and multiply that with the scaled-down, measured airport velocity.
+
+                if (!interpolate)
+                {
+                    WF[h, p] = Math.Round(velAtProbHeightEPW * ratio, rounding);
+                }
+                else
+                {
+                    var weightingDown = 1 - (distanceToLower / (distanceToLower + distanceToUpper));
+                    var weightingUp = 1 - (distanceToUpper / (distanceToLower + distanceToUpper));
+                    var nextVelocityDown = annualVelocities[p, nextIndexDown[h]];
+                    var nextVelocityUp = annualVelocities[p, nextIndexUp[h]];
+
+                    double weightedVelSim = (nextVelocityDown * weightingDown) + (nextVelocityUp * weightingUp);
+
+                    // Avoid Infinity
+                    var ratioWeighted = velApproaching == 0 ? 0.00000 : weightedVelSim / velApproaching;
+
+                    WF[h, p] = Math.Round(velAtProbHeightEPW * ratioWeighted * weightedVelSim, rounding);
+                }
+
+                cntReduction++;
+                progress.Report((double)cntReduction / sensorPointCount);
+            }
+        });
             }
             return WF;
         }

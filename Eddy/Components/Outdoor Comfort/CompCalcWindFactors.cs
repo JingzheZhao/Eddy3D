@@ -84,8 +84,8 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             //pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
-            pManager.AddGenericParameter("WF", "WF", "WF", GH_ParamAccess.item);
-            // pManager.AddGenericParameter("MRT_T", "MRT_T", "MRT_T", GH_ParamAccess.tree);
+            pManager.AddGenericParameter("Wind Factors", "WF", "WF", GH_ParamAccess.item);
+            pManager.AddGenericParameter("OffSet", "OF", "OffSet between simulated wind directions and directions in the weather file.", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -188,6 +188,7 @@ namespace Eddy
             }
 
             DA.SetData(0, wf);
+            DA.SetData(1, wf.offSet);
         }
 
         /// <summary>
