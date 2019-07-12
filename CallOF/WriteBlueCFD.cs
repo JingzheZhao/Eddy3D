@@ -12,7 +12,7 @@
 //cd ""{1}""
 //{2}", installationPath, workingDir, command);
 
-//        }
+// }
 
 //    }
 //}

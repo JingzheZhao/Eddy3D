@@ -1,9 +1,5 @@
-﻿using System;
-using System.Linq;
-using System.Text;
-using CommandLine;
+﻿using CommandLine;
 using CommandLine.Text;
-using EddyLib;
 
 namespace CallProbes
 {
@@ -20,26 +16,28 @@ namespace CallProbes
             //    {
             //        StringBuilder errorLog = new StringBuilder();
 
-            //        Console.WriteLine("Working directory: {0}", options.WorkingDir);
-            //        errorLog.AppendLine(string.Format("Working directory: {0}", options.WorkingDir));
+            // Console.WriteLine("Working directory: {0}", options.WorkingDir);
+            // errorLog.AppendLine(string.Format("Working directory: {0}", options.WorkingDir));
 
-            //        Console.WriteLine("Probes: {0}", options.Probes);
-            //        errorLog.AppendLine(string.Format("Probes: {0}", options.Probes));
+            // Console.WriteLine("Probes: {0}", options.Probes);
+            // errorLog.AppendLine(string.Format("Probes: {0}", options.Probes));
 
-            //        Console.WriteLine("Wind directions considered: {0}", options.WindDirs);
-            //        errorLog.AppendLine(string.Format("Wind directions considered: {0}", options.WindDirs));
+            // Console.WriteLine("Wind directions considered: {0}", options.WindDirs);
+            // errorLog.AppendLine(string.Format("Wind directions considered: {0}", options.WindDirs));
 
-            //        //Console.WriteLine("Mode (0=cp;1=U): {0}", options.Mode);
-            //        //errorLog.AppendLine(string.Format("Mode (0=cp;1=U): {0}", options.Mode));
+            // //Console.WriteLine("Mode (0=cp;1=U): {0}", options.Mode);
+            // //errorLog.AppendLine(string.Format("Mode (0=cp;1=U): {0}", options.Mode));
 
-            //        Console.WriteLine("Verbose: {0}", options.Verbose);
-            //        errorLog.AppendLine(string.Format("Verbose: {0}", options.Verbose));
+            // Console.WriteLine("Verbose: {0}", options.Verbose);
+            // errorLog.AppendLine(string.Format("Verbose: {0}", options.Verbose));
 
-            //        var errorLogCalc = new StringBuilder();
+            // var errorLogCalc = new StringBuilder();
 
-            //        BoundaryConditions bcond = new BoundaryConditions(BoundaryType.constant, options.WindDirs.Split(',').Select(Int32.Parse).ToList(), options.Uref, options.Z0, "");
+            // BoundaryConditions bcond = new BoundaryConditions(BoundaryType.constant,
+            // options.WindDirs.Split(',').Select(Int32.Parse).ToList(), options.Uref, options.Z0, "");
 
-            //        WindFactors.WriteWindReductionArrayToCSV(options.WindDirs, options.WorkingDir, bcond, options.Probes, options.Verbose, out errorLogCalc);
+            // WindFactors.WriteWindReductionArrayToCSV(options.WindDirs, options.WorkingDir, bcond,
+            // options.Probes, options.Verbose, out errorLogCalc);
 
             //        errorLog.Append(errorLogCalc);
             //    }

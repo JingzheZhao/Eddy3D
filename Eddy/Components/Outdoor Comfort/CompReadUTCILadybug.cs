@@ -35,151 +35,113 @@
 //        {
 //        }
 
-//        /// <summary>
-//        /// Registers all the input parameters for this component.
-//        /// </summary>
-//        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
-//        {
-//            pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
+// ///
+// <summary>
+// /// Registers all the input parameters for this component. ///
+// </summary>
+// protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager) {
+// pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
 
-//            pManager.AddTextParameter("analysisPeriod", "analysisPeriod", "analysisPeriod", GH_ParamAccess.list);
+// pManager.AddTextParameter("analysisPeriod", "analysisPeriod", "analysisPeriod", GH_ParamAccess.list);
 
-//            pManager.AddBooleanParameter("Run", "Run", "Run the component", GH_ParamAccess.item, false);
+// pManager.AddBooleanParameter("Run", "Run", "Run the component", GH_ParamAccess.item, false);
 
-//        }
+// }
 
-//        /// <summary>
-//        /// Registers all the output parameters for this component.
-//        /// </summary>
-//        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
-//        {
-//            pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.tree);
-//            //pManager.AddGenericParameter("AnnEx", "AnnEx", "Annual Exceedance in %", GH_ParamAccess.list);
-//            pManager.AddGenericParameter("U", "U", "Overall Uncertainty in %", GH_ParamAccess.item);
-//            //pManager.AddGenericParameter("windSpeed", "windSpeed", "windSpeed", GH_ParamAccess.list);
-//            //pManager.AddGenericParameter("windDir", "windDir", "windDir", GH_ParamAccess.list);
-//            //pManager.AddGenericParameter("windRed", "windRed", "windRed", GH_ParamAccess.list);
-//        }
+// ///
+// <summary>
+// /// Registers all the output parameters for this component. ///
+// </summary>
+// protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager) {
+// pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.tree);
+// //pManager.AddGenericParameter("AnnEx", "AnnEx", "Annual Exceedance in %", GH_ParamAccess.list);
+// pManager.AddGenericParameter("U", "U", "Overall Uncertainty in %", GH_ParamAccess.item);
+// //pManager.AddGenericParameter("windSpeed", "windSpeed", "windSpeed", GH_ParamAccess.list);
+// //pManager.AddGenericParameter("windDir", "windDir", "windDir", GH_ParamAccess.list);
+// //pManager.AddGenericParameter("windRed", "windRed", "windRed", GH_ParamAccess.list); }
 
-//        /// <summary>
-//        /// This is the method that actually does the work.
-//        /// </summary>
-//        /// <param name="DA">The DA object can be used to retrieve data from input parameters and
-//        /// to store data in output parameters.</param>
-//        protected override void SolveInstance(IGH_DataAccess DA)
-//        {
-//            OFBaseDomain DOM = null;
+// ///
+// <summary>
+// /// This is the method that actually does the work. ///
+// </summary>
+// ///
+// <param name="DA">
+// The DA object can be used to retrieve data from input parameters and /// to store data in output parameters.
+// </param>
+// protected override void SolveInstance(IGH_DataAccess DA) { OFBaseDomain DOM = null;
 
-//            GH_ObjectWrapper gobj = null;
-//            if (!DA.GetData(0, ref gobj)) { }
+// GH_ObjectWrapper gobj = null; if (!DA.GetData(0, ref gobj)) { }
 
-//            if ((gobj.Value is OFBaseDomain))
-//            {
-//                DOM = (OFBaseDomain)gobj.Value;
-//            }
-//            if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
+// if ((gobj.Value is OFBaseDomain)) { DOM = (OFBaseDomain)gobj.Value; } if (DOM == null) {
+// AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
-//            bool Run = false;
+// bool Run = false;
 
-//            List<string> ladybugAnalysisPeriod = new List<string>();
+// List<string> ladybugAnalysisPeriod = new List<string>();
 
-//            DA.GetDataList(1, ladybugAnalysisPeriod);
-//            DA.GetData(2, ref Run);
+// DA.GetDataList(1, ladybugAnalysisPeriod); DA.GetData(2, ref Run);
 
-//            if (ladybugAnalysisPeriod == null)
-//            { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid analysis periode object."); return; }
+// if (ladybugAnalysisPeriod == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass
+// a valid analysis periode object."); return; }
 
-//            var allLines = File.ReadAllLines(RES.WorkingDirectoryectory + @"\UTCI.csv");
-//            var numberOfProbes = allLines.Count();
+// var allLines = File.ReadAllLines(RES.WorkingDirectoryectory + @"\UTCI.csv"); var numberOfProbes = allLines.Count();
 
-//            // -1 because of python
+// // -1 because of python
 
-//            int month_start = int.Parse(ladybugAnalysisPeriod[0].Split(',')[0].Split('(')[1]) - 1;
-//            var month_end = int.Parse(ladybugAnalysisPeriod[1].Split(',')[0].Split('(')[1]);
-//            var day_start = int.Parse(ladybugAnalysisPeriod[0].Split(',')[1]) - 1;
-//            var day_end = int.Parse(ladybugAnalysisPeriod[1].Split(',')[1]);
-//            var hour_start = int.Parse(ladybugAnalysisPeriod[0].Split(',')[2].Split(')')[0]) - 1;
-//            var hour_end = int.Parse(ladybugAnalysisPeriod[1].Split(',')[2].Split(')')[0]);
+// int month_start = int.Parse(ladybugAnalysisPeriod[0].Split(',')[0].Split('(')[1]) - 1; var
+// month_end = int.Parse(ladybugAnalysisPeriod[1].Split(',')[0].Split('(')[1]); var day_start =
+// int.Parse(ladybugAnalysisPeriod[0].Split(',')[1]) - 1; var day_end =
+// int.Parse(ladybugAnalysisPeriod[1].Split(',')[1]); var hour_start =
+// int.Parse(ladybugAnalysisPeriod[0].Split(',')[2].Split(')')[0]) - 1; var hour_end = int.Parse(ladybugAnalysisPeriod[1].Split(',')[2].Split(')')[0]);
 
-//            var hours = hour_end - hour_start;
+// var hours = hour_end - hour_start;
 
-//            double[,] HourlyUTCI = new double[numberOfProbes, hours];
+// double[,] HourlyUTCI = new double[numberOfProbes, hours];
 
-//            if (Run)
-//            {
-//                System.Threading.Tasks.Parallel.For(0, numberOfProbes,
-//                  i =>
-//                  {
-//                      for (int h = 0; h < hours; h++)
-//                      {
-//                          HourlyUTCI[i, h] = double.Parse(allLines[i].Split(',')[h]);
-//                      }
+// if (Run) { System.Threading.Tasks.Parallel.For(0, numberOfProbes, i => { for (int h = 0; h <
+// hours; h++) { HourlyUTCI[i, h] = double.Parse(allLines[i].Split(',')[h]); }
 
-//                  });
+// });
 
-//                //double[] valueHour = new double[numberOfLines];
-//                var valueHour = new DataTree<double>();
+// //double[] valueHour = new double[numberOfLines]; var valueHour = new DataTree<double>();
 
-//                // Fill datatrees
+// // Fill datatrees
 
-//                for (int m = month_start; m < month_end; m++)
-//                {
-//                    for (int d = day_start; d < day_end; d++)
-//                    {
-//                        for (int h = hour_start; h < hour_end; h++)
-//                        {
-//                            // Check if already gone through month
-//                            if (m == 2 && d > 29) { continue; }
+// for (int m = month_start; m < month_end; m++) { for (int d = day_start; d < day_end; d++) { for
+// (int h = hour_start; h < hour_end; h++) { // Check if already gone through month if (m == 2 && d >
+// 29) { continue; }
 
-//                            else if (m == 2 && d > 28) { continue; }
+// else if (m == 2 && d > 28) { continue; }
 
-//                            else if ((m == 4 || m == 6 || m == 9 || m == 10) && d > 30) { continue; }
-//                            //
+// else if ((m == 4 || m == 6 || m == 9 || m == 10) && d > 30) { continue; } //
 
-//                            for (int i = 0; i < numberOfProbes; i++)
-//                            {
-//                                // TODO: move this out of loop later
-//                                valueHour.Add(HourlyUTCI[i, h], new Grasshopper.Kernel.Data.GH_Path(h));
+// for (int i = 0; i < numberOfProbes; i++) { // TODO: move this out of loop later
+// valueHour.Add(HourlyUTCI[i, h], new Grasshopper.Kernel.Data.GH_Path(h));
 
-//                            }
+// }
 
-//                        }
-//                    }
-//                }
+// } } }
 
-//                //for (int i = 0; i < numberOfProbes; i++)
-//                //{
-//                //    for (int h = 0; h < 8759; h++)
-//                //    {
-//                //    }
+// //for (int i = 0; i < numberOfProbes; i++) //{ // for (int h = 0; h < 8759; h++) // { // } //}
 
-//                //}
+// // Parse UTCI uncertaintly from file
 
-//                // Parse UTCI uncertaintly from file
+// var uncertaintyLine = File.ReadLines(RES.WorkingDirectoryectory + @"\UTCI.uncertainty").Last();
+// var uncertaintyNUM = double.Parse(uncertaintyLine.Split('%')[0].Split(':')[1].Split('r')[1]);
 
-//                var uncertaintyLine = File.ReadLines(RES.WorkingDirectoryectory + @"\UTCI.uncertainty").Last();
-//                var uncertaintyNUM = double.Parse(uncertaintyLine.Split('%')[0].Split(':')[1].Split('r')[1]);
+// DA.SetDataTree(0, valueHour); //DA.SetDataList(1, AnnEx); DA.SetData(1, uncertaintyNUM);
 
-//                DA.SetDataTree(0, valueHour);
-//                //DA.SetDataList(1, AnnEx);
-//                DA.SetData(1, uncertaintyNUM);
+// }
 
-//            }
+// }
 
-//        }
-
-//        /// <summary>
-//        /// Provides an Icon for every component that will be visible in the User Interface.
-//        /// Icons need to be 24x24 pixels.
-//        /// </summary>
-//        protected override System.Drawing.Bitmap Icon
-//        {
-//            get
-//            {
-//                // You can add image files to your project resources and access them like this:
-//                return Resources.Eddy_parseU;
-//            }
-//        }
+// ///
+// <summary>
+// /// Provides an Icon for every component that will be visible in the User Interface. /// Icons
+// need to be 24x24 pixels. ///
+// </summary>
+// protected override System.Drawing.Bitmap Icon { get { // You can add image files to your project
+// resources and access them like this: return Resources.Eddy_parseU; } }
 
 //        /// <summary>
 //        /// Each component must have a unique Guid to identify it.

@@ -28,101 +28,79 @@
 //            get { return GH_Exposure.hidden; }
 //        }
 
-//        DataTree<double> cpTree = new DataTree<double>();
-//        DataTree<Vector3d> uTree = new DataTree<Vector3d>();
+// DataTree<double> cpTree = new DataTree<double>(); DataTree<Vector3d> uTree = new DataTree<Vector3d>();
 
-//        /// <summary>
-//        /// Each implementation of GH_Component must provide a public
-//        /// constructor without any arguments.
-//        /// Category represents the Tab in which the component will appear,
-//        /// Subcategory the panel. If you use non-existing tab or panel names,
-//        /// new tabs/panels will automatically be created.
-//        /// </summary>
-//        public CompLoadUTCI()
-//          : base("ReadUTCIByProbe", "ReadUTCIByProbe", "Read UTCI by probe", "Eddy", "6 | Outdoor Comfort")
-//        {
-//        }
+// ///
+// <summary>
+// /// Each implementation of GH_Component must provide a public /// constructor without any
+// arguments. /// Category represents the Tab in which the component will appear, /// Subcategory the
+// panel. If you use non-existing tab or panel names, /// new tabs/panels will automatically be
+// created. ///
+// </summary>
+// public CompLoadUTCI() : base("ReadUTCIByProbe", "ReadUTCIByProbe", "Read UTCI by probe", "Eddy",
+// "6 | Outdoor Comfort") { }
 
-//        /// <summary>
-//        /// Registers all the input parameters for this component.
-//        /// </summary>
-//        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
-//        {
-//            pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, @"C:\temp");
+// ///
+// <summary>
+// /// Registers all the input parameters for this component. ///
+// </summary>
+// protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager) {
+// pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, @"C:\temp");
 
-//            pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 0);
-//            Param_Integer param = pManager[1] as Param_Integer;
-//            param.AddNamedValue("UTCI", 0);
-//            //  param.AddNamedValue("U_Probes", 1);
+// pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 0); Param_Integer param
+// = pManager[1] as Param_Integer; param.AddNamedValue("UTCI", 0); // param.AddNamedValue("U_Probes", 1);
 
-//            //pManager.AddBooleanParameter("Run", "Run", "Clean the directory", GH_ParamAccess.item, false);
-//            pManager.AddBooleanParameter("Run", "Run", "Run the component", GH_ParamAccess.item, false);
+// //pManager.AddBooleanParameter("Run", "Run", "Clean the directory", GH_ParamAccess.item, false);
+// pManager.AddBooleanParameter("Run", "Run", "Run the component", GH_ParamAccess.item, false);
 
-//        }
+// }
 
-//        /// <summary>
-//        /// Registers all the output parameters for this component.
-//        /// </summary>
-//        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
-//        {
-//            pManager.AddGenericParameter("Result", "Out", "Result", GH_ParamAccess.tree);
-//        }
+// ///
+// <summary>
+// /// Registers all the output parameters for this component. ///
+// </summary>
+// protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager) {
+// pManager.AddGenericParameter("Result", "Out", "Result", GH_ParamAccess.tree); }
 
-//        /// <summary>
-//        /// This is the method that actually does the work.
-//        /// </summary>
-//        /// <param name="DA">The DA object can be used to retrieve data from input parameters and
-//        /// to store data in output parameters.</param>
-//        protected override void SolveInstance(IGH_DataAccess DA)
-//        {
-//            string workDir = "";
-//            DA.GetData(0, ref workDir);
+// ///
+// <summary>
+// /// This is the method that actually does the work. ///
+// </summary>
+// ///
+// <param name="DA">
+// The DA object can be used to retrieve data from input parameters and /// to store data in output parameters.
+// </param>
+// protected override void SolveInstance(IGH_DataAccess DA) { string workDir = ""; DA.GetData(0, ref workDir);
 
-//            bool Run = false;
+// bool Run = false;
 
-//            if (Run)
-//            {
-//                if (!Directory.Exists(workDir)) return;
+// if (Run) { if (!Directory.Exists(workDir)) return;
 
-//                string file = workDir + @"\UTCI.csv";
+// string file = workDir + @"\UTCI.csv";
 
-//                if (!File.Exists(file)) return;
+// if (!File.Exists(file)) return;
 
-//                var data = RadianceFiles.readCSVFile(file);
+// var data = RadianceFiles.readCSVFile(file);
 
-//                var dataTree = new DataTree<double>();
+// var dataTree = new DataTree<double>();
 
-//                for (int i = 0; i < data.GetUpperBound(0); i++)
-//                {
-//                    for (int j = 0; j < data.GetUpperBound(1); j++)
-//                    {
-//                        if (GH_Document.IsEscapeKeyDown())
-//                        {
-//                            GH_Document GHDocument = OnPingDocument();
-//                            GHDocument.RequestAbortSolution();
-//                        }
+// for (int i = 0; i < data.GetUpperBound(0); i++) { for (int j = 0; j < data.GetUpperBound(1); j++)
+// { if (GH_Document.IsEscapeKeyDown()) { GH_Document GHDocument = OnPingDocument();
+// GHDocument.RequestAbortSolution(); }
 
-//                        dataTree.Add(data[i, j], new Grasshopper.Kernel.Data.GH_Path(i));
-//                    }
-//                }
+// dataTree.Add(data[i, j], new Grasshopper.Kernel.Data.GH_Path(i)); } }
 
-//                DA.SetDataTree(0, dataTree);
-//            }
+// DA.SetDataTree(0, dataTree); }
 
-//        }
+// }
 
-//        /// <summary>
-//        /// Provides an Icon for every component that will be visible in the User Interface.
-//        /// Icons need to be 24x24 pixels.
-//        /// </summary>
-//        protected override System.Drawing.Bitmap Icon
-//        {
-//            get
-//            {
-//                // You can add image files to your project resources and access them like this:
-//                return Resources.Eddy_parseU;
-//            }
-//        }
+// ///
+// <summary>
+// /// Provides an Icon for every component that will be visible in the User Interface. /// Icons
+// need to be 24x24 pixels. ///
+// </summary>
+// protected override System.Drawing.Bitmap Icon { get { // You can add image files to your project
+// resources and access them like this: return Resources.Eddy_parseU; } }
 
 //        /// <summary>
 //        /// Each component must have a unique Guid to identify it.

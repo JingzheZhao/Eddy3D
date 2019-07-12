@@ -81,9 +81,7 @@ namespace CallOC
 
                         Weather weather = new Weather(options.Weather);
 
-                        //  Load radiation datasets
-                        //  [x][]  time
-                        //  [][x]  points
+                        // Load radiation datasets [x][] time [][x] points
 
                         Console.WriteLine("Loading: Radiation data...");
 
@@ -111,8 +109,7 @@ namespace CallOC
 
                         var numberOfWindDirs = windDirList.Count;
 
-                        // load Reduction data
-                        // -----------------
+                        // load Reduction data -----------------
 
                         //var ReductionDataCSV = WindFactors.LoadWindReductionArrayFromCSV(options.WindReductionDataPath);
                         //var windReduction = WindFactors.GetWindReduction(ReductionDataCSV, numberOfHours, windDirList, weather);
@@ -188,7 +185,7 @@ namespace CallOC
 
                         Console.WriteLine("Done");
 
-                        //  Console.ReadKey();
+                        // Console.ReadKey();
                     }
                     else
                     {

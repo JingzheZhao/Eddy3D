@@ -29,74 +29,59 @@
 //        {
 //        }
 
-//        /// <summary>
-//        /// Registers all the input parameters for this component.
-//        /// </summary>
-//        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
-//        {
-//            pManager.AddGenericParameter("Res", "Res", "Res", GH_ParamAccess.item);
+// ///
+// <summary>
+// /// Registers all the input parameters for this component. ///
+// </summary>
+// protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager) {
+// pManager.AddGenericParameter("Res", "Res", "Res", GH_ParamAccess.item);
 
-//            //pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 0);
-//            //Param_Integer param = pManager[1] as Param_Integer;
-//            //param.AddNamedValue("Retrieve file from domain.", 0);
-//            //param.AddNamedValue("Provide custom file.", 1);
+// //pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 0); //Param_Integer
+// param = pManager[1] as Param_Integer; //param.AddNamedValue("Retrieve file from domain.", 0);
+// //param.AddNamedValue("Provide custom file.", 1);
 
-//            //pManager.AddTextParameter("fP", "fP", "fP", GH_ParamAccess.item, "");
-//            pManager.AddTextParameter("X", "X", @"Provide bounds for the x-axis, e.g. ""0:5000""", GH_ParamAccess.item, ":");
-//            pManager.AddTextParameter("Y", "Y", @"Provide bounds for the y-axis, e.g. ""0.00001:1""", GH_ParamAccess.item, ":");
+// //pManager.AddTextParameter("fP", "fP", "fP", GH_ParamAccess.item, "");
+// pManager.AddTextParameter("X", "X", @"Provide bounds for the x-axis, e.g. ""0:5000""",
+// GH_ParamAccess.item, ":"); pManager.AddTextParameter("Y", "Y", @"Provide bounds for the y-axis,
+// e.g. ""0.00001:1""", GH_ParamAccess.item, ":");
 
-//            //pManager.AddBooleanParameter("Live", "Live", "Run the component for a live preview", GH_ParamAccess.item, false);
+// //pManager.AddBooleanParameter("Live", "Live", "Run the component for a live preview",
+// GH_ParamAccess.item, false);
 
-//            //pManager[0].Optional = true;
-//            //pManager[1].Optional = true;
-//            //pManager[2].Optional = true;
-//            //pManager[3].Optional = true;
-//            //pManager[4].Optional = true;
-//            //pManager[5].Optional = true;
-//        }
+// //pManager[0].Optional = true; //pManager[1].Optional = true; //pManager[2].Optional = true;
+// //pManager[3].Optional = true; //pManager[4].Optional = true; //pManager[5].Optional = true; }
 
-//        /// <summary>
-//        /// Registers all the output parameters for this component.
-//        /// </summary>
-//        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
-//        {
-//            //pManager.AddGenericParameter("Lab", "L", "Labels", GH_ParamAccess.list);
-//            //pManager.AddGenericParameter("Res", "R", "Residuals", GH_ParamAccess.tree);
-//        }
+// ///
+// <summary>
+// /// Registers all the output parameters for this component. ///
+// </summary>
+// protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager) {
+// //pManager.AddGenericParameter("Lab", "L", "Labels", GH_ParamAccess.list);
+// //pManager.AddGenericParameter("Res", "R", "Residuals", GH_ParamAccess.tree); }
 
-//        /// <summary>
-//        /// This is the method that actually does the work.
-//        /// </summary>
-//        /// <param name="DA">The DA object can be used to retrieve data from input parameters and
-//        /// to store data in output parameters.</param>
-//        protected override void SolveInstance(IGH_DataAccess DA)
-//        {
-//            OFResult RES = null;
-//            DA.GetData(0, ref RES);
+// ///
+// <summary>
+// /// This is the method that actually does the work. ///
+// </summary>
+// ///
+// <param name="DA">
+// The DA object can be used to retrieve data from input parameters and /// to store data in output parameters.
+// </param>
+// protected override void SolveInstance(IGH_DataAccess DA) { OFResult RES = null; DA.GetData(0, ref RES);
 
-//            string x0x1 = ":";
-//            string y0y1 = ":";
+// string x0x1 = ":"; string y0y1 = ":";
 
-//            //string fullFilePath = "";
-//            //DA.GetData(1, ref mode);
+// //string fullFilePath = ""; //DA.GetData(1, ref mode);
 
-//            string fullFilePath = "";
+// string fullFilePath = "";
 
-//            DA.GetData(1, ref x0x1);
-//            DA.GetData(2, ref y0y1);
+// DA.GetData(1, ref x0x1); DA.GetData(2, ref y0y1);
 
-//            try
-//            {
-//                // Open the file(s) to read from.
-
-//                foreach (double dir in RES.Domain.BCond.windDirs)
-//                {
-//                    var p1 = RES.WorkingDirectory + dir + @"\postProcessing\residuals\";
-//                    fullFilePath = p1 + Utilities.GetLastIterationFromDirectory(p1) + "\\" + @"\\residuals.dat";
-//                    if (!File.Exists(fullFilePath))
-//                    {
-//                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "The residual file for wind direction " + dir + " does not exist.");
-//                    }
+// try { // Open the file(s) to read from. foreach (double dir in RES.Domain.BCond.windDirs) { var p1
+// = RES.WorkingDirectory + dir + @"\postProcessing\residuals\"; fullFilePath = p1 +
+// Utilities.GetLastIterationFromDirectory(p1) + "\\" + @"\\residuals.dat"; if
+// (!File.Exists(fullFilePath)) { AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "The residual
+// file for wind direction " + dir + " does not exist."); }
 
 //                    string arg = @"
 //set title 'wind direction: " + dir + @"'
@@ -113,26 +98,20 @@
 //replot
 //";
 
-//                    Utilities.StartProcessCMD(arg, true, false, true, @"C:\Program Files\gnuplot\bin\gnuplot.exe");
+// Utilities.StartProcessCMD(arg, true, false, true, @"C:\Program Files\gnuplot\bin\gnuplot.exe");
 
-//                }
-//            }
+// } }
 
-//            catch (Exception e)
-//            {
-//                // Let the user know what went wrong.
-//                Console.WriteLine("The file(s) could not be read:");
-//                Console.WriteLine(e.Message);
-//            }
-//        }
+// catch (Exception e) { // Let the user know what went wrong. Console.WriteLine("The file(s) could
+// not be read:"); Console.WriteLine(e.Message); } }
 
-//        /// <summary>
-//        /// Provides an Icon for every component that will be visible in the User Interface.
-//        /// Icons need to be 24x24 pixels.
-//        /// </summary>
-//        protected override System.Drawing.Bitmap Icon =>
-//                // You can add image files to your project resources and access them like this:
-//                Resources.Eddy_stability;
+// ///
+// <summary>
+// /// Provides an Icon for every component that will be visible in the User Interface. /// Icons
+// need to be 24x24 pixels. ///
+// </summary>
+// protected override System.Drawing.Bitmap Icon =&gt; // You can add image files to your project
+// resources and access them like this: Resources.Eddy_stability;
 
 //        /// <summary>
 //        /// Each component must have a unique Guid to identify it.

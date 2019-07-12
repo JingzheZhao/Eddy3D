@@ -144,14 +144,13 @@ namespace EddyLib
         /// <summary>
         /// Loads an Daysim Illuminance file and converts it into a 2D double array.
         /// </summary>
-        /// <returns>A list of list of doubles where [x][] is  time and [][x] are sensor points.</returns>
+        /// <returns>A list of list of doubles where [x][] is time and [][x] are sensor points.</returns>
         /// <param name="fileName">File name.</param>
         /// <param name="start">Start.</param>
         /// <param name="stop">Stop.</param>
         public static double[][] loadILL(string fileName, int start, int stop)
         {
-            //  [x][]  time
-            //  [][x]  points
+            // [x][] time [][x] points
 
             double[][] values = new double[stop - start][];
             string[] lines = System.IO.File.ReadAllLines(fileName);
@@ -209,8 +208,7 @@ namespace EddyLib
 
         public static float[,] loadBin(string filename)
         {
-            // [i,   time
-            //    j] points
+            // [i, time j] points
 
             float[,] data;
 
@@ -222,11 +220,9 @@ namespace EddyLib
             using (BinaryReader b = new BinaryReader(
                 File.Open(filename, FileMode.Open)))
             {
-                // 2.
-                // Position and length variables.
+                // 2. Position and length variables.
                 int pos = 0;
-                // 2A.
-                // Use BaseStream.
+                // 2A. Use BaseStream.
                 int length = (int)b.BaseStream.Length;
 
                 iDim = b.ReadInt32();
@@ -254,8 +250,7 @@ namespace EddyLib
 
         public static void writeBin(string fileName, double[][] values)
         {
-            // [i,   time
-            //    j] points
+            // [i, time j] points
 
             BinaryWriter bw;
             //create the file
@@ -295,8 +290,7 @@ namespace EddyLib
 
         public static void writeBin(string fileName, double[,] values)
         {
-            // [i,   time
-            //    j] points
+            // [i, time j] points
 
             BinaryWriter bw;
             //create the file
@@ -335,8 +329,7 @@ namespace EddyLib
 
         public static double[][] loadDC(string file) // total illuminance data
         {
-            // [x][] lines
-            // [][x] coeffs
+            // [x][] lines [][x] coeffs
 
             string[] lines = System.IO.File.ReadAllLines(file).Where(x => !x.Trim().StartsWith("#")).ToArray();
             double[][] values = new double[lines.Length][];
@@ -352,8 +345,7 @@ namespace EddyLib
 
         public static void writeDC(string file, double[][] dif, double[][] dir) // total illuminance data
         {
-            // [x][] lines
-            // [][x] coeffs
+            // [x][] lines [][x] coeffs
             var sb = new StringBuilder();
 
             for (int h = 0; h < dif.Length; h++)
@@ -375,8 +367,7 @@ namespace EddyLib
 
         public static void writeDC_DIF(string file, double[][] dif, double[][] dir) // total illuminance data
         {
-            // [x][] lines
-            // [][x] coeffs
+            // [x][] lines [][x] coeffs
             var sb = new StringBuilder();
 
             for (int h = 0; h < dif.Length; h++)
@@ -398,8 +389,7 @@ namespace EddyLib
 
         public static void writeDC_DIR(string file, double[][] dif, double[][] dir) // total illuminance data
         {
-            // [x][] lines
-            // [][x] coeffs
+            // [x][] lines [][x] coeffs
             var sb = new StringBuilder();
 
             for (int h = 0; h < dif.Length; h++)

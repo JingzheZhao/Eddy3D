@@ -206,7 +206,7 @@ namespace EddyLib.StrTemp
         //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh " + AppendSuffix());
         //#if DEBUG
 
-        //                sb.AppendLine("PAUSE");
+        // sb.AppendLine("PAUSE");
 
         //#endif
         //            }
@@ -222,8 +222,7 @@ namespace EddyLib.StrTemp
         ////#endif
         ////            }
 
-        //            return sb.ToString();
-        //        }
+        // return sb.ToString(); }
 
         public static string Run_sim(OFMeshSettings MeshSettings, OFRunSettings RunSettings, OFBaseDomain DOM, Mode mode, int d)
         {
@@ -389,7 +388,7 @@ namespace EddyLib.StrTemp
         //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a log "" -f """ + DOM.OFmeshWorkingDir + " \"");
         //#if DEBUG
 
-        //                sb.AppendLine("PAUSE");
+        // sb.AppendLine("PAUSE");
 
         //#endif
         //            }
@@ -402,16 +401,13 @@ namespace EddyLib.StrTemp
         //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a log "" -f """ + DOM.OFmeshWorkingDir + " \"");
         //#if DEBUG
 
-        //                sb.AppendLine("PAUSE");
+        // sb.AppendLine("PAUSE");
 
         //#endif
         //            }
 
-        //            return sb.ToString();
-        //        }
-        //        public static string Run_sim_docker(OFBaseDomain DOM, int d)
-        //        {
-        //            StringBuilder sb = new StringBuilder();
+        // return sb.ToString(); } public static string Run_sim_docker(OFBaseDomain DOM, int d) {
+        // StringBuilder sb = new StringBuilder();
 
         //            sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""pyFoamPrepareCase.py . --no-mesh-create | tee -a log"" -f """ + MeshSettings.OFbaseWorkingDir + DOM.BCInflow.windDirs[d] + " \"");
         //            if (DOM.CPUs > 1)
@@ -424,7 +420,7 @@ namespace EddyLib.StrTemp
         //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a  log "" -f """ + MeshSettings.OFbaseWorkingDir + DOM.BCInflow.windDirs[d] + " \"");
         //#if DEBUG
 
-        //                sb.AppendLine("PAUSE");
+        // sb.AppendLine("PAUSE");
 
         //#endif
         //            }
@@ -436,7 +432,7 @@ namespace EddyLib.StrTemp
         //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a  log "" -f """ + MeshSettings.OFbaseWorkingDir + DOM.BCInflow.windDirs[d] + " \"");
         //#if DEBUG
 
-        //                sb.AppendLine("PAUSE");
+        // sb.AppendLine("PAUSE");
 
         //#endif
         //            }
@@ -657,13 +653,10 @@ cd ""{1}""" + System.Environment.NewLine, installationPath, caseDir));
         //set PATH =%HOME%\msys64\usr\bin;%PATH%
         //cd ""{1}""" + System.Environment.NewLine, installationPath, caseDir));
 
-        //            foreach (string str in commands)
-        //            {
-        //                sb.AppendLine(str);
-        //            }
+        // foreach (string str in commands) { sb.AppendLine(str); }
 
-        //            return sb.ToString();
+        // return sb.ToString();
 
-        //        }
+        // }
     }
 }

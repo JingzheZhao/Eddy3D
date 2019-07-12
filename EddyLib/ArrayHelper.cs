@@ -40,76 +40,34 @@ namespace EddyLib
         //    [Params(10, 100, 1000, 10000)]
         //    public int size;
 
-        //    public double[][] data;
+        // public double[][] data;
 
-        //    [GlobalSetup]
-        //    public void Setup()
-        //    {
-        //        var rnd = new Random();
+        // [GlobalSetup] public void Setup() { var rnd = new Random();
 
-        //        data = new double[size][];
-        //        for (var i = 0; i < size; i++)
-        //        {
-        //            data[i] = new double[size];
-        //            for (var j = 0; j < size; j++)
-        //            {
-        //                data[i][j] = rnd.NextDouble();
-        //            }
-        //        }
-        //    }
+        // data = new double[size][]; for (var i = 0; i < size; i++) { data[i] = new double[size];
+        // for (var j = 0; j < size; j++) { data[i][j] = rnd.NextDouble(); } } }
 
-        //    [Benchmark]
-        //    public void ComputeTo2D()
-        //    {
-        //        var output = To2D(data);
-        //    }
+        // [Benchmark] public void ComputeTo2D() { var output = To2D(data); }
 
-        //    [Benchmark]
-        //    public void ComputeTo2DFast()
-        //    {
-        //        var output = To2DFast(data);
-        //    }
+        // [Benchmark] public void ComputeTo2DFast() { var output = To2DFast(data); }
 
-        //    public static T[,] To2DFast<T>(T[][] source) where T : unmanaged
-        //    {
-        //        var dataOut = new T[source.Length, source.Length];
-        //        var assertLength = source[0].Length;
+        // public static T[,] To2DFast<T>(T[][] source) where T : unmanaged { var dataOut = new
+        // T[source.Length, source.Length]; var assertLength = source[0].Length;
 
-        //        unsafe
-        //        {
-        //            for (var i = 0; i < source.Length; i++)
-        //            {
-        //                if (source[i].Length != assertLength)
-        //                {
-        //                    throw new InvalidOperationException("The given jagged array is not rectangular.");
-        //                }
+        // unsafe { for (var i = 0; i < source.Length; i++) { if (source[i].Length != assertLength) {
+        // throw new InvalidOperationException("The given jagged array is not rectangular."); }
 
-        //                fixed (T* pDataIn = source[i])
-        //                {
-        //                    fixed (T* pDataOut = &dataOut[i, 0])
-        //                    {
-        //                        CopyBlockHelper.SmartCopy<T>(pDataOut, pDataIn, assertLength);
-        //                    }
-        //                }
-        //            }
-        //        }
+        // fixed (T* pDataIn = source[i]) { fixed (T* pDataOut = &dataOut[i, 0]) {
+        // CopyBlockHelper.SmartCopy<T>(pDataOut, pDataIn, assertLength); } } } }
 
-        //        return dataOut;
-        //    }
+        // return dataOut; }
 
-        //    public static T[,] To2D<T>(T[][] source)
-        //    {
-        //        try
-        //        {
-        //            var FirstDim = source.Length;
-        //            var SecondDim =
-        //                source.GroupBy(row => row.Length).Single()
-        //                    .Key; // throws InvalidOperationException if source is not rectangular
+        // public static T[,] To2D<T>(T[][] source) { try { var FirstDim = source.Length; var
+        // SecondDim = source.GroupBy(row => row.Length).Single() .Key; // throws
+        // InvalidOperationException if source is not rectangular
 
-        //            var result = new T[FirstDim, SecondDim];
-        //            for (var i = 0; i < FirstDim; ++i)
-        //                for (var j = 0; j < SecondDim; ++j)
-        //                    result[i, j] = source[i][j];
+        // var result = new T[FirstDim, SecondDim]; for (var i = 0; i < FirstDim; ++i) for (var j =
+        // 0; j < SecondDim; ++j) result[i, j] = source[i][j];
 
         //            return result;
         //        }
@@ -149,7 +107,7 @@ namespace EddyLib
         //        //
         //        //            Console.WriteLine("All Good!");
 
-        //    }
+        // }
 
         //public static class ArrayExt
         //{
@@ -158,22 +116,16 @@ namespace EddyLib
         //        if (!typeof(T).IsPrimitive)
         //            throw new InvalidOperationException("Not supported for managed types.");
 
-        //        if (array == null)
-        //            throw new ArgumentNullException("array");
+        // if (array == null) throw new ArgumentNullException("array");
 
-        //        int cols = array.GetUpperBound(1) + 1;
-        //        T[] result = new T[cols];
+        // int cols = array.GetUpperBound(1) + 1; T[] result = new T[cols];
 
-        //        int size;
+        // int size;
 
-        //        if (typeof(T) == typeof(bool))
-        //            size = 1;
-        //        else if (typeof(T) == typeof(char))
-        //            size = 2;
-        //        else
-        //            size = Marshal.SizeOf<T>();
+        // if (typeof(T) == typeof(bool)) size = 1; else if (typeof(T) == typeof(char)) size = 2;
+        // else size = Marshal.SizeOf<T>();
 
-        //        Buffer.BlockCopy(array, row * cols * size, result, 0, cols * size);
+        // Buffer.BlockCopy(array, row * cols * size, result, 0, cols * size);
 
         //        return result;
         //    }
@@ -302,7 +254,8 @@ namespace EddyLib
             return new GH_Number(data); // easy since GH_Point already implements IGH_Goo.
         }
 
-        // Couldnt find a way to implement this such that it works not only in scripting components, see above
+        // Couldnt find a way to implement this such that it works not only in scripting components,
+        // see above
 
         //public static List<List<T>> ToListOfLists<T>(GH_Structure<T> tree)
         //{
@@ -341,10 +294,9 @@ namespace EddyLib
         //    if ((lst == null) || (lst.Any(subList => subList.Any() == false)))
         //        throw new ArgumentException("Input list is not properly formatted with valid data");
 
-        //    int index = 0;
-        //    int subindex;
+        // int index = 0; int subindex;
 
-        //    return
+        // return
 
         //       lst.Aggregate(new T[lst.Count(), lst.Max(sub => sub.Count())],
         //                     (array, subList) =>

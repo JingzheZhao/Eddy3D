@@ -62,8 +62,7 @@ namespace EddyLib
                 {
                     StartInfo = processInfo
                 };
-                // p.OutputDataReceived += DebugLog.CaptureOutput;
-                // p.ErrorDataReceived += DebugLog.CaptureError;
+                // p.OutputDataReceived += DebugLog.CaptureOutput; p.ErrorDataReceived += DebugLog.CaptureError;
 
                 p.Start();
 
@@ -210,7 +209,7 @@ namespace EddyLib
 
                 string pathvar = System.Environment.GetEnvironmentVariable("PATH");
                 System.Environment.SetEnvironmentVariable("PATH", pathvar + @";" + DaysimInstallation);
-                //  System.Environment.SetEnvironmentVariable("RAYPATH", @"C:\UD\bin\DAYSIM\lib\;C:\UD\bin\Radiance\lib\");
+                // System.Environment.SetEnvironmentVariable("RAYPATH", @"C:\UD\bin\DAYSIM\lib\;C:\UD\bin\Radiance\lib\");
 
                 //run the daysim radiance executables
                 ProcessStartInfo startInfo = new ProcessStartInfo
@@ -220,7 +219,8 @@ namespace EddyLib
 
                 string pathvar2 = startInfo.EnvironmentVariables["PATH"];
                 startInfo.EnvironmentVariables["PATH"] = pathvar2 + @";" + DaysimInstallation; //@";C:\UD\bin\DAYSIM\bin_windows\;C:\UD\bin\Radiance\bin\;C:\UD\bin\DAYSIM;";
-                                                                                               //  startInfo.EnvironmentVariables["RAYPATH"] = @"C:\UD\bin\DAYSIM\lib\;C:\UD\bin\Radiance\lib\";
+                                                                                               // startInfo.EnvironmentVariables["RAYPATH"]
+                                                                                               // = @"C:\UD\bin\DAYSIM\lib\;C:\UD\bin\Radiance\lib\";
 
                 startInfo.UseShellExecute = false;
                 startInfo.RedirectStandardError = true;
@@ -234,18 +234,15 @@ namespace EddyLib
                 //    startInfo.Arguments = workingDir + @"/" + varianten_name + @".hea -m -g";
                 //    p = Process.Start(startInfo);
 
-                //    p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
-                //    Console.WriteLine("output>>" + e.Data);
-                //    p.BeginOutputReadLine();
+                // p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
+                // Console.WriteLine("output>>" + e.Data); p.BeginOutputReadLine();
 
-                //    p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
-                //        Console.WriteLine("error>>" + e.Data);
-                //    p.BeginErrorReadLine();
+                // p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+                // Console.WriteLine("error>>" + e.Data); p.BeginErrorReadLine();
 
-                //    p.WaitForExit();
+                // p.WaitForExit();
 
-                //    Console.WriteLine("ExitCode: {0}", p.ExitCode);
-                //    p.Close();
+                // Console.WriteLine("ExitCode: {0}", p.ExitCode); p.Close();
 
                 //}
                 //catch (Exception e) { Console.WriteLine("radfiles2daysim error" + e.Message); }
@@ -303,11 +300,10 @@ namespace EddyLib
                 //           Console.WriteLine("output>>" + e.Data);
                 //    p.BeginOutputReadLine();
 
-                //    p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
-                //        Console.WriteLine("error>>" + e.Data);
-                //    p.BeginErrorReadLine();
+                // p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+                // Console.WriteLine("error>>" + e.Data); p.BeginErrorReadLine();
 
-                //    p.WaitForExit();
+                // p.WaitForExit();
 
                 //    Console.WriteLine("ExitCode: {0}", p.ExitCode);
                 //    p.Close();
@@ -376,11 +372,10 @@ namespace EddyLib
                 //           Console.WriteLine("output>>" + e.Data);
                 //    p.BeginOutputReadLine();
 
-                //    p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
-                //        Console.WriteLine("error>>" + e.Data);
-                //    p.BeginErrorReadLine();
+                // p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+                // Console.WriteLine("error>>" + e.Data); p.BeginErrorReadLine();
 
-                //    p.WaitForExit();
+                // p.WaitForExit();
 
                 //    Console.WriteLine("ExitCode: {0}", p.ExitCode);
                 //    p.Close();

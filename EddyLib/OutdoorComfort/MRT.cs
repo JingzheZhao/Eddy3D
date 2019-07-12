@@ -7,7 +7,7 @@ namespace EddyLib
     public class MRT
 
     {
-        //  public static object Options { get; private set; }
+        // public static object Options { get; private set; }
 
         public enum MRTType
         {
@@ -99,7 +99,32 @@ namespace EddyLib
             double T_celsius_kelvin = T_celsius + 273;
 
             double Fs = (Math.Atan(0.5 * Wst / (Hst - 1))) * 180 / Math.PI * 0.0056; // where does this come from?
-                                                                                     // where FiS is the angle factor between the ith internal surface of the envelope and the subject, ei is its emissivity, Ai is the area of the interested surface, Ti the temperature, ri the reflection coefficient of the ith surface and Gi the radiation reaching the ith internal surface.
+                                                                                     // where FiS is
+                                                                                     // the angle
+                                                                                     // factor
+                                                                                     // between the
+                                                                                     // ith internal
+                                                                                     // surface of
+                                                                                     // the envelope
+                                                                                     // and the
+                                                                                     // subject, ei
+                                                                                     // is its
+                                                                                     // emissivity,
+                                                                                     // Ai is the
+                                                                                     // area of the
+                                                                                     // interested
+                                                                                     // surface, Ti
+                                                                                     // the
+                                                                                     // temperature,
+                                                                                     // ri the
+                                                                                     // reflection
+                                                                                     // coefficient
+                                                                                     // of the ith
+                                                                                     // surface and
+                                                                                     // Gi the
+                                                                                     // radiation
+                                                                                     // reaching the
+                                                                                     // ith internal surface.
             double Fc = 1 - Fs;  // remaining angle factor
 
             double Es = 0.95;  // Emissivities? Why 0.95?

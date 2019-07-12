@@ -2,8 +2,7 @@
 using System.Windows.Forms;
 using Microsoft.Win32;
 
-// it's required for reading/writing into the registry:
-// and for the MessageBox function:
+// it's required for reading/writing into the registry: and for the MessageBox function:
 
 namespace Eddy
 {
@@ -15,8 +14,7 @@ namespace Eddy
         private bool showError = false;
 
         /// <summary>
-        /// A property to show or hide error messages
-        /// (default = false)
+        /// A property to show or hide error messages (default = false)
         /// </summary>
         public bool ShowError
         {
@@ -29,8 +27,7 @@ namespace Eddy
         private string subKey = "SOFTWARE\\TKDPK";
 
         /// <summary>
-        /// A property to set the SubKey value
-        /// (default = "SOFTWARE\\" + Application.ProductName.ToUpper())
+        /// A property to set the SubKey value (default = "SOFTWARE\\" + Application.ProductName.ToUpper())
         /// </summary>
         public string SubKey
         {
@@ -42,8 +39,7 @@ namespace Eddy
         private RegistryKey baseRegistryKey = Registry.CurrentUser;
 
         /// <summary>
-        /// A property to set the BaseRegistryKey value.
-        /// (default = Registry.LocalMachine)
+        /// A property to set the BaseRegistryKey value. (default = Registry.LocalMachine)
         /// </summary>
         public RegistryKey BaseRegistryKey
         {
@@ -74,8 +70,7 @@ namespace Eddy
             {
                 try
                 {
-                    // If the RegistryKey exists I get its value
-                    // or null is returned.
+                    // If the RegistryKey exists I get its value or null is returned.
                     return (string)sk1.GetValue(KeyName.ToUpper());
                 }
                 catch (Exception e)
@@ -101,9 +96,8 @@ namespace Eddy
             {
                 // Setting
                 RegistryKey rk = baseRegistryKey;
-                // I have to use CreateSubKey
-                // (create or open it if already exits),
-                // 'cause OpenSubKey open a subKey as read-only
+                // I have to use CreateSubKey (create or open it if already exits), 'cause OpenSubKey
+                // open a subKey as read-only
                 RegistryKey sk1 = rk.CreateSubKey(subKey);
                 // Save the value
                 sk1.SetValue(KeyName.ToUpper(), Value);

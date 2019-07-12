@@ -75,8 +75,8 @@ namespace EddyLib
 
         public static double GetZMinTerrain(Mesh terrain, BoundingBox Box, Plane orientedlocalPlane)
         {
-            // If terrain is used, scale down Z to make sure all points are inside the domain
-            // Zinter is call divisionsZ for CylDomain which is an int instead of an Interval
+            // If terrain is used, scale down Z to make sure all points are inside the domain Zinter
+            // is call divisionsZ for CylDomain which is an int instead of an Interval
 
             Plane worldXY = Plane.WorldXY;
             Transform xform = Transform.ChangeBasis(worldXY, orientedlocalPlane);

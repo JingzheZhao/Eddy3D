@@ -329,62 +329,40 @@ namespace EddyLib
         //{
         //    string logFilePath = simulationDirectory + @"\log";
 
-        //    double timeEnd = 0;
+        // double timeEnd = 0;
 
-        //    if (File.Exists(logFilePath))
-        //    {
-        //        try
-        //        {
-        //            string line;
-        //            List<string> lines = new List<string>();
+        // if (File.Exists(logFilePath)) { try { string line; List<string> lines = new List<string>();
 
-        //            //var time1 = "0";
-        //            string time2 = "0";
+        // //var time1 = "0"; string time2 = "0";
 
-        //            // This causes issues if the logfile isn't there
+        // // This causes issues if the logfile isn't there
 
-        //            using (FileStream fs = new FileStream(logFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-        //            using (StreamReader sr = new StreamReader(fs, System.Text.Encoding.Default))
-        //            {
-        //                while ((line = sr.ReadLine()) != null)
-        //                {
-        //                    lines.Add(line);
-        //                }
-        //            }
+        // using (FileStream fs = new FileStream(logFilePath, FileMode.Open, FileAccess.Read,
+        // FileShare.ReadWrite)) using (StreamReader sr = new StreamReader(fs,
+        // System.Text.Encoding.Default)) { while ((line = sr.ReadLine()) != null) { lines.Add(line);
+        // } }
 
-        //            foreach (var lline in lines.Select((value, index) => new { value, index }))
-        //            {
-        //                // Use x.value and x.index in here
+        // foreach (var lline in lines.Select((value, index) => new { value, index })) { // Use
+        // x.value and x.index in here
 
-        //                if (lline.value.StartsWith("SIMPLE solution converged"))
-        //                {
-        //                    time2 = lines[lline.index - 3].Split("ClockTime".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[3].Replace("=", "").Replace("s", "").Trim();//.Replace("s", "")
+        // if (lline.value.StartsWith("SIMPLE solution converged")) { time2 = lines[lline.index -
+        // 3].Split("ClockTime".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[3].Replace("=",
+        // "").Replace("s", "").Trim();//.Replace("s", "")
 
-        //                    //timeElapsed = TimeSpan.FromSeconds(double.Parse(time2));
-        //                }
+        // //timeElapsed = TimeSpan.FromSeconds(double.Parse(time2)); }
 
-        //                if (lline.value.EndsWith(iter.ToString()))
-        //                {
-        //                    time2 = lines[lline.index + 10].Split("ClockTime".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[3].Replace("=", "").Replace("s", "").Trim();//.Replace("s", "")
-        //                    break;
+        // if (lline.value.EndsWith(iter.ToString())) { time2 = lines[lline.index +
+        // 10].Split("ClockTime".ToCharArray(),
+        // StringSplitOptions.RemoveEmptyEntries)[3].Replace("=", "").Replace("s",
+        // "").Trim();//.Replace("s", "") break;
 
-        //                    //timeElapsed = TimeSpan.FromSeconds(double.Parse(time2));
-        //                }
+        // //timeElapsed = TimeSpan.FromSeconds(double.Parse(time2)); }
 
-        //                else
-        //                {
-        //                    timeEnd = 0;
-        //                }
+        // else { timeEnd = 0; }
 
-        //                timeEnd = double.Parse(time2) / 60;
-        //            }
+        // timeEnd = double.Parse(time2) / 60; }
 
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            throw new System.ArgumentException(e.Message);
-        //        }
-        //    }
+        // } catch (Exception e) { throw new System.ArgumentException(e.Message); } }
 
         //    return timeEnd;
         //}
@@ -1183,24 +1161,24 @@ renderView1.CameraParallelProjection = 1
             //    DateTime dateTime = DateTime.MinValue;
             //    DateTime dateTimeUTC = DateTime.MinValue;
 
-            //    System.Net.HttpWebRequest request = (System.Net.HttpWebRequest)System.Net.WebRequest.Create("http://nist.time.gov/actualtime.cgi?lzbc=siqm9b");
-            //    ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
-            //    request.Method = "GET";
-            //    request.Accept = "text/html, application/xhtml+xml, */*";
-            //    request.UserAgent = "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)";
-            //    request.ContentType = "application/x-www-form-urlencoded";
-            //    //request.ProtocolVersion = HttpVersion.Version11;
-            //    //request.CachePolicy = new RequestCachePolicy(System.Net.Cache.RequestCacheLevel.NoCacheNoStore); //No caching
-            //    System.Net.HttpWebResponse response = (System.Net.HttpWebResponse)request.GetResponse();
-            //    if (response.StatusCode == (System.Net.HttpStatusCode.OK))
-            //    {
-            //        System.IO.StreamReader stream = new StreamReader(response.GetResponseStream());
-            //        string html = stream.ReadToEnd();//<timestamp time=\"1395772696469995\" delay=\"1395772696469995\"/>
-            //        string time = System.Text.RegularExpressions.Regex.Match(html, @"(?<=\btime="")[^""]*").Value;
-            //        double milliseconds = Convert.ToInt64(time) / 1000.0;
-            //        dateTime = new DateTime(1970, 1, 1).AddMilliseconds(milliseconds).ToLocalTime();
-            //        dateTimeUTC = dateTime.ToUniversalTime();
-            //    }
+            // System.Net.HttpWebRequest request =
+            // (System.Net.HttpWebRequest)System.Net.WebRequest.Create("http://nist.time.gov/actualtime.cgi?lzbc=siqm9b");
+            // ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 |
+            // SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+            // request.Method = "GET"; request.Accept = "text/html, application/xhtml+xml, */*";
+            // request.UserAgent = "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1;
+            // Trident/6.0)"; request.ContentType = "application/x-www-form-urlencoded";
+            // //request.ProtocolVersion = HttpVersion.Version11; //request.CachePolicy = new
+            // RequestCachePolicy(System.Net.Cache.RequestCacheLevel.NoCacheNoStore); //No caching
+            // System.Net.HttpWebResponse response =
+            // (System.Net.HttpWebResponse)request.GetResponse(); if (response.StatusCode ==
+            // (System.Net.HttpStatusCode.OK)) { System.IO.StreamReader stream = new
+            // StreamReader(response.GetResponseStream()); string html =
+            // stream.ReadToEnd();//<timestamp time=\"1395772696469995\" delay=\"1395772696469995\"/>
+            // string time = System.Text.RegularExpressions.Regex.Match(html,
+            // @"(?<=\btime="")[^""]*").Value; double milliseconds = Convert.ToInt64(time) / 1000.0;
+            // dateTime = new DateTime(1970, 1, 1).AddMilliseconds(milliseconds).ToLocalTime();
+            // dateTimeUTC = dateTime.ToUniversalTime(); }
 
             //    if ((dateTimeUTC - dateCompile) > licenceDuration)
             //    {
@@ -1214,8 +1192,7 @@ renderView1.CameraParallelProjection = 1
             //catch(Exception e) {
             //    Debug.WriteLine(e.Message);
 
-            //    if (DateTime.Now > expiresAt) licence = false;
-            //    else licence = true;
+            // if (DateTime.Now > expiresAt) licence = false; else licence = true;
 
             //}
 
@@ -1235,12 +1212,8 @@ renderView1.CameraParallelProjection = 1
         //{
         //    bool ShapeInsideBrep = false;
 
-        //    for (int i = 0; i < 4;i++)
-        //    {
-        //        if( GeometryToCheck.Vertices[i].X < GeometryToCheckAgainst.Vertices[i].X)
-        //        {
-        //        }
-        //    }
+        // for (int i = 0; i < 4;i++) { if( GeometryToCheck.Vertices[i].X <
+        // GeometryToCheckAgainst.Vertices[i].X) { } }
 
         //    return ShapeInsideBrep;
         //}

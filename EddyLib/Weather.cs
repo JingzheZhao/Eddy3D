@@ -37,8 +37,7 @@ namespace EddyLib
         {
             try
             {
-                // load weather data
-                // -----------------
+                // load weather data -----------------
                 string[] epwData = File.ReadAllLines(filePath);
 
                 // get header data

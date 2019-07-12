@@ -272,8 +272,7 @@ snapControls
             sb.Append(@"
         }
 
-//    nSmoothDisplacement       0;
-//    detectExtrusionIsland     false;
+// nSmoothDisplacement 0; detectExtrusionIsland false;
 
         //// Expansion factor for layer mesh
         expansionRatio 1.0;
@@ -298,12 +297,10 @@ snapControls
 
         // Advanced settings
 
-    // When not to extrude surface. 0 is flat surface, 90 is when two faces
-    // are perpendicular
+    // When not to extrude surface. 0 is flat surface, 90 is when two faces are perpendicular
     featureAngle 180;
 
-    // At non-patched sides allow mesh to slip if extrusion direction makes
-    // angle larger than slipFeatureAngle.
+    // At non-patched sides allow mesh to slip if extrusion direction makes angle larger than slipFeatureAngle.
     slipFeatureAngle 75;
 
         //// Maximum number of snapping relaxation iterations. Should stop
@@ -342,8 +339,7 @@ snapControls
         nRelaxedIter 20;
     }
 
-  // Generic mesh quality settings. At any undoable phase these determine
-  // where to undo.
+  // Generic mesh quality settings. At any undoable phase these determine where to undo.
   meshQualityControls
 {
 maxNonOrtho 65;
@@ -357,7 +353,7 @@ maxConcave 40;
 // Minimum cell pyramid volume; case dependent
 minVol 1e-20;
 
-//  1e-15 (small positive) to enable tracking
+// 1e-15 (small positive) to enable tracking
 // -1e+30 (large negative) for best layer insertion
 minTetQuality -1e+30;
 
@@ -389,66 +385,43 @@ relaxed
 }
 
 ////- Maximum non-orthogonality allowed. Set to 180 to disable.
-//    maxNonOrtho 65;
+// maxNonOrtho 65;
 
-//    //- Max skewness allowed. Set to <0 to disable.
-//    maxBoundarySkewness 20;
-//    maxInternalSkewness 4;
+// //- Max skewness allowed. Set to <0 to disable. maxBoundarySkewness 20; maxInternalSkewness 4;
 
-//    //- Max concaveness allowed. Is angle (in degrees) below which concavity
-//    //  is allowed. 0 is straight face, <0 would be convex face.
-//    //  Set to 180 to disable.
-//    maxConcave 80;
+// //- Max concaveness allowed. Is angle (in degrees) below which concavity // is allowed. 0 is
+// straight face, <0 would be convex face. // Set to 180 to disable. maxConcave 80;
 
-//    //- Minimum pyramid volume. Is absolute volume of cell pyramid.
-//    //  Set to a sensible fraction of the smallest cell volume expected.
-//    //  Set to very negative number (e.g. -1E30) to disable.
-//    minVol 1e-16;
+// //- Minimum pyramid volume. Is absolute volume of cell pyramid. // Set to a sensible fraction of
+// the smallest cell volume expected. // Set to very negative number (e.g. -1E30) to disable. minVol 1e-16;
 
-//    //- Minimum quality of the tet formed by the face-centre
-//    //  and variable base point minimum decomposition triangles and
-//    //  the cell centre. This has to be a positive number for tracking
-//    //  to work. Set to very negative number (e.g. -1E30) to
-//    //  disable.
-//    //     <0 = inside out tet,
-//    //      0 = flat tet
-//    //      1 = regular tet
-//    minTetQuality -1e+30; // 1e-30;
+// //- Minimum quality of the tet formed by the face-centre // and variable base point minimum
+// decomposition triangles and // the cell centre. This has to be a positive number for tracking //
+// to work. Set to very negative number (e.g. -1E30) to // disable. // <0 = inside out tet, // 0 =
+// flat tet // 1 = regular tet minTetQuality -1e+30; // 1e-30;
 
-//    //- Minimum face area. Set to <0 to disable.
-//    minArea 1e-13;
+// //- Minimum face area. Set to <0 to disable. minArea 1e-13;
 
-//    //- Minimum face twist. Set to <-1 to disable. dot product of face normal
-//    //  and face centre triangles normal
-//    minTwist 0.02;
+// //- Minimum face twist. Set to <-1 to disable. dot product of face normal // and face centre
+// triangles normal minTwist 0.02;
 
-//    //- Minimum normalised cell determinant
-//    //  1 = hex, <= 0 = folded or flattened illegal cell
-//    minDeterminant 0.001;
+// //- Minimum normalised cell determinant // 1 = hex, <= 0 = folded or flattened illegal cell
+// minDeterminant 0.001;
 
-//    //- minFaceWeight (0 -> 0.5)
-//    minFaceWeight 0.02;
+// //- minFaceWeight (0 -> 0.5) minFaceWeight 0.02;
 
-//    //- minVolRatio (0 -> 1)
-//    minVolRatio 0.01;
+// //- minVolRatio (0 -> 1) minVolRatio 0.01;
 
-//    //must be >0 for Fluent compatibility
-//    minTriangleTwist -1;
+// //must be >0 for Fluent compatibility minTriangleTwist -1;
 
-//    // Advanced
+// // Advanced
 
-//    //- Number of error distribution iterations
-//    nSmoothScale 4;
-//    //- Amount to scale back displacement at error points
-//    errorReduction 0.75;
+// //- Number of error distribution iterations nSmoothScale 4; //- Amount to scale back displacement
+// at error points errorReduction 0.75;
 
-//    // Optional : some meshing phases allow usage of relaxed rules.
-//    // See e.g. addLayersControls::nRelaxedIter.
-//    relaxed
-//    {
-//        //- Maximum non-orthogonality allowed. Set to 180 to disable.
-//        maxNonOrtho 75;
-//    }
+// // Optional : some meshing phases allow usage of relaxed rules. // See e.g.
+// addLayersControls::nRelaxedIter. relaxed { //- Maximum non-orthogonality allowed. Set to 180 to
+// disable. maxNonOrtho 75; }
 }
 
   // Write flags
@@ -949,8 +922,7 @@ FoamFile
         //);
 
         //// ************************************************************************* //
-        //            ";
-        //        }
+        // "; }
 
         public static string MeshQualityDict()
         {
@@ -1837,9 +1809,8 @@ building.stl
 
     extractFromSurfaceCoeffs
     {
-        // Mark edges whose adjacent surface normals are at an angle less
-        // than includedAngle as features
-        // - 0  : selects no edges
+        // Mark edges whose adjacent surface normals are at an angle less than includedAngle as features
+        // - 0 : selects no edges
         // - 180: selects all edges
         includedAngle   180;
     }
@@ -1866,9 +1837,8 @@ ground.stl
 
     extractFromSurfaceCoeffs
     {
-        // Mark edges whose adjacent surface normals are at an angle less
-        // than includedAngle as features
-        // - 0  : selects no edges
+        // Mark edges whose adjacent surface normals are at an angle less than includedAngle as features
+        // - 0 : selects no edges
         // - 180: selects all edges
         includedAngle   180;
     }

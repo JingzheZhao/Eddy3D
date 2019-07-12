@@ -31,194 +31,138 @@
 //        {
 //        }
 
-//        /// <summary>
-//        /// Registers all the input parameters for this component.
-//        /// </summary>
-//        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
-//        {
-//            pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
-//            pManager.AddGenericParameter("topo", "topologies", "topologies", GH_ParamAccess.list);
+// ///
+// <summary>
+// /// Registers all the input parameters for this component. ///
+// </summary>
+// protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager) {
+// pManager.AddGenericParameter("Domain", "Domain", "Domain", GH_ParamAccess.item);
+// pManager.AddGenericParameter("topo", "topologies", "topologies", GH_ParamAccess.list);
 
-//            //pManager.AddTextParameter("topoName", "topoName", "topoName", GH_ParamAccess.item);
-//            pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 0);
+// //pManager.AddTextParameter("topoName", "topoName", "topoName", GH_ParamAccess.item);
+// pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 0);
 
-//            Param_Integer param = pManager[2] as Param_Integer;
-//            param.AddNamedValue("cp_Patches", 0);
-//            param.AddNamedValue("V_dot_Patches", 1);
+// Param_Integer param = pManager[2] as Param_Integer; param.AddNamedValue("cp_Patches", 0);
+// param.AddNamedValue("V_dot_Patches", 1);
 
-//        }
+// }
 
-//        /// <summary>
-//        /// Registers all the output parameters for this component.
-//        /// </summary>
-//        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
-//        {
-//            pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.list);
-//        }
+// ///
+// <summary>
+// /// Registers all the output parameters for this component. ///
+// </summary>
+// protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager) {
+// pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.list); }
 
-//        /// <summary>
-//        /// This is the method that actually does the work.
-//        /// </summary>
-//        /// <param name="DA">The DA object can be used to retrieve data from input parameters and
-//        /// to store data in output parameters.</param>
-//        protected override void SolveInstance(IGH_DataAccess DA)
-//        {
-//            OFBaseDomain DOM = null;
+// ///
+// <summary>
+// /// This is the method that actually does the work. ///
+// </summary>
+// ///
+// <param name="DA">
+// The DA object can be used to retrieve data from input parameters and /// to store data in output parameters.
+// </param>
+// protected override void SolveInstance(IGH_DataAccess DA) { OFBaseDomain DOM = null;
 
-//            GH_ObjectWrapper gobj = null;
-//            if (!DA.GetData(0, ref gobj)) { }
+// GH_ObjectWrapper gobj = null; if (!DA.GetData(0, ref gobj)) { }
 
-//            if ((gobj.Value is OFBaseDomain))
-//            {
-//                DOM = (OFBaseDomain)gobj.Value;
-//            }
-//            if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
+// if ((gobj.Value is OFBaseDomain)) { DOM = (OFBaseDomain)gobj.Value; } if (DOM == null) {
+// AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
 
-//            string topoName = "patch";
-//            int mode = 0;
-//            List<GeometryBase> topo = new List<GeometryBase>();
-//            List<Point3d> points = new List<Point3d>();
+// string topoName = "patch"; int mode = 0; List<GeometryBase> topo = new List<GeometryBase>();
+// List<Point3d> points = new List<Point3d>();
 
-//            DA.GetDataList(1, topo);
-//            //DA.GetDataList(2, points);
-//            //DA.GetData(2, ref topoName);
+// DA.GetDataList(1, topo); //DA.GetDataList(2, points); //DA.GetData(2, ref topoName);
 
-//            DA.GetData(2, ref mode);
+// DA.GetData(2, ref mode);
 
-//            if (mode == 0)
-//            {
-//                List<Mesh> allTopo = new List<Mesh>();
-//                MeshingParameters mp = new MeshingParameters();
+// if (mode == 0) { List<Mesh> allTopo = new List<Mesh>(); MeshingParameters mp = new MeshingParameters();
 
-//                foreach (GeometryBase b in topo)
-//                {
-//                    if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
-//                    {
-//                        Mesh obj = (Mesh)b;
-//                        allTopo.Add(obj);
-//                    }
-//                    else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
-//                    {
-//                        Brep obj = (Brep)b;
-//                        var m = Mesh.CreateFromBrep(obj, mp);
-//                        foreach (Mesh mm in m) allTopo.Add(mm);
+// foreach (GeometryBase b in topo) { if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh) { Mesh
+// obj = (Mesh)b; allTopo.Add(obj); } else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep ||
+// b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType ==
+// Rhino.DocObjects.ObjectType.Surface) { Brep obj = (Brep)b; var m = Mesh.CreateFromBrep(obj, mp);
+// foreach (Mesh mm in m) allTopo.Add(mm);
 
-//                    }
+// }
 
-//                    for (int l = 0; l < DOM.BCInflow.windDir.Count; l++)
-//                    {
-//                        for (int i = 0; i < allTopo.Count; i++)
-//                        {
-//                            string filePath = RES.WorkingDirectoryectory + "\\" + DOM.BCInflow.windDir[l] + @"\constant\triSurface\" + topoName + i + ".stl";
-//                            STLExport.ExportBinary(filePath, allTopo[i]);
-//                        }
-//                    }
+// for (int l = 0; l < DOM.BCInflow.windDir.Count; l++) { for (int i = 0; i < allTopo.Count; i++) {
+// string filePath = RES.WorkingDirectoryectory + "\\" + DOM.BCInflow.windDir[l] +
+// @"\constant\triSurface\" + topoName + i + ".stl"; STLExport.ExportBinary(filePath, allTopo[i]); } }
 
-//                }
+// }
 
-//                for (int l = 0; l < DOM.BCInflow.windDir.Count; l++)
-//                {
-//                    File.WriteAllText(RES.WorkingDirectoryectory +  DOM.BCInflow.windDir[l] + @"\system\" + "controlDict", EddyLib.StringTemplatescontrolDict(DOM, null, l));
-//                    File.WriteAllText(RES.WorkingDirectoryectory + DOM.BCInflow.windDir[l]   + @"\system\" + "topoSetDict", EddyLib.StringTemplatestopoSetDict(allTopo));
+// for (int l = 0; l < DOM.BCInflow.windDir.Count; l++) {
+// File.WriteAllText(RES.WorkingDirectoryectory + DOM.BCInflow.windDir[l] + @"\system\" +
+// "controlDict", EddyLib.StringTemplatescontrolDict(DOM, null, l));
+// File.WriteAllText(RES.WorkingDirectoryectory + DOM.BCInflow.windDir[l] + @"\system\" +
+// "topoSetDict", EddyLib.StringTemplatestopoSetDict(allTopo));
 
-//                string postProcessDirectory = RES.WorkingDirectoryectory + DOM.BCInflow.windDir[l] + @"\PostProcessing\";
-//                int counterTopo = 0;
+// string postProcessDirectory = RES.WorkingDirectoryectory + DOM.BCInflow.windDir[l] +
+// @"\PostProcessing\"; int counterTopo = 0;
 
-//                //Start sample process
-//                string command = @"""topoSet;simpleFoam""";
+// //Start sample process string command = @"""topoSet;simpleFoam""";
 
-//                ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", " -e " + command + " -f " + "\"" + RES.WorkingDirectoryectory + "\\" + DOM.BCInflow.windDir[l] + " \"");
-//                Process p = new Process();
-//                p.StartInfo = psi;
-//                p.Start();
-//                p.WaitForExit();
+// ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe", " -e " +
+// command + " -f " + "\"" + RES.WorkingDirectoryectory + "\\" + DOM.BCInflow.windDir[l] + " \"");
+// Process p = new Process(); p.StartInfo = psi; p.Start(); p.WaitForExit();
 
-//                    if (!Directory.Exists(postProcessDirectory))
-//                    {
-//                        AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "There is no PostProcessing directory.");
-//                    }
-//                    else
-//                    {
-//                        counterTopo = topo.Count();
+// if (!Directory.Exists(postProcessDirectory)) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
+// "There is no PostProcessing directory."); } else { counterTopo = topo.Count();
 
-//                        string[] dir = Directory.GetDirectories(postProcessDirectory);
-//                        string basePath = postProcessDirectory + @"\swakExpression_";
+// string[] dir = Directory.GetDirectories(postProcessDirectory); string basePath =
+// postProcessDirectory + @"\swakExpression_";
 
-//                        int counterIter = Directory.GetDirectories(dir[0]).Length;
+// int counterIter = Directory.GetDirectories(dir[0]).Length;
 
-//                        string[] fullDir = new string[counterTopo];
-//                        string[] filePathResults = new string[counterTopo];
-//                        string[] dirLastIter = Directory.GetDirectories(dir[0]);
+// string[] fullDir = new string[counterTopo]; string[] filePathResults = new string[counterTopo];
+// string[] dirLastIter = Directory.GetDirectories(dir[0]);
 
-//                        var item = dirLastIter[dirLastIter.Length - 1];
+// var item = dirLastIter[dirLastIter.Length - 1];
 
-//                        string lastIter = Path.GetFileName(item);
+// string lastIter = Path.GetFileName(item);
 
-//                        // Build filepath
-//                        for (int i = 0; i < counterTopo; i++)
-//                        {
-//                            fullDir[i] = basePath + topoName + i;
-//                        }
+// // Build filepath for (int i = 0; i < counterTopo; i++) { fullDir[i] = basePath + topoName + i; }
 
-//                        // Build get fileName
+// // Build get fileName
 
-//                        //filePathResults = Directory.GetFiles(fullDir[0]);
-//                        //string fileName = new String(Path.GetFileName(filePathResults[0]).Where(c => Char.IsLetter(c) | Char.IsPunctuation(c)).ToArray());;
-//                        //string fileName2 = Regex.Replace(filePathResults[0], @"[^A-Z]+", String.Empty);
+// //filePathResults = Directory.GetFiles(fullDir[0]); //string fileName = new
+// String(Path.GetFileName(filePathResults[0]).Where(c => Char.IsLetter(c) |
+// Char.IsPunctuation(c)).ToArray());; //string fileName2 = Regex.Replace(filePathResults[0],
+// @"[^A-Z]+", String.Empty);
 
-//                        List<String> fullPath = new List<String>();
+// List<String> fullPath = new List<String>();
 
-//                        for (int i = 0; i < counterTopo; i++)
-//                        {
-//                            fullPath.Add(fullDir[i] + @"\" + lastIter + @"\" + topoName + i);
-//                        }
+// for (int i = 0; i < counterTopo; i++) { fullPath.Add(fullDir[i] + @"\" + lastIter + @"\" +
+// topoName + i); }
 
-//                        double[] cpValues = new double[counterTopo];
-//                        var csv = new System.Text.StringBuilder();
+// double[] cpValues = new double[counterTopo]; var csv = new System.Text.StringBuilder();
 
-//                        for (int i = 0; i < counterTopo; i++)
-//                        {
-//                            var lastLine = File.ReadLines(fullPath[i]).Last();
-//                            cpValues[i] = double.Parse(lastLine.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1]);
-//                            //if (cpValues[i] > 100)
-//                            //{
-//                            //    cpValues[i] = cpValues[i - 1];
-//                            //};
-//                            var firstColumn = i.ToString();
-//                            var secondColumn = cpValues[i].ToString();
-//                            var newLine = string.Format("{0},{1}", firstColumn, secondColumn);
-//                            csv.AppendLine(newLine);
-//                        }
+// for (int i = 0; i < counterTopo; i++) { var lastLine = File.ReadLines(fullPath[i]).Last();
+// cpValues[i] = double.Parse(lastLine.Split(" ".ToCharArray(),
+// StringSplitOptions.RemoveEmptyEntries)[1]); //if (cpValues[i] > 100) //{ // cpValues[i] =
+// cpValues[i - 1]; //}; var firstColumn = i.ToString(); var secondColumn = cpValues[i].ToString();
+// var newLine = string.Format("{0},{1}", firstColumn, secondColumn); csv.AppendLine(newLine); }
 
-//                        File.WriteAllText(postProcessDirectory + topoName + @".csv", csv.ToString());
+// File.WriteAllText(postProcessDirectory + topoName + @".csv", csv.ToString());
 
-//                        DA.SetDataList(0, cpValues);
-//                    }
-//                }
+// DA.SetDataList(0, cpValues); } }
 
-//            }
+// }
 
-//            if (mode == 1)
-//            {
-//                return;
+// if (mode == 1) { return;
 
-//            }
+// }
 
-//        }
+// }
 
-//        /// <summary>
-//        /// Provides an Icon for every component that will be visible in the User Interface.
-//        /// Icons need to be 24x24 pixels.
-//        /// </summary>
-//        protected override System.Drawing.Bitmap Icon
-//        {
-//            get
-//            {
-//                // You can add image files to your project resources and access them like this:
-//                //return Resources.IconForThisComponent;
-//                return null;
-//            }
-//        }
+// ///
+// <summary>
+// /// Provides an Icon for every component that will be visible in the User Interface. /// Icons
+// need to be 24x24 pixels. ///
+// </summary>
+// protected override System.Drawing.Bitmap Icon { get { // You can add image files to your project
+// resources and access them like this: //return Resources.IconForThisComponent; return null; } }
 
 //        /// <summary>
 //        /// Each component must have a unique Guid to identify it.

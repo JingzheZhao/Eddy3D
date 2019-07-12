@@ -25,8 +25,7 @@ namespace EddyLib
         private static double GetFlowRate(List<double> listOfCps, List<double> AreaList, double velocity)
         {
             // Airflow assessment in cross-ventilated buildings with operable façade elements
-            // P.KaravaaT.StathopoulosbA.K.Athienitisb
-            // https://www.sciencedirect.com/science/article/pii/S0360132310002271
+            // P.KaravaaT.StathopoulosbA.K.Athienitisb https://www.sciencedirect.com/science/article/pii/S0360132310002271
 
             var C_D_general = 0.7;
 

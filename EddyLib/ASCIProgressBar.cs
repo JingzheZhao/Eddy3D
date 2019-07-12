@@ -22,9 +22,9 @@ public class ASCIIProgressBar : IDisposable, IProgress<double>
     {
         timer = new Timer(TimerHandler);
 
-        // A progress bar is only for temporary display in a console window.
-        // If the console output is redirected to a file, draw nothing.
-        // Otherwise, we'll end up with a lot of garbage in the target file.
+        // A progress bar is only for temporary display in a console window. If the console output is
+        // redirected to a file, draw nothing. Otherwise, we'll end up with a lot of garbage in the
+        // target file.
         if (!Console.IsOutputRedirected)
         {
             ResetTimer();

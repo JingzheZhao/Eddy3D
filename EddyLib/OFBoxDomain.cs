@@ -12,16 +12,9 @@ namespace EddyLib
 
         public double length;
         public double height;
-        // public double yMin;
-        // public double yMax;
-        // public double xMin;
-        // public double xMax;
-        // public double zMin;
-        // public double zMax;
-        // public double dimX;
-        // public double dimY;
-        // public double dimZ;
-        // public double dim;
+        // public double yMin; public double yMax; public double xMin; public double xMax; public
+        // double zMin; public double zMax; public double dimX; public double dimY; public double
+        // dimZ; public double dim;
 
         public int xCells;
         public int yCells;
@@ -67,8 +60,7 @@ namespace EddyLib
             var dimZ = zMax - zMin;
 
             ////////////
-            // Center ground order is not correct but it worked before by moving
-            // Plane is wrongly projected
+            // Center ground order is not correct but it worked before by moving Plane is wrongly projected
             ////////////
 
             //Plane pl = new Plane(CenterGround, orientedPlane.XAxis, orientedPlane.YAxis);
@@ -133,8 +125,7 @@ namespace EddyLib
                 yInter = new Interval(scaleRectDomainYUpstream, scaleRectDomainYDownstream);
             }
 
-            // Z
-            // If terrain is used, scale down Z to make sure all points are inside the domain
+            // Z If terrain is used, scale down Z to make sure all points are inside the domain
             // Zinter is call divisionsZ for CylDomain which is an int instead of an Interval
 
             if (terrainMesh.Faces.Count > 0)
@@ -153,8 +144,7 @@ namespace EddyLib
                 zInter = new Interval(zMin, zMin + scaleRectDomainZ);
             }
 
-            // Create the new Domain from 8 minmax points
-            // Doesn't work combined with rotating the domain
+            // Create the new Domain from 8 minmax points Doesn't work combined with rotating the domain
             /*
             Point3d p1 = new Point3d(xInter.T0, yInter.T0, zInter.T0);
             Point3d p2 = new Point3d(xInter.T1, yInter.T0, zInter.T0);

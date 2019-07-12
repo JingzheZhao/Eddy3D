@@ -5,18 +5,14 @@ using System.Linq;
 namespace EddyLib
 {
     /// <summary>
-    /// Port of Jenks/Fisher breaks originally created in C by Maarten Hilferink.
-    /// <remarks>
-    ///     http://wiki.objectvision.nl/index.php/CalcNaturalBreaksCode
-    ///     http://wiki.objectvision.nl/index.php/Fisher%27s_Natural_Breaks_Classification
-    ///     https://github.com/pschoepf/naturalbreaks
-    /// </remarks>
+    /// Port of Jenks/Fisher breaks originally created in C by Maarten Hilferink. <remarks>
+    /// http://wiki.objectvision.nl/index.php/CalcNaturalBreaksCode
+    /// http://wiki.objectvision.nl/index.php/Fisher%27s_Natural_Breaks_Classification https://github.com/pschoepf/naturalbreaks</remarks>
     /// </summary>
     public class JenksFisher
     {
         /// <summary>
-        /// Replacing ValueTuple by class,
-        /// intellisence didn't work in sqlproj with C# 7.0
+        /// Replacing ValueTuple by class, intellisence didn't work in sqlproj with C# 7.0
         /// </summary>
         private class ValueCountTuple : IComparable, IComparable<ValueCountTuple>, IEquatable<ValueCountTuple>
         {
@@ -108,10 +104,10 @@ namespace EddyLib
         /// Constructor that initializes main variables used in fisher calculation of natural breaks
         /// </summary>
         /// <param name="tuples">
-        ///     Ordered list of pairs of values to occurrence counts.
-        ///     The value sequence must be strictly increasing, all weights must be positive
+        /// Ordered list of pairs of values to occurrence counts. The value sequence must be strictly
+        /// increasing, all weights must be positive
         /// </param>
-        /// <param name="numBreaks"> Number of breaks to find.</param>
+        /// <param name="numBreaks">Number of breaks to find.</param>
         private JenksFisher(List<ValueCountTuple> tuples, int numBreaks)
         {
             _values = new List<ValueCountTuple>();
@@ -171,7 +167,8 @@ namespace EddyLib
         }
 
         /// <summary>
-        /// Gets the Squared Mean for elements within index b..e, multiplied by weight. Note that n*mean^2 = sum^2/n when mean := sum/n
+        /// Gets the Squared Mean for elements within index b..e, multiplied by weight. Note that
+        /// n*mean^2 = sum^2/n when mean := sum/n
         /// </summary>
         /// <param name="beginIndex">index of begin element</param>
         /// <param name="endIndex">index of end element</param>
@@ -183,15 +180,14 @@ namespace EddyLib
         }
 
         /// <summary>
-        /// Finds CB[i+completedRows] given that the result is at least bp+(completedRows-1) and less than ep+(completedRows-1)
+        /// Finds CB[i+completedRows] given that the result is at least bp+(completedRows-1) and less
+        /// than ep+(completedRows-1)
         /// </summary>
         /// <param name="i"></param>
         /// <param name="bp"></param>
         /// <param name="ep"></param>
         /// <returns></returns>
-        /// <remarks>
-        ///     Complexity: O(ep-bp) ~ O(m)
-        /// </remarks>
+        /// <remarks>Complexity: O(ep-bp) ~ O(m)</remarks>
         private int FindMaxBreakIndex(int i, int bp, int ep)
         {
             double minSSM = _previousSSM[bp] + SSM(bp + _completedRows, i + _completedRows);
@@ -209,17 +205,11 @@ namespace EddyLib
             return foundP;
         }
 
-        /// <summary>
-        /// Find CB[i+completedRows] for all <c>i >= bi and i < ei</c> given that the
-        /// results are at least bp+(completedRows-1) and less than ep+(completedRows-1)
-        /// </summary>
-        /// <param name="bi"></param>
-        /// <param name="ei"></param>
-        /// <param name="bp"></param>
-        /// <param name="ep"></param>
-        /// <remarks>
-        /// Complexity: O(log(ei-bi)*Max((ei-bi),(ep-bp))) ~ O(m*log(m))
-        /// </remarks>
+        /// <summary> Find CB[i+completedRows] for all <c>i >= bi and i < ei</c> given that the
+        /// results are at least bp+(completedRows-1) and less than ep+(completedRows-1) </summary>
+        /// <param name="bi"></param> <param name="ei"></param> <param name="bp"></param> <param
+        /// name="ep"></param> <remarks>
+        /// Complexity: O(log(ei-bi)*Max((ei-bi),(ep-bp))) ~ O(m*log(m)) </remarks>
         private void CalculateRange(int bi, int ei, int bp, int ep)
         {
             if (bi == ei)

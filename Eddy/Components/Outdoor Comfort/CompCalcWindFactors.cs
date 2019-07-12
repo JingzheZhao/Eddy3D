@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Windows.Forms;
 using EddyLib;
 using Grasshopper.Kernel;
@@ -8,10 +7,9 @@ using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 
-// In order to load the result of this wizard, you will also need to
-// add the output bin/ folder of this project to the list of loaded
-// folder in Grasshopper.
-// You can use the _GrasshopperDeveloperSettings Rhino command for that.
+// In order to load the result of this wizard, you will also need to add the output bin/ folder of
+// this project to the list of loaded folder in Grasshopper. You can use the
+// _GrasshopperDeveloperSettings Rhino command for that.
 
 namespace Eddy
 {
@@ -24,11 +22,10 @@ namespace Eddy
         //}
 
         /// <summary>
-        /// Each implementation of GH_Component must provide a public
-        /// constructor without any arguments.
-        /// Category represents the Tab in which the component will appear,
-        /// Subcategory the panel. If you use non-existing tab or panel names,
-        /// new tabs/panels will automatically be created.
+        /// Each implementation of GH_Component must provide a public constructor without any
+        /// arguments. Category represents the Tab in which the component will appear, Subcategory
+        /// the panel. If you use non-existing tab or panel names, new tabs/panels will automatically
+        /// be created.
         /// </summary>
         public CompCalcWindFactors()
           : base("WindFactors", "WindFactors", "PostProcessing", "Eddy", "6 | Outdoor Comfort")
@@ -91,8 +88,10 @@ namespace Eddy
         /// <summary>
         /// This is the method that actually does the work.
         /// </summary>
-        /// <param name="DA">The DA object can be used to retrieve data from input parameters and
-        /// to store data in output parameters.</param>
+        /// <param name="DA">
+        /// The DA object can be used to retrieve data from input parameters and to store data in
+        /// output parameters.
+        /// </param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             // mode to select environment
@@ -113,8 +112,13 @@ namespace Eddy
             bool run = false;
             DA.GetData("Run", ref run);
 
-            // Do not use DataTree inside actual components, it is only meant to be used inside script components. Use GH_Structure instead. https://www.grasshopper3d.com/forum/topics/getdatatree-fro-a-datatree-point3d
-            // DataTree and GH_Structure are annoyingly similar yet non-overlapping classes.GH_Structure is used by Grasshopper itself to store data, DataTree is a version that was made specifically for the use inside script components.This part of the SDK is a mess but there's nothing we can do about it at this point.
+            // Do not use DataTree inside actual components, it is only meant to be used inside
+            // script components. Use GH_Structure instead.
+            // https://www.grasshopper3d.com/forum/topics/getdatatree-fro-a-datatree-point3d DataTree
+            // and GH_Structure are annoyingly similar yet non-overlapping classes.GH_Structure is
+            // used by Grasshopper itself to store data, DataTree is a version that was made
+            // specifically for the use inside script components.This part of the SDK is a mess but
+            // there's nothing we can do about it at this point.
 
             //Grasshopper.Kernel.Data.GH_Structure<Grasshopper.Kernel.Types.IGH_Goo> U = null;
             //DA.GetDataTree("U", out U);//
@@ -207,17 +211,16 @@ namespace Eddy
         }
 
         /// <summary>
-        /// Provides an Icon for every component that will be visible in the User Interface.
-        /// Icons need to be 24x24 pixels.
+        /// Provides an Icon for every component that will be visible in the User Interface. Icons
+        /// need to be 24x24 pixels.
         /// </summary>
         //protected override System.Drawing.Bitmap Icon =>
         // You can add image files to your project resources and access them like this:
         //Resources.Eddy_calMRT;
 
         /// <summary>
-        /// Each component must have a unique Guid to identify it.
-        /// It is vital this Guid doesn't change otherwise old ghx files
-        /// that use the old ID will partially fail during loading.
+        /// Each component must have a unique Guid to identify it. It is vital this Guid doesn't
+        /// change otherwise old ghx files that use the old ID will partially fail during loading.
         /// </summary>
         public override Guid ComponentGuid => new Guid("{F165ADD0-A047-409E-A008-DD9CF82605F3}");
     }

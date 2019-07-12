@@ -60,8 +60,8 @@ namespace EddyLib
     public sealed class KMeansValueAttribute : Attribute { }
 
     /// <summary>
-    /// Delegate that can be passed in to the <see cref="KMeans.Cluster{T}"/> function that allows the caller to provide their own distance calculation function
-    /// for a point to a centroid.
+    /// Delegate that can be passed in to the <see cref="KMeans.Cluster{T}"/> function that allows
+    /// the caller to provide their own distance calculation function for a point to a centroid.
     /// </summary>
     /// <param name="point">the point being calculated</param>
     /// <param name="centroid">the centroid that is being calculated against</param>
@@ -69,7 +69,8 @@ namespace EddyLib
     public delegate double KMeansCalculateDistanceDelegate(double[] point, double[] centroid);
 
     /// <summary>
-    /// Provides a simple implementation of the k-Means algorithm. This solution is quite simple and does not support any parallel execution as of yet.
+    /// Provides a simple implementation of the k-Means algorithm. This solution is quite simple and
+    /// does not support any parallel execution as of yet.
     /// </summary>
     public static class KMeans
     {
@@ -91,7 +92,8 @@ namespace EddyLib
 
             var getters = new List<MethodInfo>();
 
-            // Iterate over the type and extract all the properties that have the KMeansValueAttribute set and use them as attributes
+            // Iterate over the type and extract all the properties that have the
+            // KMeansValueAttribute set and use them as attributes
             var attribType = typeof(KMeansValueAttribute);
             foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
@@ -129,15 +131,30 @@ namespace EddyLib
         /// Clusters the given item set into the desired number of clusters.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="items">the list of data items that should be processed, this can be an array of primitive values such as <see cref="System.Double[]"/>
-        /// or a class struct that exposes properties using the <see cref="KMeansValueAttribute"/></param>
+        /// <param name="items">
+        /// the list of data items that should be processed, this can be an array of primitive values
+        /// such as <see cref="System.Double[]"/> or a class struct that exposes properties using the
+        /// <see cref="KMeansValueAttribute"/>
+        /// </param>
         /// <param name="clusterCount">the desired number of clusters</param>
         /// <param name="maxIterations">the maximum number of iterations to perform</param>
-        /// <param name="calculateDistanceFunction">optional, custom distance function, if omitted then the euclidean distance will be used as default</param>
-        /// <param name="randomSeed">optional, a seed for the random generator that initially arranges the clustering of the nodes (specify the same value to ensure that the start ordering will be the same)</param>
-        /// <param name="initialCentroidIndices">optional, the initial centroid configuration (as indicies into the <see cref="items"/> array). When this is used the <see cref="randomSeed"/> has no effect.
-        /// Experiment with this as the initial arrangements of the centroids has a huge impact on the final cluster arrangement.</param>
-        /// <returns>a result containing the items arranged into clusters as well as the centroids converged on and the total distance value for the cluster nodes.</returns>
+        /// <param name="calculateDistanceFunction">
+        /// optional, custom distance function, if omitted then the euclidean distance will be used
+        /// as default
+        /// </param>
+        /// <param name="randomSeed">
+        /// optional, a seed for the random generator that initially arranges the clustering of the
+        /// nodes (specify the same value to ensure that the start ordering will be the same)
+        /// </param>
+        /// <param name="initialCentroidIndices">
+        /// optional, the initial centroid configuration (as indicies into the <see cref="items"/>
+        /// array). When this is used the <see cref="randomSeed"/> has no effect. Experiment with
+        /// this as the initial arrangements of the centroids has a huge impact on the final cluster arrangement.
+        /// </param>
+        /// <returns>
+        /// a result containing the items arranged into clusters as well as the centroids converged
+        /// on and the total distance value for the cluster nodes.
+        /// </returns>
         public static KMeansResults<T> Cluster<T>(T[] items, int clusterCount, int maxIterations, KMeansCalculateDistanceDelegate calculateDistanceFunction = null, int randomSeed = 0, int[] initialCentroidIndices = null)
         {
             double[][] data = ConvertEntities(items);
@@ -165,7 +182,8 @@ namespace EddyLib
             {
                 centroidIdx = initialCentroidIndices;
                 AssignClustering(data, clustering, centroidIdx, clusterCount, calculateDistanceFunction);
-                //                Debug.WriteLine("Pre-Seeded Centroids resulted in initial clustering: " + string.Join(",", clustering.Select(x => x.ToString()).ToArray()));
+                // Debug.WriteLine("Pre-Seeded Centroids resulted in initial clustering: " +
+                // string.Join(",", clustering.Select(x => x.ToString()).ToArray()));
             }
 
             // Perform the clustering
@@ -174,11 +192,13 @@ namespace EddyLib
                 clusterItemCount = new int[clusterCount];
                 totalDistance = CalculateClusteringInformation(data, clustering, ref means, ref centroidIdx, clusterCount, ref clusterItemCount, calculateDistanceFunction);
 
-                //                Debug.WriteLine("------------- Iter: " + iteration);
-                //                Debug.WriteLine("Clustering: " + string.Join(",", clustering.Select(x => x.ToString()).ToArray()));
-                //                Debug.WriteLine("Means: " + string.Join(",", means.Select(x => "[" + string.Join(",", x.Select(y => y.ToString("#0.0")).ToArray()) + "]").ToArray()));
-                //                Debug.WriteLine("Centroids: " + string.Join(",", centroidIdx.Select(x => x.ToString()).ToArray()));
-                //                Debug.WriteLine("Cluster Counts: " + string.Join(",", clusterItemCount.Select(x => x.ToString()).ToArray()));
+                // Debug.WriteLine("------------- Iter: " + iteration); Debug.WriteLine("Clustering:
+                // " + string.Join(",", clustering.Select(x => x.ToString()).ToArray()));
+                // Debug.WriteLine("Means: " + string.Join(",", means.Select(x => "[" +
+                // string.Join(",", x.Select(y => y.ToString("#0.0")).ToArray()) + "]").ToArray()));
+                // Debug.WriteLine("Centroids: " + string.Join(",", centroidIdx.Select(x =>
+                // x.ToString()).ToArray())); Debug.WriteLine("Cluster Counts: " + string.Join(",",
+                // clusterItemCount.Select(x => x.ToString()).ToArray()));
 
                 hasChanges = AssignClustering(data, clustering, centroidIdx, clusterCount, calculateDistanceFunction);
                 ++iteration;
@@ -229,8 +249,8 @@ namespace EddyLib
                 for (int i = 0; i < mean.Length; i++)
                     mean[i] = 0;
 
-            // Calculate the means for each cluster
-            // Do this in two phases, first sum them all up and then divide by the count in each cluster
+            // Calculate the means for each cluster Do this in two phases, first sum them all up and
+            // then divide by the count in each cluster
             for (int i = 0; i < data.Length; i++)
             {
                 // Sum up the means
@@ -272,10 +292,12 @@ namespace EddyLib
         }
 
         /// <summary>
-        /// Calculates the distance for each point in <see cref="data"/> from each of the centroid in <see cref="centroidIdx"/> and
-        /// assigns the data item to the cluster with the minimum distance.
+        /// Calculates the distance for each point in <see cref="data"/> from each of the centroid in
+        /// <see cref="centroidIdx"/> and assigns the data item to the cluster with the minimum distance.
         /// </summary>
-        /// <returns>true if any clustering arrangement has changed, false if clustering did not change.</returns>
+        /// <returns>
+        /// true if any clustering arrangement has changed, false if clustering did not change.
+        /// </returns>
         private static bool AssignClustering(double[][] data, int[] clustering, int[] centroidIdx, int clusterCount, KMeansCalculateDistanceDelegate calculateDistanceFunction)
         {
             bool changed = false;
@@ -293,7 +315,8 @@ namespace EddyLib
                         minDistance = distance;
                         minClusterIndex = k;
                     }
-                    // todo: track outliers here as well and maintain an average and std calculation for the distances!
+                    // todo: track outliers here as well and maintain an average and std calculation
+                    // for the distances!
                 }
 
                 // Re-arrange the clustering for datapoint if needed
@@ -308,7 +331,7 @@ namespace EddyLib
         }
 
         /// <summary>
-        ///  Calculates the eculidean distance from the <see cref="point"/> to the <see cref="centroid"/>
+        /// Calculates the eculidean distance from the <see cref="point"/> to the <see cref="centroid"/>
         /// </summary>
         private static double CalculateDistance(double[] point, double[] centroid)
         {
@@ -323,8 +346,9 @@ namespace EddyLib
     }
 
     /// <summary>
-    /// Represents a single result from the <see cref="KMeans"/> algorithm.
-    /// Contains the original items arranged into the clusters converged on as well as the centroids chosen and the total distance of the converged solution.
+    /// Represents a single result from the <see cref="KMeans"/> algorithm. Contains the original
+    /// items arranged into the clusters converged on as well as the centroids chosen and the total
+    /// distance of the converged solution.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public class KMeansResults<T>
@@ -345,9 +369,9 @@ namespace EddyLib
         public int[] Centroids { get; private set; }
 
         /// <summary>
-        /// The total distance between all the nodes and their centroids in the final solution.
-        /// This can be used as a reference point on how "good" the solution is when the algorithm is run repeatedly with different starting configuration.
-        /// Lower is "usually" better.
+        /// The total distance between all the nodes and their centroids in the final solution. This
+        /// can be used as a reference point on how "good" the solution is when the algorithm is run
+        /// repeatedly with different starting configuration. Lower is "usually" better.
         /// </summary>
         public double TotalDistance { get; private set; }
 

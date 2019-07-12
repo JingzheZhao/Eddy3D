@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Grasshopper.Kernel;
 using Rhino.Geometry;
 
 namespace EddyLib

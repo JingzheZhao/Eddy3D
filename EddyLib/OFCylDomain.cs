@@ -86,8 +86,8 @@ namespace EddyLib
             var dimY = yMax - yMin;
             var dimZ = zMax - zMin;
 
-            // If terrain is used, scale down Z to make sure all points are inside the domain
-            // Zinter is call divisionsZ for CylDomain which is an int instead of an Interval
+            // If terrain is used, scale down Z to make sure all points are inside the domain Zinter
+            // is call divisionsZ for CylDomain which is an int instead of an Interval
 
             if (terrainMesh.Faces.Count > 0)
             {
@@ -575,7 +575,8 @@ mergePatchPairs
             Point3d newCenter = new Point3d(center.X, center.Y, 0);
             Circle c = new Circle(newCenter, circleRadius);
 
-            // -1 would avoid duplicates but other methods (PerimeterRing) depend on having one duplicate point
+            // -1 would avoid duplicates but other methods (PerimeterRing) depend on having one
+            // duplicate point
 
             for (int i = 0; i < poly.Count; i++)
             {
@@ -729,9 +730,8 @@ faces
 
         private List<Polyline> GetConcenctricPolyDivisions(Point3d[] pointsOnRect, Point3d[] pointsOnCircle, int divPerim, double topOfDomain)
         {
-            // Shift pointsOnCircle to the right by one to get correct order
-            // not necessary because the GetPointsOnCircle yields one duplicate point
-            //  pointsOnCircle = RightShift(pointsOnCircle);
+            // Shift pointsOnCircle to the right by one to get correct order not necessary because
+            // the GetPointsOnCircle yields one duplicate point pointsOnCircle = RightShift(pointsOnCircle);
 
             // Add radial polylines from divisions
 
@@ -741,8 +741,8 @@ faces
                 radialDivisions.Add(new Polyline(new Point3d[] { pointsOnRect[i], pointsOnCircle[i] }));
             }
 
-            // Create list with arrays of all intersections
-            // This needs adaptation if grading should be implemented
+            // Create list with arrays of all intersections This needs adaptation if grading should
+            // be implemented
 
             List<Point3d[]> divPointsCut = new List<Point3d[]>();
             for (int i = 0; i < pointsOnRect.Length; i++)
