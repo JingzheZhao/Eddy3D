@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Grasshopper.Kernel;
 using Rhino.Geometry;
 
 namespace EddyLib
@@ -29,92 +30,122 @@ namespace EddyLib
         // Inputs
 
         public Point3d[] probes;
-        private double[,] windReduction;
+        private WindFactors wf;
 
-        public UTCI(Point3d[] pointProbes, WindFactors wf, Weather weather, MRT mrt, BoundaryConditions bcond, string workingDir)
+        public bool wrongNumberOfProbes;
+        public bool resultPrecalculated;
+
+        public UTCI(Point3d[] probes, WindFactors wf, Weather weather, MRT mrt, BoundaryConditions bcond, string baseWorkingDir, bool recalc)
         {
-            this.probes = pointProbes;
-            this.windReduction = wf.Values;
+            var csvUTCI = baseWorkingDir + @"UTCI.csv";
+            this.probes = probes;
+            this.wf = wf;
 
-            int numberOfHours = 8760;
-            int sensorPointCount = pointProbes.Length;
-
-            var sw = new Stopwatch();
-            sw.Start();
-
-            int cnt = 0;
-
-            this.uncertaintyMRTArray = new bool[numberOfHours, sensorPointCount];
-            this.uncertaintyWindArray = new bool[numberOfHours, sensorPointCount];
-            this.Values = new double[numberOfHours, sensorPointCount];
-            this.Condition = new double[numberOfHours, sensorPointCount];
-
-            var tempUtci = this.Values;
-            var tempuncertaintyMRTArray = uncertaintyMRTArray;
-            var tempuncertaintyWindArray = uncertaintyWindArray;
-
-            using (var progress = new ASCIIProgressBar())
+            if (File.Exists(csvUTCI) && !recalc)
             {
-                Parallel.For(0, sensorPointCount, probe =>
-                      {
-                          cnt++;
-                          progress.Report((double)cnt / sensorPointCount);
+                var temp = RadianceFiles.readCSVFile(csvUTCI);
 
-                          var currentProbingPoint = pointProbes[probe];
-                          var probingHeight = currentProbingPoint.Z;
+                if (temp.GetLength(1) == this.probes.GetLength(0))
+                {
+                    this.Values = RadianceFiles.readCSVFile(csvUTCI);
+                    this.wrongNumberOfProbes = false;
+                    this.resultPrecalculated = true;
+                }
+                else
+                {
+                    this.wrongNumberOfProbes = true;
+                    this.resultPrecalculated = false;
+                }
+            }
+            if (recalc)
+            {
+                if (File.Exists(csvUTCI))
+                {
+                    File.Delete(csvUTCI);
+                }
 
-                          for (int hour = 0; hour < numberOfHours; hour++)
-                          {
-                              tempuncertaintyWindArray[hour, probe] = false;
-                              tempuncertaintyMRTArray[hour, probe] = false;
+                int numberOfHours = 8760;
+                int sensorPointCount = probes.Length;
 
-                              // Check for extreme mrts
+                var sw = new Stopwatch();
+                sw.Start();
 
-                              double tempMRT = 0;
+                int cnt = 0;
 
-                              if (mrt.Values[hour, probe] < weather.DryBulbTemp[hour] - 30)
-                              {
-                                  tempMRT = 30;
-                                  tempuncertaintyMRTArray[hour, probe] = true;
-                              }
-                              if (mrt.Values[hour, probe] > weather.DryBulbTemp[hour] + 70)
-                              {
-                                  tempMRT = 70;
-                                  tempuncertaintyMRTArray[hour, probe] = true;
-                              }
+                this.uncertaintyMRTArray = new bool[numberOfHours, sensorPointCount];
+                this.uncertaintyWindArray = new bool[numberOfHours, sensorPointCount];
+                this.Values = new double[numberOfHours, sensorPointCount];
+                this.Condition = new double[numberOfHours, sensorPointCount];
 
-                              // Check for extreme windspeeds
+                var tempUtci = this.Values;
+                var tempuncertaintyMRTArray = uncertaintyMRTArray;
+                var tempuncertaintyWindArray = uncertaintyWindArray;
 
-                              double resultingWindSpeedforUTCI = windReduction[hour, probe] * WindFactors.GetVelocityAtProbingHeightFromABL(weather.WindSpeed[hour], bcond, probingHeight);
+                using (var progress = new ASCIIProgressBar())
+                {
+                    Parallel.For(0, sensorPointCount, probe =>
+                    {
+                        cnt++;
+                        progress.Report((double)cnt / sensorPointCount);
 
-                              if (windReduction[hour, probe] * WindFactors.GetVelocityAtProbingHeightFromABL(weather.WindSpeed[hour], bcond, probingHeight) > 17)
-                              {
-                                  resultingWindSpeedforUTCI = 17;
-                                  tempUtci[hour, probe] = UTCI.CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI, tempMRT);
-                                  tempuncertaintyWindArray[hour, probe] = true;
-                              }
-                              else if (resultingWindSpeedforUTCI < 0.5)
-                              {
-                                  resultingWindSpeedforUTCI = 0.5;
-                                  tempUtci[hour, probe] = UTCI.CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI, tempMRT);
-                                  tempuncertaintyWindArray[hour, probe] = true;
-                              }
-                              else
-                              {
-                                  tempUtci[hour, probe] = UTCI.CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI, tempMRT);
-                              }
+                        var currentProbingPoint = probes[probe];
+                        var probingHeight = currentProbingPoint.Z;
 
-                              this.Condition[hour, probe] = CalcConditionOfPerson(tempUtci[hour, probe]);
-                          }
-                      });
+                        for (int hour = 0; hour < numberOfHours; hour++)
+                        {
+                            tempuncertaintyWindArray[hour, probe] = false;
+                            tempuncertaintyMRTArray[hour, probe] = false;
 
-                this.Values = tempUtci;
-                uncertaintyMRTArray = tempuncertaintyMRTArray;
-                uncertaintyWindArray = tempuncertaintyWindArray;
-            }//end using prog bar
+                            // Check for extreme mrts
 
-            Console.WriteLine(Utilities.ConvertComputeTimes(sw.ElapsedMilliseconds));
-            this.elapsedTime = sw.ElapsedMilliseconds;
+                            double tempMRT = 0;
+
+                            if (mrt.Values[hour, probe] < weather.DryBulbTemp[hour] - 30)
+                            {
+                                tempMRT = 30;
+                                tempuncertaintyMRTArray[hour, probe] = true;
+                            }
+                            if (mrt.Values[hour, probe] > weather.DryBulbTemp[hour] + 70)
+                            {
+                                tempMRT = 70;
+                                tempuncertaintyMRTArray[hour, probe] = true;
+                            }
+
+                            // Check for extreme windspeeds
+
+                            double resultingWindSpeedforUTCI = wf.Values[hour, probe];
+
+                            if (resultingWindSpeedforUTCI > 17)
+                            {
+                                resultingWindSpeedforUTCI = 17;
+                                tempUtci[hour, probe] = UTCI.CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI, tempMRT);
+                                tempuncertaintyWindArray[hour, probe] = true;
+                            }
+                            else if (resultingWindSpeedforUTCI < 0.5)
+                            {
+                                resultingWindSpeedforUTCI = 0.5;
+                                tempUtci[hour, probe] = UTCI.CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI, tempMRT);
+                                tempuncertaintyWindArray[hour, probe] = true;
+                            }
+                            else
+                            {
+                                tempUtci[hour, probe] = UTCI.CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI, tempMRT);
+                            }
+
+                            this.Condition[hour, probe] = CalcConditionOfPerson(tempUtci[hour, probe]);
+                        }
+                    });
+
+                    this.Values = tempUtci;
+                    uncertaintyMRTArray = tempuncertaintyMRTArray;
+                    uncertaintyWindArray = tempuncertaintyWindArray;
+                }//end using prog bar
+
+                ArrayHelper._2DArray2CSV(this.Values, csvUTCI, true);
+
+                Console.WriteLine(Utilities.ConvertComputeTimes(sw.ElapsedMilliseconds));
+                this.elapsedTime = sw.ElapsedMilliseconds;
+            }
         }
 
         public static double CalcUTCI(double TaC, double RH, double Wsp, double mrt)
@@ -410,8 +441,8 @@ namespace EddyLib
             sbUtciDEBUG.AppendLine("Wind speed from .epw: " + String.Format("{0:0.0}", weather.WindSpeed[debugValue[0]]));
             //sbUtciDEBUG.AppendLine("probingHeight from CFD: " + String.Format("{0:0.0}", probingHeight));
             sbUtciDEBUG.AppendLine("Scaled-down wind velocity from .epw: " + String.Format("{0:0.0}", WindFactors.GetVelocityAtProbingHeightFromABL(weather.WindSpeed[debugValue[0]], BCond, probingHeight)));
-            sbUtciDEBUG.AppendLine("Wind reduction from CFD: " + String.Format("{0:0.0}", utci.windReduction[debugValue[0], debugValue[1]]));
-            sbUtciDEBUG.AppendLine("Resulting wind velocity for UTCI calculation: " + String.Format("{0:0.0}", utci.windReduction[debugValue[0], debugValue[1]] * WindFactors.GetVelocityAtProbingHeightFromABL(weather.WindSpeed[debugValue[0]], BCond, probingHeight)));
+            sbUtciDEBUG.AppendLine("Wind reduction from CFD: " + String.Format("{0:0.0}", utci.wf.Values[debugValue[0], debugValue[1]]));
+            sbUtciDEBUG.AppendLine("Resulting wind velocity for UTCI calculation: " + String.Format("{0:0.0}", utci.wf.Values[debugValue[0], debugValue[1]] * WindFactors.GetVelocityAtProbingHeightFromABL(weather.WindSpeed[debugValue[0]], BCond, probingHeight)));
 
             sbUtciDEBUG.AppendLine("UTCI: " + String.Format("{0:0.0}", utci.Values[debugValue[0], debugValue[1]]));
             sbUtciDEBUG.AppendLine("");

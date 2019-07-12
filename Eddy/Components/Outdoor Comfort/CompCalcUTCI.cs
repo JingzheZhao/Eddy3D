@@ -28,7 +28,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public CompCalcUTCI()
-          : base("CalcUTCI", "CalcUTCI", "PostProcessing", "Eddy", "6 | Outdoor Comfort")
+          : base("UTCI", "UTCI", "PostProcessing", "Eddy", "6 | Outdoor Comfort")
         {
         }
 
@@ -72,63 +72,74 @@ namespace Eddy
             bool run = false;
             DA.GetData("Run", ref run);
 
-            UTCI utci = null;
             WindFactors windFactors = null;
             MRT mrt = null;
 
-            if (run)
+            Console.WriteLine("Load weather data...");
+
+            //Weather data...
+
+            Weather weather = new Weather(RES.Domain.BCond.epwFilePath);
+
+            DA.GetData("Wind Factors", ref windFactors);
+            if (windFactors == null)
             {
-                Console.WriteLine("Load weather data...");
-
-                //Weather data...
-
-                Weather weather = new Weather(RES.Domain.BCond.epwFilePath);
-
-                DA.GetData("Wind Factors", ref windFactors);
-                if (windFactors == null) return;
-
-                int sensorPointCount = windFactors.Values.GetLength(1);
-                double[,] Utci = new double[8760, sensorPointCount];
-                //double[,] conditionOfPerson = new double[8760, sensorPointCount];
-
-                Console.WriteLine("Loading: Wind data");
-
-                var windDirList = RES.Domain.BCond.windDirs;
-                var numberOfWindDirs = windDirList.Count;
-
-                var probes = new List<Point3d>();
-                DA.GetDataList("Probes", probes);
-                if (probes == null) return;
-
-                //var windDirList = new List<double> { 0, 45, 90, 135, 180, 225, 270, 315 };
-                //var windDirList = new List<double>();// { 0, 45, 90, 135, 180, 225, 270, 315 };
-                //List<int> windDirList = options.windDirs;
-
-                // Loading MRT data
-
-                DA.GetData("Mean Radiant Temperature", ref mrt);
-                if (mrt == null) return;
-
-                // load Reduction data
-                // -----------------
-
-                Console.WriteLine("Starting UTCI calc...");
-
-                // UTCI here
-
-                utci = new UTCI(probes.ToArray(), windFactors, weather, mrt, RES.Domain.BCond, RES.WorkingDirectory);
-
-                if (GH_Document.IsEscapeKeyDown())
-                {
-                    GH_Document GHDocument = OnPingDocument();
-                    GHDocument.RequestAbortSolution();
-                }
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide valid WindFactos object.");
+                return;
             }
 
-            if (utci != null)
+            Console.WriteLine("Loading: Wind data");
+
+            var windDirList = RES.Domain.BCond.windDirs;
+
+            var probes = new List<Point3d>();
+            DA.GetDataList("Probes", probes);
+            if (probes == null) return;
+
+            //var windDirList = new List<double> { 0, 45, 90, 135, 180, 225, 270, 315 };
+            //var windDirList = new List<double>();// { 0, 45, 90, 135, 180, 225, 270, 315 };
+            //List<int> windDirList = options.windDirs;
+
+            // Loading MRT data
+
+            DA.GetData("Mean Radiant Temperature", ref mrt);
+            if (mrt == null)
             {
-                DA.SetData(0, utci);
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide valid MRT object.");
+                return;
             }
+
+            // load Reduction data
+            // -----------------
+
+            Console.WriteLine("Starting UTCI calc...");
+
+            // UTCI here
+
+            var utci = new UTCI(probes.ToArray(), windFactors, weather, mrt, RES.Domain.BCond, RES.WorkingDirectory, run);
+
+            if (GH_Document.IsEscapeKeyDown())
+            {
+                GH_Document GHDocument = OnPingDocument();
+                GHDocument.RequestAbortSolution();
+            }
+
+            if (utci == null)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Either precalculated results could not be loaded or the utci array has not been calculated yet.");
+                return;
+            }
+
+            if (utci.resultPrecalculated)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated UTCI results have been loaded.");
+            }
+            if (utci.wrongNumberOfProbes)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The precalculated UTCI array has the wrong number of probing points. Please recalculate.");
+                return;
+            }
+            DA.SetData(0, utci);
         }
 
         /// <summary>

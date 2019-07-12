@@ -125,11 +125,9 @@ namespace Eddy
             //DA.GetData(4, ref fieldType);
             DA.GetData(4, ref run);
 
-            //Probes.ReformatOFFields(OFFieldInt, out string OFField, out int fieldType);
-
+            //Discard points outside
             if (Culling)
             {
-                //Discard points outside
                 listOfPoints = Utilities.DiscardPoints(listOfPoints, RES.Domain);
             }
 
@@ -230,8 +228,6 @@ namespace Eddy
                             }
                         }
 
-                        //Thread.Sleep(2 * numberOfProbes);
-
                         for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
                         {
                             string currentCaseDir = RES.WorkingDirectory + "\\" + RES.Domain.BCond.windDirs[i];
@@ -300,7 +296,6 @@ namespace Eddy
                                 Utilities.StartProcess.StartProcessCMDNT(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory), false, true, false, true);
                             }
                         }
-                        //Thread.Sleep(2 * numberOfProbes);
 
                         for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
                         {

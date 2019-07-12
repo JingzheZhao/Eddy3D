@@ -31,7 +31,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public CompCalcWindFactors()
-          : base("Calculate WindFactors", "CalcWindFactors", "PostProcessing", "Eddy", "6 | Outdoor Comfort")
+          : base("WindFactors", "WindFactors", "PostProcessing", "Eddy", "6 | Outdoor Comfort")
         {
         }
 
@@ -121,6 +121,20 @@ namespace Eddy
             DA.GetDataTree("U", out GH_Structure<GH_Vector> U);
             //DA.GetDataTree("U", out DataTree<Vector> U);
 
+            #region Error checks
+
+            var sum = 0.0;
+            foreach (Point3d pp in probes) { sum += pp.Z; }
+            var probingHeight = sum / probes.Count;
+
+            if (probingHeight < RES.Domain.DomainMesh.GetBoundingBox(false).Min.Z || probingHeight > RES.Domain.DomainMesh.GetBoundingBox(false).Max.Z)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "You cannot probe that set of probes outside of the simulation domain.");
+                return;
+            }
+
+            #endregion Error checks
+
             #region Load weather
 
             Console.WriteLine("Load weather data...");
@@ -137,49 +151,32 @@ namespace Eddy
 
             #endregion Load weather
 
-            var csvAnnualVelProbes = RES.WorkingDirectory + "AnnualVelocityProbes.csv";
-
             #region Annual Velocities
 
-            AnnualVelocities av = new AnnualVelocities(RES.Domain.BCond.windDirs.ToArray(), ArrayHelper.To2DArrayVec3d(U), csvAnnualVelProbes, true);
+            var csvAnnualVelProbes = RES.WorkingDirectory + "AnnualVelocityProbes.csv";
+            AnnualVelocities av = new AnnualVelocities(RES.Domain.BCond.windDirs.ToArray(), ArrayHelper.To2DArrayVec3d(U), csvAnnualVelProbes, true, run);
 
-            #endregion Annual Velocities
-
-            var csvWindFactors = RES.WorkingDirectory + @"WindFactors.csv";
-
-            var sum = 0.0;
-            foreach (Point3d pp in probes) { sum += pp.Z; }
-            var probingHeight = sum / probes.Count;
-
-            if (probingHeight < RES.Domain.DomainMesh.GetBoundingBox(false).Min.Z || probingHeight > RES.Domain.DomainMesh.GetBoundingBox(false).Max.Z)
+            if (av.Values is null)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "You cannot probe that set of probes outside of the simulation domain.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Either precalculated results could not be loaded or the AnnualVelocity array has not been calculated yet.");
                 return;
             }
 
-            WindFactors wf = new WindFactors(RES.WorkingDirectory, RES.Domain.BCond, weather, av, probingHeight, interpolate);
-            var numberOfProbesCSV = RadianceFiles.readCSVFile(csvAnnualVelProbes).GetLength(1);
-
-            if (File.Exists(csvWindFactors) && !run)
+            if (av.wrongNumberOfProbes)
             {
-                if (numberOfProbesCSV != numberOfProbes)
-                {
-                    {
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The precalculated WindFactors array has the wrong number of probing points. Please recalculate.");
-                        return;
-                    }
-                }
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The precalculated AnnualVelocity array has the wrong number of probing points. Please recalculate.");
+                return;
+            }
+            if (av.resultPrecalculated)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated AnnualVelocity results have been loaded.");
             }
 
-            if (run)
-            {
-                if (numberOfProbesCSV == numberOfProbes)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated WindFactors results have been loaded.");
-                }
+            #endregion Annual Velocities
 
-                ArrayHelper._2DArray2CSV(wf.Values, csvWindFactors, true, 1);
-            }
+            #region Wind Factors
+
+            var wf = new WindFactors(RES.WorkingDirectory, RES.Domain.BCond, weather, av, probingHeight, interpolate, run);
 
             if (GH_Document.IsEscapeKeyDown())
             {
@@ -187,8 +184,26 @@ namespace Eddy
                 GHDocument.RequestAbortSolution();
             }
 
+            if (wf.Values is null)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Either precalculated results could not be loaded or the WindFactors array has not been calculated yet.");
+                return;
+            }
+
+            if (wf.wrongNumberOfProbes)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The precalculated WindFactors array has the wrong number of probing points. Please recalculate.");
+                return;
+            }
+            if (wf.resultPrecalculated)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated WindFactors results have been loaded.");
+            }
+
             DA.SetData(0, wf);
-            DA.SetData(1, wf.offSet);
+            DA.SetDataList(1, wf.offSet);
+
+            #endregion Wind Factors
         }
 
         /// <summary>

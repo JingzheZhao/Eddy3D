@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Rhino.Geometry;
 
 namespace EddyLib
@@ -15,27 +16,50 @@ namespace EddyLib
         }
 
         public double[,] Values;
+        public bool wrongNumberOfProbes;
+        public bool resultPrecalculated;
 
-        public MRT(Weather weather, MRTType type, double[][] DiffRad, double[][] DirRad, Point3d[] probes, bool calc)
+        public MRT(string baseWorkingDir, Weather weather, MRTType type, double[][] DiffRad, double[][] DirRad, Point3d[] probes, bool recalc)
         {
-            // If calc = false, the values must be set from the csv or external data
+            var csvMRT = baseWorkingDir + @"MRT.csv";
 
-            if (calc)
+            if (File.Exists(csvMRT) && !recalc)
             {
+                var temp = RadianceFiles.readCSVFile(csvMRT);
+
+                if (temp.GetLength(1) == probes.GetLength(0))
+                {
+                    this.Values = RadianceFiles.readCSVFile(csvMRT);
+                    this.resultPrecalculated = true;
+                }
+                else
+                {
+                    this.wrongNumberOfProbes = true;
+                    this.resultPrecalculated = false;
+                }
+            }
+            if (recalc)
+            {
+                if (File.Exists(csvMRT))
+                {
+                    File.Delete(csvMRT);
+                }
+
                 var numberOfProbes = probes.Length;
 
                 this.Values = new double[8760, numberOfProbes];
 
                 System.Threading.Tasks.Parallel.For(0, 8760, h =>
+                {
+                    for (int p = 0; p < numberOfProbes; p++)
 
-                     {
-                         for (int p = 0; p < numberOfProbes; p++)
+                        if (type == MRTType.kessling)
+                        {
+                            this.Values[h, p] = GetMRTForPointViaKessling(weather, h, DiffRad[h][p], DirRad[h][p])[0];
+                        }
+                });
 
-                             if (type == MRTType.kessling)
-                             {
-                                 this.Values[h, p] = GetMRTForPointViaKessling(weather, h, DiffRad[h][p], DirRad[h][p])[0];
-                             }
-                     });
+                ArrayHelper._2DArray2CSV(this.Values, csvMRT, true, 1);
             }
         }
 

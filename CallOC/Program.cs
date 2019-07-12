@@ -149,19 +149,19 @@ namespace CallOC
 
                         var dirs = Array.ConvertAll(options.WindDirs.Split(','), int.Parse);
                         var vecs = AnnualVelocities.ReadAnnualVelocitiesFromCSV(options.AnnualVelocityProbes).Item2;
-                        AnnualVelocities av = new AnnualVelocities(dirs, vecs, options.AnnualVelocityProbes, true);
+                        AnnualVelocities av = new AnnualVelocities(dirs, vecs, options.AnnualVelocityProbes, true, true);
 
                         #endregion Annual Velocities
 
                         #region Wind Factors
 
-                        WindFactors wf = new WindFactors(options.WorkingDir, bcond, weather, av, 1.75, options.Interpolate);
+                        WindFactors wf = new WindFactors(options.WorkingDir, bcond, weather, av, 1.75, options.Interpolate, true);
 
                         #endregion Wind Factors
 
                         #region MRT
 
-                        MRT mrt = new MRT(weather, MRT.MRTType.kessling, DiffRad, DirRad, Utilities.Probes2Point3D(probes), true);
+                        MRT mrt = new MRT(options.WorkingDir, weather, MRT.MRTType.kessling, DiffRad, DirRad, Utilities.Probes2Point3D(probes), true);
 
                         #endregion MRT
 
@@ -172,7 +172,7 @@ namespace CallOC
                         //var bcond = new BoundaryConditions(BoundaryType.constant, new List<int> { 0 }, 5, 1, options.Weather);
 
                         double[,] Utci = new double[numberOfHours, sensorPointCount];
-                        UTCI utci = new UTCI(Utilities.Probes2Point3D(probes), wf, weather, mrt, bcond, options.WorkingDir);
+                        UTCI utci = new UTCI(Utilities.Probes2Point3D(probes), wf, weather, mrt, bcond, options.WorkingDir, true);
 
                         #endregion Calc UTCI
 

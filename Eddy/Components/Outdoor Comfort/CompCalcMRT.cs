@@ -29,7 +29,7 @@ namespace Eddy
         /// new tabs/panels will automatically be created.
         /// </summary>
         public CompCalcMRT()
-          : base("CalcMRT", "CalcMRT", "PostProcessing", "Eddy", "6 | Outdoor Comfort")
+          : base("MRT", "MRT", "PostProcessing", "Eddy", "6 | Outdoor Comfort")
         {
         }
 
@@ -98,7 +98,9 @@ namespace Eddy
 
             Weather weather = new Weather(RES.Domain.BCond.epwFilePath);
 
-            #region
+            #endregion Load prerequisites
+
+            #region Daysim
 
             //TODO: Move Daysim related code into its own class
 
@@ -125,15 +127,11 @@ void plastic Generic_20
 
             RadianceFiles.writePTS(RES.WorkingDirectory + @"\Rad\sensors.pts", probes);
 
-            #endregion Load prerequisites
-
             double[][] DiffRad = null;
             double[][] DirRad = null;
 
             var difillFile = RES.WorkingDirectory + @"\Rad\CallRay.dif.ill";
             var dirillFile = RES.WorkingDirectory + @"\Rad\CallRay.dir.ill";
-
-            int sensorPointCountExisting = probes.Count;
 
             if (File.Exists(difillFile) && File.Exists(dirillFile))
             {
@@ -143,6 +141,14 @@ void plastic Generic_20
 
                 DiffRad = RadianceFiles.loadILL(difillFile);
                 DirRad = RadianceFiles.loadILL(dirillFile);
+
+                int sensorPointCountExisting = DiffRad[0].GetLength(0);
+
+                if (sensorPointCountExisting != numberOfProbes && !run)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated Daysim results do not have the correct number of probing points. The results need to be recalculated.");
+                    return;
+                }
 
                 if (sensorPointCountExisting != numberOfProbes && run)
                 {
@@ -180,56 +186,30 @@ void plastic Generic_20
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "No precalculated Daysim results found. Please calculate.");
             }
 
-            #endregion Load prerequisites
+            #endregion Daysim
 
-            var Matrix = new double[8760, numberOfProbes];
+            #region MRT
 
-            var csvMRT = RES.WorkingDirectory + @"MRT.csv";
+            var mrt = new MRT(RES.WorkingDirectory, weather, MRT.MRTType.kessling, DiffRad, DirRad, probesArr, run);
 
-            MRT mrt = null;
-
-            if (File.Exists(csvMRT) && !run)
+            if (mrt.Values is null)
             {
-                Matrix = RadianceFiles.readCSVFile(csvMRT);
-
-                var numberOfProbesCSV = Matrix.GetUpperBound(1) + 1;
-                if (numberOfProbesCSV == numberOfProbes)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated MRT results have been loaded.");
-
-                    mrt = new MRT(weather, MRT.MRTType.kessling, DiffRad, DirRad, probesArr, false);
-                    mrt.Values = Matrix;
-
-                    DA.SetData(0, mrt);
-                }
-                else
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The precalculated MRT array has the wrong number of probing points. Please recalculate.");
-                    return;
-                }
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Either precalculated results could not be loaded or the MRT array has not been calculated yet.");
+                return;
             }
 
-            // Array casting
-            //var MRT = Matrix.Cast<double[]>().ToArray();
-            //double[][] MRT2 = ((object[][])Matrix).Select(x => x.Select(y => Convert.ToDouble(y)).ToArray()).ToArray();
-
-            if (run)
+            if (mrt.resultPrecalculated)
             {
-                //  [x][]  time
-                //  [][x]  points
-
-                mrt = new MRT(weather, MRT.MRTType.kessling, DiffRad, DirRad, probesArr, true);
-
-                if (GH_Document.IsEscapeKeyDown())
-                {
-                    GH_Document GHDocument = OnPingDocument();
-                    GHDocument.RequestAbortSolution();
-                }
-
-                ArrayHelper._2DArray2CSV(mrt.Values, csvMRT, true, 1);
-
-                DA.SetData(0, mrt);
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated MRT results have been loaded.");
             }
+            if (mrt.wrongNumberOfProbes)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The precalculated MRT array has the wrong number of probing points. Please recalculate.");
+                return;
+            }
+            DA.SetData(0, mrt);
+
+            #endregion MRT
         }
 
         /// <summary>

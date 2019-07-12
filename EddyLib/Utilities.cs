@@ -535,9 +535,9 @@ namespace EddyLib
 
             for (int i = 0; i < listOfPoints.Count; i++)
             {
-                if (DOM.DomainMesh.IsPointInside(listOfPoints[i], 0.01, true))
+                if (DOM.DomainMesh.IsPointInside(listOfPoints[i], 0.001, true))
                 {
-                    if (!DOM.BuildingGeometry.IsPointInside(listOfPoints[i], 0.01, true))
+                    if (!DOM.BuildingGeometry.IsPointInside(listOfPoints[i], 0.001, true))
                     {
                         newList.Add(listOfPoints[i]);
                     }

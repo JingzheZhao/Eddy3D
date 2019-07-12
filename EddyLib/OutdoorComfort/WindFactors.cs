@@ -12,22 +12,43 @@ namespace EddyLib
     {
         //[probes, windDirs]  Vector3d[,] Probes;
 
-        public Vector3d[,] Probes;
+        public Vector3d[,] Values;
         public int[] WindDirs;
+        public bool resultPrecalculated;
+        public bool wrongNumberOfProbes;
 
-        public AnnualVelocities(int[] windDirs, Vector3d[,] vectors, string csvFilePath, bool truncateDoubles, int truncateBy = 1)
+        public AnnualVelocities(int[] windDirs, Vector3d[,] vectors, string csvFilePath, bool truncateDoubles, bool recalc, int truncateBy = 1)
         {
-            WriteAnnualVel2CSV(windDirs, vectors, csvFilePath, truncateDoubles, truncateBy);
-            this.Probes = ReadAnnualVelocitiesFromCSV(csvFilePath).Item2;
-            this.WindDirs = ReadAnnualVelocitiesFromCSV(csvFilePath).Item1;
-        }
+            if (File.Exists(csvFilePath) && !recalc)
+            {
+                var temp = ReadAnnualVelocitiesFromCSV(csvFilePath);
 
-        // Here we just read
-        public AnnualVelocities(string csvFilePath)
-        {
-            //WriteAnnualVel2CSV(windDirs, vectors, csvFilePath, truncateDoubles, truncateBy);
-            this.Probes = ReadAnnualVelocitiesFromCSV(csvFilePath).Item2;
-            this.WindDirs = ReadAnnualVelocitiesFromCSV(csvFilePath).Item1;
+                if (temp.Item2.GetLength(0) == vectors.GetLength(0))
+                {
+                    this.Values = temp.Item2;
+                    this.WindDirs = temp.Item1;
+                    this.resultPrecalculated = true;
+                    this.wrongNumberOfProbes = false;
+                }
+                else
+                {
+                    this.wrongNumberOfProbes = true;
+                    this.resultPrecalculated = false;
+                }
+            }
+            if (recalc)
+            {
+                if (File.Exists(csvFilePath))
+                {
+                    File.Delete(csvFilePath);
+                }
+
+                WriteAnnualVel2CSV(windDirs, vectors, csvFilePath, truncateDoubles, truncateBy);
+                this.Values = ReadAnnualVelocitiesFromCSV(csvFilePath).Item2;
+                this.WindDirs = ReadAnnualVelocitiesFromCSV(csvFilePath).Item1;
+                this.resultPrecalculated = false;
+                this.wrongNumberOfProbes = false;
+            }
         }
 
         //private static void WriteAnnualVelocityProbes(BoundaryConditions bcond, string baseWorkingDir, string csvAnnualVelocityProbes)
@@ -208,26 +229,52 @@ namespace EddyLib
 
     public class WindFactors
     {
-        //public static object Options { get; private set; }
-
         public int[] clstSimDirs;
         public int[] Indices;
         public int[] offSet;
         public double offSetAverage;
         public double[,] Values;
+        public bool resultPrecalculated;
+        public bool wrongNumberOfProbes;
 
-        public WindFactors(string baseWorkingDir, BoundaryConditions bcond, Weather weather, AnnualVelocities velocityProbes, double probingHeight, bool interpolate)
+        public WindFactors(string baseWorkingDir, BoundaryConditions bcond, Weather weather, AnnualVelocities velocityProbes, double probingHeight, bool interpolate, bool recalc)
         {
             var csvWindFactors = baseWorkingDir + @"WindFactors.csv";
 
-            var (SimDirIndices, ClstSimDirs, OffSet, OffSetAverage) = GetClosestWindDirs(weather, bcond);
-            this.offSet = OffSet.ToArray();
-            this.offSetAverage = OffSet.Average();
-            this.clstSimDirs = ClstSimDirs.ToArray();
-            this.Indices = SimDirIndices.ToArray();
+            if (File.Exists(csvWindFactors) && !recalc)
+            {
+                try
+                {
+                    this.Values = ReadWindReductionArrayFromCSV(csvWindFactors);
+                    this.resultPrecalculated = true;
+                    this.wrongNumberOfProbes = false;
 
-            this.Values = CalcWindReductionArray(velocityProbes.Probes, Indices, bcond, weather, probingHeight, interpolate);
-            ArrayHelper._2DArray2CSV(this.Values, csvWindFactors, true, 1);
+                    var (SimDirIndices, ClstSimDirs, OffSet, OffSetAverage) = GetClosestWindDirs(weather, bcond);
+                    this.offSet = OffSet.ToArray();
+                    this.offSetAverage = OffSet.Average();
+                    this.clstSimDirs = ClstSimDirs.ToArray();
+                    this.Indices = SimDirIndices.ToArray();
+                }
+                catch (Exception e)
+                {
+                    this.resultPrecalculated = false;
+                    this.wrongNumberOfProbes = true;
+                    throw e;
+                }
+            }
+            else
+            {
+                var (SimDirIndices, ClstSimDirs, OffSet, OffSetAverage) = GetClosestWindDirs(weather, bcond);
+                this.offSet = OffSet.ToArray();
+                this.offSetAverage = OffSet.Average();
+                this.clstSimDirs = ClstSimDirs.ToArray();
+                this.Indices = SimDirIndices.ToArray();
+
+                this.Values = CalcWindReductionArray(velocityProbes.Values, Indices, bcond, weather, probingHeight, interpolate);
+                ArrayHelper._2DArray2CSV(this.Values, csvWindFactors, true, 1);
+                this.resultPrecalculated = false;
+                this.wrongNumberOfProbes = false;
+            }
         }
 
         private static double[,] VectorLengths(int sensorPointCount, int numberOfWindDirs, Vector3d[,] vectorProbes)
@@ -255,21 +302,10 @@ namespace EddyLib
         }
 
         // This returns the plain annual array
-        public static string[] ReadWindReductionArrayFromCSV(string filePath)
-        {
-            var ReductionData = File.ReadAllLines(filePath).ToArray();
-            //int sensorPointCount = ReductionData.Length;
-            //var sensorPointCount = ReductionData[0].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Count();
 
-            for (int i = 0; i < 8760; i++)
-            {
-                var l = ReductionData[i];
-                if (l.Contains("∞"))
-                {
-                    ReductionData[i] = l.Replace("∞", "0");
-                }
-            }
-            return ReductionData;
+        public static double[,] ReadWindReductionArrayFromCSV(string filePath)
+        {
+            return RadianceFiles.readCSVFile(filePath);
         }
 
         public Tuple<List<int>, List<int>, List<int>, double> GetClosestWindDirs(Weather weather, BoundaryConditions bcond)
