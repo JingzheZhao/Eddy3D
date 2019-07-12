@@ -52,7 +52,7 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.item);
-            //pManager.AddGenericParameter("MRT", "MRT", "MRT", GH_ParamAccess.tree);
+            pManager.AddGenericParameter("Comfortable Hours", "CH", "Comfortable Hours", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -140,6 +140,8 @@ namespace Eddy
                 return;
             }
             DA.SetData(0, utci);
+            //DA.SetData(1, utci.ValuesCondition);
+            DA.SetDataList(1, utci.ValuesAnnualPercentage);
         }
 
         /// <summary>
