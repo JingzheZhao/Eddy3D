@@ -314,12 +314,12 @@ namespace EddyLib
             // 12:  > 12 m / s “Uncomfortable“ Winds of this magnitude are considered a nuisance for
             // most activities, and wind mitigation is typically recommended
 
-            int n = 4;
-            while (n < 13)
+            int n = 12;
+            while (n > 3)
             {
                 var count = annualVelocity.Where(num => num >= n).Count();
                 if (count >= 438) { pedestrianComfort = n; break; }
-                n += 2;
+                n += -2;
             }
             return pedestrianComfort;
         }

@@ -35,7 +35,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("In", "In", "In", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Data", "D", "Data", GH_ParamAccess.item);
             //pManager.AddIntegerParameter("windDirs", "windDirs", "windDirs", GH_ParamAccess.list);
             //pManager.AddTextParameter("pointName", "pointName", "pointName", GH_ParamAccess.item);
             // pManager.AddIntegerParameter("Hours", "H", "Hours", GH_ParamAccess.list);
@@ -49,7 +49,7 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             //pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Out", "Out", "Out", GH_ParamAccess.tree);
+            pManager.AddGenericParameter("Data", "D", "Data", GH_ParamAccess.tree);
             // pManager.AddGenericParameter("MRT_T", "MRT_T", "MRT_T", GH_ParamAccess.tree);
         }
 
