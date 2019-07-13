@@ -179,7 +179,7 @@ namespace CallOC
 
                         Console.WriteLine("Writing UTCI results...");
 
-                        UTCI.UTCI2CSV(options.WorkingDir, utci, options.Verbose, debug, weather, bcond, errorLog, numberOfHours);
+                        //UTCI.UTCI2CSV(options.WorkingDir, utci, options.Verbose, debug, weather, bcond, errorLog, numberOfHours);
 
                         #endregion Write UTCI
 

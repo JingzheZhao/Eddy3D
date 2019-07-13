@@ -19,7 +19,7 @@ namespace EddyLib
 
         // [x][] time [][x] points
 
-        public double[,] Values;
+        public double[,] ValuesUTCI;
         public int[,] ValuesCondition;
         public double[] ValuesAnnualPercentage;
 
@@ -27,22 +27,16 @@ namespace EddyLib
         public bool[,] uncertaintyWindArray;
         public long elapsedTime;
 
-        // Inputs
-
         public Point3d[] probes;
-        private WindFactors wf;
 
         public bool wrongNumberOfProbes;
         public bool resultPrecalculated;
 
-        public UTCI(Point3d[] probes, WindFactors wf, Weather weather, MRT mrt, BoundaryConditions bcond, string baseWorkingDir, bool recalc)
+        public UTCI(Point3d[] probes, WindFactors wf, Weather weather, MRT mrt, BoundaryConditions bcond, string baseWorkingDir, bool recalc, int truncateBy = 1)
         {
-            int numberOfHours = 8760;
-            int numberOfProbes = probes.Length;
             var csvUTCI = baseWorkingDir + @"UTCI.csv";
 
             this.probes = probes;
-            this.wf = wf;
 
             if (File.Exists(csvUTCI) && !recalc)
             {
@@ -50,8 +44,8 @@ namespace EddyLib
 
                 if (temp.GetLength(1) == this.probes.GetLength(0))
                 {
-                    this.Values = RadianceFiles.readCSVFile(csvUTCI);
-                    this.ValuesCondition = CalcConditionOfPerson(this.Values);
+                    this.ValuesUTCI = RadianceFiles.readCSVFile(csvUTCI);
+                    this.ValuesCondition = CalcConditionOfPerson(this.ValuesUTCI);
                     this.ValuesAnnualPercentage = CalcAnnualComfortableHours(ValuesCondition);
                     this.wrongNumberOfProbes = false;
                     this.resultPrecalculated = true;
@@ -69,181 +63,72 @@ namespace EddyLib
                     File.Delete(csvUTCI);
                 }
 
-                var sw = new Stopwatch();
-                sw.Start();
+                var res = CalcUTCI(probes, weather, wf, mrt, csvUTCI, 1);
 
-                int cnt = 0;
+                this.ValuesUTCI = res.Item1;
+                this.ValuesCondition = res.Item2;
+                this.ValuesAnnualPercentage = res.Item3;
+                this.uncertaintyMRTArray = res.Item4;
+                this.uncertaintyWindArray = res.Item5;
+            }
+        }
 
-                this.uncertaintyMRTArray = new bool[numberOfHours, numberOfProbes];
-                this.uncertaintyWindArray = new bool[numberOfHours, numberOfProbes];
-                this.Values = new double[numberOfHours, numberOfProbes];
+        //Tuple items: utci, humcondition, valuesAnnualPercentage, uncertaintyMRTArray, uncertaintyWindArray
+        public static Tuple<double[,], int[,], double[], bool[,], bool[,]> CalcUTCI(Point3d[] Probes, Weather weather, WindFactors wf, MRT mrt, string csvUTCI, int truncateBy)
+        {
+            int numberOfHours = 8760;
+            int numberOfProbes = Probes.Length;
 
-                var tempUtci = this.Values;
-                var tempuncertaintyMRTArray = uncertaintyMRTArray;
-                var tempuncertaintyWindArray = uncertaintyWindArray;
+            var sw = new Stopwatch();
+            sw.Start();
+            int cnt = 0;
 
-                using (var progress = new ASCIIProgressBar())
+            var uncertaintyMRTArray = new bool[numberOfHours, numberOfProbes];
+            var uncertaintyWindArray = new bool[numberOfHours, numberOfProbes];
+            var utci = new double[numberOfHours, numberOfProbes];
+            var humcondition = new int[numberOfHours, numberOfProbes];
+            var valuesAnnualPercentage = new double[numberOfProbes];
+
+            using (var progress = new ASCIIProgressBar())
+            {
+                Parallel.For(0, numberOfProbes, probe =>
                 {
-                    Parallel.For(0, numberOfProbes, probe =>
+                    cnt++;
+                    progress.Report((double)cnt / numberOfProbes);
+
+                    for (int hour = 0; hour < numberOfHours; hour++)
                     {
-                        cnt++;
-                        progress.Report((double)cnt / numberOfProbes);
+                        uncertaintyWindArray[hour, probe] = false;
+                        uncertaintyMRTArray[hour, probe] = false;
 
-                        //var currentProbingPoint = probes[probe];
-                        //var probingHeight = currentProbingPoint.Z;
+                        // Check for extreme MRTs
 
-                        for (int hour = 0; hour < numberOfHours; hour++)
-                        {
-                            tempuncertaintyWindArray[hour, probe] = false;
-                            tempuncertaintyMRTArray[hour, probe] = false;
+                        double resultingMRT = mrt.Values[hour, probe];
 
-                            // Check for extreme mrts
+                        if (resultingMRT < weather.DryBulbTemp[hour] - 30) { resultingMRT = 30; uncertaintyMRTArray[hour, probe] = true; }
+                        if (resultingMRT > weather.DryBulbTemp[hour] + 70) { resultingMRT = 70; uncertaintyMRTArray[hour, probe] = true; }
 
-                            double tempMRT = 0;
+                        // Check for extreme Windspeeds
 
-                            if (mrt.Values[hour, probe] < weather.DryBulbTemp[hour] - 30)
-                            {
-                                tempMRT = 30;
-                                tempuncertaintyMRTArray[hour, probe] = true;
-                            }
-                            if (mrt.Values[hour, probe] > weather.DryBulbTemp[hour] + 70)
-                            {
-                                tempMRT = 70;
-                                tempuncertaintyMRTArray[hour, probe] = true;
-                            }
+                        double resultingWindSpeedforUTCI = wf.Values[hour, probe];
 
-                            // Check for extreme windspeeds
+                        if (resultingWindSpeedforUTCI > 17) { resultingWindSpeedforUTCI = 17; uncertaintyWindArray[hour, probe] = true; }
+                        if (resultingWindSpeedforUTCI < 0.5) { resultingWindSpeedforUTCI = 0.5; uncertaintyWindArray[hour, probe] = true; }
 
-                            double resultingWindSpeedforUTCI = wf.Values[hour, probe];
-
-                            if (resultingWindSpeedforUTCI > 17)
-                            {
-                                resultingWindSpeedforUTCI = 17;
-                                tempUtci[hour, probe] = UTCI.CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI, tempMRT);
-                                tempuncertaintyWindArray[hour, probe] = true;
-                            }
-                            else if (resultingWindSpeedforUTCI < 0.5)
-                            {
-                                resultingWindSpeedforUTCI = 0.5;
-                                tempUtci[hour, probe] = UTCI.CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI, tempMRT);
-                                tempuncertaintyWindArray[hour, probe] = true;
-                            }
-                            else
-                            {
-                                tempUtci[hour, probe] = UTCI.CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI, tempMRT);
-                            }
-                        }
-                    });
-
-                    this.Values = tempUtci;
-
-                    this.ValuesCondition = CalcConditionOfPerson(Values);
-                    this.ValuesAnnualPercentage = CalcAnnualComfortableHours(ValuesCondition);
-
-                    this.uncertaintyMRTArray = tempuncertaintyMRTArray;
-                    this.uncertaintyWindArray = tempuncertaintyWindArray;
-                }//end using prog bar
-
-                ArrayHelper._2DArray2CSV(this.Values, csvUTCI, true);
-
-                Console.WriteLine(Utilities.ConvertComputeTimes(sw.ElapsedMilliseconds));
-                this.elapsedTime = sw.ElapsedMilliseconds;
-            }
-        }
-
-        private static int[,] CalcConditionOfPerson(double[,] UTCI)
-        {
-            int numberOfProbes = UTCI.GetLength(1);
-
-            var Condition = new int[8760, numberOfProbes];
-
-            Parallel.For(0, numberOfProbes, probe =>
-            {
-                for (int hour = 0; hour < 8760; hour++)
-                {
-                    Condition[hour, probe] = CalcConditionOfPerson(UTCI[hour, probe]);
-                }
-            });
-            return Condition;
-        }
-
-        public static int CalcConditionOfPerson(double UTCI)
-        {
-            int cOfPerson = 0;
-
-            if (UTCI < -40)
-            {
-                cOfPerson = -5;
-            }
-            else if ((-40 <= UTCI) && (UTCI < -27))
-            {
-                cOfPerson = -4;
-            }
-            else if ((-27 <= UTCI) && (UTCI < -13))
-            {
-                cOfPerson = -3;
-            }
-            else if ((-13 <= UTCI) && (UTCI < 0))
-            {
-                cOfPerson = -2;
-            }
-            else if ((0 <= UTCI) && (UTCI < 9))
-            {
-                cOfPerson = -1;
-            }
-            else if ((9 <= UTCI) && (UTCI < 26))
-            {
-                cOfPerson = 0;
-            }
-            else if ((26 <= UTCI) && (UTCI < 28))
-            {
-                cOfPerson = 1;
-            }
-            else if ((28 <= UTCI) && (UTCI < 32))
-            {
-                cOfPerson = 2;
-            }
-            else if ((32 <= UTCI) && (UTCI < 38))
-            {
-                cOfPerson = 3;
-            }
-            else if ((38 <= UTCI) && (UTCI < 46))
-            {
-                cOfPerson = 4;
-            }
-            else
-            {
-                cOfPerson = 5;
-            }
-
-            return cOfPerson;
-        }
-
-        private static double[] CalcAnnualComfortableHours(int[,] ValuesCondition)
-        {
-            int numberOfProbes = ValuesCondition.GetLength(1);
-            var ValuesAnnualPercentageTemp = new double[8760, numberOfProbes];
-            var ValuesAnnualPercentage = new double[numberOfProbes];
-
-            Parallel.For(0, numberOfProbes, probe =>
-            {
-                for (int hour = 0; hour < 8760; hour++)
-                {
-                    if (ValuesCondition[hour, probe] == 0)
-                    {
-                        ValuesAnnualPercentageTemp[hour, probe] += 1;
+                        utci[hour, probe] = Math.Round(UTCI.CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI, resultingMRT), truncateBy);
                     }
-                }
-            });
+                });
 
-            for (int probe = 0; probe < numberOfProbes; probe++)
-            {
-                var row = ArrayHelper.CustomArray<double>.GetRow(ValuesAnnualPercentageTemp, probe);
+                humcondition = CalcConditionOfPerson(utci);
+                valuesAnnualPercentage = CalcAnnualComfortableHours(humcondition);
+            }//end using prog bar
 
-                ValuesAnnualPercentage[probe] = row.Sum() / 8760;
-            }
+            Console.WriteLine(Utilities.ConvertComputeTimes(sw.ElapsedMilliseconds));
+            var elapsedTime = sw.ElapsedMilliseconds;
 
-            return ValuesAnnualPercentage;
+            ArrayHelper._2DArray2CSV(utci, csvUTCI, true);
+
+            return new Tuple<double[,], int[,], double[], bool[,], bool[,]>(utci, humcondition, valuesAnnualPercentage, uncertaintyMRTArray, uncertaintyWindArray);
         }
 
         public static double CalcUTCI(double TaC, double RH, double Wsp, double mrt)
@@ -351,6 +236,102 @@ namespace EddyLib
             */
         }
 
+        private static int[,] CalcConditionOfPerson(double[,] UTCI)
+        {
+            int numberOfProbes = UTCI.GetLength(1);
+
+            var Condition = new int[8760, numberOfProbes];
+
+            Parallel.For(0, numberOfProbes, probe =>
+            {
+                for (int hour = 0; hour < 8760; hour++)
+                {
+                    Condition[hour, probe] = CalcConditionOfPerson(UTCI[hour, probe]);
+                }
+            });
+            return Condition;
+        }
+
+        public static int CalcConditionOfPerson(double UTCI)
+        {
+            int cOfPerson = 0;
+
+            if (UTCI < -40)
+            {
+                cOfPerson = -5;
+            }
+            else if ((-40 <= UTCI) && (UTCI < -27))
+            {
+                cOfPerson = -4;
+            }
+            else if ((-27 <= UTCI) && (UTCI < -13))
+            {
+                cOfPerson = -3;
+            }
+            else if ((-13 <= UTCI) && (UTCI < 0))
+            {
+                cOfPerson = -2;
+            }
+            else if ((0 <= UTCI) && (UTCI < 9))
+            {
+                cOfPerson = -1;
+            }
+            else if ((9 <= UTCI) && (UTCI < 26))
+            {
+                cOfPerson = 0;
+            }
+            else if ((26 <= UTCI) && (UTCI < 28))
+            {
+                cOfPerson = 1;
+            }
+            else if ((28 <= UTCI) && (UTCI < 32))
+            {
+                cOfPerson = 2;
+            }
+            else if ((32 <= UTCI) && (UTCI < 38))
+            {
+                cOfPerson = 3;
+            }
+            else if ((38 <= UTCI) && (UTCI < 46))
+            {
+                cOfPerson = 4;
+            }
+            else
+            {
+                cOfPerson = 5;
+            }
+
+            return cOfPerson;
+        }
+
+        private static double[] CalcAnnualComfortableHours(int[,] ValuesCondition)
+        {
+            int numberOfProbes = ValuesCondition.GetLength(1);
+            var ValuesAnnualPercentageTemp = new double[8760, numberOfProbes];
+            var ValuesAnnualPercentage = new double[numberOfProbes];
+
+            Parallel.For(0, numberOfProbes, probe =>
+            {
+                for (int hour = 0; hour < 8760; hour++)
+                {
+                    if (ValuesCondition[hour, probe] == 0)
+                    {
+                        ValuesAnnualPercentageTemp[hour, probe] += 1;
+                    }
+                }
+            });
+
+            for (int probe = 0; probe < numberOfProbes; probe++)
+            {
+                // Returns column of matrix aka all annual values per point
+                var column = ArrayHelper.CustomArray<double>.GetColumn(ValuesAnnualPercentageTemp, probe);
+
+                ValuesAnnualPercentage[probe] = column.Sum() / 8760;
+            }
+
+            return ValuesAnnualPercentage;
+        }
+
         //public static double[] ReadComfortHoursFromCSV(string baseWorkingDir, List<int> hoursToEvaluate)
         //{
         //    //// Fill datatrees from CSV
@@ -385,99 +366,80 @@ namespace EddyLib
         //    return ComfortHours;
         //}
 
-        public static void UTCI2CSV(string workingDir, UTCI utci, bool verboseMode, int[] debugValue, Weather weather, BoundaryConditions BCond, StringBuilder errorLog, int numberOfHours = 8760)
-        {
-            //    string workingDir, double[][] probes, int numberOfHours, bool verboseMode, bool[,] uncertaintyMRTArray, bool[,] uncertaintyWindArray, double[,] UTCIArray, int[] debugValue, Weather weather, StringBuilder errorLog, double[][] DiffRad, double[][] DirRad, double[,] windReduction,
-            //BoundaryConditions BCond
+        // public static void UTCI2CSV(string workingDir, UTCI utci, bool verboseMode, int[]
+        // debugValue, Weather weather, BoundaryConditions BCond, StringBuilder errorLog, int
+        // numberOfHours = 8760) { // string workingDir, double[][] probes, int numberOfHours, bool
+        // verboseMode, bool[,] uncertaintyMRTArray, bool[,] uncertaintyWindArray, double[,]
+        // UTCIArray, int[] debugValue, Weather weather, StringBuilder errorLog, double[][] DiffRad,
+        // double[][] DirRad, double[,] windReduction, //BoundaryConditions BCond
 
-            int sensorPointCount = utci.probes.Length;
+        // int sensorPointCount = utci.probes.Length;
 
-            //Write Array to file
-            StringBuilder sbUtci = new StringBuilder();
+        // //Write Array to file StringBuilder sbUtci = new StringBuilder();
 
-            Parallel.For(0, sensorPointCount, j =>
-            {
-                for (int i = 0; i < numberOfHours; i++)
-                {
-                    sbUtci.Append(String.Format("{0:0.0}", utci.Values[i, j]) + ",");
-                }
-                sbUtci.AppendLine("");
-            });
-            File.WriteAllText(workingDir + @"\UTCI.csv", sbUtci.ToString());
+        // Parallel.For(0, sensorPointCount, j => { for (int i = 0; i < numberOfHours; i++) {
+        // sbUtci.Append(String.Format("{0:0.0}", utci.Values[i, j]) + ","); } sbUtci.AppendLine("");
+        // }); File.WriteAllText(workingDir + @"\UTCI.csv", sbUtci.ToString());
 
-            // Uncertainty output for UTCI calculations
+        // // Uncertainty output for UTCI calculations
 
-            StringBuilder sbUtciUncertainty = new StringBuilder();
-            sbUtciUncertainty.AppendLine("The calculated UTCI values lie outside of uncertainty (U) bounds for the following sensor points and hours either because of low/high wind velocities or MRT values:");
-            int counter = 0;
+        // StringBuilder sbUtciUncertainty = new StringBuilder(); sbUtciUncertainty.AppendLine("The
+        // calculated UTCI values lie outside of uncertainty (U) bounds for the following sensor
+        // points and hours either because of low/high wind velocities or MRT values:"); int counter
+        // = 0;
 
-            Parallel.For(0, sensorPointCount, probe =>
-            {
-                //Percentage for each sensorpoint
-                int cntSensorPercent = 0;
-                sbUtciUncertainty.Append("SP: " + probe + ",");
-                for (int i = 0; i < numberOfHours; i++)
-                {
-                    if (utci.uncertaintyMRTArray[i, probe] == true || utci.uncertaintyWindArray[i, probe] == true)
-                    {
-                        cntSensorPercent++;
-                    }
-                }
+        // Parallel.For(0, sensorPointCount, probe => { //Percentage for each sensorpoint int
+        // cntSensorPercent = 0; sbUtciUncertainty.Append("SP: " + probe + ","); for (int i = 0; i <
+        // numberOfHours; i++) { if (utci.uncertaintyMRTArray[i, probe] == true ||
+        // utci.uncertaintyWindArray[i, probe] == true) { cntSensorPercent++; } }
 
-                sbUtciUncertainty.Append("\t" + (int)Math.Round((double)(100 * cntSensorPercent) / numberOfHours) + " % U,\tHours: ");
-                cntSensorPercent = 0;
-                //Hours for each sensorpoint
-                for (int hour = 0; hour < numberOfHours; hour++)
-                {
-                    if (utci.uncertaintyMRTArray[hour, probe] == true || utci.uncertaintyWindArray[hour, probe] == true)
-                    {
-                        sbUtciUncertainty.Append(hour + ",");
-                        counter++;
-                    }
-                }
-                sbUtciUncertainty.AppendLine("");
-            });
-            sbUtciUncertainty.AppendLine("Total incidents of uncertainty: " + counter + " or " + Math.Round((double)counter * 100 / (numberOfHours * sensorPointCount), 0) + " % overall annual uncertainty");
-            File.WriteAllText(workingDir + @"\UTCI.uncertainty", sbUtciUncertainty.ToString());
+        // sbUtciUncertainty.Append("\t" + (int)Math.Round((double)(100 * cntSensorPercent) /
+        // numberOfHours) + " % U,\tHours: "); cntSensorPercent = 0; //Hours for each sensorpoint for
+        // (int hour = 0; hour < numberOfHours; hour++) { if (utci.uncertaintyMRTArray[hour, probe]
+        // == true || utci.uncertaintyWindArray[hour, probe] == true) { sbUtciUncertainty.Append(hour
+        // + ","); counter++; } } sbUtciUncertainty.AppendLine(""); });
+        // sbUtciUncertainty.AppendLine("Total incidents of uncertainty: " + counter + " or " +
+        // Math.Round((double)counter * 100 / (numberOfHours * sensorPointCount), 0) + " % overall
+        // annual uncertainty"); File.WriteAllText(workingDir + @"\UTCI.uncertainty", sbUtciUncertainty.ToString());
 
-            //Write Debug info to file
-#if DEBUG
-            StringBuilder sbUtciDEBUG = new StringBuilder();
+        //            //Write Debug info to file
+        //#if DEBUG
+        //            StringBuilder sbUtciDEBUG = new StringBuilder();
 
-            sbUtciDEBUG.AppendLine(@"UTCI for sensor point " + debugValue[1] + " over all hours of the year:");
+        // sbUtciDEBUG.AppendLine(@"UTCI for sensor point " + debugValue[1] + " over all hours of the year:");
 
-            var currentProbingPoint = new Point3d(utci.probes[debugValue[1]][0], utci.probes[debugValue[1]][1], utci.probes[debugValue[1]][2]);
-            var probingHeight = currentProbingPoint.Z;
+        // var currentProbingPoint = new Point3d(utci.probes[debugValue[1]][0],
+        // utci.probes[debugValue[1]][1], utci.probes[debugValue[1]][2]); var probingHeight = currentProbingPoint.Z;
 
-            // debugValue[0] = hour debugValue[1] = probe
+        // // debugValue[0] = hour debugValue[1] = probe
 
-            for (int hour = 0; hour < numberOfHours; hour++)
-            {
-                sbUtciDEBUG.Append(String.Format("{0:0.0}", utci.Values[hour, debugValue[1]]) + ",");
-            }
-            sbUtciDEBUG.Append(Environment.NewLine); sbUtciDEBUG.Append(Environment.NewLine);
-            sbUtciDEBUG.AppendLine("Detailed Values for sensor point " + debugValue[1] + " at hour " + debugValue[0] + ":");
-            sbUtciDEBUG.AppendLine("Air temperature: " + weather.DryBulbTemp[debugValue[0]]);
-            //sbUtciDEBUG.AppendLine("MRT: " + String.Format("{0:0.0}", mrt.Values[debugValue[0]][debugValue[1]]);
-            sbUtciDEBUG.AppendLine("Vapour pressure: " + weather.Pressure[debugValue[0]]);
-            sbUtciDEBUG.AppendLine("Relative humidity: " + weather.RelativeHumidity[debugValue[0]]);
+        // for (int hour = 0; hour < numberOfHours; hour++) {
+        // sbUtciDEBUG.Append(String.Format("{0:0.0}", utci.Values[hour, debugValue[1]]) + ","); }
+        // sbUtciDEBUG.Append(Environment.NewLine); sbUtciDEBUG.Append(Environment.NewLine);
+        // sbUtciDEBUG.AppendLine("Detailed Values for sensor point " + debugValue[1] + " at hour " +
+        // debugValue[0] + ":"); sbUtciDEBUG.AppendLine("Air temperature: " +
+        // weather.DryBulbTemp[debugValue[0]]); //sbUtciDEBUG.AppendLine("MRT: " +
+        // String.Format("{0:0.0}", mrt.Values[debugValue[0]][debugValue[1]]);
+        // sbUtciDEBUG.AppendLine("Vapour pressure: " + weather.Pressure[debugValue[0]]);
+        // sbUtciDEBUG.AppendLine("Relative humidity: " + weather.RelativeHumidity[debugValue[0]]);
 
-            sbUtciDEBUG.AppendLine("Wind speed from .epw: " + String.Format("{0:0.0}", weather.WindSpeed[debugValue[0]]));
-            //sbUtciDEBUG.AppendLine("probingHeight from CFD: " + String.Format("{0:0.0}", probingHeight));
-            sbUtciDEBUG.AppendLine("Scaled-down wind velocity from .epw: " + String.Format("{0:0.0}", WindFactors.GetVelocityAtProbingHeightFromABL(weather.WindSpeed[debugValue[0]], BCond, probingHeight)));
-            sbUtciDEBUG.AppendLine("Wind reduction from CFD: " + String.Format("{0:0.0}", utci.wf.Values[debugValue[0], debugValue[1]]));
-            sbUtciDEBUG.AppendLine("Resulting wind velocity for UTCI calculation: " + String.Format("{0:0.0}", utci.wf.Values[debugValue[0], debugValue[1]] * WindFactors.GetVelocityAtProbingHeightFromABL(weather.WindSpeed[debugValue[0]], BCond, probingHeight)));
+        // sbUtciDEBUG.AppendLine("Wind speed from .epw: " + String.Format("{0:0.0}",
+        // weather.WindSpeed[debugValue[0]])); //sbUtciDEBUG.AppendLine("probingHeight from CFD: " +
+        // String.Format("{0:0.0}", probingHeight)); sbUtciDEBUG.AppendLine("Scaled-down wind
+        // velocity from .epw: " + String.Format("{0:0.0}",
+        // WindFactors.GetVelocityAtProbingHeightFromABL(weather.WindSpeed[debugValue[0]], BCond,
+        // probingHeight))); sbUtciDEBUG.AppendLine("Wind reduction from CFD: " +
+        // String.Format("{0:0.0}", utci.wf.Values[debugValue[0], debugValue[1]]));
+        // sbUtciDEBUG.AppendLine("Resulting wind velocity for UTCI calculation: " +
+        // String.Format("{0:0.0}", utci.wf.Values[debugValue[0], debugValue[1]] *
+        // WindFactors.GetVelocityAtProbingHeightFromABL(weather.WindSpeed[debugValue[0]], BCond, probingHeight)));
 
-            sbUtciDEBUG.AppendLine("UTCI: " + String.Format("{0:0.0}", utci.Values[debugValue[0], debugValue[1]]));
-            sbUtciDEBUG.AppendLine("");
-            File.WriteAllText(workingDir + @"\UTCI_debug_hour_" + debugValue[0] + "_probe_" + debugValue[1] + ".csv", sbUtciDEBUG.ToString());
-#endif
+        //            sbUtciDEBUG.AppendLine("UTCI: " + String.Format("{0:0.0}", utci.Values[debugValue[0], debugValue[1]]));
+        //            sbUtciDEBUG.AppendLine("");
+        //            File.WriteAllText(workingDir + @"\UTCI_debug_hour_" + debugValue[0] + "_probe_" + debugValue[1] + ".csv", sbUtciDEBUG.ToString());
+        //#endif
 
-            if (verboseMode)
-            {
-                File.WriteAllText(workingDir + @"\UTCI.err", errorLog.ToString());
-            }
-        }
+        // if (verboseMode) { File.WriteAllText(workingDir + @"\UTCI.err", errorLog.ToString()); } }
 
         private static double CalcPa(double TaC, double RH)
         {
@@ -543,48 +505,21 @@ namespace EddyLib
             StrngHeat = Math.Round((double)sH / Vals.Count, 3);
         }
 
-        public static void ConditionOfPerson(List<double> UTCI, ref object conditionOfPerson)
-        {
-            List<double> rtl = new List<double>();
-            double condition = 0;
+        //public static void ConditionOfPerson(List<double> UTCI, ref object conditionOfPerson)
+        //{
+        //    List<double> rtl = new List<double>();
+        //    double condition = 0;
 
-            for (int i = 0; i < UTCI.Count; i++)
-            {
-                condition = UTCI[i];
-                if (UTCI[i] < -13)
-                {
-                    condition = -3;
-                }
-                else if ((-13 <= UTCI[i]) && (UTCI[i] < 0))
-                {
-                    condition = -2;
-                }
-                else if ((0 <= UTCI[i]) && (UTCI[i] < 9))
-                {
-                    condition = -1;
-                }
-                else if ((9 <= UTCI[i]) && (UTCI[i] < 26))
-                {
-                    condition = 0;
-                }
-                else if ((26 <= UTCI[i]) && (UTCI[i] < 28))
-                {
-                    condition = 1;
-                }
-                else if ((28 <= UTCI[i]) && (UTCI[i] < 32))
-                {
-                    condition = 2;
-                }
-                else
-                {
-                    condition = 3;
-                }
+        // for (int i = 0; i < UTCI.Count; i++) { condition = UTCI[i]; if (UTCI[i] < -13) { condition
+        // = -3; } else if ((-13 <= UTCI[i]) && (UTCI[i] < 0)) { condition = -2; } else if ((0 <=
+        // UTCI[i]) && (UTCI[i] < 9)) { condition = -1; } else if ((9 <= UTCI[i]) && (UTCI[i] < 26))
+        // { condition = 0; } else if ((26 <= UTCI[i]) && (UTCI[i] < 28)) { condition = 1; } else if
+        // ((28 <= UTCI[i]) && (UTCI[i] < 32)) { condition = 2; } else { condition = 3; }
 
-                rtl.Add(condition);
-            }
+        // rtl.Add(condition); }
 
-            conditionOfPerson = rtl;
-        }
+        //    conditionOfPerson = rtl;
+        //}
 
         public static void Colors(List<double> Vals, ref object Clrs)
         {
