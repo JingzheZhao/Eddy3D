@@ -525,6 +525,20 @@ namespace EddyLib
             return newList;
         }
 
+        public static void CleanDirectory(string path)
+        {
+            System.IO.DirectoryInfo di = new DirectoryInfo(path);
+
+            foreach (FileInfo file in di.EnumerateFiles())
+            {
+                file.Delete();
+            }
+            foreach (DirectoryInfo dir in di.EnumerateDirectories())
+            {
+                dir.Delete(true);
+            }
+        }
+
         public static string GetFileNameWithHighestEnumerator(string folder)
         {
             var path = Directory.GetFiles(folder, "*.dat").Select(fn => new FileInfo(fn)).OrderBy(f => f.Name).Last();

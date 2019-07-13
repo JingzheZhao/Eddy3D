@@ -110,7 +110,7 @@ namespace EddyLib
 
                         // Check for extreme Windspeeds
 
-                        double resultingWindSpeedforUTCI = wf.Values[hour, probe];
+                        double resultingWindSpeedforUTCI = wf.ValuesWindFactors[hour, probe];
 
                         if (resultingWindSpeedforUTCI > 17) { resultingWindSpeedforUTCI = 17; uncertaintyWindArray[hour, probe] = true; }
                         if (resultingWindSpeedforUTCI < 0.5) { resultingWindSpeedforUTCI = 0.5; uncertaintyWindArray[hour, probe] = true; }

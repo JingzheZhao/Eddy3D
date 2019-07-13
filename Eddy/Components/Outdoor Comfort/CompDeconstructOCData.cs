@@ -91,7 +91,7 @@ namespace Eddy
 
                 for (int h = 0; h < 8760; h++)
                 {
-                    var tempRow = ArrayHelper.CustomArray<double>.GetRow(wf.Values, h);
+                    var tempRow = ArrayHelper.CustomArray<double>.GetRow(wf.ValuesWindFactors, h);
                     tree.AddRange(tempRow, new Grasshopper.Kernel.Data.GH_Path(h));
                 }
 

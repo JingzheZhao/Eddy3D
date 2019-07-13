@@ -82,6 +82,7 @@ namespace Eddy
         {
             //pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
             pManager.AddGenericParameter("Wind Factors", "WF", "WF", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Pedestrian Comfort", "PD", "PD", GH_ParamAccess.list);
             pManager.AddGenericParameter("OffSet", "OF", "OffSet between simulated wind directions and directions in the weather file.", GH_ParamAccess.list);
         }
 
@@ -175,6 +176,10 @@ namespace Eddy
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated AnnualVelocity results have been loaded.");
             }
+            if (av.infValues)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Some values probed velocities showed very large values which have been replaced with 0s.");
+            }
 
             #endregion Annual Velocities
 
@@ -188,7 +193,7 @@ namespace Eddy
                 GHDocument.RequestAbortSolution();
             }
 
-            if (wf.Values is null)
+            if (wf.ValuesWindFactors is null)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Either precalculated results could not be loaded or the WindFactors array has not been calculated yet.");
                 return;
@@ -204,8 +209,11 @@ namespace Eddy
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated WindFactors results have been loaded.");
             }
 
+            AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The average offset between simulated wind directions and directions in the weather file is " + Math.Round(wf.offSetAverage, 1) + "°.");
+
             DA.SetData(0, wf);
-            DA.SetDataList(1, wf.offSet);
+            DA.SetDataList(1, wf.ValuesPedestrianComfort);
+            DA.SetDataList(2, wf.offSet);
 
             #endregion Wind Factors
         }

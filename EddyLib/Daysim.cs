@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
+using Rhino.Geometry;
 
 namespace EddyLib
 {
@@ -25,6 +26,50 @@ namespace EddyLib
 
     public class Daysim
     {
+        public double[][] dirIll;
+        public double[][] difIll;
+
+        public Daysim(string baseWorkingDir, Mesh BuildingGeometry, List<Point3d> probes, Weather weather)
+        {
+            //export RAD for DAYSIM
+            if (!Directory.Exists(baseWorkingDir + @"Rad\"))
+            {
+                Directory.CreateDirectory(baseWorkingDir + @"Rad\");
+            }
+
+            string radMat = @"
+void plastic Generic_20
+0
+0
+5 0.2 0.2 0.2 0 0
+";
+            Mesh daysimMesh = new Mesh();
+            daysimMesh.Append(BuildingGeometry);
+            // Todo: add ground plane to the above mesh
+
+            File.WriteAllText(baseWorkingDir + @"Rad\materials.rad", radMat);
+            RadianceFiles.MeshProc(daysimMesh, baseWorkingDir + @"Rad\scene.rad", "Generic_20");
+
+            // Write Probes
+
+            RadianceFiles.writePTS(baseWorkingDir + @"\Rad\sensors.pts", probes);
+
+            var difillFile = baseWorkingDir + @"\Rad\CallRay.dif.ill";
+            var dirillFile = baseWorkingDir + @"\Rad\CallRay.dir.ill";
+
+            Daysim.Epw2Wea(weather.epwFilePath, baseWorkingDir + @"\Rad");
+
+            DaysimSettings set = new DaysimSettings
+            {
+                AB = 1,
+                WorkDir = baseWorkingDir + @"\Rad"
+            };
+            Daysim.RunDaysim(set);
+
+            this.difIll = RadianceFiles.loadILL(difillFile);
+            this.dirIll = RadianceFiles.loadILL(dirillFile);
+        }
+
         public static string DaysimInstallation = @"C:\DIVA\DaysimBinaries";
 
         public static void Epw2Wea(string weatherFilePath, string targetPath)

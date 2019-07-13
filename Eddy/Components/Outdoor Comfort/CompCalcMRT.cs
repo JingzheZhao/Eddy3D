@@ -102,38 +102,13 @@ namespace Eddy
 
             #region Daysim
 
-            //TODO: Move Daysim related code into its own class
-
-            //export RAD for DAYSIM
-            if (!Directory.Exists(RES.MeshSettings.baseWorkingDir + @"Rad\"))
-            {
-                Directory.CreateDirectory(RES.MeshSettings.baseWorkingDir + @"Rad\");
-            }
-
-            string radMat = @"
-void plastic Generic_20
-0
-0
-5 0.2 0.2 0.2 0 0
-";
-            Mesh daysimMesh = new Mesh();
-            daysimMesh.Append(RES.Domain.BuildingGeometry);
-            // Todo: add ground plane to the above mesh
-
-            File.WriteAllText(RES.MeshSettings.baseWorkingDir + @"Rad\materials.rad", radMat);
-            RadianceFiles.MeshProc(daysimMesh, RES.MeshSettings.baseWorkingDir + @"Rad\scene.rad", "Generic_20");
-
-            // Write Probes
-
-            RadianceFiles.writePTS(RES.WorkingDirectory + @"\Rad\sensors.pts", probes);
-
             double[][] DiffRad = null;
             double[][] DirRad = null;
 
             var difillFile = RES.WorkingDirectory + @"\Rad\CallRay.dif.ill";
             var dirillFile = RES.WorkingDirectory + @"\Rad\CallRay.dir.ill";
 
-            if (File.Exists(difillFile) && File.Exists(dirillFile))
+            if (File.Exists(difillFile) && File.Exists(dirillFile) && new FileInfo(difillFile).Length != 0 && new FileInfo(dirillFile).Length != 0)
             {
                 // Load radiation datasets [x][] time [][x] points
 
@@ -144,40 +119,37 @@ void plastic Generic_20
 
                 if (sensorPointCountExisting != numberOfProbes && !run)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated Daysim results do not have the correct number of probing points. The results need to be recalculated.");
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The precalculated Daysim results do not have the correct number of probing points. The results need to be recalculated.");
                     return;
                 }
 
                 if (sensorPointCountExisting != numberOfProbes && run)
                 {
-                    Daysim.Epw2Wea(weather.epwFilePath, RES.WorkingDirectory + @"\Rad");
+                    Utilities.CleanDirectory(RES.MeshSettings.baseWorkingDir + @"Rad\");
 
-                    DaysimSettings set = new DaysimSettings
-                    {
-                        AB = 1,
-                        WorkDir = RES.WorkingDirectory + @"\Rad"
-                    };
-                    Daysim.RunDaysim(set);
+                    Daysim ds = new Daysim(RES.WorkingDirectory, RES.Domain.BuildingGeometry, probes, weather);
+
+                    DiffRad = ds.difIll;
+                    DirRad = ds.dirIll;
+
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated Daysim results did not have the correct number of probing points. Results have been recalculated.");
                 }
                 else if (sensorPointCountExisting == numberOfProbes && !run)
                 {
+                    DiffRad = RadianceFiles.loadILL(difillFile);
+                    DirRad = RadianceFiles.loadILL(dirillFile);
+
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated Daysim results have been loaded.");
                 }
             }
             else if (run)
             {
-                Daysim.Epw2Wea(weather.epwFilePath, RES.WorkingDirectory + @"\Rad");
+                Utilities.CleanDirectory(RES.MeshSettings.baseWorkingDir + @"Rad\");
 
-                DaysimSettings set = new DaysimSettings
-                {
-                    AB = 1,
-                    WorkDir = RES.WorkingDirectory + @"\Rad"
-                };
-                Daysim.RunDaysim(set);
+                Daysim ds = new Daysim(RES.WorkingDirectory, RES.Domain.BuildingGeometry, probes, weather);
 
-                DiffRad = RadianceFiles.loadILL(difillFile);
-                DirRad = RadianceFiles.loadILL(dirillFile);
+                DiffRad = ds.difIll;
+                DirRad = ds.dirIll;
             }
             else
             {

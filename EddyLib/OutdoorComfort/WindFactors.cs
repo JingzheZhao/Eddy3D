@@ -14,11 +14,15 @@ namespace EddyLib
 
         public Vector3d[,] Values;
         public int[] WindDirs;
+
         public bool resultPrecalculated;
         public bool wrongNumberOfProbes;
+        public bool infValues;
 
         public AnnualVelocities(int[] windDirs, Vector3d[,] vectors, string csvFilePath, bool truncateDoubles, bool recalc, int truncateBy = 1)
         {
+            this.infValues = CheckForInfValues(vectors);
+
             if (File.Exists(csvFilePath) && !recalc)
             {
                 var temp = ReadAnnualVelocitiesFromCSV(csvFilePath);
@@ -124,6 +128,16 @@ namespace EddyLib
         //        return arrr;
         //}
 
+        private bool CheckForInfValues(Vector3d[,] vectors)
+        {
+            bool infValues = false;
+            foreach (Vector3d vec in vectors)
+            {
+                if (vec.Length > 10000) { infValues = true; }
+            }
+            return infValues;
+        }
+
         public static Tuple<int[], Vector3d[,]> ReadAnnualVelocitiesFromCSV(string filePath)
         {
             // Todo: slow, fix later
@@ -191,19 +205,24 @@ namespace EddyLib
             for (int p = 0; p <= vectors.GetUpperBound(0); p++)
             {
                 string content = "";
-
                 for (int d = 0; d <= vectors.GetUpperBound(1); d++)
                 {
-                    var X = Math.Round(vectors[p, d].X, truncateBy).ToString();
-                    var Y = Math.Round(vectors[p, d].Y, truncateBy).ToString();
-                    var Z = Math.Round(vectors[p, d].Z, truncateBy).ToString();
-
-                    content += X + "," + Y + "," + Z + ",";
+                    // Filter extreme values
+                    if (vectors[p, d].Length > 10000)
+                    {
+                        content += "0 , 0 , 0 , ";
+                        continue;
+                    }
+                    else
+                    {
+                        var X = Math.Round(vectors[p, d].X, truncateBy).ToString();
+                        var Y = Math.Round(vectors[p, d].Y, truncateBy).ToString();
+                        var Z = Math.Round(vectors[p, d].Z, truncateBy).ToString();
+                        content += X + "," + Y + "," + Z + ",";
+                    }
                 }
-
                 sb.AppendLine(content);
             }
-
             File.WriteAllText(filePath, sb.ToString());
         }
     }
@@ -214,7 +233,9 @@ namespace EddyLib
         public int[] Indices;
         public int[] offSet;
         public double offSetAverage;
-        public double[,] Values;
+        public double[,] ValuesWindFactors;
+        public double[] ValuesPedestrianComfort;
+
         public bool resultPrecalculated;
         public bool wrongNumberOfProbes;
 
@@ -226,7 +247,7 @@ namespace EddyLib
             {
                 try
                 {
-                    this.Values = ReadWindReductionArrayFromCSV(csvWindFactors);
+                    this.ValuesWindFactors = ReadWindReductionArrayFromCSV(csvWindFactors);
                     this.resultPrecalculated = true;
                     this.wrongNumberOfProbes = false;
 
@@ -251,11 +272,56 @@ namespace EddyLib
                 this.clstSimDirs = ClstSimDirs.ToArray();
                 this.Indices = SimDirIndices.ToArray();
 
-                this.Values = CalcWindReductionArray(velocityProbes.Values, Indices, bcond, weather, probingHeight, interpolate);
-                ArrayHelper._2DArray2CSV(this.Values, csvWindFactors, true, 1);
+                this.ValuesWindFactors = CalcWindReductionArray(velocityProbes.Values, Indices, bcond, weather, probingHeight, interpolate);
+                ArrayHelper._2DArray2CSV(this.ValuesWindFactors, csvWindFactors, true, 1);
                 this.resultPrecalculated = false;
                 this.wrongNumberOfProbes = false;
             }
+
+            this.ValuesPedestrianComfort = CalcPedestrianComfort(this.ValuesWindFactors);
+        }
+
+        private double[] CalcPedestrianComfort(double[,] ValuesWindFactors)
+        {
+            int sensorPointCount = ValuesWindFactors.GetLength(1);
+            var pedestrianComfort = new double[sensorPointCount];
+
+            for (int probe = 0; probe < sensorPointCount; probe++)
+            {
+                var column = ArrayHelper.CustomArray<double>.GetColumn(ValuesWindFactors, probe);
+
+                pedestrianComfort[probe] = CalcPedestrianComfort(column);
+            }
+
+            return pedestrianComfort;
+        }
+
+        public int CalcPedestrianComfort(double[] annualVelocity)
+
+        {
+            int pedestrianComfort = 0;
+
+            // https://www.cibse.org/getmedia/af08491f-ef5b-4f7e-9d70-2b0e36d748ae/01-Wind-Analogue-or-digital.pdf
+
+            // 4:  > 4 m / s "Sitting" Light breezes desired for outdoor restaurants and seating
+            // areas where one can read a paper of comfortably sit for long periods
+            // 6:  > 6 m / s "Standing" Gentle breezes suitable for main buildings entrances, pick -
+            // up / drop off points and bus stops
+            // 8:  > 8 m / s “Leisure Walking or Strolling“ Moderate breezes that would be
+            // appropriate for walking down a city centre street, park or plaza
+            // 10:  > 10 m / s "Business Walking“ Relatively high speeds that can be tolerated if
+            // ones objective is to walk, run or cycle without lingering
+            // 12:  > 12 m / s “Uncomfortable“ Winds of this magnitude are considered a nuisance for
+            // most activities, and wind mitigation is typically recommended
+
+            int n = 4;
+            while (n < 13)
+            {
+                var count = annualVelocity.Where(num => num >= n).Count();
+                if (count >= 438) { pedestrianComfort = n; break; }
+                n += 2;
+            }
+            return pedestrianComfort;
         }
 
         private static double[,] VectorLengths(int sensorPointCount, int numberOfWindDirs, Vector3d[,] vectorProbes)
@@ -390,9 +456,8 @@ namespace EddyLib
 
         // public static void WriteWindReductionArrayToCSV(string WindDirs, string WorkingDir,
         // BoundaryConditions bcond, string probesFilePath, bool Verbose, out StringBuilder errorLog)
-        // { // mode is for cp errorLog = new StringBuilder(); errorLog.AppendLine("test");
-
-        // var simulatedWindDirList = WindDirs.Split(','); int numberOfWindDirs = simulatedWindDirList.Length;
+        // { // mode is for cp errorLog = new StringBuilder(); errorLog.AppendLine("test"); var
+        // simulatedWindDirList = WindDirs.Split(','); int numberOfWindDirs = simulatedWindDirList.Length;
 
         // // Read all variables from one file path. Variables are usually identical for all wind
         // directions so this should be robust. var ABLfilePath = WorkingDir + "\\" +
@@ -710,6 +775,7 @@ namespace EddyLib
             }
         });
             }
+            // WF[h, p]
             return WF;
         }
     }
