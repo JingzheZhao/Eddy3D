@@ -315,11 +315,12 @@ namespace EddyLib
             // most activities, and wind mitigation is typically recommended
 
             int n = 12;
-            while (n > 3)
+            while (n > 5)
             {
                 var count = annualVelocity.Where(num => num >= n).Count();
+                // More than 5 % per year >= 438 h
                 if (count >= 438) { pedestrianComfort = n; break; }
-                n += -2;
+                n -= 2;
             }
             return pedestrianComfort;
         }
