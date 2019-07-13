@@ -150,11 +150,7 @@
 
 // if (Run) { if (ResultType == "Hours") { //TODO: implement logic } else if (ResultType ==
 // "Condition") { //TODO: implement logic } else if (ResultType == "UTCI/h") { //TODO: implement
-// logic } else if (ResultType == "UTCI/p") { //TODO: implement logic } }
-
-// }
-
-// ///
+// logic } else if (ResultType == "UTCI/p") { //TODO: implement logic } } } ///
 // <summary>
 // /// Provides an Icon for every component that will be visible in the User Interface. /// Icons
 // need to be 24x24 pixels. ///

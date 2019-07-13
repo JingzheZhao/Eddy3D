@@ -296,7 +296,7 @@ namespace EddyLib
             return pedestrianComfort;
         }
 
-        public int CalcPedestrianComfort(double[] annualVelocity)
+        private int CalcPedestrianComfort(double[] annualVelocity)
 
         {
             int pedestrianComfort = 4;
@@ -413,7 +413,7 @@ namespace EddyLib
             return new Tuple<List<int>, List<int>, List<int>, double>(Indices, clstSimDirs, offSet, offSet.Average());
         }
 
-        public static int ReturnNextLowerIndexN(List<int> list, int compareTo)
+        private static int ReturnNextLowerIndexN(List<int> list, int compareTo)
         {
             int lowerIndex;
 
@@ -433,7 +433,7 @@ namespace EddyLib
             return lowerIndex;
         }
 
-        public static int ReturnNextUpperIndexN(List<int> list, int compareTo)
+        private static int ReturnNextUpperIndexN(List<int> list, int compareTo)
         {
             // If values to compare if larger than everything in the list, return the first in the
             // list which is usually 0

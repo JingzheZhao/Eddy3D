@@ -148,12 +148,12 @@ namespace EddyLib
             //Number
             if (ofField.FieldType == OFField.fieldType.number)
             {
-                ParsingNumbers(listOfPoints, caseDirectory, fullPath);
+                ParsingNumbers(listOfPoints, fullPath);
             }
             //Vector
             if (ofField.FieldType == OFField.fieldType.vector)
             {
-                ParsingVectors(listOfPoints, caseDirectory, fullPath);
+                ParsingVectors(listOfPoints, fullPath);
             }
             this.currWindDir = currWindDir;
             WriteProbedResultToCSV(ofField);
@@ -191,7 +191,7 @@ namespace EddyLib
             }
         }
 
-        private void ParsingNumbers(List<Point3d> listOfPoints, string workingDirectory, string fullPath)
+        private void ParsingNumbers(List<Point3d> listOfPoints, string fullPath)
         {
             int counterPoints = listOfPoints.Count;
 
@@ -211,7 +211,7 @@ namespace EddyLib
             //this.valueString = sb.ToString();
         }
 
-        private void ParsingVectors(List<Point3d> listOfPoints, string workingDirectory, string fullPath)
+        private void ParsingVectors(List<Point3d> listOfPoints, string fullPath)
         {
             int counterPoints = listOfPoints.Count;
 

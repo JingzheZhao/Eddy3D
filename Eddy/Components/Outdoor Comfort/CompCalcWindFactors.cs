@@ -69,9 +69,9 @@ namespace Eddy
         {
             pManager.AddGenericParameter("Res", "Res", "Res", GH_ParamAccess.item);
             //pManager.AddIntegerParameter("windDirs", "windDirs", "windDirs", GH_ParamAccess.list);
+            pManager.AddPointParameter("Points", "Points", "Points", GH_ParamAccess.list);
             pManager.AddVectorParameter("U", "U", "U", GH_ParamAccess.tree);
             // pManager.AddIntegerParameter("Hours", "H", "Hours", GH_ParamAccess.list);
-            pManager.AddPointParameter("Probes", "Probes", "Probes", GH_ParamAccess.list);
             pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item);
         }
 
@@ -108,7 +108,6 @@ namespace Eddy
 
             List<Point3d> probes = new List<Point3d>();
             DA.GetDataList("Probes", probes);
-            var numberOfProbes = probes.Count;
 
             bool run = false;
             DA.GetData("Run", ref run);
