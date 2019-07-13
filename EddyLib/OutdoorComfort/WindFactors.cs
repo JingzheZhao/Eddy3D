@@ -299,7 +299,7 @@ namespace EddyLib
         public int CalcPedestrianComfort(double[] annualVelocity)
 
         {
-            int pedestrianComfort = 0;
+            int pedestrianComfort = 4;
 
             // https://www.cibse.org/getmedia/af08491f-ef5b-4f7e-9d70-2b0e36d748ae/01-Wind-Analogue-or-digital.pdf
 
