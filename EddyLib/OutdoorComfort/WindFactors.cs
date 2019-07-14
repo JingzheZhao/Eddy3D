@@ -239,9 +239,12 @@ namespace EddyLib
         public bool resultPrecalculated;
         public bool wrongNumberOfProbes;
 
+        private string fileNameCSV = @"WindFactors.csv";
+        private string fileNameCSVInterpolated = @"WindFactors_ip.csv";
+
         public WindFactors(string baseWorkingDir, BoundaryConditions bcond, Weather weather, AnnualVelocities velocityProbes, double probingHeight, bool interpolate, bool recalc)
         {
-            var csvWindFactors = baseWorkingDir + @"WindFactors.csv";
+            string csvWindFactors = interpolate == false ? baseWorkingDir + fileNameCSV : baseWorkingDir + fileNameCSVInterpolated;
 
             if (File.Exists(csvWindFactors) && !recalc)
             {
@@ -776,7 +779,7 @@ namespace EddyLib
                     // Avoid Infinity
                     var ratioWeighted = velApproaching == 0 ? 0.00000 : weightedVelSim / velApproaching;
 
-                    WF[h, p] = Math.Round(velAtProbHeightEPW * ratioWeighted * weightedVelSim, rounding);
+                    WF[h, p] = Math.Round(velAtProbHeightEPW * ratioWeighted, rounding);
                 }
 
                 cntReduction++;
