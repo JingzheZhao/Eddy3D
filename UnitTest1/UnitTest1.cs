@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using EddyLib;
-using Rhino.Geometry;
+using Rhino;
 
 namespace WindFactors.UnitTest
 {
