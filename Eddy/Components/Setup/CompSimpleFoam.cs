@@ -137,7 +137,7 @@ namespace Eddy
 
             // Error Handling
 
-            if (!RunSettings.IdenticalMPI && RunSettings.CPUs > 1)
+            if (!RunSettings.IdenticalMPI && RunSettings.CPUs > 1 && RunSettings.BlueCFDIsInstalled)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "In order to use multiple CPUs, you need to ensure to use the same msmpi.dll for both Windows and BlueCFD. This is a BlueCFD issue and will hopefully be fixed in a future version."); return;
             }

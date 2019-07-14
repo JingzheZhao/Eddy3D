@@ -70,9 +70,9 @@ namespace EddyLib
             this.turbModel = turbmodel;
             this.totalGBRam = Convert.ToInt32((new ComputerInfo().TotalPhysicalMemory / (Math.Pow(1024, 2))) + 0.5);
             this.relaxationFactors = relaxationFactors;
+            this.Is64BitOS = Environment.Is64BitOperatingSystem;
             this.BlueCFDIsInstalled = CheckIfBlueCFDIsInstalled();
             this.IdenticalMPI = CheckForProperMPIVersions(BlueCFDIsInstalled, Is64BitOS);
-            this.Is64BitOS = Environment.Is64BitOperatingSystem;
         }
 
         public override string ToString()
@@ -124,7 +124,7 @@ Relaxation Factors = {9}", iter, writeInterval, keepTimeSteps, Schemes, turbMode
             bool IsBlueCFDInstalled = false;
 
             var pathGnuplotBlueCFD = @"C:\Program Files\blueCFD-Core-2017\msys64\mingw64\bin\gnuplot.exe";
-            var pathParaviewBlueCFD = @"C:\Program Files\blueCFD - Core - 2017\AddOns\ParaView\bin\paraview.exe";
+            var pathParaviewBlueCFD = @"C:\Program Files\blueCFD-Core-2017\AddOns\ParaView\bin\paraview.exe";
 
             if (File.Exists(pathGnuplotBlueCFD) && File.Exists(pathParaviewBlueCFD))
             {
