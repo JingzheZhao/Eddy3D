@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26730.16
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29102.190
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CallOF", "CallOF\CallOF.csproj", "{361DB954-5BEC-4EB7-AE92-BCD7FB0346AC}"
 EndProject
@@ -16,6 +16,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CallRay", "CallRay\CallRay.csproj", "{557BF6F7-7683-4A84-B230-8B6EB90B3D9C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eddy", "Eddy\Eddy.csproj", "{6312C2AE-CDF7-4B7F-9527-A88EC673DD44}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindFactors.UnitTest", "UnitTest1\WindFactors.UnitTest.csproj", "{F20511C1-41F3-468E-B452-5CD14A446005}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{6312C2AE-CDF7-4B7F-9527-A88EC673DD44}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6312C2AE-CDF7-4B7F-9527-A88EC673DD44}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6312C2AE-CDF7-4B7F-9527-A88EC673DD44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F20511C1-41F3-468E-B452-5CD14A446005}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F20511C1-41F3-468E-B452-5CD14A446005}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F20511C1-41F3-468E-B452-5CD14A446005}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F20511C1-41F3-468E-B452-5CD14A446005}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

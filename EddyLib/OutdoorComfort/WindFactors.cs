@@ -229,7 +229,7 @@ namespace EddyLib
 
     public class WindFactors
     {
-        public int[] clstSimDirs;
+        public int[] clstSimDirs { get; set; }
         public int[] Indices;
         public int[] offSet;
         public double offSetAverage;
@@ -392,8 +392,8 @@ namespace EddyLib
                 }
                 else
                 {
-                    var nextIndexDown = ReturnNextLowerIndexN(windDirSim, (int)windDirsEPW[h]);
-                    var nextIndexUp = ReturnNextUpperIndexN(windDirSim, (int)windDirsEPW[h]);
+                    var nextIndexDown = ReturnNextLowerIndex(windDirSim, (int)windDirsEPW[h]);
+                    var nextIndexUp = ReturnNextUpperIndex(windDirSim, (int)windDirsEPW[h]);
 
                     var nextDirDown = windDirSim[nextIndexDown];
                     var nextDirUp = windDirSim[nextIndexUp];
@@ -413,7 +413,15 @@ namespace EddyLib
             return new Tuple<List<int>, List<int>, List<int>, double>(Indices, clstSimDirs, offSet, offSet.Average());
         }
 
-        private static int ReturnNextLowerIndexN(List<int> list, int compareTo)
+        public static int DistanceBetweenWindDirs(int dir1, int dir2)
+        {
+            var vec2 = Utilities.Dir2Vec(dir1);
+            var vec1 = Utilities.Dir2Vec(dir2);
+
+            return (int)Math.Abs(Utilities.AngleBetweenVectors(vec1, vec2));
+        }
+
+        public static int ReturnNextLowerIndex(List<int> list, int compareTo)
         {
             int lowerIndex;
 
@@ -433,7 +441,7 @@ namespace EddyLib
             return lowerIndex;
         }
 
-        private static int ReturnNextUpperIndexN(List<int> list, int compareTo)
+        protected static int ReturnNextUpperIndex(List<int> list, int compareTo)
         {
             // If values to compare if larger than everything in the list, return the first in the
             // list which is usually 0
@@ -729,8 +737,8 @@ namespace EddyLib
 
                 Parallel.For(0, numberOfHours, h =>
                 {
-                    nextIndexDown[h] = ReturnNextLowerIndexN(windDirSim, (int)windDirsEPW[h]);
-                    nextIndexUp[h] = ReturnNextUpperIndexN(windDirSim, (int)windDirsEPW[h]);
+                    nextIndexDown[h] = ReturnNextLowerIndex(windDirSim, (int)windDirsEPW[h]);
+                    nextIndexUp[h] = ReturnNextUpperIndex(windDirSim, (int)windDirsEPW[h]);
                 });
 
                 Parallel.For(0, numberOfHours, h =>
@@ -740,8 +748,8 @@ namespace EddyLib
                 var nextDirDown = windDirSim[nextIndexDown[h]];
                 var nextDirUp = windDirSim[nextIndexUp[h]];
 
-                double distanceToLower = Math.Abs(windDirsEPW[h] - nextDirDown);
-                double distanceToUpper = Math.Abs(windDirsEPW[h] - nextDirUp);
+                double distanceToLower = DistanceBetweenWindDirs(windDirsEPW[h], nextDirDown);
+                double distanceToUpper = DistanceBetweenWindDirs(windDirsEPW[h], nextDirUp);
 
                 var velAtProbHeightEPW = GetVelocityAtProbingHeightFromABL(weather.WindSpeed[h], bcond, probingHeight);
                 var velSim = annualVelocities[p, clstSimDirIdx[h]];

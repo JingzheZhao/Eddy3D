@@ -1304,6 +1304,14 @@ renderView1.CameraParallelProjection = 1
             return new Vector3d(-1 * Math.Sin(d * Math.PI / 180), -1 * Math.Cos(d * Math.PI / 180), 0);
         }
 
+        public static double AngleBetweenVectors(Vector3d vector1, Vector3d vector2)
+        {
+            double sin = vector1.X * vector2.Y - vector2.X * vector1.Y;
+            double cos = vector1.X * vector2.X + vector1.Y * vector2.Y;
+
+            return Math.Atan2(sin, cos) * (180 / Math.PI);
+        }
+
         public static Point3d CenterBottomBoundingBox(Mesh geometry)
         {
             BoundingBox empty = BoundingBox.Empty;
@@ -1514,5 +1522,15 @@ renderView1.CameraParallelProjection = 1
         }//EOC
 
         // <Custom additional code>
+
+        public static double rad2deg(double angleRad)
+        {
+            return (180.0 * angleRad / Math.PI);
+        }
+
+        public static double deg2rad(double angleDeg)
+        {
+            return Math.PI * angleDeg / 180.0;
+        }
     }
 }
