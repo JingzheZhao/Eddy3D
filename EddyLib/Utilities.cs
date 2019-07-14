@@ -1532,5 +1532,23 @@ renderView1.CameraParallelProjection = 1
         {
             return Math.PI * angleDeg / 180.0;
         }
+
+        private static readonly string[] SizeSuffixes =
+                  { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
+
+        public static string SizeSuffix(Int64 value)
+        {
+            if (value < 0) { return "-" + SizeSuffix(-value); }
+
+            int i = 0;
+            decimal dValue = (decimal)value;
+            while (Math.Round(dValue / 1024) >= 1)
+            {
+                dValue /= 1024;
+                i++;
+            }
+
+            return string.Format("{0:n1} {1}", dValue, SizeSuffixes[i]);
+        }
     }
 }

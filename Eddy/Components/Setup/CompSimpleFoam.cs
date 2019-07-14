@@ -102,8 +102,7 @@ namespace Eddy
 
             // domain
             //-------
-            OFCylDomain CylDom;
-            OFBoxDomain BoxDom;
+
             OFBaseDomain DOM;
 
             GH_ObjectWrapper gobj = null;
@@ -111,12 +110,10 @@ namespace Eddy
 
             if ((gobj.Value is OFCylDomain))
             {
-                CylDom = (OFCylDomain)gobj.Value;
                 DOM = (OFBaseDomain)gobj.Value;
             }
             else if ((gobj.Value is OFBoxDomain))
             {
-                BoxDom = (OFBoxDomain)gobj.Value;
                 DOM = (OFBaseDomain)gobj.Value;
             }
             else
@@ -127,7 +124,8 @@ namespace Eddy
             // run settings
             //-----------------
 
-            OFRunSettings RunSettings = new OFRunSettings(); // sets default mesh settings
+            OFRunSettings RunSettings = new OFRunSettings();
+
             GH_ObjectWrapper gobjRunSet = null;
             if (DA.GetData("Run Settings", ref gobjRunSet))
             {
@@ -135,6 +133,13 @@ namespace Eddy
                 {
                     RunSettings = (OFRunSettings)gobjRunSet.Value;
                 }
+            }
+
+            // Error Handling
+
+            if (!RunSettings.IdenticalMPI && RunSettings.CPUs > 1)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "In order to use multiple CPUs, you need to ensure to use the same msmpi.dll for both Windows and BlueCFD. This is a BlueCFD issue and will hopefully be fixed in a future version."); return;
             }
 
             //crashes rhino

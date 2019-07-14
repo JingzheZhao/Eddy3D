@@ -26,6 +26,20 @@ namespace Eddy
         }
 
         /// <summary>
+        /// Each component must have a unique Guid to identify it. It is vital this Guid doesn't
+        /// change otherwise old ghx files that use the old ID will partially fail during loading.
+        /// </summary>
+        public override Guid ComponentGuid => new Guid("{5898D6B7-6BDB-4A36-A0E8-FD0278D54A25}");
+
+        /// <summary>
+        /// Provides an Icon for every component that will be visible in the User Interface. Icons
+        /// need to be 24x24 pixels.
+        /// </summary>
+        protected override System.Drawing.Bitmap Icon =>
+                // You can add image files to your project resources and access them like this:
+                Resources.Eddy_run_settings;
+
+        /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
@@ -152,31 +166,35 @@ namespace Eddy
                 os = OSType.MaxOS;
             }
 
+            // Turbulence
+            //turb.AddNamedValue("kEpsilon (quick)", 0);
+            //turb.AddNamedValue("RNGkEpsilon (more accurate)", 1);
+            //turb.AddNamedValue("kOmegaSST (most accurate)", 2);
+            var turbmodel = new TurbModel();
+            if (_turb == 0)
+            {
+                turbmodel = TurbModel.kEpsilon;
+            }
+            else if (_turb == 1)
+            {
+                turbmodel = TurbModel.RNGkEpsilon;
+            }
+            else
+            {
+                turbmodel = TurbModel.kOmegaSST;
+            }
+
             DA.SetData(0, new OFRunSettings()
             {
                 iter = _iter,
                 writeInterval = _writeInterval,
                 keepTimeSteps = _keepTimeSteps,
                 Schemes = _mode,
-                turb = _turb,
+                turbModel = turbmodel,
                 CPUs = _CPUs,
                 ostype = os,
                 relaxationFactors = relaxationFactors
             });
         }
-
-        /// <summary>
-        /// Provides an Icon for every component that will be visible in the User Interface. Icons
-        /// need to be 24x24 pixels.
-        /// </summary>
-        protected override System.Drawing.Bitmap Icon =>
-                // You can add image files to your project resources and access them like this:
-                Resources.Eddy_run_settings;
-
-        /// <summary>
-        /// Each component must have a unique Guid to identify it. It is vital this Guid doesn't
-        /// change otherwise old ghx files that use the old ID will partially fail during loading.
-        /// </summary>
-        public override Guid ComponentGuid => new Guid("{5898D6B7-6BDB-4A36-A0E8-FD0278D54A25}");
     }
 }

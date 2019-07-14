@@ -1,14 +1,9 @@
 ﻿using System;
+using System.IO;
 using Microsoft.VisualBasic.Devices;
 
 namespace EddyLib
 {
-    public enum SimEngine
-    {
-        Docker,
-        BlueCFD
-    }
-
     public enum OSType
     {
         Windows10,
@@ -24,6 +19,12 @@ namespace EddyLib
         SimScale
     }
 
+    public enum SimEngine
+    {
+        Docker,
+        BlueCFD
+    }
+
     public enum TurbModel
     {
         kEpsilon,
@@ -33,17 +34,46 @@ namespace EddyLib
 
     public class OFRunSettings
     {
-        public int iter = 1000;
-        public int writeInterval = 10;
-        public int keepTimeSteps = 2;
-        public int Schemes = 0;
-        public int turb = 0;
-        public int CPUs = 1;
-        public SimEngine simEngine = SimEngine.BlueCFD;
-        public OSType ostype = OSType.Windows10;
-        public TurbModel turbModel = TurbModel.kEpsilon;
-        public int totalGBRam = Convert.ToInt32((new ComputerInfo().TotalPhysicalMemory / (Math.Pow(1024, 2))) + 0.5);
-        public RelaxationFactors relaxationFactors = RelaxationFactors.Fluent;
+        public bool BlueCFDIsInstalled;
+        public int CPUs;
+        public bool IdenticalMPI;
+        public bool Is64BitOS;
+        public int iter;
+        public int keepTimeSteps;
+        public OSType ostype;
+        public RelaxationFactors relaxationFactors;
+        public int Schemes;
+        public SimEngine simEngine;
+        public int totalGBRam;
+        public TurbModel turbModel;
+        public int writeInterval;
+
+        public OFRunSettings(
+            int iter = 1000,
+            int writeInterval = 10,
+            int keepTimeSteps = 2,
+            int Schemes = 0,
+            int CPUs = 1,
+            SimEngine simEngine = SimEngine.BlueCFD,
+            OSType ostype = OSType.Windows10,
+            TurbModel turbmodel = TurbModel.kEpsilon,
+            RelaxationFactors relaxationFactors = RelaxationFactors.Fluent
+            )
+        {
+            this.iter = iter;
+            this.writeInterval = writeInterval;
+            this.keepTimeSteps = keepTimeSteps;
+            this.Schemes = Schemes;
+            this.CPUs = 1;
+            this.simEngine = simEngine;
+            this.ostype = ostype;
+            this.turbModel = turbmodel;
+            this.totalGBRam = Convert.ToInt32((new ComputerInfo().TotalPhysicalMemory / (Math.Pow(1024, 2))) + 0.5);
+            this.relaxationFactors = relaxationFactors;
+            this.BlueCFDIsInstalled = CheckIfBlueCFDIsInstalled();
+            this.IdenticalMPI = CheckForProperMPIVersions(BlueCFDIsInstalled, Is64BitOS);
+            this.Is64BitOS = Environment.Is64BitOperatingSystem;
+        }
 
         public override string ToString()
         {
@@ -56,7 +86,51 @@ CPUs = {5}
 Engine = {6}
 OS = {7}
 Turbulence Model = {8}
-Relaxation Factors = {9}", iter, writeInterval, keepTimeSteps, Schemes, turb, CPUs, simEngine.ToString(), ostype.ToString(), turbModel, relaxationFactors.ToString());
+Relaxation Factors = {9}", iter, writeInterval, keepTimeSteps, Schemes, turbModel.ToString(), CPUs, simEngine.ToString(), ostype.ToString(), turbModel, relaxationFactors.ToString());
+        }
+
+        private bool CheckForProperMPIVersions(bool BlueCFDInstalled, bool Is64BitOS)
+        {
+            bool MPIIdentical = false;
+
+            if (BlueCFDInstalled)
+            {
+                string MPIWindows64 = @"C:\Windows\SysWOW64\msmpi.dll";
+                string MPIWindows32 = @"C:\Windows\System32\msmpi.dll";
+                string MPIWindows = Is64BitOS == true ? MPIWindows64 : MPIWindows32;
+
+                string MPIBlueCFD = @"C:\Program Files\blueCFD-Core-2017\ThirdParty-5.x\platforms\mingw_w64Gcc\MS-MPI-7.1\bin\msmpi.dll";
+
+                FileInfo FileVol1 = new FileInfo(MPIWindows);
+                string fileLength1 = FileVol1.Length.ToString();
+                string length1 = string.Empty;
+
+                FileInfo FileVol2 = new FileInfo(MPIBlueCFD);
+                string fileLength2 = FileVol2.Length.ToString();
+                string length2 = string.Empty;
+
+                if (length1 == length2)
+                {
+                    MPIIdentical = true;
+                }
+                // Size should be 1300688 bytes
+            }
+
+            return MPIIdentical;
+        }
+
+        private bool CheckIfBlueCFDIsInstalled()
+        {
+            bool IsBlueCFDInstalled = false;
+
+            var pathGnuplotBlueCFD = @"C:\Program Files\blueCFD-Core-2017\msys64\mingw64\bin\gnuplot.exe";
+            var pathParaviewBlueCFD = @"C:\Program Files\blueCFD - Core - 2017\AddOns\ParaView\bin\paraview.exe";
+
+            if (File.Exists(pathGnuplotBlueCFD) && File.Exists(pathParaviewBlueCFD))
+            {
+                IsBlueCFDInstalled = true;
+            }
+            return IsBlueCFDInstalled;
         }
     }
 }
