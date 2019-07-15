@@ -1110,8 +1110,28 @@ renderView1.CameraParallelProjection = 1
             return sb.ToString();
         }
 
+        public static string GetGnuplotPath(bool IsBlueCFDInstalled, int version)
+        {
+            string gnuplotpath = "";
+
+            if (version == 1)
+            {
+                gnuplotpath = @"C:\Program Files\gnuplot\bin\gnuplot.exe";
+            }
+            else if (version == 0 && IsBlueCFDInstalled == true)
+            {
+                gnuplotpath = @"C:\Program Files\blueCFD-Core-2017\msys64\mingw64\bin\gnuplot.exe";
+            }
+
+            return gnuplotpath;
+        }
+
         public static string GetParaviewPath(int version)
         {
+            //param.AddNamedValue("Windows V4", 0);
+            //param.AddNamedValue("Windows V5", 1);
+            //param.AddNamedValue("BlueCFD", 2);
+
             string matchingvalues = "";
 
             string str4 = @"C:\Program Files (x86)\";
@@ -1120,7 +1140,7 @@ renderView1.CameraParallelProjection = 1
 
             string paraviewPath = "";
 
-            if (version == 4)
+            if (version == 0)
             {
                 DirectoryInfo[] di = new DirectoryInfo(str4).GetDirectories();
                 List<string> list = new List<string>();
@@ -1132,7 +1152,7 @@ renderView1.CameraParallelProjection = 1
                 matchingvalues = list.LastOrDefault(stringToCheck => stringToCheck.StartsWith(para));
                 paraviewPath = str4 + matchingvalues + @"\bin\paraview.exe";
             }
-            else
+            else if (version == 1)
             {
                 DirectoryInfo[] di = new DirectoryInfo(str5).GetDirectories();
                 List<string> list = new List<string>();
@@ -1143,6 +1163,10 @@ renderView1.CameraParallelProjection = 1
                 }
                 matchingvalues = list.LastOrDefault(stringToCheck => stringToCheck.StartsWith(para));
                 paraviewPath = str5 + matchingvalues + @"\bin\paraview.exe";
+            }
+            else
+            {
+                paraviewPath = @"C:\Program Files\blueCFD-Core-2017\AddOns\ParaView\bin\paraview.exe";
             }
 
             return paraviewPath;

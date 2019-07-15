@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Parameters;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -12,7 +13,7 @@ using Grasshopper.Kernel;
 
 namespace Eddy
 {
-    public class Paraview : GH_Component
+    public class CompParaview : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public constructor without any
@@ -20,40 +21,40 @@ namespace Eddy
         /// the panel. If you use non-existing tab or panel names, new tabs/panels will automatically
         /// be created.
         /// </summary>
-        public Paraview()
+        public CompParaview()
           : base("Paraview", "Paraview", "Paraview", "Eddy", "5 | PostProcessing")
         {
         }
 
-        protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
-        {
-            base.AppendAdditionalComponentMenuItems(menu);
-            Menu_AppendItem(menu, "ParaView 4", Menu_DoClick, true, !paraViewVersion5);
-        }
+        //protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
+        //{
+        //    base.AppendAdditionalComponentMenuItems(menu);
+        //    Menu_AppendItem(menu, "ParaView 4", Menu_DoClick, true, !paraViewVersion5);
+        //}
 
-        private void Menu_DoClick(object sender, EventArgs e)
-        {
-            paraViewVersion5 = !paraViewVersion5;
-            ExpireSolution(true);
-        }
+        //private void Menu_DoClick(object sender, EventArgs e)
+        //{
+        //    paraViewVersion5 = !paraViewVersion5;
+        //    ExpireSolution(true);
+        //}
 
-        public bool paraViewVersion5 = true;
+        //public bool paraViewVersion5 = true;
 
-        public override bool Write(GH_IO.Serialization.GH_IWriter writer)
-        {
-            // First add our own field.
-            writer.SetBoolean("ParaView", paraViewVersion5);
-            // Then call the base class implementation.
-            return base.Write(writer);
-        }
+        //public override bool Write(GH_IO.Serialization.GH_IWriter writer)
+        //{
+        //    // First add our own field.
+        //    writer.SetBoolean("ParaView", paraViewVersion5);
+        //    // Then call the base class implementation.
+        //    return base.Write(writer);
+        //}
 
-        public override bool Read(GH_IO.Serialization.GH_IReader reader)
-        {
-            // First read our own field.
-            paraViewVersion5 = reader.GetBoolean("ParaView");
-            // Then call the base class implementation.
-            return base.Read(reader);
-        }
+        //public override bool Read(GH_IO.Serialization.GH_IReader reader)
+        //{
+        //    // First read our own field.
+        //    paraViewVersion5 = reader.GetBoolean("ParaView");
+        //    // Then call the base class implementation.
+        //    return base.Read(reader);
+        //}
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -62,9 +63,15 @@ namespace Eddy
         {
             pManager.AddGenericParameter("Res", "Res", "Res", GH_ParamAccess.item);
             pManager.AddIntegerParameter("Dirs", "Dirs", "Dirs", GH_ParamAccess.list);
+            pManager.AddIntegerParameter("Version", "Vers", "Version", GH_ParamAccess.item, 2);
+            Param_Integer param = pManager[2] as Param_Integer;
+            param.AddNamedValue("Windows V4", 0);
+            param.AddNamedValue("Windows V5", 1);
+            param.AddNamedValue("BlueCFD", 2);
             pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item);
 
             pManager[1].Optional = true;
+            pManager[2].Optional = true;
         }
 
         /// <summary>
@@ -83,11 +90,9 @@ namespace Eddy
         /// </param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            int version = 0;
-
             // mode to select simulation environment
-            if (!paraViewVersion5) { Message = "ParaView 4"; version = 4; }
-            else { Message = "ParaView 5"; version = 5; }
+            //if (!paraViewVersion5) { Message = "ParaView 4"; version = 4; }
+            //else { Message = "ParaView 5"; version = 5; }
 
             // read inputs
             //------------
@@ -102,6 +107,9 @@ namespace Eddy
             {
                 dirs.Add(RES.Domain.BCond.windDirs[0]);
             }
+
+            int version = 0;
+            DA.GetData("Version", ref version);
 
             bool run = false;
             DA.GetData("Run", ref run);

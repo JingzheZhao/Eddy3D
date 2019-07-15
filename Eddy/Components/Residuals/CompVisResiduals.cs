@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Parameters;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -75,7 +76,10 @@ namespace Eddy
             pManager.AddIntegerParameter("Sel", "Sel", @"Provide a list of integers for the wind directions that you would like to load, e.g. ""0,35"" .""", GH_ParamAccess.list);
             pManager.AddTextParameter("X", "X", @"Provide bounds for the x-axis, e.g. ""0:5000""", GH_ParamAccess.item, ":");
             pManager.AddTextParameter("Y", "Y", @"Provide bounds for the y-axis, e.g. ""0.00001:1""", GH_ParamAccess.item, ":");
-
+            pManager.AddIntegerParameter("Version", "Vers", "Version", GH_ParamAccess.item, 1);
+            Param_Integer param = pManager[3] as Param_Integer;
+            param.AddNamedValue("Windows", 0);
+            param.AddNamedValue("BlueCFD", 1);
             pManager.AddBooleanParameter("Run", "Run", "Run the component for a live preview", GH_ParamAccess.item, false);
 
             pManager[1].Optional = true;
@@ -117,10 +121,12 @@ namespace Eddy
 
             List<int> selectionList = new List<int>();
 
-            DA.GetDataList(1, selectionList);
-            DA.GetData(2, ref x0x1);
-            DA.GetData(3, ref y0y1);
-            DA.GetData(4, ref run);
+            DA.GetDataList("Sel", selectionList);
+            DA.GetData("X", ref x0x1);
+            DA.GetData("Y", ref y0y1);
+            int version = 0;
+            DA.GetData("Version", ref version);
+            DA.GetData("Run", ref run);
 
             List<int> selection = new List<int>();
             if (selectionList.Count != 0)
@@ -170,7 +176,7 @@ plot '" + fullFilePath + @"' u($1):2 with lines title '" + field1 + "','" + full
 pause 3600; replot
 ";
 
-                        Utilities.StartProcess.StartProcessCMDNT(arg, true, false, false, true, @"C:\Program Files\gnuplot\bin\gnuplot.exe");
+                        Utilities.StartProcess.StartProcessCMDNT(arg, true, false, false, true, Utilities.GetGnuplotPath(RES.RunSettings.BlueCFDIsInstalled, version));
                     }
                 }
                 catch (Exception e)
@@ -213,7 +219,7 @@ set output '" + RES.WorkingDirectory + @"residuals_" + dir + @".pdf'
 replot
 ";
 
-                        Utilities.StartProcess.StartProcessCMDNT(arg, true, false, false, true, @"C:\Program Files\gnuplot\bin\gnuplot.exe");
+                        Utilities.StartProcess.StartProcessCMDNT(arg, true, false, false, true, Utilities.GetGnuplotPath(RES.RunSettings.BlueCFDIsInstalled, version));
                     }
                 }
                 catch (Exception e)
