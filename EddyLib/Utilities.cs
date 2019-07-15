@@ -1114,11 +1114,11 @@ renderView1.CameraParallelProjection = 1
         {
             string gnuplotpath = "";
 
-            if (version == 1)
+            if (version == 0)
             {
                 gnuplotpath = @"C:\Program Files\gnuplot\bin\gnuplot.exe";
             }
-            else if (version == 0 && IsBlueCFDInstalled == true)
+            else if (version == 1 && IsBlueCFDInstalled == true)
             {
                 gnuplotpath = @"C:\Program Files\blueCFD-Core-2017\msys64\mingw64\bin\gnuplot.exe";
             }
