@@ -54,17 +54,32 @@ namespace EddyLib.StrTemp
             return lst;
         }
 
-        private static List<string> RCMeshMultiCPU(OFRunSettings RunSettings)
+        private static List<string> RCMeshMultiCPU(OFRunSettings RunSettings, OFMeshSettings MeshSettings)
         {
-            List<string> lst = new List<string>
+            List<string> lst = new List<string>();
+
+            if (MeshSettings.snappySetting == SnappySetting.BlocksSnapping || MeshSettings.snappySetting == SnappySetting.BlocksSnappingLayers)
             {
+                lst.AddRange(new List<string>{
                 "blockMesh",
                 "surfaceFeatureExtract",
                 "decomposePar -force",
                 "mpiexec -np " + RunSettings.CPUs + @" snappyHexMesh -overwrite -parallel",
                 "reconstructParMesh -constant",
                 "renumberMesh -overwrite"
-            };
+            });
+            }
+            else
+            {
+                lst.AddRange(new List<string>{
+                "blockMesh",
+                "decomposePar -force",
+                "mpiexec -np " + RunSettings.CPUs + @" snappyHexMesh -overwrite -parallel",
+                "reconstructParMesh -constant",
+                "renumberMesh -overwrite"
+            });
+            }
+
             return lst;
         }
 
@@ -153,7 +168,7 @@ namespace EddyLib.StrTemp
             {
                 if (RunSettings.CPUs > 1)
                 {
-                    foreach (string str in RCMeshMultiCPU(RunSettings))
+                    foreach (string str in RCMeshMultiCPU(RunSettings, MeshSettings))
                     {
                         sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str + AppendSuffixDocker());
                     }
@@ -176,7 +191,7 @@ namespace EddyLib.StrTemp
             {
                 if (RunSettings.CPUs > 1)
                 {
-                    sb.Append(TempBlueCFD(RCMeshMultiCPU(RunSettings), MeshSettings.meshWorkingDir));
+                    sb.Append(TempBlueCFD(RCMeshMultiCPU(RunSettings, MeshSettings), MeshSettings.meshWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif

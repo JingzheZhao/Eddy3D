@@ -4,10 +4,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using EddyLib;
 using Rhino;
 
-namespace WindFactors.UnitTest
+namespace UnitTest
 {
     [TestClass]
-    public class UnitTest1
+    public class WindFactors
     {
         [TestMethod]
         public void CalcWindReductionArray_Direction330_ReturnDistance15Twice()
@@ -33,17 +33,17 @@ namespace WindFactors.UnitTest
         }
 
         [TestMethod]
-        public void ReturnNextLowerIndex_0_Return315()
+        public void DistanceBetween_0_355_Return5()
         {
             // Arrange
-            var windDirList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
+            var dir1 = 0;
+            var dir2 = 355;
 
             // Act
-            var res = EddyLib.WindFactors.ReturnNextLowerIndex(windDirList, 0);
+            var res = EddyLib.WindFactors.DistanceBetweenWindDirs(dir1, dir2);
 
             // Assert
-
-            Assert.AreEqual(7, res);
+            Assert.AreEqual(5, res);
         }
 
         [TestMethod]
@@ -61,17 +61,17 @@ namespace WindFactors.UnitTest
         }
 
         [TestMethod]
-        public void DistanceBetween_0_355_Return5()
+        public void ReturnNextLowerIndex_0_Return315()
         {
             // Arrange
-            var dir1 = 0;
-            var dir2 = 355;
+            var windDirList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
 
             // Act
-            var res = EddyLib.WindFactors.DistanceBetweenWindDirs(dir1, dir2);
+            var res = EddyLib.WindFactors.ReturnNextLowerIndex(windDirList, 0);
 
             // Assert
-            Assert.AreEqual(5, res);
+
+            Assert.AreEqual(7, res);
         }
     }
 }
