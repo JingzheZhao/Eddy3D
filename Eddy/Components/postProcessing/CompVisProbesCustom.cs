@@ -117,10 +117,10 @@ namespace Eddy
 
             bool run = false;
             int OFFieldInt = 0;
-            string enumeratedProbeName = "";
+            string probeNameByUser = "";
 
             DA.GetDataList(1, listOfPoints);
-            DA.GetData(2, ref enumeratedProbeName);
+            DA.GetData(2, ref probeNameByUser);
             DA.GetData(3, ref OFFieldInt);
             //DA.GetData(4, ref fieldType);
             DA.GetData(4, ref run);
@@ -176,8 +176,8 @@ namespace Eddy
             GH_Structure<GH_Number> treeDouble = new GH_Structure<GH_Number>();
             GH_Structure<GH_Vector> treeVector = new GH_Structure<GH_Vector>();
 
-            string ofField = OFField.ReformatOFFields(OFFieldInt);
-            OFField currField = new OFField(ofField, enumeratedProbeName);
+            string OFField = EddyLib.OFField.ReformatOFFields(OFFieldInt);
+            OFField currField = new OFField(OFField, probeNameByUser);
 
             if (numberOfProbes > 0)
             {
@@ -185,7 +185,7 @@ namespace Eddy
                 {
                     #region NUMBERS
 
-                    if (currField.FieldType == OFField.fieldType.number)
+                    if (currField.FieldType == EddyLib.OFField.fieldType.number)
                     {
                         StringBuilder command = new StringBuilder();
 
@@ -194,7 +194,7 @@ namespace Eddy
                             string pathToPointFile = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\constant\polyMesh\points";
                             if (!File.Exists(pathToPointFile))
                             {
-                                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The file  """ + pathToPointFile + @""" does not exist. Please make sure that a mesh with point exists.");
+                                base.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The file  """ + pathToPointFile + @""" does not exist. Please make sure that a mesh with point exists.");
                                 return;
                             }
 
@@ -206,7 +206,7 @@ namespace Eddy
                             // Write the dicts
                             if (RES.RunSettings.simEngine == SimEngine.Docker)
                             {
-                                command.Append(@"postProcess -func " + currField.ProbeName + @" -latestTime | tee  " + RES.Domain.BCond.windDirs[i] + @"/log_probes;");
+                                command.Append(@"postProcess -func " + currField.ProbeName + @" -latestTime | tee " + RES.Domain.BCond.windDirs[i] + @"/log_probes;");
                             }
                             else
                             {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
@@ -243,7 +243,7 @@ namespace Eddy
                             }
                             else
                             {
-                                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The file  """ + pathToProbeFile + @""" does not exist. Please run the probing component.");
+                                base.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The file """ + pathToProbeFile + @""" does not exist. Please run the probing component.");
                                 return;
                             }
                         }
@@ -253,7 +253,7 @@ namespace Eddy
 
                     #region VECTORS
 
-                    if (currField.FieldType == OFField.fieldType.vector)
+                    if (currField.FieldType == EddyLib.OFField.fieldType.vector)
                     {
                         StringBuilder command = new StringBuilder();
 
@@ -265,24 +265,24 @@ namespace Eddy
                             string pathToPointFile = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\constant\polyMesh\points";
                             if (!File.Exists(pathToPointFile))
                             {
-                                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The file  """ + pathToPointFile + @""" does not exist. Please make sure that a mesh with point exists.");
+                                base.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The file  """ + pathToPointFile + @""" does not exist. Please make sure that a mesh with point exists.");
                                 return;
                             }
 
                             // Write the dicts
                             if (RES.RunSettings.simEngine == SimEngine.Docker)
                             {
-                                string path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + enumeratedProbeName;
+                                string path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + probeNameByUser;
                                 File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, currField));
                                 command.Append(@"postProcess -func " + currField.ProbeName + @" -latestTime | tee  " + RES.Domain.BCond.windDirs[i] + @"/log_probes;");
                             }
                             else
                             {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
-                                string path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + enumeratedProbeName;
+                                string path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + probeNameByUser;
                                 File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, currField));
                                 // Todo: check here if we need a semicolon to sepaate the command
                                 // from the suffix
-                                command.AppendLine(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + enumeratedProbeName + @" -latestTime");
+                                command.AppendLine(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + probeNameByUser + @" -latestTime");
                             }
                         }
 
@@ -314,7 +314,7 @@ namespace Eddy
                             }
                             else
                             {
-                                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The file  """ + pathToProbeFile + @""" does not exist. Please run the probing component.");
+                                base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The file  """ + pathToProbeFile + @""" does not exist. Please run the probing component.");
                             }
                         }
                     }
@@ -328,12 +328,28 @@ namespace Eddy
                 }
             }
 
-            if (currField.FieldType == OFField.fieldType.number)
+            // Todo: Move this into class object once its properly architected
+
+            if (currField.FieldType == EddyLib.OFField.fieldType.vector)
+            {
+                var list = treeVector.get_Branch(new GH_Path(0));
+                var listVecs = new List<GH_Vector>();
+
+                foreach (object item in list)
+                {
+                    listVecs.Add((GH_Vector)item);
+                }
+
+                int[] IndecesOfExtremeProbes = Probing.ReturnIndexOfExtremeProbes(listVecs);
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, @"The probes with the indices: " + string.Join(",", IndecesOfExtremeProbes) + " can't be probed within the simulation domain.");
+            }
+
+            if (currField.FieldType == EddyLib.OFField.fieldType.number)
             {
                 DA.SetDataTree(1, treeDouble);
                 DA.SetDataList(0, listOfPoints);
             }
-            else if (currField.FieldType == OFField.fieldType.vector)
+            else if (currField.FieldType == EddyLib.OFField.fieldType.vector)
             {
                 DA.SetDataTree(1, treeVector);
                 DA.SetDataList(0, listOfPoints);

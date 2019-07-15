@@ -107,7 +107,7 @@ namespace Eddy
             //DA.GetDataList(1, hours);
 
             List<Point3d> probes = new List<Point3d>();
-            DA.GetDataList("Probes", probes);
+            DA.GetDataList("Points", probes);
 
             bool run = false;
             DA.GetData("Run", ref run);

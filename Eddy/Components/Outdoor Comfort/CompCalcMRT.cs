@@ -40,7 +40,7 @@ namespace Eddy
             //pManager.AddIntegerParameter("windDirs", "windDirs", "windDirs", GH_ParamAccess.list);
             //pManager.AddTextParameter("pointName", "pointName", "pointName", GH_ParamAccess.item);
             // pManager.AddIntegerParameter("Hours", "H", "Hours", GH_ParamAccess.list);
-            pManager.AddPointParameter("Probes", "Probes", "Probes", GH_ParamAccess.list);
+            pManager.AddPointParameter("Points", "Points", "Points", GH_ParamAccess.list);
             pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item);
         }
 
@@ -71,7 +71,7 @@ namespace Eddy
             //DA.GetDataList(1, hours);
 
             List<Point3d> probes = new List<Point3d>();
-            DA.GetDataList("Probes", probes);
+            DA.GetDataList("Points", probes);
             var numberOfProbes = probes.Count;
             var probesArr = probes.ToArray();
 

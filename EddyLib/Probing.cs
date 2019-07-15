@@ -137,6 +137,9 @@ namespace EddyLib
         private readonly string baseWorkingDirectory;
         private readonly int currWindDir;
 
+        // Todo: Implement this
+        //public int[] IndexOfExtremeProbes;
+
         public Probing(List<Point3d> ListOfPoints, string caseDirectory, string baseWorkingDirectory, OFField ofField, int currWindDir)
         {
             listOfPoints = ListOfPoints;
@@ -291,6 +294,17 @@ namespace EddyLib
         //    }
         //    return outputList;
         //}
+
+        public static int[] ReturnIndexOfExtremeProbes(List<GH_Vector> x)
+        {
+            var vecLengths = new List<double>();
+
+            foreach (GH_Vector v in x)
+            {
+                vecLengths.Add(v.Value.Length);
+            }
+            return Enumerable.Range(0, vecLengths.Count).Where(i => vecLengths[i] > 10000).ToArray();
+        }
 
         public static double[] FilterExtremeProbingValues(double[] inputList)
         {
