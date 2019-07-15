@@ -77,7 +77,7 @@ namespace Eddy
             pManager.AddTextParameter("X", "X", @"Provide bounds for the x-axis, e.g. ""0:5000""", GH_ParamAccess.item, ":");
             pManager.AddTextParameter("Y", "Y", @"Provide bounds for the y-axis, e.g. ""0.00001:1""", GH_ParamAccess.item, ":");
             pManager.AddIntegerParameter("Version", "Vers", "Version", GH_ParamAccess.item, 1);
-            Param_Integer param = pManager[3] as Param_Integer;
+            Param_Integer param = pManager[4] as Param_Integer;
             param.AddNamedValue("Windows", 0);
             param.AddNamedValue("BlueCFD", 1);
             pManager.AddBooleanParameter("Run", "Run", "Run the component for a live preview", GH_ParamAccess.item, false);
@@ -85,6 +85,7 @@ namespace Eddy
             pManager[1].Optional = true;
             pManager[2].Optional = true;
             pManager[3].Optional = true;
+            pManager[4].Optional = true;
         }
 
         /// <summary>
@@ -124,7 +125,7 @@ namespace Eddy
             DA.GetDataList("Sel", selectionList);
             DA.GetData("X", ref x0x1);
             DA.GetData("Y", ref y0y1);
-            int version = 0;
+            int version = 1;
             DA.GetData("Version", ref version);
             DA.GetData("Run", ref run);
 
