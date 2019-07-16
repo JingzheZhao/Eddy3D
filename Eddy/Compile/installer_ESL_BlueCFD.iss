@@ -31,6 +31,7 @@ CompressionThreads=8
 [ISPP]
 #define GrasshopperLib "{userappdata}\Grasshopper\Libraries"
 #define OFInstallDir   "C:\OpenFOAM"
+#define TemplatesDir "{%HOMEPATH}\Eddy\Templates\"
 
 #include "USERESL.txt"
 
@@ -39,12 +40,12 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
 #include "Eddy.txt"
-#include "Gnuplot.txt"
+
 #include "BlueCFD.txt"
 
 
 [Code]
 
-#include "GnuplotCode.txt"
+
 #include "BlueCFDCode.txt"
 

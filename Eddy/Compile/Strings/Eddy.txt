@@ -8,4 +8,5 @@ Source: "C:\Users\{#User}\Documents\GitHub\WindTunnel\Eddy\bin\ConsoleAppLaunche
 Source: "C:\Users\{#User}\Documents\GitHub\WindTunnel\Eddy\bin\CsvHelper.dll"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
 Source: "C:\Users\{#User}\Documents\GitHub\WindTunnel\Eddy\bin\Eddy.gha"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
 Source: "C:\Users\{#User}\Documents\GitHub\WindTunnel\Eddy\bin\EddyLib.dll"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
+Source: "C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\Templates" ; DestDir: "{#TemplatesDir}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files

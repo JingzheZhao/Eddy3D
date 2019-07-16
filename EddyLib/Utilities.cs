@@ -601,6 +601,16 @@ namespace EddyLib
             return outputList;
         }
 
+        public static string GetPathToUserHome()
+        {
+            string path = Directory.GetParent(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)).FullName;
+            if (Environment.OSVersion.Version.Major >= 6)
+            {
+                path = Directory.GetParent(path).ToString();
+            }
+            return path;
+        }
+
         public static Mesh ConvertToQuads(Mesh m)
         {
             if (m.Faces.Count > 0)

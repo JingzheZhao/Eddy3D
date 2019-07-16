@@ -29,6 +29,7 @@ PrivilegesRequired=lowest
 [ISPP]
 #define GrasshopperLib "{userappdata}\Grasshopper\Libraries"
 #define OFInstallDir   "C:\OpenFOAM"
+#define TemplatesDir "{%HOMEPATH}\Eddy\Templates\"
 
 #include "Strings\UserT460s.txt"
 

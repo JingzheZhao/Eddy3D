@@ -40,7 +40,7 @@ namespace EddyLib
 
             var dirs = new List<string>()
             {
-                @"C:\Eddy\Templates\"
+                            Utilities.GetPathToUserHome() +   @"\Eddy\Templates\"
             };
             DA.GetDataList(0, dirs);
 

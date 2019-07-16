@@ -28,6 +28,7 @@ SolidCompression=yes
 [ISPP]
 #define GrasshopperLib "{userappdata}\Grasshopper\Libraries"
 #define OFInstallDir   "C:\OpenFOAM"
+#define TemplatesDir "{%HOMEPATH}\Eddy\Templates\"
 
 #include "Strings\USERT460s.txt"
 
@@ -37,13 +38,13 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Files]
 #include "Strings\Eddy.txt"
 #include "Strings\MPI.txt"
-#include "Strings\Gnuplot.txt"
+
 #include "Strings\BlueCFD.txt"
 
 
 [Code]
 
-#include "Strings\GnuplotCode.txt"
+
 #include "Strings\BlueCFDCode.txt"
 
 
