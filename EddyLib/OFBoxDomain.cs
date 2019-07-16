@@ -34,15 +34,15 @@ namespace EddyLib
             this.BuildingGeometry = BuildingGeometry;
             this.blockDimension = blockDimension;
 
-            var BBoxCrude = BuildingGeometry.GetBoundingBox(true);
-
             // Box-shaped tunnel can only have 1 windDir which is the 1st windDir
 
             Vector3d windDirVector = BCond.flowDir[0];
 
             // Rotate the Plane based on wind vector area
 
-            Plane orientedPlane = GetOrientedBasePlane(windDirVector, BuildingGeometry, BBoxCrude.Center);
+            var bb = BuildingGeometry.GetBoundingBox(false);
+            var centerBottomOfBuildings = new Point3d(bb.Center.X, bb.Center.Y, bb.Min.Z);
+            Plane orientedPlane = GetOrientedBasePlane(windDirVector, BuildingGeometry, centerBottomOfBuildings);
 
             // Create BBox with respect to new plane (new coordinates)
             BBox = BuildingGeometry.GetBoundingBox(orientedPlane);
@@ -192,10 +192,10 @@ namespace EddyLib
                 Rectangle3d plGroundPerim1 = new Rectangle3d(orientedPlane, xInter, yInterPerim1);
                 Rectangle3d plGroundPerim2 = new Rectangle3d(orientedPlane, xInter, yInterPerim2);
 
-                DomainMeshGround = Mesh.CreateFromPlanarBoundary(plGroundCore.ToNurbsCurve(), mpGround, tolerance);
+                DomainMeshGround = Utilities.ConvertToQuads(Mesh.CreateFromPlanarBoundary(plGroundCore.ToNurbsCurve(), mpGround, tolerance));
                 DomainMeshGroundPerim = new Mesh();
-                DomainMeshGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim1.ToNurbsCurve(), mpGround, tolerance));
-                DomainMeshGroundPerim.Append(Mesh.CreateFromPlanarBoundary(plGroundPerim2.ToNurbsCurve(), mpGround, tolerance));
+                DomainMeshGroundPerim.Append(Utilities.ConvertToQuads(Mesh.CreateFromPlanarBoundary(plGroundPerim1.ToNurbsCurve(), mpGround, tolerance)));
+                DomainMeshGroundPerim.Append(Utilities.ConvertToQuads(Mesh.CreateFromPlanarBoundary(plGroundPerim2.ToNurbsCurve(), mpGround, tolerance)));
             }
 
             // Set up BCs

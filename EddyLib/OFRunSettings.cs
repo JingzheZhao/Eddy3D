@@ -95,7 +95,7 @@ Relaxation Factors = {9}", iter, writeInterval, keepTimeSteps, Schemes, turbMode
 
             if (BlueCFDInstalled)
             {
-                string MPIWindows64 = @"C:\Windows\SysWOW64\msmpi.dll";
+                //string MPIWindows64 = @"C:\Windows\SysWOW64\msmpi.dll";
                 string MPIWindows32 = @"C:\Windows\System32\msmpi.dll";
                 //string MPIWindows = Is64BitOS == true ? MPIWindows64 : MPIWindows32;
 

@@ -601,6 +601,16 @@ namespace EddyLib
             return outputList;
         }
 
+        public static Mesh ConvertToQuads(Mesh m)
+        {
+            if (m.Faces.Count > 0)
+            {
+                m.Faces.ConvertTrianglesToQuads(Math.PI / 90, .875);
+            }
+
+            return m;
+        }
+
         public static int CalcOptimCPU(string meshWorkingDirectory, int CPUSetByUser)
         {
             int CPU = CPUSetByUser;
