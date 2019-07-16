@@ -164,8 +164,12 @@ namespace EddyLib
 
             // Pick location in Mesh
 
-            Point3d maxPoint = DomainBox.GetCorners()[7];
-            LocationInMesh = new Point3d(maxPoint.X - 1, maxPoint.Y - 1, maxPoint.Z - 1);
+            var vec = new Vector3d(0, 0, 5);
+            var moveUP = Transform.Translation(vec);
+            var bg = BuildingGeometry.GetBoundingBox(true).GetCorners()[7];
+
+            LocationInMesh = new Point3d(DomainBox.Center.X, DomainBox.Center.Y, bg.Z);
+            LocationInMesh.Transform(moveUP);
 
             // Create ground meshes
 
