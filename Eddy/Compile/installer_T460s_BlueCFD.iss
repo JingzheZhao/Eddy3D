@@ -37,7 +37,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
 #include "Strings\Eddy.txt"
-#include "Strings\MPI.txt"
+;#include "Strings\MPI.txt"
 
 #include "Strings\BlueCFD.txt"
 

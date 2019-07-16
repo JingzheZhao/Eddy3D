@@ -21,6 +21,7 @@ OutputBaseFilename=Eddy_{#MyAppVersion}
 Compression=lzma
 SolidCompression=yes
 
+
 [ISPP]
 #define GrasshopperLib "{userappdata}\Grasshopper\Libraries"
 #define OFInstallDir   "C:\OpenFOAM"

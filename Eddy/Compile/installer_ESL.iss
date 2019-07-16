@@ -17,9 +17,10 @@ AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 CreateAppDir=no
 OutputDir={#MyAppVersion}
-OutputBaseFilename=Eddy
+OutputBaseFilename=Eddy_{#MyAppVersion}
 Compression=lzma
 SolidCompression=yes
+
 
 [ISPP]
 #define GrasshopperLib "{userappdata}\Grasshopper\Libraries"
