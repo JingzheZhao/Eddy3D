@@ -158,9 +158,15 @@ FoamFile
     castellatedMeshControls
     {
         features
-        (
+        (");
+if (MeshSettings.snappySetting != SnappySetting.Blocks)
+            {
+                sb.Append(@"
+            }
             {file ""building.eMesh""; level " + (MeshSettings.accFeatures) + @" ;}
-            {file ""ground.eMesh""; level " + (MeshSettings.accFeatures) + @" ;}
+            {file ""ground.eMesh""; level " + (MeshSettings.accFeatures) + @" ;}"); }
+
+sb.Append(@"
         );
         refinementSurfaces
         {
