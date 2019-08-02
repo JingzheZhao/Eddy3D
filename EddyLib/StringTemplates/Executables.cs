@@ -161,8 +161,7 @@ FoamFile
         (");
 if (MeshSettings.snappySetting != SnappySetting.Blocks)
             {
-                sb.Append(@"
-            }
+                sb.Append(@"            
             {file ""building.eMesh""; level " + (MeshSettings.accFeatures) + @" ;}
             {file ""ground.eMesh""; level " + (MeshSettings.accFeatures) + @" ;}"); }
 
