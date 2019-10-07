@@ -63,8 +63,8 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Domain", "Dom", "Domain", GH_ParamAccess.item);
-            pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Eddy"));
+            pManager.AddGenericParameter("Simulation domain", "Dom", "Eddy simulation domain", GH_ParamAccess.item);
+            pManager.AddTextParameter("Working directory", "Dir", "Working directory", GH_ParamAccess.item, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Eddy"));
             pManager[1].Optional = true;
             pManager.AddGenericParameter("Mesh Settings", "MSet", "Mesh Settings", GH_ParamAccess.item);
             pManager[2].Optional = true;
@@ -72,8 +72,8 @@ namespace Eddy
             pManager.AddGenericParameter("Run Settings", "RSet", "Run Settings", GH_ParamAccess.item);
             pManager[3].Optional = true;
 
-            pManager.AddBooleanParameter("Run Meshing", "RunMsh", "RunMsh", GH_ParamAccess.item, false);
-            pManager.AddBooleanParameter("Run Simulation", "RunSim", "RunSim", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Run Meshing", "RunMsh", "Run Meshing", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Run Simulation", "RunSim", "Run Simulation", GH_ParamAccess.item, false);
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Result", "Res", "Result", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Simulation result", "Res", "Eddy simulation result", GH_ParamAccess.item);
         }
 
         /// <summary>

@@ -35,13 +35,13 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Result", "Res", "Result", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Simulation result", "Res", "Eddy simulation result", GH_ParamAccess.item);
             //pManager.AddIntegerParameter("windDirs", "windDirs", "windDirs", GH_ParamAccess.list);
-            pManager.AddPointParameter("Probes", "Probes", "Probes", GH_ParamAccess.list);
+            pManager.AddPointParameter("Porbing points", "Points", "List of probing points", GH_ParamAccess.list);
             //pManager.AddIntegerParameter("Hour", "Hour", "Hour", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Wind Factors", "WF", "WF", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Mean Radiant Temperature", "MRT", "MRT", GH_ParamAccess.item);
-            pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Wind Factors", "WF", "Eddy Wind Factors Object", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Mean Radiant Temperature [°C]", "MRT", "Mean Radiant Temperature [°C] Object", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -49,8 +49,8 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Comfortable Hours", "CH", "Comfortable Hours", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Universal Thermal Climate Index [°C] Object", "UTCI", "Universal Thermal Climate Index [°C] Object", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Comfortable Hours", "CH", "Percentage of comfortable hours over the year", GH_ParamAccess.list);
         }
 
         /// <summary>

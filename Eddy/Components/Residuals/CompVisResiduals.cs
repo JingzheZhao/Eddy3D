@@ -65,7 +65,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Res", "Res", "Res", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Result", "Res", "Eddy Result", GH_ParamAccess.item);
 
             //pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 0);
             //Param_Integer param = pManager[1] as Param_Integer;
@@ -73,14 +73,14 @@ namespace Eddy
             //param.AddNamedValue("Provide custom file.", 1);
 
             //pManager.AddTextParameter("fP", "fP", "fP", GH_ParamAccess.item, "");
-            pManager.AddIntegerParameter("Sel", "Sel", @"Provide a list of integers for the wind directions that you would like to load, e.g. ""0,35"" .""", GH_ParamAccess.list);
-            pManager.AddTextParameter("X", "X", @"Provide bounds for the x-axis, e.g. ""0:5000""", GH_ParamAccess.item, ":");
-            pManager.AddTextParameter("Y", "Y", @"Provide bounds for the y-axis, e.g. ""0.00001:1""", GH_ParamAccess.item, ":");
-            pManager.AddIntegerParameter("Version", "Vers", "Version", GH_ParamAccess.item, 1);
+            pManager.AddIntegerParameter("Selection of wind directions", "Sel", @"List of integers for the wind directions to load, e.g. ""0,35"" .""", GH_ParamAccess.list);
+            pManager.AddTextParameter("X", "X", @"Bounds for the x-axis, e.g. ""0:5000""", GH_ParamAccess.item, ":");
+            pManager.AddTextParameter("Y", "Y", @"Bounds for the y-axis, e.g. ""0.00001:1""", GH_ParamAccess.item, ":");
+            pManager.AddIntegerParameter("Version", "Ver", "Version", GH_ParamAccess.item, 1);
             Param_Integer param = pManager[4] as Param_Integer;
-            param.AddNamedValue("Windows", 0);
-            param.AddNamedValue("BlueCFD", 1);
-            pManager.AddBooleanParameter("Run", "Run", "Run the component for a live preview", GH_ParamAccess.item, false);
+            param.AddNamedValue("Windows Gnuplot", 0);
+            param.AddNamedValue("BlueCFD Gnuplot", 1);
+            pManager.AddBooleanParameter("Run", "Run", "Run the component", GH_ParamAccess.item, false);
 
             pManager[1].Optional = true;
             pManager[2].Optional = true;

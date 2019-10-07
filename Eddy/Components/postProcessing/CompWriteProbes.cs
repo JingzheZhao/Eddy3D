@@ -42,8 +42,8 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Result", "Res", "Res", GH_ParamAccess.item);
-            pManager.AddPointParameter("List of Points", "Points", "Points", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Simulation result", "Res", "Eddy simulation result", GH_ParamAccess.item);
+            pManager.AddPointParameter("Porbing points", "Points", "List of probing points", GH_ParamAccess.list);
             pManager.AddTextParameter("Name", "Name", "Name", GH_ParamAccess.item);
             pManager.AddIntegerParameter("Field", "Field", "Field", GH_ParamAccess.item, 1);
             Param_Integer param = pManager[3] as Param_Integer;

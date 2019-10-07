@@ -33,7 +33,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGeometryParameter("Geometry", "G", "Breps and Meshes supported", GH_ParamAccess.list);
+            pManager.AddGeometryParameter("Geometry", "Geo", "Breps and Meshes supported", GH_ParamAccess.list);
             pManager.AddTextParameter("File", "F", "Provide a file path", GH_ParamAccess.item);
             pManager.AddIntegerParameter("Mode", "Mode", "Output mode: Binary = 0, ASCI = 1", GH_ParamAccess.item, 0);
 

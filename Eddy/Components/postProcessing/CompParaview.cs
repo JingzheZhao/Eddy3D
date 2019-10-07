@@ -61,14 +61,14 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Res", "Res", "Res", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("Dirs", "Dirs", "Dirs", GH_ParamAccess.list);
-            pManager.AddIntegerParameter("Version", "Vers", "Version", GH_ParamAccess.item, 2);
+            pManager.AddGenericParameter("Result", "Res", "Eddy Result", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Wind directions", "wDir", "Wind directions to load the residuals from", GH_ParamAccess.list);
+            pManager.AddIntegerParameter("Paraview version", "Ver", "Paraview version", GH_ParamAccess.item, 2);
             Param_Integer param = pManager[2] as Param_Integer;
             param.AddNamedValue("Windows V4", 0);
             param.AddNamedValue("Windows V5", 1);
             param.AddNamedValue("BlueCFD", 2);
-            pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("Toggle", "Tog", "Start Paraview", GH_ParamAccess.item);
 
             pManager[1].Optional = true;
             pManager[2].Optional = true;

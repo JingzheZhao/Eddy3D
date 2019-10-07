@@ -42,8 +42,8 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Directory", "Dir", "Provide a working directory", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("Mode", "Mode", "Which directories to delete", GH_ParamAccess.item, 1);
+            pManager.AddTextParameter("Directory", "Dir", "Working directory", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Mode", "Mode", "Directories to delete", GH_ParamAccess.item, 1);
             Param_Integer param = pManager[1] as Param_Integer;
             param.AddNamedValue("Mesh Directory", 0);
             param.AddNamedValue("Simulation Directories", 1);

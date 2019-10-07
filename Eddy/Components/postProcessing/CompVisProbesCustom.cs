@@ -65,10 +65,10 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Res", "Res", "Res", GH_ParamAccess.item);
-            pManager.AddPointParameter("Points", "Points", "Points", GH_ParamAccess.list);
-            pManager.AddTextParameter("Name", "Name", "Name", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("Field", "Field", "Field", GH_ParamAccess.item, 0);
+            pManager.AddGenericParameter("Result", "Res", "Eddy Result", GH_ParamAccess.item);
+            pManager.AddPointParameter("Porbing points", "Points", "List of probing points", GH_ParamAccess.list);
+            pManager.AddTextParameter("Name of instance", "N", "Name of instance to be probed", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Name of field", "Field", "Name of field to be probed", GH_ParamAccess.item, 0);
             Param_Integer param = pManager[3] as Param_Integer;
             param.AddNamedValue("U", 0);
             param.AddNamedValue("total(p)_coeff", 1);
@@ -83,7 +83,7 @@ namespace Eddy
             //param2.AddNamedValue("Scalar", 0);
             //param2.AddNamedValue("Vector", 1);
 
-            pManager.AddBooleanParameter("Run", "Run", "Run the probing component.", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Run", "Run", "Run the component.", GH_ParamAccess.item, false);
         }
 
         /// <summary>
@@ -91,8 +91,8 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Points", "Points", "Points", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Result", "Result", "Result", GH_ParamAccess.tree);
+            pManager.AddPointParameter("Porbing points", "Probes", "List of probing points (those maybe culled if culling was on)", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Probing result", "Res", "Probing result", GH_ParamAccess.tree);
         }
 
         /// <summary>

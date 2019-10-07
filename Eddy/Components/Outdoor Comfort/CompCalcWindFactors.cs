@@ -67,12 +67,12 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Res", "Res", "Res", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Result", "Res", "Eddy Result", GH_ParamAccess.item);
             //pManager.AddIntegerParameter("windDirs", "windDirs", "windDirs", GH_ParamAccess.list);
-            pManager.AddPointParameter("Points", "Points", "Points", GH_ParamAccess.list);
+            pManager.AddPointParameter("Porbing points", "Points", "List of probing points", GH_ParamAccess.list);
             pManager.AddVectorParameter("U", "U", "U", GH_ParamAccess.tree);
             // pManager.AddIntegerParameter("Hours", "H", "Hours", GH_ParamAccess.list);
-            pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item);
         }
 
         /// <summary>

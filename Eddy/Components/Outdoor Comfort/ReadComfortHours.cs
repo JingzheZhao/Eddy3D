@@ -39,7 +39,7 @@ namespace Eddy
             pManager.AddGenericParameter("Simulation", "Sim", "Sim", GH_ParamAccess.item);
             pManager.AddTextParameter("Interval", "Int", "Interval to be avaluated. May either be a single hour (mode 1) or a Ladybug analysisPeriod (mode 2).", GH_ParamAccess.list);
 
-            pManager.AddBooleanParameter("Run", "Run", "Run the component", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item);
         }
 
         /// <summary>

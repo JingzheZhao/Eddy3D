@@ -36,7 +36,7 @@ namespace Eddy
         {
             pManager.AddGenericParameter("Simulation", "Sim", "Sim", GH_ParamAccess.item);
 
-            pManager.AddBooleanParameter("Run", "Run", "Run the component", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item);
         }
 
         /// <summary>

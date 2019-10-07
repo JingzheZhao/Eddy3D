@@ -27,7 +27,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("AnalysisPeriod", "AP", "Ladybug Analysis Period", GH_ParamAccess.list);
+            pManager.AddTextParameter("Analysis Period", "AP", "Analysis Period (Ladybug format)", GH_ParamAccess.list);
         }
 
         /// <summary>

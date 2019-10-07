@@ -33,10 +33,13 @@ namespace Eddy
 
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddIntegerParameter("wDir", "wDir", "wDir", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Uref", "Uref", "Uref", GH_ParamAccess.item, 5);
-            pManager.AddNumberParameter("z0", "z0", "z0", GH_ParamAccess.item, 1);
-            pManager.AddTextParameter("Epw", "Epw", "Weather file path", GH_ParamAccess.item, "");
+            pManager.AddIntegerParameter("Wind Directions", "wDir", "Wind directions to be simulated", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Reference velocity at Zref [m/s]", "Uref", "Reference velocity at Zref [m/s]", GH_ParamAccess.item, 5);
+
+            pManager.AddNumberParameter("Surface roughness height [m]", "z0", "Surface roughness height [m]", GH_ParamAccess.item, 1);
+
+            pManager.AddTextParameter("Epw", "Epw", "Weather data file path", GH_ParamAccess.item, "");
+
             pManager[0].Optional = true;
         }
 

@@ -40,7 +40,7 @@ namespace Eddy
         {
             pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
             //pManager.AddPointParameter("Points", "Points", "Points", GH_ParamAccess.list);
-            pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item);
         }
 
         /// <summary>

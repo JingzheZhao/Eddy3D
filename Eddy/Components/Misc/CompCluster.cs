@@ -39,7 +39,7 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddNumberParameter("Dir", "Dir", "Wind directions (deg)", GH_ParamAccess.list);
-            pManager.AddIntegerParameter("Budget", "Budget", "Number of Wind Directions", GH_ParamAccess.item, 8);
+            pManager.AddIntegerParameter("Budget", "B", "Budget of wind directions", GH_ParamAccess.item, 8);
         }
 
         /// <summary>
@@ -47,8 +47,8 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Centroids", "C", "Centroids", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Dist. Centroids", "DC", "Distinct Centroids", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Centroids", "Ce", "Centroids", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Distinct Centroids", "DCe", "Distinct Centroids", GH_ParamAccess.item);
 
             pManager.AddGenericParameter("Clusters", "Cl", "Clusters", GH_ParamAccess.item);
             pManager.AddGenericParameter("Breaks", "B", "Natural Breaks", GH_ParamAccess.item);
