@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using EddyLib;
+
 using Rhino;
 
 namespace UnitTest
 {
+    [DeploymentItem("RhinoCommon.dll")]
     [TestClass]
     public class WindFactors
     {

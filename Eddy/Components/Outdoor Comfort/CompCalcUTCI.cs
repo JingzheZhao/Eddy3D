@@ -37,10 +37,10 @@ namespace Eddy
         {
             pManager.AddGenericParameter("Simulation result", "Res", "Eddy simulation result", GH_ParamAccess.item);
             //pManager.AddIntegerParameter("windDirs", "windDirs", "windDirs", GH_ParamAccess.list);
-            pManager.AddPointParameter("Porbing points", "Points", "List of probing points", GH_ParamAccess.list);
+            pManager.AddPointParameter("Probing points", "Points", "List of probing points", GH_ParamAccess.list);
             //pManager.AddIntegerParameter("Hour", "Hour", "Hour", GH_ParamAccess.item);
             pManager.AddGenericParameter("Wind Factors", "WF", "Eddy Wind Factors Object", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Mean Radiant Temperature [°C]", "MRT", "Mean Radiant Temperature [°C] Object", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Mean Radiant Temperature", "MRT", "Mean Radiant Temperature [°C] Object", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item);
         }
 
@@ -63,7 +63,7 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             OFResult RES = null;
-            DA.GetData("Result", ref RES);
+            DA.GetData("Simulation result", ref RES);
 
             // Hour of the year
             //int hour = 0;
@@ -93,7 +93,7 @@ namespace Eddy
             var windDirList = RES.Domain.BCond.windDirs;
 
             var probes = new List<Point3d>();
-            DA.GetDataList("Probes", probes);
+            DA.GetDataList("Probing points", probes);
             if (probes == null) return;
 
             //var windDirList = new List<double> { 0, 45, 90, 135, 180, 225, 270, 315 };
