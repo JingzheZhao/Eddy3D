@@ -22,7 +22,7 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompComputeFlowRateFromU()
-          : base("ComputeFlowRateFromU", "FlowRateU", "Compute flow rates from velocity vectors", "Eddy", "5 | PostProcessing")
+          : base("Flow Rates", "Flow Rates", "Compute flow rates from velocity probes", "Eddy", "5 | PostProcessing")
         {
         }
 

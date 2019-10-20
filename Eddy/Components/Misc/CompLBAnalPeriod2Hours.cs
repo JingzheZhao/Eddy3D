@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
 
@@ -18,7 +19,7 @@ namespace Eddy
         /// be created.
         /// </summary>
         public AnalysisPeriodToHours()
-          : base("AnalysisPeriod2Hours", "APeriod2Hours", "AnalysisPeriod2Hours", "Eddy", "3 | PreProcessing")
+          : base("Date2Hours", "Date2Hours", "Translate Ladybug analysis period to hours", "Eddy", "3 | PreProcessing")
         {
         }
 
@@ -60,14 +61,14 @@ namespace Eddy
         /// Provides an Icon for every component that will be visible in the User Interface. Icons
         /// need to be 24x24 pixels.
         /// </summary>
-        //protected override System.Drawing.Bitmap Icon
-        //{
-        //    //get
-        //    //{
-        //    //    // You can add image files to your project resources and access them like this:
-        //    //    //return Resources.Eddy_resizeMesh;
-        //    //}
-        //}
+        protected override System.Drawing.Bitmap Icon
+        {
+            get
+            {
+                // You can add image files to your project resources and access them like this:
+                return Resources.Eddy_analysisPeriod;
+            }
+        }
 
         /// <summary>
         /// Each component must have a unique Guid to identify it. It is vital this Guid doesn't

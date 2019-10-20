@@ -124,6 +124,9 @@
   <data name="Eddy_analysisCul" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_analysisCul.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="Eddy_analysisPeriod" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_analysisPeriod.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="Eddy_annual" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_annual.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -132,6 +135,9 @@
   </data>
   <data name="Eddy_blockmesh_copy" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_blockmesh copy.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_calcMRT" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_calcMRT.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="Eddy_calMRT" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_calMRT.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -147,6 +153,9 @@
   </data>
   <data name="Eddy_cluster" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_cluster.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_decomposeData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_decomposeData.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="Eddy_domainBox" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_domainBox.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -181,8 +190,14 @@
   <data name="Eddy_stability" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_stability.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="Eddy_templates" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_templates.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="Eddy_visualProbs" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_visualProbs.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_windFactors" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_windFactors.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="Eddy_writeProbs" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_writeProbs.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>

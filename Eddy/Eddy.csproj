@@ -215,6 +215,21 @@
   <ItemGroup>
     <None Include="Resources\Eddy_calMRT.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_decomposeData.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_templates.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_windFactors.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_analysisPeriod.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_calcMRT.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.

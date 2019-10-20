@@ -159,13 +159,14 @@ FoamFile
     {
         features
         (");
-if (MeshSettings.snappySetting != SnappySetting.Blocks)
+            if (MeshSettings.snappySetting != SnappySetting.Blocks)
             {
-                sb.Append(@"            
+                sb.Append(@"
             {file ""building.eMesh""; level " + (MeshSettings.accFeatures) + @" ;}
-            {file ""ground.eMesh""; level " + (MeshSettings.accFeatures) + @" ;}"); }
+            {file ""ground.eMesh""; level " + (MeshSettings.accFeatures) + @" ;}");
+            }
 
-sb.Append(@"
+            sb.Append(@"
         );
         refinementSurfaces
         {

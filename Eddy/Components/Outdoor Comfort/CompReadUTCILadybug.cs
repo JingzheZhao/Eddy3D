@@ -123,7 +123,6 @@
 // } } }
 
 // //for (int i = 0; i < numberOfProbes; i++) //{ // for (int h = 0; h < 8759; h++) // { // } //}
-
 // // Parse UTCI uncertaintly from file
 
 // var uncertaintyLine = File.ReadLines(RES.WorkingDirectoryectory + @"\UTCI.uncertainty").Last();

@@ -132,7 +132,6 @@
 // // VolumetricFlowRate.Branches[i].Add(nv1.FlowRate); // VelocityCenterNode.Branches[i].Add(nv1.vCenter);
 
 // // if (volume != 0) // { // ACR.Add(nv1.ACR); // } //} }
-
 // catch (Exception e) { Console.WriteLine(e.Message); };//
 // File.WriteAllText(RES.WorkingDirectoryectory + @"\FlowRate.err", errorLog.ToString()); return; }
 

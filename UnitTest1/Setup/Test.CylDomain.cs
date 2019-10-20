@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using EddyLib;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-//using Rhino.Compute;
+﻿//using Rhino.Compute;
 
 namespace UnitTest
 {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
@@ -218,12 +219,17 @@ namespace Eddy
         }
 
         /// <summary>
-        /// Provides an Icon for every component that will be visible in the User Interface. Icons
+        /// Provides an Icon for every component that will be visible in the User Interface.Icons
         /// need to be 24x24 pixels.
         /// </summary>
-        //protected override System.Drawing.Bitmap Icon =>
-        // You can add image files to your project resources and access them like this:
-        //Resources.Eddy_calMRT;
+        protected override System.Drawing.Bitmap Icon
+        {
+            get
+            {
+                //You can add image files to your project resources and access them like this:
+                return Resources.Eddy_windFactors;
+            }
+        }
 
         /// <summary>
         /// Each component must have a unique Guid to identify it. It is vital this Guid doesn't
