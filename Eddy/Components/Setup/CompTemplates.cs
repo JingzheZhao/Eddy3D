@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using Eddy.Properties;
 using Grasshopper.Kernel;
 
 namespace EddyLib
@@ -145,6 +146,19 @@ namespace EddyLib
         {
             var att = new Eddy_ComponentButtonAttributes(this);
             this.Attributes = att;
+        }
+
+        /// <summary>
+        /// Provides an Icon for every component that will be visible in the User Interface.Icons
+        /// need to be 24x24 pixels.
+        /// </summary>
+        protected override System.Drawing.Bitmap Icon
+        {
+            get
+            {
+                //You can add image files to your project resources and access them like this:
+                return Resources.Eddy_templates;
+            }
         }
     }
 }
