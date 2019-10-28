@@ -8,7 +8,6 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Deedle;
 using Rhino.Geometry;
 
 namespace EddyLib
