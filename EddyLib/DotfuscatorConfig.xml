@@ -20,6 +20,12 @@
         <option>transformxaml</option>
         <file dir="${configdir}\${InDir}" name="EddyLib.dll" />
       </inputassembly>
+      <inputassembly refid="25021c08-2934-44ca-a399-73dee70f23d4">
+        <option>honoroas</option>
+        <option>stripoa</option>
+        <option>transformxaml</option>
+        <file dir="C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\Eddy\bin" name="Eddy.gha" />
+      </inputassembly>
     </asmlist>
   </input>
   <output>

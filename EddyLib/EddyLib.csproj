@@ -132,22 +132,28 @@
 
 SET build_eddylib=$(SolutionDir)EddyLib\bin\
 SET build_eddy=$(SolutionDir)Eddy\bin\
+SET build_calloc=$(SolutionDir)CallOC\bin\
+SET build_batchrunner=$(SolutionDir)CallBatchRunner\bin\
+SET build_callprobes=$(SolutionDir)CallProbes\bin\
+SET build_callray=$(SolutionDir)CallRay\bin\
+SET build_callof=$(SolutionDir)CallOF\bin\
 
 SET post_build_ilmerge=$(SolutionDir)Build\Build.Ilmerge\
 
 
-echo ""
-echo "***"
-echo "ILMERGE"
-echo "***"
-echo ""
 
 echo %25ilrepack%25
 echo %25build_eddylib%25
 echo %25build_eddy%25
+echo %25build_calloc%25
+echo %25build_batchrunner%25
+echo %25build_callprobes%25
+echo %25build_callray%25
+echo %25build_callof%25
+
+
 echo %25post_build_ilmerge%25
 
-"%25ilrepack%25" /log /lib:"C:\Windows\Microsoft.NET\Framework\v4.0.30319"  /targetplatform:v4 /out:"%25post_build_ilmerge%25EddyLib.dll" "%25build_eddylib%25MoreLinq.dll" "%25build_eddy%25CommandLine.dll" "%25build_eddy%25CsvHelper.dll" "%25build_eddy%25ConsoleAppLauncher.dll" "%25build_eddylib%25EddyLib.dll"
 
 echo ""
 echo "***"
@@ -156,6 +162,23 @@ echo "***"
 echo ""
 
 copy "%25build_eddy%25\Eddy.gha" "%25post_build_ilmerge%25"
+copy "%25build_calloc%25\CallOC.exe" "%25post_build_ilmerge%25"
+copy "%25build_batchrunner%25\CallBatchRunner.exe" "%25post_build_ilmerge%25"
+copy "%25build_callprobes%25\CallProbes.exe" "%25post_build_ilmerge%25"
+copy "%25build_callray%25\CallRay.exe" "%25post_build_ilmerge%25"
+copy "%25build_callof%25\CallOF.exe" "%25post_build_ilmerge%25"
+
+
+
+echo ""
+echo "***"
+echo "ILMERGE"
+echo "***"
+echo ""
+
+"%25ilrepack%25" /log /lib:"C:\Windows\Microsoft.NET\Framework\v4.0.30319"  /targetplatform:v4 /out:"%25post_build_ilmerge%25EddyLib.dll" "%25build_eddylib%25MoreLinq.dll" "%25build_eddy%25CommandLine.dll" "%25build_eddy%25CsvHelper.dll" "%25build_eddy%25ConsoleAppLauncher.dll" "%25build_eddylib%25EddyLib.dll"
+
+
 
 
 
@@ -165,22 +188,13 @@ copy "%25build_eddy%25\Eddy.gha" "%25post_build_ilmerge%25"
 
 
 </PostBuildEvent>
- </PropertyGroup>
-  <PropertyGroup>
-
-    <DotfuscatorXamarinEnabled>true</DotfuscatorXamarinEnabled>
-
-
-    <OutputPath>bin\</OutputPath>
-
-   
-
-<DotfuscatorXamarinCliPath>C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\PreEmptiveSolutions\DotfuscatorCE\dotfuscatorCLI.exe</DotfuscatorXamarinCliPath>
-
-  <DotfuscatorXamarinConfigFileName>DotfuscatorConfig.xml</DotfuscatorXamarinConfigFileName>
-
-  <DotfuscatorXamarinGenerateNewConfigFile>true</DotfuscatorXamarinGenerateNewConfigFile>
-
   </PropertyGroup>
-<Import Project="..\Build\Build.Dotfuscator\PreEmptive.Dotfuscator.Xamarin.targets"/>
+  <PropertyGroup>
+    <DotfuscatorXamarinEnabled>true</DotfuscatorXamarinEnabled>
+    <OutputPath>bin\</OutputPath>
+    <DotfuscatorXamarinCliPath>C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\PreEmptiveSolutions\DotfuscatorCE\dotfuscatorCLI.exe</DotfuscatorXamarinCliPath>
+    <DotfuscatorXamarinConfigFileName>DotfuscatorConfig.xml</DotfuscatorXamarinConfigFileName>
+    <DotfuscatorXamarinGenerateNewConfigFile>true</DotfuscatorXamarinGenerateNewConfigFile>
+  </PropertyGroup>
+  <Import Project="..\Build\Build.Dotfuscator\PreEmptive.Dotfuscator.Xamarin.targets" />
 </Project>
