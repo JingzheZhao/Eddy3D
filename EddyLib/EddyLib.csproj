@@ -125,8 +125,42 @@
   </Target>
   <Import Project="..\packages\Grasshopper.6.18.19266.14201\build\net45\Grasshopper.targets" Condition="Exists('..\packages\Grasshopper.6.18.19266.14201\build\net45\Grasshopper.targets')" />
   <PropertyGroup>
-    <PostBuildEvent>SET ilrepack="$(SolutionDir)packages\ILRepack.2.0.18\tools\ILRepack.exe"
-SET dependencyDir=$(SolutionDir)
-%25ilrepack%25 /log /lib:"C:\Windows\Microsoft.NET\Framework\v4.0.30319"  /lib:%25dependencyDir%25 /targetplatform:v4 /out:'%25dependencyDir%25/Build/EddyLib.dll' '%25dependencyDir%25EddyLib.dll' '%25dependencyDir%25MoreLinq.dll'</PostBuildEvent>
+    <PostBuildEvent>SET ilrepack=$(SolutionDir)packages\ILRepack.2.0.18\tools\ILRepack.exe
+
+SET build_eddylib=$(SolutionDir)EddyLib\bin\
+SET build_eddy=$(SolutionDir)Eddy\bin\
+
+SET post_build_ilmerge=$(SolutionDir)Build\Build.Ilmerge\
+
+
+echo ""
+echo "***"
+echo "ILMERGE"
+echo "***"
+echo ""
+
+echo %25ilrepack%25
+echo %25build_eddylib%25
+echo %25build_eddy%25
+echo %25post_build_ilmerge%25
+
+"%25ilrepack%25" /log /lib:"C:\Windows\Microsoft.NET\Framework\v4.0.30319"  /targetplatform:v4 /out:"%25post_build_ilmerge%25EddyLib.dll" "%25build_eddylib%25MoreLinq.dll" "%25build_eddy%25CommandLine.dll" "%25build_eddy%25CsvHelper.dll" "%25build_eddy%25ConsoleAppLauncher.dll" "%25build_eddylib%25EddyLib.dll"
+
+echo ""
+echo "***"
+echo "COPY"
+echo "***"
+echo ""
+
+copy "%25build_eddy%25\Eddy.gha" "%25post_build_ilmerge%25"
+
+
+
+
+
+
+
+
+</PostBuildEvent>
   </PropertyGroup>
 </Project>
