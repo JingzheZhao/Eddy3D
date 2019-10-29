@@ -17,7 +17,7 @@ AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 CreateAppDir=no
 OutputDir={#MyAppVersion}
-OutputBaseFilename=Eddy_{#MyAppVersion}
+OutputBaseFilename=Eddy3D
 Compression=lzma
 SolidCompression=yes
 

@@ -196,7 +196,7 @@ namespace EddyLib
             //refinementBox = getRefinementBox(localSystem, geometry, 0.3);
         }
 
-        public void MakeCircMeshPlane(Point3d center, double sizeInnerRect, int divsRadial, double circleRadius, double height)
+        private void MakeCircMeshPlane(Point3d center, double sizeInnerRect, int divsRadial, double circleRadius, double height)
         {
             // point inside cdf domain - needed for meshing and finding the void space for fluid
             LocationInMesh = center + (Vector3d.ZAxis * (height - 0.1));
@@ -332,66 +332,66 @@ namespace EddyLib
             return radialDivs;
         }
 
-        public string StringyfyDomain()
-        {
-            StringBuilder sb = new StringBuilder();
+        //        public string StringyfyDomain()
+        //        {
+        //            StringBuilder sb = new StringBuilder();
 
-            sb.AppendLine(@"
-/*--------------------------------*- C++ -*----------------------------------*\
-| =========                 |                                                 |
-| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.1.0                                  |
-|   \\  /    A nd           | Web:      http://www.OpenFOAM.com               |
-|    \\/     M anipulation  |                                                 |
-\*---------------------------------------------------------------------------*/
-FoamFile
-{
-    version     2.0;
-    format      ascii;
-    class       dictionary;
-    object      blockMeshDict;
-}
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+        //            sb.AppendLine(@"
+        ///*--------------------------------*- C++ -*----------------------------------*\
+        //| =========                 |                                                 |
+        //| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+        //|  \\    /   O peration     | Version:  2.1.0                                  |
+        //|   \\  /    A nd           | Web:      http://www.OpenFOAM.com               |
+        //|    \\/     M anipulation  |                                                 |
+        //\*---------------------------------------------------------------------------*/
+        //FoamFile
+        //{
+        //    version     2.0;
+        //    format      ascii;
+        //    class       dictionary;
+        //    object      blockMeshDict;
+        //}
+        //// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-convertToMeters 1;
+        //convertToMeters 1;
 
-//
-vertices
-(
+        ////
+        //vertices
+        //(
 
-");
+        //");
 
-            sb.AppendLine(StringyfyOFVertexList(DomainMesh.Vertices.ToPoint3dArray()));
+        //            sb.AppendLine(StringyfyOFVertexList(DomainMesh.Vertices.ToPoint3dArray()));
 
-            sb.AppendLine(@"
-);
-blocks
-(
-");
+        //            sb.AppendLine(@"
+        //);
+        //blocks
+        //(
+        //");
 
-            sb.AppendLine(StringyfyBlocks(DomainMesh, inputGroundVertices, inputTopVertices, divisionsX, divsRadial, divisionsZ));
+        //            sb.AppendLine(StringyfyBlocks(DomainMesh, inputGroundVertices, inputTopVertices, divisionsX, divsRadial, divisionsZ));
 
-            sb.AppendLine(@"
-);
+        //            sb.AppendLine(@"
+        //);
 
- edges
- (
- );
-boundary
-(
+        // edges
+        // (
+        // );
+        //boundary
+        //(
 
-");
+        //");
 
-            sb.AppendLine(StringyfyBoundaries(DomainMesh, outletFaceID, inletFaceID, topFaceID, bottomFaceID));
+        //            sb.AppendLine(StringyfyBoundaries(DomainMesh, outletFaceID, inletFaceID, topFaceID, bottomFaceID));
 
-            sb.AppendLine(@"
- );
+        //            sb.AppendLine(@"
+        // );
 
-mergePatchPairs
-(
-);");
-            return sb.ToString();
-        }
+        //mergePatchPairs
+        //(
+        //);");
+        //            return sb.ToString();
+        //        }
 
         private static string StringyfyBoundaries(Mesh m, List<int> outletFaceID, List<int> inletFaceID, List<int> topFaceID, List<int> bottomFaceID)
         {

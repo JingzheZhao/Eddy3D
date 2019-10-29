@@ -8,7 +8,6 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Deedle;
 using Rhino.Geometry;
 
 namespace EddyLib
@@ -1210,8 +1209,8 @@ renderView1.CameraParallelProjection = 1
         {
             bool licence = false;
             //DateTime dateNow = Utilities.GetNistTime();
-            DateTime dateCompile = new DateTime(2019, 8, 1, 0, 00, 00).ToUniversalTime();
-            TimeSpan licenceDuration = new TimeSpan(365, 0, 0, 0);
+            DateTime dateCompile = new DateTime(2019, 10, 1, 0, 00, 00).ToUniversalTime();
+            TimeSpan licenceDuration = new TimeSpan(720, 0, 0, 0);
             DateTime expiresAt = dateCompile.Add(licenceDuration);
 
             //try
