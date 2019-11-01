@@ -125,7 +125,7 @@ namespace Eddy
 
             if (utci == null)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Either precalculated results could not be loaded or the utci array has not been calculated yet.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Either precalculated results could not be loaded or the utci array has not been calculated yet.");
                 return;
             }
 

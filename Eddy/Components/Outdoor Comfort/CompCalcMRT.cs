@@ -164,7 +164,7 @@ namespace Eddy
 
             if (mrt.Values is null)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Either precalculated results could not be loaded or the MRT array has not been calculated yet.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Either precalculated results could not be loaded or the MRT array has not been calculated yet.");
                 return;
             }
 

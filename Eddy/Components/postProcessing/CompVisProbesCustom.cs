@@ -67,7 +67,7 @@ namespace Eddy
         {
             pManager.AddGenericParameter("Result", "Res", "Eddy Result", GH_ParamAccess.item);
             pManager.AddPointParameter("Porbing points", "Points", "List of probing points", GH_ParamAccess.list);
-            pManager.AddTextParameter("Name of instance", "N", "Name of instance to be probed", GH_ParamAccess.item);
+            pManager.AddTextParameter("Name of instance", "Name", "Name of instance to be probed", GH_ParamAccess.item);
             pManager.AddIntegerParameter("Name of field", "Field", "Name of field to be probed", GH_ParamAccess.item, 0);
             Param_Integer param = pManager[3] as Param_Integer;
             param.AddNamedValue("U", 0);
