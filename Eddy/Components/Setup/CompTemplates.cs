@@ -5,9 +5,10 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using Eddy.Properties;
+using EddyLib;
 using Grasshopper.Kernel;
 
-namespace EddyLib
+namespace Eddy
 {
     public class Eddy_Templates : GH_Component
     {

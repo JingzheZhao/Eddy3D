@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\ILMerge.3.0.29\build\ILMerge.props" Condition="Exists('..\packages\ILMerge.3.0.29\build\ILMerge.props')" />
   <Import Project="..\packages\ILRepack.2.0.18\build\ILRepack.props" Condition="Exists('..\packages\ILRepack.2.0.18\build\ILRepack.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -42,12 +43,14 @@
     </Reference>
     <Reference Include="Grasshopper, Version=6.18.19266.14200, Culture=neutral, PublicKeyToken=dda4f5ec2cd80803, processorArchitecture=MSIL">
       <HintPath>..\packages\Grasshopper.6.18.19266.14201\lib\net45\Grasshopper.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Rhino.UI, Version=6.18.19266.14200, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
       <HintPath>..\packages\RhinoCommon.6.18.19266.14201\lib\net45\Rhino.UI.dll</HintPath>
     </Reference>
     <Reference Include="RhinoCommon, Version=6.18.19266.14200, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
       <HintPath>..\packages\RhinoCommon.6.18.19266.14201\lib\net45\RhinoCommon.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -121,10 +124,12 @@
     <Error Condition="!Exists('..\packages\RhinoCommon.6.18.19266.14201\build\net45\RhinoCommon.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\RhinoCommon.6.18.19266.14201\build\net45\RhinoCommon.targets'))" />
     <Error Condition="!Exists('..\packages\Grasshopper.6.18.19266.14201\build\net45\Grasshopper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Grasshopper.6.18.19266.14201\build\net45\Grasshopper.targets'))" />
     <Error Condition="!Exists('..\packages\ILRepack.2.0.18\build\ILRepack.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ILRepack.2.0.18\build\ILRepack.props'))" />
+    <Error Condition="!Exists('..\packages\ILMerge.3.0.29\build\ILMerge.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ILMerge.3.0.29\build\ILMerge.props'))" />
   </Target>
   <Import Project="..\packages\Grasshopper.6.18.19266.14201\build\net45\Grasshopper.targets" Condition="Exists('..\packages\Grasshopper.6.18.19266.14201\build\net45\Grasshopper.targets')" />
   <PropertyGroup>
-    <PostBuildEvent>SET ilrepack=$(SolutionDir)packages\ILRepack.2.0.18\tools\ILRepack.exe
+    <PostBuildEvent>SET ilrepack=$(SolutionDir)packages\ILMerge.3.0.29\tools\net452\ILMerge.exe
+REM SET ilrepack=$(SolutionDir)packages\ILRepack.2.0.18\tools\ILRepack.exe
 
 SET build_eddylib=$(SolutionDir)EddyLib\bin\
 SET build_eddy=$(SolutionDir)Eddy\bin\
@@ -136,7 +141,10 @@ SET build_callof=$(SolutionDir)CallOF\bin\
 
 SET post_build_ilmerge=$(SolutionDir)Build\Build.Ilmerge\
 
+SET cappl=$(SolutionDir)packages\ConsoleAppLauncher.1.0.6354.408\lib\net40\ConsoleAppLauncher.dll
 
+SET rhc=$(SolutionDir)packages\RhinoCommon.6.18.19266.14201\lib\net45
+SET gh=$(SolutionDir)packages\Grasshopper.6.18.19266.14201\lib\net45
 
 echo %25ilrepack%25
 echo %25build_eddylib%25
@@ -172,7 +180,7 @@ echo "ILMERGE"
 echo "***"
 echo ""
 
-"%25ilrepack%25" /log /lib:"C:\Windows\Microsoft.NET\Framework\v4.0.30319"  /targetplatform:v4 /out:"%25post_build_ilmerge%25EddyLib.dll" "%25build_eddy%25CommandLine.dll" "%25build_eddy%25ConsoleAppLauncher.dll" "%25build_eddylib%25EddyLib.dll"
+"%25ilrepack%25" /log /lib:"C:\Windows\Microsoft.NET\Framework\v4.0.30319"  /lib:"%25gh%25" /lib:"%25rhc%25" /targetplatform:v4 /out:"%25post_build_ilmerge%25EddyLib.dll" "%25build_eddy%25CommandLine.dll" "%25cappl%25" "%25build_eddylib%25EddyLib.dll"
 
 
 
