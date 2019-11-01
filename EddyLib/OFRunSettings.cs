@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using Microsoft.VisualBasic.Devices;
+//using Microsoft.VisualBasic.Devices;
 
 namespace EddyLib
 {
@@ -44,7 +44,7 @@ namespace EddyLib
         public RelaxationFactors relaxationFactors;
         public int Schemes;
         public SimEngine simEngine;
-        public int totalGBRam;
+        //public int totalGBRam;
         public TurbModel turbModel;
         public int writeInterval;
 
@@ -68,7 +68,7 @@ namespace EddyLib
             this.simEngine = simEngine;
             this.ostype = ostype;
             this.turbModel = turbmodel;
-            this.totalGBRam = Convert.ToInt32((new ComputerInfo().TotalPhysicalMemory / (Math.Pow(1024, 2))) + 0.5);
+            //this.totalGBRam = Convert.ToInt32((new ComputerInfo().TotalPhysicalMemory / (Math.Pow(1024, 2))) + 0.5);
             this.relaxationFactors = relaxationFactors;
             this.Is64BitOS = Environment.Is64BitOperatingSystem;
             this.BlueCFDIsInstalled = CheckIfBlueCFDIsInstalled();
