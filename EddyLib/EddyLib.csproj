@@ -142,6 +142,7 @@ SET build_callof=$(SolutionDir)CallOF\bin\
 SET post_build_ilmerge=$(SolutionDir)Build\Build.Ilmerge\
 
 SET cappl=$(SolutionDir)packages\ConsoleAppLauncher.1.0.6354.408\lib\net40\ConsoleAppLauncher.dll
+SET cliapp=$(SolutionDir)packages\CommandLineParser.1.9.71\lib\net45\CommandLine.dll
 
 SET rhc=$(SolutionDir)packages\RhinoCommon.6.18.19266.14201\lib\net45
 SET gh=$(SolutionDir)packages\Grasshopper.6.18.19266.14201\lib\net45
@@ -180,7 +181,7 @@ echo "ILMERGE"
 echo "***"
 echo ""
 
-"%25ilrepack%25" /log /lib:"C:\Windows\Microsoft.NET\Framework\v4.0.30319"  /lib:"%25gh%25" /lib:"%25rhc%25" /targetplatform:v4 /out:"%25post_build_ilmerge%25EddyLib.dll" "%25build_eddy%25CommandLine.dll" "%25cappl%25" "%25build_eddylib%25EddyLib.dll"
+"%25ilrepack%25" /log /lib:"C:\Windows\Microsoft.NET\Framework\v4.0.30319"  /lib:"%25gh%25" /lib:"%25rhc%25" /targetplatform:v4 /out:"%25post_build_ilmerge%25EddyLib.dll" "%25cliapp%25" "%25cappl%25" "%25build_eddylib%25EddyLib.dll"
 
 
 
