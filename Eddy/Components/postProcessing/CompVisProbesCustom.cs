@@ -173,6 +173,11 @@ namespace Eddy
                 throw new System.ArgumentException("The mesh folder is empty. Can't retrieve probes from a mesh that does not exist.");
             }
 
+            if (listOfPoints.Count > 3000)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Probing more than 3000 points may slow down things considerably...");
+            }
+
             GH_Structure<GH_Number> treeDouble = new GH_Structure<GH_Number>();
             GH_Structure<GH_Vector> treeVector = new GH_Structure<GH_Vector>();
 
