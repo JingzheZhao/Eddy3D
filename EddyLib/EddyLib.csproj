@@ -167,6 +167,7 @@ echo "***"
 echo ""
 
 copy "%25build_eddy%25\Eddy.gha" "%25post_build_ilmerge%25"
+copy "%25build_eddy%25\Eddy.pdb" "%25post_build_ilmerge%25"
 copy "%25build_calloc%25\CallOC.exe" "%25post_build_ilmerge%25"
 copy "%25build_batchrunner%25\CallBatchRunner.exe" "%25post_build_ilmerge%25"
 copy "%25build_callprobes%25\CallProbes.exe" "%25post_build_ilmerge%25"
@@ -193,5 +194,17 @@ echo ""
 
 
 </PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>echo ""
+echo "***"
+echo "DELETE"
+echo "***"
+echo ""
+
+SET post_build_ilmerge=$(SolutionDir)Build\Build.Ilmerge\
+
+del /q "%25post_build_ilmerge%25"=\*
+for /d %25%25x in ("%25post_build_ilmerge%25"\*) do @rd /s /q "%25%25x"</PreBuildEvent>
   </PropertyGroup>
 </Project>
