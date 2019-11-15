@@ -42,7 +42,7 @@ namespace Eddy
             Param_Integer param = pManager[5] as Param_Integer;
             param.AddNamedValue("No snapping, no layers", 0);
             param.AddNamedValue("With Snapping, no layers", 1);
-            param.AddNamedValue("With Snapping, with layers", 2);
+            param.AddNamedValue("With Snapping, with layers (not robust)", 2);
         }
 
         /// <summary>

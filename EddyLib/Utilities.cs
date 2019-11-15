@@ -540,7 +540,6 @@ namespace EddyLib
                 //    newList.Add(listOfPoints[i]);
                 //}
             }
-
             return newList;
         }
 

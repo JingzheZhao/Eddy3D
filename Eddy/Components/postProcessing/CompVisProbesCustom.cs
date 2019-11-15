@@ -66,24 +66,26 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Result", "Res", "Eddy Result", GH_ParamAccess.item);
-            pManager.AddPointParameter("Porbing points", "Points", "List of probing points", GH_ParamAccess.list);
+            pManager.AddPointParameter("Probing points", "Points", "List of probing points", GH_ParamAccess.list);
             pManager.AddTextParameter("Name of instance", "Name", "Name of instance to be probed", GH_ParamAccess.item);
             pManager.AddIntegerParameter("Name of field", "Field", "Name of field to be probed", GH_ParamAccess.item, 0);
             Param_Integer param = pManager[3] as Param_Integer;
-            param.AddNamedValue("U", 0);
-            param.AddNamedValue("total(p)_coeff", 1);
-            param.AddNamedValue("p", 2);
-            param.AddNamedValue("epsilon", 3);
-            param.AddNamedValue("omega", 4);
-            param.AddNamedValue("k", 5);
-            param.AddNamedValue("nut", 6);
-            param.AddNamedValue("phi", 7);
+            param.AddNamedValue("Velocity (U) [m/s]", 0);
+            param.AddNamedValue("Pressure coefficient (total(p)_coeff) [-]", 1);
+            param.AddNamedValue("Pressure (p) [m^2/s^2]", 2);
+            param.AddNamedValue("Turbulent dissipation rate (epsilon) [m^2/s^3]", 3);
+            param.AddNamedValue("Scale of turbulence (omega) [1/s] ", 4);
+            param.AddNamedValue("Turbulent kinetic energy (k) [m^2/s^2]", 5);
+            param.AddNamedValue("Turbulent viscosity (nut) [m^2/s]", 6);
+            param.AddNamedValue("Mass flow (phi) [m^3/s]", 7);
             //pManager.AddIntegerParameter("FieldType", "FieldType", "FieldType", GH_ParamAccess.item, 1);
             //Param_Integer param2 = pManager[4] as Param_Integer;
             //param2.AddNamedValue("Scalar", 0);
             //param2.AddNamedValue("Vector", 1);
 
             pManager.AddBooleanParameter("Run", "Run", "Run the component.", GH_ParamAccess.item, false);
+
+            pManager[2].Optional = true;
         }
 
         /// <summary>
@@ -120,10 +122,17 @@ namespace Eddy
             string probeNameByUser = "";
 
             DA.GetDataList(1, listOfPoints);
+
             DA.GetData(2, ref probeNameByUser);
             DA.GetData(3, ref OFFieldInt);
             //DA.GetData(4, ref fieldType);
             DA.GetData(4, ref run);
+
+            if (probeNameByUser == "")
+            {
+                probeNameByUser = "test";
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, @"Please provide a unique name for this probing instance, otherwise a new instance will overwrite the results.");
+            }
 
             //Discard points outside
             if (Culling)
@@ -136,6 +145,8 @@ namespace Eddy
             #endregion Load Inputs
 
             #region Error handling
+
+            bool meshExists = false;
 
             if (numberOfProbes < 1)
             {
@@ -155,8 +166,6 @@ namespace Eddy
                 }
             }
 
-            #endregion Error handling
-
             // Export probes file
             File.WriteAllText(Path.Combine(RES.WorkingDirectory + "\\" + "run_probes.bat"), EddyLib.StrTemp.BatFiles.Run_Probes(RES.Domain, RES.MeshSettings));
 
@@ -168,10 +177,31 @@ namespace Eddy
 
             RadianceFiles.writePTS(RES.WorkingDirectory + @"\Rad\sensors.pts", listOfPoints);
 
-            if (Utilities.Directories.IsDirectoryEmpty(RES.MeshSettings.meshPolyMeshDir) == true)
+            if (Directory.Exists(RES.MeshSettings.meshPolyMeshDir) == false)
             {
-                throw new System.ArgumentException("The mesh folder is empty. Can't retrieve probes from a mesh that does not exist.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The mesh folder does not exist. Please create a mesh first.");
+                //throw new System.ArgumentException("The mesh folder is does not exist. Please create a mesh first.");
             }
+            else
+            {
+                if (Utilities.Directories.IsDirectoryEmpty(RES.MeshSettings.meshPolyMeshDir) == true)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The mesh folder is empty. Can't retrieve probes from a mesh that does not exist.");
+                    // throw new System.ArgumentException("The mesh folder is empty. Can't retrieve probes from a mesh that does not exist.");
+                }
+                else
+                {
+                    meshExists = true;
+                }
+            }
+
+            int threshold = 4000;
+            if (listOfPoints.Count > threshold)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Probing more than " + threshold + " points may slow things down considerably.");
+            }
+
+            #endregion Error handling
 
             GH_Structure<GH_Number> treeDouble = new GH_Structure<GH_Number>();
             GH_Structure<GH_Vector> treeVector = new GH_Structure<GH_Vector>();
@@ -179,7 +209,7 @@ namespace Eddy
             string OFField = EddyLib.OFField.ReformatOFFields(OFFieldInt);
             OFField currField = new OFField(OFField, probeNameByUser);
 
-            if (numberOfProbes > 0)
+            if (numberOfProbes > 0 && meshExists)
             {
                 try
                 {
@@ -323,7 +353,7 @@ namespace Eddy
                 }
                 catch (Exception)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Parsing of the probes failed. This data does not exist yet. Please run the probing component.");
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"Parsing of the probes failed. This data does not exist yet. Please run the probing component.");
                     //throw new System.ArgumentException("This data does not exist yet. Please run the probing component.");
                 }
             }
@@ -341,11 +371,7 @@ namespace Eddy
                 }
 
                 int[] IndecesOfExtremeProbes = Probing.ReturnIndexOfExtremeProbes(listVecs);
-
-                if (IndecesOfExtremeProbes.Length > 0)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, @"The probes with the indices: " + string.Join(",", IndecesOfExtremeProbes) + " can't be probed within the simulation domain.");
-                }
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, @"The probes with the indices: " + string.Join(",", IndecesOfExtremeProbes) + " can't be probed within the simulation domain and have been discarded.");
             }
 
             if (currField.FieldType == EddyLib.OFField.fieldType.number)
