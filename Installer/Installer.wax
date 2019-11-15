@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <DeployedProjects>
+    <string>CallBatchRunner\CallBatchRunner.csproj</string>
+    <string>CallOC\CallOC.csproj</string>
+    <string>CallOF\CallOF.csproj</string>
+    <string>CallProbes\CallProbes.csproj</string>
+    <string>Eddy\Eddy.csproj</string>
+    <string>CallRay\CallRay.csproj</string>
+  </DeployedProjects>
+  <DirectoryMappings>
+    <Item Key="" Value="INSTALLFOLDER" />
+  </DirectoryMappings>
+  <FileMappings />
+  <DeploySymbols>false</DeploySymbols>
+  <DeployLocalizations>true</DeployLocalizations>
+  <DeployExternalLocalizations>false</DeployExternalLocalizations>
+</Configuration>

@@ -242,6 +242,8 @@ namespace EddyLib
                     File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "_run_sim.bat"), EddyLib.StrTemp.BatFiles.Run_sim(MeshSettings, RunSettings, DOM, StrTemp.Mode.Simulation, i));
                     File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "_run_sim_continue.bat"), EddyLib.StrTemp.BatFiles.Run_sim_continue(MeshSettings, RunSettings, DOM, StrTemp.Mode.Simulation, i));
                     File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "_run_divU.bat"), EddyLib.StrTemp.BatFiles.Run_divU(MeshSettings, RunSettings, DOM, StrTemp.Mode.Simulation, i));
+
+                    //File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "run_reconstructSim.bat"), EddyLib.StrTemp.BatFiles.Run_reconstructSim(RunSettings, MeshSettings, DOM, StrTemp.Mode.Simulation, i));
                 }
 
                 // This doesnt work atm because tee.exe puts write lock on log file

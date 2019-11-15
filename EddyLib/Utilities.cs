@@ -512,35 +512,33 @@ namespace EddyLib
 
             List<Point3d> newList = new List<Point3d>();
 
-            for (int i = 0; i < listOfPoints.Count; i++)
+            //for (int i = 0; i < listOfPoints.Count; i++)
+            //{
+            //TODO: CHECK SPEED AND ROBUSTNESS
+            foreach (var pt in listOfPoints)
             {
-                if (DOM.DomainMesh.IsPointInside(listOfPoints[i], 0.001, true))
+                if (DOM.DomainMesh.IsPointInside(pt, 0.001, true))
                 {
+                    Point3d pt1 = pt;
+                    Point3d pt2 = pt + Vector3d.ZAxis * height * 2;
 
-                    //TODO: CHECK SPEED AND ROBUSTNESS
-                    foreach (var pt in listOfPoints)
+                    Line l = new Line(pt1, pt2);
+                    int[] fids;
+                    var pts = Rhino.Geometry.Intersect.Intersection.MeshLine(DOM.BuildingGeometry, l, out fids);
+                    if (pts.Length == 0)
                     {
-
-                        Point3d pt1 = pt;
-                        Point3d pt2 = pt + Vector3d.ZAxis * height * 2;
-
-                        Line l = new Line(pt1, pt2);
-                        int[] fids;
-                        var pts = Rhino.Geometry.Intersect.Intersection.MeshLine(DOM.BuildingGeometry, l, out fids);
-                        if (pts.Length == 0)
-                        {
-                            newList.Add(listOfPoints[i]);
-                        }
-                        else if (pts.Length % 2 == 0) {
-                            newList.Add(listOfPoints[i]);
-                        }
+                        newList.Add(pt);
                     }
-
-                    //if (!DOM.BuildingGeometry.IsPointInside(listOfPoints[i], 0.001, true))
-                    //{
-                    //    newList.Add(listOfPoints[i]);
-                    //}
+                    else if (pts.Length % 2 == 0)
+                    {
+                        newList.Add(pt);
+                    }
                 }
+
+                //if (!DOM.BuildingGeometry.IsPointInside(listOfPoints[i], 0.001, true))
+                //{
+                //    newList.Add(listOfPoints[i]);
+                //}
             }
 
             return newList;

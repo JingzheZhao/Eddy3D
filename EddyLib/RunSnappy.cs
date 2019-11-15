@@ -128,6 +128,7 @@ namespace EddyLib
             File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "decomposeParDict"), EddyLib.StrTemp.OFExecDicts.DecomposeParDict(RunSettings));
 
             File.WriteAllText(Path.Combine(MeshSettings.baseWorkingDir + "run_checkMesh.bat"), EddyLib.StrTemp.BatFiles.Run_checkMesh(RunSettings, MeshSettings, DOM, StrTemp.Mode.Meshing));
+            File.WriteAllText(Path.Combine(MeshSettings.baseWorkingDir + "run_reconstructMesh.bat"), EddyLib.StrTemp.BatFiles.Run_reconstructMesh(RunSettings, MeshSettings, DOM, StrTemp.Mode.Meshing));
 
             //Autocalc number of CPUs
             if (RunSettings.CPUs == -1)

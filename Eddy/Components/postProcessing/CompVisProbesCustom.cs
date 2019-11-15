@@ -341,7 +341,11 @@ namespace Eddy
                 }
 
                 int[] IndecesOfExtremeProbes = Probing.ReturnIndexOfExtremeProbes(listVecs);
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, @"The probes with the indices: " + string.Join(",", IndecesOfExtremeProbes) + " can't be probed within the simulation domain.");
+
+                if (IndecesOfExtremeProbes.Length > 0)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, @"The probes with the indices: " + string.Join(",", IndecesOfExtremeProbes) + " can't be probed within the simulation domain.");
+                }
             }
 
             if (currField.FieldType == EddyLib.OFField.fieldType.number)

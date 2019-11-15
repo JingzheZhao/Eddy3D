@@ -3,6 +3,7 @@ using System.Text;
 
 namespace EddyLib.StrTemp
 {
+    // Adds a wind direction prefix for the individual simulation folders
     public enum Mode
     {
         Simulation,
@@ -43,6 +44,24 @@ namespace EddyLib.StrTemp
 
         private static readonly List<string> RCSimContinueSingleCPU = new List<string> {
         "simpleFoam"};
+
+        private static List<string> reconstructSim()
+        {
+            List<string> lst = new List<string>
+            {
+                "reconstructPar"
+            };
+            return lst;
+        }
+
+        private static List<string> reconstructMesh()
+        {
+            List<string> lst = new List<string>
+            {
+                "reconstructParMesh -constant"
+            };
+            return lst;
+        }
 
         private static List<string> RCSimContinueMultiCPU(OFRunSettings RunSettings)
         {
@@ -506,6 +525,59 @@ namespace EddyLib.StrTemp
             return sb.ToString();
         }
 
+        public static string Run_reconstructSim(OFMeshSettings MeshSettings, OFRunSettings RunSettings, OFBaseDomain DOM, Mode mode, int d)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            string caseWorkingDir = MeshSettings.baseWorkingDir + "\\" + DOM.BCond.windDirs[d];
+
+            if (RunSettings.simEngine == SimEngine.Docker)//Docker
+            {
+                foreach (string str in reconstructSim())
+                {
+                    sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str + AppendSuffixDocker());
+                }
+#if DEBUG
+                    sb.AppendLine("PAUSE");
+#endif
+            }
+            else
+            {
+                sb.Append(TempBlueCFD(reconstructSim(), caseWorkingDir));
+#if DEBUG
+                    sb.AppendLine("PAUSE");
+#endif
+            }
+
+            return sb.ToString();
+        }
+
+        public static string Run_reconstructMesh(OFRunSettings RunSettings, OFMeshSettings MeshSettings, OFBaseDomain DOM, Mode mode)
+        {
+            StringBuilder sb = new StringBuilder();
+            if (RunSettings.simEngine == SimEngine.Docker)//Docker
+            {
+                foreach (string str in reconstructMesh())
+                {
+                    sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str + AppendSuffixDocker());
+                }
+#if DEBUG
+                sb.AppendLine("PAUSE");
+#endif
+            }
+            else
+            {
+                //foreach (string str in RCCheckMeshSingleCPU)
+                //{
+                sb.Append(TempBlueCFD(reconstructMesh(), MeshSettings.meshWorkingDir));
+                //}
+#if DEBUG
+                sb.AppendLine("PAUSE");
+#endif
+            }
+            return sb.ToString();
+        }
+
         public static string Run(OFBaseDomain DOM, OFMeshSettings MeshSettings)
         {
             StringBuilder sb = new StringBuilder();
@@ -628,11 +700,23 @@ REM   --help              Display this help screen.");
 
         public static string TempBlueCFD
             (List<string> commands, string caseDir, string installationPath = @"C:\Program Files\blueCFD-Core-2017\")
+
         {
+            bool notOnC = false;
+
+            if (!caseDir.StartsWith("C"))
+            {
+                notOnC = true;
+            }
+
             StringBuilder sb = new StringBuilder();
-            sb.Append(string.Format(@"call ""{0}setvars.bat""
-set PATH=%HOME%\msys64\usr\bin;%PATH%
-cd ""{1}""" + System.Environment.NewLine, installationPath, caseDir));
+            sb.AppendLine(string.Format(@"call """ + installationPath + @"\setvars.bat"""));
+            sb.AppendLine(@"set PATH=%HOME%\msys64\usr\bin;%PATH%");
+            if (notOnC)
+            {
+                sb.AppendLine(caseDir[0] + ":");
+            }
+            sb.AppendLine("cd " + "\"" + caseDir + "\"");
 
             foreach (string str in commands)
             {

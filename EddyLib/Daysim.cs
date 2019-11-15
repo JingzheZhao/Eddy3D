@@ -273,24 +273,41 @@ void plastic Generic_20
                 startInfo.CreateNoWindow = true;
                 Process p;
 
+                try
+                {
+                    startInfo.FileName = "radfiles2daysim";
+                    startInfo.Arguments = workingDir + @"/" + varianten_name + @".hea -m -g";
+                    p = Process.Start(startInfo);
+
+                    p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
+                    Console.WriteLine("output>>" + e.Data); p.BeginOutputReadLine();
+
+                    p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+                    Console.WriteLine("error>>" + e.Data); p.BeginErrorReadLine();
+
+                    p.WaitForExit();
+
+                    Console.WriteLine("ExitCode: {0}", p.ExitCode); p.Close();
+                }
+                catch (Exception e) { Console.WriteLine("radfiles2daysim error" + e.Message); }
+
                 //try
                 //{
-                //    startInfo.FileName = "radfiles2daysim";
-                //    startInfo.Arguments = workingDir + @"/" + varianten_name + @".hea -m -g";
+                //    startInfo.FileName = "oconv";
+                //    startInfo.Arguments = workingDir + @"/" + varianten_name + @"scene.rad > scene.oct";
                 //    p = Process.Start(startInfo);
 
-                // p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
-                // Console.WriteLine("output>>" + e.Data); p.BeginOutputReadLine();
+                //    p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
+                //    Console.WriteLine("output>>" + e.Data); p.BeginOutputReadLine();
 
-                // p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
-                // Console.WriteLine("error>>" + e.Data); p.BeginErrorReadLine();
+                //    p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+                //    Console.WriteLine("error>>" + e.Data); p.BeginErrorReadLine();
 
-                // p.WaitForExit();
+                //    p.WaitForExit();
 
-                // Console.WriteLine("ExitCode: {0}", p.ExitCode); p.Close();
-
+                //    Console.WriteLine("ExitCode: {0}", p.ExitCode); p.Close();
                 //}
-                //catch (Exception e) { Console.WriteLine("radfiles2daysim error" + e.Message); }
+                //catch (Exception e) { Console.WriteLine("octree error" + e.Message); }
 
                 try
                 {

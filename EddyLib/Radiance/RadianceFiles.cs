@@ -31,11 +31,21 @@ namespace EddyLib
 
             //_m.Faces.ExtractDuplicateFaces();
             _m.Faces.ConvertNonPlanarQuadsToTriangles(RhinoDoc.ActiveDoc.ModelAbsoluteTolerance, RhinoDoc.ActiveDoc.ModelAngleToleranceRadians, 0);
-            //_m.Faces.RemoveZeroAreaFaces();
+
+            // Sometimes Octrees are not written robustly
+
+            //int fixCount = 0;
+            //_m.Faces.RemoveZeroAreaFaces(ref fixCount);
             _m.Faces.CullDegenerateFaces();
 
             for (int i = 0; i < _m.Faces.Count; ++i)
             {
+                var area = Utilities.MeshFaceArea(i, _m);
+                if (area < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)
+                {
+                    continue;
+                }
+
                 if (_m.Faces[i].IsTriangle)
                 {
                     sw.WriteLine(_mat + " polygon " + _mat + "." + (i + 1).ToString());
