@@ -1,1 +1,0 @@
-#define User "Patrick Kastner"

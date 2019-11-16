@@ -1,9 +1,0 @@
-Source: "C:\Users\{#User}\Documents\GitHub\Eddy3d\Build\Build.Dotfuscated\CallBatchRunner.exe"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\{#User}\Documents\GitHub\Eddy3d\Build\Build.Dotfuscated\CallOC.exe"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\{#User}\Documents\GitHub\Eddy3d\Build\Build.Dotfuscated\CallOF.exe"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\{#User}\Documents\GitHub\Eddy3d\Build\Build.Dotfuscated\CallProbes.exe"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\{#User}\Documents\GitHub\Eddy3d\Build\Build.Dotfuscated\CallRay.exe"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\{#User}\Documents\GitHub\Eddy3d\Build\Build.Dotfuscated\Eddy.gha"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\{#User}\Documents\GitHub\Eddy3d\Build\Build.Dotfuscated\EddyLib.dll"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion
-Source: "C:\Users\{#User}\Documents\GitHub\Eddy3d\Templates\*" ; DestDir: "{#TemplatesDir}"; Flags: ignoreversion
-; NOTE: Don't use "Flags: ignoreversion" on any shared system files
