@@ -19,7 +19,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eddy", "Eddy\Eddy.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTest", "UnitTest1\UnitTest.csproj", "{F20511C1-41F3-468E-B452-5CD14A446005}"
 EndProject
-Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "Installer2", "Installer2\Installer2.wixproj", "{F2E2BACA-A846-4BC5-8C0B-14FF38530FC2}"
+Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "Installer", "Installer\Installer.wixproj", "{F2E2BACA-A846-4BC5-8C0B-14FF38530FC2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

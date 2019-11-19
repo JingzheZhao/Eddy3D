@@ -4,6 +4,8 @@
 
   <String Id="ProductNameFolder">Eddy3D</String>
 
+  <String Id="GrasshopperLibraryFolder">C:\Program Files\Rhino 6\Plug-ins\Grasshopper\Components</String>
+
   <String Id="ProductName_x86">Eddy3D (32bit)</String>
   <String Id="ProductName_x64">Eddy3D (64bit)</String>
 

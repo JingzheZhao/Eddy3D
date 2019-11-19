@@ -1,58 +1,64 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <?define sourceFolder="$(var.SolutionDir)\Build\Build.Dotfuscated\"?>
-  <Product Id="*" Name="Installer" Language="1033" Version="1.0.0.0" Manufacturer="ESLab Cornell University" UpgradeCode="692e94f5-0c35-4084-b3f2-18006e9efdd1">
-    <Package InstallerVersion="300" Compressed="yes" />
-    <!--   <Media Id="1" Cabinet="myapplication.cab" EmbedCab="yes" /> -->
-    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
-    <MediaTemplate EmbedCab="yes" />
-    <Feature Id="Eddy3D" Title="Eddy3D" Level="1">
+
+  <?if $(var.Platform)=x64?>
+  <?define ProductCode = "{2C31FF9C-331E-418B-8C53-4C13ADC0E921}"?>
+  <?else?>
+  <?define ProductCode = "{0F1BA192-A348-49DD-9B18-1BAD521627BA}"?>
+  <?endif?>
+
+  <?define UpgradeCode = "{5BE389E0-E9F0-4DD9-B05C-CE4574E8C275}" ?>
+
+  <!-- Define main product -->
+  <Product Id="$(var.ProductCode)"
+           Name="!(loc.ProductName_$(var.Platform))"
+           Language="!(loc.Language)"
+           Version="$(var.BuildVersion)"
+           Manufacturer="!(loc.Company)"
+           UpgradeCode="$(var.UpgradeCode)">
+
+    <!-- Provide package details -->
+    <Package InstallerVersion="200"
+             Compressed="yes"
+             InstallScope="perMachine"
+             Platform="$(var.Platform)"
+             Manufacturer="!(loc.Company)"
+             Description="!(loc.Description)"
+             Keywords="!(loc.Keywords)"
+             Comments="!(loc.Comments)"
+             Languages="!(loc.Language)" />
+
+    <!-- Downgrade error message -->
+    <MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeErrorMessage)" />
+
+    <!-- Include .cab file into .msi file -->
+    <MediaTemplate
+      EmbedCab="yes" />
+
+    <!-- Define main app icon -->
+    <Icon Id="icon.ico" SourceFile="$(var.Eddy.ProjectDir)\\Eddy3D.ico" />
+
+    <!-- Use the icon.ico icon for this installer (shows up in Add/Remove programs) -->
+    <Property Id="ARPPRODUCTICON">icon.ico</Property>
+    <!-- Help/Support website (shows in the Add/Remove programs) -->
+    <Property Id="ARPURLINFOABOUT">http://www.eddy3d.com</Property>
+
+    <!-- Create a basic UI for the installer -->
+    <UIRef Id="WixUI_Minimal" />
+
+    <!-- Change the installer UI background images -->
+    <WixVariable Id="WixUILicenseRtf" Value="$(var.ProjectDir)\Assets\License.rtf" />
+    <!--  <WixVariable Id="WixUIDialogBmp" Value="$(var.ProjectDir)\Assets\Background.bmp" />-->
+    <!-- <WixVariable Id="WixUIBannerBmp" Value="$(var.ProjectDir)\Assets\Banner.bmp" />-->
+
+    <Feature Id="ProductFeature" Title="Eddy3D" Level="1">
+
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentGroupRef Id="PublishedComponents" />
 
       <ComponentGroupRef Id="GrasshopperPlugin" />
+
+      <!-- -->
     </Feature>
-    <UI />
   </Product>
-  <Fragment>
-    <Directory Id="TARGETDIR" Name="SourceDir">
-      <Directory Id="INSTALLFOLDER" Name="Eddy3D">
-        <Directory Id="Grasshopper" />
-      </Directory>
-    </Directory>
-    <SetDirectory Id="INSTALLFOLDER" Value="[WindowsVolume]Eddy3D" />
-    <SetDirectory Id="Grasshopper" Value="[AppDataFolder]Grasshopper\Libraries" />
-  </Fragment>
-
-  <Fragment>
-
-    <!-- Eddy3D Core files-->
-    <ComponentGroup Id="GrasshopperPlugin" Directory="Grasshopper">
-      <!-- TODO: Remove the comments around this Component element and the ComponentRef below in order to add resources to this installer. -->
-      <!-- <Component Id="ProductComponent"> -->
-      <!-- TODO: Insert files, registry keys, and other resources here. -->
-      <!-- </Component> -->
-      <Component Id="CallBatchRunner.exe" Guid="db4203b5-39b2-4f03-801d-c2bfac7132ae">
-        <File Id="CallBatchRunner.exe" Name="CallBatchRunner.exe" Source="$(var.sourceFolder)\CallBatchRunner.exe" />
-      </Component>
-      <Component Id="CallOC.exe" Guid="d56d31ef-83c1-4ec3-9236-6094249d8832">
-        <File Id="CallOC.exe" Name="CallOC.exe" Source="$(var.sourceFolder)\CallOC.exe" />
-      </Component>
-      <Component Id="EddyLib.dll" Guid="d72ca583-cae6-4ed3-9bb8-7828f93e41a1">
-        <File Id="EddyLib.dll" Name="EddyLib.dll" Source="$(var.sourceFolder)\EddyLib.dll" />
-      </Component>
-      <Component Id="CallOF.exe" Guid="c4326750-e0be-4490-b68d-e8db64ad36e2">
-        <File Id="CallOF.exe" Name="CallOF.exe" Source="$(var.sourceFolder)\CallOF.exe" />
-      </Component>
-      <Component Id="CallProbes.exe" Guid="c77bcb8c-5137-4047-9953-2eaba6e5745c">
-        <File Id="CallProbes.exe" Name="CallProbes.exe" Source="$(var.sourceFolder)\CallProbes.exe" />
-      </Component>
-      <Component Id="Eddy.gha" Guid="7d24f1e4-0e04-4df9-9a9e-39cb53534666">
-        <File Id="Eddy.dll" Name="Eddy.gha" Source="$(var.sourceFolder)\Eddy.gha" />
-      </Component>
-      <Component Id="CallRay.exe" Guid="12be7a3c-4e35-4834-a8f1-bff00d2d42c3">
-        <File Id="CallRay.exe" Name="CallRay.exe" Source="$(var.sourceFolder)\CallRay.exe" />
-      </Component>
-    </ComponentGroup>
-
-    <!-- Templates are included by heat.exe output-->
-  </Fragment>
 </Wix>
