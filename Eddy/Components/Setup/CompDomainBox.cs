@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
@@ -203,6 +204,8 @@ namespace Eddy
             {
                 OFBoxDomain DOMBOX = new OFBoxDomain(buildingGeometry, terrainMeshes, bCond, blockDimension, length, width, height);
 
+                FillRenderLists(bCond, DOMBOX);
+
                 DA.SetData(0, DOMBOX);
 
                 if (DOMBOX.hasTerrain)
@@ -218,6 +221,8 @@ namespace Eddy
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Licence expired."); return;
             }
+
+
         }
 
         /// <summary>
@@ -234,5 +239,60 @@ namespace Eddy
         /// change otherwise old ghx files that use the old ID will partially fail during loading.
         /// </summary>
         public override Guid ComponentGuid => new Guid("{0AD4BDF7-33AC-492D-ABF0-622A5488C8E2}");
+
+
+
+        private List<Point3d> _point ;
+        private List<Vector3d> _vecs;
+
+        private void FillRenderLists(BoundaryConditions bCond , OFBoxDomain DOM) {
+           //clear
+            _point = new List<Point3d>();
+            _vecs = new List<Vector3d>();
+
+
+            var pt = DOM.BBox.Center;
+
+            //Fill render lists for arrow preview
+            _vecs.Add(bCond.flowDir[0] * bCond.URef);
+            _point.Add(pt + (-bCond.flowDir[0]* DOM.length * 0.5) + (-bCond.flowDir[0] * bCond.URef ));
+
+
+        }
+
+        public override void DrawViewportWires(IGH_PreviewArgs args)
+        {
+            base.DrawViewportWires(args);
+
+            if ( this.Locked  || _point == null || _point.Count == 0 || _vecs == null || _vecs.Count == 0)
+            {
+                return;
+            }
+
+            if (this.Attributes.Selected)
+            {
+                for (int i = 0; i < _point.Count; i++)
+                {
+                    var l = new Line(_point[i], _vecs[i]);
+                    args.Display.DrawArrow(l, args.WireColour_Selected );
+
+                }
+                return;
+            }
+            else
+            {
+                for (int i = 0; i < _point.Count; i++)
+                {
+                    var l = new Line(_point[i], _vecs[i]);
+                    args.Display.DrawArrow(l, args.WireColour);
+
+                }
+
+                return;
+            }
+
+            
+        }
+
     }
 }
