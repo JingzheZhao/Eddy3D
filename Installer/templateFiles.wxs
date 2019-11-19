@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Fragment>
+        <DirectoryRef Id="INSTALLFOLDER">
+            <Directory Id="dir554DCC00C11172AE7541B8EC8EAB686C" Name="Templates">
+                <Component Id="cmp4718D6B6C57ECA15AFBDE67BCD822AC1" Guid="{2FEC1F8D-4292-435B-881D-FD2B1CB18E29}">
+                    <File Id="fil6A3557877ED19948688BC6E8F3833CC0" KeyPath="yes" Source="SourceDir\0_ProbingPlane.gh" />
+                </Component>
+                <Component Id="cmpD86D10CAC1BC58BB0680786C4B4EF504" Guid="{4B60DFE8-CC24-44BA-A201-AD3021D82926}">
+                    <File Id="filACEF205AC3CB341CFACB2A769A7310CB" KeyPath="yes" Source="SourceDir\1_WindDirs_8.gh" />
+                </Component>
+                <Component Id="cmpFCB245C41B26A2A85B34EC20C53DE407" Guid="{A5890362-6668-456B-9959-B81FC331C8AE}">
+                    <File Id="fil198DFDD2090643AFC10F68B95627A41F" KeyPath="yes" Source="SourceDir\2_VisualizeWindVectors.gh" />
+                </Component>
+                <Component Id="cmp1FDA85C260331CF95AAFC3B21750B8DF" Guid="{876302D8-94AE-4E1B-B4F0-46B4A62338A6}">
+                    <File Id="filC50BF82EBA656811B3F04AC66F682887" KeyPath="yes" Source="SourceDir\3_AnnualOutdoorComfort.gh" />
+                </Component>
+                <Component Id="cmp06522F99420C80B1E08F4C72D8FC8C46" Guid="{B2A0CA88-17DF-4457-9FE6-1AFD1F274674}">
+                    <File Id="fil382C7B4E4487B80E9238BB2AF1651521" KeyPath="yes" Source="SourceDir\3_SimpleWindAnalysis.gh" />
+                </Component>
+                <Component Id="cmpF84272E4BB369FACF0BE2761092395D8" Guid="{1494925F-6250-441E-A6DB-CFCBC1858EC0}">
+                    <File Id="fil8836BCCD3FE556B00434027E87BCA1D0" KeyPath="yes" Source="SourceDir\4_AnnualWindAnalysis.gh" />
+                </Component>
+                <Component Id="cmpEE7FD285F548F08E0024A45EA6D6FFAB" Guid="{B6F1ED9C-0098-4BF0-96F2-856EE97322A5}">
+                    <File Id="filEDE4C8D7E5F3281A4795336B27FB296B" KeyPath="yes" Source="SourceDir\5_PressureOnBuildingFacade.gh" />
+                </Component>
+                <Component Id="cmp23E463305CE130A476738E16A5A4E145" Guid="{BE9F2EE3-8429-46C7-A331-F42E8B2C99C7}">
+                    <File Id="fil2546E82499C39FD869D5C9423CD13CEA" KeyPath="yes" Source="SourceDir\6_AnnualOutdoorComfort.gh" />
+                </Component>
+            </Directory>
+        </DirectoryRef>
+    </Fragment>
+</Wix>

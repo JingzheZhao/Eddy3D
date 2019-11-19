@@ -32,7 +32,7 @@ namespace Eddy
             pManager.AddGeometryParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
             pManager.AddGeometryParameter("Terrain", "Terrain", "Terrain Geometry. Make sure the terrain geometry is bigger than the ground plane of the wind tunnel.", GH_ParamAccess.list);
 
-            pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Boundary Condition", "BCond", "BCond", GH_ParamAccess.item);
 
             pManager[1].Optional = true;
             pManager[2].Optional = true;
@@ -111,7 +111,7 @@ namespace Eddy
 
             BoundaryConditions bCond = new BoundaryConditions(BoundaryType.abl, new List<int>() { 0 }, 5, 1, ""); // sets default BC settings
             GH_ObjectWrapper gobj = null;
-            if (DA.GetData("BCond", ref gobj))
+            if (DA.GetData("Boundary Condition", ref gobj))
             {
                 if ((gobj.Value is BoundaryConditions))
                 {

@@ -5,8 +5,9 @@
     <Package InstallerVersion="300" Compressed="yes" />
     <!--   <Media Id="1" Cabinet="myapplication.cab" EmbedCab="yes" /> -->
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
-    <MediaTemplate />
-    <Feature Id="Urbano" Title="Eddy3D" Level="1">
+    <MediaTemplate EmbedCab="yes" />
+    <Feature Id="Eddy3D" Title="Eddy3D" Level="1">
+
       <ComponentGroupRef Id="GrasshopperPlugin" />
     </Feature>
     <UI />
@@ -20,7 +21,10 @@
     <SetDirectory Id="INSTALLFOLDER" Value="[WindowsVolume]Eddy3D" />
     <SetDirectory Id="Grasshopper" Value="[AppDataFolder]Grasshopper\Libraries" />
   </Fragment>
+
   <Fragment>
+
+    <!-- Eddy3D Core files-->
     <ComponentGroup Id="GrasshopperPlugin" Directory="Grasshopper">
       <!-- TODO: Remove the comments around this Component element and the ComponentRef below in order to add resources to this installer. -->
       <!-- <Component Id="ProductComponent"> -->
@@ -48,5 +52,7 @@
         <File Id="CallRay.exe" Name="CallRay.exe" Source="$(var.sourceFolder)\CallRay.exe" />
       </Component>
     </ComponentGroup>
+
+    <!-- Templates are included by heat.exe output-->
   </Fragment>
 </Wix>

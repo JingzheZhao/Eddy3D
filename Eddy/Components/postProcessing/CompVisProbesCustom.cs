@@ -354,7 +354,7 @@ namespace Eddy
                 catch (Exception)
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"Parsing of the probes failed. This data does not exist yet. Please run the probing component.");
-                    //throw new System.ArgumentException("This data does not exist yet. Please run the probing component.");
+                    throw new System.ArgumentException("Parsing of the probes failed. This data does not exist yet. Please run the probing component.");
                 }
             }
 

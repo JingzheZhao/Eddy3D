@@ -106,7 +106,7 @@ namespace Eddy
             OFBaseDomain DOM;
 
             GH_ObjectWrapper gobj = null;
-            if (!DA.GetData("Domain", ref gobj)) { }
+            if (!DA.GetData("Simulation domain", ref gobj)) { }
 
             if ((gobj.Value is OFCylDomain))
             {
@@ -152,7 +152,7 @@ namespace Eddy
             //------------------
 
             string baseWorkingDirectory = "";
-            DA.GetData("Directory", ref baseWorkingDirectory);
+            DA.GetData("Working directory", ref baseWorkingDirectory);
             if (!Directory.Exists(baseWorkingDirectory)) { Directory.CreateDirectory(baseWorkingDirectory); }
 
             string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
