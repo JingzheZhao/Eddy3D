@@ -23,7 +23,8 @@ namespace Eddy
         /// be created.
         /// </summary>
         public ParseAnnualCP()
-          : base("AnnualCPToCSV", "AnnualCPToCSV", "AnnualCPToCSV", "Eddy", "5 | PostProcessing")
+          : base("AnnualCPToCSV", "AnnualCPToCSV", "AnnualCPToCSV" + EddyVersion.toString(),
+              EddyVersion.Name, "5 | PostProcessing")
         {
         }
 

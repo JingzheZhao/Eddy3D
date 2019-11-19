@@ -25,7 +25,8 @@ namespace Eddy
         /// be created.
         /// </summary>
         public ReadHumanConditions()
-          : base("ReadHumanConditions", "ReadHumanConditions", "Read annual human conditions from UTCI.", "Eddy", "6 | Outdoor Comfort")
+          : base("ReadHumanConditions", "ReadHumanConditions", "Read annual human conditions from UTCI." + EddyVersion.toString(),
+              EddyVersion.Name, "6 | Outdoor Comfort")
         {
         }
 

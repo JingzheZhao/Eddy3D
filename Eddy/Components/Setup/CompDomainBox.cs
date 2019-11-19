@@ -20,7 +20,8 @@ namespace Eddy
         /// be created.
         /// </summary>
         public BlockMeshBox()
-          : base("Box-shaped Domain", "DomainBox", "Box-shaped Domain", "Eddy", "1 | Setup")
+          : base("Box-shaped Domain", "DomainBox", "Box-shaped Domain" + EddyVersion.toString(),
+              EddyVersion.Name, "1 | Setup")
         {
         }
 

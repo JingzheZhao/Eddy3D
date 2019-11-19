@@ -23,7 +23,8 @@ namespace Eddy
         /// be created.
         /// </summary>
         public Residuals()
-        : base("Residuals", "Residuals", "Vis", "Eddy", "4 | Residuals")
+        : base("Residuals", "Residuals", "Vis" + EddyVersion.toString(),
+              EddyVersion.Name, "4 | Residuals")
         {
         }
 

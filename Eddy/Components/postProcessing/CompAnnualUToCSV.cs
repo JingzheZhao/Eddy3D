@@ -23,7 +23,8 @@ namespace Eddy
         /// be created.
         /// </summary>
         public ParseHourlyU()
-          : base("AnnualUToCSV", "AnnualUToCSV", "AnnualUToCSV", "Eddy", "5 | PostProcessing")
+          : base("AnnualUToCSV", "AnnualUToCSV", "AnnualUToCSV" + EddyVersion.toString(),
+              EddyVersion.Name, "5 | PostProcessing")
         {
         }
 

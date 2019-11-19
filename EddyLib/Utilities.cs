@@ -14,6 +14,9 @@ namespace EddyLib
 {
     public static class Utilities
     {
+
+
+
         public class StartProcess
         {
             public static void StartProcessCMD(string argument, bool createnowindow, bool waitforexit = false, bool close = false, string executable = @"C:\Windows\System32\cmd.exe")

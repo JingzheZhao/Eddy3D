@@ -20,8 +20,8 @@ namespace Eddy
         /// </summary>
         public MeshSettings()
           : base("Mesh Settings", "MSet",
-              "Mesh Settings",
-              "Eddy", "2 | Settings")
+              "Mesh Settings" + EddyVersion.toString(),
+              EddyVersion.Name, "2 | Settings")
         {
         }
 

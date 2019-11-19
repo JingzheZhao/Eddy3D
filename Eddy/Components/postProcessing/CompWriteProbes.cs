@@ -33,7 +33,8 @@ namespace Eddy
         /// be created.
         /// </summary>
         public WriteProbes()
-          : base("WriteProbes", "WriteProbes", "WriteProbes", "Eddy", "5 | PostProcessing")
+          : base("WriteProbes", "WriteProbes", "WriteProbes" + EddyVersion.toString(),
+              EddyVersion.Name, "5 | PostProcessing")
         {
         }
 

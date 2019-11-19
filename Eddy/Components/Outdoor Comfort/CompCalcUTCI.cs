@@ -26,7 +26,8 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompCalcUTCI()
-          : base("UTCI", "UTCI", "PostProcessing", "Eddy", "6 | Outdoor Comfort")
+          : base("UTCI", "UTCI", "PostProcessing" + EddyVersion.toString(),
+              EddyVersion.Name, "6 | Outdoor Comfort")
         {
         }
 

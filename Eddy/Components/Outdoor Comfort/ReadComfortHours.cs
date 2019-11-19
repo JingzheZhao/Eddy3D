@@ -27,7 +27,8 @@ namespace Eddy
         /// be created.
         /// </summary>
         public ReadComfortHours()
-          : base("ReadComfortHours", "ReadComfortHours", "Read annual accumulated comfort hours in % from UTCI.", "Eddy", "6 | Outdoor Comfort")
+          : base("ReadComfortHours", "ReadComfortHours", "Read annual accumulated comfort hours in % from UTCI." + EddyVersion.toString(),
+              EddyVersion.Name, "6 | Outdoor Comfort")
         {
         }
 

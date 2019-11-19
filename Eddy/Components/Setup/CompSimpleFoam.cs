@@ -22,8 +22,8 @@ namespace Eddy
         /// </summary>
         public SimpleFoam()
           : base("Simulation", "Simulation",
-              "Simulation",
-              "Eddy", "1 | Setup")
+              "Simulation" + EddyVersion.toString(),
+              EddyVersion.Name, "1 | Setup")
         {
         }
 

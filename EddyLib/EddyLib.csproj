@@ -70,6 +70,7 @@
     <Compile Include="Attributes\Eddy_ComponentButtonAttributes.cs" />
     <Compile Include="BoundaryConditions\BoundaryConditionsCP.cs" />
     <Compile Include="BoundaryConditions\BoundaryConditionsBase.cs" />
+    <Compile Include="EddyVersion.cs" />
     <Compile Include="OFResult.cs" />
     <Compile Include="OFRunSettings.cs" />
     <Compile Include="OFMeshSettings.cs" />

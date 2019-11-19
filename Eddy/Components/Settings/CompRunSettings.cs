@@ -20,8 +20,8 @@ namespace Eddy
         /// </summary>
         public RunSettings()
           : base("Run Settings", "RSet",
-              "Run Settings",
-              "Eddy", "2 | Settings")
+              "Run Settings" + EddyVersion.toString(),
+              EddyVersion.Name, "2 | Settings")
         {
         }
 

@@ -22,7 +22,8 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompComputeFlowRateFromU()
-          : base("Flow Rates", "Flow Rates", "Compute flow rates from velocity probes", "Eddy", "5 | PostProcessing")
+          : base("Flow Rates", "Flow Rates", "Compute flow rates from velocity probes" + EddyVersion.toString(),
+              EddyVersion.Name, "5 | PostProcessing")
         {
         }
 

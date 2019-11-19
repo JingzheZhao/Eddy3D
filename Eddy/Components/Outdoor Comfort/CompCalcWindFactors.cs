@@ -29,7 +29,8 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompCalcWindFactors()
-          : base("WindFactors", "WindFactors", "PostProcessing", "Eddy", "6 | Outdoor Comfort")
+          : base("WindFactors", "WindFactors", "PostProcessing" + EddyVersion.toString(),
+              EddyVersion.Name, "6 | Outdoor Comfort")
         {
         }
 

@@ -23,8 +23,8 @@ namespace Eddy
         /// </summary>
         public GeometryExportComponent()
           : base("STLExporter", "STLExporter",
-              "STLExporter",
-              "Eddy", "3 | PreProcessing")
+              "STLExporter" + EddyVersion.toString(),
+              EddyVersion.Name, "3 | PreProcessing")
         {
         }
 

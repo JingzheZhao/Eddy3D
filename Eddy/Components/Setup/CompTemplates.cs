@@ -17,7 +17,8 @@ namespace Eddy
 
         public Eddy_Templates()
 
-              : base("Templates", "Templates", "Templates", "Eddy", "0 | Load Templates")
+              : base("Templates", "Templates", "Templates" + EddyVersion.toString(),
+              EddyVersion.Name, "0 | Load Templates")
         {
         }
 

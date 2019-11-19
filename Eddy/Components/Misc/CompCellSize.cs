@@ -19,9 +19,8 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CellSize()
-          : base("CellSize", "CellSize",
-              "CellSize",
-              "Eddy", "3 | PreProcessing")
+          : base("CellSize", "CellSize",  "CellSize" + EddyVersion.toString(),
+              EddyVersion.Name, "3 | PreProcessing")
         {
         }
 

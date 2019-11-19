@@ -21,7 +21,8 @@ namespace Eddy
         /// be created.
         /// </summary>
         public BCondABLComp()
-          : base("ABL", "ABL", "Atmospheric Boundary Layer Boundary Condition", "Eddy", "1 | Setup")
+          : base("ABL", "ABL", "Atmospheric Boundary Layer Boundary Condition" + EddyVersion.toString(),
+              EddyVersion.Name, "1 | Setup")
         {
             //dirs.Add(0);
         }

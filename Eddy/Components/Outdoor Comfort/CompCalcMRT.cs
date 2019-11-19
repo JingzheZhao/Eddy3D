@@ -27,7 +27,8 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompCalcMRT()
-          : base("MRT", "MRT", "PostProcessing", "Eddy", "6 | Outdoor Comfort")
+          : base("MRT", "MRT", "PostProcessing" + EddyVersion.toString(),
+              EddyVersion.Name, "6 | Outdoor Comfort")
         {
         }
 

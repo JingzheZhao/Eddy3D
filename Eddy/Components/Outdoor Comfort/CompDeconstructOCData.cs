@@ -26,7 +26,8 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompDeconstructOCData()
-          : base("Deconstruct Data", "DeData", "PostProcessing", "Eddy", "6 | Outdoor Comfort")
+          : base("Deconstruct Data", "DeData", "PostProcessing" + EddyVersion.toString(),
+              EddyVersion.Name, "6 | Outdoor Comfort")
         {
         }
 
