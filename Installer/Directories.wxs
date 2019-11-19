@@ -21,6 +21,11 @@
         <Directory Id="INSTALLFOLDER" Name="!(loc.ProductNameFolder)" />
       </Directory>
       <?endif?>
+
+      <!--Grasshopper folder -->
+      <Directory Id="Grasshopper" />
     </Directory>
+
+    <SetDirectory Id="Grasshopper" Value="[AppDataFolder]Grasshopper\Libraries" />
   </Fragment>
 </Wix>
