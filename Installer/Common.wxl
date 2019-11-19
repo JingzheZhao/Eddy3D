@@ -10,7 +10,7 @@
   <String Id="ProductName_x64">Eddy3D (64bit)</String>
 
   <String Id="Language">1033</String>
-  <String Id="Description">AIRFLOW AND MICROCLIMATE SIMULATIONS FOR RHINO AND GRASSHOPPER</String>
+  <String Id="Description">Airflow and microclimate simulations for Rhino and Grasshopper</String>
   <String Id="Keywords">Airflow,Microclimate</String>
   <String Id="Comments">.</String>
 

@@ -2,7 +2,7 @@
 <!DOCTYPE dotfuscatorMap SYSTEM "http://www.preemptive.com/dotfuscator/dtd/dotfuscatorMap_v1.2.dtd">
 <dotfuscatorMap version="1.1">
     <header>
-        <timestamp>2019-11-19T14:33:13</timestamp>
+        <timestamp>2019-11-19T17:12:36</timestamp>
         <product version="5.44.0.10087" user="Patrick Kastner" serial="287670-391">Dotfuscator Community</product>
     </header>
     <mapping>
@@ -5841,6 +5841,27 @@
                 <eventlist />
             </type>
             <type>
+                <name>EddyLib.EddyVersion</name>
+                <methodlist>
+                    <method>
+                        <signature>string()</signature>
+                        <name>toString</name>
+                    </method>
+                </methodlist>
+                <fieldlist>
+                    <field>
+                        <signature>string</signature>
+                        <name>Name</name>
+                    </field>
+                    <field>
+                        <signature>string</signature>
+                        <name>ProductVersion</name>
+                    </field>
+                </fieldlist>
+                <propertylist />
+                <eventlist />
+            </type>
+            <type>
                 <name>EddyLib.Eddy_ComponentAttributes</name>
                 <methodlist>
                     <method>
@@ -10262,15 +10283,15 @@
     <statistics>
         <statisticline>
             <description>Total Classes</description>
-            <statistic>186</statistic>
+            <statistic>187</statistic>
         </statisticline>
         <statisticline>
             <description>Total Methods</description>
-            <statistic>1218</statistic>
+            <statistic>1219</statistic>
         </statisticline>
         <statisticline>
             <description>Total Fields</description>
-            <statistic>579</statistic>
+            <statistic>581</statistic>
         </statisticline>
         <statisticline>
             <description>Total Properties</description>
@@ -10283,17 +10304,17 @@
         <statisticline>
             <description>Total Classes Renamed</description>
             <statistic>1</statistic>
-            <statistic>0.54 %</statistic>
+            <statistic>0.53 %</statistic>
         </statisticline>
         <statisticline>
             <description>Total Methods Renamed</description>
             <statistic>192</statistic>
-            <statistic>15.76 %</statistic>
+            <statistic>15.75 %</statistic>
         </statisticline>
         <statisticline>
             <description>Total Fields Renamed</description>
             <statistic>206</statistic>
-            <statistic>35.58 %</statistic>
+            <statistic>35.46 %</statistic>
         </statisticline>
         <statisticline>
             <description>Total Properties Renamed</description>
@@ -10308,12 +10329,12 @@
         <statisticline>
             <description>Methods Renamed to 'a'</description>
             <statistic>132</statistic>
-            <statistic>10.84 %</statistic>
+            <statistic>10.83 %</statistic>
         </statisticline>
         <statisticline>
             <description>Methods Renamed to 'b'</description>
             <statistic>17</statistic>
-            <statistic>1.40 %</statistic>
+            <statistic>1.39 %</statistic>
         </statisticline>
         <statisticline>
             <description>Methods Renamed to 'c'</description>

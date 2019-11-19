@@ -64,7 +64,7 @@
       <DefineConstants>BuildVersion=%(AssemblyVersion.Version);BasePath=..\Templates</DefineConstants>
     </PropertyGroup>
     <!-- Harvest file components from Templates folder -->
-    <HeatDirectory OutputFile="ComponentsGenerated.wxs" DirectoryRefId="INSTALLFOLDER" ComponentGroupName="PublishedComponents" SuppressCom="true" Directory="C:\Users\Patrick Kastner\Documents\GitHub\Eddy3d\Templates" SuppressFragments="true" SuppressRegistry="true" SuppressRootDirectory="true" AutoGenerateGuids="false" GenerateGuidsNow="true" ToolPath="$(WixToolPath)" PreprocessorVariable="var.BasePath" />
+    <HeatDirectory OutputFile="ComponentsGenerated.wxs" DirectoryRefId="INSTALLFOLDER" ComponentGroupName="PublishedComponents" SuppressCom="true" Directory="..\Templates" SuppressFragments="true" SuppressRegistry="true" SuppressRootDirectory="true" AutoGenerateGuids="false" GenerateGuidsNow="true" ToolPath="$(WixToolPath)" PreprocessorVariable="var.BasePath" />
   </Target>
   <Target Name="AfterBuild">
     <!-- Get assembly version -->

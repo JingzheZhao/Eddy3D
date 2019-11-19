@@ -2,28 +2,28 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <Fragment>
         <DirectoryRef Id="INSTALLFOLDER">
-            <Component Id="cmpDEEE0EA93C42BFA3A1A7E842A1CA1BF4" Guid="{43A31FD9-E00C-4EBF-BD59-1CCBAB0F2A2B}">
+            <Component Id="cmpDEEE0EA93C42BFA3A1A7E842A1CA1BF4" Guid="{DEF63D1B-25BF-4BFB-B092-BDF1DF21F92C}">
                 <File Id="fil342ECEAE7C985031885C67A15ABDCA9A" KeyPath="yes" Source="$(var.BasePath)\0_ProbingPlane.gh" />
             </Component>
-            <Component Id="cmp86F675F47002FB43FF7AECA77CBD1A57" Guid="{BD69AFFB-2338-4637-89D9-201BF461086B}">
+            <Component Id="cmp86F675F47002FB43FF7AECA77CBD1A57" Guid="{DE400A9C-6931-4DFA-B083-E19C72C9FFB4}">
                 <File Id="fil32BC4C8A16431149FDA5332E68BFE933" KeyPath="yes" Source="$(var.BasePath)\1_WindDirs_8.gh" />
             </Component>
-            <Component Id="cmp41388837B8F46554DA64FEC58D6529DA" Guid="{D610A66A-18E8-4714-AB31-9AB7EA7FCB71}">
+            <Component Id="cmp41388837B8F46554DA64FEC58D6529DA" Guid="{368831CC-60A2-401B-AD60-FBC8ECC2A5B7}">
                 <File Id="fil099FADE751F51F1E960C2351E63785A7" KeyPath="yes" Source="$(var.BasePath)\2_VisualizeWindVectors.gh" />
             </Component>
-            <Component Id="cmp1A58FFEADE09A40F6DF4DF61DA3F8103" Guid="{EFB4AC20-3C33-4B32-A172-364D67B88B72}">
+            <Component Id="cmp1A58FFEADE09A40F6DF4DF61DA3F8103" Guid="{8E658824-3B20-4B40-BB67-BACAE83CAEBF}">
                 <File Id="fil6A2D317E4C36F8BC5E39C0573A066E69" KeyPath="yes" Source="$(var.BasePath)\3_AnnualOutdoorComfort.gh" />
             </Component>
-            <Component Id="cmp995D9BF33FF7DE6242D763638104303E" Guid="{CAB7B469-8346-4942-9722-1CC27D6F74CD}">
+            <Component Id="cmp995D9BF33FF7DE6242D763638104303E" Guid="{464672D9-6C4E-42C2-B7B4-37D9CCD28DCF}">
                 <File Id="filBCEB6F30AB287D05E3C9846D200E5B13" KeyPath="yes" Source="$(var.BasePath)\3_SimpleWindAnalysis.gh" />
             </Component>
-            <Component Id="cmpD49D277692AE4E227557165AB4A65CFE" Guid="{CC265CA1-B412-432B-8AAC-3262641B1388}">
+            <Component Id="cmpD49D277692AE4E227557165AB4A65CFE" Guid="{443CF26B-04AC-43CF-B716-2C4F0A9E85BB}">
                 <File Id="filFFFB7748AEF192083F15477EA7D55252" KeyPath="yes" Source="$(var.BasePath)\4_AnnualWindAnalysis.gh" />
             </Component>
-            <Component Id="cmp6B60962CE4F65F1F983FE51D4F6BB668" Guid="{EA5DD090-4CCA-4133-99DB-25C5319F26CB}">
+            <Component Id="cmp6B60962CE4F65F1F983FE51D4F6BB668" Guid="{00216BCB-C348-4A0E-936B-03BF100D5362}">
                 <File Id="fil34F0F2480B20135519F87C346BDBCCB8" KeyPath="yes" Source="$(var.BasePath)\5_PressureOnBuildingFacade.gh" />
             </Component>
-            <Component Id="cmp31E82866F7032D823FA73C6312A36155" Guid="{51C0F894-CB2C-4A17-A623-4F7498BF208A}">
+            <Component Id="cmp31E82866F7032D823FA73C6312A36155" Guid="{5FAC9A3A-025D-4780-9B56-8242BB7A3FB9}">
                 <File Id="filF02D5306AC255851D3858BDC591B1F47" KeyPath="yes" Source="$(var.BasePath)\6_AnnualOutdoorComfort.gh" />
             </Component>
         </DirectoryRef>
