@@ -81,10 +81,13 @@ namespace EddyLib
             var zMin = BBox.Min.Z;
             var zMax = BBox.Max.Z;
             this.zMaxBuilding = zMax;
+            this.radius = sizeOuterCirc;
 
             var dimX = xMax - xMin;
             var dimY = yMax - yMin;
             var dimZ = zMax - zMin;
+
+            this.height = dimZ;
 
             // If terrain is used, scale down Z to make sure all points are inside the domain Zinter
             // is call divisionsZ for CylDomain which is an int instead of an Interval

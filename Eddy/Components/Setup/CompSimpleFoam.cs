@@ -186,11 +186,6 @@ namespace Eddy
 
             if (DOM is OFBoxDomain)
             {
-                if (DOM.BCond.windDirs.Count > 1)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "For box-shaped domains you can only pass one wind direction per simulation setup."); return;
-                }
-
                 RunBlockMesh.RunBox((OFBoxDomain)DOM, MeshSettings, RunSettings, baseWorkingDirectory);
             }
             else

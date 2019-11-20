@@ -204,6 +204,8 @@ namespace Eddy
             {
                 OFCylDomain DOMCYL = new OFCylDomain(buildingGeometry, terrainMeshes, bCond, coreBlockSize, sizeInnerRect, sizeOuterCirc, sizeHeight);
 
+                FillRenderLists(bCond, DOMCYL);
+
                 DA.SetData(0, DOMCYL);
 
                 if (DOMCYL.hasTerrain)
@@ -236,5 +238,57 @@ namespace Eddy
         /// change otherwise old ghx files that use the old ID will partially fail during loading.
         /// </summary>
         public override Guid ComponentGuid => new Guid("{DDB7971A-EBAD-4A6F-8BFB-E77FE24F73BD}");
+
+        private List<Point3d> _point;
+        private List<Vector3d> _vecs;
+
+        private void FillRenderLists(BoundaryConditions bCond, OFCylDomain DOM)
+        {
+            //clear
+            _point = new List<Point3d>();
+            _vecs = new List<Vector3d>();
+
+            var pt = Utilities.CenterBottomBoundingBox(DOM.DomainMesh);
+
+            var length = DOM.radius;
+
+            //Fill render lists for arrow preview
+
+            foreach (Vector3d vec in bCond.flowDir)
+            {
+                _vecs.Add(vec * bCond.URef);
+                _point.Add(pt + (-vec * length) + 2 * (-vec * bCond.URef));
+            }
+        }
+
+        public override void DrawViewportWires(IGH_PreviewArgs args)
+        {
+            base.DrawViewportWires(args);
+
+            if (this.Locked || _point == null || _point.Count == 0 || _vecs == null || _vecs.Count == 0)
+            {
+                return;
+            }
+
+            if (this.Attributes.Selected)
+            {
+                for (int i = 0; i < _point.Count; i++)
+                {
+                    var l = new Line(_point[i], _vecs[i]);
+                    args.Display.DrawArrow(l, args.WireColour_Selected, 25, 0);
+                }
+                return;
+            }
+            else
+            {
+                for (int i = 0; i < _point.Count; i++)
+                {
+                    var l = new Line(_point[i], _vecs[i]);
+                    args.Display.DrawArrow(l, args.WireColour, 25, 0);
+                }
+
+                return;
+            }
+        }
     }
 }

@@ -59,6 +59,10 @@ namespace EddyLib
             var dimY = yMax - yMin;
             var dimZ = zMax - zMin;
 
+            this.length = Math.Round(xCells * blockDimension, 1);
+            this.width = Math.Round(yCells * blockDimension, 1);
+            this.height = Math.Round(zCells * blockDimension, 1);
+
             ////////////
             // Center ground order is not correct but it worked before by moving Plane is wrongly projected
             ////////////
@@ -226,9 +230,9 @@ namespace EddyLib
         public override string ToString()
         {
             return "Box Domain:\n" +
-            "Dimensions in x: " + Math.Round(xCells * blockDimension, 1) + " m\n" +
-            "Dimensions in y: " + Math.Round(yCells * blockDimension, 1) + " m\n" +
-            "Dimensions in z: " + Math.Round(zCells * blockDimension, 1) + " m\n" +
+            "Width: " + Math.Round(xCells * blockDimension, 1) + " m\n" +
+            "Length: " + Math.Round(yCells * blockDimension, 1) + " m\n" +
+            "Height: " + Math.Round(zCells * blockDimension, 1) + " m\n" +
             "Cells in x: " + xCells + "\n" +
             "Cells in y: " + xCells + "\n" +
             "Cells in z: " + zCells + "\n" +

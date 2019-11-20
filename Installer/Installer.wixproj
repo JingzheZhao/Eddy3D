@@ -51,7 +51,7 @@
   </Target>
   <!-- Before build -->
   <Target Name="BeforeBuild">
-    <!-- Clean previous build folder 
+    <!-- Clean previous build folder
     <Exec Command="rd /s /q ..\ConsoleApp1\bin\$(Configuration)\netcoreapp2.0\win-$(Platform)" />
     Publish dotnet core app
     <Exec Command="dotnet publish ..\ConsoleApp1\ConsoleApp1.csproj -c $(Configuration) -r win-$(Platform)" />
@@ -73,7 +73,7 @@
     </GetAssemblyIdentity>
     <!-- Rename and move final MSI -->
     <!--<Exec Command="if not exist Installs mkdir Installs" />-->
-    <!--<Exec Command="move $(OutputName).msi ..\..\..\..\Build\Build.Installer\Eddy3D-%(AssemblyVersion.Version)-$(Configuration)-$(Platform).msi" />-->
+    <!-- <Exec Command="copy $(OutputName).msi ..\..\..\..\Build\Build.Installer\Eddy3D-%(AssemblyVersion.Version)-$(Configuration)-$(Platform).msi" />-->
   </Target>
   <PropertyGroup>
     <PostBuildEvent />
