@@ -141,6 +141,7 @@ SET build_callray=$(SolutionDir)CallRay\bin\
 SET build_callof=$(SolutionDir)CallOF\bin\
 
 SET post_build_ilmerge=$(SolutionDir)Build\Build.Ilmerge\
+SET post_build_dotfuscated=$(SolutionDir)Build\Build.Dotfuscated\
 
 SET cappl=$(SolutionDir)packages\ConsoleAppLauncher.1.0.6354.408\lib\net40\ConsoleAppLauncher.dll
 SET cliapp=$(SolutionDir)packages\CommandLineParser.1.9.71\lib\net45\CommandLine.dll
@@ -173,6 +174,13 @@ copy "%25build_batchrunner%25\CallBatchRunner.exe" "%25post_build_ilmerge%25"
 copy "%25build_callprobes%25\CallProbes.exe" "%25post_build_ilmerge%25"
 copy "%25build_callray%25\CallRay.exe" "%25post_build_ilmerge%25"
 copy "%25build_callof%25\CallOF.exe" "%25post_build_ilmerge%25"
+
+
+copy "%25build_calloc%25\CallOC.exe" "%25post_build_dotfuscated%25"
+copy "%25build_batchrunner%25\CallBatchRunner.exe" "%25post_build_dotfuscated%25"
+copy "%25build_callprobes%25\CallProbes.exe" "%25post_build_dotfuscated%25"
+copy "%25build_callray%25\CallRay.exe" "%25post_build_dotfuscated%25"
+copy "%25build_callof%25\CallOF.exe" "%25post_build_dotfuscated%25"
 
 
 
