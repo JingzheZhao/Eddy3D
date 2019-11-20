@@ -132,12 +132,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\EddyLib\EddyLib.csproj">
-      <Project>{cd46984c-eb80-48de-b903-ce9f1bbca21e}</Project>
-      <Name>EddyLib</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\Eddy_cluster.png" />
   </ItemGroup>
   <ItemGroup>
@@ -223,6 +217,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Eddy3D.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\EddyLib\EddyLib.csproj">
+      <Project>{cd46984c-eb80-48de-b903-ce9f1bbca21e}</Project>
+      <Name>EddyLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

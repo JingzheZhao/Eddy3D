@@ -211,7 +211,7 @@ echo "***"
 echo ""
 
 SET post_build_ilmerge=$(SolutionDir)Build\Build.Ilmerge\
-
+if not exist "%25post_build_ilmerge%25" mkdir "%25post_build_ilmerge%25"
 del /q "%25post_build_ilmerge%25"=\*
 for /d %25%25x in ("%25post_build_ilmerge%25"\*) do @rd /s /q "%25%25x"</PreBuildEvent>
   </PropertyGroup>
