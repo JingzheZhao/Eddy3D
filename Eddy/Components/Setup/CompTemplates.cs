@@ -44,7 +44,7 @@ namespace Eddy
             var dirs = new List<string>()
             {
                             //Utilities.GetPathToUserHome() +   @"\Eddy3D\Templates\"
-                            @"C:\Program Files (x86)\"
+                            @"C:\Eddy3D\"
             };
             DA.GetDataList(0, dirs);
 

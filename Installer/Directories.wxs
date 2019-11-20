@@ -24,8 +24,11 @@
 
       <!--Grasshopper folder -->
       <Directory Id="Grasshopper" />
+      <!--Eddy3DInstallFolder -->
+      <Directory Id="Eddy3DInstallFolder" />
     </Directory>
 
+    <SetDirectory Id="Eddy3DInstallFolder" Value="C:\Eddy3D" />
     <SetDirectory Id="Grasshopper" Value="[AppDataFolder]Grasshopper\Libraries" />
   </Fragment>
 </Wix>
