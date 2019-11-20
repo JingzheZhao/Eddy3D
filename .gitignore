@@ -296,8 +296,4 @@ __pycache__/
 *.zip
 *.gha
 *.gha
-Build/Temp.Dotfuscated/Map.1.xml
-Build/Temp.Dotfuscated/Map.1.xml
-Build/Temp.Dotfuscated/Map.1.xml
-Build/Temp.Dotfuscated/Map.0.xml
-Build/Temp.Dotfuscated/Map.xml
+Build/Temp.Dotfuscated/*
