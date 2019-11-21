@@ -106,10 +106,9 @@ namespace Eddy
         /// The DA object can be used to retrieve data from input parameters and to store data in
         /// output parameters.
         /// </param>
-        /// 
+        ///
 
-
-        bool canRun = true;
+        private bool canRun = true;
 
         public void probingComplete(object sender, System.EventArgs e)
         {
@@ -117,7 +116,6 @@ namespace Eddy
             canRun = false;
             this.ExpireSolution(true);
         }
-
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
@@ -216,7 +214,6 @@ namespace Eddy
             if (listOfPoints.Count > threshold)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Probing more than " + threshold + " points may slow things down considerably.");
-              
             }
 
             #endregion Error handling
@@ -242,7 +239,7 @@ namespace Eddy
                             string pathToPointFile = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\constant\polyMesh\points";
                             if (!File.Exists(pathToPointFile))
                             {
-                                base.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The file  """ + pathToPointFile + @""" does not exist. Please make sure that a mesh with point exists.");
+                                base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The file  """ + pathToPointFile + @""" does not exist. Please make sure that a mesh with point exists.");
                                 return;
                             }
 
@@ -313,7 +310,7 @@ namespace Eddy
                             string pathToPointFile = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\constant\polyMesh\points";
                             if (!File.Exists(pathToPointFile))
                             {
-                                base.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The file  """ + pathToPointFile + @""" does not exist. Please make sure that a mesh with point exists.");
+                                base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The file  """ + pathToPointFile + @""" does not exist. Please make sure that a mesh with point exists.");
                                 return;
                             }
 
@@ -403,9 +400,7 @@ namespace Eddy
                 DA.SetDataList(0, listOfPoints);
             }
 
-
             canRun = true;
-
         }
 
         /// <summary>
