@@ -123,7 +123,7 @@ namespace Eddy
 
             List<int> selectionList = new List<int>();
 
-            DA.GetDataList("Sel", selectionList);
+            DA.GetDataList("Selection of wind directions", selectionList);
             DA.GetData("X", ref x0x1);
             DA.GetData("Y", ref y0y1);
             int version = 1;
