@@ -68,7 +68,7 @@ namespace Eddy
             param.AddNamedValue("Windows V4", 0);
             param.AddNamedValue("Windows V5", 1);
             param.AddNamedValue("BlueCFD", 2);
-            pManager.AddBooleanParameter("Toggle", "Tog", "Start Paraview", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("Run", "Run", "Start Paraview", GH_ParamAccess.item);
 
             pManager[1].Optional = true;
             pManager[2].Optional = true;
@@ -101,7 +101,7 @@ namespace Eddy
             DA.GetData(0, ref RES);
 
             List<int> dirs = new List<int>();
-            DA.GetDataList("Dirs", dirs);
+            DA.GetDataList("Wind directions", dirs);
 
             if (dirs.Count == 0)
             {
@@ -109,7 +109,7 @@ namespace Eddy
             }
 
             int version = 0;
-            DA.GetData("Version", ref version);
+            DA.GetData("Paraview version", ref version);
 
             bool run = false;
             DA.GetData("Run", ref run);
@@ -128,7 +128,7 @@ namespace Eddy
 
             // "C:\\Program Files\\ParaView 5.6.0-Windows-msvc2015-64bit\\bin\\paraview.exe\" \"C:\\testDomain\\259\\259.foam
             string paraViewPath = "\"" + EddyLib.Utilities.GetParaviewPath(version) + "\" " + @"--script=" + "\"" + scriptPath + "\"";
-            EddyLib.Utilities.StartProcess.StartProcessCMDNT(paraViewPath, true, false, true,true);
+            EddyLib.Utilities.StartProcess.StartProcessCMDNT(paraViewPath, true, false, true, true);
         }
 
         /// <summary>
