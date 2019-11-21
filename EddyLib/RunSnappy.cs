@@ -143,13 +143,13 @@ namespace EddyLib
             //    File.WriteAllText(MeshSettings.baseWorkingDir + @"\mesh\log", "");
             //}
 
-            using (FileStream stream = File.Open(MeshSettings.meshWorkingDir + @"\log", FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                using (StreamReader reader = new StreamReader(stream))
-                {
-                    logFile = reader.ReadToEnd();
-                }
-            }
+            //using (FileStream stream = File.Open(MeshSettings.meshWorkingDir + @"\log", FileMode.Open, FileAccess.Read, FileShare.Read))
+            //{
+            //    using (StreamReader reader = new StreamReader(stream))
+            //    {
+            //        logFile = reader.ReadToEnd();
+            //    }
+            //}
         }
     }
 }

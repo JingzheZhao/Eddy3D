@@ -128,7 +128,7 @@ namespace Eddy
 
             // "C:\\Program Files\\ParaView 5.6.0-Windows-msvc2015-64bit\\bin\\paraview.exe\" \"C:\\testDomain\\259\\259.foam
             string paraViewPath = "\"" + EddyLib.Utilities.GetParaviewPath(version) + "\" " + @"--script=" + "\"" + scriptPath + "\"";
-            EddyLib.Utilities.StartProcess.StartProcessCMDNT(paraViewPath, true, false, true);
+            EddyLib.Utilities.StartProcess.StartProcessCMDNT(paraViewPath, true, false, true,true);
         }
 
         /// <summary>

@@ -9,6 +9,7 @@ using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
+using Rhino;
 using Rhino.Geometry;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
@@ -105,6 +106,19 @@ namespace Eddy
         /// The DA object can be used to retrieve data from input parameters and to store data in
         /// output parameters.
         /// </param>
+        /// 
+
+
+        bool canRun = true;
+
+        public void probingComplete(object sender, System.EventArgs e)
+        {
+            //RhinoApp.WriteLine("Proping complete");
+            canRun = false;
+            this.ExpireSolution(true);
+        }
+
+
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             #region Load Inputs
@@ -180,15 +194,17 @@ namespace Eddy
 
             if (Directory.Exists(RES.MeshSettings.meshPolyMeshDir) == false)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The mesh folder does not exist. Please create a mesh first.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The mesh folder does not exist. Please create a mesh first.");
                 //throw new System.ArgumentException("The mesh folder is does not exist. Please create a mesh first.");
+                return;
             }
             else
             {
                 if (Utilities.Directories.IsDirectoryEmpty(RES.MeshSettings.meshPolyMeshDir) == true)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The mesh folder is empty. Can't retrieve probes from a mesh that does not exist.");
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The mesh folder is empty. Can't retrieve probes from a mesh that does not exist.");
                     // throw new System.ArgumentException("The mesh folder is empty. Can't retrieve probes from a mesh that does not exist.");
+                    return;
                 }
                 else
                 {
@@ -200,6 +216,7 @@ namespace Eddy
             if (listOfPoints.Count > threshold)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Probing more than " + threshold + " points may slow things down considerably.");
+              
             }
 
             #endregion Error handling
@@ -241,21 +258,21 @@ namespace Eddy
                             }
                             else
                             {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
-                                command.AppendLine(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + currField.ProbeName + @" -latestTime");
+                                command.Append(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + currField.ProbeName + @" -latestTime");
                             }
                         }
 
-                        if (run == true)
+                        if (run == true && canRun == true)
                         {
                             if (RES.RunSettings.simEngine == SimEngine.Docker)
                             {
                                 var arg = EddyLib.StrTemp.BatFiles.DockerPrefixPath(RES.Domain, RES.MeshSettings, RES.RunSettings, EddyLib.StrTemp.Mode.Simulation) + command;
-                                Utilities.StartProcess.StartProcessCMDNT(arg, false, true, false, true);
+                                Utilities.StartProcess.StartProcessCMDNT(arg, false, true, false, true, probingComplete);
                             }
                             else
                             {
                                 //Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString(), "type log" }, RES.WorkingDirectory), false, true, true);
-                                Utilities.StartProcess.StartProcessCMDNT(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory), false, true, false, true);
+                                Utilities.StartProcess.StartProcessCMDNT(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory), false, true, true, true, probingComplete);
                             }
                         }
 
@@ -274,7 +291,7 @@ namespace Eddy
                             }
                             else
                             {
-                                base.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"The file """ + pathToProbeFile + @""" does not exist. Please run the probing component.");
+                                base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The file """ + currentCaseDir + " " + currField.FieldName + @""" does not exist. Please run the probing component.");
                                 return;
                             }
                         }
@@ -313,23 +330,23 @@ namespace Eddy
                                 File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, currField));
                                 // Todo: check here if we need a semicolon to sepaate the command
                                 // from the suffix
-                                command.AppendLine(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + probeNameByUser + @" -latestTime");
+                                command.Append(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + probeNameByUser + @" -latestTime");
                             }
                         }
 
-                        if (run == true)
+                        if (run == true && canRun == true)
                         {
                             if (RES.RunSettings.simEngine == SimEngine.Docker)
                             {
                                 var arg = EddyLib.StrTemp.BatFiles.DockerPrefixPath(RES.Domain, RES.MeshSettings, RES.RunSettings, EddyLib.StrTemp.Mode.Simulation) + command;
-                                Utilities.StartProcess.StartProcessCMDNT(arg, false, true, false, true);
+                                Utilities.StartProcess.StartProcessCMDNT(arg, false, true, false, true, probingComplete);
                             }
                             else
                             {
                                 // Utilities.StartProcessCMD(EddyLib.StrTemp.BatFiles.TempBlueCFD(new
                                 // List<string> { command.ToString(), "type log" },
                                 // RES.WorkingDirectory), false, true, true);
-                                Utilities.StartProcess.StartProcessCMDNT(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory), false, true, false, true);
+                                Utilities.StartProcess.StartProcessCMDNT(EddyLib.StrTemp.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory), false, true, true, true, probingComplete);
                             }
                         }
 
@@ -345,7 +362,7 @@ namespace Eddy
                             }
                             else
                             {
-                                base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The file  """ + pathToProbeFile + @""" does not exist. Please run the probing component.");
+                                base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The file  """ + currentCaseDir + " " + currField.FieldName + @""" does not exist. Please run the probing component.");
                             }
                         }
                     }
@@ -355,7 +372,7 @@ namespace Eddy
                 catch (Exception)
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"Parsing of the probes failed. This data does not exist yet. Please run the probing component.");
-                    throw new System.ArgumentException("Parsing of the probes failed. This data does not exist yet. Please run the probing component.");
+                    //throw new System.ArgumentException("Parsing of the probes failed. This data does not exist yet. Please run the probing component.");
                 }
             }
 
@@ -385,6 +402,10 @@ namespace Eddy
                 DA.SetDataTree(1, treeVector);
                 DA.SetDataList(0, listOfPoints);
             }
+
+
+            canRun = true;
+
         }
 
         /// <summary>

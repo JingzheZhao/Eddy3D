@@ -148,6 +148,8 @@ namespace EddyLib
             this.baseWorkingDirectory = baseWorkingDirectory;
             string fullPath = GetIterationPathToProbedResults(caseDirectory, ofField);
 
+            if (fullPath == "") return;
+
             //Number
             if (ofField.FieldType == OFField.fieldType.number)
             {
@@ -245,12 +247,15 @@ namespace EddyLib
             //replace this with input
             string basePath = PostProcessingDirectory + ofField.ProbeName;
 
-            //if (!Directory.Exists(basePath)){
-            //    Directory.CreateDirectory(basePath);
-            //}
+            if (!Directory.Exists(basePath)) return "";
 
-            //string[] filePathResults = new string[counterPoints];
-            string[] directoriesBasePath = Directory.GetDirectories(basePath);
+
+                //if (!Directory.Exists(basePath)){
+                //    Directory.CreateDirectory(basePath);
+                //}
+
+                //string[] filePathResults = new string[counterPoints];
+                string[] directoriesBasePath = Directory.GetDirectories(basePath);
             Array.Sort(directoriesBasePath, new Utilities.NumericComparer());
 
             string latestTimedirectoriesBasePath = directoriesBasePath[directoriesBasePath.Length - 1];

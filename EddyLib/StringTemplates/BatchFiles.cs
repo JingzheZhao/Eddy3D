@@ -174,9 +174,11 @@ namespace EddyLib.StrTemp
 
         private static string AppendSuffixWin()
         {
-            StringBuilder sb = new StringBuilder();
-            sb.Append("| tee -a log");
-            return sb.ToString();
+            return "| tee -a log";
+
+            //StringBuilder sb = new StringBuilder();
+            //sb.Append("| tee -a log");
+            //return sb.ToString();
         }
 
         public static string Run_Mesh_Cyl(OFRunSettings RunSettings, OFMeshSettings MeshSettings, OFBaseDomain DOM, Mode mode)
@@ -720,42 +722,13 @@ REM   --help              Display this help screen.");
 
             foreach (string str in commands)
             {
-                sb.AppendLine(str + " " + AppendSuffixWin());
+                sb.AppendLine(str.Trim() + " " + AppendSuffixWin());
                 //sb.AppendLine(str);
             }
 
             return sb.ToString();
         }
 
-        public static string BlueCFDEnvVars
-            (List<string> commands, string caseDir, string installationPath = @"C:\Program Files\blueCFD-Core-2017\")
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.Append(string.Format(@"call ""{0}setvars.bat""
-set PATH=%HOME%\msys64\usr\bin;%PATH%
-cd ""{1}""" + System.Environment.NewLine, installationPath, caseDir));
-
-            foreach (string str in commands)
-            {
-                sb.AppendLine(str + " " + AppendSuffixWin());
-                //sb.AppendLine(str);
-            }
-
-            return sb.ToString();
-        }
-
-        //        public static string TempBlueCFD
-        //            (List<string> commands, string caseDir, string installationPath = @"C:\OpenFOAM\")
-        //        {
-        //            StringBuilder sb = new StringBuilder();
-        //            sb.Append(string.Format(@"call ""{0}""setvars.bat
-        //set PATH =%HOME%\msys64\usr\bin;%PATH%
-        //cd ""{1}""" + System.Environment.NewLine, installationPath, caseDir));
-
-        // foreach (string str in commands) { sb.AppendLine(str); }
-
-        // return sb.ToString();
-
-        // }
+      
     }
 }
