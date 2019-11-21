@@ -255,7 +255,7 @@ namespace Eddy
                             }
                             else
                             {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
-                                command.Append(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + currField.ProbeName + @" -latestTime");
+                                command.AppendLine(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + currField.ProbeName + @" -latestTime");
                             }
                         }
 
@@ -327,7 +327,7 @@ namespace Eddy
                                 File.WriteAllText(path, EddyLib.StrTemp.OFExecDicts.SampleProbes(listOfPoints, currField));
                                 // Todo: check here if we need a semicolon to sepaate the command
                                 // from the suffix
-                                command.Append(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + probeNameByUser + @" -latestTime");
+                                command.AppendLine(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + probeNameByUser + @" -latestTime");
                             }
                         }
 
@@ -375,18 +375,28 @@ namespace Eddy
 
             // Todo: Move this into class object once its properly architected
 
-            if (currField.FieldType == EddyLib.OFField.fieldType.vector)
+            try
             {
-                var list = treeVector.get_Branch(new GH_Path(0));
-                var listVecs = new List<GH_Vector>();
-
-                foreach (object item in list)
+                if (!treeVector.IsEmpty)
                 {
-                    listVecs.Add((GH_Vector)item);
-                }
+                    if (currField.FieldType == EddyLib.OFField.fieldType.vector)
+                    {
+                        var list = treeVector.get_Branch(new GH_Path(0));
+                        var listVecs = new List<GH_Vector>();
 
-                int[] IndecesOfExtremeProbes = Probing.ReturnIndexOfExtremeProbes(listVecs);
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, @"The probes with the indices: " + string.Join(",", IndecesOfExtremeProbes) + " can't be probed within the simulation domain and have been discarded.");
+                        foreach (object item in list)
+                        {
+                            listVecs.Add((GH_Vector)item);
+                        }
+
+                        int[] IndecesOfExtremeProbes = Probing.ReturnIndexOfExtremeProbes(listVecs);
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, @"The probes with the indices: " + string.Join(",", IndecesOfExtremeProbes) + " can't be probed within the simulation domain and have been discarded.");
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Please run the probing component.");
             }
 
             if (currField.FieldType == EddyLib.OFField.fieldType.number)

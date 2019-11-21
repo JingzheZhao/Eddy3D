@@ -540,14 +540,14 @@ namespace EddyLib.StrTemp
                     sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str + AppendSuffixDocker());
                 }
 #if DEBUG
-                    sb.AppendLine("PAUSE");
+                sb.AppendLine("PAUSE");
 #endif
             }
             else
             {
                 sb.Append(TempBlueCFD(reconstructSim(), caseWorkingDir));
 #if DEBUG
-                    sb.AppendLine("PAUSE");
+                sb.AppendLine("PAUSE");
 #endif
             }
 
@@ -701,7 +701,7 @@ REM   --help              Display this help screen.");
         }
 
         public static string TempBlueCFD
-            (List<string> commands, string caseDir, string installationPath = @"C:\Program Files\blueCFD-Core-2017\")
+            (List<string> commands, string caseDir, bool logging = true, string installationPath = @"C:\Program Files\blueCFD-Core-2017\")
 
         {
             bool notOnC = false;
@@ -720,15 +720,24 @@ REM   --help              Display this help screen.");
             }
             sb.AppendLine("cd " + "\"" + caseDir + "\"");
 
-            foreach (string str in commands)
+            if (logging)
             {
-                sb.AppendLine(str.Trim() + " " + AppendSuffixWin());
-                //sb.AppendLine(str);
+                foreach (string str in commands)
+                {
+                    sb.AppendLine(str.Trim() + " " + AppendSuffixWin());
+                    //sb.AppendLine(str);
+                }
+            }
+            else
+            {
+                foreach (string str in commands)
+                {
+                    sb.AppendLine(str.Trim() + " ");
+                    //sb.AppendLine(str);
+                }
             }
 
             return sb.ToString();
         }
-
-      
     }
 }
