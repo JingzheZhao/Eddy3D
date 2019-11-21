@@ -296,6 +296,6 @@ __pycache__/
 *.zip
 *.gha
 *.gha
-Build/Temp.Dotfuscated/*
-Build/Build.Temp/*
+Build/Temp.Dotfuscated/
+Build/Build.Temp/
 Installer/ComponentsGenerated.wxs
