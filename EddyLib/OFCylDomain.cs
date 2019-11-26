@@ -252,19 +252,19 @@ namespace EddyLib
 
             this.concentricDivisions = GetConcenctricPolyDivisions(pointsOnRect, pointsOnCircle, divPerim, height);
 
-            coreTop = Mesh.CreateFromPlane(pl, xinter, xinter, divsRadial, divsRadial); // creates the inner rectangle with arbitrary subdivision
+            coreTop.Append(coreBottom);
             coreTop.Translate(Vector3d.ZAxis * height);
-
             perimBottom = PerimeterRing(poly, pointsOnCircle);
-
-            perimTop = PerimeterRing(poly, pointsOnCircle);
+            perimTop.Append(perimBottom);
             perimTop.Translate(Vector3d.ZAxis * height);
+
             sides = SideWalls(pointsOnCircle, height);
 
             CheckAndFlipMeshNormals();
+            WeldAllIndividualMeshes();
 
-            CylDomainMeshGround = coreBottom;
-            CylDomainMeshGroundPerim = perimBottom;
+            CylDomainMeshGround.Append(coreBottom);
+            CylDomainMeshGroundPerim.Append(perimBottom);
             CylDomainMesh.Append(perimBottom);
             CylDomainMesh.Append(coreBottom);
             CylDomainMesh.Append(perimTop);
@@ -281,6 +281,16 @@ namespace EddyLib
             IEnumerable<Mesh> first = new Mesh[] { DomainMesh };
             IEnumerable<Mesh> second = new Mesh[] { TerrainMesh };
             this.DomainMeshIntersection = Mesh.CreateBooleanIntersection(first, second);
+        }
+
+        private void WeldAllIndividualMeshes()
+
+        {
+            this.coreBottom.Weld(Math.PI);
+            this.coreTop.Weld(Math.PI);
+            this.perimBottom.Weld(Math.PI);
+            this.perimTop.Weld(Math.PI);
+            this.sides.Weld(Math.PI);
         }
 
         private void CheckAndFlipMeshNormals()
@@ -459,44 +469,6 @@ namespace EddyLib
             return mOutBottom;
         }
 
-        private static string stringyfyBlocks(Mesh m, int[] inputGroundFaces, int[] inputTopFaces, int divisionsX, int divisionsY, int divisionsZ)
-        {
-            var fullList = m.Vertices.ToPoint3dArray().ToList();
-
-            List<String> blocksFromArcsA = new List<String>();
-            List<String> blocksFromArcsB = new List<String>();
-
-            for (int i = 0; i < fullList.Count / 12; i++)
-            {
-                blocksFromArcsA.Add(" hex (" + m.Faces[i].A + " " + m.Faces[i].B + " " + m.Faces[i].C + " " + m.Faces[i].D + " ");
-            }
-            //
-            for (int i = fullList.Count / 12; i < fullList.Count / 6; i++)
-            {
-                blocksFromArcsB.Add(m.Faces[i].A + " " + m.Faces[i].B + " " + m.Faces[i].C + " " + m.Faces[i].D + ") (" + divisionsX + " " + divisionsY + " " + divisionsZ + ") simpleGrading (1 1 1) ");
-            }
-
-            StringBuilder sb = new StringBuilder();
-
-            for (int i = 0; i < blocksFromArcsA.Count; i++)
-            {
-                sb.AppendLine(blocksFromArcsA[i] + blocksFromArcsB[i]);
-            }
-
-            ///------
-            ///------
-
-            for (int i = 0; i < inputGroundFaces.Length - 3; i = i + 4)
-            {
-                sb.AppendLine("hex (" +
-
-                    inputGroundFaces[i] + " " + inputGroundFaces[i + 1] + " " + inputGroundFaces[i + 2] + " " + inputGroundFaces[i + 3] + " " +
-                    inputTopFaces[i] + " " + inputTopFaces[i + 1] + " " + inputTopFaces[i + 2] + " " + inputTopFaces[i + 3] + ") (1 1 " + divisionsZ + ") simpleGrading (1 1 1)  ");
-            }
-
-            return sb.ToString();
-        }
-
         private string StringifyBlocks2()
         {
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
@@ -506,15 +478,23 @@ namespace EddyLib
             // counter for cores and perimeters
             int c3 = perimBottom.Faces.Count + coreBottom.Faces.Count;
 
+#if DEBUG
+            sb.AppendLine("//perimeter");
+#endif
             for (int i = 0; i < perimBottom.Faces.Count; i++)
             {
                 //perimeter blocks
                 //Changed order because we had to flip core mesh plane
                 sb.AppendLine("hex (" + DomainMesh.Faces[i].A + " " + DomainMesh.Faces[i].D + " " + DomainMesh.Faces[i].C + " " + DomainMesh.Faces[i].B + " " +
                     ((DomainMesh.Faces[i + c3].A)) + " " + (DomainMesh.Faces[i + c3].B) + " " + (DomainMesh.Faces[i + c3].C) + " " +
-                    (DomainMesh.Faces[i + c3].D) + ") (" + divisionsX + " " + (divPerim) + " " + divisionsZ + ") simpleGrading (1 " + gradingPerim + " 1)");
+
+                (DomainMesh.Faces[i + c3].D) + ") (" + divPerim + " " + (divisionsX) + " " + divisionsZ + ") simpleGrading (1 " + gradingPerim + " 1)");
+
+                // After coreTop and coreBottom were flipped by a code change in RhinoCommon, the (" + divisionsX + " " + (divPerim) + " " + divisionsZ + ") command changed from (" + divisionsX + " " + (divPerim) + " " + divisionsZ + ") to (" + divisionsPerim + " " + (divisionsX) + " " + divisionsZ + ");
             }
+#if DEBUG
             sb.AppendLine("//core");
+#endif
             for (int i = 0; i < coreBottom.Faces.Count; i++)
             {   //core blocks //Changed order because we had to flip core mesh plane
                 sb.AppendLine("hex (" + DomainMesh.Faces[i + c1].A + " " + DomainMesh.Faces[i + c1].D + " " + DomainMesh.Faces[i + c1].C + " " + DomainMesh.Faces[i + c1].B + " " +
