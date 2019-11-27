@@ -19,6 +19,10 @@ namespace EddyLib.Radiance
 
         public TwoPhaseDDS(string baseWorkingDir, Mesh BuildingGeometry, List<Point3d> probes, Weather weather) {
 
+
+            var skySubDivDiff = SkySubdivision.r1;
+            var skySubDivDir = SkySubdivision.r4;
+
             //export RAD for DAYSIM
             if (!Directory.Exists(baseWorkingDir + @"Rad\"))
             {
@@ -51,7 +55,7 @@ void plastic Black
             // Weather
             var weaname = RadianceFiles.Epw2Wea(weather.epwFilePath, baseWorkingDir + @"\Rad\Output");
             // Sky
-            Skies.Write(baseWorkingDir + @"Rad\skyglow.rad", SkySubdivision.r1);
+            Skies.Write(baseWorkingDir + @"Rad\skyglow.rad", skySubDivDiff);
 
 
 
@@ -76,7 +80,7 @@ void plastic Black
                 process.BeginErrorReadLine();
 
                 // Send a directory command and an exit command to the shell
-                process.StandardInput.WriteLine(CommandLineArgs(baseWorkingDir, probes.Count, weaname, 3, 10000, SkySubdivision.r1, SkySubdivision.r4, Environment.ProcessorCount - 1));
+                process.StandardInput.WriteLine(CommandLineArgs(baseWorkingDir, probes.Count, weaname, 3, 10000, skySubDivDiff, skySubDivDir, Environment.ProcessorCount - 1));
                 process.StandardInput.WriteLine("exit");
 
                 process.WaitForExit();
