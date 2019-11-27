@@ -1,0 +1,63 @@
+# 2phaseComparison
+# Radiance Scene Description
+ 
+void plastic MatBlack
+0
+0
+5 0 0 0 0 0
+
+
+MatBlack polygon obj_1
+0
+0
+12
+    6 -2 3
+    6 -2 11
+    0 -2 11
+    0 -2 3
+
+MatBlack polygon obj_2
+0
+0
+12
+    6 -2 3
+    6 4 3
+    6 4 11
+    6 -2 11
+
+MatBlack polygon obj_3
+0
+0
+12
+    6 4 3
+    0 4 3
+    0 4 11
+    6 4 11
+
+MatBlack polygon obj_4
+0
+0
+12
+    0 -2 3
+    0 -2 11
+    0 4 11
+    0 4 3
+
+MatBlack polygon obj_5
+0
+0
+12
+    6 -2 3
+    0 -2 3
+    0 4 3
+    6 4 3
+
+MatBlack polygon obj_6
+0
+0
+12
+    6 -2 11
+    6 4 11
+    0 4 11
+    0 -2 11
+

@@ -57,7 +57,7 @@ void plastic Generic_20
             var difillFile = baseWorkingDir + @"\Rad\CallRay.dif.ill";
             var dirillFile = baseWorkingDir + @"\Rad\CallRay.dir.ill";
 
-            Daysim.Epw2Wea(weather.epwFilePath, baseWorkingDir + @"\Rad");
+            RadianceFiles.Epw2Wea(weather.epwFilePath, baseWorkingDir + @"\Rad");
 
             DaysimSettings set = new DaysimSettings
             {
@@ -72,65 +72,6 @@ void plastic Generic_20
 
         public static string DaysimInstallation = @"C:\DIVA\DaysimBinaries";
 
-        public static void Epw2Wea(string weatherFilePath, string targetPath)
-        {
-            try
-            {
-                if (Directory.Exists(targetPath) == false)
-                {
-                    Directory.CreateDirectory(targetPath);
-                }
-
-                //if (Directory.GetFiles(targetPath, "*.wea").Length > 0)
-                //{
-                //    Array.ForEach(Directory.GetFiles(targetPath, "*.wea"), delegate (string path) { File.Delete(path); });
-                //}
-                string epwdatname = Path.GetFileNameWithoutExtension(weatherFilePath);
-
-                string arguments = "\"" + Path.GetFullPath(weatherFilePath) + "\" \"" +
-                                   Path.GetFullPath(Path.Combine(targetPath, epwdatname + @".wea")) + "\"";
-
-                Debug.WriteLine(arguments);
-
-                ProcessStartInfo processInfo = new ProcessStartInfo
-                {
-                    Arguments = arguments,
-                    FileName = DaysimInstallation + @"\epw2wea",
-                    WorkingDirectory = DaysimInstallation,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
-                };
-
-                Process p = new Process
-                {
-                    StartInfo = processInfo
-                };
-                // p.OutputDataReceived += DebugLog.CaptureOutput; p.ErrorDataReceived += DebugLog.CaptureError;
-
-                p.Start();
-
-                p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
-                       Console.WriteLine("output>>" + e.Data);
-                p.BeginOutputReadLine();
-
-                p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
-                    Console.WriteLine("error>>" + e.Data);
-                p.BeginErrorReadLine();
-
-                p.WaitForExit();
-
-                Console.WriteLine("ExitCode: {0}", p.ExitCode);
-                p.Close();
-
-                Debug.WriteLine("WEA FILE EXSISTS? " + File.Exists(Path.GetFullPath(Path.Combine(targetPath, epwdatname + @".wea"))).ToString());
-            }
-            catch
-            {
-                Debug.WriteLine("SetWeather failed");
-            }
-        }
 
         public static void RunDaysim(DaysimSettings setCon)
         {
