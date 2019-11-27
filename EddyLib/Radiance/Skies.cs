@@ -16,7 +16,7 @@ namespace EddyLib.Radiance
         r5,
         r6
         }
-    public class Skys
+    public class Skies
     {
       
 

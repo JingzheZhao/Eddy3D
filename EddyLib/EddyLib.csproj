@@ -76,6 +76,9 @@
     <Compile Include="OFMeshSettings.cs" />
     <Compile Include="OutdoorComfort\MRT.cs" />
     <Compile Include="OutdoorComfort\WindFactors.cs" />
+    <Compile Include="Radiance\TwoPhaseDDS.cs" />
+    <Compile Include="Radiance\TwoPhase.cs" />
+    <Compile Include="Radiance\Skies.cs" />
     <Compile Include="Residuals.cs" />
     <Compile Include="RunBlockMesh.cs" />
     <Compile Include="RunFoamSimulation.cs" />
