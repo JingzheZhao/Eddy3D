@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Text;
 using Rhino.Geometry;
 
 namespace EddyLib
@@ -408,15 +409,24 @@ namespace EddyLib
 
         public override string ToString()
         {
-            return "Box Domain:\n" +
-            "Width: " + Math.Round(xCells * blockDimension, 1) + " m\n" +
-            "Length: " + Math.Round(yCells * blockDimension, 1) + " m\n" +
-            "Height: " + Math.Round(zCells * blockDimension, 1) + " m\n" +
-            "Cells in x: " + xCells + "\n" +
-            "Cells in y: " + xCells + "\n" +
-            "Cells in z: " + zCells + "\n" +
-            "Projected area: " + Math.Round(this.MaxFrontageBuildingArea)
-            ;
+            StringBuilder sb = new StringBuilder();
+
+            sb.AppendLine(@"Building Geometries
+Width: " + Math.Round(this.dimX, 0) + " m\n" +
+              "Length: " + Math.Round(this.dimY, 0) + " m\n" +
+              "Height: " + Math.Round(this.dimZ, 0) + " m\n" + "Projected facade area: " + Math.Round(this.MaxFrontageBuildingArea) + " m^2");
+
+            sb.AppendLine("\nBox Domain\n" +
+              "Width: " + Math.Round(xCells * blockDimension, 1) + " m\n" +
+              "Length: " + Math.Round(yCells * blockDimension, 1) + " m\n" +
+              "Height: " + Math.Round(zCells * blockDimension, 1) + " m\n" +
+              "Cells in x: " + xCells + "\n" +
+              "Cells in y: " + xCells + "\n" +
+              "Cells in z: " + zCells + "\n");
+
+            this.info = sb.ToString();
+
+            return sb.ToString();
         }
     }
 }
