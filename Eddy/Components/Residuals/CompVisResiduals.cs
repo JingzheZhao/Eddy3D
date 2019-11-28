@@ -184,7 +184,7 @@ plot '" + fullFilePath + @"' u($1):2 with lines title '" + field1 + "','" + full
 pause 3600; replot
 ";
 
-                        Utilities.StartProcess.StartProcessCMDNT(arg, true, false, false, true, Utilities.GetGnuplotPath(version));
+                        Utilities.StartProcess.StartProcessCMDNT(arg, true, false, false, true, Utilities.GetGnuplotPath(RES.RunSettings, version));
                     }
                 }
                 catch (Exception e)
