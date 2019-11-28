@@ -140,6 +140,12 @@ namespace Eddy
                 selection.Add(RES.Domain.BCond.windDirs[0]);
             }
 
+            if (!RES.RunSettings.WindowsGnuplotInstalled && !RES.RunSettings.BlueCFDIsInstalled)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "There was no Gnuplot version found on your system.");
+                return;
+            }
+
             if (run != true) { return; }
 
             if (visResiduals)
@@ -178,7 +184,7 @@ plot '" + fullFilePath + @"' u($1):2 with lines title '" + field1 + "','" + full
 pause 3600; replot
 ";
 
-                        Utilities.StartProcess.StartProcessCMDNT(arg, true, false, false, true, Utilities.GetGnuplotPath(RES.RunSettings.BlueCFDIsInstalled, version));
+                        Utilities.StartProcess.StartProcessCMDNT(arg, true, false, false, true, Utilities.GetGnuplotPath(version));
                     }
                 }
                 catch (Exception e)
@@ -221,7 +227,7 @@ set output '" + RES.WorkingDirectory + @"residuals_" + dir + @".pdf'
 replot
 ";
 
-                        Utilities.StartProcess.StartProcessCMDNT(arg, true, false, false, true, Utilities.GetGnuplotPath(RES.RunSettings.BlueCFDIsInstalled, version));
+                        Utilities.StartProcess.StartProcessCMDNT(arg, true, false, false, true, Utilities.GetGnuplotPath(RES.RunSettings, version));
                     }
                 }
                 catch (Exception e)

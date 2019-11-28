@@ -40,19 +40,26 @@ namespace EddyLib
 
             // Rotate the Plane based on wind vector area
 
-            var bb = BuildingGeometry.GetBoundingBox(false);
+            var bb = BuildingGeometry.GetBoundingBox(true);
             var centerBottomOfBuildings = new Point3d(bb.Center.X, bb.Center.Y, bb.Min.Z);
-            Plane orientedPlane = GetOrientedBasePlane(windDirVector, BuildingGeometry, centerBottomOfBuildings);
+            Plane orientedPlane = GetOrientedBasePlane(windDirVector, centerBottomOfBuildings);
 
             // Create BBox with respect to new plane (new coordinates)
-            BBox = BuildingGeometry.GetBoundingBox(orientedPlane);
+            var BBox = new Box(orientedPlane, BuildingGeometry);
 
-            var xMin = BBox.Min.X;
-            var xMax = BBox.Max.X;
-            var yMin = BBox.Min.Y;
-            var yMax = BBox.Max.Y;
-            var zMin = BBox.Min.Z;
-            var zMax = BBox.Max.Z;
+            var Corners = BBox.GetCorners();
+
+            //Y
+            var yMax = Corners[6].Y;
+            var yMin = Corners[0].Y;
+
+            //X
+            var xMin = Corners[6].X;
+            var xMax = Corners[0].X;
+
+            //Z
+            var zMin = Corners[0].Z;
+            var zMax = Corners[6].Z;
             this.zMaxBuilding = zMax;
 
             var dimX = xMax - xMin;

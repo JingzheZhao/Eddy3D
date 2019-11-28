@@ -14,9 +14,6 @@ namespace EddyLib
 {
     public static class Utilities
     {
-
-
-
         public class StartProcess
         {
             public static void StartProcessCMD(string argument, bool createnowindow, bool waitforexit = false, bool close = false, string executable = @"C:\Windows\System32\cmd.exe")
@@ -36,21 +33,20 @@ namespace EddyLib
                 if (close) { p.Close(); }
             }
 
-
-            public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false )
+            public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false)
             {
                 StartProcessCMDNT(argument, createnowindow, waitforexit, close, startInNewThread, @"C:\Windows\System32\cmd.exe");
             }
 
-            public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false,  EventHandler eh = null)
+            public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, EventHandler eh = null)
             {
                 StartProcessCMDNT(argument, createnowindow, waitforexit, close, startInNewThread, @"C:\Windows\System32\cmd.exe", eh);
             }
 
-                public static void StartProcessCMDNT( string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, string executable = @"C:\Windows\System32\cmd.exe" , EventHandler eh = null)
+            public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, string executable = @"C:\Windows\System32\cmd.exe", EventHandler eh = null)
             {
                 System.Diagnostics.Process p = new System.Diagnostics.Process();
-               // if(eh!=null) p.Exited += eh;
+                // if(eh!=null) p.Exited += eh;
                 p.StartInfo.FileName = executable;
                 p.StartInfo.UseShellExecute = false;
                 p.StartInfo.RedirectStandardInput = true;
@@ -58,7 +54,6 @@ namespace EddyLib
                 //p.StartInfo.RedirectStandardOutput = true;
                 p.StartInfo.CreateNoWindow = createnowindow;
                 //p.Start();
-
 
                 string theArgument = argument + ((close) ? @"
 exit
@@ -75,17 +70,13 @@ exit
                     // Window doesn't close with
                     //sw.Flush();
 
-
                     p.WaitForExit();
                     if (close) { p.Close(); }
                     if (eh != null) { eh.Invoke(p, new EventArgs()); }
-
-
                 });
 
                 Thread th = new Thread(ths);
                 th.Start();
-                
 
                 //if (waitforexit)
                 //{
@@ -93,13 +84,7 @@ exit
                 //    p.WaitForExit();
                 //}
                 //if (close) { p.Close(); }
-
-
-               
             }
-
-
-
         }
 
         public class Directories
@@ -1183,17 +1168,25 @@ renderView1.CameraParallelProjection = 1
             return sb.ToString();
         }
 
-        public static string GetGnuplotPath(bool IsBlueCFDInstalled, int version)
+        public static string GetGnuplotPath(OFRunSettings RS, int version)
         {
             string gnuplotpath = "";
 
-            if (version == 0)
+            if (version == 0 && RS.WindowsGnuplotInstalled)
             {
                 gnuplotpath = @"C:\Program Files\gnuplot\bin\gnuplot.exe";
             }
-            else if (version == 1 && IsBlueCFDInstalled == true)
+            else if (version == 1 && RS.BlueCFDIsInstalled)
             {
                 gnuplotpath = @"C:\Program Files\blueCFD-Core-2017\msys64\mingw64\bin\gnuplot.exe";
+            }
+            else if (version == 0 && !RS.WindowsGnuplotInstalled && RS.BlueCFDIsInstalled)
+            {
+                gnuplotpath = @"C:\Program Files\blueCFD-Core-2017\msys64\mingw64\bin\gnuplot.exe";
+            }
+            else if (version == 1 && !RS.BlueCFDIsInstalled && RS.WindowsGnuplotInstalled)
+            {
+                gnuplotpath = @"C:\Program Files\gnuplot\bin\gnuplot.exe";
             }
 
             return gnuplotpath;

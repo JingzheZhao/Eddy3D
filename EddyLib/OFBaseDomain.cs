@@ -35,16 +35,13 @@ namespace EddyLib
 
         public double zMaxBuilding;
 
-        public static Plane GetOrientedBasePlane(Vector3d windDir, Mesh buildings, Point3d CenterGround)
+        public static Plane GetOrientedBasePlane(Vector3d windDir, Point3d CenterGround)
         {
             var up = Vector3d.ZAxis;
             var forward = windDir;
             forward.Unitize();
             var right = Vector3d.CrossProduct(forward, up);
             right.Unitize();
-
-            var boundingBox = buildings.GetBoundingBox(true);
-            Point3d newO = boundingBox.Min;
 
             var orientedBasePlane = new Plane(CenterGround, right, forward);
 
@@ -84,6 +81,31 @@ namespace EddyLib
             BoundingBox bboxTerrain = terrain.GetBoundingBox(xform);
 
             double zDomain = Box.Min.Z;
+
+            //BoundingBox bboxTerrain = terrain.GetBoundingBox(orientedlocalPlane);
+
+            if (terrain.Faces.Count > 0)
+            {
+                if (bboxTerrain.Min.Z < zDomain)
+                {
+                    zDomain = bboxTerrain.Min.Z;
+                }
+            }
+
+            return zDomain;
+        }
+
+        public static double GetZMinTerrain(Mesh terrain, Box Box, Plane orientedlocalPlane)
+        {
+            // If terrain is used, scale down Z to make sure all points are inside the domain Zinter
+            // is call divisionsZ for CylDomain which is an int instead of an Interval
+
+            Plane worldXY = Plane.WorldXY;
+            Transform xform = Transform.ChangeBasis(worldXY, orientedlocalPlane);
+            var refBox = BoundingBox.Empty;
+            BoundingBox bboxTerrain = terrain.GetBoundingBox(xform);
+
+            double zDomain = Box.Z.Min;
 
             //BoundingBox bboxTerrain = terrain.GetBoundingBox(orientedlocalPlane);
 

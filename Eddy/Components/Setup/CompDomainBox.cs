@@ -204,12 +204,12 @@ namespace Eddy
             {
                 OFBoxDomain DOMBOX = new OFBoxDomain(buildingGeometry, terrainMeshes, bCond, blockDimension, length, width, height);
 
+                FillRenderLists(bCond, DOMBOX);
+
                 if (DOMBOX.BCond.windDirs.Count > 1)
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "For box-shaped domains you can only pass one wind direction per simulation setup."); return;
                 }
-
-                FillRenderLists(bCond, DOMBOX);
 
                 DA.SetData(0, DOMBOX);
 
@@ -252,7 +252,15 @@ namespace Eddy
             _point = new List<Point3d>();
             _vecs = new List<Vector3d>();
 
-            var pt = Utilities.CenterBottomBoundingBox(DOM.DomainMesh);
+            var pt = new Point3d(0, 0, 0);
+            if (DOM.DomainMesh != null)
+            {
+                pt = Utilities.CenterBottomBoundingBox(DOM.DomainMesh);
+            }
+            else
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Could not draw wind directions onto the canvas.");
+            }
 
             var length = DOM.blockDimension * DOM.yCells;
 

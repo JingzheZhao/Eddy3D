@@ -61,16 +61,6 @@ namespace EddyLib
             this.BCond = BCond;
             this.BuildingGeometry = BuildingGeometry;
 
-            var BBoxCrude = BuildingGeometry.GetBoundingBox(true);
-
-            // Box-shaped tunnel can only have 1 windDir which is the 1st windDir
-
-            Vector3d windDirVector = BCond.flowDir[0];
-
-            // Rotate the Plane based on wind vector area
-
-            Plane orientedPlane = GetOrientedBasePlane(windDirVector, BuildingGeometry, BBoxCrude.Center);
-
             // Create BBox with respect to new plane (new coordinates)
             BBox = BuildingGeometry.GetBoundingBox(Plane.WorldXY);
 
