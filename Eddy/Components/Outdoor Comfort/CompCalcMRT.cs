@@ -97,6 +97,8 @@ namespace Eddy
                 return;
             }
 
+            AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "This is an experimental component. Please refrain from using this in a production environment.");
+
             Weather weather = new Weather(RES.Domain.BCond.epwFilePath);
 
             #endregion Load prerequisites
