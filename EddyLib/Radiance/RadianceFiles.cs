@@ -71,19 +71,13 @@ namespace EddyLib
                 Debug.WriteLine("WEA FILE EXSISTS? " + File.Exists(Path.GetFullPath(Path.Combine(targetPath, epwdatname + @".wea"))).ToString());
 
                 return epwdatname;
-
-
             }
             catch
             {
                 Debug.WriteLine("SetWeather failed");
                 return "";
             }
-
-            
         }
-
-
 
         // Radiance isn't exactly culture-aware, so we have to make everything here en-US
         private static readonly CultureInfo radianceCulture = new CultureInfo("en-US");
