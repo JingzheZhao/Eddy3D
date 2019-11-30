@@ -262,7 +262,7 @@ namespace Eddy
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Could not draw wind directions onto the canvas.");
             }
 
-            var length = DOM.blockDimension * DOM.yCells;
+            var length = DOM.blockDimension * DOM.CellsAlongLength;
 
             //Fill render lists for arrow preview
             _vecs.Add(bCond.flowDir[0] * bCond.URef);

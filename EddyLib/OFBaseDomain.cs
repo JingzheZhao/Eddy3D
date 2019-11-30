@@ -16,7 +16,7 @@ namespace EddyLib
         public Bitmap[] FrontagePNGs = new Bitmap[360];
 
         public Cylinder RefinementCylinder;
-        public BoundingBox BBox;
+        public Box BBox;
 
         // 3 Main meshes
 
@@ -33,7 +33,7 @@ namespace EddyLib
 
         public bool hasTerrain;
 
-        public double zMaxBuilding;
+        public double MaxHeightBuilding;
 
         public static Plane GetOrientedBasePlane(Vector3d windDir, Point3d CenterGround)
         {
@@ -118,6 +118,58 @@ namespace EddyLib
             }
 
             return zDomain;
+        }
+
+        public Box UnionB(List<Mesh> list, Plane pl)
+        {
+            Transform val = Transform.ChangeBasis(Plane.WorldXY, pl);
+
+            Point3d val3;
+            Point3d val4;
+            Interval val5 = default(Interval);
+            Point3d val7;
+            Point3d val8;
+            Interval val9 = default(Interval);
+            Point3d val11;
+            Point3d val12;
+            Interval val13 = default(Interval);
+
+            List<Box> list2 = new List<Box>();
+            List<Box> list3 = new List<Box>();
+            int num2 = list.Count - 1;
+            Box item = default(Box);
+            Box item2 = default(Box);
+            for (int j = 0; j <= num2; j++)
+            {
+                if (list[j] == null)
+                {
+                    list2.Add(Box.Unset);
+                    list3.Add(Box.Unset);
+                    continue;
+                }
+                BoundingBox boundingBox2 = list[j].GetBoundingBox(val);
+                Plane val15 = pl;
+                val12 = boundingBox2.Min;
+                double x2 = ((Point3d)(val12)).X;
+                val11 = ((BoundingBox)(boundingBox2)).Max;
+                val13 = new Interval(x2, ((Point3d)(val11)).X);
+                Interval val16 = val13;
+                val8 = ((BoundingBox)(boundingBox2)).Min;
+                double y2 = ((Point3d)(val8)).Y;
+                val7 = ((BoundingBox)(boundingBox2)).Max;
+                val9 = new Interval(y2, val7.Y);
+                Interval val17 = val9;
+                val4 = ((BoundingBox)(boundingBox2)).Min;
+                double z2 = ((Point3d)(val4)).Z;
+                val3 = ((BoundingBox)(boundingBox2)).Max;
+                val5 = new Interval(z2, ((Point3d)(val3)).Z);
+                item = new Box(val15, val16, val17, val5);
+                list2.Add(item);
+                item2 = new Box(boundingBox2);
+                list3.Add(item2);
+            }
+
+            return item;
         }
 
         public static double GetProjectedBuildingArea(int windDir, Mesh buildings, out Bitmap FrontageImage)

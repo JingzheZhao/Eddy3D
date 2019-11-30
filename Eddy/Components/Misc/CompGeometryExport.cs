@@ -43,6 +43,9 @@ namespace Eddy
             param.AddNamedValue("ASCI", 1);
             param.AddNamedValue("BinaryList", 2);
             param.AddNamedValue("ASCIList", 3);
+
+            pManager.AddNumberParameter("Edge Length", "EL", "Max. and min. edge Length", GH_ParamAccess.item, 0);
+            pManager[3].Optional = true;
         }
 
         /// <summary>
@@ -64,18 +67,25 @@ namespace Eddy
         {
             string filePath = "";
             int MODE = 0;
+            double edgeLength = 0;
 
             List<GeometryBase> geo = new List<GeometryBase>();
 
             DA.GetDataList(0, geo);
             DA.GetData(1, ref filePath);
             DA.GetData(2, ref MODE);
+            DA.GetData(3, ref edgeLength);
 
             var Dir = Path.GetDirectoryName(filePath);
             var FileName = Path.GetFileNameWithoutExtension(filePath);
             if (!Directory.Exists(Dir)) { Directory.CreateDirectory(Dir); }
 
             MeshingParameters mp = new MeshingParameters();
+            if (edgeLength != 0)
+            {
+                mp.MaximumEdgeLength = edgeLength;
+                mp.MinimumEdgeLength = edgeLength;
+            }
 
             Mesh allTogether = new Mesh();
             List<Mesh> allSeparate = new List<Mesh>();

@@ -19,6 +19,7 @@ namespace EddyLib
             if (DOMCYL.hasTerrain)
             {
                 //No perim if we use a terrain
+
                 STLExport.ExportBinary(MeshSettings.meshStlFilenameGround, DOMCYL.TerrainMesh);
             }
             else
