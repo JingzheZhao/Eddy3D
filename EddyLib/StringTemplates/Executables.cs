@@ -9,6 +9,8 @@ namespace EddyLib.StrTemp
     {
         public static string BlockMeshDict(OFBoxDomain DOM)
         {
+            var corners = DOM.SBox.GetCorners();
+
             return @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
@@ -28,18 +30,18 @@ convertToMeters 1;
 
 vertices
 (
-(" + DOM.DomainBox.GetCorners()[0].X + " " + DOM.DomainBox.GetCorners()[0].Y + " " + DOM.DomainBox.GetCorners()[0].Z + @")
-(" + DOM.DomainBox.GetCorners()[1].X + " " + DOM.DomainBox.GetCorners()[1].Y + " " + DOM.DomainBox.GetCorners()[1].Z + @")
-(" + DOM.DomainBox.GetCorners()[2].X + " " + DOM.DomainBox.GetCorners()[2].Y + " " + DOM.DomainBox.GetCorners()[2].Z + @")
-(" + DOM.DomainBox.GetCorners()[3].X + " " + DOM.DomainBox.GetCorners()[3].Y + " " + DOM.DomainBox.GetCorners()[3].Z + @")
-(" + DOM.DomainBox.GetCorners()[4].X + " " + DOM.DomainBox.GetCorners()[4].Y + " " + DOM.DomainBox.GetCorners()[4].Z + @")
-(" + DOM.DomainBox.GetCorners()[5].X + " " + DOM.DomainBox.GetCorners()[5].Y + " " + DOM.DomainBox.GetCorners()[5].Z + @")
-(" + DOM.DomainBox.GetCorners()[6].X + " " + DOM.DomainBox.GetCorners()[6].Y + " " + DOM.DomainBox.GetCorners()[6].Z + @")
-(" + DOM.DomainBox.GetCorners()[7].X + " " + DOM.DomainBox.GetCorners()[7].Y + " " + DOM.DomainBox.GetCorners()[7].Z + @")
+(" + corners[0].X + " " + corners[0].Y + " " + corners[0].Z + @")
+(" + corners[1].X + " " + corners[1].Y + " " + corners[1].Z + @")
+(" + corners[2].X + " " + corners[2].Y + " " + corners[2].Z + @")
+(" + corners[3].X + " " + corners[3].Y + " " + corners[3].Z + @")
+(" + corners[4].X + " " + corners[4].Y + " " + corners[4].Z + @")
+(" + corners[5].X + " " + corners[5].Y + " " + corners[5].Z + @")
+(" + corners[6].X + " " + corners[6].Y + " " + corners[6].Z + @")
+(" + corners[7].X + " " + corners[7].Y + " " + corners[7].Z + @")
 );
 blocks
 (
-        hex (0 1 2 3 4 5 6 7) (" + DOM.xCells + " " + DOM.yCells + " " + DOM.zCells + @") simpleGrading (1 1 1)
+        hex (0 1 2 3 4 5 6 7) (" + DOM.CellsAlongWidth + " " + DOM.CellsAlongLength + " " + DOM.CellsAlongHeight + @") simpleGrading (1 1 1)
 );
 edges
 (
@@ -102,8 +104,8 @@ radius " + dom.RefinementCylinder.CircleAt(0.5).Radius + @";
 
             string Box = @"refinementBox{
           type searchableBox;
-          min (" + dom.BBox.Min.X + " " + +dom.BBox.Min.Y + " " + dom.BBox.Min.Z + @");
-          max (" + dom.BBox.Max.X + " " + dom.BBox.Max.Y + " " + dom.BBox.Max.Z + @");
+          min (" + dom.BBox.X.Min + " " + +dom.BBox.Y.Min + " " + dom.BBox.Z.Min + @");
+          max (" + dom.BBox.X.Max + " " + dom.BBox.Y.Max + " " + dom.BBox.Z.Max + @");
 }";
             refinementGeometry = Box;
             StringBuilder sb = new StringBuilder();
@@ -505,7 +507,7 @@ libs
 
         public static string FunctionObjCP(OFBaseDomain DOM, OFRunSettings RunSettings, List<Mesh> evaluationTopology, int d)
         {
-            BoundaryConditionsCP BCondCP = new BoundaryConditionsCP(DOM.zMaxBuilding, DOM.BCond);
+            BoundaryConditionsCP BCondCP = new BoundaryConditionsCP(DOM.MaxHeightBuilding, DOM.BCond);
 
             StringBuilder sb = new StringBuilder();
             sb.Append(@"pressureCoefficients

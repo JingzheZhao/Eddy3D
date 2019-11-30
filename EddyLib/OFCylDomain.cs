@@ -61,26 +61,19 @@ namespace EddyLib
             this.BCond = BCond;
             this.BuildingGeometry = BuildingGeometry;
 
-            var BBoxCrude = BuildingGeometry.GetBoundingBox(true);
-
-            // Box-shaped tunnel can only have 1 windDir which is the 1st windDir
-
-            Vector3d windDirVector = BCond.flowDir[0];
-
-            // Rotate the Plane based on wind vector area
-
-            Plane orientedPlane = GetOrientedBasePlane(windDirVector, BuildingGeometry, BBoxCrude.Center);
-
             // Create BBox with respect to new plane (new coordinates)
-            BBox = BuildingGeometry.GetBoundingBox(Plane.WorldXY);
 
-            var xMin = BBox.Min.X;
-            var xMax = BBox.Max.X;
-            var yMin = BBox.Min.Y;
-            var yMax = BBox.Max.Y;
-            var zMin = BBox.Min.Z;
-            var zMax = BBox.Max.Z;
-            this.zMaxBuilding = zMax;
+            var l = new List<Mesh>();
+            l.Add(BuildingGeometry);
+            this.BBox = UnionB(l, Plane.WorldXY);
+
+            var xMin = BBox.X.Min;
+            var xMax = BBox.X.Max;
+            var yMin = BBox.Y.Min;
+            var yMax = BBox.Y.Max;
+            var zMin = BBox.Z.Min;
+            var zMax = BBox.Z.Max;
+            this.MaxHeightBuilding = zMax;
             this.radius = sizeOuterCirc;
 
             var dimX = xMax - xMin;
@@ -118,7 +111,7 @@ namespace EddyLib
 
             if (sizeHeight == 0)
             {
-                height = 6 * dimZ + (BBox.Min.Z - CenterGround.Z);
+                height = 6 * dimZ + (BBox.Z.Min - CenterGround.Z);
             }
             else
             {

@@ -193,12 +193,9 @@ echo ""
 
 "%25ilrepack%25" /log /lib:"C:\Windows\Microsoft.NET\Framework\v4.0.30319"  /lib:"%25gh%25" /lib:"%25rhc%25" /targetplatform:v4 /out:"%25post_build_ilmerge%25EddyLib.dll" "%25cliapp%25" "%25cappl%25" "%25build_eddylib%25EddyLib.dll"
 
-
-
+if $(ConfigurationName)==Release (
 "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\PreEmptiveSolutions\DotfuscatorCE\dotfuscatorCLI.exe" "$(SolutionDir)\Build\Dotfuscator.xml"
-
-
-
+)
 
 
 
