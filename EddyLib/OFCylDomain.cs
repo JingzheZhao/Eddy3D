@@ -14,11 +14,6 @@ namespace EddyLib
         public double radius;
         public double height;
 
-        private readonly List<string> MeshFaceLabel = new List<string>();
-        private readonly List<int> topFaceID = new List<int>();
-        private readonly List<int> bottomFaceID = new List<int>();
-        private readonly List<int> outletFaceID = new List<int>();
-        private readonly List<int> inletFaceID = new List<int>();
         public List<Point3d> ListOfAllPointsInMagicOrder;
 
         public int divisionsX = 1;
@@ -28,16 +23,12 @@ namespace EddyLib
         public double gradingPerim;
 
         public double cellSizeInner;
-        public double cellSizeOuter;
-        public double distanceInnerOuter;
-        public int equalDivisions;
 
         //Meshes from Cycl Domain
         public Mesh CylDomainMesh = new Mesh();
 
         public Mesh CylDomainMeshGround = new Mesh();
         public Mesh CylDomainMeshGroundPerim = new Mesh();
-        public Mesh CylCombinedMesh; // TODO: What is this??
 
         public Mesh perimBottom = new Mesh();
         public Mesh coreBottom = new Mesh();
@@ -48,6 +39,7 @@ namespace EddyLib
         public double sizeInnerR;
 
         public List<Polyline> concentricDivisions;
+        public List<Circle> outerCircles;
 
         // Remove this later
         public Point3d[] pointsOnCircle;
@@ -57,6 +49,7 @@ namespace EddyLib
         public OFCylDomain(Mesh BuildingGeometry, Mesh terrainMesh, BoundaryConditions BCond, double coreBlockSize, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0)
         {
             gradingPerim = 1.0;
+            cellSizeInner = coreBlockSize;
 
             this.BCond = BCond;
             this.BuildingGeometry = BuildingGeometry;
@@ -76,7 +69,6 @@ namespace EddyLib
             this.MaxHeightBuilding = zMax;
             this.radius = sizeOuterCirc;
 
-            var dimX = xMax - xMin;
             var dimY = yMax - yMin;
             var dimZ = zMax - zMin;
 
@@ -89,7 +81,6 @@ namespace EddyLib
             {
                 this.hasTerrain = true;
             }
-
             if (hasTerrain)
             {
                 this.TerrainMesh = terrainMesh;
@@ -100,12 +91,6 @@ namespace EddyLib
             {
                 this.CenterGround = new Point3d(BBox.Center.X, BBox.Center.Y, zMin);
             }
-
-            //var CenterGround = BBoxCrude.Center + 0.9 * -Vector3d.ZAxis * dimZ;
-
-            //Create ground plane of BBox
-            //center needs dimZ to stay at ground level but also respect terrain if its being used; 0.1 = safety factor
-            //center = (BBox.Center + 0.5 * -Vector3d.ZAxis * dimZ) + zTerrainScaling * Vector3d.ZAxis;
 
             // Check standard inputs for height
 
@@ -119,11 +104,6 @@ namespace EddyLib
             }
 
             double scaleDomByHeight = (15.5 * dimZ) + dimY;
-            //var scaleCyclDomainHeight = height > dimY ? height : dimY;
-
-            //Plane localSystem = new Plane(center, Vector3d.XAxis, Vector3d.ZAxis);
-            //// localSystem.Origin = center;
-            //localSystem.Translate(-Vector3d.YAxis * dimY);
 
             // Changed this to 9 (was 72) for now...takes too long
             for (int i = 0; i < 9; i++)
@@ -134,8 +114,6 @@ namespace EddyLib
                 Bitmap FI;
                 this.FrontageBuildingAreas[i * 40] = OFBaseDomain.GetProjectedBuildingArea(i * 40, BuildingGeometry, out FI);
                 this.FrontagePNGs[i * 40] = FI;
-
-                //projAreaList.Add(RunBlockMesh.GetProjectedBuildingAreas(BCond.flowDir[0], orientedPlane, BuildingGeometry));
             }
 
             MaxFrontageBuildingArea = FrontageBuildingAreas.Max();
@@ -151,13 +129,9 @@ namespace EddyLib
             }
             else
             {
-                // Radius, not Durchmesser
+                // Radius, not diameter
                 radius = sizeOuterCirc / 2;
             }
-
-            //old domain
-            //var allPoints = MakeCylMeshPoints5deg(center, radius, height, scaleFactorInnerRect);
-            //MakeCylMesh(allPoints, divisionsX, divisionsY, divisionsZ, windDir);
 
             if (sizeInnerRect == 0)
             {
@@ -170,9 +144,8 @@ namespace EddyLib
             }
 
             divsRadial = RadialDivsFromBlockSize(coreBlockSize, sizeInnerR);
-            //divisionsZ = _divisionsZ;
 
-            MakeCircMeshPlane(CenterGround, sizeInnerR, divsRadial, radius, height);
+            MakeCircMeshPlane(CenterGround, sizeInnerR, divsRadial, radius, height, (int)coreBlockSize);
 
             BoundaryConditionsCP BCondCP = new BoundaryConditionsCP(zMax, BCond);
 
@@ -186,13 +159,9 @@ namespace EddyLib
             }
 
             base.BCond = BCond;
-
-            // refinement Cylinder
-            //refinementCylinder = getRefinementCyl(center, geometry, 0.3, 0.3);
-            //refinementBox = getRefinementBox(localSystem, geometry, 0.3);
         }
 
-        private void MakeCircMeshPlane(Point3d center, double sizeInnerRect, int divsRadial, double circleRadius, double height)
+        private void MakeCircMeshPlane(Point3d center, double sizeInnerRect, int divsRadial, double circleRadius, double height, int coreBlockSize)
         {
             // point inside cdf domain - needed for meshing and finding the void space for fluid
             LocationInMesh = center + (Vector3d.ZAxis * (height - 0.1));
@@ -244,6 +213,7 @@ namespace EddyLib
             // Points on inner rectangle from naked edges
 
             this.concentricDivisions = GetConcenctricPolyDivisions(pointsOnRect, pointsOnCircle, divPerim, height);
+            this.outerCircles = GetOuterCircles(divisionsZ, circRad, CenterGround, (int)cellSizeCore);
 
             coreTop.Append(coreBottom);
             coreTop.Translate(Vector3d.ZAxis * height);
@@ -366,7 +336,6 @@ namespace EddyLib
             }
 
             return divPerim;
-            //return (int)(blockDimensionPerim.Length / blockDim / 1.41);
         }
 
         private static double BlockDimensionCore(Point3d[] core)
@@ -378,11 +347,7 @@ namespace EddyLib
 
         private static int RadialDivsFromBlockSize(double blockSize, double sizeInnerRect)
         {
-            int radialDivs = 0;
-
-            radialDivs = (int)(sizeInnerRect / blockSize);
-
-            return radialDivs;
+            return (int)(sizeInnerRect / blockSize) * 2;
         }
 
         private Mesh SideWalls(Point3d[] pt, double h)
@@ -404,6 +369,19 @@ namespace EddyLib
             m.Normals.ComputeNormals();
 
             return m;
+        }
+
+        private List<Circle> GetOuterCircles(int divsZ, double outerRad, Point3d centerBottom, int blockSize)
+        {
+            var list = new List<Circle>();
+
+            for (int i = 0; i < divsZ; i++)
+            {
+                Point3d center = centerBottom + (Vector3d.ZAxis * i * blockSize);
+                list.Add(new Circle(center, outerRad));
+            }
+
+            return list;
         }
 
         private Point3d[] GetPointsOnCircle(Point3d center, double circleRadius, Polyline poly)
@@ -472,27 +450,27 @@ namespace EddyLib
             int c3 = perimBottom.Faces.Count + coreBottom.Faces.Count;
 
 #if DEBUG
-            sb.AppendLine("//perimeter");
+      sb.AppendLine("//perimeter");
 #endif
             for (int i = 0; i < perimBottom.Faces.Count; i++)
             {
                 //perimeter blocks
                 //Changed order because we had to flip core mesh plane
                 sb.AppendLine("hex (" + DomainMesh.Faces[i].A + " " + DomainMesh.Faces[i].D + " " + DomainMesh.Faces[i].C + " " + DomainMesh.Faces[i].B + " " +
-                    ((DomainMesh.Faces[i + c3].A)) + " " + (DomainMesh.Faces[i + c3].B) + " " + (DomainMesh.Faces[i + c3].C) + " " +
+                  ((DomainMesh.Faces[i + c3].A)) + " " + (DomainMesh.Faces[i + c3].B) + " " + (DomainMesh.Faces[i + c3].C) + " " +
 
-                (DomainMesh.Faces[i + c3].D) + ") (" + divPerim + " " + (divisionsX) + " " + divisionsZ + ") simpleGrading (1 " + gradingPerim + " 1)");
+                  (DomainMesh.Faces[i + c3].D) + ") (" + divPerim + " " + (divisionsX) + " " + divisionsZ + ") simpleGrading (1 " + gradingPerim + " 1)");
 
                 // After coreTop and coreBottom were flipped by a code change in RhinoCommon, the (" + divisionsX + " " + (divPerim) + " " + divisionsZ + ") command changed from (" + divisionsX + " " + (divPerim) + " " + divisionsZ + ") to (" + divisionsPerim + " " + (divisionsX) + " " + divisionsZ + ");
             }
 #if DEBUG
-            sb.AppendLine("//core");
+      sb.AppendLine("//core");
 #endif
             for (int i = 0; i < coreBottom.Faces.Count; i++)
             {   //core blocks //Changed order because we had to flip core mesh plane
                 sb.AppendLine("hex (" + DomainMesh.Faces[i + c1].A + " " + DomainMesh.Faces[i + c1].D + " " + DomainMesh.Faces[i + c1].C + " " + DomainMesh.Faces[i + c1].B + " " +
-                    ((DomainMesh.Faces[i + c2].A)) + " " + (DomainMesh.Faces[i + c2].B) + " " + (DomainMesh.Faces[i + c2].C) + " " +
-                    (DomainMesh.Faces[i + c2].D) + ") (" + divisionsX + " " + divisionsX + " " + divisionsZ + ") simpleGrading (1 1 1)");
+                  ((DomainMesh.Faces[i + c2].A)) + " " + (DomainMesh.Faces[i + c2].B) + " " + (DomainMesh.Faces[i + c2].C) + " " +
+                  (DomainMesh.Faces[i + c2].D) + ") (" + divisionsX + " " + divisionsX + " " + divisionsZ + ") simpleGrading (1 1 1)");
             }
 
             return sb.ToString();
@@ -507,13 +485,13 @@ namespace EddyLib
             for (int i = 0; i < sides.Faces.Count; i++)
             {
                 sb.AppendLine("patch" + i + @"
-        {
-        type patch;
-        faces
-        (");
+          {
+          type patch;
+          faces
+          (");
                 sb.AppendLine("(" + DomainMesh.Faces[i + counter].A + " " + DomainMesh.Faces[i + counter].B + " " + DomainMesh.Faces[i + counter].C + " " + DomainMesh.Faces[i + counter].D + ")");
                 sb.AppendLine(@");
-        }");
+          }");
             }
 
             return sb.ToString();
@@ -537,10 +515,10 @@ namespace EddyLib
             int c1 = perimTop.Faces.Count + coreTop.Faces.Count;
             int c2 = perimBottom.Faces.Count + coreBottom.Faces.Count + perimTop.Faces.Count;
             sb.AppendLine(@"frontAndBack
-{
-type patch;
-faces
-(");
+        {
+        type patch;
+        faces
+        (");
             for (int i = 0; i < perimTop.Faces.Count; i++)
             {
                 sb.AppendLine("(" + DomainMesh.Faces[i + c1].A + " " + DomainMesh.Faces[i + c1].B + " " + DomainMesh.Faces[i + c1].C + " " + DomainMesh.Faces[i + c1].D + ")");
@@ -562,10 +540,10 @@ faces
             //int c2 = this.perim.Faces.Count + this.core.Faces.Count + this.perimTop.Faces.Count + this.coreTop.Faces.Count;
 
             sb.AppendLine(@"ground
-{
-type wall;
-faces
-(");
+        {
+        type wall;
+        faces
+        (");
             for (int i = 0; i < c1; i++)
             {
                 sb.AppendLine("(" + DomainMesh.Faces[i].A + " " + DomainMesh.Faces[i].B + " " + DomainMesh.Faces[i].C + " " + DomainMesh.Faces[i].D + ")");
@@ -671,71 +649,71 @@ faces
             StringBuilder sb = new StringBuilder();
 
             sb.AppendLine(@"
-/*--------------------------------*- C++ -*----------------------------------*\
-| =========                 |                                                 |
-| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.1.0                                  |
-|   \\  /    A nd           | Web:      http://www.OpenFOAM.com               |
-|    \\/     M anipulation  |                                                 |
-\*---------------------------------------------------------------------------*/
-FoamFile
-{
-    version     2.0;
-    format      ascii;
-    class       dictionary;
-    object      blockMeshDict;
-}
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+        /*--------------------------------*- C++ -*----------------------------------*\
+        | =========                 |                                                 |
+        | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+        |  \\    /   O peration     | Version:  2.1.0                                  |
+        |   \\  /    A nd           | Web:      http://www.OpenFOAM.com               |
+        |    \\/     M anipulation  |                                                 |
+        \*---------------------------------------------------------------------------*/
+        FoamFile
+        {
+        version     2.0;
+        format      ascii;
+        class       dictionary;
+        object      blockMeshDict;
+        }
+        // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-convertToMeters 1;
+        convertToMeters 1;
 
-//
-vertices
-(
+        //
+        vertices
+        (
 
-");
+        ");
 
             sb.AppendLine(StringyfyVertexList2());
 
             sb.AppendLine(@"
-);
-blocks
-(
-");
+        );
+        blocks
+        (
+        ");
 
             sb.AppendLine(StringifyBlocks2());
 
             sb.AppendLine(@"
-);
+        );
 
- edges
- (
- );
-boundary
-(
+        edges
+        (
+        );
+        boundary
+        (
 
-");
+        ");
 
             sb.AppendLine(StringifyPatches2());
             sb.AppendLine(StringifyTop2());
             sb.AppendLine(StringifyGround2());
 
             sb.AppendLine(@"
- );
+        );
 
-mergePatchPairs
-(
-);");
+        mergePatchPairs
+        (
+        );");
             return sb.ToString();
         }
 
         public override string ToString()
         {
             return "Cyclic Domain:\n" +
-            "Smallest cell size in center: " + cellSizeInner + " m\n" +
-            "Projected area: " + Math.Round(this.MaxFrontageBuildingArea, 1)
+              "Smallest cell size in center: " + cellSizeInner + " m\n" +
+              "Projected area: " + Math.Round(this.MaxFrontageBuildingArea, 1)
 
-            ;
+              ;
             // return base.ToString();
         }
     }

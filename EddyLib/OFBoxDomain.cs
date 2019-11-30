@@ -84,7 +84,7 @@ namespace EddyLib
             // Order important Z --> Y --> X
 
             // Z
-            double scaleRectDomainZ = height == 0 ? 6 * Height_BBox : height;
+            double scaleZ = height == 0 ? 5 * Height_BBox : height;
 
             // X; take blocking ratio into account
 
@@ -112,7 +112,7 @@ namespace EddyLib
             var xTransMinusX = Transform.Translation((scaleX) * -NormalToWindDir);
             var xTransPlusX = Transform.Translation((scaleX) * NormalToWindDir);
 
-            var zTrans = Transform.Translation((scaleRectDomainZ) * Vector3d.ZAxis);
+            var zTrans = Transform.Translation((scaleZ) * Vector3d.ZAxis);
 
             Point3d P0 = corners[0];
             Point3d P1 = corners[1];
