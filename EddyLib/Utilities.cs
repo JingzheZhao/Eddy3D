@@ -14,9 +14,6 @@ namespace EddyLib
 {
     public static class Utilities
     {
-
-
-
         public class StartProcess
         {
             public static void StartProcessCMD(string argument, bool createnowindow, bool waitforexit = false, bool close = false, string executable = @"C:\Windows\System32\cmd.exe")
@@ -36,21 +33,37 @@ namespace EddyLib
                 if (close) { p.Close(); }
             }
 
+            public static bool CheckDomainDimensionsOK(Mesh BuildingGeometry)
+            {
+                bool domainOK = true;
+                var BBoxCrude = BuildingGeometry.GetBoundingBox(true);
 
-            public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false )
+                foreach (Point3d pt in BBoxCrude.GetCorners())
+                {
+                    int threshold = 50000;
+                    if (pt.X > threshold || pt.Y > threshold || pt.Z > threshold)
+                    {
+                        domainOK = false;
+                    }
+                }
+
+                return domainOK;
+            }
+
+            public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false)
             {
                 StartProcessCMDNT(argument, createnowindow, waitforexit, close, startInNewThread, @"C:\Windows\System32\cmd.exe");
             }
 
-            public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false,  EventHandler eh = null)
+            public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, EventHandler eh = null)
             {
                 StartProcessCMDNT(argument, createnowindow, waitforexit, close, startInNewThread, @"C:\Windows\System32\cmd.exe", eh);
             }
 
-                public static void StartProcessCMDNT( string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, string executable = @"C:\Windows\System32\cmd.exe" , EventHandler eh = null)
+            public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, string executable = @"C:\Windows\System32\cmd.exe", EventHandler eh = null)
             {
                 System.Diagnostics.Process p = new System.Diagnostics.Process();
-               // if(eh!=null) p.Exited += eh;
+                // if(eh!=null) p.Exited += eh;
                 p.StartInfo.FileName = executable;
                 p.StartInfo.UseShellExecute = false;
                 p.StartInfo.RedirectStandardInput = true;
@@ -58,7 +71,6 @@ namespace EddyLib
                 //p.StartInfo.RedirectStandardOutput = true;
                 p.StartInfo.CreateNoWindow = createnowindow;
                 //p.Start();
-
 
                 string theArgument = argument + ((close) ? @"
 exit
@@ -75,17 +87,13 @@ exit
                     // Window doesn't close with
                     //sw.Flush();
 
-
                     p.WaitForExit();
                     if (close) { p.Close(); }
                     if (eh != null) { eh.Invoke(p, new EventArgs()); }
-
-
                 });
 
                 Thread th = new Thread(ths);
                 th.Start();
-                
 
                 //if (waitforexit)
                 //{
@@ -93,13 +101,7 @@ exit
                 //    p.WaitForExit();
                 //}
                 //if (close) { p.Close(); }
-
-
-               
             }
-
-
-
         }
 
         public class Directories
