@@ -60,7 +60,7 @@ namespace Eddy
         {
             pManager.AddGenericParameter("Domain", "Dom", "Domain", GH_ParamAccess.item);
             pManager.AddGenericParameter("Mesh", "Msh", "Mesh", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Div", "Div", "Div", GH_ParamAccess.list);
+            //  pManager.AddGenericParameter("Div", "Div", "Div", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -204,7 +204,7 @@ namespace Eddy
             {
                 OFCylDomain DOMCYL = new OFCylDomain(buildingGeometry, terrainMeshes, bCond, coreBlockSize, sizeInnerRect, sizeOuterCirc, sizeHeight);
 
-                FillRenderLists(bCond, DOMCYL);
+                FillWindDirRenderList(bCond, DOMCYL);
 
                 DA.SetData(0, DOMCYL);
 
@@ -215,7 +215,6 @@ namespace Eddy
                 else
                 {
                     DA.SetData(1, DOMCYL.DomainMesh);
-                    DA.SetDataList(2, DOMCYL.concentricDivisions);
                 }
             }
             else
@@ -239,14 +238,18 @@ namespace Eddy
         /// </summary>
         public override Guid ComponentGuid => new Guid("{DDB7971A-EBAD-4A6F-8BFB-E77FE24F73BD}");
 
-        private List<Point3d> _point;
-        private List<Vector3d> _vecs;
+        private List<Point3d> _pointWindDirRender;
+        private List<Vector3d> _vecsWindDirRender;
+        private List<Polyline> _concentricDivisions;
+        private List<Circle> _outerCircles;
 
-        private void FillRenderLists(BoundaryConditions bCond, OFCylDomain DOM)
+        private void FillWindDirRenderList(BoundaryConditions bCond, OFCylDomain DOM)
         {
             //clear
-            _point = new List<Point3d>();
-            _vecs = new List<Vector3d>();
+            _pointWindDirRender = new List<Point3d>();
+            _vecsWindDirRender = new List<Vector3d>();
+            _concentricDivisions = new List<Polyline>();
+            _outerCircles = new List<Circle>();
 
             var pt = Utilities.CenterBottomBoundingBox(DOM.DomainMesh);
 
@@ -256,8 +259,18 @@ namespace Eddy
 
             foreach (Vector3d vec in bCond.flowDir)
             {
-                _vecs.Add(vec * bCond.URef);
-                _point.Add(pt + (-vec * length) + 2 * (-vec * bCond.URef));
+                _vecsWindDirRender.Add(vec * bCond.URef);
+                _pointWindDirRender.Add(pt + (-vec * length) + 2 * (-vec * bCond.URef));
+            }
+
+            foreach (var p in DOM.concentricDivisions)
+            {
+                _concentricDivisions.Add(p);
+            }
+
+            foreach (var c in DOM.outerCircles)
+            {
+                _outerCircles.Add(c);
             }
         }
 
@@ -265,26 +278,51 @@ namespace Eddy
         {
             base.DrawViewportWires(args);
 
-            if (this.Locked || _point == null || _point.Count == 0 || _vecs == null || _vecs.Count == 0)
+            if (this.Locked || _pointWindDirRender == null || _pointWindDirRender.Count == 0 || _vecsWindDirRender == null || _vecsWindDirRender.Count == 0)
             {
                 return;
             }
 
             if (this.Attributes.Selected)
             {
-                for (int i = 0; i < _point.Count; i++)
+                // Draw wind dir arrows
+                for (int i = 0; i < _pointWindDirRender.Count; i++)
                 {
-                    var l = new Line(_point[i], _vecs[i]);
+                    var l = new Line(_pointWindDirRender[i], _vecsWindDirRender[i]);
                     args.Display.DrawArrow(l, args.WireColour_Selected, 25, 0);
                 }
+                // Draw concentric divisions
+                foreach (var p in _concentricDivisions)
+                {
+                    args.Display.DrawPolyline(p, args.WireColour_Selected);
+                }
+
+                // Draw outer circles
+                foreach (var c in _outerCircles)
+                {
+                    args.Display.DrawCircle(c, args.WireColour_Selected);
+                }
+
                 return;
             }
             else
             {
-                for (int i = 0; i < _point.Count; i++)
+                // Draw wind dir arrows
+                for (int i = 0; i < _pointWindDirRender.Count; i++)
                 {
-                    var l = new Line(_point[i], _vecs[i]);
+                    var l = new Line(_pointWindDirRender[i], _vecsWindDirRender[i]);
                     args.Display.DrawArrow(l, args.WireColour, 25, 0);
+                }
+                // Draw concentric divisions
+                foreach (var p in _concentricDivisions)
+                {
+                    args.Display.DrawPolyline(p, args.WireColour);
+                }
+
+                // Draw outer circles
+                foreach (var c in _outerCircles)
+                {
+                    args.Display.DrawCircle(c, args.WireColour);
                 }
 
                 return;

@@ -70,7 +70,8 @@ namespace Eddy
         {
             bool Run = false;
             int Mode = 1;
-            string workingDirectory = "";
+            var workingDirectory = "";
+            var tempString = new GH_String("");
 
             OFResult RES = null;
 
@@ -78,16 +79,18 @@ namespace Eddy
             if (!DA.GetData(0, ref wrapper)) { }
             if (DA.GetData(0, ref wrapper))
             {
-                if (wrapper.Value is String)
-                {
-                    workingDirectory = (String)wrapper.Value;
-                }
-                else if (wrapper.Value is OFResult)
+                if (wrapper.Value is OFResult)
                 {
                     RES = (OFResult)wrapper.Value;
                     workingDirectory = RES.WorkingDirectory;
                 }
-                else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass either an Eddy result or a working directory."); return; }
+                else
+                {
+                    //wrapper.CastTo<string>(out workingDirectory);
+                    tempString = (GH_String)wrapper.Value;
+                    workingDirectory = tempString.Value;
+                }
+                //else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass either an Eddy result or a working directory."); return; }
             }
 
             DA.GetData(1, ref Mode);
