@@ -33,23 +33,6 @@ namespace EddyLib
                 if (close) { p.Close(); }
             }
 
-            public static bool CheckDomainDimensionsOK(Mesh BuildingGeometry)
-            {
-                bool domainOK = true;
-                var BBoxCrude = BuildingGeometry.GetBoundingBox(true);
-
-                foreach (Point3d pt in BBoxCrude.GetCorners())
-                {
-                    int threshold = 50000;
-                    if (pt.X > threshold || pt.Y > threshold || pt.Z > threshold)
-                    {
-                        domainOK = false;
-                    }
-                }
-
-                return domainOK;
-            }
-
             public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false)
             {
                 StartProcessCMDNT(argument, createnowindow, waitforexit, close, startInNewThread, @"C:\Windows\System32\cmd.exe");
@@ -592,6 +575,23 @@ exit
             {
                 dir.Delete(true);
             }
+        }
+
+        public static bool CheckDomainDimensionsOK(Mesh BuildingGeometry)
+        {
+            bool domainOK = true;
+            var BBoxCrude = BuildingGeometry.GetBoundingBox(true);
+
+            foreach (Point3d pt in BBoxCrude.GetCorners())
+            {
+                int threshold = 50000;
+                if (pt.X > threshold || pt.Y > threshold || pt.Z > threshold)
+                {
+                    domainOK = false;
+                }
+            }
+
+            return domainOK;
         }
 
         public static string GetFileNameWithHighestEnumerator(string folder)
