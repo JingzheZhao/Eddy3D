@@ -204,12 +204,12 @@ namespace Eddy
             {
                 OFBoxDomain DOMBOX = new OFBoxDomain(buildingGeometry, terrainMeshes, bCond, blockDimension, length, width, height);
 
+                FillWindDirRenderList(bCond, DOMBOX);
+
                 if (DOMBOX.BCond.windDirs.Count > 1)
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "For box-shaped domains you can only pass one wind direction per simulation setup."); return;
                 }
-
-                FillRenderLists(bCond, DOMBOX);
 
                 DA.SetData(0, DOMBOX);
 
@@ -243,22 +243,30 @@ namespace Eddy
         /// </summary>
         public override Guid ComponentGuid => new Guid("{0AD4BDF7-33AC-492D-ABF0-622A5488C8E2}");
 
-        private List<Point3d> _point;
-        private List<Vector3d> _vecs;
+        private List<Point3d> _pointWindDirRender;
+        private List<Vector3d> _vecsWindDirRender;
 
-        private void FillRenderLists(BoundaryConditions bCond, OFBoxDomain DOM)
+        private void FillWindDirRenderList(BoundaryConditions bCond, OFBoxDomain DOM)
         {
             //clear
-            _point = new List<Point3d>();
-            _vecs = new List<Vector3d>();
+            _pointWindDirRender = new List<Point3d>();
+            _vecsWindDirRender = new List<Vector3d>();
 
-            var pt = Utilities.CenterBottomBoundingBox(DOM.DomainMesh);
+            var pt = new Point3d(0, 0, 0);
+            if (DOM.DomainMesh != null)
+            {
+                pt = Utilities.CenterBottomBoundingBox(DOM.DomainMesh);
+            }
+            else
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Could not draw wind directions onto the canvas.");
+            }
 
-            var length = DOM.blockDimension * DOM.yCells;
+            var length = DOM.blockDimension * DOM.CellsAlongLength;
 
             //Fill render lists for arrow preview
-            _vecs.Add(bCond.flowDir[0] * bCond.URef);
-            _point.Add(pt + (-bCond.flowDir[0] * length) + (-bCond.flowDir[0] * bCond.URef));
+            _vecsWindDirRender.Add(bCond.flowDir[0] * bCond.URef);
+            _pointWindDirRender.Add(pt + (-bCond.flowDir[0] * length) + (-bCond.flowDir[0] * bCond.URef));
 
             // + (-bCond.flowDir[0] * DOM.length * 0.5) + (-bCond.flowDir[0] * bCond.URef )
         }
@@ -267,25 +275,28 @@ namespace Eddy
         {
             base.DrawViewportWires(args);
 
-            if (this.Locked || _point == null || _point.Count == 0 || _vecs == null || _vecs.Count == 0)
+            if (this.Locked || _pointWindDirRender == null || _pointWindDirRender.Count == 0 || _vecsWindDirRender == null || _vecsWindDirRender.Count == 0)
             {
                 return;
             }
 
             if (this.Attributes.Selected)
             {
-                for (int i = 0; i < _point.Count; i++)
+                // Draw wind dir arrows
+                for (int i = 0; i < _pointWindDirRender.Count; i++)
                 {
-                    var l = new Line(_point[i], _vecs[i]);
+                    var l = new Line(_pointWindDirRender[i], _vecsWindDirRender[i]);
                     args.Display.DrawArrow(l, args.WireColour_Selected, 25, 0);
                 }
+
                 return;
             }
             else
             {
-                for (int i = 0; i < _point.Count; i++)
+                // Draw wind dir arrows
+                for (int i = 0; i < _pointWindDirRender.Count; i++)
                 {
-                    var l = new Line(_point[i], _vecs[i]);
+                    var l = new Line(_pointWindDirRender[i], _vecsWindDirRender[i]);
                     args.Display.DrawArrow(l, args.WireColour, 25, 0);
                 }
 

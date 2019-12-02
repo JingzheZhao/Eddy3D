@@ -1185,17 +1185,25 @@ renderView1.CameraParallelProjection = 1
             return sb.ToString();
         }
 
-        public static string GetGnuplotPath(bool IsBlueCFDInstalled, int version)
+        public static string GetGnuplotPath(OFRunSettings RS, int version)
         {
             string gnuplotpath = "";
 
-            if (version == 0)
+            if (version == 0 && RS.WindowsGnuplotInstalled)
             {
                 gnuplotpath = @"C:\Program Files\gnuplot\bin\gnuplot.exe";
             }
-            else if (version == 1 && IsBlueCFDInstalled == true)
+            else if (version == 1 && RS.BlueCFDIsInstalled)
             {
                 gnuplotpath = @"C:\Program Files\blueCFD-Core-2017\msys64\mingw64\bin\gnuplot.exe";
+            }
+            else if (version == 0 && !RS.WindowsGnuplotInstalled && RS.BlueCFDIsInstalled)
+            {
+                gnuplotpath = @"C:\Program Files\blueCFD-Core-2017\msys64\mingw64\bin\gnuplot.exe";
+            }
+            else if (version == 1 && !RS.BlueCFDIsInstalled && RS.WindowsGnuplotInstalled)
+            {
+                gnuplotpath = @"C:\Program Files\gnuplot\bin\gnuplot.exe";
             }
 
             return gnuplotpath;

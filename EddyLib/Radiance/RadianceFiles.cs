@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -13,6 +14,71 @@ namespace EddyLib
 
     public class RadianceFiles
     {
+        public static string DaysimInstallation = @"C:\DIVA\DaysimBinaries";
+
+        public static string Epw2Wea(string weatherFilePath, string targetPath)
+        {
+            try
+            {
+                if (Directory.Exists(targetPath) == false)
+                {
+                    Directory.CreateDirectory(targetPath);
+                }
+
+                //if (Directory.GetFiles(targetPath, "*.wea").Length > 0)
+                //{
+                //    Array.ForEach(Directory.GetFiles(targetPath, "*.wea"), delegate (string path) { File.Delete(path); });
+                //}
+                string epwdatname = Path.GetFileNameWithoutExtension(weatherFilePath);
+
+                string arguments = "\"" + Path.GetFullPath(weatherFilePath) + "\" \"" +
+                                   Path.GetFullPath(Path.Combine(targetPath, epwdatname + @".wea")) + "\"";
+
+                Debug.WriteLine(arguments);
+
+                ProcessStartInfo processInfo = new ProcessStartInfo
+                {
+                    Arguments = arguments,
+                    FileName = DaysimInstallation + @"\epw2wea",
+                    WorkingDirectory = DaysimInstallation,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+
+                Process p = new Process
+                {
+                    StartInfo = processInfo
+                };
+                // p.OutputDataReceived += DebugLog.CaptureOutput; p.ErrorDataReceived += DebugLog.CaptureError;
+
+                p.Start();
+
+                p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
+                       Console.WriteLine("output>>" + e.Data);
+                p.BeginOutputReadLine();
+
+                p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+                    Console.WriteLine("error>>" + e.Data);
+                p.BeginErrorReadLine();
+
+                p.WaitForExit();
+
+                Console.WriteLine("ExitCode: {0}", p.ExitCode);
+                p.Close();
+
+                Debug.WriteLine("WEA FILE EXSISTS? " + File.Exists(Path.GetFullPath(Path.Combine(targetPath, epwdatname + @".wea"))).ToString());
+
+                return epwdatname;
+            }
+            catch
+            {
+                Debug.WriteLine("SetWeather failed");
+                return "";
+            }
+        }
+
         // Radiance isn't exactly culture-aware, so we have to make everything here en-US
         private static readonly CultureInfo radianceCulture = new CultureInfo("en-US");
 
@@ -27,6 +93,70 @@ namespace EddyLib
             System.IO.StreamWriter sw = new System.IO.StreamWriter(_fname);
             sw.WriteLine("#Grasshopper Eddy 2019");
             sw.WriteLine("");
+            //_m.Faces.ConvertQuadsToTriangles();
+
+            //_m.Faces.ExtractDuplicateFaces();
+            _m.Faces.ConvertNonPlanarQuadsToTriangles(RhinoDoc.ActiveDoc.ModelAbsoluteTolerance, RhinoDoc.ActiveDoc.ModelAngleToleranceRadians, 0);
+
+            // Sometimes Octrees are not written robustly
+
+            //int fixCount = 0;
+            //_m.Faces.RemoveZeroAreaFaces(ref fixCount);
+            _m.Faces.CullDegenerateFaces();
+
+            for (int i = 0; i < _m.Faces.Count; ++i)
+            {
+                var area = Utilities.MeshFaceArea(i, _m);
+                if (area < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)
+                {
+                    continue;
+                }
+
+                if (_m.Faces[i].IsTriangle)
+                {
+                    sw.WriteLine(_mat + " polygon " + _mat + "." + (i + 1).ToString());
+                    sw.WriteLine("0");
+                    sw.WriteLine("0");
+                    sw.WriteLine("9");
+
+                    int v0 = _m.Faces[i].A;
+                    int v1 = _m.Faces[i].B;
+                    int v2 = _m.Faces[i].C;
+
+                    sw.WriteLine(FormatPoint(_m.Vertices[v0]));
+                    sw.WriteLine(FormatPoint(_m.Vertices[v1]));
+                    sw.WriteLine(FormatPoint(_m.Vertices[v2]));
+                }
+                else
+                {
+                    sw.WriteLine(_mat + " polygon " + _mat + "." + (i + 1).ToString());
+                    sw.WriteLine("0");
+                    sw.WriteLine("0");
+                    sw.WriteLine("12");
+
+                    int v0 = _m.Faces[i].A;
+                    int v1 = _m.Faces[i].B;
+                    int v2 = _m.Faces[i].C;
+                    int v3 = _m.Faces[i].D;
+
+                    sw.WriteLine(FormatPoint(_m.Vertices[v0]));
+                    sw.WriteLine(FormatPoint(_m.Vertices[v1]));
+                    sw.WriteLine(FormatPoint(_m.Vertices[v2]));
+                    sw.WriteLine(FormatPoint(_m.Vertices[v3]));
+                }
+            }
+
+            sw.Close();
+        }
+
+        public static void MeshProc(Mesh _m, string _fname, string _mat, string _matLib)
+        {
+            System.IO.StreamWriter sw = new System.IO.StreamWriter(_fname);
+            sw.WriteLine("#Grasshopper Eddy 2019");
+            sw.WriteLine("");
+            sw.WriteLine(_matLib);
+            sw.WriteLine("");
+
             //_m.Faces.ConvertQuadsToTriangles();
 
             //_m.Faces.ExtractDuplicateFaces();

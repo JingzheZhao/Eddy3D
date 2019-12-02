@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+
 //using Microsoft.VisualBasic.Devices;
 
 namespace EddyLib
@@ -35,6 +36,8 @@ namespace EddyLib
     public class OFRunSettings
     {
         public bool BlueCFDIsInstalled;
+        public bool WindowsGnuplotInstalled;
+
         public int CPUs;
         public bool IdenticalMPI;
         public bool Is64BitOS;
@@ -44,8 +47,10 @@ namespace EddyLib
         public RelaxationFactors relaxationFactors;
         public int Schemes;
         public SimEngine simEngine;
+
         //public int totalGBRam;
         public TurbModel turbModel;
+
         public int writeInterval;
 
         public OFRunSettings(
@@ -72,6 +77,7 @@ namespace EddyLib
             this.relaxationFactors = relaxationFactors;
             this.Is64BitOS = Environment.Is64BitOperatingSystem;
             this.BlueCFDIsInstalled = CheckIfBlueCFDIsInstalled();
+            this.WindowsGnuplotInstalled = CheckWinGnuplotInstallation();
             this.IdenticalMPI = CheckForProperMPIVersions(BlueCFDIsInstalled, Is64BitOS);
         }
 
@@ -131,6 +137,20 @@ Relaxation Factors = {9}", iter, writeInterval, keepTimeSteps, Schemes, turbMode
                 IsBlueCFDInstalled = true;
             }
             return IsBlueCFDInstalled;
+        }
+
+        private bool CheckWinGnuplotInstallation()
+        {
+            bool installed = false;
+
+            string Wingnuplotpath = @"C:\Program Files\gnuplot\bin\gnuplot.exe";
+
+            if (File.Exists(Wingnuplotpath))
+            {
+                installed = true;
+            }
+
+            return installed;
         }
     }
 }

@@ -7,6 +7,7 @@ using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
+using Grasshopper.Kernel.Types;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -42,7 +43,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Directory", "Dir", "Working directory", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Result", "Res", "Result or working directory", GH_ParamAccess.item);
             pManager.AddIntegerParameter("Mode", "Mode", "Directories to delete", GH_ParamAccess.item, 1);
             Param_Integer param = pManager[1] as Param_Integer;
             param.AddNamedValue("Mesh Directory", 0);
@@ -68,10 +69,30 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             bool Run = false;
-            string workingDirectory = "";
             int Mode = 1;
+            var workingDirectory = "";
+            var tempString = new GH_String("");
 
-            DA.GetData(0, ref workingDirectory);
+            OFResult RES = null;
+
+            GH_ObjectWrapper wrapper = null;
+            if (!DA.GetData(0, ref wrapper)) { }
+            if (DA.GetData(0, ref wrapper))
+            {
+                if (wrapper.Value is OFResult)
+                {
+                    RES = (OFResult)wrapper.Value;
+                    workingDirectory = RES.WorkingDirectory;
+                }
+                else
+                {
+                    //wrapper.CastTo<string>(out workingDirectory);
+                    tempString = (GH_String)wrapper.Value;
+                    workingDirectory = tempString.Value;
+                }
+                //else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass either an Eddy result or a working directory."); return; }
+            }
+
             DA.GetData(1, ref Mode);
             DA.GetData(2, ref Run);
 

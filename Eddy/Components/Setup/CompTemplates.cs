@@ -27,13 +27,13 @@ namespace Eddy
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Directory", "_dir", "Additional folder path to import Eddy templates.", GH_ParamAccess.list);
+            pManager.AddTextParameter("Directory", "Dir", "Additional folder path to import Eddy templates.", GH_ParamAccess.list);
             pManager[0].Optional = true;
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddTextParameter("Templates", "out", "Eddy templates found from folders", GH_ParamAccess.list);
+            pManager.AddTextParameter("Templates", "out", "Eddy templates found in folders.", GH_ParamAccess.list);
         }
 
         protected override void SolveInstance(IGH_DataAccess DA)
