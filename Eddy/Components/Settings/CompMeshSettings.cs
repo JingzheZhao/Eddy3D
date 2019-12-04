@@ -78,7 +78,7 @@ namespace Eddy
 
             if (_accBuilding >= 5 || _accFeatures >= 5 || _accRefinement >= 5 || _accGround >= 5 || _nLayers >= 5)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "A high number of refinment stages might significantly slow down mesh creation. Try to create a reasonable fine mesh with the Domain component and/or make sure to use more than one CPU.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "A high number of refinment levels might significantly slow down mesh creation. Try to create a reasonable fine mesh with the Domain component and/or make sure to use more than one CPU.");
             }
 
             DA.SetData(0, new OFMeshSettings()

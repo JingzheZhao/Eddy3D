@@ -192,7 +192,7 @@ namespace EddyLib
 
             // Pick location in Mesh
 
-            SetLocationInMesh(BuildingGeometry);
+            SetLocationInMesh(BuildingGeometry, scaleZ);
 
             // Add terrain to ground mesh if it exists
             if (hasTerrain)
@@ -262,9 +262,9 @@ namespace EddyLib
             ToString();
         }
 
-        private void SetLocationInMesh(Mesh BuildingGeo)
+        private void SetLocationInMesh(Mesh BuildingGeo, double scaleZ)
         {
-            var vec = new Vector3d(0, 0, 5);
+            var vec = new Vector3d(0, 0, 0.1 * scaleZ);
             var moveUP = Transform.Translation(vec);
             var bg = BuildingGeo.GetBoundingBox(true).GetCorners()[7];
 
