@@ -577,19 +577,26 @@ exit
             }
         }
 
-        public static bool CheckDomainDimensionsOK(Mesh BuildingGeometry)
+        public static bool CheckDomainDimensionsOK(Mesh BuildingGeometry, out double distance)
         {
             bool domainOK = true;
             var BBoxCrude = BuildingGeometry.GetBoundingBox(true);
+            distance = 0.0;
 
             foreach (Point3d pt in BBoxCrude.GetCorners())
             {
                 int threshold = 50000;
                 if (pt.X > threshold || pt.Y > threshold || pt.Z > threshold)
                 {
+
+                                       
                     domainOK = false;
+
+                    distance = pt.MaximumCoordinate - threshold;
+
                 }
             }
+            
 
             return domainOK;
         }
