@@ -122,8 +122,8 @@ namespace EddyLib
 
             File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "snappyHexMeshDict"), EddyLib.StrTemp.OFExecDicts.SnappyHexMeshDict(MeshSettings, DOM));
             File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "surfaceFeatureExtractDict"), EddyLib.StrTemp.OFExecDicts.SurfaceFeatureExtractDict());
-            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesRobust1());
-            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "fvSolution"), EddyLib.StrTemp.OFExecDicts.FvSolution(RunSettings));
+            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesDefault());
+            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "fvSolution"), EddyLib.StrTemp.OFExecDicts.FvSolutionDefault(RunSettings));
             File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "meshQualityDict"), EddyLib.StrTemp.OFExecDicts.MeshQualityDict());
             File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "decomposeParDict"), EddyLib.StrTemp.OFExecDicts.DecomposeParDict(RunSettings));
 

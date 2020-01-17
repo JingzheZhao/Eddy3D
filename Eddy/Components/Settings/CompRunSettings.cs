@@ -62,7 +62,7 @@ namespace Eddy
 
             pManager.AddIntegerParameter("Mode", "Mode", "Robustness of the solver", GH_ParamAccess.item, 0);
             Param_Integer simulationMode = pManager[5] as Param_Integer;
-            simulationMode.AddNamedValue("quick", 0);
+            simulationMode.AddNamedValue("default", 0);
             simulationMode.AddNamedValue("robust", 1);
             simulationMode.AddNamedValue("orthogonal (70-80)", 2);
             simulationMode.AddNamedValue("orthogonal (60-70)", 3);

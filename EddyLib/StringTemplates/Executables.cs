@@ -1086,6 +1086,78 @@ wallDist
 ";
         }
 
+        public static string FvSchemesDefault()
+        {
+            return
+        @"/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  6
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         steadyState;
+}
+
+gradSchemes
+{
+    default         Gauss linear;
+
+    limited         cellLimited Gauss linear 1;
+    grad(U)         $limited;
+    grad(k)         $limited;
+    grad(epsilon)     $limited;
+}
+
+divSchemes
+{
+    default         none;
+
+    div(phi,U)      bounded Gauss linearUpwind limited;
+
+    turbulence      bounded Gauss limitedLinear 1;
+    div(phi,k)      $turbulence;
+    div(phi,epsilon) $turbulence;
+
+    div((nuEff*dev2(T(grad(U))))) Gauss linear;
+}
+
+laplacianSchemes
+{
+    default         Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         corrected;
+}
+
+wallDist
+{
+    method meshWave;
+}
+
+// ************************************************************************* //
+
+";
+        }
+
         public static string FvSchemesSimscale()
         {
             return
@@ -1654,6 +1726,130 @@ wallDist
         //;");
         //            return sb.ToString();
         //        }
+
+        public static string FvSolutionDefault(OFRunSettings RunSettings)
+        {
+            StringBuilder sb = new StringBuilder(); sb.Append(@"
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  6
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    p
+    {
+        solver          GAMG;
+        smoother        GaussSeidel;
+        tolerance       1e-6;
+        relTol          0.1;
+    }
+
+	Phi
+    {
+        solver          GAMG;
+        smoother        GaussSeidel;
+        tolerance       1e-9;
+        relTol          0.0001;
+    }
+
+    ""(U | k | omega | epsilon)""
+    {
+                solver smoothSolver;
+                smoother symGaussSeidel;
+                tolerance       1e-6;
+                relTol          0.1;
+            }
+        }
+
+        SIMPLE
+{
+    residualControl
+    {
+        p               1e-4;
+        U               1e-4;
+        ""(k|omega|epsilon)"" 1e-4;
+    }
+");
+            if (RunSettings.relaxationFactors == RelaxationFactors.OpenFOAM) { sb.Append(@"nNonOrthogonalCorrectors 1;"); }
+            else { sb.Append(@"nNonOrthogonalCorrectors 4;"); }
+            sb.AppendLine(@"
+    pRefCell        0;
+    pRefValue       0;
+}
+
+potentialFlow
+{
+    nNonOrthogonalCorrectors 40;
+}
+
+");
+            if (RunSettings.relaxationFactors == RelaxationFactors.Fluent)
+            {
+                sb.Append(@"relaxationFactors
+{
+    fields
+    {
+        p               0.7;
+    }
+    equations
+    {
+        U               0.3;
+        k               0.3;
+       epsilon          0.3;
+	   omega			0.3;
+    }
+}"
+);
+            }
+            else if (RunSettings.relaxationFactors == RelaxationFactors.OpenFOAM) { sb.Append(@"relaxationFactors
+{
+    fields
+    {
+        p               0.3;
+    }
+    equations
+    {
+        U               0.7;
+        k               0.7;
+       epsilon          0.7;
+	   omega			0.7;
+    }
+}"); }
+            else if (RunSettings.relaxationFactors == RelaxationFactors.SimScale) { sb.Append(@"relaxationFactors
+{
+    fields
+    {
+        p               0.3;
+    }
+    equations
+    {
+        U               0.3;
+        k               0.3;
+       epsilon          0.3;
+	   omega			0.3;
+    }
+}"); }
+
+            sb.Append(@"
+
+// ************************************************************************* //
+
+");
+            return sb.ToString();
+        }
+
         public static string FvSolution(OFRunSettings RunSettings)
         {
             StringBuilder sb = new StringBuilder(); sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\

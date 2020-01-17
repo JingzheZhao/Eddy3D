@@ -129,14 +129,14 @@ value		$internalField;
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
                 double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i]; //check
-                if (dot < 0 && !DOM.hasTerrain)
+                if (dot < -0.1 && !DOM.hasTerrain)
                 {
                     sb.AppendLine("patch" + i);
                     sb.Append(@"{	type atmBoundaryLayerInletEpsilon;
         #include	""ABLConditions"";
 }");
                 }
-                else if (dot >= 0 && !DOM.hasTerrain)
+                else if (dot >= 0.1 && !DOM.hasTerrain)
                 {
                     sb.AppendLine("patch" + i);
                     sb.Append(@"
@@ -153,14 +153,14 @@ inletValue $internalField;
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
                 double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i]; //check
-                if (dot < 0 && DOM.hasTerrain)
+                if (dot < -0.1 && DOM.hasTerrain)
                 {
                     sb.AppendLine("patch" + i);
                     sb.Append(@"{	type fixedValue;
         value		$internalField;
 }");
                 }
-                else if (dot >= 0 && DOM.hasTerrain)
+                else if (dot >= 0.1 && DOM.hasTerrain)
                 {
                     sb.AppendLine("patch" + i);
                     sb.Append(@"
