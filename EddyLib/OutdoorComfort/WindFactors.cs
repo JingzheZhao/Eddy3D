@@ -239,12 +239,14 @@ namespace EddyLib
         public bool resultPrecalculated;
         public bool wrongNumberOfProbes;
 
-        private string fileNameCSV = @"WindFactors.csv";
-        private string fileNameCSVInterpolated = @"WindFactors_ip.csv";
+        private string fileNameCSV = @"WindFactors";
+        private string fileNameCSVExtension = ".csv";
+        private string interpolationPref = "lp";
+        private string del = "_";
 
         public WindFactors(string baseWorkingDir, BoundaryConditions bcond, Weather weather, AnnualVelocities velocityProbes, double probingHeight, bool interpolate, bool recalc)
         {
-            string csvWindFactors = interpolate == false ? baseWorkingDir + fileNameCSV : baseWorkingDir + fileNameCSVInterpolated;
+            string csvWindFactors = interpolate == false ? Path.Combine(baseWorkingDir + fileNameCSV + del + weather.Location + del + fileNameCSVExtension) : Path.Combine(baseWorkingDir + fileNameCSV + del + weather.Location + del + interpolationPref + del + fileNameCSVExtension);
 
             if (File.Exists(csvWindFactors) && !recalc)
             {
