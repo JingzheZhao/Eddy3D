@@ -6,7 +6,10 @@
     <option>debugauto</option>
   </global>
   <input>
-    <loadpaths />
+    <loadpaths>
+      <file dir="C:\Users\pkastner\Documents\GitHub\Eddy3d\packages\Grasshopper.6.18.19266.14201\lib\net45" />
+      <file dir="C:\Users\pkastner\Documents\GitHub\Eddy3d\packages\RhinoCommon.6.18.19266.14201\lib\net45" />
+    </loadpaths>
     <asmlist>
       <inputassembly refid="ee5bd35d-8624-46b6-b209-4b3d64c7c244">
         <option>honoroas</option>
