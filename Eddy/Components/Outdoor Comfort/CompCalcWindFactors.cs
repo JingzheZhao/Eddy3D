@@ -83,8 +83,19 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             //pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Wind Factors", "WF", "WF", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Pedestrian Comfort", "PD", "PD", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Wind Factors", "WF", @"Wind Factors
+
+Dimensionless wind velocity of each sensor point from the nearest simulated wind direction with the corresponding velocity and wind direction from the weather data for every hour of the year. 
+This yields a datatree with wind reduction factors of the size [8760 h x number of sensor points].", GH_ParamAccess.item);
+
+
+            pManager.AddGenericParameter("Pedestrian Comfort", "PC", @"Pedestrian Comfort
+
+4:  > 4 m/s ""Sitting"" Light breezes desired for outdoor restaurants and seating areas where one can read a paper of comfortably sit for long periods.
+6:  > 6 m/s ""Standing"" Gentle breezes suitable for main buildings entrances, pick-up/drop off points and bus stops.
+8:  > 8 m/s ""Leisure Walking or Strolling"" Moderate breezes that would be appropriate for walking down a city centre street, park or plaza.           
+10:  > 10 m/s ""Business Walking"" Relatively high speeds that can be tolerated if ones objective is to walk, run or cycle without lingering.
+12:  > 12 m/s ""Uncomfortable"" Winds of this magnitude are considered a nuisance for most activities, and wind mitigation is typically recommended.", GH_ParamAccess.list);
             pManager.AddGenericParameter("OffSet", "OF", "OffSet between simulated wind directions and directions in the weather file.", GH_ParamAccess.list);
         }
 
