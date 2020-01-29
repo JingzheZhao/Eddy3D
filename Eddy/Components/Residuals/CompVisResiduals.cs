@@ -181,10 +181,10 @@ set format y ""10 ^{% T}
                         ""
 set datafile separator '\t'
 plot '" + fullFilePath + @"' u($1):2 with lines title '" + field1 + "','" + fullFilePath + @"' u($1):3 with lines title '" + field2 + "','" + fullFilePath + @"' u($1):4 with lines title '" + field3 + "','" + fullFilePath + @"' u($1):5 with lines title '" + field4 + "','" + fullFilePath + @"' u($1):6 with lines title '" + field5 + "','" + fullFilePath + @"' u($1):7 with lines title '" + field6 + @"'
-pause 3600; replot
+pause 360; replot
 ";
 
-                        Utilities.StartProcess.StartProcessCMDNT(arg, true, false, false, true, Utilities.GetGnuplotPath(RES.RunSettings, version));
+                        Utilities.StartProcess.StartProcessCMDNTGnuplot(arg, true, false, false, true, Utilities.GetGnuplotPath(RES.RunSettings, version));
                     }
                 }
                 catch (Exception e)
@@ -227,7 +227,7 @@ set output '" + RES.WorkingDirectory + @"residuals_" + dir + @".pdf'
 replot
 ";
 
-                        Utilities.StartProcess.StartProcessCMDNT(arg, true, false, false, true, Utilities.GetGnuplotPath(RES.RunSettings, version));
+                        Utilities.StartProcess.StartProcessCMDNTGnuplot(arg, true, false, false, true, Utilities.GetGnuplotPath(RES.RunSettings, version));
                     }
                 }
                 catch (Exception e)
