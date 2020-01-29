@@ -55,79 +55,6 @@ namespace EddyLib
             }
         }
 
-        //private static void WriteAnnualVelocityProbes(BoundaryConditions bcond, string baseWorkingDir, string csvAnnualVelocityProbes)
-        //{
-        //    List<string> fullProbeFilePath = new List<String>();
-
-        // //Build paths as list
-
-        // for (int i = 0; i < bcond.windDirs.Count; i++) { fullProbeFilePath.Add(baseWorkingDir +
-        // "\\" + bcond.windDirs[i] + @"\postProcessing\U_Probes.csv"); }
-
-        // var numberOfWindDirs = bcond.windDirs.Count(); var numberOfProbes =
-        // File.ReadAllLines(fullProbeFilePath[0]).Count(); //string[] abc = replacedString.Split("
-        // ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-
-        // // Array for output data
-
-        // var listOfAnnualData = new Vector3d[numberOfWindDirs][];
-
-        // for (int r = 0; r < numberOfWindDirs; r++) { listOfAnnualData[r] = new
-        // Vector3d[numberOfProbes]; //int counter = 1; for (int c = 0; c < numberOfProbes; c++) {
-        // listOfAnnualData[r][c] = new
-        // Vector3d(double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(),
-        // StringSplitOptions.RemoveEmptyEntries)[0]) / bcond.UPedestrianHeight,
-        // double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(),
-        // StringSplitOptions.RemoveEmptyEntries)[1]) / bcond.UPedestrianHeight,
-        // double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(),
-        // StringSplitOptions.RemoveEmptyEntries)[2]) / bcond.UPedestrianHeight); //counter += 3; } }
-
-        // // Write Array to dataTree //for (int c = 0; c < numberOfWindDirs; c++) //{ // for (int r
-        // = 0; r < numberOfProbes; r++) // { // UTree.Add(listOfAnnualData[c][r], new
-        // Grasshopper.Kernel.Data.GH_Path(c)); // }
-
-        // //}
-
-        // //DA.SetDataTree(0, UTree);
-
-        // //Write U Array to file System.Text.StringBuilder UFile = new System.Text.StringBuilder();
-
-        // for (int i = 0; i < bcond.windDirs.Count; i++) { UFile.AppendLine(bcond.windDirs[i] + ", ,
-        // ,"); UFile.AppendLine("x, y, z,"); }
-
-        // UFile.AppendLine("");
-
-        // for (int r = 0; r < numberOfProbes; r++) { for (int c = 0; c < numberOfWindDirs; c++) {
-        // UFile.AppendLine(listOfAnnualData[c][r] + ","); } UFile.AppendLine(""); }
-        // File.WriteAllText(baseWorkingDir + @"\hourlyU.csv", UFile.ToString());
-
-        // //Write Reduction Array to file
-
-        // System.Text.StringBuilder ReductionFile = new System.Text.StringBuilder();
-
-        // for (int i = 0; i < bcond.windDirs.Count; i++) { ReductionFile.Append(bcond.windDirs[i] +
-        // ","); }
-
-        //    ReductionFile.AppendLine("");
-        //    for (int r = 0; r < numberOfProbes; r++)
-        //    {
-        //        for (int c = 0; c < numberOfWindDirs; c++)
-        //        {
-        //            //ReductionFile.Append(Math.Sqrt(Math.Pow(listOfAnnualData[c][r].X,2)* Math.Pow(listOfAnnualData[c][r].Y,2)* Math.Pow(listOfAnnualData[c][r].Z,2) )+ ",");
-        //            ReductionFile.Append(Math.Round(listOfAnnualData[c][r].Length, 3) + ",");
-        //        }
-        //        ReductionFile.AppendLine("");
-        //    }
-        //    File.WriteAllText(baseWorkingDir + csvAnnualVelocityProbes, ReductionFile.ToString());
-        //}
-
-        //private Vector3d[,] AggregateVectors(List<Vector3d> vectors)
-        //{
-        //    foreach (List)
-
-        //        return arrr;
-        //}
-
         private bool CheckForInfValues(Vector3d[,] vectors)
         {
             bool infValues = false;
@@ -234,7 +161,9 @@ namespace EddyLib
         public int[] offSet;
         public double offSetAverage;
         public double[,] ValuesWindFactors;
-        public double[] ValuesPedestrianComfort;
+        public double[] ValuesLawsonComfort;
+        public double[] ValuesDavenportComfort;
+        public double[] ValuesNEN8100Comfort;
 
         public bool resultPrecalculated;
         public bool wrongNumberOfProbes;
@@ -283,25 +212,34 @@ namespace EddyLib
                 this.wrongNumberOfProbes = false;
             }
 
-            this.ValuesPedestrianComfort = CalcPedestrianComfort(this.ValuesWindFactors);
+            var tempComfort = CalcPedestrianComfort(this.ValuesWindFactors);
+
+            this.ValuesLawsonComfort = CalcPedestrianComfort(this.ValuesWindFactors).Item2;
+            this.ValuesDavenportComfort = CalcPedestrianComfort(this.ValuesWindFactors).Item1;
+            this.ValuesNEN8100Comfort = CalcPedestrianComfort(this.ValuesWindFactors).Item3;
         }
 
-        private double[] CalcPedestrianComfort(double[,] ValuesWindFactors)
+        private Tuple<double[], double[], double[]> CalcPedestrianComfort(double[,] ValuesWindFactors)
         {
             int sensorPointCount = ValuesWindFactors.GetLength(1);
-            var pedestrianComfort = new double[sensorPointCount];
+            var DavenportComfort = new double[sensorPointCount];
+            var LawsonComfort = new double[sensorPointCount];
+            var NEN8100Comfort = new double[sensorPointCount];
 
             for (int probe = 0; probe < sensorPointCount; probe++)
             {
+                // column is all hours of the year
                 var column = ArrayHelper.CustomArray<double>.GetColumn(ValuesWindFactors, probe);
 
-                pedestrianComfort[probe] = CalcPedestrianComfort(column);
+                DavenportComfort[probe] = CalcDavenportComfort(column);
+                LawsonComfort[probe] = CalcLawsonComfort(column);
+                NEN8100Comfort[probe] = CalcNEN8100Comfort(column);
             }
 
-            return pedestrianComfort;
+            return new Tuple<double[], double[], double[]>(DavenportComfort, LawsonComfort, NEN8100Comfort);
         }
 
-        private int CalcPedestrianComfort(double[] annualVelocity)
+        private int CalcLawsonComfort(double[] annualVelocity)
 
         {
             int pedestrianComfort = 4;
@@ -328,6 +266,95 @@ namespace EddyLib
                 n -= 2;
             }
             return pedestrianComfort;
+        }
+
+        private int CalcDavenportComfort(double[] annualVelocity)
+
+        {
+            // Lets specify the categories from 1-6 which corresponds to A-S
+            // https://clqtg10snjb14i85u49wifbv-wpengine.netdna-ssl.com/wp-content/uploads/2019/11/Davenport.png
+
+            double onefive = 8760 * 1.5 * 0.01;
+            double one = 8760 * 0.01 * 0.01;
+
+            int pedestrianComfort = 0;
+
+            // start from the highest and start binning
+
+            if (annualVelocity.Where(num => num > 15.1).Count() >= one)
+            {
+                pedestrianComfort = 6;
+                return pedestrianComfort;
+            }
+            else if (annualVelocity.Where(num => num > 9.8).Count() >= onefive)
+            {
+                pedestrianComfort = 5;
+                return pedestrianComfort;
+            }
+            else if (annualVelocity.Where(num => num > 9.8).Count() < onefive && annualVelocity.Where(num => num > 7.6).Count() > onefive)
+            {
+                pedestrianComfort = 4;
+                return pedestrianComfort;
+            }
+            else if (annualVelocity.Where(num => num > 7.6).Count() < onefive && annualVelocity.Where(num => num > 5.3).Count() > onefive)
+            {
+                pedestrianComfort = 3;
+                return pedestrianComfort;
+            }
+            else if (annualVelocity.Where(num => num > 5.3).Count() < onefive && annualVelocity.Where(num => num > 3.6).Count() > onefive)
+            {
+                pedestrianComfort = 2;
+                return pedestrianComfort;
+            }
+            else // (annualVelocity.Where(num => num > 3.6).Count() < onefive)
+            {
+                pedestrianComfort = 1;
+                return pedestrianComfort;
+            }
+        }
+
+        private int CalcNEN8100Comfort(double[] annualVelocity)
+
+        {
+            // Lets specify the categories from 1-6 which corresponds to A-S
+            //  https://clqtg10snjb14i85u49wifbv-wpengine.netdna-ssl.com/wp-content/uploads/2019/11/textbox_NEN8100.png
+
+            double year = 8760;
+
+            int pedestrianComfort = 0;
+
+            // start from the highest and start binning
+
+            if (annualVelocity.Where(num => num > 15).Count() >= 0.05 * 0.01 * year)
+            {
+                pedestrianComfort = 6;
+                return pedestrianComfort;
+            }
+            else if (annualVelocity.Where(num => num > 5).Count() >= 20 * 0.01 * year)
+            {
+                pedestrianComfort = 5;
+                return pedestrianComfort;
+            }
+            else if (annualVelocity.Where(num => num > 5).Count() < 20 * 0.01 * year && annualVelocity.Where(num => num > 5).Count() > 10 * 0.01 * year)
+            {
+                pedestrianComfort = 4;
+                return pedestrianComfort;
+            }
+            else if (annualVelocity.Where(num => num > 5).Count() < 10 * 0.01 * year && annualVelocity.Where(num => num > 5).Count() > 5 * 0.01 * year)
+            {
+                pedestrianComfort = 3;
+                return pedestrianComfort;
+            }
+            else if (annualVelocity.Where(num => num > 5).Count() < 5 * 0.01 * year && annualVelocity.Where(num => num > 5).Count() > 2.5 * 0.01 * year)
+            {
+                pedestrianComfort = 2;
+                return pedestrianComfort;
+            }
+            else // (annualVelocity.Where(num => num > 3.6).Count() < onefive)
+            {
+                pedestrianComfort = 1;
+                return pedestrianComfort;
+            }
         }
 
         private static double[,] VectorLengths(int sensorPointCount, int numberOfWindDirs, Vector3d[,] vectorProbes)
