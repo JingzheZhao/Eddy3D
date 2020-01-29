@@ -33,6 +33,39 @@ namespace EddyLib
                 if (close) { p.Close(); }
             }
 
+            public static void StartProcessCMDNTGnuplot(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, string executable = @"C:\Windows\System32\cmd.exe")
+            {
+                System.Diagnostics.Process p = new System.Diagnostics.Process();
+                p.StartInfo.FileName = executable;
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.RedirectStandardInput = true;
+                //p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.CreateNoWindow = createnowindow;
+                //p.Start();
+
+                ThreadStart ths = new ThreadStart(() =>
+                {
+                    p.Start();
+
+                    StreamWriter sw = p.StandardInput;
+                    String strInputText = argument;
+                    sw.WriteLine(strInputText);
+
+                    // Window doesn't close with
+                    //sw.Flush();
+                });
+
+                Thread th = new Thread(ths);
+                th.Start();
+
+                if (waitforexit)
+                {
+                    //Console.ReadLine();
+                    p.WaitForExit();
+                }
+                if (close) { p.Close(); }
+            }
+
             public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false)
             {
                 StartProcessCMDNT(argument, createnowindow, waitforexit, close, startInNewThread, @"C:\Windows\System32\cmd.exe");
