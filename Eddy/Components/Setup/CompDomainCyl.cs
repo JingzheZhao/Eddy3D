@@ -193,6 +193,8 @@ namespace Eddy
                 }
             }
 
+            if (!Utilities.CheckDomainDimensionsOK(buildingGeometry, out double distance)) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Your building geometries are " + distance + " m too far from the origin."); return; }
+
             // Check if lowest point in Domain is z_low < 0, then we cannot use a ABL
 
             if (buildingGeometry.GetBoundingBox(true).Min.Z < 0 && bCond.btype == BoundaryType.abl)

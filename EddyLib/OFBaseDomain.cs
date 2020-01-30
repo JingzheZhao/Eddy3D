@@ -217,6 +217,11 @@ namespace EddyLib
             int x = (int)Math.Round(intervalX.Length / spacing) == 0 ? 1 : (int)Math.Round(intervalX.Length / spacing);
             int z = (int)Math.Round(intervalZ.Length / spacing) == 0 ? 1 : (int)Math.Round(intervalZ.Length / spacing);
 
+            if (x > 5000 || z > 5000)
+            {
+                new System.ArgumentException("Simulation domain either too large or too far from the origin.");
+            }
+
             double incrX = intervalX.Length / x;
             double incrZ = intervalZ.Length / z;
             double raylen = 9999;

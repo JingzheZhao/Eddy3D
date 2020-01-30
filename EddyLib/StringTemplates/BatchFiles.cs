@@ -15,12 +15,15 @@ namespace EddyLib.StrTemp
         //Run commands as list
 
         private static readonly List<string> RCCheckMeshSingleCPU = new List<string> {
-        "checkMesh -allGeometry -allTopology -writeAllFields -writeSets vtk",
+       // "checkMesh -allGeometry -allTopology -writeAllFields -writeSets vtk",  // Not supported in OpenFOAM 5 yet
+        "checkMesh -allGeometry -allTopology -writeSets vtk",
         "foamToVTK -faceSet highAspectRatioCells -ascii",
         "foamToVTK -faceSet nonOrthoFaces -ascii",
         "foamToVTK -faceSet skewFaces -ascii",
         "foamToVTK -faceSet wrongOrientedFaces -ascii",
-        "foamToVTK -faceSet zeroVolumeCells -ascii"};
+        "foamToVTK -faceSet zeroVolumeCells -ascii",
+        "foamToVTK -faceSet edgeFaces -ascii",
+        "foamToVTK -cellSet oneInternalFaceCells -ascii"};
 
         private static readonly List<string> RCBlockMeshSingleCPU = new List<string> {
         "blockMesh"};
