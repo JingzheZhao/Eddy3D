@@ -1764,7 +1764,7 @@ solvers
         relTol          0.0001;
     }
 
-    ""(U | k | omega | epsilon)""
+    ""(U|k|omega|epsilon)""
     {
                 solver smoothSolver;
                 smoother symGaussSeidel;
