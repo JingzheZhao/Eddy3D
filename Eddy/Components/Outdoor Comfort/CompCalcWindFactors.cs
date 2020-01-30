@@ -83,9 +83,38 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             //pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Wind Factors", "WF", "WF", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Pedestrian Comfort", "PD", "PD", GH_ParamAccess.list);
-            pManager.AddGenericParameter("OffSet", "OF", "OffSet between simulated wind directions and directions in the weather file.", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Wind Factors", "WF", @"Wind Factors
+
+Dimensionless wind velocity of each sensor point from the nearest simulated wind direction with the corresponding velocity and wind direction from the weather data for every hour of the year.
+This yields a datatree with wind reduction factors of the size [8760 h x number of sensor points].", GH_ParamAccess.item);
+
+            pManager.AddNumberParameter("Lawson Pedestrian Comfort", "LPC", @"Lawson Pedestrian Comfort
+
+4: > 4 m/s ""Sitting"" Light breezes desired for outdoor restaurants and seating areas where one can read a paper of comfortably sit for long periods.
+6: > 6 m/s ""Standing"" Gentle breezes suitable for main buildings entrances, pick-up/drop off points and bus stops.
+8: > 8 m/s ""Leisure Walking or Strolling"" Moderate breezes that would be appropriate for walking down a city centre street, park or plaza.
+10: > 10 m/s ""Business Walking"" Relatively high speeds that can be tolerated if ones objective is to walk, run or cycle without lingering.
+12: > 12 m/s ""Uncomfortable"" Winds of this magnitude are considered a nuisance for most activities, and wind mitigation is typically recommended.", GH_ParamAccess.list);
+
+            pManager.AddNumberParameter("Davenport Pedestrian Comfort", "DPC", @"Davenport Pedestrian Comfort
+
+1 - A > 3.6 m/s < 1.5 % Sitting Long
+2 - B > 5.3 m/s < 1.5 % Sitting Short
+3 - C > 7.6 m/s < 1.5 % Walking Leisurely
+4 - D > 9.8 m/s  < 1.5 % Walking Fast
+5 - E > 9.8 m/s >= 1.5 % Uncomfortable
+6 - S > 15.1 m/s >= 0.01 % Dangerous", GH_ParamAccess.list);
+
+            pManager.AddNumberParameter("NEN 8100 Pedestrian Comfort", "NPC", @"NEN 8100 Pedestrian Comfort
+
+1- A > 5 m/s < 2.5 % Sitting Long
+2 - B > 5 m/s < 5 % Sitting Short
+3 - C > 5 m/s < 10 % Walking Leisurely
+4 - D > 5 m/s < 20 % Walking Fast
+5 - E > 5 m/s > 20 % Uncomfortable
+6 - S > 15 m/s > 0.05 % Dangerous", GH_ParamAccess.list);
+
+            pManager.AddGenericParameter("OffSet", "OFFS", "OffSet between simulated wind directions and directions in the weather file.", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -213,8 +242,10 @@ namespace Eddy
             AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The average offset between simulated wind directions and directions in the weather file is " + Math.Round(wf.offSetAverage, 1) + "°.");
 
             DA.SetData(0, wf);
-            DA.SetDataList(1, wf.ValuesPedestrianComfort);
-            DA.SetDataList(2, wf.offSet);
+            DA.SetDataList(1, wf.ValuesLawsonComfort);
+            DA.SetDataList(2, wf.ValuesDavenportComfort);
+            DA.SetDataList(3, wf.ValuesNEN8100Comfort);
+            DA.SetDataList(4, wf.offSet);
 
             #endregion Wind Factors
         }

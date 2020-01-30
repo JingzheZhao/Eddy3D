@@ -18,6 +18,11 @@ namespace EddyLib
         public double[] DirectNormalRadiation;
         public double[] DiffuseHorizontalRadiation;
 
+        public string Location;
+        double Latitude;
+        double Longitude;
+        double TimeZone;
+
         public List<double> SolarElevation = new List<double>();
         public List<double> SolarAzi = new List<double>();
 
@@ -43,10 +48,10 @@ namespace EddyLib
                 // get header data
                 string[] ln1 = epwData[0].Split(',');
 
-                var Location = System.Text.RegularExpressions.Regex.Replace((ln1[1]), @"\s+", "");
-                var Latitude = Double.Parse(ln1[6]);
-                var Longitude = Double.Parse(ln1[7]);
-                var TimeZone = Double.Parse(ln1[8]);
+                this.Location = System.Text.RegularExpressions.Regex.Replace((ln1[1]), @"\s+", "");
+                this.Latitude = Double.Parse(ln1[6]);
+                this.Longitude = Double.Parse(ln1[7]);
+                this.TimeZone = Double.Parse(ln1[8]);
 
                 // get hourly data
                 string[] epwNoHeader = epwData.Skip(8).Take(8760).ToArray(); // new ArraySegment<string>(epwData, 8, 8760).Array;//.ToArray();
