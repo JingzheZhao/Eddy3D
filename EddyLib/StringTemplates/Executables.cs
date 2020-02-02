@@ -1791,7 +1791,7 @@ solvers
 
 potentialFlow
 {
-    nNonOrthogonalCorrectors 40;
+    nNonOrthogonalCorrectors 30;
 }
 
 ");
@@ -1926,7 +1926,7 @@ SIMPLE
 
 potentialFlow
 {
-    nNonOrthogonalCorrectors 40;
+    nNonOrthogonalCorrectors 30;
 }
 ");
             if (RunSettings.relaxationFactors == RelaxationFactors.Fluent)

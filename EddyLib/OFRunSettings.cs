@@ -1,8 +1,6 @@
 ﻿using System;
 using System.IO;
 
-//using Microsoft.VisualBasic.Devices;
-
 namespace EddyLib
 {
     public enum OSType
@@ -41,6 +39,7 @@ namespace EddyLib
         public int CPUs;
         public bool IdenticalMPI;
         public bool Is64BitOS;
+        public bool potentialFoamInit;
         public int iter;
         public int keepTimeSteps;
         public OSType ostype;
@@ -79,6 +78,7 @@ namespace EddyLib
             this.BlueCFDIsInstalled = CheckIfBlueCFDIsInstalled();
             this.WindowsGnuplotInstalled = CheckWinGnuplotInstallation();
             this.IdenticalMPI = CheckForProperMPIVersions(BlueCFDIsInstalled, Is64BitOS);
+            this.potentialFoamInit = false;
         }
 
         public override string ToString()

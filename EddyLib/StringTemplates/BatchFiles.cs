@@ -30,20 +30,46 @@ namespace EddyLib.StrTemp
 
         private static List<string> RCSimMultiCPU(OFRunSettings RunSettings)
         {
-            List<string> lst = new List<string>
+            List<string> lst = new List<string>();
+            if (RunSettings.potentialFoamInit)
             {
+                lst = new List<string>{
+     "decomposePar -force",
+     "mpiexec -np " + RunSettings.CPUs + @" renumberMesh -overwrite",
+     "mpiexec -np " + RunSettings.CPUs + @" potentialFoam -parallel",
+     "mpiexec -np " + RunSettings.CPUs + @" simpleFoam -parallel",
+     "reconstructPar -latestTime"};
+            }
+            else
+            {
+                lst = new List<string>{
                 "decomposePar -force",
                 "mpiexec -np " + RunSettings.CPUs + @" renumberMesh -overwrite",
-                "mpiexec -np " + RunSettings.CPUs + @" potentialFoam -parallel",
                 "mpiexec -np " + RunSettings.CPUs + @" simpleFoam -parallel",
-                "reconstructPar -latestTime"
-            };
+                "reconstructPar -latestTime"            };
+            }
             return lst;
         }
 
-        private static readonly List<string> RCSimSingleCPU = new List<string> {
+        private static List<string> RCSimSingleCPU(OFRunSettings RunSettings)
+        {
+            var lst = new List<string>();
+
+            if (RunSettings.potentialFoamInit)
+            {
+                lst = new List<string> {
         "potentialFoam",
-        "simpleFoam"};
+        "simpleFoam"
+                };
+            }
+            else
+            {
+                lst = new List<string> {
+        "simpleFoam"
+                };
+            }
+            return lst;
+        }
 
         private static readonly List<string> RCSimContinueSingleCPU = new List<string> {
         "simpleFoam"};
@@ -283,7 +309,7 @@ namespace EddyLib.StrTemp
                 }
                 else
                 {
-                    foreach (string str in RCSimSingleCPU)
+                    foreach (string str in RCSimSingleCPU(RunSettings))
                     {
                         sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str + AppendSuffixDocker());
                     }
@@ -303,7 +329,7 @@ namespace EddyLib.StrTemp
                 }
                 else
                 {
-                    sb.Append(TempBlueCFD(RCSimSingleCPU, caseWorkingDir));
+                    sb.Append(TempBlueCFD(RCSimSingleCPU(RunSettings), caseWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif

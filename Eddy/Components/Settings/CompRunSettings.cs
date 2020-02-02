@@ -60,7 +60,7 @@ namespace Eddy
             relaxationFactors.AddNamedValue("Fluent", 1);
             relaxationFactors.AddNamedValue("SimScale", 2);
 
-            pManager.AddIntegerParameter("Mode", "Mode", "Robustness of the solver", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("SolCtrl", "Solution and algorithm control", "Solution and algorithm control. May alter the robustness of the solver", GH_ParamAccess.item, 0);
             Param_Integer simulationMode = pManager[5] as Param_Integer;
             simulationMode.AddNamedValue("default", 0);
             simulationMode.AddNamedValue("robust", 1);
@@ -79,6 +79,8 @@ namespace Eddy
             os.AddNamedValue("Windows 10", 2);
             os.AddNamedValue("Linux", 3);
             os.AddNamedValue("Mac OS", 4);
+
+            pManager.AddBooleanParameter("potentialFoam initialization", "potFoam", "Initialization with potentialFoam. Solves for the velocity potential to provide velocity and incompressible flux fields, typically used to initialise viscous calculations.", GH_ParamAccess.item, false);
         }
 
         /// <summary>
@@ -106,6 +108,7 @@ namespace Eddy
             int _CPUs = 0;
             int _OS = -1;
             int _relaxationFactors = 0;
+            bool potentialFoam = false;
 
             DA.GetData(0, ref _iter);
             DA.GetData(1, ref _writeInterval);
@@ -114,9 +117,10 @@ namespace Eddy
             DA.GetData("Relaxation factors", ref _relaxationFactors);
 
             DA.GetData(4, ref _mode);
-            DA.GetData(5, ref _turb);
-            DA.GetData(6, ref _CPUs);
-            DA.GetData(7, ref _OS);
+            DA.GetData(5, ref potentialFoam);
+            DA.GetData(6, ref _turb);
+            DA.GetData(7, ref _CPUs);
+            DA.GetData(8, ref _OS);
 
             //TODO: Handle SimEngine
 
@@ -193,7 +197,8 @@ namespace Eddy
                 turbModel = turbmodel,
                 CPUs = _CPUs,
                 ostype = os,
-                relaxationFactors = relaxationFactors
+                relaxationFactors = relaxationFactors,
+                potentialFoamInit = potentialFoam
             });
         }
     }
