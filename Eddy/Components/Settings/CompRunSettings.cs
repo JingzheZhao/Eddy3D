@@ -61,8 +61,6 @@ namespace Eddy
             relaxationFactors.AddNamedValue("Fluent", 1);
             relaxationFactors.AddNamedValue("SimScale", 2);
 
-            pManager.AddBooleanParameter("potentialFoam initialization", "potFoam", "Initialization with potentialFoam. Solves for the velocity potential to provide velocity and incompressible flux fields, typically used to initialise viscous calculations.", GH_ParamAccess.item, false);
-
             pManager.AddIntegerParameter("Solution and algorithm control", "SolCtrl", "Solution and algorithm control. May alter the robustness of the solver", GH_ParamAccess.item, 0);
             Param_Integer simulationMode = pManager[5] as Param_Integer;
             simulationMode.AddNamedValue("default", 0);
@@ -74,6 +72,8 @@ namespace Eddy
             simulationMode.AddNamedValue("more accurate but oscillatory", 6);
             simulationMode.AddNamedValue("robust but diffusive", 7);
 
+            pManager.AddBooleanParameter("potentialFoam initialization", "potFoam", "Initialization with potentialFoam. Solves for the velocity potential to provide velocity and incompressible flux fields, typically used to initialise viscous calculations.", GH_ParamAccess.item, false);
+
             pManager.AddIntegerParameter("Number of CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
 
             pManager.AddIntegerParameter("Operating System", "OS", "Operating System.", GH_ParamAccess.item, 0); // Nothing specified
@@ -84,6 +84,7 @@ namespace Eddy
             os.AddNamedValue("Linux", 3);
             os.AddNamedValue("Mac OS", 4);
 
+            pManager[0].Optional = true;
             pManager[1].Optional = true;
             pManager[2].Optional = true;
             pManager[3].Optional = true;
@@ -92,7 +93,6 @@ namespace Eddy
             pManager[6].Optional = true;
             pManager[7].Optional = true;
             pManager[8].Optional = true;
-            pManager[9].Optional = true;
         }
 
         /// <summary>
@@ -125,12 +125,13 @@ namespace Eddy
             DA.GetData("Number of iterations", ref _iter);
             DA.GetData("Write interval", ref _writeInterval);
             DA.GetData("Number of timesteps to keep", ref _keepTimeSteps);
+            DA.GetData("Turbulence model", ref _turb);
 
             DA.GetData("Relaxation factors", ref _relaxationFactors);
 
             DA.GetData("Solution and algorithm control", ref _schemes);
             DA.GetData("potentialFoam initialization", ref _potentialFoamInit);
-            DA.GetData("Turbulence model", ref _turb);
+
             DA.GetData("Number of CPUs", ref _CPUs);
             DA.GetData("Operating System", ref _OS);
 
@@ -144,7 +145,7 @@ namespace Eddy
 
             if (_CPUs > Environment.ProcessorCount)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system only has " + Environment.ProcessorCount + " CPUs, please lower the CPU count.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system has only  " + Environment.ProcessorCount + " CPUs, please lower the CPU count.");
             }
 
             RelaxationFactors relaxationFactors;

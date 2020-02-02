@@ -78,7 +78,7 @@ namespace EddyLib
             this.relaxationFactors = relaxationFactors;
             this.Is64BitOS = Environment.Is64BitOperatingSystem;
             this.BlueCFDIsInstalled = CheckIfBlueCFDIsInstalled();
-            this.WindowsGnuplotInstalled = CheckWinGnuplotInstallation();
+            this.WindowsGnuplotInstalled = CheckIfWinGnuplotISInstalled();
             this.IdenticalMPI = CheckForProperMPIVersions(BlueCFDIsInstalled, Is64BitOS);
             this.potentialFoamInit = potentialFoamInit;
         }
@@ -144,7 +144,7 @@ potentialFoam initialization = {10}"
             return IsBlueCFDInstalled;
         }
 
-        private bool CheckWinGnuplotInstallation()
+        private bool CheckIfWinGnuplotISInstalled()
         {
             bool installed = false;
 

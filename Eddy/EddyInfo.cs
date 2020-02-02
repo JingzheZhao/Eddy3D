@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using Eddy.Properties;
 using Grasshopper.Kernel;
 
 namespace Eddy
@@ -19,7 +20,7 @@ namespace Eddy
             get
             {
                 //Return a 24x24 pixel bitmap to represent this GHA library.
-                return null;
+                return Resources.Eddy3D;
             }
         }
 
