@@ -44,24 +44,26 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddIntegerParameter("Iterations", "Iter", "Specify the number of iterations to be simulated.", GH_ParamAccess.item, 1000);
-            pManager.AddIntegerParameter("WriteInterval", "WriteInt", "Simulation write interval.", GH_ParamAccess.item, 20);
-            pManager.AddIntegerParameter("KeepTimeSteps", "TSteps", "Number of time steps to keep in simulation folder..", GH_ParamAccess.item, 2);
+            pManager.AddIntegerParameter("Number of iterations", "Iter", "Specify the number of iterations to be simulated.", GH_ParamAccess.item, 1000);
+            pManager.AddIntegerParameter("Write interval", "WriteInt", "Simulation write interval.", GH_ParamAccess.item, 20);
+            pManager.AddIntegerParameter("Number of timesteps to keep", "TSteps", "Number of time steps to keep in simulation folder..", GH_ParamAccess.item, 3);
 
-            pManager.AddIntegerParameter("Turbulence", "Turb", "Turbulence model.", GH_ParamAccess.item, 1);
+            pManager.AddIntegerParameter("Turbulence model", "Turb", "Turbulence model.", GH_ParamAccess.item, 1);
             Param_Integer turb = pManager[3] as Param_Integer;
             turb.AddNamedValue("Laminar (no turbulence)", 0);
             turb.AddNamedValue("kEpsilon (quick)", 1);
             turb.AddNamedValue("RNGkEpsilon (more accurate)", 2);
             turb.AddNamedValue("kOmegaSST (most accurate)", 3);
 
-            pManager.AddIntegerParameter("Relaxation factors", "Relax", "Relaxation factors", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("Relaxation factors", "Relax", "Relaxation factors", GH_ParamAccess.item, 1);
             Param_Integer relaxationFactors = pManager[4] as Param_Integer;
             relaxationFactors.AddNamedValue("OpenFOAM", 0);
             relaxationFactors.AddNamedValue("Fluent", 1);
             relaxationFactors.AddNamedValue("SimScale", 2);
 
-            pManager.AddIntegerParameter("SolCtrl", "Solution and algorithm control", "Solution and algorithm control. May alter the robustness of the solver", GH_ParamAccess.item, 0);
+            pManager.AddBooleanParameter("potentialFoam initialization", "potFoam", "Initialization with potentialFoam. Solves for the velocity potential to provide velocity and incompressible flux fields, typically used to initialise viscous calculations.", GH_ParamAccess.item, false);
+
+            pManager.AddIntegerParameter("Solution and algorithm control", "SolCtrl", "Solution and algorithm control. May alter the robustness of the solver", GH_ParamAccess.item, 0);
             Param_Integer simulationMode = pManager[5] as Param_Integer;
             simulationMode.AddNamedValue("default", 0);
             simulationMode.AddNamedValue("robust", 1);
@@ -72,8 +74,9 @@ namespace Eddy
             simulationMode.AddNamedValue("more accurate but oscillatory", 6);
             simulationMode.AddNamedValue("robust but diffusive", 7);
 
-            pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
-            pManager.AddIntegerParameter("Operation System", "OS", "Operation System.", GH_ParamAccess.item, 0); // Nothing specified
+            pManager.AddIntegerParameter("Number of CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
+
+            pManager.AddIntegerParameter("Operating System", "OS", "Operating System.", GH_ParamAccess.item, 0); // Nothing specified
             Param_Integer os = pManager[7] as Param_Integer;
             os.AddNamedValue("Auto detect", 0);
             os.AddNamedValue(@"Windows 7 + 8", 1);
@@ -81,7 +84,15 @@ namespace Eddy
             os.AddNamedValue("Linux", 3);
             os.AddNamedValue("Mac OS", 4);
 
-            pManager.AddBooleanParameter("potentialFoam initialization", "potFoam", "Initialization with potentialFoam. Solves for the velocity potential to provide velocity and incompressible flux fields, typically used to initialise viscous calculations.", GH_ParamAccess.item, false);
+            pManager[1].Optional = true;
+            pManager[2].Optional = true;
+            pManager[3].Optional = true;
+            pManager[4].Optional = true;
+            pManager[5].Optional = true;
+            pManager[6].Optional = true;
+            pManager[7].Optional = true;
+            pManager[8].Optional = true;
+            pManager[9].Optional = true;
         }
 
         /// <summary>
@@ -103,25 +114,25 @@ namespace Eddy
         {
             int _iter = 1000;
             int _writeInterval = 10;
-            int _keepTimeSteps = 2;
-            int _mode = 0;
+            int _keepTimeSteps = 3;
+            int _schemes = 0;
             int _turb = 0;
             int _CPUs = 0;
             int _OS = -1;
-            int _relaxationFactors = 0;
-            bool potentialFoam = false;
+            int _relaxationFactors = 1;
+            bool _potentialFoamInit = false;
 
-            DA.GetData(0, ref _iter);
-            DA.GetData(1, ref _writeInterval);
-            DA.GetData(2, ref _keepTimeSteps);
+            DA.GetData("Number of iterations", ref _iter);
+            DA.GetData("Write interval", ref _writeInterval);
+            DA.GetData("Number of timesteps to keep", ref _keepTimeSteps);
 
             DA.GetData("Relaxation factors", ref _relaxationFactors);
 
-            DA.GetData(4, ref _mode);
-            DA.GetData(5, ref potentialFoam);
-            DA.GetData(6, ref _turb);
-            DA.GetData(7, ref _CPUs);
-            DA.GetData(8, ref _OS);
+            DA.GetData("Solution and algorithm control", ref _schemes);
+            DA.GetData("potentialFoam initialization", ref _potentialFoamInit);
+            DA.GetData("Turbulence model", ref _turb);
+            DA.GetData("Number of CPUs", ref _CPUs);
+            DA.GetData("Operating System", ref _OS);
 
             //TODO: Handle SimEngine
 
@@ -133,15 +144,15 @@ namespace Eddy
 
             if (_CPUs > Environment.ProcessorCount)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system only has " + Environment.ProcessorCount + " CPUs.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system only has " + Environment.ProcessorCount + " CPUs, please lower the CPU count.");
             }
 
-            var relaxationFactors = RelaxationFactors.OpenFOAM;
+            RelaxationFactors relaxationFactors;
             if (_relaxationFactors == 0) { relaxationFactors = RelaxationFactors.OpenFOAM; }
             else if (_relaxationFactors == 1) { relaxationFactors = RelaxationFactors.Fluent; }
             else { relaxationFactors = RelaxationFactors.SimScale; }
 
-            var os = OSType.Windows10;
+            OSType os;
             if (Utilities.GetOSInfo() == "Windows 7" && _OS == 0)
             {
                 os = OSType.Windows7;
@@ -171,11 +182,7 @@ namespace Eddy
                 os = OSType.MaxOS;
             }
 
-            // Turbulence
-            //turb.AddNamedValue("kEpsilon (quick)", 0);
-            //turb.AddNamedValue("RNGkEpsilon (more accurate)", 1);
-            //turb.AddNamedValue("kOmegaSST (most accurate)", 2);
-            var turbmodel = new TurbModel();
+            TurbModel turbmodel;
             if (_turb == 0)
             {
                 turbmodel = TurbModel.kEpsilon;
@@ -189,18 +196,21 @@ namespace Eddy
                 turbmodel = TurbModel.kOmegaSST;
             }
 
-            DA.SetData(0, new OFRunSettings()
+            var runset = new OFRunSettings()
             {
                 iter = _iter,
                 writeInterval = _writeInterval,
                 keepTimeSteps = _keepTimeSteps,
-                Schemes = _mode,
-                turbModel = turbmodel,
+                Schemes = _schemes,
                 CPUs = _CPUs,
+
                 ostype = os,
+                turbModel = turbmodel,
                 relaxationFactors = relaxationFactors,
-                potentialFoamInit = potentialFoam
-            });
+                potentialFoamInit = _potentialFoamInit
+            };
+
+            DA.SetData(0, runset);
         }
     }
 }

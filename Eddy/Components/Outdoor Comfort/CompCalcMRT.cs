@@ -87,7 +87,7 @@ namespace Eddy
 
             if (RES.Domain.BCond.epwFilePath == "")
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Without a weather file (.epw) connected you will not be able to perform outdoor comfort calculations.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Without a weather file (.epw) referenced you will not be able to run any pedestrian or outdoor thermal comfort post-processing.");
                 return;
             }
 
