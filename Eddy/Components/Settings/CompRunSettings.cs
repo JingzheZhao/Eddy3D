@@ -48,11 +48,12 @@ namespace Eddy
             pManager.AddIntegerParameter("WriteInterval", "WriteInt", "Simulation write interval.", GH_ParamAccess.item, 20);
             pManager.AddIntegerParameter("KeepTimeSteps", "TSteps", "Number of time steps to keep in simulation folder..", GH_ParamAccess.item, 2);
 
-            pManager.AddIntegerParameter("Turbulence", "Turb", "Turbulence model.", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("Turbulence", "Turb", "Turbulence model.", GH_ParamAccess.item, 1);
             Param_Integer turb = pManager[3] as Param_Integer;
-            turb.AddNamedValue("kEpsilon (quick)", 0);
-            turb.AddNamedValue("RNGkEpsilon (more accurate)", 1);
-            turb.AddNamedValue("kOmegaSST (most accurate)", 2);
+            turb.AddNamedValue("Laminar (no turbulence)", 0);
+            turb.AddNamedValue("kEpsilon (quick)", 1);
+            turb.AddNamedValue("RNGkEpsilon (more accurate)", 2);
+            turb.AddNamedValue("kOmegaSST (most accurate)", 3);
 
             pManager.AddIntegerParameter("Relaxation factors", "Relax", "Relaxation factors", GH_ParamAccess.item, 0);
             Param_Integer relaxationFactors = pManager[4] as Param_Integer;

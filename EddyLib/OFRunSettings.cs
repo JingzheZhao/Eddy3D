@@ -26,6 +26,7 @@ namespace EddyLib
 
     public enum TurbModel
     {
+        laminar,
         kEpsilon,
         kOmegaSST,
         RNGkEpsilon

@@ -2110,10 +2110,10 @@ FoamFile
     object      RASProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-simulationType RAS;
-
-RAS
+");
+            if (RunSettings.turbModel == TurbModel.laminar) { sb.AppendLine("simulationType laminar; "); }
+            else { sb.AppendLine("simulationType RAS;"); }
+            sb.AppendLine(@"RAS
 {
     RASModel         ");
             if (RunSettings.turbModel == TurbModel.kOmegaSST) { sb.Append("kOmegaSST;"); } else if (RunSettings.turbModel == TurbModel.RNGkEpsilon) { sb.Append("RNGkEpsilon;"); } else { sb.Append("kEpsilon;"); }
