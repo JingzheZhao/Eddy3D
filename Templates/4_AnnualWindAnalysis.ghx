@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <Archive name="Root">
   <!--Grasshopper archive-->
@@ -10394,5 +10393,3 @@ Eddy3D 0.3.6.1</item>
     </chunk>
   </chunks>
 </Archive>
-=======
->>>>>>> parent of 8788cb8... Update 4_AnnualWindAnalysis.ghx
