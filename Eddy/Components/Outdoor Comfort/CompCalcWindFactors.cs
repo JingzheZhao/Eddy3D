@@ -239,7 +239,14 @@ This yields a datatree with wind reduction factors of the size [8760 h x number 
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated WindFactors results have been loaded.");
             }
 
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The average offset between simulated wind directions and directions in the weather file is " + Math.Round(wf.offSetAverage, 1) + "°.");
+            if (wf.offSetAverage >= 13)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "The average offset between simulated wind directions and directions in the weather file is " + Math.Round(wf.offSetAverage, 1) + "°. You might want to consider changing the input wind directions to better fit the weather file.");
+            }
+            else
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The average offset between simulated wind directions and directions in the weather file is " + Math.Round(wf.offSetAverage, 1) + "°.");
+            }
 
             DA.SetData(0, wf);
             DA.SetDataList(1, wf.ValuesLawsonComfort);

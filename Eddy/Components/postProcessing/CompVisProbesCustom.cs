@@ -288,7 +288,7 @@ namespace Eddy
                             }
                             else
                             {
-                                base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The file """ + currentCaseDir + " " + currField.FieldName + @""" does not exist. Please run the probing component.");
+                                base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The path """ + pathToProbeFile + " with the field " + currField.FieldName + @""" does not exist. Please run the probing component.");
                                 return;
                             }
                         }
@@ -359,7 +359,8 @@ namespace Eddy
                             }
                             else
                             {
-                                base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The file  """ + currentCaseDir + " " + currField.FieldName + @""" does not exist. Please run the probing component.");
+                                base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The path """ + pathToProbeFile + " with the field " + currField.FieldName + @""" does not exist. Please run the probing component.");
+                                return;
                             }
                         }
                     }
