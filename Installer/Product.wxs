@@ -21,7 +21,6 @@
     <Package InstallerVersion="200"
              Compressed="yes"
              InstallScope="perMachine"
-             Platform="$(var.Platform)"
              Manufacturer="!(loc.Company)"
              Description="!(loc.Description)"
              Keywords="!(loc.Keywords)"
@@ -36,7 +35,7 @@
       EmbedCab="yes" />
 
     <!-- Define main app icon -->
-    <Icon Id="icon.ico" SourceFile="$(var.Eddy.ProjectDir)\Eddy3D.ico" />
+    <Icon Id="icon.ico" SourceFile="$(var.Eddy.ProjectDir)\Resources\Eddy3D.ico" />
 
     <!-- Use the icon.ico icon for this installer (shows up in Add/Remove programs) -->
     <Property Id="ARPPRODUCTICON">icon.ico</Property>
