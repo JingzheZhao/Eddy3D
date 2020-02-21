@@ -72,13 +72,13 @@ namespace Eddy
             pManager.AddIntegerParameter("Solution and algorithm control", "SolCtrl", "Solution and algorithm control. May alter the robustness of the solver", GH_ParamAccess.item, 0);
             Param_Integer simulationMode = pManager[5] as Param_Integer;
             simulationMode.AddNamedValue("default", 0);
-            simulationMode.AddNamedValue("robust", 1);
-            simulationMode.AddNamedValue("orthogonal (70-80)", 2);
-            simulationMode.AddNamedValue("orthogonal (60-70)", 3);
-            simulationMode.AddNamedValue("orthogonal (40-60)", 4);
-            simulationMode.AddNamedValue("accurate and stable", 5);
-            simulationMode.AddNamedValue("more accurate but oscillatory", 6);
-            simulationMode.AddNamedValue("robust but diffusive", 7);
+            //simulationMode.AddNamedValue("robust", 1);
+            //simulationMode.AddNamedValue("orthogonal (70-80)", 2);
+            //simulationMode.AddNamedValue("orthogonal (60-70)", 3);
+            //simulationMode.AddNamedValue("orthogonal (40-60)", 4);
+            //simulationMode.AddNamedValue("accurate and stable", 5);
+            //simulationMode.AddNamedValue("more accurate but oscillatory", 6);
+            //simulationMode.AddNamedValue("robust but diffusive", 7);
 
             //6
             pManager.AddBooleanParameter("potentialFoam initialization", "potFoam", "Initialization with potentialFoam. Solves for the velocity potential to provide velocity and incompressible flux fields, typically used to initialise viscous calculations.", GH_ParamAccess.item, false);
