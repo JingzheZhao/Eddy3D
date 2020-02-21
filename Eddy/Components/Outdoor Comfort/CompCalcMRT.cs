@@ -27,7 +27,12 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompCalcMRT()
-          : base("Mean Radiant Temperature", "Mean Radiant Temperature", "Mean Radiant Temperature. This is an experimental component. Please refrain from using this in a production environment." + EddyVersion.toString(),
+          : base("Mean Radiant Temperature", "Mean Radiant Temperature", @"Mean Radiant Temperature.
+
+This is an experimental component based on an simplified approach linked below. Please refrain from using this in a production environment.
+https://transsolar.com/content/7-publications/2-papers/1-plea-2013-the-human-bio-meteorological-chart/kessling-transsolar-plea-2013-the-human-bio-meteorological-chart.pdf
+
+" + EddyVersion.toString(),
               EddyVersion.Name, "6 | Outdoor Comfort")
         {
         }

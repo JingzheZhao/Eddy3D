@@ -1129,6 +1129,7 @@ divSchemes
     turbulence      bounded Gauss limitedLinear 1;
     div(phi,k)      $turbulence;
     div(phi,epsilon) $turbulence;
+    div(phi,omega) $turbulence;
 
     div((nuEff*dev2(T(grad(U))))) Gauss linear;
 }

@@ -91,7 +91,7 @@ namespace Eddy
 
             //9
             pManager.AddIntegerParameter("Operating System", "OS", "Operating System.", GH_ParamAccess.item, 0); // Nothing specified
-            Param_Integer os = pManager[8] as Param_Integer;
+            Param_Integer os = pManager[9] as Param_Integer;
             os.AddNamedValue("Auto detect", 0);
             os.AddNamedValue(@"Windows 7 + 8", 1);
             os.AddNamedValue("Windows 10", 2);
@@ -200,9 +200,13 @@ namespace Eddy
             TurbModel turbmodel;
             if (_turb == 0)
             {
-                turbmodel = TurbModel.kEpsilon;
+                turbmodel = TurbModel.laminar;
             }
             else if (_turb == 1)
+            {
+                turbmodel = TurbModel.kEpsilon;
+            }
+            else if (_turb == 2)
             {
                 turbmodel = TurbModel.RNGkEpsilon;
             }
