@@ -84,16 +84,19 @@ namespace Eddy
             pManager.AddBooleanParameter("potentialFoam initialization", "potFoam", "Initialization with potentialFoam. Solves for the velocity potential to provide velocity and incompressible flux fields, typically used to initialise viscous calculations.", GH_ParamAccess.item, false);
 
             //7
-            pManager.AddIntegerParameter("Number of CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
+            pManager.AddBooleanParameter("Renumber mesh", "reNum", "Renumber mesh to speed up the simulation (uses lots of RAM).", GH_ParamAccess.item, true);
 
             //8
+            pManager.AddIntegerParameter("Number of CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
+
+            //9
             pManager.AddIntegerParameter("Operating System", "OS", "Operating System.", GH_ParamAccess.item, 0); // Nothing specified
             Param_Integer os = pManager[8] as Param_Integer;
             os.AddNamedValue("Auto detect", 0);
             os.AddNamedValue(@"Windows 7 + 8", 1);
             os.AddNamedValue("Windows 10", 2);
-            os.AddNamedValue("Linux", 3);
-            os.AddNamedValue("Mac OS", 4);
+            //os.AddNamedValue("Linux", 3);
+            //os.AddNamedValue("Mac OS", 4);
 
             pManager[0].Optional = true;
             pManager[1].Optional = true;
@@ -104,6 +107,7 @@ namespace Eddy
             pManager[6].Optional = true;
             pManager[7].Optional = true;
             pManager[8].Optional = true;
+            pManager[9].Optional = true;
         }
 
         /// <summary>
@@ -132,17 +136,16 @@ namespace Eddy
             int _OS = -1;
             int _relaxationFactors = 1;
             bool _potentialFoamInit = false;
+            bool _renumberMesh = true;
 
             DA.GetData("Number of iterations", ref _iter);
             DA.GetData("Write interval", ref _writeInterval);
             DA.GetData("Number of timesteps to keep", ref _keepTimeSteps);
             DA.GetData("Turbulence model", ref _turb);
-
             DA.GetData("Relaxation factors", ref _relaxationFactors);
-
             DA.GetData("Solution and algorithm control", ref _schemes);
             DA.GetData("potentialFoam initialization", ref _potentialFoamInit);
-
+            DA.GetData("Renumber mesh", ref _potentialFoamInit);
             DA.GetData("Number of CPUs", ref _CPUs);
             DA.GetData("Operating System", ref _OS);
 
@@ -215,11 +218,11 @@ namespace Eddy
                 keepTimeSteps = _keepTimeSteps,
                 Schemes = _schemes,
                 CPUs = _CPUs,
-
                 ostype = os,
                 turbModel = turbmodel,
                 relaxationFactors = relaxationFactors,
-                potentialFoamInit = _potentialFoamInit
+                potentialFoamInit = _potentialFoamInit,
+                renumberMesh = _renumberMesh
             };
 
             DA.SetData(0, runset);
