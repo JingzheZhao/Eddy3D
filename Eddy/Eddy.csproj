@@ -89,7 +89,6 @@
     <Compile Include="Components\Outdoor Comfort\CompReadUTCILadybug.cs" />
     <Compile Include="Components\Outdoor Comfort\ReadUTCIByHour.cs" />
     <Compile Include="Components\Outdoor Comfort\CompCalcUTCI.cs" />
-    <Compile Include="Components\Residuals\CompWriteResiduals.cs" />
     <Compile Include="Components\Misc\CompCluster.cs" />
     <Compile Include="Components\Residuals\CompVisResiduals.cs" />
     <Compile Include="Components\Settings\CompMeshSettings.cs" />

@@ -25,7 +25,7 @@ namespace Eddy
         /// </summary>
         public Clean()
           : base("Clean", "Clean",
-              "Clean" + EddyVersion.toString(),
+              "Clean the directories." + EddyVersion.toString(),
               EddyVersion.Name, "3 | PreProcessing")
         {
         }

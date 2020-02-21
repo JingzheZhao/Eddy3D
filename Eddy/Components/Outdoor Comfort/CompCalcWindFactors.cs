@@ -30,7 +30,7 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompCalcWindFactors()
-          : base("PedestrianComfort", "PedestrianComfort", "PostProcessing" + EddyVersion.toString(),
+          : base("Pedestrian Comfort", "Pedestrian Comfort", "Pedestrian Comfort" + EddyVersion.toString(),
               EddyVersion.Name, "6 | Outdoor Comfort")
         {
         }
@@ -223,7 +223,7 @@ NEN8100
             }
             if (av.infValues)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Some values probed velocities showed very large values which have been replaced with 0s.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Some probed velocities with very large values (likely because they weren't inside the simulation domain) have been replaced with 0s.");
             }
 
             #endregion Annual Velocities
@@ -256,11 +256,11 @@ NEN8100
 
             if (wf.offSetAverage >= 13)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "The average offset between simulated wind directions and directions in the weather file is " + Math.Round(wf.offSetAverage, 1) + "°. You might want to consider changing the input wind directions to better fit the weather file.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "The average offset between simulated wind directions and directions in the weather file is " + Math.Round(wf.offSetAverage, 2) + "°. You might want to consider changing the input wind directions to better fit the weather file.");
             }
             else
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The average offset between simulated wind directions and directions in the weather file is " + Math.Round(wf.offSetAverage, 1) + "°.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The average offset between simulated wind directions and wind directions in the weather file is " + Math.Round(wf.offSetAverage, 2) + "°.");
             }
 
             DA.SetData(0, wf);

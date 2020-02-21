@@ -27,7 +27,7 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompCalcMRT()
-          : base("MRT", "MRT", "PostProcessing" + EddyVersion.toString(),
+          : base("Mean Radiant Temperature", "Mean Radiant Temperature", "Mean Radiant Temperature. This is an experimental component. Please refrain from using this in a production environment." + EddyVersion.toString(),
               EddyVersion.Name, "6 | Outdoor Comfort")
         {
         }

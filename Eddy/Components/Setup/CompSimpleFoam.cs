@@ -30,7 +30,7 @@ namespace Eddy
         protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
         {
             base.AppendAdditionalComponentMenuItems(menu);
-            Menu_AppendItem(menu, "Use Docker OpenFOAM", Menu_DoClick, true, !runWithBlueCFD);
+            Menu_AppendItem(menu, "Docker to call OpenFOAM", Menu_DoClick, true, !runWithBlueCFD);
         }
 
         private void Menu_DoClick(object sender, EventArgs e)

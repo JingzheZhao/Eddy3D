@@ -19,7 +19,7 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CellSize()
-          : base("CellSize", "CellSize",  "CellSize" + EddyVersion.toString(),
+          : base("CellSize", "CellSize", "Calculate the mesh accuracy (levels) needes for a desired cell size." + EddyVersion.toString(),
               EddyVersion.Name, "3 | PreProcessing")
         {
         }
