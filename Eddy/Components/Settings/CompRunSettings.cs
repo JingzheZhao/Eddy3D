@@ -44,10 +44,16 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
+            //0
             pManager.AddIntegerParameter("Number of iterations", "Iter", "Specify the number of iterations to be simulated.", GH_ParamAccess.item, 1000);
+
+            //1
             pManager.AddIntegerParameter("Write interval", "WriteInt", "Simulation write interval.", GH_ParamAccess.item, 20);
+
+            //2
             pManager.AddIntegerParameter("Number of timesteps to keep", "TSteps", "Number of time steps to keep in simulation folder..", GH_ParamAccess.item, 3);
 
+            //3
             pManager.AddIntegerParameter("Turbulence model", "Turb", "Turbulence model.", GH_ParamAccess.item, 1);
             Param_Integer turb = pManager[3] as Param_Integer;
             turb.AddNamedValue("Laminar (no turbulence)", 0);
@@ -55,12 +61,14 @@ namespace Eddy
             turb.AddNamedValue("RNGkEpsilon (more accurate)", 2);
             turb.AddNamedValue("kOmegaSST (most accurate)", 3);
 
+            //4
             pManager.AddIntegerParameter("Relaxation factors", "Relax", "Relaxation factors", GH_ParamAccess.item, 1);
             Param_Integer relaxationFactors = pManager[4] as Param_Integer;
             relaxationFactors.AddNamedValue("OpenFOAM", 0);
             relaxationFactors.AddNamedValue("Fluent", 1);
-            relaxationFactors.AddNamedValue("SimScale", 2);
+            relaxationFactors.AddNamedValue("OpenFOAM Robust", 2);
 
+            //5
             pManager.AddIntegerParameter("Solution and algorithm control", "SolCtrl", "Solution and algorithm control. May alter the robustness of the solver", GH_ParamAccess.item, 0);
             Param_Integer simulationMode = pManager[5] as Param_Integer;
             simulationMode.AddNamedValue("default", 0);
@@ -72,12 +80,15 @@ namespace Eddy
             simulationMode.AddNamedValue("more accurate but oscillatory", 6);
             simulationMode.AddNamedValue("robust but diffusive", 7);
 
+            //6
             pManager.AddBooleanParameter("potentialFoam initialization", "potFoam", "Initialization with potentialFoam. Solves for the velocity potential to provide velocity and incompressible flux fields, typically used to initialise viscous calculations.", GH_ParamAccess.item, false);
 
+            //7
             pManager.AddIntegerParameter("Number of CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
 
+            //8
             pManager.AddIntegerParameter("Operating System", "OS", "Operating System.", GH_ParamAccess.item, 0); // Nothing specified
-            Param_Integer os = pManager[7] as Param_Integer;
+            Param_Integer os = pManager[8] as Param_Integer;
             os.AddNamedValue("Auto detect", 0);
             os.AddNamedValue(@"Windows 7 + 8", 1);
             os.AddNamedValue("Windows 10", 2);
@@ -151,7 +162,7 @@ namespace Eddy
             RelaxationFactors relaxationFactors;
             if (_relaxationFactors == 0) { relaxationFactors = RelaxationFactors.OpenFOAM; }
             else if (_relaxationFactors == 1) { relaxationFactors = RelaxationFactors.Fluent; }
-            else { relaxationFactors = RelaxationFactors.SimScale; }
+            else { relaxationFactors = RelaxationFactors.OpenFOAMRobust; }
 
             OSType os;
             if (Utilities.GetOSInfo() == "Windows 7" && _OS == 0)

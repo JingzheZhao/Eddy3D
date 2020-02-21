@@ -15,7 +15,7 @@ namespace EddyLib
     {
         OpenFOAM,
         Fluent,
-        SimScale
+        OpenFOAMRobust
     }
 
     public enum SimEngine

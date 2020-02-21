@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace EddyLib.StrTemp
+namespace EddyLib.Strings
 {
     public class BCDicts
     {
@@ -55,7 +55,7 @@ FoamFile
     object initialConditions;
         }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-flowVelocity (" + DOM.BCond.flowDir[d].X * DOM.BCond.URef + " " + DOM.BCond.flowDir[d].Y * DOM.BCond.URef + " " + DOM.BCond.flowDir[d].Z * DOM.BCond.URef + @");
+flowVelocity (0 0 0);
 pressure    0;
 turbulentKE " + Math.Round(DOM.BCond.k, 4) + @";
 turbulentEpsilon " + Math.Round(DOM.BCond.epsilon, 4) + @";

@@ -5,6 +5,7 @@ using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
+using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 
@@ -29,7 +30,7 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompCalcWindFactors()
-          : base("WindFactors", "WindFactors", "PostProcessing" + EddyVersion.toString(),
+          : base("PedestrianComfort", "PedestrianComfort", "PostProcessing" + EddyVersion.toString(),
               EddyVersion.Name, "6 | Outdoor Comfort")
         {
         }
@@ -72,8 +73,20 @@ namespace Eddy
             pManager.AddGenericParameter("Result", "Res", "Eddy Result", GH_ParamAccess.item);
             //pManager.AddIntegerParameter("windDirs", "windDirs", "windDirs", GH_ParamAccess.list);
             pManager.AddPointParameter("Probing points", "Points", "List of probing points", GH_ParamAccess.list);
-            pManager.AddVectorParameter("U", "U", "U", GH_ParamAccess.tree);
+            pManager.AddVectorParameter("Wind Velocity", "U", "Wind Velocity [DataTree]", GH_ParamAccess.tree);
             // pManager.AddIntegerParameter("Hours", "H", "Hours", GH_ParamAccess.list);
+
+            pManager.AddIntegerParameter("Comfort Index", "CmftIdx", "Pedestrian Wind Comfort Index", GH_ParamAccess.item, 0);
+
+            //Using an enum to generate the dropdown items
+            var types = Enum.GetNames(typeof(EddyLib.PedestrianComfort.PedestrianComfortIdx));
+            Param_Integer param = pManager[3] as Param_Integer;
+
+            for (int i = 0; i < types.Length; i++)
+            {
+                param.AddNamedValue(types[i], i);
+            }
+
             pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item);
         }
 
@@ -83,38 +96,40 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             //pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Wind Factors", "WF", @"Wind Factors
+            pManager.AddGenericParameter("Wind Reduction Factors", "WF", @"Wind Reduction Factors
 
 Dimensionless wind velocity of each sensor point from the nearest simulated wind direction with the corresponding velocity and wind direction from the weather data for every hour of the year.
 This yields a datatree with wind reduction factors of the size [8760 h x number of sensor points].", GH_ParamAccess.item);
 
-            pManager.AddNumberParameter("Lawson Pedestrian Comfort", "LPC", @"Lawson Pedestrian Comfort
+            pManager.AddNumberParameter("Pedestrian Wind Comfort", "Cmft", @"Pedestrian Wind Comfort
+
+Lawson
 
 4: > 4 m/s ""Sitting"" Light breezes desired for outdoor restaurants and seating areas where one can read a paper of comfortably sit for long periods.
 6: > 6 m/s ""Standing"" Gentle breezes suitable for main buildings entrances, pick-up/drop off points and bus stops.
 8: > 8 m/s ""Leisure Walking or Strolling"" Moderate breezes that would be appropriate for walking down a city centre street, park or plaza.
 10: > 10 m/s ""Business Walking"" Relatively high speeds that can be tolerated if ones objective is to walk, run or cycle without lingering.
-12: > 12 m/s ""Uncomfortable"" Winds of this magnitude are considered a nuisance for most activities, and wind mitigation is typically recommended.", GH_ParamAccess.list);
+12: > 12 m/s ""Uncomfortable"" Winds of this magnitude are considered a nuisance for most activities, and wind mitigation is typically recommended.
 
-            pManager.AddNumberParameter("Davenport Pedestrian Comfort", "DPC", @"Davenport Pedestrian Comfort
+Davenport
 
 1 - A > 3.6 m/s < 1.5 % Sitting Long
 2 - B > 5.3 m/s < 1.5 % Sitting Short
 3 - C > 7.6 m/s < 1.5 % Walking Leisurely
-4 - D > 9.8 m/s  < 1.5 % Walking Fast
+4 - D > 9.8 m/s < 1.5 % Walking Fast
 5 - E > 9.8 m/s >= 1.5 % Uncomfortable
-6 - S > 15.1 m/s >= 0.01 % Dangerous", GH_ParamAccess.list);
+6 - S > 15.1 m/s >= 0.01 % Dangerous
 
-            pManager.AddNumberParameter("NEN 8100 Pedestrian Comfort", "NPC", @"NEN 8100 Pedestrian Comfort
+NEN8100
 
-1- A > 5 m/s < 2.5 % Sitting Long
+1 - A > 5 m/s < 2.5 % Sitting Long
 2 - B > 5 m/s < 5 % Sitting Short
 3 - C > 5 m/s < 10 % Walking Leisurely
 4 - D > 5 m/s < 20 % Walking Fast
 5 - E > 5 m/s > 20 % Uncomfortable
 6 - S > 15 m/s > 0.05 % Dangerous", GH_ParamAccess.list);
 
-            pManager.AddGenericParameter("OffSet", "OFFS", "OffSet between simulated wind directions and directions in the weather file.", GH_ParamAccess.list);
+            pManager.AddGenericParameter("OffSet", "OffS", "OffSet between simulated wind directions and directions in the weather file.", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -133,9 +148,9 @@ This yields a datatree with wind reduction factors of the size [8760 h x number 
             OFResult RES = null;
             DA.GetData(0, ref RES);
 
-            //// Hour of the year
-            //List<int> hours = new List<int>() { 0 };
-            //DA.GetDataList(1, hours);
+            int cmftidx = 0;
+            DA.GetData("Comfort Index", ref cmftidx);
+            PedestrianComfort.PedestrianComfortIdx cmftcmftindex = (PedestrianComfort.PedestrianComfortIdx)cmftidx;
 
             List<Point3d> probes = new List<Point3d>();
             DA.GetDataList("Probing points", probes);
@@ -153,7 +168,7 @@ This yields a datatree with wind reduction factors of the size [8760 h x number 
 
             //Grasshopper.Kernel.Data.GH_Structure<Grasshopper.Kernel.Types.IGH_Goo> U = null;
             //DA.GetDataTree("U", out U);//
-            DA.GetDataTree("U", out GH_Structure<GH_Vector> U);
+            DA.GetDataTree("Wind Velocity", out GH_Structure<GH_Vector> U);
             //DA.GetDataTree("U", out DataTree<Vector> U);
 
             #region Error checks
@@ -189,7 +204,7 @@ This yields a datatree with wind reduction factors of the size [8760 h x number 
             #region Annual Velocities
 
             var csvAnnualVelProbes = RES.WorkingDirectory + "AnnualVelocityProbes.csv";
-            AnnualVelocities av = new AnnualVelocities(RES.Domain.BCond.windDirs.ToArray(), ArrayHelper.To2DArrayVec3d(U), csvAnnualVelProbes, true, run);
+            PedestrianComfort av = new PedestrianComfort(RES.Domain.BCond.windDirs.ToArray(), ArrayHelper.To2DArrayVec3d(U), csvAnnualVelProbes, true, run);
 
             if (av.Values is null)
             {
@@ -215,7 +230,7 @@ This yields a datatree with wind reduction factors of the size [8760 h x number 
 
             #region Wind Factors
 
-            var wf = new WindFactors(RES.WorkingDirectory, RES.Domain.BCond, weather, av, probingHeight, interpolate, run);
+            var wf = new WindReductionFactors(RES.WorkingDirectory, RES.Domain.BCond, weather, av, probingHeight, interpolate, run, cmftcmftindex);
 
             if (GH_Document.IsEscapeKeyDown())
             {
@@ -242,10 +257,8 @@ This yields a datatree with wind reduction factors of the size [8760 h x number 
             AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The average offset between simulated wind directions and directions in the weather file is " + Math.Round(wf.offSetAverage, 1) + "°.");
 
             DA.SetData(0, wf);
-            DA.SetDataList(1, wf.ValuesLawsonComfort);
-            DA.SetDataList(2, wf.ValuesDavenportComfort);
-            DA.SetDataList(3, wf.ValuesNEN8100Comfort);
-            DA.SetDataList(4, wf.offSet);
+            DA.SetDataList(1, wf.ValuesPedestrianWindComfort);
+            DA.SetDataList(2, wf.offSet);
 
             #endregion Wind Factors
         }

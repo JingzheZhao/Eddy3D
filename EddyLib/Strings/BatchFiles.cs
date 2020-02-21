@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 
-namespace EddyLib.StrTemp
+namespace EddyLib.Strings
 {
     // Adds a wind direction prefix for the individual simulation folders
     public enum Mode

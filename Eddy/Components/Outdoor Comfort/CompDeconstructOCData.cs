@@ -80,9 +80,9 @@ namespace Eddy
 
                 DA.SetDataTree(0, tree);
             }
-            else if ((gobj.Value is WindFactors))
+            else if ((gobj.Value is WindReductionFactors))
             {
-                WindFactors wf = null;
+                WindReductionFactors wf = null;
 
                 DA.GetData(0, ref wf);
 

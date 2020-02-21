@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Rhino.Geometry;
 
-namespace EddyLib.StrTemp
+namespace EddyLib.Strings
 {
     public class OFExecDicts
     {
@@ -498,7 +498,7 @@ libs
 #includeFunc residuals
 ");
             //if (topologies != null) {
-            sb.Append(EddyLib.StrTemp.OFExecDicts.FunctionObjCP(DOM, RunSettings, topologies, numberOfTopologies).ToString());
+            sb.Append(EddyLib.Strings.OFExecDicts.FunctionObjCP(DOM, RunSettings, topologies, numberOfTopologies).ToString());
             //}
             //else { sb.Append(@"};"); }
 
@@ -1827,7 +1827,7 @@ potentialFlow
 	   omega			0.7;
     }
 }"); }
-            else if (RunSettings.relaxationFactors == RelaxationFactors.SimScale) { sb.Append(@"relaxationFactors
+            else if (RunSettings.relaxationFactors == RelaxationFactors.OpenFOAMRobust) { sb.Append(@"relaxationFactors
 {
     fields
     {
@@ -1961,7 +1961,7 @@ potentialFlow
 	   omega			0.7;
     }
 }"); }
-            else if (RunSettings.relaxationFactors == RelaxationFactors.SimScale) { sb.Append(@"relaxationFactors
+            else if (RunSettings.relaxationFactors == RelaxationFactors.OpenFOAMRobust) { sb.Append(@"relaxationFactors
 {
     fields
     {

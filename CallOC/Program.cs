@@ -145,14 +145,17 @@ namespace CallOC
                         #region Annual Velocities
 
                         var dirs = Array.ConvertAll(options.WindDirs.Split(','), int.Parse);
-                        var vecs = AnnualVelocities.ReadAnnualVelocitiesFromCSV(options.AnnualVelocityProbes).Item2;
-                        AnnualVelocities av = new AnnualVelocities(dirs, vecs, options.AnnualVelocityProbes, true, true);
+                        var vecs = PedestrianComfort.ReadAnnualVelocitiesFromCSV(options.AnnualVelocityProbes).Item2;
+                        PedestrianComfort av = new PedestrianComfort(dirs, vecs, options.AnnualVelocityProbes, true, true);
 
                         #endregion Annual Velocities
 
                         #region Wind Factors
 
-                        WindFactors wf = new WindFactors(options.WorkingDir, bcond, weather, av, 1.75, options.Interpolate, true);
+                        EddyLib.PedestrianComfort.PedestrianComfortIdx cmftidx;
+                        cmftidx = PedestrianComfort.PedestrianComfortIdx.NEN8100;
+
+                        WindReductionFactors wf = new WindReductionFactors(options.WorkingDir, bcond, weather, av, 1.75, options.Interpolate, true, cmftidx);
 
                         #endregion Wind Factors
 

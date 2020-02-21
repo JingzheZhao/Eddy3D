@@ -15,7 +15,7 @@ namespace EddyLib
         public enum fieldType
         {
             vector,
-            number
+            scalar
         }
 
         public string FieldName { get; set; }
@@ -47,37 +47,37 @@ namespace EddyLib
             }
             else if (fieldName == "total(p)_coeff")
             {
-                FieldType = fieldType.number;
+                FieldType = fieldType.scalar;
             }
             else if (fieldName == "p")
             {
-                FieldType = fieldType.number;
+                FieldType = fieldType.scalar;
             }
             else if (fieldName == "epsilon")
             {
-                FieldType = fieldType.number;
+                FieldType = fieldType.scalar;
             }
             else if (fieldName == "omega")
             {
-                FieldType = fieldType.number;
+                FieldType = fieldType.scalar;
             }
             else if (fieldName == "k")
             {
-                FieldType = fieldType.number;
+                FieldType = fieldType.scalar;
             }
             else if (fieldName == "nut")
             {
-                FieldType = fieldType.number;
+                FieldType = fieldType.scalar;
             }
             else if (fieldName == "phi")
             {
-                FieldType = fieldType.number;
+                FieldType = fieldType.scalar;
             }
         }
 
         public static string ReformatOFFields(int OFFieldInt)
         {
-            string ofField = "";
+            string ofField;
             //fieldType = 0;
             if (OFFieldInt == 0)
             {
@@ -125,10 +125,9 @@ namespace EddyLib
 
     public class Probing
     {
-        public GH_Number[] ResultNum;
+        public GH_Number[] ResultScalar;
         public GH_Vector[] ResultVec;
 
-        //public string valueString;
         public int correspondingWindDir;
 
         private readonly List<Point3d> listOfPoints;
@@ -137,23 +136,25 @@ namespace EddyLib
         private readonly string baseWorkingDirectory;
         private readonly int currWindDir;
 
+        public readonly string probingFilePath;
+
         // Todo: Implement this
         //public int[] IndexOfExtremeProbes;
 
-        public Probing(List<Point3d> ListOfPoints, string caseDirectory, string baseWorkingDirectory, OFField ofField, int currWindDir)
+        public Probing(List<Point3d> ListOfPoints, string caseDirectory, string baseWorkingDirectory, OFField ofField, int currWindDir, OFResult RES)
         {
             listOfPoints = ListOfPoints;
 
             this.caseDirectory = caseDirectory;
             this.baseWorkingDirectory = baseWorkingDirectory;
-            string fullPath = GetIterationPathToProbedResults(caseDirectory, ofField);
+            string fullPath = GetPathToProbedResults(caseDirectory, ofField, RES);
 
             if (fullPath == "") return;
 
-            //Number
-            if (ofField.FieldType == OFField.fieldType.number)
+            //Scalar
+            if (ofField.FieldType == OFField.fieldType.scalar)
             {
-                ParsingNumbers(listOfPoints, fullPath);
+                ParsingScalars(listOfPoints, fullPath);
             }
             //Vector
             if (ofField.FieldType == OFField.fieldType.vector)
@@ -161,11 +162,13 @@ namespace EddyLib
                 ParsingVectors(listOfPoints, fullPath);
             }
             this.currWindDir = currWindDir;
+            this.probingFilePath = GetPathToProbedResults(caseDirectory, ofField, RES);
             WriteProbedResultToCSV(ofField);
         }
 
         private void WriteProbedResultToCSV(OFField ofField)
         {
+            // We gather the probes in both the root folder and in each individual case
             string PostProcessDirCurrCase = caseDirectory + @"\postProcessing\";
             string PostProcessDirBaseCase = baseWorkingDirectory + @"\postProcessing\";
 
@@ -174,10 +177,10 @@ namespace EddyLib
                 Directory.CreateDirectory(PostProcessDirBaseCase);
             }
 
-            if (ofField.FieldType == OFField.fieldType.number)
+            if (ofField.FieldType == OFField.fieldType.scalar)
             {
                 StringBuilder sb = new StringBuilder();
-                foreach (GH_Number i in ResultNum)
+                foreach (GH_Number i in ResultScalar)
                 {
                     sb.AppendLine(i.ToString());
                 }
@@ -196,31 +199,27 @@ namespace EddyLib
             }
         }
 
-        private void ParsingNumbers(List<Point3d> listOfPoints, string fullPath)
+        private void ParsingScalars(List<Point3d> listOfPoints, string fullPath)
         {
             int counterPoints = listOfPoints.Count;
 
             StringBuilder sb = new StringBuilder();
 
-            ResultNum = new GH_Number[counterPoints];
+            ResultScalar = new GH_Number[counterPoints];
             string lastLine = File.ReadLines(fullPath).Where(line => line != "").Last();
 
             for (int i = 0; i < counterPoints; i++)
             {
-                var temp = double.Parse(lastLine.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[i + 1]); //this workes
+                var temp = double.Parse(lastLine.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[i + 1]);
                 var target = new GH_Number(0);
                 var conversion = GH_Convert.ToGHNumber(temp, GH_Conversion.Both, ref target);
-                ResultNum[i] = target;
-                //sb.AppendLine(ResultNum[i].ToString());
+                ResultScalar[i] = target;
             }
-            //this.valueString = sb.ToString();
         }
 
         private void ParsingVectors(List<Point3d> listOfPoints, string fullPath)
         {
             int counterPoints = listOfPoints.Count;
-
-            StringBuilder sb = new StringBuilder();
 
             ResultVec = new GH_Vector[counterPoints];
             string lastLine = File.ReadLines(fullPath).Last();
@@ -231,51 +230,54 @@ namespace EddyLib
             {
                 var temp = (new Vector3d(double.Parse(abc[counter]), double.Parse(abc[counter + 1]), double.Parse(abc[counter + 2])));
                 var target = new GH_Vector();
-                var conversion = GH_Convert.ToGHVector(temp, GH_Conversion.Both, ref target);
+                GH_Convert.ToGHVector(temp, GH_Conversion.Both, ref target);
                 ResultVec[i] = target;
-                //sb.AppendLine(ResultVec[i].ToString());
                 counter += 3;
             }
-            //this.valueString = sb.ToString();
         }
 
-        public static string GetIterationPathToProbedResults(string workingDirectory, OFField ofField)
+        public static string GetPathToProbedResults(string workingDirectory, OFField ofField, OFResult RES)
         {
-            // Here, the data has to be written already
-            string PostProcessingDirectory = workingDirectory + @"\postProcessing\";
+            int lastIter = GetLatestTime(workingDirectory, RES, ofField);
+            string fullPath = workingDirectory + @"\postProcessing\" + @"\" + ofField.ProbeName + @"\" + lastIter.ToString() + @"\" + ofField.FieldName;
 
-            //replace this with input
-            string basePath = PostProcessingDirectory + ofField.ProbeName;
+            if (!File.Exists(fullPath)) return "";
 
-            if (!Directory.Exists(basePath)) return "";
-
-
-                //if (!Directory.Exists(basePath)){
-                //    Directory.CreateDirectory(basePath);
-                //}
-
-                //string[] filePathResults = new string[counterPoints];
-                string[] directoriesBasePath = Directory.GetDirectories(basePath);
-            Array.Sort(directoriesBasePath, new Utilities.NumericComparer());
-
-            string latestTimedirectoriesBasePath = directoriesBasePath[directoriesBasePath.Length - 1];
-            string latestTime = Path.GetFileName(latestTimedirectoriesBasePath);
-
-            string fullPath = basePath + @"\" + latestTime + @"\" + ofField.FieldName;
+            //"C:\test\0\postProcessing\test3\303\p"
 
             return fullPath;
         }
 
-        public string GetLastIterationPath(string workingDirectory)
+        public static int GetLatestTime(string workingDirectory, OFResult RES, OFField ofField)
         {
-            string[] sortedWorkingDir = Directory.GetDirectories(workingDirectory);
-            Array.Sort(sortedWorkingDir, new Utilities.NumericComparer());
+            var DirNames = Directory.GetDirectories(workingDirectory);
 
-            string lastIteration = sortedWorkingDir[sortedWorkingDir.Length - 1];
-            string latestTime = Path.GetDirectoryName(lastIteration);
+            var dirlist = new List<string>();
+            foreach (string s in DirNames)
+            {
+                dirlist.Add(new DirectoryInfo(s).Name);
+            }
 
-            string fullPath = workingDirectory + @"\" + latestTime;
-            return fullPath;
+            var numberList = new List<int>();
+            int number;
+
+            foreach (var name in dirlist)
+            {
+                Match m = Regex.Match(name, "\\d+"); // this gets the number at beginning of dirname
+                var isNumber = Int32.TryParse(m.ToString(), out number);
+
+                if (isNumber)
+                    numberList.Add(number);
+            }
+
+            var highest = numberList.OrderByDescending(x => x).FirstOrDefault();
+
+            // When we are probing cps, we need to make sure that the field has been written into the direction even if the case just recently converged and the writeTime wasn't hit yet. In those cases, we probe from the second-to-last directory.
+
+            if (highest % RES.RunSettings.iter != 0 && ofField.FieldName == "total(p)_coeff")
+                highest = numberList.OrderByDescending(x => x).ElementAtOrDefault(1);
+
+            return highest;
         }
 
         //public static double[] FilterExtremeCPs(double[] inputList)
@@ -300,7 +302,7 @@ namespace EddyLib
         //    return outputList;
         //}
 
-        public static int[] ReturnIndexOfExtremeProbes(List<GH_Vector> x)
+        public static int[] ReturnProbeIndicesOutsideDomain(List<GH_Vector> x)
         {
             var vecLengths = new List<double>();
 
