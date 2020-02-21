@@ -1,8 +1,6 @@
 ﻿using System;
 using System.IO;
 
-//using Microsoft.VisualBasic.Devices;
-
 namespace EddyLib
 {
     public enum OSType
@@ -17,7 +15,7 @@ namespace EddyLib
     {
         OpenFOAM,
         Fluent,
-        SimScale
+        OpenFOAMRobust
     }
 
     public enum SimEngine
@@ -28,6 +26,7 @@ namespace EddyLib
 
     public enum TurbModel
     {
+        laminar,
         kEpsilon,
         kOmegaSST,
         RNGkEpsilon
@@ -41,6 +40,7 @@ namespace EddyLib
         public int CPUs;
         public bool IdenticalMPI;
         public bool Is64BitOS;
+        public bool potentialFoamInit;
         public int iter;
         public int keepTimeSteps;
         public OSType ostype;
@@ -56,20 +56,21 @@ namespace EddyLib
         public OFRunSettings(
             int iter = 1000,
             int writeInterval = 10,
-            int keepTimeSteps = 2,
+            int keepTimeSteps = 3,
             int Schemes = 0,
             int CPUs = 1,
             SimEngine simEngine = SimEngine.BlueCFD,
             OSType ostype = OSType.Windows10,
             TurbModel turbmodel = TurbModel.kEpsilon,
-            RelaxationFactors relaxationFactors = RelaxationFactors.Fluent
+            RelaxationFactors relaxationFactors = RelaxationFactors.Fluent,
+            bool potentialFoamInit = false
             )
         {
             this.iter = iter;
             this.writeInterval = writeInterval;
             this.keepTimeSteps = keepTimeSteps;
             this.Schemes = Schemes;
-            this.CPUs = 1;
+            this.CPUs = CPUs;
             this.simEngine = simEngine;
             this.ostype = ostype;
             this.turbModel = turbmodel;
@@ -77,13 +78,15 @@ namespace EddyLib
             this.relaxationFactors = relaxationFactors;
             this.Is64BitOS = Environment.Is64BitOperatingSystem;
             this.BlueCFDIsInstalled = CheckIfBlueCFDIsInstalled();
-            this.WindowsGnuplotInstalled = CheckWinGnuplotInstallation();
+            this.WindowsGnuplotInstalled = CheckIfWinGnuplotISInstalled();
             this.IdenticalMPI = CheckForProperMPIVersions(BlueCFDIsInstalled, Is64BitOS);
+            this.potentialFoamInit = potentialFoamInit;
         }
 
         public override string ToString()
         {
-            return String.Format(@"iter = {0}
+            return String.Format(@"
+iter = {0}
 writeInterval = {1}
 keepTimeSteps = {2}
 Scheme = {3}
@@ -92,7 +95,9 @@ CPUs = {5}
 Engine = {6}
 OS = {7}
 Turbulence Model = {8}
-Relaxation Factors = {9}", iter, writeInterval, keepTimeSteps, Schemes, turbModel.ToString(), CPUs, simEngine.ToString(), ostype.ToString(), turbModel, relaxationFactors.ToString());
+Relaxation Factors = {9}
+potentialFoam initialization = {10}"
+, iter.ToString(), writeInterval.ToString(), keepTimeSteps.ToString(), Schemes.ToString(), turbModel.ToString(), CPUs.ToString(), simEngine.ToString(), ostype.ToString(), turbModel.ToString(), relaxationFactors.ToString(), potentialFoamInit.ToString());
         }
 
         private bool CheckForProperMPIVersions(bool BlueCFDInstalled, bool Is64BitOS)
@@ -139,7 +144,7 @@ Relaxation Factors = {9}", iter, writeInterval, keepTimeSteps, Schemes, turbMode
             return IsBlueCFDInstalled;
         }
 
-        private bool CheckWinGnuplotInstallation()
+        private bool CheckIfWinGnuplotISInstalled()
         {
             bool installed = false;
 

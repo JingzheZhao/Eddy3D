@@ -287,13 +287,6 @@ exit
             }
         }
 
-        //public class Directories
-        //{
-        //}
-
-        //static public string hardcodedAssemblyDir = @"C:\Users\Patrick Kastner\Documents\GitHub\WindTunnel\VirtualWindTunnel\bin\";
-        //static public string hardcodedAssemblyDir = @"C:\Users\pkastner\Documents\GitHub\WindTunnel\Eddy\bin\";
-
         public static string AssemblyVersion
         {
             get
@@ -621,15 +614,11 @@ exit
                 int threshold = 50000;
                 if (pt.X > threshold || pt.Y > threshold || pt.Z > threshold)
                 {
-
-                                       
                     domainOK = false;
 
                     distance = pt.MaximumCoordinate - threshold;
-
                 }
             }
-            
 
             return domainOK;
         }

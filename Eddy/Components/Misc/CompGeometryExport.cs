@@ -22,8 +22,8 @@ namespace Eddy
         /// be created.
         /// </summary>
         public GeometryExportComponent()
-          : base("STLExporter", "STLExporter",
-              "STLExporter" + EddyVersion.toString(),
+          : base("STL Exporter", "STL Exporter",
+              "STL Exporter" + EddyVersion.toString(),
               EddyVersion.Name, "3 | PreProcessing")
         {
         }

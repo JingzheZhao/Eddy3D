@@ -19,7 +19,7 @@ namespace Eddy
         /// be created.
         /// </summary>
         public AnalysisPeriodToHours()
-          : base("Date2Hours", "Date2Hours", "Translate Ladybug analysis period to hours" + EddyVersion.toString(),
+          : base("Translate date to hours", "Date2Hours", "Translate Ladybug analysis period to hours of the year." + EddyVersion.toString(),
               EddyVersion.Name, "3 | PreProcessing")
         {
         }

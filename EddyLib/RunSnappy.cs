@@ -120,15 +120,15 @@ namespace EddyLib
             Point3d locationInMesh = new Point3d();
             locationInMesh = DOM.LocationInMesh;
 
-            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "snappyHexMeshDict"), EddyLib.StrTemp.OFExecDicts.SnappyHexMeshDict(MeshSettings, DOM));
-            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "surfaceFeatureExtractDict"), EddyLib.StrTemp.OFExecDicts.SurfaceFeatureExtractDict());
-            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "fvSchemes"), EddyLib.StrTemp.OFExecDicts.FvSchemesDefault());
-            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "fvSolution"), EddyLib.StrTemp.OFExecDicts.FvSolutionDefault(RunSettings));
-            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "meshQualityDict"), EddyLib.StrTemp.OFExecDicts.MeshQualityDict());
-            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "decomposeParDict"), EddyLib.StrTemp.OFExecDicts.DecomposeParDict(RunSettings));
+            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "snappyHexMeshDict"), EddyLib.Strings.OFExecDicts.SnappyHexMeshDict(MeshSettings, DOM));
+            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "surfaceFeatureExtractDict"), EddyLib.Strings.OFExecDicts.SurfaceFeatureExtractDict());
+            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesDefault());
+            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "fvSolution"), EddyLib.Strings.OFExecDicts.FvSolutionDefault(RunSettings));
+            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "meshQualityDict"), EddyLib.Strings.OFExecDicts.MeshQualityDict());
+            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "decomposeParDict"), EddyLib.Strings.OFExecDicts.DecomposeParDict(RunSettings));
 
-            File.WriteAllText(Path.Combine(MeshSettings.baseWorkingDir + "run_checkMesh.bat"), EddyLib.StrTemp.BatFiles.Run_checkMesh(RunSettings, MeshSettings, DOM, StrTemp.Mode.Meshing));
-            File.WriteAllText(Path.Combine(MeshSettings.baseWorkingDir + "run_reconstructMesh.bat"), EddyLib.StrTemp.BatFiles.Run_reconstructMesh(RunSettings, MeshSettings, DOM, StrTemp.Mode.Meshing));
+            File.WriteAllText(Path.Combine(MeshSettings.baseWorkingDir + "run_checkMesh.bat"), EddyLib.Strings.BatFiles.Run_checkMesh(RunSettings, MeshSettings, DOM, Strings.Mode.Meshing));
+            File.WriteAllText(Path.Combine(MeshSettings.baseWorkingDir + "run_reconstructMesh.bat"), EddyLib.Strings.BatFiles.Run_reconstructMesh(RunSettings, MeshSettings, DOM, Strings.Mode.Meshing));
 
             //Autocalc number of CPUs
             if (RunSettings.CPUs == -1)

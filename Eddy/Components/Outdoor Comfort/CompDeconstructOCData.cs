@@ -26,10 +26,8 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompDeconstructOCData()
-          : base("Deconstruct Data", "DeData", "PostProcessing" + EddyVersion.toString(),
-              EddyVersion.Name, "6 | Outdoor Comfort")
-        {
-        }
+          : base("Deconstruct Data Objects", "DeData", "Deconstruct data objects from pedestrian and outdoor thermal comfort post-processings into data trees." + EddyVersion.toString(), EddyVersion.Name, "6 | Outdoor Comfort")
+        { }
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -82,9 +80,9 @@ namespace Eddy
 
                 DA.SetDataTree(0, tree);
             }
-            else if ((gobj.Value is WindFactors))
+            else if ((gobj.Value is WindReductionFactors))
             {
-                WindFactors wf = null;
+                WindReductionFactors wf = null;
 
                 DA.GetData(0, ref wf);
 

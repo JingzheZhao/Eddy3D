@@ -43,7 +43,7 @@ namespace EddyLib
 
             File.WriteAllText(MeshSettings.meshSystemDir + @"\blockMeshDict", DOMCYL.StringyfyDomain2());
             File.WriteAllText(MeshSettings.baseWorkingDir + @"\mesh\mesh.foam", "");
-            File.WriteAllText(MeshSettings.meshSystemDir + @"\controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(RunSettings, DOMCYL, null, 0));
+            File.WriteAllText(MeshSettings.meshSystemDir + @"\controlDict", EddyLib.Strings.OFExecDicts.ControlDict(RunSettings, DOMCYL, null, 0));
 
             if (!File.Exists(workDir + @"\mesh\log"))
             {
@@ -92,9 +92,9 @@ namespace EddyLib
                 Directory.CreateDirectory(MeshSettings.meshBoundaryConditionsDirectory);
             }
 
-            File.WriteAllText(MeshSettings.meshSystemDir + @"\blockMeshDict", EddyLib.StrTemp.OFExecDicts.BlockMeshDict(DOMBOX));
+            File.WriteAllText(MeshSettings.meshSystemDir + @"\blockMeshDict", EddyLib.Strings.OFExecDicts.BlockMeshDict(DOMBOX));
             File.WriteAllText(MeshSettings.baseWorkingDir + @"\mesh\mesh.foam", "");
-            File.WriteAllText(MeshSettings.meshSystemDir + @"\controlDict", EddyLib.StrTemp.OFExecDicts.ControlDict(RunSettings, DOMBOX, null, 0));
+            File.WriteAllText(MeshSettings.meshSystemDir + @"\controlDict", EddyLib.Strings.OFExecDicts.ControlDict(RunSettings, DOMBOX, null, 0));
 
             if (!File.Exists(workDir + @"\mesh\log"))
             {

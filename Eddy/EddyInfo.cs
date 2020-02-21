@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Drawing;
+using Eddy.Properties;
 using Grasshopper.Kernel;
 
 namespace Eddy
 {
-    public class VirtualWindTunnel : GH_AssemblyInfo
+    public class EddyInfo : GH_AssemblyInfo
     {
         public override string Name
         {
             get
             {
-                return "VirtualWindTunnel";
+                return "Eddy3D";
             }
         }
 
@@ -19,7 +20,7 @@ namespace Eddy
             get
             {
                 //Return a 24x24 pixel bitmap to represent this GHA library.
-                return null;
+                return Resources.Eddy3D;
             }
         }
 
@@ -28,7 +29,7 @@ namespace Eddy
             get
             {
                 //Return a short string describing the purpose of this GHA library.
-                return "";
+                return "AIRFLOW AND MICROCLIMATE SIMULATIONS FOR RHINO AND GRASSHOPPER";
             }
         }
 
@@ -45,7 +46,7 @@ namespace Eddy
             get
             {
                 //Return a string identifying you or your company.
-                return "";
+                return "Patrick Kastner, Timur Dogan";
             }
         }
 
@@ -54,7 +55,7 @@ namespace Eddy
             get
             {
                 //Return a string representing your preferred contact details.
-                return "";
+                return "www.eddy3d.com";
             }
         }
     }

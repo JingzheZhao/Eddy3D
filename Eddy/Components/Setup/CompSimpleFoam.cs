@@ -30,7 +30,7 @@ namespace Eddy
         protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
         {
             base.AppendAdditionalComponentMenuItems(menu);
-            Menu_AppendItem(menu, "Use Docker OpenFOAM", Menu_DoClick, true, !runWithBlueCFD);
+            Menu_AppendItem(menu, "Docker to call OpenFOAM", Menu_DoClick, true, !runWithBlueCFD);
         }
 
         private void Menu_DoClick(object sender, EventArgs e)
@@ -84,16 +84,14 @@ namespace Eddy
             pManager.AddGenericParameter("Simulation result", "Res", "Eddy simulation result", GH_ParamAccess.item);
         }
 
+        private bool canRun = true;
 
-
-        bool canRun = true;
         public void taskComplete(object sender, System.EventArgs e)
         {
             //RhinoApp.WriteLine("Sim complete");
             canRun = false;
             this.ExpireSolution(true);
         }
-
 
         /// <summary>
         /// This is the method that actually does the work.
@@ -282,19 +280,16 @@ namespace Eddy
             DA.GetData("Run Simulation", ref runSimulation);
             DA.GetData("Run Meshing", ref runMeshing);
 
-
             if (runMeshing == true && runSimulation == true && canRun)
             {
                 Utilities.DeletePhi(MeshSettings, DOM);
                 Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run.bat", taskComplete);
             }
-
-            else if  (runMeshing == true && runSimulation == false && canRun)
+            else if (runMeshing == true && runSimulation == false && canRun)
             {
                 Utilities.DeletePhi(MeshSettings, DOM);
                 Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_mesh.bat", taskComplete);
             }
-
             else if (runMeshing == false && runSimulation == true && canRun)
             {
                 Utilities.DeletePhi(MeshSettings, DOM);
