@@ -41,6 +41,7 @@ namespace EddyLib
         public bool IdenticalMPI;
         public bool Is64BitOS;
         public bool potentialFoamInit;
+        public bool renumberMesh;
         public int iter;
         public int keepTimeSteps;
         public OSType ostype;
@@ -63,7 +64,8 @@ namespace EddyLib
             OSType ostype = OSType.Windows10,
             TurbModel turbmodel = TurbModel.kEpsilon,
             RelaxationFactors relaxationFactors = RelaxationFactors.Fluent,
-            bool potentialFoamInit = false
+            bool potentialFoamInit = false,
+            bool renumberMesh = true
             )
         {
             this.iter = iter;
@@ -81,6 +83,7 @@ namespace EddyLib
             this.WindowsGnuplotInstalled = CheckIfWinGnuplotISInstalled();
             this.IdenticalMPI = CheckForProperMPIVersions(BlueCFDIsInstalled, Is64BitOS);
             this.potentialFoamInit = potentialFoamInit;
+            this.renumberMesh = renumberMesh;
         }
 
         public override string ToString()

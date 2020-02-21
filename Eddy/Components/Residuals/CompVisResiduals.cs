@@ -23,7 +23,7 @@ namespace Eddy
         /// be created.
         /// </summary>
         public Residuals()
-        : base("Residuals", "Residuals", "Visualize residuals with Gnuplot." + EddyVersion.toString(),
+        : base("Visualize Residuals", "Residuals", "Visualize residuals with Gnuplot." + EddyVersion.toString(),
               EddyVersion.Name, "4 | Residuals")
         {
         }
