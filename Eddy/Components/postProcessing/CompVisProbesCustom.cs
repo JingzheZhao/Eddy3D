@@ -95,8 +95,8 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddPointParameter("Porbing points", "Probes", "List of probing points (those maybe culled if culling was on)", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Probing result", "Res", "Probing result", GH_ParamAccess.tree);
+            pManager.AddPointParameter("Porbing points", "Probes", "List of probing points (caution: maybe culled)", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Probing result", "Res", "Probed results [DataTree] where the [branches] are the wind directions and the [items] are the values for each probing point.", GH_ParamAccess.tree);
         }
 
         /// <summary>

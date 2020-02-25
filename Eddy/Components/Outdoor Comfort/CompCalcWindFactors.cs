@@ -30,7 +30,12 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompCalcWindFactors()
-          : base("Pedestrian Comfort", "Pedestrian Comfort", "Pedestrian Comfort" + EddyVersion.toString(),
+          : base("Pedestrian Comfort", "Pedestrian Comfort", @"Pedestrian Comfort
+
+Based on the weather data input, this component calculates wind reduction factors for every hour of the year for each probing point [8760 hourly branches x number of probing points].
+The wind reduction factors are calculated based on the wind velocity and direction for each hour which is scaled up/down accordingly given probing height from ground.
+For this, we support either a look-up for the closest simulated wind direction or an interpolation between the closest two wind directions.
+" + EddyVersion.toString(),
               EddyVersion.Name, "6 | Outdoor Comfort")
         {
         }
@@ -72,11 +77,11 @@ namespace Eddy
         {
             pManager.AddGenericParameter("Result", "Res", "Eddy Result", GH_ParamAccess.item);
             //pManager.AddIntegerParameter("windDirs", "windDirs", "windDirs", GH_ParamAccess.list);
-            pManager.AddPointParameter("Probing points", "Points", "List of probing points", GH_ParamAccess.list);
-            pManager.AddVectorParameter("Wind Velocity", "U", "Wind Velocity [DataTree]", GH_ParamAccess.tree);
+            pManager.AddPointParameter("Probing points", "Points", "List of probing points (caution: might have been culled)", GH_ParamAccess.list);
+            pManager.AddVectorParameter("Wind Velocity", "U", @"Wind Velocity [DataTree] where the [branches] are the wind directions and the [items] are the values for each probing point.", GH_ParamAccess.tree);
             // pManager.AddIntegerParameter("Hours", "H", "Hours", GH_ParamAccess.list);
 
-            pManager.AddIntegerParameter("Comfort Index", "CmftIdx", "Pedestrian Wind Comfort Index", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("Comfort Index", "CmftIdx", "Select a Pedestrian Wind Comfort Index with a right click.", GH_ParamAccess.item, 0);
 
             //Using an enum to generate the dropdown items
             var types = Enum.GetNames(typeof(EddyLib.PedestrianComfort.PedestrianComfortIdx));
