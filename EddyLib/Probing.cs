@@ -71,7 +71,7 @@ namespace EddyLib
             }
             else if (fieldName == "phi")
             {
-                FieldType = fieldType.scalar;
+                FieldType = fieldType.vector;
             }
         }
 

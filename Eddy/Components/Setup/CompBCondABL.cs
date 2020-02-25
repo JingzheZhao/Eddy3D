@@ -21,7 +21,19 @@ namespace Eddy
         /// be created.
         /// </summary>
         public BCondABLComp()
-          : base("ABL", "ABL", "Atmospheric Boundary Layer Boundary Condition" + EddyVersion.toString(),
+          : base("ABL", "ABL", @"Atmospheric Boundary Layer Boundary Condition
+
+        Property     | Description                      | Required  | Default
+        flowDir      | Flow direction                   | yes       |
+        zDir         | Vertical direction               | yes       |
+        kappa        | von Karman's constant            | no        | 0.41
+        Cmu          | Turbulence viscosity coefficient | no        | 0.09
+        Uref         | Reference velocity [m/s]         | yes       |
+        Zref         | Reference height [m]             | yes       |
+        z0           | Surface roughness height [m]     | yes       |
+        zGround      | Minimum z-coordinate [m]         | yes       |
+
+" + EddyVersion.toString(),
               EddyVersion.Name, "1 | Setup")
         {
             //dirs.Add(0);
