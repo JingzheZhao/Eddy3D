@@ -14,9 +14,9 @@ namespace EddyLib.Strings
             return @"The mesh for case  """ + caseFolder + @""" does not exist.";
         }
 
-        public static string FieldDoesntExist(string currentCaseDir, string probeName)
+        public static string FieldDoesntExist(string currentCaseDir, OFField field)
         {
-            return @"The file """ + currentCaseDir + @"\postProcessing\" + probeName + @""" does not exist. Please run the probing component.";
+            return @"The file """ + currentCaseDir + @"\postProcessing\" + field.ProbeName + @"\" + field.FieldName + @""" does not exist. Please run the probing component.";
         }
 
         public static string ParsingFailed()
