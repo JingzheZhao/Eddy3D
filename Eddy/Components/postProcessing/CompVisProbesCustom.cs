@@ -294,7 +294,7 @@ namespace Eddy
                         }
                         else
                         {
-                            base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.RTMsg.FieldDoesntExist(currentCaseDir, OFField currField));
+                            base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.RTMsg.FieldDoesntExist(currentCaseDir, currField));
                         }
                     }
                 }
