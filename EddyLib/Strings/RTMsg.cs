@@ -33,5 +33,10 @@ namespace EddyLib.Strings
         {
             return @"The probes with the indices: " + string.Join(",", IndecesOfExtremeProbes) + " can't be probed within the simulation domain and have been discarded.";
         }
+
+        public static string ProbingFuncObjects(OFResult RES, OFField field)
+        {
+            return @"You are probing a function object (" + field.FieldName + ") and WriteInt is set to " + RES.RunSettings.iter + ". Please lower the WriteInt to 1 and simulate one more iteration to enable the probing for this special case.";
+        }
     }
 }

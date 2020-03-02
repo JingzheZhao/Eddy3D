@@ -41,8 +41,10 @@ namespace EddyLib
         public bool IdenticalMPI;
         public bool Is64BitOS;
         public bool potentialFoamInit;
-        public bool renumberMesh;
+
+        //public bool renumberMesh;
         public int iter;
+
         public int keepTimeSteps;
         public OSType ostype;
         public RelaxationFactors relaxationFactors;
@@ -64,8 +66,8 @@ namespace EddyLib
             OSType ostype = OSType.Windows10,
             TurbModel turbmodel = TurbModel.kEpsilon,
             RelaxationFactors relaxationFactors = RelaxationFactors.Fluent,
-            bool potentialFoamInit = false,
-            bool renumberMesh = true
+            bool potentialFoamInit = false
+            //bool renumberMesh = true
             )
         {
             this.iter = iter;
@@ -83,7 +85,7 @@ namespace EddyLib
             this.WindowsGnuplotInstalled = CheckIfWinGnuplotISInstalled();
             this.IdenticalMPI = CheckForProperMPIVersions(BlueCFDIsInstalled, Is64BitOS);
             this.potentialFoamInit = potentialFoamInit;
-            this.renumberMesh = renumberMesh;
+            // this.renumberMesh = renumberMesh;
         }
 
         public override string ToString()
@@ -100,7 +102,10 @@ OS = {7}
 Turbulence Model = {8}
 Relaxation Factors = {9}
 potentialFoam initialization = {10}"
-, iter.ToString(), writeInterval.ToString(), keepTimeSteps.ToString(), Schemes.ToString(), turbModel.ToString(), CPUs.ToString(), simEngine.ToString(), ostype.ToString(), turbModel.ToString(), relaxationFactors.ToString(), potentialFoamInit.ToString());
+//Renumber Mesh = {11}"
+, iter.ToString(), writeInterval.ToString(), keepTimeSteps.ToString(), Schemes.ToString(), turbModel.ToString(), CPUs.ToString(), simEngine.ToString(), ostype.ToString(), turbModel.ToString(), relaxationFactors.ToString(), potentialFoamInit.ToString()
+//, renumberMesh.ToString()
+);
         }
 
         private bool CheckForProperMPIVersions(bool BlueCFDInstalled, bool Is64BitOS)

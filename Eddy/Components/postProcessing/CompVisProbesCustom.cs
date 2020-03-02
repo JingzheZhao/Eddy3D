@@ -157,6 +157,12 @@ namespace Eddy
 
             #endregion Load Inputs
 
+            GH_Structure<GH_Number> treeDouble = new GH_Structure<GH_Number>();
+            GH_Structure<GH_Vector> treeVector = new GH_Structure<GH_Vector>();
+
+            string OFField = EddyLib.OFField.ReformatOFFields(OFFieldInt);
+            OFField currField = new OFField(OFField, probeNameByUser);
+
             #region Error handling
 
             bool meshExists = false;
@@ -164,6 +170,7 @@ namespace Eddy
             if (numberOfProbes < 1)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You need to pass a list of point to the component.");
+                return;
             }
 
             // Check if U file is in last iteration
@@ -210,19 +217,18 @@ namespace Eddy
                 }
             }
 
-            int threshold = 4000;
+            int threshold = 5000;
             if (listOfPoints.Count > threshold)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Probing more than " + threshold + " points may slow things down considerably.");
             }
 
+            if (RES.RunSettings.writeInterval > 1 && currField.FieldName == "total(p)_coeff")
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.RTMsg.ProbingFuncObjects(RES, currField));
+            }
+
             #endregion Error handling
-
-            GH_Structure<GH_Number> treeDouble = new GH_Structure<GH_Number>();
-            GH_Structure<GH_Vector> treeVector = new GH_Structure<GH_Vector>();
-
-            string OFField = EddyLib.OFField.ReformatOFFields(OFFieldInt);
-            OFField currField = new OFField(OFField, probeNameByUser);
 
             if (numberOfProbes > 0 && meshExists)
             {
