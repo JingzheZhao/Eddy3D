@@ -74,34 +74,34 @@ namespace EddyLib.OutdoorComfort
 
             // Vectorial MEMI balance calculation function
             public static double[] Syst(
-                double[] T,
-                double Ta,
-                double Tmrt,
-                double HR,
-                double v,
-                int age,
-                int sex,
-                double ht,
-                int mbody,
-                int pos,
-                int M,
-                double icl,
-                bool mode
-                )
+              double[] T,
+              double Ta,
+              double Tmrt,
+              double HR,
+              double v,
+              int age,
+              int sex,
+              double ht,
+              int mbody,
+              int pos,
+              int M,
+              double icl,
+              bool mode
+              )
             {
                 double fec;
                 double metab;
                 double vpa;
                 // Conversion of T vector in an array
                 //var arr = np.ones(3, 1);
-                var arr = new double[3];
+                var arr = new double[3] { 1, 1, 1 };
                 arr[0] = T[0];
                 arr[1] = T[1];
                 arr[2] = T[2];
                 T = arr;
                 // required for the vectorial expression of the balance
                 //var enbal_vec = np.zeros(3, 1);
-                var enbal_vec = new double[3];
+                var enbal_vec = new double[3] { 0, 0, 0 }; ;
 
                 // Area parameters of the body:
                 var Adu = 0.203 * Math.Pow(mbody, 0.425) * Math.Pow(ht, 0.725);
@@ -262,10 +262,12 @@ namespace EddyLib.OutdoorComfort
 
                 // Balance equations of the 3-nodes model
 
-                enbal_vec[0] = (h + ere - (vasoC((double)T[0], (double)T[1]).Item1 / 3600 * cb + 5.28)) * (T[0] - T[1]);
-                enbal_vec[1] = (rbare + cbare + evap + (vasoC((double)T[0], (double)T[1]).Item1 / 3600 * cb + 5.28) * (T[0] - T[1]) - htcl * (T[1] - T[2]));
+                double term1 = (vasoC(T[0], T[1]).Item1 / 3600 * cb + 5.28);
+                double t1t2 = htcl * (T[1] - T[2]);
 
-                enbal_vec[2] = cclo + rclo + htcl * (T[1] - T[2]);
+                enbal_vec[0] = h + ere - (term1) * (T[0] - T[1]); // Core balance [W/m^2]
+                enbal_vec[1] = rbare + cbare + evap + (term1) * (T[0] - T[1]) - t1t2; //# Skin balance [W/m^2]
+                enbal_vec[2] = cclo + rclo + t1t2; //# Clothes balance [W/m^2]
                 var enbal_scal = h + ere + rsum + csum + evap;
                 // returning either the calculated core,skin,clo temperatures or the PET
 
@@ -289,27 +291,26 @@ namespace EddyLib.OutdoorComfort
 
             // Solving the 3 equation non-linear system
             public static Tuple<double[], double> resolution(
-                double Ta,
-                double Tmrt,
-                double HR,
-                double v,
-                int age,
-                int sex,
-                double ht,
-                int mbody,
-                int pos,
-                int M,
-                double icl,
-                NDarray Tx)
+              double Ta,
+              double Tmrt,
+              double HR,
+              double v,
+              int age,
+              int sex,
+              double ht,
+              int mbody,
+              int pos,
+              int M,
+              double icl,
+              double[] Tx)
             {
                 Func<double[], double[]> ff = Txx =>
                 {
                     return Syst(Txx, Ta, Tmrt, HR, v, age, sex, ht, mbody, pos, M, icl, true);
                 };
 
-                var l = new List<double>();
-                var firstGuess = new double[] { 1, 1, 1 };
-                var Tn = Broyden.FindRoot(ff, firstGuess, 0.001, 100, 0.0001);
+                var firstGuess = new double[] { 0, 0, 0 };
+                var Tn = Broyden.FindRoot(ff, firstGuess, 1.49012e-08, 1000, 0.000001);
                 //double Tn = BrentsFun(Syst(Tx, Ta, Tmrt, HR, v, age, sex, ht, mbody, pos, M, icl, true, output), lower: -1.0, upper: 4, tol: 0.002, maxIter: 100);
 
                 //   Tuple<double[],double> res =                    new Tuple<doubl, string, string>(1, "Steve", "Jobs");
@@ -319,17 +320,15 @@ namespace EddyLib.OutdoorComfort
 
             // PET calculation with dichotomy method
             public static object PET(
-                int age,
-                int sex,
-                double ht,
-                int mbody,
-                int pos,
-                int M,
-                object icl,
-                double[] Tstable,
-                object a,
-                object b,
-                double eps)
+              int age,
+              int sex,
+              double ht,
+              int mbody,
+              int pos,
+              int M,
+              object icl,
+              double[] Tstable,
+              double eps)
             {
                 // Definition of a function with the input variables of the PET reference situation
 
@@ -365,7 +364,7 @@ namespace EddyLib.OutdoorComfort
             public static double Lvap = 2.42 * Math.Pow(10.0, 6.0);
             public static double sigm = 5.67 * Math.Pow(10.0, -8.0);
             public static double eta = 0.0;
-            public static NDarray T = np.array(new double[] { 38, 40, 40 });
+            public static double[] T = new double[] { 38, 40, 40 };
             public static double eps = Math.Pow(10, -6);
             public static double Tmin = -40;
             public static double Tmax = 60;
@@ -383,104 +382,5 @@ namespace EddyLib.OutdoorComfort
             public static double icl = 0.5;
             public static double[] Tstable = resolution(Ta, Tmrt, HR, v, age, sex, ht, mbody, pos, M, icl, T).Item1;
         }
-
-        /// Root finding
-        ///
-        private static void Swap<T>(ref T a, ref T b)
-        {
-            var tmp = a;
-            a = b;
-            b = tmp;
-        }
-
-        public static double BrentsFun(Func<double, double> f, double lower, double upper, double tol, uint maxIter)
-        {
-            double a = lower;
-            double b = upper;
-            double fa = f(a); // calculated now to save function calls
-            double fb = f(b); // calculated now to save function calls
-            double fs;
-
-            if (!(fa * fb < 0))
-                throw new ArgumentException("Signs of f(lower_bound) and f(upper_bound) must be opposites");
-
-            if (Math.Abs(fa) < Math.Abs(b)) // if magnitude of f(lower_bound) is less than magnitude of f(upper_bound)
-            {
-                Swap(ref a, ref b);
-                Swap(ref fa, ref fb);
-            }
-
-            double c = a;      // c now equals the largest magnitude of the lower and upper bounds
-            double fc = fa;    // precompute function evalutation for point c by assigning it the same value as fa
-            bool mflag = true; // boolean flag used to evaluate if statement later on
-            double s = 0;      // Our Root that will be returned
-            double d = 0;      // Only used if mflag is unset (mflag == false)
-
-            for (uint iter = 1; iter < maxIter; ++iter)
-            {
-                // stop if converged on root or error is less than tolerance
-                if (Math.Abs(b - a) < tol)
-                {
-                    Console.WriteLine("After {0} iterations the root is: {1}", iter, s);
-                    return s;
-                } // end if
-
-                if (fa != fc && fb != fc)
-                {
-                    // use inverse quadratic interopolation
-                    s = (a * fb * fc / ((fa - fb) * (fa - fc)))
-                        + (b * fa * fc / ((fb - fa) * (fb - fc)))
-                        + (c * fa * fb / ((fc - fa) * (fc - fb)));
-                }
-                else
-                {
-                    // secant method
-                    s = b - fb * (b - a) / (fb - fa);
-                }
-
-                // checks to see whether we can use the faster converging quadratic && secant methods or if we need to use bisection
-                if (((s < (3 * a + b) * 0.25) || (s > b)) ||
-                        (mflag && (Math.Abs(s - b) >= (Math.Abs(b - c) * 0.5))) ||
-                        (!mflag && (Math.Abs(s - b) >= (Math.Abs(c - d) * 0.5))) ||
-                        (mflag && (Math.Abs(b - c) < tol)) ||
-                        (!mflag && (Math.Abs(c - d) < tol)))
-                {
-                    // bisection method
-                    s = (a + b) * 0.5;
-
-                    mflag = true;
-                }
-                else
-                {
-                    mflag = false;
-                }
-
-                fs = f(s);// calculate fs
-                d = c;    // first time d is being used (wasnt used on first iteration because mflag was set)
-                c = b;    // set c equal to upper bound
-                fc = fb;  // set f(c) = f(b)
-
-                if (fa * fs < 0) // fa and fs have opposite signs
-                {
-                    b = s;
-                    fb = fs; // set f(b) = f(s)
-                }
-                else
-                {
-                    a = s;
-                    fa = fs; // set f(a) = f(s)
-                }
-
-                if (Math.Abs(fa) < Math.Abs(fb)) // if magnitude of fa is less than magnitude of fb
-                {
-                    Swap(ref a, ref b);          // swap a and b
-                    Swap(ref fa, ref fb); // make sure f(a) and f(b) are correct after swap
-                }
-            } // end for
-
-            throw new AggregateException("The solution does not converge or iterations are not sufficient");
-        }
-
-        // end brents_fun
     }
 }
