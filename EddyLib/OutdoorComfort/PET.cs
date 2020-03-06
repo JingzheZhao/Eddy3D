@@ -8,18 +8,57 @@ using MathNet.Numerics.RootFinding;
 
 namespace EddyLib.OutdoorComfort
 {
-    internal class PET
+    public class PET
     {
         public class PET2017
         {
             public static double tc_set = 36.6;
-
             public static double tsk_set = 34;
-
             public static double tbody_set = (0.1 * tsk_set) + (0.9 * tc_set);
 
+            public double po = 1013.25;
+            public double rob = 1.06;
+            public double cb = 3.64 * 1000.0;
+            public double cair = 1.01 * 1000.0;
+            public double emsk = 0.99;
+            public double emcl = 0.95;
+            public double Lvap = 2.42 * Math.Pow(10.0, 6.0);
+            public double sigm = 5.67 * Math.Pow(10.0, -8.0);
+            public double eta = 0.0;
+            public double[] T = new double[] { 38, 40, 40 };
+            public double eps = Math.Pow(10, -6);
+            public double Tmin = -40;
+            public double Tmax = 60;
+            public double Ta = 30;
+            public double Tmrt = 20;
+            public double HR = 50;
+            public double v = 1;
+            public int age = 35;
+            public int sex = 1;
+            public int pos = 1;
+            public int mbody = 75;
+            public double ht = 1.8;
+            public double p = 1013.25;
+            public int M = 80;
+            public double icl = 0.5;
+            public double[] Tstable;
+
+            public double PET;
+
+            public PET2017(double Ta = 30, double Tmrt = 20, double HR = 50, double p = 1013.25, double ht = 1.8)
+            {
+                this.Ta = Ta;
+                this.Tmrt = Tmrt;
+                this.HR = HR;
+                this.p = p;
+                this.ht = ht;
+
+                this.Tstable = Resolution(Ta, Tmrt, HR, v, age, sex, ht, mbody, pos, M, icl, T).Item1;
+                this.PET = CalcPET(age, sex, ht, mbody, pos, M, this.Tstable, eps);
+            }
+
             // Skin blood flow calculation function:
-            public static Tuple<double, double> vasoC(double tcore, double tsk)
+            public static Tuple<double, double> VasoC(double tcore, double tsk)
             {
                 // Set value signals
                 var sig_skin = tsk_set - tsk;
@@ -215,7 +254,7 @@ namespace EddyLib.OutdoorComfort
 
                 // Calculation of the equivalent thermal resistance of body tissues
 
-                var alpha = vasoC((double)T[0], (double)T[1]).Item2;
+                var alpha = VasoC((double)T[0], (double)T[1]).Item2;
                 var tbody = alpha * (double)T[1] + (1 - alpha) * (double)T[0];
                 var htcl = 6.28 * ht * y * di / (rcl * Math.Log(r2 / r1) * Aclo);
                 // Calculation of sweat losses
@@ -262,7 +301,7 @@ namespace EddyLib.OutdoorComfort
 
                 // Balance equations of the 3-nodes model
 
-                double term1 = (vasoC(T[0], T[1]).Item1 / 3600 * cb + 5.28);
+                double term1 = (VasoC(T[0], T[1]).Item1 / 3600 * cb + 5.28);
                 double t1t2 = htcl * (T[1] - T[2]);
 
                 enbal_vec[0] = h + ere - (term1) * (T[0] - T[1]); // Core balance [W/m^2]
@@ -290,7 +329,7 @@ namespace EddyLib.OutdoorComfort
             }
 
             // Solving the 3 equation non-linear system
-            public static Tuple<double[], double> resolution(
+            public static Tuple<double[], double> Resolution(
               double Ta,
               double Tmrt,
               double HR,
@@ -319,14 +358,13 @@ namespace EddyLib.OutdoorComfort
             }
 
             // PET calculation with dichotomy method
-            public static object PET(
+            public static double CalcPET(
               int age,
               int sex,
               double ht,
               int mbody,
               int pos,
               int M,
-              object icl,
               double[] Tstable,
               double eps)
             {
@@ -354,33 +392,6 @@ namespace EddyLib.OutdoorComfort
                 }
                 return pet;
             }
-
-            public static double po = 1013.25;
-            public static double rob = 1.06;
-            public static double cb = 3.64 * 1000.0;
-            public static double cair = 1.01 * 1000.0;
-            public static double emsk = 0.99;
-            public static double emcl = 0.95;
-            public static double Lvap = 2.42 * Math.Pow(10.0, 6.0);
-            public static double sigm = 5.67 * Math.Pow(10.0, -8.0);
-            public static double eta = 0.0;
-            public static double[] T = new double[] { 38, 40, 40 };
-            public static double eps = Math.Pow(10, -6);
-            public static double Tmin = -40;
-            public static double Tmax = 60;
-            public static double Ta = 30;
-            public static double Tmrt = 20;
-            public static double HR = 50;
-            public static double v = 1;
-            public static int age = 35;
-            public static int sex = 1;
-            public static int pos = 1;
-            public static int mbody = 75;
-            public static double ht = 1.8;
-            public static double p = 1013.25;
-            public static int M = 80;
-            public static double icl = 0.5;
-            public static double[] Tstable = resolution(Ta, Tmrt, HR, v, age, sex, ht, mbody, pos, M, icl, T).Item1;
         }
     }
 }
