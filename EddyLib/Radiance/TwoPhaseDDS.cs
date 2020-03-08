@@ -11,15 +11,16 @@ namespace EddyLib.Radiance
 {
     public class TwoPhaseDDS
     {
-        // static string RadianceDir = @"C:\Eddy3d\Radiance";
+        //annualR_dc.ill + -s -1 output/annualR_dcd.ill + output/annual_dir.ill > output/annual_total.ill
 
-        public double[][] dirIll;
-        public double[][] difIll;
+        public double[][] dcill;
+        public double[][] dcdill;
+        public double[][] dirill;
         public double[][] totalIll;
 
         public string command;
 
-        public TwoPhaseDDS(string baseWorkingDir, Mesh BuildingGeometry, List<Point3d> probes, Weather weather, string RadianceDir = @"C:\Eddy3d\Radiance")
+        public TwoPhaseDDS(string baseWorkingDir, Mesh BuildingGeometry, List<Point3d> probes, Weather weather, string RadianceDir = @"C:\Program Files\Radiance")
         {
             //var skySubDivDiff = SkySubdivision.r1;
             var skySubDivDiff = SkySubdivision.r2;
@@ -106,8 +107,9 @@ namespace EddyLib.Radiance
 
             this.command = CommandLineArgsNew(RadianceDir, baseWorkingDir, probes.Count, weaname, weather.epwFilePath, 3, 10000, skySubDivDiff, skySubDivDir, Environment.ProcessorCount - 1);
 
-            this.dirIll = LoadDDSIll(baseWorkingDir + @"\Output\annualR_dc.ill");
-            this.difIll = LoadDDSIll(baseWorkingDir + @"\Output\annualR_dcd.ill");
+            this.dcill = LoadDDSIll(baseWorkingDir + @"\Output\annualR_dc.ill");
+            this.dcdill = LoadDDSIll(baseWorkingDir + @"\Output\annualR_dcd.ill");
+            this.dirill = LoadDDSIll(baseWorkingDir + @"\Output\annualR_dir.ill");
             this.totalIll = LoadDDSIll(baseWorkingDir + @"\Output\annual_total.ill");
         }
 

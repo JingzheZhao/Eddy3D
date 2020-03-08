@@ -11,8 +11,8 @@ namespace EddyLib
 
         public enum MRTType
         {
-            kessling,
-            abviewfactor,
+            daysimkessling,
+            radiancedds,
         }
 
         public double[,] Values;
@@ -53,7 +53,7 @@ namespace EddyLib
                 {
                     for (int p = 0; p < numberOfProbes; p++)
 
-                        if (type == MRTType.kessling)
+                        if (type == MRTType.daysimkessling)
                         {
                             this.Values[h, p] = GetMRTForPointViaKessling(weather, h, DiffRad[h][p], DirRad[h][p])[0];
                         }
