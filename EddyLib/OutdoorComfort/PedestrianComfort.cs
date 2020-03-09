@@ -21,39 +21,41 @@ namespace EddyLib
 
         public enum PedestrianComfortIdx
         {
-            Lawson,
+            LawsonGeneral,
+            LawsonLDDC,
+            Lawson2001,
             Davenport,
-            NEN8100
+            NEN8100,
         };
 
-        public Dictionary<String, List<String>> PedestrianComfortIndex = new Dictionary<string, List<string>>()
-        // name, nickname, description
-        {  { "Lawson", new List<string>(){ "Lawson Pedestrian Comfort", "LPC", @"Lawson Pedestrian Comfort
+        //        public Dictionary<String, List<String>> PedestrianComfortIndex = new Dictionary<string, List<string>>()
+        //        // name, nickname, description
+        //        {  { "Lawson", new List<string>(){ "Lawson Pedestrian Comfort", "LPC", @"Lawson Pedestrian Comfort
 
-4: > 4 m/s ""Sitting"" Light breezes desired for outdoor restaurants and seating areas where one can read a paper of comfortably sit for long periods.
-6: > 6 m/s ""Standing"" Gentle breezes suitable for main buildings entrances, pick-up/drop off points and bus stops.
-8: > 8 m/s ""Leisure Walking or Strolling"" Moderate breezes that would be appropriate for walking down a city centre street, park or plaza.
-10: > 10 m/s ""Business Walking"" Relatively high speeds that can be tolerated if ones objective is to walk, run or cycle without lingering.
-12: > 12 m/s ""Uncomfortable"" Winds of this magnitude are considered a nuisance for most activities, and wind mitigation is typically recommended." } },
+        //4: > 4 m/s ""Sitting"" Light breezes desired for outdoor restaurants and seating areas where one can read a paper of comfortably sit for long periods.
+        //6: > 6 m/s ""Standing"" Gentle breezes suitable for main buildings entrances, pick-up/drop off points and bus stops.
+        //8: > 8 m/s ""Leisure Walking or Strolling"" Moderate breezes that would be appropriate for walking down a city centre street, park or plaza.
+        //10: > 10 m/s ""Business Walking"" Relatively high speeds that can be tolerated if ones objective is to walk, run or cycle without lingering.
+        //12: > 12 m/s ""Uncomfortable"" Winds of this magnitude are considered a nuisance for most activities, and wind mitigation is typically recommended." } },
 
-            { "Davenport", new List<string>(){ "Davenport Pedestrian Comfort", "DPC", @"Davenport Pedestrian Comfort
+        //            { "Davenport", new List<string>(){ "Davenport Pedestrian Comfort", "DPC", @"Davenport Pedestrian Comfort
 
-1 - A > 3.6 m/s < 1.5 % Sitting Long
-2 - B > 5.3 m/s < 1.5 % Sitting Short
-3 - C > 7.6 m/s < 1.5 % Walking Leisurely
-4 - D > 9.8 m/s  < 1.5 % Walking Fast
-5 - E > 9.8 m/s >= 1.5 % Uncomfortable
-6 - S > 15.1 m/s >= 0.01 % Dangerous" } },
+        //1 - A > 3.6 m/s < 1.5 % Sitting Long
+        //2 - B > 5.3 m/s < 1.5 % Sitting Short
+        //3 - C > 7.6 m/s < 1.5 % Walking Leisurely
+        //4 - D > 9.8 m/s  < 1.5 % Walking Fast
+        //5 - E > 9.8 m/s >= 1.5 % Uncomfortable
+        //6 - S > 15.1 m/s >= 0.01 % Dangerous" } },
 
-            { "NEN8100", new List<string>(){ "NEN 8100 Pedestrian Comfort", "NPC", @"NEN 8100 Pedestrian Comfort
+        //            { "NEN8100", new List<string>(){ "NEN 8100 Pedestrian Comfort", "NPC", @"NEN 8100 Pedestrian Comfort
 
-1- A > 5 m/s < 2.5 % Sitting Long
-2 - B > 5 m/s < 5 % Sitting Short
-3 - C > 5 m/s < 10 % Walking Leisurely
-4 - D > 5 m/s < 20 % Walking Fast
-5 - E > 5 m/s > 20 % Uncomfortable
-6 - S > 15 m/s > 0.05 % Dangerous" } }
-        };
+        //1- A > 5 m/s < 2.5 % Sitting Long
+        //2 - B > 5 m/s < 5 % Sitting Short
+        //3 - C > 5 m/s < 10 % Walking Leisurely
+        //4 - D > 5 m/s < 20 % Walking Fast
+        //5 - E > 5 m/s > 20 % Uncomfortable
+        //6 - S > 15 m/s > 0.05 % Dangerous" } }
+        //        };
 
         public PedestrianComfort(int[] windDirs, Vector3d[,] vectors, string csvFilePath, bool truncateDoubles, bool recalc, int truncateBy = 1)
         {
@@ -266,9 +268,17 @@ namespace EddyLib
                 {
                     PedestrianWindComfort[probe] = CalcDavenportComfort(column);
                 }
-                else if (cmftidx == PedestrianComfort.PedestrianComfortIdx.Lawson)
+                else if (cmftidx == PedestrianComfort.PedestrianComfortIdx.LawsonGeneral)
                 {
-                    PedestrianWindComfort[probe] = CalcLawsonComfort(column);
+                    PedestrianWindComfort[probe] = CalcLawsonGeneralComfort(column);
+                }
+                else if (cmftidx == PedestrianComfort.PedestrianComfortIdx.LawsonLDDC)
+                {
+                    PedestrianWindComfort[probe] = CalcLawsonLDDCComfort(column);
+                }
+                else if (cmftidx == PedestrianComfort.PedestrianComfortIdx.Lawson2001)
+                {
+                    PedestrianWindComfort[probe] = CalcLawson2001Comfort(column);
                 }
                 else
                 {
@@ -279,33 +289,183 @@ namespace EddyLib
             return PedestrianWindComfort;
         }
 
-        private int CalcLawsonComfort(double[] annualVelocity)
+        private int CalcLawsonGeneralComfort(double[] annualVelocity)
 
         {
-            int pedestrianComfort = 4;
+            //            General Lawson
 
-            // https://www.cibse.org/getmedia/af08491f-ef5b-4f7e-9d70-2b0e36d748ae/01-Wind-Analogue-or-digital.pdf
+            //1 - A > 1.8 m / s < 2 % Sitting Long
+            //2 - B > 3.6 m / s < 2 % Sitting Short
+            //3 - C > 5.3 m / s < 2 % Walking Leisurely
+            //4 - D > 7.6 m / s > 5 % Walking Fast
+            //5 - E > 7.6 m / s >= 2 % Uncomfortable
 
-            // 4:  > 4 m / s "Sitting" Light breezes desired for outdoor restaurants and seating
-            // areas where one can read a paper of comfortably sit for long periods
-            // 6:  > 6 m / s "Standing" Gentle breezes suitable for main buildings entrances, pick -
-            // up / drop off points and bus stops
-            // 8:  > 8 m / s “Leisure Walking or Strolling“ Moderate breezes that would be
-            // appropriate for walking down a city centre street, park or plaza
-            // 10:  > 10 m / s "Business Walking“ Relatively high speeds that can be tolerated if
-            // ones objective is to walk, run or cycle without lingering
-            // 12:  > 12 m / s “Uncomfortable“ Winds of this magnitude are considered a nuisance for
-            // most activities, and wind mitigation is typically recommended
+            // Lets specify the categories from 1-5 which corresponds to A-E
 
-            int n = 12;
-            while (n > 5)
+            double twoPercent = 8760 * 0.01 * 0.02;
+
+            int pedestrianComfort = 0;
+
+            // start from the highest and start binning
+
+            var E = annualVelocity.Where(num => num > 7.6).Count() >= twoPercent;
+            var D = annualVelocity.Where(num => num > 7.6).Count() < twoPercent;
+            var C = annualVelocity.Where(num => num > 5.3).Count() < twoPercent;
+            var B = annualVelocity.Where(num => num > 3.6).Count() < twoPercent;
+            var A = annualVelocity.Where(num => num > 1.8).Count() < twoPercent;
+
+            if (E)
             {
-                var count = annualVelocity.Where(num => num >= n).Count();
-                // More than 5 % per year >= 438 h
-                if (count >= 438) { pedestrianComfort = n; break; }
-                n -= 2;
+                pedestrianComfort = 5;
+                return pedestrianComfort;
             }
-            return pedestrianComfort;
+            else if (D && !E)
+            {
+                pedestrianComfort = 4;
+                return pedestrianComfort;
+            }
+            else if (C && !D)
+            {
+                pedestrianComfort = 3;
+                return pedestrianComfort;
+            }
+            else if (B && !C)
+            {
+                pedestrianComfort = 2;
+                return pedestrianComfort;
+            }
+            else // (annualVelocity.Where(num => num > 3.6).Count() < onefive)
+            {
+                pedestrianComfort = 1;
+                return pedestrianComfort;
+            }
+        }
+
+        private int CalcLawsonLDDCComfort(double[] annualVelocity)
+
+        {
+            //            Lawson LDDC
+
+            //1 - A > 2.5 m / s < 5 % Frequent sitting
+            //2 - B > 4 m / s < 5 % Occasional sitting
+            //3 - C > 6 m / s < 5 % Standing
+            //4 - D > 8 m / s < 5 % Walking
+            //5 - E > 8 m / s > 5 % Uncomfortable
+            //6 - S > 15 m / s > 0.022 % Unsafe
+
+            // Lets specify the categories from 1-5 which corresponds to A-E
+
+            double fivePercent = 8760 * 0.01 * 0.05;
+            double zerotwotwoPercent = 8760 * 0.01 * 0.022;
+
+            int pedestrianComfort = 0;
+
+            // start from the highest and start binning
+
+            var S = annualVelocity.Where(num => num > 15).Count() > zerotwotwoPercent;
+            var E = annualVelocity.Where(num => num > 8).Count() > fivePercent;
+            var D = annualVelocity.Where(num => num > 8).Count() < fivePercent;
+            var C = annualVelocity.Where(num => num > 6).Count() < fivePercent;
+            var B = annualVelocity.Where(num => num > 4).Count() < fivePercent;
+            var A = annualVelocity.Where(num => num > 2.5).Count() < fivePercent;
+
+            if (S)
+            {
+                pedestrianComfort = 6;
+                return pedestrianComfort;
+            }
+            else if (E && !S)
+            {
+                pedestrianComfort = 4;
+                return pedestrianComfort;
+            }
+            else if (D && !E)
+            {
+                pedestrianComfort = 3;
+                return pedestrianComfort;
+            }
+            else if (C && !D)
+            {
+                pedestrianComfort = 2;
+                return pedestrianComfort;
+            }
+            else if (B && !C)
+            {
+                pedestrianComfort = 2;
+                return pedestrianComfort;
+            }
+            else // (annualVelocity.Where(num => num > 3.6).Count() < onefive)
+            {
+                pedestrianComfort = 1;
+                return pedestrianComfort;
+            }
+        }
+
+        private int CalcLawson2001Comfort(double[] annualVelocity)
+
+        {
+            //            Lawson 2001
+
+            //1 - A > 4 m / s < 5 % Sitting
+            //2 - B > 6 m / s < 5 % Standing
+            //3 - C > 8 m / s < 5 % Strolling
+            //4 - D > 10 m / s < 5 % Business Walking
+            //5 - E > 10 m / s > 5 % Uncomfortable
+            //6 - S15 > 15 m / s > 0.023 % Unsafe frail
+            //7 - S20 > 20 m / s > 0.023 % Unsafe all
+
+            // Lets specify the categories from 1-7 which corresponds to A-S20
+
+            double fivePercent = 8760 * 0.01 * 0.05;
+            double zerotwothreePercent = 8760 * 0.01 * 0.023;
+
+            int pedestrianComfort = 0;
+
+            // start from the highest and start binning
+
+            var S20 = annualVelocity.Where(num => num > 20).Count() > zerotwothreePercent;
+            var S15 = annualVelocity.Where(num => num > 15).Count() > zerotwothreePercent;
+            var E = annualVelocity.Where(num => num > 10).Count() > fivePercent;
+            var D = annualVelocity.Where(num => num > 10).Count() < fivePercent;
+            var C = annualVelocity.Where(num => num > 8).Count() < fivePercent;
+            var B = annualVelocity.Where(num => num > 6).Count() < fivePercent;
+            var A = annualVelocity.Where(num => num > 4).Count() < fivePercent;
+
+            if (S20)
+            {
+                pedestrianComfort = 7;
+                return pedestrianComfort;
+            }
+            else if (S15 && !S20)
+            {
+                pedestrianComfort = 6;
+                return pedestrianComfort;
+            }
+            else if (E && !S15)
+            {
+                pedestrianComfort = 5;
+                return pedestrianComfort;
+            }
+            else if (D && !E)
+            {
+                pedestrianComfort = 4;
+                return pedestrianComfort;
+            }
+            else if (C && !D)
+            {
+                pedestrianComfort = 3;
+                return pedestrianComfort;
+            }
+            else if (B && !C)
+            {
+                pedestrianComfort = 2;
+                return pedestrianComfort;
+            }
+            else // (annualVelocity.Where(num => num > 3.6).Count() < onefive)
+            {
+                pedestrianComfort = 1;
+                return pedestrianComfort;
+            }
         }
 
         private int CalcDavenportComfort(double[] annualVelocity)

@@ -108,13 +108,32 @@ This yields a datatree with wind reduction factors of the size [8760 h x number 
 
             pManager.AddNumberParameter("Pedestrian Wind Comfort", "Cmft", @"Pedestrian Wind Comfort
 
-Lawson
+General Lawson
 
-4: > 4 m/s ""Sitting"" Light breezes desired for outdoor restaurants and seating areas where one can read a paper of comfortably sit for long periods.
-6: > 6 m/s ""Standing"" Gentle breezes suitable for main buildings entrances, pick-up/drop off points and bus stops.
-8: > 8 m/s ""Leisure Walking or Strolling"" Moderate breezes that would be appropriate for walking down a city centre street, park or plaza.
-10: > 10 m/s ""Business Walking"" Relatively high speeds that can be tolerated if ones objective is to walk, run or cycle without lingering.
-12: > 12 m/s ""Uncomfortable"" Winds of this magnitude are considered a nuisance for most activities, and wind mitigation is typically recommended.
+1 - A > 1.8 m/s < 2 % Sitting Long
+2 - B > 3.6 m/s < 2 % Sitting Short
+3 - C > 5.3 m/s < 2 % Walking Leisurely
+4 - D > 7.6 m/s > 5 % Walking Fast
+5 - E > 7.6 m/s >= 2 % Uncomfortable
+
+Lawson LDDC
+
+1 - A > 2.5 m/s < 5 % Frequent sitting
+2 - B > 4 m/s < 5 % Occasional sitting
+3 - C > 6 m/s < 5 % Standing
+4 - D > 8 m/s < 5 % Walking
+5 - E > 8 m/s > 5 % Uncomfortable
+6 - S > 15 m/s > 0.022 % Unsafe
+
+Lawson 2001
+
+1 - A   > 4 m/s < 5 % Sitting
+2 - B   > 6 m/s < 5 % Standing
+3 - C   > 8 m/s < 5 % Strolling
+4 - D   > 10 m/s < 5 % Business Walking
+5 - E   > 10 m/s > 5 % Uncomfortable
+6 - S15 > 15 m/s > 0.023 % Unsafe frail
+7 - S20 > 20 m/s > 0.023 % Unsafe all
 
 Davenport
 
