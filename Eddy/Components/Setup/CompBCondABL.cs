@@ -21,7 +21,7 @@ namespace Eddy
         /// be created.
         /// </summary>
         public BCondABLComp()
-          : base("ABL", "ABL", @"Atmospheric Boundary Layer Boundary Condition
+          : base("ABL Flow", "ABL Flow", @"Atmospheric Boundary Layer Flow Boundary Condition
 
         Property     | Description                      | Required  | Default
         flowDir      | Flow direction                   | yes       |
