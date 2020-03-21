@@ -13,8 +13,9 @@ namespace EddyLib.Radiance
     {
         // static string RadianceDir = @"C:\Eddy3d\Radiance";
 
-        public double[][] dirIll;
         public double[][] difIll;
+
+        public double[][] dirIll;
 
         public TwoPhaseDDS(string baseWorkingDir, Mesh BuildingGeometry, List<Point3d> probes, Weather weather, string RadianceDir = @"C:\Eddy3d\Radiance")
         {
@@ -47,6 +48,7 @@ void plastic Black
 ";
             Mesh daysimMesh = new Mesh();
             daysimMesh.Append(BuildingGeometry);
+
             // Todo: add ground plane to the above mesh
 
             RadianceFiles.MeshProc(daysimMesh, baseWorkingDir + @"Rad\scene.rad", "Generic_20", radMat);
@@ -54,8 +56,10 @@ void plastic Black
 
             // Write Probes
             RadianceFiles.writePTS(baseWorkingDir + @"\Rad\sensors.pts", probes);
+
             // Weather
             var weaname = RadianceFiles.Epw2Wea(weather.epwFilePath, baseWorkingDir + @"\Rad\Output");
+
             // Sky
             Skies.Write(baseWorkingDir + @"Rad\skyglow.rad", skySubDivDiff);
 
@@ -69,6 +73,7 @@ void plastic Black
 
                 // Redirects the standard input so that commands can be sent to the shell.
                 process.StartInfo.RedirectStandardInput = true;
+
                 // Runs the specified command and exits the shell immediately.
                 //process.StartInfo.Arguments = @"/c ""dir""";
 
