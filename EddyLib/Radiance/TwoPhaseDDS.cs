@@ -13,10 +13,12 @@ namespace EddyLib.Radiance
     {
         //annualR_dc.ill + -s -1 output/annualR_dcd.ill + output/annual_dir.ill > output/annual_total.ill
 
-
         public double[][] dcill;
+
         public double[][] dcdill;
+
         public double[][] dirill;
+
         public double[][] totalIll;
 
         public string command;
@@ -106,17 +108,17 @@ namespace EddyLib.Radiance
                 process.BeginErrorReadLine();
 
                 // Send a directory command and an exit command to the shell
-                process.StandardInput.WriteLine(CommandLineArgsNew(RadianceDir, baseWorkingDir, probes.Count, weaname, weather.epwFilePath, 3, 10000, skySubDivDiff, skySubDivDir, Environment.ProcessorCount - 1));
+                process.StandardInput.WriteLine(CommandLineArgsNew(RadianceDir, baseWorkingDir, probes.Count, weaname, weather.epwFilePath, 3, 5000, skySubDivDiff, skySubDivDir, Environment.ProcessorCount - 1));
                 process.StandardInput.WriteLine("exit");
 
                 process.WaitForExit();
             }
 
-            this.command = CommandLineArgsNew(RadianceDir, baseWorkingDir, probes.Count, weaname, weather.epwFilePath, 3, 10000, skySubDivDiff, skySubDivDir, Environment.ProcessorCount - 1);
+            this.command = CommandLineArgsNew(RadianceDir, baseWorkingDir, probes.Count, weaname, weather.epwFilePath, 3, 5000, skySubDivDiff, skySubDivDir, Environment.ProcessorCount - 1);
 
             this.dcill = LoadDDSIll(baseWorkingDir + @"\Output\annualR_dc.ill");
             this.dcdill = LoadDDSIll(baseWorkingDir + @"\Output\annualR_dcd.ill");
-            this.dirill = LoadDDSIll(baseWorkingDir + @"\Output\annualR_dir.ill");
+            this.dirill = LoadDDSIll(baseWorkingDir + @"\Output\annual_dir.ill");
             this.totalIll = LoadDDSIll(baseWorkingDir + @"\Output\annual_total.ill");
         }
 
@@ -154,7 +156,7 @@ namespace EddyLib.Radiance
 
         REM Convert epw to wea tape
         REM -----------------------------------
-        epw2wea """ + epwpath + @""" output/" + weaname + @".wea
+          epw2wea """ + epwpath + @""" ""output/" + weaname + @".wea""
 
         REM Make the OCTREE
         REM -----------------------------------
@@ -178,12 +180,12 @@ namespace EddyLib.Radiance
         REM -m controls the sky subdivision
         REM Use -O1 to switch to solar rad
         REM The −d option may be used to produce a sun -only matrix, with no sky contributions. Alternatively, the −s option may be used to exclude any direct solar component from the output.
-        gendaymtx -m " + skysubdiv + @" -O1 output/" + weaname + @".wea > output/" + weaname + @".smx
+        gendaymtx -m " + skysubdiv + @" -O1 ""output/" + weaname + @".wea"" > ""output/" + weaname + @".smx""
 
         REM Create Illum
         REM Illuminace Weights == 47.4 119.9 11.6  // For Radiation 0.265 0.670 0.065 ???
         REM -----------------------------------
-        dctimestep output/dc_r" + skysubdiv + @".mtx output/" + weaname + @".smx | rmtxop -fa -t -c 0.265 0.670 0.065 - > output/annualR_dc.ill
+        dctimestep output/dc_r" + skysubdiv + @".mtx ""output/" + weaname + @".smx"" | rmtxop -fa -t -c 0.265 0.670 0.065 - > ""output/annualR_dc.ill""
 
         REM ###################################
         REM 2 Perform an annual direct-only daylight coefficients simulation.
@@ -191,9 +193,9 @@ namespace EddyLib.Radiance
 
         rfluxmtx -I+ -y " + sensorCnt + @" -lw 0.0001 -ab " + ab + @" -ad " + ad + @" -n " + n + @" - Rad/skyglowR" + (skysubdiv) + @".rad -i output/sceneBlack.oct < sensors.pts > output/dcd_r" + skysubdiv + @".mtx
 
-        gendaymtx -m " + skysubdiv + @" -O1 -d output/" + weaname + @".wea > output/" + weaname + @"d.smx
+        gendaymtx -m " + skysubdiv + @" -O1 -d ""output/" + weaname + @".wea"" > ""output/" + weaname + @"d.smx""
 
-        dctimestep output/dcd_r" + skysubdiv + @".mtx output/" + weaname + @"d.smx | rmtxop -fa -t -c 0.265 0.670 0.065 -> output/annualR_dcd.ill
+        dctimestep output/dcd_r" + skysubdiv + @".mtx ""output/" + weaname + @"d.smx"" | rmtxop -fa -t -c 0.265 0.670 0.065 -> ""output/annualR_dcd.ill""
 
         REM ###################################
         REM 3 Perform an annual sun-coefficients simulation.
@@ -201,24 +203,24 @@ namespace EddyLib.Radiance
         echo void light solar 0 0 3 1e6 1e6 1e6 > output/suns.rad
         REM Create solar discs and corresponding modifiers for 2305 suns corresponding to a Reinhart MF:4 subdivision.
         REM 0.533 solar disc size as angle
-        cnt " + (144 * skysubdivdirect * skysubdivdirect + 1) + @" | rcalc -e MF:4 -f C:\DIVA\Radiance\lib\reinsrc.cal -e Rbin=recno -o ""solar source sun 0 0 4 ${Dx} ${Dy} ${Dz} 0.533"" >> output/suns.rad
+        cnt " + (144 * skysubdivdirect * skysubdivdirect + 1) + @" | rcalc -e MF:4 -f ""C:\DIVA\Radiance\lib\reinsrc.cal"" -e Rbin=recno -o ""solar source sun 0 0 4 ${Dx} ${Dy} ${Dz} 0.533"" >> ""output/suns.rad""
 
         REM Put suns in scene...
         oconv sceneBlack.rad output/suns.rad > output/sceneBlackSuns.oct
 
         REM Calculate illuminance sun coefficients for illuminance calculations.
-        rcontrib -I+ -ab 1 -y " + sensorCnt + @" -n 16 -ad 256 -lw 1.0e-3 -dc 1 -dt 0 -dj 0 -faf -e MF:" + skysubdivdirect + @" -f " + RadianceDir + @"\lib\reinhart.cal -b rbin -bn Nrbins -m solar output/sceneBlackSuns.oct < sensors.pts > output/cdsDDS.mtx
+        rcontrib -I+ -ab 1 -y " + sensorCnt + @" -n 16 -ad 256 -lw 1.0e-3 -dc 1 -dt 0 -dj 0 -faf -e MF:" + skysubdivdirect + @" -f """ + RadianceDir + @"\lib\reinhart.cal"" -b rbin -bn Nrbins -m solar ""output/sceneBlackSuns.oct"" < sensors.pts > ""output/cdsDDS.mtx""
 
         REM - 5 option indicates 5phase method mode - solar disc angele must follow that input
         REM The -d option in the SMX messes it all up-- you can't include -d and -5 together.
-        gendaymtx -5 0.533 -m " + skysubdivdirect + @" -O1 output/" + weaname + @".wea > output/sunM" + skysubdivdirect + @".smx
+        gendaymtx -5 0.533 -m " + skysubdivdirect + @" -O1 ""output/" + weaname + @".wea"" > ""output/sunM" + skysubdivdirect + @".smx""
 
-        dctimestep output/cdsDDS.mtx output/sunM" + skysubdivdirect + @".smx | rmtxop -fa -t -c 0.265 0.670 0.065 - > output/annual_dir.ill
+        dctimestep ""output/cdsDDS.mtx"" ""output/sunM" + skysubdivdirect + @".smx"" | rmtxop -fa -t -c 0.265 0.670 0.065 - > ""output/annual_dir.ill""
 
         REM ###################################
         REM 4 Combine Results
         REM ###################################
-        rmtxop output/annualR_dc.ill + -s -1 output/annualR_dcd.ill + output/annual_dir.ill > output/annual_total.ill
+        rmtxop ""output/annualR_dc.ill"" + -s -1 ""output/annualR_dcd.ill"" + ""output/annual_dir.ill"" > ""output/annual_total.ill""
 
         pause
 
