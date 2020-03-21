@@ -247,7 +247,7 @@ namespace EddyLib
 
             IEnumerable<Mesh> first = new List<Mesh>() { DomainMesh };
             IEnumerable<Mesh> second = new List<Mesh>() { TerrainMesh };
-            this.DomainMeshIntersection = Mesh.CreateBooleanIntersection(first, second);
+            this.DomainMeshIntersection = Mesh.CreateBooleanDifference(first, second);
 
             // Set up BCs
             if (BCond.btype == EddyLib.BoundaryType.constant)

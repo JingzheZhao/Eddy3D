@@ -243,7 +243,7 @@ namespace EddyLib
 
             IEnumerable<Mesh> first = new Mesh[] { DomainMesh };
             IEnumerable<Mesh> second = new Mesh[] { TerrainMesh };
-            this.DomainMeshIntersection = Mesh.CreateBooleanIntersection(first, second);
+            this.DomainMeshIntersection = Mesh.CreateBooleanDifference(first, second);
         }
 
         private void WeldAllIndividualMeshes()
@@ -450,7 +450,7 @@ namespace EddyLib
             int c3 = perimBottom.Faces.Count + coreBottom.Faces.Count;
 
 #if DEBUG
-      sb.AppendLine("//perimeter");
+            sb.AppendLine("//perimeter");
 #endif
             for (int i = 0; i < perimBottom.Faces.Count; i++)
             {
@@ -464,7 +464,7 @@ namespace EddyLib
                 // After coreTop and coreBottom were flipped by a code change in RhinoCommon, the (" + divisionsX + " " + (divPerim) + " " + divisionsZ + ") command changed from (" + divisionsX + " " + (divPerim) + " " + divisionsZ + ") to (" + divisionsPerim + " " + (divisionsX) + " " + divisionsZ + ");
             }
 #if DEBUG
-      sb.AppendLine("//core");
+            sb.AppendLine("//core");
 #endif
             for (int i = 0; i < coreBottom.Faces.Count; i++)
             {   //core blocks //Changed order because we had to flip core mesh plane
