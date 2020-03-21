@@ -193,6 +193,11 @@ namespace Eddy
                 }
             }
 
+            // For radiation simulation
+
+            buildingGeometry.UserDictionary.Set("type", "Building");
+            terrainMeshes.UserDictionary.Set("type", "Ground");
+
             // Check if lowest point in Domain is z_low < 0, then we cannot use a ABL
 
             if (buildingGeometry.GetBoundingBox(true).Min.Z < 0 && bCond.btype == BoundaryType.abl)

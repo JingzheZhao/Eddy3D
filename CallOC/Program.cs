@@ -161,7 +161,7 @@ namespace CallOC
 
                         #region MRT
 
-                        MRT mrt = new MRT(options.WorkingDir, weather, MRT.MRTType.kessling, DiffRad, DirRad, Utilities.Probes2Point3D(probes), true);
+                        MRT mrt = new MRT(options.WorkingDir, weather, MRT.MRTType.daysimkessling, DiffRad, DirRad, Utilities.Probes2Point3D(probes), true);
 
                         #endregion MRT
 

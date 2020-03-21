@@ -178,6 +178,8 @@ namespace EddyLib
 
                 if (_m.Faces[i].IsTriangle)
                 {
+                    // Change this material for 2Phase method
+
                     sw.WriteLine(_mat + " polygon " + _mat + "." + (i + 1).ToString());
                     sw.WriteLine("0");
                     sw.WriteLine("0");
