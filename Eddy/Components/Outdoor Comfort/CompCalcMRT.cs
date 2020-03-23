@@ -44,6 +44,7 @@ https://transsolar.com/content/7-publications/2-papers/1-plea-2013-the-human-bio
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Simulation Result", "Res", "Simulation Result", GH_ParamAccess.item);
+
             //pManager.AddIntegerParameter("windDirs", "windDirs", "windDirs", GH_ParamAccess.list);
             //pManager.AddTextParameter("pointName", "pointName", "pointName", GH_ParamAccess.item);
             // pManager.AddIntegerParameter("Hours", "H", "Hours", GH_ParamAccess.list);
@@ -69,6 +70,7 @@ https://transsolar.com/content/7-publications/2-papers/1-plea-2013-the-human-bio
         {
             //pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
             pManager.AddGenericParameter("Mean Radiant Temperature [°C]", "MRT", "Mean Radiant Temperature [°C] Object", GH_ParamAccess.item);
+
             // pManager.AddGenericParameter("MRT_T", "MRT_T", "MRT_T", GH_ParamAccess.tree);
         }
 
@@ -215,7 +217,7 @@ https://transsolar.com/content/7-publications/2-papers/1-plea-2013-the-human-bio
                         Utilities.CleanDirectory(RES.MeshSettings.baseWorkingDir + @"Rad\");
                         Utilities.CleanDirectory(RES.MeshSettings.baseWorkingDir + @"Output\");
 
-                        EddyLib.Radiance.TwoPhaseDDS dds = new EddyLib.Radiance.TwoPhaseDDS(RES.WorkingDirectory, RES.Domain.BuildingGeometry, probes, weather);
+                        EddyLib.Radiance.TwoPhaseDDS dds = new EddyLib.Radiance.TwoPhaseDDS(RES.WorkingDirectory, RES.Domain.BuildingGeometry, probes, weather, run);
 
                         DirRad = dds.totalIll;
                         DiffRad = dds.dcdill;
@@ -235,7 +237,7 @@ https://transsolar.com/content/7-publications/2-papers/1-plea-2013-the-human-bio
                     Utilities.CleanDirectory(RES.MeshSettings.baseWorkingDir + @"Rad\");
                     Utilities.CleanDirectory(RES.MeshSettings.baseWorkingDir + @"Output\");
 
-                    EddyLib.Radiance.TwoPhaseDDS dds = new EddyLib.Radiance.TwoPhaseDDS(RES.WorkingDirectory, RES.Domain.BuildingGeometry, probes, weather);
+                    EddyLib.Radiance.TwoPhaseDDS dds = new EddyLib.Radiance.TwoPhaseDDS(RES.WorkingDirectory, RES.Domain.BuildingGeometry, probes, weather, run);
 
                     DirRad = RadianceFiles.loadILL(dirillFile);
                     DiffRad = RadianceFiles.loadILL(difillFile);
@@ -277,6 +279,7 @@ https://transsolar.com/content/7-publications/2-papers/1-plea-2013-the-human-bio
         /// need to be 24x24 pixels.
         /// </summary>
         protected override System.Drawing.Bitmap Icon =>
+
                 // You can add image files to your project resources and access them like this:
                 Resources.Eddy_calMRT;
 

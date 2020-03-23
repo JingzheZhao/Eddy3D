@@ -23,7 +23,7 @@ namespace EddyLib.Radiance
 
         public string command;
 
-        public TwoPhaseDDS(string baseWorkingDir, Mesh BuildingGeometry, List<Point3d> probes, Weather weather, string RadianceDir = @"C:\Program Files\Radiance")
+        public TwoPhaseDDS(string baseWorkingDir, Mesh BuildingGeometry, List<Point3d> probes, Weather weather, bool run, string RadianceDir = @"C:\Program Files\Radiance")
 
         {
             //var skySubDivDiff = SkySubdivision.r1;
@@ -85,33 +85,36 @@ namespace EddyLib.Radiance
 
             //Utilities.StartProcess.StartProcessCMDNT(arg, false, true, false, true, probingComplete);
 
-            using (Process process = new Process())
+            if (run)
             {
-                process.StartInfo.UseShellExecute = false;
-                process.StartInfo.RedirectStandardOutput = true;
-                process.StartInfo.RedirectStandardError = true;
-                process.StartInfo.WorkingDirectory = baseWorkingDir + @"\Rad\";
-                process.StartInfo.FileName = Path.Combine(Environment.SystemDirectory, "cmd.exe");
-                process.StartInfo.RedirectStandardError = true;
+                using (Process process = new Process())
+                {
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.RedirectStandardOutput = true;
+                    process.StartInfo.RedirectStandardError = true;
+                    process.StartInfo.WorkingDirectory = baseWorkingDir + @"\Rad\";
+                    process.StartInfo.FileName = Path.Combine(Environment.SystemDirectory, "cmd.exe");
+                    process.StartInfo.RedirectStandardError = true;
 
-                // Redirects the standard input so that commands can be sent to the shell.
-                process.StartInfo.RedirectStandardInput = true;
+                    // Redirects the standard input so that commands can be sent to the shell.
+                    process.StartInfo.RedirectStandardInput = true;
 
-                // Runs the specified command and exits the shell immediately.
-                //process.StartInfo.Arguments = @"/c ""dir""";
+                    // Runs the specified command and exits the shell immediately.
+                    //process.StartInfo.Arguments = @"/c ""dir""";
 
-                //process.OutputDataReceived += ProcessOutputDataHandler;
-                //process.ErrorDataReceived += ProcessErrorDataHandler;
+                    //process.OutputDataReceived += ProcessOutputDataHandler;
+                    //process.ErrorDataReceived += ProcessErrorDataHandler;
 
-                process.Start();
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
+                    process.Start();
+                    process.BeginOutputReadLine();
+                    process.BeginErrorReadLine();
 
-                // Send a directory command and an exit command to the shell
-                process.StandardInput.WriteLine(CommandLineArgsNew(RadianceDir, baseWorkingDir, probes.Count, weaname, weather.epwFilePath, 3, 5000, skySubDivDiff, skySubDivDir, Environment.ProcessorCount - 1));
-                process.StandardInput.WriteLine("exit");
+                    // Send a directory command and an exit command to the shell
+                    process.StandardInput.WriteLine(CommandLineArgsNew(RadianceDir, baseWorkingDir, probes.Count, weaname, weather.epwFilePath, 3, 5000, skySubDivDiff, skySubDivDir, Environment.ProcessorCount - 1));
+                    process.StandardInput.WriteLine("exit");
 
-                process.WaitForExit();
+                    process.WaitForExit();
+                }
             }
 
             this.command = CommandLineArgsNew(RadianceDir, baseWorkingDir, probes.Count, weaname, weather.epwFilePath, 3, 5000, skySubDivDiff, skySubDivDir, Environment.ProcessorCount - 1);
@@ -156,7 +159,7 @@ namespace EddyLib.Radiance
 
         REM Convert epw to wea tape
         REM -----------------------------------
-          epw2wea """ + epwpath + @""" ""output/" + weaname + @".wea""
+        epw2wea """ + epwpath + @""" ""output/" + weaname + @".wea""
 
         REM Make the OCTREE
         REM -----------------------------------

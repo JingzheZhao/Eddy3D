@@ -51,6 +51,7 @@ namespace EddyLib
                 {
                     StartInfo = processInfo
                 };
+
                 // p.OutputDataReceived += DebugLog.CaptureOutput; p.ErrorDataReceived += DebugLog.CaptureError;
 
                 p.Start();
@@ -93,6 +94,7 @@ namespace EddyLib
             System.IO.StreamWriter sw = new System.IO.StreamWriter(_fname);
             sw.WriteLine("#Grasshopper Eddy 2019");
             sw.WriteLine("");
+
             //_m.Faces.ConvertQuadsToTriangles();
 
             //_m.Faces.ExtractDuplicateFaces();
@@ -364,6 +366,7 @@ namespace EddyLib
             {
                 // 2. Position and length variables.
                 int pos = 0;
+
                 // 2A. Use BaseStream.
                 int length = (int)b.BaseStream.Length;
 
@@ -390,11 +393,61 @@ namespace EddyLib
             return data;
         }
 
+        public static float[][] loadBinJagged(string filename)
+        {
+            // [i][ time j] points
+
+            float[][] data;
+
+            int iDim;
+            int jDim;
+
+            //reading from the file
+            // 1.
+            using (BinaryReader b = new BinaryReader(
+                File.Open(filename, FileMode.Open)))
+            {
+                // 2. Position and length variables.
+                int pos = 0;
+
+                // 2A. Use BaseStream.
+                int length = (int)b.BaseStream.Length;
+
+                iDim = b.ReadInt32();
+                jDim = b.ReadInt32();
+                data = new float[iDim][]; //jDim
+
+                for (int ii = 0; ii < iDim; ii++)
+                {
+                    data[ii] = new float[jDim];
+                }
+
+                pos += sizeof(int);
+                pos += sizeof(int);
+
+                int i = 0;
+                int j = 0;
+                while (pos < length)
+                {
+                    float v = b.ReadSingle();
+                    data[i][j] = (v);
+
+                    pos += sizeof(float);
+
+                    j++;
+                    if (j == jDim) { j = 0; i++; }
+                }
+            }
+
+            return data;
+        }
+
         public static void writeBin(string fileName, double[][] values)
         {
             // [i, time j] points
 
             BinaryWriter bw;
+
             //create the file
             try
             {
@@ -435,6 +488,7 @@ namespace EddyLib
             // [i, time j] points
 
             BinaryWriter bw;
+
             //create the file
             try
             {
