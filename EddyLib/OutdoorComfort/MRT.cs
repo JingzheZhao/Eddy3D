@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
+using EddyLib;
 using Rhino.Geometry;
 
 namespace EddyLib
@@ -11,56 +13,65 @@ namespace EddyLib
 
         public enum MRTType
         {
-            daysimkessling,
-            radiancedds,
+            // daysimkessling,
+
+            RadianceTwoPhaseDDS,
         }
 
         public double[,] Values;
+
         public bool wrongNumberOfProbes;
+
         public bool resultPrecalculated;
 
-        public MRT(string baseWorkingDir, Weather weather, MRTType type, double[][] DiffRad, double[][] DirRad, Point3d[] probes, bool recalc)
+        public MRT(string baseWorkingDir, Mesh BuildingGeometry, Weather weather, MRTType type, Point3d[] probes, bool recalc)
         {
             var csvMRT = baseWorkingDir + @"MRT.csv";
+            var binMRT = baseWorkingDir + @"MRT.bin";
 
-            if (File.Exists(csvMRT) && !recalc)
+            var numberOfProbes = probes.Length;
+
+            double[][] DiffRad = null;
+            double[][] DirRad = null;
+
+            double[][] TotalRad = null;
+
+            #region TwoPhaseDDS
+
+            var difillFile = baseWorkingDir + @"\Output\annual_total.ill";
+            var dirillFile = baseWorkingDir + @"\Output\annual_dir.ill";
+
+            // Add other files here
+            if (recalc == false && File.Exists(binMRT) && new FileInfo(binMRT).Length != 0)
             {
-                var temp = RadianceFiles.readCSVFile(csvMRT);
+                // Load radiation datasets [x][] time [][x] points
 
-                if (temp.GetLength(1) == probes.GetLength(0))
-                {
-                    this.Values = RadianceFiles.readCSVFile(csvMRT);
-                    this.resultPrecalculated = true;
-                }
-                else
+                var tempValues = RadianceFiles.loadBinD(binMRT);
+
+                int sensorPointCountExisting = tempValues.GetLength(1);
+
+                if (recalc == false && sensorPointCountExisting != numberOfProbes)
                 {
                     this.wrongNumberOfProbes = true;
-                    this.resultPrecalculated = false;
+                    return;
+                }
+                else if (recalc == false && sensorPointCountExisting == numberOfProbes)
+                {
+                    this.Values = tempValues;
                 }
             }
-            if (recalc)
+            else if (recalc == true)
             {
-                if (File.Exists(csvMRT))
-                {
-                    File.Delete(csvMRT);
-                }
+                Utilities.CleanDirectory(baseWorkingDir + @"Rad\");
+                Utilities.CleanDirectory(baseWorkingDir + @"Output\");
 
-                var numberOfProbes = probes.Length;
+                EddyLib.Radiance.TwoPhaseDDS dds = new EddyLib.Radiance.TwoPhaseDDS(baseWorkingDir, BuildingGeometry, probes.ToList(), weather, recalc);
 
-                this.Values = new double[8760, numberOfProbes];
-
-                System.Threading.Tasks.Parallel.For(0, 8760, h =>
-                {
-                    for (int p = 0; p < numberOfProbes; p++)
-
-                        if (type == MRTType.daysimkessling)
-                        {
-                            this.Values[h, p] = GetMRTForPointViaKessling(weather, h, DiffRad[h][p], DirRad[h][p])[0];
-                        }
-                });
-
-                ArrayHelper._2DArray2CSV(this.Values, csvMRT, true, 1);
+                //DirRad = RadianceFiles.loadILL(dirillFile);
+                // DiffRad = RadianceFiles.loadILL(difillFile);
             }
+
+            #endregion TwoPhaseDDS
         }
 
         public static double[] GetMRTForPointViaKessling(Weather weather, int hour, double DiffRad, double DirRad)
@@ -99,32 +110,33 @@ namespace EddyLib
             double T_celsius_kelvin = T_celsius + 273;
 
             double Fs = (Math.Atan(0.5 * Wst / (Hst - 1))) * 180 / Math.PI * 0.0056; // where does this come from?
-                                                                                     // where FiS is
-                                                                                     // the angle
-                                                                                     // factor
-                                                                                     // between the
-                                                                                     // ith internal
-                                                                                     // surface of
-                                                                                     // the envelope
-                                                                                     // and the
-                                                                                     // subject, ei
-                                                                                     // is its
-                                                                                     // emissivity,
-                                                                                     // Ai is the
-                                                                                     // area of the
-                                                                                     // interested
-                                                                                     // surface, Ti
-                                                                                     // the
-                                                                                     // temperature,
-                                                                                     // ri the
-                                                                                     // reflection
-                                                                                     // coefficient
-                                                                                     // of the ith
-                                                                                     // surface and
-                                                                                     // Gi the
-                                                                                     // radiation
-                                                                                     // reaching the
-                                                                                     // ith internal surface.
+
+            // where FiS is
+            // the angle
+            // factor
+            // between the
+            // ith internal
+            // surface of
+            // the envelope
+            // and the
+            // subject, ei
+            // is its
+            // emissivity,
+            // Ai is the
+            // area of the
+            // interested
+            // surface, Ti
+            // the
+            // temperature,
+            // ri the
+            // reflection
+            // coefficient
+            // of the ith
+            // surface and
+            // Gi the
+            // radiation
+            // reaching the
+            // ith internal surface.
             double Fc = 1 - Fs;  // remaining angle factor
 
             double Es = 0.95;  // Emissivities? Why 0.95?

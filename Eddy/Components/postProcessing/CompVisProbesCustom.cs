@@ -231,7 +231,7 @@ namespace Eddy
 
             if (RES.RunSettings.writeInterval > 1 && currField.FieldName == "total(p)_coeff")
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.RTMsg.ProbingFuncObjects(RES, currField));
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.ProbingFuncObjects(RES, currField));
             }
 
             #endregion Error handling
@@ -251,7 +251,7 @@ namespace Eddy
 
                         if (!File.Exists(pathToPointFile))
                         {
-                            base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.RTMsg.MeshDoesntExist(pathToPointFile));
+                            base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.MeshDoesntExist(pathToPointFile));
                             return;
                         }
 
@@ -309,13 +309,13 @@ namespace Eddy
                         }
                         else
                         {
-                            base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.RTMsg.FieldDoesntExist(currentCaseDir, currField));
+                            base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.FieldDoesntExist(currentCaseDir, currField));
                         }
                     }
                 }
                 catch (Exception)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, EddyLib.Strings.RTMsg.ParsingFailed());
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, EddyLib.Strings.ReturnMsg.ParsingFailed());
 
                     //throw new System.ArgumentException("Parsing of the probes failed. This data does not exist yet. Please run the probing component.");
                 }
@@ -340,13 +340,13 @@ namespace Eddy
                         int[] IndecesOfExtremeProbes = Probing.ReturnProbeIndicesOutsideDomain(listVecs);
                         if (IndecesOfExtremeProbes.Length > 0)
                         {
-                            AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.RTMsg.PointsOutsideDomain(IndecesOfExtremeProbes));
+                            AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.PointsOutsideDomain(IndecesOfExtremeProbes));
                         }
                     }
                 }
                 catch (Exception)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.RTMsg.PleaseRunProbingComponent());
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.PleaseRunProbingComponent());
                 }
             }
 

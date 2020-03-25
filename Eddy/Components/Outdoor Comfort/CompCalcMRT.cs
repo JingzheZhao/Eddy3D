@@ -49,7 +49,7 @@ https://transsolar.com/content/7-publications/2-papers/1-plea-2013-the-human-bio
             //pManager.AddTextParameter("pointName", "pointName", "pointName", GH_ParamAccess.item);
             // pManager.AddIntegerParameter("Hours", "H", "Hours", GH_ParamAccess.list);
             pManager.AddPointParameter("Probing points", "Points", "List of probing points", GH_ParamAccess.list);
-            pManager.AddIntegerParameter("Mode", "Simulation mode", "Pick a simulation mode", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("Simulation Mode", "Mode", "Pick a simulation mode", GH_ParamAccess.item, 0);
 
             //Using an enum to generate the dropdown items
             var types = Enum.GetNames(typeof(EddyLib.MRT.MRTType));
@@ -61,6 +61,8 @@ https://transsolar.com/content/7-publications/2-papers/1-plea-2013-the-human-bio
             }
 
             pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item);
+
+            pManager[3].Optional = true;
         }
 
         /// <summary>
@@ -96,7 +98,7 @@ https://transsolar.com/content/7-publications/2-papers/1-plea-2013-the-human-bio
             var probesArr = probes.ToArray();
 
             int mode = 0;
-            DA.GetData("Mode", ref mode);
+            DA.GetData("Simulation Mode", ref mode);
 
             MRT.MRTType SimMode = (MRT.MRTType)mode;
 
@@ -127,151 +129,28 @@ https://transsolar.com/content/7-publications/2-papers/1-plea-2013-the-human-bio
 
             #endregion Load prerequisites
 
-            double[][] DiffRad = null;
-            double[][] DirRad = null;
+            var mrt = new MRT(RES.WorkingDirectory, RES.Domain.BuildingGeometry, weather, SimMode, probesArr, run);
 
-            #region Daysim
+            // Order important
 
-            if (SimMode == MRT.MRTType.daysimkessling)
+            if (mrt.wrongNumberOfProbes)
             {
-                var difillFile = RES.WorkingDirectory + @"\Rad\CallRay.dif.ill";
-                var dirillFile = RES.WorkingDirectory + @"\Rad\CallRay.dir.ill";
-
-                if (File.Exists(difillFile) && File.Exists(dirillFile) && new FileInfo(difillFile).Length != 0 && new FileInfo(dirillFile).Length != 0)
-                {
-                    // Load radiation datasets [x][] time [][x] points
-
-                    DiffRad = RadianceFiles.loadILL(difillFile);
-                    DirRad = RadianceFiles.loadILL(dirillFile);
-
-                    int sensorPointCountExisting = DiffRad[0].GetLength(0);
-
-                    if (sensorPointCountExisting != numberOfProbes && !run)
-                    {
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The precalculated Daysim results do not have the correct number of probing points. The results need to be recalculated.");
-                        return;
-                    }
-
-                    if (sensorPointCountExisting != numberOfProbes && run)
-                    {
-                        Utilities.CleanDirectory(RES.MeshSettings.baseWorkingDir + @"Rad\");
-
-                        Daysim ds = new Daysim(RES.WorkingDirectory, RES.Domain.BuildingGeometry, probes, weather);
-
-                        DiffRad = ds.difIll;
-                        DirRad = ds.dirIll;
-
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated Daysim results did not have the correct number of probing points. Results have been recalculated.");
-                    }
-                    else if (sensorPointCountExisting == numberOfProbes && !run)
-                    {
-                        DiffRad = RadianceFiles.loadILL(difillFile);
-                        DirRad = RadianceFiles.loadILL(dirillFile);
-
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated Daysim results have been loaded.");
-                    }
-                }
-                else if (run)
-                {
-                    Utilities.CleanDirectory(RES.MeshSettings.baseWorkingDir + @"Rad\");
-
-                    Daysim ds = new Daysim(RES.WorkingDirectory, RES.Domain.BuildingGeometry, probes, weather);
-
-                    DiffRad = ds.difIll;
-                    DirRad = ds.dirIll;
-                }
-                else
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "No precalculated Daysim results found. Please calculate.");
-                }
-
-                #endregion Daysim
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.WrongNumberOfProbes(RES, SimMode.ToString()));
+                return;
             }
-            else
-            {
-                #region TwoPhaseDDS
-
-                double[][] RadTotal = null;
-
-                var difillFile = RES.WorkingDirectory + @"\Output\annual_total.ill";
-                var dirillFile = RES.WorkingDirectory + @"\Output\annual_dir.ill";
-
-                // Add other files here
-                if (File.Exists(difillFile) && File.Exists(dirillFile) && new FileInfo(difillFile).Length != 0 && new FileInfo(dirillFile).Length != 0)
-                {
-                    // Load radiation datasets [x][] time [][x] points
-
-                    DiffRad = RadianceFiles.loadILL(difillFile);
-                    DirRad = RadianceFiles.loadILL(dirillFile);
-
-                    int sensorPointCountExisting = RadTotal[0].GetLength(0);
-
-                    if (sensorPointCountExisting != numberOfProbes && !run)
-                    {
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The precalculated TwoPhaseDDS results do not have the correct number of probing points. The results need to be recalculated.");
-                        return;
-                    }
-
-                    if (sensorPointCountExisting != numberOfProbes && run)
-                    {
-                        Utilities.CleanDirectory(RES.MeshSettings.baseWorkingDir + @"Rad\");
-                        Utilities.CleanDirectory(RES.MeshSettings.baseWorkingDir + @"Output\");
-
-                        EddyLib.Radiance.TwoPhaseDDS dds = new EddyLib.Radiance.TwoPhaseDDS(RES.WorkingDirectory, RES.Domain.BuildingGeometry, probes, weather, run);
-
-                        DirRad = dds.totalIll;
-                        DiffRad = dds.dcdill;
-
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated TwoPhaseDDS results did not have the correct number of probing points. Results have been recalculated.");
-                    }
-                    else if (sensorPointCountExisting == numberOfProbes && !run)
-                    {
-                        DirRad = RadianceFiles.loadILL(dirillFile);
-                        DiffRad = RadianceFiles.loadILL(difillFile);
-
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated TwoPhaseDDS results have been loaded.");
-                    }
-                }
-                else if (run)
-                {
-                    Utilities.CleanDirectory(RES.MeshSettings.baseWorkingDir + @"Rad\");
-                    Utilities.CleanDirectory(RES.MeshSettings.baseWorkingDir + @"Output\");
-
-                    EddyLib.Radiance.TwoPhaseDDS dds = new EddyLib.Radiance.TwoPhaseDDS(RES.WorkingDirectory, RES.Domain.BuildingGeometry, probes, weather, run);
-
-                    DirRad = RadianceFiles.loadILL(dirillFile);
-                    DiffRad = RadianceFiles.loadILL(difillFile);
-                }
-                else
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "No precalculated TwoPhaseDDS results found. Please calculate.");
-                }
-
-                #endregion TwoPhaseDDS
-            }
-
-            #region MRT
-
-            var mrt = new MRT(RES.WorkingDirectory, weather, SimMode, DiffRad, DirRad, probesArr, run);
 
             if (mrt.Values is null)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Either precalculated results could not be loaded or the MRT array has not been calculated yet.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.NoResults(RES, SimMode.ToString()));
                 return;
             }
 
             if (mrt.resultPrecalculated)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated MRT results have been loaded.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.PrecalResLoaded(RES, SimMode.ToString()));
             }
-            if (mrt.wrongNumberOfProbes)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The precalculated MRT array has the wrong number of probing points. Please recalculate.");
-                return;
-            }
-            DA.SetData(0, mrt);
 
-            #endregion MRT
+            DA.SetData(0, mrt);
         }
 
         /// <summary>

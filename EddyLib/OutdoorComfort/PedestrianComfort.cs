@@ -13,62 +13,46 @@ namespace EddyLib
         //[probes, windDirs]  Vector3d[,] Probes;
 
         public Vector3d[,] Values;
+
         public int[] WindDirs;
 
         public bool resultPrecalculated;
+
         public bool wrongNumberOfProbes;
+
         public bool infValues;
 
         public enum PedestrianComfortIdx
         {
             LawsonGeneral,
+
             LawsonLDDC,
+
             Lawson2001,
+
             Davenport,
+
             NEN8100,
         };
 
-        //        public Dictionary<String, List<String>> PedestrianComfortIndex = new Dictionary<string, List<string>>()
-        //        // name, nickname, description
-        //        {  { "Lawson", new List<string>(){ "Lawson Pedestrian Comfort", "LPC", @"Lawson Pedestrian Comfort
-
-        //4: > 4 m/s ""Sitting"" Light breezes desired for outdoor restaurants and seating areas where one can read a paper of comfortably sit for long periods.
-        //6: > 6 m/s ""Standing"" Gentle breezes suitable for main buildings entrances, pick-up/drop off points and bus stops.
-        //8: > 8 m/s ""Leisure Walking or Strolling"" Moderate breezes that would be appropriate for walking down a city centre street, park or plaza.
-        //10: > 10 m/s ""Business Walking"" Relatively high speeds that can be tolerated if ones objective is to walk, run or cycle without lingering.
-        //12: > 12 m/s ""Uncomfortable"" Winds of this magnitude are considered a nuisance for most activities, and wind mitigation is typically recommended." } },
-
-        //            { "Davenport", new List<string>(){ "Davenport Pedestrian Comfort", "DPC", @"Davenport Pedestrian Comfort
-
-        //1 - A > 3.6 m/s < 1.5 % Sitting Long
-        //2 - B > 5.3 m/s < 1.5 % Sitting Short
-        //3 - C > 7.6 m/s < 1.5 % Walking Leisurely
-        //4 - D > 9.8 m/s  < 1.5 % Walking Fast
-        //5 - E > 9.8 m/s >= 1.5 % Uncomfortable
-        //6 - S > 15.1 m/s >= 0.01 % Dangerous" } },
-
-        //            { "NEN8100", new List<string>(){ "NEN 8100 Pedestrian Comfort", "NPC", @"NEN 8100 Pedestrian Comfort
-
-        //1- A > 5 m/s < 2.5 % Sitting Long
-        //2 - B > 5 m/s < 5 % Sitting Short
-        //3 - C > 5 m/s < 10 % Walking Leisurely
-        //4 - D > 5 m/s < 20 % Walking Fast
-        //5 - E > 5 m/s > 20 % Uncomfortable
-        //6 - S > 15 m/s > 0.05 % Dangerous" } }
-        //        };
-
-        public PedestrianComfort(int[] windDirs, Vector3d[,] vectors, string csvFilePath, bool truncateDoubles, bool recalc, int truncateBy = 1)
+        public PedestrianComfort(string workingDir, int[] windDirs, Vector3d[,] vectors, bool truncateDoubles, bool recalc, int truncateBy = 1)
         {
+            var csvAnnualVelProbes = workingDir + "AnnualVelocityProbes.csv";
+            var binAnnualVelProbes = workingDir + "AnnualVelocityProbes.bin";
+
             this.infValues = CheckForInfValues(vectors);
 
-            if (File.Exists(csvFilePath) && !recalc)
+            if (File.Exists(binAnnualVelProbes) && !recalc)
             {
-                var temp = ReadAnnualVelocitiesFromCSV(csvFilePath);
+                //var temp = ReadAnnualVelocitiesFromCSV(csvFilePath);
 
-                if (temp.Item2.GetLength(0) == vectors.GetLength(0))
+                //int[] windDirs;
+                var temp = RadianceFiles.loadBinDVectors(binAnnualVelProbes, out windDirs);
+
+                if (temp.GetLength(0) == vectors.GetLength(0))
                 {
-                    this.Values = temp.Item2;
-                    this.WindDirs = temp.Item1;
+                    this.Values = temp;
+                    this.WindDirs = windDirs;
                     this.resultPrecalculated = true;
                     this.wrongNumberOfProbes = false;
                 }
@@ -80,14 +64,17 @@ namespace EddyLib
             }
             if (recalc)
             {
-                if (File.Exists(csvFilePath))
-                {
-                    File.Delete(csvFilePath);
-                }
+                //if (File.Exists(csvFilePath))
+                //{
+                //    File.Delete(csvFilePath);
+                //}
 
-                WriteAnnualVel2CSV(windDirs, vectors, csvFilePath, truncateDoubles, truncateBy);
-                this.Values = ReadAnnualVelocitiesFromCSV(csvFilePath).Item2;
-                this.WindDirs = ReadAnnualVelocitiesFromCSV(csvFilePath).Item1;
+                this.Values = vectors;
+                this.WindDirs = windDirs;
+
+                RadianceFiles.writeBinVectors(binAnnualVelProbes, vectors, windDirs);
+                WriteAnnualVel2CSV(windDirs, vectors, csvAnnualVelProbes, truncateDoubles, truncateBy);
+
                 this.resultPrecalculated = false;
                 this.wrongNumberOfProbes = false;
             }
@@ -195,29 +182,41 @@ namespace EddyLib
     public class WindReductionFactors
     {
         public int[] ClstSimDirs { get; set; }
+
         public int[] Indices;
+
         public int[] offSet;
+
         public double offSetAverage;
+
         public double[,] ValuesWindFactors;
+
         public double[] ValuesPedestrianWindComfort;
 
         public bool resultPrecalculated;
+
         public bool wrongNumberOfProbes;
 
-        private string fileNameCSV = @"WindFactors";
+        private string fileName = @"WindFactors";
+
         private string fileNameCSVExtension = ".csv";
+
+        private string fileNameBinExtension = ".bin";
+
         private string interpolationPref = "lp";
+
         private string del = "_";
 
         public WindReductionFactors(string baseWorkingDir, BoundaryConditions bcond, Weather weather, PedestrianComfort velocityProbes, double probingHeight, bool interpolate, bool recalc, PedestrianComfort.PedestrianComfortIdx cmftidx)
         {
-            string csvWindFactors = interpolate == false ? Path.Combine(baseWorkingDir + fileNameCSV + del + weather.Location + del + fileNameCSVExtension) : Path.Combine(baseWorkingDir + fileNameCSV + del + weather.Location + del + interpolationPref + del + fileNameCSVExtension);
+            string csvWindFactors = interpolate == false ? Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + fileNameCSVExtension) : Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + interpolationPref + del + fileNameCSVExtension);
+            string binWindFactors = interpolate == false ? Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + fileNameBinExtension) : Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + interpolationPref + del + fileNameBinExtension);
 
-            if (File.Exists(csvWindFactors) && !recalc)
+            if (File.Exists(binWindFactors) && !recalc)
             {
                 try
                 {
-                    this.ValuesWindFactors = ReadWindReductionArrayFromCSV(csvWindFactors);
+                    this.ValuesWindFactors = RadianceFiles.loadBinD(binWindFactors);
                     this.resultPrecalculated = true;
                     this.wrongNumberOfProbes = false;
 
@@ -243,12 +242,11 @@ namespace EddyLib
                 this.Indices = SimDirIndices.ToArray();
 
                 this.ValuesWindFactors = CalcWindReductionArray(velocityProbes.Values, Indices, bcond, weather, probingHeight, interpolate);
+                RadianceFiles.writeBin(binWindFactors, this.ValuesWindFactors);
                 ArrayHelper._2DArray2CSV(this.ValuesWindFactors, csvWindFactors, true, 1);
                 this.resultPrecalculated = false;
                 this.wrongNumberOfProbes = false;
             }
-
-            //var tempComfort = CalcPedestrianComfort(this.ValuesWindFactors);
 
             this.ValuesPedestrianWindComfort = CalcPedestrianComfort(this.ValuesWindFactors, cmftidx);
         }
@@ -583,11 +581,6 @@ namespace EddyLib
 
         // This returns the plain annual array
 
-        public static double[,] ReadWindReductionArrayFromCSV(string filePath)
-        {
-            return RadianceFiles.readCSVFile(filePath);
-        }
-
         public Tuple<List<int>, List<int>, List<int>, double> GetClosestWindDirs(Weather weather, BoundaryConditions bcond)
         {
             var offSet = new List<int>();
@@ -695,250 +688,6 @@ namespace EddyLib
             return upperIndex;
         }
 
-        // public static void WriteWindReductionArrayToCSV(string WindDirs, string WorkingDir,
-        // BoundaryConditions bcond, string probesFilePath, bool Verbose, out StringBuilder errorLog)
-        // { // mode is for cp errorLog = new StringBuilder(); errorLog.AppendLine("test"); var
-        // simulatedWindDirList = WindDirs.Split(','); int numberOfWindDirs = simulatedWindDirList.Length;
-
-        // // Read all variables from one file path. Variables are usually identical for all wind
-        // directions so this should be robust. var ABLfilePath = WorkingDir + "\\" +
-        // WindDirs.Split(',')[0] + @"\0.org\ABLConditions";
-
-        // try { // Error checking if (!Directory.Exists(WorkingDir)) {
-        // errorLog.AppendLine(WorkingDir + " not found. Exiting"); Console.WriteLine(WorkingDir + "
-        // not found. Exiting"); }
-
-        // if (Utilities.Directories.IsDirectoryEmpty(WorkingDir + @"\mesh\constant\polyMesh")) {
-        // errorLog.AppendLine("The mesh folder is empty. Can't pull probes from a mesh that does not
-        // exist."); //throw new System.ArgumentException("The mesh folder is empty. Can't pull
-        // probes from a mesh that does not exist."); }
-
-        // for (int i = 0; i < numberOfWindDirs; i++) { var fp = WorkingDir + @"\" +
-        // simulatedWindDirList[i] + @"\system\U_Probes"; if (!File.Exists(fp)) {
-        // errorLog.AppendLine(@"The wind direction """ + simulatedWindDirList[i] + @""" misses the
-        // probing dictionary. Please connect the ""writeProbes"" component and recompute the
-        // solution."); throw new System.ArgumentException("The wind direction " +
-        // simulatedWindDirList[i] + @" misses the probing dictionary. Please connect the component
-        // ""writeProbes"" and recompute the solution."); } }
-
-        // for (int i = 0; i < numberOfWindDirs; i++) { var fp = WorkingDir + @"\" +
-        // simulatedWindDirList[i] + @"\constant\polyMesh"; if (!Directory.Exists(fp)) {
-        // errorLog.AppendLine(@"The wind direction """ + simulatedWindDirList[i] + @""" misses the
-        // ""\constant\polyMesh"" dictionary. Please make sure that directory exists."); throw new
-        // System.ArgumentException("The wind direction " + simulatedWindDirList[i] + @" misses the
-        // ""\constant\polyMesh"" dictionary. Please make sure that directory exists."); } }
-
-        // for (int i = 0; i < numberOfWindDirs; i++) { ABLfilePath = WorkingDir + "\\" +
-        // simulatedWindDirList[i] + @"\0.org\ABLConditions"; if (!File.Exists(ABLfilePath)) {
-        // Console.WriteLine(ABLfilePath + " not found. Exiting"); errorLog.AppendLine(ABLfilePath +
-        // " not found. Exiting"); } }
-
-        // // Check if U file is in last iteration for (int i = 0; i < numberOfWindDirs; i++) {
-        // string iter = Utilities.GetLastIterationFromDirectory(WorkingDir + @"\" +
-        // simulatedWindDirList[i]).ToString(); string fp = WorkingDir + @"\" +
-        // simulatedWindDirList[i] + @"\" + iter + @"\U";
-
-        // if (!File.Exists(fp)) { errorLog.AppendLine(@"The simulation folder of the wind direction
-        // """ + simulatedWindDirList[i] + @""" misses the velocity (U) result file. Please make sure
-        // that U is calculated for this particular timestep (change WriteInterval) and recompute the
-        // solution."); throw new System.ArgumentException(@"The simulation folder of the wind
-        // direction """ + simulatedWindDirList[i] + @""" misses the velocity (U) result file. Please
-        // make sure that U is calculated for this particular timestep (change WriteInterval) and
-        // recompute the solution."); } }
-
-        // // Delete files in subfolders var listOfDirsInfo = new List<string>();
-
-        // for (int i = 0; i < numberOfWindDirs; i++) { listOfDirsInfo.Add((@"C:\Temp\" +
-        // simulatedWindDirList[i] + @"\postProcessing\")); }
-
-        // //for (int i = 0; i < numberOfWindDirs; i++) //{ // foreach (var subDir in new
-        // DirectoryInfo(listOfDirsInfo[i]).GetDirectories()) // { // if (subDir.ToString().ToLower()
-        // == "residuals") // { // continue; // } // subDir.Delete(true); // } //} double URef;
-        // double z0; double zref;
-
-        // Utilities.ParseABLConditionsFromCaseFolder(ABLfilePath, out URef, out z0, out zref);
-
-        // double[][] probes = EddyLib.RadianceFiles.readPTS(probesFilePath); var numberOfProbes = probes.GetLength(0);
-
-        // List<Point3d> pointList = new List<Point3d>();
-
-        // for (int i = 0; i < probes.GetLength(0); i++) { pointList.Add(new Point3d(probes[i][0],
-        // probes[i][1], probes[i][2])); }
-
-        // Console.WriteLine("Probing the simulation results.");
-
-        // Stopwatch sw = new Stopwatch(); sw.Start();
-
-        // StringBuilder command = new StringBuilder();
-
-        // string pointName = "U_Probes"; string OFfield = "U";
-
-        // for (int i = 0; i < numberOfWindDirs; i++) { // Write the dicts
-        // //File.WriteAllText(options.workingDir + dirs[i] + @"\system\" + pointName,
-        // EddyLib.StringTemplatessampleProbes(listOfPoints, pointName, options.mode));
-        // command.Append(@"postProcess -case " + simulatedWindDirList[i] + " -func " + pointName +
-        // @" -latestTime | tee -a " + simulatedWindDirList[i] + @"/log_probes;"); }
-
-        // ProcessStartInfo psi = new ProcessStartInfo(Utilities.AssemblyDirectory + @"\CallOF.exe",
-        // @" -e """ + command + @""" -f " + "\"" + WorkingDir); Process p = new Process { StartInfo
-        // = psi }; p.Start(); p.WaitForExit(); p.Close();
-
-        // // Issue // Could not find a part of the path 'C:\temp\0\PostProcessing\U_Probes'. // This
-        // happens if OF process closes immideately after calling
-
-        // //Thread.Sleep(2 * 30* Math.Sqrt(probes.GetLength(0)) * numberOfWindDirs);
-
-        // Console.WriteLine(Utilities.ConvertComputeTimes(sw.ElapsedMilliseconds));
-
-        // Console.WriteLine("Parsing the velocity vectors for the probes of every wind direction and
-        // writing result files."); Stopwatch sw2 = new Stopwatch(); sw2.Start();
-
-        // for (int i = 0; i < numberOfWindDirs; i++) { // Parse values //Thread.Sleep(2 *
-        // probes.GetLength(0)); var ofField = new OFField(OFfield, pointName); var U = new
-        // Probing(pointList, WorkingDir + "\\" + simulatedWindDirList[i], WorkingDir, ofField, int.Parse(simulatedWindDirList[i]));
-
-        // // Create datatree
-
-        // // uTree.AddRange(U.uValues, new Grasshopper.Kernel.Data.GH_Path(i)); }
-
-        // List<string> fullProbeFilePath = new List<String>();
-
-        // //var numberOfProbes = File.ReadAllLines(fullProbeFilePath[0]).Count(); //defined above
-        // //string[] abc = replacedString.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-
-        // //Build list of paths
-
-        // for (int i = 0; i < numberOfWindDirs; i++) { var path = WorkingDir + "\\" +
-        // simulatedWindDirList[i] + @"\postProcessing\U_Probes.csv"; if (!File.Exists(path)) {
-        // Console.WriteLine(path + " not found. Exiting"); errorLog.AppendLine(path + " not found.
-        // Exiting"); return; } fullProbeFilePath.Add(path); }
-
-        // Console.WriteLine(Utilities.ConvertComputeTimes(sw2.ElapsedMilliseconds));
-
-        // // Array for output data
-
-        // Console.WriteLine("Re-collecting output data from every wind direction."); Stopwatch sw3 =
-        // new Stopwatch(); sw3.Start();
-
-        // Vector3d[,] AnnualData = new Vector3d[numberOfWindDirs, numberOfProbes];
-
-        // var UData = new string[numberOfWindDirs][];
-
-        // for (int i = 0; i < numberOfWindDirs; i++) { UData[i] =
-        // File.ReadAllLines(fullProbeFilePath[i]); }
-
-        // //UData[0] = File.ReadAllLines(fullProbeFilePath[0]); //UData[1] =
-        // File.ReadAllLines(fullProbeFilePath[1]); //UData[2] =
-        // File.ReadAllLines(fullProbeFilePath[2]); //UData[3] =
-        // File.ReadAllLines(fullProbeFilePath[3]); //UData[4] =
-        // File.ReadAllLines(fullProbeFilePath[4]); //UData[5] =
-        // File.ReadAllLines(fullProbeFilePath[5]); //UData[6] =
-        // File.ReadAllLines(fullProbeFilePath[6]); //UData[7] = File.ReadAllLines(fullProbeFilePath[7]);
-
-        // using (var progress = new ASCIIProgressBar()) { int cnt = 0; Parallel.For(0,
-        // numberOfWindDirs, r =>
-
-        // { //for (int r = 0; r < numberOfWindDirs; r++) //{ //listOfAnnualData[r] = new
-        // Vector3d[numberOfProbes]; for (int c = 0; c < numberOfProbes; c++) { AnnualData[r, c] =
-        // new Vector3d(double.Parse(UData[r][c].Split(',')[0]),
-        // double.Parse(UData[r][c].Split(',')[1]), double.Parse(UData[r][c].Split(',')[2]));
-        // progress.Report((double)cnt / numberOfProbes * numberOfWindDirs); cnt++; } //} }); }
-
-        // Console.WriteLine(Utilities.ConvertComputeTimes(sw3.ElapsedMilliseconds));
-
-        // //Write U Array to file Console.WriteLine("Writing U Array"); Stopwatch sw4 = new
-        // Stopwatch(); sw4.Start();
-
-        // System.Text.StringBuilder UFile = new System.Text.StringBuilder();
-
-        // using (var progress = new ASCIIProgressBar()) { int cnt = 0;
-
-        // for (int i = 0; i < numberOfWindDirs; i++) { UFile.Append(simulatedWindDirList[i] + " , ,
-        // ,"); } UFile.AppendLine(""); for (int i = 0; i < numberOfWindDirs; i++) { UFile.Append("x,
-        // y, z,"); } UFile.AppendLine("");
-
-        // for (int r = 0; r < numberOfProbes; r++) { for (int c = 0; c < numberOfWindDirs; c++) {
-        // UFile.Append(String.Format("{0:0.##}", AnnualData[c, r].X) + "," +
-        // String.Format("{0:0.##}", AnnualData[c, r].Y) + "," + String.Format("{0:0.##}",
-        // AnnualData[c, r].Z) + ","); progress.Report((double)cnt / numberOfProbes *
-        // numberOfWindDirs); cnt++; } UFile.AppendLine(""); } }
-
-        // File.WriteAllText(WorkingDir + @"\U.csv", UFile.ToString());
-
-        // //Write Reduction Array to file
-
-        // Console.WriteLine(Utilities.ConvertComputeTimes(sw4.ElapsedMilliseconds));
-
-        // Console.WriteLine("Write Reduction Array"); Stopwatch sw5 = new Stopwatch(); sw5.Start();
-
-        // // Calculate the undisturbed velocity at probing height !!!This only makes sense for
-        // horizontal slices!!!
-
-        // using (var progress = new ASCIIProgressBar()) { int cnt = 0;
-
-        // var probingHeight = pointList[0].Z; var UProbingHeight = ((0.41 * URef) / Math.Log((zref +
-        // z0) / z0) / 0.41) * Math.Log((probingHeight + z0) / z0);
-
-        // System.Text.StringBuilder ReductionFile = new System.Text.StringBuilder();
-
-        // for (int i = 0; i < numberOfWindDirs; i++) { ReductionFile.Append(simulatedWindDirList[i]
-        // + ","); }
-
-        // ReductionFile.AppendLine(""); for (int r = 0; r < numberOfProbes; r++) { for (int c = 0; c
-        // < numberOfWindDirs; c++) { ReductionFile.Append(String.Format("{0:0.#}",
-        // Math.Round(Math.Sqrt(Math.Pow(AnnualData[c, r].X, 2) + Math.Pow(AnnualData[c, r].Y, 2) +
-        // Math.Pow(AnnualData[c, r].Z, 2)) / UProbingHeight, 3)) + ","); progress.Report((double)cnt
-        // / numberOfProbes * numberOfWindDirs); cnt++; } ReductionFile.AppendLine(""); }
-        // File.WriteAllText(WorkingDir + @"\
-
-        //", ReductionFile.ToString());
-
-        // if (Verbose) { File.WriteAllText(WorkingDir + @"\Probes.err", errorLog.ToString()); }
-
-        // Console.WriteLine(Utilities.ConvertComputeTimes(sw5.ElapsedMilliseconds));
-
-        // Console.WriteLine("Done"); }
-
-        // } catch (Exception e) { Console.WriteLine(e.Message); File.WriteAllText(WorkingDir +
-        // @"\Probes.err", errorLog.ToString()); return; } }
-
-        //(List<int> SimDirIndices, List<int> ClstSimDirs, List<int> OffSet, double OffSetAverage) GetClosestWindDirs(Weather weather, BoundaryConditions bcond)
-        //{
-        //    /////////// closest indices
-        //    ///
-        //    var offSet = new List<int>();
-        //    var Indices = new List<int>();
-        //    var clstSimDirs = new List<int>();
-
-        // foreach (int hour in weather.WindDirection) { int weatherDir =
-        // (int)weather.WindDirection[hour]; int closestIndex = 0;
-
-        // if (bcond.windDirs.Contains(weatherDir)) { closestIndex =
-        // bcond.windDirs.IndexOf(weather.WindDirection[hour]); } else { int distanceToUpper = 0;
-
-        // var nextUpper = ReturnNextUpperIndex(bcond.windDirs, weatherDir, out distanceToUpper);
-
-        // //distanceToUpper = distanceToUpper;
-
-        // int distanceToLower = 0;
-
-        // var nextLower = ReturnNextLowerIndex(bcond.windDirs, weatherDir, out distanceToLower);
-
-        // //distanceToLower = distanceToLower;
-
-        // // Pick smaller of the two closestIndex = distanceToLower < distanceToUpper ? nextLower : nextUpper;
-
-        // //_distanceToUpper = distanceToUpper; //_distanceToLower = distanceToLower;
-
-        // }
-
-        // var distance = Math.Abs(bcond.windDirs[closestIndex] - weatherDir); offSet.Add(distance);
-        // Indices.Add(closestIndex); clstSimDirs.Add(bcond.windDirs[closestIndex]); }
-
-        // return (Indices, clstSimDirs, offSet, offSet.Average()); // tuple literal
-
-        //}
-
         private static double[,] CalcWindReductionArray(Vector3d[,] annualVecProbes, int[] clstSimDirIdx, BoundaryConditions bcond, Weather weather, double probingHeight, bool interpolate)
         {
             //[probes, windDirs]  Vector3d[,] annualVecProbes;
@@ -986,6 +735,7 @@ namespace EddyLib
                 var velAtProbHeightEPW = GetVelocityAtProbingHeightFromABL(weather.WindSpeed[h], bcond, probingHeight);
                 var velSim = annualVelocities[p, clstSimDirIdx[h]];
                 var velApproaching = GetVelocityAtProbingHeightFromABL(bcond.URef, bcond, probingHeight);
+
                 // Avoid Infinity
                 var ratio = velApproaching == 0 ? 0.00000 : velSim / velApproaching;
 
@@ -1016,6 +766,7 @@ namespace EddyLib
             }
         });
             }
+
             // WF[h, p]
             return WF;
         }

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Eddy.Properties;
 using EddyLib;
 using Grasshopper;
@@ -36,11 +38,15 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Data", "D", "Data", GH_ParamAccess.item);
+
             //pManager.AddIntegerParameter("windDirs", "windDirs", "windDirs", GH_ParamAccess.list);
             //pManager.AddTextParameter("pointName", "pointName", "pointName", GH_ParamAccess.item);
-            // pManager.AddIntegerParameter("Hours", "H", "Hours", GH_ParamAccess.list);
+            pManager.AddIntegerParameter("Hours", "H", "Hours", GH_ParamAccess.list);
+
             // pManager.AddPointParameter("Probes", "Probes", "Probes", GH_ParamAccess.list);
             // pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item);
+
+            pManager[1].Optional = true;
         }
 
         /// <summary>
@@ -50,6 +56,7 @@ namespace Eddy
         {
             //pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
             pManager.AddGenericParameter("Data", "D", "Data", GH_ParamAccess.tree);
+
             // pManager.AddGenericParameter("MRT_T", "MRT_T", "MRT_T", GH_ParamAccess.tree);
         }
 
@@ -65,6 +72,14 @@ namespace Eddy
             GH_ObjectWrapper gobj = null;
             if (!DA.GetData(0, ref gobj)) { }
 
+            var hoursList = new List<int>();
+            if (!DA.GetDataList(1, hoursList)) { }
+
+            if (hoursList.Count == 0)
+            {
+                hoursList = (new int[8760]).Select((o, i) => i).ToList();
+            }
+
             if ((gobj.Value is MRT))
             {
                 MRT mrt = null;
@@ -73,10 +88,16 @@ namespace Eddy
 
                 DataTree<double> tree = new DataTree<double>();
 
-                for (int h = 0; h < 8760; h++)
+                foreach (int h in hoursList)
                 {
                     var tempRow = ArrayHelper.CustomArray<double>.GetRow(mrt.Values, h);
                     tree.AddRange(tempRow, new Grasshopper.Kernel.Data.GH_Path(h));
+                }
+
+                double threshold = 1e6;
+                if (tree.DataCount > threshold)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.LargeDataTree(threshold));
                 }
 
                 DA.SetDataTree(0, tree);
@@ -89,10 +110,16 @@ namespace Eddy
 
                 DataTree<double> tree = new DataTree<double>();
 
-                for (int h = 0; h < 8760; h++)
+                foreach (int h in hoursList)
                 {
                     var tempRow = ArrayHelper.CustomArray<double>.GetRow(wf.ValuesWindFactors, h);
                     tree.AddRange(tempRow, new Grasshopper.Kernel.Data.GH_Path(h));
+                }
+
+                double threshold = 1e6;
+                if (tree.DataCount > threshold)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.LargeDataTree(threshold));
                 }
 
                 DA.SetDataTree(0, tree);
@@ -105,17 +132,23 @@ namespace Eddy
 
                 DataTree<double> tree = new DataTree<double>();
 
-                for (int h = 0; h < 8760; h++)
+                foreach (int h in hoursList)
                 {
                     var tempRow = ArrayHelper.CustomArray<double>.GetRow(utci.ValuesUTCI, h);
                     tree.AddRange(tempRow, new Grasshopper.Kernel.Data.GH_Path(h));
+                }
+
+                double threshold = 1e6;
+                if (tree.DataCount > threshold)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.LargeDataTree(threshold));
                 }
 
                 DA.SetDataTree(0, tree);
             }
             else
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid Outdoor Comfort object"); return;
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid Outdoor Thermal Comfort object"); return;
             }
         }
 
@@ -124,6 +157,7 @@ namespace Eddy
         /// need to be 24x24 pixels.
         /// </summary>
         protected override System.Drawing.Bitmap Icon =>
+
                 // You can add image files to your project resources and access them like this:
                 Resources.Eddy_decomposeData;
 

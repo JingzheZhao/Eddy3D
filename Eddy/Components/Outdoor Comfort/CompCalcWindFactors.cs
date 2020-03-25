@@ -58,6 +58,7 @@ For this, we support either a look-up for the closest simulated wind direction o
         {
             // First add our own field.
             writer.SetBoolean("Interpolation", interpolate);
+
             // Then call the base class implementation.
             return base.Write(writer);
         }
@@ -66,6 +67,7 @@ For this, we support either a look-up for the closest simulated wind direction o
         {
             // First read our own field.
             interpolate = reader.GetBoolean("Interpolation");
+
             // Then call the base class implementation.
             return base.Read(reader);
         }
@@ -76,9 +78,11 @@ For this, we support either a look-up for the closest simulated wind direction o
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Result", "Res", "Eddy Result", GH_ParamAccess.item);
+
             //pManager.AddIntegerParameter("windDirs", "windDirs", "windDirs", GH_ParamAccess.list);
             pManager.AddPointParameter("Probing points", "Points", "List of probing points (caution: might have been culled)", GH_ParamAccess.list);
             pManager.AddVectorParameter("Wind Velocity", "U", @"Wind Velocity [DataTree] where the [branches] are the wind directions and the [items] are the values for each probing point.", GH_ParamAccess.tree);
+
             // pManager.AddIntegerParameter("Hours", "H", "Hours", GH_ParamAccess.list);
 
             pManager.AddIntegerParameter("Comfort Index", "CmftIdx", "Select a Pedestrian Wind Comfort Index with a right click.", GH_ParamAccess.item, 0);
@@ -93,6 +97,8 @@ For this, we support either a look-up for the closest simulated wind direction o
             }
 
             pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item);
+
+            pManager[4].Optional = true;
         }
 
         /// <summary>
@@ -193,6 +199,7 @@ NEN8100
             //Grasshopper.Kernel.Data.GH_Structure<Grasshopper.Kernel.Types.IGH_Goo> U = null;
             //DA.GetDataTree("U", out U);//
             DA.GetDataTree("Wind Velocity", out GH_Structure<GH_Vector> U);
+
             //DA.GetDataTree("U", out DataTree<Vector> U);
 
             #region Error checks
@@ -227,13 +234,12 @@ NEN8100
 
             #region Annual Velocities
 
-            var csvAnnualVelProbes = RES.WorkingDirectory + "AnnualVelocityProbes.csv";
-            PedestrianComfort av = new PedestrianComfort(RES.Domain.BCond.windDirs.ToArray(), ArrayHelper.To2DArrayVec3d(U), csvAnnualVelProbes, true, run);
+            PedestrianComfort av = new PedestrianComfort(RES.WorkingDirectory, RES.Domain.BCond.windDirs.ToArray(), ArrayHelper.To2DArrayVec3d(U), true, run);
 
-            if (av.Values is null)
+            if (GH_Document.IsEscapeKeyDown())
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Either precalculated results could not be loaded or the AnnualVelocity array has not been calculated yet.");
-                return;
+                GH_Document GHDocument = OnPingDocument();
+                GHDocument.RequestAbortSolution();
             }
 
             if (av.wrongNumberOfProbes)
@@ -241,6 +247,13 @@ NEN8100
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The precalculated AnnualVelocity array has the wrong number of probing points. Please recalculate.");
                 return;
             }
+
+            if (av.Values is null)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Either precalculated results could not be loaded or the AnnualVelocity array has not been calculated yet.");
+                return;
+            }
+
             if (av.resultPrecalculated)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated AnnualVelocity results have been loaded.");
