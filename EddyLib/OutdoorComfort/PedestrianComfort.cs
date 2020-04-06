@@ -68,10 +68,14 @@ namespace EddyLib
             }
             if (recalc)
             {
-                //if (File.Exists(csvFilePath))
-                //{
-                //    File.Delete(csvFilePath);
-                //}
+                if (File.Exists(csvAnnualVelProbes))
+                {
+                    File.Delete(csvAnnualVelProbes);
+                }
+                if (File.Exists(binAnnualVelProbes))
+                {
+                    File.Delete(binAnnualVelProbes);
+                }
 
                 this.Values = vectors;
                 this.WindDirs = windDirs;
@@ -241,6 +245,15 @@ namespace EddyLib
             }
             else
             {
+                if (File.Exists(csvWindFactors))
+                {
+                    File.Delete(csvWindFactors);
+                }
+                if (File.Exists(binWindFactors))
+                {
+                    File.Delete(binWindFactors);
+                }
+
                 var (SimDirIndices, ClstSimDirs, OffSet, OffSetAverage) = GetClosestWindDirs(weather, bcond);
                 this.offSet = OffSet.ToArray();
                 this.offSetAverage = OffSet.Average();

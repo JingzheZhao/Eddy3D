@@ -1585,10 +1585,10 @@ potentialFlow
     }
     equations
     {
-        U               0.3;
-        k               0.3;
-       epsilon          0.3;
-	   omega			0.3;
+        U               0.1;
+        k               0.1;
+       epsilon          0.1;
+	   omega			0.1;
     }
 }"); }
 

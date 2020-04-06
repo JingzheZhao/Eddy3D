@@ -62,6 +62,15 @@ namespace EddyLib
             }
             else if (recalc == true)
             {
+                if (File.Exists(csvMRT))
+                {
+                    File.Delete(csvMRT);
+                }
+                if (File.Exists(binMRT))
+                {
+                    File.Delete(binMRT);
+                }
+
                 Utilities.CleanDirectory(baseWorkingDir + @"Rad\");
                 Utilities.CleanDirectory(baseWorkingDir + @"Output\");
 

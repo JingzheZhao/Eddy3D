@@ -65,6 +65,15 @@ namespace EddyLib
             }
             if (recalc == true)
             {
+                if (File.Exists(csvUTCI))
+                {
+                    File.Delete(csvUTCI);
+                }
+                if (File.Exists(binUTCI))
+                {
+                    File.Delete(binUTCI);
+                }
+
                 var res = CalcUTCI(probes, weather, wf, mrt, 1);
 
                 this.ValuesUTCI = res.Item1;
@@ -120,6 +129,10 @@ namespace EddyLib
 
                         if (resultingWindSpeedforUTCI > 17) { resultingWindSpeedforUTCI = 17; uncertaintyWindArray[hour, probe] = true; }
                         if (resultingWindSpeedforUTCI < 0.5) { resultingWindSpeedforUTCI = 0.5; uncertaintyWindArray[hour, probe] = true; }
+
+                        // lift to 10 m height as required
+
+                        resultingWindSpeedforUTCI = At10Meters(resultingWindSpeedforUTCI, Probes[probe].Z);
 
                         utci[hour, probe] = Math.Round(CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI, resultingMRT), truncateBy);
                     }
@@ -415,6 +428,15 @@ namespace EddyLib
 
         //    conditionOfPerson = rtl;
         //}
+
+        ///<summary>
+        ///Return the velocity va_h at 10 m from a measured height h for the UTCI calculation as described in
+        ///Bröde, P., Fiala, D., Błażejczyk, K., Holmér, I., Jendritzky, G., Kampmann, B., Tinz, B., & Havenith, G. (2012). Deriving the operational procedure for the Universal Thermal Climate Index(UTCI). International Journal of Biometeorology, 56(3), 481–494. https://doi.org/10.1007/s00484-011-0454-1
+        ///</summary>
+        public static double At10Meters(double va_h, double h)
+        {
+            return va_h * Math.Log(10 / 0.01) / Math.Log(h / 0.01);
+        }
 
         public static void Colors(List<double> Vals, ref object Clrs)
         {

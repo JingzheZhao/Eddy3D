@@ -75,7 +75,7 @@ can't be probed within the simulation domain and have been discarded.");
 
         public static string LargeDataTree(double threshold)
         {
-            return "There are more than " + (int)(threshold) + " items in the data tree. Please be careful when connecting them to another component for post-processing as this might slow things down significantly.";
+            return "There are more than " + threshold.ToString("0.0E0") + " items in the data tree. Please be careful when connecting them to another component for post-processing as this might slow things down significantly.";
         }
     }
 }

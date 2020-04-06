@@ -231,6 +231,7 @@ namespace EddyLib.Radiance
                     return i;
                 }
             }
+
             return -1;
         }
 

@@ -154,7 +154,7 @@ namespace EddyLib
         public static void MeshProc(Mesh _m, string _fname, string _mat, string _matLib)
         {
             System.IO.StreamWriter sw = new System.IO.StreamWriter(_fname);
-            sw.WriteLine("#Grasshopper Eddy 2019");
+            sw.WriteLine("#Grasshopper Eddy 2020");
             sw.WriteLine("");
             sw.WriteLine(_matLib);
             sw.WriteLine("");
