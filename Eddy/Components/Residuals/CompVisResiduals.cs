@@ -132,6 +132,8 @@ namespace Eddy
             DA.GetData("Version", ref version);
             DA.GetData("Run", ref run);
 
+            if (run != true) { return; }
+
             List<int> selection = new List<int>();
             if (selectionList.Count != 0)
             {
@@ -148,7 +150,11 @@ namespace Eddy
                 return;
             }
 
-            if (run != true) { return; }
+            if (!RES.RunSettings.WindowsGnuplotInstalled && version == 0)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "There is no native Gnuplot version installed, please consider selecting the version that comes with BlueCFD.");
+                return;
+            }
 
             if (visResiduals)
             {
