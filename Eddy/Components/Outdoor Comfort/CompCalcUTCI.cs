@@ -55,7 +55,7 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("Universal Thermal Climate Index [°C] Object", "UTCI", "Universal Thermal Climate Index [°C] Object", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Comfortable Hours", "CH", "Percentage of comfortable hours over the year", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Comfortable Hours", "CH", "Percentage of comfortable hours (0°C <= UTCI <= 26°C) over the year", GH_ParamAccess.list);
         }
 
         /// <summary>
