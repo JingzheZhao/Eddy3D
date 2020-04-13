@@ -30,14 +30,14 @@ convertToMeters 1;
 
 vertices
 (
-(" + corners[0].X + " " + corners[0].Y + " " + corners[0].Z + @")
-(" + corners[1].X + " " + corners[1].Y + " " + corners[1].Z + @")
-(" + corners[2].X + " " + corners[2].Y + " " + corners[2].Z + @")
-(" + corners[3].X + " " + corners[3].Y + " " + corners[3].Z + @")
-(" + corners[4].X + " " + corners[4].Y + " " + corners[4].Z + @")
-(" + corners[5].X + " " + corners[5].Y + " " + corners[5].Z + @")
-(" + corners[6].X + " " + corners[6].Y + " " + corners[6].Z + @")
-(" + corners[7].X + " " + corners[7].Y + " " + corners[7].Z + @")
+(" + Utilities.FormatPoint(corners[0]) + @")
+(" + Utilities.FormatPoint(corners[1]) + @")
+(" + Utilities.FormatPoint(corners[2]) + @")
+(" + Utilities.FormatPoint(corners[3]) + @")
+(" + Utilities.FormatPoint(corners[4]) + @")
+(" + Utilities.FormatPoint(corners[5]) + @")
+(" + Utilities.FormatPoint(corners[6]) + @")
+(" + Utilities.FormatPoint(corners[7]) + @")
 );
 blocks
 (
@@ -89,6 +89,7 @@ boundary
         public static string SnappyHexMeshDict(OFMeshSettings MeshSettings, OFBaseDomain dom)
         {
             string refinementGeometry = "";
+
             //string ground_perim = @"ground_perim.stl
             //{
             //    type triSurfaceMesh;
@@ -97,15 +98,15 @@ boundary
             //";
             string Cylinder = @"refinementCylinder{
 type searchableCylinder;
-point1 (" + dom.RefinementCylinder.Center.ToString().Replace(',', ' ') + @");
-point2 (" + (dom.RefinementCylinder.Center + Vector3d.ZAxis * dom.RefinementCylinder.Height2).ToString().Replace(',', ' ') + @");
-radius " + dom.RefinementCylinder.CircleAt(0.5).Radius + @";
+point1 (" + Utilities.FormatPoint(dom.RefinementCylinder.Center).Replace(',', ' ') + @");
+point2 (" + Utilities.FormatPoint(dom.RefinementCylinder.Center + Vector3d.ZAxis * dom.RefinementCylinder.Height2).ToString().Replace(',', ' ') + @");
+radius " + Utilities.FormatDouble(dom.RefinementCylinder.CircleAt(0.5).Radius) + @";
 }";
 
             string Box = @"refinementBox{
           type searchableBox;
-          min (" + dom.BBox.X.Min + " " + +dom.BBox.Y.Min + " " + dom.BBox.Z.Min + @");
-          max (" + dom.BBox.X.Max + " " + dom.BBox.Y.Max + " " + dom.BBox.Z.Max + @");
+          min (" + Utilities.FormatDouble(dom.BBox.X.Min) + " " + Utilities.FormatDouble(dom.BBox.Y.Min) + " " + Utilities.FormatDouble(dom.BBox.Z.Min) + @");
+          max (" + Utilities.FormatDouble(dom.BBox.X.Max) + " " + Utilities.FormatDouble(dom.BBox.Y.Max) + " " + Utilities.FormatDouble(dom.BBox.Z.Max) + @");
 }";
             refinementGeometry = Box;
             StringBuilder sb = new StringBuilder();
@@ -152,6 +153,7 @@ FoamFile
             name ground_perim;
         }");
             }
+
             //if (dom.terrainMesh.Faces.Count == 0) { sb.Append(ground_perim); }
             sb.Append(@"
         " + refinementGeometry + @"
@@ -204,10 +206,12 @@ FoamFile
 refinementRegions
         {
 refinementBox {mode inside; levels ((" + MeshSettings.accRefinement + @" " + MeshSettings.accRefinement + @"));}
+
 //refinementCylinder {mode inside; levels ((" + MeshSettings.accRefinement + " " + MeshSettings.accRefinement + @"));}
         }
 
-        locationInMesh ( " + dom.LocationInMesh.X + " " + dom.LocationInMesh.Y + " " + dom.LocationInMesh.Z + @" );
+        locationInMesh ( " + Utilities.FormatPoint(dom.LocationInMesh) + @" );
+
         //maxLocalCells 15000000;
         //maxGlobalCells 50000000;
         //minRefinementCells 5;
@@ -442,6 +446,7 @@ relaxed
 
 debug 0;
 mergeTolerance 1E-6;
+
 //autoBlockMesh true;
 ");
             return sb.ToString();
@@ -464,6 +469,7 @@ FoamFile
         class dictionary;
         object controlDict;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 libs
 (
@@ -497,8 +503,10 @@ libs
 {
 #includeFunc residuals
 ");
+
             //if (topologies != null) {
             sb.Append(EddyLib.Strings.OFExecDicts.FunctionObjCP(DOM, RunSettings, topologies, numberOfTopologies).ToString());
+
             //}
             //else { sb.Append(@"};"); }
 
@@ -517,9 +525,9 @@ libs
                     enabled yes;
                     writeControl timeStep;
                     writeInterval " + RunSettings.writeInterval + @";
-                    UInf (" + Math.Round(BCondCP.Uinf[d].X, 1) + " " + Math.Round(BCondCP.Uinf[d].Y, 1) + " " + Math.Round(BCondCP.Uinf[d].Z, 1) + @");     // the undistrubed velocity at building height
-                    pInf " + Math.Round(BCondCP.pinf, 1) + @";        // the dynamic undisturbed pressure at building height
-                    pRef " + Math.Round(BCondCP.pref, 1) + @";        // the dynamic pressure at reference height (usually 10 m)
+                    UInf (" + Utilities.FormatVector(BCondCP.Uinf[d]) + @");     // the undistrubed velocity at building height
+                    pInf " + Utilities.FormatDouble(Math.Round(BCondCP.pinf, 1)) + @";        // the dynamic undisturbed pressure at building height
+                    pRef " + Utilities.FormatDouble(Math.Round(BCondCP.pref, 1)) + @";        // the dynamic pressure at reference height (usually 10 m)
                     rhoInf              1.2;
                     calcTotal yes;
                     calcCoeff yes;
@@ -574,6 +582,7 @@ FoamFile
     location    ""system"";
     object topoSetDict;
 }
+
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
         actions
@@ -643,7 +652,7 @@ FoamFile
             sb.Append(Environment.NewLine);
             for (int i = 0; i < listOfPoints.Count; i++)
             {
-                sb.Append(@"(" + listOfPoints[i].X + @" " + listOfPoints[i].Y + @" " + listOfPoints[i].Z + @")");
+                sb.Append(@"(" + Utilities.FormatPoint(listOfPoints[i]) + @")");
                 sb.Append(Environment.NewLine);
             }
 
@@ -654,283 +663,6 @@ FoamFile
 
             return sb.ToString();
         }
-
-        //        public static string circularDomainM4(OFBoxDomain DOM)
-        //        {
-        //            return @"/*--------------------------------*- C++ -*----------------------------------*\
-        //| =========                 |                                                 |
-        //| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-        //|  \\    /   O peration     | Version:  2.1.0                                  |
-        //|   \\  /    A nd           | Web:      http://www.OpenFOAM.com               |
-        //|    \\/     M anipulation  |                                                 |
-        //\*---------------------------------------------------------------------------*/
-
-        //FoamFile
-        //{
-        //    version     2.0;
-        //    format      ascii;
-        //    class       dictionary;
-        //    object      blockMeshDict;
-        //}
-        //// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-        //convertToMeters 1;
-
-        //dnl changecom(//)
-        //changequote([,])
-        //define(LPAREN,[(])dnl
-        //define(RPAREN,[)])dnl
-        //dnl
-        //define(calc, [esyscmd(perl -e 'printf ($1)')])dnl
-        //dnl
-        //define(pip180, 0.017453)
-        //define(cos45, 0.70711)
-        //dnl *********USER***********
-        //dnl ===      POINTS      ===
-        //define(zLength, " + (6 * DOM.dimZ) + @")dnl
-        //define(coreWidth, " + (6 * DOM.dim) + @")dnl
-        //define(diameter, " + (16.5 * DOM.dim) + @")dnl
-        ////define(rectangleWidth, 80)dnl //50
-        //define(cornerStretch, 1)dnl
-        //define(arcStretch, 1)dnl
-        //dnl ===    CELL COUNT    ===
-        //define(coreCount, " + Math.Round((DOM.dim / DOM.blockDimension)) + @")dnl
-        //define(rectangleCount, " + Math.Round(((16.5 * DOM.dim) / DOM.blockDimension)) + @")dnl
-        //define(zCount, " + Math.Round((DOM.dimZ / DOM.blockDimension)) + @")dnl
-        //dnl ===BOUNDING RECTANGLE?===
-        //define(boundRect, 1)dnl
-        //dnl =========================
-        //dnl *******CALCULATED********
-        //define(radius, calc(0.5*diameter))dnl
-        //define(halfCoreWidth, calc(0.5*coreWidth))dnl
-        //define(halfRectangleWidth, calc(0.5*rectangleWidth))dnl
-        //define(negHalfCoreWidth, calc(-1*halfCoreWidth))dnl
-        //define(halfCoreCorner, calc(cornerStretch*halfCoreWidth*2))dnl
-        //define(negHalfCoreCorner, calc(-1*halfCoreCorner))dnl
-        //define(negRadius, calc(-1*radius))dnl
-        //define(cornerRadius, calc(sqrt(2)*radius/2))dnl
-        //define(negCornerRadius, calc(-1*cornerRadius))dnl
-        //define(negHalfRectangleWidth, calc(-1*halfRectangleWidth))dnl
-        //dnl =========================
-        //dnl ===     ARC POINTS    ===
-        //dnl define(coreArchLong, calc(0.67*halfCoreWidth))dnl
-        //define(coreArchLong, calc(1.001*arcStretch*(halfCoreWidth+halfCoreCorner*0.5-halfCoreWidth*0.5)))dnl
-        //define(negCoreArchLong, calc(-1*coreArchLong))dnl
-        //define(coreArchShort, calc(halfCoreWidth/2))dnl
-        //define(negCoreArchShort, calc(-1*coreArchShort))dnl
-        //define(radiusArchLong, calc(cos(22.5*pip180)*radius))dnl
-        //define(negRadiusArchLong, calc(-1*radiusArchLong))dnl
-        //define(radiusArchShort, calc(sin(22.5*pip180)*radius))dnl
-        //define(negRadiusArchShort, calc(-1*radiusArchShort))dnl
-        //dnl =========================
-        //dnl
-        //define(zCount, 1)dnl
-
-        //vertices
-        //(
-        //    (  0  0  0 )          //0
-        //    (  0  0  zLength )          //1
-        //    (  halfCoreCorner  0  0 )          //2
-        //    (  halfCoreCorner  0  zLength )          //3
-        //    (  0  halfCoreCorner  0 )          //4
-        //    (  0  halfCoreCorner  zLength )        //5
-        //    ( negHalfCoreCorner  0  0 )               //6
-        //    ( negHalfCoreCorner  0  zLength )        //7
-        //    (  0  negHalfCoreCorner  0 )               //8
-        //    (  0  negHalfCoreCorner  zLength )        //9
-        //    (  halfCoreWidth  halfCoreWidth  0 )               //10
-        //    (  halfCoreWidth  halfCoreWidth  zLength )        //11
-        //    ( negHalfCoreWidth  halfCoreWidth  0 )               //12
-        //    ( negHalfCoreWidth  halfCoreWidth  zLength )        //13
-        //    ( negHalfCoreWidth negHalfCoreWidth  0 )               //14
-        //    ( negHalfCoreWidth negHalfCoreWidth  zLength )        //15
-        //    (  halfCoreWidth negHalfCoreWidth  0 )               //16
-        //    (  halfCoreWidth negHalfCoreWidth  zLength )        //17
-        //    (  radius  0  0 )               //18
-        //    (  radius  0  zLength )        //19
-        //    (  0  radius  0 )               //20
-        //    (  0  radius  zLength )        //21
-        //    ( negRadius  0  0 )               //22
-        //    ( negRadius  0  zLength )        //23
-        //    (  0  negRadius  0 )               //24
-        //    (  0  negRadius  zLength )        //25
-        //    (  cornerRadius  cornerRadius  0 )           //26
-        //    (  cornerRadius  cornerRadius  zLength )    //27
-        //    ( negCornerRadius  cornerRadius  0 )           //28
-        //    ( negCornerRadius  cornerRadius  zLength )    //29
-        //    ( negCornerRadius negCornerRadius  0 )           //30
-        //    ( negCornerRadius negCornerRadius  zLength )    //31
-        //    (  cornerRadius negCornerRadius  0 )           //32
-        //    (  cornerRadius negCornerRadius  zLength )    //33
-
-        //);
-
-        //blocks
-        //LPAREN
-        //    hex (2 10 0 16 3 11 1 17) (coreCount coreCount zCount) simpleGrading (1 1 1)          //1
-        //    hex (10 4 12 0 11 5 13 1) (coreCount coreCount zCount) simpleGrading (1 1 1)          //2
-        //    hex (12 6 14 0 13 7 15 1) (coreCount coreCount zCount) simpleGrading (1 1 1)          //3
-        //    hex (14 8 16 0 15 9 17 1) (coreCount coreCount zCount) simpleGrading (1 1 1)          //4
-        //    hex (18 26 10 2 19 27 11 3) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //5
-        //    hex (26 20 4 10 27 21 5 11) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //6
-        //    hex (20 28 12 4 21 29 13 5) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //7
-        //    hex (28 22 6 12 29 23 7 13) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //8
-        //    hex (22 30 14 6 23 31 15 7) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //9
-        //    hex (30 24 8 14 31 25 9 15) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //10
-        //    hex (24 32 16 8 25 33 17 9) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //11
-        //    hex (32 18 2 16 33 19 3 17) (coreCount rectangleCount zCount) simpleGrading (1 1 1)        //12
-
-        //RPAREN;
-
-        // edges
-        // (
-        //     arc  2 10 ( coreArchLong   coreArchShort   0)
-        //     arc  3 11 ( coreArchLong   coreArchShort   zLength)
-        //     arc 16  2 ( coreArchLong  negCoreArchShort   0)
-        //     arc 17  3 ( coreArchLong  negCoreArchShort   zLength)
-        //     arc 10  4 (  coreArchShort  coreArchLong   0)
-        //     arc 11  5 (  coreArchShort  coreArchLong   zLength)
-        //     arc  4 12 ( negCoreArchShort  coreArchLong   0)
-        //     arc  5 13 ( negCoreArchShort  coreArchLong   zLength)
-        //     arc 12  6 (negCoreArchLong   coreArchShort   0)
-        //     arc 13  7 (negCoreArchLong   coreArchShort   zLength)
-        //     arc  6 14 (negCoreArchLong  negCoreArchShort   0)
-        //     arc  7 15 (negCoreArchLong  negCoreArchShort   zLength)
-        //     arc 14  8 ( negCoreArchShort negCoreArchLong   0)
-        //     arc 15  9 ( negCoreArchShort negCoreArchLong   zLength)
-        //     arc  8 16 (  coreArchShort negCoreArchLong   0)
-        //     arc  9 17 (  coreArchShort negCoreArchLong   zLength)
-        //     arc 18 26 ( radiusArchLong  radiusArchShort  0)
-        //     arc 19 27 ( radiusArchLong  radiusArchShort  zLength)
-        //     arc 26 20 ( radiusArchShort  radiusArchLong  0)
-        //     arc 27 21 ( radiusArchShort  radiusArchLong  zLength)
-        //     arc 20 28 (negRadiusArchShort  radiusArchLong  0)
-        //     arc 21 29 (negRadiusArchShort  radiusArchLong  zLength)
-        //     arc 28 22 (negRadiusArchLong  radiusArchShort  0)
-        //     arc 29 23 (negRadiusArchLong  radiusArchShort  zLength)
-        //     arc 22 30 (negRadiusArchLong -radiusArchShort  0)
-        //     arc 23 31 (negRadiusArchLong -radiusArchShort  zLength)
-        //     arc 30 24 (negRadiusArchShort negRadiusArchLong  0)
-        //     arc 31 25 (negRadiusArchShort negRadiusArchLong  zLength)
-        //     arc 24 32 ( radiusArchShort negRadiusArchLong  0)
-        //     arc 25 33 ( radiusArchShort negRadiusArchLong  zLength)
-        //     arc 32 18 ( radiusArchLong negRadiusArchShort  0)
-        //     arc 33 19 ( radiusArchLong negRadiusArchShort  zLength)
-        // );
-        //boundary
-        //LPAREN
-        //    ground
-        //    {
-        //    type wall;
-        //    faces
-        //	LPAREN
-        //    (2 10 0 16)
-        //    (10 4 12 0)
-        //    (12 6 14 0)
-        //    (14 8 16 0)
-        //    (18 26 10 2)
-        //    (10 26 20 4)
-        //    (4 20 28 12)
-        //    (12 28 22 6)
-        //    (6 22 30 14)
-        //    (14 30 24 8)
-        //    (8 24 32 16)
-        //    (16 32 18 2)
-        //    RPAREN;
-        //    }
-        //    top
-        //    {
-        //    type symmetry;
-        //    faces
-        //	LPAREN
-        //    (3 11 1 17)
-        //    (11 5 13 1)
-        //    (13 7 15 1)
-        //    (15 9 17 1)
-        //    (3 19 27 11)
-        //    (11 27 21 5)
-        //    (5 21 29 13)
-        //    (13 29 23 7)
-        //    (7 23 31 15)
-        //    (15 31 25 9)
-        //    (9 25 33 17)
-        //    (17 33 19 3)
-        //    RPAREN;
-        //    }
-        //    one
-        //    {
-        //    type patch;
-        //    faces
-        //	LPAREN
-        //	(18 19 27 26)
-        //	RPAREN;
-        //	}
-        //	two
-        //    {
-        //    type patch;
-        //    faces
-        //	LPAREN
-        //	(26 27 21 20)
-        //	RPAREN;
-        //	}
-
-        //three
-        //    {
-        //    type patch;
-        //    faces
-        //	LPAREN
-        //	(20 21 29 28)
-        //	RPAREN;
-        //	}
-        //four
-        //    {
-        //    type patch;
-        //    faces
-        //	LPAREN
-        //	(28 29 23 22)
-        //	RPAREN;
-        //	}
-        //five
-        //    {
-        //    type patch;
-        //    faces
-        //	LPAREN
-        //	(22 23 31 30)
-        //	RPAREN;
-        //	}
-        //six
-        //    {
-        //    type patch;
-        //    faces
-        //	LPAREN
-        //	(30 31 25 24)
-        //	RPAREN;
-        //	}
-        //seven
-        //    {
-        //    type patch;
-        //    faces
-        //	LPAREN
-        //	(24 25 33 32)
-        //	RPAREN;
-        //	}
-        //eight
-        //    {
-        //    type patch;
-        //    faces
-        //	LPAREN
-        //	(32 33 19 18)
-        //	RPAREN;
-        //	}
-
-        // RPAREN;
-
-        //mergePatchPairs
-        //(
-        //);
-
-        //// ************************************************************************* //
-        // "; }
 
         public static string MeshQualityDict()
         {
@@ -949,6 +681,7 @@ FoamFile
     class       dictionary;
     object      meshQualityDict;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 //- Maximum non-orthogonality allowed. Set to 180 to disable.
@@ -1032,6 +765,7 @@ FoamFile
     class       dictionary;
     object      fvSchemes;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 ddtSchemes
@@ -1049,6 +783,7 @@ divSchemes
     default         bounded Gauss upwind grad(U);
     div(phi,U)      bounded Gauss linearUpwindV grad(U);
     div(phi,k)      bounded Gauss upwind grad(U);
+
     //div(phi,epsilon)  bounded Gauss upwind grad(U);
     div(phi,omega)  bounded Gauss upwind grad(U);
     div((nuEff*dev2(T(grad(U))))) Gauss linear;
@@ -1103,6 +838,7 @@ FoamFile
     class       dictionary;
     object      fvSchemes;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 ddtSchemes
@@ -1176,6 +912,7 @@ FoamFile
     class       dictionary;
     object      fvSchemes;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 ddtSchemes
@@ -1192,6 +929,7 @@ divSchemes
 {
     default          Gauss upwind;
     div(phi,U)       Gauss upwind;
+
     //div(phi,k)       Gauss upwind;
     //div(phi,epsilon) Gauss upwind;
     div(phi,k)       Gauss linear;
@@ -1249,6 +987,7 @@ FoamFile
     class       dictionary;
     object      fvSchemes;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 ddtSchemes
@@ -1265,6 +1004,7 @@ divSchemes
 {
     default          Gauss upwind;
     div(phi,U)       Gauss upwind;
+
     //div(phi,k)       Gauss upwind;
     //div(phi,epsilon) Gauss upwind;
     div(phi,k)       Gauss linear;
@@ -1322,6 +1062,7 @@ FoamFile
     class       dictionary;
     object      fvSchemes;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 ddtSchemes
@@ -1338,6 +1079,7 @@ divSchemes
 {
     default         Gauss linearUpwind grad(U);
     div(phi,U)       Gauss linear;
+
     //div(phi,k)       Gauss linearUpwind grad(U);
     //div(phi,epsilon) Gauss linearUpwind grad(U);
     div(phi,k)       Gauss linear;
@@ -1395,6 +1137,7 @@ FoamFile
     class       dictionary;
     object      fvSchemes;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 ddtSchemes
@@ -1411,6 +1154,7 @@ divSchemes
 {
     default          Gauss linearUpwind;
     div(phi,U)       Gauss linearUpwind grad(U);
+
     //div(phi,k)       Gauss linearUpwind;
     //div(phi,epsilon) Gauss linearUpwind;
     div(phi,k)       Gauss linear;
@@ -1468,6 +1212,7 @@ FoamFile
     class       dictionary;
     object      fvSchemes;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 ddtSchemes
@@ -1483,6 +1228,7 @@ gradSchemes
 divSchemes
 {
     div(phi,U)       Gauss linearUpwind grad(U);
+
     //div(phi,k)       Gauss linearUpwind;
     //div(phi,epsilon) Gauss linearUpwind;
     div(phi,k)       Gauss linear;
@@ -1540,6 +1286,7 @@ FoamFile
     class       dictionary;
     object      fvSchemes;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 ddtSchemes
@@ -1556,6 +1303,7 @@ divSchemes
 {
     default          Gauss linearUpwind;
     div(phi,U)       Gauss linearUpwind grad(U);
+
     //div(phi,k)       Gauss linearUpwind;
     //div(phi,epsilon) Gauss linearUpwind;
     div(phi,k)       Gauss linear;
@@ -1745,6 +1493,7 @@ FoamFile
     class       dictionary;
     object      fvSolution;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 solvers
@@ -1867,6 +1616,7 @@ FoamFile
     class       dictionary;
     object      fvSolution;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 solvers
@@ -2005,6 +1755,7 @@ FoamFile
     class       dictionary;
     object      surfaceFeatureExtractDict;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 building.stl
@@ -2083,6 +1834,7 @@ FoamFile
     class       dictionary;
     object      transportProperties;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 transportModel  Newtonian;
@@ -2110,6 +1862,7 @@ FoamFile
     class       dictionary;
     object      RASProperties;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 ");
             if (RunSettings.turbModel == TurbModel.laminar) { sb.AppendLine("simulationType laminar; "); }
