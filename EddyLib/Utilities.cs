@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -14,6 +15,18 @@ namespace EddyLib
 {
     public static class Utilities
     {
+        // Radiance isn't exactly culture-aware, so we have to make everything here en-US
+        private static readonly CultureInfo eddy3dculture = new CultureInfo("en-US");
+
+        private static string FormatPointAndNormal(Point3d p, Vector3d n) =>
+        String.Format(eddy3dculture, "{0:0.###} {1:0.###} {2:0.###} {3:0.###} {4:0.###} {5:0.###}", p.X, p.Y, p.Z, n.X, n.Y, n.Z);
+
+        private static string FormatPoint(Point3d p) =>
+        String.Format(eddy3dculture, "{0:0.###} {1:0.###} {2:0.###}", p.X, p.Y, p.Z);
+
+        private static string FormatVector(Point3d p) =>
+        String.Format(eddy3dculture, "{0:0.###} {1:0.###} {2:0.###}", p.X, p.Y, p.Z);
+
         public class StartProcess
         {
             public static void StartProcessCMD(string argument, bool createnowindow, bool waitforexit = false, bool close = false, string executable = @"C:\Windows\System32\cmd.exe")
@@ -39,8 +52,10 @@ namespace EddyLib
                 p.StartInfo.FileName = executable;
                 p.StartInfo.UseShellExecute = false;
                 p.StartInfo.RedirectStandardInput = true;
+
                 //p.StartInfo.RedirectStandardOutput = true;
                 p.StartInfo.CreateNoWindow = createnowindow;
+
                 //p.Start();
 
                 ThreadStart ths = new ThreadStart(() =>
@@ -79,6 +94,7 @@ namespace EddyLib
             public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, string executable = @"C:\Windows\System32\cmd.exe", EventHandler eh = null)
             {
                 System.Diagnostics.Process p = new System.Diagnostics.Process();
+
                 // if(eh!=null) p.Exited += eh;
                 p.StartInfo.FileName = executable;
                 p.StartInfo.UseShellExecute = false;
@@ -86,6 +102,7 @@ namespace EddyLib
 
                 //p.StartInfo.RedirectStandardOutput = true;
                 p.StartInfo.CreateNoWindow = createnowindow;
+
                 //p.Start();
 
                 string theArgument = argument + ((close) ? @"
@@ -333,6 +350,7 @@ exit
             {
                 string phiPath = MeshSettings.baseWorkingDir + dir + @"\0\phi";
                 if (File.Exists(phiPath)) { File.Delete(phiPath); }
+
                 //string logPath = MeshSettings.baseWorkingDir + dir + @"\log";
                 //if (File.Exists(logPath)) { File.Delete(logPath); }
             }
@@ -445,6 +463,7 @@ exit
         {
             //Get Operating system information.
             OperatingSystem os = Environment.OSVersion;
+
             //Get version information about the os.
             Version vs = os.Version;
 
@@ -532,6 +551,7 @@ exit
                         break;
                 }
             }
+
             //Make sure we actually got something in our OS check
             //We don't want to just return " Service Pack 2" or " 32-bit"
             //That information is useless without the OS version.
@@ -548,6 +568,7 @@ exit
                 ////Append the OS architecture.  i.e. "Windows XP Service Pack 3 32-bit"
                 ////operatingSystem += " " + getOSArchitecture().ToString() + "-bit";
             }
+
             //Return the information we've gathered.
             return operatingSystem;
         }
@@ -890,12 +911,14 @@ exit
         public static List<int> GetFullHoursListFromLB(List<string> LBanalysisList)
         {
             List<int> fullHoursList = new List<int>();
+
             //foreach (string LBobj in LBanalysisList)
             //{
             foreach (int hour in GetEvalHoursFromLB(LBanalysisList))
             {
                 fullHoursList.Add(hour);
             }
+
             //}
             return fullHoursList;
         }
@@ -980,9 +1003,11 @@ exit
 
                         if (m == 2 && d > 27) { continue; }
                         else if ((m == 4 || m == 6 || m == 9 || m == 10) && d > 29) { continue; }
+
                         //
 
                         cnt++;
+
                         // Fill list
 
                         if (m >= month_start && m < month_end && d >= day_start && d < day_end && h >= hour_start && h < hour_end)
@@ -1301,9 +1326,11 @@ renderView1.CameraParallelProjection = 1
         public static bool CheckLicence()
         {
             bool licence = false;
+
             //DateTime dateNow = Utilities.GetNistTime();
             // Get the current date.
             DateTime dateCompile = DateTime.Today;
+
             //DateTime dateCompile = new DateTime(2020, 10, 1, 0, 00, 00).ToUniversalTime();
             TimeSpan licenceDuration = new TimeSpan(720, 0, 0, 0);
             DateTime expiresAt = dateCompile.Add(licenceDuration);
@@ -1617,6 +1644,7 @@ renderView1.CameraParallelProjection = 1
                         return r;
                     }
                 }
+
                 // the nz parts are equal
                 int length1 = end1 - start1;
                 int length2 = end2 - start2;

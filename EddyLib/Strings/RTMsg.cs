@@ -16,7 +16,7 @@ namespace EddyLib.Strings
 
         public static string FieldDoesntExist(string currentCaseDir, OFField field)
         {
-            return @"The file """ + currentCaseDir + @"\postProcessing\" + field.ProbeName + @"\" + field.FieldName + @""" does not exist. Please run the probing component.";
+            return @"The file """ + currentCaseDir + @"\postProcessing\" + field.ProbeName + @"\" + Utilities.GetLastIterationFromDirectory(currentCaseDir).ToString() + @"\" + field.FieldName + @""" does not exist. Please run the probing component.";
         }
 
         public static string ParsingFailed()
@@ -31,7 +31,26 @@ namespace EddyLib.Strings
 
         public static string PointsOutsideDomain(int[] IndecesOfExtremeProbes)
         {
-            return @"The probes with the indices: " + string.Join(",", IndecesOfExtremeProbes) + " can't be probed within the simulation domain and have been discarded.";
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append(@"The probes with the indices:
+
+");
+
+            for (int i = 0; i < IndecesOfExtremeProbes.Length; i++)
+            {
+                sb.Append(IndecesOfExtremeProbes + " ,");
+
+                if (i == 20)
+                {
+                    sb.Append(@"\n");
+                }
+            }
+            sb.Append(@"
+
+can't be probed within the simulation domain and have been discarded.");
+
+            return sb.ToString();
         }
 
         public static string ProbingFuncObjects(OFResult RES, OFField field)

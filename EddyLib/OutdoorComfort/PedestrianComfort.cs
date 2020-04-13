@@ -941,28 +941,27 @@ namespace EddyLib
 
         private static double[,] CalcWindReductionArray(Vector3d[,] annualVecProbes, int[] clstSimDirIdx, BoundaryConditions bcond, Weather weather, double probingHeight, bool interpolate)
         {
-            //[probes, windDirs]  Vector3d[,] annualVecProbes;
-
             var windDirSim = bcond.windDirs;
+            var windDirsEPW = weather.WindDirection;
+
             int numberOfWindDirs = windDirSim.Count();
-            int sensorPointCount = annualVecProbes.GetLength(0);
+            int numberOfSensors = annualVecProbes.GetLength(0);
+
             int numberOfHours = 8760;
             int rounding = 1;
 
-            double[,] WF = new double[numberOfHours, sensorPointCount];
+            double[,] WF = new double[numberOfHours, numberOfSensors];
 
             int cntReduction = 0;
             using (var progress = new ASCIIProgressBar())
             {
-                // Calculate vector lengths
+                // Create lookup table with vector lengths
 
-                var annualVelocities = VectorLengths(sensorPointCount, numberOfWindDirs, annualVecProbes);
+                var annualVelocities = VectorLengths(numberOfSensors, numberOfWindDirs, annualVecProbes);
 
                 Console.WriteLine("Calculating: Wind reduction factors");
 
-                var windDirsEPW = weather.WindDirection;
-
-                // Calculate indeces first
+                // Calculate indices first
 
                 int[] nextIndexDown = new int[8760];
                 int[] nextIndexUp = new int[8760];
@@ -975,18 +974,19 @@ namespace EddyLib
 
                 Parallel.For(0, numberOfHours, h =>
         {
-            for (int p = 0; p < sensorPointCount; p++)
+            for (int p = 0; p < numberOfSensors; p++)
             {
-                var nextDirDown = windDirSim[nextIndexDown[h]];
-                var nextDirUp = windDirSim[nextIndexUp[h]];
+                int nextDirDown = windDirSim[nextIndexDown[h]];
+                int nextDirUp = windDirSim[nextIndexUp[h]];
 
-                double distanceToLower = DistanceBetweenWindDirs(windDirsEPW[h], nextDirDown);
-                double distanceToUpper = DistanceBetweenWindDirs(windDirsEPW[h], nextDirUp);
+                var distanceToLower = DistanceBetweenWindDirs(windDirsEPW[h], nextDirDown);
+                var distanceToUpper = DistanceBetweenWindDirs(windDirsEPW[h], nextDirUp);
 
                 var velAtProbHeightEPW = GetVelocityAtProbingHeightFromABL(weather.WindSpeed[h], bcond, probingHeight);
                 var velSim = annualVelocities[p, clstSimDirIdx[h]];
                 var velApproaching = GetVelocityAtProbingHeightFromABL(bcond.URef, bcond, probingHeight);
                 // Avoid Infinity
+
                 var ratio = velApproaching == 0 ? 0.00000 : velSim / velApproaching;
 
                 // We need to multiply the normalized velocity with respect to the approaching flow
@@ -1012,11 +1012,15 @@ namespace EddyLib
                 }
 
                 cntReduction++;
-                progress.Report((double)cntReduction / sensorPointCount);
+                progress.Report((double)cntReduction / numberOfSensors);
             }
         });
             }
+<<<<<<< Updated upstream
             // WF[h, p]
+=======
+
+>>>>>>> Stashed changes
             return WF;
         }
     }
