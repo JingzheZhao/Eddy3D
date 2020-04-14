@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,18 +14,25 @@ namespace EddyLib
         //[probes, windDirs]  Vector3d[,] Probes;
 
         public Vector3d[,] Values;
+
         public int[] WindDirs;
 
         public bool resultPrecalculated;
+
         public bool wrongNumberOfProbes;
+
         public bool infValues;
 
         public enum PedestrianComfortIdx
         {
             LawsonGeneral,
+
             LawsonLDDC,
+
             Lawson2001,
+
             Davenport,
+
             NEN8100,
         };
 
@@ -195,18 +203,27 @@ namespace EddyLib
     public class WindReductionFactors
     {
         public int[] ClstSimDirs { get; set; }
+
         public int[] Indices;
+
         public int[] offSet;
+
         public double offSetAverage;
+
         public double[,] ValuesWindFactors;
+
         public double[] ValuesPedestrianWindComfort;
 
         public bool resultPrecalculated;
+
         public bool wrongNumberOfProbes;
 
         private string fileNameCSV = @"WindFactors";
+
         private string fileNameCSVExtension = ".csv";
+
         private string interpolationPref = "lp";
+
         private string del = "_";
 
         public WindReductionFactors(string baseWorkingDir, BoundaryConditions bcond, Weather weather, PedestrianComfort velocityProbes, double probingHeight, bool interpolate, bool recalc, PedestrianComfort.PedestrianComfortIdx cmftidx)
@@ -985,6 +1002,7 @@ namespace EddyLib
                 var velAtProbHeightEPW = GetVelocityAtProbingHeightFromABL(weather.WindSpeed[h], bcond, probingHeight);
                 var velSim = annualVelocities[p, clstSimDirIdx[h]];
                 var velApproaching = GetVelocityAtProbingHeightFromABL(bcond.URef, bcond, probingHeight);
+
                 // Avoid Infinity
 
                 var ratio = velApproaching == 0 ? 0.00000 : velSim / velApproaching;
@@ -1017,6 +1035,7 @@ namespace EddyLib
         });
             }
 <<<<<<< Updated upstream
+
             // WF[h, p]
 =======
 
