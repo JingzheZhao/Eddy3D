@@ -3,35 +3,56 @@
     public enum SnappySetting
     {
         Blocks,
+
         BlocksSnapping,
+
         BlocksSnappingLayers
     }
 
     public class OFMeshSettings
     {
         public int accBuildings = 2;
+
         public int accFeatures = 2;
+
         public int accRefinement = 2;
+
         public int accGround = 2;
+
         public int nLayers = 2;
 
         public SnappySetting snappySetting = SnappySetting.Blocks;
 
         public string baseWorkingDir;
+
         public string meshStlDir;
+
         public string meshPolyMeshDir;
+
         public string meshSystemDir;
+
         public string meshConstantDir;
+
         public string meshWorkingDir;
+
         public string OFbaseWorkingDir;
+
         public string OFmeshStlDir;
+
         public string OFmeshPolyMeshDir;
+
         public string OFmeshSystemDir;
+
         public string OFmeshConstantDir;
+
         public string OFmeshWorkingDir;
+
         public string meshStlFilenameBuildings;
+
         public string meshStlFilenameGround;
+
         public string meshStlFilenameGroundPerim;
+
         public string meshBoundaryConditionsDirectory;
 
         // BlockMesh
@@ -42,12 +63,12 @@
 
         public void SetDirectories(string baseWorkingDirectory)
         {
-            baseWorkingDir = baseWorkingDirectory;
-            meshStlDir = baseWorkingDirectory + @"\mesh\constant\triSurface\";
-            meshPolyMeshDir = baseWorkingDirectory + @"\mesh\constant\polyMesh\";
-            meshSystemDir = baseWorkingDirectory + @"\mesh\system\";
-            meshConstantDir = baseWorkingDirectory + @"\mesh\constant\";
-            meshWorkingDir = baseWorkingDirectory + @"\mesh\";
+            baseWorkingDir = Utilities.Directories.ReformatWorkingDir(baseWorkingDirectory);
+            meshStlDir = Utilities.Directories.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\triSurface\");
+            meshPolyMeshDir = Utilities.Directories.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\polyMesh\");
+            meshSystemDir = Utilities.Directories.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\system\");
+            meshConstantDir = Utilities.Directories.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\");
+            meshWorkingDir = Utilities.Directories.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\");
 
             OFbaseWorkingDir = Utilities.Directories.ReformatWorkingDir(baseWorkingDirectory);
             OFmeshStlDir = Utilities.Directories.ReformatWorkingDir(baseWorkingDirectory + @"\mesh\constant\triSurface\");
