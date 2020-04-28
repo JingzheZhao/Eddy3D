@@ -30,14 +30,14 @@ convertToMeters 1;
 
 vertices
 (
-(" + Utilities.FormatPoint(corners[0]) + @")
-(" + Utilities.FormatPoint(corners[1]) + @")
-(" + Utilities.FormatPoint(corners[2]) + @")
-(" + Utilities.FormatPoint(corners[3]) + @")
-(" + Utilities.FormatPoint(corners[4]) + @")
-(" + Utilities.FormatPoint(corners[5]) + @")
-(" + Utilities.FormatPoint(corners[6]) + @")
-(" + Utilities.FormatPoint(corners[7]) + @")
+(" + Utilities.FormatPV(corners[0]) + @")
+(" + Utilities.FormatPV(corners[1]) + @")
+(" + Utilities.FormatPV(corners[2]) + @")
+(" + Utilities.FormatPV(corners[3]) + @")
+(" + Utilities.FormatPV(corners[4]) + @")
+(" + Utilities.FormatPV(corners[5]) + @")
+(" + Utilities.FormatPV(corners[6]) + @")
+(" + Utilities.FormatPV(corners[7]) + @")
 );
 blocks
 (
@@ -98,8 +98,8 @@ boundary
             //";
             string Cylinder = @"refinementCylinder{
 type searchableCylinder;
-point1 (" + Utilities.FormatPoint(dom.RefinementCylinder.Center).Replace(',', ' ') + @");
-point2 (" + Utilities.FormatPoint(dom.RefinementCylinder.Center + Vector3d.ZAxis * dom.RefinementCylinder.Height2).ToString().Replace(',', ' ') + @");
+point1 (" + Utilities.FormatPV(dom.RefinementCylinder.Center).Replace(',', ' ') + @");
+point2 (" + Utilities.FormatPV(dom.RefinementCylinder.Center + Vector3d.ZAxis * dom.RefinementCylinder.Height2).ToString().Replace(',', ' ') + @");
 radius " + Utilities.FormatDouble(dom.RefinementCylinder.CircleAt(0.5).Radius) + @";
 }";
 
@@ -210,7 +210,7 @@ refinementBox {mode inside; levels ((" + MeshSettings.accRefinement + @" " + Mes
 //refinementCylinder {mode inside; levels ((" + MeshSettings.accRefinement + " " + MeshSettings.accRefinement + @"));}
         }
 
-        locationInMesh ( " + Utilities.FormatPoint(dom.LocationInMesh) + @" );
+        locationInMesh ( " + Utilities.FormatPV(dom.LocationInMesh) + @" );
 
         //maxLocalCells 15000000;
         //maxGlobalCells 50000000;
@@ -525,7 +525,7 @@ libs
                     enabled yes;
                     writeControl timeStep;
                     writeInterval " + RunSettings.writeInterval + @";
-                    UInf (" + Utilities.FormatVector(BCondCP.Uinf[d]) + @");     // the undistrubed velocity at building height
+                    UInf (" + Utilities.FormatPV(BCondCP.Uinf[d]) + @");     // the undistrubed velocity at building height
                     pInf " + Utilities.FormatDouble(Math.Round(BCondCP.pinf, 1)) + @";        // the dynamic undisturbed pressure at building height
                     pRef " + Utilities.FormatDouble(Math.Round(BCondCP.pref, 1)) + @";        // the dynamic pressure at reference height (usually 10 m)
                     rhoInf              1.2;
@@ -652,7 +652,7 @@ FoamFile
             sb.Append(Environment.NewLine);
             for (int i = 0; i < listOfPoints.Count; i++)
             {
-                sb.Append(@"(" + Utilities.FormatPoint(listOfPoints[i]) + @")");
+                sb.Append(@"(" + Utilities.FormatPV(listOfPoints[i]) + @")");
                 sb.Append(Environment.NewLine);
             }
 
