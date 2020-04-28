@@ -1034,12 +1034,8 @@ namespace EddyLib
             }
         });
             }
-<<<<<<< Updated upstream
 
-            // WF[h, p]
-=======
 
->>>>>>> Stashed changes
             return WF;
         }
     }
