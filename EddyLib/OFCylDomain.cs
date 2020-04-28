@@ -12,14 +12,19 @@ namespace EddyLib
         //public BoundingBox BBox; //moved to BaseDomain so that is globally accessible
 
         public double radius;
+
         public double height;
 
         public List<Point3d> ListOfAllPointsInMagicOrder;
 
         public int divisionsX = 1;
+
         public int divsRadial;
+
         public int divisionsZ;
+
         public int divPerim;
+
         public double gradingPerim;
 
         public double cellSizeInner;
@@ -28,17 +33,23 @@ namespace EddyLib
         public Mesh CylDomainMesh = new Mesh();
 
         public Mesh CylDomainMeshGround = new Mesh();
+
         public Mesh CylDomainMeshGroundPerim = new Mesh();
 
         public Mesh perimBottom = new Mesh();
+
         public Mesh coreBottom = new Mesh();
+
         public Mesh perimTop = new Mesh();
+
         public Mesh coreTop = new Mesh();
+
         public Mesh sides = new Mesh();
 
         public double sizeInnerR;
 
         public List<Polyline> concentricDivisions;
+
         public List<Circle> outerCircles;
 
         // Remove this later
@@ -165,6 +176,7 @@ namespace EddyLib
         {
             // point inside cdf domain - needed for meshing and finding the void space for fluid
             LocationInMesh = center + (Vector3d.ZAxis * (height - 0.1));
+
             // move into periphery
             LocationInMesh += radius * 0.6 * Vector3d.XAxis;
 
@@ -184,6 +196,7 @@ namespace EddyLib
             }
 
             double cellSizeCore = 2 * (sizeInnerRect / divsRadial);
+
             //Math.Abs was just a workaround fix
 
             //this.cellDivisionsPerim = Math.Abs((int)Math.Round((circRad - (2 * sizeInnerRect)) / cellSizeCore));
@@ -405,6 +418,7 @@ namespace EddyLib
                 Point3d p2;
 
                 Rhino.Geometry.Intersect.LineCircleIntersection inter = Rhino.Geometry.Intersect.Intersection.LineCircle(new Line(newCenter, vec), c, out t1, out p1, out t2, out p2);
+
                 //Move all points in one plane
                 pointsOnCircle.Add(new Point3d(p1.X, p1.Y, center.Z));
             }
@@ -446,6 +460,7 @@ namespace EddyLib
 
             int c1 = perimBottom.Faces.Count;
             int c2 = perimBottom.Faces.Count + coreBottom.Faces.Count + perimTop.Faces.Count;
+
             // counter for cores and perimeters
             int c3 = perimBottom.Faces.Count + coreBottom.Faces.Count;
 
@@ -503,7 +518,7 @@ namespace EddyLib
 
             for (int i = 0; i < DomainMesh.Vertices.Count; i++)
             {
-                stb.AppendLine("(" + DomainMesh.Vertices[i].X + " " + +DomainMesh.Vertices[i].Y + " " + +DomainMesh.Vertices[i].Z + ")");
+                stb.AppendLine("(" + Utilities.FormatPoint(DomainMesh.Vertices[i]) + ")");
             }
             return stb.ToString();
         }
@@ -537,6 +552,7 @@ namespace EddyLib
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
 
             int c1 = perimBottom.Faces.Count + coreBottom.Faces.Count;
+
             //int c2 = this.perim.Faces.Count + this.core.Faces.Count + this.perimTop.Faces.Count + this.coreTop.Faces.Count;
 
             sb.AppendLine(@"ground
@@ -601,6 +617,7 @@ namespace EddyLib
                     innerRadialList.Add(fullList[(i + j)]);
                     i += divPerim;
                 }
+
                 //Add the last vertex to close the loop
                 innerRadialList.Add(fullList[j]);
             }
@@ -663,6 +680,7 @@ namespace EddyLib
         class       dictionary;
         object      blockMeshDict;
         }
+
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
         convertToMeters 1;
@@ -714,6 +732,7 @@ namespace EddyLib
               "Projected area: " + Math.Round(this.MaxFrontageBuildingArea, 1)
 
               ;
+
             // return base.ToString();
         }
     }
