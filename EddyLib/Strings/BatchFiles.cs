@@ -7,6 +7,7 @@ namespace EddyLib.Strings
     public enum Mode
     {
         Simulation,
+
         Meshing
     }
 
@@ -15,6 +16,7 @@ namespace EddyLib.Strings
         //Run commands as list
 
         private static readonly List<string> RCCheckMeshSingleCPU = new List<string> {
+
        // "checkMesh -allGeometry -allTopology -writeAllFields -writeSets vtk",  // Not supported in OpenFOAM 5 yet
         "checkMesh -allGeometry -allTopology -writeSets vtk",
         "foamToVTK -faceSet highAspectRatioCells -ascii",
@@ -35,6 +37,7 @@ namespace EddyLib.Strings
             {
                 lst = new List<string>{
      "decomposePar -force",
+
      //"mpiexec -np " + RunSettings.CPUs + @" renumberMesh -overwrite",
      "mpiexec -np " + RunSettings.CPUs + @" potentialFoam -parallel",
      "mpiexec -np " + RunSettings.CPUs + @" simpleFoam -parallel",
@@ -44,6 +47,7 @@ namespace EddyLib.Strings
             {
                 lst = new List<string>{
                 "decomposePar -force",
+
                 //"mpiexec -np " + RunSettings.CPUs + @" renumberMesh -overwrite",
                 "mpiexec -np " + RunSettings.CPUs + @" simpleFoam -parallel",
                 "reconstructPar -latestTime"            };
@@ -144,11 +148,11 @@ namespace EddyLib.Strings
             StringBuilder sb = new StringBuilder();
             if (mode == Mode.Simulation && RunSettings.ostype == OSType.Windows7)
             {
-                sb.Append(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + DOM.BCond.windDirs[0] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+                sb.Append(@"docker run -v """ + MeshSettings.DockerbaseWorkingDir + DOM.BCond.windDirs[0] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
             }
             else if (mode == Mode.Meshing && RunSettings.ostype == OSType.Windows7)
             {
-                sb.Append(@"docker run -v """ + MeshSettings.OFmeshWorkingDir + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+                sb.Append(@"docker run -v """ + MeshSettings.DockermeshWorkingDir + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
             }
             else if (mode == Mode.Simulation)
             {
@@ -168,11 +172,11 @@ namespace EddyLib.Strings
 
             if (mode == Mode.Simulation && RunSettings.ostype == OSType.Windows7)
             {
-                sb.Append(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + +DOM.BCond.windDirs[d] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+                sb.Append(@"docker run -v """ + MeshSettings.DockerbaseWorkingDir + +DOM.BCond.windDirs[d] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
             }
             else if (mode == Mode.Meshing && RunSettings.ostype == OSType.Windows7)
             {
-                sb.Append(@"docker run -v """ + MeshSettings.OFmeshWorkingDir + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+                sb.Append(@"docker run -v """ + MeshSettings.DockermeshWorkingDir + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
             }
             else if (mode == Mode.Simulation)
             {
@@ -548,6 +552,7 @@ namespace EddyLib.Strings
                 //foreach (string str in RCCheckMeshSingleCPU)
                 //{
                 sb.Append(TempBlueCFD(RCCheckMeshSingleCPU, MeshSettings.meshWorkingDir));
+
                 //}
 #if DEBUG
                 sb.AppendLine("PAUSE");
@@ -601,6 +606,7 @@ namespace EddyLib.Strings
                 //foreach (string str in RCCheckMeshSingleCPU)
                 //{
                 sb.Append(TempBlueCFD(reconstructMesh(), MeshSettings.meshWorkingDir));
+
                 //}
 #if DEBUG
                 sb.AppendLine("PAUSE");
@@ -712,10 +718,12 @@ REM   --help              Display this help screen.");
             string dif = "-f " + "\"" + workDir + @"\Rad\CallRay.dif.ill" + "\"";
             string dir = "-r " + "\"" + workDir + @"\Rad\CallRay.dir.ill" + "\"";
             string u = "-u " + "\"" + workDir + @"\WindReductionData.csv" + "\"";
+
             // windDirs
             string o = "-o " + dirs;
 
             StringBuilder sb = new StringBuilder();
+
             //sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallProbes.exe\" "+ "-w " + "\"" +workDir + "\" " + "-p " + "\"" + workDir + @"\Rad\sensors.pts" + "\"" + " -d " + dirs + " -m 1");
             //sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallRay.exe\" "  + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCInflow.weather + "\"");
             sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallOC.exe\" " + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCond.epwFilePath + "\" " + dif + " " + dir + " " + o + " " + u);
@@ -754,6 +762,7 @@ REM   --help              Display this help screen.");
                 foreach (string str in commands)
                 {
                     sb.AppendLine(str.Trim() + " " + AppendSuffixWin());
+
                     //sb.AppendLine(str);
                 }
             }
@@ -762,6 +771,7 @@ REM   --help              Display this help screen.");
                 foreach (string str in commands)
                 {
                     sb.AppendLine(str.Trim() + " ");
+
                     //sb.AppendLine(str);
                 }
             }

@@ -8,6 +8,7 @@ using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
+using System.Linq;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -30,10 +31,10 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompCalcWindFactors()
-          : base("Pedestrian Comfort", "Pedestrian Comfort", @"Pedestrian Comfort
+          : base("Annual Pedestrian Comfort", "Pedestrian Comfort", @"Pedestrian Comfort
 
-Based on the weather data input, this component calculates wind reduction factors for every hour of the year for each probing point [8760 hourly branches x number of probing points].
-The wind reduction factors are calculated based on the wind velocity and direction for each hour which is scaled up/down accordingly given probing height from ground.
+Based on the weather data input, this component calculates wind velocities, wind factors, and pedestrian comfort idices for each probing point [8760 hourly branches x number of probing points].
+The wind factors are calculated based on the wind velocity and direction for each hour which is scaled up/down accordingly given probing height from ground.
 For this, we support either a look-up for the closest simulated wind direction or an interpolation between the closest two wind directions.
 " + EddyVersion.toString(),
               EddyVersion.Name, "6 | Outdoor Comfort")
@@ -107,10 +108,15 @@ For this, we support either a look-up for the closest simulated wind direction o
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             //pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Wind Reduction Factors", "WF", @"Wind Reduction Factors
+            pManager.AddGenericParameter("Wind Velocities", "WF", @"Wind Velocities
 
-Dimensionless wind velocity of each sensor point from the nearest simulated wind direction with the corresponding velocity and wind direction from the weather data for every hour of the year.
-This yields a datatree with wind reduction factors of the size [8760 h x number of sensor points].", GH_ParamAccess.item);
+Wind velocity of each probing point from the nearest simulated wind direction multiplied with the corresponding velocity from the weather data for every hour of the year.
+This yields a datatree of the size [8760 h x number of sensor points].", GH_ParamAccess.item);
+
+            pManager.AddGenericParameter("Wind Factors", "WF", @"Wind Factors
+
+Dimensionless wind velocity of each probing point from the nearest simulated wind direction for every hour of the year.
+This yields a datatree of the size [8760 h x number of sensor points].", GH_ParamAccess.item);
 
             pManager.AddNumberParameter("Pedestrian Wind Comfort", "Cmft", @"Pedestrian Wind Comfort
 
@@ -204,11 +210,7 @@ NEN8100
 
             #region Error checks
 
-            var sum = 0.0;
-            foreach (Point3d pp in probes) { sum += pp.Z; }
-            var probingHeight = sum / probes.Count;
-
-            if (probingHeight < RES.Domain.DomainMesh.GetBoundingBox(false).Min.Z || probingHeight > RES.Domain.DomainMesh.GetBoundingBox(false).Max.Z)
+            if (probes.Any(val => val.Z < RES.Domain.DomainMesh.GetBoundingBox(false).Min.Z || probes.Any(val2 => val2.Z > RES.Domain.DomainMesh.GetBoundingBox(false).Max.Z)))
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "You cannot probe that set of probes outside of the simulation domain.");
                 return;
@@ -267,7 +269,7 @@ NEN8100
 
             #region Wind Factors
 
-            var wf = new WindReductionFactors(RES.WorkingDirectory, RES.Domain.BCond, weather, av, probingHeight, interpolate, run, cmftcmftindex);
+            var wf = new WindFactors(RES.WorkingDirectory, RES.Domain.BCond, weather, av, probes, interpolate, run, cmftcmftindex);
 
             if (GH_Document.IsEscapeKeyDown())
             {

@@ -36,7 +36,7 @@ namespace EddyLib
 
         public bool resultPrecalculated;
 
-        public UTCI(Point3d[] probes, WindReductionFactors wf, Weather weather, MRT mrt, BoundaryConditions bcond, string baseWorkingDir, bool recalc, int truncateBy = 1)
+        public UTCI(Point3d[] probes, WindFactors wf, Weather weather, MRT mrt, BoundaryConditions bcond, string baseWorkingDir, bool recalc, int truncateBy = 1)
         {
             var csvUTCI = baseWorkingDir + @"UTCI.csv";
             var binUTCI = baseWorkingDir + @"UTCI.bin";
@@ -88,7 +88,7 @@ namespace EddyLib
         }
 
         //Tuple items: utci, humcondition, valuesAnnualPercentage, uncertaintyMRTArray, uncertaintyWindArray
-        public static Tuple<double[,], int[,], double[], bool[,], bool[,]> CalcUTCI(Point3d[] Probes, Weather weather, WindReductionFactors wf, MRT mrt, int truncateBy)
+        public static Tuple<double[,], int[,], double[], bool[,], bool[,]> CalcUTCI(Point3d[] Probes, Weather weather, WindFactors wf, MRT mrt, string csvUTCI, int truncateBy)
         {
             int numberOfHours = 8760;
             int numberOfProbes = Probes.Length;

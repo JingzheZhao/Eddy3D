@@ -41,7 +41,7 @@ namespace UnitTest
             var dir2 = 355;
 
             // Act
-            var res = EddyLib.WindReductionFactors.DistanceBetweenWindDirs(dir1, dir2);
+            var res = EddyLib.WindFactors.DistanceBetweenWindDirs(dir1, dir2);
 
             // Assert
             Assert.AreEqual(5, res);
@@ -55,7 +55,7 @@ namespace UnitTest
             var dir2 = 90;
 
             // Act
-            var res = EddyLib.WindReductionFactors.DistanceBetweenWindDirs(dir1, dir2);
+            var res = EddyLib.WindFactors.DistanceBetweenWindDirs(dir1, dir2);
 
             // Assert
             Assert.AreEqual(45, res);
@@ -68,7 +68,7 @@ namespace UnitTest
             var windDirList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
 
             // Act
-            var res = EddyLib.WindReductionFactors.ReturnNextLowerIndex(windDirList, 0);
+            var res = EddyLib.WindFactors.ReturnNextLowerIndex(windDirList, 0);
 
             // Assert
 
