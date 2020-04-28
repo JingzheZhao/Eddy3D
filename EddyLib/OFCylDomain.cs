@@ -518,7 +518,7 @@ namespace EddyLib
 
             for (int i = 0; i < DomainMesh.Vertices.Count; i++)
             {
-                stb.AppendLine("(" + Utilities.FormatPoint(DomainMesh.Vertices[i]) + ")");
+                stb.AppendLine("(" + Utilities.FormatPV(DomainMesh.Vertices[i]) + ")");
             }
             return stb.ToString();
         }
