@@ -88,7 +88,7 @@ namespace EddyLib
         }
 
         //Tuple items: utci, humcondition, valuesAnnualPercentage, uncertaintyMRTArray, uncertaintyWindArray
-        public static Tuple<double[,], int[,], double[], bool[,], bool[,]> CalcUTCI(Point3d[] Probes, Weather weather, WindFactors wf, MRT mrt, string csvUTCI, int truncateBy)
+        public static Tuple<double[,], int[,], double[], bool[,], bool[,]> CalcUTCI(Point3d[] Probes, Weather weather, WindFactors wf, MRT mrt, int truncateBy)
         {
             int numberOfHours = 8760;
             int numberOfProbes = Probes.Length;

@@ -37,7 +37,6 @@ namespace EddyLib
             NEN8100,
         };
 
-
         public PedestrianComfort(string workingDir, int[] windDirs, Vector3d[,] vectors, bool truncateDoubles, bool recalc, int truncateBy = 1)
 
         {
@@ -48,9 +47,6 @@ namespace EddyLib
 
             if (File.Exists(binAnnualVelProbes) && !recalc)
             {
-                //var temp = ReadAnnualVelocitiesFromCSV(csvFilePath);
-
-                //int[] windDirs;
                 var temp = RadianceFiles.loadBinDVectors(binAnnualVelProbes, out windDirs);
 
                 if (temp.GetLength(0) == vectors.GetLength(0))
@@ -96,47 +92,6 @@ namespace EddyLib
                 if (vec.Length > 10000) { infValues = true; }
             }
             return infValues;
-        }
-
-        public static Tuple<int[], Vector3d[,]> ReadAnnualVelocitiesFromCSV(string filePath)
-        {
-            // Todo: slow, fix later
-
-            // data.GetUpperBound(1) wind dirs data.GetUpperBound(0) probes
-
-            var data = RadianceFiles.readCSVFile(filePath);
-
-            // Extract Header
-
-            var WindDirs = new List<int>();
-
-            for (int d = 0; d < data.GetUpperBound(1); d += 3)
-            {
-                WindDirs.Add((int)data[0, d]);
-            }
-
-            // data.GetUpperBound(1)+1/3 because last line always has an additional comma and we have
-            // 3 vector components
-
-            var Probes = new Vector3d[data.GetUpperBound(0), (data.GetUpperBound(1) + 1) / 3];
-
-            // int p = 1 --> Skip header
-
-            Parallel.For(1, data.GetUpperBound(0) + 1, p =>
-            {
-                // int d = 0;
-                int cnt = 0;
-                for (int d = 0; d < (data.GetUpperBound(1) + 1) / 3; d++)
-                {
-                    // p-1 because we want to start with 0
-                    Probes[p - 1, d] = new Vector3d(data[p, cnt], data[p, cnt + 1], data[p, cnt + 2]);
-                    cnt += 3;
-                }
-            });
-
-            // Vector3d[,] res = new Vector3d[,]{{ new Vector3d(1, 1, 1)}};
-
-            return new Tuple<int[], Vector3d[,]>(WindDirs.ToArray(), Probes);
         }
 
         public static void WriteAnnualVel2CSV(int[] windDirs, Vector3d[,] vectors, string filePath, bool truncateDoubles, int truncateBy = 1)
@@ -187,7 +142,7 @@ namespace EddyLib
         }
     }
 
-    public class WindReductionFactors
+    public class WindFactors
     {
         public int[] ClstSimDirs { get; set; }
 
@@ -205,19 +160,17 @@ namespace EddyLib
 
         public bool wrongNumberOfProbes;
 
-
         private string fileName = @"WindFactors";
 
         private string fileNameCSVExtension = ".csv";
 
         private string fileNameBinExtension = ".bin";
 
-
         private string interpolationPref = "lp";
 
         private string del = "_";
 
-        public WindReductionFactors(string baseWorkingDir, BoundaryConditions bcond, Weather weather, PedestrianComfort velocityProbes, double probingHeight, bool interpolate, bool recalc, PedestrianComfort.PedestrianComfortIdx cmftidx)
+        public WindFactors(string baseWorkingDir, BoundaryConditions bcond, Weather weather, PedestrianComfort velocityProbes, List<Point3d> probes, bool interpolate, bool recalc, PedestrianComfort.PedestrianComfortIdx cmftidx)
         {
             string csvWindFactors = interpolate == false ? Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + fileNameCSVExtension) : Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + interpolationPref + del + fileNameCSVExtension);
             string binWindFactors = interpolate == false ? Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + fileNameBinExtension) : Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + interpolationPref + del + fileNameBinExtension);
@@ -260,7 +213,7 @@ namespace EddyLib
                 this.ClstSimDirs = ClstSimDirs.ToArray();
                 this.Indices = SimDirIndices.ToArray();
 
-                this.ValuesWindFactors = CalcWindReductionArray(velocityProbes.Values, Indices, bcond, weather, probingHeight, interpolate);
+                this.ValuesWindFactors = CalcWindReductionArray(velocityProbes.Values, Indices, bcond, weather, probes, interpolate);
                 RadianceFiles.writeBin(binWindFactors, this.ValuesWindFactors);
                 ArrayHelper._2DArray2CSV(this.ValuesWindFactors, csvWindFactors, true, 1);
                 this.resultPrecalculated = false;
@@ -321,13 +274,12 @@ namespace EddyLib
             return velocities;
         }
 
-        public static double GetVelocityAtProbingHeightFromABL(double URefEPW, BoundaryConditions bcond, double probingHeight)
+        public static double ScaleABL(double URefEPW, BoundaryConditions bcond, double probingHeight)
         {
             var zref = bcond.zref;
             var z0 = bcond.z0;
 
-            var UAtProbingHeightFromEPW = ((0.41 * URefEPW) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((probingHeight + z0) / z0);
-            return UAtProbingHeightFromEPW;
+            return ((0.41 * URefEPW) / Math.Log((zref + z0) / z0) / 0.41) * Math.Log((probingHeight + z0) / z0);
         }
 
         // This returns the plain annual array
@@ -439,7 +391,7 @@ namespace EddyLib
             return upperIndex;
         }
 
-        private static double[,] CalcWindReductionArray(Vector3d[,] annualVecProbes, int[] clstSimDirIdx, BoundaryConditions bcond, Weather weather, double probingHeight, bool interpolate)
+        private static double[,] CalcWindReductionArray(Vector3d[,] annualVecProbes, int[] clstSimDirIdx, BoundaryConditions bcond, Weather weather, List<Point3d> probes, bool interpolate)
         {
             var windDirSim = bcond.windDirs;
             var windDirsEPW = weather.WindDirection;
@@ -482,9 +434,9 @@ namespace EddyLib
                 var distanceToLower = DistanceBetweenWindDirs(windDirsEPW[h], nextDirDown);
                 var distanceToUpper = DistanceBetweenWindDirs(windDirsEPW[h], nextDirUp);
 
-                var velAtProbHeightEPW = GetVelocityAtProbingHeightFromABL(weather.WindSpeed[h], bcond, probingHeight);
+                var velAtProbHeightEPW = ScaleABL(weather.WindSpeed[h], bcond, probes[p].Z);
                 var velSim = annualVelocities[p, clstSimDirIdx[h]];
-                var velApproaching = GetVelocityAtProbingHeightFromABL(bcond.URef, bcond, probingHeight);
+                var velApproaching = ScaleABL(bcond.URef, bcond, probes[p].Z);
 
                 // Avoid Infinity
 
@@ -517,7 +469,6 @@ namespace EddyLib
             }
         });
             }
-
 
             return WF;
         }

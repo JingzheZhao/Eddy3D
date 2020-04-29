@@ -84,7 +84,7 @@
     <Compile Include="Attributes\Eddy_ComponentButtonAttributes.cs" />
     <Compile Include="BoundaryConditions\BoundaryConditionsCP.cs" />
     <Compile Include="BoundaryConditions\BoundaryConditionsBase.cs" />
-    <Compile Include="OutdoorComfort\Metrics\PedestrianComfortMetrics.cs" />
+    <Compile Include="OutdoorComfort\PedestrianComfortMetrics.cs" />
     <Compile Include="OutdoorComfort\PET.cs" />
     <Compile Include="Radiance\SolarCal.cs" />
     <Compile Include="Strings\ReturnMsg.cs" />

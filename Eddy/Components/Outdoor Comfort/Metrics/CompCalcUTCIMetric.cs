@@ -73,16 +73,16 @@ Calculate the UTCI
         /// </param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            int tamb = 0;
+            var tamb = 0.0;
             DA.GetData("Ambient temperature", ref tamb);
 
-            int wind = 0;
+            var wind = 0.0;
             DA.GetData("Wind velocity", ref wind);
 
-            int mrt = 0;
+            var mrt = 0.0;
             DA.GetData("Mean Radiant Temperature", ref mrt);
 
-            int rh = 0;
+            var rh = 0.0;
             DA.GetData("Relative humidity", ref rh);
 
             var utci = EddyLib.UTCI.CalcUTCI(tamb, rh, wind, mrt);
