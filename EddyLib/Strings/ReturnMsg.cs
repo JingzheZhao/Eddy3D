@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace EddyLib.Strings
 {
-    public class RTMsg
+    public class ReturnMsg
 
     {
         public static string MeshDoesntExist(string caseFolder)
@@ -56,6 +56,26 @@ can't be probed within the simulation domain and have been discarded.");
         public static string ProbingFuncObjects(OFResult RES, OFField field)
         {
             return @"You are probing a function object (" + field.FieldName + ") and WriteInt is set to " + RES.RunSettings.iter + ". Please lower the WriteInt to 1 and simulate one more iteration to enable the probing for this special case.";
+        }
+
+        public static string WrongNumberOfProbes(OFResult RES, string Engine)
+        {
+            return @"The precalculated " + Engine + " results do not have the correct number of probing points. The results need to be recalculated";
+        }
+
+        public static string PrecalResLoaded(OFResult RES, string Engine)
+        {
+            return "The precalculated " + Engine + " results have been loaded.";
+        }
+
+        public static string NoResults(OFResult RES, string Engine)
+        {
+            return "Either precalculated " + Engine + " results could not be loaded or the MRT array has not been calculated yet.";
+        }
+
+        public static string LargeDataTree(double threshold)
+        {
+            return "There are more than " + (int)(threshold) + " items in the data tree. Please be careful when connecting them to another component for post-processing as this might slow things down significantly.";
         }
     }
 }

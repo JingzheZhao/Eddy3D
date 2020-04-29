@@ -37,18 +37,26 @@ namespace EddyLib
             NEN8100,
         };
 
-        public PedestrianComfort(int[] windDirs, Vector3d[,] vectors, string csvFilePath, bool truncateDoubles, bool recalc, int truncateBy = 1)
+
+        public PedestrianComfort(string workingDir, int[] windDirs, Vector3d[,] vectors, bool truncateDoubles, bool recalc, int truncateBy = 1)
+
         {
+            var csvAnnualVelProbes = workingDir + "AnnualVelocityProbes.csv";
+            var binAnnualVelProbes = workingDir + "AnnualVelocityProbes.bin";
+
             this.infValues = CheckForInfValues(vectors);
 
-            if (File.Exists(csvFilePath) && !recalc)
+            if (File.Exists(binAnnualVelProbes) && !recalc)
             {
-                var temp = ReadAnnualVelocitiesFromCSV(csvFilePath);
+                //var temp = ReadAnnualVelocitiesFromCSV(csvFilePath);
 
-                if (temp.Item2.GetLength(0) == vectors.GetLength(0))
+                //int[] windDirs;
+                var temp = RadianceFiles.loadBinDVectors(binAnnualVelProbes, out windDirs);
+
+                if (temp.GetLength(0) == vectors.GetLength(0))
                 {
-                    this.Values = temp.Item2;
-                    this.WindDirs = temp.Item1;
+                    this.Values = temp;
+                    this.WindDirs = windDirs;
                     this.resultPrecalculated = true;
                     this.wrongNumberOfProbes = false;
                 }
@@ -60,14 +68,17 @@ namespace EddyLib
             }
             if (recalc)
             {
-                if (File.Exists(csvFilePath))
-                {
-                    File.Delete(csvFilePath);
-                }
+                //if (File.Exists(csvFilePath))
+                //{
+                //    File.Delete(csvFilePath);
+                //}
 
-                WriteAnnualVel2CSV(windDirs, vectors, csvFilePath, truncateDoubles, truncateBy);
-                this.Values = ReadAnnualVelocitiesFromCSV(csvFilePath).Item2;
-                this.WindDirs = ReadAnnualVelocitiesFromCSV(csvFilePath).Item1;
+                this.Values = vectors;
+                this.WindDirs = windDirs;
+
+                RadianceFiles.writeBinVectors(binAnnualVelProbes, vectors, windDirs);
+                WriteAnnualVel2CSV(windDirs, vectors, csvAnnualVelProbes, truncateDoubles, truncateBy);
+
                 this.resultPrecalculated = false;
                 this.wrongNumberOfProbes = false;
             }
@@ -190,9 +201,13 @@ namespace EddyLib
 
         public bool wrongNumberOfProbes;
 
-        private string fileNameCSV = @"WindFactors";
+
+        private string fileName = @"WindFactors";
 
         private string fileNameCSVExtension = ".csv";
+
+        private string fileNameBinExtension = ".bin";
+
 
         private string interpolationPref = "lp";
 
@@ -200,13 +215,14 @@ namespace EddyLib
 
         public WindReductionFactors(string baseWorkingDir, BoundaryConditions bcond, Weather weather, PedestrianComfort velocityProbes, double probingHeight, bool interpolate, bool recalc, PedestrianComfort.PedestrianComfortIdx cmftidx)
         {
-            string csvWindFactors = interpolate == false ? Path.Combine(baseWorkingDir + fileNameCSV + del + weather.Location + del + fileNameCSVExtension) : Path.Combine(baseWorkingDir + fileNameCSV + del + weather.Location + del + interpolationPref + del + fileNameCSVExtension);
+            string csvWindFactors = interpolate == false ? Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + fileNameCSVExtension) : Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + interpolationPref + del + fileNameCSVExtension);
+            string binWindFactors = interpolate == false ? Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + fileNameBinExtension) : Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + interpolationPref + del + fileNameBinExtension);
 
-            if (File.Exists(csvWindFactors) && !recalc)
+            if (File.Exists(binWindFactors) && !recalc)
             {
                 try
                 {
-                    this.ValuesWindFactors = ReadWindReductionArrayFromCSV(csvWindFactors);
+                    this.ValuesWindFactors = RadianceFiles.loadBinD(binWindFactors);
                     this.resultPrecalculated = true;
                     this.wrongNumberOfProbes = false;
 
@@ -232,12 +248,11 @@ namespace EddyLib
                 this.Indices = SimDirIndices.ToArray();
 
                 this.ValuesWindFactors = CalcWindReductionArray(velocityProbes.Values, Indices, bcond, weather, probingHeight, interpolate);
+                RadianceFiles.writeBin(binWindFactors, this.ValuesWindFactors);
                 ArrayHelper._2DArray2CSV(this.ValuesWindFactors, csvWindFactors, true, 1);
                 this.resultPrecalculated = false;
                 this.wrongNumberOfProbes = false;
             }
-
-            //var tempComfort = CalcPedestrianComfort(this.ValuesWindFactors);
 
             this.ValuesPedestrianWindComfort = CalcPedestrianComfort(this.ValuesWindFactors, cmftidx);
         }
@@ -303,11 +318,6 @@ namespace EddyLib
         }
 
         // This returns the plain annual array
-
-        public static double[,] ReadWindReductionArrayFromCSV(string filePath)
-        {
-            return RadianceFiles.readCSVFile(filePath);
-        }
 
         public Tuple<List<int>, List<int>, List<int>, double> GetClosestWindDirs(Weather weather, BoundaryConditions bcond)
         {
@@ -494,6 +504,7 @@ namespace EddyLib
             }
         });
             }
+
 
             return WF;
         }

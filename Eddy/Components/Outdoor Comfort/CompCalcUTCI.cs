@@ -37,12 +37,16 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Simulation result", "Res", "Eddy simulation result", GH_ParamAccess.item);
+
             //pManager.AddIntegerParameter("windDirs", "windDirs", "windDirs", GH_ParamAccess.list);
             pManager.AddPointParameter("Probing points", "Points", "List of probing points", GH_ParamAccess.list);
+
             //pManager.AddIntegerParameter("Hour", "Hour", "Hour", GH_ParamAccess.item);
             pManager.AddGenericParameter("Wind Factors", "WF", "Eddy Wind Factors Object", GH_ParamAccess.item);
             pManager.AddGenericParameter("Mean Radiant Temperature", "MRT", "Mean Radiant Temperature [°C] Object", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item);
+
+            pManager[4].Optional = true;
         }
 
         /// <summary>
@@ -140,6 +144,7 @@ namespace Eddy
                 return;
             }
             DA.SetData(0, utci);
+
             //DA.SetData(1, utci.ValuesCondition);
             DA.SetDataList(1, utci.ValuesAnnualPercentage);
         }
@@ -149,6 +154,7 @@ namespace Eddy
         /// need to be 24x24 pixels.
         /// </summary>
         protected override System.Drawing.Bitmap Icon =>
+
                 // You can add image files to your project resources and access them like this:
                 Resources.Eddy_calUTCI;
 

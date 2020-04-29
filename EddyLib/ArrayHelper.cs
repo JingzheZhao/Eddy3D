@@ -210,18 +210,31 @@ namespace EddyLib
         //    return result;
         //}
 
-        public static IGH_Goo[,] To2DArrayGen(GH_Structure<IGH_Goo> tree)
+        public static IGH_Goo[,] To2DArrayGen(DataTree<IGH_Goo> tree)
         {
-            IGH_Goo[,] result = new IGH_Goo[tree.Branches[0].Count, tree.Branches.Count];
+            IGH_Goo[,] result = new IGH_Goo[tree.Branches.Count, tree.Branches[0].Count];
 
-            var zz = tree[0][0];
-
-            for (int i = 0; i < tree.Branches[0].Count; i++)
+            for (int i = 0; i < tree.Branches.Count; i++)
             {
-                for (int j = 0; j < tree.Branches.Count; j++)
+                for (int j = 0; j < tree.Branches[0].Count; j++)
                 {
-                    if (tree.Branches[j].Count != tree.Branches[0].Count) throw new InvalidOperationException("The list cannot contain elements (lists) of different sizes.");
-                    result[i, j] = tree[j][i];   //[i];
+                    if (tree.Branches[i].Count != tree.Branches[0].Count) throw new InvalidOperationException("The list cannot contain elements (lists) of different sizes.");
+                    result[i, j] = tree.Branches[i][j];
+                }
+            }
+            return result;
+        }
+
+        public static double[,] To2DArray(DataTree<double> tree)
+        {
+            double[,] result = new double[tree.Branches.Count, tree.Branches[0].Count];
+
+            for (int i = 0; i < tree.Branches.Count; i++)
+            {
+                for (int j = 0; j < tree.Branches[0].Count; j++)
+                {
+                    if (tree.Branches[i].Count != tree.Branches[0].Count) throw new InvalidOperationException("The list cannot contain elements (lists) of different sizes.");
+                    result[i, j] = tree.Branches[i][j];
                 }
             }
             return result;
@@ -367,6 +380,7 @@ namespace EddyLib
                     {
                         content += data[x][y].ToString() + ",";
                     }
+
                     //trying to write data to csv
                     outfile.WriteLine(content);
                 }
@@ -427,6 +441,7 @@ namespace EddyLib
                         {
                             content += data[x, y].ToString() + ",";
                         }
+
                         //trying to write data to csv
                         outfile.WriteLine(content);
                     }
@@ -444,6 +459,7 @@ namespace EddyLib
                         {
                             content += Math.Round(data[x, y], truncateBy).ToString() + ",";
                         }
+
                         //trying to write data to csv
                         outfile.WriteLine(content);
                     }
