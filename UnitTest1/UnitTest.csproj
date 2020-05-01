@@ -60,6 +60,9 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+  <PropertyGroup>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Eto, Version=2.5.0.0, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
       <HintPath>..\packages\RhinoCommon.6.25.20114.5271\lib\net45\Eto.dll</HintPath>
@@ -84,7 +87,6 @@
     <Compile Include="Tests\Test.OutdoorComfort.cs" />
     <Compile Include="Tests\XunitTestInitFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RhinoCompute.cs" />
     <Compile Include="Tests\Test.CylDomain.cs" />
   </ItemGroup>
   <ItemGroup>

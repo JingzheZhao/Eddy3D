@@ -41,7 +41,7 @@ namespace Eddy
 
             //pManager.AddIntegerParameter("windDirs", "windDirs", "windDirs", GH_ParamAccess.list);
             //pManager.AddTextParameter("pointName", "pointName", "pointName", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("Hours", "H", "Hours", GH_ParamAccess.list);
+            pManager.AddIntegerParameter("Select", "S", "Select", GH_ParamAccess.list);
 
             // pManager.AddPointParameter("Probes", "Probes", "Probes", GH_ParamAccess.list);
             // pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item);
@@ -72,12 +72,19 @@ namespace Eddy
             GH_ObjectWrapper gobj = null;
             if (!DA.GetData(0, ref gobj)) { }
 
-            var hoursList = new List<int>();
-            if (!DA.GetDataList(1, hoursList)) { }
+            var selection = new List<int>();
+            if (!DA.GetDataList(1, selection)) { }
 
-            if (hoursList.Count == 0)
+            if (selection.Count == 0)
             {
-                hoursList = (new int[8760]).Select((o, i) => i).ToList();
+                if (!(gobj.Value is WindFactorsSpatial))
+                {
+                    selection = (new int[8760]).Select((o, i) => i).ToList();
+                }
+                else
+                {
+                    selection = (new int[1]).Select((o, i) => i).ToList();
+                }
             }
 
             if ((gobj.Value is MRT))
@@ -88,7 +95,7 @@ namespace Eddy
 
                 DataTree<double> tree = new DataTree<double>();
 
-                foreach (int h in hoursList)
+                foreach (int h in selection)
                 {
                     var tempRow = ArrayHelper.CustomArray<double>.GetRow(mrt.Values, h);
                     tree.AddRange(tempRow, new Grasshopper.Kernel.Data.GH_Path(h));
@@ -102,18 +109,47 @@ namespace Eddy
 
                 DA.SetDataTree(0, tree);
             }
-            else if ((gobj.Value is WindFactors))
+            else if ((gobj.Value is WindFactorsTemporal))
             {
-                WindFactors wf = null;
+                WindFactorsTemporal wf = null;
 
                 DA.GetData(0, ref wf);
 
                 DataTree<double> tree = new DataTree<double>();
 
-                foreach (int h in hoursList)
+                foreach (int h in selection)
                 {
-                    var tempRow = ArrayHelper.CustomArray<double>.GetRow(wf.ValuesWindFactors, h);
+                    var tempRow = ArrayHelper.CustomArray<double>.GetRow(wf.ValuesTemporal, h);
                     tree.AddRange(tempRow, new Grasshopper.Kernel.Data.GH_Path(h));
+                }
+
+                double threshold = 1e6;
+                if (tree.DataCount > threshold)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.LargeDataTree(threshold));
+                }
+
+                DA.SetDataTree(0, tree);
+            }
+            else if ((gobj.Value is WindFactorsSpatial))
+            {
+                WindFactorsSpatial wfs = null;
+
+                DA.GetData(0, ref wfs);
+
+                int windDirs = ArrayHelper.CustomArray<double>.GetRow(wfs.ValuesSpatial, 0).Count();
+                DataTree<double> tree = new DataTree<double>();
+
+                foreach (int dir in selection)
+                {
+                    if (selection.Max() > windDirs || selection.Min() < 0)
+                    {
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Error, EddyLib.Strings.ReturnMsg.SelectionOutsideWindDirs(selection.Max()));
+                        return;
+                    }
+
+                    var tempColumn = ArrayHelper.CustomArray<double>.GetColumn(wfs.ValuesSpatial, dir);
+                    tree.AddRange(tempColumn, new Grasshopper.Kernel.Data.GH_Path(dir));
                 }
 
                 double threshold = 1e6;
@@ -132,7 +168,7 @@ namespace Eddy
 
                 DataTree<double> tree = new DataTree<double>();
 
-                foreach (int h in hoursList)
+                foreach (int h in selection)
                 {
                     var tempRow = ArrayHelper.CustomArray<double>.GetRow(utci.ValuesUTCI, h);
                     tree.AddRange(tempRow, new Grasshopper.Kernel.Data.GH_Path(h));

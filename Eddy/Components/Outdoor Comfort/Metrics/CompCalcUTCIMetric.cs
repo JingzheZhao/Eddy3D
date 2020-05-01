@@ -33,7 +33,7 @@ namespace Eddy
 Calculate the UTCI
 
 " + EddyVersion.toString(),
-              EddyVersion.Name, "7 | Outdoor Comfort Metrics")
+              EddyVersion.Name, "7 | Metrics")
         {
         }
 
@@ -85,7 +85,35 @@ Calculate the UTCI
             var rh = 0.0;
             DA.GetData("Relative humidity", ref rh);
 
-            var utci = EddyLib.UTCI.CalcUTCI(tamb, rh, wind, mrt);
+            bool outofbounds = false;
+
+            // Check for extreme mrts
+
+            var mrt_new = mrt;
+            var wind_new = wind;
+
+            if (mrt < (tamb - 30)) { mrt_new = tamb - 30; outofbounds = true; }
+            if (mrt > (tamb + 70)) { mrt_new = tamb + 70; outofbounds = true; }
+
+            // Check for extreme Windspeeds
+
+            if (wind > 17) { wind_new = 17; outofbounds = true; }
+            if (wind < 0.5) { wind_new = 0.5; outofbounds = true; }
+
+            if (outofbounds == true)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The input values for the UTCI calculation are outside of the accepted bounds.");
+            }
+            if (outofbounds && wind_new != wind)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "All wind velocities values outside acceptible bounds were replace with either 0.5 m/s or 17m/s.");
+            }
+            if (outofbounds && mrt_new != mrt)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "All MRT values outside acceptible bounds were replace with either MRT =  t_amb - 30°C or MRT = t_amb + 70°C.");
+            }
+
+            var utci = EddyLib.UTCI.CalcUTCI(tamb, rh, wind_new, mrt_new);
 
             DA.SetData(0, utci);
         }

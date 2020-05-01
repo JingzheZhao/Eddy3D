@@ -84,7 +84,7 @@
     <Compile Include="Attributes\Eddy_ComponentButtonAttributes.cs" />
     <Compile Include="BoundaryConditions\BoundaryConditionsCP.cs" />
     <Compile Include="BoundaryConditions\BoundaryConditionsBase.cs" />
-    <Compile Include="OutdoorComfort\PedestrianComfortMetrics.cs" />
+    <Compile Include="OutdoorComfort\WindComfortMetrics.cs" />
     <Compile Include="OutdoorComfort\PET.cs" />
     <Compile Include="Radiance\SolarCal.cs" />
     <Compile Include="Strings\ReturnMsg.cs" />
@@ -93,7 +93,7 @@
     <Compile Include="OFRunSettings.cs" />
     <Compile Include="OFMeshSettings.cs" />
     <Compile Include="OutdoorComfort\MRT.cs" />
-    <Compile Include="OutdoorComfort\PedestrianComfort.cs" />
+    <Compile Include="OutdoorComfort\MultiDirectionalVelocities.cs" />
     <Compile Include="Radiance\TwoPhaseDDS.cs" />
     <Compile Include="Radiance\TwoPhase.cs" />
     <Compile Include="Radiance\Skies.cs" />

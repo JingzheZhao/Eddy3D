@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace EddyLib.OutdoorComfort.Metrics
 {
-    internal class PedestrianComfortMetrics
+    internal class WindComfortMetrics
     {
         public static int CalcLawsonGeneralComfort(double[] annualVelocity)
 
         {
-            //            General Lawson
+            // General Lawson
 
             //1 - A > 1.8 m / s < 2 % Sitting Long
             //2 - B > 3.6 m / s < 2 % Sitting Short

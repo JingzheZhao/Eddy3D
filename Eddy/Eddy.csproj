@@ -72,6 +72,7 @@
   <ItemGroup>
     <Compile Include="Components\Misc\CompLBAnalPeriod2Hours.cs" />
     <Compile Include="Components\Outdoor Comfort\CompCalcWindFactors.cs" />
+    <Compile Include="Components\Outdoor Comfort\CompCalcWindComfort.cs" />
     <Compile Include="Components\Outdoor Comfort\CompDeData.cs" />
     <Compile Include="Components\Outdoor Comfort\CompCalcMRT.cs" />
     <Compile Include="Components\Outdoor Comfort\Metrics\CompCalcUTCIMetric.cs" />

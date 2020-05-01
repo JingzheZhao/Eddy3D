@@ -24,6 +24,11 @@ namespace EddyLib.Strings
             return @"Parsing of the probes failed. This data does not exist yet. Please run the probing component.";
         }
 
+        public static string SelectionOutsideWindDirs(int dir)
+        {
+            return @"The wind direction " + dir + @" is outside the bounds of simulated wind directions.";
+        }
+
         public static string PleaseRunProbingComponent()
         {
             return @"Please run the probing component.";
