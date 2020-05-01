@@ -289,8 +289,8 @@ namespace EddyLib
 
         public WindFactorsSpatial(string baseWorkingDir, BoundaryConditions bcond, MultiDirectionalVelocities velocityProbes, List<Point3d> probes, bool interpolate, bool recalc)
         {
-            string csvWFSpatial = interpolate == false ? Path.Combine(baseWorkingDir + fileName + del + fileNameCSVExtension) : Path.Combine(baseWorkingDir + fileName + del + del + fileNameCSVExtension);
-            string binWFSpatial = interpolate == false ? Path.Combine(baseWorkingDir + fileName + del + fileNameBinExtension) : Path.Combine(baseWorkingDir + fileName + del + del + fileNameBinExtension);
+            string csvWFSpatial = interpolate == false ? Path.Combine(baseWorkingDir + fileName + del + fileNameCSVExtension) : Path.Combine(baseWorkingDir + fileName + del + fileNameCSVExtension);
+            string binWFSpatial = interpolate == false ? Path.Combine(baseWorkingDir + fileName + del + fileNameBinExtension) : Path.Combine(baseWorkingDir + fileName + del + fileNameBinExtension);
 
             if (File.Exists(binWFSpatial) && !recalc)
             {
@@ -413,20 +413,20 @@ namespace EddyLib
 
         public bool wrongNumberOfProbes;
 
-        private readonly string fileName = @"WF_T";
+        private readonly string fileName = @"WF_A";
 
         private readonly string fileNameCSVExtension = ".csv";
 
         private readonly string fileNameBinExtension = ".bin";
 
-        private readonly string interpolationPref = "lp";
+        private readonly string interpolationPref = "ip";
 
         private readonly string del = "_";
 
         public WindFactorsTemporal(string baseWorkingDir, BoundaryConditions bcond, Weather weather, WindFactorsSpatial wfspatial, List<Point3d> probes, bool interpolate, bool recalc)
         {
-            string csvWFTemporal = interpolate == false ? Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + fileNameCSVExtension) : Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + interpolationPref + del + fileNameCSVExtension);
-            string binWFTemporal = interpolate == false ? Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + fileNameBinExtension) : Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + interpolationPref + del + fileNameBinExtension);
+            string csvWFTemporal = interpolate == false ? Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + fileNameCSVExtension) : Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + interpolationPref + fileNameCSVExtension);
+            string binWFTemporal = interpolate == false ? Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + fileNameBinExtension) : Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + interpolationPref + fileNameBinExtension);
 
             var (SimDirIndices, ClstSimDirs, OffSet, OffSetAverage) = GetClosestWindDirs(weather, bcond);
             this.OffSet = OffSet.ToArray();

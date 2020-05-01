@@ -42,7 +42,7 @@ namespace Eddy
             pManager.AddPointParameter("Probing points", "Points", "List of probing points", GH_ParamAccess.list);
 
             //pManager.AddIntegerParameter("Hour", "Hour", "Hour", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Wind Factors", "WF", "Eddy Wind Factors Object", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Wind Factors Annual", "WFT", "Eddy Wind Factors Temporal Object", GH_ParamAccess.item);
             pManager.AddGenericParameter("Mean Radiant Temperature", "MRT", "Mean Radiant Temperature [°C] Object", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item);
 
@@ -86,7 +86,7 @@ namespace Eddy
 
             Weather weather = new Weather(RES.Domain.BCond.epwFilePath);
 
-            DA.GetData("Wind Factors", ref windFactors);
+            DA.GetData("Wind Factors Annual", ref windFactors);
             if (windFactors == null)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide valid WindFactos object.");
