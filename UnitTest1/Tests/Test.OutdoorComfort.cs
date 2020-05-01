@@ -131,6 +131,65 @@ namespace RhinoPlugin.Tests.Xunit
         }
 
         [Fact]
+        public void UTCI()
+        {
+            //// Arrange
+            var windDirList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
+            string epw = @"C:\ladybug\New_York_J_F_Kennedy_IntL_Ar_NY_USA_1997\New_York_J_F_Kennedy_IntL_Ar_NY_USA_1997.epw";
+            BoundaryConditions bcond = new BoundaryConditions(BoundaryType.abl, windDirList, 10, 1, epw);
+
+            Weather weather = new Weather(epw);
+            weather.WindSpeed = Enumerable.Repeat(5.0, 8760).ToArray();
+            weather.WindDirection = Enumerable.Repeat(0, 8760).ToArray();
+            weather.DryBulbTemp = Enumerable.Repeat(20.0, 8760).ToArray();
+            weather.RelativeHumidity = Enumerable.Repeat(50.0, 8760).ToArray();
+
+            Vector3d[,] vecs = new Vector3d[100, 8];
+            for (int j = 0; j < 100; j++)
+            {
+                for (int i = 0; i < windDirList.Count; i++)
+                {
+                    vecs[j, i] = new Vector3d(0, 2, 0);
+                }
+            }
+                ;
+
+            var workingdir = @"C:\Testing\";
+            if (!Directory.Exists(workingdir)) { Directory.CreateDirectory(workingdir); };
+            var points = Enumerable.Repeat(new Point3d(0, 0, 2), 100);
+            var mdv = new MultiDirectionalVelocities(workingdir, windDirList.ToArray(), vecs, true, true);
+            var wfs = new WindFactorsSpatial(workingdir, bcond, mdv, points.ToList(), false, true);
+            var wft = new WindFactorsTemporal(workingdir, bcond, weather, wfs, points.ToList(), false, true);
+
+            //// Act
+
+            var mrtdir = @"C:\Testing\Rad\";
+            var outputdir = @"C:\Testing\Output\";
+            if (!Directory.Exists(outputdir)) { Directory.CreateDirectory(outputdir); };
+            if (!Directory.Exists(mrtdir)) { Directory.CreateDirectory(mrtdir); };
+
+            var box = new BoundingBox(new Point3d(0, 0, 0), new Point3d(20, 20, 20));
+            var box2 = new Box(Plane.WorldXY, box);
+
+            var mrt = new MRT(workingdir, Mesh.CreateFromBox(box2, 100, 100, 100), weather, MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true);
+
+            mrt.Values = new double[8760, 100];
+
+            for (int j = 0; j < 8760; j++)
+            {
+                for (int i = 0; i < points.Count(); i++)
+                {
+                    mrt.Values[j, i] = 25.0;
+                }
+            }
+
+            // At 10 m, this leas to a wind velocity of 1.31 m/s which leads to a UTCI of 20.6
+            var utci = new UTCI(points.ToArray(), wft, weather, mrt, bcond, workingdir, true, 2);
+
+            Assert.Equal(20.6, utci.ValuesUTCI[0, 0]);
+        }
+
+        [Fact]
         public void DistanceBetween_0_355_Return5()
         {
             // Arrange

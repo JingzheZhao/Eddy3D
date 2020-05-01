@@ -132,9 +132,9 @@ namespace EddyLib
 
                         // lift to 10 m height as required
 
-                        resultingWindSpeedforUTCI = At10Meters(resultingWindSpeedforUTCI, Probes[probe].Z);
+                        var resultingWindSpeedforUTCI_At10 = At10Meters(resultingWindSpeedforUTCI, Probes[probe].Z);
 
-                        utci[hour, probe] = Math.Round(CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI, resultingMRT), truncateBy);
+                        utci[hour, probe] = Math.Round(CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI_At10, resultingMRT), truncateBy);
                     }
                 });
 

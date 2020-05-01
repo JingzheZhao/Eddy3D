@@ -162,7 +162,16 @@ namespace EddyLib
             //_m.Faces.ConvertQuadsToTriangles();
 
             //_m.Faces.ExtractDuplicateFaces();
-            _m.Faces.ConvertNonPlanarQuadsToTriangles(RhinoDoc.ActiveDoc.ModelAbsoluteTolerance, RhinoDoc.ActiveDoc.ModelAngleToleranceRadians, 0);
+
+            // Need this for unit testing
+            if (RhinoDoc.ActiveDoc == null)
+            {
+                _m.Faces.ConvertNonPlanarQuadsToTriangles(0.01, 0.01, 0);
+            }
+            else
+            {
+                _m.Faces.ConvertNonPlanarQuadsToTriangles(RhinoDoc.ActiveDoc.ModelAbsoluteTolerance, RhinoDoc.ActiveDoc.ModelAngleToleranceRadians, 0);
+            }
 
             // Sometimes Octrees are not written robustly
 
@@ -173,9 +182,21 @@ namespace EddyLib
             for (int i = 0; i < _m.Faces.Count; ++i)
             {
                 var area = Utilities.MeshFaceArea(i, _m);
-                if (area < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)
+
+                // Need this for unit testing
+                if (RhinoDoc.ActiveDoc == null)
                 {
-                    continue;
+                    if (area < 0.01)
+                    {
+                        continue;
+                    }
+                }
+                else
+                {
+                    if (area < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)
+                    {
+                        continue;
+                    }
                 }
 
                 if (_m.Faces[i].IsTriangle)
