@@ -86,6 +86,7 @@
     <Compile Include="BoundaryConditions\BoundaryConditionsBase.cs" />
     <Compile Include="OutdoorComfort\WindComfortMetrics.cs" />
     <Compile Include="OutdoorComfort\PET.cs" />
+    <Compile Include="Radiance\ViewFactors.cs" />
     <Compile Include="Radiance\SolarCal.cs" />
     <Compile Include="Strings\ReturnMsg.cs" />
     <Compile Include="EddyVersion.cs" />

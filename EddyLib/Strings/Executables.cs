@@ -867,6 +867,7 @@ divSchemes
     div(phi,k)      $turbulence;
     div(phi,epsilon) $turbulence;
     div(phi,omega) $turbulence;
+    div(U) Gauss linear;
 
     div((nuEff*dev2(T(grad(U))))) Gauss linear;
 }
