@@ -4,6 +4,8 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using Rhino.Geometry;
+using EddyLib.BCs;
+using EddyLib.FunctionObjects;
 
 namespace EddyLib
 {
@@ -57,7 +59,7 @@ namespace EddyLib
 
         public Point3d[] pointsOnRect;
 
-        public OFCylDomain(Mesh BuildingGeometry, Mesh terrainMesh, BoundaryConditions BCond, double coreBlockSize, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0)
+        public OFCylDomain(Mesh BuildingGeometry, Mesh terrainMesh, BCs.BoundaryCondition BCond, double coreBlockSize, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0)
         {
             gradingPerim = 1.0;
             cellSizeInner = coreBlockSize;
@@ -158,18 +160,12 @@ namespace EddyLib
 
             MakeCircMeshPlane(CenterGround, sizeInnerR, divsRadial, radius, height, (int)coreBlockSize);
 
-            BoundaryConditionsCP BCondCP = new BoundaryConditionsCP(zMax, BCond);
-
-            if (BCond.btype == BoundaryType.constant)
-            {
-                BCond.SetUatBuildingHeightUconst();
-            }
-            if (BCond.btype == BoundaryType.abl)
-            {
-                BCond.SetUatBuildingHeightABL(zMax);
-            }
-
             base.BCond = BCond;
+
+            PressureCoeff BCondCP = new PressureCoeff(zMax, BCond);
+            BCondCP.SetUatBuildingHeight(zMax, BCond);
+
+            ToString();
         }
 
         private void MakeCircMeshPlane(Point3d center, double sizeInnerRect, int divsRadial, double circleRadius, double height, int coreBlockSize)

@@ -204,7 +204,7 @@ This yields a datatree of the size [8760 h x number of sensor points].", GH_Para
 
                 #endregion Load weather
 
-                var wftemporal = new WindFactorsTemporal(RES.WorkingDirectory, RES.Domain.BCond, weather, wfspatial, probes, interpolate, run);
+                var wftemporal = new WindFactorsAnnual(RES.WorkingDirectory, RES.Domain.BCond, weather, wfspatial, probes, interpolate, run);
 
                 if (GH_Document.IsEscapeKeyDown())
                 {
@@ -220,22 +220,14 @@ This yields a datatree of the size [8760 h x number of sensor points].", GH_Para
 
                 if (wftemporal.wrongNumberOfProbes)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The precalculated WindFactors array has the wrong number of probing points. Please recalculate.");
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The precalculated results the wrong number of probing points. Please recalculate.");
                     return;
                 }
                 if (wftemporal.resultPrecalculated)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated WindFactors results have been loaded.");
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated Wind Factor results have been loaded.");
                 }
 
-                if (wftemporal.OffSetAverage >= 13)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "The average offset between simulated wind directions and directions in the weather file is " + Math.Round(wftemporal.OffSetAverage, 2) + "°. You might want to consider changing the input wind directions to better fit the weather file.");
-                }
-                else
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The average offset between simulated wind directions and wind directions in the weather file is " + Math.Round(wftemporal.OffSetAverage, 2) + "°.");
-                }
                 DA.SetData(1, wftemporal);
             }
 

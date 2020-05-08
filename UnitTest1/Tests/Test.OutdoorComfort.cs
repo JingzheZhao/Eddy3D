@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Rhino.Display;
 using System.IO;
+using EddyLib.BCs;
 
 namespace RhinoPlugin.Tests.Xunit
 {
@@ -76,11 +77,10 @@ namespace RhinoPlugin.Tests.Xunit
 
             var z0 = 1;
             var uref = 5;
-
-            var bcond = new BoundaryConditions(BoundaryType.abl, new List<int> { 0 }, uref, z0, "");
+            var zref = 10;
 
             // Act
-            var res = EddyLib.WindFactors.ScaleABL(uref, bcond, 3);
+            var res = EddyLib.BCs.BoundaryCondition.ScaleABL(uref, zref, z0, 3);
 
             // Assert
 
@@ -93,7 +93,12 @@ namespace RhinoPlugin.Tests.Xunit
             //// Arrange
             var windDirList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
             string epw = @"C:\ladybug\New_York_J_F_Kennedy_IntL_Ar_NY_USA_1997\New_York_J_F_Kennedy_IntL_Ar_NY_USA_1997.epw";
-            BoundaryConditions bcond = new BoundaryConditions(BoundaryType.abl, windDirList, 10, 1, epw);
+
+            var z0 = 1;
+            var uref = 10;
+            var zref = 10;
+
+            var bcond = new ABL(new List<int> { 0 }, uref, zref, z0, 0, "");
 
             Weather weather = new Weather(epw);
             weather.WindSpeed = Enumerable.Repeat(5.0, 8760).ToArray();
@@ -119,13 +124,13 @@ namespace RhinoPlugin.Tests.Xunit
             var wfs = new WindFactorsSpatial(workingdir, bcond, mdv, points.ToList(), false, true);
 
             //// Assert
-            /// We would expect a Uref of 4.58 m/s at 2 m height --> 44 % for 2 m/s
+            /// We would expect a Uref of 4.58 m/s at 2 m height --> this leads to a WFS of 44 % for an assumption of 2 m/s probes
 
             Assert.Equal(0.44, Math.Round(wfs.ValuesSpatial[0, 0], 2));
 
-            var wft = new WindFactorsTemporal(workingdir, bcond, weather, wfs, points.ToList(), false, true);
+            var wft = new WindFactorsAnnual(workingdir, bcond, weather, wfs, points.ToList(), false, true);
 
-            // Here we would expect 44 % of 2.29 m/s which is the ABl velocity at 5 m height.
+            // Here, we would expect 44 % of 2.29 m/s which is the ABl velocity at 5 m height.
 
             Assert.Equal(1.01, Math.Round(wft.ValuesTemporal[0, 0], 2));
         }
@@ -136,7 +141,12 @@ namespace RhinoPlugin.Tests.Xunit
             //// Arrange
             var windDirList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
             string epw = @"C:\ladybug\New_York_J_F_Kennedy_IntL_Ar_NY_USA_1997\New_York_J_F_Kennedy_IntL_Ar_NY_USA_1997.epw";
-            BoundaryConditions bcond = new BoundaryConditions(BoundaryType.abl, windDirList, 10, 1, epw);
+
+            var z0 = 1;
+            var uref = 10;
+            var zref = 10;
+
+            var bcond = new ABL(new List<int> { 0 }, uref, zref, z0, 0, "");
 
             Weather weather = new Weather(epw);
             weather.WindSpeed = Enumerable.Repeat(5.0, 8760).ToArray();
@@ -159,7 +169,7 @@ namespace RhinoPlugin.Tests.Xunit
             var points = Enumerable.Repeat(new Point3d(0, 0, 2), 100);
             var mdv = new MultiDirectionalVelocities(workingdir, windDirList.ToArray(), vecs, true, true);
             var wfs = new WindFactorsSpatial(workingdir, bcond, mdv, points.ToList(), false, true);
-            var wft = new WindFactorsTemporal(workingdir, bcond, weather, wfs, points.ToList(), false, true);
+            var wft = new WindFactorsAnnual(workingdir, bcond, weather, wfs, points.ToList(), false, true);
 
             //// Act
 
@@ -171,9 +181,10 @@ namespace RhinoPlugin.Tests.Xunit
             var box = new BoundingBox(new Point3d(0, 0, 0), new Point3d(20, 20, 20));
             var box2 = new Box(Plane.WorldXY, box);
 
-            var mrt = new MRT(workingdir, Mesh.CreateFromBox(box2, 100, 100, 100), weather, MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true);
-
-            mrt.Values = new double[8760, 100];
+            var mrt = new MRT(workingdir, Mesh.CreateFromBox(box2, 100, 100, 100), weather, MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true)
+            {
+                Values = new double[8760, 100]
+            };
 
             for (int j = 0; j < 8760; j++)
             {
@@ -183,8 +194,8 @@ namespace RhinoPlugin.Tests.Xunit
                 }
             }
 
-            // At 10 m, this leas to a wind velocity of 1.31 m/s which leads to a UTCI of 20.6
-            var utci = new UTCI(points.ToArray(), wft, weather, mrt, bcond, workingdir, true, 2);
+            // At 10 m, this leads to a wind velocity of 1.31 m/s which leads to a UTCI of 20.6
+            var utci = new UTCI(points.ToArray(), wft, weather, mrt, workingdir, true, 2);
 
             Assert.Equal(20.6, utci.ValuesUTCI[0, 0]);
         }
@@ -197,7 +208,7 @@ namespace RhinoPlugin.Tests.Xunit
             var dir2 = 355;
 
             // Act
-            var res = EddyLib.WindFactors.DistanceBetweenWindDirs(dir1, dir2);
+            var res = BoundaryCondition.DistanceBetweenWindDirs(dir1, dir2);
 
             // Assert
             Assert.Equal(5, res);
@@ -211,7 +222,7 @@ namespace RhinoPlugin.Tests.Xunit
             var dir2 = 90;
 
             // Act
-            var res = EddyLib.WindFactors.DistanceBetweenWindDirs(dir1, dir2);
+            var res = BoundaryCondition.DistanceBetweenWindDirs(dir1, dir2);
 
             // Assert
             Assert.Equal(45, res);
@@ -224,7 +235,7 @@ namespace RhinoPlugin.Tests.Xunit
             var windDirList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
 
             // Act
-            var res = EddyLib.WindFactors.ReturnNextLowerIndex(windDirList, 0);
+            var res = BoundaryCondition.ReturnNextLowerIndex(windDirList, 0);
 
             // Assert
 

@@ -42,7 +42,7 @@ namespace Eddy
             pManager.AddPointParameter("Probing points", "Points", "List of probing points", GH_ParamAccess.list);
 
             //pManager.AddIntegerParameter("Hour", "Hour", "Hour", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Wind Factors Annual", "WFT", "Eddy Wind Factors Temporal Object", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Wind Factors Annual", "WFA", "Wind Factors Annual Object", GH_ParamAccess.item);
             pManager.AddGenericParameter("Mean Radiant Temperature", "MRT", "Mean Radiant Temperature [°C] Object", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item);
 
@@ -55,7 +55,7 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("Universal Thermal Climate Index [°C] Object", "UTCI", "Universal Thermal Climate Index [°C] Object", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Comfortable Hours", "CH", "Percentage of comfortable hours (0°C <= UTCI <= 26°C) over the year", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Comfortable Hours", "CH", "Percentage of comfortable hours (9°C <= UTCI <= 26°C) over the year", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace Eddy
             bool run = false;
             DA.GetData("Run", ref run);
 
-            WindFactorsTemporal windFactors = null;
+            WindFactorsAnnual windFactors = null;
             MRT mrt = null;
 
             Console.WriteLine("Load weather data...");
@@ -120,7 +120,7 @@ namespace Eddy
 
             // UTCI here
 
-            var utci = new UTCI(probes.ToArray(), windFactors, weather, mrt, RES.Domain.BCond, RES.WorkingDirectory, run);
+            var utci = new UTCI(probes.ToArray(), windFactors, weather, mrt, RES.WorkingDirectory, run);
 
             if (GH_Document.IsEscapeKeyDown())
             {

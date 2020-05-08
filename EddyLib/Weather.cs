@@ -87,7 +87,7 @@ namespace EddyLib
                 //var GlobalHorizontalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[13])); // Global Horizontal Illuminance
                 //var SkyCover = epwNoHeader.Select(o => Double.Parse(o.Split(',')[22])); // Global Horizontal Illuminance
 
-                this.SkyCover = this.DryBulbTemp = epwNoHeader.Select(o => Double.Parse(o.Split(',')[22])).ToArray(); // SkyCover
+                this.SkyCover = epwNoHeader.Select(o => Double.Parse(o.Split(',')[22])).ToArray(); // SkyCover
 
                 var Yr = epwNoHeader.Select(o => Double.Parse(o.Split(',')[0])).ToArray();
                 var Mo = epwNoHeader.Select(o => Double.Parse(o.Split(',')[1])).ToArray();

@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Rhino.Geometry;
+using EddyLib.BCs;
 
 namespace EddyLib
 {
@@ -36,7 +37,7 @@ namespace EddyLib
 
         public bool resultPrecalculated;
 
-        public UTCI(Point3d[] probes, WindFactorsTemporal wf, Weather weather, MRT mrt, BoundaryConditions bcond, string baseWorkingDir, bool recalc, int truncateBy = 1)
+        public UTCI(Point3d[] probes, WindFactorsAnnual wf, Weather weather, MRT mrt, string baseWorkingDir, bool recalc, int truncateBy = 1)
         {
             var csvUTCI = baseWorkingDir + @"UTCI.csv";
             var binUTCI = baseWorkingDir + @"UTCI.bin";
@@ -88,7 +89,7 @@ namespace EddyLib
         }
 
         //Tuple items: utci, humcondition, valuesAnnualPercentage, uncertaintyMRTArray, uncertaintyWindArray
-        public static Tuple<double[,], int[,], double[], bool[,], bool[,]> CalcUTCI(Point3d[] Probes, Weather weather, WindFactorsTemporal wf, MRT mrt, int truncateBy)
+        public static Tuple<double[,], int[,], double[], bool[,], bool[,]> CalcUTCI(Point3d[] Probes, Weather weather, WindFactorsAnnual wf, MRT mrt, int truncateBy)
         {
             int numberOfHours = 8760;
             int numberOfProbes = Probes.Length;
@@ -158,7 +159,7 @@ namespace EddyLib
             /*Function value is the UTCI in degree Celsius
              !~computed by a 6th order approximating polynomial from the 4 Input paramters
              !~
-               !~Input parameters(all of type DOUBLE PRECISION)
+             !~Input parameters(all of type DOUBLE PRECISION)
              !~-TaC       : air temperature, degree Celsius
              !~-Pa    : water vapour presure, kPa
              !~-Tmrt   : mean radiant temperature, degree Celsius

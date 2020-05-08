@@ -43,9 +43,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Wind Factors Annual", "WFA", @"Wind Factors Annual
-
-Wind velocity of each probing point from the nearest simulated wind direction for every hour of the year.", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Wind Factors Annual", "WFA", @"Wind Factors Annual Object", GH_ParamAccess.item);
 
             pManager.AddIntegerParameter("Wind Comfort Index", "WCmftIdx", "Select a Wind Comfort Index with a right click.", GH_ParamAccess.item, 0);
 
@@ -129,7 +127,7 @@ NEN8100
             //if (!interpolate) { Message = "No interpolation"; }
             //else { Message = "Interpolation"; }
 
-            WindFactorsTemporal WFA = null;
+            WindFactorsAnnual WFA = null;
             DA.GetData(0, ref WFA);
 
             int cmftidx = 0;

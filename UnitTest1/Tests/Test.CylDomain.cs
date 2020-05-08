@@ -9,6 +9,7 @@ using Grasshopper.Kernel.Types;
 using Xunit;
 using EddyLib;
 using System.Collections.Generic;
+using EddyLib.BCs;
 
 namespace RhinoPlugin.Tests.Xunit
 {
@@ -40,7 +41,7 @@ namespace RhinoPlugin.Tests.Xunit
             }
 
             var windDirList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
-            BoundaryConditions bcond = new BoundaryConditions(BoundaryType.abl, windDirList, 5, 1, "");
+            BoundaryCondition bcond = new ABL(windDirList, 5, 10, 1, 0, "");
 
             OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcond, 5, 50, 300, 80);
 

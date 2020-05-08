@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Rhino.Geometry;
+using EddyLib.FunctionObjects;
 
 namespace EddyLib.Strings
 {
@@ -515,7 +516,7 @@ libs
 
         public static string FunctionObjCP(OFBaseDomain DOM, OFRunSettings RunSettings, List<Mesh> evaluationTopology, int d)
         {
-            BoundaryConditionsCP BCondCP = new BoundaryConditionsCP(DOM.MaxHeightBuilding, DOM.BCond);
+            PressureCoeff BCondCP = new PressureCoeff(DOM.MaxHeightBuilding, DOM.BCond);
 
             StringBuilder sb = new StringBuilder();
             sb.Append(@"pressureCoefficients

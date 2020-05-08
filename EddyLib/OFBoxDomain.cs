@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using Rhino.Geometry;
+using EddyLib.BCs;
+using EddyLib.FunctionObjects;
 
 namespace EddyLib
 {
@@ -12,22 +14,31 @@ namespace EddyLib
         public double width;
 
         public double length;
+
         public double height;
 
         public double Length_BBox;
+
         public double Width_BBox;
+
         public double Height_BBox;
 
         public double Width_SBox;
+
         public double Length_SBox;
+
         public double Height_SBox;
 
         public int CellsAlongWidth;
+
         public int CellsAlongLength;
+
         public int CellsAlongHeight;
 
         public Mesh DomainMeshGround;
+
         public Mesh DomainMeshGroundPerim;
+
         public Box SBox;
 
         //public Mesh BoxWithDivs;
@@ -38,7 +49,7 @@ namespace EddyLib
 
         public double test;
 
-        public OFBoxDomain(Mesh BuildingGeometry, Mesh terrainMesh, BoundaryConditions BCond, double blockDimension, double length = 0, double width = 0, double height = 0)
+        public OFBoxDomain(Mesh BuildingGeometry, Mesh terrainMesh, BoundaryCondition BCond, double blockDimension, double length = 0, double width = 0, double height = 0)
         {
             this.BCond = BCond;
             this.BuildingGeometry = BuildingGeometry;
@@ -203,6 +214,7 @@ namespace EddyLib
             else
             {
                 double tolerance = 0.01;
+
                 // Create ground meshes
 
                 MeshingParameters mpGround = MeshingParameters.Default;
@@ -249,15 +261,10 @@ namespace EddyLib
             IEnumerable<Mesh> second = new List<Mesh>() { TerrainMesh };
             this.DomainMeshIntersection = Mesh.CreateBooleanDifference(first, second);
 
-            // Set up BCs
-            if (BCond.btype == EddyLib.BoundaryType.constant)
-            {
-                BCond.SetUatBuildingHeightUconst();
-            }
-            if (BCond.btype == EddyLib.BoundaryType.abl)
-            {
-                BCond.SetUatBuildingHeightABL(MaxHeightBuilding);
-            }
+            base.BCond = BCond;
+
+            PressureCoeff BCondCP = new PressureCoeff(MaxHeightBuilding, BCond);
+            BCondCP.SetUatBuildingHeight(MaxHeightBuilding, BCond);
 
             ToString();
         }

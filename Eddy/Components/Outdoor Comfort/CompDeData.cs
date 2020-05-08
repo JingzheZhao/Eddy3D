@@ -81,10 +81,6 @@ namespace Eddy
                 {
                     selection = (new int[8760]).Select((o, i) => i).ToList();
                 }
-                else
-                {
-                    selection = (new int[1]).Select((o, i) => i).ToList();
-                }
             }
 
             if ((gobj.Value is MRT))
@@ -109,9 +105,9 @@ namespace Eddy
 
                 DA.SetDataTree(0, tree);
             }
-            else if ((gobj.Value is WindFactorsTemporal))
+            else if ((gobj.Value is WindFactorsAnnual))
             {
-                WindFactorsTemporal wf = null;
+                WindFactorsAnnual wf = null;
 
                 DA.GetData(0, ref wf);
 
@@ -139,6 +135,11 @@ namespace Eddy
 
                 int windDirs = ArrayHelper.CustomArray<double>.GetRow(wfs.ValuesSpatial, 0).Count();
                 DataTree<double> tree = new DataTree<double>();
+
+                if (selection.Count == 0)
+                {
+                    selection = (new int[wfs.SimulatedWindDirections.Count]).Select((o, i) => i).ToList();
+                }
 
                 foreach (int dir in selection)
                 {

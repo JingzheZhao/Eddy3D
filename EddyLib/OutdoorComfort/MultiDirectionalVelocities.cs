@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using EddyLib.OutdoorComfort.Metrics;
 using Eto.Drawing;
 using Rhino.Geometry;
+using EddyLib.BCs;
 
 namespace EddyLib
 {
@@ -16,7 +17,7 @@ namespace EddyLib
     {
         public double[] ValuesPedestrianWindComfort;
 
-        public WindComfort(WindFactorsTemporal wf, PCIdx pcidxx)
+        public WindComfort(WindFactorsAnnual wf, PCIdx pcidxx)
         {
             this.ValuesPedestrianWindComfort = CalcPedestrianComfort(wf.ValuesTemporal, pcidxx);
         }
@@ -193,67 +194,6 @@ namespace EddyLib
 
     public class WindFactors
     {
-        public static double ScaleABL(double URefEPW, BoundaryConditions bcond, double probingHeight)
-        {
-            var zref = bcond.zref;
-            var z0 = bcond.z0;
-            var Kappa = 0.41;
-
-            var U_star = Kappa * URefEPW / (Math.Log((zref + z0) / z0));
-
-            return U_star / Kappa * Math.Log((probingHeight - 0 + z0) / z0);
-        }
-
-        public static int DistanceBetweenWindDirs(int dir1, int dir2)
-        {
-            var vec2 = Utilities.Dir2Vec(dir1);
-            var vec1 = Utilities.Dir2Vec(dir2);
-
-            return (int)Math.Abs(Utilities.AngleBetweenVectors(vec1, vec2));
-        }
-
-        public static int ReturnNextLowerIndex(List<int> list, int compareTo)
-        {
-            int lowerIndex;
-
-            if (compareTo <= list.Min())
-            {
-                lowerIndex = list.IndexOf(list.Max());
-            }
-            else
-            {
-                // Take everything smaller than compare
-                var smaller = list.Where(x => x < compareTo);
-
-                // Take the max from that selection and then take the index
-                lowerIndex = list.IndexOf(smaller.Max(y => y));
-            }
-
-            return lowerIndex;
-        }
-
-        public static int ReturnNextUpperIndex(List<int> list, int compareTo)
-        {
-            // If values to compare if larger than everything in the list, return the first in the
-            // list which is usually 0
-
-            int upperIndex;
-
-            if (compareTo >= list.Max())
-            {
-                upperIndex = list.IndexOf(list.Min());
-            }
-            else
-            {
-                // Take everything larger than compare
-                var larger = list.Where(x => x > compareTo);
-
-                // Take the min from that selection and then take the index
-                upperIndex = list.IndexOf(larger.Min(y => y));
-            }
-            return upperIndex;
-        }
-
         public static double[,] VectorLengths(int sensorPointCount, int numberOfWindDirs, Vector3d[,] vectorProbes)
         {
             var velocities = new double[sensorPointCount, numberOfWindDirs];
@@ -287,10 +227,14 @@ namespace EddyLib
 
         private readonly string del = "_";
 
-        public WindFactorsSpatial(string baseWorkingDir, BoundaryConditions bcond, MultiDirectionalVelocities velocityProbes, List<Point3d> probes, bool interpolate, bool recalc)
+        public List<int> SimulatedWindDirections;
+
+        public WindFactorsSpatial(string baseWorkingDir, BoundaryCondition bcond, MultiDirectionalVelocities velocityProbes, List<Point3d> probes, bool interpolate, bool recalc)
         {
             string csvWFSpatial = interpolate == false ? Path.Combine(baseWorkingDir + fileName + del + fileNameCSVExtension) : Path.Combine(baseWorkingDir + fileName + del + fileNameCSVExtension);
             string binWFSpatial = interpolate == false ? Path.Combine(baseWorkingDir + fileName + del + fileNameBinExtension) : Path.Combine(baseWorkingDir + fileName + del + fileNameBinExtension);
+
+            this.SimulatedWindDirections = bcond.windDirs;
 
             if (File.Exists(binWFSpatial) && !recalc)
             {
@@ -338,7 +282,7 @@ namespace EddyLib
 
         // This returns the plain annual array
 
-        private static double[,] CalcWindFactorsSpatial(Vector3d[,] MultiDirectionalVelocities, BoundaryConditions bcond, List<Point3d> probes)
+        private static double[,] CalcWindFactorsSpatial(Vector3d[,] MultiDirectionalVelocities, BoundaryCondition bcond, List<Point3d> probes)
         {
             var windDirsSim = bcond.windDirs;
 
@@ -367,7 +311,19 @@ namespace EddyLib
                   0, numberOfSensors, p =>
                   {
                       // Independent of hour
-                      var velSimAtProbingHeight = ScaleABL(bcond.URef, bcond, probes[p].Z);
+                      var velSimAtProbingHeight = 0.0;
+                      if (bcond is ABL)
+                      {
+                          ABL casted_bc = (ABL)bcond;
+                          velSimAtProbingHeight = BoundaryCondition.ScaleABL(casted_bc.URef, casted_bc.zref, casted_bc.z0, probes[p].Z);
+                      }
+                      else
+                      {
+                          ConstU casted_bc = (ConstU)bcond;
+
+                          // assume a zref of 10;
+                          velSimAtProbingHeight = BoundaryCondition.ScaleABL(casted_bc.URef, 10, bcond.z0, probes[p].Z);
+                      }
 
                       for (int w = 0; w < numberOfWindDirs; w++)
                       {
@@ -396,16 +352,8 @@ namespace EddyLib
         }
     }
 
-    public class WindFactorsTemporal : WindFactors
+    public class WindFactorsAnnual : WindFactors
     {
-        public int[] ClstSimDirs { get; set; }
-
-        public int[] Indices { get; set; }
-
-        public int[] OffSet { get; set; }
-
-        public double OffSetAverage { get; set; }
-
         // This is the ration times the velocity in the weather file
         public double[,] ValuesTemporal;
 
@@ -423,16 +371,10 @@ namespace EddyLib
 
         private readonly string del = "_";
 
-        public WindFactorsTemporal(string baseWorkingDir, BoundaryConditions bcond, Weather weather, WindFactorsSpatial wfspatial, List<Point3d> probes, bool interpolate, bool recalc)
+        public WindFactorsAnnual(string baseWorkingDir, BoundaryCondition bcond, Weather weather, WindFactorsSpatial wfspatial, List<Point3d> probes, bool interpolate, bool recalc)
         {
             string csvWFTemporal = interpolate == false ? Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + fileNameCSVExtension) : Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + interpolationPref + fileNameCSVExtension);
             string binWFTemporal = interpolate == false ? Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + fileNameBinExtension) : Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + interpolationPref + fileNameBinExtension);
-
-            var (SimDirIndices, ClstSimDirs, OffSet, OffSetAverage) = GetClosestWindDirs(weather, bcond);
-            this.OffSet = OffSet.ToArray();
-            this.OffSetAverage = OffSetAverage;
-            this.ClstSimDirs = ClstSimDirs.ToArray();
-            this.Indices = SimDirIndices.ToArray();
 
             if (File.Exists(binWFTemporal) && !recalc)
             {
@@ -465,7 +407,7 @@ namespace EddyLib
                     }
                 }
 
-                this.ValuesTemporal = CalcWindFactorsTemporal(wfspatial.ValuesSpatial, Indices, bcond, weather, probes, interpolate);
+                this.ValuesTemporal = CalcWindFactorsTemporal(wfspatial.ValuesSpatial, bcond, weather, probes, interpolate);
 
                 RadianceFiles.writeBin(binWFTemporal, this.ValuesTemporal);
                 ArrayHelper._2DArray2CSV(this.ValuesTemporal, csvWFTemporal, true, 1);
@@ -477,64 +419,7 @@ namespace EddyLib
 
         // This returns the plain annual array
 
-        private Tuple<List<int>, List<int>, List<int>, double> GetClosestWindDirs(Weather weather, BoundaryConditions bcond)
-        {
-            var offSet = new List<int>();
-            var Indices = new List<int>();
-            var clstSimDirs = new List<int>();
-
-            var windDirsEPW = weather.WindDirection;
-            var windDirSim = bcond.windDirs;
-
-            for (int h = 0; h < 8760; h++)
-            {
-                int weatherDir = (int)weather.WindDirection[h];
-                int closestIndex = 0;
-                var distance = 0;
-
-                // Treat 360 as 0 and add that right away if it exists
-                if (weatherDir == 360 && bcond.windDirs.Contains(0))
-                {
-                    closestIndex = 0;
-
-                    distance = 0;
-                    offSet.Add(distance);
-                    Indices.Add(closestIndex);
-                    clstSimDirs.Add(bcond.windDirs[closestIndex]);
-
-                    continue;
-                }
-
-                // Check what is closest for all other cases
-
-                if (bcond.windDirs.Contains(weatherDir))
-                {
-                    closestIndex = windDirSim.IndexOf(weather.WindDirection[h]);
-                }
-                else
-                {
-                    var nextIndexDown = ReturnNextLowerIndex(windDirSim, (int)windDirsEPW[h]);
-                    var nextIndexUp = ReturnNextUpperIndex(windDirSim, (int)windDirsEPW[h]);
-
-                    var nextDirDown = windDirSim[nextIndexDown];
-                    var nextDirUp = windDirSim[nextIndexUp];
-
-                    double distanceToLower = Math.Abs(windDirsEPW[h] - nextDirDown);
-                    double distanceToUpper = Math.Abs(windDirsEPW[h] - nextDirUp);
-
-                    closestIndex = distanceToLower < distanceToUpper ? nextIndexDown : nextIndexUp;
-                }
-
-                distance = Math.Abs(bcond.windDirs[closestIndex] - weatherDir);
-                offSet.Add(distance);
-                Indices.Add(closestIndex);
-                clstSimDirs.Add(bcond.windDirs[closestIndex]);
-            }
-
-            return new Tuple<List<int>, List<int>, List<int>, double>(Indices, clstSimDirs, offSet, offSet.Average());
-        }
-
-        private static double[,] CalcWindFactorsTemporal(double[,] WFSpatial, int[] clstSimDirIdx, BoundaryConditions bcond, Weather weather, List<Point3d> probes, bool interpolate)
+        private static double[,] CalcWindFactorsTemporal(double[,] WFSpatial, BoundaryCondition bcond, Weather weather, List<Point3d> probes, bool interpolate)
         {
             var windDirsSim = bcond.windDirs;
             var windDirsEPW = weather.WindDirection;
@@ -564,9 +449,21 @@ namespace EddyLib
                   {
                       for (int h = 0; h < numberOfHours; h++)
                       {
-                          var velEPWAtProbingHeight = ScaleABL(weather.WindSpeed[h], bcond, probes[p].Z);
+                          var velEPWAtProbingHeight = 0.0;
+                          if (bcond is ABL)
+                          {
+                              ABL casted_bc = (ABL)bcond;
+                              velEPWAtProbingHeight = BoundaryCondition.ScaleABL(weather.WindSpeed[h], casted_bc.zref, casted_bc.z0, probes[p].Z);
+                          }
+                          else
+                          {
+                              ConstU casted_bc = (ConstU)bcond;
 
-                          var ratioSimProbingPoint = WFSpatial[p, clstSimDirIdx[h]];
+                              // assume a zref of 10;
+                              velEPWAtProbingHeight = BoundaryCondition.ScaleABL(weather.WindSpeed[h], 10, bcond.z0, probes[p].Z);
+                          }
+
+                          var ratioSimProbingPoint = WFSpatial[p, bcond.ClstSimDirIndices[h]];
 
                           // We need to multiply the normalized velocity with respect to the approaching flow
                           // for every probing point and multiply that with the scaled-down, measured airport velocity.
@@ -579,12 +476,12 @@ namespace EddyLib
                           {
                               #region Interpolation
 
-                              var IdxBelow = ReturnNextLowerIndex(windDirsSim, (int)windDirsEPW[h]);
-                              var IdxAbove = ReturnNextUpperIndex(windDirsSim, (int)windDirsEPW[h]);
+                              var IdxBelow = BoundaryCondition.ReturnNextLowerIndex(windDirsSim, (int)windDirsEPW[h]);
+                              var IdxAbove = BoundaryCondition.ReturnNextUpperIndex(windDirsSim, (int)windDirsEPW[h]);
                               int dirBelow = windDirsSim[IdxBelow];
                               int dirAbove = windDirsSim[IdxAbove];
-                              var distanceToLower = DistanceBetweenWindDirs(windDirsEPW[h], dirBelow);
-                              var distanceToUpper = DistanceBetweenWindDirs(windDirsEPW[h], dirAbove);
+                              var distanceToLower = BoundaryCondition.DistanceBetweenWindDirs(windDirsEPW[h], dirBelow);
+                              var distanceToUpper = BoundaryCondition.DistanceBetweenWindDirs(windDirsEPW[h], dirAbove);
 
                               var weightingDown = 1 - (distanceToLower / (distanceToLower + distanceToUpper));
                               var weightingUp = 1 - (distanceToUpper / (distanceToLower + distanceToUpper));

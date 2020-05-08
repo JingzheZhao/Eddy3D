@@ -191,7 +191,7 @@ namespace Eddy
             }
 
             // Export probes file
-            File.WriteAllText(Path.Combine(RES.WorkingDirectory + "\\" + "run_probes.bat"), EddyLib.Strings.BatFiles.Run_Probes(RES.Domain, RES.MeshSettings));
+            //File.WriteAllText(Path.Combine(RES.WorkingDirectory + "\\" + "run_probes.bat"), EddyLib.Strings.BatFiles.Run_Probes(RES.Domain, RES.MeshSettings));
 
             // export pts file for Daysim
             if (!Directory.Exists(RES.WorkingDirectory + @"Rad\"))
