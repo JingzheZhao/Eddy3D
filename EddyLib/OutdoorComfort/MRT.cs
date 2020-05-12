@@ -1,7 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Windows.Forms;
 using EddyLib;
+using EddyLib.Radiance;
+using Grasshopper;
 using Rhino.Geometry;
 
 namespace EddyLib
@@ -24,17 +27,20 @@ namespace EddyLib
 
         public bool resultPrecalculated;
 
+        public double[][] DiffRad;
+
+        public double[][] DirRad;
+
+        public double[][] TotalRad;
+
+        public double[] ViewFactors;
+
         public MRT(string baseWorkingDir, Mesh BuildingGeometry, Weather weather, MRTType type, Point3d[] probes, bool recalc)
         {
             var csvMRT = baseWorkingDir + @"MRT.csv";
             var binMRT = baseWorkingDir + @"MRT.bin";
 
             var numberOfProbes = probes.Length;
-
-            double[][] DiffRad = null;
-            double[][] DirRad = null;
-
-            double[][] TotalRad = null;
 
             #region TwoPhaseDDS
 
@@ -71,14 +77,45 @@ namespace EddyLib
                     File.Delete(binMRT);
                 }
 
-                Utilities.CleanDirectory(baseWorkingDir + @"Rad\");
-                Utilities.CleanDirectory(baseWorkingDir + @"Output\");
+                //Utilities.CleanDirectory(baseWorkingDir + @"Rad\");
+                //Utilities.CleanDirectory(baseWorkingDir + @"Output\");
 
                 EddyLib.Radiance.TwoPhaseDDS dds = new EddyLib.Radiance.TwoPhaseDDS(baseWorkingDir, BuildingGeometry, probes.ToList(), weather, recalc);
 
-                //DirRad = RadianceFiles.loadILL(dirillFile);
-                // DiffRad = RadianceFiles.loadILL(difillFile);
+                var skytemp = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity);
+
+                var vf = new ViewFactors(baseWorkingDir, BuildingGeometry, probes, recalc);
+                this.ViewFactors = vf.Values;
+
+                int numberOfHours = 8760;
+                int numberOfSensors = probes.Length;
+
+                var DDSTOTAL = dds.totalIll;
+
+                this.Values = new double[numberOfHours, numberOfSensors];
+
+                if (recalc == true)
+                {
+                    double sol_trans = 1;
+                    double f_bes = 0.5;
+
+                    System.Threading.Tasks.Parallel.For(0, 8760, h =>
+                     {
+                         for (int p = 0; p < probes.Length; p++)
+                         {
+                             double dMRT;
+                             double ERF;
+
+                             SolarGain.ERF(weather.SolarElevation[h], weather.SolarAzi[h], SolarGain.Posture.seating, DDSTOTAL[h][p], sol_trans, ViewFactors[p], f_bes, 0.6, out ERF, out dMRT);
+
+                             this.Values[h, p] = (weather.DryBulbTemp[h] * (1 - ViewFactors[p])) + dMRT + (skytemp.Temp[h] * ViewFactors[p]);
+                         }
+                     });
+                }
             }
+
+            RadianceFiles.writeBin(baseWorkingDir + @"\MRT.bin", this.Values);
+            ArrayHelper._2DArray2CSV(this.Values, baseWorkingDir + @"\MRT.csv", true, 1);
 
             #endregion TwoPhaseDDS
         }

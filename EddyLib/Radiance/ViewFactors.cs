@@ -27,9 +27,9 @@ namespace EddyLib.Radiance
 
         public double[] Values { get; set; }
 
-        public List<Mesh> BuildingsAndGround { get; set; }
+        public Mesh BuildingsAndGround { get; set; }
 
-        public ViewFactors(string workingDir, List<Mesh> BuildingsAndGround, Point3d[] sensors, bool Run)
+        public ViewFactors(string workingDir, Mesh BuildingsAndGround, Point3d[] sensors, bool Run)
         {
             this.hitCounts = new int[sensors.Length];
             this.Values = new double[sensors.Length];
@@ -46,10 +46,12 @@ namespace EddyLib.Radiance
 
             // 1. Add Mat
 
-            foreach (Mesh m in BuildingsAndGround)
-            {
-                this.BuildingsAndGround.Append(AddMat(BuildingGroundTemplate(), m));
-            }
+            //foreach (Mesh m in BuildingsAndGround)
+            //{
+            AddMat(BuildingGroundTemplate(), BuildingsAndGround);
+            this.BuildingsAndGround = BuildingsAndGround;
+
+            //}
 
             // 2. RadFile
 
@@ -61,20 +63,21 @@ namespace EddyLib.Radiance
 
             int id = 0;
 
-            foreach (GeometryBase g in BuildingsAndGround)
-            {
-                string mat = g.UserDictionary["RadMat"].ToString().Trim();
-                matlist.Add(mat);
+            //foreach (GeometryBase g in BuildingsAndGround)
+            //{
+            string mat = BuildingsAndGround.UserDictionary["RadMat"].ToString().Trim();
+            matlist.Add(mat);
 
-                string matName = mat.Split(' ')[2];
+            string matName = mat.Split(' ')[2];
 
-                //Print(matName);
+            //Print(matName);
 
-                Mesh m = (Mesh)g;
+            //Mesh m = (Mesh)g;
 
-                radFileString.AppendLine(Mesh2Rad(m, matName, id.ToString()));
-                id++;
-            }
+            radFileString.AppendLine(Mesh2Rad(BuildingsAndGround, matName, id.ToString()));
+
+            //id++;
+            //}
 
             foreach (string s in matlist)
             {

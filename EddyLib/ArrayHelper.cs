@@ -225,6 +225,21 @@ namespace EddyLib
             return result;
         }
 
+        public static double[,] To2DArrayGen(DataTree<double> tree)
+        {
+            double[,] result = new double[tree.Branches.Count, tree.Branches[0].Count];
+
+            for (int i = 0; i < tree.Branches.Count; i++)
+            {
+                for (int j = 0; j < tree.Branches[0].Count; j++)
+                {
+                    if (tree.Branches[i].Count != tree.Branches[0].Count) throw new InvalidOperationException("The list cannot contain elements (lists) of different sizes.");
+                    result[i, j] = tree.Branches[i][j];
+                }
+            }
+            return result;
+        }
+
         public static double[,] To2DArray(DataTree<double> tree)
         {
             double[,] result = new double[tree.Branches.Count, tree.Branches[0].Count];

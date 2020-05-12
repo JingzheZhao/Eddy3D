@@ -83,7 +83,6 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Tests\Test.WindFactors.cs" />
     <Compile Include="Tests\Test.OutdoorComfort.cs" />
     <Compile Include="Tests\XunitTestInitFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

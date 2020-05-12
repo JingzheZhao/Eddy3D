@@ -11,64 +11,123 @@ using System.Linq;
 using Rhino.Display;
 using System.IO;
 using EddyLib.BCs;
+using EddyLib.Radiance;
+using static EddyLib.MRT;
 
 namespace RhinoPlugin.Tests.Xunit
 {
     [Collection("Rhino Collection")]
     public class OutdoorComfort
     {
-        ///// <summary>
-        ///// Xunit Test to Transform a brep using a translation
-        ///// </summary>
-        //[Fact]
-        //public void Brep_Translation()
-        //{
-        //    // Arrange
-        //    var bb = new BoundingBox(new Point3d(0, 0, 0), new Point3d(100, 100, 100));
-        //    var brep = bb.ToBrep();
-        //    var t = Transform.Translation(new Vector3d(30, 40, 50));
+        [Fact]
+        public void MRT()
+        {
+            // Arrange
+            var workingdir = @"C:\Testing\";
 
-        //    // Act
-        //    brep.Transform(t);
+            var point0 = new Rhino.Geometry.Point3d(0, 0, 0);
+            var point1 = new Rhino.Geometry.Point3d(20, 0, 0);
+            var point2 = new Rhino.Geometry.Point3d(0, 20, 0);
+            var point3 = new Rhino.Geometry.Point3d(20, 20, 0);
+            var point4 = new Rhino.Geometry.Point3d(0, 0, 40);
+            var point5 = new Rhino.Geometry.Point3d(20, 0, 40);
+            var point6 = new Rhino.Geometry.Point3d(0, 20, 40);
+            var point7 = new Rhino.Geometry.Point3d(20, 20, 40);
 
-        //    // Assert
-        //    Assert.Equal(brep.GetBoundingBox(true).Center, new Point3d(80, 90, 100));
-        //}
+            var surface = NurbsSurface.CreateFromCorners(
+              new Point3d(5000, 0, 0),
+              new Point3d(5000, 5000, 0),
+              new Point3d(0, 5000, 0),
+              new Point3d(0, 0, 0));
 
-        ///// <summary>
-        ///// Xunit Test to Intersect sphere with a plane to generate a circle
-        ///// </summary>
-        //[Fact]
-        //public void Brep_Intersection()
-        //{
-        //    // Arrange
-        //    var radius = 4.0;
-        //    var brep = Brep.CreateFromSphere(new Sphere(new Point3d(), radius));
-        //    var cuttingPlane = Plane.WorldXY;
+            surface.Translate(new Vector3d(-2500, -2050, 0));
 
-        //    // Act
-        //    Rhino.Geometry.Intersect.Intersection.BrepPlane(brep, cuttingPlane, 0.001, out var curves, out var points);
+            Rhino.Geometry.Box box1 = new Rhino.Geometry.Box(Rhino.Geometry.Plane.WorldXY, new List<Rhino.Geometry.Point3d>() { point0, point1, point2, point3, point4, point5, point6, point7 });
+            Rhino.Geometry.MeshingParameters mp = new Rhino.Geometry.MeshingParameters();
+            var m = Mesh.CreateFromBrep(box1.ToBrep(), mp);
+            var s = Mesh.CreateFromBrep(surface.ToBrep(), mp);
 
-        //    // Assert
-        //    Assert.Single(curves);
-        //    Assert.Equal(2 * Math.PI * radius, curves[0].GetLength());
-        //}
+            Rhino.Geometry.Mesh mm = new Rhino.Geometry.Mesh();
 
-        ///// <summary>
-        ///// Xunit Test to ensure Centroid of GH_Box outputs a GH_Point
-        ///// </summary>
-        //[Fact]
-        //public void GHBox_Centroid_ReturnsGHPoint()
-        //{
-        //    // Arrange
-        //    var myBox = new GH_Box(new Box());
+            foreach (Rhino.Geometry.Mesh im in m)
+            {
+                mm.Append(im);
+            }
+            mm.Append(s);
 
-        //    // Act
-        //    var result = myBox.Boundingbox.Center;
+            string epw = @"C:\ladybug\New_York_J_F_Kennedy_IntL_Ar_NY_USA_1997\New_York_J_F_Kennedy_IntL_Ar_NY_USA_1997.epw";
 
-        //    // Assert
-        //    Assert.IsType<Point3d>(result);
-        //}
+            var z0 = 1;
+            var uref = 10;
+            var zref = 10;
+
+            var bcond = new ABL(new List<int> { 0 }, uref, zref, z0, 0, epw);
+
+            Weather weather = new Weather(epw);
+
+            OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcond, 5, 50, 300, 80);
+
+            var points = Enumerable.Repeat(new Point3d(60, 60, 2), 100);
+
+            // Act
+
+            var mrt = new MRT(workingdir, DOMCYL.BuildingGeometry, weather, EddyLib.MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true);
+
+            // Assert
+
+            Assert.Equal(5, Math.Round(mrt.Values[0, 0], 2));
+        }
+
+        [Fact]
+        public void ViewFactors()
+        {
+            // Arrange
+            var workingdir = @"C:\Testing\";
+
+            var point0 = new Rhino.Geometry.Point3d(0, 0, 0);
+            var point1 = new Rhino.Geometry.Point3d(20, 0, 0);
+            var point2 = new Rhino.Geometry.Point3d(0, 20, 0);
+            var point3 = new Rhino.Geometry.Point3d(20, 20, 0);
+            var point4 = new Rhino.Geometry.Point3d(0, 0, 40);
+            var point5 = new Rhino.Geometry.Point3d(20, 0, 40);
+            var point6 = new Rhino.Geometry.Point3d(0, 20, 40);
+            var point7 = new Rhino.Geometry.Point3d(20, 20, 40);
+
+            var surface = NurbsSurface.CreateFromCorners(
+              new Point3d(5000, 0, 0),
+              new Point3d(5000, 5000, 0),
+              new Point3d(0, 5000, 0),
+              new Point3d(0, 0, 0));
+
+            surface.Translate(new Vector3d(-2500, -2050, 0));
+
+            Rhino.Geometry.Box box1 = new Rhino.Geometry.Box(Rhino.Geometry.Plane.WorldXY, new List<Rhino.Geometry.Point3d>() { point0, point1, point2, point3, point4, point5, point6, point7 });
+            Rhino.Geometry.MeshingParameters mp = new Rhino.Geometry.MeshingParameters();
+            var m = Mesh.CreateFromBrep(box1.ToBrep(), mp);
+            var s = Mesh.CreateFromBrep(surface.ToBrep(), mp);
+
+            Rhino.Geometry.Mesh mm = new Rhino.Geometry.Mesh();
+
+            foreach (Rhino.Geometry.Mesh im in m)
+            {
+                mm.Append(im);
+            }
+            mm.Append(s);
+
+            var windDirList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
+            BoundaryCondition bcond = new ABL(windDirList, 5, 10, 1, 0, "");
+
+            OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcond, 5, 50, 300, 80);
+
+            var points = Enumerable.Repeat(new Point3d(40, 40, 2), 100);
+
+            // Act
+            var vf = new ViewFactors(workingdir, DOMCYL.BuildingGeometry, points.ToArray(), true);
+
+            // Assert
+
+            Assert.Equal(0.47, Math.Round(vf.Values[0], 2));
+        }
 
         [Fact]
         public void ScaleABL_3m_Returns_2_89()
@@ -181,7 +240,7 @@ namespace RhinoPlugin.Tests.Xunit
             var box = new BoundingBox(new Point3d(0, 0, 0), new Point3d(20, 20, 20));
             var box2 = new Box(Plane.WorldXY, box);
 
-            var mrt = new MRT(workingdir, Mesh.CreateFromBox(box2, 100, 100, 100), weather, MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true)
+            var mrt = new MRT(workingdir, Mesh.CreateFromBox(box2, 100, 100, 100), weather, MRTType.RadianceTwoPhaseDDS, points.ToArray(), true)
             {
                 Values = new double[8760, 100]
             };

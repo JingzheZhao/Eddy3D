@@ -123,7 +123,7 @@ https://transsolar.com/content/7-publications/2-papers/1-plea-2013-the-human-bio
                 return;
             }
 
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "This is an experimental component. Please refrain from using this in a production environment.");
+            // AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "This is an experimental component. Please refrain from using this in a production environment.");
 
             Weather weather = new Weather(RES.Domain.BCond.epwFilePath);
 
