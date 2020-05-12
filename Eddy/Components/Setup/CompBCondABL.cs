@@ -103,7 +103,7 @@ namespace Eddy
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Something is causing a turbulence boundary condition to be 0, please change the setup of the simulation domain."); return;
             }
 
-            if (epwFilePath != "")
+            if (epwFilePath != "" && windDir.Count > 0)
             {
                 if (BCInflow.WindDirOffSetAverage >= 13)
                 {

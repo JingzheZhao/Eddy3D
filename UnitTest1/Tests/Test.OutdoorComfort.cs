@@ -61,9 +61,28 @@ namespace RhinoPlugin.Tests.Xunit
             var uref = 10;
             var zref = 10;
 
-            var bcond = new ABL(new List<int> { 0 }, uref, zref, z0, 0, epw);
+            var windDirList = new List<int>() { 0 };
+
+            var bcond = new ABL(windDirList, uref, zref, z0, 0, epw);
 
             Weather weather = new Weather(epw);
+
+            weather.WindSpeed = Enumerable.Repeat(5.0, 8760).ToArray();
+            weather.WindDirection = Enumerable.Repeat(0, 8760).ToArray();
+            weather.DryBulbTemp = Enumerable.Repeat(30.0, 8760).ToArray();
+            weather.RelativeHumidity = Enumerable.Repeat(50.0, 8760).ToArray();
+            weather.DiffuseHorizontalRadiation = Enumerable.Repeat(0.0, 8760).ToArray();
+            weather.DirectNormalRadiation = Enumerable.Repeat(0.0, 8760).ToArray();
+
+            Vector3d[,] vecs = new Vector3d[100, 8];
+            for (int j = 0; j < 100; j++)
+            {
+                for (int i = 0; i < windDirList.Count; i++)
+                {
+                    vecs[j, i] = new Vector3d(0, 2, 0);
+                }
+            }
+                ;
 
             OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcond, 5, 50, 300, 80);
 
@@ -71,11 +90,21 @@ namespace RhinoPlugin.Tests.Xunit
 
             // Act
 
-            var mrt = new MRT(workingdir, DOMCYL.BuildingGeometry, weather, EddyLib.MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true);
+            var vf = new ViewFactors(workingdir, DOMCYL.BuildingGeometry, points.ToArray(), true);
+
+            // Set the view factors to 50 % sky and 50 % buildings
+            vf.Values = Enumerable.Repeat(0.5, 100).ToArray();
+
+            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity);
+
+            // Set the Skytemp to 10°C
+            sky.Temp = Enumerable.Repeat(10.0, 8760).ToArray();
+
+            var mrt = new MRT(workingdir, DOMCYL.BuildingGeometry, sky, vf, weather, EddyLib.MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true);
 
             // Assert
 
-            Assert.Equal(5, Math.Round(mrt.Values[0, 0], 2));
+            Assert.Equal(20, Math.Round(mrt.Values[0, 0], 2));
         }
 
         [Fact]
@@ -205,7 +234,7 @@ namespace RhinoPlugin.Tests.Xunit
             var uref = 10;
             var zref = 10;
 
-            var bcond = new ABL(new List<int> { 0 }, uref, zref, z0, 0, "");
+            var bcond = new ABL(windDirList, uref, zref, z0, 0, "");
 
             Weather weather = new Weather(epw);
             weather.WindSpeed = Enumerable.Repeat(5.0, 8760).ToArray();
@@ -240,7 +269,11 @@ namespace RhinoPlugin.Tests.Xunit
             var box = new BoundingBox(new Point3d(0, 0, 0), new Point3d(20, 20, 20));
             var box2 = new Box(Plane.WorldXY, box);
 
-            var mrt = new MRT(workingdir, Mesh.CreateFromBox(box2, 100, 100, 100), weather, MRTType.RadianceTwoPhaseDDS, points.ToArray(), true)
+            var vf = new ViewFactors(workingdir, Mesh.CreateFromBox(box2, 100, 100, 100), points.ToArray(), true);
+
+            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity);
+
+            var mrt = new MRT(workingdir, Mesh.CreateFromBox(box2, 100, 100, 100), sky, vf, weather, MRTType.RadianceTwoPhaseDDS, points.ToArray(), true)
             {
                 Values = new double[8760, 100]
             };

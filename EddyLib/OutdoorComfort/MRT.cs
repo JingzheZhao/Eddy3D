@@ -35,7 +35,9 @@ namespace EddyLib
 
         public double[] ViewFactors;
 
-        public MRT(string baseWorkingDir, Mesh BuildingGeometry, Weather weather, MRTType type, Point3d[] probes, bool recalc)
+        public double[] SkyTemp;
+
+        public MRT(string baseWorkingDir, Mesh BuildingGeometry, Sky sky, ViewFactors vf, Weather weather, MRTType type, Point3d[] probes, bool recalc)
         {
             var csvMRT = baseWorkingDir + @"MRT.csv";
             var binMRT = baseWorkingDir + @"MRT.bin";
@@ -82,9 +84,8 @@ namespace EddyLib
 
                 EddyLib.Radiance.TwoPhaseDDS dds = new EddyLib.Radiance.TwoPhaseDDS(baseWorkingDir, BuildingGeometry, probes.ToList(), weather, recalc);
 
-                var skytemp = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity);
+                this.SkyTemp = sky.Temp;
 
-                var vf = new ViewFactors(baseWorkingDir, BuildingGeometry, probes, recalc);
                 this.ViewFactors = vf.Values;
 
                 int numberOfHours = 8760;
@@ -108,7 +109,7 @@ namespace EddyLib
 
                              SolarGain.ERF(weather.SolarElevation[h], weather.SolarAzi[h], SolarGain.Posture.seating, DDSTOTAL[h][p], sol_trans, ViewFactors[p], f_bes, 0.6, out ERF, out dMRT);
 
-                             this.Values[h, p] = (weather.DryBulbTemp[h] * (1 - ViewFactors[p])) + dMRT + (skytemp.Temp[h] * ViewFactors[p]);
+                             this.Values[h, p] = (weather.DryBulbTemp[h] * (1 - ViewFactors[p])) + dMRT + (sky.Temp[h] * ViewFactors[p]);
                          }
                      });
                 }
