@@ -1,14 +1,11 @@
 ﻿using System;
 
 using Rhino.Geometry;
-using Grasshopper;
-using Grasshopper.Kernel.Types;
 
 using Xunit;
 using EddyLib;
 using System.Collections.Generic;
 using System.Linq;
-using Rhino.Display;
 using System.IO;
 using EddyLib.BCs;
 using EddyLib.Radiance;
@@ -19,6 +16,59 @@ namespace RhinoPlugin.Tests.Xunit
     [Collection("Rhino Collection")]
     public class OutdoorComfort
     {
+        [Fact]
+        public void SolarGain_Returns_23()
+        {
+            // https://comfort.cbe.berkeley.edu/
+            // Arrange
+
+            int solAlt = 90;
+            int sharp = 0;
+
+            double directBeam = 700;
+            double tSol = 1;
+            double fsvv = 0.4;
+            double fbes = 0.5;
+
+            double avgShortAbs = 0.7;
+
+            // Act
+
+            double dMRT = 0.0;
+            double ERF = 0.0;
+
+            // Assert
+
+            EddyLib.Radiance.SolarGain.ERF(solAlt, sharp, EddyLib.Radiance.SolarGain.Posture.seating, directBeam, tSol, fsvv, fbes, avgShortAbs, out ERF, out dMRT);
+
+            Assert.Equal(23.2, Math.Round(dMRT, 1));
+            Assert.Equal(97.0, Math.Round(ERF, 1));
+        }
+
+        [Fact]
+        public void SolarGain_Returns_10()
+        {
+            // https://comfort.cbe.berkeley.edu/
+            // Arrange
+
+            // Act
+
+            double dMRT = 0.0;
+            double ERF = 0.0;
+
+            // Assert
+
+            EddyLib.Radiance.SolarGain.ERF(0, 120, EddyLib.Radiance.SolarGain.Posture.seating, 800, 0.5, 0.5, 0.5, 0.7, out ERF, out dMRT);
+
+            Assert.Equal(10.3, Math.Round(dMRT, 1));
+            Assert.Equal(42.9, Math.Round(ERF, 1));
+
+            ////             >>> from pythermalcomfort.models import solar_gain
+            ////             >>> results = solar_gain(sol_altitude=0, sol_azimuth=120, sol_radiation_dir=800, sol_transmittance=0.5, f_svv=0.5, f_bes=0.5, asw=0.7, posture='seated')
+            ////             >>> print(results)
+            ////             {'erf': 42.9, 'delta_mrt': 10.3}
+        }
+
         [Fact]
         public void MRT_50Sky_50Buildings_Returns_20()
         {
