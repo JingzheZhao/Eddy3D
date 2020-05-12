@@ -1,11 +1,8 @@
-﻿using System;
+﻿using EddyLib.Radiance;
+using Rhino.Geometry;
+using System;
 using System.IO;
 using System.Linq;
-using System.Windows.Forms;
-using EddyLib;
-using EddyLib.Radiance;
-using Grasshopper;
-using Rhino.Geometry;
 
 namespace EddyLib.OutdoorComfort
 {

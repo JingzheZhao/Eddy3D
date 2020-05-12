@@ -1,25 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using EddyLib.OutdoorComfort;
-using EddyLib.OutdoorComfort.Metrics;
-
-using System;
-using System.Collections.Generic;
-
-using System.Globalization;
-using System.IO;
-
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using EddyLib.OutdoorComfort.Metrics;
-
-using Eto.Drawing;
-using Rhino.Geometry;
-using EddyLib.BCs;
+﻿using EddyLib.OutdoorComfort.Metrics;
 
 namespace EddyLib.OutdoorComfort
 {

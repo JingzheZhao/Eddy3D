@@ -1,12 +1,12 @@
-﻿using System;
+﻿using Grasshopper.Kernel;
+using Grasshopper.Kernel.Types;
+using Rhino.Geometry;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using Grasshopper.Kernel;
-using Grasshopper.Kernel.Types;
-using Rhino.Geometry;
 
 namespace EddyLib
 {
@@ -15,11 +15,14 @@ namespace EddyLib
         public enum fieldType
         {
             vector,
+
             scalar
         }
 
         public string FieldName { get; set; }
+
         public string ProbeName { get; set; }
+
         public fieldType FieldType { get; set; }
 
         public OFField(string fieldName, string probeName)
@@ -78,6 +81,7 @@ namespace EddyLib
         public static string ReformatOFFields(int OFFieldInt)
         {
             string ofField;
+
             //fieldType = 0;
             if (OFFieldInt == 0)
             {
@@ -87,36 +91,43 @@ namespace EddyLib
             else if (OFFieldInt == 1)
             {
                 ofField = "total(p)_coeff";
+
                 //fieldType = 0;
             }
             else if (OFFieldInt == 2)
             {
                 ofField = "p";
+
                 //fieldType = 0;
             }
             else if (OFFieldInt == 3)
             {
                 ofField = "epsilon";
+
                 //fieldType = 0;
             }
             else if (OFFieldInt == 4)
             {
                 ofField = "omega";
+
                 //fieldType = 0;
             }
             else if (OFFieldInt == 5)
             {
                 ofField = "k";
+
                 //fieldType = 0;
             }
             else if (OFFieldInt == 6)
             {
                 ofField = "nut";
+
                 //fieldType = 0;
             }
             else
             {
                 ofField = "phi";
+
                 //fieldType = 1;
             }
             return ofField;
@@ -126,6 +137,7 @@ namespace EddyLib
     public class Probing
     {
         public GH_Number[] ResultScalar;
+
         public GH_Vector[] ResultVec;
 
         public int correspondingWindDir;
@@ -133,7 +145,9 @@ namespace EddyLib
         private readonly List<Point3d> listOfPoints;
 
         private readonly string caseDirectory;
+
         private readonly string baseWorkingDirectory;
+
         private readonly int currWindDir;
 
         public readonly string probingFilePath;
@@ -156,6 +170,7 @@ namespace EddyLib
             {
                 ParsingScalars(listOfPoints, fullPath);
             }
+
             //Vector
             if (ofField.FieldType == OFField.fieldType.vector)
             {

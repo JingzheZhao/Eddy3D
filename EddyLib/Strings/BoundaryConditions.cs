@@ -1,6 +1,6 @@
-﻿using System;
+﻿using EddyLib.BCs;
+using System;
 using System.Text;
-using EddyLib.BCs;
 
 namespace EddyLib.Strings
 {

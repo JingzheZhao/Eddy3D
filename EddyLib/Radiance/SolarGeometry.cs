@@ -186,6 +186,7 @@ namespace EddyLib
             }
             refractionCorrection = refractionCorrection / 3600.0;
             }*/
+
             //end of complex expression
 
             //beginning of simplified expression
@@ -213,6 +214,7 @@ namespace EddyLib
                 }
                 refractionCorrection = refractionCorrection / 3600.0;
             }
+
             //end of simplified expression
 
             solarZen = zenith - refractionCorrection;
@@ -409,6 +411,7 @@ namespace EddyLib
             }
             refractionCorrection = refractionCorrection / 3600.0;
             }*/
+
             //end of complex expression
 
             //beginning of simplified expression
@@ -436,6 +439,7 @@ namespace EddyLib
                 }
                 refractionCorrection = refractionCorrection / 3600.0;
             }
+
             //end of simplified expression
 
             solarZen = zenith - refractionCorrection;

@@ -1,11 +1,10 @@
-﻿using System;
+﻿using EddyLib.FunctionObjects;
+using Rhino.Geometry;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using Rhino.Geometry;
-using EddyLib.BCs;
-using EddyLib.FunctionObjects;
 
 namespace EddyLib
 {

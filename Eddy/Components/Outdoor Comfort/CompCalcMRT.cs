@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using Eddy.Properties;
+﻿using Eddy.Properties;
 using EddyLib;
+using EddyLib.OutdoorComfort;
 using EddyLib.Radiance;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
 using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -53,7 +53,7 @@ https://transsolar.com/content/7-publications/2-papers/1-plea-2013-the-human-bio
             pManager.AddIntegerParameter("Simulation Mode", "Mode", "Pick a simulation mode", GH_ParamAccess.item, 0);
 
             //Using an enum to generate the dropdown items
-            var types = Enum.GetNames(typeof(EddyLib.MRT.MRTType));
+            var types = Enum.GetNames(typeof(MRT.MRTType));
             Param_Integer param = pManager[2] as Param_Integer;
 
             for (int i = 0; i < types.Length; i++)

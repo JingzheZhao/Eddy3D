@@ -1,8 +1,8 @@
-﻿using System;
+﻿using EddyLib.BCs;
+using Rhino.Geometry;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
-using Rhino.Geometry;
-using EddyLib.BCs;
 
 namespace EddyLib
 {

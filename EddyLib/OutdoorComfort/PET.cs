@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Numpy;
-using MathNet.Numerics.RootFinding;
+﻿using MathNet.Numerics.RootFinding;
+using System;
 
 namespace EddyLib.OutdoorComfort
 {

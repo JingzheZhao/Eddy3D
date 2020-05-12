@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Grasshopper;
+﻿using Grasshopper;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace EddyLib
 
