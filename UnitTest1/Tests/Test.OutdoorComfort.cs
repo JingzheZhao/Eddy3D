@@ -497,7 +497,7 @@ namespace RhinoPlugin.Tests.Xunit
 
             var vf = new SkyViewFactor(workingdir, Mesh.CreateFromBox(box2, 100, 100, 100), points.ToArray(), true);
 
-            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity, false);
+            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity, true);
 
             var mrt = new MRT(workingdir, Mesh.CreateFromBox(box2, 100, 100, 100), sky, vf, weather, MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true)
             {
