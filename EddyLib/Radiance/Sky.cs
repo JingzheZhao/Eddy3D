@@ -19,21 +19,24 @@ namespace EddyLib.Radiance
 
         private double Kelvin = 273.15;
 
-        public Sky(double[] T_dew, double[] T_DryBulb, double[] SkyCover, double[] RelHum, double SourceEmissivity = 1)
+        public Sky(double[] T_dew, double[] T_DryBulb, double[] SkyCover, double[] RelHum, bool run, double SourceEmissivity = 1)
         {
-            var numberOfHours = T_DryBulb.Length;
-
-            this.Emissivity = new double[numberOfHours];
-            this.Temp = new double[numberOfHours];
-            this.HZ_IR = new double[numberOfHours];
-
-            for (int h = 0; h < numberOfHours; h++)
+            if (run)
             {
-                this.Emissivity[h] = CalcEmissivity(T_dew[h], SkyCover[h]);
+                var numberOfHours = T_DryBulb.Length;
 
-                // this.Emissivity[h] = CalcEmissivityEnergyPlus(3, T_dew[h], T_DryBulb[h],SkyCover[h],RelHum[h]);
-                this.HZ_IR[h] = CalcHZ_IR(this.Emissivity[h], this.Sigma, T_DryBulb[h]);
-                this.Temp[h] = CalcTemp(HZ_IR[h], SourceEmissivity);
+                this.Emissivity = new double[numberOfHours];
+                this.Temp = new double[numberOfHours];
+                this.HZ_IR = new double[numberOfHours];
+
+                for (int h = 0; h < numberOfHours; h++)
+                {
+                    this.Emissivity[h] = CalcEmissivity(T_dew[h], SkyCover[h]);
+
+                    // this.Emissivity[h] = CalcEmissivityEnergyPlus(3, T_dew[h], T_DryBulb[h],SkyCover[h],RelHum[h]);
+                    this.HZ_IR[h] = CalcHZ_IR(this.Emissivity[h], this.Sigma, T_DryBulb[h]);
+                    this.Temp[h] = CalcTemp(HZ_IR[h], SourceEmissivity);
+                }
             }
         }
 

@@ -152,7 +152,7 @@ https://transsolar.com/content/7-publications/2-papers/1-plea-2013-the-human-bio
 
             var vf = new SkyViewFactor(RES.WorkingDirectory, BAK, probesArr, run);
 
-            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity);
+            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity, run);
 
             var mrt = new MRT(RES.WorkingDirectory, RES.Domain.BuildingGeometry, sky, vf, weather, SimMode, probesArr, run);
 

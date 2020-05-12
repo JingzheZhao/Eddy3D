@@ -84,6 +84,8 @@
     <Compile Include="Attributes\Eddy_ComponentButtonAttributes.cs" />
     <Compile Include="FunctionObjects\PressureCoeff.cs" />
     <Compile Include="BoundaryConditions\BoundaryConditionsBase.cs" />
+    <Compile Include="OutdoorComfort\WindComfort.cs" />
+    <Compile Include="OutdoorComfort\WindFactors.cs" />
     <Compile Include="OutdoorComfort\WindComfortMetrics.cs" />
     <Compile Include="OutdoorComfort\PET.cs" />
     <Compile Include="Radiance\Sky.cs" />

@@ -40,89 +40,83 @@ namespace EddyLib.Radiance
             string radFilePath = workingDir + @"\" + this.radFile;
             string octreeFilePath = workingDir + @"\" + this.octreeFile;
 
-            // 0. Number of rays
-
-            var numRays = equiSolidAngleVectors4PI().Length;
-
-            // 1. Add Mat
-
-            //foreach (Mesh m in BuildingsAndGround)
-            //{
-            AddMat(BuildingGroundTemplate(), BuildingsAndGround);
-            this.BuildingsAndGround = BuildingsAndGround;
-
-            //}
-
-            // 2. RadFile
-
-            var matlist = new HashSet<string>();
-
-            StringBuilder radFile = new StringBuilder();
-
-            StringBuilder radFileString = new StringBuilder();
-
-            int id = 0;
-
-            //foreach (GeometryBase g in BuildingsAndGround)
-            //{
-            string mat = BuildingsAndGround.UserDictionary["RadMat"].ToString().Trim();
-            matlist.Add(mat);
-
-            string matName = mat.Split(' ')[2];
-
-            //Print(matName);
-
-            //Mesh m = (Mesh)g;
-
-            radFileString.AppendLine(Mesh2Rad(BuildingsAndGround, matName, id.ToString()));
-
-            //id++;
-            //}
-
-            foreach (string s in matlist)
-            {
-                radFile.AppendLine(s);
-            }
-            radFile.AppendLine("");
-            radFile.AppendLine(radFileString.ToString());
-
-            File.WriteAllText(radFilePath, radFile.ToString());
-
-            //A = "Final File Length: " + finalFile.Length;
-
-            // 3. Octree
-
             if (Run)
             {
+                // 0. Number of rays
+
+                var numRays = equiSolidAngleVectors4PI().Length;
+
+                // 1. Add Mat
+
+                //foreach (Mesh m in BuildingsAndGround)
+                //{
+                AddMat(BuildingGroundTemplate(), BuildingsAndGround);
+                this.BuildingsAndGround = BuildingsAndGround;
+
+                //}
+
+                // 2. RadFile
+
+                var matlist = new HashSet<string>();
+
+                StringBuilder radFile = new StringBuilder();
+
+                StringBuilder radFileString = new StringBuilder();
+
+                int id = 0;
+
+                //foreach (GeometryBase g in BuildingsAndGround)
+                //{
+                string mat = BuildingsAndGround.UserDictionary["RadMat"].ToString().Trim();
+                matlist.Add(mat);
+
+                string matName = mat.Split(' ')[2];
+
+                //Print(matName);
+
+                //Mesh m = (Mesh)g;
+
+                radFileString.AppendLine(Mesh2Rad(BuildingsAndGround, matName, id.ToString()));
+
+                //id++;
+                //}
+
+                foreach (string s in matlist)
+                {
+                    radFile.AppendLine(s);
+                }
+                radFile.AppendLine("");
+                radFile.AppendLine(radFileString.ToString());
+
+                File.WriteAllText(radFilePath, radFile.ToString());
+
+                //A = "Final File Length: " + finalFile.Length;
+
+                // 3. Octree
+
                 RunOconv(radFilePath, octreeFilePath);
-            }
 
-            // 4. RaysFile
+                // 4. RaysFile
 
-            StringBuilder sunRaysFile = new StringBuilder();
+                StringBuilder sunRaysFile = new StringBuilder();
 
-            foreach (Point3d p in sensors)
-            {
-                sunRaysFile.AppendLine(Rays(p, equiSolidAngleVectors4PI().ToList()));
-            }
+                foreach (Point3d p in sensors)
+                {
+                    sunRaysFile.AppendLine(Rays(p, equiSolidAngleVectors4PI().ToList()));
+                }
 
-            File.WriteAllText(sunRaysFilePath, sunRaysFile.ToString());
+                File.WriteAllText(sunRaysFilePath, sunRaysFile.ToString());
 
-            //A = "Final File Length: " + finalFile.Length;
+                //A = "Final File Length: " + finalFile.Length;
 
-            // 5. RayCast
+                // 5. RayCast
 
-            if (Run)
-            {
                 RunRayCastMat(octreeFilePath, sunRaysFilePath, sunRaysResPath);
 
                 // RunRayCastSurf(Oct, Pts, Path);
-            }
 
-            // 6. LoadResultsFile
+                // 6. LoadResultsFile
 
-            if (Run)
-            {
                 var HCnt = equiSolidAngleVectors4PI().Length;
 
                 var lines = File.ReadAllLines(sunRaysResPath);

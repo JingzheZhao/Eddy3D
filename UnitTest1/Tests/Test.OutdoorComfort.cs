@@ -1,15 +1,13 @@
-﻿using System;
-
-using Rhino.Geometry;
-
-using Xunit;
-using EddyLib;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
+﻿using EddyLib;
 using EddyLib.BCs;
+using EddyLib.OutdoorComfort;
 using EddyLib.Radiance;
-using static EddyLib.MRT;
+using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Xunit;
 
 namespace RhinoPlugin.Tests.Xunit
 {
@@ -145,12 +143,12 @@ namespace RhinoPlugin.Tests.Xunit
             // Set the view factors to 50 % sky and 50 % buildings
             vf.Values = Enumerable.Repeat(0.5, 100).ToArray();
 
-            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity);
+            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity, false);
 
             // Set the Skytemp to 10°C
             sky.Temp = Enumerable.Repeat(10.0, 8760).ToArray();
 
-            var mrt = new MRT(workingdir, DOMCYL.BuildingGeometry, sky, vf, weather, EddyLib.MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true);
+            var mrt = new MRT(workingdir, DOMCYL.BuildingGeometry, sky, vf, weather, MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true);
 
             // Assert
 
@@ -234,13 +232,13 @@ namespace RhinoPlugin.Tests.Xunit
                 Values = Enumerable.Repeat(0.6, 100).ToArray()
             };
 
-            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity)
+            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity, false)
             {
                 // Set the Skytemp to 10°C
                 Temp = Enumerable.Repeat(10.0, 8760).ToArray()
             };
 
-            var mrt = new MRT(workingdir, DOMCYL.BuildingGeometry, sky, vf, weather, EddyLib.MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true);
+            var mrt = new MRT(workingdir, DOMCYL.BuildingGeometry, sky, vf, weather, MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true);
 
             // Assert
 
@@ -323,12 +321,12 @@ namespace RhinoPlugin.Tests.Xunit
             // Set the view factors to 40 % sky and 60 % buildings
             vf.Values = Enumerable.Repeat(0.4, 100).ToArray();
 
-            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity);
+            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity, false);
 
             // Set the Skytemp to 10°C
             sky.Temp = Enumerable.Repeat(10.0, 8760).ToArray();
 
-            var mrt = new MRT(workingdir, DOMCYL.BuildingGeometry, sky, vf, weather, EddyLib.MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true);
+            var mrt = new MRT(workingdir, DOMCYL.BuildingGeometry, sky, vf, weather, MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true);
 
             // Assert
 
@@ -499,9 +497,9 @@ namespace RhinoPlugin.Tests.Xunit
 
             var vf = new SkyViewFactor(workingdir, Mesh.CreateFromBox(box2, 100, 100, 100), points.ToArray(), true);
 
-            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity);
+            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity, false);
 
-            var mrt = new MRT(workingdir, Mesh.CreateFromBox(box2, 100, 100, 100), sky, vf, weather, MRTType.RadianceTwoPhaseDDS, points.ToArray(), true)
+            var mrt = new MRT(workingdir, Mesh.CreateFromBox(box2, 100, 100, 100), sky, vf, weather, MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true)
             {
                 Values = new double[8760, 100]
             };

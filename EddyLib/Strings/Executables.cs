@@ -1,8 +1,8 @@
-﻿using System;
+﻿using EddyLib.FunctionObjects;
+using Rhino.Geometry;
+using System;
 using System.Collections.Generic;
 using System.Text;
-using Rhino.Geometry;
-using EddyLib.FunctionObjects;
 
 namespace EddyLib.Strings
 {

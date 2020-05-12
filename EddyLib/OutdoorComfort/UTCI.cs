@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Rhino.Geometry;
 using EddyLib.BCs;
+using EddyLib.OutdoorComfort;
 
 namespace EddyLib
 {

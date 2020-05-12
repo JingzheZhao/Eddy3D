@@ -7,7 +7,7 @@ using EddyLib.Radiance;
 using Grasshopper;
 using Rhino.Geometry;
 
-namespace EddyLib
+namespace EddyLib.OutdoorComfort
 {
     public class MRT
 
@@ -50,7 +50,7 @@ namespace EddyLib
             var dirillFile = baseWorkingDir + @"\Output\annual_dir.ill";
 
             // Add other files here
-            if (recalc == false && File.Exists(binMRT) && new FileInfo(binMRT).Length != 0)
+            if (recalc == false && File.Exists(binMRT))
             {
                 // Load radiation datasets [x][] time [][x] points
 
@@ -58,12 +58,12 @@ namespace EddyLib
 
                 int sensorPointCountExisting = tempValues.GetLength(1);
 
-                if (recalc == false && sensorPointCountExisting != numberOfProbes)
+                if (sensorPointCountExisting != numberOfProbes)
                 {
                     this.wrongNumberOfProbes = true;
                     return;
                 }
-                else if (recalc == false && sensorPointCountExisting == numberOfProbes)
+                else
                 {
                     this.Values = tempValues;
                 }
@@ -95,27 +95,24 @@ namespace EddyLib
 
                 this.Values = new double[numberOfHours, numberOfSensors];
 
-                if (recalc == true)
-                {
-                    double sol_trans = 1;
-                    double f_bes = 0.5;
+                double sol_trans = 1;
+                double f_bes = 0.5;
 
-                    System.Threading.Tasks.Parallel.For(0, 8760, h =>
+                System.Threading.Tasks.Parallel.For(0, 8760, h =>
+                 {
+                     for (int p = 0; p < probes.Length; p++)
                      {
-                         for (int p = 0; p < probes.Length; p++)
-                         {
-                             double dMRT;
-                             double ERF;
+                         double dMRT;
+                         double ERF;
 
-                             SolarGain.ERF(weather.SolarElevation[h], weather.SolarAzi[h], SolarGain.Posture.seating, DDSTOTAL[h][p], sol_trans, ViewFactors[p], f_bes, 0.6, out ERF, out dMRT);
+                         SolarGain.ERF(weather.SolarElevation[h], weather.SolarAzi[h], SolarGain.Posture.seating, DDSTOTAL[h][p], sol_trans, ViewFactors[p], f_bes, 0.6, out ERF, out dMRT);
 
-                             var surfaceTempBuilding = weather.DryBulbTemp[h] * (1 - ViewFactors[p]);
-                             var skyTemp = sky.Temp[h] * ViewFactors[p];
+                         var surfaceTempBuilding = weather.DryBulbTemp[h] * (1 - ViewFactors[p]);
+                         var skyTemp = sky.Temp[h] * ViewFactors[p];
 
-                             this.Values[h, p] = surfaceTempBuilding + dMRT + skyTemp;
-                         }
-                     });
-                }
+                         this.Values[h, p] = surfaceTempBuilding + dMRT + skyTemp;
+                     }
+                 });
             }
 
             RadianceFiles.writeBin(baseWorkingDir + @"\MRT.bin", this.Values);

@@ -4,6 +4,29 @@ using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using EddyLib.OutdoorComfort;
+using EddyLib.OutdoorComfort.Metrics;
+
+using System;
+using System.Collections.Generic;
+
+using System.Globalization;
+using System.IO;
+
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using EddyLib.OutdoorComfort.Metrics;
+using EddyLib.OutdoorComfort;
+
+using Eto.Drawing;
+
+using Rhino.Geometry;
+
+using EddyLib.BCs;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
