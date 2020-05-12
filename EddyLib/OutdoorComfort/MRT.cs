@@ -37,7 +37,7 @@ namespace EddyLib
 
         public double[] SkyTemp;
 
-        public MRT(string baseWorkingDir, Mesh BuildingGeometry, Sky sky, ViewFactors vf, Weather weather, MRTType type, Point3d[] probes, bool recalc)
+        public MRT(string baseWorkingDir, Mesh BuildingGeometry, Sky sky, SkyViewFactor vf, Weather weather, MRTType type, Point3d[] probes, bool recalc)
         {
             var csvMRT = baseWorkingDir + @"MRT.csv";
             var binMRT = baseWorkingDir + @"MRT.bin";

@@ -20,7 +20,7 @@ namespace RhinoPlugin.Tests.Xunit
     public class OutdoorComfort
     {
         [Fact]
-        public void MRT()
+        public void MRT_50Sky_50Buildings_Returns_20()
         {
             // Arrange
             var workingdir = @"C:\Testing\";
@@ -90,7 +90,7 @@ namespace RhinoPlugin.Tests.Xunit
 
             // Act
 
-            var vf = new ViewFactors(workingdir, DOMCYL.BuildingGeometry, points.ToArray(), true);
+            var vf = new SkyViewFactor(workingdir, DOMCYL.BuildingGeometry, points.ToArray(), true);
 
             // Set the view factors to 50 % sky and 50 % buildings
             vf.Values = Enumerable.Repeat(0.5, 100).ToArray();
@@ -105,6 +105,184 @@ namespace RhinoPlugin.Tests.Xunit
             // Assert
 
             Assert.Equal(20, Math.Round(mrt.Values[0, 0], 2));
+        }
+
+        [Fact]
+        public void MRT_60Sky_40Buildings_Returns_18()
+        {
+            // Arrange
+            var workingdir = @"C:\Testing\";
+
+            var point0 = new Rhino.Geometry.Point3d(0, 0, 0);
+            var point1 = new Rhino.Geometry.Point3d(20, 0, 0);
+            var point2 = new Rhino.Geometry.Point3d(0, 20, 0);
+            var point3 = new Rhino.Geometry.Point3d(20, 20, 0);
+            var point4 = new Rhino.Geometry.Point3d(0, 0, 40);
+            var point5 = new Rhino.Geometry.Point3d(20, 0, 40);
+            var point6 = new Rhino.Geometry.Point3d(0, 20, 40);
+            var point7 = new Rhino.Geometry.Point3d(20, 20, 40);
+
+            var surface = NurbsSurface.CreateFromCorners(
+              new Point3d(5000, 0, 0),
+              new Point3d(5000, 5000, 0),
+              new Point3d(0, 5000, 0),
+              new Point3d(0, 0, 0));
+
+            surface.Translate(new Vector3d(-2500, -2050, 0));
+
+            Rhino.Geometry.Box box1 = new Rhino.Geometry.Box(Rhino.Geometry.Plane.WorldXY, new List<Rhino.Geometry.Point3d>() { point0, point1, point2, point3, point4, point5, point6, point7 });
+            Rhino.Geometry.MeshingParameters mp = new Rhino.Geometry.MeshingParameters();
+            var m = Mesh.CreateFromBrep(box1.ToBrep(), mp);
+            var s = Mesh.CreateFromBrep(surface.ToBrep(), mp);
+
+            Rhino.Geometry.Mesh mm = new Rhino.Geometry.Mesh();
+
+            foreach (Rhino.Geometry.Mesh im in m)
+            {
+                mm.Append(im);
+            }
+            mm.Append(s);
+
+            string epw = @"C:\ladybug\New_York_J_F_Kennedy_IntL_Ar_NY_USA_1997\New_York_J_F_Kennedy_IntL_Ar_NY_USA_1997.epw";
+
+            var z0 = 1;
+            var uref = 10;
+            var zref = 10;
+
+            var windDirList = new List<int>() { 0 };
+
+            var bcond = new ABL(windDirList, uref, zref, z0, 0, epw);
+
+            Weather weather = new Weather(epw);
+
+            weather.WindSpeed = Enumerable.Repeat(5.0, 8760).ToArray();
+            weather.WindDirection = Enumerable.Repeat(0, 8760).ToArray();
+            weather.DryBulbTemp = Enumerable.Repeat(30.0, 8760).ToArray();
+            weather.RelativeHumidity = Enumerable.Repeat(50.0, 8760).ToArray();
+            weather.DiffuseHorizontalRadiation = Enumerable.Repeat(0.0, 8760).ToArray();
+            weather.DirectNormalRadiation = Enumerable.Repeat(0.0, 8760).ToArray();
+
+            Vector3d[,] vecs = new Vector3d[100, 8];
+            for (int j = 0; j < 100; j++)
+            {
+                for (int i = 0; i < windDirList.Count; i++)
+                {
+                    vecs[j, i] = new Vector3d(0, 2, 0);
+                }
+            }
+               ;
+
+            OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcond, 5, 50, 300, 80);
+
+            var points = Enumerable.Repeat(new Point3d(60, 60, 2), 100);
+
+            // Act
+
+            var vf = new SkyViewFactor(workingdir, DOMCYL.BuildingGeometry, points.ToArray(), true)
+            {
+                // Set the view factors to 60 % sky and 40 % buildings
+                Values = Enumerable.Repeat(0.6, 100).ToArray()
+            };
+
+            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity)
+            {
+                // Set the Skytemp to 10°C
+                Temp = Enumerable.Repeat(10.0, 8760).ToArray()
+            };
+
+            var mrt = new MRT(workingdir, DOMCYL.BuildingGeometry, sky, vf, weather, EddyLib.MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true);
+
+            // Assert
+
+            Assert.Equal(18, Math.Round(mrt.Values[0, 0], 2));
+        }
+
+        [Fact]
+        public void MRT_40Sky_60Buildings_Returns_22()
+        {
+            // Arrange
+            var workingdir = @"C:\Testing\";
+
+            var point0 = new Rhino.Geometry.Point3d(0, 0, 0);
+            var point1 = new Rhino.Geometry.Point3d(20, 0, 0);
+            var point2 = new Rhino.Geometry.Point3d(0, 20, 0);
+            var point3 = new Rhino.Geometry.Point3d(20, 20, 0);
+            var point4 = new Rhino.Geometry.Point3d(0, 0, 40);
+            var point5 = new Rhino.Geometry.Point3d(20, 0, 40);
+            var point6 = new Rhino.Geometry.Point3d(0, 20, 40);
+            var point7 = new Rhino.Geometry.Point3d(20, 20, 40);
+
+            var surface = NurbsSurface.CreateFromCorners(
+              new Point3d(5000, 0, 0),
+              new Point3d(5000, 5000, 0),
+              new Point3d(0, 5000, 0),
+              new Point3d(0, 0, 0));
+
+            surface.Translate(new Vector3d(-2500, -2050, 0));
+
+            Rhino.Geometry.Box box1 = new Rhino.Geometry.Box(Rhino.Geometry.Plane.WorldXY, new List<Rhino.Geometry.Point3d>() { point0, point1, point2, point3, point4, point5, point6, point7 });
+            Rhino.Geometry.MeshingParameters mp = new Rhino.Geometry.MeshingParameters();
+            var m = Mesh.CreateFromBrep(box1.ToBrep(), mp);
+            var s = Mesh.CreateFromBrep(surface.ToBrep(), mp);
+
+            Rhino.Geometry.Mesh mm = new Rhino.Geometry.Mesh();
+
+            foreach (Rhino.Geometry.Mesh im in m)
+            {
+                mm.Append(im);
+            }
+            mm.Append(s);
+
+            string epw = @"C:\ladybug\New_York_J_F_Kennedy_IntL_Ar_NY_USA_1997\New_York_J_F_Kennedy_IntL_Ar_NY_USA_1997.epw";
+
+            var z0 = 1;
+            var uref = 10;
+            var zref = 10;
+
+            var windDirList = new List<int>() { 0 };
+
+            var bcond = new ABL(windDirList, uref, zref, z0, 0, epw);
+
+            Weather weather = new Weather(epw);
+
+            weather.WindSpeed = Enumerable.Repeat(5.0, 8760).ToArray();
+            weather.WindDirection = Enumerable.Repeat(0, 8760).ToArray();
+            weather.DryBulbTemp = Enumerable.Repeat(30.0, 8760).ToArray();
+            weather.RelativeHumidity = Enumerable.Repeat(50.0, 8760).ToArray();
+            weather.DiffuseHorizontalRadiation = Enumerable.Repeat(0.0, 8760).ToArray();
+            weather.DirectNormalRadiation = Enumerable.Repeat(0.0, 8760).ToArray();
+
+            Vector3d[,] vecs = new Vector3d[100, 8];
+            for (int j = 0; j < 100; j++)
+            {
+                for (int i = 0; i < windDirList.Count; i++)
+                {
+                    vecs[j, i] = new Vector3d(0, 2, 0);
+                }
+            }
+       ;
+
+            OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcond, 5, 50, 300, 80);
+
+            var points = Enumerable.Repeat(new Point3d(60, 60, 2), 100);
+
+            // Act
+
+            var vf = new SkyViewFactor(workingdir, DOMCYL.BuildingGeometry, points.ToArray(), true);
+
+            // Set the view factors to 40 % sky and 60 % buildings
+            vf.Values = Enumerable.Repeat(0.4, 100).ToArray();
+
+            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity);
+
+            // Set the Skytemp to 10°C
+            sky.Temp = Enumerable.Repeat(10.0, 8760).ToArray();
+
+            var mrt = new MRT(workingdir, DOMCYL.BuildingGeometry, sky, vf, weather, EddyLib.MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true);
+
+            // Assert
+
+            Assert.Equal(22, Math.Round(mrt.Values[0, 0], 2));
         }
 
         [Fact]
@@ -151,7 +329,7 @@ namespace RhinoPlugin.Tests.Xunit
             var points = Enumerable.Repeat(new Point3d(40, 40, 2), 100);
 
             // Act
-            var vf = new ViewFactors(workingdir, DOMCYL.BuildingGeometry, points.ToArray(), true);
+            var vf = new SkyViewFactor(workingdir, DOMCYL.BuildingGeometry, points.ToArray(), true);
 
             // Assert
 
@@ -269,7 +447,7 @@ namespace RhinoPlugin.Tests.Xunit
             var box = new BoundingBox(new Point3d(0, 0, 0), new Point3d(20, 20, 20));
             var box2 = new Box(Plane.WorldXY, box);
 
-            var vf = new ViewFactors(workingdir, Mesh.CreateFromBox(box2, 100, 100, 100), points.ToArray(), true);
+            var vf = new SkyViewFactor(workingdir, Mesh.CreateFromBox(box2, 100, 100, 100), points.ToArray(), true);
 
             var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity);
 

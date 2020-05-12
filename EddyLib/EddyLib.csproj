@@ -87,7 +87,7 @@
     <Compile Include="OutdoorComfort\WindComfortMetrics.cs" />
     <Compile Include="OutdoorComfort\PET.cs" />
     <Compile Include="Radiance\Sky.cs" />
-    <Compile Include="Radiance\ViewFactors.cs" />
+    <Compile Include="Radiance\SkyViewFactor.cs" />
     <Compile Include="Radiance\SolarGain.cs" />
     <Compile Include="Strings\ReturnMsg.cs" />
     <Compile Include="EddyVersion.cs" />

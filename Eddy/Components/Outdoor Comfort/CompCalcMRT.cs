@@ -130,7 +130,7 @@ https://transsolar.com/content/7-publications/2-papers/1-plea-2013-the-human-bio
 
             #endregion Load prerequisites
 
-            var vf = new ViewFactors(RES.WorkingDirectory, RES.Domain.BuildingGeometry, probesArr, run);
+            var vf = new SkyViewFactor(RES.WorkingDirectory, RES.Domain.BuildingGeometry, probesArr, run);
 
             var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity);
 

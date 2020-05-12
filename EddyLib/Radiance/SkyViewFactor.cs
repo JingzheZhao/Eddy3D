@@ -13,7 +13,7 @@ using Rhino;
 
 namespace EddyLib.Radiance
 {
-    public class ViewFactors
+    public class SkyViewFactor
     {
         public int[] hitCounts;
 
@@ -29,7 +29,7 @@ namespace EddyLib.Radiance
 
         public Mesh BuildingsAndGround { get; set; }
 
-        public ViewFactors(string workingDir, Mesh BuildingsAndGround, Point3d[] sensors, bool Run)
+        public SkyViewFactor(string workingDir, Mesh BuildingsAndGround, Point3d[] sensors, bool Run)
         {
             this.hitCounts = new int[sensors.Length];
             this.Values = new double[sensors.Length];
@@ -140,6 +140,9 @@ namespace EddyLib.Radiance
                     for (int h = 0; h < HCnt; h++)
                     {
                         // var m = Regex.Match(lines[lindex].Trim(), @"^\d");
+
+                        // Everything that is not hit is the Sky
+                        // We are counting the ones that don't hit anything
                         var m = lines[lindex].Trim().StartsWith("*");
 
                         if (m)
