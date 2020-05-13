@@ -110,10 +110,10 @@ namespace EddyLib.OutdoorComfort
                          this.Values[h, p] = surfaceTempBuilding + dMRT + skyTemp;
                      }
                  });
-            }
 
-            RadianceFiles.writeBin(baseWorkingDir + @"\MRT.bin", this.Values);
-            ArrayHelper._2DArray2CSV(this.Values, baseWorkingDir + @"\MRT.csv", true, 1);
+                RadianceFiles.writeBin(baseWorkingDir + @"\MRT.bin", this.Values);
+                ArrayHelper._2DArray2CSV(this.Values, baseWorkingDir + @"\MRT.csv", true, 1);
+            }
 
             #endregion TwoPhaseDDS
         }
