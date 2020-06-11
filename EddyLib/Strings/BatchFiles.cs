@@ -25,7 +25,8 @@ namespace EddyLib.Strings
         "foamToVTK -faceSet wrongOrientedFaces -ascii",
         "foamToVTK -faceSet zeroVolumeCells -ascii",
         "foamToVTK -faceSet edgeFaces -ascii",
-        "foamToVTK -cellSet oneInternalFaceCells -ascii"};
+        "foamToVTK -cellSet oneInternalFaceCells -ascii",
+        "foamToVTK -cellSet concaveCells -ascii"};
 
         private static readonly List<string> RCBlockMeshSingleCPU = new List<string> {
         "blockMesh"};

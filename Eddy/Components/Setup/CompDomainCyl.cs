@@ -3,6 +3,7 @@ using EddyLib.BCs;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
+using Rhino.Geometry.Collections;
 using System;
 using System.Collections.Generic;
 
