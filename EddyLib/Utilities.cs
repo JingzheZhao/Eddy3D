@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Rhino.Geometry;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,7 +10,6 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Rhino.Geometry;
 
 namespace EddyLib
 {

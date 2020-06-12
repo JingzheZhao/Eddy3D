@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Windows.Forms;
-using Eddy.Properties;
+﻿using Eddy.Properties;
 using EddyLib;
+using EddyLib.OutdoorComfort;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
-using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Forms;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the

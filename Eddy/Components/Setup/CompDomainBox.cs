@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using EddyLib;
+﻿using EddyLib;
+using EddyLib.BCs;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
-using EddyLib.BCs;
+using System;
+using System.Collections.Generic;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the

@@ -13,6 +13,7 @@ namespace EddyLib
 
             ProcessStartInfo psiCurrentRAM = new ProcessStartInfo(@"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe");
             psiCurrentRAM.Verb = "runas";
+
             //psiCurrentRAM.CreateNoWindow = true;
             psiCurrentRAM.Arguments = currentRAM;
             psiCurrentRAM.RedirectStandardError = true;
@@ -25,10 +26,12 @@ namespace EddyLib
             pCurrentRAM.Start();
             string vms = pCurrentRAM.StandardOutput.ReadToEnd();
             string vms1 = pCurrentRAM.StandardOutput.ReadToEnd();
+
             //File.WriteAllText(@"C:\OF2\RAM", vms);
             pCurrentRAM.WaitForExit();
 
             int result = 0;
+
             //int[] numbers = (from Match m in Regex.Matches(vms, @"\d+") select int.Parse(m.Value)).ToArray();
             //result = numbers[1];
 

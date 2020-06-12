@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Eddy.Properties;
+﻿using Eddy.Properties;
 using EddyLib;
+using EddyLib.BCs;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
-using EddyLib.BCs;
+using System;
+using System.Collections.Generic;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -107,7 +106,7 @@ namespace Eddy
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Something is causing a turbulence boundary condition to be 0, please change the setup of the simulation domain.");
             }
 
-            if (epwFilePath != "")
+            if (epwFilePath != "" && windDir.Count > 0)
             {
                 if (BCInflow.WindDirOffSetAverage >= 13)
                 {

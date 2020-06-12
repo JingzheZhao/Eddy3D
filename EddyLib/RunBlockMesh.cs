@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Rhino.Geometry;
+using System;
 using System.Drawing;
 using System.IO;
-using Rhino.Geometry;
 
 namespace EddyLib
 {
@@ -108,6 +108,7 @@ namespace EddyLib
                 using (StreamReader reader = new StreamReader(stream))
                 {
                     logFile = reader.ReadToEnd();
+
                     //while (!reader.EndOfStream)
                     //{
                     //}

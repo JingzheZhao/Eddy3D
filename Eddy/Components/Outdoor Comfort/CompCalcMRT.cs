@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using Eddy.Properties;
+﻿using Eddy.Properties;
 using EddyLib;
+using EddyLib.OutdoorComfort;
+using EddyLib.Radiance;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
 using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -30,8 +31,7 @@ namespace Eddy
         public CompCalcMRT()
           : base("Mean Radiant Temperature", "Mean Radiant Temperature", @"Mean Radiant Temperature.
 
-This is an experimental component based on an simplified approach linked below. Please refrain from using this in a production environment.
-https://transsolar.com/content/7-publications/2-papers/1-plea-2013-the-human-bio-meteorological-chart/kessling-transsolar-plea-2013-the-human-bio-meteorological-chart.pdf
+This is based on a TwoPhaseDDS approach for which it is assumed that the building surface temperature equals the ambient temperature.
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "6 | Outdoor Comfort")
@@ -52,7 +52,7 @@ https://transsolar.com/content/7-publications/2-papers/1-plea-2013-the-human-bio
             pManager.AddIntegerParameter("Simulation Mode", "Mode", "Pick a simulation mode", GH_ParamAccess.item, 0);
 
             //Using an enum to generate the dropdown items
-            var types = Enum.GetNames(typeof(EddyLib.MRT.MRTType));
+            var types = Enum.GetNames(typeof(MRT.MRTType));
             Param_Integer param = pManager[2] as Param_Integer;
 
             for (int i = 0; i < types.Length; i++)
@@ -123,13 +123,37 @@ https://transsolar.com/content/7-publications/2-papers/1-plea-2013-the-human-bio
                 return;
             }
 
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "This is an experimental component. Please refrain from using this in a production environment.");
+            // AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "This is an experimental component. Please refrain from using this in a production environment.");
 
             Weather weather = new Weather(RES.Domain.BCond.epwFilePath);
 
             #endregion Load prerequisites
 
-            var mrt = new MRT(RES.WorkingDirectory, RES.Domain.BuildingGeometry, weather, SimMode, probesArr, run);
+            #region Create Ground and Building Mesh
+
+            var BAK = new Mesh();
+            if (RES.Domain is OFBoxDomain)
+            {
+                var dom = (OFBoxDomain)RES.Domain;
+                BAK.Append(dom.BuildingGeometry);
+                BAK.Append(dom.DomainMeshGround);
+                BAK.Append(dom.DomainMeshGroundPerim);
+            }
+            else
+            {
+                var dom = (OFCylDomain)RES.Domain;
+                BAK.Append(dom.BuildingGeometry);
+                BAK.Append(dom.CylDomainMeshGround);
+                BAK.Append(dom.CylDomainMeshGroundPerim);
+            }
+
+            #endregion Create Ground and Building Mesh
+
+            var vf = new SkyViewFactor(RES.WorkingDirectory, BAK, probesArr, run);
+
+            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity, run);
+
+            var mrt = new MRT(RES.WorkingDirectory, RES.Domain.BuildingGeometry, sky, vf, weather, SimMode, probesArr, run);
 
             // Order important
 

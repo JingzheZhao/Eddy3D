@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Windows.Forms;
-using Eddy.Properties;
+﻿using Eddy.Properties;
 using EddyLib;
+using EddyLib.OutdoorComfort;
 using Grasshopper.Kernel;
-using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Parameters;
-using Grasshopper.Kernel.Types;
-using Rhino.Geometry;
-using System.Linq;
+using System;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -48,7 +43,7 @@ namespace Eddy
             pManager.AddIntegerParameter("Wind Comfort Index", "WCmftIdx", "Select a Wind Comfort Index with a right click.", GH_ParamAccess.item, 0);
 
             //Using an enum to generate the dropdown items
-            var types = Enum.GetNames(typeof(EddyLib.WindComfort.PCIdx));
+            var types = Enum.GetNames(typeof(EddyLib.OutdoorComfort.WindComfort.PCIdx));
             Param_Integer param = pManager[1] as Param_Integer;
 
             for (int i = 0; i < types.Length; i++)

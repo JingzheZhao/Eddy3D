@@ -1,10 +1,10 @@
-﻿using System;
+﻿using EddyLib.Radiance;
+using Rhino.Geometry;
+using System;
 using System.IO;
 using System.Linq;
-using EddyLib;
-using Rhino.Geometry;
 
-namespace EddyLib
+namespace EddyLib.OutdoorComfort
 {
     public class MRT
 
@@ -24,17 +24,22 @@ namespace EddyLib
 
         public bool resultPrecalculated;
 
-        public MRT(string baseWorkingDir, Mesh BuildingGeometry, Weather weather, MRTType type, Point3d[] probes, bool recalc)
+        public double[][] DiffRad;
+
+        public double[][] DirRad;
+
+        public double[][] TotalRad;
+
+        public double[] ViewFactors;
+
+        public double[] SkyTemp;
+
+        public MRT(string baseWorkingDir, Mesh BuildingGeometry, Sky sky, SkyViewFactor vf, Weather weather, MRTType type, Point3d[] probes, bool recalc)
         {
             var csvMRT = baseWorkingDir + @"MRT.csv";
             var binMRT = baseWorkingDir + @"MRT.bin";
 
             var numberOfProbes = probes.Length;
-
-            double[][] DiffRad = null;
-            double[][] DirRad = null;
-
-            double[][] TotalRad = null;
 
             #region TwoPhaseDDS
 
@@ -42,7 +47,7 @@ namespace EddyLib
             var dirillFile = baseWorkingDir + @"\Output\annual_dir.ill";
 
             // Add other files here
-            if (recalc == false && File.Exists(binMRT) && new FileInfo(binMRT).Length != 0)
+            if (recalc == false && File.Exists(binMRT))
             {
                 // Load radiation datasets [x][] time [][x] points
 
@@ -50,12 +55,12 @@ namespace EddyLib
 
                 int sensorPointCountExisting = tempValues.GetLength(1);
 
-                if (recalc == false && sensorPointCountExisting != numberOfProbes)
+                if (sensorPointCountExisting != numberOfProbes)
                 {
                     this.wrongNumberOfProbes = true;
                     return;
                 }
-                else if (recalc == false && sensorPointCountExisting == numberOfProbes)
+                else
                 {
                     this.Values = tempValues;
                 }
@@ -71,13 +76,43 @@ namespace EddyLib
                     File.Delete(binMRT);
                 }
 
-                Utilities.CleanDirectory(baseWorkingDir + @"Rad\");
-                Utilities.CleanDirectory(baseWorkingDir + @"Output\");
+                //Utilities.CleanDirectory(baseWorkingDir + @"Rad\");
+                //Utilities.CleanDirectory(baseWorkingDir + @"Output\");
 
                 EddyLib.Radiance.TwoPhaseDDS dds = new EddyLib.Radiance.TwoPhaseDDS(baseWorkingDir, BuildingGeometry, probes.ToList(), weather, recalc);
 
-                //DirRad = RadianceFiles.loadILL(dirillFile);
-                // DiffRad = RadianceFiles.loadILL(difillFile);
+                this.SkyTemp = sky.Temp;
+
+                this.ViewFactors = vf.Values;
+
+                int numberOfHours = 8760;
+                int numberOfSensors = probes.Length;
+
+                var DDSTOTAL = dds.totalIll;
+
+                this.Values = new double[numberOfHours, numberOfSensors];
+
+                double sol_trans = 1;
+                double f_bes = 0.5;
+
+                System.Threading.Tasks.Parallel.For(0, 8760, h =>
+                 {
+                     for (int p = 0; p < probes.Length; p++)
+                     {
+                         double dMRT;
+                         double ERF;
+
+                         SolarGain.ERF(weather.SolarElevation[h], weather.SolarAzi[h], SolarGain.Posture.seating, DDSTOTAL[h][p], sol_trans, ViewFactors[p], f_bes, 0.6, out ERF, out dMRT);
+
+                         var surfaceTempBuilding = weather.DryBulbTemp[h] * (1 - ViewFactors[p]);
+                         var skyTemp = sky.Temp[h] * ViewFactors[p];
+
+                         this.Values[h, p] = surfaceTempBuilding + dMRT + skyTemp;
+                     }
+                 });
+
+                RadianceFiles.writeBin(baseWorkingDir + @"\MRT.bin", this.Values);
+                ArrayHelper._2DArray2CSV(this.Values, baseWorkingDir + @"\MRT.csv", true, 1);
             }
 
             #endregion TwoPhaseDDS

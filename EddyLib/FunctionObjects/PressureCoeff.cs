@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
+﻿using EddyLib.BCs;
 using Rhino.Geometry;
-using System.Linq;
-using EddyLib.BCs;
+using System;
+using System.Collections.Generic;
 
 namespace EddyLib.FunctionObjects
 {

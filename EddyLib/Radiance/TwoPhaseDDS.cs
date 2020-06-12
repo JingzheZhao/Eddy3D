@@ -4,15 +4,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EddyLib.Radiance
 {
     public class TwoPhaseDDS
     {
-        //annualR_dc.ill + -s -1 output/annualR_dcd.ill + output/annual_dir.ill > output/annual_total.ill
-
         public double[][] dcill;
 
         public double[][] dcdill;
@@ -23,28 +19,83 @@ namespace EddyLib.Radiance
 
         public string command;
 
-        public TwoPhaseDDS(string baseWorkingDir, Mesh BuildingGeometry, List<Point3d> probes, Weather weather, bool run, string RadianceDir = @"C:\Program Files\Radiance")
+        private readonly string fileName = @"TwoPhaseDDS";
+
+        private readonly string fileNameCSVExtension = ".csv";
+
+        private readonly string fileNameBinExtension = ".bin";
+
+        private readonly string del = "_";
+
+        public bool resultPrecalculated;
+
+        public bool wrongNumberOfProbes;
+
+        private string TwoPhaseDDSFolder = @"\TwoPhaseDDS\";
+
+        public TwoPhaseDDS(string baseWorkingDir, Mesh BuildingGeometry, List<Point3d> probes, Weather weather, bool recalc, string RadianceDir = @"C:\Program Files\Radiance")
 
         {
+            string csvDDS = Path.Combine(baseWorkingDir + fileName + del + fileNameCSVExtension);
+            string binDDS = Path.Combine(baseWorkingDir + fileName + del + fileNameBinExtension);
+
+            var dirs = new List<String>() { baseWorkingDir + TwoPhaseDDSFolder, baseWorkingDir, baseWorkingDir + @"Rad\", baseWorkingDir + @"Output\" };
+
+            foreach (string d in dirs)
+            {
+                if (!Directory.Exists(d))
+                {
+                    Directory.CreateDirectory(d);
+                }
+            }
+
+            if (File.Exists(binDDS) && !recalc)
+            {
+                try
+                {
+                    this.totalIll = LoadDDSIll(TwoPhaseDDSFolder + @"totalIll.ill");
+                    this.resultPrecalculated = true;
+                    this.wrongNumberOfProbes = false;
+                }
+                catch (Exception e)
+                {
+                    this.resultPrecalculated = false;
+                    this.wrongNumberOfProbes = true;
+                    throw e;
+                }
+            }
+            else
+            {
+                var files = new List<string>()
+                {
+                     csvDDS,
+                     binDDS
+                };
+
+                foreach (string s in files)
+                {
+                    if (File.Exists(s))
+                    {
+                        File.Delete(s);
+                    }
+                }
+
+                RunDDS(baseWorkingDir, TwoPhaseDDSFolder, BuildingGeometry, probes, weather, recalc, RadianceDir);
+
+                RadianceFiles.writeBin(baseWorkingDir + TwoPhaseDDSFolder + @"\totalIll.bin", this.totalIll);
+
+                this.resultPrecalculated = false;
+                this.wrongNumberOfProbes = false;
+            }
+        }
+
+        protected void RunDDS(string baseWorkingDir, string subfolder, Mesh BuildingGeometry, List<Point3d> probes, Weather weather, bool run, string RadianceDir = @"C:\Program Files\Radiance")
+        {
+            var numberOfProbes = probes.Count;
+
             //var skySubDivDiff = SkySubdivision.r1;
             var skySubDivDiff = SkySubdivision.r2;
             var skySubDivDir = SkySubdivision.r4;
-
-            if (!Directory.Exists(baseWorkingDir))
-            {
-                Directory.CreateDirectory(baseWorkingDir);
-            }
-
-            //export RAD for DAYSIM
-            if (!Directory.Exists(baseWorkingDir + @"Rad\"))
-            {
-                Directory.CreateDirectory(baseWorkingDir + @"Rad\");
-            }
-
-            if (!Directory.Exists(baseWorkingDir + @"Output\"))
-            {
-                Directory.CreateDirectory(baseWorkingDir + @"Output\");
-            }
 
             // User geometry data here
 
@@ -83,9 +134,11 @@ namespace EddyLib.Radiance
             Skies.Write(baseWorkingDir + @"Rad\skyglow" + (skySubDivDir - 1) + ".rad", (skySubDivDir - 1));
             Skies.Write(baseWorkingDir + @"Rad\skyglow" + (skySubDivDiff - 1) + ".rad", (skySubDivDiff - 1));
 
+            this.command = CommandLineArgsNew(RadianceDir, baseWorkingDir, probes.Count, weaname, weather.epwFilePath, 3, 5000, skySubDivDiff, skySubDivDir, Environment.ProcessorCount - 1);
+
             //Utilities.StartProcess.StartProcessCMDNT(arg, false, true, false, true, probingComplete);
 
-            if (run)
+            if (run == true)
             {
                 using (Process process = new Process())
                 {
@@ -117,34 +170,61 @@ namespace EddyLib.Radiance
                 }
             }
 
-            this.command = CommandLineArgsNew(RadianceDir, baseWorkingDir, probes.Count, weaname, weather.epwFilePath, 3, 5000, skySubDivDiff, skySubDivDir, Environment.ProcessorCount - 1);
+            // this.dcill = LoadDDSIll(baseWorkingDir + @"\Output\annualR_dc.ill");
+            //this.dcdill = LoadDDSIll(baseWorkingDir + @"\Output\annualR_dcd.ill");
+            //this.dirill = LoadDDSIll(baseWorkingDir + @"\Output\annual_dir.ill");
 
-            this.dcill = LoadDDSIll(baseWorkingDir + @"\Output\annualR_dc.ill");
-            this.dcdill = LoadDDSIll(baseWorkingDir + @"\Output\annualR_dcd.ill");
-            this.dirill = LoadDDSIll(baseWorkingDir + @"\Output\annual_dir.ill");
+            //if (load)
+            //{
             this.totalIll = LoadDDSIll(baseWorkingDir + @"\Output\annual_total.ill");
+
+            //}
+
+            //  this.Values = new double[8760, numberOfProbes];
+
+            //  this.dcill = new double[8760, numberOfProbes];
+            //  this.dcdill = new double[8760, numberOfProbes];
+            //  this.dirill = new double[8760, numberOfProbes];
+            //  this.totalIll = new double[8760, numberOfProbes];
+
+            /*
+
+            System.Threading.Tasks.Parallel.For(0, 20, h =>
+            {
+            for (int p = 0; p < ; p++)
+            {
+            //this.Values[h, p] = GetMRTForPointViaKessling(weather, h, DiffRad[h][p], DirRad[h][p])[0];
+
+            // this.dcill[h, p] = Ldcill[h][p];
+            // this.dcdill[h, p] = Ldcdill[h][p];
+            // this.dirill[h, p] = Ldirill[h][p];
+            //  this.totalIll[h, p] = LtotalIll[h][p];
+            }
+            });
+
+            */
         }
 
-        private static double[][] LoadDDSIll(string illFileName)
+        private static double[][] LoadDDSIll(string illFileName) // total illuminance data
         {
             // [x][] time
             // [][x] points
-            //string[] illLines = System.IO.File.ReadAllLines(illFileName);
-            //return illLines.Select(l => Array.ConvertAll<string, double>(l.Split(new[] { ' ' }).Skip(4).ToArray(), Double.Parse)).ToArray();
+            string[] illLines = System.IO.File.ReadAllLines(illFileName).Skip(9).ToArray();
+            return illLines.Select(l => Array.ConvertAll<string, double>(l.Split(new[] { ' ' }).Skip(1).ToArray(), Double.Parse)).ToArray();
 
-            string[] lines = System.IO.File.ReadAllLines(illFileName).Skip(7).ToArray();
-            double[][] values = new double[lines.Length][];
+            //string[] lines = System.IO.File.ReadAllLines(illFileName);
+            //double[][] values = new double[lines.Length][];
 
-            for (int h = 0; h < lines.Length; h++)
+            /* for (int h = 0; h < lines.Length; h++)
             {
-                string[] hourData = lines[h].Split(' ').Skip(4).ToArray();
-                double[] hourDataDouble = Array.ConvertAll<string, double>(hourData, Double.Parse);
-                values[h] = hourDataDouble;
+            string[] hourData = lines[h].Split(' ').Skip(4).ToArray();
+            double[] hourDataDouble = Array.ConvertAll<string, double>(hourData, Double.Parse);
+            values[h] = hourDataDouble;
             }
-            return values;
+            return values;*/
         }
 
-        public static string CommandLineArgsNew(string RadianceDir, string baseWorkingDir, int sensorCnt, string weaname, string epwpath, int ab, int ad, SkySubdivision diffSky, SkySubdivision dirSky, int n)
+        public string CommandLineArgsNew(string RadianceDir, string baseWorkingDir, int sensorCnt, string weaname, string epwpath, int ab, int ad, SkySubdivision diffSky, SkySubdivision dirSky, int n)
         {
             int skysubdiv = (int)diffSky;
             int skysubdivdirect = (int)diffSky;
@@ -230,184 +310,5 @@ namespace EddyLib.Radiance
         ";
             return command;
         }
-
-        public class Sky
-
-        {
-            private double Sigma = 5.670374419e-8;
-
-            public double[] Emissivity;
-
-            public double[] Temp;
-
-            public double[] HZ_IR;
-
-            private double Kelvin = 273.15;
-
-            public Sky(double[] T_dew, double[] T_DryBulb, double[] SkyCover, double[] RelHum, double SourceEmissivity = 1)
-            {
-                var numberOfHours = T_DryBulb.Length;
-
-                this.Emissivity = new double[numberOfHours];
-                this.Temp = new double[numberOfHours];
-                this.HZ_IR = new double[numberOfHours];
-
-                for (int h = 0; h < numberOfHours; h++)
-                {
-                    this.Emissivity[h] = CalcEmissivity(T_dew[h], SkyCover[h]);
-
-                    // this.Emissivity[h] = CalcEmissivityEnergyPlus(3, T_dew[h], T_DryBulb[h],SkyCover[h],RelHum[h]);
-                    this.HZ_IR[h] = CalcHZ_IR(this.Emissivity[h], this.Sigma, T_DryBulb[h]);
-                    this.Temp[h] = CalcTemp(HZ_IR[h], SourceEmissivity);
-                }
-            }
-
-            private double CalcHZ_IR(double Emissivity, double Sigma, double T_drybulb)
-            {
-                return Emissivity * Sigma * Math.Pow((T_drybulb + 273.15), 4);
-            }
-
-            private double CalcEmissivity(double T_dew, double N)
-            {
-                // N = SkyCover
-                return (0.787 + 0.764 * Math.Log((T_dew + Kelvin) / Kelvin)) * (1 + (0.0224 * N) - (0.0035 * Math.Pow(N, 2)) + (0.00028 * Math.Pow(N, 3)));
-            }
-
-            private double CalcEs(double T_celcius)
-            {
-                //!~ **********************************************
-                //!~calculates saturation vapour pressure over water in hPa for input air temperature(ta) in celsius according to:
-                //!~Hardy, R.; ITS-90 Formulations for Vapor Pressure, Frostpoint Temperature, Dewpoint Temperature and Enhancement Factors in the Range -100 to 100 °C;
-                //!~Proceedings of Third International Symposium on Humidity and Moisture; edited by National Physical Laboratory(NPL), London, 1998, pp. 214-221
-                //!~http://www.thunderscientific.com/tech_info/reflibrary/its90formulas.pdf (retrieved 2008-10-01)
-
-                // es = saturation vapour pressure in Pa // T is temperature in K // g is list of
-                // coefficients for curve fit
-
-                double T_kelvin; //int I;
-                double[] g = {
-    -2.8365744E3,
-    -6.028076559E3, 1.954263612E1,
-    -2.737830188E-2, 1.6261698E-5, 7.0229056E-10,
-    -1.8680009E-13, 2.7150305 };
-
-                T_kelvin = T_celcius + 273.15; //! air temp in K double
-                var es = g[7] * Math.Log(T_kelvin);
-
-                // do i=0,6
-                for (int i = 0; i < 6; i++)
-                {
-                    es = es + g[i] * Math.Pow(T_kelvin, (i - 2));
-                }
-
-                //end do
-
-                es = Math.Exp(es) * 0.01; //! *0.01: convert Pa to hPa
-
-                return es;
-            }
-
-            private double CalcEmissivityEnergyPlus(int ESkyCalcType, double OSky, double DryBulb, double DewPoint, double RelHum)
-            {
-                // Calculate Sky Emissivity
-                // References:
-                // M. Li, Y. Jiang and C. F. M. Coimbra,
-                // "On the determination of atmospheric longwave irradiance under all-sky conditions,"
-                // Solar Energy 144, 2017, pp. 40–48,
-                // G. Clark and C. Allen, "The Estimation of Atmospheric Radiation for Clear and
-                // Cloudy Skies," Proc. 2nd National Passive Solar Conference (AS/ISES), 1978, pp. 675-678.
-
-                // var Pvsk = 6.105 * Math.Exp((17.27 * ((double)DryBulb + 273.15) - 4717.03) / (237.7 + (double)DryBulb));
-
-                var TKelvin = 273.15;
-
-                var ESky = 0.0;
-                if (ESkyCalcType == 1)
-                {
-                    double PartialPress = RelHum * CalcEs(DryBulb) * 0.01;
-                    ESky = 0.618 + 0.056 * Math.Pow(PartialPress, 0.5);
-                }
-                else if (ESkyCalcType == 2)
-                {
-                    double PartialPress = RelHum * CalcEs(DryBulb) * 0.01;
-                    ESky = 0.685 + 0.000032 * PartialPress * Math.Exp(1699 / (DryBulb + TKelvin));
-                }
-                else if (ESkyCalcType == 3)
-                {
-                    double TDewC = new List<double>() { DryBulb, DewPoint }.Min();
-                    ESky = 0.758 + 0.521 * (TDewC / 100) + 0.625 * Math.Pow((TDewC / 100), 2);
-                }
-                else
-                {
-                    ESky = 0.787 + 0.764 * Math.Log((new List<double>() { DryBulb, DewPoint }.Min() + TKelvin) / TKelvin);
-                }
-                ESky = ESky * (1 + (0.0224 * OSky) - (0.0035 * Math.Pow(OSky, 2)) + (0.00028 * Math.Pow(OSky, 3)));
-                return ESky;
-            }
-
-            private double CalcTemp(double HZ_IR, double SourceEmissivity)
-            {
-                return Math.Pow((HZ_IR / (SourceEmissivity * this.Sigma)), 0.25) - Kelvin;
-            }
-        }
-
-        /*public static string CommandLineArgs(string RadianceDir, string baseWorkingDir, int sensorCnt, string weaname, int ab, int ad, SkySubdivision diffSky, SkySubdivision dirSky, int n)
-        {
-          int skysubdiv = (int) diffSky;
-          int skysubdivdirect = (int) diffSky;
-
-          string command = @"
-
-            oconv scene.rad > output/scene.oct
-
-            oconv sceneBlack.rad > output/sceneBlack.oct
-
-            REM ###################################
-            REM 1 Perform an annual daylight coefficient simulation.
-            REM ###################################
-
-            rfluxmtx -I+ -y " + sensorCnt + @" -lw 0.0001 -ab " + ab + @" -ad " + ad + @" -n " + n + @" - skyglow.rad" + @" -i output/scene.oct<sensors.pts> output/dc_r" + skysubdiv + @".mtx
-
-            gendaymtx -m " + skysubdiv + @" -O1 output/" + weaname + @".wea > output/total.smx
-
-            dctimestep output/dc_r" + skysubdiv + @".mtx output/total.smx | rmtxop -fa -t -c 0.265 0.670 0.065 - > output/annual_total.ill
-
-            REM ###################################
-            REM 2 Perform an annual direct-only daylight coefficients simulation.
-            REM ###################################
-
-            rfluxmtx -I+ -y " + sensorCnt + @" -lw 0.0001 -ab 1 -ad " + ad + @" -n " + n + @" - skyglow.rad -i output/sceneBlack.oct<sensors.pts> output/dcd_r" + skysubdiv + @".mtx
-
-            gendaymtx -m " + skysubdiv + @" -O1 -d output/" + weaname + @".wea > output/dirOnly.smx
-
-            dctimestep output/dcd_r" + skysubdiv + @".mtx output/dirOnly.smx | rmtxop -fa -t -c 0.265 0.670 0.065 - > output/annualR_dcd.ill
-
-            REM ###################################
-            REM 3 Perform an annual sun-coefficients simulation.
-            REM ###################################
-
-            echo void light solar 0 0 3 1e6 1e6 1e6 > output/suns.rad
-
-            cnt " + (144 * skysubdivdirect * skysubdivdirect + 1) + @" | rcalc -e MF:" + skysubdivdirect + @" -f " + RadianceDir + @"\lib\reinsrc.cal -e Rbin = recno -o ""solar source sun 0 0 4 ${ Dx} ${ Dy} ${ Dz} 0.533"" >> output/suns.rad
-
-            oconv sceneBlack.rad output/suns.rad > output/sceneBlackSuns.oct
-
-            rcontrib -I + -ab 1 -y " + sensorCnt + @" - n " + n + @" -ad 256 -lw 1.0e-3 -dc 1 -dt 0 -dj 0 -faf -e MF:" + skysubdivdirect + @" -f " + RadianceDir + @"\lib\reinhart.cal -b rbin -bn Nrbins -m solar output/sceneBlackSuns.oct < sensors.pts > output/cdsDDS.mtx
-
-            gendaymtx -5 0.533 -m " + skysubdivdirect + @" -O1 output/" + weaname + @".wea > output/sunM" + skysubdivdirect + @".smx
-
-            dctimestep output/cdsDDS.mtx output/sunM" + skysubdivdirect + @".smx | rmtxop -fa -t -c 0.265 0.670 0.065 - > output/annual_dir.ill
-
-            REM ###################################
-            REM 4 Combine Results
-            REM ###################################
-
-            rmtxop output/annual_total.ill + -s -1 output/annualR_dcd.ill > output/annual_diff.ill
-
-            REM rmtxop annual_diff.ill + output/annualR_dir.ill > output/annual_total.ill
-
-            ";
-          return command;
-        }*/
     }
 }
