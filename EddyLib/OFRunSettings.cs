@@ -16,11 +16,13 @@ namespace EddyLib
 
     public enum RelaxationFactors
     {
-        OpenFOAM,
+        Fast,
 
         Fluent,
 
-        OpenFOAMRobust
+        Robust,
+
+        Optimized
     }
 
     public enum SimEngine
@@ -36,9 +38,18 @@ namespace EddyLib
 
         kEpsilon,
 
-        kOmegaSST,
+        RNGkEpsilon,
 
-        RNGkEpsilon
+        realizableKE,
+
+        kOmegaSST
+    }
+
+    public enum fvSchemes
+    {
+        Default,
+
+        BIMHVAC
     }
 
     public class OFRunSettings
@@ -64,7 +75,7 @@ namespace EddyLib
 
         public RelaxationFactors relaxationFactors;
 
-        public int Schemes;
+        public fvSchemes schemes;
 
         public SimEngine simEngine;
 
@@ -77,12 +88,12 @@ namespace EddyLib
             int iter = 1000,
             int writeInterval = 10,
             int keepTimeSteps = 3,
-            int Schemes = 0,
+            fvSchemes schemes = fvSchemes.BIMHVAC,
             int CPUs = 1,
             SimEngine simEngine = SimEngine.BlueCFD,
             OSType ostype = OSType.Windows10,
             TurbModel turbmodel = TurbModel.kEpsilon,
-            RelaxationFactors relaxationFactors = RelaxationFactors.Fluent,
+            RelaxationFactors relaxationFactors = RelaxationFactors.Optimized,
             bool potentialFoamInit = false
 
             //bool renumberMesh = true
@@ -91,7 +102,7 @@ namespace EddyLib
             this.iter = iter;
             this.writeInterval = writeInterval;
             this.keepTimeSteps = keepTimeSteps;
-            this.Schemes = Schemes;
+            this.schemes = schemes;
             this.CPUs = CPUs;
             this.simEngine = simEngine;
             this.ostype = ostype;
@@ -114,17 +125,16 @@ namespace EddyLib
 iter = {0}
 writeInterval = {1}
 keepTimeSteps = {2}
-Scheme = {3}
+fvScheme = {3}
 turb = {4}
 CPUs = {5}
 Engine = {6}
 OS = {7}
-Turbulence Model = {8}
-Relaxation Factors = {9}
-potentialFoam initialization = {10}"
+Relaxation Factors = {8}
+potentialFoam initialization = {9}"
 
 //Renumber Mesh = {11}"
-, iter.ToString(), writeInterval.ToString(), keepTimeSteps.ToString(), Schemes.ToString(), turbModel.ToString(), CPUs.ToString(), simEngine.ToString(), ostype.ToString(), turbModel.ToString(), relaxationFactors.ToString(), potentialFoamInit.ToString()
+, iter.ToString(), writeInterval.ToString(), keepTimeSteps.ToString(), schemes.ToString(), turbModel.ToString(), CPUs.ToString(), simEngine.ToString(), ostype.ToString(), relaxationFactors.ToString(), potentialFoamInit.ToString()
 
 //, renumberMesh.ToString()
 );

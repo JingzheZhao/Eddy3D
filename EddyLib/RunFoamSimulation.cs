@@ -112,45 +112,10 @@ namespace EddyLib
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\snappyHexMeshDict"), EddyLib.Strings.OFExecDicts.SnappyHexMeshDict(MeshSettings, DOM));
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\surfaceFeatureExtractDict"), EddyLib.Strings.OFExecDicts.SurfaceFeatureExtractDict());
 
-                        if (RunSettings.Schemes != 0)
-                        {
-                            if (RunSettings.Schemes == 1)
-                            {
-                                File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesRobust1());
-                            }
-                            else if (RunSettings.Schemes == 2)
-                            {
-                                File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesOrtho70_80());
-                            }
-                            else if (RunSettings.Schemes == 3)
-                            {
-                                File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesOrtho60_70());
-                            }
-                            else if (RunSettings.Schemes == 4)
-                            {
-                                File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesOrtho40_60());
-                            }
-                            else if (RunSettings.Schemes == 5)
+                        File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemes(RunSettings));
+                        File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSolution"), EddyLib.Strings.OFExecDicts.FvSolution(RunSettings));
 
-                            {
-                                File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesAccurate());
-                            }
-                            else if (RunSettings.Schemes == 6)
-                            {
-                                File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesAccurateOscillatory());
-                            }
-                            else if (RunSettings.Schemes == 7)
-                            {
-                                File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesRobust1());
-                            }
-                        }
-                        else
-                        {
-                            File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesAccurate());
-                        }
-
-                        File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSolution"), EddyLib.Strings.OFExecDicts.FvSolutionDefault(RunSettings));
-                        File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\meshQualityDict"), EddyLib.Strings.OFExecDicts.MeshQualityDict());
+                        //File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\meshQualityDict"), EddyLib.Strings.OFExecDicts.MeshQualityDict());
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\residuals"), EddyLib.Strings.OFExecDicts.ResidualsDict());
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\decomposeParDict"), EddyLib.Strings.OFExecDicts.DecomposeParDict(RunSettings));
                     }
@@ -194,40 +159,11 @@ namespace EddyLib
 
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\snappyHexMeshDict"), EddyLib.Strings.OFExecDicts.SnappyHexMeshDict(MeshSettings, DOM));
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\surfaceFeatureExtractDict"), EddyLib.Strings.OFExecDicts.SurfaceFeatureExtractDict());
-                        if (RunSettings.Schemes == 0)
-                        {
-                            File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesDefault());
-                        }
-                        else if (RunSettings.Schemes == 1)
-                        {
-                            File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesRobust1());
-                        }
-                        else if (RunSettings.Schemes == 2)
-                        {
-                            File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesOrtho70_80());
-                        }
-                        else if (RunSettings.Schemes == 3)
-                        {
-                            File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesOrtho60_70());
-                        }
-                        else if (RunSettings.Schemes == 4)
-                        {
-                            File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesOrtho40_60());
-                        }
-                        else if (RunSettings.Schemes == 5)
 
-                        {
-                            File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesAccurate());
-                        }
-                        else if (RunSettings.Schemes == 6)
-                        {
-                            File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesAccurateOscillatory());
-                        }
-                        else if (RunSettings.Schemes == 7)
-                        { File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesRobust1()); }
+                        File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemes(RunSettings));
+                        File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSolution"), EddyLib.Strings.OFExecDicts.FvSolution(RunSettings));
 
-                        File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSolution"), EddyLib.Strings.OFExecDicts.FvSolutionDefault(RunSettings));
-                        File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\meshQualityDict"), EddyLib.Strings.OFExecDicts.MeshQualityDict());
+                        //File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\meshQualityDict"), EddyLib.Strings.OFExecDicts.MeshQualityDict());
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\residuals"), EddyLib.Strings.OFExecDicts.ResidualsDict());
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\decomposeParDict"), EddyLib.Strings.OFExecDicts.DecomposeParDict(RunSettings));
                     }

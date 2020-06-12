@@ -65,21 +65,6 @@ namespace EddyLib
 
                     for (int i = 0; i < RunSettings.CPUs; i++)
                     {
-                        var meshPath = MeshSettings.meshWorkingDir + @"\processor" + i;
-                        if (Directory.Exists(meshPath))
-                        {
-                            System.IO.DirectoryInfo di = new DirectoryInfo(meshPath);
-                            foreach (FileInfo file in di.GetFiles())
-                            {
-                                file.Delete();
-                            }
-                            foreach (DirectoryInfo dir in di.GetDirectories())
-                            {
-                                dir.Delete(true);
-                            }
-                            di.Delete();
-                        }
-
                         for (int l = 0; l < DOM.BCond.windDirs.Count; l++)
                         {
                             var cpuPath = MeshSettings.baseWorkingDir + DOM.BCond.windDirs[l] + @"\processor" + i;
@@ -123,8 +108,9 @@ namespace EddyLib
             File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "snappyHexMeshDict"), EddyLib.Strings.OFExecDicts.SnappyHexMeshDict(MeshSettings, DOM));
             File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "surfaceFeatureExtractDict"), EddyLib.Strings.OFExecDicts.SurfaceFeatureExtractDict());
             File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesDefault());
-            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "fvSolution"), EddyLib.Strings.OFExecDicts.FvSolutionDefault(RunSettings));
-            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "meshQualityDict"), EddyLib.Strings.OFExecDicts.MeshQualityDict());
+            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "fvSolution"), EddyLib.Strings.OFExecDicts.FvSolution(RunSettings));
+
+            //File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "meshQualityDict"), EddyLib.Strings.OFExecDicts.MeshQualityDict());
             File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "decomposeParDict"), EddyLib.Strings.OFExecDicts.DecomposeParDict(RunSettings));
 
             File.WriteAllText(Path.Combine(MeshSettings.baseWorkingDir + "run_checkMesh.bat"), EddyLib.Strings.BatFiles.Run_checkMesh(RunSettings, MeshSettings, DOM, Strings.Mode.Meshing));

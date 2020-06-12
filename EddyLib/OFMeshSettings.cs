@@ -1,12 +1,19 @@
 ﻿namespace EddyLib
 {
-    public enum SnappySetting
+    public enum SnappySnapSettings
     {
         Blocks,
 
         BlocksSnapping,
 
         BlocksSnappingLayers
+    }
+
+    public enum SnappyMiscSettings
+    {
+        Default,
+
+        BIMHVAC
     }
 
     public class OFMeshSettings
@@ -21,7 +28,9 @@
 
         public int nLayers = 2;
 
-        public SnappySetting snappySetting = SnappySetting.Blocks;
+        public SnappyMiscSettings miscSettings;
+
+        public SnappySnapSettings snappySetting;
 
         public string baseWorkingDir;
 
@@ -89,8 +98,9 @@
 accFeatures = {1}
 accRefinement = {2}
 accGround = {3}
-nLayers = {4}
-Snappy Settings = {5}", accBuildings, accFeatures, accRefinement, accGround, nLayers, snappySetting);
+accGround = {4}
+nLayers = {5}
+Snap Settings = {6}", accBuildings, accFeatures, accRefinement, accGround, miscSettings, nLayers, snappySetting);
         }
     }
 }
