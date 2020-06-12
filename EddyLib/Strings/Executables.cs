@@ -89,29 +89,25 @@ boundary
 
         public static string SnappyHexMeshDict(OFMeshSettings MeshSettings, OFBaseDomain dom)
         {
-            string refinementGeometry = "";
+            if (MeshSettings.miscSettings == SnappyMiscSettings.Default)
+            {
+                string refinementGeometry = "";
 
-            //string ground_perim = @"ground_perim.stl
-            //{
-            //    type triSurfaceMesh;
-            //    name ground_perim;
-            //}
-            //";
-            string Cylinder = @"refinementCylinder{
+                string Cylinder = @"refinementCylinder{
 type searchableCylinder;
 point1 (" + Utilities.FormatPV(dom.RefinementCylinder.Center).Replace(',', ' ') + @");
 point2 (" + Utilities.FormatPV(dom.RefinementCylinder.Center + Vector3d.ZAxis * dom.RefinementCylinder.Height2).ToString().Replace(',', ' ') + @");
 radius " + Utilities.FormatDouble(dom.RefinementCylinder.CircleAt(0.5).Radius) + @";
 }";
 
-            string Box = @"refinementBox{
+                string Box = @"refinementBox{
           type searchableBox;
           min (" + Utilities.FormatDouble(dom.BBox.X.Min) + " " + Utilities.FormatDouble(dom.BBox.Y.Min) + " " + Utilities.FormatDouble(dom.BBox.Z.Min) + @");
           max (" + Utilities.FormatDouble(dom.BBox.X.Max) + " " + Utilities.FormatDouble(dom.BBox.Y.Max) + " " + Utilities.FormatDouble(dom.BBox.Z.Max) + @");
 }";
-            refinementGeometry = Box;
-            StringBuilder sb = new StringBuilder();
-            sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
+                refinementGeometry = Box;
+                StringBuilder sb = new StringBuilder();
+                sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
 |  \\    /   O peration     | Version:  2.3.0                                 |
@@ -129,9 +125,9 @@ FoamFile
 }
 
     castellatedMesh true;");
-            sb.AppendLine("snap "); if (MeshSettings.snappySetting == SnappySetting.BlocksSnapping || MeshSettings.snappySetting == SnappySetting.BlocksSnappingLayers) { sb.Append("true;"); } else { sb.Append("false;"); }
-            sb.AppendLine("addLayers "); if (MeshSettings.snappySetting == SnappySetting.BlocksSnappingLayers) { sb.Append("true;"); } else { sb.Append("false;"); }
-            sb.AppendLine(@"geometry
+                sb.AppendLine("snap "); if (MeshSettings.snappySetting == SnappySnapSettings.BlocksSnapping || MeshSettings.snappySetting == SnappySnapSettings.BlocksSnappingLayers) { sb.Append("true;"); } else { sb.Append("false;"); }
+                sb.AppendLine("addLayers "); if (MeshSettings.snappySetting == SnappySnapSettings.BlocksSnappingLayers) { sb.Append("true;"); } else { sb.Append("false;"); }
+                sb.AppendLine(@"geometry
     {
         building.stl
         {
@@ -145,18 +141,18 @@ FoamFile
             name ground;
         }");
 
-            if (!dom.hasTerrain)
-            {
-                sb.Append(@"
+                if (!dom.hasTerrain)
+                {
+                    sb.Append(@"
         ground_perim.stl
         {
             type triSurfaceMesh;
             name ground_perim;
         }");
-            }
+                }
 
-            //if (dom.terrainMesh.Faces.Count == 0) { sb.Append(ground_perim); }
-            sb.Append(@"
+                //if (dom.terrainMesh.Faces.Count == 0) { sb.Append(ground_perim); }
+                sb.Append(@"
         " + refinementGeometry + @"
     }
 
@@ -164,14 +160,14 @@ FoamFile
     {
         features
         (");
-            if (MeshSettings.snappySetting != SnappySetting.Blocks)
-            {
-                sb.Append(@"
+                if (MeshSettings.snappySetting != SnappySnapSettings.Blocks)
+                {
+                    sb.Append(@"
             {file ""building.eMesh""; level " + (MeshSettings.accFeatures) + @" ;}
             {file ""ground.eMesh""; level " + (MeshSettings.accFeatures) + @" ;}");
-            }
+                }
 
-            sb.Append(@"
+                sb.Append(@"
         );
         refinementSurfaces
         {
@@ -192,9 +188,9 @@ FoamFile
                     type wall;
                 }
             }");
-            if (!dom.hasTerrain)
-            {
-                sb.Append(@"ground_perim
+                if (!dom.hasTerrain)
+                {
+                    sb.Append(@"ground_perim
             {
                 level (" + (MeshSettings.accGround - 1) + @" " + (MeshSettings.accGround) + @");
                 patchInfo
@@ -202,25 +198,14 @@ FoamFile
                     type wall;
                 }
             }");
-            }
-            sb.Append(@"}
+                }
+                sb.Append(@"}
 refinementRegions
         {
 refinementBox {mode inside; levels ((" + MeshSettings.accRefinement + @" " + MeshSettings.accRefinement + @"));}
-
-//refinementCylinder {mode inside; levels ((" + MeshSettings.accRefinement + " " + MeshSettings.accRefinement + @"));}
         }
 
         locationInMesh ( " + Utilities.FormatPV(dom.LocationInMesh) + @" );
-
-        //maxLocalCells 15000000;
-        //maxGlobalCells 50000000;
-        //minRefinementCells 5;
-        //nCellsBetweenLevels 5;
-        //resolveFeatureAngle 30;
-        //allowFreeStandingZoneFaces true;
-        //planarAngle 30;
-        //maxLoadUnbalance 0.10;
 
     maxLocalCells       4000000;
     maxGlobalCells      100000000;
@@ -231,17 +216,6 @@ refinementBox {mode inside; levels ((" + MeshSettings.accRefinement + @" " + Mes
     allowFreeStandingZoneFaces false;
     }
 
-//snapControls
-//    {
-//        nSolveIter 300;
-//        nSmoothPatch 5;
-//        tolerance 4.0;
-//        nRelaxIter 8;
-//        nFeatureSnapIter 10;
-//        implicitFeatureSnap false;
-//        explicitFeatureSnap true;
-//        multiRegionFeatureSnap false;
-//    }
 snapControls
 {
     nSmoothPatch    5;
@@ -275,14 +249,14 @@ snapControls
                 nSurfaceLayers " + MeshSettings.nLayers + @";
             }
 ");
-            if (!dom.hasTerrain)
-            {
-                sb.Append(@"ground_perim
+                if (!dom.hasTerrain)
+                {
+                    sb.Append(@"ground_perim
             {
                 nSurfaceLayers " + MeshSettings.nLayers + @";
             }");
-            }
-            sb.Append(@"
+                }
+                sb.Append(@"
         }
 
 // nSmoothDisplacement 0; detectExtrusionIsland false;
@@ -450,7 +424,254 @@ mergeTolerance 1E-6;
 
 //autoBlockMesh true;
 ");
-            return sb.ToString();
+                return sb.ToString();
+            }
+            else
+            {
+                string refinementGeometry = "";
+
+                string Cylinder = @"refinementCylinder{
+type searchableCylinder;
+point1 (" + Utilities.FormatPV(dom.RefinementCylinder.Center).Replace(',', ' ') + @");
+point2 (" + Utilities.FormatPV(dom.RefinementCylinder.Center + Vector3d.ZAxis * dom.RefinementCylinder.Height2).ToString().Replace(',', ' ') + @");
+radius " + Utilities.FormatDouble(dom.RefinementCylinder.CircleAt(0.5).Radius) + @";
+}";
+
+                string Box = @"refinementBox{
+          type searchableBox;
+          min (" + Utilities.FormatDouble(dom.BBox.X.Min) + " " + Utilities.FormatDouble(dom.BBox.Y.Min) + " " + Utilities.FormatDouble(dom.BBox.Z.Min) + @");
+          max (" + Utilities.FormatDouble(dom.BBox.X.Max) + " " + Utilities.FormatDouble(dom.BBox.Y.Max) + " " + Utilities.FormatDouble(dom.BBox.Z.Max) + @");
+}";
+                refinementGeometry = Box;
+                StringBuilder sb = new StringBuilder();
+                sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version 2.0;
+    format ascii;
+    class dictionary;
+    location system;
+    object snappyHexMeshDict;
+}
+
+    castellatedMesh true;");
+                sb.AppendLine("snap "); if (MeshSettings.snappySetting == SnappySnapSettings.BlocksSnapping || MeshSettings.snappySetting == SnappySnapSettings.BlocksSnappingLayers) { sb.Append("true;"); } else { sb.Append("false;"); }
+                sb.AppendLine("addLayers "); if (MeshSettings.snappySetting == SnappySnapSettings.BlocksSnappingLayers) { sb.Append("true;"); } else { sb.Append("false;"); }
+                sb.AppendLine(@"geometry
+    {
+        building.stl
+        {
+            type triSurfaceMesh;
+            name building;
+        }
+
+        ground.stl
+        {
+            type triSurfaceMesh;
+            name ground;
+        }");
+
+                if (!dom.hasTerrain)
+                {
+                    sb.Append(@"
+        ground_perim.stl
+        {
+            type triSurfaceMesh;
+            name ground_perim;
+        }");
+                }
+
+                //if (dom.terrainMesh.Faces.Count == 0) { sb.Append(ground_perim); }
+                sb.Append(@"
+        " + refinementGeometry + @"
+    }
+
+    castellatedMeshControls
+    {
+        features
+        (");
+                if (MeshSettings.snappySetting != SnappySnapSettings.Blocks)
+                {
+                    sb.Append(@"
+            {file ""building.eMesh""; level " + (MeshSettings.accFeatures) + @" ;}
+            {file ""ground.eMesh""; level " + (MeshSettings.accFeatures) + @" ;}");
+                }
+
+                sb.Append(@"
+        );
+        refinementSurfaces
+        {
+            building
+            {
+                level (" + (MeshSettings.accBuildings - 1) + @" " + MeshSettings.accBuildings + @");
+                patchInfo
+                {
+                    type wall;
+                }
+            }
+
+            ground
+            {
+                level (" + (MeshSettings.accGround) + @" " + (MeshSettings.accGround) + @");
+                patchInfo
+                {
+                    type wall;
+                }
+            }");
+                if (!dom.hasTerrain)
+                {
+                    sb.Append(@"ground_perim
+            {
+                level (" + (MeshSettings.accGround - 1) + @" " + (MeshSettings.accGround) + @");
+                patchInfo
+                {
+                    type wall;
+                }
+            }");
+                }
+                sb.Append(@"}
+refinementRegions
+        {
+refinementBox {mode inside; levels ((" + MeshSettings.accRefinement + @" " + MeshSettings.accRefinement + @"));}
+        }
+
+        locationInMesh ( " + Utilities.FormatPV(dom.LocationInMesh) + @" );
+
+    maxLocalCells       50000000;
+    maxGlobalCells      60000000;
+    minRefinementCells  50;
+    maxLoadUnbalance    1;
+    nCellsBetweenLevels 1;
+    resolveFeatureAngle 60;
+    allowFreeStandingZoneFaces false;
+    }
+
+snapControls
+{
+    nSmoothPatch    3;
+    tolerance       4.0;
+    nSolveIter      30;
+    nRelaxIter      5;
+
+    nFeatureSnapIter 10;
+
+    explicitFeatureSnap    true;
+    multiRegionFeatureSnap false;
+    implicitFeatureSnap    false;
+}
+
+    // Settings for the layer addition.
+    addLayersControls
+    {
+      layers
+        {
+            building
+            {
+                nSurfaceLayers " + MeshSettings.nLayers + @";
+            }
+            ground
+            {
+                nSurfaceLayers " + MeshSettings.nLayers + @";
+            }
+");
+                if (!dom.hasTerrain)
+                {
+                    sb.Append(@"ground_perim
+            {
+                nSurfaceLayers " + MeshSettings.nLayers + @";
+            }");
+                }
+                sb.Append(@"
+        }
+
+    relativeSizes   true;
+    firstLayerThickness 0.3;
+    expansionRatio  1.3;
+    minThickness    0.3;
+    nGrow           0;
+    featureAngle    150;
+    nSmoothSurfaceNormals 10;
+    nSmoothNormals  15;
+    nSmoothThickness 10;
+    maxFaceThicknessRatio 0.5;
+    minMedialAxisAngle 90;
+    maxThicknessToMedialRatio 0.3;
+    nRelaxIter      5;
+    nRelaxedIter    25;
+    nLayerIter      50;
+    nBufferCellsNoExtrude 0;
+    slipFeatureAngle 30;
+    mergePatchFacesAngle 45;
+    concaveAngle    30;
+    layerTerminationAngle 30;
+    nSmoothDisplacement 0;
+    detectExtrusionIsland true;
+    }
+
+  // Generic mesh quality settings. At any undoable phase these determine where to undo.
+  meshQualityControls
+{
+maxNonOrtho 65;
+
+maxBoundarySkewness 20;
+
+maxInternalSkewness 4;
+
+maxConcave 80;
+
+minFlatness 0.5;
+
+// Minimum cell pyramid volume; case dependent
+minVol 1e-13;
+
+// 1e-15 (small positive) to enable tracking
+// -1e+30 (large negative) for best layer insertion
+minTetQuality 1.00000E-015;
+
+// if >0 : preserve single cells with all points on the surface if the
+// resulting volume after snapping (by approximation) is larger than
+// minVolCollapseRatio times old volume (i.e. not collapsed to flat cell).
+//  If <0 : delete always.
+//minVolCollapseRatio 0.5;
+
+minArea          -1;
+
+minTwist          0.02;
+
+minDeterminant    0.001;
+
+minFaceWeight     0.05;
+
+minVolRatio       0.01;
+
+minTriangleTwist -1;
+
+nSmoothScale   4;
+
+errorReduction 0.75;
+}
+
+  // Write flags
+  writeFlags
+  (
+      scalarLevels
+      layerSets
+      layerFields     // write volScalarField for layer coverage
+  );
+
+debug 0;
+mergeTolerance 1E-6;
+
+");
+                return sb.ToString();
+            }
         }
 
         public static string ControlDict(OFRunSettings RunSettings, OFBaseDomain DOM, List<Mesh> topologies, int numberOfTopologies)
@@ -665,161 +886,173 @@ FoamFile
             return sb.ToString();
         }
 
-        public static string MeshQualityDict()
+        //        public static string MeshQualityDict()
+        //        {
+        //            return
+        //               @"/*--------------------------------*- C++ -*----------------------------------*\
+        //| =========                 |                                                 |
+        //| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+        //|  \\    /   O peration     | Version:  3.0.1                                 |
+        //|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+        //|    \\/     M anipulation  |                                                 |
+        //\*---------------------------------------------------------------------------*/
+        //FoamFile
+        //{
+        //    version     2.0;
+        //    format      ascii;
+        //    class       dictionary;
+        //    object      meshQualityDict;
+        //}
+
+        //// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+        ////- Maximum non-orthogonality allowed. Set to 180 to disable.
+        //maxNonOrtho 65;
+
+        ////- Max skewness allowed. Set to <0 to disable.
+        //maxBoundarySkewness 20;
+        //maxInternalSkewness 4;
+
+        ////- Max concaveness allowed. Is angle (in degrees) below which concavity
+        ////  is allowed. 0 is straight face, <0 would be convex face.
+        ////  Set to 180 to disable.
+        //maxConcave 80;
+
+        ////- Minimum pyramid volume. Is absolute volume of cell pyramid.
+        ////  Set to a sensible fraction of the smallest cell volume expected.
+        ////  Set to very negative number (e.g. -1E30) to disable.
+        //minVol 1e-13;
+
+        ////- Minimum quality of the tet formed by the face-centre
+        ////  and variable base point minimum decomposition triangles and
+        ////  the cell centre. This has to be a positive number for tracking
+        ////  to work. Set to very negative number (e.g. -1E30) to
+        ////  disable.
+        ////     <0 = inside out tet,
+        ////      0 = flat tet
+        ////      1 = regular tet
+        //minTetQuality 1e-15;
+
+        ////- Minimum face area. Set to <0 to disable.
+        //minArea -1;
+
+        ////- Minimum face twist. Set to <-1 to disable. dot product of face normal
+        //// and face centre triangles normal
+        //minTwist 0.02;
+
+        ////- Minimum normalised cell determinant. This is the determinant of all
+        ////  the areas of internal faces. It is a measure of how much of the
+        ////  outside area of the cell is to other cells. The idea is that if all
+        ////  outside faces of the cell are 'floating' (zeroGradient) the
+        ////  'fixedness' of the cell is determined by the area of the internal faces.
+        ////  1 = hex, <= 0 = folded or flattened illegal cell
+        //minDeterminant 0.001;
+
+        ////- Relative position of face in relation to cell centres (0.5 for orthogonal
+        ////  mesh) (0 -> 0.5)
+        //minFaceWeight 0.05;
+
+        ////- Volume ratio of neighbouring cells (0 -> 1)
+        //minVolRatio 0.01;
+
+        ////- Per triangle normal compared to average normal. Like face twist
+        ////  but now per (face-centre decomposition) triangle. Must be >0 for Fluent
+        ////  compatibility
+        //minTriangleTwist -1;
+
+        ////- If >0 : preserve cells with all points on the surface if the
+        ////  resulting volume after snapping (by approximation) is larger than
+        ////  minVolCollapseRatio times old volume (i.e. not collapsed to flat cell).
+        ////  If <0 : delete always.
+        ////minVolCollapseRatio 0.1;
+
+        //// ************************************************************************* //
+        //";
+        //        }
+
+        //        public static string FvSchemesAccurate()
+        //        {// An accurate and stable numerical scheme
+        //            return
+        //        @"/*--------------------------------*- C++ -*----------------------------------*\
+        //| =========                 |                                                 |
+        //| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+        //|  \\    /   O peration     | Version:  2.2.2                                 |
+        //|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+        //|    \\/     M anipulation  |                                                 |
+        //\*---------------------------------------------------------------------------*/
+        //FoamFile
+        //{
+        //    version     2.0;
+        //    format      ascii;
+        //    class       dictionary;
+        //    object      fvSchemes;
+        //}
+
+        //// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+        //ddtSchemes
+        //{
+        //    default         steadyState;
+        //}
+
+        //gradSchemes
+        //{
+        //    default cellMDLimited Gauss linear 0.5;
+        //}
+
+        //divSchemes
+        //{
+        //    default         bounded Gauss upwind grad(U);
+        //    div(phi,U)      bounded Gauss linearUpwindV grad(U);
+        //    div(phi,k)      bounded Gauss upwind grad(U);
+
+        //    //div(phi,epsilon)  bounded Gauss upwind grad(U);
+        //    div(phi,omega)  bounded Gauss upwind grad(U);
+        //    div((nuEff*dev2(T(grad(U))))) Gauss linear;
+        //    div(phi,time)   bounded Gauss upwind grad(U);
+        //    div(U) Gauss linear;
+        //}
+
+        //laplacianSchemes
+        //{
+        //    default         Gauss linear corrected;
+        //    laplacian(nuEff,time) Gauss linear corrected;
+        //}
+
+        //interpolationSchemes
+        //{
+        //    default         linear;
+        //}
+
+        //snGradSchemes
+        //{
+        //    default         corrected;
+        //}
+
+        //fluxRequired
+        //{
+        //    default         no;
+        //    p;
+        //}
+        //wallDist
+        //{
+        //	method meshWave;
+        //}
+
+        //// ************************************************************************* //
+        //";
+        //        }
+
+        public static string FvSchemes(OFRunSettings RunSettings)
         {
-            return
-               @"/*--------------------------------*- C++ -*----------------------------------*\
-| =========                 |                                                 |
-| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  3.0.1                                 |
-|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
-|    \\/     M anipulation  |                                                 |
-\*---------------------------------------------------------------------------*/
-FoamFile
-{
-    version     2.0;
-    format      ascii;
-    class       dictionary;
-    object      meshQualityDict;
-}
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-//- Maximum non-orthogonality allowed. Set to 180 to disable.
-maxNonOrtho 65;
-
-//- Max skewness allowed. Set to <0 to disable.
-maxBoundarySkewness 20;
-maxInternalSkewness 4;
-
-//- Max concaveness allowed. Is angle (in degrees) below which concavity
-//  is allowed. 0 is straight face, <0 would be convex face.
-//  Set to 180 to disable.
-maxConcave 80;
-
-//- Minimum pyramid volume. Is absolute volume of cell pyramid.
-//  Set to a sensible fraction of the smallest cell volume expected.
-//  Set to very negative number (e.g. -1E30) to disable.
-minVol 1e-13;
-
-//- Minimum quality of the tet formed by the face-centre
-//  and variable base point minimum decomposition triangles and
-//  the cell centre. This has to be a positive number for tracking
-//  to work. Set to very negative number (e.g. -1E30) to
-//  disable.
-//     <0 = inside out tet,
-//      0 = flat tet
-//      1 = regular tet
-minTetQuality 1e-15;
-
-//- Minimum face area. Set to <0 to disable.
-minArea -1;
-
-//- Minimum face twist. Set to <-1 to disable. dot product of face normal
-// and face centre triangles normal
-minTwist 0.02;
-
-//- Minimum normalised cell determinant. This is the determinant of all
-//  the areas of internal faces. It is a measure of how much of the
-//  outside area of the cell is to other cells. The idea is that if all
-//  outside faces of the cell are 'floating' (zeroGradient) the
-//  'fixedness' of the cell is determined by the area of the internal faces.
-//  1 = hex, <= 0 = folded or flattened illegal cell
-minDeterminant 0.001;
-
-//- Relative position of face in relation to cell centres (0.5 for orthogonal
-//  mesh) (0 -> 0.5)
-minFaceWeight 0.05;
-
-//- Volume ratio of neighbouring cells (0 -> 1)
-minVolRatio 0.01;
-
-//- Per triangle normal compared to average normal. Like face twist
-//  but now per (face-centre decomposition) triangle. Must be >0 for Fluent
-//  compatibility
-minTriangleTwist -1;
-
-//- If >0 : preserve cells with all points on the surface if the
-//  resulting volume after snapping (by approximation) is larger than
-//  minVolCollapseRatio times old volume (i.e. not collapsed to flat cell).
-//  If <0 : delete always.
-//minVolCollapseRatio 0.1;
-
-// ************************************************************************* //
-";
-        }
-
-        public static string FvSchemesAccurate()
-        {// An accurate and stable numerical scheme
-            return
-        @"/*--------------------------------*- C++ -*----------------------------------*\
-| =========                 |                                                 |
-| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.2.2                                 |
-|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
-|    \\/     M anipulation  |                                                 |
-\*---------------------------------------------------------------------------*/
-FoamFile
-{
-    version     2.0;
-    format      ascii;
-    class       dictionary;
-    object      fvSchemes;
-}
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-ddtSchemes
-{
-    default         steadyState;
-}
-
-gradSchemes
-{
-    default cellMDLimited Gauss linear 0.5;
-}
-
-divSchemes
-{
-    default         bounded Gauss upwind grad(U);
-    div(phi,U)      bounded Gauss linearUpwindV grad(U);
-    div(phi,k)      bounded Gauss upwind grad(U);
-
-    //div(phi,epsilon)  bounded Gauss upwind grad(U);
-    div(phi,omega)  bounded Gauss upwind grad(U);
-    div((nuEff*dev2(T(grad(U))))) Gauss linear;
-    div(phi,time)   bounded Gauss upwind grad(U);
-    div(U) Gauss linear;
-}
-
-laplacianSchemes
-{
-    default         Gauss linear corrected;
-    laplacian(nuEff,time) Gauss linear corrected;
-}
-
-interpolationSchemes
-{
-    default         linear;
-}
-
-snGradSchemes
-{
-    default         corrected;
-}
-
-fluxRequired
-{
-    default         no;
-    p;
-}
-wallDist
-{
-	method meshWave;
-}
-
-// ************************************************************************* //
-";
+            if (RunSettings.schemes == fvSchemes.Default)
+            {
+                return FvSchemesDefault();
+            }
+            else
+            {
+                return FvSchemesOptimized();
+            }
         }
 
         public static string FvSchemesDefault()
@@ -854,7 +1087,7 @@ gradSchemes
     limited         cellLimited Gauss linear 1;
     grad(U)         $limited;
     grad(k)         $limited;
-    grad(epsilon)     $limited;
+    grad(epsilon)   $limited;
 }
 
 divSchemes
@@ -864,9 +1097,9 @@ divSchemes
     div(phi,U)      bounded Gauss linearUpwind limited;
 
     turbulence      bounded Gauss limitedLinear 1;
-    div(phi,k)      $turbulence;
+    div(phi,k)       $turbulence;
     div(phi,epsilon) $turbulence;
-    div(phi,omega) $turbulence;
+    div(phi,omega)   $turbulence;
     div(U) Gauss linear;
 
     div((nuEff*dev2(T(grad(U))))) Gauss linear;
@@ -897,15 +1130,17 @@ wallDist
 ";
         }
 
-        public static string FvSchemesSimscale()
+        public static string FvSchemesOptimized()
+
+        //BIMHVAC
         {
             return
         @"/*--------------------------------*- C++ -*----------------------------------*\
-| =========                 |                                                 |
-| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.2.2                                 |
-|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
-|    \\/     M anipulation  |                                                 |
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  6
+     \\/     M anipulation  |
 \*---------------------------------------------------------------------------*/
 FoamFile
 {
@@ -924,28 +1159,26 @@ ddtSchemes
 
 gradSchemes
 {
-    default cellMDLimited Gauss linear 1.0;
+    default         Gauss linear;
 }
 
 divSchemes
 {
-    default          Gauss upwind;
-    div(phi,U)       Gauss upwind;
-
-    //div(phi,k)       Gauss upwind;
-    //div(phi,epsilon) Gauss upwind;
-    div(phi,k)       Gauss linear;
-    div(phi,epsilon) Gauss linear;
-    div(phi,omega)   Gauss upwind;
-    div((nuEff*dev2(T(grad(U))))) Gauss linear;
-    div(phi,time)   Gauss upwind;
-    div(U) Gauss linear;
+    default         none;
+    div(phi,U)      bounded Gauss upwind;
+    div(phi,h)      bounded Gauss upwind;
+    div(phi,K)      bounded Gauss upwind;
+	div((nuEff*dev2(T(grad(U)))))  Gauss linear;
+    div(phi,k)      bounded Gauss upwind;
+    div(phi,omega)  bounded Gauss upwind;
+	div(phi,epsilon) bounded Gauss upwind;
 }
 
 laplacianSchemes
 {
     default         Gauss linear corrected;
-    laplacian(nuEff,time) Gauss linear corrected;
+    laplacian(DkEff,k) Gauss linear uncorrected;
+    laplacian(DomegaEff,omega) Gauss linear uncorrected;
 }
 
 interpolationSchemes
@@ -958,392 +1191,468 @@ snGradSchemes
     default         corrected;
 }
 
-fluxRequired
-{
-    default         no;
-    p;
-}
 wallDist
 {
-	method meshWave;
-}
-
-// ************************************************************************* //
-";
-        }
-
-        public static string FvSchemesRobust1()
-        {//A robust numerical scheme but diffusive
-            return
-        @"/*--------------------------------*- C++ -*----------------------------------*\
-| =========                 |                                                 |
-| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.2.2                                 |
-|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
-|    \\/     M anipulation  |                                                 |
-\*---------------------------------------------------------------------------*/
-FoamFile
-{
-    version     2.0;
-    format      ascii;
-    class       dictionary;
-    object      fvSchemes;
-}
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-ddtSchemes
-{
-    default         steadyState;
-}
-
-gradSchemes
-{
-    default cellMDLimited Gauss linear 1.0;
-}
-
-divSchemes
-{
-    default          Gauss upwind;
-    div(phi,U)       Gauss upwind;
-
-    //div(phi,k)       Gauss upwind;
-    //div(phi,epsilon) Gauss upwind;
-    div(phi,k)       Gauss linear;
-    div(phi,epsilon) Gauss linear;
-    div(phi,omega)   Gauss upwind;
-    div((nuEff*dev2(T(grad(U))))) Gauss linear;
-    div(phi,time)   Gauss upwind;
-    div(U) Gauss linear;
-}
-
-laplacianSchemes
-{
-    default         Gauss linear corrected;
-    laplacian(nuEff,time) Gauss linear corrected;
-}
-
-interpolationSchemes
-{
-    default         linear;
-}
-
-snGradSchemes
-{
-    default         corrected;
+    method meshWave;
 }
 
 fluxRequired
 {
     default         no;
-    p;
-}
-wallDist
-{
-	method meshWave;
 }
 
 // ************************************************************************* //
+
 ";
         }
 
-        public static string FvSchemesAccurateOscillatory()
-        {// An even more accurate but oscillatory scheme
-            return
-        @"/*--------------------------------*- C++ -*----------------------------------*\
-| =========                 |                                                 |
-| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.2.2                                 |
-|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
-|    \\/     M anipulation  |                                                 |
-\*---------------------------------------------------------------------------*/
-FoamFile
-{
-    version     2.0;
-    format      ascii;
-    class       dictionary;
-    object      fvSchemes;
-}
+        //        //        public static string FvSchemesSimscale()
+        //        //        {
+        //        //            return
+        //        //        @"/*--------------------------------*- C++ -*----------------------------------*\
+        //        //| =========                 |                                                 |
+        //        //| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+        //        //|  \\    /   O peration     | Version:  2.2.2                                 |
+        //        //|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+        //        //|    \\/     M anipulation  |                                                 |
+        //        //\*---------------------------------------------------------------------------*/
+        //        //FoamFile
+        //        //{
+        //        //    version     2.0;
+        //        //    format      ascii;
+        //        //    class       dictionary;
+        //        //    object      fvSchemes;
+        //        //}
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+        //        //// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-ddtSchemes
-{
-    default         steadyState;
-}
+        //        //ddtSchemes
+        //        //{
+        //        //    default         steadyState;
+        //        //}
 
-gradSchemes
-{
-    default Gauss linear;
-}
+        //        //gradSchemes
+        //        //{
+        //        //    default cellMDLimited Gauss linear 1.0;
+        //        //}
 
-divSchemes
-{
-    default         Gauss linearUpwind grad(U);
-    div(phi,U)       Gauss linear;
+        //        //divSchemes
+        //        //{
+        //        //    default          Gauss upwind;
+        //        //    div(phi,U)       Gauss upwind;
 
-    //div(phi,k)       Gauss linearUpwind grad(U);
-    //div(phi,epsilon) Gauss linearUpwind grad(U);
-    div(phi,k)       Gauss linear;
-    div(phi,epsilon) Gauss linear;
-    div(phi,omega)   Gauss linearUpwind grad(U);
-    div((nuEff*dev2(T(grad(U))))) Gauss linear;
-    div(phi,time)   Gauss linearUpwind grad(U);
-}
+        //        //    //div(phi,k)       Gauss upwind;
+        //        //    //div(phi,epsilon) Gauss upwind;
+        //        //    div(phi,k)       Gauss linear;
+        //        //    div(phi,epsilon) Gauss linear;
+        //        //    div(phi,omega)   Gauss upwind;
+        //        //    div((nuEff*dev2(T(grad(U))))) Gauss linear;
+        //        //    div(phi,time)   Gauss upwind;
+        //        //    div(U) Gauss linear;
+        //        //}
 
-laplacianSchemes
-{
-    default         Gauss linear corrected;
-    laplacian(nuEff,time) Gauss linear corrected;
-}
+        //        //laplacianSchemes
+        //        //{
+        //        //    default         Gauss linear corrected;
+        //        //    laplacian(nuEff,time) Gauss linear corrected;
+        //        //}
 
-interpolationSchemes
-{
-    default         linear;
-}
+        //        //interpolationSchemes
+        //        //{
+        //        //    default         linear;
+        //        //}
 
-snGradSchemes
-{
-    default         corrected;
-}
+        //        //snGradSchemes
+        //        //{
+        //        //    default         corrected;
+        //        //}
 
-fluxRequired
-{
-    default         no;
-    p;
-}
-wallDist
-{
-	method meshWave;
-}
+        //        //fluxRequired
+        //        //{
+        //        //    default         no;
+        //        //    p;
+        //        //}
+        //        //wallDist
+        //        //{
+        //        //	method meshWave;
+        //        //}
 
-// ************************************************************************* //
-";
-        }
+        //        //// ************************************************************************* //
+        //        //";
+        //        //        }
 
-        public static string FvSchemesOrtho70_80()
-        {
-            // An accurate numerical scheme on orthogonal (70-80) meshes
-            return
-        @"/*--------------------------------*- C++ -*----------------------------------*\
-| =========                 |                                                 |
-| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.2.2                                 |
-|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
-|    \\/     M anipulation  |                                                 |
-\*---------------------------------------------------------------------------*/
-FoamFile
-{
-    version     2.0;
-    format      ascii;
-    class       dictionary;
-    object      fvSchemes;
-}
+        //        public static string FvSchemesRobust1()
+        //        {//A robust numerical scheme but diffusive
+        //            return
+        //        @"/*--------------------------------*- C++ -*----------------------------------*\
+        //| =========                 |                                                 |
+        //| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+        //|  \\    /   O peration     | Version:  2.2.2                                 |
+        //|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+        //|    \\/     M anipulation  |                                                 |
+        //\*---------------------------------------------------------------------------*/
+        //FoamFile
+        //{
+        //    version     2.0;
+        //    format      ascii;
+        //    class       dictionary;
+        //    object      fvSchemes;
+        //}
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+        //// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-ddtSchemes
-{
-    default         steadyState;
-}
+        //ddtSchemes
+        //{
+        //    default         steadyState;
+        //}
 
-gradSchemes
-{
-    default cellMDLimited leastSquares 1.0;
-}
+        //gradSchemes
+        //{
+        //    default cellMDLimited Gauss linear 1.0;
+        //}
 
-divSchemes
-{
-    default          Gauss linearUpwind;
-    div(phi,U)       Gauss linearUpwind grad(U);
+        //divSchemes
+        //{
+        //    default          Gauss upwind;
+        //    div(phi,U)       Gauss upwind;
 
-    //div(phi,k)       Gauss linearUpwind;
-    //div(phi,epsilon) Gauss linearUpwind;
-    div(phi,k)       Gauss linear;
-    div(phi,epsilon) Gauss linear;
-    div(phi,omega)   Gauss linearUpwind;
-    div((nuEff*dev2(T(grad(U))))) Gauss linear;
-    div(phi,time)   Gauss linearUpwind grad(U);
-}
+        //    //div(phi,k)       Gauss upwind;
+        //    //div(phi,epsilon) Gauss upwind;
+        //    div(phi,k)       Gauss linear;
+        //    div(phi,epsilon) Gauss linear;
+        //    div(phi,omega)   Gauss upwind;
+        //    div((nuEff*dev2(T(grad(U))))) Gauss linear;
+        //    div(phi,time)   Gauss upwind;
+        //    div(U) Gauss linear;
+        //}
 
-laplacianSchemes
-{
-    default         Gauss linear limited 0.5;
-    laplacian(nuEff,time) Gauss linear limited 0.5;
-}
+        //laplacianSchemes
+        //{
+        //    default         Gauss linear corrected;
+        //    laplacian(nuEff,time) Gauss linear corrected;
+        //}
 
-interpolationSchemes
-{
-    default         linear;
-}
+        //interpolationSchemes
+        //{
+        //    default         linear;
+        //}
 
-snGradSchemes
-{
-    default         limited 0.5;
-}
+        //snGradSchemes
+        //{
+        //    default         corrected;
+        //}
 
-fluxRequired
-{
-    default         no;
-    p;
-}
-wallDist
-{
-	method meshWave;
-}
+        //fluxRequired
+        //{
+        //    default         no;
+        //    p;
+        //}
+        //wallDist
+        //{
+        //	method meshWave;
+        //}
 
-// ************************************************************************* //
-";
-        }
+        //// ************************************************************************* //
+        //";
+        //        }
 
-        public static string FvSchemesOrtho60_70()
-        {
-            // An accurate numerical scheme on orthogonal (60-70) meshes
-            return
-        @"/*--------------------------------*- C++ -*----------------------------------*\
-| =========                 |                                                 |
-| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.2.2                                 |
-|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
-|    \\/     M anipulation  |                                                 |
-\*---------------------------------------------------------------------------*/
-FoamFile
-{
-    version     2.0;
-    format      ascii;
-    class       dictionary;
-    object      fvSchemes;
-}
+        //        public static string FvSchemesAccurateOscillatory()
+        //        {// An even more accurate but oscillatory scheme
+        //            return
+        //        @"/*--------------------------------*- C++ -*----------------------------------*\
+        //| =========                 |                                                 |
+        //| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+        //|  \\    /   O peration     | Version:  2.2.2                                 |
+        //|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+        //|    \\/     M anipulation  |                                                 |
+        //\*---------------------------------------------------------------------------*/
+        //FoamFile
+        //{
+        //    version     2.0;
+        //    format      ascii;
+        //    class       dictionary;
+        //    object      fvSchemes;
+        //}
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+        //// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-ddtSchemes
-{
-    default         steadyState;
-}
+        //ddtSchemes
+        //{
+        //    default         steadyState;
+        //}
 
-gradSchemes
-{
-    default cellMDLimited Gauss linear 0.5;
-}
+        //gradSchemes
+        //{
+        //    default Gauss linear;
+        //}
 
-divSchemes
-{
-    div(phi,U)       Gauss linearUpwind grad(U);
+        //divSchemes
+        //{
+        //    default         Gauss linearUpwind grad(U);
+        //    div(phi,U)       Gauss linear;
 
-    //div(phi,k)       Gauss linearUpwind;
-    //div(phi,epsilon) Gauss linearUpwind;
-    div(phi,k)       Gauss linear;
-    div(phi,epsilon) Gauss linear;
-    div(phi,omega)   Gauss linearUpwind;
-    div((nuEff*dev2(T(grad(U))))) Gauss linear;
-    div(phi,time)   Gauss linearUpwind grad(U);
-}
+        //    //div(phi,k)       Gauss linearUpwind grad(U);
+        //    //div(phi,epsilon) Gauss linearUpwind grad(U);
+        //    div(phi,k)       Gauss linear;
+        //    div(phi,epsilon) Gauss linear;
+        //    div(phi,omega)   Gauss linearUpwind grad(U);
+        //    div((nuEff*dev2(T(grad(U))))) Gauss linear;
+        //    div(phi,time)   Gauss linearUpwind grad(U);
+        //}
 
-laplacianSchemes
-{
-    default         Gauss linear limited 0.77;
-    laplacian(nuEff,time) Gauss linear limited 0.77;
-}
+        //laplacianSchemes
+        //{
+        //    default         Gauss linear corrected;
+        //    laplacian(nuEff,time) Gauss linear corrected;
+        //}
 
-interpolationSchemes
-{
-    default         linear;
-}
+        //interpolationSchemes
+        //{
+        //    default         linear;
+        //}
 
-snGradSchemes
-{
-    default         limited 0.77;
-}
+        //snGradSchemes
+        //{
+        //    default         corrected;
+        //}
 
-fluxRequired
-{
-    default         no;
-    p;
-}
-wallDist
-{
-	method meshWave;
-}
+        //fluxRequired
+        //{
+        //    default         no;
+        //    p;
+        //}
+        //wallDist
+        //{
+        //	method meshWave;
+        //}
 
-// ************************************************************************* //
-";
-        }
+        //// ************************************************************************* //
+        //";
+        //        }
 
-        public static string FvSchemesOrtho40_60()
-        {
-            // An accurate numerical scheme on orthogonal (40-60) meshes
-            return
-        @"/*--------------------------------*- C++ -*----------------------------------*\
-| =========                 |                                                 |
-| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.2.2                                 |
-|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
-|    \\/     M anipulation  |                                                 |
-\*---------------------------------------------------------------------------*/
-FoamFile
-{
-    version     2.0;
-    format      ascii;
-    class       dictionary;
-    object      fvSchemes;
-}
+        //        public static string FvSchemesOrtho70_80()
+        //        {
+        //            // An accurate numerical scheme on orthogonal (70-80) meshes
+        //            return
+        //        @"/*--------------------------------*- C++ -*----------------------------------*\
+        //| =========                 |                                                 |
+        //| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+        //|  \\    /   O peration     | Version:  2.2.2                                 |
+        //|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+        //|    \\/     M anipulation  |                                                 |
+        //\*---------------------------------------------------------------------------*/
+        //FoamFile
+        //{
+        //    version     2.0;
+        //    format      ascii;
+        //    class       dictionary;
+        //    object      fvSchemes;
+        //}
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+        //// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-ddtSchemes
-{
-    default         steadyState;
-}
+        //ddtSchemes
+        //{
+        //    default         steadyState;
+        //}
 
-gradSchemes
-{
-    default cellMDLimited Gauss linear 0.5;
-}
+        //gradSchemes
+        //{
+        //    default cellMDLimited leastSquares 1.0;
+        //}
 
-divSchemes
-{
-    default          Gauss linearUpwind;
-    div(phi,U)       Gauss linearUpwind grad(U);
+        //divSchemes
+        //{
+        //    default          Gauss linearUpwind;
+        //    div(phi,U)       Gauss linearUpwind grad(U);
 
-    //div(phi,k)       Gauss linearUpwind;
-    //div(phi,epsilon) Gauss linearUpwind;
-    div(phi,k)       Gauss linear;
-    div(phi,epsilon) Gauss linear;
-    div(phi,omega)   Gauss linearUpwind;
-    div((nuEff*dev2(T(grad(U))))) Gauss linear;
-    div(phi,time)   Gauss linearUpwind grad(U);
-}
+        //    //div(phi,k)       Gauss linearUpwind;
+        //    //div(phi,epsilon) Gauss linearUpwind;
+        //    div(phi,k)       Gauss linear;
+        //    div(phi,epsilon) Gauss linear;
+        //    div(phi,omega)   Gauss linearUpwind;
+        //    div((nuEff*dev2(T(grad(U))))) Gauss linear;
+        //    div(phi,time)   Gauss linearUpwind grad(U);
+        //}
 
-laplacianSchemes
-{
-    default         Gauss linear limited 1.0;
-    laplacian(nuEff,time) Gauss linear limited 1.0;
-}
+        //laplacianSchemes
+        //{
+        //    default         Gauss linear limited 0.5;
+        //    laplacian(nuEff,time) Gauss linear limited 0.5;
+        //}
 
-interpolationSchemes
-{
-    default         linear;
-}
+        //interpolationSchemes
+        //{
+        //    default         linear;
+        //}
 
-snGradSchemes
-{
-    default         limited 1.0;
-}
+        //snGradSchemes
+        //{
+        //    default         limited 0.5;
+        //}
 
-fluxRequired
-{
-    default         no;
-    p;
-}
-wallDist
-{
-	method meshWave;
-}
+        //fluxRequired
+        //{
+        //    default         no;
+        //    p;
+        //}
+        //wallDist
+        //{
+        //	method meshWave;
+        //}
 
-// ************************************************************************* //
-";
-        }
+        //// ************************************************************************* //
+        //";
+        //        }
+
+        //        public static string FvSchemesOrtho60_70()
+        //        {
+        //            // An accurate numerical scheme on orthogonal (60-70) meshes
+        //            return
+        //        @"/*--------------------------------*- C++ -*----------------------------------*\
+        //| =========                 |                                                 |
+        //| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+        //|  \\    /   O peration     | Version:  2.2.2                                 |
+        //|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+        //|    \\/     M anipulation  |                                                 |
+        //\*---------------------------------------------------------------------------*/
+        //FoamFile
+        //{
+        //    version     2.0;
+        //    format      ascii;
+        //    class       dictionary;
+        //    object      fvSchemes;
+        //}
+
+        //// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+        //ddtSchemes
+        //{
+        //    default         steadyState;
+        //}
+
+        //gradSchemes
+        //{
+        //    default cellMDLimited Gauss linear 0.5;
+        //}
+
+        //divSchemes
+        //{
+        //    div(phi,U)       Gauss linearUpwind grad(U);
+
+        //    //div(phi,k)       Gauss linearUpwind;
+        //    //div(phi,epsilon) Gauss linearUpwind;
+        //    div(phi,k)       Gauss linear;
+        //    div(phi,epsilon) Gauss linear;
+        //    div(phi,omega)   Gauss linearUpwind;
+        //    div((nuEff*dev2(T(grad(U))))) Gauss linear;
+        //    div(phi,time)   Gauss linearUpwind grad(U);
+        //}
+
+        //laplacianSchemes
+        //{
+        //    default         Gauss linear limited 0.77;
+        //    laplacian(nuEff,time) Gauss linear limited 0.77;
+        //}
+
+        //interpolationSchemes
+        //{
+        //    default         linear;
+        //}
+
+        //snGradSchemes
+        //{
+        //    default         limited 0.77;
+        //}
+
+        //fluxRequired
+        //{
+        //    default         no;
+        //    p;
+        //}
+        //wallDist
+        //{
+        //	method meshWave;
+        //}
+
+        //// ************************************************************************* //
+        //";
+        //        }
+
+        //        public static string FvSchemesOrtho40_60()
+        //        {
+        //            // An accurate numerical scheme on orthogonal (40-60) meshes
+        //            return
+        //        @"/*--------------------------------*- C++ -*----------------------------------*\
+        //| =========                 |                                                 |
+        //| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+        //|  \\    /   O peration     | Version:  2.2.2                                 |
+        //|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+        //|    \\/     M anipulation  |                                                 |
+        //\*---------------------------------------------------------------------------*/
+        //FoamFile
+        //{
+        //    version     2.0;
+        //    format      ascii;
+        //    class       dictionary;
+        //    object      fvSchemes;
+        //}
+
+        //// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+        //ddtSchemes
+        //{
+        //    default         steadyState;
+        //}
+
+        //gradSchemes
+        //{
+        //    default cellMDLimited Gauss linear 0.5;
+        //}
+
+        //divSchemes
+        //{
+        //    default          Gauss linearUpwind;
+        //    div(phi,U)       Gauss linearUpwind grad(U);
+
+        //    //div(phi,k)       Gauss linearUpwind;
+        //    //div(phi,epsilon) Gauss linearUpwind;
+        //    div(phi,k)       Gauss linear;
+        //    div(phi,epsilon) Gauss linear;
+        //    div(phi,omega)   Gauss linearUpwind;
+        //    div((nuEff*dev2(T(grad(U))))) Gauss linear;
+        //    div(phi,time)   Gauss linearUpwind grad(U);
+        //}
+
+        //laplacianSchemes
+        //{
+        //    default         Gauss linear limited 1.0;
+        //    laplacian(nuEff,time) Gauss linear limited 1.0;
+        //}
+
+        //interpolationSchemes
+        //{
+        //    default         linear;
+        //}
+
+        //snGradSchemes
+        //{
+        //    default         limited 1.0;
+        //}
+
+        //fluxRequired
+        //{
+        //    default         no;
+        //    p;
+        //}
+        //wallDist
+        //{
+        //	method meshWave;
+        //}
+
+        //// ************************************************************************* //
+        //";
+        //        }
 
         //        public static string fvSolution(int mode)
         //        {
@@ -1478,9 +1787,117 @@ wallDist
         //            return sb.ToString();
         //        }
 
+        public static string GetRelaxationFactors(OFRunSettings RunSettings)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            if (RunSettings.relaxationFactors == RelaxationFactors.Fast) { sb.Append(@"relaxationFactors
+{
+    fields
+    {
+        p               0.3;
+    }
+    equations
+    {
+        U               0.7;
+        k               0.7;
+       epsilon          0.7;
+	   omega			0.7;
+    }
+}"); }
+            else if (RunSettings.relaxationFactors == RelaxationFactors.Fluent)
+            {
+                sb.Append(@"relaxationFactors
+{
+    fields
+    {
+        p               0.7;
+    }
+    equations
+    {
+        U               0.3;
+        k               0.3;
+       epsilon          0.3;
+	   omega			0.3;
+    }
+}"
+        );
+            }
+            else if (RunSettings.relaxationFactors == RelaxationFactors.Robust) { sb.Append(@"relaxationFactors
+{
+    fields
+    {
+        p               0.3;
+    }
+    equations
+    {
+        U               0.1;
+        k               0.1;
+       epsilon          0.1;
+	   omega			0.1;
+    }
+}"); }
+            else if (RunSettings.relaxationFactors == RelaxationFactors.Optimized) { sb.Append(@"relaxationFactors
+{
+    fields
+    {
+		p               0.3;
+    }
+
+    equations
+    {
+        U               0.3;
+        k               0.1;
+        omega           0.1;
+		epsilon         0.1;
+    }
+}
+"); }
+
+            return sb.ToString();
+        }
+
+        //        relaxationFactors
+        //{
+        //    fields
+        //    {
+        //        p_rgh           0.3;
+        //		p               0.3;
+        //        AoA             0.5;
+        //    }
+
+        //    equations
+        //    {
+        //        U               0.3;
+        //        T               0.5;
+        //        h               0.3;
+        //        rho             0.3;
+        //        k               0.1;
+        //        omega           0.1;
+        //		epsilon         0.1;
+        //    }
+
+        //}
+
+        //    AoA
+        //{
+        //    solver GAMG;
+        //    tolerance       1e-7;
+        //    relTol          1e-8;
+        //    nPreSweeps      0;
+        //    nPostSweeps     2;
+        //    cacheAgglomeration true;
+        //    smoother GaussSeidel;
+        //    agglomerator faceAreaPair;
+        //    nCellsInCoarsestLevel 10;
+        //    mergeLevels     1;
+        //    maxIter         100;
+        //}
+
         public static string FvSolutionDefault(OFRunSettings RunSettings)
         {
             StringBuilder sb = new StringBuilder(); sb.Append(@"
+
 /*--------------------------------*- C++ -*----------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
@@ -1504,23 +1921,23 @@ solvers
     {
         solver          GAMG;
         smoother        GaussSeidel;
-        tolerance       1e-6;
-        relTol          0.1;
+        tolerance       1e-8;
+        relTol          0.01;
     }
 
 	Phi
     {
         solver          GAMG;
         smoother        GaussSeidel;
-        tolerance       1e-9;
-        relTol          0.0001;
+        tolerance       1e-8;
+        relTol          0.01;
     }
 
     ""(U|k|omega|epsilon)""
     {
                 solver smoothSolver;
                 smoother symGaussSeidel;
-                tolerance       1e-6;
+                tolerance       1e-5;
                 relTol          0.1;
             }
         }
@@ -1533,83 +1950,31 @@ solvers
         U               1e-4;
         ""(k|omega|epsilon)"" 1e-4;
     }
-");
-            if (RunSettings.relaxationFactors == RelaxationFactors.OpenFOAM) { sb.Append(@"nNonOrthogonalCorrectors 1;"); }
-            else { sb.Append(@"nNonOrthogonalCorrectors 4;"); }
-            sb.AppendLine(@"
+""nNonOrthogonalCorrectors 1;
     pRefCell        0;
     pRefValue       0;
 }
 
 potentialFlow
 {
-    nNonOrthogonalCorrectors 30;
+    nNonOrthogonalCorrectors 5;
 }
 
 ");
-            if (RunSettings.relaxationFactors == RelaxationFactors.Fluent)
-            {
-                sb.Append(@"relaxationFactors
-{
-    fields
-    {
-        p               0.7;
-    }
-    equations
-    {
-        U               0.3;
-        k               0.3;
-       epsilon          0.3;
-	   omega			0.3;
-    }
-}"
-);
-            }
-            else if (RunSettings.relaxationFactors == RelaxationFactors.OpenFOAM) { sb.Append(@"relaxationFactors
-{
-    fields
-    {
-        p               0.3;
-    }
-    equations
-    {
-        U               0.7;
-        k               0.7;
-       epsilon          0.7;
-	   omega			0.7;
-    }
-}"); }
-            else if (RunSettings.relaxationFactors == RelaxationFactors.OpenFOAMRobust) { sb.Append(@"relaxationFactors
-{
-    fields
-    {
-        p               0.3;
-    }
-    equations
-    {
-        U               0.1;
-        k               0.1;
-       epsilon          0.1;
-	   omega			0.1;
-    }
-}"); }
 
-            sb.Append(@"
-
-// ************************************************************************* //
-
-");
             return sb.ToString();
         }
 
-        public static string FvSolution(OFRunSettings RunSettings)
+        public static string FvSolutionOptimized(OFRunSettings RunSettings)
         {
-            StringBuilder sb = new StringBuilder(); sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
-| =========                 |                                                 |
-| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.2.2                                 |
-|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
-|    \\/     M anipulation  |                                                 |
+            StringBuilder sb = new StringBuilder(); sb.Append(@"
+
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  6
+     \\/     M anipulation  |
 \*---------------------------------------------------------------------------*/
 FoamFile
 {
@@ -1623,121 +1988,80 @@ FoamFile
 
 solvers
 {
-    p
+	p
     {
-        solver GAMG;
-        tolerance 1e-9;
-        relTol 0.0001;
-        smoother GaussSeidel;
-        nPreSweeps 2;
-        nPostSweeps 1;
-        cacheAgglomeration on;
-        agglomerator faceAreaPair;
-        nCellsInCoarsestLevel 10;
-        mergeLevels 1;
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-8;
+        relTol          0.01;
     }
 
-    ""(k|omega|epsilon)""
-    {
-        solver          smoothSolver;
-        smoother        GaussSeidel;
-        tolerance       1e-9;
-        relTol          0.0001;
-    }
     U
     {
-        solver smoothSolver;
-        smoother GaussSeidel;
-        preconditioner DILU;
-        tolerance 1e-9;
-        relTol 0.0001;
+        solver          PBiCGStab;
+        preconditioner  DILU;
+        tolerance       1e-5;
+        relTol          0.1;
     }
-	Phi
+    k
     {
-        solver          GAMG;
-        smoother        GaussSeidel;
-        tolerance       1e-9;
-        relTol          0.0001;
+        solver          PBiCGStab;
+        preconditioner  DILU;
+        tolerance       1e-5;
+        relTol          0.1;
+    }
+
+    omega
+    {
+        solver          PBiCGStab;
+        preconditioner  DILU;
+        tolerance       1e-5;
+        relTol          0.1;
+    }
+
+	epsilon
+    {
+        solver          PBiCGStab;
+        preconditioner  DILU;
+        tolerance       1e-5;
+        relTol          0.1;
     }
 }
 
 SIMPLE
-{");
-            if (RunSettings.relaxationFactors == RelaxationFactors.OpenFOAM) { sb.Append(@"nNonOrthogonalCorrectors 1;"); }
-            else { sb.Append(@"nNonOrthogonalCorrectors 4;"); }
-            sb.AppendLine(@"
+{
     residualControl
     {
-    p       1e-4;
-    U       1e-5;
-    k       1e-5;
-    epsilon 1e-5;
+		p               1e-4;
+        U               1e-3;
+        h               1e-3;
     }
-    pRefCell    0;
-    pRefValue    0;
+
+    nNonOrthogonalCorrectors 0;
+    pRefCell        0;
+    pRefValue       0;
 }
 
-potentialFlow
-{
-    nNonOrthogonalCorrectors 30;
-}
 ");
-            if (RunSettings.relaxationFactors == RelaxationFactors.Fluent)
+
+            return sb.ToString();
+        }
+
+        public static string FvSolution(OFRunSettings RunSettings)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            if (RunSettings.schemes == fvSchemes.Default)
             {
-                sb.Append(@"relaxationFactors
-{
-    fields
-    {
-        p               0.7;
-    }
-    equations
-    {
-        U               0.3;
-        k               0.3;
-       epsilon          0.3;
-	   omega			0.3;
-    }
-}"
-);
+                sb.AppendLine(FvSolutionDefault(RunSettings));
             }
-            else if (RunSettings.relaxationFactors == RelaxationFactors.OpenFOAM) { sb.Append(@"relaxationFactors
-{
-    fields
-    {
-        p               0.3;
-    }
-    equations
-    {
-        U               0.7;
-        k               0.7;
-       epsilon          0.7;
-	   omega			0.7;
-    }
-}"); }
-            else if (RunSettings.relaxationFactors == RelaxationFactors.OpenFOAMRobust) { sb.Append(@"relaxationFactors
-{
-    fields
-    {
-        p               0.3;
-    }
-    equations
-    {
-        U               0.3;
-        k               0.3;
-       epsilon          0.3;
-	   omega			0.3;
-    }
-}"); }
+            else
+            {
+                sb.AppendLine(FvSolutionOptimized(RunSettings));
+            }
 
-            sb.Append(@"
-cache
-{
-    grad(U);
-}
+            sb.AppendLine(GetRelaxationFactors(RunSettings));
 
-// ************************************************************************* //
-
-;");
             return sb.ToString();
         }
 
@@ -1771,6 +2095,7 @@ building.stl
         // - 0 : selects no edges
         // - 180: selects all edges
         includedAngle   180;
+        geometricTestOnly yes;
     }
 
     subsetFeatures
@@ -1799,6 +2124,38 @@ ground.stl
         // - 0 : selects no edges
         // - 180: selects all edges
         includedAngle   180;
+        geometricTestOnly yes;
+    }
+
+    subsetFeatures
+    {
+        // Keep nonManifold edges (edges with >2 connected faces)
+        nonManifoldEdges       no;
+
+        // Keep open edges (edges with 1 connected face)
+        openEdges       yes;
+    }
+
+    // Write options
+
+        // Write features to obj format for PostProcessing
+        writeObj                yes;
+}
+
+// ************************************************************************* //
+
+ground_perim.stl
+{
+    // How to obtain raw features (extractFromFile || extractFromSurface)
+    extractionMethod    extractFromSurface;
+
+    extractFromSurfaceCoeffs
+    {
+        // Mark edges whose adjacent surface normals are at an angle less than includedAngle as features
+        // - 0 : selects no edges
+        // - 180: selects all edges
+        includedAngle   180;
+        geometricTestOnly yes;
     }
 
     subsetFeatures
@@ -1872,8 +2229,8 @@ FoamFile
             sb.AppendLine(@"RAS
 {
     RASModel         ");
-            if (RunSettings.turbModel == TurbModel.kOmegaSST) { sb.Append("kOmegaSST;"); } else if (RunSettings.turbModel == TurbModel.RNGkEpsilon) { sb.Append("RNGkEpsilon;"); } else { sb.Append("kEpsilon;"); }
-            sb.AppendLine(@"
+            sb.Append(RunSettings.turbModel.ToString());
+            sb.AppendLine(@";
     turbulence on;
 
     printCoeffs on;

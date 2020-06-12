@@ -111,7 +111,7 @@ namespace EddyLib.Strings
         {
             List<string> lst = new List<string>();
 
-            if (MeshSettings.snappySetting == SnappySetting.BlocksSnapping || MeshSettings.snappySetting == SnappySetting.BlocksSnappingLayers)
+            if (MeshSettings.snappySetting == SnappySnapSettings.BlocksSnapping || MeshSettings.snappySetting == SnappySnapSettings.BlocksSnappingLayers)
             {
                 lst.AddRange(new List<string>{
                 "blockMesh",
