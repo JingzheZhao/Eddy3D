@@ -40,11 +40,11 @@ namespace Eddy
             param0.AddNamedValue("Default", 0);
             param0.AddNamedValue("Optimized", 1);
 
-            pManager.AddIntegerParameter("Number of layers", "nLay", "Number of mesh layers.", GH_ParamAccess.item, 1);
+            pManager.AddIntegerParameter("Number of layers", "nLay", "Number of mesh layers.", GH_ParamAccess.item, 4);
             pManager.AddIntegerParameter("Mode", "Mode", @"Mode:
 0: No snapping, no layers
 1: With Snapping, no layers
-2: With Snapping, with layers", GH_ParamAccess.item, 2);
+2: With Snapping, with layers", GH_ParamAccess.item, 1);
             Param_Integer param1 = pManager[6] as Param_Integer;
             param1.AddNamedValue("No snapping, no layers", 0);
             param1.AddNamedValue("With Snapping, no layers", 1);

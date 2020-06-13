@@ -1950,7 +1950,7 @@ solvers
         U               1e-4;
         ""(k|omega|epsilon)"" 1e-4;
     }
-""nNonOrthogonalCorrectors 1;
+nNonOrthogonalCorrectors 1;
     pRefCell        0;
     pRefValue       0;
 }

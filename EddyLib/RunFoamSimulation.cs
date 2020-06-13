@@ -78,14 +78,20 @@ namespace EddyLib
                             var bcond = (ABL)DOM.BCond;
 
                             File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), EddyLib.Strings.BCDicts.UBoxABL(DOM, i));
-                            File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(bcond, i));
+
                             File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "U"), EddyLib.Strings.BCDicts.UBoxABL(DOM, i));
                             File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(bcond, i));
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(bcond, i));
                         }
                         if (DOM.BCond is ConstU)
                         {
+                            // We need the ABL file regardless
+                            ABL bcond = new ABL(DOM.BCond.windDirs, DOM.BCond.URef, 10, DOM.BCond.z0, 0, DOM.BCond.epwFilePath);
+
                             File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), EddyLib.Strings.BCDicts.UBoxConstU(DOM, i));
                             File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "U"), EddyLib.Strings.BCDicts.UBoxConstU(DOM, i));
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(bcond, i));
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(bcond, i));
                         }
 
                         ////REmove this later
@@ -132,8 +138,13 @@ namespace EddyLib
                         }
                         if (DOM.BCond is ConstU)
                         {
+                            // We need the ABL file regardless
+                            ABL bcond = new ABL(DOM.BCond.windDirs, DOM.BCond.URef, 10, DOM.BCond.z0, 0, DOM.BCond.epwFilePath);
+
                             File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), EddyLib.Strings.BCDicts.UCylConstU((OFCylDomain)DOM, i));
                             File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "U"), EddyLib.Strings.BCDicts.UCylConstU((OFCylDomain)DOM, i));
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(bcond, i));
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(bcond, i));
                         }
 
                         ////REmove this later
