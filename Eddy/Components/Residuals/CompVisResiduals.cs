@@ -49,6 +49,7 @@ namespace Eddy
         {
             // First add our own field.
             writer.SetBoolean("visResiduals", visResiduals);
+
             // Then call the base class implementation.
             return base.Write(writer);
         }
@@ -57,6 +58,7 @@ namespace Eddy
         {
             // First read our own field.
             visResiduals = reader.GetBoolean("visResiduals");
+
             // Then call the base class implementation.
             return base.Read(reader);
         }
@@ -130,6 +132,8 @@ namespace Eddy
             DA.GetData("Version", ref version);
             DA.GetData("Run", ref run);
 
+            if (run != true) { return; }
+
             List<int> selection = new List<int>();
             if (selectionList.Count != 0)
             {
@@ -146,7 +150,11 @@ namespace Eddy
                 return;
             }
 
-            if (run != true) { return; }
+            if (!RES.RunSettings.WindowsGnuplotInstalled && version == 0)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "There is no native Gnuplot version installed, please consider selecting the version that comes with BlueCFD.");
+                return;
+            }
 
             if (visResiduals)
             {
@@ -244,6 +252,7 @@ replot
         /// need to be 24x24 pixels.
         /// </summary>
         protected override System.Drawing.Bitmap Icon =>
+
                 // You can add image files to your project resources and access them like this:
                 Resources.Eddy_stability;
 

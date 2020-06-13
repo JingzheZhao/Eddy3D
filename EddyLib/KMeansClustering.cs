@@ -182,6 +182,7 @@ namespace EddyLib
             {
                 centroidIdx = initialCentroidIndices;
                 AssignClustering(data, clustering, centroidIdx, clusterCount, calculateDistanceFunction);
+
                 // Debug.WriteLine("Pre-Seeded Centroids resulted in initial clustering: " +
                 // string.Join(",", clustering.Select(x => x.ToString()).ToArray()));
             }
@@ -272,11 +273,13 @@ namespace EddyLib
             }
 
             double totalDistance = 0;
+
             // Calc the centroids
             double[] minDistances = new double[clusterCount].Select(x => double.MaxValue).ToArray();
             for (int i = 0; i < data.Length; i++)
             {
                 var clusterIdx = clustering[i]; // What cluster is data i assigned to
+
                 //var distance = CalculateDistance(data[i], means[clusterIdx]);
                 var distance = calculateDistanceFunction(data[i], means[clusterIdx]);
                 totalDistance += distance;
@@ -286,6 +289,7 @@ namespace EddyLib
                     centroidIdx[clusterIdx] = i;
                 }
             }
+
             //double totalCentroidDistance = minDistances.Sum();
 
             return totalDistance;
@@ -315,6 +319,7 @@ namespace EddyLib
                         minDistance = distance;
                         minClusterIndex = k;
                     }
+
                     // todo: track outliers here as well and maintain an average and std calculation
                     // for the distances!
                 }
@@ -341,6 +346,7 @@ namespace EddyLib
                 sum += Math.Pow(centroid[i] - point[i], 2);
 
             return Math.Sqrt(sum);
+
             //return Math.Sqrt(point.Select((t, i) => Math.Pow(centroid[i] - t, 2)).Sum()); // LINQ is slower than doing the for-loop!
         }
     }

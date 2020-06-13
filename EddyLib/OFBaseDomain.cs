@@ -1,7 +1,8 @@
-﻿using System;
+﻿using EddyLib.BCs;
+using Rhino.Geometry;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
-using Rhino.Geometry;
 
 namespace EddyLib
 {
@@ -9,23 +10,30 @@ namespace EddyLib
     public class OFBaseDomain
     {
         public Point3d CenterGround;
+
         public Point3d LocationInMesh;
 
         public double[] FrontageBuildingAreas = new double[360];
+
         public double MaxFrontageBuildingArea;
+
         public Bitmap[] FrontagePNGs = new Bitmap[360];
 
         public Cylinder RefinementCylinder;
+
         public Box BBox;
 
         // 3 Main meshes
 
         public Mesh TerrainMesh;
+
         public Mesh DomainMesh;
+
         public Mesh[] DomainMeshIntersection;
+
         public Mesh BuildingGeometry;
 
-        public BoundaryConditions BCond;
+        public BoundaryCondition BCond;
 
         public int NumberOFCellsInMesh;
 
@@ -206,6 +214,7 @@ namespace EddyLib
             var zMax = BBox.Max.Z;
 
             var dimX = xMax - xMin;
+
             //var dimY = yMax - yMin;
             //var dimZ = zMax - zMin;
 
@@ -228,6 +237,7 @@ namespace EddyLib
 
             List<Point3d> points = new List<Point3d>();
             List<Ray3d> rays = new List<Ray3d>();
+
             //testVecs = new List<Vector3d>();
 
             List<bool> hits = new List<bool>();
@@ -251,6 +261,7 @@ namespace EddyLib
                         var vec = new Vector3d(local.YAxis * raylen);
 
                         rays.Add(ray);
+
                         //testVecs.Add(vec);
 
                         double d = Rhino.Geometry.Intersect.Intersection.MeshRay(buildings, ray);
@@ -270,6 +281,7 @@ namespace EddyLib
                 }
 
                 FrontageImage = FI;
+
                 //Needs to be rotated and flipped to represend the view from the wind direction
                 FrontageImage.RotateFlip(RotateFlipType.Rotate180FlipX);
             }
@@ -314,6 +326,7 @@ namespace EddyLib
             var dimZ = zMax - zMin;
 
             Interval intervalX = new Interval(empty.Min.X, empty.Max.X);
+
             //Interval intervalY = new Interval(empty.Min.Y, empty.Max.Y);
             Interval intervalZ = new Interval(empty.Min.Z, empty.Max.Z);
 
@@ -369,6 +382,7 @@ namespace EddyLib
                 }
 
                 FrontageImage = FI;
+
                 //Needs to be rotated and flipped to represend the view from the wind direction
                 FrontageImage.RotateFlip(RotateFlipType.Rotate180FlipX);
             }

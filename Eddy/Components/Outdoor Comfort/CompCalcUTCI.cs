@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using Eddy.Properties;
+﻿using Eddy.Properties;
 using EddyLib;
+using EddyLib.OutdoorComfort;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -37,12 +38,16 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Simulation result", "Res", "Eddy simulation result", GH_ParamAccess.item);
+
             //pManager.AddIntegerParameter("windDirs", "windDirs", "windDirs", GH_ParamAccess.list);
             pManager.AddPointParameter("Probing points", "Points", "List of probing points", GH_ParamAccess.list);
+
             //pManager.AddIntegerParameter("Hour", "Hour", "Hour", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Wind Factors", "WF", "Eddy Wind Factors Object", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Wind Factors Annual", "WFA", "Wind Factors Annual Object", GH_ParamAccess.item);
             pManager.AddGenericParameter("Mean Radiant Temperature", "MRT", "Mean Radiant Temperature [°C] Object", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item);
+
+            pManager[4].Optional = true;
         }
 
         /// <summary>
@@ -51,7 +56,7 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("Universal Thermal Climate Index [°C] Object", "UTCI", "Universal Thermal Climate Index [°C] Object", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Comfortable Hours", "CH", "Percentage of comfortable hours over the year", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Comfortable Hours", "CH", "Percentage of comfortable hours (9°C <= UTCI <= 26°C) over the year", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -73,7 +78,7 @@ namespace Eddy
             bool run = false;
             DA.GetData("Run", ref run);
 
-            WindReductionFactors windFactors = null;
+            WindFactorsAnnual windFactors = null;
             MRT mrt = null;
 
             Console.WriteLine("Load weather data...");
@@ -82,7 +87,7 @@ namespace Eddy
 
             Weather weather = new Weather(RES.Domain.BCond.epwFilePath);
 
-            DA.GetData("Wind Factors", ref windFactors);
+            DA.GetData("Wind Factors Annual", ref windFactors);
             if (windFactors == null)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide valid WindFactos object.");
@@ -116,7 +121,7 @@ namespace Eddy
 
             // UTCI here
 
-            var utci = new UTCI(probes.ToArray(), windFactors, weather, mrt, RES.Domain.BCond, RES.WorkingDirectory, run);
+            var utci = new UTCI(probes.ToArray(), windFactors, weather, mrt, RES.WorkingDirectory, run);
 
             if (GH_Document.IsEscapeKeyDown())
             {
@@ -140,6 +145,7 @@ namespace Eddy
                 return;
             }
             DA.SetData(0, utci);
+
             //DA.SetData(1, utci.ValuesCondition);
             DA.SetDataList(1, utci.ValuesAnnualPercentage);
         }
@@ -149,6 +155,7 @@ namespace Eddy
         /// need to be 24x24 pixels.
         /// </summary>
         protected override System.Drawing.Bitmap Icon =>
+
                 // You can add image files to your project resources and access them like this:
                 Resources.Eddy_calUTCI;
 

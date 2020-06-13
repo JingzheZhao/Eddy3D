@@ -1,10 +1,10 @@
-﻿using System;
-using System.IO;
-using System.Windows.Forms;
-using Eddy.Properties;
+﻿using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
+using System;
+using System.IO;
+using System.Windows.Forms;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -40,12 +40,14 @@ namespace Eddy
         }
 
         public bool runWithBlueCFD = true;
+
         //public bool runWithBlueCFD;
 
         public override bool Write(GH_IO.Serialization.GH_IWriter writer)
         {
             // First add our own field.
             writer.SetBoolean("runWithBlueCFD", runWithBlueCFD);
+
             // Then call the base class implementation.
             return base.Write(writer);
         }
@@ -54,6 +56,7 @@ namespace Eddy
         {
             // First read our own field.
             runWithBlueCFD = reader.GetBoolean("runWithBlueCFD");
+
             // Then call the base class implementation.
             return base.Read(reader);
         }
@@ -189,8 +192,6 @@ namespace Eddy
             }
             MeshSettings.SetDirectories(baseWorkingDirectory);
 
-            // @ Patrick: Make all of these regions static functions that live in the EddyLib DLL
-
             #region RUN BLOCKMESH
 
             if (DOM is OFBoxDomain)
@@ -309,6 +310,7 @@ namespace Eddy
         /// need to be 24x24 pixels.
         /// </summary>
         protected override System.Drawing.Bitmap Icon =>
+
                 // You can add image files to your project resources and access them like this:
                 Resources.Eddy_simulation;//return null;
 

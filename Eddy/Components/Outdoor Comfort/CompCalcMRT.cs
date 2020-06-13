@@ -1,10 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using Eddy.Properties;
+﻿using Eddy.Properties;
 using EddyLib;
+using EddyLib.OutdoorComfort;
+using EddyLib.Radiance;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Parameters;
 using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -29,8 +31,7 @@ namespace Eddy
         public CompCalcMRT()
           : base("Mean Radiant Temperature", "Mean Radiant Temperature", @"Mean Radiant Temperature.
 
-This is an experimental component based on an simplified approach linked below. Please refrain from using this in a production environment.
-https://transsolar.com/content/7-publications/2-papers/1-plea-2013-the-human-bio-meteorological-chart/kessling-transsolar-plea-2013-the-human-bio-meteorological-chart.pdf
+This is based on a TwoPhaseDDS approach for which it is assumed that the building surface temperature equals the ambient temperature.
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "6 | Outdoor Comfort")
@@ -43,11 +44,25 @@ https://transsolar.com/content/7-publications/2-papers/1-plea-2013-the-human-bio
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Simulation Result", "Res", "Simulation Result", GH_ParamAccess.item);
+
             //pManager.AddIntegerParameter("windDirs", "windDirs", "windDirs", GH_ParamAccess.list);
             //pManager.AddTextParameter("pointName", "pointName", "pointName", GH_ParamAccess.item);
             // pManager.AddIntegerParameter("Hours", "H", "Hours", GH_ParamAccess.list);
             pManager.AddPointParameter("Probing points", "Points", "List of probing points", GH_ParamAccess.list);
+            pManager.AddIntegerParameter("Simulation Mode", "Mode", "Pick a simulation mode", GH_ParamAccess.item, 0);
+
+            //Using an enum to generate the dropdown items
+            var types = Enum.GetNames(typeof(MRT.MRTType));
+            Param_Integer param = pManager[2] as Param_Integer;
+
+            for (int i = 0; i < types.Length; i++)
+            {
+                param.AddNamedValue(types[i], i);
+            }
+
             pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item);
+
+            pManager[3].Optional = true;
         }
 
         /// <summary>
@@ -57,6 +72,7 @@ https://transsolar.com/content/7-publications/2-papers/1-plea-2013-the-human-bio
         {
             //pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
             pManager.AddGenericParameter("Mean Radiant Temperature [°C]", "MRT", "Mean Radiant Temperature [°C] Object", GH_ParamAccess.item);
+
             // pManager.AddGenericParameter("MRT_T", "MRT_T", "MRT_T", GH_ParamAccess.tree);
         }
 
@@ -81,6 +97,11 @@ https://transsolar.com/content/7-publications/2-papers/1-plea-2013-the-human-bio
             var numberOfProbes = probes.Count;
             var probesArr = probes.ToArray();
 
+            int mode = 0;
+            DA.GetData("Simulation Mode", ref mode);
+
+            MRT.MRTType SimMode = (MRT.MRTType)mode;
+
             bool run = false;
             DA.GetData("Run", ref run);
 
@@ -102,92 +123,58 @@ https://transsolar.com/content/7-publications/2-papers/1-plea-2013-the-human-bio
                 return;
             }
 
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "This is an experimental component. Please refrain from using this in a production environment.");
+            // AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "This is an experimental component. Please refrain from using this in a production environment.");
 
             Weather weather = new Weather(RES.Domain.BCond.epwFilePath);
 
             #endregion Load prerequisites
 
-            #region Daysim
+            #region Create Ground and Building Mesh
 
-            double[][] DiffRad = null;
-            double[][] DirRad = null;
-
-            var difillFile = RES.WorkingDirectory + @"\Rad\CallRay.dif.ill";
-            var dirillFile = RES.WorkingDirectory + @"\Rad\CallRay.dir.ill";
-
-            if (File.Exists(difillFile) && File.Exists(dirillFile) && new FileInfo(difillFile).Length != 0 && new FileInfo(dirillFile).Length != 0)
+            var BAK = new Mesh();
+            if (RES.Domain is OFBoxDomain)
             {
-                // Load radiation datasets [x][] time [][x] points
-
-                DiffRad = RadianceFiles.loadILL(difillFile);
-                DirRad = RadianceFiles.loadILL(dirillFile);
-
-                int sensorPointCountExisting = DiffRad[0].GetLength(0);
-
-                if (sensorPointCountExisting != numberOfProbes && !run)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The precalculated Daysim results do not have the correct number of probing points. The results need to be recalculated.");
-                    return;
-                }
-
-                if (sensorPointCountExisting != numberOfProbes && run)
-                {
-                    Utilities.CleanDirectory(RES.MeshSettings.baseWorkingDir + @"Rad\");
-
-                    Daysim ds = new Daysim(RES.WorkingDirectory, RES.Domain.BuildingGeometry, probes, weather);
-
-                    DiffRad = ds.difIll;
-                    DirRad = ds.dirIll;
-
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated Daysim results did not have the correct number of probing points. Results have been recalculated.");
-                }
-                else if (sensorPointCountExisting == numberOfProbes && !run)
-                {
-                    DiffRad = RadianceFiles.loadILL(difillFile);
-                    DirRad = RadianceFiles.loadILL(dirillFile);
-
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated Daysim results have been loaded.");
-                }
-            }
-            else if (run)
-            {
-                Utilities.CleanDirectory(RES.MeshSettings.baseWorkingDir + @"Rad\");
-
-                Daysim ds = new Daysim(RES.WorkingDirectory, RES.Domain.BuildingGeometry, probes, weather);
-
-                DiffRad = ds.difIll;
-                DirRad = ds.dirIll;
+                var dom = (OFBoxDomain)RES.Domain;
+                BAK.Append(dom.BuildingGeometry);
+                BAK.Append(dom.DomainMeshGround);
+                BAK.Append(dom.DomainMeshGroundPerim);
             }
             else
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "No precalculated Daysim results found. Please calculate.");
+                var dom = (OFCylDomain)RES.Domain;
+                BAK.Append(dom.BuildingGeometry);
+                BAK.Append(dom.CylDomainMeshGround);
+                BAK.Append(dom.CylDomainMeshGroundPerim);
             }
 
-            #endregion Daysim
+            #endregion Create Ground and Building Mesh
 
-            #region MRT
+            var vf = new SkyViewFactor(RES.WorkingDirectory, BAK, probesArr, run);
 
-            var mrt = new MRT(RES.WorkingDirectory, weather, MRT.MRTType.kessling, DiffRad, DirRad, probesArr, run);
+            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity, run);
+
+            var mrt = new MRT(RES.WorkingDirectory, RES.Domain.BuildingGeometry, sky, vf, weather, SimMode, probesArr, run);
+
+            // Order important
+
+            if (mrt.wrongNumberOfProbes)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.WrongNumberOfProbes(RES, SimMode.ToString()));
+                return;
+            }
 
             if (mrt.Values is null)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Either precalculated results could not be loaded or the MRT array has not been calculated yet.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.NoResults(RES, SimMode.ToString()));
                 return;
             }
 
             if (mrt.resultPrecalculated)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated MRT results have been loaded.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.PrecalResLoaded(RES, SimMode.ToString()));
             }
-            if (mrt.wrongNumberOfProbes)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The precalculated MRT array has the wrong number of probing points. Please recalculate.");
-                return;
-            }
-            DA.SetData(0, mrt);
 
-            #endregion MRT
+            DA.SetData(0, mrt);
         }
 
         /// <summary>
@@ -195,6 +182,7 @@ https://transsolar.com/content/7-publications/2-papers/1-plea-2013-the-human-bio
         /// need to be 24x24 pixels.
         /// </summary>
         protected override System.Drawing.Bitmap Icon =>
+
                 // You can add image files to your project resources and access them like this:
                 Resources.Eddy_calMRT;
 

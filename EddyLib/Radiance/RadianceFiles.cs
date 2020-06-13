@@ -1,12 +1,12 @@
-﻿using System;
+﻿using Rhino;
+using Rhino.Geometry;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Rhino;
-using Rhino.Geometry;
 
 namespace EddyLib
 {
@@ -51,6 +51,7 @@ namespace EddyLib
                 {
                     StartInfo = processInfo
                 };
+
                 // p.OutputDataReceived += DebugLog.CaptureOutput; p.ErrorDataReceived += DebugLog.CaptureError;
 
                 p.Start();
@@ -93,6 +94,7 @@ namespace EddyLib
             System.IO.StreamWriter sw = new System.IO.StreamWriter(_fname);
             sw.WriteLine("#Grasshopper Eddy 2019");
             sw.WriteLine("");
+
             //_m.Faces.ConvertQuadsToTriangles();
 
             //_m.Faces.ExtractDuplicateFaces();
@@ -152,7 +154,7 @@ namespace EddyLib
         public static void MeshProc(Mesh _m, string _fname, string _mat, string _matLib)
         {
             System.IO.StreamWriter sw = new System.IO.StreamWriter(_fname);
-            sw.WriteLine("#Grasshopper Eddy 2019");
+            sw.WriteLine("#Grasshopper Eddy 2020");
             sw.WriteLine("");
             sw.WriteLine(_matLib);
             sw.WriteLine("");
@@ -160,7 +162,16 @@ namespace EddyLib
             //_m.Faces.ConvertQuadsToTriangles();
 
             //_m.Faces.ExtractDuplicateFaces();
-            _m.Faces.ConvertNonPlanarQuadsToTriangles(RhinoDoc.ActiveDoc.ModelAbsoluteTolerance, RhinoDoc.ActiveDoc.ModelAngleToleranceRadians, 0);
+
+            // Need this for unit testing
+            if (RhinoDoc.ActiveDoc == null)
+            {
+                _m.Faces.ConvertNonPlanarQuadsToTriangles(0.01, 0.01, 0);
+            }
+            else
+            {
+                _m.Faces.ConvertNonPlanarQuadsToTriangles(RhinoDoc.ActiveDoc.ModelAbsoluteTolerance, RhinoDoc.ActiveDoc.ModelAngleToleranceRadians, 0);
+            }
 
             // Sometimes Octrees are not written robustly
 
@@ -171,13 +182,27 @@ namespace EddyLib
             for (int i = 0; i < _m.Faces.Count; ++i)
             {
                 var area = Utilities.MeshFaceArea(i, _m);
-                if (area < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)
+
+                // Need this for unit testing
+                if (RhinoDoc.ActiveDoc == null)
                 {
-                    continue;
+                    if (area < 0.01)
+                    {
+                        continue;
+                    }
+                }
+                else
+                {
+                    if (area < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)
+                    {
+                        continue;
+                    }
                 }
 
                 if (_m.Faces[i].IsTriangle)
                 {
+                    // Change this material for 2Phase method
+
                     sw.WriteLine(_mat + " polygon " + _mat + "." + (i + 1).ToString());
                     sw.WriteLine("0");
                     sw.WriteLine("0");
@@ -362,6 +387,7 @@ namespace EddyLib
             {
                 // 2. Position and length variables.
                 int pos = 0;
+
                 // 2A. Use BaseStream.
                 int length = (int)b.BaseStream.Length;
 
@@ -388,11 +414,104 @@ namespace EddyLib
             return data;
         }
 
+        public static double[,] loadBinD(string filename)
+        {
+            // [i, time j] points
+
+            double[,] data;
+
+            int iDim;
+            int jDim;
+
+            //reading from the file
+            // 1.
+            using (BinaryReader b = new BinaryReader(
+                File.Open(filename, FileMode.Open)))
+            {
+                // 2. Position and length variables.
+                int pos = 0;
+
+                // 2A. Use BaseStream.
+                int length = (int)b.BaseStream.Length;
+
+                iDim = b.ReadInt32();
+                jDim = b.ReadInt32();
+                data = new double[iDim, jDim];
+                pos += sizeof(int);
+                pos += sizeof(int);
+
+                int i = 0;
+                int j = 0;
+                while (pos < length)
+                {
+                    float v = b.ReadSingle();
+                    data[i, j] = (v);
+
+                    pos += sizeof(float);
+
+                    j++;
+                    if (j == jDim) { j = 0; i++; }
+                }
+            }
+
+            return data;
+        }
+
+        public static float[][] loadBinJagged(string filename)
+        {
+            // [i][ time j] points
+
+            float[][] data;
+
+            int iDim;
+            int jDim;
+
+            //reading from the file
+            // 1.
+            using (BinaryReader b = new BinaryReader(
+                File.Open(filename, FileMode.Open)))
+            {
+                // 2. Position and length variables.
+                int pos = 0;
+
+                // 2A. Use BaseStream.
+                int length = (int)b.BaseStream.Length;
+
+                iDim = b.ReadInt32();
+                jDim = b.ReadInt32();
+                data = new float[iDim][]; //jDim
+
+                for (int ii = 0; ii < iDim; ii++)
+                {
+                    data[ii] = new float[jDim];
+                }
+
+                pos += sizeof(int);
+                pos += sizeof(int);
+
+                int i = 0;
+                int j = 0;
+                while (pos < length)
+                {
+                    float v = b.ReadSingle();
+                    data[i][j] = (v);
+
+                    pos += sizeof(float);
+
+                    j++;
+                    if (j == jDim) { j = 0; i++; }
+                }
+            }
+
+            return data;
+        }
+
         public static void writeBin(string fileName, double[][] values)
         {
             // [i, time j] points
 
             BinaryWriter bw;
+
             //create the file
             try
             {
@@ -433,6 +552,7 @@ namespace EddyLib
             // [i, time j] points
 
             BinaryWriter bw;
+
             //create the file
             try
             {
@@ -447,15 +567,131 @@ namespace EddyLib
             //writing into the file
             try
             {
-                bw.Write((Int32)values.GetUpperBound(0));
-                bw.Write((Int32)values.GetUpperBound(1));
+                bw.Write((Int32)values.GetLength(0));
+                bw.Write((Int32)values.GetLength(1));
 
-                for (int i = 0; i < values.GetUpperBound(0); i++)
+                for (int i = 0; i < values.GetLength(0); i++)
                 {
-                    for (int j = 0; j < values.GetUpperBound(1); j++)
+                    for (int j = 0; j < values.GetLength(1); j++)
                     {
                         float fval = (float)values[i, j];
                         bw.Write(fval);
+                    }
+                }
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine(e.Message + "\n Cannot write to file.");
+                return;
+            }
+            bw.Close();
+        }
+
+        public static Vector3d[,] loadBinDVectors(string filename, out int[] windDirs)//, out int iDim, out int jDim)
+        {
+            // [i, time j] points
+
+            Vector3d[,] data;
+
+            int numberOfWindDirs;
+
+            //reading from the file
+            // 1.
+            using (BinaryReader b = new BinaryReader(
+                File.Open(filename, FileMode.Open)))
+            {
+                // 2. Position and length variables.
+                int pos = 0;
+
+                // 2A. Use BaseStream.
+                int length = (int)b.BaseStream.Length;
+
+                int iDim = b.ReadInt32();
+                int jDim = b.ReadInt32();
+                data = new Vector3d[iDim, jDim];
+                pos += sizeof(int);
+                pos += sizeof(int);
+
+                // Read wind dirs
+                numberOfWindDirs = b.ReadInt32();
+                pos += sizeof(int);
+
+                windDirs = new int[numberOfWindDirs];
+
+                for (int wd = 0; wd < numberOfWindDirs; wd++)
+                {
+                    windDirs[wd] = b.ReadInt32();
+                    pos += sizeof(int);
+                }
+
+                int i = 0;
+                int j = 0;
+                while (pos < length)
+                {
+                    float x = b.ReadSingle();
+                    data[i, j].X = (x);
+
+                    float y = b.ReadSingle();
+                    data[i, j].Y = (y);
+
+                    float z = b.ReadSingle();
+                    data[i, j].Z = (z);
+
+                    pos += sizeof(float);
+                    pos += sizeof(float);
+                    pos += sizeof(float);
+
+                    j++;
+                    if (j == jDim) { j = 0; i++; }
+                }
+            }
+
+            return data;
+        }
+
+        public static void writeBinVectors(string fileName, Vector3d[,] values, int[] windDirs)
+        {
+            // [i, time j] points
+
+            BinaryWriter bw;
+
+            //create the file
+            try
+            {
+                bw = new BinaryWriter(new FileStream(fileName, FileMode.Create));
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine(e.Message + "\n Cannot create file.");
+                return;
+            }
+
+            //writing into the file
+            try
+            {
+                // Write array dimensions
+                bw.Write((Int32)values.GetLength(0));
+                bw.Write((Int32)values.GetLength(1));
+
+                // Write wind directions
+                bw.Write(windDirs.Length);
+                for (int w = 0; w < windDirs.Length; w++)
+                {
+                    int dir = windDirs[w];
+                    bw.Write(dir);
+                }
+
+                for (int i = 0; i < values.GetLength(0); i++)
+                {
+                    for (int j = 0; j < values.GetLength(1); j++)
+                    {
+                        float fvalX = (float)values[i, j].X;
+                        float fvalY = (float)values[i, j].Y;
+                        float fvalZ = (float)values[i, j].Z;
+
+                        bw.Write(fvalX);
+                        bw.Write(fvalY);
+                        bw.Write(fvalZ);
                     }
                 }
             }

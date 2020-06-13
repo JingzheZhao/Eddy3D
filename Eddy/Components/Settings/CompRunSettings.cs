@@ -12,6 +12,8 @@ namespace Eddy
 {
     public class RunSettings : GH_Component
     {
+        private object fvSchemes;
+
         /// <summary>
         /// Each implementation of GH_Component must provide a public constructor without any
         /// arguments. Category represents the Tab in which the component will appear, Subcategory
@@ -36,6 +38,7 @@ namespace Eddy
         /// need to be 24x24 pixels.
         /// </summary>
         protected override System.Drawing.Bitmap Icon =>
+
                 // You can add image files to your project resources and access them like this:
                 Resources.Eddy_run_settings;
 
@@ -59,20 +62,23 @@ namespace Eddy
             turb.AddNamedValue("Laminar (no turbulence)", 0);
             turb.AddNamedValue("kEpsilon (quick)", 1);
             turb.AddNamedValue("RNGkEpsilon (more accurate)", 2);
-            turb.AddNamedValue("kOmegaSST (most accurate)", 3);
+            turb.AddNamedValue("realizableKE (most accurate)", 3);
+            turb.AddNamedValue("kOmegaSST (most accurate)", 4);
 
             //4
-            pManager.AddIntegerParameter("Relaxation factors", "Relax", "Relaxation factors", GH_ParamAccess.item, 1);
+            pManager.AddIntegerParameter("Relaxation factors", "Relax", "Relaxation factors", GH_ParamAccess.item, 3);
             Param_Integer relaxationFactors = pManager[4] as Param_Integer;
-            relaxationFactors.AddNamedValue("OpenFOAM", 0);
+            relaxationFactors.AddNamedValue("Fast", 0);
             relaxationFactors.AddNamedValue("Fluent", 1);
-            relaxationFactors.AddNamedValue("OpenFOAM Robust", 2);
+            relaxationFactors.AddNamedValue("Robust", 2);
+            relaxationFactors.AddNamedValue("Optimized", 3);
 
             //5
-            pManager.AddIntegerParameter("Solution and algorithm control", "SolCtrl", "Solution and algorithm control. May alter the robustness of the solver", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("Solution and algorithm control", "SolCtrl", "Solution and algorithm control. May alter the robustness of the solver", GH_ParamAccess.item, 1);
             Param_Integer simulationMode = pManager[5] as Param_Integer;
             simulationMode.AddNamedValue("default", 0);
-            //simulationMode.AddNamedValue("robust", 1);
+            simulationMode.AddNamedValue("optimized", 1);
+
             //simulationMode.AddNamedValue("orthogonal (70-80)", 2);
             //simulationMode.AddNamedValue("orthogonal (60-70)", 3);
             //simulationMode.AddNamedValue("orthogonal (40-60)", 4);
@@ -83,18 +89,19 @@ namespace Eddy
             //6
             pManager.AddBooleanParameter("potentialFoam initialization", "potFoam", "Initialization with potentialFoam. Solves for the velocity potential to provide velocity and incompressible flux fields, typically used to initialise viscous calculations.", GH_ParamAccess.item, false);
 
-            //7
-            pManager.AddBooleanParameter("Renumber mesh", "reNum", "Renumber mesh to speed up the simulation (uses lots of RAM).", GH_ParamAccess.item, true);
+            //
+            //pManager.AddBooleanParameter("Renumber mesh", "reNum", "Renumber mesh to speed up the simulation (uses lots of RAM).", GH_ParamAccess.item, true);
 
-            //8
+            //7
             pManager.AddIntegerParameter("Number of CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
 
-            //9
+            //8
             pManager.AddIntegerParameter("Operating System", "OS", "Operating System.", GH_ParamAccess.item, 0); // Nothing specified
-            Param_Integer os = pManager[9] as Param_Integer;
+            Param_Integer os = pManager[8] as Param_Integer;
             os.AddNamedValue("Auto detect", 0);
             os.AddNamedValue(@"Windows 7 + 8", 1);
             os.AddNamedValue("Windows 10", 2);
+
             //os.AddNamedValue("Linux", 3);
             //os.AddNamedValue("Mac OS", 4);
 
@@ -107,7 +114,8 @@ namespace Eddy
             pManager[6].Optional = true;
             pManager[7].Optional = true;
             pManager[8].Optional = true;
-            pManager[9].Optional = true;
+
+            //pManager[9].Optional = true;
         }
 
         /// <summary>
@@ -130,13 +138,15 @@ namespace Eddy
             int _iter = 1000;
             int _writeInterval = 10;
             int _keepTimeSteps = 3;
-            int _schemes = 0;
             int _turb = 0;
+            int _schemes = 0;
+
             int _CPUs = 0;
             int _OS = -1;
             int _relaxationFactors = 1;
             bool _potentialFoamInit = false;
-            bool _renumberMesh = true;
+
+            //bool _renumberMesh = false;
 
             DA.GetData("Number of iterations", ref _iter);
             DA.GetData("Write interval", ref _writeInterval);
@@ -145,7 +155,8 @@ namespace Eddy
             DA.GetData("Relaxation factors", ref _relaxationFactors);
             DA.GetData("Solution and algorithm control", ref _schemes);
             DA.GetData("potentialFoam initialization", ref _potentialFoamInit);
-            DA.GetData("Renumber mesh", ref _potentialFoamInit);
+
+            //DA.GetData("Renumber mesh", ref _potentialFoamInit);
             DA.GetData("Number of CPUs", ref _CPUs);
             DA.GetData("Operating System", ref _OS);
 
@@ -163,9 +174,20 @@ namespace Eddy
             }
 
             RelaxationFactors relaxationFactors;
-            if (_relaxationFactors == 0) { relaxationFactors = RelaxationFactors.OpenFOAM; }
+            if (_relaxationFactors == 0) { relaxationFactors = RelaxationFactors.Fast; }
             else if (_relaxationFactors == 1) { relaxationFactors = RelaxationFactors.Fluent; }
-            else { relaxationFactors = RelaxationFactors.OpenFOAMRobust; }
+            else if (_relaxationFactors == 2) { relaxationFactors = RelaxationFactors.Robust; }
+            else { relaxationFactors = RelaxationFactors.Optimized; }
+
+            fvSchemes schemes;
+            if (_schemes == 0)
+            {
+                schemes = EddyLib.fvSchemes.Default;
+            }
+            else
+            {
+                schemes = EddyLib.fvSchemes.BIMHVAC;
+            }
 
             OSType os;
             if (Utilities.GetOSInfo() == "Windows 7" && _OS == 0)
@@ -210,6 +232,10 @@ namespace Eddy
             {
                 turbmodel = TurbModel.RNGkEpsilon;
             }
+            else if (_turb == 3)
+            {
+                turbmodel = TurbModel.realizableKE;
+            }
             else
             {
                 turbmodel = TurbModel.kOmegaSST;
@@ -220,13 +246,14 @@ namespace Eddy
                 iter = _iter,
                 writeInterval = _writeInterval,
                 keepTimeSteps = _keepTimeSteps,
-                Schemes = _schemes,
+                schemes = schemes,
                 CPUs = _CPUs,
                 ostype = os,
                 turbModel = turbmodel,
                 relaxationFactors = relaxationFactors,
                 potentialFoamInit = _potentialFoamInit,
-                renumberMesh = _renumberMesh
+
+                //renumberMesh = _renumberMesh
             };
 
             DA.SetData(0, runset);

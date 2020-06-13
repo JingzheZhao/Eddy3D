@@ -1,9 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using EddyLib;
+﻿using EddyLib;
+using EddyLib.BCs;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
+using Rhino.Geometry.Collections;
+using System;
+using System.Collections.Generic;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -34,15 +36,17 @@ namespace Eddy
             pManager.AddGeometryParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
             pManager.AddGeometryParameter("Terrain", "Terrain", "Terrain Geometry. Make sure the terrain geometry is bigger than the ground plane of the wind tunnel.", GH_ParamAccess.list);
 
-            pManager.AddGenericParameter("BCond", "BCond", "BCond", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Boundary Condition", "BCond", "Boundary Condition", GH_ParamAccess.item);
 
             pManager.AddNumberParameter("Block size", "BS", "Block size", GH_ParamAccess.item, 20);
+
             //pManager.AddIntegerParameter("Concentric grading", "ConcGrad", "Concentric grading", GH_ParamAccess.item, 1);
             //pManager.AddIntegerParameter("Concentric divisions", "ConcDiv", "Concentric Divisions", GH_ParamAccess.item, 1);
 
             pManager.AddNumberParameter("Size of inner rectangle", "InnerR", "Size of inner rectangle", GH_ParamAccess.item);
             pManager.AddNumberParameter("Size of outer radius", "OuterR", "Size of outer radius", GH_ParamAccess.item);
             pManager.AddNumberParameter("Height", "Height", "Height", GH_ParamAccess.item);
+
             // pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the
             // number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
 
@@ -60,6 +64,7 @@ namespace Eddy
         {
             pManager.AddGenericParameter("Domain", "Dom", "Domain", GH_ParamAccess.item);
             pManager.AddGenericParameter("Mesh", "Msh", "Mesh", GH_ParamAccess.list);
+
             //  pManager.AddGenericParameter("Div", "Div", "Div", GH_ParamAccess.list);
         }
 
@@ -114,19 +119,27 @@ namespace Eddy
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Duplicate Geometries might lead to a crashing simulation. Please find duplicates with ""SelDup"" and remove them.");
             }
 
-            BoundaryConditions bCond = new BoundaryConditions(BoundaryType.abl, new List<int>() { 0 }, 5, 1, ""); // sets default BC settings
+            BoundaryCondition bCond;
+
             GH_ObjectWrapper gobj = null;
-            if (DA.GetData("BCond", ref gobj))
+            if (!DA.GetData("Boundary Condition", ref gobj)) { }
+
+            if ((gobj.Value is ABL))
             {
-                if (gobj.Value is BoundaryConditions)
-                {
-                    bCond = ((BoundaryConditions)gobj.Value);
-                }
-                else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid boundary condition object"); return; }
+                bCond = (ABL)gobj.Value;
+            }
+            else if ((gobj.Value is ConstU))
+            {
+                bCond = (ConstU)gobj.Value;
+            }
+            else
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid Boundary Condition object"); return;
             }
 
             // int CPUs = 1;
             double coreBlockSize = 20;
+
             //int gradingPerim = 1;
             //int divsConcentric = 1;
             double sizeInnerRect = 0;
@@ -193,11 +206,16 @@ namespace Eddy
                 }
             }
 
+            // For radiation simulation
+
+            buildingGeometry.UserDictionary.Set("type", "Building");
+            terrainMeshes.UserDictionary.Set("type", "Ground");
+
             if (!Utilities.CheckDomainDimensionsOK(buildingGeometry, out double distance)) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Your building geometries are " + distance + " m too far from the origin."); return; }
 
             // Check if lowest point in Domain is z_low < 0, then we cannot use a ABL
 
-            if (buildingGeometry.GetBoundingBox(true).Min.Z < 0 && bCond.btype == BoundaryType.abl)
+            if (buildingGeometry.GetBoundingBox(true).Min.Z < 0 && bCond is ABL)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "If your simulation domain extends below z = 0, you cannot use an ABL Boundary Condition. Please use the Constant U Boundary Condition."); return;
             }
@@ -230,6 +248,7 @@ namespace Eddy
         /// need to be 24x24 pixels.
         /// </summary>
         protected override System.Drawing.Bitmap Icon =>
+
                 // You can add image files to your project resources and access them like this:
                 //return Resources.IconForThisComponent;
                 Properties.Resources.Eddy_analysisCul;
@@ -241,11 +260,14 @@ namespace Eddy
         public override Guid ComponentGuid => new Guid("{DDB7971A-EBAD-4A6F-8BFB-E77FE24F73BD}");
 
         private List<Point3d> _pointWindDirRender;
+
         private List<Vector3d> _vecsWindDirRender;
+
         private List<Polyline> _concentricDivisions;
+
         private List<Circle> _outerCircles;
 
-        private void FillWindDirRenderList(BoundaryConditions bCond, OFCylDomain DOM)
+        private void FillWindDirRenderList(BoundaryCondition bCond, OFCylDomain DOM)
         {
             //clear
             _pointWindDirRender = new List<Point3d>();
@@ -293,6 +315,7 @@ namespace Eddy
                     var l = new Line(_pointWindDirRender[i], _vecsWindDirRender[i]);
                     args.Display.DrawArrow(l, args.WireColour_Selected, 25, 0);
                 }
+
                 // Draw concentric divisions
                 foreach (var p in _concentricDivisions)
                 {
@@ -315,6 +338,7 @@ namespace Eddy
                     var l = new Line(_pointWindDirRender[i], _vecsWindDirRender[i]);
                     args.Display.DrawArrow(l, args.WireColour, 25, 0);
                 }
+
                 // Draw concentric divisions
                 foreach (var p in _concentricDivisions)
                 {

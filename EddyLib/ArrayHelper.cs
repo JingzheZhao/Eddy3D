@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Grasshopper;
+﻿using Grasshopper;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace EddyLib
 
@@ -210,18 +210,46 @@ namespace EddyLib
         //    return result;
         //}
 
-        public static IGH_Goo[,] To2DArrayGen(GH_Structure<IGH_Goo> tree)
+        public static IGH_Goo[,] To2DArrayGen(DataTree<IGH_Goo> tree)
         {
-            IGH_Goo[,] result = new IGH_Goo[tree.Branches[0].Count, tree.Branches.Count];
+            IGH_Goo[,] result = new IGH_Goo[tree.Branches.Count, tree.Branches[0].Count];
 
-            var zz = tree[0][0];
-
-            for (int i = 0; i < tree.Branches[0].Count; i++)
+            for (int i = 0; i < tree.Branches.Count; i++)
             {
-                for (int j = 0; j < tree.Branches.Count; j++)
+                for (int j = 0; j < tree.Branches[0].Count; j++)
                 {
-                    if (tree.Branches[j].Count != tree.Branches[0].Count) throw new InvalidOperationException("The list cannot contain elements (lists) of different sizes.");
-                    result[i, j] = tree[j][i];   //[i];
+                    if (tree.Branches[i].Count != tree.Branches[0].Count) throw new InvalidOperationException("The list cannot contain elements (lists) of different sizes.");
+                    result[i, j] = tree.Branches[i][j];
+                }
+            }
+            return result;
+        }
+
+        public static double[,] To2DArrayGen(DataTree<double> tree)
+        {
+            double[,] result = new double[tree.Branches.Count, tree.Branches[0].Count];
+
+            for (int i = 0; i < tree.Branches.Count; i++)
+            {
+                for (int j = 0; j < tree.Branches[0].Count; j++)
+                {
+                    if (tree.Branches[i].Count != tree.Branches[0].Count) throw new InvalidOperationException("The list cannot contain elements (lists) of different sizes.");
+                    result[i, j] = tree.Branches[i][j];
+                }
+            }
+            return result;
+        }
+
+        public static double[,] To2DArray(DataTree<double> tree)
+        {
+            double[,] result = new double[tree.Branches.Count, tree.Branches[0].Count];
+
+            for (int i = 0; i < tree.Branches.Count; i++)
+            {
+                for (int j = 0; j < tree.Branches[0].Count; j++)
+                {
+                    if (tree.Branches[i].Count != tree.Branches[0].Count) throw new InvalidOperationException("The list cannot contain elements (lists) of different sizes.");
+                    result[i, j] = tree.Branches[i][j];
                 }
             }
             return result;
@@ -367,6 +395,7 @@ namespace EddyLib
                     {
                         content += data[x][y].ToString() + ",";
                     }
+
                     //trying to write data to csv
                     outfile.WriteLine(content);
                 }
@@ -404,6 +433,30 @@ namespace EddyLib
             return transposed;
         }
 
+        public static T[] Slice<T>(T[] source, int fromIdx, int toIdx)
+        {
+            T[] ret = new T[toIdx - fromIdx + 1];
+            for (int srcIdx = fromIdx, dstIdx = 0; srcIdx <= toIdx; srcIdx++)
+            {
+                ret[dstIdx++] = source[srcIdx];
+            }
+            return ret;
+        }
+
+        public static T[,] Slice<T>(T[,] source, int fromIdxRank0, int toIdxRank0, int fromIdxRank1, int toIdxRank1)
+        {
+            T[,] ret = new T[toIdxRank0 - fromIdxRank0 + 1, toIdxRank1 - fromIdxRank1 + 1];
+
+            for (int srcIdxRank0 = fromIdxRank0, dstIdxRank0 = 0; srcIdxRank0 <= toIdxRank0; srcIdxRank0++, dstIdxRank0++)
+            {
+                for (int srcIdxRank1 = fromIdxRank1, dstIdxRank1 = 0; srcIdxRank1 <= toIdxRank1; srcIdxRank1++, dstIdxRank1++)
+                {
+                    ret[dstIdxRank0, dstIdxRank1] = source[srcIdxRank0, srcIdxRank1];
+                }
+            }
+            return ret;
+        }
+
         public static object[][] CSV2JaggedArray(String filePath)
         {
             object[][] data = File.ReadLines(filePath).Select(x => x.Split(',')).ToArray();
@@ -427,6 +480,7 @@ namespace EddyLib
                         {
                             content += data[x, y].ToString() + ",";
                         }
+
                         //trying to write data to csv
                         outfile.WriteLine(content);
                     }
@@ -444,6 +498,7 @@ namespace EddyLib
                         {
                             content += Math.Round(data[x, y], truncateBy).ToString() + ",";
                         }
+
                         //trying to write data to csv
                         outfile.WriteLine(content);
                     }

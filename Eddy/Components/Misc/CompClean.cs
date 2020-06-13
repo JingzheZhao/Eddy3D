@@ -43,8 +43,8 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Result", "Res", "Result or working directory", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("Mode", "Mode", "Directories to delete", GH_ParamAccess.item, 1);
+            pManager.AddGenericParameter("Result/Directory", "Res/Dir", "Provide a result or working directory", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Mode", "Mode", "Which directories to delete", GH_ParamAccess.item, 1);
             Param_Integer param = pManager[1] as Param_Integer;
             param.AddNamedValue("Mesh Directory", 0);
             param.AddNamedValue("Simulation Directories", 1);
@@ -69,28 +69,27 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             bool Run = false;
+
             int Mode = 1;
-            var workingDirectory = "";
-            var tempString = new GH_String("");
 
             OFResult RES = null;
+            String workingDirectory = null;
 
-            GH_ObjectWrapper wrapper = null;
-            if (!DA.GetData(0, ref wrapper)) { }
-            if (DA.GetData(0, ref wrapper))
+            GH_ObjectWrapper gobj = null;
+            if (!DA.GetData(0, ref gobj)) { return; }
+
+            if ((gobj.Value is OFResult))
             {
-                if (wrapper.Value is OFResult)
-                {
-                    RES = (OFResult)wrapper.Value;
-                    workingDirectory = RES.WorkingDirectory;
-                }
-                else
-                {
-                    //wrapper.CastTo<string>(out workingDirectory);
-                    tempString = (GH_String)wrapper.Value;
-                    workingDirectory = tempString.Value;
-                }
-                //else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass either an Eddy result or a working directory."); return; }
+                RES = (OFResult)gobj.Value;
+                workingDirectory = RES.WorkingDirectory;
+            }
+            else if (gobj.Value is GH_String)
+            {
+                var conversion = GH_Convert.ToString(gobj.Value, out workingDirectory, GH_Conversion.Both);
+            }
+            else
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide either a result object of path to a simulation folder"); return;
             }
 
             DA.GetData(1, ref Mode);
@@ -129,6 +128,7 @@ namespace Eddy
                 {
                     //var slider = obj as Grasshopper.Kernel.Special.GH_NumberSlider;
                     if (obj == null) continue;
+
                     //slider.Attributes.Selected = true;
                     obj.ExpireSolution(true);
                 }
@@ -140,6 +140,7 @@ namespace Eddy
         /// need to be 24x24 pixels.
         /// </summary>
         protected override System.Drawing.Bitmap Icon =>
+
                     // You can add image files to your project resources and access them like this:
                     Resources.Eddy_clean;
 

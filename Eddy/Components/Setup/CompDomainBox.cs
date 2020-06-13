@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using EddyLib;
+﻿using EddyLib;
+using EddyLib.BCs;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -34,7 +34,7 @@ namespace Eddy
             pManager.AddGeometryParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
             pManager.AddGeometryParameter("Terrain", "Terrain", "Terrain Geometry. Make sure the terrain geometry is bigger than the ground plane of the wind tunnel.", GH_ParamAccess.list);
 
-            pManager.AddGenericParameter("Boundary Condition", "BCond", "BCond", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Boundary Condition", "BCond", "Boundary Condition", GH_ParamAccess.item);
 
             pManager[1].Optional = true;
             pManager[2].Optional = true;
@@ -111,15 +111,22 @@ namespace Eddy
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Duplicate Geometries might lead to a crashing simulation. Please find duplicates with ""SelDup"" and remove them.");
             }
 
-            BoundaryConditions bCond = new BoundaryConditions(BoundaryType.abl, new List<int>() { 0 }, 5, 1, ""); // sets default BC settings
+            BoundaryCondition bCond;
+
             GH_ObjectWrapper gobj = null;
-            if (DA.GetData("Boundary Condition", ref gobj))
+            if (!DA.GetData("Boundary Condition", ref gobj)) { }
+
+            if ((gobj.Value is ABL))
             {
-                if ((gobj.Value is BoundaryConditions))
-                {
-                    bCond = (BoundaryConditions)gobj.Value;
-                }
-                else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid boundary condition object"); return; }
+                bCond = (ABL)gobj.Value;
+            }
+            else if ((gobj.Value is ConstU))
+            {
+                bCond = (ConstU)gobj.Value;
+            }
+            else
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid Boundary Condition object"); return;
             }
 
             double blockDimension = 20;
@@ -193,9 +200,14 @@ namespace Eddy
                 }
             }
 
+            // For radiation simulation
+
+            buildingGeometry.UserDictionary.Set("type", "Building");
+            terrainMeshes.UserDictionary.Set("type", "Ground");
+
             // Check if lowest point in Domain is z_low < 0, then we cannot use a ABL
 
-            if (buildingGeometry.GetBoundingBox(true).Min.Z < 0 && bCond.btype == BoundaryType.abl)
+            if (buildingGeometry.GetBoundingBox(true).Min.Z < 0 && bCond is ABL)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "If your simulation domain extends below z = 0, you cannot use an ABL Boundary Condition. Please use the Constant U Boundary Condition."); return;
             }
@@ -233,6 +245,7 @@ namespace Eddy
         /// need to be 24x24 pixels.
         /// </summary>
         protected override System.Drawing.Bitmap Icon =>
+
                 // You can add image files to your project resources and access them like this:
                 //return Resources.IconForThisComponent;
                 Properties.Resources.Eddy_domainBox;
@@ -244,9 +257,10 @@ namespace Eddy
         public override Guid ComponentGuid => new Guid("{0AD4BDF7-33AC-492D-ABF0-622A5488C8E2}");
 
         private List<Point3d> _pointWindDirRender;
+
         private List<Vector3d> _vecsWindDirRender;
 
-        private void FillWindDirRenderList(BoundaryConditions bCond, OFBoxDomain DOM)
+        private void FillWindDirRenderList(BoundaryCondition bCond, OFBoxDomain DOM)
         {
             //clear
             _pointWindDirRender = new List<Point3d>();

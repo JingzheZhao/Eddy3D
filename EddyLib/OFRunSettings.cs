@@ -6,47 +6,77 @@ namespace EddyLib
     public enum OSType
     {
         Windows10,
+
         Windows7,
+
         Linux,
+
         MaxOS
     }
 
     public enum RelaxationFactors
     {
-        OpenFOAM,
+        Fast,
+
         Fluent,
-        OpenFOAMRobust
+
+        Robust,
+
+        Optimized
     }
 
     public enum SimEngine
     {
         Docker,
+
         BlueCFD
     }
 
     public enum TurbModel
     {
         laminar,
+
         kEpsilon,
-        kOmegaSST,
-        RNGkEpsilon
+
+        RNGkEpsilon,
+
+        realizableKE,
+
+        kOmegaSST
+    }
+
+    public enum fvSchemes
+    {
+        Default,
+
+        BIMHVAC
     }
 
     public class OFRunSettings
     {
         public bool BlueCFDIsInstalled;
+
         public bool WindowsGnuplotInstalled;
 
         public int CPUs;
+
         public bool IdenticalMPI;
+
         public bool Is64BitOS;
+
         public bool potentialFoamInit;
-        public bool renumberMesh;
+
+        //public bool renumberMesh;
         public int iter;
+
         public int keepTimeSteps;
+
         public OSType ostype;
+
         public RelaxationFactors relaxationFactors;
-        public int Schemes;
+
+        public fvSchemes schemes;
+
         public SimEngine simEngine;
 
         //public int totalGBRam;
@@ -58,24 +88,26 @@ namespace EddyLib
             int iter = 1000,
             int writeInterval = 10,
             int keepTimeSteps = 3,
-            int Schemes = 0,
+            fvSchemes schemes = fvSchemes.BIMHVAC,
             int CPUs = 1,
             SimEngine simEngine = SimEngine.BlueCFD,
             OSType ostype = OSType.Windows10,
             TurbModel turbmodel = TurbModel.kEpsilon,
-            RelaxationFactors relaxationFactors = RelaxationFactors.Fluent,
-            bool potentialFoamInit = false,
-            bool renumberMesh = true
+            RelaxationFactors relaxationFactors = RelaxationFactors.Optimized,
+            bool potentialFoamInit = false
+
+            //bool renumberMesh = true
             )
         {
             this.iter = iter;
             this.writeInterval = writeInterval;
             this.keepTimeSteps = keepTimeSteps;
-            this.Schemes = Schemes;
+            this.schemes = schemes;
             this.CPUs = CPUs;
             this.simEngine = simEngine;
             this.ostype = ostype;
             this.turbModel = turbmodel;
+
             //this.totalGBRam = Convert.ToInt32((new ComputerInfo().TotalPhysicalMemory / (Math.Pow(1024, 2))) + 0.5);
             this.relaxationFactors = relaxationFactors;
             this.Is64BitOS = Environment.Is64BitOperatingSystem;
@@ -83,7 +115,8 @@ namespace EddyLib
             this.WindowsGnuplotInstalled = CheckIfWinGnuplotISInstalled();
             this.IdenticalMPI = CheckForProperMPIVersions(BlueCFDIsInstalled, Is64BitOS);
             this.potentialFoamInit = potentialFoamInit;
-            this.renumberMesh = renumberMesh;
+
+            // this.renumberMesh = renumberMesh;
         }
 
         public override string ToString()
@@ -92,15 +125,19 @@ namespace EddyLib
 iter = {0}
 writeInterval = {1}
 keepTimeSteps = {2}
-Scheme = {3}
+fvScheme = {3}
 turb = {4}
 CPUs = {5}
 Engine = {6}
 OS = {7}
-Turbulence Model = {8}
-Relaxation Factors = {9}
-potentialFoam initialization = {10}"
-, iter.ToString(), writeInterval.ToString(), keepTimeSteps.ToString(), Schemes.ToString(), turbModel.ToString(), CPUs.ToString(), simEngine.ToString(), ostype.ToString(), turbModel.ToString(), relaxationFactors.ToString(), potentialFoamInit.ToString());
+Relaxation Factors = {8}
+potentialFoam initialization = {9}"
+
+//Renumber Mesh = {11}"
+, iter.ToString(), writeInterval.ToString(), keepTimeSteps.ToString(), schemes.ToString(), turbModel.ToString(), CPUs.ToString(), simEngine.ToString(), ostype.ToString(), relaxationFactors.ToString(), potentialFoamInit.ToString()
+
+//, renumberMesh.ToString()
+);
         }
 
         private bool CheckForProperMPIVersions(bool BlueCFDInstalled, bool Is64BitOS)
@@ -111,6 +148,7 @@ potentialFoam initialization = {10}"
             {
                 //string MPIWindows64 = @"C:\Windows\SysWOW64\msmpi.dll";
                 string MPIWindows32 = @"C:\Windows\System32\msmpi.dll";
+
                 //string MPIWindows = Is64BitOS == true ? MPIWindows64 : MPIWindows32;
 
                 string MPIBlueCFD = @"C:\Program Files\blueCFD-Core-2017\ThirdParty-5.x\platforms\mingw_w64Gcc\MS-MPI-7.1\bin\msmpi.dll";
@@ -127,6 +165,7 @@ potentialFoam initialization = {10}"
                 {
                     MPIIdentical = true;
                 }
+
                 // Size should be 1300688 bytes
             }
 
