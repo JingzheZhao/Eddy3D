@@ -15,6 +15,58 @@ namespace EddyLib.Strings
     {
         //Run commands as list
 
+        private static List<string> TopoSet = new List<string>
+        {
+            "topoSet",
+            "setsToZones -noFlipMap" };
+
+        public static string Run_Make_Trees(OFRunSettings RunSettings, OFMeshSettings MeshSettings, OFBaseDomain DOM, Mode mode)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            if (RunSettings.simEngine == SimEngine.Docker)//Docker
+            {
+                //                if (RunSettings.CPUs > 1)
+                //                {
+                //                    foreach (string str in TopoSet)
+                //                    {
+                //                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str + AppendSuffixDocker());
+                //                    }
+                //#if DEBUG
+                //                    sb.AppendLine("PAUSE");
+                //#endif
+                //                }
+                //else
+                {
+                    foreach (string str in TopoSet)
+                    {
+                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str + AppendSuffixDocker());
+                    }
+#if DEBUG
+                    sb.AppendLine("PAUSE");
+#endif
+                }
+            }
+            else
+            {
+                //                if (RunSettings.CPUs > 1)
+                //                {
+                //                    sb.Append(TempBlueCFD(TopoSet, MeshSettings.meshWorkingDir));
+                //#if DEBUG
+                //                    sb.AppendLine("PAUSE");
+                //#endif
+                //                }
+                //                else
+                {
+                    sb.Append(TempBlueCFD(TopoSet, MeshSettings.meshWorkingDir));
+#if DEBUG
+                    sb.AppendLine("PAUSE");
+#endif
+                }
+            }
+            return sb.ToString();
+        }
+
         private static readonly List<string> RCCheckMeshSingleCPU = new List<string> {
 
        // "checkMesh -allGeometry -allTopology -writeAllFields -writeSets vtk",  // Not supported in OpenFOAM 5 yet
@@ -198,13 +250,6 @@ namespace EddyLib.Strings
             sb.AppendLine("");
             return sb.ToString();
         }
-
-        //private static string AppendSuffixWin()
-        //{
-        //    StringBuilder sb = new StringBuilder();
-        //    sb.AppendLine("> log");
-        //    return sb.ToString();
-        //}
 
         private static string AppendSuffixWin()
         {

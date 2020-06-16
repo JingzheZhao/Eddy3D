@@ -35,6 +35,8 @@ namespace EddyLib
 
         public BoundaryCondition BCond;
 
+        public List<Tree> Trees;
+
         public int NumberOFCellsInMesh;
 
         public List<double> Runtimes = new List<double>();

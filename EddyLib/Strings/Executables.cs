@@ -1,5 +1,4 @@
-﻿using EddyLib.FunctionObjects;
-using Rhino.Geometry;
+﻿using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -656,6 +655,11 @@ minTriangleTwist -1;
 nSmoothScale   4;
 
 errorReduction 0.75;
+
+relaxed
+{
+    maxNonOrtho   75;
+}
 }
 
   // Write flags

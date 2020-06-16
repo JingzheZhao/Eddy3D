@@ -13,7 +13,8 @@
     {
         Default,
 
-        BIMHVAC
+        //BIMHVAC
+        Optimized
     }
 
     public class OFMeshSettings

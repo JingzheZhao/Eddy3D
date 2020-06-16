@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Eddy.Properties;
+using EddyLib;
+using Grasshopper.Kernel;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Eddy.Properties;
-using EddyLib;
-using Grasshopper.Kernel;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -98,6 +98,7 @@ namespace Eddy
             // Fill array once; fastest method so far
 
             double[,] HourlyUTCI = new double[numberOfProbes, 8760];
+
             //double[,] HourlyHumanConditions = new double[numberOfProbes, 8760];
             double[] ComfortHours = new double[numberOfProbes];
 
@@ -136,6 +137,7 @@ namespace Eddy
                     }
                 }
                 ComfortHours[probes] = Math.Round((double)comfortCnt * 100 / hoursToEvaluate.Count, 1);
+
                 //});
             }
 
@@ -147,6 +149,7 @@ namespace Eddy
         /// need to be 24x24 pixels.
         /// </summary>
         protected override System.Drawing.Bitmap Icon =>
+
                 // You can add image files to your project resources and access them like this:
                 Resources.Eddy_readUTCI;
 

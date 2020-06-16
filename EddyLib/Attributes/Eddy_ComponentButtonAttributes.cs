@@ -1,6 +1,6 @@
-﻿using System.Drawing;
-using Grasshopper.GUI.Canvas;
+﻿using Grasshopper.GUI.Canvas;
 using Grasshopper.Kernel;
+using System.Drawing;
 
 namespace EddyLib
 {

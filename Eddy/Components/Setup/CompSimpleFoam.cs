@@ -2,6 +2,7 @@
 using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
+using Rhino.Geometry;
 using System;
 using System.IO;
 using System.Windows.Forms;
@@ -74,6 +75,8 @@ namespace Eddy
 
             pManager.AddGenericParameter("Run Settings", "RSet", "Run Settings", GH_ParamAccess.item);
             pManager[3].Optional = true;
+
+            pManager.AddBooleanParameter("Make Trees", "MakeTrees", "Create Tree Topologies", GH_ParamAccess.item, false);
 
             pManager.AddBooleanParameter("Run Meshing", "RunMsh", "Run Meshing", GH_ParamAccess.item, false);
             pManager.AddBooleanParameter("Run Simulation", "RunSim", "Run Simulation", GH_ParamAccess.item, false);
@@ -269,17 +272,33 @@ namespace Eddy
                 return;
             }
 
+            #region Trees
+
+            if (DOM.Trees != null)
+            {
+                var trees = new TreeObject(DOM, MeshSettings);
+            }
+
+            #endregion Trees
+
             RunFoamSimulation.Run(DOM, MeshSettings, RunSettings, baseWorkingDirectory);
 
             #endregion RUN SIMULATION
 
             #region START PROCESSES
 
+            bool makeTrees = false;
             bool runSimulation = false;
             bool runMeshing = false;
 
+            DA.GetData("Make Trees", ref makeTrees);
             DA.GetData("Run Simulation", ref runSimulation);
             DA.GetData("Run Meshing", ref runMeshing);
+
+            if (makeTrees == true && canRun)
+            {
+                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_make_trees.bat", taskComplete);
+            }
 
             if (runMeshing == true && runSimulation == true && canRun)
             {

@@ -1,8 +1,8 @@
-﻿using System;
-using Eddy.Properties;
+﻿using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
+using System;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -48,7 +48,7 @@ namespace Eddy
             Param_Integer param1 = pManager[6] as Param_Integer;
             param1.AddNamedValue("No snapping, no layers", 0);
             param1.AddNamedValue("With Snapping, no layers", 1);
-            param1.AddNamedValue("With Snapping, with layers (not robust)", 2);
+            param1.AddNamedValue("With Snapping, with layers (not always robust, >> RAM)", 2);
         }
 
         /// <summary>

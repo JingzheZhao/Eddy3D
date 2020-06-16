@@ -1,8 +1,8 @@
-﻿using System;
-using Eddy.Properties;
+﻿using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
+using System;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -12,8 +12,6 @@ namespace Eddy
 {
     public class RunSettings : GH_Component
     {
-        private object fvSchemes;
-
         /// <summary>
         /// Each implementation of GH_Component must provide a public constructor without any
         /// arguments. Category represents the Tab in which the component will appear, Subcategory
@@ -186,7 +184,7 @@ namespace Eddy
             }
             else
             {
-                schemes = EddyLib.fvSchemes.BIMHVAC;
+                schemes = EddyLib.fvSchemes.Optimized;
             }
 
             OSType os;

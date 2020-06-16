@@ -1,10 +1,10 @@
-﻿using System;
+﻿using CommandLine;
+using CommandLine.Text;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using CommandLine;
-using CommandLine.Text;
 
 namespace CallBatchRunner
 {
@@ -43,6 +43,7 @@ namespace CallBatchRunner
                     Console.WriteLine(batchFiles[i]);
 
                     var processInfo = new ProcessStartInfo("cmd.exe", "/c" + "\"" + batchFiles[i] + "\"");
+
                     //processInfo.CreateNoWindow = true;
                     processInfo.UseShellExecute = false;
                     processInfo.RedirectStandardError = true;

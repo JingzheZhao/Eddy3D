@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Eddy.Properties;
+﻿using Eddy.Properties;
 using EddyLib;
 using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -40,6 +40,7 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
+
             //pManager.AddPointParameter("Points", "Points", "Points", GH_ParamAccess.list);
         }
 
@@ -64,6 +65,7 @@ namespace Eddy
             DA.GetData(0, ref RES);
 
             List<Point3d> points = new List<Point3d>();
+
             //DA.GetDataList(1, points);
 
             DataTree<Vector3d> UTree = new DataTree<Vector3d>();
@@ -79,6 +81,7 @@ namespace Eddy
 
             var numberOfWindDirs = RES.Domain.BCond.windDirs.Count();
             var numberOfProbes = File.ReadAllLines(fullProbeFilePath[0]).Count();
+
             //string[] abc = replacedString.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 
             // Array for output data
@@ -88,10 +91,12 @@ namespace Eddy
             for (int r = 0; r < numberOfWindDirs; r++)
             {
                 listOfAnnualData[r] = new Vector3d[numberOfProbes];
+
                 //int counter = 1;
                 for (int c = 0; c < numberOfProbes; c++)
                 {
                     listOfAnnualData[r][c] = new Vector3d(double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[0]) / RES.Domain.BCond.UPedestrianHeight, double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1]) / RES.Domain.BCond.UPedestrianHeight, double.Parse(File.ReadAllLines(fullProbeFilePath[r])[c].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[2]) / RES.Domain.BCond.UPedestrianHeight);
+
                     //counter += 3;
                 }
             }

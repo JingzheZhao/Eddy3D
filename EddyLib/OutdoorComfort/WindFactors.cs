@@ -41,8 +41,6 @@ namespace EddyLib.OutdoorComfort
 
         private readonly string fileNameBinExtension = ".bin";
 
-        private readonly string del = "_";
-
         public List<int> SimulatedWindDirections;
 
         public WindFactorsSpatial(string baseWorkingDir, BoundaryCondition bcond, MultiDirectionalVelocities velocityProbes, List<Point3d> probes, bool interpolate, bool recalc)

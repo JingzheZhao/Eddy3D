@@ -1,5 +1,4 @@
 ﻿using EddyLib.BCs;
-using EddyLib.FunctionObjects;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
@@ -49,7 +48,7 @@ namespace EddyLib
 
         public double test;
 
-        public OFBoxDomain(Mesh BuildingGeometry, Mesh terrainMesh, BoundaryCondition BCond, double blockDimension, double length = 0, double width = 0, double height = 0)
+        public OFBoxDomain(Mesh BuildingGeometry, Mesh terrainMesh, BoundaryCondition BCond, double blockDimension, double length = 0, double width = 0, double height = 0, List<Tree> Trees = null)
         {
             this.BCond = BCond;
             this.BuildingGeometry = BuildingGeometry;
@@ -265,6 +264,12 @@ namespace EddyLib
 
             PressureCoeff BCondCP = new PressureCoeff(MaxHeightBuilding, BCond);
             BCondCP.SetUatBuildingHeight(MaxHeightBuilding, BCond);
+
+            #region Trees
+
+            this.Trees = Trees;
+
+            #endregion Trees
 
             ToString();
         }

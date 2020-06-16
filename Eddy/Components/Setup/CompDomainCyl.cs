@@ -3,7 +3,6 @@ using EddyLib.BCs;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
-using Rhino.Geometry.Collections;
 using System;
 using System.Collections.Generic;
 
@@ -35,10 +34,16 @@ namespace Eddy
         {
             pManager.AddGeometryParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
             pManager.AddGeometryParameter("Terrain", "Terrain", "Terrain Geometry. Make sure the terrain geometry is bigger than the ground plane of the wind tunnel.", GH_ParamAccess.list);
+            pManager[1].Optional = true;
+
+            pManager.AddGenericParameter("Trees", "Trees", "Tree objects.", GH_ParamAccess.list);
+            pManager[2].Optional = true;
 
             pManager.AddGenericParameter("Boundary Condition", "BCond", "Boundary Condition", GH_ParamAccess.item);
+            pManager[3].Optional = true;
 
             pManager.AddNumberParameter("Block size", "BS", "Block size", GH_ParamAccess.item, 20);
+            pManager[4].Optional = true;
 
             //pManager.AddIntegerParameter("Concentric grading", "ConcGrad", "Concentric grading", GH_ParamAccess.item, 1);
             //pManager.AddIntegerParameter("Concentric divisions", "ConcDiv", "Concentric Divisions", GH_ParamAccess.item, 1);
@@ -46,15 +51,12 @@ namespace Eddy
             pManager.AddNumberParameter("Size of inner rectangle", "InnerR", "Size of inner rectangle", GH_ParamAccess.item);
             pManager.AddNumberParameter("Size of outer radius", "OuterR", "Size of outer radius", GH_ParamAccess.item);
             pManager.AddNumberParameter("Height", "Height", "Height", GH_ParamAccess.item);
+            pManager[5].Optional = true;
+            pManager[6].Optional = true;
+            pManager[7].Optional = true;
 
             // pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the
             // number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
-
-            pManager[1].Optional = true;
-            pManager[2].Optional = true;
-            pManager[4].Optional = true;
-            pManager[5].Optional = true;
-            pManager[6].Optional = true;
         }
 
         /// <summary>
@@ -118,6 +120,14 @@ namespace Eddy
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Duplicate Geometries might lead to a crashing simulation. Please find duplicates with ""SelDup"" and remove them.");
             }
+
+            #region Trees
+
+            List<Tree> trees = new List<Tree>();
+
+            DA.GetDataList("Trees", trees);
+
+            #endregion Trees
 
             BoundaryCondition bCond;
 
@@ -222,7 +232,7 @@ namespace Eddy
 
             if (Utilities.CheckLicence() == true)
             {
-                OFCylDomain DOMCYL = new OFCylDomain(buildingGeometry, terrainMeshes, bCond, coreBlockSize, sizeInnerRect, sizeOuterCirc, sizeHeight);
+                OFCylDomain DOMCYL = new OFCylDomain(buildingGeometry, terrainMeshes, bCond, coreBlockSize, sizeInnerRect, sizeOuterCirc, sizeHeight, trees);
 
                 FillWindDirRenderList(bCond, DOMCYL);
 
