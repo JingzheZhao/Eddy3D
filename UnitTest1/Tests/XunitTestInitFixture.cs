@@ -4,7 +4,6 @@ using System.Runtime.InteropServices;
 
 using Xunit;
 
-
 namespace RhinoPlugin.Tests.Xunit
 {
     /// <summary>
@@ -12,11 +11,11 @@ namespace RhinoPlugin.Tests.Xunit
     /// </summary>
     public class XunitTestInitFixture : IDisposable
     {
-        static bool initialized = false;
-        static string systemDir = null;
-        static string systemDirOld = null;
+        private static bool initialized = false;
 
+        private static string systemDir = null;
 
+        private static string systemDirOld = null;
 
         public XunitTestInitFixture()
         {
@@ -30,7 +29,6 @@ namespace RhinoPlugin.Tests.Xunit
             // Make surte we are running the tests as 64x
             Assert.True(Environment.Is64BitProcess, "Tests must be run as x64");
 
-
             // Set path to rhino system directory
             string envPath = Environment.GetEnvironmentVariable("path");
             string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
@@ -42,6 +40,7 @@ namespace RhinoPlugin.Tests.Xunit
             }
 
             Assert.True(System.IO.Directory.Exists(systemDir), string.Format("Rhino system dir not found: {0}", systemDir));
+
             // Add rhino system directory to path (for RhinoLibrary.dll)
             Environment.SetEnvironmentVariable("path", envPath + ";" + systemDir);
 
@@ -69,6 +68,7 @@ namespace RhinoPlugin.Tests.Xunit
         {
             //Cleaning up
             ExitInProcess();
+
             //initialized = false;
         }
 

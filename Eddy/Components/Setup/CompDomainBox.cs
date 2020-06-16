@@ -32,22 +32,25 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGeometryParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
+
             pManager.AddGeometryParameter("Terrain", "Terrain", "Terrain Geometry. Make sure the terrain geometry is bigger than the ground plane of the wind tunnel.", GH_ParamAccess.list);
-
-            pManager.AddGenericParameter("Boundary Condition", "BCond", "Boundary Condition", GH_ParamAccess.item);
-
             pManager[1].Optional = true;
+
+            pManager.AddGenericParameter("Trees", "Trees", "Tree objects.", GH_ParamAccess.list);
             pManager[2].Optional = true;
 
+            pManager.AddGenericParameter("Boundary Condition", "BCond", "Boundary Condition", GH_ParamAccess.item);
+            pManager[3].Optional = true;
+
             pManager.AddNumberParameter("Block size", "BS", "Block size", GH_ParamAccess.item, 20);
+            pManager[4].Optional = true;
 
             pManager.AddNumberParameter("Length", "L", "Length of wind tunnel", GH_ParamAccess.item);
             pManager.AddNumberParameter("Width", "W", "Width of wind tunnel", GH_ParamAccess.item);
             pManager.AddNumberParameter("Height", "H", "Height of wind tunnel", GH_ParamAccess.item);
-
-            pManager[4].Optional = true;
             pManager[5].Optional = true;
             pManager[6].Optional = true;
+            pManager[7].Optional = true;
         }
 
         /// <summary>
@@ -110,6 +113,14 @@ namespace Eddy
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Duplicate Geometries might lead to a crashing simulation. Please find duplicates with ""SelDup"" and remove them.");
             }
+
+            #region Trees
+
+            List<Tree> trees = new List<Tree>();
+
+            DA.GetDataList("Trees", trees);
+
+            #endregion Trees
 
             BoundaryCondition bCond;
 
@@ -214,7 +225,7 @@ namespace Eddy
 
             if (Utilities.CheckLicence() == true)
             {
-                OFBoxDomain DOMBOX = new OFBoxDomain(buildingGeometry, terrainMeshes, bCond, blockDimension, length, width, height);
+                OFBoxDomain DOMBOX = new OFBoxDomain(buildingGeometry, terrainMeshes, bCond, blockDimension, length, width, height, trees);
 
                 FillWindDirRenderList(bCond, DOMBOX);
 

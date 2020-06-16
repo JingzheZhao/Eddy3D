@@ -1,18 +1,19 @@
-﻿using System;
+﻿using Eddy.Properties;
+using EddyLib;
+using Grasshopper.Kernel;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using Eddy.Properties;
-using EddyLib;
-using Grasshopper.Kernel;
 
 namespace Eddy
 {
     public class Eddy_Templates : GH_Component
     {
         private List<string> folderList = new List<string>();
+
         private List<List<string>> filesList = new List<List<string>>();
 
         public Eddy_Templates()
@@ -23,6 +24,7 @@ namespace Eddy
         }
 
         public override Guid ComponentGuid => new Guid("{D8E619A8-BF03-422F-962B-0D52A05559DF}");
+
         //protected override System.Drawing.Bitmap Icon => Properties.Resources.HVACTemplate;
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)

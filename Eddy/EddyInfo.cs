@@ -1,7 +1,7 @@
-﻿using System;
-using System.Drawing;
-using Eddy.Properties;
+﻿using Eddy.Properties;
 using Grasshopper.Kernel;
+using System;
+using System.Drawing;
 
 namespace Eddy
 {

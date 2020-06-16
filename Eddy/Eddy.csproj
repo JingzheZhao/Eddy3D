@@ -70,6 +70,7 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\FunctionObjects\CompTree.cs" />
     <Compile Include="Components\Misc\CompLBAnalPeriod2Hours.cs" />
     <Compile Include="Components\Outdoor Comfort\CompCalcWindFactors.cs" />
     <Compile Include="Components\Outdoor Comfort\CompCalcWindComfort.cs" />
@@ -218,6 +219,7 @@
     <None Include="Resources\Eddy_calcMRT.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\Eddy_trees.png" />
     <None Include="Resources\Eddy3D.png" />
     <None Include="Resources\Eddy3D.bmp" />
     <None Include="Eddy3D.bmp" />

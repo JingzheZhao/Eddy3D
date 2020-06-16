@@ -1,5 +1,5 @@
-﻿using System.IO;
-using Rhino.Geometry;
+﻿using Rhino.Geometry;
+using System.IO;
 
 namespace EddyLib
 {

@@ -41,14 +41,12 @@ namespace EddyLib.OutdoorComfort
 
         private readonly string fileNameBinExtension = ".bin";
 
-        private readonly string del = "_";
-
         public List<int> SimulatedWindDirections;
 
         public WindFactorsSpatial(string baseWorkingDir, BoundaryCondition bcond, MultiDirectionalVelocities velocityProbes, List<Point3d> probes, bool interpolate, bool recalc)
         {
-            string csvWFSpatial = interpolate == false ? Path.Combine(baseWorkingDir + fileName + del + fileNameCSVExtension) : Path.Combine(baseWorkingDir + fileName + del + fileNameCSVExtension);
-            string binWFSpatial = interpolate == false ? Path.Combine(baseWorkingDir + fileName + del + fileNameBinExtension) : Path.Combine(baseWorkingDir + fileName + del + fileNameBinExtension);
+            string csvWFSpatial = interpolate == false ? Path.Combine(baseWorkingDir + fileName + fileNameCSVExtension) : Path.Combine(baseWorkingDir + fileName + fileNameCSVExtension);
+            string binWFSpatial = interpolate == false ? Path.Combine(baseWorkingDir + fileName + fileNameBinExtension) : Path.Combine(baseWorkingDir + fileName + fileNameBinExtension);
 
             this.SimulatedWindDirections = bcond.windDirs;
 

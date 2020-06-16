@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Windows.Forms;
-using Microsoft.Win32;
 
 // it's required for reading/writing into the registry: and for the MessageBox function:
 
@@ -59,8 +59,10 @@ namespace Eddy
         {
             // Opening the registry key
             RegistryKey rk = baseRegistryKey;
+
             // Open a subKey as read-only
             RegistryKey sk1 = rk.OpenSubKey(subKey);
+
             // If the RegistrySubKey doesn't exist -> (null)
             if (sk1 == null)
             {
@@ -96,9 +98,11 @@ namespace Eddy
             {
                 // Setting
                 RegistryKey rk = baseRegistryKey;
+
                 // I have to use CreateSubKey (create or open it if already exits), 'cause OpenSubKey
                 // open a subKey as read-only
                 RegistryKey sk1 = rk.CreateSubKey(subKey);
+
                 // Save the value
                 sk1.SetValue(KeyName.ToUpper(), Value);
 
@@ -127,6 +131,7 @@ namespace Eddy
                 // Setting
                 RegistryKey rk = baseRegistryKey;
                 RegistryKey sk1 = rk.CreateSubKey(subKey);
+
                 // If the RegistrySubKey doesn't exists -> (true)
                 if (sk1 == null)
                     return true;
@@ -158,6 +163,7 @@ namespace Eddy
                 // Setting
                 RegistryKey rk = baseRegistryKey;
                 RegistryKey sk1 = rk.OpenSubKey(subKey);
+
                 // If the RegistryKey exists, I delete it
                 if (sk1 != null)
                     rk.DeleteSubKeyTree(subKey);
@@ -187,6 +193,7 @@ namespace Eddy
                 // Setting
                 RegistryKey rk = baseRegistryKey;
                 RegistryKey sk1 = rk.OpenSubKey(subKey);
+
                 // If the RegistryKey exists...
                 if (sk1 != null)
                     return sk1.SubKeyCount;
@@ -216,6 +223,7 @@ namespace Eddy
                 // Setting
                 RegistryKey rk = baseRegistryKey;
                 RegistryKey sk1 = rk.OpenSubKey(subKey);
+
                 // If the RegistryKey exists...
                 if (sk1 != null)
                     return sk1.ValueCount;

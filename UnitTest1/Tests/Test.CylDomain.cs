@@ -1,15 +1,10 @@
 ﻿//using Rhino.Compute;
 
-using System;
-
-using Rhino.Geometry;
-using Grasshopper;
-using Grasshopper.Kernel.Types;
-
-using Xunit;
 using EddyLib;
-using System.Collections.Generic;
 using EddyLib.BCs;
+using Rhino.Geometry;
+using System.Collections.Generic;
+using Xunit;
 
 namespace RhinoPlugin.Tests.Xunit
 {

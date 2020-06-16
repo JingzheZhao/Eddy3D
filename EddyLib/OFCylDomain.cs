@@ -1,5 +1,4 @@
-﻿using EddyLib.FunctionObjects;
-using Rhino.Geometry;
+﻿using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -58,7 +57,7 @@ namespace EddyLib
 
         public Point3d[] pointsOnRect;
 
-        public OFCylDomain(Mesh BuildingGeometry, Mesh terrainMesh, BCs.BoundaryCondition BCond, double coreBlockSize, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0)
+        public OFCylDomain(Mesh BuildingGeometry, Mesh terrainMesh, BCs.BoundaryCondition BCond, double coreBlockSize, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0, List<Tree> Trees = null)
         {
             gradingPerim = 1.0;
             cellSizeInner = coreBlockSize;
@@ -163,6 +162,12 @@ namespace EddyLib
 
             PressureCoeff BCondCP = new PressureCoeff(zMax, BCond);
             BCondCP.SetUatBuildingHeight(zMax, BCond);
+
+            #region Trees
+
+            this.Trees = Trees;
+
+            #endregion Trees
 
             ToString();
         }

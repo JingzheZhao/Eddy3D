@@ -49,7 +49,8 @@ namespace EddyLib
     {
         Default,
 
-        BIMHVAC
+        //BIMHVAC
+        Optimized
     }
 
     public class OFRunSettings
@@ -88,7 +89,7 @@ namespace EddyLib
             int iter = 1000,
             int writeInterval = 10,
             int keepTimeSteps = 3,
-            fvSchemes schemes = fvSchemes.BIMHVAC,
+            fvSchemes schemes = fvSchemes.Optimized,
             int CPUs = 1,
             SimEngine simEngine = SimEngine.BlueCFD,
             OSType ostype = OSType.Windows10,
