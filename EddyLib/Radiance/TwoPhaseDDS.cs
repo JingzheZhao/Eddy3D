@@ -286,7 +286,7 @@ namespace EddyLib.Radiance
         echo void light solar 0 0 3 1e6 1e6 1e6 > output/suns.rad
         REM Create solar discs and corresponding modifiers for 2305 suns corresponding to a Reinhart MF:4 subdivision.
         REM 0.533 solar disc size as angle
-        cnt " + (144 * skysubdivdirect * skysubdivdirect + 1) + @" | rcalc -e MF:4 -f ""C:\DIVA\Radiance\lib\reinsrc.cal"" -e Rbin=recno -o ""solar source sun 0 0 4 ${Dx} ${Dy} ${Dz} 0.533"" >> ""output/suns.rad""
+        cnt " + (144 * skysubdivdirect * skysubdivdirect + 1) + @" | rcalc -e MF:4 -f " + RadianceDir + @"\lib\reinsrc.cal"" -e Rbin=recno -o ""solar source sun 0 0 4 ${Dx} ${Dy} ${Dz} 0.533"" >> ""output/suns.rad""
 
         REM Put suns in scene...
         oconv sceneBlack.rad output/suns.rad > output/sceneBlackSuns.oct
