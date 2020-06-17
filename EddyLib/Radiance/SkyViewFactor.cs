@@ -33,10 +33,12 @@ namespace EddyLib.Radiance
             this.Values = new double[sensors.Length];
             this.BuildingsAndGround = BuildingsAndGround;
 
-            string sunRaysResPath = workingDir + @"\" + this.sunRaysRes;
-            string sunRaysFilePath = workingDir + @"\" + this.sunRaysFile;
-            string radFilePath = workingDir + @"\" + this.radFile;
-            string octreeFilePath = workingDir + @"\" + this.octreeFile;
+            string subDir = @"\Rad\ViewFactors\";
+
+            string sunRaysResPath = workingDir + subDir + this.sunRaysRes;
+            string sunRaysFilePath = workingDir + subDir + this.sunRaysFile;
+            string radFilePath = workingDir + subDir + this.radFile;
+            string octreeFilePath = workingDir + subDir + this.octreeFile;
 
             if (Run)
             {
@@ -86,6 +88,7 @@ namespace EddyLib.Radiance
                 radFile.AppendLine("");
                 radFile.AppendLine(radFileString.ToString());
 
+                Directory.CreateDirectory(Path.GetDirectoryName(radFilePath));
                 File.WriteAllText(radFilePath, radFile.ToString());
 
                 //A = "Final File Length: " + finalFile.Length;

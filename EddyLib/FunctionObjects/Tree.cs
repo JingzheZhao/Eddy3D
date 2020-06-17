@@ -32,6 +32,20 @@ namespace EddyLib
             ExportTreeGeometry(trees, MeshSettings);
         }
 
+        public static void RemoveDicts(OFBaseDomain DOM, OFMeshSettings MeshSettings)
+        {
+            for (int i = 0; i < DOM.BCond.windDirs.Count; i++)
+            {
+                string simSystemDir = MeshSettings.baseWorkingDir + "\\" + DOM.BCond.windDirs[i] + @"\system\";
+                var path = simSystemDir + @"\fvOptions";
+
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+            }
+        }
+
         public void ExportTreeGeometry(List<Tree> trees, OFMeshSettings MeshSettings)
 
         {
@@ -54,7 +68,11 @@ namespace EddyLib
                     sb.AppendLine(TreeStringBody(j, trees[j].f, trees[j].d));
                 }
                 this.fullExportString = sb.ToString();
-                File.WriteAllText(simSystemDir + @"\fvOptions", fullExportString);
+
+                if (Directory.Exists(simSystemDir))
+                {
+                    File.WriteAllText(simSystemDir + @"\fvOptions", fullExportString);
+                }
             }
         }
 

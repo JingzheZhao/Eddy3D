@@ -76,9 +76,10 @@ namespace Eddy
             pManager.AddGenericParameter("Run Settings", "RSet", "Run Settings", GH_ParamAccess.item);
             pManager[3].Optional = true;
 
+            pManager.AddBooleanParameter("Run Meshing", "RunMsh", "Run Meshing", GH_ParamAccess.item, false);
+
             pManager.AddBooleanParameter("Make Trees", "MakeTrees", "Create Tree Topologies", GH_ParamAccess.item, false);
 
-            pManager.AddBooleanParameter("Run Meshing", "RunMsh", "Run Meshing", GH_ParamAccess.item, false);
             pManager.AddBooleanParameter("Run Simulation", "RunSim", "Run Simulation", GH_ParamAccess.item, false);
         }
 
@@ -274,9 +275,13 @@ namespace Eddy
 
             #region Trees
 
-            if (DOM.Trees != null)
+            if (DOM.Trees.Count > 0)
             {
                 var trees = new TreeObject(DOM, MeshSettings);
+            }
+            else
+            {
+                TreeObject.RemoveDicts(DOM, MeshSettings);
             }
 
             #endregion Trees

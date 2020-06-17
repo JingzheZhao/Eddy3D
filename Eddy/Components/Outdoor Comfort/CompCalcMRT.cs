@@ -28,6 +28,8 @@ namespace Eddy
         /// the panel. If you use non-existing tab or panel names, new tabs/panels will automatically
         /// be created.
         /// </summary>
+        ///
+
         public CompCalcMRT()
           : base("Mean Radiant Temperature", "Mean Radiant Temperature", @"Mean Radiant Temperature.
 
@@ -83,6 +85,17 @@ This is based on a TwoPhaseDDS approach for which it is assumed that the buildin
         /// The DA object can be used to retrieve data from input parameters and to store data in
         /// output parameters.
         /// </param>
+        ///
+
+        private bool canRun = true;
+
+        public void MRTSimComplete(object sender, System.EventArgs e)
+        {
+            //RhinoApp.WriteLine("Proping complete");
+            canRun = false;
+            this.ExpireSolution(true);
+        }
+
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             OFResult RES = null;
@@ -153,7 +166,7 @@ This is based on a TwoPhaseDDS approach for which it is assumed that the buildin
 
             var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity, run);
 
-            var mrt = new MRT(RES.WorkingDirectory, RES.Domain.BuildingGeometry, sky, vf, weather, SimMode, probesArr, run);
+            var mrt = new MRT(RES.WorkingDirectory, RES.Domain.BuildingGeometry, sky, vf, weather, SimMode, probesArr, run, MRTSimComplete);
 
             // Order important
 

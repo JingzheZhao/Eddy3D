@@ -30,10 +30,10 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddIntegerParameter("AccBuilding", "AccBuilding", "Specify the level accuracy of building mesh.", GH_ParamAccess.item, 2);
-            pManager.AddIntegerParameter("AccFeatures", "AccFeatures", "Specify accuracy of building features (corners) mesh.", GH_ParamAccess.item, 2);
-            pManager.AddIntegerParameter("AccBBox", "AccBBox", "Specify accuracy of bounding box.", GH_ParamAccess.item, 0);
-            pManager.AddIntegerParameter("AccGround", "AccGround", "Specify accuracy of ground mesh.", GH_ParamAccess.item, 2);
+            pManager.AddIntegerParameter("AccBuilding", "AccBuilding", "Level accuracy of building mesh.", GH_ParamAccess.item, 2);
+            pManager.AddIntegerParameter("AccFeatures", "AccFeatures", "Level accuracy accuracy of building features (corners) mesh.", GH_ParamAccess.item, 2);
+            pManager.AddIntegerParameter("AccBBox", "AccBBox", "Level accuracy of building bounding box.", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("AccGround", "AccGround", "Level accuracy of ground mesh.", GH_ParamAccess.item, 2);
 
             pManager.AddIntegerParameter("Misc settings.", "MiscS", "Misc settings.", GH_ParamAccess.item, 1);
             Param_Integer param0 = pManager[4] as Param_Integer;

@@ -33,7 +33,7 @@ namespace EddyLib.Radiance
 
         private string TwoPhaseDDSFolder = @"\TwoPhaseDDS\";
 
-        public TwoPhaseDDS(string baseWorkingDir, Mesh BuildingGeometry, List<Point3d> probes, Weather weather, bool recalc, string RadianceDir = @"C:\Program Files\Radiance")
+        public TwoPhaseDDS(string baseWorkingDir, Mesh BuildingGeometry, List<Point3d> probes, Weather weather, bool recalc, EventHandler eh, string RadianceDir = @"C:\Program Files\Radiance")
 
         {
             string csvDDS = Path.Combine(baseWorkingDir + fileName + del + fileNameCSVExtension);

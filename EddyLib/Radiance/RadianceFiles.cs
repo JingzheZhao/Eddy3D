@@ -18,60 +18,68 @@ namespace EddyLib
 
         public static string Epw2Wea(string weatherFilePath, string targetPath)
         {
+            string epwdatname = Path.GetFileNameWithoutExtension(weatherFilePath);
+
             try
             {
-                if (Directory.Exists(targetPath) == false)
+                if (!File.Exists(Path.Combine(targetPath, epwdatname + @".wea")))
                 {
-                    Directory.CreateDirectory(targetPath);
+                    if (Directory.Exists(targetPath) == false)
+                    {
+                        Directory.CreateDirectory(targetPath);
+                    }
+
+                    //if (Directory.GetFiles(targetPath, "*.wea").Length > 0)
+                    //{
+                    //    Array.ForEach(Directory.GetFiles(targetPath, "*.wea"), delegate (string path) { File.Delete(path); });
+                    //}
+
+                    string arguments = "\"" + Path.GetFullPath(weatherFilePath) + "\" \"" +
+                                       Path.GetFullPath(Path.Combine(targetPath, epwdatname + @".wea")) + "\"";
+
+                    Debug.WriteLine(arguments);
+
+                    ProcessStartInfo processInfo = new ProcessStartInfo
+                    {
+                        Arguments = arguments,
+                        FileName = DaysimInstallation + @"\epw2wea",
+                        WorkingDirectory = DaysimInstallation,
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    };
+
+                    Process p = new Process
+                    {
+                        StartInfo = processInfo
+                    };
+
+                    // p.OutputDataReceived += DebugLog.CaptureOutput; p.ErrorDataReceived += DebugLog.CaptureError;
+
+                    p.Start();
+
+                    p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
+                           Console.WriteLine("output>>" + e.Data);
+                    p.BeginOutputReadLine();
+
+                    p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+                        Console.WriteLine("error>>" + e.Data);
+                    p.BeginErrorReadLine();
+
+                    p.WaitForExit();
+
+                    Console.WriteLine("ExitCode: {0}", p.ExitCode);
+                    p.Close();
+
+                    Debug.WriteLine("WEA FILE EXSISTS? " + File.Exists(Path.GetFullPath(Path.Combine(targetPath, epwdatname + @".wea"))).ToString());
+
+                    return epwdatname;
                 }
-
-                //if (Directory.GetFiles(targetPath, "*.wea").Length > 0)
-                //{
-                //    Array.ForEach(Directory.GetFiles(targetPath, "*.wea"), delegate (string path) { File.Delete(path); });
-                //}
-                string epwdatname = Path.GetFileNameWithoutExtension(weatherFilePath);
-
-                string arguments = "\"" + Path.GetFullPath(weatherFilePath) + "\" \"" +
-                                   Path.GetFullPath(Path.Combine(targetPath, epwdatname + @".wea")) + "\"";
-
-                Debug.WriteLine(arguments);
-
-                ProcessStartInfo processInfo = new ProcessStartInfo
+                else
                 {
-                    Arguments = arguments,
-                    FileName = DaysimInstallation + @"\epw2wea",
-                    WorkingDirectory = DaysimInstallation,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
-                };
-
-                Process p = new Process
-                {
-                    StartInfo = processInfo
-                };
-
-                // p.OutputDataReceived += DebugLog.CaptureOutput; p.ErrorDataReceived += DebugLog.CaptureError;
-
-                p.Start();
-
-                p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
-                       Console.WriteLine("output>>" + e.Data);
-                p.BeginOutputReadLine();
-
-                p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
-                    Console.WriteLine("error>>" + e.Data);
-                p.BeginErrorReadLine();
-
-                p.WaitForExit();
-
-                Console.WriteLine("ExitCode: {0}", p.ExitCode);
-                p.Close();
-
-                Debug.WriteLine("WEA FILE EXSISTS? " + File.Exists(Path.GetFullPath(Path.Combine(targetPath, epwdatname + @".wea"))).ToString());
-
-                return epwdatname;
+                    return epwdatname;
+                }
             }
             catch
             {

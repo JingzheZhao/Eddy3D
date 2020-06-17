@@ -73,6 +73,8 @@ namespace RhinoPlugin.Tests.Xunit
             // Arrange
             var workingdir = @"C:\Testing\";
 
+            EddyLib.Utilities.Directories.CleanDirectory(workingdir);
+
             var point0 = new Rhino.Geometry.Point3d(0, 0, 0);
             var point1 = new Rhino.Geometry.Point3d(20, 0, 0);
             var point2 = new Rhino.Geometry.Point3d(0, 20, 0);
@@ -160,6 +162,8 @@ namespace RhinoPlugin.Tests.Xunit
         {
             // Arrange
             var workingdir = @"C:\Testing\";
+
+            EddyLib.Utilities.Directories.CleanDirectory(workingdir);
 
             var point0 = new Rhino.Geometry.Point3d(0, 0, 0);
             var point1 = new Rhino.Geometry.Point3d(20, 0, 0);
@@ -250,6 +254,8 @@ namespace RhinoPlugin.Tests.Xunit
         {
             // Arrange
             var workingdir = @"C:\Testing\";
+
+            EddyLib.Utilities.Directories.CleanDirectory(workingdir);
 
             var point0 = new Rhino.Geometry.Point3d(0, 0, 0);
             var point1 = new Rhino.Geometry.Point3d(20, 0, 0);

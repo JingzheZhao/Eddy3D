@@ -34,7 +34,7 @@ namespace EddyLib.OutdoorComfort
 
         public double[] SkyTemp;
 
-        public MRT(string baseWorkingDir, Mesh BuildingGeometry, Sky sky, SkyViewFactor vf, Weather weather, MRTType type, Point3d[] probes, bool recalc)
+        public MRT(string baseWorkingDir, Mesh BuildingGeometry, Sky sky, SkyViewFactor vf, Weather weather, MRTType type, Point3d[] probes, bool recalc, EventHandler eh = null)
         {
             var csvMRT = baseWorkingDir + @"MRT.csv";
             var binMRT = baseWorkingDir + @"MRT.bin";
@@ -79,7 +79,7 @@ namespace EddyLib.OutdoorComfort
                 //Utilities.CleanDirectory(baseWorkingDir + @"Rad\");
                 //Utilities.CleanDirectory(baseWorkingDir + @"Output\");
 
-                EddyLib.Radiance.TwoPhaseDDS dds = new EddyLib.Radiance.TwoPhaseDDS(baseWorkingDir, BuildingGeometry, probes.ToList(), weather, recalc);
+                EddyLib.Radiance.TwoPhaseDDS dds = new EddyLib.Radiance.TwoPhaseDDS(baseWorkingDir, BuildingGeometry, probes.ToList(), weather, recalc, eh);
 
                 this.SkyTemp = sky.Temp;
 
