@@ -87,15 +87,15 @@ namespace Eddy
             //6
             pManager.AddBooleanParameter("potentialFoam initialization", "potFoam", "Initialization with potentialFoam. Solves for the velocity potential to provide velocity and incompressible flux fields, typically used to initialise viscous calculations.", GH_ParamAccess.item, false);
 
-            //
-            //pManager.AddBooleanParameter("Renumber mesh", "reNum", "Renumber mesh to speed up the simulation (uses lots of RAM).", GH_ParamAccess.item, true);
-
             //7
-            pManager.AddIntegerParameter("Number of CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
+            pManager.AddBooleanParameter("Age of air", "AoA", "Evaluate age of air throughout the simulation domain. This has to be turned on before the simulation is started, otherwise the simulation will not find the approriate boundary conditions.", GH_ParamAccess.item, false);
 
             //8
+            pManager.AddIntegerParameter("Number of CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
+
+            //9
             pManager.AddIntegerParameter("Operating System", "OS", "Operating System.", GH_ParamAccess.item, 0); // Nothing specified
-            Param_Integer os = pManager[8] as Param_Integer;
+            Param_Integer os = pManager[9] as Param_Integer;
             os.AddNamedValue("Auto detect", 0);
             os.AddNamedValue(@"Windows 7 + 8", 1);
             os.AddNamedValue("Windows 10", 2);
@@ -112,8 +112,7 @@ namespace Eddy
             pManager[6].Optional = true;
             pManager[7].Optional = true;
             pManager[8].Optional = true;
-
-            //pManager[9].Optional = true;
+            pManager[9].Optional = true;
         }
 
         /// <summary>
@@ -143,6 +142,7 @@ namespace Eddy
             int _OS = -1;
             int _relaxationFactors = 1;
             bool _potentialFoamInit = false;
+            bool _aoa = false;
 
             //bool _renumberMesh = false;
 
@@ -153,6 +153,7 @@ namespace Eddy
             DA.GetData("Relaxation factors", ref _relaxationFactors);
             DA.GetData("Solution and algorithm control", ref _schemes);
             DA.GetData("potentialFoam initialization", ref _potentialFoamInit);
+            DA.GetData("Age of air", ref _aoa);
 
             //DA.GetData("Renumber mesh", ref _potentialFoamInit);
             DA.GetData("Number of CPUs", ref _CPUs);
@@ -250,6 +251,7 @@ namespace Eddy
                 turbModel = turbmodel,
                 relaxationFactors = relaxationFactors,
                 potentialFoamInit = _potentialFoamInit,
+                aoa = _aoa
 
                 //renumberMesh = _renumberMesh
             };

@@ -76,6 +76,10 @@ namespace EddyLib
             {
                 FieldType = fieldType.vector;
             }
+            else if (fieldName == "aoa")
+            {
+                FieldType = fieldType.scalar;
+            }
         }
 
         public static string ReformatOFFields(int OFFieldInt)
@@ -124,11 +128,15 @@ namespace EddyLib
 
                 //fieldType = 0;
             }
-            else
+            else if (OFFieldInt == 7)
             {
                 ofField = "phi";
 
                 //fieldType = 1;
+            }
+            else
+            {
+                ofField = "aoa";
             }
             return ofField;
         }
