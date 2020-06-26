@@ -693,9 +693,49 @@ libs
 
             //if (topologies != null) {
             sb.Append(EddyLib.Strings.OFExecDicts.FunctionObjCP(DOM, RunSettings, topologies, numberOfTopologies).ToString());
+            if (RunSettings.aoa == true) { sb.Append(EddyLib.Strings.OFExecDicts.FunctionObjAOA().ToString()); }
 
             //}
-            //else { sb.Append(@"};"); }
+            sb.AppendLine(@"};");
+
+            return sb.ToString();
+        }
+
+        public static string FunctionObjAOA()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine(@"aoa
+    {
+        type            scalarTransport;
+        libs (""libfieldFunctionObjects.so"");
+
+        writeControl    outputTime;
+            D               1.0;
+            field aoa;
+            resetOnStartUp  false;
+            schemesField aoa;
+            bounded01       true;
+            write           true;
+
+            fvOptions
+        {
+                aoa_00
+            {
+                    type scalarSemiImplicitSource;
+                    active          true;
+                    cellZone all;
+                    scalarSemiImplicitSourceCoeffs
+                {
+                        volumeMode specific;
+                        selectionMode all;
+                        injectionRateSuSp
+                    {
+                            aoa (1 0);
+                        }
+                    }
+                }
+            }
+        }");
 
             return sb.ToString();
         }
@@ -705,7 +745,7 @@ libs
             PressureCoeff BCondCP = new PressureCoeff(DOM.MaxHeightBuilding, DOM.BCond);
 
             StringBuilder sb = new StringBuilder();
-            sb.Append(@"pressureCoefficients
+            sb.AppendLine(@"pressureCoefficients
 {
                     type pressure;
                     libs (""libfieldFunctionObjects.so"");
@@ -746,7 +786,6 @@ patch" + i + @"
 ");
                 }
             }
-            else { sb.Append(@"};"); }
 
             return sb.ToString();
         }
@@ -1068,6 +1107,7 @@ divSchemes
     div(U) Gauss linear;
 
     div((nuEff*dev2(T(grad(U))))) Gauss linear;
+    div(phi,aoa)    bounded Gauss upwind;
 }
 
 laplacianSchemes
@@ -1137,6 +1177,7 @@ divSchemes
     div(phi,k)      bounded Gauss upwind;
     div(phi,omega)  bounded Gauss upwind;
 	div(phi,epsilon) bounded Gauss upwind;
+    div(phi,aoa)    bounded Gauss upwind;
 }
 
 laplacianSchemes
@@ -1761,6 +1802,7 @@ fluxRequired
     fields
     {
         p               0.3;
+        aoa             0.5;
     }
     equations
     {
@@ -1777,6 +1819,7 @@ fluxRequired
     fields
     {
         p               0.7;
+        aoa             0.5;
     }
     equations
     {
@@ -1793,6 +1836,7 @@ fluxRequired
     fields
     {
         p               0.3;
+        aoa             0.5;
     }
     equations
     {
@@ -1807,6 +1851,7 @@ fluxRequired
     fields
     {
 		p               0.3;
+        aoa             0.5;
     }
 
     equations
@@ -1896,6 +1941,15 @@ solvers
         smoother        GaussSeidel;
         tolerance       1e-8;
         relTol          0.01;
+    }
+    aoa
+    {
+    solver          PBiCG;
+    preconditioner  DILU;
+    tolerance       1e-05;
+    relTol          0.1;
+    minIter 1;
+    maxIter 10;
     }
 
     ""(U|k|omega|epsilon)""
@@ -1990,6 +2044,15 @@ solvers
         preconditioner  DILU;
         tolerance       1e-5;
         relTol          0.1;
+    }
+    aoa
+    {
+    solver          PBiCG;
+    preconditioner  DILU;
+    tolerance       1e-05;
+    relTol          0.1;
+    minIter 1;
+    maxIter 10;
     }
 }
 
