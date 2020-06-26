@@ -8,8 +8,10 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace EddyLib
 {
@@ -142,18 +144,43 @@ exit
 
         public class Directories
         {
-            public static void CleanDirectory(string path)
+            public static void DeleteDirectory(string path)
             {
-                System.IO.DirectoryInfo di = new DirectoryInfo(path);
-
-                foreach (FileInfo file in di.GetFiles())
+                foreach (string directory in Directory.GetDirectories(path))
                 {
+                    DeleteDirectory(directory);
+                }
+
+                try
+                {
+                    Directory.Delete(path, true);
+                }
+                catch (IOException)
+                {
+                    Directory.Delete(path, true);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    Directory.Delete(path, true);
+                }
+            }
+
+            public static void RecursiveDelete(DirectoryInfo baseDir)
+            {
+                if (!baseDir.Exists)
+                    return;
+
+                foreach (var dir in baseDir.EnumerateDirectories())
+                {
+                    RecursiveDelete(dir);
+                }
+                var files = baseDir.GetFiles();
+                foreach (var file in files)
+                {
+                    file.IsReadOnly = false;
                     file.Delete();
                 }
-                foreach (DirectoryInfo dir in di.GetDirectories())
-                {
-                    dir.Delete(true);
-                }
+                baseDir.Delete();
             }
 
             public static string FixDirectories(string dir)
@@ -590,41 +617,100 @@ exit
             return operatingSystem;
         }
 
-        public static List<Point3d> DiscardPoints(List<Point3d> listOfPoints, OFBaseDomain DOM)
+        // We can start using this approach again once this bug is fixed
+        // https://discourse.mcneel.com/t/mesh-ispointinside-bug/64228/10
+
+        //public static List<Point3d> DiscardPoints(List<Point3d> listOfPoints, OFBaseDomain DOM)
+        //{
+        //    double height = DOM.DomainMesh.GetBoundingBox(true).Max.Z - DOM.DomainMesh.GetBoundingBox(true).Min.Z;
+
+        //    List<Point3d> newList = new List<Point3d>();
+
+        //    //for (int i = 0; i < listOfPoints.Count; i++)
+        //    //{
+        //    //TODO: CHECK SPEED AND ROBUSTNESS
+        //    foreach (var pt in listOfPoints)
+        //    {
+        //        if (DOM.DomainMesh.IsPointInside(pt, 0.001, true))
+        //        {
+        //            Point3d pt1 = pt;
+        //            Point3d pt2 = pt + Vector3d.ZAxis * height * 2;
+
+        //            Line l = new Line(pt1, pt2);
+        //            int[] fids;
+        //            var pts = Rhino.Geometry.Intersect.Intersection.MeshLine(DOM.BuildingGeometry, l, out fids);
+        //            if (pts.Length == 0)
+        //            {
+        //                newList.Add(pt);
+        //            }
+        //            else if (pts.Length % 2 == 0)
+        //            {
+        //                newList.Add(pt);
+        //            }
+        //        }
+
+        //        //if (!DOM.BuildingGeometry.IsPointInside(listOfPoints[i], 0.001, true))
+        //        //{
+        //        //    newList.Add(listOfPoints[i]);
+        //        //}
+        //    }
+        //    return newList;
+        //}
+
+        public static List<Point3d> DiscardPoints(List<Point3d> listOfPoints, Mesh BuildingMesh, double tol = 0.5)
         {
-            double height = DOM.DomainMesh.GetBoundingBox(true).Max.Z - DOM.DomainMesh.GetBoundingBox(true).Min.Z;
+            List<double> wns = new List<double>();
 
-            List<Point3d> newList = new List<Point3d>();
+            BuildingMesh.Faces.ConvertQuadsToTriangles();
 
-            //for (int i = 0; i < listOfPoints.Count; i++)
-            //{
-            //TODO: CHECK SPEED AND ROBUSTNESS
-            foreach (var pt in listOfPoints)
+            List<Point3d> outsidePts = new List<Point3d>();
+
+            Parallel.ForEach(listOfPoints, pt =>
             {
-                if (DOM.DomainMesh.IsPointInside(pt, 0.001, true))
-                {
-                    Point3d pt1 = pt;
-                    Point3d pt2 = pt + Vector3d.ZAxis * height * 2;
+                double wn = WindingNumber(BuildingMesh, pt);
 
-                    Line l = new Line(pt1, pt2);
-                    int[] fids;
-                    var pts = Rhino.Geometry.Intersect.Intersection.MeshLine(DOM.BuildingGeometry, l, out fids);
-                    if (pts.Length == 0)
-                    {
-                        newList.Add(pt);
-                    }
-                    else if (pts.Length % 2 == 0)
-                    {
-                        newList.Add(pt);
-                    }
-                }
+                bool gooz = wn <= tol;
 
-                //if (!DOM.BuildingGeometry.IsPointInside(listOfPoints[i], 0.001, true))
-                //{
-                //    newList.Add(listOfPoints[i]);
-                //}
+                //cull pattern
+
+                if (gooz) outsidePts.Add(pt);
             }
-            return newList;
+            );
+
+            return outsidePts;
+        }
+
+        //Lifted from geometry3sharp library
+
+        /// <summary>
+        /// Compute mesh winding number, from Jacobson et al, Robust Inside-Outside Segmentation using Generalized Winding Numbers
+        /// http://igl.ethz.ch/projects/winding-number/
+        /// returns ~0 for points outside a closed, consistently oriented mesh, and a positive or negative integer
+        /// for points inside, with value > 1 depending on how many "times" the point inside the mesh (like in 2D polygon winding)
+        /// </summary>
+        public static double WindingNumber(Mesh mesh, Point3d v)
+        {
+            double sum = 0;
+            foreach (MeshFace face in mesh.Faces)
+                sum += GetTriSolidAngle(mesh, face, v);
+            return sum / (4.0 * Math.PI);
+        }
+
+        public static double GetTriSolidAngle(Mesh mesh, MeshFace face, Point3d p)
+        {
+            int ta = face.A;
+            int tb = face.B;
+            int tc = face.C;
+
+            Vector3d a = new Vector3d(mesh.Vertices[ta].X - p.X, mesh.Vertices[ta].Y - p.Y, mesh.Vertices[ta].Z - p.Z);
+            Vector3d b = new Vector3d(mesh.Vertices[tb].X - p.X, mesh.Vertices[tb].Y - p.Y, mesh.Vertices[tb].Z - p.Z);
+            Vector3d c = new Vector3d(mesh.Vertices[tc].X - p.X, mesh.Vertices[tc].Y - p.Y, mesh.Vertices[tc].Z - p.Z);
+
+            // note: top and bottom are reversed here from formula in the paper? but it doesn't work otherwise...
+            double la = a.Length, lb = b.Length, lc = c.Length;
+            double bottom = (la * lb * lc) + a * b * lc + b * c * la + c * a * lb;
+            double top = a.X * (b.Y * c.Z - c.Y * b.Z) - a.Y * (b.X * c.Z - c.X * b.Z) + a.Z * (b.X * c.Y - c.X * b.Y);
+            return 2.0 * Math.Atan2(top, bottom);
         }
 
         public static void CleanDirectory(string path)

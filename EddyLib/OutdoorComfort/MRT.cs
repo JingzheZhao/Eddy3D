@@ -3,9 +3,46 @@ using Rhino.Geometry;
 using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace EddyLib.OutdoorComfort
 {
+    public class MRTSimulation
+    {
+        // Outputs
+
+        public SkyViewFactor svf;
+
+        public Sky sky;
+
+        public MRT mrt;
+
+        // Inputs
+
+        private OFResult RES; private Weather weather; private Mesh BAG; private Point3d[] probesArr; private MRT.MRTType SimMode; private bool run;
+
+        public MRTSimulation(OFResult RES, Weather weather, Mesh BAG, Point3d[] probesArr, MRT.MRTType SimMode, bool run)
+        {
+            this.RES = RES;
+
+            this.weather = weather;
+            this.BAG = BAG;
+            this.probesArr = probesArr;
+            this.SimMode = SimMode;
+            this.run = run;
+
+            var svf = new SkyViewFactor(RES.WorkingDirectory, BAG, probesArr, run);
+
+            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity, run);
+
+            var mrt = new MRT(RES.WorkingDirectory, RES.Domain.BuildingGeometry, sky, svf, weather, SimMode, probesArr, run);
+
+            this.svf = svf;
+            this.sky = sky;
+            this.mrt = mrt;
+        }
+    }
+
     public class MRT
 
     {
@@ -34,7 +71,7 @@ namespace EddyLib.OutdoorComfort
 
         public double[] SkyTemp;
 
-        public MRT(string baseWorkingDir, Mesh BuildingGeometry, Sky sky, SkyViewFactor vf, Weather weather, MRTType type, Point3d[] probes, bool recalc, EventHandler eh = null)
+        public MRT(string baseWorkingDir, Mesh BuildingGeometry, Sky sky, SkyViewFactor vf, Weather weather, MRTType type, Point3d[] probes, bool recalc)
         {
             var csvMRT = baseWorkingDir + @"MRT.csv";
             var binMRT = baseWorkingDir + @"MRT.bin";
@@ -79,7 +116,7 @@ namespace EddyLib.OutdoorComfort
                 //Utilities.CleanDirectory(baseWorkingDir + @"Rad\");
                 //Utilities.CleanDirectory(baseWorkingDir + @"Output\");
 
-                EddyLib.Radiance.TwoPhaseDDS dds = new EddyLib.Radiance.TwoPhaseDDS(baseWorkingDir, BuildingGeometry, probes.ToList(), weather, recalc, eh);
+                EddyLib.Radiance.TwoPhaseDDS dds = new EddyLib.Radiance.TwoPhaseDDS(baseWorkingDir, BuildingGeometry, probes.ToList(), weather, recalc);
 
                 this.SkyTemp = sky.Temp;
 

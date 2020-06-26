@@ -505,5 +505,41 @@ namespace EddyLib
                 }
             }
         }
+
+        public static void _1DArray2CSV(double[] data, string filePath, bool truncateDoubles = true, int truncateBy = 1)
+        {
+            //writing output to csv
+
+            if (!truncateDoubles)
+            {
+                using (StreamWriter outfile = new StreamWriter(filePath))
+                {
+                    for (int x = 0; x <= data.GetUpperBound(0); x++)
+                    {
+                        string content = "";
+
+                        content += data[x].ToString() + ",";
+
+                        //trying to write data to csv
+                        outfile.WriteLine(content);
+                    }
+                }
+            }
+            else
+            {
+                using (StreamWriter outfile = new StreamWriter(filePath))
+                {
+                    for (int x = 0; x <= data.GetUpperBound(0); x++)
+                    {
+                        string content = "";
+
+                        content += Math.Round(data[x], truncateBy).ToString() + ",";
+
+                        //trying to write data to csv
+                        outfile.WriteLine(content);
+                    }
+                }
+            }
+        }
     }
 }

@@ -7,6 +7,8 @@ using Grasshopper.Kernel.Parameters;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -62,7 +64,7 @@ This is based on a TwoPhaseDDS approach for which it is assumed that the buildin
                 param.AddNamedValue(types[i], i);
             }
 
-            pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item, false);
 
             pManager[3].Optional = true;
         }
@@ -100,10 +102,6 @@ This is based on a TwoPhaseDDS approach for which it is assumed that the buildin
         {
             OFResult RES = null;
             DA.GetData(0, ref RES);
-
-            //// Hour of the year
-            //List<int> hours = new List<int>() { 0 };
-            //DA.GetDataList(1, hours);
 
             List<Point3d> probes = new List<Point3d>();
             DA.GetDataList("Probing points", probes);
@@ -144,50 +142,102 @@ This is based on a TwoPhaseDDS approach for which it is assumed that the buildin
 
             #region Create Ground and Building Mesh
 
-            var BAK = new Mesh();
+            var BAG = new Mesh();
             if (RES.Domain is OFBoxDomain)
             {
                 var dom = (OFBoxDomain)RES.Domain;
-                BAK.Append(dom.BuildingGeometry);
-                BAK.Append(dom.DomainMeshGround);
-                BAK.Append(dom.DomainMeshGroundPerim);
+                BAG.Append(dom.BuildingGeometry);
+                BAG.Append(dom.DomainMeshGround);
+                BAG.Append(dom.DomainMeshGroundPerim);
             }
             else
             {
                 var dom = (OFCylDomain)RES.Domain;
-                BAK.Append(dom.BuildingGeometry);
-                BAK.Append(dom.CylDomainMeshGround);
-                BAK.Append(dom.CylDomainMeshGroundPerim);
+                BAG.Append(dom.BuildingGeometry);
+                BAG.Append(dom.CylDomainMeshGround);
+                BAG.Append(dom.CylDomainMeshGroundPerim);
             }
 
             #endregion Create Ground and Building Mesh
 
-            var vf = new SkyViewFactor(RES.WorkingDirectory, BAK, probesArr, run);
+            // @ Timur: This was borrowed from EddyLib.Utilities.StartProcess.StartProcessCMD but it doesn't work
 
-            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity, run);
+            MRTSimulation mrtsim = null;
 
-            var mrt = new MRT(RES.WorkingDirectory, RES.Domain.BuildingGeometry, sky, vf, weather, SimMode, probesArr, run, MRTSimComplete);
+            if (run == true && canRun)
+            {
+                EventHandler eh = MRTSimComplete;
+
+                bool close = true;
+                string executable = @"C:\Windows\System32\cmd.exe";
+                bool createnowindow = false;
+                string argument = @"echo Starting MRT simulation";
+
+                System.Diagnostics.Process p = new System.Diagnostics.Process();
+
+                // if(eh!=null) p.Exited += eh;
+                p.StartInfo.FileName = executable;
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.RedirectStandardInput = true;
+
+                p.StartInfo.CreateNoWindow = createnowindow;
+
+                string theArgument = argument + ((close) ? @"
+exit
+" : "");
+
+                ThreadStart ths = new ThreadStart(() =>
+                {
+                    p.Start();
+                    p.WaitForExit();
+
+                    StreamWriter sw = p.StandardInput;
+                    String strInputText = theArgument;
+                    sw.WriteLine(strInputText);
+
+                    // Window doesn't close with
+                    //sw.Flush();
+
+                    mrtsim = new MRTSimulation(RES, weather, BAG, probesArr, MRT.MRTType.RadianceTwoPhaseDDS, run);
+
+                    if (close) { p.Close(); }
+                    if (eh != null) { eh.Invoke(p, new EventArgs()); }
+                });
+
+                Thread th = new Thread(ths);
+                th.Start();
+            }
+            else
+            {
+                mrtsim = new MRTSimulation(RES, weather, BAG, probesArr, MRT.MRTType.RadianceTwoPhaseDDS, run);
+            }
 
             // Order important
 
-            if (mrt.wrongNumberOfProbes)
+            if (mrtsim.mrt != null)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.WrongNumberOfProbes(RES, SimMode.ToString()));
-                return;
+                if (mrtsim.mrt.wrongNumberOfProbes)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.WrongNumberOfProbes(RES, SimMode.ToString()));
+                    return;
+                }
+
+                if (mrtsim.mrt.Values is null)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.NoResults(RES, SimMode.ToString()));
+                    return;
+                }
+
+                if (mrtsim.mrt.resultPrecalculated)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.PrecalResLoaded(RES, SimMode.ToString()));
+                }
             }
 
-            if (mrt.Values is null)
+            if (mrtsim != null)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.NoResults(RES, SimMode.ToString()));
-                return;
+                DA.SetData(0, mrtsim.mrt);
             }
-
-            if (mrt.resultPrecalculated)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.PrecalResLoaded(RES, SimMode.ToString()));
-            }
-
-            DA.SetData(0, mrt);
         }
 
         /// <summary>

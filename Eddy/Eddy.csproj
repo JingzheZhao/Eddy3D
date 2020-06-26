@@ -78,6 +78,7 @@
     <Compile Include="Components\Outdoor Comfort\CompCalcMRT.cs" />
     <Compile Include="Components\Outdoor Comfort\Metrics\CompCalcUTCIMetric.cs" />
     <Compile Include="Components\postProcessing\CompParaview.cs" />
+    <Compile Include="Components\postProcessing\CompCullPoints.cs" />
     <Compile Include="Components\Settings\CompRunSettings.cs" />
     <Compile Include="Components\Setup\CompTemplates.cs" />
     <Compile Include="Components\Setup\CompBCondABL.cs" />
@@ -219,6 +220,7 @@
     <None Include="Resources\Eddy_calcMRT.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\Eddy_cullPoints.png" />
     <None Include="Resources\Eddy_trees.png" />
     <None Include="Resources\Eddy3D.png" />
     <None Include="Resources\Eddy3D.bmp" />
