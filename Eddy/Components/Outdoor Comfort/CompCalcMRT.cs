@@ -7,6 +7,8 @@ using Grasshopper.Kernel.Parameters;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -34,6 +36,7 @@ namespace Eddy
           : base("Mean Radiant Temperature", "Mean Radiant Temperature", @"Mean Radiant Temperature.
 
 This is based on a TwoPhaseDDS approach for which it is assumed that the building surface temperature equals the ambient temperature.
+Make sure Radiance is installed at: ""C:\Program Files\Radiance"".
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "6 | Outdoor Comfort")
@@ -62,7 +65,7 @@ This is based on a TwoPhaseDDS approach for which it is assumed that the buildin
                 param.AddNamedValue(types[i], i);
             }
 
-            pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item, false);
 
             pManager[3].Optional = true;
         }
@@ -98,12 +101,15 @@ This is based on a TwoPhaseDDS approach for which it is assumed that the buildin
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            if (canRun == false)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Simulation running!");
+
+                return;
+            }
+
             OFResult RES = null;
             DA.GetData(0, ref RES);
-
-            //// Hour of the year
-            //List<int> hours = new List<int>() { 0 };
-            //DA.GetDataList(1, hours);
 
             List<Point3d> probes = new List<Point3d>();
             DA.GetDataList("Probing points", probes);
@@ -144,50 +150,77 @@ This is based on a TwoPhaseDDS approach for which it is assumed that the buildin
 
             #region Create Ground and Building Mesh
 
-            var BAK = new Mesh();
+            var BAG = new Mesh();
             if (RES.Domain is OFBoxDomain)
             {
                 var dom = (OFBoxDomain)RES.Domain;
-                BAK.Append(dom.BuildingGeometry);
-                BAK.Append(dom.DomainMeshGround);
-                BAK.Append(dom.DomainMeshGroundPerim);
+                BAG.Append(dom.BuildingGeometry);
+                BAG.Append(dom.DomainMeshGround);
+                BAG.Append(dom.DomainMeshGroundPerim);
             }
             else
             {
                 var dom = (OFCylDomain)RES.Domain;
-                BAK.Append(dom.BuildingGeometry);
-                BAK.Append(dom.CylDomainMeshGround);
-                BAK.Append(dom.CylDomainMeshGroundPerim);
+                BAG.Append(dom.BuildingGeometry);
+                BAG.Append(dom.CylDomainMeshGround);
+                BAG.Append(dom.CylDomainMeshGroundPerim);
             }
 
             #endregion Create Ground and Building Mesh
 
-            var vf = new SkyViewFactor(RES.WorkingDirectory, BAK, probesArr, run);
+            // @ Timur: This was borrowed from EddyLib.Utilities.StartProcess.StartProcessCMD but it doesn't work
 
-            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity, run);
+            MRTSimulation mrtsim = null;
 
-            var mrt = new MRT(RES.WorkingDirectory, RES.Domain.BuildingGeometry, sky, vf, weather, SimMode, probesArr, run, MRTSimComplete);
+            if (run == true && canRun == true)
+            {
+                EventHandler eh = MRTSimComplete;
+
+                ThreadStart ths = new ThreadStart(() =>
+                {
+                    mrtsim = new MRTSimulation(RES, weather, BAG, probesArr, MRT.MRTType.RadianceTwoPhaseDDS, run);
+
+                    if (eh != null) { eh.Invoke(this, EventArgs.Empty); }
+                });
+
+                Thread th = new Thread(ths);
+                th.IsBackground = true;
+                th.Start();
+            }
+            else if (run == false && canRun == true)
+            {
+                mrtsim = new MRTSimulation(RES, weather, BAG, probesArr, MRT.MRTType.RadianceTwoPhaseDDS, run);
+            }
 
             // Order important
 
-            if (mrt.wrongNumberOfProbes)
+            if (mrtsim != null)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.WrongNumberOfProbes(RES, SimMode.ToString()));
-                return;
+                if (mrtsim.mrt != null)
+                {
+                    if (mrtsim.mrt.wrongNumberOfProbes)
+                    {
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.WrongNumberOfProbes(RES, SimMode.ToString()));
+                        return;
+                    }
+
+                    if (mrtsim.mrt.Values is null)
+                    {
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.NoResults(RES, SimMode.ToString()));
+                        return;
+                    }
+
+                    if (mrtsim.mrt.resultPrecalculated)
+                    {
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.PrecalResLoaded(RES, SimMode.ToString()));
+                    }
+                }
             }
 
-            if (mrt.Values is null)
+            if (mrtsim != null)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.NoResults(RES, SimMode.ToString()));
-                return;
+                DA.SetData(0, mrtsim.mrt);
             }
-
-            if (mrt.resultPrecalculated)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.PrecalResLoaded(RES, SimMode.ToString()));
-            }
-
-            DA.SetData(0, mrt);
         }
 
         /// <summary>

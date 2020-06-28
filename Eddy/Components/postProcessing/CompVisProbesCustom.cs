@@ -31,7 +31,7 @@ namespace Eddy
             ExpireSolution(true);
         }
 
-        public bool Culling = true;
+        public bool Culling = false;
 
         public override bool Write(GH_IO.Serialization.GH_IWriter writer)
         {
@@ -71,6 +71,7 @@ namespace Eddy
             pManager.AddGenericParameter("Result", "Res", "Eddy Result", GH_ParamAccess.item);
             pManager.AddPointParameter("Probing points", "Points", "List of probing points", GH_ParamAccess.list);
             pManager.AddTextParameter("Name of instance", "Name", "Name of instance to be probed", GH_ParamAccess.item);
+
             pManager.AddIntegerParameter("Name of field", "Field", "Name of field to be probed", GH_ParamAccess.item, 0);
             Param_Integer param = pManager[3] as Param_Integer;
             param.AddNamedValue("Velocity (U) [m/s]", 0);
@@ -81,6 +82,7 @@ namespace Eddy
             param.AddNamedValue("Turbulent kinetic energy (k) [m^2/s^2]", 5);
             param.AddNamedValue("Turbulent viscosity (nut) [m^2/s]", 6);
             param.AddNamedValue("Mass flow (phi) [m^3/s]", 7);
+            param.AddNamedValue("Age of air (aoa) [s]", 8);
 
             //pManager.AddIntegerParameter("FieldType", "FieldType", "FieldType", GH_ParamAccess.item, 1);
             //Param_Integer param2 = pManager[4] as Param_Integer;
@@ -153,7 +155,7 @@ namespace Eddy
             //Discard points outside
             if (Culling)
             {
-                listOfPoints = Utilities.DiscardPoints(listOfPoints, RES.Domain);
+                listOfPoints = Utilities.DiscardPoints(listOfPoints, RES.Domain.BuildingGeometry);
             }
 
             int numberOfProbes = listOfPoints.Count();

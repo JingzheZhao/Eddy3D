@@ -146,10 +146,6 @@ namespace Eddy
             Mesh buildingGeometry = new Mesh();
             MeshingParameters mp = new MeshingParameters();
 
-            //string windowsVersion = Utilities.GetOSInfo();
-            //bool isWindows7 = Utilities.IsWindows7;
-            string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-
             double width = 0;
             double length = 0;
             double height = 0;

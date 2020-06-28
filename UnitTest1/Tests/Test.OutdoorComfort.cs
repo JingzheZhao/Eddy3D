@@ -15,65 +15,13 @@ namespace RhinoPlugin.Tests.Xunit
     public class OutdoorComfort
     {
         [Fact]
-        public void SolarGain_Returns_23()
-        {
-            // https://comfort.cbe.berkeley.edu/
-            // Arrange
-
-            int solAlt = 90;
-            int sharp = 0;
-
-            double directBeam = 700;
-            double tSol = 1;
-            double fsvv = 0.4;
-            double fbes = 0.5;
-
-            double avgShortAbs = 0.7;
-
-            // Act
-
-            double dMRT = 0.0;
-            double ERF = 0.0;
-
-            // Assert
-
-            EddyLib.Radiance.SolarGain.ERF(solAlt, sharp, EddyLib.Radiance.SolarGain.Posture.seating, directBeam, tSol, fsvv, fbes, avgShortAbs, out ERF, out dMRT);
-
-            Assert.Equal(23.2, Math.Round(dMRT, 1));
-            Assert.Equal(97.0, Math.Round(ERF, 1));
-        }
-
-        [Fact]
-        public void SolarGain_Returns_10()
-        {
-            // https://comfort.cbe.berkeley.edu/
-            // Arrange
-
-            // Act
-
-            double dMRT = 0.0;
-            double ERF = 0.0;
-
-            // Assert
-
-            EddyLib.Radiance.SolarGain.ERF(0, 120, EddyLib.Radiance.SolarGain.Posture.seating, 800, 0.5, 0.5, 0.5, 0.7, out ERF, out dMRT);
-
-            Assert.Equal(10.3, Math.Round(dMRT, 1));
-            Assert.Equal(42.9, Math.Round(ERF, 1));
-
-            ////             >>> from pythermalcomfort.models import solar_gain
-            ////             >>> results = solar_gain(sol_altitude=0, sol_azimuth=120, sol_radiation_dir=800, sol_transmittance=0.5, f_svv=0.5, f_bes=0.5, asw=0.7, posture='seated')
-            ////             >>> print(results)
-            ////             {'erf': 42.9, 'delta_mrt': 10.3}
-        }
-
-        [Fact]
         public void MRT_50Sky_50Buildings_Returns_20()
         {
             // Arrange
             var workingdir = @"C:\Testing\";
 
-            EddyLib.Utilities.Directories.CleanDirectory(workingdir);
+            if (Directory.Exists(workingdir)) { EddyLib.Utilities.Directories.RecursiveDelete(new DirectoryInfo(workingdir)); }
+            else { Directory.CreateDirectory(workingdir); }
 
             var point0 = new Rhino.Geometry.Point3d(0, 0, 0);
             var point1 = new Rhino.Geometry.Point3d(20, 0, 0);
@@ -132,7 +80,7 @@ namespace RhinoPlugin.Tests.Xunit
                     vecs[j, i] = new Vector3d(0, 2, 0);
                 }
             }
-                ;
+         ;
 
             OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcond, 5, 50, 300, 80);
 
@@ -163,7 +111,8 @@ namespace RhinoPlugin.Tests.Xunit
             // Arrange
             var workingdir = @"C:\Testing\";
 
-            EddyLib.Utilities.Directories.CleanDirectory(workingdir);
+            if (Directory.Exists(workingdir)) { EddyLib.Utilities.Directories.RecursiveDelete(new DirectoryInfo(workingdir)); }
+            else { Directory.CreateDirectory(workingdir); }
 
             var point0 = new Rhino.Geometry.Point3d(0, 0, 0);
             var point1 = new Rhino.Geometry.Point3d(20, 0, 0);
@@ -255,7 +204,8 @@ namespace RhinoPlugin.Tests.Xunit
             // Arrange
             var workingdir = @"C:\Testing\";
 
-            EddyLib.Utilities.Directories.CleanDirectory(workingdir);
+            if (Directory.Exists(workingdir)) { EddyLib.Utilities.Directories.RecursiveDelete(new DirectoryInfo(workingdir)); }
+            else { Directory.CreateDirectory(workingdir); }
 
             var point0 = new Rhino.Geometry.Point3d(0, 0, 0);
             var point1 = new Rhino.Geometry.Point3d(20, 0, 0);
@@ -340,10 +290,66 @@ namespace RhinoPlugin.Tests.Xunit
         }
 
         [Fact]
+        public void SolarGain_Returns_23()
+        {
+            // https://comfort.cbe.berkeley.edu/
+            // Arrange
+
+            int solAlt = 90;
+            int sharp = 0;
+
+            double directBeam = 700;
+            double tSol = 1;
+            double fsvv = 0.4;
+            double fbes = 0.5;
+
+            double avgShortAbs = 0.7;
+
+            // Act
+
+            double dMRT = 0.0;
+            double ERF = 0.0;
+
+            // Assert
+
+            EddyLib.Radiance.SolarGain.ERF(solAlt, sharp, EddyLib.Radiance.SolarGain.Posture.seating, directBeam, tSol, fsvv, fbes, avgShortAbs, out ERF, out dMRT);
+
+            Assert.Equal(23.2, Math.Round(dMRT, 1));
+            Assert.Equal(97.0, Math.Round(ERF, 1));
+        }
+
+        [Fact]
+        public void SolarGain_Returns_10()
+        {
+            // https://comfort.cbe.berkeley.edu/
+            // Arrange
+
+            // Act
+
+            double dMRT = 0.0;
+            double ERF = 0.0;
+
+            // Assert
+
+            EddyLib.Radiance.SolarGain.ERF(0, 120, EddyLib.Radiance.SolarGain.Posture.seating, 800, 0.5, 0.5, 0.5, 0.7, out ERF, out dMRT);
+
+            Assert.Equal(10.3, Math.Round(dMRT, 1));
+            Assert.Equal(42.9, Math.Round(ERF, 1));
+
+            ////             >>> from pythermalcomfort.models import solar_gain
+            ////             >>> results = solar_gain(sol_altitude=0, sol_azimuth=120, sol_radiation_dir=800, sol_transmittance=0.5, f_svv=0.5, f_bes=0.5, asw=0.7, posture='seated')
+            ////             >>> print(results)
+            ////             {'erf': 42.9, 'delta_mrt': 10.3}
+        }
+
+        [Fact]
         public void ViewFactors()
         {
             // Arrange
             var workingdir = @"C:\Testing\";
+
+            if (Directory.Exists(workingdir)) { EddyLib.Utilities.Directories.DeleteDirectory(workingdir); }
+            else { Directory.CreateDirectory(workingdir); }
 
             var point0 = new Rhino.Geometry.Point3d(0, 0, 0);
             var point1 = new Rhino.Geometry.Point3d(20, 0, 0);
@@ -388,6 +394,99 @@ namespace RhinoPlugin.Tests.Xunit
             // Assert
 
             Assert.Equal(0.47, Math.Round(vf.Values[0], 2));
+        }
+
+        [Fact]
+        public void ViewFactors_Export()
+        {
+            // Arrange
+            var workingdir = @"C:\Testing\";
+
+            if (Directory.Exists(workingdir)) { EddyLib.Utilities.Directories.RecursiveDelete(new DirectoryInfo(workingdir)); }
+            else { Directory.CreateDirectory(workingdir); }
+
+            double[] file = new double[3] { 0.47, 0.49, 0.50 };
+
+            // Act
+
+            string subDir = @"\Rad\ViewFactors\";
+
+            if (!Directory.Exists(workingdir + subDir)) { Directory.CreateDirectory(workingdir + subDir); };
+            var csvSVF = workingdir + subDir + @"SkyViewFactors.csv";
+
+            ArrayHelper._1DArray2CSV(file, csvSVF);
+        }
+
+        [Fact]
+        public void ViewFactors_Load()
+        {
+            // Arrange
+            var workingdir = @"C:\Testing\";
+
+            if (Directory.Exists(workingdir)) { EddyLib.Utilities.Directories.RecursiveDelete(new DirectoryInfo(workingdir)); }
+            else { Directory.CreateDirectory(workingdir); }
+
+            double[] file = new double[3] { 0.47, 0.49, 0.50 };
+
+            // Act
+
+            string subDir = @"\Rad\ViewFactors\";
+            var csvSVF = workingdir + subDir + @"SkyViewFactors.csv";
+            var binSVF = workingdir + subDir + @"SkyViewFactors.bin";
+
+            if (!Directory.Exists(workingdir + subDir)) { Directory.CreateDirectory(workingdir + subDir); };
+
+            RadianceFiles.writeBin1D(binSVF, file);
+
+            var tempValues = RadianceFiles.loadBin1D(binSVF);
+
+            // Assert
+
+            Assert.Equal(0.47, Math.Round(tempValues[0], 2));
+            Assert.Equal(0.49, Math.Round(tempValues[1], 2));
+            Assert.Equal(0.50, Math.Round(tempValues[2], 2));
+        }
+
+        [Fact]
+        public void WindFactors_DistanceBetween_0_355_Return5()
+        {
+            // Arrange
+            var dir1 = 0;
+            var dir2 = 355;
+
+            // Act
+            var res = BoundaryCondition.DistanceBetweenWindDirs(dir1, dir2);
+
+            // Assert
+            Assert.Equal(5, res);
+        }
+
+        [Fact]
+        public void WindFactors_DistanceBetween_45_90_Return45()
+        {
+            // Arrange
+            var dir1 = 45;
+            var dir2 = 90;
+
+            // Act
+            var res = BoundaryCondition.DistanceBetweenWindDirs(dir1, dir2);
+
+            // Assert
+            Assert.Equal(45, res);
+        }
+
+        [Fact]
+        public void WindFactors_ReturnNextLowerIndex_0_Return315()
+        {
+            // Arrange
+            var windDirList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
+
+            // Act
+            var res = BoundaryCondition.ReturnNextLowerIndex(windDirList, 0);
+
+            // Assert
+
+            Assert.Equal(7, res);
         }
 
         [Fact]
@@ -482,7 +581,7 @@ namespace RhinoPlugin.Tests.Xunit
                     vecs[j, i] = new Vector3d(0, 2, 0);
                 }
             }
-                ;
+        ;
 
             var workingdir = @"C:\Testing\";
             if (!Directory.Exists(workingdir)) { Directory.CreateDirectory(workingdir); };
@@ -522,48 +621,6 @@ namespace RhinoPlugin.Tests.Xunit
             var utci = new UTCI(points.ToArray(), wft, weather, mrt, workingdir, true, 2);
 
             Assert.Equal(20.6, utci.ValuesUTCI[0, 0]);
-        }
-
-        [Fact]
-        public void DistanceBetween_0_355_Return5()
-        {
-            // Arrange
-            var dir1 = 0;
-            var dir2 = 355;
-
-            // Act
-            var res = BoundaryCondition.DistanceBetweenWindDirs(dir1, dir2);
-
-            // Assert
-            Assert.Equal(5, res);
-        }
-
-        [Fact]
-        public void DistanceBetween_45_90_Return45()
-        {
-            // Arrange
-            var dir1 = 45;
-            var dir2 = 90;
-
-            // Act
-            var res = BoundaryCondition.DistanceBetweenWindDirs(dir1, dir2);
-
-            // Assert
-            Assert.Equal(45, res);
-        }
-
-        [Fact]
-        public void ReturnNextLowerIndex_0_Return315()
-        {
-            // Arrange
-            var windDirList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
-
-            // Act
-            var res = BoundaryCondition.ReturnNextLowerIndex(windDirList, 0);
-
-            // Assert
-
-            Assert.Equal(7, res);
         }
     }
 }

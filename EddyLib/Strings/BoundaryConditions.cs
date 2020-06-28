@@ -384,6 +384,80 @@ value		$internalField;
             return sb.ToString();
         }
 
+        public static string AOA_Cyl(OFCylDomain DOM, int d)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine(@"
+        /*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.2                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+        FoamFile
+{
+            version     2.0;
+            format ascii;
+    class volScalarField;
+    location    ""0"";
+    object aoa;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 1 0 0 0];
+
+internalField   uniform 0;
+
+boundaryField
+{
+   frontAndBack
+    {
+        type zeroGradient;
+    }
+    ground
+    {
+         type zeroGradient;
+    }
+ground_perim
+    {
+          type zeroGradient;
+    }
+building
+    {
+           type zeroGradient;
+    }
+    ");
+
+            for (int i = 0; i < DOM.sides.Faces.Count; i++)
+            {
+                double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i];
+                if (dot < dotCutoff)
+                {
+                    sb.AppendLine("patch" + i);
+                    sb.Append(@"{  	type fixedValue;
+value	uniform 0;
+}");
+                }
+                else
+                {
+                    sb.AppendLine("patch" + i);
+                    sb.Append(@"
+    {
+          type zeroGradient;
+    }");
+                }
+            }
+
+            sb.AppendLine(@"
+}
+
+// ************************************************************************* //
+");
+            return sb.ToString();
+        }
+
         public static string P_Cyl(OFCylDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
@@ -1179,6 +1253,61 @@ value uniform 0;
 }
 
 // ************************************************************************* //
+";
+        }
+
+        public static string AOA()
+        {
+            return @"/*--------------------------------*- C++ -*----------------------------------*\
+ | =========                 |                                                 |
+ | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+ |  \\    /   O peration     | Version:  2.2.2                                 |
+ |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+ |    \\/     M anipulation  |                                                 |
+ \*---------------------------------------------------------------------------*/
+    FoamFile
+{
+    version     2.0;
+    format ascii;
+    class volScalarField;
+    location    ""0"";
+    object aoa;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+dimensions      [0 0 0 1 0 0 0];
+
+internalField   uniform 0;
+
+boundaryField
+{
+   frontAndBack
+    {
+        type zeroGradient;
+    }
+    ground
+    {
+         type zeroGradient;
+    }
+ground_perim
+    {
+          type zeroGradient;
+    }
+building
+    {
+           type zeroGradient;
+    }
+	inlet
+    {
+          type            fixedValue;
+        value           uniform 0;
+    }
+    outlet
+    {
+     type zeroGradient;
+    }
+}
+
 ";
         }
     }

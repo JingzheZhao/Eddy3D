@@ -105,12 +105,14 @@ namespace EddyLib
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "k"), EddyLib.Strings.BCDicts.K(DOM));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "epsilon"), EddyLib.Strings.BCDicts.Epsilon(DOM));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "nut"), EddyLib.Strings.BCDicts.Nut(DOM));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "aoa"), EddyLib.Strings.BCDicts.AOA());
 
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "p"), EddyLib.Strings.BCDicts.P(DOM));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "omega"), EddyLib.Strings.BCDicts.Omega(DOM));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "k"), EddyLib.Strings.BCDicts.K(DOM));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "epsilon"), EddyLib.Strings.BCDicts.Epsilon(DOM));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "nut"), EddyLib.Strings.BCDicts.Nut(DOM));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "aoa"), EddyLib.Strings.BCDicts.AOA());
 
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), EddyLib.Strings.BCDicts.InitialConditions(DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "initialConditions"), EddyLib.Strings.BCDicts.InitialConditions(DOM, i));
@@ -158,12 +160,14 @@ namespace EddyLib
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "k"), EddyLib.Strings.BCDicts.K_Cyl((OFCylDomain)DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "epsilon"), EddyLib.Strings.BCDicts.Epsilon_Cyl((OFCylDomain)DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "nut"), EddyLib.Strings.BCDicts.Nut_Cyl((OFCylDomain)DOM, i));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "aoa"), EddyLib.Strings.BCDicts.AOA_Cyl((OFCylDomain)DOM, i));
 
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "p"), EddyLib.Strings.BCDicts.P_Cyl((OFCylDomain)DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "omega"), EddyLib.Strings.BCDicts.Omega_Cyl((OFCylDomain)DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "k"), EddyLib.Strings.BCDicts.K_Cyl((OFCylDomain)DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "epsilon"), EddyLib.Strings.BCDicts.Epsilon_Cyl((OFCylDomain)DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "nut"), EddyLib.Strings.BCDicts.Nut_Cyl((OFCylDomain)DOM, i));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "aoa"), EddyLib.Strings.BCDicts.AOA_Cyl((OFCylDomain)DOM, i));
 
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), EddyLib.Strings.BCDicts.InitialConditions(DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "initialConditions"), EddyLib.Strings.BCDicts.InitialConditions(DOM, i));

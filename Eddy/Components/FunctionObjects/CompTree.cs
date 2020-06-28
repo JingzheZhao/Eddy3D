@@ -3,6 +3,7 @@ using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
 using Rhino.Geometry;
+using Rhino.Render;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,7 +48,16 @@ namespace Eddy
             pManager.AddGeometryParameter("Geo", "Geo", "Tree geometry", GH_ParamAccess.list);
             pManager.AddTextParameter("Type", "Type", @"Tree type.
 
-Either pass tree type as ""coarse"", ""medium"", or ""dense"",  or pass a multiline string that references the ""d"" and ""f"" coefficients for the Darcy-Forchheimer Model.
+Either pass tree type as ""coarse"", ""medium"", or ""dense"",  or pass a multiline string that references the ""d"" and ""f"" coefficients for the Darcy-Forchheimer Model. E.g.
+
+1,1,1
+2,2,2
+
+meaning:
+
+D = (1,1,1)
+F = (2,2,2)
+
 ", GH_ParamAccess.list);
 
             //Param_Integer param = pManager[1] as Param_Integer;
@@ -93,25 +103,25 @@ Either pass tree type as ""coarse"", ""medium"", or ""dense"",  or pass a multil
 
             if (type[0] == "" && type[1] == "")
             {
-                PorosityCoeffs_D = new double[] { 40, 40, 40 };
-                PorosityCoeffs_F = new double[] { 40, 40, 40 };
+                PorosityCoeffs_D = new double[] { 1.7, 1.7, 1.7 };
+                PorosityCoeffs_F = new double[] { 4.5, 4.5, 4.5 };
             }
 
             // Part 2: see if the conversion succeeded.
             else if (type[0] == "coarse")
             {
-                PorosityCoeffs_D = new double[] { 20, 20, 20 };
-                PorosityCoeffs_F = new double[] { 20, 20, 20 };
+                PorosityCoeffs_D = new double[] { 0.09, 0.09, 0.09 };
+                PorosityCoeffs_F = new double[] { 0.3, 0.3, 0.3 };
             }
             else if (type[0] == "medium")
             {
-                PorosityCoeffs_D = new double[] { 40, 40, 40 };
-                PorosityCoeffs_F = new double[] { 40, 40, 40 };
+                PorosityCoeffs_D = new double[] { 0.2, 0.2, 0.2 };
+                PorosityCoeffs_F = new double[] { 1.7, 1.7, 1.7 };
             }
             else if (type[0] == "dense")
             {
-                PorosityCoeffs_D = new double[] { 80, 80, 80 };
-                PorosityCoeffs_F = new double[] { 80, 80, 80 };
+                PorosityCoeffs_D = new double[] { 1.7, 1.7, 1.7 };
+                PorosityCoeffs_F = new double[] { 4.5, 4.5, 4.5 };
             }
             else if (type[0] != "" && type[1] != "")
             {

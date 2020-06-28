@@ -23,141 +23,197 @@ namespace EddyLib.Radiance
 
         private string octreeFile = "geometry.oct";
 
+        private string fileNameExport = "SkyViewFactors.bin";
+
+        private Point3d[] sensors;
+
+        private string workingDir;
+
+        private string subDir;
+
+        public bool wrongNumberOfProbes;
+
+        public bool resultPrecalculated;
+
         public double[] Values { get; set; }
 
         public Mesh BuildingsAndGround { get; set; }
 
-        public SkyViewFactor(string workingDir, Mesh BuildingsAndGround, Point3d[] sensors, bool Run)
+        public SkyViewFactor(string workingDir, Mesh BuildingsAndGround, Point3d[] sensors, bool recalc)
         {
             this.hitCounts = new int[sensors.Length];
             this.Values = new double[sensors.Length];
             this.BuildingsAndGround = BuildingsAndGround;
 
-            string subDir = @"\Rad\ViewFactors\";
+            this.sensors = sensors;
+            this.workingDir = workingDir;
+            this.subDir = @"\Rad\ViewFactors\";
 
+            var csvSVF = subDir + @"SkyViewFactors.csv";
+            var binSVF = subDir + @"SkyViewFactors.bin";
+
+            var numberOfProbes = sensors.Length;
+
+            // Add other files here
+            if (recalc == false && File.Exists(binSVF))
+            {
+                // Load radiation datasets [x][] time [][x] points
+
+                var tempValues = RadianceFiles.loadBin1D(binSVF);
+
+                int sensorPointCountExisting = tempValues.GetLength(1);
+
+                if (sensorPointCountExisting != numberOfProbes)
+                {
+                    this.wrongNumberOfProbes = true;
+                    return;
+                }
+                else
+                {
+                    this.Values = tempValues;
+                }
+            }
+            else if (recalc == true)
+            {
+                if (File.Exists(csvSVF))
+                {
+                    File.Delete(csvSVF);
+                }
+                if (File.Exists(binSVF))
+                {
+                    File.Delete(binSVF);
+                }
+
+                Run();
+
+                ArrayHelper._1DArray2CSV(this.Values, workingDir + subDir + @"\" + fileNameExport, true, 2);
+                RadianceFiles.writeBin1D(workingDir + subDir + @"\" + fileNameExport, this.Values);
+            }
+        }
+
+        private void Run()
+        {
             string sunRaysResPath = workingDir + subDir + this.sunRaysRes;
             string sunRaysFilePath = workingDir + subDir + this.sunRaysFile;
             string radFilePath = workingDir + subDir + this.radFile;
             string octreeFilePath = workingDir + subDir + this.octreeFile;
 
-            if (Run)
+            // 0. Number of rays
+
+            var numRays = equiSolidAngleVectors4PI().Length;
+
+            // 1. Add Mat
+
+            //foreach (Mesh m in BuildingsAndGround)
+            //{
+            AddMat(BuildingGroundTemplate(), BuildingsAndGround);
+
+            //this.BuildingsAndGround = BuildingsAndGround;
+
+            //}
+
+            // 2. RadFile
+
+            var matlist = new HashSet<string>();
+
+            StringBuilder radFile = new StringBuilder();
+
+            StringBuilder radFileString = new StringBuilder();
+
+            int id = 0;
+
+            //foreach (GeometryBase g in BuildingsAndGround)
+            //{
+            string mat = BuildingsAndGround.UserDictionary["RadMat"].ToString().Trim();
+            matlist.Add(mat);
+
+            string matName = mat.Split(' ')[2];
+
+            //Print(matName);
+
+            //Mesh m = (Mesh)g;
+
+            radFileString.AppendLine(Mesh2Rad(BuildingsAndGround, matName, id.ToString()));
+
+            //id++;
+            //}
+
+            foreach (string s in matlist)
             {
-                // 0. Number of rays
+                radFile.AppendLine(s);
+            }
+            radFile.AppendLine("");
+            radFile.AppendLine(radFileString.ToString());
 
-                var numRays = equiSolidAngleVectors4PI().Length;
+            Directory.CreateDirectory(Path.GetDirectoryName(radFilePath));
+            File.WriteAllText(radFilePath, radFile.ToString());
 
-                // 1. Add Mat
+            //A = "Final File Length: " + finalFile.Length;
 
-                //foreach (Mesh m in BuildingsAndGround)
-                //{
-                AddMat(BuildingGroundTemplate(), BuildingsAndGround);
-                this.BuildingsAndGround = BuildingsAndGround;
+            // 3. Octree
 
-                //}
+            RunOconv(radFilePath, octreeFilePath);
 
-                // 2. RadFile
+            // 4. RaysFile
 
-                var matlist = new HashSet<string>();
+            StringBuilder sunRaysFile = new StringBuilder();
 
-                StringBuilder radFile = new StringBuilder();
+            foreach (Point3d p in sensors)
+            {
+                sunRaysFile.AppendLine(Rays(p, equiSolidAngleVectors4PI().ToList()));
+            }
 
-                StringBuilder radFileString = new StringBuilder();
+            File.WriteAllText(sunRaysFilePath, sunRaysFile.ToString());
 
-                int id = 0;
+            //A = "Final File Length: " + finalFile.Length;
 
-                //foreach (GeometryBase g in BuildingsAndGround)
-                //{
-                string mat = BuildingsAndGround.UserDictionary["RadMat"].ToString().Trim();
-                matlist.Add(mat);
+            // 5. RayCast
 
-                string matName = mat.Split(' ')[2];
+            RunRayCastMat(octreeFilePath, sunRaysFilePath, sunRaysResPath);
 
-                //Print(matName);
+            // RunRayCastSurf(Oct, Pts, Path);
 
-                //Mesh m = (Mesh)g;
+            // 6. LoadResultsFile
 
-                radFileString.AppendLine(Mesh2Rad(BuildingsAndGround, matName, id.ToString()));
+            var HCnt = equiSolidAngleVectors4PI().Length;
 
-                //id++;
-                //}
+            var lines = File.ReadAllLines(sunRaysResPath);
 
-                foreach (string s in matlist)
+            var ptCnt = lines.Length / HCnt;
+
+            var result = new int[ptCnt];
+
+            //A = "Lines: " + lines.Length + " Points: " + ptCnt;
+            if (lines.Length == 0) return;
+
+            int lindex = 0;
+            for (int pt = 0; pt < ptCnt; pt++)
+            {
+                for (int h = 0; h < HCnt; h++)
                 {
-                    radFile.AppendLine(s);
-                }
-                radFile.AppendLine("");
-                radFile.AppendLine(radFileString.ToString());
+                    // var m = Regex.Match(lines[lindex].Trim(), @"^\d");
 
-                Directory.CreateDirectory(Path.GetDirectoryName(radFilePath));
-                File.WriteAllText(radFilePath, radFile.ToString());
+                    // Everything that is not hit is the Sky
+                    // We are counting the ones that don't hit anything
+                    var m = lines[lindex].Trim().StartsWith("*");
 
-                //A = "Final File Length: " + finalFile.Length;
-
-                // 3. Octree
-
-                RunOconv(radFilePath, octreeFilePath);
-
-                // 4. RaysFile
-
-                StringBuilder sunRaysFile = new StringBuilder();
-
-                foreach (Point3d p in sensors)
-                {
-                    sunRaysFile.AppendLine(Rays(p, equiSolidAngleVectors4PI().ToList()));
-                }
-
-                File.WriteAllText(sunRaysFilePath, sunRaysFile.ToString());
-
-                //A = "Final File Length: " + finalFile.Length;
-
-                // 5. RayCast
-
-                RunRayCastMat(octreeFilePath, sunRaysFilePath, sunRaysResPath);
-
-                // RunRayCastSurf(Oct, Pts, Path);
-
-                // 6. LoadResultsFile
-
-                var HCnt = equiSolidAngleVectors4PI().Length;
-
-                var lines = File.ReadAllLines(sunRaysResPath);
-
-                var ptCnt = lines.Length / HCnt;
-
-                var result = new int[ptCnt];
-
-                //A = "Lines: " + lines.Length + " Points: " + ptCnt;
-                if (lines.Length == 0) return;
-
-                int lindex = 0;
-                for (int pt = 0; pt < ptCnt; pt++)
-                {
-                    for (int h = 0; h < HCnt; h++)
+                    if (m)
                     {
-                        // var m = Regex.Match(lines[lindex].Trim(), @"^\d");
-
-                        // Everything that is not hit is the Sky
-                        // We are counting the ones that don't hit anything
-                        var m = lines[lindex].Trim().StartsWith("*");
-
-                        if (m)
-                        {
-                            //if(m.Success) {
-                            result[pt]++;
-                        }
-
-                        lindex++;
+                        //if(m.Success) {
+                        result[pt]++;
                     }
+
+                    lindex++;
                 }
+            }
 
-                //B = result.ToList();
+            //B = result.ToList();
 
-                this.hitCounts = result;
+            this.hitCounts = result;
 
-                for (int pt = 0; pt < ptCnt; pt++)
-                {
-                    this.Values[pt] = (double)hitCounts[pt] / numRays;
-                }
+            for (int pt = 0; pt < ptCnt; pt++)
+            {
+                this.Values[pt] = (double)hitCounts[pt] / numRays;
             }
         }
 

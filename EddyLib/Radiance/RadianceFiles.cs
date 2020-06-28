@@ -465,6 +465,46 @@ namespace EddyLib
             return data;
         }
 
+        public static double[] loadBin1D(string filename)
+        {
+            // [i, time j] points
+
+            double[] data;
+
+            int iDim;
+
+            //reading from the file
+            // 1.
+            using (BinaryReader b = new BinaryReader(
+                File.Open(filename, FileMode.Open)))
+            {
+                // 2. Position and length variables.
+                int pos = 0;
+
+                // 2A. Use BaseStream.
+                int length = (int)b.BaseStream.Length;
+
+                iDim = b.ReadInt32();
+
+                data = new double[iDim];
+                pos += sizeof(int);
+
+                int i = 0;
+
+                while (pos < length)
+                {
+                    float v = b.ReadSingle();
+                    data[i] = (v);
+
+                    pos += sizeof(float);
+
+                    i++;
+                }
+            }
+
+            return data;
+        }
+
         public static float[][] loadBinJagged(string filename)
         {
             // [i][ time j] points
@@ -585,6 +625,42 @@ namespace EddyLib
                         float fval = (float)values[i, j];
                         bw.Write(fval);
                     }
+                }
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine(e.Message + "\n Cannot write to file.");
+                return;
+            }
+            bw.Close();
+        }
+
+        public static void writeBin1D(string fileName, double[] values)
+        {
+            // [i, time j] points
+
+            BinaryWriter bw;
+
+            //create the file
+            try
+            {
+                bw = new BinaryWriter(new FileStream(fileName, FileMode.Create));
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine(e.Message + "\n Cannot create file.");
+                return;
+            }
+
+            //writing into the file
+            try
+            {
+                bw.Write((Int32)values.GetLength(0));
+
+                for (int i = 0; i < values.GetLength(0); i++)
+                {
+                    float fval = (float)values[i];
+                    bw.Write(fval);
                 }
             }
             catch (IOException e)

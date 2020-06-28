@@ -369,45 +369,6 @@ relaxed
 {
     maxNonOrtho   75;
 }
-
-////- Maximum non-orthogonality allowed. Set to 180 to disable.
-// maxNonOrtho 65;
-
-// //- Max skewness allowed. Set to <0 to disable. maxBoundarySkewness 20; maxInternalSkewness 4;
-
-// //- Max concaveness allowed. Is angle (in degrees) below which concavity // is allowed. 0 is
-// straight face, <0 would be convex face. // Set to 180 to disable. maxConcave 80;
-
-// //- Minimum pyramid volume. Is absolute volume of cell pyramid. // Set to a sensible fraction of
-// the smallest cell volume expected. // Set to very negative number (e.g. -1E30) to disable. minVol 1e-16;
-
-// //- Minimum quality of the tet formed by the face-centre // and variable base point minimum
-// decomposition triangles and // the cell centre. This has to be a positive number for tracking //
-// to work. Set to very negative number (e.g. -1E30) to // disable. // <0 = inside out tet, // 0 =
-// flat tet // 1 = regular tet minTetQuality -1e+30; // 1e-30;
-
-// //- Minimum face area. Set to <0 to disable. minArea 1e-13;
-
-// //- Minimum face twist. Set to <-1 to disable. dot product of face normal // and face centre
-// triangles normal minTwist 0.02;
-
-// //- Minimum normalised cell determinant // 1 = hex, <= 0 = folded or flattened illegal cell
-// minDeterminant 0.001;
-
-// //- minFaceWeight (0 -> 0.5) minFaceWeight 0.02;
-
-// //- minVolRatio (0 -> 1) minVolRatio 0.01;
-
-// //must be >0 for Fluent compatibility minTriangleTwist -1;
-
-// // Advanced
-
-// //- Number of error distribution iterations nSmoothScale 4; //- Amount to scale back displacement
-// at error points errorReduction 0.75;
-
-// // Optional : some meshing phases allow usage of relaxed rules. // See e.g.
-// addLayersControls::nRelaxedIter. relaxed { //- Maximum non-orthogonality allowed. Set to 180 to
-// disable. maxNonOrtho 75; }
 }
 
   // Write flags
@@ -732,9 +693,49 @@ libs
 
             //if (topologies != null) {
             sb.Append(EddyLib.Strings.OFExecDicts.FunctionObjCP(DOM, RunSettings, topologies, numberOfTopologies).ToString());
+            if (RunSettings.aoa == true) { sb.Append(EddyLib.Strings.OFExecDicts.FunctionObjAOA().ToString()); }
 
             //}
-            //else { sb.Append(@"};"); }
+            sb.AppendLine(@"};");
+
+            return sb.ToString();
+        }
+
+        public static string FunctionObjAOA()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine(@"aoa
+    {
+        type            scalarTransport;
+        libs (""libfieldFunctionObjects.so"");
+
+        writeControl    outputTime;
+            D               1.0;
+            field aoa;
+            resetOnStartUp  false;
+            schemesField aoa;
+            bounded01       true;
+            write           true;
+
+            fvOptions
+        {
+                aoa_00
+            {
+                    type scalarSemiImplicitSource;
+                    active          true;
+                    cellZone all;
+                    scalarSemiImplicitSourceCoeffs
+                {
+                        volumeMode specific;
+                        selectionMode all;
+                        injectionRateSuSp
+                    {
+                            aoa (1 0);
+                        }
+                    }
+                }
+            }
+        }");
 
             return sb.ToString();
         }
@@ -744,7 +745,7 @@ libs
             PressureCoeff BCondCP = new PressureCoeff(DOM.MaxHeightBuilding, DOM.BCond);
 
             StringBuilder sb = new StringBuilder();
-            sb.Append(@"pressureCoefficients
+            sb.AppendLine(@"pressureCoefficients
 {
                     type pressure;
                     libs (""libfieldFunctionObjects.so"");
@@ -785,7 +786,6 @@ patch" + i + @"
 ");
                 }
             }
-            else { sb.Append(@"};"); }
 
             return sb.ToString();
         }
@@ -1107,6 +1107,7 @@ divSchemes
     div(U) Gauss linear;
 
     div((nuEff*dev2(T(grad(U))))) Gauss linear;
+    div(phi,aoa)    bounded Gauss upwind;
 }
 
 laplacianSchemes
@@ -1176,6 +1177,7 @@ divSchemes
     div(phi,k)      bounded Gauss upwind;
     div(phi,omega)  bounded Gauss upwind;
 	div(phi,epsilon) bounded Gauss upwind;
+    div(phi,aoa)    bounded Gauss upwind;
 }
 
 laplacianSchemes
@@ -1800,6 +1802,7 @@ fluxRequired
     fields
     {
         p               0.3;
+        aoa             0.5;
     }
     equations
     {
@@ -1816,6 +1819,7 @@ fluxRequired
     fields
     {
         p               0.7;
+        aoa             0.5;
     }
     equations
     {
@@ -1832,6 +1836,7 @@ fluxRequired
     fields
     {
         p               0.3;
+        aoa             0.5;
     }
     equations
     {
@@ -1846,6 +1851,7 @@ fluxRequired
     fields
     {
 		p               0.3;
+        aoa             0.5;
     }
 
     equations
@@ -1935,6 +1941,15 @@ solvers
         smoother        GaussSeidel;
         tolerance       1e-8;
         relTol          0.01;
+    }
+    aoa
+    {
+    solver          PBiCG;
+    preconditioner  DILU;
+    tolerance       1e-05;
+    relTol          0.1;
+    minIter 1;
+    maxIter 10;
     }
 
     ""(U|k|omega|epsilon)""
@@ -2029,6 +2044,15 @@ solvers
         preconditioner  DILU;
         tolerance       1e-5;
         relTol          0.1;
+    }
+    aoa
+    {
+    solver          PBiCG;
+    preconditioner  DILU;
+    tolerance       1e-05;
+    relTol          0.1;
+    minIter 1;
+    maxIter 10;
     }
 }
 

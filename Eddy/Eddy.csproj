@@ -78,6 +78,7 @@
     <Compile Include="Components\Outdoor Comfort\CompCalcMRT.cs" />
     <Compile Include="Components\Outdoor Comfort\Metrics\CompCalcUTCIMetric.cs" />
     <Compile Include="Components\postProcessing\CompParaview.cs" />
+    <Compile Include="Components\postProcessing\CompVisProbesCustom.cs" />
     <Compile Include="Components\Settings\CompRunSettings.cs" />
     <Compile Include="Components\Setup\CompTemplates.cs" />
     <Compile Include="Components\Setup\CompBCondABL.cs" />
@@ -88,7 +89,7 @@
     <Compile Include="Components\postProcessing\CompAnnualCPToCSV.cs" />
     <Compile Include="Components\Misc\CompCellSize.cs" />
     <Compile Include="Components\postProcessing\CompComputeFlowRateFromU.cs" />
-    <Compile Include="Components\postProcessing\CompVisProbesCustom.cs" />
+    <Compile Include="Components\postProcessing\CompCullPoints.cs" />
     <Compile Include="Components\Outdoor Comfort\ReadResults.cs" />
     <Compile Include="Components\Outdoor Comfort\ReadUTCIByProbe.cs" />
     <Compile Include="Components\Outdoor Comfort\ReadComfortHours.cs" />
@@ -219,6 +220,7 @@
     <None Include="Resources\Eddy_calcMRT.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\Eddy_cullPoints.png" />
     <None Include="Resources\Eddy_trees.png" />
     <None Include="Resources\Eddy3D.png" />
     <None Include="Resources\Eddy3D.bmp" />
