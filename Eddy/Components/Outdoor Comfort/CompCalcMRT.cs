@@ -101,6 +101,13 @@ Make sure Radiance is installed at: ""C:\Program Files\Radiance"".
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            if (canRun == false)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Simulation running!");
+
+                return;
+            }
+
             OFResult RES = null;
             DA.GetData(0, ref RES);
 
@@ -165,7 +172,7 @@ Make sure Radiance is installed at: ""C:\Program Files\Radiance"".
 
             MRTSimulation mrtsim = null;
 
-            if (run == true && canRun)
+            if (run == true && canRun == true)
             {
                 EventHandler eh = MRTSimComplete;
 
@@ -180,30 +187,33 @@ Make sure Radiance is installed at: ""C:\Program Files\Radiance"".
                 th.IsBackground = true;
                 th.Start();
             }
-            else
+            else if (run == false && canRun == true)
             {
                 mrtsim = new MRTSimulation(RES, weather, BAG, probesArr, MRT.MRTType.RadianceTwoPhaseDDS, run);
             }
 
             // Order important
 
-            if (mrtsim.mrt != null)
+            if (mrtsim != null)
             {
-                if (mrtsim.mrt.wrongNumberOfProbes)
+                if (mrtsim.mrt != null)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.WrongNumberOfProbes(RES, SimMode.ToString()));
-                    return;
-                }
+                    if (mrtsim.mrt.wrongNumberOfProbes)
+                    {
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.WrongNumberOfProbes(RES, SimMode.ToString()));
+                        return;
+                    }
 
-                if (mrtsim.mrt.Values is null)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.NoResults(RES, SimMode.ToString()));
-                    return;
-                }
+                    if (mrtsim.mrt.Values is null)
+                    {
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.NoResults(RES, SimMode.ToString()));
+                        return;
+                    }
 
-                if (mrtsim.mrt.resultPrecalculated)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.PrecalResLoaded(RES, SimMode.ToString()));
+                    if (mrtsim.mrt.resultPrecalculated)
+                    {
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.PrecalResLoaded(RES, SimMode.ToString()));
+                    }
                 }
             }
 
