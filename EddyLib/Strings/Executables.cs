@@ -1183,8 +1183,6 @@ divSchemes
 laplacianSchemes
 {
     default         Gauss linear corrected;
-    laplacian(DkEff,k) Gauss linear uncorrected;
-    laplacian(DomegaEff,omega) Gauss linear uncorrected;
 }
 
 interpolationSchemes

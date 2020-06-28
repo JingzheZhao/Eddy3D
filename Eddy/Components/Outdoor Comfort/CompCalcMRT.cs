@@ -36,7 +36,10 @@ namespace Eddy
           : base("Mean Radiant Temperature", "Mean Radiant Temperature", @"Mean Radiant Temperature.
 
 This is based on a TwoPhaseDDS approach for which it is assumed that the building surface temperature equals the ambient temperature.
-Make sure Radiance is installed at: ""C:\Program Files\Radiance"".
+We run a sky view factor analysis, followd by the TwoPhaseDDS method taking into account direct solar gain.
+
+For large models or lots of probing points, it might take a moment until the commandline shows up.
+Please make sure Radiance is installed at: ""C:\Program Files\Radiance"".
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "6 | Outdoor Comfort")
@@ -101,13 +104,6 @@ Make sure Radiance is installed at: ""C:\Program Files\Radiance"".
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            if (canRun == false)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Simulation running!");
-
-                return;
-            }
-
             OFResult RES = null;
             DA.GetData(0, ref RES);
 
@@ -172,7 +168,7 @@ Make sure Radiance is installed at: ""C:\Program Files\Radiance"".
 
             MRTSimulation mrtsim = null;
 
-            if (run == true && canRun == true)
+            if (run == true)
             {
                 EventHandler eh = MRTSimComplete;
 
@@ -187,7 +183,7 @@ Make sure Radiance is installed at: ""C:\Program Files\Radiance"".
                 th.IsBackground = true;
                 th.Start();
             }
-            else if (run == false && canRun == true)
+            else if (run == false)
             {
                 mrtsim = new MRTSimulation(RES, weather, BAG, probesArr, MRT.MRTType.RadianceTwoPhaseDDS, run);
             }

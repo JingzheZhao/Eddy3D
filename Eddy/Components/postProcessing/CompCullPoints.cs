@@ -26,7 +26,8 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompCullPoints()
-          : base("Probing", "Probing", "Cull probing points outside the Building Mesh (can be slow)." + EddyVersion.toString(),
+          : base("Probing", "Probing", @"Cull probing points outside the Building Mesh (can be slow for a large number of points and/or a large building mesh).
+" + EddyVersion.toString(),
               EddyVersion.Name, "5 | PostProcessing")
         {
         }

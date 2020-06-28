@@ -35,7 +35,7 @@ namespace Eddy
             pManager.AddIntegerParameter("AccBBox", "AccBBox", "Level accuracy of building bounding box.", GH_ParamAccess.item, 0);
             pManager.AddIntegerParameter("AccGround", "AccGround", "Level accuracy of ground mesh.", GH_ParamAccess.item, 2);
 
-            pManager.AddIntegerParameter("Misc settings.", "MiscS", "Misc settings.", GH_ParamAccess.item, 1);
+            pManager.AddIntegerParameter("MiscSettings.", "MiscS", "MiscSettings.", GH_ParamAccess.item, 1);
             Param_Integer param0 = pManager[4] as Param_Integer;
             param0.AddNamedValue("Default", 0);
             param0.AddNamedValue("Optimized", 1);
