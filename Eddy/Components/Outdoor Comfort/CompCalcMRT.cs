@@ -36,6 +36,7 @@ namespace Eddy
           : base("Mean Radiant Temperature", "Mean Radiant Temperature", @"Mean Radiant Temperature.
 
 This is based on a TwoPhaseDDS approach for which it is assumed that the building surface temperature equals the ambient temperature.
+Make sure Radiance is installed at: ""C:\Program Files\Radiance"".
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "6 | Outdoor Comfort")
@@ -168,43 +169,15 @@ This is based on a TwoPhaseDDS approach for which it is assumed that the buildin
             {
                 EventHandler eh = MRTSimComplete;
 
-                bool close = true;
-                string executable = @"C:\Windows\System32\cmd.exe";
-                bool createnowindow = false;
-                string argument = @"echo Starting MRT simulation";
-
-                System.Diagnostics.Process p = new System.Diagnostics.Process();
-
-                // if(eh!=null) p.Exited += eh;
-                p.StartInfo.FileName = executable;
-                p.StartInfo.UseShellExecute = false;
-                p.StartInfo.RedirectStandardInput = true;
-
-                p.StartInfo.CreateNoWindow = createnowindow;
-
-                string theArgument = argument + ((close) ? @"
-exit
-" : "");
-
                 ThreadStart ths = new ThreadStart(() =>
                 {
-                    p.Start();
-                    p.WaitForExit();
-
-                    StreamWriter sw = p.StandardInput;
-                    String strInputText = theArgument;
-                    sw.WriteLine(strInputText);
-
-                    // Window doesn't close with
-                    //sw.Flush();
-
                     mrtsim = new MRTSimulation(RES, weather, BAG, probesArr, MRT.MRTType.RadianceTwoPhaseDDS, run);
 
-                    if (close) { p.Close(); }
-                    if (eh != null) { eh.Invoke(p, new EventArgs()); }
+                    if (eh != null) { eh.Invoke(this, EventArgs.Empty); }
                 });
 
                 Thread th = new Thread(ths);
+                th.IsBackground = true;
                 th.Start();
             }
             else
