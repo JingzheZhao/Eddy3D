@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using EddyLib.BCs;
 
 namespace EddyLib
 {
@@ -72,35 +73,46 @@ namespace EddyLib
 
                     if (DOM is OFBoxDomain)
                     {
-                        if (DOM.BCond.btype is BoundaryType.abl)
+                        if (DOM.BCond is ABL)
                         {
+                            var bcond = (ABL)DOM.BCond;
+
                             File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), EddyLib.Strings.BCDicts.UBoxABL(DOM, i));
-                            File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(DOM, i));
+
                             File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "U"), EddyLib.Strings.BCDicts.UBoxABL(DOM, i));
-                            File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(DOM, i));
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(bcond, i));
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(bcond, i));
                         }
-                        if (DOM.BCond.btype is BoundaryType.constant)
+                        if (DOM.BCond is ConstU)
                         {
+                            // We need the ABL file regardless
+                            ABL bcond = new ABL(DOM.BCond.windDirs, DOM.BCond.URef, 10, DOM.BCond.z0, 0, DOM.BCond.epwFilePath);
+
                             File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), EddyLib.Strings.BCDicts.UBoxConstU(DOM, i));
                             File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "U"), EddyLib.Strings.BCDicts.UBoxConstU(DOM, i));
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(bcond, i));
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(bcond, i));
                         }
 
-                        //REmove this later
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(DOM, i));
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(DOM, i));
-                        //REmove this later
+                        ////REmove this later
+                        //File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(DOM, i));
+                        //File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(DOM, i));
+
+                        ////REmove this later
 
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "p"), EddyLib.Strings.BCDicts.P(DOM));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "omega"), EddyLib.Strings.BCDicts.Omega(DOM));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "k"), EddyLib.Strings.BCDicts.K(DOM));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "epsilon"), EddyLib.Strings.BCDicts.Epsilon(DOM));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "nut"), EddyLib.Strings.BCDicts.Nut(DOM));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "aoa"), EddyLib.Strings.BCDicts.AOA());
 
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "p"), EddyLib.Strings.BCDicts.P(DOM));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "omega"), EddyLib.Strings.BCDicts.Omega(DOM));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "k"), EddyLib.Strings.BCDicts.K(DOM));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "epsilon"), EddyLib.Strings.BCDicts.Epsilon(DOM));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "nut"), EddyLib.Strings.BCDicts.Nut(DOM));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "aoa"), EddyLib.Strings.BCDicts.AOA());
 
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), EddyLib.Strings.BCDicts.InitialConditions(DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "initialConditions"), EddyLib.Strings.BCDicts.InitialConditions(DOM, i));
@@ -108,119 +120,65 @@ namespace EddyLib
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\snappyHexMeshDict"), EddyLib.Strings.OFExecDicts.SnappyHexMeshDict(MeshSettings, DOM));
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\surfaceFeatureExtractDict"), EddyLib.Strings.OFExecDicts.SurfaceFeatureExtractDict());
 
-                        if (RunSettings.Schemes != 0)
-                        {
-                            if (RunSettings.Schemes == 1)
-                            {
-                                File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesRobust1());
-                            }
-                            else if (RunSettings.Schemes == 2)
-                            {
-                                File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesOrtho70_80());
-                            }
-                            else if (RunSettings.Schemes == 3)
-                            {
-                                File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesOrtho60_70());
-                            }
-                            else if (RunSettings.Schemes == 4)
-                            {
-                                File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesOrtho40_60());
-                            }
-                            else if (RunSettings.Schemes == 5)
+                        File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemes(RunSettings));
+                        File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSolution"), EddyLib.Strings.OFExecDicts.FvSolution(RunSettings));
 
-                            {
-                                File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesAccurate());
-                            }
-                            else if (RunSettings.Schemes == 6)
-                            {
-                                File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesAccurateOscillatory());
-                            }
-                            else if (RunSettings.Schemes == 7)
-                            {
-                                File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesRobust1());
-                            }
-                        }
-                        else
-                        {
-                            File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesAccurate());
-                        }
-
-                        File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSolution"), EddyLib.Strings.OFExecDicts.FvSolutionDefault(RunSettings));
-                        File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\meshQualityDict"), EddyLib.Strings.OFExecDicts.MeshQualityDict());
+                        //File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\meshQualityDict"), EddyLib.Strings.OFExecDicts.MeshQualityDict());
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\residuals"), EddyLib.Strings.OFExecDicts.ResidualsDict());
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\decomposeParDict"), EddyLib.Strings.OFExecDicts.DecomposeParDict(RunSettings));
                     }
                     else if (DOM is OFCylDomain)
                     {
-                        if (DOM.BCond.btype is BoundaryType.abl)
+                        if (DOM.BCond is ABL)
                         {
+                            var bcond = (ABL)DOM.BCond;
+
                             File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), EddyLib.Strings.BCDicts.U_CylABL((OFCylDomain)DOM, i));
-                            File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(DOM, i));
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(bcond, i));
                             File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "U"), EddyLib.Strings.BCDicts.U_CylABL((OFCylDomain)DOM, i));
-                            File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(DOM, i));
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(bcond, i));
                         }
-                        if (DOM.BCond.btype is BoundaryType.constant)
+                        if (DOM.BCond is ConstU)
                         {
+                            // We need the ABL file regardless
+                            ABL bcond = new ABL(DOM.BCond.windDirs, DOM.BCond.URef, 10, DOM.BCond.z0, 0, DOM.BCond.epwFilePath);
+
                             File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), EddyLib.Strings.BCDicts.UCylConstU((OFCylDomain)DOM, i));
                             File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "U"), EddyLib.Strings.BCDicts.UCylConstU((OFCylDomain)DOM, i));
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(bcond, i));
+                            File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(bcond, i));
                         }
 
-                        //REmove this later
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(DOM, i));
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(DOM, i));
-                        //REmove this later
+                        ////REmove this later
+                        //File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(DOM, i));
+                        //File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(DOM, i));
+
+                        ////REmove this later
 
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "p"), EddyLib.Strings.BCDicts.P_Cyl((OFCylDomain)DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "omega"), EddyLib.Strings.BCDicts.Omega_Cyl((OFCylDomain)DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "k"), EddyLib.Strings.BCDicts.K_Cyl((OFCylDomain)DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "epsilon"), EddyLib.Strings.BCDicts.Epsilon_Cyl((OFCylDomain)DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "nut"), EddyLib.Strings.BCDicts.Nut_Cyl((OFCylDomain)DOM, i));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "aoa"), EddyLib.Strings.BCDicts.AOA_Cyl((OFCylDomain)DOM, i));
 
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "p"), EddyLib.Strings.BCDicts.P_Cyl((OFCylDomain)DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "omega"), EddyLib.Strings.BCDicts.Omega_Cyl((OFCylDomain)DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "k"), EddyLib.Strings.BCDicts.K_Cyl((OFCylDomain)DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "epsilon"), EddyLib.Strings.BCDicts.Epsilon_Cyl((OFCylDomain)DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "nut"), EddyLib.Strings.BCDicts.Nut_Cyl((OFCylDomain)DOM, i));
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "aoa"), EddyLib.Strings.BCDicts.AOA_Cyl((OFCylDomain)DOM, i));
 
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), EddyLib.Strings.BCDicts.InitialConditions(DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "initialConditions"), EddyLib.Strings.BCDicts.InitialConditions(DOM, i));
 
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\snappyHexMeshDict"), EddyLib.Strings.OFExecDicts.SnappyHexMeshDict(MeshSettings, DOM));
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\surfaceFeatureExtractDict"), EddyLib.Strings.OFExecDicts.SurfaceFeatureExtractDict());
-                        if (RunSettings.Schemes == 0)
-                        {
-                            File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesDefault());
-                        }
-                        else if (RunSettings.Schemes == 1)
-                        {
-                            File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesRobust1());
-                        }
-                        else if (RunSettings.Schemes == 2)
-                        {
-                            File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesOrtho70_80());
-                        }
-                        else if (RunSettings.Schemes == 3)
-                        {
-                            File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesOrtho60_70());
-                        }
-                        else if (RunSettings.Schemes == 4)
-                        {
-                            File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesOrtho40_60());
-                        }
-                        else if (RunSettings.Schemes == 5)
 
-                        {
-                            File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesAccurate());
-                        }
-                        else if (RunSettings.Schemes == 6)
-                        {
-                            File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesAccurateOscillatory());
-                        }
-                        else if (RunSettings.Schemes == 7)
-                        { File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesRobust1()); }
+                        File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemes(RunSettings));
+                        File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSolution"), EddyLib.Strings.OFExecDicts.FvSolution(RunSettings));
 
-                        File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSolution"), EddyLib.Strings.OFExecDicts.FvSolutionDefault(RunSettings));
-                        File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\meshQualityDict"), EddyLib.Strings.OFExecDicts.MeshQualityDict());
+                        //File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\meshQualityDict"), EddyLib.Strings.OFExecDicts.MeshQualityDict());
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\residuals"), EddyLib.Strings.OFExecDicts.ResidualsDict());
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\decomposeParDict"), EddyLib.Strings.OFExecDicts.DecomposeParDict(RunSettings));
                     }
@@ -230,8 +188,11 @@ namespace EddyLib
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run.bat"), EddyLib.Strings.BatFiles.Run(DOM, MeshSettings));
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_sim_all.bat"), EddyLib.Strings.BatFiles.RunSimOnly(DOM, MeshSettings));
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_ray.bat"), EddyLib.Strings.BatFiles.Run_RayTrace(DOM, MeshSettings));
-                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_probes.bat"), EddyLib.Strings.BatFiles.Run_Probes(DOM, MeshSettings));
-                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_utci.bat"), EddyLib.Strings.BatFiles.Run_UTCI(DOM, MeshSettings));
+
+                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_make_trees.bat"), EddyLib.Strings.BatFiles.Run_Make_Trees(RunSettings, MeshSettings, DOM, Strings.Mode.Meshing));
+
+                //File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_probes.bat"), EddyLib.Strings.BatFiles.Run_Probes(DOM, MeshSettings));
+                //File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_utci.bat"), EddyLib.Strings.BatFiles.Run_UTCI(DOM, MeshSettings));
 
 #if DEBUG
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_blockMesh.bat"), EddyLib.Strings.BatFiles.Run_blockMesh(RunSettings, DOM, MeshSettings, Strings.Mode.Meshing));

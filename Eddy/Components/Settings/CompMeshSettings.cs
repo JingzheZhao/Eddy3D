@@ -1,8 +1,8 @@
-﻿using System;
-using Eddy.Properties;
+﻿using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
+using System;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -30,19 +30,25 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddIntegerParameter("AccBuilding", "AccBuilding", "Specify accuracy of building mesh.", GH_ParamAccess.item, 2);
-            pManager.AddIntegerParameter("AccFeatures", "AccFeatures", "Specify accuracy of building features (corners) mesh.", GH_ParamAccess.item, 2);
-            pManager.AddIntegerParameter("AccBBox", "AccBBox", "Specify accuracy of bounding box.", GH_ParamAccess.item, 0);
-            pManager.AddIntegerParameter("AccGround", "AccGround", "Specify accuracy of ground mesh.", GH_ParamAccess.item, 2);
-            pManager.AddIntegerParameter("Number of layers", "nLay", "Number of mesh layers.", GH_ParamAccess.item, 3);
+            pManager.AddIntegerParameter("AccBuilding", "AccBuilding", "Level accuracy of building mesh.", GH_ParamAccess.item, 2);
+            pManager.AddIntegerParameter("AccFeatures", "AccFeatures", "Level accuracy accuracy of building features (corners) mesh.", GH_ParamAccess.item, 2);
+            pManager.AddIntegerParameter("AccBBox", "AccBBox", "Level accuracy of building bounding box.", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("AccGround", "AccGround", "Level accuracy of ground mesh.", GH_ParamAccess.item, 2);
+
+            pManager.AddIntegerParameter("MiscSettings.", "MiscS", "MiscSettings.", GH_ParamAccess.item, 1);
+            Param_Integer param0 = pManager[4] as Param_Integer;
+            param0.AddNamedValue("Default", 0);
+            param0.AddNamedValue("Optimized", 1);
+
+            pManager.AddIntegerParameter("Number of layers", "nLay", "Number of mesh layers.", GH_ParamAccess.item, 4);
             pManager.AddIntegerParameter("Mode", "Mode", @"Mode:
 0: No snapping, no layers
 1: With Snapping, no layers
-2: With Snapping, with layers", GH_ParamAccess.item, 2);
-            Param_Integer param = pManager[5] as Param_Integer;
-            param.AddNamedValue("No snapping, no layers", 0);
-            param.AddNamedValue("With Snapping, no layers", 1);
-            param.AddNamedValue("With Snapping, with layers (not robust)", 2);
+2: With Snapping, with layers", GH_ParamAccess.item, 1);
+            Param_Integer param1 = pManager[6] as Param_Integer;
+            param1.AddNamedValue("No snapping, no layers", 0);
+            param1.AddNamedValue("With Snapping, no layers", 1);
+            param1.AddNamedValue("With Snapping, with layers (not always robust, >> RAM)", 2);
         }
 
         /// <summary>
@@ -66,15 +72,21 @@ namespace Eddy
             int _accFeatures = 3;
             int _accRefinement = 3;
             int _accGround = 3;
+
+            int _miscSettings = 1;
+
             int _nLayers = 3;
-            int _mode = 2;
+            int _mode = 1;
 
             DA.GetData(0, ref _accBuilding);
             DA.GetData(1, ref _accFeatures);
             DA.GetData(2, ref _accRefinement);
             DA.GetData(3, ref _accGround);
-            DA.GetData(4, ref _nLayers);
-            DA.GetData(5, ref _mode);
+
+            DA.GetData(4, ref _miscSettings);
+
+            DA.GetData(5, ref _nLayers);
+            DA.GetData(6, ref _mode);
 
             if (_accBuilding >= 5 || _accFeatures >= 5 || _accRefinement >= 5 || _accGround >= 5 || _nLayers >= 5)
             {
@@ -87,8 +99,9 @@ namespace Eddy
                 accFeatures = _accFeatures,
                 accRefinement = _accRefinement,
                 accGround = _accGround,
+                miscSettings = (SnappyMiscSettings)_miscSettings,
                 nLayers = _nLayers,
-                snappySetting = (SnappySetting)_mode
+                snappySetting = (SnappySnapSettings)_mode
             });
         }
 
@@ -97,6 +110,7 @@ namespace Eddy
         /// need to be 24x24 pixels.
         /// </summary>
         protected override System.Drawing.Bitmap Icon =>
+
                 // You can add image files to your project resources and access them like this:
                 Resources.Eddy_mesh_settings;
 

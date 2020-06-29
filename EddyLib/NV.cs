@@ -7,7 +7,9 @@ namespace EddyLib
     public class NVAnalysis
     {
         public double FlowRate;
+
         public double vCenter;
+
         public double ACR;
 
         public NVAnalysis(List<double> listOfCps, List<double> AreaList, double velocity)
@@ -53,6 +55,7 @@ namespace EddyLib
 
             // returns the corresponding areas where the cps were negative
             double AverageAreaCpNeg = AreaList.Where((x, index) => listOfCps.Select(cp => cp < 0).ToArray()[index]).ToList().Average();
+
             // returns the corresponding areas where the cps were positive
             double AverageAreaCpPos = AreaList.Where((x, index) => listOfCps.Select(cp => cp > 0).ToArray()[index]).ToList().Average();
 

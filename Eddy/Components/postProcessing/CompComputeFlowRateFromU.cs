@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Eddy.Properties;
+﻿using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -34,6 +34,7 @@ namespace Eddy
         {
             //pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
             pManager.AddVectorParameter("Velocity vectors", "U", "List of velocity vectors.", GH_ParamAccess.list);
+
             //pManager.AddGenericParameter("Area", "Area", "Area to be evaluated.", GH_ParamAccess.item);
             pManager.AddMeshParameter("Mesh", "Mesh", "Mesh surface to be evaluated.", GH_ParamAccess.item);
 
@@ -140,6 +141,7 @@ namespace Eddy
         /// need to be 24x24 pixels.
         /// </summary>
         protected override System.Drawing.Bitmap Icon =>
+
                 // You can add image files to your project resources and access them like this:
                 Resources.Eddy_flow;
 

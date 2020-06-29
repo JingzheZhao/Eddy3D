@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EddyLib.BCs;
+using System;
 using System.Text;
 
 namespace EddyLib.Strings
@@ -9,7 +10,7 @@ namespace EddyLib.Strings
 
         private static double dotCutoff = -0.1;
 
-        public static string ABL(OFBaseDomain DOM, int d)
+        public static string ABL(ABL bcond, int d)
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
@@ -26,13 +27,15 @@ FoamFile
     location    ""0"";
     object ABLConditions;
         }
+
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-        Uref		" + DOM.BCond.URef + @";
-        Zref		" + DOM.BCond.zref + @";
-        z0 uniform " + DOM.BCond.z0 + @";
-        flowDir (" + DOM.BCond.flowDir[d].X + " " + DOM.BCond.flowDir[d].Y + " " + DOM.BCond.flowDir[d].Z + @");
+        Uref		" + bcond.URef + @";
+        Zref		" + bcond.zref + @";
+        z0 uniform " + bcond.z0 + @";
+        flowDir (" + bcond.flowDir[d].X + " " + bcond.flowDir[d].Y + " " + bcond.flowDir[d].Z + @");
         zDir (0 0 1);
-        zGround uniform " + DOM.BCond.zGround + @";
+        zGround uniform " + bcond.zGround + @";
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 ";
         }
@@ -54,6 +57,7 @@ FoamFile
     location    ""0"";
     object initialConditions;
         }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 flowVelocity (0 0 0);
 pressure    0;
@@ -61,6 +65,7 @@ turbulentKE " + Math.Round(DOM.BCond.k, 4) + @";
 turbulentEpsilon " + Math.Round(DOM.BCond.epsilon, 4) + @";
 turbulentOmega	" + Math.Round(DOM.BCond.omega, 4) + @";
 #inputMode		merge;
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 ";
         }
@@ -87,6 +92,7 @@ FoamFile
     location    ""0"";
     object epsilon;
         }
+
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
         dimensions [0 2 -3 0 0 0 0];
@@ -199,6 +205,7 @@ FoamFile
     class       volScalarField;
     object      k;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 dimensions      [0 2 -2 0 0 0 0];
@@ -307,6 +314,7 @@ ground_perim
     location    ""0"";
     object omega;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 dimensions [0 0 -1 0 0 0 0];
@@ -376,6 +384,80 @@ value		$internalField;
             return sb.ToString();
         }
 
+        public static string AOA_Cyl(OFCylDomain DOM, int d)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine(@"
+        /*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.2                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+        FoamFile
+{
+            version     2.0;
+            format ascii;
+    class volScalarField;
+    location    ""0"";
+    object aoa;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 1 0 0 0];
+
+internalField   uniform 0;
+
+boundaryField
+{
+   frontAndBack
+    {
+        type zeroGradient;
+    }
+    ground
+    {
+         type zeroGradient;
+    }
+ground_perim
+    {
+          type zeroGradient;
+    }
+building
+    {
+           type zeroGradient;
+    }
+    ");
+
+            for (int i = 0; i < DOM.sides.Faces.Count; i++)
+            {
+                double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i];
+                if (dot < dotCutoff)
+                {
+                    sb.AppendLine("patch" + i);
+                    sb.Append(@"{  	type fixedValue;
+value	uniform 0;
+}");
+                }
+                else
+                {
+                    sb.AppendLine("patch" + i);
+                    sb.Append(@"
+    {
+          type zeroGradient;
+    }");
+                }
+            }
+
+            sb.AppendLine(@"
+}
+
+// ************************************************************************* //
+");
+            return sb.ToString();
+        }
+
         public static string P_Cyl(OFCylDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
@@ -393,6 +475,7 @@ FoamFile
     class       volScalarField;
     object      p;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 dimensions      [0 2 -2 0 0 0 0];
@@ -469,6 +552,7 @@ FoamFile
     location    ""0"";
     object      U;
     }
+
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 dimensions [0 1 -1 0 0 0 0];
@@ -552,6 +636,7 @@ FoamFile
     location    ""0"";
     object      U;
     }
+
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 dimensions [0 1 -1 0 0 0 0];
@@ -642,6 +727,7 @@ building
     location    ""0"";
     object nut;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 dimensions [0 2 -1 0 0 0 0];
@@ -729,6 +815,7 @@ FoamFile
     location    ""0"";
     object epsilon;
         }
+
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
         dimensions [0 2 -3 0 0 0 0];
 #include		""initialConditions"";
@@ -780,6 +867,7 @@ building
         value   $internalField;
     }
 }
+
 // ************************************************************************* //
 ");
             return sb.ToString();
@@ -803,6 +891,7 @@ FoamFile
     class       volScalarField;
     object      k;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 dimensions      [0 2 -2 0 0 0 0];
 #include		""initialConditions"";
@@ -848,6 +937,7 @@ internalField uniform $turbulentKE;
                     value       $internalField;
                 }
             }
+
             // ************************************************************************* //
             ");
             return sb.ToString();
@@ -871,6 +961,7 @@ internalField uniform $turbulentKE;
     location    ""0"";
     object omega;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 dimensions [0 0 -1 0 0 0 0];
 #include		""initialConditions"";
@@ -914,6 +1005,7 @@ inletValue	$internalField;
         value		$internalField;
     }
 }
+
 // ************************************************************************* //
 ";
         }
@@ -934,6 +1026,7 @@ FoamFile
     class       volScalarField;
     object      p;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 dimensions      [0 2 -2 0 0 0 0];
 #include		""initialConditions"";
@@ -966,6 +1059,7 @@ ground_perim
                 type zeroGradient;
             }
         }
+
         // ************************************************************************* //
         ";
         }
@@ -988,6 +1082,7 @@ FoamFile
     location    ""0"";
     object      U;
     }
+
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 dimensions [0 1 -1 0 0 0 0];
 #include ""initialConditions"";
@@ -1027,6 +1122,7 @@ building
         value uniform (0 0 0);
     }
 }
+
 // ************************************************************************* //
 ");
             return sb.ToString();
@@ -1050,6 +1146,7 @@ FoamFile
     location    ""0"";
     object      U;
     }
+
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 dimensions [0 1 -1 0 0 0 0];
 #include ""initialConditions"";
@@ -1091,6 +1188,7 @@ building
         value uniform (0 0 0);
     }
 }
+
 // ************************************************************************* //
 ");
             return sb.ToString();
@@ -1113,6 +1211,7 @@ building
     location    ""0"";
     object nut;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 dimensions [0 2 -1 0 0 0 0];
 #include		""initialConditions"";
@@ -1152,7 +1251,63 @@ value uniform 0;
 value uniform 0;
     }
 }
+
 // ************************************************************************* //
+";
+        }
+
+        public static string AOA()
+        {
+            return @"/*--------------------------------*- C++ -*----------------------------------*\
+ | =========                 |                                                 |
+ | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+ |  \\    /   O peration     | Version:  2.2.2                                 |
+ |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+ |    \\/     M anipulation  |                                                 |
+ \*---------------------------------------------------------------------------*/
+    FoamFile
+{
+    version     2.0;
+    format ascii;
+    class volScalarField;
+    location    ""0"";
+    object aoa;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+dimensions      [0 0 0 1 0 0 0];
+
+internalField   uniform 0;
+
+boundaryField
+{
+   frontAndBack
+    {
+        type zeroGradient;
+    }
+    ground
+    {
+         type zeroGradient;
+    }
+ground_perim
+    {
+          type zeroGradient;
+    }
+building
+    {
+           type zeroGradient;
+    }
+	inlet
+    {
+          type            fixedValue;
+        value           uniform 0;
+    }
+    outlet
+    {
+     type zeroGradient;
+    }
+}
+
 ";
         }
     }

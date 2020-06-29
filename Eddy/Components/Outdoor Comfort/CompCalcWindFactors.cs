@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Windows.Forms;
-using Eddy.Properties;
+﻿using Eddy.Properties;
 using EddyLib;
+using EddyLib.OutdoorComfort;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
-using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows.Forms;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -30,10 +31,10 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompCalcWindFactors()
-          : base("Pedestrian Comfort", "Pedestrian Comfort", @"Pedestrian Comfort
+          : base("Wind Factors", "Wind Factors", @"Wind Factors
 
-Based on the weather data input, this component calculates wind reduction factors for every hour of the year for each probing point [8760 hourly branches x number of probing points].
-The wind reduction factors are calculated based on the wind velocity and direction for each hour which is scaled up/down accordingly given probing height from ground.
+Based on the probed simulation and the weather data, this component calculates wind velocities, wind factors for each probing point [8760 hourly branches x number of probing points].
+The wind factors are calculated based on the wind velocity and direction for each hour which is scaled up/down accordingly given probing height from ground.
 For this, we support either a look-up for the closest simulated wind direction or an interpolation between the closest two wind directions.
 " + EddyVersion.toString(),
               EddyVersion.Name, "6 | Outdoor Comfort")
@@ -58,6 +59,7 @@ For this, we support either a look-up for the closest simulated wind direction o
         {
             // First add our own field.
             writer.SetBoolean("Interpolation", interpolate);
+
             // Then call the base class implementation.
             return base.Write(writer);
         }
@@ -66,6 +68,7 @@ For this, we support either a look-up for the closest simulated wind direction o
         {
             // First read our own field.
             interpolate = reader.GetBoolean("Interpolation");
+
             // Then call the base class implementation.
             return base.Read(reader);
         }
@@ -76,23 +79,11 @@ For this, we support either a look-up for the closest simulated wind direction o
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Result", "Res", "Eddy Result", GH_ParamAccess.item);
-            //pManager.AddIntegerParameter("windDirs", "windDirs", "windDirs", GH_ParamAccess.list);
             pManager.AddPointParameter("Probing points", "Points", "List of probing points (caution: might have been culled)", GH_ParamAccess.list);
             pManager.AddVectorParameter("Wind Velocity", "U", @"Wind Velocity [DataTree] where the [branches] are the wind directions and the [items] are the values for each probing point.", GH_ParamAccess.tree);
-            // pManager.AddIntegerParameter("Hours", "H", "Hours", GH_ParamAccess.list);
-
-            pManager.AddIntegerParameter("Comfort Index", "CmftIdx", "Select a Pedestrian Wind Comfort Index with a right click.", GH_ParamAccess.item, 0);
-
-            //Using an enum to generate the dropdown items
-            var types = Enum.GetNames(typeof(EddyLib.PedestrianComfort.PedestrianComfortIdx));
-            Param_Integer param = pManager[3] as Param_Integer;
-
-            for (int i = 0; i < types.Length; i++)
-            {
-                param.AddNamedValue(types[i], i);
-            }
-
             pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item);
+
+            pManager[3].Optional = true;
         }
 
         /// <summary>
@@ -100,41 +91,17 @@ For this, we support either a look-up for the closest simulated wind direction o
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            //pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Wind Reduction Factors", "WF", @"Wind Reduction Factors
+            pManager.AddGenericParameter("Wind Factors Spatial", "WFS", @"Wind Factors Spatial
 
-Dimensionless wind velocity of each sensor point from the nearest simulated wind direction with the corresponding velocity and wind direction from the weather data for every hour of the year.
-This yields a datatree with wind reduction factors of the size [8760 h x number of sensor points].", GH_ParamAccess.item);
+Wind Factors (dimensionless wind velocity) for each simulated wind direction.
+This yields a datatree of the size [Number of simulated wind directions x number of sensor points].", GH_ParamAccess.item);
 
-            pManager.AddNumberParameter("Pedestrian Wind Comfort", "Cmft", @"Pedestrian Wind Comfort
+            pManager.AddGenericParameter("Wind Factors Annual", "WFA", @"Wind Factors Annual
 
-Lawson
+Wind Factors multiplied with the corresponding EPW wind velocity from the nearest simulated wind direction for every hour of the year.
+This yields a datatree of the size [8760 h x number of sensor points].", GH_ParamAccess.item);
 
-4: > 4 m/s ""Sitting"" Light breezes desired for outdoor restaurants and seating areas where one can read a paper of comfortably sit for long periods.
-6: > 6 m/s ""Standing"" Gentle breezes suitable for main buildings entrances, pick-up/drop off points and bus stops.
-8: > 8 m/s ""Leisure Walking or Strolling"" Moderate breezes that would be appropriate for walking down a city centre street, park or plaza.
-10: > 10 m/s ""Business Walking"" Relatively high speeds that can be tolerated if ones objective is to walk, run or cycle without lingering.
-12: > 12 m/s ""Uncomfortable"" Winds of this magnitude are considered a nuisance for most activities, and wind mitigation is typically recommended.
-
-Davenport
-
-1 - A > 3.6 m/s < 1.5 % Sitting Long
-2 - B > 5.3 m/s < 1.5 % Sitting Short
-3 - C > 7.6 m/s < 1.5 % Walking Leisurely
-4 - D > 9.8 m/s < 1.5 % Walking Fast
-5 - E > 9.8 m/s >= 1.5 % Uncomfortable
-6 - S > 15.1 m/s >= 0.01 % Dangerous
-
-NEN8100
-
-1 - A > 5 m/s < 2.5 % Sitting Long
-2 - B > 5 m/s < 5 % Sitting Short
-3 - C > 5 m/s < 10 % Walking Leisurely
-4 - D > 5 m/s < 20 % Walking Fast
-5 - E > 5 m/s > 20 % Uncomfortable
-6 - S > 15 m/s > 0.05 % Dangerous", GH_ParamAccess.list);
-
-            pManager.AddGenericParameter("OffSet", "OffS", "OffSet between simulated wind directions and directions in the weather file.", GH_ParamAccess.list);
+            //  pManager.AddGenericParameter("OffSet", "OffS", "OffSet between simulated wind directions and directions in the weather file.", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -153,10 +120,6 @@ NEN8100
             OFResult RES = null;
             DA.GetData(0, ref RES);
 
-            int cmftidx = 0;
-            DA.GetData("Comfort Index", ref cmftidx);
-            PedestrianComfort.PedestrianComfortIdx cmftcmftindex = (PedestrianComfort.PedestrianComfortIdx)cmftidx;
-
             List<Point3d> probes = new List<Point3d>();
             DA.GetDataList("Probing points", probes);
 
@@ -174,15 +137,12 @@ NEN8100
             //Grasshopper.Kernel.Data.GH_Structure<Grasshopper.Kernel.Types.IGH_Goo> U = null;
             //DA.GetDataTree("U", out U);//
             DA.GetDataTree("Wind Velocity", out GH_Structure<GH_Vector> U);
+
             //DA.GetDataTree("U", out DataTree<Vector> U);
 
             #region Error checks
 
-            var sum = 0.0;
-            foreach (Point3d pp in probes) { sum += pp.Z; }
-            var probingHeight = sum / probes.Count;
-
-            if (probingHeight < RES.Domain.DomainMesh.GetBoundingBox(false).Min.Z || probingHeight > RES.Domain.DomainMesh.GetBoundingBox(false).Max.Z)
+            if (probes.Any(val => val.Z < RES.Domain.DomainMesh.GetBoundingBox(false).Min.Z || probes.Any(val2 => val2.Z > RES.Domain.DomainMesh.GetBoundingBox(false).Max.Z)))
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "You cannot probe that set of probes outside of the simulation domain.");
                 return;
@@ -190,43 +150,33 @@ NEN8100
 
             #endregion Error checks
 
-            #region Load weather
+            #region Annual Velocities
 
-            Console.WriteLine("Load weather data...");
+            MultiDirectionalVelocities mdv = new MultiDirectionalVelocities(RES.WorkingDirectory, RES.Domain.BCond.windDirs.ToArray(), ArrayHelper.To2DArrayVec3d(U), true, run);
 
-            //Weather data...
-
-            if (RES.Domain.BCond.epwFilePath == "")
+            if (GH_Document.IsEscapeKeyDown())
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Without a weather file (.epw) connected you will not be able to perform outdoor comfort calculations.");
+                GH_Document GHDocument = OnPingDocument();
+                GHDocument.RequestAbortSolution();
+            }
+
+            if (mdv.wrongNumberOfProbes)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The precalculated spatial wind factor array has the wrong number of probing points. Please recalculate.");
                 return;
             }
 
-            Weather weather = new Weather(RES.Domain.BCond.epwFilePath);
-
-            #endregion Load weather
-
-            #region Annual Velocities
-
-            var csvAnnualVelProbes = RES.WorkingDirectory + "AnnualVelocityProbes.csv";
-            PedestrianComfort av = new PedestrianComfort(RES.Domain.BCond.windDirs.ToArray(), ArrayHelper.To2DArrayVec3d(U), csvAnnualVelProbes, true, run);
-
-            if (av.Values is null)
+            if (mdv.Values is null)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Either precalculated results could not be loaded or the AnnualVelocity array has not been calculated yet.");
                 return;
             }
 
-            if (av.wrongNumberOfProbes)
+            if (mdv.resultPrecalculated)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The precalculated AnnualVelocity array has the wrong number of probing points. Please recalculate.");
-                return;
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated spatial wind factor results have been loaded.");
             }
-            if (av.resultPrecalculated)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated AnnualVelocity results have been loaded.");
-            }
-            if (av.infValues)
+            if (mdv.infValues)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Some probed velocities with very large values (likely because they weren't inside the simulation domain) have been replaced with 0s.");
             }
@@ -235,42 +185,51 @@ NEN8100
 
             #region Wind Factors
 
-            var wf = new WindReductionFactors(RES.WorkingDirectory, RES.Domain.BCond, weather, av, probingHeight, interpolate, run, cmftcmftindex);
+            var wfspatial = new WindFactorsSpatial(RES.WorkingDirectory, RES.Domain.BCond, mdv, probes, interpolate, run);
 
-            if (GH_Document.IsEscapeKeyDown())
-            {
-                GH_Document GHDocument = OnPingDocument();
-                GHDocument.RequestAbortSolution();
-            }
+            DA.SetData(0, wfspatial);
 
-            if (wf.ValuesWindFactors is null)
+            if (RES.Domain.BCond.epwFilePath == "")
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Either precalculated results could not be loaded or the WindFactors array has not been calculated yet.");
-                return;
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Without a weather file (.epw) connected you will not be able to perform the annual wind comfort calculations.");
             }
 
-            if (wf.wrongNumberOfProbes)
+            if ((RES.Domain.BCond.epwFilePath.EndsWith(".epw")))
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The precalculated WindFactors array has the wrong number of probing points. Please recalculate.");
-                return;
-            }
-            if (wf.resultPrecalculated)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated WindFactors results have been loaded.");
-            }
+                #region Load weather
 
-            if (wf.offSetAverage >= 13)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "The average offset between simulated wind directions and directions in the weather file is " + Math.Round(wf.offSetAverage, 2) + "°. You might want to consider changing the input wind directions to better fit the weather file.");
-            }
-            else
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The average offset between simulated wind directions and wind directions in the weather file is " + Math.Round(wf.offSetAverage, 2) + "°.");
-            }
+                Console.WriteLine("Load weather data...");
 
-            DA.SetData(0, wf);
-            DA.SetDataList(1, wf.ValuesPedestrianWindComfort);
-            DA.SetDataList(2, wf.offSet);
+                Weather weather = new Weather(RES.Domain.BCond.epwFilePath);
+
+                #endregion Load weather
+
+                var wftemporal = new WindFactorsAnnual(RES.WorkingDirectory, RES.Domain.BCond, weather, wfspatial, probes, interpolate, run);
+
+                if (GH_Document.IsEscapeKeyDown())
+                {
+                    GH_Document GHDocument = OnPingDocument();
+                    GHDocument.RequestAbortSolution();
+                }
+
+                if (wftemporal.ValuesTemporal is null)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Either precalculated results could not be loaded or the WindFactors array has not been calculated yet.");
+                    return;
+                }
+
+                if (wftemporal.wrongNumberOfProbes)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The precalculated results the wrong number of probing points. Please recalculate.");
+                    return;
+                }
+                if (wftemporal.resultPrecalculated)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The precalculated Wind Factor results have been loaded.");
+                }
+
+                DA.SetData(1, wftemporal);
+            }
 
             #endregion Wind Factors
         }

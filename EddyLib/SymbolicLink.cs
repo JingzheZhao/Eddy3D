@@ -28,6 +28,7 @@ namespace EddyLib
             if (!Directory.Exists(simDir))
             {
                 SymLinks.Start();
+
                 //SymLinks.WaitForExit();
                 // Check this later. This was added since some links sometimes were not created after deleting.
                 Thread.Sleep(500);

@@ -1,25 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 
 namespace EddyLib.Radiance
 {
-
-      public enum SkySubdivision { 
+    public enum SkySubdivision
+    {
         r1,
+
         r2,
+
         r3,
+
         r4,
+
         r5,
+
         r6
-        }
+    }
+
     public class Skies
     {
-      
-
         public static void Write(string path, SkySubdivision R)
         {
             string sky = @"
@@ -34,8 +33,7 @@ groundglow source ground
 0
 4 0 0 -1 180
 
-
-#@rfluxmtx u=+Y h="+R.ToString()+@"
+#@rfluxmtx u=+Y h=" + R.ToString() + @"
 void glow skyglow
 0
 0
@@ -48,8 +46,6 @@ skyglow source skydome
 ";
 
             File.WriteAllText(path, sky);
-
         }
-
     }
 }

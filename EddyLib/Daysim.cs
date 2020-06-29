@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Rhino.Geometry;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
-using Rhino.Geometry;
 
 namespace EddyLib
 {
@@ -14,19 +14,26 @@ namespace EddyLib
         }
 
         public int AB = 0;
+
         public int AD = 1024;
+
         public int AS = 512;
+
         public int AR = 256;
+
         public double AA = 0.2;
 
         public string ProjectName = "CallRay";
+
         public string WorkDir = @"C:\temp";
+
         public string Weather = "";
     }
 
     public class Daysim
     {
         public double[][] dirIll;
+
         public double[][] difIll;
 
         public Daysim(string baseWorkingDir, Mesh BuildingGeometry, List<Point3d> probes, Weather weather)
@@ -45,6 +52,7 @@ void plastic Generic_20
 ";
             Mesh daysimMesh = new Mesh();
             daysimMesh.Append(BuildingGeometry);
+
             // Todo: add ground plane to the above mesh
 
             File.WriteAllText(baseWorkingDir + @"Rad\materials.rad", radMat);
@@ -71,7 +79,6 @@ void plastic Generic_20
         }
 
         public static string DaysimInstallation = @"C:\DIVA\DaysimBinaries";
-
 
         public static void RunDaysim(DaysimSettings setCon)
         {
@@ -117,6 +124,7 @@ void plastic Generic_20
                 {
                     Debug.WriteLine("MULTIPLE OR NO WEATHER FILE FOUND");
                 }
+
                 // HEA GENERATION AND RUNNING
                 //---------------------------
 
@@ -129,6 +137,7 @@ void plastic Generic_20
                 string geometrie_datei = "scene.rad";
                 string radiance_quelldateien = @"2, " + workingDir + @"\materials.rad" + @", " + workingDir + @"\scene.rad";
                 string sensor_punkte = "sensors.pts";
+
                 //string hea_dateiname = (workingDir + @"\input.hea");
 
                 string static_system_DIR = (varianten_name) + " " + ((varianten_name) + ".dc " + (varianten_name) + ".dir.ill");
@@ -195,6 +204,7 @@ void plastic Generic_20
 
                 string pathvar = System.Environment.GetEnvironmentVariable("PATH");
                 System.Environment.SetEnvironmentVariable("PATH", pathvar + @";" + DaysimInstallation);
+
                 // System.Environment.SetEnvironmentVariable("RAYPATH", @"C:\UD\bin\DAYSIM\lib\;C:\UD\bin\Radiance\lib\");
 
                 //run the daysim radiance executables
@@ -205,8 +215,9 @@ void plastic Generic_20
 
                 string pathvar2 = startInfo.EnvironmentVariables["PATH"];
                 startInfo.EnvironmentVariables["PATH"] = pathvar2 + @";" + DaysimInstallation; //@";C:\UD\bin\DAYSIM\bin_windows\;C:\UD\bin\Radiance\bin\;C:\UD\bin\DAYSIM;";
-                                                                                               // startInfo.EnvironmentVariables["RAYPATH"]
-                                                                                               // = @"C:\UD\bin\DAYSIM\lib\;C:\UD\bin\Radiance\lib\";
+
+                // startInfo.EnvironmentVariables["RAYPATH"]
+                // = @"C:\UD\bin\DAYSIM\lib\;C:\UD\bin\Radiance\lib\";
 
                 startInfo.UseShellExecute = false;
                 startInfo.RedirectStandardError = true;

@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using Eddy.Properties;
+﻿using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
-using Rhino;
 using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -20,35 +19,37 @@ namespace Eddy
 {
     public class CompVisProbesCustom : GH_Component
     {
-        protected override void AppendAdditionalComponentMenuItems(System.Windows.Forms.ToolStripDropDown menu)
-        {
-            base.AppendAdditionalComponentMenuItems(menu);
-            Menu_AppendItem(menu, "No Culling of Probing Points", Menu_DoClick, true, !Culling);
-        }
+        //protected override void AppendAdditionalComponentMenuItems(System.Windows.Forms.ToolStripDropDown menu)
+        //{
+        //    base.AppendAdditionalComponentMenuItems(menu);
+        //    Menu_AppendItem(menu, "No Culling of Probing Points", Menu_DoClick, true, !Culling);
+        //}
 
-        private void Menu_DoClick(object sender, EventArgs e)
-        {
-            Culling = !Culling;
-            ExpireSolution(true);
-        }
+        //private void Menu_DoClick(object sender, EventArgs e)
+        //{
+        //    Culling = !Culling;
+        //    ExpireSolution(true);
+        //}
 
-        public bool Culling = true;
+        //public bool Culling = false;
 
-        public override bool Write(GH_IO.Serialization.GH_IWriter writer)
-        {
-            // First add our own field.
-            writer.SetBoolean("Culling", Culling);
-            // Then call the base class implementation.
-            return base.Write(writer);
-        }
+        //public override bool Write(GH_IO.Serialization.GH_IWriter writer)
+        //{
+        //    // First add our own field.
+        //    writer.SetBoolean("Culling", Culling);
 
-        public override bool Read(GH_IO.Serialization.GH_IReader reader)
-        {
-            // First read our own field.
-            Culling = reader.GetBoolean("Culling");
-            // Then call the base class implementation.
-            return base.Read(reader);
-        }
+        //    // Then call the base class implementation.
+        //    return base.Write(writer);
+        //}
+
+        //public override bool Read(GH_IO.Serialization.GH_IReader reader)
+        //{
+        //    // First read our own field.
+        //    Culling = reader.GetBoolean("Culling");
+
+        //    // Then call the base class implementation.
+        //    return base.Read(reader);
+        //}
 
         /// <summary>
         /// Each implementation of GH_Component must provide a public constructor without any
@@ -70,6 +71,7 @@ namespace Eddy
             pManager.AddGenericParameter("Result", "Res", "Eddy Result", GH_ParamAccess.item);
             pManager.AddPointParameter("Probing points", "Points", "List of probing points", GH_ParamAccess.list);
             pManager.AddTextParameter("Name of instance", "Name", "Name of instance to be probed", GH_ParamAccess.item);
+
             pManager.AddIntegerParameter("Name of field", "Field", "Name of field to be probed", GH_ParamAccess.item, 0);
             Param_Integer param = pManager[3] as Param_Integer;
             param.AddNamedValue("Velocity (U) [m/s]", 0);
@@ -80,6 +82,8 @@ namespace Eddy
             param.AddNamedValue("Turbulent kinetic energy (k) [m^2/s^2]", 5);
             param.AddNamedValue("Turbulent viscosity (nut) [m^2/s]", 6);
             param.AddNamedValue("Mass flow (phi) [m^3/s]", 7);
+            param.AddNamedValue("Age of air (aoa) [s]", 8);
+
             //pManager.AddIntegerParameter("FieldType", "FieldType", "FieldType", GH_ParamAccess.item, 1);
             //Param_Integer param2 = pManager[4] as Param_Integer;
             //param2.AddNamedValue("Scalar", 0);
@@ -122,8 +126,8 @@ namespace Eddy
             #region Load Inputs
 
             // mode to select simulation environment
-            if (Culling) { Message = "Cull Points"; }
-            else { Message = "No Culling"; }
+            //if (Culling) { Message = "Cull Points"; }
+            //else { Message = "No Culling"; }
 
             OFResult RES = null;
             DA.GetData(0, ref RES);
@@ -138,6 +142,7 @@ namespace Eddy
 
             DA.GetData(2, ref probeNameByUser);
             DA.GetData(3, ref OFFieldInt);
+
             //DA.GetData(4, ref fieldType);
             DA.GetData(4, ref run);
 
@@ -148,14 +153,20 @@ namespace Eddy
             }
 
             //Discard points outside
-            if (Culling)
-            {
-                listOfPoints = Utilities.DiscardPoints(listOfPoints, RES.Domain);
-            }
+            //if (Culling)
+            //{
+            //    listOfPoints = Utilities.DiscardPoints(listOfPoints, RES.Domain.BuildingGeometry);
+            //}
 
             int numberOfProbes = listOfPoints.Count();
 
             #endregion Load Inputs
+
+            GH_Structure<GH_Number> treeDouble = new GH_Structure<GH_Number>();
+            GH_Structure<GH_Vector> treeVector = new GH_Structure<GH_Vector>();
+
+            string OFField = EddyLib.OFField.ReformatOFFields(OFFieldInt);
+            OFField currField = new OFField(OFField, probeNameByUser);
 
             #region Error handling
 
@@ -164,6 +175,7 @@ namespace Eddy
             if (numberOfProbes < 1)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You need to pass a list of point to the component.");
+                return;
             }
 
             // Check if U file is in last iteration
@@ -180,7 +192,7 @@ namespace Eddy
             }
 
             // Export probes file
-            File.WriteAllText(Path.Combine(RES.WorkingDirectory + "\\" + "run_probes.bat"), EddyLib.Strings.BatFiles.Run_Probes(RES.Domain, RES.MeshSettings));
+            //File.WriteAllText(Path.Combine(RES.WorkingDirectory + "\\" + "run_probes.bat"), EddyLib.Strings.BatFiles.Run_Probes(RES.Domain, RES.MeshSettings));
 
             // export pts file for Daysim
             if (!Directory.Exists(RES.WorkingDirectory + @"Rad\"))
@@ -193,6 +205,7 @@ namespace Eddy
             if (Directory.Exists(RES.MeshSettings.meshPolyMeshDir) == false)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The mesh folder does not exist. Please create a mesh first.");
+
                 //throw new System.ArgumentException("The mesh folder is does not exist. Please create a mesh first.");
                 return;
             }
@@ -201,6 +214,7 @@ namespace Eddy
                 if (Utilities.Directories.IsDirectoryEmpty(RES.MeshSettings.meshPolyMeshDir) == true)
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The mesh folder is empty. Can't retrieve probes from a mesh that does not exist.");
+
                     // throw new System.ArgumentException("The mesh folder is empty. Can't retrieve probes from a mesh that does not exist.");
                     return;
                 }
@@ -210,19 +224,18 @@ namespace Eddy
                 }
             }
 
-            int threshold = 4000;
+            int threshold = 5000;
             if (listOfPoints.Count > threshold)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Probing more than " + threshold + " points may slow things down considerably.");
             }
 
+            if (RES.RunSettings.writeInterval > 1 && currField.FieldName == "total(p)_coeff")
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.ProbingFuncObjects(RES, currField));
+            }
+
             #endregion Error handling
-
-            GH_Structure<GH_Number> treeDouble = new GH_Structure<GH_Number>();
-            GH_Structure<GH_Vector> treeVector = new GH_Structure<GH_Vector>();
-
-            string OFField = EddyLib.OFField.ReformatOFFields(OFFieldInt);
-            OFField currField = new OFField(OFField, probeNameByUser);
 
             if (numberOfProbes > 0 && meshExists)
             {
@@ -239,7 +252,7 @@ namespace Eddy
 
                         if (!File.Exists(pathToPointFile))
                         {
-                            base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.RTMsg.MeshDoesntExist(pathToPointFile));
+                            base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.MeshDoesntExist(pathToPointFile));
                             return;
                         }
 
@@ -275,6 +288,7 @@ namespace Eddy
                     for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
                     {
                         string currentCaseDir = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i];
+
                         // We must check if this exists before we construct the Probing object
                         string pathToProbeFile = Probing.GetPathToProbedResults(currentCaseDir, currField, RES);
                         if (File.Exists(pathToProbeFile))
@@ -282,25 +296,28 @@ namespace Eddy
                             if (currField.FieldType == EddyLib.OFField.fieldType.vector)
                             {
                                 Probing Vectors = new Probing(listOfPoints, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES);
+
                                 // Create datatree
                                 treeVector.AppendRange(Vectors.ResultVec, new Grasshopper.Kernel.Data.GH_Path(i));
                             }
                             else
                             {
                                 Probing Scalars = new Probing(listOfPoints, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES);
+
                                 // Create datatree
                                 treeDouble.AppendRange(Scalars.ResultScalar, new Grasshopper.Kernel.Data.GH_Path(i));
                             }
                         }
                         else
                         {
-                            base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.RTMsg.FieldDoesntExist(currentCaseDir, currField.ProbeName));
+                            base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.FieldDoesntExist(currentCaseDir, currField));
                         }
                     }
                 }
                 catch (Exception)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, EddyLib.Strings.RTMsg.ParsingFailed());
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, EddyLib.Strings.ReturnMsg.ParsingFailed());
+
                     //throw new System.ArgumentException("Parsing of the probes failed. This data does not exist yet. Please run the probing component.");
                 }
             }
@@ -324,13 +341,13 @@ namespace Eddy
                         int[] IndecesOfExtremeProbes = Probing.ReturnProbeIndicesOutsideDomain(listVecs);
                         if (IndecesOfExtremeProbes.Length > 0)
                         {
-                            AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.RTMsg.PointsOutsideDomain(IndecesOfExtremeProbes));
+                            AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.PointsOutsideDomain(IndecesOfExtremeProbes));
                         }
                     }
                 }
                 catch (Exception)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.RTMsg.PleaseRunProbingComponent());
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.PleaseRunProbingComponent());
                 }
             }
 
@@ -353,6 +370,7 @@ namespace Eddy
         /// need to be 24x24 pixels.
         /// </summary>
         protected override System.Drawing.Bitmap Icon =>
+
                 // You can add image files to your project resources and access them like this:
                 Resources.Eddy_visualProbs;
 

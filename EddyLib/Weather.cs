@@ -10,20 +10,35 @@ namespace EddyLib
         public string epwFilePath;
 
         public double[] DryBulbTemp;
+
         public double[] DewPointTemp;
+
         public double[] RelativeHumidity;
+
         public double[] Pressure;
+
         public double[] WindSpeed;
+
         public int[] WindDirection;
+
         public double[] DirectNormalRadiation;
+
         public double[] DiffuseHorizontalRadiation;
 
+        public double[] SkyCover;
+
         public string Location;
-        double Latitude;
-        double Longitude;
-        double TimeZone;
+
+        private double Latitude;
+
+        private double Longitude;
+
+        private double TimeZone;
+
+        //public string KoeppenZone;
 
         public List<double> SolarElevation = new List<double>();
+
         public List<double> SolarAzi = new List<double>();
 
         // constants that should be dealt with later
@@ -33,7 +48,9 @@ namespace EddyLib
         public double Wst = 30;
 
         public double Hst = 30;
+
         public double BodyA = 0.5;
+
         public double GrRef = 0.2;
 
         public object GH_RuntimeMessageLevel { get; private set; }
@@ -66,8 +83,11 @@ namespace EddyLib
                 this.WindDirection = epwNoHeader.Select(o => Int32.Parse(o.Split(',')[20])).ToArray(); // Wind Direction
                 this.DirectNormalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[14])).ToArray(); // Direct Normal Radiation
                 this.DiffuseHorizontalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[15])).ToArray(); // Diffuse Horizontal Illuminance
-                                                                                                                     //var GlobalHorizontalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[13])); // Global Horizontal Illuminance
-                                                                                                                     //var SkyCover = epwNoHeader.Select(o => Double.Parse(o.Split(',')[22])); // Global Horizontal Illuminance
+
+                //var GlobalHorizontalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[13])); // Global Horizontal Illuminance
+                //var SkyCover = epwNoHeader.Select(o => Double.Parse(o.Split(',')[22])); // Global Horizontal Illuminance
+
+                this.SkyCover = epwNoHeader.Select(o => Double.Parse(o.Split(',')[22])).ToArray(); // SkyCover
 
                 var Yr = epwNoHeader.Select(o => Double.Parse(o.Split(',')[0])).ToArray();
                 var Mo = epwNoHeader.Select(o => Double.Parse(o.Split(',')[1])).ToArray();

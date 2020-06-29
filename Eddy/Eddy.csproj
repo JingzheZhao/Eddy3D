@@ -37,26 +37,30 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Eto, Version=2.5.0.0, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
-      <HintPath>..\packages\RhinoCommon.6.18.19266.14201\lib\net45\Eto.dll</HintPath>
+      <HintPath>..\packages\RhinoCommon.6.26.20147.6511\lib\net45\Eto.dll</HintPath>
     </Reference>
-    <Reference Include="GH_IO, Version=6.18.19266.14200, Culture=neutral, PublicKeyToken=6a29997d2e6b4f97, processorArchitecture=MSIL">
-      <HintPath>..\packages\Grasshopper.6.18.19266.14201\lib\net45\GH_IO.dll</HintPath>
+    <Reference Include="GH_IO, Version=6.26.20147.6510, Culture=neutral, PublicKeyToken=6a29997d2e6b4f97, processorArchitecture=MSIL">
+      <HintPath>..\packages\Grasshopper.6.26.20147.6511\lib\net45\GH_IO.dll</HintPath>
     </Reference>
-    <Reference Include="Grasshopper, Version=6.18.19266.14200, Culture=neutral, PublicKeyToken=dda4f5ec2cd80803, processorArchitecture=MSIL">
-      <HintPath>..\packages\Grasshopper.6.18.19266.14201\lib\net45\Grasshopper.dll</HintPath>
+    <Reference Include="Grasshopper, Version=6.26.20147.6510, Culture=neutral, PublicKeyToken=dda4f5ec2cd80803, processorArchitecture=MSIL">
+      <HintPath>..\packages\Grasshopper.6.26.20147.6511\lib\net45\Grasshopper.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.VisualBasic" />
-    <Reference Include="Rhino.UI, Version=6.18.19266.14200, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
-      <HintPath>..\packages\RhinoCommon.6.18.19266.14201\lib\net45\Rhino.UI.dll</HintPath>
+    <Reference Include="MoreLinq, Version=3.3.2.0, Culture=neutral, PublicKeyToken=384d532d7e88985d, processorArchitecture=MSIL">
+      <HintPath>..\packages\morelinq.3.3.2\lib\net451\MoreLinq.dll</HintPath>
     </Reference>
-    <Reference Include="RhinoCommon, Version=6.18.19266.14200, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
-      <HintPath>..\packages\RhinoCommon.6.18.19266.14201\lib\net45\RhinoCommon.dll</HintPath>
+    <Reference Include="Rhino.UI, Version=6.26.20147.6510, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
+      <HintPath>..\packages\RhinoCommon.6.26.20147.6511\lib\net45\Rhino.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="RhinoCommon, Version=6.26.20147.6510, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
+      <HintPath>..\packages\RhinoCommon.6.26.20147.6511\lib\net45\RhinoCommon.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Management" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Web.Extensions" />
@@ -66,11 +70,15 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\FunctionObjects\CompTree.cs" />
     <Compile Include="Components\Misc\CompLBAnalPeriod2Hours.cs" />
     <Compile Include="Components\Outdoor Comfort\CompCalcWindFactors.cs" />
+    <Compile Include="Components\Outdoor Comfort\CompCalcWindComfort.cs" />
     <Compile Include="Components\Outdoor Comfort\CompDeData.cs" />
     <Compile Include="Components\Outdoor Comfort\CompCalcMRT.cs" />
+    <Compile Include="Components\Outdoor Comfort\Metrics\CompCalcUTCIMetric.cs" />
     <Compile Include="Components\postProcessing\CompParaview.cs" />
+    <Compile Include="Components\postProcessing\CompVisProbesCustom.cs" />
     <Compile Include="Components\Settings\CompRunSettings.cs" />
     <Compile Include="Components\Setup\CompTemplates.cs" />
     <Compile Include="Components\Setup\CompBCondABL.cs" />
@@ -81,7 +89,7 @@
     <Compile Include="Components\postProcessing\CompAnnualCPToCSV.cs" />
     <Compile Include="Components\Misc\CompCellSize.cs" />
     <Compile Include="Components\postProcessing\CompComputeFlowRateFromU.cs" />
-    <Compile Include="Components\postProcessing\CompVisProbesCustom.cs" />
+    <Compile Include="Components\postProcessing\CompCullPoints.cs" />
     <Compile Include="Components\Outdoor Comfort\ReadResults.cs" />
     <Compile Include="Components\Outdoor Comfort\ReadUTCIByProbe.cs" />
     <Compile Include="Components\Outdoor Comfort\ReadComfortHours.cs" />
@@ -212,6 +220,8 @@
     <None Include="Resources\Eddy_calcMRT.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\Eddy_cullPoints.png" />
+    <None Include="Resources\Eddy_trees.png" />
     <None Include="Resources\Eddy3D.png" />
     <None Include="Resources\Eddy3D.bmp" />
     <None Include="Eddy3D.bmp" />
@@ -288,13 +298,13 @@ copy "%25build_eddy%25\Eddy.gha" "%25post_build_ilmerge%25"
     <StartAction>Program</StartAction>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
-  <Import Project="..\packages\RhinoCommon.6.18.19266.14201\build\net45\RhinoCommon.targets" Condition="Exists('..\packages\RhinoCommon.6.18.19266.14201\build\net45\RhinoCommon.targets')" />
+  <Import Project="..\packages\RhinoCommon.6.26.20147.6511\build\net45\RhinoCommon.targets" Condition="Exists('..\packages\RhinoCommon.6.26.20147.6511\build\net45\RhinoCommon.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\RhinoCommon.6.18.19266.14201\build\net45\RhinoCommon.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\RhinoCommon.6.18.19266.14201\build\net45\RhinoCommon.targets'))" />
-    <Error Condition="!Exists('..\packages\Grasshopper.6.18.19266.14201\build\net45\Grasshopper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Grasshopper.6.18.19266.14201\build\net45\Grasshopper.targets'))" />
+    <Error Condition="!Exists('..\packages\RhinoCommon.6.26.20147.6511\build\net45\RhinoCommon.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\RhinoCommon.6.26.20147.6511\build\net45\RhinoCommon.targets'))" />
+    <Error Condition="!Exists('..\packages\Grasshopper.6.26.20147.6511\build\net45\Grasshopper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Grasshopper.6.26.20147.6511\build\net45\Grasshopper.targets'))" />
   </Target>
-  <Import Project="..\packages\Grasshopper.6.18.19266.14201\build\net45\Grasshopper.targets" Condition="Exists('..\packages\Grasshopper.6.18.19266.14201\build\net45\Grasshopper.targets')" />
+  <Import Project="..\packages\Grasshopper.6.26.20147.6511\build\net45\Grasshopper.targets" Condition="Exists('..\packages\Grasshopper.6.26.20147.6511\build\net45\Grasshopper.targets')" />
 </Project>

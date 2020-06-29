@@ -1,9 +1,48 @@
-﻿using System;
-using System.IO;
+﻿using EddyLib.Radiance;
 using Rhino.Geometry;
+using System;
+using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
 
-namespace EddyLib
+namespace EddyLib.OutdoorComfort
 {
+    public class MRTSimulation
+    {
+        // Outputs
+
+        public SkyViewFactor svf;
+
+        public Sky sky;
+
+        public MRT mrt;
+
+        // Inputs
+
+        private OFResult RES; private Weather weather; private Mesh BAG; private Point3d[] probesArr; private MRT.MRTType SimMode; private bool run;
+
+        public MRTSimulation(OFResult RES, Weather weather, Mesh BAG, Point3d[] probesArr, MRT.MRTType SimMode, bool run)
+        {
+            this.RES = RES;
+
+            this.weather = weather;
+            this.BAG = BAG;
+            this.probesArr = probesArr;
+            this.SimMode = SimMode;
+            this.run = run;
+
+            var svf = new SkyViewFactor(RES.WorkingDirectory, BAG, probesArr, run);
+
+            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity, run);
+
+            var mrt = new MRT(RES.WorkingDirectory, RES.Domain.BuildingGeometry, sky, svf, weather, SimMode, probesArr, run);
+
+            this.svf = svf;
+            this.sky = sky;
+            this.mrt = mrt;
+        }
+    }
+
     public class MRT
 
     {
@@ -11,56 +50,109 @@ namespace EddyLib
 
         public enum MRTType
         {
-            kessling,
-            abviewfactor,
+            // daysimkessling,
+
+            RadianceTwoPhaseDDS,
         }
 
         public double[,] Values;
+
         public bool wrongNumberOfProbes;
+
         public bool resultPrecalculated;
 
-        public MRT(string baseWorkingDir, Weather weather, MRTType type, double[][] DiffRad, double[][] DirRad, Point3d[] probes, bool recalc)
+        public double[][] DiffRad;
+
+        public double[][] DirRad;
+
+        public double[][] TotalRad;
+
+        public double[] ViewFactors;
+
+        public double[] SkyTemp;
+
+        public MRT(string baseWorkingDir, Mesh BuildingGeometry, Sky sky, SkyViewFactor vf, Weather weather, MRTType type, Point3d[] probes, bool recalc)
         {
             var csvMRT = baseWorkingDir + @"MRT.csv";
+            var binMRT = baseWorkingDir + @"MRT.bin";
 
-            if (File.Exists(csvMRT) && !recalc)
+            var numberOfProbes = probes.Length;
+
+            #region TwoPhaseDDS
+
+            var difillFile = baseWorkingDir + @"\Output\annual_total.ill";
+            var dirillFile = baseWorkingDir + @"\Output\annual_dir.ill";
+
+            // Add other files here
+            if (recalc == false && File.Exists(binMRT))
             {
-                var temp = RadianceFiles.readCSVFile(csvMRT);
+                // Load radiation datasets [x][] time [][x] points
 
-                if (temp.GetLength(1) == probes.GetLength(0))
+                var tempValues = RadianceFiles.loadBinD(binMRT);
+
+                int sensorPointCountExisting = tempValues.GetLength(1);
+
+                if (sensorPointCountExisting != numberOfProbes)
                 {
-                    this.Values = RadianceFiles.readCSVFile(csvMRT);
-                    this.resultPrecalculated = true;
+                    this.wrongNumberOfProbes = true;
+                    return;
                 }
                 else
                 {
-                    this.wrongNumberOfProbes = true;
-                    this.resultPrecalculated = false;
+                    this.Values = tempValues;
                 }
             }
-            if (recalc)
+            else if (recalc == true)
             {
                 if (File.Exists(csvMRT))
                 {
                     File.Delete(csvMRT);
                 }
+                if (File.Exists(binMRT))
+                {
+                    File.Delete(binMRT);
+                }
 
-                var numberOfProbes = probes.Length;
+                //Utilities.CleanDirectory(baseWorkingDir + @"Rad\");
+                //Utilities.CleanDirectory(baseWorkingDir + @"Output\");
 
-                this.Values = new double[8760, numberOfProbes];
+                EddyLib.Radiance.TwoPhaseDDS dds = new EddyLib.Radiance.TwoPhaseDDS(baseWorkingDir, BuildingGeometry, probes.ToList(), weather, recalc);
+
+                this.SkyTemp = sky.Temp;
+
+                this.ViewFactors = vf.Values;
+
+                int numberOfHours = 8760;
+                int numberOfSensors = probes.Length;
+
+                var DDSTOTAL = dds.totalIll;
+
+                this.Values = new double[numberOfHours, numberOfSensors];
+
+                double sol_trans = 1;
+                double f_bes = 0.5;
 
                 System.Threading.Tasks.Parallel.For(0, 8760, h =>
-                {
-                    for (int p = 0; p < numberOfProbes; p++)
+                 {
+                     for (int p = 0; p < probes.Length; p++)
+                     {
+                         double dMRT;
+                         double ERF;
 
-                        if (type == MRTType.kessling)
-                        {
-                            this.Values[h, p] = GetMRTForPointViaKessling(weather, h, DiffRad[h][p], DirRad[h][p])[0];
-                        }
-                });
+                         SolarGain.ERF(weather.SolarElevation[h], weather.SolarAzi[h], SolarGain.Posture.seating, DDSTOTAL[h][p], sol_trans, ViewFactors[p], f_bes, 0.6, out ERF, out dMRT);
 
-                ArrayHelper._2DArray2CSV(this.Values, csvMRT, true, 1);
+                         var surfaceTempBuilding = weather.DryBulbTemp[h] * (1 - ViewFactors[p]);
+                         var skyTemp = sky.Temp[h] * ViewFactors[p];
+
+                         this.Values[h, p] = surfaceTempBuilding + dMRT + skyTemp;
+                     }
+                 });
+
+                RadianceFiles.writeBin(baseWorkingDir + @"\MRT.bin", this.Values);
+                ArrayHelper._2DArray2CSV(this.Values, baseWorkingDir + @"\MRT.csv", true, 1);
             }
+
+            #endregion TwoPhaseDDS
         }
 
         public static double[] GetMRTForPointViaKessling(Weather weather, int hour, double DiffRad, double DirRad)
@@ -99,32 +191,33 @@ namespace EddyLib
             double T_celsius_kelvin = T_celsius + 273;
 
             double Fs = (Math.Atan(0.5 * Wst / (Hst - 1))) * 180 / Math.PI * 0.0056; // where does this come from?
-                                                                                     // where FiS is
-                                                                                     // the angle
-                                                                                     // factor
-                                                                                     // between the
-                                                                                     // ith internal
-                                                                                     // surface of
-                                                                                     // the envelope
-                                                                                     // and the
-                                                                                     // subject, ei
-                                                                                     // is its
-                                                                                     // emissivity,
-                                                                                     // Ai is the
-                                                                                     // area of the
-                                                                                     // interested
-                                                                                     // surface, Ti
-                                                                                     // the
-                                                                                     // temperature,
-                                                                                     // ri the
-                                                                                     // reflection
-                                                                                     // coefficient
-                                                                                     // of the ith
-                                                                                     // surface and
-                                                                                     // Gi the
-                                                                                     // radiation
-                                                                                     // reaching the
-                                                                                     // ith internal surface.
+
+            // where FiS is
+            // the angle
+            // factor
+            // between the
+            // ith internal
+            // surface of
+            // the envelope
+            // and the
+            // subject, ei
+            // is its
+            // emissivity,
+            // Ai is the
+            // area of the
+            // interested
+            // surface, Ti
+            // the
+            // temperature,
+            // ri the
+            // reflection
+            // coefficient
+            // of the ith
+            // surface and
+            // Gi the
+            // radiation
+            // reaching the
+            // ith internal surface.
             double Fc = 1 - Fs;  // remaining angle factor
 
             double Es = 0.95;  // Emissivities? Why 0.95?

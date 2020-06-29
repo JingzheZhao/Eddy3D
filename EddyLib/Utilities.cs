@@ -1,19 +1,37 @@
-﻿using System;
+﻿using Rhino.Geometry;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
-using Rhino.Geometry;
+using System.Threading.Tasks;
 
 namespace EddyLib
 {
     public static class Utilities
     {
+        // Radiance isn't exactly culture-aware, so we have to make everything here en-US
+        private static readonly CultureInfo eddy3dculture = new CultureInfo("en-US");
+
+        //public static string FormatPointAndNormal(Point3d p, Vector3d n) =>
+        //String.Format(eddy3dculture, "{0:0.###} {1:0.###} {2:0.###} {3:0.###} {4:0.###} {5:0.###}", p.X, p.Y, p.Z, n.X, n.Y, n.Z);
+
+        public static string FormatPV(Point3d p) =>
+        String.Format(eddy3dculture, "{0:0.###} {1:0.###} {2:0.###}", p.X, p.Y, p.Z);
+
+        public static string FormatPV(Vector3d v) =>
+        String.Format(eddy3dculture, "{0:0.###} {1:0.###} {2:0.###}", v.X, v.Y, v.Z);
+
+        public static string FormatDouble(double d) =>
+        String.Format(eddy3dculture, "{0:0.###}", d);
+
         public class StartProcess
         {
             public static void StartProcessCMD(string argument, bool createnowindow, bool waitforexit = false, bool close = false, string executable = @"C:\Windows\System32\cmd.exe")
@@ -39,8 +57,10 @@ namespace EddyLib
                 p.StartInfo.FileName = executable;
                 p.StartInfo.UseShellExecute = false;
                 p.StartInfo.RedirectStandardInput = true;
+
                 //p.StartInfo.RedirectStandardOutput = true;
                 p.StartInfo.CreateNoWindow = createnowindow;
+
                 //p.Start();
 
                 ThreadStart ths = new ThreadStart(() =>
@@ -79,6 +99,7 @@ namespace EddyLib
             public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, string executable = @"C:\Windows\System32\cmd.exe", EventHandler eh = null)
             {
                 System.Diagnostics.Process p = new System.Diagnostics.Process();
+
                 // if(eh!=null) p.Exited += eh;
                 p.StartInfo.FileName = executable;
                 p.StartInfo.UseShellExecute = false;
@@ -86,6 +107,7 @@ namespace EddyLib
 
                 //p.StartInfo.RedirectStandardOutput = true;
                 p.StartInfo.CreateNoWindow = createnowindow;
+
                 //p.Start();
 
                 string theArgument = argument + ((close) ? @"
@@ -122,6 +144,45 @@ exit
 
         public class Directories
         {
+            public static void DeleteDirectory(string path)
+            {
+                foreach (string directory in Directory.GetDirectories(path))
+                {
+                    DeleteDirectory(directory);
+                }
+
+                try
+                {
+                    Directory.Delete(path, true);
+                }
+                catch (IOException)
+                {
+                    Directory.Delete(path, true);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    Directory.Delete(path, true);
+                }
+            }
+
+            public static void RecursiveDelete(DirectoryInfo baseDir)
+            {
+                if (!baseDir.Exists)
+                    return;
+
+                foreach (var dir in baseDir.EnumerateDirectories())
+                {
+                    RecursiveDelete(dir);
+                }
+                var files = baseDir.GetFiles();
+                foreach (var file in files)
+                {
+                    file.IsReadOnly = false;
+                    file.Delete();
+                }
+                baseDir.Delete();
+            }
+
             public static string FixDirectories(string dir)
             {
                 if (!dir.EndsWith(@"\"))
@@ -333,6 +394,7 @@ exit
             {
                 string phiPath = MeshSettings.baseWorkingDir + dir + @"\0\phi";
                 if (File.Exists(phiPath)) { File.Delete(phiPath); }
+
                 //string logPath = MeshSettings.baseWorkingDir + dir + @"\log";
                 //if (File.Exists(logPath)) { File.Delete(logPath); }
             }
@@ -445,6 +507,7 @@ exit
         {
             //Get Operating system information.
             OperatingSystem os = Environment.OSVersion;
+
             //Get version information about the os.
             Version vs = os.Version;
 
@@ -532,6 +595,7 @@ exit
                         break;
                 }
             }
+
             //Make sure we actually got something in our OS check
             //We don't want to just return " Service Pack 2" or " 32-bit"
             //That information is useless without the OS version.
@@ -548,45 +612,105 @@ exit
                 ////Append the OS architecture.  i.e. "Windows XP Service Pack 3 32-bit"
                 ////operatingSystem += " " + getOSArchitecture().ToString() + "-bit";
             }
+
             //Return the information we've gathered.
             return operatingSystem;
         }
 
-        public static List<Point3d> DiscardPoints(List<Point3d> listOfPoints, OFBaseDomain DOM)
+        // We can start using this approach again once this bug is fixed
+        // https://discourse.mcneel.com/t/mesh-ispointinside-bug/64228/10
+
+        //public static List<Point3d> DiscardPoints(List<Point3d> listOfPoints, OFBaseDomain DOM)
+        //{
+        //    double height = DOM.DomainMesh.GetBoundingBox(true).Max.Z - DOM.DomainMesh.GetBoundingBox(true).Min.Z;
+
+        //    List<Point3d> newList = new List<Point3d>();
+
+        //    //for (int i = 0; i < listOfPoints.Count; i++)
+        //    //{
+        //    //TODO: CHECK SPEED AND ROBUSTNESS
+        //    foreach (var pt in listOfPoints)
+        //    {
+        //        if (DOM.DomainMesh.IsPointInside(pt, 0.001, true))
+        //        {
+        //            Point3d pt1 = pt;
+        //            Point3d pt2 = pt + Vector3d.ZAxis * height * 2;
+
+        //            Line l = new Line(pt1, pt2);
+        //            int[] fids;
+        //            var pts = Rhino.Geometry.Intersect.Intersection.MeshLine(DOM.BuildingGeometry, l, out fids);
+        //            if (pts.Length == 0)
+        //            {
+        //                newList.Add(pt);
+        //            }
+        //            else if (pts.Length % 2 == 0)
+        //            {
+        //                newList.Add(pt);
+        //            }
+        //        }
+
+        //        //if (!DOM.BuildingGeometry.IsPointInside(listOfPoints[i], 0.001, true))
+        //        //{
+        //        //    newList.Add(listOfPoints[i]);
+        //        //}
+        //    }
+        //    return newList;
+        //}
+
+        public static List<Point3d> DiscardPoints(List<Point3d> listOfPoints, Mesh BuildingMesh, double tol = 0.5)
         {
-            double height = DOM.DomainMesh.GetBoundingBox(true).Max.Z - DOM.DomainMesh.GetBoundingBox(true).Min.Z;
+            List<double> wns = new List<double>();
 
-            List<Point3d> newList = new List<Point3d>();
+            BuildingMesh.Faces.ConvertQuadsToTriangles();
 
-            //for (int i = 0; i < listOfPoints.Count; i++)
-            //{
-            //TODO: CHECK SPEED AND ROBUSTNESS
-            foreach (var pt in listOfPoints)
+            List<Point3d> outsidePts = new List<Point3d>();
+
+            Parallel.ForEach(listOfPoints, pt =>
             {
-                if (DOM.DomainMesh.IsPointInside(pt, 0.001, true))
-                {
-                    Point3d pt1 = pt;
-                    Point3d pt2 = pt + Vector3d.ZAxis * height * 2;
+                double wn = WindingNumber(BuildingMesh, pt);
 
-                    Line l = new Line(pt1, pt2);
-                    int[] fids;
-                    var pts = Rhino.Geometry.Intersect.Intersection.MeshLine(DOM.BuildingGeometry, l, out fids);
-                    if (pts.Length == 0)
-                    {
-                        newList.Add(pt);
-                    }
-                    else if (pts.Length % 2 == 0)
-                    {
-                        newList.Add(pt);
-                    }
-                }
+                bool gooz = wn <= tol;
 
-                //if (!DOM.BuildingGeometry.IsPointInside(listOfPoints[i], 0.001, true))
-                //{
-                //    newList.Add(listOfPoints[i]);
-                //}
+                //cull pattern
+
+                if (gooz) outsidePts.Add(pt);
             }
-            return newList;
+            );
+
+            return outsidePts;
+        }
+
+        //Lifted from geometry3sharp library
+
+        /// <summary>
+        /// Compute mesh winding number, from Jacobson et al, Robust Inside-Outside Segmentation using Generalized Winding Numbers
+        /// http://igl.ethz.ch/projects/winding-number/
+        /// returns ~0 for points outside a closed, consistently oriented mesh, and a positive or negative integer
+        /// for points inside, with value > 1 depending on how many "times" the point inside the mesh (like in 2D polygon winding)
+        /// </summary>
+        public static double WindingNumber(Mesh mesh, Point3d v)
+        {
+            double sum = 0;
+            foreach (MeshFace face in mesh.Faces)
+                sum += GetTriSolidAngle(mesh, face, v);
+            return sum / (4.0 * Math.PI);
+        }
+
+        public static double GetTriSolidAngle(Mesh mesh, MeshFace face, Point3d p)
+        {
+            int ta = face.A;
+            int tb = face.B;
+            int tc = face.C;
+
+            Vector3d a = new Vector3d(mesh.Vertices[ta].X - p.X, mesh.Vertices[ta].Y - p.Y, mesh.Vertices[ta].Z - p.Z);
+            Vector3d b = new Vector3d(mesh.Vertices[tb].X - p.X, mesh.Vertices[tb].Y - p.Y, mesh.Vertices[tb].Z - p.Z);
+            Vector3d c = new Vector3d(mesh.Vertices[tc].X - p.X, mesh.Vertices[tc].Y - p.Y, mesh.Vertices[tc].Z - p.Z);
+
+            // note: top and bottom are reversed here from formula in the paper? but it doesn't work otherwise...
+            double la = a.Length, lb = b.Length, lc = c.Length;
+            double bottom = (la * lb * lc) + a * b * lc + b * c * la + c * a * lb;
+            double top = a.X * (b.Y * c.Z - c.Y * b.Z) - a.Y * (b.X * c.Z - c.X * b.Z) + a.Z * (b.X * c.Y - c.X * b.Y);
+            return 2.0 * Math.Atan2(top, bottom);
         }
 
         public static void CleanDirectory(string path)
@@ -746,7 +870,7 @@ exit
             }
             else
             {
-                CPU = numberOfCPUsOnMachine - 2;
+                CPU = numberOfCPUsOnMachine - 1;
                 if (CPU < 1)
                 {
                     CPU = 1;
@@ -890,12 +1014,14 @@ exit
         public static List<int> GetFullHoursListFromLB(List<string> LBanalysisList)
         {
             List<int> fullHoursList = new List<int>();
+
             //foreach (string LBobj in LBanalysisList)
             //{
             foreach (int hour in GetEvalHoursFromLB(LBanalysisList))
             {
                 fullHoursList.Add(hour);
             }
+
             //}
             return fullHoursList;
         }
@@ -980,9 +1106,11 @@ exit
 
                         if (m == 2 && d > 27) { continue; }
                         else if ((m == 4 || m == 6 || m == 9 || m == 10) && d > 29) { continue; }
+
                         //
 
                         cnt++;
+
                         // Fill list
 
                         if (m >= month_start && m < month_end && d >= day_start && d < day_end && h >= hour_start && h < hour_end)
@@ -1301,8 +1429,12 @@ renderView1.CameraParallelProjection = 1
         public static bool CheckLicence()
         {
             bool licence = false;
+
             //DateTime dateNow = Utilities.GetNistTime();
-            DateTime dateCompile = new DateTime(2019, 10, 1, 0, 00, 00).ToUniversalTime();
+            // Get the current date.
+            DateTime dateCompile = DateTime.Today;
+
+            //DateTime dateCompile = new DateTime(2020, 10, 1, 0, 00, 00).ToUniversalTime();
             TimeSpan licenceDuration = new TimeSpan(720, 0, 0, 0);
             DateTime expiresAt = dateCompile.Add(licenceDuration);
 
@@ -1615,6 +1747,7 @@ renderView1.CameraParallelProjection = 1
                         return r;
                     }
                 }
+
                 // the nz parts are equal
                 int length1 = end1 - start1;
                 int length2 = end2 - start2;

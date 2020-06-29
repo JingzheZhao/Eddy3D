@@ -14,198 +14,198 @@ namespace CallOC
         {
             //Check licence
 
-            if (Utilities.CheckLicence() == true)
-            {
-                try
-                {
-                    var options = new Options();
-                    if (Parser.Default.ParseArguments(args, options))
-                    {
-                        StringBuilder errorLog = new StringBuilder();
+            //            if (Utilities.CheckLicence() == true)
+            //            {
+            //                try
+            //                {
+            //                    var options = new Options();
+            //                    if (Parser.Default.ParseArguments(args, options))
+            //                    {
+            //                        StringBuilder errorLog = new StringBuilder();
 
-                        int[] debug = new int[2];
-#if DEBUG
+            //                        int[] debug = new int[2];
+            //#if DEBUG
 
-                        for (int i = 0; i < 2; i++)
-                        {
-                            debug[i] = int.Parse(options.Hourandpoint.Split(',')[i]);
-                        }
+            //                        for (int i = 0; i < 2; i++)
+            //                        {
+            //                            debug[i] = int.Parse(options.Hourandpoint.Split(',')[i]);
+            //                        }
 
-                        Console.WriteLine(@"%%% Debug mode is enabled. Make sure to pass a debug option ""hour"" and ""point"" such as -d 12,53.");
+            //                        Console.WriteLine(@"%%% Debug mode is enabled. Make sure to pass a debug option ""hour"" and ""point"" such as -d 12,53.");
 
-                        if (options.Hourandpoint != null)
-                        {
-                            Console.WriteLine("Debugging: {0}", options.Hourandpoint);
-                            errorLog.AppendLine(String.Format("Debugging: {0}", options.Hourandpoint));
-                        }
-#endif
+            //                        if (options.Hourandpoint != null)
+            //                        {
+            //                            Console.WriteLine("Debugging: {0}", options.Hourandpoint);
+            //                            errorLog.AppendLine(String.Format("Debugging: {0}", options.Hourandpoint));
+            //                        }
+            //#endif
 
-                        if (options.Verbose)
-                        {
-                            Console.WriteLine("EPW weather file path: {0}", options.Weather);
-                            errorLog.AppendLine(String.Format("EPW weather file path: {0}", options.Weather));
+            //                        if (options.Verbose)
+            //                        {
+            //                            Console.WriteLine("EPW weather file path: {0}", options.Weather);
+            //                            errorLog.AppendLine(String.Format("EPW weather file path: {0}", options.Weather));
 
-                            Console.WriteLine("Diffuse radiation (ill): {0}", options.DifRad);
-                            errorLog.AppendLine(String.Format("Diffuse radiation (ill): {0}", options.DifRad));
+            //                            Console.WriteLine("Diffuse radiation (ill): {0}", options.DifRad);
+            //                            errorLog.AppendLine(String.Format("Diffuse radiation (ill): {0}", options.DifRad));
 
-                            Console.WriteLine("Direct radiation (ill): {0}", options.DirRad);
-                            errorLog.AppendLine(String.Format("Direct radiation (ill): {0}", options.DirRad));
+            //                            Console.WriteLine("Direct radiation (ill): {0}", options.DirRad);
+            //                            errorLog.AppendLine(String.Format("Direct radiation (ill): {0}", options.DirRad));
 
-                            Console.WriteLine("Wind velocity scaling factors (csv): {0}", options.AnnualVelocityProbes);
-                            errorLog.AppendLine(String.Format("Wind velocity scaling factors (csv): {0}", options.AnnualVelocityProbes));
+            //                            Console.WriteLine("Wind velocity scaling factors (csv): {0}", options.AnnualVelocityProbes);
+            //                            errorLog.AppendLine(String.Format("Wind velocity scaling factors (csv): {0}", options.AnnualVelocityProbes));
 
-                            Console.WriteLine("Working directory: {0}", options.WorkingDir);
-                            errorLog.AppendLine(String.Format("Working directory: {0}", options.WorkingDir));
+            //                            Console.WriteLine("Working directory: {0}", options.WorkingDir);
+            //                            errorLog.AppendLine(String.Format("Working directory: {0}", options.WorkingDir));
 
-                            Console.WriteLine("Wind directions: {0}", options.WindDirs.ToString());
-                            errorLog.AppendLine(String.Format("Wind directions: {0}", options.WindDirs.ToString()));
-                        }
+            //                            Console.WriteLine("Wind directions: {0}", options.WindDirs.ToString());
+            //                            errorLog.AppendLine(String.Format("Wind directions: {0}", options.WindDirs.ToString()));
+            //                        }
 
-                        bool fileMissing = false;
-                        if (!Directory.Exists(options.WorkingDir)) { Console.WriteLine(options.WorkingDir + " not found. Exiting"); fileMissing = true; }
-                        if (!File.Exists(options.Weather) || new FileInfo(options.Weather).Length == 0) { Console.WriteLine(options.Weather + " not found or empty. Exiting"); fileMissing = true; }
-                        if (!File.Exists(options.AnnualVelocityProbes) || new FileInfo(options.AnnualVelocityProbes).Length == 0) { Console.WriteLine(options.AnnualVelocityProbes + " not found or empty. Exiting"); fileMissing = true; }
-                        if (!File.Exists(options.DifRad) || new FileInfo(options.DifRad).Length == 0) { Console.WriteLine(options.DifRad + " not found or empty. Exiting"); fileMissing = true; }
-                        if (!File.Exists(options.DirRad) || new FileInfo(options.DirRad).Length == 0) { Console.WriteLine(options.DirRad + " not found or empty. Exiting"); fileMissing = true; }
-                        if (new FileInfo(options.WorkingDir + @"\Rad\sensors.pts").Length == 0) { Console.WriteLine(options.WorkingDir + @"\Rad\sensors.pts" + " not found or empty. Exiting"); fileMissing = true; }
-                        if (fileMissing == true) { System.Threading.Thread.Sleep(8000); return; }
+            //                        bool fileMissing = false;
+            //                        if (!Directory.Exists(options.WorkingDir)) { Console.WriteLine(options.WorkingDir + " not found. Exiting"); fileMissing = true; }
+            //                        if (!File.Exists(options.Weather) || new FileInfo(options.Weather).Length == 0) { Console.WriteLine(options.Weather + " not found or empty. Exiting"); fileMissing = true; }
+            //                        if (!File.Exists(options.AnnualVelocityProbes) || new FileInfo(options.AnnualVelocityProbes).Length == 0) { Console.WriteLine(options.AnnualVelocityProbes + " not found or empty. Exiting"); fileMissing = true; }
+            //                        if (!File.Exists(options.DifRad) || new FileInfo(options.DifRad).Length == 0) { Console.WriteLine(options.DifRad + " not found or empty. Exiting"); fileMissing = true; }
+            //                        if (!File.Exists(options.DirRad) || new FileInfo(options.DirRad).Length == 0) { Console.WriteLine(options.DirRad + " not found or empty. Exiting"); fileMissing = true; }
+            //                        if (new FileInfo(options.WorkingDir + @"\Rad\sensors.pts").Length == 0) { Console.WriteLine(options.WorkingDir + @"\Rad\sensors.pts" + " not found or empty. Exiting"); fileMissing = true; }
+            //                        if (fileMissing == true) { System.Threading.Thread.Sleep(8000); return; }
 
-                        if (options.WindDirs.Length < 8)
-                        {
-                            //Console.WriteLine(@"Error: You need to simulate at least 8 wind direction, preferrably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
-                            errorLog.AppendLine(@"Warning: You should simulate at least 8 wind direction, preferably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI calculation since the calculation interpolation between the simulated wind directions and the wind direction from the weather file..");
-                            //throw new System.ArgumentException(@"Error: You need to simulate at least 8 wind direction, preferably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
-                        }
+            //                        if (options.WindDirs.Length < 8)
+            //                        {
+            //                            //Console.WriteLine(@"Error: You need to simulate at least 8 wind direction, preferrably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
+            //                            errorLog.AppendLine(@"Warning: You should simulate at least 8 wind direction, preferably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI calculation since the calculation interpolation between the simulated wind directions and the wind direction from the weather file..");
+            //                            //throw new System.ArgumentException(@"Error: You need to simulate at least 8 wind direction, preferably ""0, 45, 90, 135, 180, 225, 270, 315"" to continue with the UTCI interpolation.");
+            //                        }
 
-                        Console.WriteLine("Load weather data...");
+            //                        Console.WriteLine("Load weather data...");
 
-                        Weather weather = new Weather(options.Weather);
+            //                        Weather weather = new Weather(options.Weather);
 
-                        // Load radiation datasets [x][] time [][x] points
+            //                        // Load radiation datasets [x][] time [][x] points
 
-                        Console.WriteLine("Loading: Radiation data...");
+            //                        Console.WriteLine("Loading: Radiation data...");
 
-                        var DiffRad = RadianceFiles.loadILL(options.DifRad);
-                        var DirRad = RadianceFiles.loadILL(options.DirRad);
+            //                        var DiffRad = RadianceFiles.loadILL(options.DifRad);
+            //                        var DirRad = RadianceFiles.loadILL(options.DirRad);
 
-                        var numberOfHours = 8760;
+            //                        var numberOfHours = 8760;
 
-                        int sensorPointCount = DiffRad[0].Length;
+            //                        int sensorPointCount = DiffRad[0].Length;
 
-                        //double[,] conditionOfPerson = new double[8760, sensorPointCount];
+            //                        //double[,] conditionOfPerson = new double[8760, sensorPointCount];
 
-                        Console.WriteLine("Loading: Wind data");
+            //                        Console.WriteLine("Loading: Wind data");
 
-                        //var windDirList = new List<double> { 0, 45, 90, 135, 180, 225, 270, 315 };
-                        //var windDirList = new List<double>();// { 0, 45, 90, 135, 180, 225, 270, 315 };
-                        //List<int> windDirList = options.windDirs;
+            //                        //var windDirList = new List<double> { 0, 45, 90, 135, 180, 225, 270, 315 };
+            //                        //var windDirList = new List<double>();// { 0, 45, 90, 135, 180, 225, 270, 315 };
+            //                        //List<int> windDirList = options.windDirs;
 
-                        var windDirArray = options.WindDirs.Split(',');
-                        List<int> windDirList = new List<int>();
-                        for (int i = 0; i < windDirArray.Length; i++)
-                        {
-                            windDirList.Add(int.Parse(windDirArray[i]));
-                        }
+            //                        var windDirArray = options.WindDirs.Split(',');
+            //                        List<int> windDirList = new List<int>();
+            //                        for (int i = 0; i < windDirArray.Length; i++)
+            //                        {
+            //                            windDirList.Add(int.Parse(windDirArray[i]));
+            //                        }
 
-                        var numberOfWindDirs = windDirList.Count;
+            //                        var numberOfWindDirs = windDirList.Count;
 
-                        // load Reduction data -----------------
+            //                        // load Reduction data -----------------
 
-                        //var ReductionDataCSV = WindFactors.LoadWindReductionArrayFromCSV(options.WindReductionDataPath);
-                        //var windReduction = WindFactors.GetWindReduction(ReductionDataCSV, numberOfHours, windDirList, weather);
+            //                        //var ReductionDataCSV = WindFactors.LoadWindReductionArrayFromCSV(options.WindReductionDataPath);
+            //                        //var windReduction = WindFactors.GetWindReduction(ReductionDataCSV, numberOfHours, windDirList, weather);
 
-                        //// Importing probeHeight from probe file to scale U down to pedestrian level
-                        Console.WriteLine("Parsing height of probes to scale down wind velocity from weather file.");
+            //                        //// Importing probeHeight from probe file to scale U down to pedestrian level
+            //                        Console.WriteLine("Parsing height of probes to scale down wind velocity from weather file.");
 
-                        var probesPath = options.WorkingDir + @"\Rad\sensors.pts";
+            //                        var probesPath = options.WorkingDir + @"\Rad\sensors.pts";
 
-                        double[][] probes = EddyLib.RadianceFiles.readPTS(probesPath);
+            //                        double[][] probes = EddyLib.RadianceFiles.readPTS(probesPath);
 
-                        //var arbitraryProbePoint = new Point3d(probes[0][0], probes[0][1], probes[0][2]);
+            //                        //var arbitraryProbePoint = new Point3d(probes[0][0], probes[0][1], probes[0][2]);
 
-                        //var probingHeight = arbitraryProbePoint.Z;
+            //                        //var probingHeight = arbitraryProbePoint.Z;
 
-                        // Parse ABL data from simulation directory
+            //                        // Parse ABL data from simulation directory
 
-                        double URef = 5;
-                        double zref = 10;
-                        double z0 = 1;
+            //                        double URef = 5;
+            //                        double zref = 10;
+            //                        double z0 = 1;
 
-                        try
-                        {
-                            var filePath = options.WorkingDir + "\\" + windDirList[0] + @"\0.org\ABLConditions";
-                            if (!File.Exists(filePath)) { Console.WriteLine(filePath + " not found. Exiting"); return; }
+            //                        try
+            //                        {
+            //                            var filePath = options.WorkingDir + "\\" + windDirList[0] + @"\0.org\ABLConditions";
+            //                            if (!File.Exists(filePath)) { Console.WriteLine(filePath + " not found. Exiting"); return; }
 
-                            Utilities.ParseABLConditionsFromCaseFolder(filePath, out URef, out z0, out zref);
-                        }
-                        catch (Exception e) { Console.WriteLine(e.Message); return; }
+            //                            Utilities.ParseABLConditionsFromCaseFolder(filePath, out URef, out z0, out zref);
+            //                        }
+            //                        catch (Exception e) { Console.WriteLine(e.Message); return; }
 
-                        BoundaryConditions bcond = new BoundaryConditions(BoundaryType.abl, windDirList, URef, z0, weather.epwFilePath);
+            //                        BoundaryConditions bcond = new BoundaryConditions(BoundaryType.abl, windDirList, URef, z0, weather.epwFilePath);
 
-                        #region Annual Velocities
+            //                        #region Annual Velocities
 
-                        var dirs = Array.ConvertAll(options.WindDirs.Split(','), int.Parse);
-                        var vecs = PedestrianComfort.ReadAnnualVelocitiesFromCSV(options.AnnualVelocityProbes).Item2;
-                        PedestrianComfort av = new PedestrianComfort(dirs, vecs, options.AnnualVelocityProbes, true, true);
+            //                        var dirs = Array.ConvertAll(options.WindDirs.Split(','), int.Parse);
+            //                        var vecs = PedestrianComfort.ReadAnnualVelocitiesFromCSV(options.AnnualVelocityProbes).Item2;
+            //                        PedestrianComfort av = new PedestrianComfort(dirs, vecs, options.AnnualVelocityProbes, true, true);
 
-                        #endregion Annual Velocities
+            //                        #endregion Annual Velocities
 
-                        #region Wind Factors
+            //                        #region Wind Factors
 
-                        EddyLib.PedestrianComfort.PedestrianComfortIdx cmftidx;
-                        cmftidx = PedestrianComfort.PedestrianComfortIdx.NEN8100;
+            //                        EddyLib.PedestrianComfort.PedestrianComfortIdx cmftidx;
+            //                        cmftidx = PedestrianComfort.PedestrianComfortIdx.NEN8100;
 
-                        WindReductionFactors wf = new WindReductionFactors(options.WorkingDir, bcond, weather, av, 1.75, options.Interpolate, true, cmftidx);
+            //                        WindReductionFactors wf = new WindReductionFactors(options.WorkingDir, bcond, weather, av, 1.75, options.Interpolate, true, cmftidx);
 
-                        #endregion Wind Factors
+            //                        #endregion Wind Factors
 
-                        #region MRT
+            //                        #region MRT
 
-                        MRT mrt = new MRT(options.WorkingDir, weather, MRT.MRTType.kessling, DiffRad, DirRad, Utilities.Probes2Point3D(probes), true);
+            //                        MRT mrt = new MRT(options.WorkingDir, weather, MRT.MRTType.daysimkessling, DiffRad, DirRad, Utilities.Probes2Point3D(probes), true);
 
-                        #endregion MRT
+            //                        #endregion MRT
 
-                        #region Calc UTCI
+            //                        #region Calc UTCI
 
-                        Console.WriteLine("Starting UTCI calc...");
+            //                        Console.WriteLine("Starting UTCI calc...");
 
-                        //var bcond = new BoundaryConditions(BoundaryType.constant, new List<int> { 0 }, 5, 1, options.Weather);
+            //                        //var bcond = new BoundaryConditions(BoundaryType.constant, new List<int> { 0 }, 5, 1, options.Weather);
 
-                        double[,] Utci = new double[numberOfHours, sensorPointCount];
-                        UTCI utci = new UTCI(Utilities.Probes2Point3D(probes), wf, weather, mrt, bcond, options.WorkingDir, true);
+            //                        double[,] Utci = new double[numberOfHours, sensorPointCount];
+            //                        UTCI utci = new UTCI(Utilities.Probes2Point3D(probes), wf, weather, mrt, bcond, options.WorkingDir, true);
 
-                        #endregion Calc UTCI
+            //                        #endregion Calc UTCI
 
-                        #region Write UTCI
+            //                        #region Write UTCI
 
-                        Console.WriteLine(Utilities.ConvertComputeTimes(utci.elapsedTime));
+            //                        Console.WriteLine(Utilities.ConvertComputeTimes(utci.elapsedTime));
 
-                        Console.WriteLine("Writing UTCI results...");
+            //                        Console.WriteLine("Writing UTCI results...");
 
-                        //UTCI.UTCI2CSV(options.WorkingDir, utci, options.Verbose, debug, weather, bcond, errorLog, numberOfHours);
+            //                        //UTCI.UTCI2CSV(options.WorkingDir, utci, options.Verbose, debug, weather, bcond, errorLog, numberOfHours);
 
-                        #endregion Write UTCI
+            //                        #endregion Write UTCI
 
-                        Console.WriteLine("Done");
+            //                        Console.WriteLine("Done");
 
-                        // Console.ReadKey();
-                    }
-                    else
-                    {
-                        // Console.WriteLine(options.GetUsage());
-                        System.Threading.Thread.Sleep(5000); return;
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                    System.Threading.Thread.Sleep(5000); return;
-                }
-            }
-            else
-            {
-                Console.WriteLine("The licence for this tool expired.");
-            }
+            //                        // Console.ReadKey();
+            //                    }
+            //                    else
+            //                    {
+            //                        // Console.WriteLine(options.GetUsage());
+            //                        System.Threading.Thread.Sleep(5000); return;
+            //                    }
+            //                }
+            //                catch (Exception e)
+            //                {
+            //                    Console.WriteLine(e.Message);
+            //                    System.Threading.Thread.Sleep(5000); return;
+            //                }
+            //            }
+            //            else
+            //            {
+            //                Console.WriteLine("The licence for this tool expired.");
+            //            }
         }
     }
 }

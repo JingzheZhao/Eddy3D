@@ -17,6 +17,7 @@ namespace EddyLib
         private class ValueCountTuple : IComparable, IComparable<ValueCountTuple>, IEquatable<ValueCountTuple>
         {
             public double Value;
+
             public int Count;
 
             public ValueCountTuple(double value, int count)
@@ -78,13 +79,21 @@ namespace EddyLib
         }
 
         private List<ValueCountTuple> _values;
+
         private int _numValues;
+
         private int _numBreaks;
+
         private int _bufferSize;
+
         private List<double> _previousSSM;
+
         private List<double> _currentSSM;
+
         private int[] _classBreaks;
+
         private int _classBreaksIndex;
+
         private int _completedRows;
 
         /// <summary>
@@ -241,6 +250,7 @@ namespace EddyLib
                 {
                     // complexity: O(n*log(n))
                     CalculateRange(0, _bufferSize, 0, _bufferSize);
+
                     // swap ssm lists
                     var temp = _previousSSM;
                     _previousSSM = _currentSSM;
@@ -261,6 +271,7 @@ namespace EddyLib
             var breaksArray = new List<double>(numBreaks);
             if (numBreaks == 0)
                 return breaksArray;
+
             // avoid array <-> list conversations
             breaksArray.AddRange(Enumerable.Repeat(0.0d, numBreaks));
 

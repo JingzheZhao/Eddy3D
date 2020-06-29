@@ -183,6 +183,16 @@ namespace Eddy.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Eddy_cullPoints {
+            get {
+                object obj = ResourceManager.GetObject("Eddy_cullPoints", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Eddy_decomposeData {
             get {
                 object obj = ResourceManager.GetObject("Eddy_decomposeData", resourceCulture);
@@ -306,6 +316,16 @@ namespace Eddy.Properties {
         internal static System.Drawing.Bitmap Eddy_templates {
             get {
                 object obj = ResourceManager.GetObject("Eddy_templates", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Eddy_trees {
+            get {
+                object obj = ResourceManager.GetObject("Eddy_trees", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

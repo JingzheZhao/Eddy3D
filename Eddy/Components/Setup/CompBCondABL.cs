@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using Eddy.Properties;
+﻿using Eddy.Properties;
 using EddyLib;
+using EddyLib.BCs;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -21,17 +22,13 @@ namespace Eddy
         /// be created.
         /// </summary>
         public BCondABLComp()
-          : base("ABL", "ABL", @"Atmospheric Boundary Layer Boundary Condition
+          : base("ABL Flow", "ABL Flow", @"Atmospheric Boundary Layer Flow Boundary Condition
 
-        Property     | Description                      | Required  | Default
-        flowDir      | Flow direction                   | yes       |
-        zDir         | Vertical direction               | yes       |
-        kappa        | von Karman's constant            | no        | 0.41
-        Cmu          | Turbulence viscosity coefficient | no        | 0.09
-        Uref         | Reference velocity [m/s]         | yes       |
-        Zref         | Reference height [m]             | yes       |
-        z0           | Surface roughness height [m]     | yes       |
-        zGround      | Minimum z-coordinate [m]         | yes       |
+        Property     | Description
+        Uref         | Reference velocity [m/s]
+        Zref         | Reference height [m]
+        z0           | Surface roughness height [m]
+        zGround      | Minimum z-coordinate [m]
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "1 | Setup")
@@ -96,13 +93,25 @@ namespace Eddy
             // Translate dirs > 359 into correct format
             windDir = Utilities.NormalizeWindDirs(windDir);
 
-            BoundaryConditions BCInflow = new BoundaryConditions(BoundaryType.abl, windDir, Uref, zref, z0, zGround, epwFilePath);
+            BoundaryCondition BCInflow = new ABL(windDir, Uref, zref, z0, zGround, epwFilePath);
 
             // Check if anything causes a 0 BC
 
             if (BCInflow.epsilon == 0 || BCInflow.k == 0 || BCInflow.omega == 0)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Something is causing a turbulence boundary condition to be 0, please change the setup of the simulation domain."); return;
+            }
+
+            if (epwFilePath != "" && windDir.Count > 0)
+            {
+                if (BCInflow.WindDirOffSetAverage >= 13)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The average angle offset between simulated wind directions and the weather file is " + Math.Round(BCInflow.WindDirOffSetAverage, 2) + "°.\n You might want to consider changing the input wind directions to better fit the weather file.");
+                }
+                else
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The average angle offset between simulated wind directions and the weather file is " + Math.Round(BCInflow.WindDirOffSetAverage, 2) + "°.");
+                }
             }
 
             DA.SetData(0, BCInflow);
@@ -113,6 +122,7 @@ namespace Eddy
         /// need to be 24x24 pixels.
         /// </summary>
         protected override System.Drawing.Bitmap Icon =>
+
                 // You can add image files to your project resources and access them like this:
                 Resources.Eddy_abl;// return null;
 

@@ -1,8 +1,8 @@
-﻿using System;
-using Eddy.Properties;
+﻿using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
+using System;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -32,6 +32,7 @@ namespace Eddy
             pManager.AddGenericParameter("Simulation Domain", "Dom", "Simulation Domain", GH_ParamAccess.item);
             pManager.AddNumberParameter("Block Size", "BS", "Cell size in meters", GH_ParamAccess.item);
             pManager.AddNumberParameter("Desired CellSize", "DC", "Desired cell size in meters", GH_ParamAccess.item);
+
             //pManager.AddBooleanParameter("", "Run", "Clean the directory", GH_ParamAccess.item, false);
         }
 

@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using EddyLib;
+﻿using EddyLib;
+using EddyLib.BCs;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -32,22 +32,25 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGeometryParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
+
             pManager.AddGeometryParameter("Terrain", "Terrain", "Terrain Geometry. Make sure the terrain geometry is bigger than the ground plane of the wind tunnel.", GH_ParamAccess.list);
-
-            pManager.AddGenericParameter("Boundary Condition", "BCond", "BCond", GH_ParamAccess.item);
-
             pManager[1].Optional = true;
+
+            pManager.AddGenericParameter("Trees", "Trees", "Tree objects.", GH_ParamAccess.list);
             pManager[2].Optional = true;
 
+            pManager.AddGenericParameter("Boundary Condition", "BCond", "Boundary Condition", GH_ParamAccess.item);
+            pManager[3].Optional = true;
+
             pManager.AddNumberParameter("Block size", "BS", "Block size", GH_ParamAccess.item, 20);
+            pManager[4].Optional = true;
 
             pManager.AddNumberParameter("Length", "L", "Length of wind tunnel", GH_ParamAccess.item);
             pManager.AddNumberParameter("Width", "W", "Width of wind tunnel", GH_ParamAccess.item);
             pManager.AddNumberParameter("Height", "H", "Height of wind tunnel", GH_ParamAccess.item);
-
-            pManager[4].Optional = true;
             pManager[5].Optional = true;
             pManager[6].Optional = true;
+            pManager[7].Optional = true;
         }
 
         /// <summary>
@@ -111,15 +114,30 @@ namespace Eddy
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Duplicate Geometries might lead to a crashing simulation. Please find duplicates with ""SelDup"" and remove them.");
             }
 
-            BoundaryConditions bCond = new BoundaryConditions(BoundaryType.abl, new List<int>() { 0 }, 5, 1, ""); // sets default BC settings
+            #region Trees
+
+            List<Tree> trees = new List<Tree>();
+
+            DA.GetDataList("Trees", trees);
+
+            #endregion Trees
+
+            BoundaryCondition bCond;
+
             GH_ObjectWrapper gobj = null;
-            if (DA.GetData("Boundary Condition", ref gobj))
+            if (!DA.GetData("Boundary Condition", ref gobj)) { }
+
+            if ((gobj != null && gobj.Value is ABL))
             {
-                if ((gobj.Value is BoundaryConditions))
-                {
-                    bCond = (BoundaryConditions)gobj.Value;
-                }
-                else { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid boundary condition object"); return; }
+                bCond = (ABL)gobj.Value;
+            }
+            else if ((gobj != null && gobj.Value is ConstU))
+            {
+                bCond = (ConstU)gobj.Value;
+            }
+            else
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid Boundary Condition object"); return;
             }
 
             double blockDimension = 20;
@@ -127,10 +145,6 @@ namespace Eddy
 
             Mesh buildingGeometry = new Mesh();
             MeshingParameters mp = new MeshingParameters();
-
-            //string windowsVersion = Utilities.GetOSInfo();
-            //bool isWindows7 = Utilities.IsWindows7;
-            string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
             double width = 0;
             double length = 0;
@@ -193,16 +207,21 @@ namespace Eddy
                 }
             }
 
+            // For radiation simulation
+
+            buildingGeometry.UserDictionary.Set("type", "Building");
+            terrainMeshes.UserDictionary.Set("type", "Ground");
+
             // Check if lowest point in Domain is z_low < 0, then we cannot use a ABL
 
-            if (buildingGeometry.GetBoundingBox(true).Min.Z < 0 && bCond.btype == BoundaryType.abl)
+            if (buildingGeometry.GetBoundingBox(true).Min.Z < 0 && bCond is ABL)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "If your simulation domain extends below z = 0, you cannot use an ABL Boundary Condition. Please use the Constant U Boundary Condition."); return;
             }
 
             if (Utilities.CheckLicence() == true)
             {
-                OFBoxDomain DOMBOX = new OFBoxDomain(buildingGeometry, terrainMeshes, bCond, blockDimension, length, width, height);
+                OFBoxDomain DOMBOX = new OFBoxDomain(buildingGeometry, terrainMeshes, bCond, blockDimension, length, width, height, trees);
 
                 FillWindDirRenderList(bCond, DOMBOX);
 
@@ -233,6 +252,7 @@ namespace Eddy
         /// need to be 24x24 pixels.
         /// </summary>
         protected override System.Drawing.Bitmap Icon =>
+
                 // You can add image files to your project resources and access them like this:
                 //return Resources.IconForThisComponent;
                 Properties.Resources.Eddy_domainBox;
@@ -244,9 +264,10 @@ namespace Eddy
         public override Guid ComponentGuid => new Guid("{0AD4BDF7-33AC-492D-ABF0-622A5488C8E2}");
 
         private List<Point3d> _pointWindDirRender;
+
         private List<Vector3d> _vecsWindDirRender;
 
-        private void FillWindDirRenderList(BoundaryConditions bCond, OFBoxDomain DOM)
+        private void FillWindDirRenderList(BoundaryCondition bCond, OFBoxDomain DOM)
         {
             //clear
             _pointWindDirRender = new List<Point3d>();

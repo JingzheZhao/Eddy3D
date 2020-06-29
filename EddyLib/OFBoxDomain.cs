@@ -1,8 +1,9 @@
-﻿using System;
+﻿using EddyLib.BCs;
+using Rhino.Geometry;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
-using Rhino.Geometry;
 
 namespace EddyLib
 {
@@ -12,22 +13,31 @@ namespace EddyLib
         public double width;
 
         public double length;
+
         public double height;
 
         public double Length_BBox;
+
         public double Width_BBox;
+
         public double Height_BBox;
 
         public double Width_SBox;
+
         public double Length_SBox;
+
         public double Height_SBox;
 
         public int CellsAlongWidth;
+
         public int CellsAlongLength;
+
         public int CellsAlongHeight;
 
         public Mesh DomainMeshGround;
+
         public Mesh DomainMeshGroundPerim;
+
         public Box SBox;
 
         //public Mesh BoxWithDivs;
@@ -38,7 +48,7 @@ namespace EddyLib
 
         public double test;
 
-        public OFBoxDomain(Mesh BuildingGeometry, Mesh terrainMesh, BoundaryConditions BCond, double blockDimension, double length = 0, double width = 0, double height = 0)
+        public OFBoxDomain(Mesh BuildingGeometry, Mesh terrainMesh, BoundaryCondition BCond, double blockDimension, double length = 0, double width = 0, double height = 0, List<Tree> Trees = null)
         {
             this.BCond = BCond;
             this.BuildingGeometry = BuildingGeometry;
@@ -203,6 +213,7 @@ namespace EddyLib
             else
             {
                 double tolerance = 0.01;
+
                 // Create ground meshes
 
                 MeshingParameters mpGround = MeshingParameters.Default;
@@ -214,16 +225,16 @@ namespace EddyLib
 
                 // 4 Surrounding Ground Meshes
 
-                IEnumerable<Point3d> p2 = new List<Point3d> { P0, P1, corners[0], corners[1], P0 };
+                IEnumerable<Point3d> p2 = new List<Point3d> { P0, corners[0], corners[1], P1, P0 };
                 var plg2 = new Rhino.Geometry.Polyline(p2);
 
-                IEnumerable<Point3d> p3 = new List<Point3d> { P0, corners[1], corners[2], P3, P0 };
+                IEnumerable<Point3d> p3 = new List<Point3d> { P1, corners[1], corners[2], P2, P1 };
                 var plg3 = new Rhino.Geometry.Polyline(p3);
 
-                IEnumerable<Point3d> p4 = new List<Point3d> { P2, P3, corners[2], corners[3], P2 };
+                IEnumerable<Point3d> p4 = new List<Point3d> { P2, corners[2], corners[3], P3, P2 };
                 var plg4 = new Rhino.Geometry.Polyline(p4);
 
-                IEnumerable<Point3d> p5 = new List<Point3d> { corners[3], corners[0], P1, P2, corners[3] };
+                IEnumerable<Point3d> p5 = new List<Point3d> { P3, corners[3], corners[0], P0, P3, };
                 var plg5 = new Rhino.Geometry.Polyline(p5);
 
                 DomainMeshGroundPerim = new Mesh();
@@ -247,17 +258,18 @@ namespace EddyLib
 
             IEnumerable<Mesh> first = new List<Mesh>() { DomainMesh };
             IEnumerable<Mesh> second = new List<Mesh>() { TerrainMesh };
-            this.DomainMeshIntersection = Mesh.CreateBooleanIntersection(first, second);
+            this.DomainMeshIntersection = Mesh.CreateBooleanDifference(second, first);
 
-            // Set up BCs
-            if (BCond.btype == EddyLib.BoundaryType.constant)
-            {
-                BCond.SetUatBuildingHeightUconst();
-            }
-            if (BCond.btype == EddyLib.BoundaryType.abl)
-            {
-                BCond.SetUatBuildingHeightABL(MaxHeightBuilding);
-            }
+            base.BCond = BCond;
+
+            PressureCoeff BCondCP = new PressureCoeff(MaxHeightBuilding, BCond);
+            BCondCP.SetUatBuildingHeight(MaxHeightBuilding, BCond);
+
+            #region Trees
+
+            this.Trees = Trees;
+
+            #endregion Trees
 
             ToString();
         }
