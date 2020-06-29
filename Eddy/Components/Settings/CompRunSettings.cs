@@ -88,7 +88,7 @@ namespace Eddy
             pManager.AddBooleanParameter("potentialFoam initialization", "potFoam", "Initialization with potentialFoam. Solves for the velocity potential to provide velocity and incompressible flux fields, typically used to initialise viscous calculations.", GH_ParamAccess.item, false);
 
             //7
-            pManager.AddBooleanParameter("Age of air", "AoA", "Evaluate age of air throughout the simulation domain. This has to be turned on before the simulation is started, otherwise the simulation will not find the approriate boundary conditions.", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Age of air", "AoA", "Evaluate age of air throughout the entire simulation domain. This has to be turned on before the simulation is started, otherwise the simulation will not find the approriate boundary conditions.", GH_ParamAccess.item, false);
 
             //8
             pManager.AddIntegerParameter("Number of CPUs", "CPUs", "Number of CPUs. Set to -1 to set the number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
@@ -251,7 +251,7 @@ namespace Eddy
                 turbModel = turbmodel,
                 relaxationFactors = relaxationFactors,
                 potentialFoamInit = _potentialFoamInit,
-                aoa = _aoa
+                aoa_domain = _aoa
 
                 //renumberMesh = _renumberMesh
             };

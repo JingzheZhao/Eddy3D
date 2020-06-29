@@ -19,37 +19,37 @@ namespace Eddy
 {
     public class CompVisProbesCustom : GH_Component
     {
-        protected override void AppendAdditionalComponentMenuItems(System.Windows.Forms.ToolStripDropDown menu)
-        {
-            base.AppendAdditionalComponentMenuItems(menu);
-            Menu_AppendItem(menu, "No Culling of Probing Points", Menu_DoClick, true, !Culling);
-        }
+        //protected override void AppendAdditionalComponentMenuItems(System.Windows.Forms.ToolStripDropDown menu)
+        //{
+        //    base.AppendAdditionalComponentMenuItems(menu);
+        //    Menu_AppendItem(menu, "No Culling of Probing Points", Menu_DoClick, true, !Culling);
+        //}
 
-        private void Menu_DoClick(object sender, EventArgs e)
-        {
-            Culling = !Culling;
-            ExpireSolution(true);
-        }
+        //private void Menu_DoClick(object sender, EventArgs e)
+        //{
+        //    Culling = !Culling;
+        //    ExpireSolution(true);
+        //}
 
-        public bool Culling = false;
+        //public bool Culling = false;
 
-        public override bool Write(GH_IO.Serialization.GH_IWriter writer)
-        {
-            // First add our own field.
-            writer.SetBoolean("Culling", Culling);
+        //public override bool Write(GH_IO.Serialization.GH_IWriter writer)
+        //{
+        //    // First add our own field.
+        //    writer.SetBoolean("Culling", Culling);
 
-            // Then call the base class implementation.
-            return base.Write(writer);
-        }
+        //    // Then call the base class implementation.
+        //    return base.Write(writer);
+        //}
 
-        public override bool Read(GH_IO.Serialization.GH_IReader reader)
-        {
-            // First read our own field.
-            Culling = reader.GetBoolean("Culling");
+        //public override bool Read(GH_IO.Serialization.GH_IReader reader)
+        //{
+        //    // First read our own field.
+        //    Culling = reader.GetBoolean("Culling");
 
-            // Then call the base class implementation.
-            return base.Read(reader);
-        }
+        //    // Then call the base class implementation.
+        //    return base.Read(reader);
+        //}
 
         /// <summary>
         /// Each implementation of GH_Component must provide a public constructor without any
@@ -126,8 +126,8 @@ namespace Eddy
             #region Load Inputs
 
             // mode to select simulation environment
-            if (Culling) { Message = "Cull Points"; }
-            else { Message = "No Culling"; }
+            //if (Culling) { Message = "Cull Points"; }
+            //else { Message = "No Culling"; }
 
             OFResult RES = null;
             DA.GetData(0, ref RES);
@@ -153,10 +153,10 @@ namespace Eddy
             }
 
             //Discard points outside
-            if (Culling)
-            {
-                listOfPoints = Utilities.DiscardPoints(listOfPoints, RES.Domain.BuildingGeometry);
-            }
+            //if (Culling)
+            //{
+            //    listOfPoints = Utilities.DiscardPoints(listOfPoints, RES.Domain.BuildingGeometry);
+            //}
 
             int numberOfProbes = listOfPoints.Count();
 

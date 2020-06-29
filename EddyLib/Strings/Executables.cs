@@ -693,7 +693,7 @@ libs
 
             //if (topologies != null) {
             sb.Append(EddyLib.Strings.OFExecDicts.FunctionObjCP(DOM, RunSettings, topologies, numberOfTopologies).ToString());
-            if (RunSettings.aoa == true) { sb.Append(EddyLib.Strings.OFExecDicts.FunctionObjAOA().ToString()); }
+            if (RunSettings.aoa_domain == true) { sb.Append(EddyLib.Strings.OFExecDicts.FunctionObjAOA().ToString()); }
 
             //}
             sb.AppendLine(@"};");

@@ -67,7 +67,7 @@ namespace EddyLib
 
         public bool potentialFoamInit;
 
-        public bool aoa;
+        public bool aoa_domain;
 
         //public bool renumberMesh;
         public int iter;
@@ -119,7 +119,7 @@ namespace EddyLib
             this.WindowsGnuplotInstalled = CheckIfWinGnuplotISInstalled();
             this.IdenticalMPI = CheckForProperMPIVersions(BlueCFDIsInstalled, Is64BitOS);
             this.potentialFoamInit = potentialFoamInit;
-            this.aoa = aoa;
+            this.aoa_domain = aoa;
 
             // this.renumberMesh = renumberMesh;
         }
@@ -140,7 +140,7 @@ potentialFoam initialization = {9}
 age of air = {10}"
 
 //Renumber Mesh = {11}"
-, iter.ToString(), writeInterval.ToString(), keepTimeSteps.ToString(), schemes.ToString(), turbModel.ToString(), CPUs.ToString(), simEngine.ToString(), ostype.ToString(), relaxationFactors.ToString(), potentialFoamInit.ToString(), aoa.ToString()
+, iter.ToString(), writeInterval.ToString(), keepTimeSteps.ToString(), schemes.ToString(), turbModel.ToString(), CPUs.ToString(), simEngine.ToString(), ostype.ToString(), relaxationFactors.ToString(), potentialFoamInit.ToString(), aoa_domain.ToString()
 
 //, renumberMesh.ToString()
 );

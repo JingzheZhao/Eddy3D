@@ -225,16 +225,16 @@ namespace EddyLib
 
                 // 4 Surrounding Ground Meshes
 
-                IEnumerable<Point3d> p2 = new List<Point3d> { P0, P1, corners[0], corners[1], P0 };
+                IEnumerable<Point3d> p2 = new List<Point3d> { P0, corners[0], corners[1], P1, P0 };
                 var plg2 = new Rhino.Geometry.Polyline(p2);
 
-                IEnumerable<Point3d> p3 = new List<Point3d> { P0, corners[1], corners[2], P3, P0 };
+                IEnumerable<Point3d> p3 = new List<Point3d> { P1, corners[1], corners[2], P2, P1 };
                 var plg3 = new Rhino.Geometry.Polyline(p3);
 
-                IEnumerable<Point3d> p4 = new List<Point3d> { P2, P3, corners[2], corners[3], P2 };
+                IEnumerable<Point3d> p4 = new List<Point3d> { P2, corners[2], corners[3], P3, P2 };
                 var plg4 = new Rhino.Geometry.Polyline(p4);
 
-                IEnumerable<Point3d> p5 = new List<Point3d> { corners[3], corners[0], P1, P2, corners[3] };
+                IEnumerable<Point3d> p5 = new List<Point3d> { P3, corners[3], corners[0], P0, P3, };
                 var plg5 = new Rhino.Geometry.Polyline(p5);
 
                 DomainMeshGroundPerim = new Mesh();

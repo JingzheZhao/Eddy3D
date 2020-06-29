@@ -86,7 +86,7 @@
     <Compile Include="Tests\Test.OutdoorComfort.cs" />
     <Compile Include="Tests\XunitTestInitFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tests\Test.CylDomain.cs" />
+    <Compile Include="Tests\Test.OFDomain.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
