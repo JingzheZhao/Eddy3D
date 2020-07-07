@@ -40,7 +40,7 @@ namespace EddyLib.Strings
 
             for (int i = 0; i < IndecesOfExtremeProbes.Length; i++)
             {
-                sb.Append(IndecesOfExtremeProbes.ToString() + " ,");
+                sb.Append(IndecesOfExtremeProbes[i].ToString() + ", ");
 
                 if (i == 10)
                 {
