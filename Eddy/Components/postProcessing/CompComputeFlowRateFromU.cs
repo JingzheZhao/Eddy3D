@@ -22,7 +22,7 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompComputeFlowRateFromU()
-          : base("Flow Rates", "Flow Rates", "Compute flow rates from velocity probes" + EddyVersion.toString(),
+          : base("Flow Rates", "Flow Rates", "Compute flow rates across a mesh while treating its vertices as velocity probes." + EddyVersion.toString(),
               EddyVersion.Name, "5 | PostProcessing")
         {
         }
@@ -33,10 +33,10 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             //pManager.AddGenericParameter("Sim", "Sim", "Sim", GH_ParamAccess.item);
-            pManager.AddVectorParameter("Velocity vectors", "U", "List of velocity vectors.", GH_ParamAccess.list);
+            pManager.AddVectorParameter("Velocity vectors", "U", "List of velocity vectors that correspond the the vertices of a mesh.", GH_ParamAccess.list);
 
             //pManager.AddGenericParameter("Area", "Area", "Area to be evaluated.", GH_ParamAccess.item);
-            pManager.AddMeshParameter("Mesh", "Mesh", "Mesh surface to be evaluated.", GH_ParamAccess.item);
+            pManager.AddMeshParameter("Mesh", "Mesh", "Mesh with vertices are to be evaluated.", GH_ParamAccess.item);
 
             //pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item, false);
         }
@@ -47,9 +47,9 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             //pManager.AddGenericParameter("Points", "Points", "Points", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Result", "Res", "Result: Volumetric flow rate in m^3/s.", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Min", "Min", "Minimum value in m/s", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Max", "Max", "Maximum value in m/s", GH_ParamAccess.item);
+            pManager.AddNumberParameter("FlowRates", "FlowRates", "Volumetric flow rates of mesh faces in m^3/s.", GH_ParamAccess.list);
+            pManager.AddPointParameter("Centers", "Centers", "Centers of the mesh faces", GH_ParamAccess.list);
+            pManager.AddVectorParameter("FlowDirs", "FlowDirs", "FlowDirs ", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -61,79 +61,69 @@ namespace Eddy
         /// </param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            //OFBaseDomain DOM = null;
+            var m = new Mesh();
 
-            //GH_ObjectWrapper gobj = null;
-            //if (!DA.GetData(0, ref gobj)) { }
+            DA.GetData(1, ref m);
 
-            //if ((gobj.Value is OFBaseDomain))
-            //{
-            //    DOM = (OFBaseDomain)gobj.Value;
-            //}
-            //if (DOM == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please pass a valid domain object"); return; }
-
-            var mesh = new Mesh();
-
-            DA.GetData(1, ref mesh);
-
-            StringBuilder errorLog = new StringBuilder();
-
-            var listInputVelocities = new List<Vector3d>();
-            var ArrayInputVelocities = new Vector3d[listInputVelocities.Count];
-            DA.GetDataList(0, listInputVelocities);
-
-            double AverageFlowRate = 0;
-            double Min = 0;
-            double Max = 0;
-            var Magnitudes = new List<double>();
-            double VolumetricFlowRate = 0.0;
+            List<Vector3d> U = new List<Vector3d>();
 
             try
             {
-                double Area = 0;
+                DA.GetDataList(0, U);
 
-                for (int i = 0; i < mesh.Faces.Count; i++)
+                var faces = m.Faces;
+                var faceNormals = m.FaceNormals;
+
+                var flowRates = new double[m.Faces.Count];
+                var florDirs = new Vector3d[m.Faces.Count];
+                var meshFaceCenters = new Point3d[m.Faces.Count];
+
+                m.FaceNormals.ComputeFaceNormals();
+
+                for (int mf_id = 0; mf_id < m.Faces.Count; mf_id++)
                 {
-                    Area += (Utilities.MeshFaceArea(i, mesh));
+                    //get points into a nice, concise format
+
+                    Point3d[] pts = new Point3d[4];
+                    pts[0] = m.Vertices[m.Faces[mf_id].A];
+                    pts[1] = m.Vertices[m.Faces[mf_id].B];
+                    pts[2] = m.Vertices[m.Faces[mf_id].C];
+                    if (m.Faces[mf_id].IsQuad)
+                    {
+                        pts[3] = m.Vertices[m.Faces[mf_id].D];
+                    }
+
+                    var avgVec = new Vector3d();
+                    var center = new Point3d();
+
+                    if (m.Faces[mf_id].IsQuad)
+                    {
+                        avgVec = Utilities.AverageVectors(new List<Vector3d>() { U[m.Faces[mf_id].A], U[m.Faces[mf_id].B], U[m.Faces[mf_id].C], U[m.Faces[mf_id].D] });
+                        center = Utilities.AveragePoints(new List<Point3d>() { pts[0], pts[1], pts[2], pts[3] });
+                    }
+                    else
+                    {
+                        avgVec = Utilities.AverageVectors(new List<Vector3d>() { U[m.Faces[mf_id].A], U[m.Faces[mf_id].B], U[m.Faces[mf_id].C] });
+                        center = Utilities.AveragePoints(new List<Point3d>() { pts[0], pts[1], pts[2] });
+                    }
+                    string error = "";
+
+                    var angleBetween = Vector3d.VectorAngle(avgVec, m.FaceNormals[mf_id]);
+
+                    meshFaceCenters[mf_id] = center;
+
+                    flowRates[mf_id] = Utilities.MeshFaceArea(mf_id, m) * Math.Cos(angleBetween) * avgVec.Length;
+                    florDirs[mf_id] = avgVec;
                 }
 
-                DA.GetDataList(0, listInputVelocities);
-
-                int cnt = 0;
-
-                // Clean input
-
-                //Build array
-
-                //for (int i= 0; i< listInputVelocities.Count; i++)
-                //{
-                //    ArrayInputVelocities[i] = listInputVelocities[i];
-                //}
-
-                //var cleanedVelocities = Utilities.FilterExtremeVectorLengths(ArrayInputVelocities);
-                //var cleanedVelocities = ArrayInputVelocities;
-
-                // Compute average flow rate for all probes
-
-                foreach (Vector3d U in listInputVelocities)
-                {
-                    AverageFlowRate += U.Length;
-                    Magnitudes.Add(U.Length);
-                    cnt++;
-                }
-
-                AverageFlowRate = AverageFlowRate / cnt; // m/s
-
-                VolumetricFlowRate = AverageFlowRate * Area;
-
-                Min = Magnitudes.Any() ? Magnitudes.Min(x => x) : 0;
-                Max = Magnitudes.Any() ? Magnitudes.Max(x => x) : 0;
+                DA.SetDataList(0, flowRates);
+                DA.SetDataList(1, meshFaceCenters);
+                DA.SetDataList(2, florDirs);
             }
-            catch (Exception e) { Console.WriteLine(e.Message); };// File.WriteAllText(RES.WorkingDirectoryectory + @"\FlowRate.err", errorLog.ToString()); return; }
-
-            DA.SetData(0, VolumetricFlowRate);
-            DA.SetData(1, Min);
-            DA.SetData(2, Max);
+            catch
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Something went wrong.");
+            }
         }
 
         /// <summary>
