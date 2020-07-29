@@ -2060,7 +2060,6 @@ SIMPLE
     {
 		p               1e-4;
         U               1e-3;
-        h               1e-3;
     }
 
     nNonOrthogonalCorrectors 0;
