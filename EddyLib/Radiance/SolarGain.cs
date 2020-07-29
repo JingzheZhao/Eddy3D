@@ -84,8 +84,7 @@ namespace EddyLib.Radiance
 
             var fp = Get_fp(alt, az, posture);
 
-            var feff = 0.0;
-
+            double feff;
             if (posture == Posture.standing || posture == Posture.supine)
             {
                 feff = 0.725;

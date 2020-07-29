@@ -227,7 +227,7 @@ namespace Eddy
             int threshold = 5000;
             if (listOfPoints.Count > threshold)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Probing more than " + threshold + " points may slow things down considerably.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Probing more than " + threshold + " points may slow Grasshopper down considerably.");
             }
 
             if (RES.RunSettings.writeInterval > 1 && currField.FieldName == "total(p)_coeff")

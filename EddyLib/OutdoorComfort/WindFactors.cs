@@ -248,6 +248,24 @@ namespace EddyLib.OutdoorComfort
 
             int cnt = 0;
 
+            // cast outside of loop
+
+            
+            if (bcond is ABL)
+            {
+                ABL casted_bc = (ABL)bcond;
+               
+            }
+            else
+            {
+                ConstU casted_bc = (ConstU)bcond;
+
+                // assume a zref of 10;
+                velEPWAtProbingHeight = BoundaryCondition.ScaleABL(weather.WindSpeed[h], 10, bcond.z0, probes[p].Z);
+            }
+
+
+
             #region progressbar
 
             using (var progress = new ASCIIProgressBar())
