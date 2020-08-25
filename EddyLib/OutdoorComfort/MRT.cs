@@ -33,7 +33,7 @@ namespace EddyLib.OutdoorComfort
 
             var svf = new SkyViewFactor(RES.WorkingDirectory, BAG, probesArr, run);
 
-            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity, run);
+            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.TotalSkyCover, weather.RelativeHumidity, run, Sky.CalculationType.DefaultClarkAllen);
 
             var mrt = new MRT(RES.WorkingDirectory, RES.Domain.BuildingGeometry, sky, svf, weather, SimMode, probesArr, run);
 

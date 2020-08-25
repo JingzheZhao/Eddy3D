@@ -1094,8 +1094,6 @@ exit
 
             int cnt = 0;
 
-            int hours = hour_end - hour_start;
-
             for (int m = 0; m < 12; m++) // 0-11
             {
                 for (int d = 0; d < 31; d++) // 0-30

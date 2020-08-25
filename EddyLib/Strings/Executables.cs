@@ -1178,6 +1178,7 @@ divSchemes
     div(phi,omega)  bounded Gauss upwind;
 	div(phi,epsilon) bounded Gauss upwind;
     div(phi,aoa)    bounded Gauss upwind;
+    div(U)          bounded Gauss upwind;
 }
 
 laplacianSchemes
