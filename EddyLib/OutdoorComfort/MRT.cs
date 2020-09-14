@@ -33,7 +33,7 @@ namespace EddyLib.OutdoorComfort
 
             var svf = new SkyViewFactor(RES.WorkingDirectory, BAG, probesArr, run);
 
-            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.SkyCover, weather.RelativeHumidity, run);
+            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.TotalSkyCover, weather.RelativeHumidity, run, Sky.CalculationType.DefaultClarkAllen);
 
             var mrt = new MRT(RES.WorkingDirectory, RES.Domain.BuildingGeometry, sky, svf, weather, SimMode, probesArr, run);
 
@@ -139,7 +139,7 @@ namespace EddyLib.OutdoorComfort
                          double dMRT;
                          double ERF;
 
-                         SolarGain.ERF(weather.SolarElevation[h], weather.SolarAzi[h], SolarGain.Posture.seating, DDSTOTAL[h][p], sol_trans, ViewFactors[p], f_bes, 0.6, out ERF, out dMRT);
+                         SolarGain.ERF(weather.SolarElevation[h], weather.SolarAzi[h], SolarGain.Posture.standing, DDSTOTAL[h][p], sol_trans, ViewFactors[p], f_bes, 0.6, out ERF, out dMRT);
 
                          var surfaceTempBuilding = weather.DryBulbTemp[h] * (1 - ViewFactors[p]);
                          var skyTemp = sky.Temp[h] * ViewFactors[p];

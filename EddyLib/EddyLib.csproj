@@ -192,18 +192,18 @@ echo ""
 
 copy "%25build_eddy%25\Eddy.gha" "%25post_build_ilmerge%25"
 
-copy "%25build_calloc%25\CallOC.exe" "%25post_build_ilmerge%25"
+REM copy "%25build_calloc%25\CallOC.exe" "%25post_build_ilmerge%25"
 copy "%25build_batchrunner%25\CallBatchRunner.exe" "%25post_build_ilmerge%25"
-copy "%25build_callprobes%25\CallProbes.exe" "%25post_build_ilmerge%25"
-copy "%25build_callray%25\CallRay.exe" "%25post_build_ilmerge%25"
-copy "%25build_callof%25\CallOF.exe" "%25post_build_ilmerge%25"
+REM copy "%25build_callprobes%25\CallProbes.exe" "%25post_build_ilmerge%25"
+REM copy "%25build_callray%25\CallRay.exe" "%25post_build_ilmerge%25"
+REM copy "%25build_callof%25\CallOF.exe" "%25post_build_ilmerge%25"
 
 
-copy "%25build_calloc%25\CallOC.exe" "%25post_build_dotfuscated%25"
+REM copy "%25build_calloc%25\CallOC.exe" "%25post_build_dotfuscated%25"
 copy "%25build_batchrunner%25\CallBatchRunner.exe" "%25post_build_dotfuscated%25"
-copy "%25build_callprobes%25\CallProbes.exe" "%25post_build_dotfuscated%25"
-copy "%25build_callray%25\CallRay.exe" "%25post_build_dotfuscated%25"
-copy "%25build_callof%25\CallOF.exe" "%25post_build_dotfuscated%25"
+REM copy "%25build_callprobes%25\CallProbes.exe" "%25post_build_dotfuscated%25"
+REM copy "%25build_callray%25\CallRay.exe" "%25post_build_dotfuscated%25"
+REM copy "%25build_callof%25\CallOF.exe" "%25post_build_dotfuscated%25"
 
 
 

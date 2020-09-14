@@ -134,11 +134,11 @@ namespace Eddy
             GH_ObjectWrapper gobj = null;
             if (!DA.GetData("Boundary Condition", ref gobj)) { }
 
-            if ((gobj.Value is ABL))
+            if ((gobj != null && gobj.Value is ABL))
             {
                 bCond = (ABL)gobj.Value;
             }
-            else if ((gobj.Value is ConstU))
+            else if ((gobj != null && gobj.Value is ConstU))
             {
                 bCond = (ConstU)gobj.Value;
             }

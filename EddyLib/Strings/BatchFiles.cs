@@ -669,7 +669,8 @@ namespace EddyLib.Strings
             {
                 sb.AppendLine(@"call """ + MeshSettings.baseWorkingDir + i + @"_run_sim.bat""");
             }
-            sb.AppendLine(@"call """ + MeshSettings.baseWorkingDir + @"run_ray.bat""");
+
+            //sb.AppendLine(@"call """ + MeshSettings.baseWorkingDir + @"run_ray.bat""");
             sb.AppendLine(@"call """ + MeshSettings.baseWorkingDir + @"run_probes.bat""");
             sb.AppendLine(@"call """ + MeshSettings.baseWorkingDir + @"run_utci.bat""");
 #if DEBUG

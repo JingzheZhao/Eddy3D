@@ -7,7 +7,8 @@ namespace EddyLib.Radiance
     public class Sky
 
     {
-        private double Sigma = 5.670374419e-8;
+        //Real64 const Sigma(5.6697e-8); // Stefan-Boltzmann constant; Taken from E+
+        private readonly double Sigma = 5.6697e-8;
 
         public double[] Emissivity;
 
@@ -15,9 +16,20 @@ namespace EddyLib.Radiance
 
         public double[] HZ_IR;
 
-        private double Kelvin = 273.15;
+        private readonly double Kelvin = 273.15;
 
-        public Sky(double[] T_dew, double[] T_DryBulb, double[] SkyCover, double[] RelHum, bool run, double SourceEmissivity = 1)
+        public enum CalculationType
+        {
+            DefaultClarkAllen,
+
+            MartinBerdahl,
+
+            Brunt,
+
+            Idso,
+        }
+
+        public Sky(double[] T_dew, double[] T_DryBulb, double[] OpaqueSkyCover, double[] RelHum, bool run, CalculationType type, double[] HZ_IR_EPW = null)
         {
             if (run)
             {
@@ -27,26 +39,29 @@ namespace EddyLib.Radiance
                 this.Temp = new double[numberOfHours];
                 this.HZ_IR = new double[numberOfHours];
 
-                for (int h = 0; h < numberOfHours; h++)
+                if (HZ_IR_EPW != null && HZ_IR_EPW[0] <= 9999.0)
                 {
-                    this.Emissivity[h] = CalcEmissivity(T_dew[h], SkyCover[h]);
+                    this.HZ_IR = HZ_IR_EPW;
 
-                    // this.Emissivity[h] = CalcEmissivityEnergyPlus(3, T_dew[h], T_DryBulb[h],SkyCover[h],RelHum[h]);
-                    this.HZ_IR[h] = CalcHZ_IR(this.Emissivity[h], this.Sigma, T_DryBulb[h]);
-                    this.Temp[h] = CalcTemp(HZ_IR[h], SourceEmissivity);
+                    for (int h = 0; h < numberOfHours; h++)
+                    {
+                        this.Temp[h] = CalcTempValidIR(HZ_IR[h]);
+                    }
+                }
+                else
+                {
+                    for (int h = 0; h < numberOfHours; h++)
+                    {
+                        this.Emissivity[h] = CalcEmissivityEnergyPlus(OpaqueSkyCover[h], T_DryBulb[h], T_dew[h], RelHum[h], type);
+                        this.Temp[h] = CalcTemp(T_DryBulb[h], this.Emissivity[h]);
+                    }
                 }
             }
         }
 
         private double CalcHZ_IR(double Emissivity, double Sigma, double T_drybulb)
         {
-            return Emissivity * Sigma * Math.Pow((T_drybulb + 273.15), 4);
-        }
-
-        private double CalcEmissivity(double T_dew, double N)
-        {
-            // N = SkyCover
-            return (0.787 + 0.764 * Math.Log((T_dew + Kelvin) / Kelvin)) * (1 + (0.0224 * N) - (0.0035 * Math.Pow(N, 2)) + (0.00028 * Math.Pow(N, 3)));
+            return Emissivity * Sigma * Math.Pow((T_drybulb + Kelvin), 4);
         }
 
         private double CalcEs(double T_celcius)
@@ -67,7 +82,7 @@ namespace EddyLib.Radiance
         -2.737830188E-2, 1.6261698E-5, 7.0229056E-10,
         -1.8680009E-13, 2.7150305 };
 
-            T_kelvin = T_celcius + 273.15; //! air temp in K double
+            T_kelvin = T_celcius + Kelvin; //! air temp in K double
             var es = g[7] * Math.Log(T_kelvin);
 
             // do i=0,6
@@ -83,8 +98,11 @@ namespace EddyLib.Radiance
             return es;
         }
 
-        private double CalcEmissivityEnergyPlus(int ESkyCalcType, double OSky, double DryBulb, double DewPoint, double RelHum)
+        private double CalcEmissivityEnergyPlus(double OSky, double DryBulb, double DewPoint, double RelHum, CalculationType type)
         {
+            // https://bigladdersoftware.com/epx/docs/9-3/engineering-reference/climate-calculations.html
+            // "EnergyPlus\WeatherManager.cc" Line 3353
+
             // Calculate Sky Emissivity
             // References:
             // M. Li, Y. Jiang and C. F. M. Coimbra,
@@ -95,35 +113,45 @@ namespace EddyLib.Radiance
 
             // var Pvsk = 6.105 * Math.Exp((17.27 * ((double)DryBulb + 273.15) - 4717.03) / (237.7 + (double)DryBulb));
 
-            var TKelvin = 273.15;
+            var TKelvin = Kelvin;
 
             var ESky = 0.0;
-            if (ESkyCalcType == 1)
+            if (type == CalculationType.Brunt)
             {
                 double PartialPress = RelHum * CalcEs(DryBulb) * 0.01;
                 ESky = 0.618 + 0.056 * Math.Pow(PartialPress, 0.5);
             }
-            else if (ESkyCalcType == 2)
+            else if (type == CalculationType.Idso)
             {
                 double PartialPress = RelHum * CalcEs(DryBulb) * 0.01;
                 ESky = 0.685 + 0.000032 * PartialPress * Math.Exp(1699 / (DryBulb + TKelvin));
             }
-            else if (ESkyCalcType == 3)
+            else if (type == CalculationType.MartinBerdahl)
             {
-                double TDewC = new List<double>() { DryBulb, DewPoint }.Min();
+                double TDewC = Math.Min(DryBulb, DewPoint);
                 ESky = 0.758 + 0.521 * (TDewC / 100) + 0.625 * Math.Pow((TDewC / 100), 2);
             }
-            else
+
+            // default
+            else if (type == CalculationType.DefaultClarkAllen)
             {
-                ESky = 0.787 + 0.764 * Math.Log((new List<double>() { DryBulb, DewPoint }.Min() + TKelvin) / TKelvin);
+                ESky = 0.787 + 0.764 * Math.Log((Math.Min(DryBulb, DewPoint) + TKelvin) / TKelvin);
             }
             ESky = ESky * (1 + (0.0224 * OSky) - (0.0035 * Math.Pow(OSky, 2)) + (0.00028 * Math.Pow(OSky, 3)));
+
             return ESky;
         }
 
-        private double CalcTemp(double HZ_IR, double SourceEmissivity)
+        private double CalcTempValidIR(double HZ_IR)
         {
-            return Math.Pow((HZ_IR / (SourceEmissivity * this.Sigma)), 0.25) - Kelvin;
+            // "EnergyPlus\WeatherManager.cc" Line 3353
+            return Math.Pow((HZ_IR / this.Sigma), 0.25) - Kelvin;
+        }
+
+        private double CalcTemp(double DryBulb, double ESky)
+        {
+            // "EnergyPlus\WeatherManager.cc" Line 3353
+            return (DryBulb + Kelvin) * Math.Pow(ESky, 0.25) - Kelvin;
         }
     }
 }

@@ -870,7 +870,7 @@ exit
             }
             else
             {
-                CPU = numberOfCPUsOnMachine - 2;
+                CPU = numberOfCPUsOnMachine - 1;
                 if (CPU < 1)
                 {
                     CPU = 1;
@@ -1093,8 +1093,6 @@ exit
             if (hour_end > 24) { hour_end = 24; }
 
             int cnt = 0;
-
-            int hours = hour_end - hour_start;
 
             for (int m = 0; m < 12; m++) // 0-11
             {
@@ -1818,6 +1816,48 @@ renderView1.CameraParallelProjection = 1
             }
 
             return string.Format("{0:n1} {1}", dValue, SizeSuffixes[i]);
+        }
+
+        public static Vector3d AverageVectors(List<Vector3d> list)
+        {
+            Vector3d val3 = Vector3d.Zero;
+            int num9 = 0;
+            int num10 = list.Count - 1;
+            for (int m = 0; m <= num10; m++)
+            {
+                if (list[m] != null)
+                {
+                    val3 += list[m];
+                    num9++;
+                }
+            }
+
+            // if (num9 != 0)
+            // {
+            return (val3 / (double)num9);
+
+            //}
+        }
+
+        public static Point3d AveragePoints(List<Point3d> list)
+        {
+            Point3d val2 = Point3d.Origin;
+            int num7 = 0;
+            int num8 = list.Count - 1;
+            for (int l = 0; l <= num8; l++)
+            {
+                if (list[l] != null)
+                {
+                    val2 += list[l];
+                    num7++;
+                }
+            }
+
+            //if (num7 != 0)
+            // {
+            return (val2 / (double)num7);
+
+            //  }
         }
     }
 }

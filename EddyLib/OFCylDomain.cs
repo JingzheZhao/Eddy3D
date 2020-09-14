@@ -256,7 +256,7 @@ namespace EddyLib
 
             IEnumerable<Mesh> first = new Mesh[] { DomainMesh };
             IEnumerable<Mesh> second = new Mesh[] { TerrainMesh };
-            this.DomainMeshIntersection = Mesh.CreateBooleanDifference(first, second);
+            this.DomainMeshIntersection = Mesh.CreateBooleanIntersection(first, second);
         }
 
         private void WeldAllIndividualMeshes()
