@@ -75,12 +75,12 @@ namespace EddyLib
 
                 this.epwFilePath = filePath;
 
-                this.DryBulbTemp = epwNoHeader.Select(o => Double.Parse(o.Split(',')[6])).ToArray(); // Dry Bulb Temperature
+                this.DryBulbTemp = epwNoHeader.Select(o => Double.Parse(o.Split(',')[6])).ToArray(); // Dry Bulb Temperatur
                 this.DewPointTemp = epwNoHeader.Select(o => Double.Parse(o.Split(',')[7])).ToArray(); // Dew Point Temperature
                 this.RelativeHumidity = epwNoHeader.Select(o => Double.Parse(o.Split(',')[8])).ToArray(); // Relative Humidity
                 this.Pressure = epwNoHeader.Select(o => Double.Parse(o.Split(',')[9])).ToArray(); // Barometric Pressure
                 this.WindSpeed = epwNoHeader.Select(o => Double.Parse(o.Split(',')[21])).ToArray(); // WindSpeed
-                this.WindDirection = epwNoHeader.Select(o => Int32.Parse(o.Split(',')[20])).ToArray(); // Wind Direction
+                this.WindDirection = Array.ConvertAll<double, int>(epwNoHeader.Select(o => Double.Parse(o.Split(',')[20])).ToArray(), x => (int)x); // Wind Direction, needs to be int in epw format
                 this.DirectNormalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[14])).ToArray(); // Direct Normal Radiation
                 this.DiffuseHorizontalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[15])).ToArray(); // Diffuse Horizontal Illuminance
 
