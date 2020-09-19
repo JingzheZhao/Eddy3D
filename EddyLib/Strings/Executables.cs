@@ -2059,8 +2059,8 @@ SIMPLE
 {
     residualControl
     {
-		p               1e-4;
-        U               1e-3;
+		p               1e-5;
+        U               1e-4;
     }
 
     nNonOrthogonalCorrectors 0;

@@ -63,6 +63,9 @@ namespace Eddy
         {
             pManager.AddNumberParameter("Wind Comfort", "WCmft", @"Wind Comfort
 
+Simplified evaluation of annual wind velocites according to specific comfort indices. 
+Binning is done by evaluating actual observed wind velocities for every hour, not by calculating maximum allowable exceedance probability given the wind statistic (to be released later).
+
 General Lawson
 
 1 - A > 1.8 m/s < 2 % Sitting Long

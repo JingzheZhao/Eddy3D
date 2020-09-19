@@ -61,6 +61,7 @@ namespace RhinoPlugin.Tests.Xunit
         //    Assert.Equal(341.1, Math.Round(hzir, 1));
         //}
 
+        [Fact]
         public void MRT_50Sky_50Buildings_Returns_20()
         {
             // Arrange
