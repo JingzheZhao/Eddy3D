@@ -796,13 +796,11 @@ REM   --help              Display this help screen.");
             }
 
             StringBuilder sb = new StringBuilder();
+
+            sb.AppendLine(string.Format(@"setlocal"));
             sb.AppendLine(string.Format(@"call """ + installationPath + @"\setvars.bat"""));
             sb.AppendLine(@"set PATH=%HOME%\msys64\usr\bin;%PATH%");
-            if (notOnC)
-            {
-                sb.AppendLine(caseDir[0] + ":");
-            }
-            sb.AppendLine("cd " + "\"" + caseDir + "\"");
+            sb.AppendLine(@"cd /d %~dp0");
 
             if (logging)
             {
