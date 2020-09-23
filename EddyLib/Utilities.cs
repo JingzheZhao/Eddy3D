@@ -870,7 +870,7 @@ exit
             }
             else
             {
-                CPU = numberOfCPUsOnMachine - 1;
+                CPU = numberOfCPUsOnMachine / 2;
                 if (CPU < 1)
                 {
                     CPU = 1;
