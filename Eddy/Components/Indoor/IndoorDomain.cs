@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using Eddy.Properties;
+using EddyLib;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
@@ -12,9 +13,9 @@ namespace Eddy.Components.Indoor
         /// Initializes a new instance of the IndoorDomain class.
         /// </summary>
         public IndoorDomain()
-          : base("IndoorDomain", "Nickname",
-              "Description",
-              "Category", "Subcategory")
+          : base("IndoorDomain", "IDom",
+              "IndoorDomain" + EddyVersion.toString(),
+              EddyVersion.Name, "7 | Indoor")
         {
         }
 
@@ -48,8 +49,8 @@ namespace Eddy.Components.Indoor
             get
             {
                 //You can add image files to your project resources and access them like this:
-                // return Resources.IconForThisComponent;
-                return null;
+                return Resources.Eddy_Indoor_Domain;
+               // return null;
             }
         }
 

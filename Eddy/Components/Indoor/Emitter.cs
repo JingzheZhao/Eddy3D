@@ -1,20 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
 namespace Eddy.Components.Indoor
 {
-    public class Inlet : GH_Component
+    public class Emitter : GH_Component
     {
         /// <summary>
-        /// Initializes a new instance of the Inlet class.
+        /// Initializes a new instance of the Emitter class.
         /// </summary>
-        public Inlet()
-          : base("Inlet", "Il",
-              "Inlet" + EddyVersion.toString(),
+        public Emitter()
+          : base("Emitter", "Em",
+              "Emitter" + EddyVersion.toString(),
               EddyVersion.Name, "7 | Indoor")
         {
         }
@@ -49,8 +48,8 @@ namespace Eddy.Components.Indoor
             get
             {
                 //You can add image files to your project resources and access them like this:
-                return Resources.Eddy_Indoor_Inlet;
-
+                // return Resources.IconForThisComponent;
+                return null;
             }
         }
 
@@ -59,7 +58,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("cb1b044e-b0bf-4fb3-b844-9f9469931244"); }
+            get { return new Guid("9afa2ec3-39af-4454-9c43-8f31f521dab2"); }
         }
     }
 }

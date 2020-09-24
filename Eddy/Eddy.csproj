@@ -71,6 +71,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\FunctionObjects\CompTree.cs" />
+    <Compile Include="Components\Indoor\Emitter.cs" />
+    <Compile Include="Components\Indoor\Geometry.cs" />
+    <Compile Include="Components\Indoor\IndoorDomain.cs" />
+    <Compile Include="Components\Indoor\Inlet.cs" />
+    <Compile Include="Components\Indoor\Outlet.cs" />
     <Compile Include="Components\Misc\CompLBAnalPeriod2Hours.cs" />
     <Compile Include="Components\Outdoor Comfort\CompCalcWindFactors.cs" />
     <Compile Include="Components\Outdoor Comfort\CompCalcWindComfort.cs" />
@@ -231,7 +236,19 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Components\Indoor\" />
+    <None Include="Resources\Eddy_Indoor_Domain.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Emitter.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Geometry.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Inlet.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Outlet.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
