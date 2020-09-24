@@ -2,14 +2,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace EddyLib.Indoor
 {
-    public enum BoundaryConditionType  {
+    public enum OFIndoorGeometryType
+    {
         Inlet = 0,
-        Outlet = 1
+        Outlet = 1,
+        Geometry = 2
         }
 
     class OFIndoorGeometry
@@ -17,7 +21,7 @@ namespace EddyLib.Indoor
         string Name { get; set; } // must be unique
         Vector3d Normal { get; set; }
         Mesh Geometry { get; set; }
-        BoundaryConditionType Type { get;  set;}
+        OFIndoorGeometryType Type { get;  set;}
         double Area { get; set; } 
         double FlowRate { get; set; } = 0;
 
@@ -39,16 +43,46 @@ namespace EddyLib.Indoor
 
 
 
-        public OFIndoorGeometry(string name, OFField field) {
+        public OFIndoorGeometry(string name, Mesh geo , OFIndoorGeometryType type, OFField field) {
 
             Name = name;
-        
+
+
+         
+
+            if (type == OFIndoorGeometryType.Inlet) {
+
+
+                DefineInlet(field);
+            }
+
+
+            else if (type == OFIndoorGeometryType.Outlet)
+            {
+
+
+
+            }
+
+
+            else 
+            {
+
+                // normal geometry
+
+            }
+
+        }
+
+        private void DefineInlet(OFField input)
+        {
+
+            U = GetFixedValue(input);
+            
         }
 
 
-
-
-        public static Dictionary<string, string>  GetFixedValue(OFField input) {
+        private static Dictionary<string, string>  GetFixedValue(OFField input) {
             //TODO Patrick: Set up Dict
             Dictionary<string, string> Dict = new Dictionary<string, string>
         {
@@ -57,7 +91,7 @@ namespace EddyLib.Indoor
         };
             return Dict;
         }
-        public static Dictionary<string, string> GetZeroGradient()
+        private static Dictionary<string, string> GetZeroGradient()
         {
 
             Dictionary<string, string> Dict = new Dictionary<string, string>
