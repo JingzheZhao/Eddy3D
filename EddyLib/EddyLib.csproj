@@ -84,6 +84,9 @@
     <Compile Include="FunctionObjects\PressureCoeff.cs" />
     <Compile Include="BoundaryConditions\BoundaryConditionsBase.cs" />
     <Compile Include="FunctionObjects\Tree.cs" />
+    <Compile Include="Indoor\OFIndoorEmitters.cs" />
+    <Compile Include="Indoor\OFIndoorGeometry.cs" />
+    <Compile Include="Indoor\OFIndoorDomain.cs" />
     <Compile Include="OutdoorComfort\WindComfort.cs" />
     <Compile Include="OutdoorComfort\WindFactors.cs" />
     <Compile Include="OutdoorComfort\WindComfortMetrics.cs" />

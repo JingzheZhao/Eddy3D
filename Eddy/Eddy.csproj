@@ -223,9 +223,6 @@
     <None Include="Resources\Eddy_cullPoints.png" />
     <None Include="Resources\Eddy_trees.png" />
     <None Include="Resources\Eddy3D.png" />
-    <None Include="Resources\Eddy3D.bmp" />
-    <None Include="Eddy3D.bmp" />
-    <Content Include="Eddy3D.ico" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EddyLib\EddyLib.csproj">
