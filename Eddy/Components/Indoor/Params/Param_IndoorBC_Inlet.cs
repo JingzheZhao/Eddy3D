@@ -63,7 +63,7 @@ namespace Eddy.Components.Indoor.Params
             string s = "";
             if (Value != null )
             {
-                s = " Velocity [m/s]: " + Value.Velocity.Length + " Temperature [K]: " + Value.TemperatureK;  //JsonConvert.SerializeObject(this.Value, Formatting.Indented);
+                s = "Velocity [m/s]: " + Value.Velocity.Length + " Temperature [K]: " + Value.TemperatureK;  //JsonConvert.SerializeObject(this.Value, Formatting.Indented);
             }
 
             // to string

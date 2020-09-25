@@ -77,7 +77,7 @@
     <Compile Include="Components\Indoor\Emitter.cs" />
     <Compile Include="Components\Indoor\Geometry.cs" />
     <Compile Include="Components\Indoor\IndoorDomain.cs" />
-    <Compile Include="Components\Indoor\Inlet.cs" />
+    <Compile Include="Components\Indoor\IndoorInlet_Component.cs" />
     <Compile Include="Components\Indoor\Outlet.cs" />
     <Compile Include="Components\Indoor\Params\Param_IndoorBC_Inlet.cs" />
     <Compile Include="Components\Misc\CompLBAnalPeriod2Hours.cs" />
