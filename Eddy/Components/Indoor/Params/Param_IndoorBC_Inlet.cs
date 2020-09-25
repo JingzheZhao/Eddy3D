@@ -60,15 +60,14 @@ namespace Eddy.Components.Indoor.Params
         // return a string representation of the state (value) of this instance.
         public override string ToString()
         {
-            // Camera name?
-            string IndoorGeometry_name = "";
-            if (Value != null && Value.Name.Length > 0)
+            string s = "";
+            if (Value != null )
             {
-                IndoorGeometry_name += ":[" + Value.Name + "]";
+                s = " Velocity [m/s]: " + Value.Velocity.Length + " Temperature [K]: " + Value.TemperatureK;  //JsonConvert.SerializeObject(this.Value, Formatting.Indented);
             }
 
             // to string
-            return "IndoorBC Inlet" + IndoorGeometry_name;
+            return "[IndoorInlet] " +  s;
         }
 
         // serlialize
