@@ -2,6 +2,7 @@
 using EddyLib.Indoor;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -73,26 +74,34 @@ namespace Eddy.Components.Indoor.Params
         // serlialize
         public override bool Write(GH_IO.Serialization.GH_IWriter writer)
         {
-            // serialize value as byte array
-            using (var stream = new MemoryStream())
-            {
-                Serializer.Serialize(stream, this.Value);
-                byte[] bytes = stream.ToArray();
-                writer.SetByteArray("IndoorGeometry", bytes);
-            }
+            var json = JsonConvert.SerializeObject(this.Value, Formatting.None);
+            writer.SetString("IndoorGeometry", json);
+
+            //// serialize value as byte array
+            //using (var stream = new MemoryStream())
+            //{
+            //    Serializer.Serialize(stream, this.Value);
+            //    byte[] bytes = stream.ToArray();
+            //    writer.SetByteArray("IndoorGeometry", bytes);
+            //}
             return true;
         }
 
         // deserialize
         public override bool Read(GH_IO.Serialization.GH_IReader reader)
         {
-            // deserialize byte array to value
-            byte[] bytes = reader.GetByteArray("IndoorGeometry");
-            using (var stream = new MemoryStream(bytes))
-            {
-                stream.Position = 0;
-                this.Value = Serializer.Deserialize<OFIndoorGeometry>(stream);
+            var json = reader.GetString("IndoorGeometry");
+            if (!String.IsNullOrWhiteSpace(json)) {
+                this.Value = JsonConvert.DeserializeObject<OFIndoorGeometry>(json);  
             }
+ 
+            //// deserialize byte array to value
+            //byte[] bytes = reader.GetByteArray("IndoorGeometry");
+            //using (var stream = new MemoryStream(bytes))
+            //{
+            //    stream.Position = 0;
+            //    this.Value = Serializer.Deserialize<OFIndoorGeometry>(stream);
+            //}
             return true;
         }
     }
