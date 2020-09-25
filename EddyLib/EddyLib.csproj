@@ -47,14 +47,8 @@
     <Reference Include="MathNet.Numerics, Version=4.11.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MathNet.Numerics.4.11.0\lib\net461\MathNet.Numerics.dll</HintPath>
     </Reference>
-    <Reference Include="Numpy, Version=3.7.1.16, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Numpy.3.7.1.16\lib\netstandard2.0\Numpy.dll</HintPath>
-    </Reference>
-    <Reference Include="Python.Included, Version=3.7.3.4, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Python.Included.3.7.3.4\lib\netstandard2.0\Python.Included.dll</HintPath>
-    </Reference>
-    <Reference Include="Python.Runtime.NETStandard, Version=3.7.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Python.Runtime.NETStandard.3.7.0\lib\netstandard2.0\Python.Runtime.NETStandard.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Rhino.UI, Version=6.26.20147.6510, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
       <HintPath>..\packages\RhinoCommon.6.26.20147.6511\lib\net45\Rhino.UI.dll</HintPath>
@@ -84,12 +78,9 @@
     <Compile Include="FunctionObjects\PressureCoeff.cs" />
     <Compile Include="BoundaryConditions\BoundaryConditionsBase.cs" />
     <Compile Include="FunctionObjects\Tree.cs" />
-    <Compile Include="Indoor\OFIndoorDomainPK.cs" />
-    <Compile Include="Indoor\OFIndoorEmittersPK.cs" />
+    <Compile Include="Indoor\IndoorDomain.cs" />
     <Compile Include="Indoor\OFIndoorEmitters.cs" />
-    <Compile Include="Indoor\OFIndoorGeometryPK.cs" />
-    <Compile Include="Indoor\OFIndoorGeometry.cs" />
-    <Compile Include="Indoor\OFIndoorDomain.cs" />
+    <Compile Include="Indoor\IndoorBCs.cs" />
     <Compile Include="OutdoorComfort\WindComfort.cs" />
     <Compile Include="OutdoorComfort\WindFactors.cs" />
     <Compile Include="OutdoorComfort\WindComfortMetrics.cs" />

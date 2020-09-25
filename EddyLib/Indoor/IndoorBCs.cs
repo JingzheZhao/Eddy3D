@@ -1,5 +1,6 @@
 ﻿using EddyLib.BCs;
 using EddyLib.Indoor;
+using Newtonsoft.Json;
 using Rhino.Geometry;
 using Rhino.Geometry.Collections;
 using System;
@@ -14,14 +15,6 @@ using System.Threading.Tasks;
 
 namespace EddyLib.Indoor
 {
-    //public enum OFIndoorGeometryType
-    //{
-    //    Inlet = 0,
-
-    //    Outlet = 1,
-
-    //    Geometry = 2
-    //}
 
     public class Dicts
     {
@@ -294,7 +287,7 @@ namespace EddyLib.Indoor
             sb.Append(dict.dimensions);
             sb.Append(dict.internalField);
 
-            sb.Append(dict.boundaryFieldDict.ToString());
+            sb.Append(ToCPPDict(dict.boundaryFieldDict));
 
             return sb.ToString();
         }
@@ -303,35 +296,25 @@ namespace EddyLib.Indoor
         {
             File.WriteAllText(baseWorkingDir + this.location, this.Serialize(this));
         }
+
+        private string ToCPPDict(Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>> boundaryFieldDict) {
+
+            string sb = JsonConvert.SerializeObject(boundaryFieldDict);
+            return sb;
+        }
+
     }
 }
 
 public class IndoorBCs
-
 {
-    //public Dictionary<string, string> U { get; set; }
-
-    //public Dictionary<string, string> T { get; set; }
-
-    //public Dictionary<string, string> alpha { get; set; }
-
-    //public Dictionary<string, string> AoA { get; set; }
-
-    //public Dictionary<string, string> k { get; set; }
-
-    //public Dictionary<string, string> nut { get; set; }
-
-    //public Dictionary<string, string> p_rgh { get; set; }
-
-    //public Dictionary<string, string> omega { get; set; }
-
-    //public Dictionary<string, string> p { get; set; }
-
     public MeshFaceNormalList Normals { get; set; }
 
     public Mesh Geometry { get; set; }
 
     public string Name { get; set; }
+
+    public string Id { get; set; }
 
     public class Wall : IndoorBCs
     {
@@ -339,7 +322,10 @@ public class IndoorBCs
 
         public double internalFieldTempK { get; set; }
 
-        public Wall(Mesh m, double TemperatureC, double internalFieldTempC)
+        public Wall()
+        {
+        }
+            public Wall(Mesh m, double TemperatureC, double internalFieldTempC)
         {
             this.TemperatureK = TemperatureC + 273.15;
 
@@ -387,47 +373,3 @@ public class IndoorBCs
         }
     }
 }
-
-//internal class OFIndoorGeometry
-//{
-//    private string Name { get; set; } // must be unique
-
-//    private double FlowRate { get; set; } = 0;
-
-//    public OFIndoorGeometry(string name, Mesh geo, OFIndoorGeometryType type)
-//    {
-//        Name = name;
-
-//        if (type == OFIndoorGeometryType.Inlet)
-//        {
-//            DefineInlet();
-//        }
-//        else if (type == OFIndoorGeometryType.Outlet)
-//        {
-//        }
-//        else
-//        {
-//            // normal geometry
-//        }
-//    }
-
-//    private void DefineInlet()
-//    {
-//        U = GetFixedValue();
-//        T =
-
-//        alpha =
-
-//        AoA =
-
-//        k =
-
-//        nut =
-
-//        p_rgh =
-
-//        p =
-
-//        omega =
-//        }
-//}

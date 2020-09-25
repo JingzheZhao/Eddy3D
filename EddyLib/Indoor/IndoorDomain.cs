@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace EddyLib.Indoor
 {
-    internal class OFIndoorDomain
+    internal class IndoorDomain
     {
         private BoundingBox BoundingBox;
 
@@ -25,8 +25,30 @@ namespace EddyLib.Indoor
 
         private double CellSize;
 
-        public OFIndoorDomain(string workingDir, List<IndoorBCs.Wall> RoomGeometry, List<IndoorBCs.Inlet> Inlets, List<IndoorBCs.Outlet> Outlets)
+        public IndoorDomain(string workingDir, List<IndoorBCs.Wall> RoomGeometry, List<IndoorBCs.Inlet> Inlets, List<IndoorBCs.Outlet> Outlets)
         {
+
+            // Give unique index to every object
+
+            int cnt = 0;
+
+            for (int i = 0; i < RoomGeometry.Count; i++) {
+                RoomGeometry[i].Id = RoomGeometry[i].Name + cnt;
+                cnt++;
+            }
+            for (int i = 0; i < Inlets.Count; i++)
+            {
+                Inlets[i].Id = Inlets[i].Name + cnt;
+                cnt++;
+            }
+            for (int i = 0; i < Outlets.Count; i++)
+            {
+                Outlets[i].Id = Outlets[i].Name + cnt;
+                cnt++;
+            }
+
+
+
             // Walls
 
             this.BoundingBox = GetBoundingBox(RoomGeometry);
@@ -45,6 +67,9 @@ namespace EddyLib.Indoor
             List<Dicts> allDicts = new List<Dicts>();
 
             Dicts.U u = new Dicts.U(Inlets, Outlets, RoomGeometry);
+            //Dicts.U.ToFile(...)
+
+
             Dicts.alphat alphat = new Dicts.alphat(Inlets, Outlets, RoomGeometry);
             Dicts.AoA AoA = new Dicts.AoA(Inlets, Outlets, RoomGeometry);
             Dicts.nut nut = new Dicts.nut(Inlets, Outlets, RoomGeometry);

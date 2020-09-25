@@ -35,6 +35,9 @@ namespace Eddy.Components.Indoor
         {
             //pManager.AddGenericParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
             pManager.RegisterParam(new Param_IndoorGeometry(), "Geo", "Geo", "Geometry", GH_ParamAccess.item);
+            pManager.RegisterParam(new Param_IndoorGeometry(), "Geo", "Geo", "Geometry", GH_ParamAccess.item);
+            pManager.RegisterParam(new Param_IndoorGeometry(), "Geo", "Geo", "Geometry", GH_ParamAccess.item);
+
         }
 
         /// <summary>
@@ -43,6 +46,9 @@ namespace Eddy.Components.Indoor
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+
+            var wall = new IndoorBCs.Wall(new Mesh(), 300, 300);
+
         }
 
         /// <summary>

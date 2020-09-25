@@ -13,15 +13,15 @@ using System.Threading.Tasks;
 
 namespace Eddy.Components.Indoor.Params
 {
-    public class GH_OFIndoorGeometry : GH_Goo<OFIndoorGeometry>
+    public class GH_OFIndoorGeometry : GH_Goo<IndoorBCs.Wall>
     {
         public GH_OFIndoorGeometry()
         {
-            this.Value = new OFIndoorGeometry();
+            this.Value = new IndoorBCs.Wall();
         }
 
         // constructor with initial value
-        public GH_OFIndoorGeometry(OFIndoorGeometry indoorGeoValue)
+        public GH_OFIndoorGeometry(IndoorBCs.Wall indoorGeoValue)
         {
             this.Value = indoorGeoValue;
         }
@@ -92,7 +92,7 @@ namespace Eddy.Components.Indoor.Params
         {
             var json = reader.GetString("IndoorGeometry");
             if (!String.IsNullOrWhiteSpace(json)) {
-                this.Value = JsonConvert.DeserializeObject<OFIndoorGeometry>(json);  
+                this.Value = JsonConvert.DeserializeObject<IndoorBCs.Wall>(json);  
             }
  
             //// deserialize byte array to value
