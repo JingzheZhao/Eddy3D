@@ -59,7 +59,7 @@ namespace Eddy.Components.Indoor
 
             var inlet = new IndoorBCs.Inlet(m, T + 273.15, vec);
 
-            var goo = new GH_IndoorBC_Inlet(inlet);
+            var goo = new IndoorInletGoo(inlet);
 
             //dir.Clear();
             //dir.Add(vec* 10);

@@ -15,61 +15,35 @@ using System.Threading.Tasks;
 
 namespace Eddy.Components.Indoor.Params
 {
-    public class GH_IndoorBC_Inlet :  GH_Goo<IndoorBCs.Inlet>, IGH_PreviewData
+    public class IndoorInletGoo : GH_Goo<IndoorBCs.Inlet>, IGH_PreviewData
     {
-        #region drawing methods
-        public BoundingBox ClippingBox
-        {
-            get { return this.Value.Geometry.GetBoundingBox(true); }
-        }
-        public void DrawViewportMeshes(GH_PreviewMeshArgs args)
-        {
-            //No meshes are drawn.   
-        }
-        public void DrawViewportWires(GH_PreviewWireArgs args)
-        {
-            if (Value == null) { return; }
+        #region constructors
 
-            if (Value.Velocity != null && Value.Centroid!= null)
-            {
-                args.Pipeline.DrawArrow(new Line(Value.Centroid,Value.Velocity),args.Color);
-            }
-
-           
-        }
-        #endregion
-
-
-
-        public GH_IndoorBC_Inlet()
+        public IndoorInletGoo()
         {
             this.Value = new IndoorBCs.Inlet();
         }
 
         // constructor with initial value
-        public GH_IndoorBC_Inlet(IndoorBCs.Inlet indoorGeoValue)
+        public IndoorInletGoo(IndoorBCs.Inlet indoorGeoValue)
         {
             this.Value = indoorGeoValue;
         }
 
         // copy constructor
-        public GH_IndoorBC_Inlet(GH_IndoorBC_Inlet indoorGeoSource)
+        public IndoorInletGoo(IndoorInletGoo indoorGeoSource)
         {
             this.Value = indoorGeoSource.Value;
         }
 
-        // duplication method
         public override IGH_Goo Duplicate()
         {
-            return new GH_IndoorBC_Inlet(this);
+            return new IndoorInletGoo(Value == null ? new IndoorBCs.Inlet() : Value.Duplicate());
         }
 
-        // return validity of IndoorGeometry
-        public override bool IsValid
-        {
-            // TODO...
-            get { return true; }
-        }
+        #endregion
+
+        #region properties
 
         // return a string with the name of this Type.
         public override string TypeName
@@ -102,7 +76,7 @@ namespace Eddy.Components.Indoor.Params
         {
             var json = JsonConvert.SerializeObject(this.Value, Formatting.None);
             writer.SetString("IndoorBC_Inlet", json);
- 
+
             return true;
         }
 
@@ -110,21 +84,65 @@ namespace Eddy.Components.Indoor.Params
         public override bool Read(GH_IO.Serialization.GH_IReader reader)
         {
             var json = reader.GetString("IndoorBC_Inlet");
-            if (!String.IsNullOrWhiteSpace(json)) {
-                this.Value = JsonConvert.DeserializeObject<IndoorBCs.Inlet>(json);  
+            if (!String.IsNullOrWhiteSpace(json))
+            {
+                this.Value = JsonConvert.DeserializeObject<IndoorBCs.Inlet>(json);
             }
-  
+
             return true;
         }
 
+        public override bool IsValid
+        {
+            get
+            {
+                if (Value == null) { return false; }
+                return true;
+            }
+        }
+        public override string IsValidWhyNot
+        {
+            get
+            {
+                if (Value == null) { return "No internal instance"; }
+                if (true) { return string.Empty; }
+                //return "Invalid instance"; //Todo: beef this up to be more informative.
+            }
+        }
+       
+        #endregion
 
+       
 
+      
 
+        #region drawing methods
+        public BoundingBox ClippingBox
+        {
+            get { return this.Value.Geometry.GetBoundingBox(true); }
+        }
+        public void DrawViewportMeshes(GH_PreviewMeshArgs args)
+        {
+            if (Value == null) { return; }
+            if (Value.Geometry != null)
+            {
+                args.Pipeline.DrawMeshShaded( Value.Geometry, args.Material);
+            }
+        }
+        public void DrawViewportWires(GH_PreviewWireArgs args)
+        {
+            if (Value == null) { return; }
 
+            if (Value.Velocity != null && Value.Centroid!= null)
+            {       
+                 args.Pipeline.DrawArrow(new Line(Value.Centroid,Value.Velocity*10),args.Color);
+            }      
+        }
+        #endregion
 
     }
 
-    public class Param_IndoorBC_Inlet : GH_PersistentParam<GH_IndoorBC_Inlet>
+    public class Param_IndoorBC_Inlet : GH_PersistentParam<IndoorInletGoo>, IGH_PreviewObject
     {
         // we need to supply a constructor without arguments that calls the base class constructor.
         public Param_IndoorBC_Inlet() :
@@ -156,11 +174,11 @@ namespace Eddy.Components.Indoor.Params
 
         //We do not allow users to pick inlets, 
         //therefore the following 4 methods disable all this ui.
-        protected override GH_GetterResult Prompt_Plural(ref List<GH_IndoorBC_Inlet> values)
+        protected override GH_GetterResult Prompt_Plural(ref List<IndoorInletGoo> values)
         {
             return GH_GetterResult.cancel;
         }
-        protected override GH_GetterResult Prompt_Singular(ref GH_IndoorBC_Inlet value)
+        protected override GH_GetterResult Prompt_Singular(ref IndoorInletGoo value)
         {
             return GH_GetterResult.cancel;
         }
@@ -190,7 +208,7 @@ namespace Eddy.Components.Indoor.Params
         }
         public void DrawViewportMeshes(IGH_PreviewArgs args)
         {
-            //Meshes aren't drawn.
+            Preview_DrawMeshes(args);
         }
         public void DrawViewportWires(IGH_PreviewArgs args)
         {

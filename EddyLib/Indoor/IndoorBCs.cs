@@ -360,6 +360,12 @@ public class IndoorBCs
             this.Normals = m.FaceNormals;
             this.Name = "Inlet";
         }
+
+        public Inlet Duplicate()
+        {
+            Inlet dup = new Inlet(Geometry, TemperatureK, Velocity);
+            return dup;
+        }
     }
 
     public class Outlet : IndoorBCs
