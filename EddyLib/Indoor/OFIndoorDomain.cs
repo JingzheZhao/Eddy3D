@@ -7,19 +7,19 @@ using System.Threading.Tasks;
 
 namespace EddyLib.Indoor
 {
-    class OFIndoorDomain
-    {
-        BoundingBox BoudingBox;
+    //class OFIndoorDomain
+    //{
+    //    BoundingBox BoudingBox;
 
-        List<OFIndoorGeometry> Geometry; //Surfaces or Volumes. IE Walls, table, whatever
-        List<OFIndoorGeometry> Inlets; //Surfaces
-        List<OFIndoorGeometry> Outlets;//Surfaces
+    //    List<OFIndoorGeometry> Geometry; //Surfaces or Volumes. IE Walls, table, whatever
+    //    List<OFIndoorGeometry> Inlets; //Surfaces
+    //    List<OFIndoorGeometry> Outlets;//Surfaces
 
-        List<OFIndoorEmitters> Emitters; //Volumes
+    //    List<OFIndoorEmitters> Emitters; //Volumes
 
-        List<Point3d> Edges;
+    //    List<Point3d> Edges;
 
-        double CellSize;
+    //    double CellSize;
 
-    }
+    //}
 }
