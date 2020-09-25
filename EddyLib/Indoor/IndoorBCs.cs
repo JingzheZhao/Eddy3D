@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.AccessControl;
+using System.Security.Permissions;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -245,7 +246,7 @@ namespace EddyLib.Indoor
                 var ii = (IndoorBCs.Inlet)input;
 
                 InternalDict.Add("type", "fixedValue");
-                InternalDict.Add("value", "uniform (" + ii.velocity.ToString().Trim(',') + ")");
+                InternalDict.Add("value", "uniform (" + ii.Velocity.ToString().Trim(',') + ")");
             };
 
             return Dict;
@@ -341,13 +342,21 @@ public class IndoorBCs
     {
         public double TemperatureK { get; set; }
 
-        public Vector3d velocity { get; set; }
+        
+        public Vector3d Velocity { get; set; }
+        public Point3d Centroid { get; set; }
 
-        public Inlet(Mesh m, double TemperatureC, Vector3d velocity)
+
+
+        public Inlet( )
+        {
+        }
+            public Inlet(Mesh m, double TemperatureC, Vector3d velocity)
         {
             this.TemperatureK = TemperatureC + 273.15;
-            this.velocity = velocity;
+            this.Velocity = velocity;
             this.Geometry = m;
+            this.Centroid = AreaMassProperties.Compute(m).Centroid;
             this.Normals = m.FaceNormals;
             this.Name = "Inlet";
         }

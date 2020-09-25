@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 
 namespace Eddy.Components.Indoor
@@ -37,7 +39,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Inlet", "In", "Inlet", GH_ParamAccess.item);
+            pManager.AddParameter(new Param_IndoorBC_Inlet(), "Inlet", "In", "Inlet", GH_ParamAccess.item);
 
         }
 
@@ -57,16 +59,17 @@ namespace Eddy.Components.Indoor
 
             var inlet = new IndoorBCs.Inlet(m, T + 273.15, vec);
 
+            var goo = new GH_IndoorBC_Inlet(inlet);
 
-            dir.Clear();
-            dir.Add(vec* 10);
-            face.Clear();
-            face.Add(m);
-            edges.Clear();
-            edges.AddRange(m.GetNakedEdges());
+            //dir.Clear();
+            //dir.Add(vec* 10);
+            //face.Clear();
+            //face.Add(m);
+            //edges.Clear();
+            //edges.AddRange(m.GetNakedEdges());
 
 
-            DA.SetData(0 ,  inlet);
+            DA.SetData(0 , goo);
 
         }
 
@@ -95,113 +98,113 @@ namespace Eddy.Components.Indoor
 
         #region Preview Override
 
-        List<Vector3d> dir = new List<Vector3d>();
-        List<Mesh> face = new List<Mesh>();
-        List<Polyline> edges = new List<Polyline>();
+        //List<Vector3d> dir = new List<Vector3d>();
+        //List<Mesh> face = new List<Mesh>();
+        //List<Polyline> edges = new List<Polyline>();
 
-        // draw all meshes in this method
-        public override void DrawViewportMeshes(IGH_PreviewArgs args)
-        {
+        //// draw all meshes in this method
+        //public override void DrawViewportMeshes(IGH_PreviewArgs args)
+        //{
 
-            if (Hidden || Locked) return;
+        //    if (Hidden || Locked) return;
 
-            //if (true) DrawArrow(args, dir, face, Color.Green);
-            //if (true) DrawWireThick(args, edges, Color.Green);
-            //if (true) DrawMesh(args, face, Color.LightBlue);
+        //    //if (true) DrawArrow(args, dir, face, Color.Green);
+        //    //if (true) DrawWireThick(args, edges, Color.Green);
+        //    //if (true) DrawMesh(args, face, Color.LightBlue);
            
 
-        }
+        //}
 
-        private void DrawArrow(IGH_PreviewArgs args, List<Vector3d> vecs, List<Mesh> prevMesh, Color col)
-        {
+        //private void DrawArrow(IGH_PreviewArgs args, List<Vector3d> vecs, List<Mesh> prevMesh, Color col)
+        //{
 
-            for (int i = 0; i < prevMesh.Count; i++)
-            {
-               var pt = AreaMassProperties.Compute(prevMesh).Centroid;
-                args.Display.DrawArrow(new Line(pt, vecs[i]), col);
-            }
-        }
+        //    for (int i = 0; i < prevMesh.Count; i++)
+        //    {
+        //       var pt = AreaMassProperties.Compute(prevMesh).Centroid;
+        //        args.Display.DrawArrow(new Line(pt, vecs[i]), col);
+        //    }
+        //}
 
-            private void DrawMesh(IGH_PreviewArgs args, List<Mesh> prevMesh, Color front, double trans = 0.1)
-        {
+        //    private void DrawMesh(IGH_PreviewArgs args, List<Mesh> prevMesh, Color front, double trans = 0.1)
+        //{
 
-            var frontcolor_selected = Color.FromArgb(25, 225, 25);
-            var backcolor_selected = Color.FromArgb(6, 56, 6);
-            if (prevMesh != null)
-            {
-                for (int i = 0; i < prevMesh.Count; i++)
-                {
-                    // create two sided material
-                    var material = new Rhino.Display.DisplayMaterial();
-                    material.IsTwoSided = true;
+        //    var frontcolor_selected = Color.FromArgb(25, 225, 25);
+        //    var backcolor_selected = Color.FromArgb(6, 56, 6);
+        //    if (prevMesh != null)
+        //    {
+        //        for (int i = 0; i < prevMesh.Count; i++)
+        //        {
+        //            // create two sided material
+        //            var material = new Rhino.Display.DisplayMaterial();
+        //            material.IsTwoSided = true;
 
-                    // set color depending on selection state
-                    if (Attributes.Selected)
-                    {
-                        material.Diffuse = frontcolor_selected;
-                        material.BackDiffuse = Color.Black;
-                        material.Transparency = 0.5;
-                        material.Shine = 0.25;
-                    }
-                    else
-                    {
-                        material.IsTwoSided = true;
-                        material.Emission = front;
-                        material.BackEmission =   Color.Black;
+        //            // set color depending on selection state
+        //            if (Attributes.Selected)
+        //            {
+        //                material.Diffuse = frontcolor_selected;
+        //                material.BackDiffuse = Color.Black;
+        //                material.Transparency = 0.5;
+        //                material.Shine = 0.25;
+        //            }
+        //            else
+        //            {
+        //                material.IsTwoSided = true;
+        //                material.Emission = front;
+        //                material.BackEmission =   Color.Black;
 
-                        // set diffuse channel to black to avoid shading
-                        material.Diffuse = Color.Black;
-                        material.BackDiffuse = Color.Black;
+        //                // set diffuse channel to black to avoid shading
+        //                material.Diffuse = Color.Black;
+        //                material.BackDiffuse = Color.Black;
 
-                        material.Transparency = trans;
-                        material.Shine = 0.0;
-                    }
+        //                material.Transparency = trans;
+        //                material.Shine = 0.0;
+        //            }
 
-                    // draw preview
-                    args.Display.DrawMeshShaded(prevMesh[i], material);
-                }
-            }
+        //            // draw preview
+        //            args.Display.DrawMeshShaded(prevMesh[i], material);
+        //        }
+        //    }
 
-        }
+        //}
 
-        // draw all wires and points in this method
-        public override void DrawViewportWires(IGH_PreviewArgs args)
-        {
-            if (Hidden || Locked) return;
+        //// draw all wires and points in this method
+        //public override void DrawViewportWires(IGH_PreviewArgs args)
+        //{
+        //    if (Hidden || Locked) return;
 
-            // set colors depending on selection state
-            var wirecolor = (Attributes.Selected) ? Color.FromArgb(12, 112, 12) : Color.FromArgb(200, 200, 200);
-
-
-            if (true) DrawArrow(args, dir, face, wirecolor);
-            if (true) DrawWireThick(args, edges, wirecolor);
-           // if (true) DrawMesh(args, face, Color.LightBlue);
-
-        }
+        //    // set colors depending on selection state
+        //    var wirecolor = (Attributes.Selected) ? Color.FromArgb(12, 112, 12) : Color.FromArgb(200, 200, 200);
 
 
+        //    if (true) DrawArrow(args, dir, face, wirecolor);
+        //    if (true) DrawWireThick(args, edges, wirecolor);
+        //   // if (true) DrawMesh(args, face, Color.LightBlue);
+
+        //}
 
 
-        private void DrawWire(IGH_PreviewArgs args, List<Polyline> polys, Color wirecolor)
-        {
-            if (polys != null)
-            {
-                for (int i = 0; i < polys.Count; i++)
-                {
-                    args.Display.DrawPolyline(polys[i], wirecolor);
-                }
-            }
-        }
-        private void DrawWireThick(IGH_PreviewArgs args, List<Polyline> polys, Color wirecolor)
-        {
-            if (polys != null)
-            {
-                for (int i = 0; i < polys.Count; i++)
-                {
-                    args.Display.DrawPolyline(polys[i], wirecolor, 2);
-                }
-            }
-        }
+
+
+        //private void DrawWire(IGH_PreviewArgs args, List<Polyline> polys, Color wirecolor)
+        //{
+        //    if (polys != null)
+        //    {
+        //        for (int i = 0; i < polys.Count; i++)
+        //        {
+        //            args.Display.DrawPolyline(polys[i], wirecolor);
+        //        }
+        //    }
+        //}
+        //private void DrawWireThick(IGH_PreviewArgs args, List<Polyline> polys, Color wirecolor)
+        //{
+        //    if (polys != null)
+        //    {
+        //        for (int i = 0; i < polys.Count; i++)
+        //        {
+        //            args.Display.DrawPolyline(polys[i], wirecolor, 2);
+        //        }
+        //    }
+        //}
 
         
 

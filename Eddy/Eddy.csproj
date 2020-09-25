@@ -79,7 +79,7 @@
     <Compile Include="Components\Indoor\IndoorDomain.cs" />
     <Compile Include="Components\Indoor\Inlet.cs" />
     <Compile Include="Components\Indoor\Outlet.cs" />
-    <Compile Include="Components\Indoor\Params\Param_IndoorGeometry.cs" />
+    <Compile Include="Components\Indoor\Params\Param_IndoorBC_Inlet.cs" />
     <Compile Include="Components\Misc\CompLBAnalPeriod2Hours.cs" />
     <Compile Include="Components\Outdoor Comfort\CompCalcWindFactors.cs" />
     <Compile Include="Components\Outdoor Comfort\CompCalcWindComfort.cs" />
