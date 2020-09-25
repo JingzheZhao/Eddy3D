@@ -24,6 +24,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
+            pManager.AddGenericParameter("Obj", "Obj", "Indoor CFD Objects", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -31,6 +32,8 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
+            pManager.AddGenericParameter("Model", "Model", "Indoor CFD Model", GH_ParamAccess.list);
+
         }
 
         /// <summary>

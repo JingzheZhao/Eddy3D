@@ -16,32 +16,32 @@ namespace EddyLib.Indoor
         Geometry = 2
         }
 
-    class OFIndoorGeometry
+    public class OFIndoorGeometry
     {
-        string Name { get; set; } // must be unique
-        Vector3d Normal { get; set; }
-        Mesh Geometry { get; set; }
-        OFIndoorGeometryType Type { get;  set;}
-        double Area { get; set; } 
-        double FlowRate { get; set; } = 0;
+     public  string Name { get; set; } // must be unique
+     public  Vector3d Normal { get; set; }
+     public  Mesh Geometry { get; set; }
+     public  OFIndoorGeometryType Type { get;  set;}
+     public  double Area { get; set; } 
+     public  double FlowRate { get; set; } = 0;
 
 
 
 
-        Dictionary<string, string> U { get; set; }
-        Dictionary<string, string> T { get; set; }
-        Dictionary<string, string> alpha { get; set; } 
-        Dictionary<string, string> AoA { get; set; } 
-        Dictionary<string, string> k { get; set; } 
-        Dictionary<string, string> nut { get; set; }
-        Dictionary<string, string> p_rgh { get; set; } 
-        Dictionary<string, string> omega { get; set; } 
-        Dictionary<string, string> p { get; set; }
+     public  Dictionary<string, string> U { get; set; }
+     public  Dictionary<string, string> T { get; set; }
+     public  Dictionary<string, string> alpha { get; set; } 
+     public  Dictionary<string, string> AoA { get; set; } 
+     public  Dictionary<string, string> k { get; set; } 
+     public  Dictionary<string, string> nut { get; set; }
+     public  Dictionary<string, string> p_rgh { get; set; } 
+     public  Dictionary<string, string> omega { get; set; } 
+     public  Dictionary<string, string> p { get; set; }
 
 
 
 
-
+        public OFIndoorGeometry() { }
 
         public OFIndoorGeometry(string name, Mesh geo , OFIndoorGeometryType type, OFField field) {
 

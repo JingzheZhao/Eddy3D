@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
@@ -24,6 +25,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
+            pManager.AddGeometryParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -31,6 +33,8 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
+            //pManager.AddGenericParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
+            pManager.RegisterParam(new Param_IndoorGeometry(), "Geo", "Geo", "Geometry", GH_ParamAccess.item);
         }
 
         /// <summary>

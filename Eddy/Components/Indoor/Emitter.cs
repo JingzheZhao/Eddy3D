@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
@@ -23,6 +24,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
+            pManager.AddGeometryParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -30,6 +32,8 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
+            pManager.AddGenericParameter("Emitter", "E", "Emitter", GH_ParamAccess.item);
+
         }
 
         /// <summary>
@@ -48,8 +52,8 @@ namespace Eddy.Components.Indoor
             get
             {
                 //You can add image files to your project resources and access them like this:
-                // return Resources.IconForThisComponent;
-                return null;
+                 return Resources.Eddy_Indoor_Emitter;
+                
             }
         }
 
