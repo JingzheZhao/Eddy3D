@@ -78,9 +78,13 @@
     <Compile Include="FunctionObjects\PressureCoeff.cs" />
     <Compile Include="BoundaryConditions\BoundaryConditionsBase.cs" />
     <Compile Include="FunctionObjects\Tree.cs" />
+    <Compile Include="Indoor\Dicts\SnappyHexMeshDict.cs" />
+    <Compile Include="Indoor\Dicts\BlockMeshDict.cs" />
+    <Compile Include="Indoor\Dicts\GenericDict.cs" />
+    <Compile Include="Indoor\Dicts\IndoorBCDict.cs" />
     <Compile Include="Indoor\IndoorDomain.cs" />
     <Compile Include="Indoor\OFIndoorEmitters.cs" />
-    <Compile Include="Indoor\IndoorBCs.cs" />
+    <Compile Include="Indoor\IndoorBC.cs" />
     <Compile Include="OutdoorComfort\WindComfort.cs" />
     <Compile Include="OutdoorComfort\WindFactors.cs" />
     <Compile Include="OutdoorComfort\WindComfortMetrics.cs" />
