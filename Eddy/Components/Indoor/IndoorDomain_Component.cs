@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
@@ -7,12 +8,12 @@ using Rhino.Geometry;
 
 namespace Eddy.Components.Indoor
 {
-    public class IndoorDomain : GH_Component
+    public class IndoorDomain_Component : GH_Component
     {
         /// <summary>
         /// Initializes a new instance of the IndoorDomain class.
         /// </summary>
-        public IndoorDomain()
+        public IndoorDomain_Component()
           : base("IndoorDomain", "IDom",
               "IndoorDomain" + EddyVersion.toString(),
               EddyVersion.Name, "7 | Indoor")
@@ -32,7 +33,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Model", "Model", "Indoor CFD Model", GH_ParamAccess.list);
+            pManager.AddParameter(new Param_IndoorDomain() , "Model", "Model", "Indoor CFD Model", GH_ParamAccess.list);
 
         }
 

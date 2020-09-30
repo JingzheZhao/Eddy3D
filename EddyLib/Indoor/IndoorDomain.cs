@@ -1,4 +1,6 @@
 ﻿using Grasshopper.Kernel.Types;
+using Microsoft.SqlServer.Server;
+using Newtonsoft.Json;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
@@ -9,11 +11,11 @@ using System.Threading.Tasks;
 
 namespace EddyLib.Indoor
 {
-    internal class IndoorDomain
+    public class IndoorDomain
     {
-        private BoundingBox BoundingBox;
+        public BoundingBox BoundingBox;
 
-        private List<IndoorBCs.Wall> Geometry; //Surfaces or Volumes. IE Walls, table, whatever
+        private List<IndoorBCs.Wall> Walls; //Surfaces or Volumes. IE Walls, table, whatever
 
         private List<IndoorBCs.Inlet> Inlets; //Surfaces
 
@@ -21,11 +23,13 @@ namespace EddyLib.Indoor
 
         private List<IndoorBCs.Emitter> Emitters; //Volumes
 
-        private Point3d[] Edges;
+        public Point3d[] Edges;
 
         private double CellSize;
 
         private string WorkingDir;
+
+        public IndoorDomain() { }
 
         public IndoorDomain(string workingDir, List<IndoorBCs.Wall> RoomGeometry, List<IndoorBCs.Inlet> Inlets, List<IndoorBCs.Outlet> Outlets, double cellSize)
         {
@@ -118,6 +122,14 @@ namespace EddyLib.Indoor
             bb = RG.GetBoundingBox(false);
 
             return bb;
+        }
+
+        public IndoorDomain Duplicate()
+        {
+            string json = JsonConvert.SerializeObject(this);
+
+            IndoorDomain dup = JsonConvert.DeserializeObject<IndoorDomain>(json);
+            return dup;
         }
     }
 }
