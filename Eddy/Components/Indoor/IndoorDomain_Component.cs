@@ -26,7 +26,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Geo", "Geo", "Indoor CFD Objects", GH_ParamAccess.list);
+            pManager.AddParameter(new Param_IndoorBC_Wall(), "Geo", "Geo", "Indoor CFD Objects", GH_ParamAccess.list);
             pManager.AddParameter(new Param_IndoorBC_Inlet() ,"Inlet", "In", "Indoor CFD Objects", GH_ParamAccess.list);
             pManager.AddParameter(new Param_IndoorBC_Outlet(), "Outlet", "Out", "Indoor CFD Objects", GH_ParamAccess.list);
 
