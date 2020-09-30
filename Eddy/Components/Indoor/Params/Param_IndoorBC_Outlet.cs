@@ -15,30 +15,30 @@ using System.Threading.Tasks;
 
 namespace Eddy.Components.Indoor.Params
 {
-    public class IndoorInletGoo : GH_Goo<IndoorBCs.Inlet>, IGH_PreviewData
+    public class IndoorOutletGoo : GH_Goo<IndoorBCs.Outlet>, IGH_PreviewData
     {
         #region constructors
 
-        public IndoorInletGoo()
+        public IndoorOutletGoo()
         {
-            this.Value = new IndoorBCs.Inlet();
+            this.Value = new IndoorBCs.Outlet();
         }
 
         // constructor with initial value
-        public IndoorInletGoo(IndoorBCs.Inlet indoorGeoValue)
+        public IndoorOutletGoo(IndoorBCs.Outlet indoorGeoValue)
         {
             this.Value = indoorGeoValue;
         }
 
         // copy constructor
-        public IndoorInletGoo(IndoorInletGoo indoorGeoSource)
+        public IndoorOutletGoo(IndoorOutletGoo indoorGeoSource)
         {
             this.Value = indoorGeoSource.Value;
         }
 
         public override IGH_Goo Duplicate()
         {
-            return new IndoorInletGoo(Value == null ? new IndoorBCs.Inlet() : Value.Duplicate());
+            return new IndoorOutletGoo(Value == null ? new IndoorBCs.Outlet() : Value.Duplicate());
         }
 
         #endregion
@@ -48,13 +48,13 @@ namespace Eddy.Components.Indoor.Params
         // return a string with the name of this Type.
         public override string TypeName
         {
-            get { return "IndoorBC Inlet"; }
+            get { return "IndoorBC Outlet"; }
         }
 
         // return a string describing what this Type is about.
         public override string TypeDescription
         {
-            get { return "IndoorBC Inlet"; }
+            get { return "IndoorBC Outlet"; }
         }
 
         // return a string representation of the state (value) of this instance.
@@ -63,18 +63,18 @@ namespace Eddy.Components.Indoor.Params
             string s = "";
             if (Value != null )
             {
-                s = "Velocity [m/s]: " + Value.Velocity.Length + " Temperature [K]: " + Value.TemperatureK;  //JsonConvert.SerializeObject(this.Value, Formatting.Indented);
+                s = "Velocity [m/s]: " + Value.Velocity.Length ;  //JsonConvert.SerializeObject(this.Value, Formatting.Indented);
             }
 
             // to string
-            return "[Inlet] " +  s;
+            return "[Outlet] " +  s;
         }
 
         // serlialize
         public override bool Write(GH_IO.Serialization.GH_IWriter writer)
         {
             var json = JsonConvert.SerializeObject(this.Value, Formatting.None);
-            writer.SetString("IndoorBC_Inlet", json);
+            writer.SetString("IndoorBC_Outlet", json);
 
             return true;
         }
@@ -82,10 +82,10 @@ namespace Eddy.Components.Indoor.Params
         // deserialize
         public override bool Read(GH_IO.Serialization.GH_IReader reader)
         {
-            var json = reader.GetString("IndoorBC_Inlet");
+            var json = reader.GetString("IndoorBC_Outlet");
             if (!String.IsNullOrWhiteSpace(json))
             {
-                this.Value = JsonConvert.DeserializeObject<IndoorBCs.Inlet>(json);
+                this.Value = JsonConvert.DeserializeObject<IndoorBCs.Outlet>(json);
             }
 
             return true;
@@ -141,18 +141,18 @@ namespace Eddy.Components.Indoor.Params
 
     }
 
-    public class Param_IndoorBC_Inlet : GH_PersistentParam<IndoorInletGoo>, IGH_PreviewObject
+    public class Param_IndoorBC_Outlet : GH_PersistentParam<IndoorOutletGoo>, IGH_PreviewObject
     {
         // we need to supply a constructor without arguments that calls the base class constructor.
-        public Param_IndoorBC_Inlet() :
-          base(new GH_InstanceDescription("Inlet", "Inlet",
-              "Inlet (Indoor Boundary Condition)", EddyVersion.Name, "7 | Indoor"))
+        public Param_IndoorBC_Outlet() :
+          base(new GH_InstanceDescription("Outlet", "Outlet",
+              "Outlet (Indoor Boundary Condition)", EddyVersion.Name, "7 | Indoor"))
         { }
 
         // unique id
         public override Guid ComponentGuid
         {
-            get { return new Guid("{EB07F9FB-78B1-43B6-8B9C-718E37DF1D9E}"); }
+            get { return new Guid("{B19EFC90-ECE2-4170-983D-AF339FCCBE80}"); }
         }
 
         // hidden parameter
@@ -166,18 +166,18 @@ namespace Eddy.Components.Indoor.Params
         {
             get
             {
-                return Resources.Eddy_Indoor_Inlet;
+                return Resources.Eddy_Indoor_Outlet;
             }
         }
 
 
-        //We do not allow users to pick inlets, 
+        //We do not allow users to pick Outlets, 
         //therefore the following 4 methods disable all this ui.
-        protected override GH_GetterResult Prompt_Plural(ref List<IndoorInletGoo> values)
+        protected override GH_GetterResult Prompt_Plural(ref List<IndoorOutletGoo> values)
         {
             return GH_GetterResult.cancel;
         }
-        protected override GH_GetterResult Prompt_Singular(ref IndoorInletGoo value)
+        protected override GH_GetterResult Prompt_Singular(ref IndoorOutletGoo value)
         {
             return GH_GetterResult.cancel;
         }

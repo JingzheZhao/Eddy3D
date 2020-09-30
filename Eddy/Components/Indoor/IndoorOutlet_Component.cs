@@ -8,14 +8,14 @@ using Rhino.Geometry;
 
 namespace Eddy.Components.Indoor
 {
-    public class Geometry : GH_Component
+    public class IndoorOutlet_Component : GH_Component
     {
         /// <summary>
-        /// Initializes a new instance of the Geometry class.
+        /// Initializes a new instance of the Outlet class.
         /// </summary>
-        public Geometry()
-          : base("Geometry", "Geo",
-              "Geometry" + EddyVersion.toString(),
+        public IndoorOutlet_Component()
+          : base("Outlet", "Ol",
+              "Outlet" + EddyVersion.toString(),
               EddyVersion.Name, "7 | Indoor")
         {
         }
@@ -25,7 +25,8 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGeometryParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
+            pManager.AddMeshParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
+            pManager.AddVectorParameter("Vel", "V", "Velocity [m/s]", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -33,10 +34,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            //pManager.AddGenericParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
-            pManager.RegisterParam(new Param_IndoorBC_Inlet(), "Geo", "Geo", "Geometry", GH_ParamAccess.item);
-            pManager.RegisterParam(new Param_IndoorBC_Inlet(), "Geo", "Geo", "Geometry", GH_ParamAccess.item);
-            pManager.RegisterParam(new Param_IndoorBC_Inlet(), "Geo", "Geo", "Geometry", GH_ParamAccess.item);
+            pManager.AddParameter(new Param_IndoorBC_Outlet(), "Outlet", "Ol", "Outlet", GH_ParamAccess.item);
 
         }
 
@@ -46,9 +44,17 @@ namespace Eddy.Components.Indoor
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            Mesh m = null;
+            DA.GetData(0, ref m);
+            Vector3d vec = Vector3d.ZAxis;
+            DA.GetData(1, ref vec);
+           
 
-            var wall = new IndoorBCs.Wall(new Mesh(), 300, 300);
+            var inlet = new IndoorBCs.Outlet(m, vec);
 
+            var goo = new IndoorOutletGoo(inlet);
+
+            DA.SetData(0, goo);
         }
 
         /// <summary>
@@ -59,7 +65,7 @@ namespace Eddy.Components.Indoor
             get
             {
                 //You can add image files to your project resources and access them like this:
-                return Resources.Eddy_Indoor_Geometry;
+                return Resources.Eddy_Indoor_Outlet;
 
             }
         }
@@ -69,7 +75,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("41272573-11fa-4cf4-8275-6029f3fe2c5f"); }
+            get { return new Guid("c9c87691-db10-4778-a955-51c9335cdb31"); }
         }
     }
 }

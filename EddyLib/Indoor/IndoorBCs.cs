@@ -74,11 +74,25 @@ public class IndoorBCs
 
     public class Outlet : IndoorBCs
     {
-        public Outlet(Mesh m)
+
+        public Vector3d Velocity { get; set; }
+        public Point3d Centroid { get; set; }
+
+        public Outlet()
+        {
+        }
+        public Outlet(Mesh m,  Vector3d velocity)
         {
             this.Geometry = m;
             this.Normals = m.FaceNormals;
+            this.Velocity = velocity;
+            this.Centroid = AreaMassProperties.Compute(m).Centroid;
             this.Name = "Outlet";
+        }
+        public Outlet Duplicate()
+        {
+            Outlet dup = new Outlet(Geometry,  Velocity);
+            return dup;
         }
     }
 
