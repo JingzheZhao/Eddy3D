@@ -78,6 +78,7 @@
     <Compile Include="FunctionObjects\PressureCoeff.cs" />
     <Compile Include="BoundaryConditions\BoundaryConditionsBase.cs" />
     <Compile Include="FunctionObjects\Tree.cs" />
+    <Compile Include="Indoor\Dictionary.cs" />
     <Compile Include="Indoor\IndoorDomain.cs" />
     <Compile Include="Indoor\OFIndoorEmitters.cs" />
     <Compile Include="Indoor\IndoorBCs.cs" />
