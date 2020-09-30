@@ -43,6 +43,8 @@ namespace EddyLib.Indoor
         {
             public U(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
+                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+
                 this.inlet = inlet;
                 this.outlet = outlet;
                 this.wall = wall;
@@ -66,6 +68,8 @@ namespace EddyLib.Indoor
         {
             public T(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
+                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+
                 this.fc = fieldClass.volScalarField;
                 this.Name = "T";
                 this.location = @"\0\" + this.Name;
@@ -85,6 +89,8 @@ namespace EddyLib.Indoor
         {
             public alphat(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
+                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+
                 this.fc = fieldClass.volScalarField;
                 this.Name = "alphat";
                 this.location = @"\0\" + this.Name;
@@ -104,6 +110,8 @@ namespace EddyLib.Indoor
         {
             public AoA(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
+                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+
                 this.fc = fieldClass.volScalarField;
                 this.Name = "AoA";
                 this.location = @"\0\" + this.Name;
@@ -123,6 +131,8 @@ namespace EddyLib.Indoor
         {
             public k(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
+                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+
                 this.fc = fieldClass.volScalarField;
                 this.Name = "k";
                 this.location = @"\0\" + this.Name;
@@ -142,6 +152,8 @@ namespace EddyLib.Indoor
         {
             public nut(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
+                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+
                 this.fc = fieldClass.volScalarField;
                 this.Name = "nut";
                 this.location = @"\0\" + this.Name;
@@ -161,6 +173,8 @@ namespace EddyLib.Indoor
         {
             public p_rgh(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
+                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+
                 this.fc = fieldClass.volScalarField;
                 this.Name = "p_rgh";
                 this.location = @"\0\" + this.Name;
@@ -180,6 +194,8 @@ namespace EddyLib.Indoor
         {
             public omega(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
+                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+
                 this.fc = fieldClass.volScalarField;
                 this.Name = "omega";
                 this.location = @"\0\" + this.Name;
@@ -198,6 +214,8 @@ namespace EddyLib.Indoor
         {
             public p(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
+                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+
                 this.fc = fieldClass.volScalarField;
                 this.Name = "p";
                 this.location = @"\0\" + this.Name;
@@ -286,6 +304,9 @@ namespace EddyLib.Indoor
 
         public void Export(string baseWorkingDir)
         {
+            if (!Directory.Exists(baseWorkingDir + this.location)) {
+                Directory.CreateDirectory(baseWorkingDir + this.location);
+            }
             File.WriteAllText(baseWorkingDir + this.location, this.Serialize(this));
         }
 
