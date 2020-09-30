@@ -8,12 +8,12 @@ using Rhino.Geometry;
 
 namespace Eddy.Components.Indoor
 {
-    public class Geometry_Component : GH_Component
+    public class IndoorWall_Component : GH_Component
     {
         /// <summary>
         /// Initializes a new instance of the Geometry class.
         /// </summary>
-        public Geometry_Component()
+        public IndoorWall_Component()
           : base("Geometry", "Geo",
               "Geometry" + EddyVersion.toString(),
               EddyVersion.Name, "7 | Indoor")
@@ -34,7 +34,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
+            pManager.AddParameter(new  Param_IndoorBC_Wall() , "Geo", "Geo", "Geometry", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -51,8 +51,8 @@ namespace Eddy.Components.Indoor
             DA.GetData(1, ref temp);
 
             var wall = new IndoorBCs.Wall(m, temp, temp);
-
-            DA.SetData(0, wall);
+            var goo = new IndoorWallGoo(wall);
+            DA.SetData(0, goo);
 
         }
 

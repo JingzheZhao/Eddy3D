@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
 using EddyLib;
+using EddyLib.Indoor;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
@@ -25,7 +26,13 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Obj", "Obj", "Indoor CFD Objects", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Geo", "Geo", "Indoor CFD Objects", GH_ParamAccess.list);
+            pManager.AddParameter(new Param_IndoorBC_Inlet() ,"Inlet", "In", "Indoor CFD Objects", GH_ParamAccess.list);
+            pManager.AddParameter(new Param_IndoorBC_Outlet(), "Outlet", "Out", "Indoor CFD Objects", GH_ParamAccess.list);
+
+            pManager.AddTextParameter("Directory", "Dir", "Working Directory", GH_ParamAccess.item, @"C:\Temp\EddyProject");
+            pManager.AddNumberParameter("CellSize", "Cs", "Cell Size", GH_ParamAccess.item, 1);
+
         }
 
         /// <summary>
@@ -43,6 +50,39 @@ namespace Eddy.Components.Indoor
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+
+            var WallGoos = new List<IndoorWallGoo>();
+            var InletGoos = new List<IndoorInletGoo>();
+            var OutletGoos = new List<IndoorOutletGoo>();
+
+            var Walls = new List<IndoorBCs.Wall>();
+            var Inlets = new List<IndoorBCs.Inlet>();
+            var Outlets = new List<IndoorBCs.Outlet>();
+
+            DA.GetDataList(0,  WallGoos);
+            DA.GetDataList(1,  InletGoos);
+            DA.GetDataList(2,  OutletGoos);
+
+            foreach (var o in WallGoos) {
+                Walls.Add(o.Value);
+            }
+            foreach (var o in InletGoos)
+            {
+                Inlets.Add(o.Value);
+            }
+            foreach (var o in OutletGoos)
+            {
+                Outlets.Add(o.Value);
+            }
+
+            string dir = "";
+            DA.GetData(3, ref dir);
+            double cellSize = 1;
+            DA.GetData(4, ref cellSize);
+
+            var dom = new IndoorDomain(dir, Walls, Inlets, Outlets, cellSize);
+
+            DA.SetData(0 , dom);
         }
 
         /// <summary>

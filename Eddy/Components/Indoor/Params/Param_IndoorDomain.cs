@@ -164,7 +164,7 @@ namespace Eddy.Components.Indoor.Params
         {
             get
             {
-                return Resources.Eddy_Indoor_Inlet;
+                return Resources.Eddy_Indoor_Domain;
             }
         }
 

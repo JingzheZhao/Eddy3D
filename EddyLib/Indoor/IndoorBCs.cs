@@ -40,6 +40,11 @@ public class IndoorBCs
             this.Normals = m.FaceNormals;
             this.Name = "Wall";
         }
+        public Wall Duplicate()
+        {
+            Wall dup = new Wall(Geometry, TemperatureK, internalFieldTempK);
+            return dup;
+        }
     }
 
     public class Inlet : IndoorBCs

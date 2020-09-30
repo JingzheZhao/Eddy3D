@@ -15,30 +15,30 @@ using System.Threading.Tasks;
 
 namespace Eddy.Components.Indoor.Params
 {
-    public class IndoorOutletGoo : GH_Goo<IndoorBCs.Outlet>, IGH_PreviewData
+    public class IndoorWallGoo : GH_Goo<IndoorBCs.Wall>, IGH_PreviewData
     {
         #region constructors
 
-        public IndoorOutletGoo()
+        public IndoorWallGoo()
         {
-            this.Value = new IndoorBCs.Outlet();
+            this.Value = new IndoorBCs.Wall();
         }
 
         // constructor with initial value
-        public IndoorOutletGoo(IndoorBCs.Outlet indoorGeoValue)
+        public IndoorWallGoo(IndoorBCs.Wall indoorGeoValue)
         {
             this.Value = indoorGeoValue;
         }
 
         // copy constructor
-        public IndoorOutletGoo(IndoorOutletGoo indoorGeoSource)
+        public IndoorWallGoo(IndoorWallGoo indoorGeoSource)
         {
             this.Value = indoorGeoSource.Value;
         }
 
         public override IGH_Goo Duplicate()
         {
-            return new IndoorOutletGoo(Value == null ? new IndoorBCs.Outlet() : Value.Duplicate());
+            return new IndoorWallGoo(Value == null ? new IndoorBCs.Wall() : Value.Duplicate());
         }
 
         #endregion
@@ -48,13 +48,13 @@ namespace Eddy.Components.Indoor.Params
         // return a string with the name of this Type.
         public override string TypeName
         {
-            get { return "IndoorBC Outlet"; }
+            get { return "IndoorBC Wall"; }
         }
 
         // return a string describing what this Type is about.
         public override string TypeDescription
         {
-            get { return "IndoorBC Outlet"; }
+            get { return "IndoorBC Wall"; }
         }
 
         // return a string representation of the state (value) of this instance.
@@ -63,18 +63,18 @@ namespace Eddy.Components.Indoor.Params
             string s = "";
             if (Value != null )
             {
-                s = "Velocity [m/s]: " + Value.Velocity.Length ;  //JsonConvert.SerializeObject(this.Value, Formatting.Indented);
+                s = "Temperature [K]: " + Value.TemperatureK ;  //JsonConvert.SerializeObject(this.Value, Formatting.Indented);
             }
 
             // to string
-            return "[Outlet] " +  s;
+            return "[Wall] " +  s;
         }
 
         // serlialize
         public override bool Write(GH_IO.Serialization.GH_IWriter writer)
         {
             var json = JsonConvert.SerializeObject(this.Value, Formatting.None);
-            writer.SetString("IndoorBC_Outlet", json);
+            writer.SetString("IndoorBC_Wall", json);
 
             return true;
         }
@@ -82,10 +82,10 @@ namespace Eddy.Components.Indoor.Params
         // deserialize
         public override bool Read(GH_IO.Serialization.GH_IReader reader)
         {
-            var json = reader.GetString("IndoorBC_Outlet");
+            var json = reader.GetString("IndoorBC_Wall");
             if (!String.IsNullOrWhiteSpace(json))
             {
-                this.Value = JsonConvert.DeserializeObject<IndoorBCs.Outlet>(json);
+                this.Value = JsonConvert.DeserializeObject<IndoorBCs.Wall>(json);
             }
 
             return true;
@@ -130,32 +130,24 @@ namespace Eddy.Components.Indoor.Params
         }
         public void DrawViewportWires(GH_PreviewWireArgs args)
         {
-            if (Value == null) { return; }
-
-            if (Value.Velocity != null && Value.Centroid!= null)
-            {
-                if (Value.Velocity.Length > 0)
-                {
-                    args.Pipeline.DrawArrow(new Line(Value.Centroid, Value.Velocity * 10), args.Color);
-                }
-            }      
+           
         }
         #endregion
 
     }
 
-    public class Param_IndoorBC_Outlet : GH_PersistentParam<IndoorOutletGoo>, IGH_PreviewObject
+    public class Param_IndoorBC_Wall : GH_PersistentParam<IndoorWallGoo>, IGH_PreviewObject
     {
         // we need to supply a constructor without arguments that calls the base class constructor.
-        public Param_IndoorBC_Outlet() :
-          base(new GH_InstanceDescription("Outlet", "Outlet",
-              "Outlet (Indoor Boundary Condition)", EddyVersion.Name, "7 | Indoor"))
+        public Param_IndoorBC_Wall() :
+          base(new GH_InstanceDescription("Wall", "Wall",
+              "Wall (Indoor Boundary Condition)", EddyVersion.Name, "7 | Indoor"))
         { }
 
         // unique id
         public override Guid ComponentGuid
         {
-            get { return new Guid("{B19EFC90-ECE2-4170-983D-AF339FCCBE80}"); }
+            get { return new Guid("{2CE4C943-3470-4DEC-A3CD-AE051F70F07D}"); }
         }
 
         // hidden parameter
@@ -169,18 +161,18 @@ namespace Eddy.Components.Indoor.Params
         {
             get
             {
-                return Resources.Eddy_Indoor_Outlet;
+                return Resources.Eddy_Indoor_Geometry;
             }
         }
 
 
-        //We do not allow users to pick Outlets, 
+        //We do not allow users to pick Walls, 
         //therefore the following 4 methods disable all this ui.
-        protected override GH_GetterResult Prompt_Plural(ref List<IndoorOutletGoo> values)
+        protected override GH_GetterResult Prompt_Plural(ref List<IndoorWallGoo> values)
         {
             return GH_GetterResult.cancel;
         }
-        protected override GH_GetterResult Prompt_Singular(ref IndoorOutletGoo value)
+        protected override GH_GetterResult Prompt_Singular(ref IndoorWallGoo value)
         {
             return GH_GetterResult.cancel;
         }
