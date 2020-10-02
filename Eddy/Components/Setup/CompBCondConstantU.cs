@@ -136,6 +136,12 @@ namespace Eddy
             }
         }
 
+        // hidden parameter
+        public override GH_Exposure Exposure
+        {
+            get { return GH_Exposure.primary; }
+        }
+
         /// <summary>
         /// Each component must have a unique Guid to identify it. It is vital this Guid doesn't
         /// change otherwise old ghx files that use the old ID will partially fail during loading.
