@@ -6,13 +6,13 @@ namespace EddyLib.Indoor.Dicts
 {
     public class IndoorBCDict : GenericDict
     {
-        public string dimensions { get; set; }
+        public string Dimensions { get; set; }
 
-        public string internalField { get; set; }
+        public string InternalField { get; set; }
 
-        public Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>> boundaryFieldDict { get; set; }
+        public Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>> BoundaryFieldDict { get; set; }
 
-        public List<Dictionary<string, Dictionary<string, string>>> internalDict { get; set; }
+        public List<Dictionary<string, Dictionary<string, string>>> InternalDict { get; set; }
 
         public class U : IndoorBCDict
         {
@@ -22,19 +22,19 @@ namespace EddyLib.Indoor.Dicts
                 this.Name = "U";
                 this.Location = DictLocation.zero;
                 this.Header = GetHeader(this);
-                this.dimensions = "dimensions      [0 1 -1 0 0 0 0];";
+                this.Dimensions = "dimensions      [0 1 -1 0 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
-                this.internalField = "internalField   uniform (0 0 0);";
+                this.InternalField = "internalField   uniform (0 0 0);";
 
-                this.internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+                this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
 
-                foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBC.Wall i in wall) { this.internalDict.Add(GetFixedValue(i)); }
+                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetFixedValue(i)); }
+                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetInletOutlet(i)); }
+                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetZeroGradient(i)); }
 
-                this.boundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
-                boundaryFieldDict.Add("boundaryField", internalDict);
+                this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
+                BoundaryFieldDict.Add("boundaryField", InternalDict);
 
                 this.FullDictString = Serialize(this);
             }
@@ -48,19 +48,19 @@ namespace EddyLib.Indoor.Dicts
                 this.Name = "T";
                 this.Location = DictLocation.zero;
                 this.Header = GetHeader(this);
-                this.dimensions = "dimensions      [0 0 0 1 0 0 0];";
+                this.Dimensions = "dimensions      [0 0 0 1 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
-                this.internalField = "internalField   uniform 300;";
+                this.InternalField = "internalField   uniform 300;";
 
-                this.internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+                this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
 
-                foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
-                foreach (IndoorBC.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetFixedValue(i)); }
+                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i)); }
+                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetZeroGradient(i)); }
 
-                this.boundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
-                boundaryFieldDict.Add("boundaryField", internalDict);
+                this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
+                BoundaryFieldDict.Add("boundaryField", InternalDict);
 
                 this.FullDictString = Serialize(this);
             }
@@ -74,19 +74,19 @@ namespace EddyLib.Indoor.Dicts
                 this.Name = "alphat";
                 this.Location = DictLocation.zero;
                 this.Header = GetHeader(this);
-                this.dimensions = "dimensions      [0 0 1 0 0 0 0]";
+                this.Dimensions = "dimensions      [0 0 1 0 0 0 0]";
 
                 // Todo need to pass another class to set internalFieldTemp
-                this.internalField = "internalField   uniform 0;";
+                this.InternalField = "internalField   uniform 0;";
 
-                this.internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+                this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
 
-                foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
-                foreach (IndoorBC.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetFixedValue(i)); }
+                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i)); }
+                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetZeroGradient(i)); }
 
-                this.boundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
-                boundaryFieldDict.Add("boundaryField", internalDict);
+                this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
+                BoundaryFieldDict.Add("boundaryField", InternalDict);
 
                 this.FullDictString = Serialize(this);
             }
@@ -100,19 +100,19 @@ namespace EddyLib.Indoor.Dicts
                 this.Name = "AoA";
                 this.Location = DictLocation.zero;
                 this.Header = GetHeader(this);
-                this.dimensions = "dimensions      [0 0 0 1 0 0 0];";
+                this.Dimensions = "dimensions      [0 0 0 1 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
-                this.internalField = "internalField   uniform 0;";
+                this.InternalField = "internalField   uniform 0;";
 
-                this.internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+                this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
 
-                foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
-                foreach (IndoorBC.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetFixedValue(i)); }
+                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i)); }
+                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetZeroGradient(i)); }
 
-                this.boundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
-                boundaryFieldDict.Add("boundaryField", internalDict);
+                this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
+                BoundaryFieldDict.Add("boundaryField", InternalDict);
 
                 this.FullDictString = Serialize(this);
             }
@@ -126,19 +126,19 @@ namespace EddyLib.Indoor.Dicts
                 this.Name = "k";
                 this.Location = DictLocation.zero;
                 this.Header = GetHeader(this);
-                this.dimensions = "dimensions      [0 2 -2 0 0 0 0];";
+                this.Dimensions = "dimensions      [0 2 -2 0 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
-                this.internalField = "internalField   uniform 0;";
+                this.InternalField = "internalField   uniform 0;";
 
-                this.internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+                this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
 
-                foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
-                foreach (IndoorBC.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetFixedValue(i)); }
+                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i)); }
+                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetZeroGradient(i)); }
 
-                this.boundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
-                boundaryFieldDict.Add("boundaryField", internalDict);
+                this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
+                BoundaryFieldDict.Add("boundaryField", InternalDict);
 
                 this.FullDictString = Serialize(this);
             }
@@ -152,19 +152,19 @@ namespace EddyLib.Indoor.Dicts
                 this.Name = "nut";
                 this.Location = DictLocation.zero;
                 this.Header = GetHeader(this);
-                this.dimensions = "dimensions      [0 2 -1 0 0 0 0];";
+                this.Dimensions = "dimensions      [0 2 -1 0 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
-                this.internalField = "internalField   uniform 0;";
+                this.InternalField = "internalField   uniform 0;";
 
-                this.internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+                this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
 
-                foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
-                foreach (IndoorBC.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetFixedValue(i)); }
+                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i)); }
+                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetZeroGradient(i)); }
 
-                this.boundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
-                boundaryFieldDict.Add("boundaryField", internalDict);
+                this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
+                BoundaryFieldDict.Add("boundaryField", InternalDict);
 
                 this.FullDictString = Serialize(this);
             }
@@ -178,19 +178,19 @@ namespace EddyLib.Indoor.Dicts
                 this.Name = "p_rgh";
                 this.Location = DictLocation.zero;
                 this.Header = GetHeader(this);
-                this.dimensions = "dimensions      [1 -1 -2 0 0 0 0];";
+                this.Dimensions = "dimensions      [1 -1 -2 0 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
-                this.internalField = "internalField   uniform 101325;";
+                this.InternalField = "internalField   uniform 101325;";
 
-                this.internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+                this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
 
-                foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
-                foreach (IndoorBC.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetFixedValue(i)); }
+                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i)); }
+                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetZeroGradient(i)); }
 
-                this.boundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
-                boundaryFieldDict.Add("boundaryField", internalDict);
+                this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
+                BoundaryFieldDict.Add("boundaryField", InternalDict);
 
                 this.FullDictString = Serialize(this);
             }
@@ -204,18 +204,18 @@ namespace EddyLib.Indoor.Dicts
                 this.Name = "omega";
                 this.Location = DictLocation.zero;
                 this.Header = GetHeader(this);
-                this.dimensions = "dimensions      [0 0 -1 0 0 0 0];";
+                this.Dimensions = "dimensions      [0 0 -1 0 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
-                this.internalField = "internalField   uniform 0;";
+                this.InternalField = "internalField   uniform 0;";
 
-                this.internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
-                foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
-                foreach (IndoorBC.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+                this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetFixedValue(i)); }
+                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i)); }
+                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetZeroGradient(i)); }
 
-                this.boundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
-                boundaryFieldDict.Add("boundaryField", internalDict);
+                this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
+                BoundaryFieldDict.Add("boundaryField", InternalDict);
 
                 this.FullDictString = Serialize(this);
             }
@@ -229,18 +229,18 @@ namespace EddyLib.Indoor.Dicts
                 this.Name = "p";
                 this.Location = DictLocation.zero;
                 this.Header = GetHeader(this);
-                this.dimensions = "dimensions [1 -1 -2 0 0 0 0];";
+                this.Dimensions = "dimensions [1 -1 -2 0 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
-                this.internalField = "internalField uniform 101325;";
+                this.InternalField = "internalField uniform 101325;";
 
-                this.internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
-                foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
-                foreach (IndoorBC.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+                this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetFixedValue(i)); }
+                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i)); }
+                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetZeroGradient(i)); }
 
-                this.boundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
-                boundaryFieldDict.Add("boundaryField", internalDict);
+                this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
+                BoundaryFieldDict.Add("boundaryField", InternalDict);
 
                 this.FullDictString = Serialize(this);
             }
@@ -298,11 +298,11 @@ namespace EddyLib.Indoor.Dicts
             StringBuilder sb = new StringBuilder();
 
             sb.AppendLine(dict.Header);
-            sb.AppendLine(dict.dimensions);
-            sb.AppendLine(dict.internalField);
+            sb.AppendLine(dict.Dimensions);
+            sb.AppendLine(dict.InternalField);
 
             //TODO FOR TD: FIX THIS!
-            sb.AppendLine(CppMapSerializer.Serialize(dict.boundaryFieldDict));
+            sb.AppendLine(CppMapSerializer.Serialize(dict.BoundaryFieldDict));
 
             return sb.ToString();
         }
