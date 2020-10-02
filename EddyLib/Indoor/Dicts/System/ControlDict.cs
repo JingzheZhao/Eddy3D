@@ -2,8 +2,6 @@
 {
     public class ControlDict : GenericDict
     {
-        public string fullDict;
-
         public ControlDict()
         {
             this.Name = "blockMeshDict";
@@ -11,7 +9,7 @@
             this.Location = DictLocation.system;
 
             this.Header = GetHeader(this);
-            this.fullDict = @"
+            this.FullDictString = @"
 FoamFile
 {
     version         1912;
