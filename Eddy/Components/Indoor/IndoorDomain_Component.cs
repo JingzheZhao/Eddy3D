@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Windows.Forms;
 using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
 using EddyLib;
@@ -76,8 +77,8 @@ namespace Eddy.Components.Indoor
             DA.GetData(4, ref cellSize);
 
             var dom = new IndoorDomain(dir, cellSize, Walls, Inlets, Outlets);
-
-            DA.SetData(0, dom);
+            var domGoo = new IndoorDomaingGoo(dom);
+            DA.SetData(0, domGoo);
         }
 
         /// <summary>

@@ -146,7 +146,7 @@ namespace Eddy.Components.Indoor.Params
         #endregion drawing methods
     }
 
-    public class Param_IndoorDomain : GH_PersistentParam<IndoorInletGoo>, IGH_PreviewObject
+    public class Param_IndoorDomain : GH_PersistentParam<IndoorDomaingGoo>, IGH_PreviewObject
     {
         // we need to supply a constructor without arguments that calls the base class constructor.
         public Param_IndoorDomain() :
@@ -177,12 +177,12 @@ namespace Eddy.Components.Indoor.Params
 
         //We do not allow users to pick inlets,
         //therefore the following 4 methods disable all this ui.
-        protected override GH_GetterResult Prompt_Plural(ref List<IndoorInletGoo> values)
+        protected override GH_GetterResult Prompt_Plural(ref List<IndoorDomaingGoo> values)
         {
             return GH_GetterResult.cancel;
         }
 
-        protected override GH_GetterResult Prompt_Singular(ref IndoorInletGoo value)
+        protected override GH_GetterResult Prompt_Singular(ref IndoorDomaingGoo value)
         {
             return GH_GetterResult.cancel;
         }
