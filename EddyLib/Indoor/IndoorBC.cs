@@ -1,17 +1,5 @@
-﻿using EddyLib.BCs;
-using EddyLib.Indoor;
-using Newtonsoft.Json;
-using Rhino.Geometry;
+﻿using Rhino.Geometry;
 using Rhino.Geometry.Collections;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Security.AccessControl;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace EddyLib.Indoor
 {

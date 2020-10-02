@@ -1,11 +1,5 @@
-﻿using Newtonsoft.Json;
-using Rhino.Geometry;
-using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using Rhino.Geometry;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EddyLib.Indoor.Dicts
 {
@@ -17,47 +11,41 @@ namespace EddyLib.Indoor.Dicts
 
         private int divZ;
 
-        private string boundaryFieldString;
-
         private Point3d[] Corners;
 
         public BlockMeshDict(double cellSize, BoundingBox BBox)
         {
             this.Name = "blockMeshDict";
-            this.location = @"\system\" + this.Name;
-            this.header = GetHeader(this);
+            this.Location = DictLocation.system;
+            this.Header = GetHeader(this);
 
             this.divX = (int)((BBox.Max.X - BBox.Min.X) / cellSize);
             this.divY = (int)((BBox.Max.Y - BBox.Min.Y) / cellSize);
             this.divZ = (int)((BBox.Max.Z - BBox.Min.Z) / cellSize);
             this.Corners = BBox.GetCorners();
 
-            string[] parts = { Vertices(), Blocks(), EdgesAndBoundary };
+            string[] parts = { this.Header, Vertices(), Blocks(), EdgesAndBoundary };
 
-            this.boundaryFieldString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
+            this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
         }
 
-        private string Serialize(BlockMeshDict dict)
-        {
-            StringBuilder sb = new StringBuilder();
+        //private string Serialize(BlockMeshDict dict)
+        //{
+        //    StringBuilder sb = new StringBuilder();
 
-            sb.Append(dict.header);
+        //    sb.Append(dict.header);
 
-            sb.Append(dict.boundaryFieldString);
+        //    sb.Append(dict.boundaryFieldString);
 
-            return sb.ToString();
-        }
-
-        public void Export(string baseWorkingDir)
-        {
-            File.WriteAllText(baseWorkingDir + this.location, this.Serialize(this));
-        }
+        //    return sb.ToString();
+        //}
 
         private string Vertices()
         {
             string res = "";
 
-            res = string.Format(@"scale           1;
+            res = string.Format(@"
+scale           1;
 
 vertices
 (

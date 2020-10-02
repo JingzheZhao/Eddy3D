@@ -1,16 +1,13 @@
 ﻿using Rhino.Geometry;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EddyLib.Indoor
 {
-    class OFIndoorEmitters
+    internal class OFIndoorEmitters
     {
-        Mesh Geometry { get; set; }
-        double HeatOutput { get; set; } = 0;
-        double ParticleOutput { get; set; } = 0;
+        private Mesh Geometry { get; set; }
+
+        private double HeatOutput { get; set; } = 0;
+
+        private double ParticleOutput { get; set; } = 0;
     }
 }

@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using EddyLib.Indoor.Dicts;
-
-namespace EddyLib.Indoor.Dicts
+﻿namespace EddyLib.Indoor.Dicts
 {
     public class ControlDict : GenericDict
     {
@@ -13,15 +6,12 @@ namespace EddyLib.Indoor.Dicts
 
         public ControlDict()
         {
-            this.fullDict = @"
-/*---------------------------------------------------------------------------*\
-|=========                 |                                                  |
-|\\      /   F ield        | OpenFOAM: The Open Source CFD Toolbox            |
-| \\    /    O peration    | Version:  1912                                   |
-|  \\  /     A nd          | Web:      www.OpenFOAM.org                       |
-|   \\/      M anipulation |                                                  |
-\*---------------------------------------------------------------------------*/
+            this.Name = "blockMeshDict";
 
+            this.Location = DictLocation.system;
+
+            this.Header = GetHeader(this);
+            this.fullDict = @"
 FoamFile
 {
     version         1912;

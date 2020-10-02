@@ -9,27 +9,20 @@ namespace EddyLib.Indoor.Dicts
 {
     internal class SurfaceFeatureExtractDict : GenericDict
     {
-        public string fullDict;
-
         public SurfaceFeatureExtractDict()
         {
-            this.fullDict = @"
-/*---------------------------------------------------------------------------*\
-|=========                 |                                                  |
-|\\      /   F ield        | OpenFOAM: The Open Source CFD Toolbox            |
-| \\    /    O peration    | Version:  1912                                   |
-|  \\  /     A nd          | Web:      www.OpenFOAM.org                       |
-|   \\/      M anipulation |                                                  |
-\*---------------------------------------------------------------------------*/
+            this.Name = "surfaceFeatureExtractDict";
 
-FoamFile
+            this.Header = GetHeader(this);
+            this.Location = DictLocation.system;
+
+            this.FullDictString = @"FoamFile
 {
     version         1912;
     format          ascii;
     class           dictionary;
     location        ""system"";
-    object
-surfaceFeatureExtractDict;
+    object          surfaceFeatureExtractDict;
 
 	    extractFromSurfaceCoeffs
     {

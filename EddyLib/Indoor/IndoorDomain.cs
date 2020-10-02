@@ -1,14 +1,7 @@
-﻿using Grasshopper.Kernel.Types;
-using Microsoft.SqlServer.Server;
+﻿using EddyLib.Indoor.Dicts;
 using Newtonsoft.Json;
 using Rhino.Geometry;
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using EddyLib.Indoor.Dicts;
 
 namespace EddyLib.Indoor
 {
@@ -128,6 +121,11 @@ namespace EddyLib.Indoor
             allDicts.Add(g);
             allDicts.Add(thermoPhysicalProperties);
             allDicts.Add(turbulenceProperties);
+
+            foreach (GenericDict dict in allDicts)
+            {
+                dict.Export(workingDir);
+            }
         }
 
         private BoundingBox GetBoundingBox(List<IndoorBC.Wall> RoomGeometry)

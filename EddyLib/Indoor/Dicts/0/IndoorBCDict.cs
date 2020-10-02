@@ -1,11 +1,6 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using EddyLib.Indoor.Dicts;
 
 namespace EddyLib.Indoor.Dicts
 {
@@ -19,24 +14,14 @@ namespace EddyLib.Indoor.Dicts
 
         public List<Dictionary<string, Dictionary<string, string>>> internalDict { get; set; }
 
-        //public List<IndoorBC.Inlet> inlet { get; set; }
-
-        //public List<IndoorBC.Outlet> outlet { get; set; }
-
-        //public List<IndoorBC.Wall> wall { get; set; }
-
         public class U : IndoorBCDict
         {
             public U(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
-                //this.inlet = inlet;
-                //this.outlet = outlet;
-                //this.wall = wall;
-
-                this.fc = GenericDict.fieldClass.volVectorField;
+                this.FC = GenericDict.FieldClass.volVectorField;
                 this.Name = "U";
-                this.location = @"\0\" + this.Name;
-                this.header = GetHeader(this);
+                this.Location = DictLocation.zero;
+                this.Header = GetHeader(this);
                 this.dimensions = "dimensions      [0 1 -1 0 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
@@ -54,10 +39,10 @@ namespace EddyLib.Indoor.Dicts
         {
             public T(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
-                this.fc = fieldClass.volScalarField;
+                this.FC = FieldClass.volScalarField;
                 this.Name = "T";
-                this.location = @"\0\" + this.Name;
-                this.header = GetHeader(this);
+                this.Location = DictLocation.zero;
+                this.Header = GetHeader(this);
                 this.dimensions = "dimensions      [0 0 0 1 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
@@ -75,10 +60,10 @@ namespace EddyLib.Indoor.Dicts
         {
             public alphat(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
-                this.fc = fieldClass.volScalarField;
+                this.FC = FieldClass.volScalarField;
                 this.Name = "alphat";
-                this.location = @"\0\" + this.Name;
-                this.header = GetHeader(this);
+                this.Location = DictLocation.zero;
+                this.Header = GetHeader(this);
                 this.dimensions = "dimensions      [0 0 1 0 0 0 0]";
 
                 // Todo need to pass another class to set internalFieldTemp
@@ -96,10 +81,10 @@ namespace EddyLib.Indoor.Dicts
         {
             public AoA(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
-                this.fc = fieldClass.volScalarField;
+                this.FC = FieldClass.volScalarField;
                 this.Name = "AoA";
-                this.location = @"\0\" + this.Name;
-                this.header = GetHeader(this);
+                this.Location = DictLocation.zero;
+                this.Header = GetHeader(this);
                 this.dimensions = "dimensions      [0 0 0 1 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
@@ -117,10 +102,10 @@ namespace EddyLib.Indoor.Dicts
         {
             public k(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
-                this.fc = fieldClass.volScalarField;
+                this.FC = FieldClass.volScalarField;
                 this.Name = "k";
-                this.location = @"\0\" + this.Name;
-                this.header = GetHeader(this);
+                this.Location = DictLocation.zero;
+                this.Header = GetHeader(this);
                 this.dimensions = "dimensions      [0 2 -2 0 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
@@ -138,10 +123,10 @@ namespace EddyLib.Indoor.Dicts
         {
             public nut(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
-                this.fc = fieldClass.volScalarField;
+                this.FC = FieldClass.volScalarField;
                 this.Name = "nut";
-                this.location = @"\0\" + this.Name;
-                this.header = GetHeader(this);
+                this.Location = DictLocation.zero;
+                this.Header = GetHeader(this);
                 this.dimensions = "dimensions      [0 2 -1 0 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
@@ -159,10 +144,10 @@ namespace EddyLib.Indoor.Dicts
         {
             public p_rgh(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
-                this.fc = fieldClass.volScalarField;
+                this.FC = FieldClass.volScalarField;
                 this.Name = "p_rgh";
-                this.location = @"\0\" + this.Name;
-                this.header = GetHeader(this);
+                this.Location = DictLocation.zero;
+                this.Header = GetHeader(this);
                 this.dimensions = "dimensions      [1 -1 -2 0 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
@@ -180,10 +165,10 @@ namespace EddyLib.Indoor.Dicts
         {
             public omega(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
-                this.fc = fieldClass.volScalarField;
+                this.FC = FieldClass.volScalarField;
                 this.Name = "omega";
-                this.location = @"\0\" + this.Name;
-                this.header = GetHeader(this);
+                this.Location = DictLocation.zero;
+                this.Header = GetHeader(this);
                 this.dimensions = "dimensions      [0 0 -1 0 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
@@ -200,10 +185,10 @@ namespace EddyLib.Indoor.Dicts
         {
             public p(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
-                this.fc = fieldClass.volScalarField;
+                this.FC = FieldClass.volScalarField;
                 this.Name = "p";
-                this.location = @"\0\" + this.Name;
-                this.header = GetHeader(this);
+                this.Location = DictLocation.zero;
+                this.Header = GetHeader(this);
                 this.dimensions = "dimensions [1 -1 -2 0 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
@@ -226,7 +211,7 @@ namespace EddyLib.Indoor.Dicts
 
             if (input is IndoorBC.Inlet)
             {
-                var ii = (IndoorBC.Inlet)input;
+                IndoorBC.Inlet ii = (IndoorBC.Inlet)input;
 
                 InternalDict.Add("type", "fixedValue");
                 InternalDict.Add("value", "uniform (" + ii.Velocity.ToString().Trim(',') + ")");
@@ -267,18 +252,13 @@ namespace EddyLib.Indoor.Dicts
         {
             StringBuilder sb = new StringBuilder();
 
-            sb.Append(dict.header);
+            sb.Append(dict.Header);
             sb.Append(dict.dimensions);
             sb.Append(dict.internalField);
 
             sb.Append(ToCPPDict(dict.boundaryFieldDict));
 
             return sb.ToString();
-        }
-
-        public void Export(string baseWorkingDir)
-        {
-            File.WriteAllText(baseWorkingDir + this.location, this.Serialize(this));
         }
 
         private string ToCPPDict(Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>> boundaryFieldDict)

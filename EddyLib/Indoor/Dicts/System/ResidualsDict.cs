@@ -13,6 +13,20 @@ namespace EddyLib.Indoor.Dicts
 
         public ResidualsDict()
         {
+            this.Name = "residuals";
+
+            this.Header = GetHeader(this);
+            this.Location = DictLocation.system;
+
+            this.FullDictString = @"type            residuals;
+libs            (""libutilityFunctionObjects.so"");
+
+writeControl timeStep;
+writeInterval   1;
+
+fields (    p_rgh   U  h k omega AoA   );
+
+// ************************************************************************* //";
         }
     }
 }

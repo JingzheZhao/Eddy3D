@@ -1,12 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿using EddyLib.Indoor.Dicts;
+using Newtonsoft.Json;
 using Rhino.Geometry;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using EddyLib.Indoor.Dicts;
 
 namespace EddyLib.Indoor
 {
@@ -21,22 +18,17 @@ namespace EddyLib.Indoor
         public SnappyHexMeshDict(double cellSize, BoundingBox BBox, List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
         {
             this.Name = "snappyHexMeshDict";
-            this.location = @"\system\" + this.Name;
-            this.header = GetHeader(this);
+            this.Location = DictLocation.system;
+            this.Header = GetHeader(this);
 
             this.locationInMesh = BBox.Center;
 
             this.GeometryDict = new List<Dictionary<string, Dictionary<string, string>>>();
             foreach (IndoorBC i in inlet) { this.GeometryDict.Add(GetGeometryDict(i)); };
 
-            string[] parts = { JsonConvert.SerializeObject(GetSettingsDict()), JsonConvert.SerializeObject(this.GeometryDict), JsonConvert.SerializeObject(GetSnapControlsDict()), JsonConvert.SerializeObject(GetCastellatedMeshControls(this.locationInMesh, wall, inlet, outlet)), LayersAndMeshqualityControls() };
+            string[] parts = { this.Header, JsonConvert.SerializeObject(GetSettingsDict()), JsonConvert.SerializeObject(this.GeometryDict), JsonConvert.SerializeObject(GetSnapControlsDict()), JsonConvert.SerializeObject(GetCastellatedMeshControls(this.locationInMesh, wall, inlet, outlet)), LayersAndMeshqualityControls() };
 
             this.fullDict = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
-        }
-
-        public void Export(string baseWorkingDir)
-        {
-            File.WriteAllText(baseWorkingDir + this.location, this.fullDict);
         }
 
         private static Dictionary<string, Dictionary<string, string>> GetGeometryDict(IndoorBC input)
@@ -96,17 +88,6 @@ namespace EddyLib.Indoor
             InternalDict.Add("ImplicitFeatureSnap   ", "false");
 
             return Dict;
-        }
-
-        private string Serialize(SnappyHexMeshDict dict)
-        {
-            StringBuilder sb = new StringBuilder();
-
-            sb.Append(dict.header);
-
-            sb.Append(dict.fullDict);
-
-            return sb.ToString();
         }
 
         private string LayersAndMeshqualityControls()
@@ -217,12 +198,12 @@ meshQualityControls
         {
             return string.Format(@"{0}
         {{
-			level           ({1} {2});
+			level           ({1} {1});
                     patchInfo
                     {{
-                        type            {3};
+                        type            {2};
                     }}
-        }}", bc.Name, bc.refinementLevel.ToString(), bc.refinementLevel.ToString(), bc.bcType.ToString());
+        }}", bc.Name, bc.refinementLevel.ToString(), bc.bcType.ToString());
         }
 
         //       private string GetRefinementRegions(IndoorBC bc)

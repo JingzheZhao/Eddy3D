@@ -1,22 +1,28 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 
 namespace EddyLib.Indoor.Dicts
 {
     public class GenericDict
-    {
-        public string header { get; set; }
 
-        public string location { get; set; }
+    {
+        public enum DictLocation
+        {
+            system,
+
+            constant,
+
+            zero = 0
+        }
+
+        public DictLocation Location;
+
+        public string Header { get; set; }
+
+        //  public string Location { get; set; }
 
         public string Name { get; set; }
 
-        public enum fieldClass
+        public enum FieldClass
         {
             volVectorField,
 
@@ -25,7 +31,18 @@ namespace EddyLib.Indoor.Dicts
             dictionary
         }
 
-        public fieldClass fc;
+        public FieldClass FC;
+
+        public string FullDictString;
+
+        public void Export(string baseWorkingDir)
+
+        {
+            var path = Path.Combine(baseWorkingDir, Location.ToString());
+            Directory.CreateDirectory(path);
+            if (!path.EndsWith("\\")) path += "\\";
+            File.WriteAllText(path + this.Name, this.FullDictString);
+        }
 
         public static string GetHeader(GenericDict dict)
         {
@@ -33,8 +50,8 @@ namespace EddyLib.Indoor.Dicts
 {
     version     2.0;
     format      ascii;
-    class       " + dict.fc + @";
-    location    " + dict.location + @";
+    class       " + dict.FC + @";
+    location    " + dict.Location.ToString() + @";
     object      " + dict.Name + @"
 }";
         }
