@@ -5,8 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using EddyLib.Indoor.Dicts;
 
-namespace EddyLib.Indoor
+namespace EddyLib.Indoor.Dicts
 {
     public class IndoorBCDict : GenericDict
     {
@@ -18,19 +19,19 @@ namespace EddyLib.Indoor
 
         public List<Dictionary<string, Dictionary<string, string>>> internalDict { get; set; }
 
-        public List<IndoorBC.Inlet> inlet { get; set; }
+        //public List<IndoorBC.Inlet> inlet { get; set; }
 
-        public List<IndoorBC.Outlet> outlet { get; set; }
+        //public List<IndoorBC.Outlet> outlet { get; set; }
 
-        public List<IndoorBC.Wall> wall { get; set; }
+        //public List<IndoorBC.Wall> wall { get; set; }
 
         public class U : IndoorBCDict
         {
             public U(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
-                this.inlet = inlet;
-                this.outlet = outlet;
-                this.wall = wall;
+                //this.inlet = inlet;
+                //this.outlet = outlet;
+                //this.wall = wall;
 
                 this.fc = GenericDict.fieldClass.volVectorField;
                 this.Name = "U";

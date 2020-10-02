@@ -90,11 +90,11 @@ namespace EddyLib.Indoor
 
         public class Outlet : IndoorBC
         {
-            public Outlet(int refinementLevel)
+            public Outlet()
             {
             }
 
-            public Outlet(Mesh m)
+            public Outlet(Mesh m, int refinementLevel)
             {
                 this.Geometry = m;
                 this.Normals = m.FaceNormals;

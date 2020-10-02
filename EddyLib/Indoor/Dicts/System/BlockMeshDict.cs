@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EddyLib.Indoor
+namespace EddyLib.Indoor.Dicts
 {
     internal class BlockMeshDict : GenericDict
     {

@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using EddyLib.Indoor.Dicts;
 
 namespace EddyLib.Indoor
 {
@@ -25,14 +26,14 @@ namespace EddyLib.Indoor
 
         private double CellSize;
 
-        public IndoorDomain(string workingDir, List<IndoorBC.Wall> RoomGeometry, List<IndoorBC.Inlet> Inlets, List<IndoorBC.Outlet> Outlets)
+        public IndoorDomain(string workingDir, double CellSize, List<IndoorBC.Wall> RoomGeometry, List<IndoorBC.Inlet> Inlets, List<IndoorBC.Outlet> Outlets)
         {
-
             // Give unique index to every object
 
             int cnt = 0;
 
-            for (int i = 0; i < RoomGeometry.Count; i++) {
+            for (int i = 0; i < RoomGeometry.Count; i++)
+            {
                 RoomGeometry[i].Id = RoomGeometry[i].Name + cnt;
                 cnt++;
             }
@@ -47,8 +48,6 @@ namespace EddyLib.Indoor
                 cnt++;
             }
 
-
-
             // Walls
 
             this.BoundingBox = GetBoundingBox(RoomGeometry);
@@ -62,21 +61,26 @@ namespace EddyLib.Indoor
 
             this.Outlets = Outlets;
 
+            // Misc
+
+            this.CellSize = CellSize;
+
             // Dicts
 
-            List<IndoorBCDict> allDicts = new List<IndoorBCDict>();
+            List<GenericDict> allDicts = new List<GenericDict>();
 
-            IndoorBCDict.U u = new IndoorBCDict.U(Inlets, Outlets, RoomGeometry);
-            //Dicts.U.ToFile(...)
+            // Construct all Dicts
 
+            // BCs
 
-            IndoorBCDict.alphat alphat = new IndoorBCDict.alphat(Inlets, Outlets, RoomGeometry);
-            IndoorBCDict.AoA AoA = new IndoorBCDict.AoA(Inlets, Outlets, RoomGeometry);
-            IndoorBCDict.nut nut = new IndoorBCDict.nut(Inlets, Outlets, RoomGeometry);
-            IndoorBCDict.omega omega = new IndoorBCDict.omega(Inlets, Outlets, RoomGeometry);
-            IndoorBCDict.p p = new IndoorBCDict.p(Inlets, Outlets, RoomGeometry);
-            IndoorBCDict.p_rgh p_rgh = new IndoorBCDict.p_rgh(Inlets, Outlets, RoomGeometry);
-            IndoorBCDict.T T = new IndoorBCDict.T(Inlets, Outlets, RoomGeometry);
+            var u = new IndoorBCDict.U(Inlets, Outlets, RoomGeometry);
+            var alphat = new IndoorBCDict.alphat(Inlets, Outlets, RoomGeometry);
+            var AoA = new IndoorBCDict.AoA(Inlets, Outlets, RoomGeometry);
+            var nut = new IndoorBCDict.nut(Inlets, Outlets, RoomGeometry);
+            var omega = new IndoorBCDict.omega(Inlets, Outlets, RoomGeometry);
+            var p = new IndoorBCDict.p(Inlets, Outlets, RoomGeometry);
+            var p_rgh = new IndoorBCDict.p_rgh(Inlets, Outlets, RoomGeometry);
+            var T = new IndoorBCDict.T(Inlets, Outlets, RoomGeometry);
 
             allDicts.Add(u);
             allDicts.Add(alphat);
@@ -87,10 +91,33 @@ namespace EddyLib.Indoor
             allDicts.Add(p_rgh);
             allDicts.Add(T);
 
-            foreach (IndoorBCDict d in allDicts)
-            {
-                d.Export(workingDir);
-            }
+            // System
+
+            var controlDict = new ControlDict();
+            var blockMeshDict = new BlockMeshDict(CellSize, BoundingBox);
+            var snappyHextMeshDict = new SnappyHexMeshDict(CellSize, BoundingBox, Inlets, Outlets, RoomGeometry);
+            var fvSchemesDict = new FvSchemesDict();
+            var fvSolutionDict = new FvSolutionDict();
+            var residualsDict = new ResidualsDict();
+            var surfaceFeatureExtractDict = new SurfaceFeatureExtractDict();
+
+            allDicts.Add(controlDict);
+            allDicts.Add(blockMeshDict);
+            allDicts.Add(snappyHextMeshDict);
+            allDicts.Add(fvSchemesDict);
+            allDicts.Add(fvSolutionDict);
+            allDicts.Add(residualsDict);
+            allDicts.Add(surfaceFeatureExtractDict);
+
+            // Constant
+
+            var g = new GDict();
+            var thermoPhysicalProperties = new ThermoPhysicalPropertiesDict();
+            var turbulenceProperties = new TurbulencePropertiesDict();
+
+            allDicts.Add(g);
+            allDicts.Add(thermoPhysicalProperties);
+            allDicts.Add(turbulenceProperties);
         }
 
         private BoundingBox GetBoundingBox(List<IndoorBC.Wall> RoomGeometry)
