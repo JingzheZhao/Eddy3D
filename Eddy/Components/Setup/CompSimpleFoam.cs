@@ -329,6 +329,12 @@ namespace Eddy
             canRun = true;
         }
 
+        // hidden parameter
+        public override GH_Exposure Exposure
+        {
+            get { return GH_Exposure.tertiary; }
+        }
+
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface. Icons
         /// need to be 24x24 pixels.
