@@ -7,18 +7,16 @@ namespace EddyLib.Indoor.Dicts
     {
         public enum DictLocation
         {
+            zero,
+
             system,
 
-            constant,
-
-            zero = 0
+            constant
         }
 
         public DictLocation Location;
 
         public string Header { get; set; }
-
-        //  public string Location { get; set; }
 
         public string Name { get; set; }
 
@@ -38,7 +36,7 @@ namespace EddyLib.Indoor.Dicts
         public void Export(string baseWorkingDir)
 
         {
-            var path = Path.Combine(baseWorkingDir, Location.ToString());
+            var path = Path.Combine(baseWorkingDir, PrintLocation(Location));
             Directory.CreateDirectory(path);
             if (!path.EndsWith("\\")) path += "\\";
             File.WriteAllText(path + this.Name, this.FullDictString);
@@ -51,9 +49,24 @@ namespace EddyLib.Indoor.Dicts
     version     2.0;
     format      ascii;
     class       " + dict.FC + @";
-    location    " + dict.Location.ToString() + @";
-    object      " + dict.Name + @"
+    location    " + PrintLocation(dict.Location) + @";
+    object      " + dict.Name + @";
 }";
+        }
+
+        private static string PrintLocation(DictLocation dl)
+        {
+            string s = "";
+            if (dl == DictLocation.zero)
+            {
+                s = "0";
+            }
+            else
+            {
+                s = dl.ToString();
+            }
+
+            return s;
         }
     }
 }

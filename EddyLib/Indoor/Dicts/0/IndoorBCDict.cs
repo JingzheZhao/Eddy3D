@@ -32,6 +32,11 @@ namespace EddyLib.Indoor.Dicts
                 foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetFixedValue(i)); }
                 foreach (IndoorBC.Wall i in wall) { this.internalDict.Add(GetFixedValue(i)); }
+
+                this.boundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
+                boundaryFieldDict.Add("boundaryField", internalDict);
+
+                this.FullDictString = Serialize(this);
             }
         }
 
@@ -53,6 +58,11 @@ namespace EddyLib.Indoor.Dicts
                 foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
                 foreach (IndoorBC.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+
+                this.boundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
+                boundaryFieldDict.Add("boundaryField", internalDict);
+
+                this.FullDictString = Serialize(this);
             }
         }
 
@@ -74,6 +84,11 @@ namespace EddyLib.Indoor.Dicts
                 foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
                 foreach (IndoorBC.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+
+                this.boundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
+                boundaryFieldDict.Add("boundaryField", internalDict);
+
+                this.FullDictString = Serialize(this);
             }
         }
 
@@ -95,6 +110,11 @@ namespace EddyLib.Indoor.Dicts
                 foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
                 foreach (IndoorBC.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+
+                this.boundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
+                boundaryFieldDict.Add("boundaryField", internalDict);
+
+                this.FullDictString = Serialize(this);
             }
         }
 
@@ -116,6 +136,11 @@ namespace EddyLib.Indoor.Dicts
                 foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
                 foreach (IndoorBC.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+
+                this.boundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
+                boundaryFieldDict.Add("boundaryField", internalDict);
+
+                this.FullDictString = Serialize(this);
             }
         }
 
@@ -137,6 +162,11 @@ namespace EddyLib.Indoor.Dicts
                 foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
                 foreach (IndoorBC.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+
+                this.boundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
+                boundaryFieldDict.Add("boundaryField", internalDict);
+
+                this.FullDictString = Serialize(this);
             }
         }
 
@@ -158,6 +188,11 @@ namespace EddyLib.Indoor.Dicts
                 foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
                 foreach (IndoorBC.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+
+                this.boundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
+                boundaryFieldDict.Add("boundaryField", internalDict);
+
+                this.FullDictString = Serialize(this);
             }
         }
 
@@ -178,6 +213,11 @@ namespace EddyLib.Indoor.Dicts
                 foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
                 foreach (IndoorBC.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+
+                this.boundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
+                boundaryFieldDict.Add("boundaryField", internalDict);
+
+                this.FullDictString = Serialize(this);
             }
         }
 
@@ -198,6 +238,11 @@ namespace EddyLib.Indoor.Dicts
                 foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
                 foreach (IndoorBC.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+
+                this.boundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
+                boundaryFieldDict.Add("boundaryField", internalDict);
+
+                this.FullDictString = Serialize(this);
             }
         }
 
@@ -252,19 +297,13 @@ namespace EddyLib.Indoor.Dicts
         {
             StringBuilder sb = new StringBuilder();
 
-            sb.Append(dict.Header);
-            sb.Append(dict.dimensions);
-            sb.Append(dict.internalField);
+            sb.AppendLine(dict.Header);
+            sb.AppendLine(dict.dimensions);
+            sb.AppendLine(dict.internalField);
 
-            sb.Append(ToCPPDict(dict.boundaryFieldDict));
+            sb.AppendLine(JsonConvert.SerializeObject(dict.boundaryFieldDict));
 
             return sb.ToString();
-        }
-
-        private string ToCPPDict(Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>> boundaryFieldDict)
-        {
-            string sb = JsonConvert.SerializeObject(boundaryFieldDict);
-            return sb;
         }
     }
 }

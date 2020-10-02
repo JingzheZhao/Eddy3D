@@ -9,8 +9,6 @@ namespace EddyLib.Indoor
 {
     internal class SnappyHexMeshDict : GenericDict
     {
-        public string fullDict;
-
         private Point3d locationInMesh;
 
         public List<Dictionary<string, Dictionary<string, string>>> GeometryDict { get; set; }
@@ -28,7 +26,7 @@ namespace EddyLib.Indoor
 
             string[] parts = { this.Header, JsonConvert.SerializeObject(GetSettingsDict()), JsonConvert.SerializeObject(this.GeometryDict), JsonConvert.SerializeObject(GetSnapControlsDict()), JsonConvert.SerializeObject(GetCastellatedMeshControls(this.locationInMesh, wall, inlet, outlet)), LayersAndMeshqualityControls() };
 
-            this.fullDict = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
+            this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
         }
 
         private static Dictionary<string, Dictionary<string, string>> GetGeometryDict(IndoorBC input)
