@@ -211,7 +211,7 @@ namespace EddyLib.Indoor.Dicts
                 var ii = (IndoorBC.Inlet)input;
 
                 InternalDict.Add("type", "fixedValue");
-                InternalDict.Add("value", "uniform (" + ii.velocity.ToString().Trim(',') + ")");
+                InternalDict.Add("value", "uniform (" + ii.Velocity.ToString().Trim(',') + ")");
             };
 
             return Dict;

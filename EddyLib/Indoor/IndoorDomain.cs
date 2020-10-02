@@ -28,6 +28,12 @@ namespace EddyLib.Indoor
 
         private double CellSize;
 
+        private string WorkingDir;
+
+        public IndoorDomain()
+        {
+        }
+
         public IndoorDomain(string workingDir, double CellSize, List<IndoorBC.Wall> RoomGeometry, List<IndoorBC.Inlet> Inlets, List<IndoorBC.Outlet> Outlets)
         {
             // Give unique index to every object
@@ -64,6 +70,8 @@ namespace EddyLib.Indoor
             this.Outlets = Outlets;
 
             // Misc
+
+            this.WorkingDir = workingDir;
 
             this.CellSize = CellSize;
 

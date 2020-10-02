@@ -15,17 +15,17 @@ using System.Threading.Tasks;
 
 namespace Eddy.Components.Indoor.Params
 {
-    public class IndoorOutletGoo : GH_Goo<IndoorBCs.Outlet>, IGH_PreviewData
+    public class IndoorOutletGoo : GH_Goo<IndoorBC.Outlet>, IGH_PreviewData
     {
         #region constructors
 
         public IndoorOutletGoo()
         {
-            this.Value = new IndoorBCs.Outlet();
+            this.Value = new IndoorBC.Outlet();
         }
 
         // constructor with initial value
-        public IndoorOutletGoo(IndoorBCs.Outlet indoorGeoValue)
+        public IndoorOutletGoo(IndoorBC.Outlet indoorGeoValue)
         {
             this.Value = indoorGeoValue;
         }
@@ -38,10 +38,10 @@ namespace Eddy.Components.Indoor.Params
 
         public override IGH_Goo Duplicate()
         {
-            return new IndoorOutletGoo(Value == null ? new IndoorBCs.Outlet() : Value.Duplicate());
+            return new IndoorOutletGoo(Value == null ? new IndoorBC.Outlet() : Value.Duplicate());
         }
 
-        #endregion
+        #endregion constructors
 
         #region properties
 
@@ -61,13 +61,14 @@ namespace Eddy.Components.Indoor.Params
         public override string ToString()
         {
             string s = "";
-            if (Value != null )
+            if (Value != null)
             {
-                s = "Velocity [m/s]: " + Value.Velocity.Length ;  //JsonConvert.SerializeObject(this.Value, Formatting.Indented);
+                // s = "Velocity [m/s]: " + Value.Velocity.Length;  //JsonConvert.SerializeObject(this.Value, Formatting.Indented);
+                s = "Pressure outlet ";//
             }
 
             // to string
-            return "[Outlet] " +  s;
+            return "[Outlet] " + s;
         }
 
         // serlialize
@@ -85,7 +86,7 @@ namespace Eddy.Components.Indoor.Params
             var json = reader.GetString("IndoorBC_Outlet");
             if (!String.IsNullOrWhiteSpace(json))
             {
-                this.Value = JsonConvert.DeserializeObject<IndoorBCs.Outlet>(json);
+                this.Value = JsonConvert.DeserializeObject<IndoorBC.Outlet>(json);
             }
 
             return true;
@@ -99,49 +100,53 @@ namespace Eddy.Components.Indoor.Params
                 return true;
             }
         }
+
         public override string IsValidWhyNot
         {
             get
             {
                 if (Value == null) { return "No internal instance"; }
                 if (true) { return string.Empty; }
+
                 //return "Invalid instance"; //Todo: beef this up to be more informative.
             }
         }
-       
-        #endregion
 
-       
-
-      
+        #endregion properties
 
         #region drawing methods
+
         public BoundingBox ClippingBox
         {
             get { return this.Value.Geometry.GetBoundingBox(true); }
         }
+
         public void DrawViewportMeshes(GH_PreviewMeshArgs args)
         {
             if (Value == null) { return; }
             if (Value.Geometry != null)
             {
-                args.Pipeline.DrawMeshShaded( Value.Geometry, args.Material);
+                args.Pipeline.DrawMeshShaded(Value.Geometry, args.Material);
             }
         }
+
         public void DrawViewportWires(GH_PreviewWireArgs args)
         {
             if (Value == null) { return; }
 
-            if (Value.Velocity != null && Value.Centroid!= null)
+            // if (Value.Velocity != null && Value.Centroid != null)
+            if (Value.Centroid != null)
             {
-                if (Value.Velocity.Length > 0)
-                {
-                    args.Pipeline.DrawArrow(new Line(Value.Centroid, Value.Velocity * 10), args.Color);
-                }
-            }      
-        }
-        #endregion
+                //if (Value.Velocity.Length > 0)
+                // {
+                //args.Pipeline.DrawArrow(new Line(Value.Centroid, Value.Velocity * 10), args.Color);
+                args.Pipeline.DrawArrow(new Line(Value.Centroid, Value.Normals[0] * 10), args.Color);
 
+                //  }
+            }
+        }
+
+        #endregion drawing methods
     }
 
     public class Param_IndoorBC_Outlet : GH_PersistentParam<IndoorOutletGoo>, IGH_PreviewObject
@@ -173,17 +178,18 @@ namespace Eddy.Components.Indoor.Params
             }
         }
 
-
-        //We do not allow users to pick Outlets, 
+        //We do not allow users to pick Outlets,
         //therefore the following 4 methods disable all this ui.
         protected override GH_GetterResult Prompt_Plural(ref List<IndoorOutletGoo> values)
         {
             return GH_GetterResult.cancel;
         }
+
         protected override GH_GetterResult Prompt_Singular(ref IndoorOutletGoo value)
         {
             return GH_GetterResult.cancel;
         }
+
         protected override System.Windows.Forms.ToolStripMenuItem Menu_CustomSingleValueItem()
         {
             System.Windows.Forms.ToolStripMenuItem item = new System.Windows.Forms.ToolStripMenuItem();
@@ -191,6 +197,7 @@ namespace Eddy.Components.Indoor.Params
             item.Visible = false;
             return item;
         }
+
         protected override System.Windows.Forms.ToolStripMenuItem Menu_CustomMultiValueItem()
         {
             System.Windows.Forms.ToolStripMenuItem item = new System.Windows.Forms.ToolStripMenuItem();
@@ -199,8 +206,8 @@ namespace Eddy.Components.Indoor.Params
             return item;
         }
 
-
         #region preview methods
+
         public BoundingBox ClippingBox
         {
             get
@@ -208,10 +215,12 @@ namespace Eddy.Components.Indoor.Params
                 return Preview_ComputeClippingBox();
             }
         }
+
         public void DrawViewportMeshes(IGH_PreviewArgs args)
         {
             Preview_DrawMeshes(args);
         }
+
         public void DrawViewportWires(IGH_PreviewArgs args)
         {
             //Use a standard method to draw gunk, you don't have to specifically implement this.
@@ -219,16 +228,18 @@ namespace Eddy.Components.Indoor.Params
         }
 
         private bool m_hidden = false;
+
         public bool Hidden
         {
             get { return m_hidden; }
             set { m_hidden = value; }
         }
+
         public bool IsPreviewCapable
         {
             get { return true; }
         }
-        #endregion
 
+        #endregion preview methods
     }
 }

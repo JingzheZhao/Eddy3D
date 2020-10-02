@@ -74,7 +74,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\FunctionObjects\CompTree.cs" />
-    <Compile Include="Components\Indoor\Emitter.cs" />
+    <Compile Include="Components\Indoor\Emitter_Component.cs" />
     <Compile Include="Components\Indoor\IndoorWall_Component.cs" />
     <Compile Include="Components\Indoor\IndoorDomain_Component.cs" />
     <Compile Include="Components\Indoor\IndoorInlet_Component.cs" />

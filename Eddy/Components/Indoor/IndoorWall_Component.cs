@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
 using EddyLib;
+using EddyLib.Indoor;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
@@ -34,7 +35,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddParameter(new  Param_IndoorBC_Wall() , "Geo", "Geo", "Geometry", GH_ParamAccess.item);
+            pManager.AddParameter(new Param_IndoorBC_Wall(), "Geo", "Geo", "Geometry", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -43,17 +44,17 @@ namespace Eddy.Components.Indoor
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-
             Mesh m = null;
             DA.GetData(0, ref m);
 
             double temp = 0;
             DA.GetData(1, ref temp);
 
-            var wall = new IndoorBCs.Wall(m, temp, temp);
+            int refinementLevel = 2;
+
+            var wall = new IndoorBC.Wall(m, refinementLevel, temp);
             var goo = new IndoorWallGoo(wall);
             DA.SetData(0, goo);
-
         }
 
         /// <summary>

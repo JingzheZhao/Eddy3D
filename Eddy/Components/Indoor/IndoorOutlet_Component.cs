@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
 using EddyLib;
+using EddyLib.Indoor;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
@@ -26,7 +27,7 @@ namespace Eddy.Components.Indoor
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddMeshParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
-            pManager.AddVectorParameter("Vel", "V", "Velocity [m/s]. The default is a zero length vector indicating that there is no force removing air from the space", GH_ParamAccess.item, new Vector3d(0,0,0) );
+            pManager.AddVectorParameter("Vel", "V", "Velocity [m/s]. The default is a zero length vector indicating that there is no force removing air from the space", GH_ParamAccess.item, new Vector3d(0, 0, 0));
         }
 
         /// <summary>
@@ -35,7 +36,6 @@ namespace Eddy.Components.Indoor
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddParameter(new Param_IndoorBC_Outlet(), "Outlet", "Ol", "Outlet", GH_ParamAccess.item);
-
         }
 
         /// <summary>
@@ -48,9 +48,10 @@ namespace Eddy.Components.Indoor
             DA.GetData(0, ref m);
             Vector3d vec = new Vector3d(0, 0, 0);
             DA.GetData(1, ref vec);
-           
 
-            var inlet = new IndoorBCs.Outlet(m, vec);
+            int refinementLevel = 2;
+
+            var inlet = new IndoorBC.Outlet(m, refinementLevel);
 
             var goo = new IndoorOutletGoo(inlet);
 
@@ -66,7 +67,6 @@ namespace Eddy.Components.Indoor
             {
                 //You can add image files to your project resources and access them like this:
                 return Resources.Eddy_Indoor_Outlet;
-
             }
         }
 

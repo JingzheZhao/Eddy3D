@@ -27,12 +27,11 @@ namespace Eddy.Components.Indoor
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddParameter(new Param_IndoorBC_Wall(), "Geo", "Geo", "Indoor CFD Objects", GH_ParamAccess.list);
-            pManager.AddParameter(new Param_IndoorBC_Inlet() ,"Inlet", "In", "Indoor CFD Objects", GH_ParamAccess.list);
+            pManager.AddParameter(new Param_IndoorBC_Inlet(), "Inlet", "In", "Indoor CFD Objects", GH_ParamAccess.list);
             pManager.AddParameter(new Param_IndoorBC_Outlet(), "Outlet", "Out", "Indoor CFD Objects", GH_ParamAccess.list);
 
             pManager.AddTextParameter("Directory", "Dir", "Working Directory", GH_ParamAccess.item, @"C:\Temp\EddyProject");
             pManager.AddNumberParameter("CellSize", "Cs", "Cell Size", GH_ParamAccess.item, 1);
-
         }
 
         /// <summary>
@@ -40,8 +39,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddParameter(new Param_IndoorDomain() , "Model", "Model", "Indoor CFD Model", GH_ParamAccess.list);
-
+            pManager.AddParameter(new Param_IndoorDomain(), "Model", "Model", "Indoor CFD Model", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -50,20 +48,20 @@ namespace Eddy.Components.Indoor
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-
             var WallGoos = new List<IndoorWallGoo>();
             var InletGoos = new List<IndoorInletGoo>();
             var OutletGoos = new List<IndoorOutletGoo>();
 
-            var Walls = new List<IndoorBCs.Wall>();
-            var Inlets = new List<IndoorBCs.Inlet>();
-            var Outlets = new List<IndoorBCs.Outlet>();
+            var Walls = new List<IndoorBC.Wall>();
+            var Inlets = new List<IndoorBC.Inlet>();
+            var Outlets = new List<IndoorBC.Outlet>();
 
-            DA.GetDataList(0,  WallGoos);
-            DA.GetDataList(1,  InletGoos);
-            DA.GetDataList(2,  OutletGoos);
+            DA.GetDataList(0, WallGoos);
+            DA.GetDataList(1, InletGoos);
+            DA.GetDataList(2, OutletGoos);
 
-            foreach (var o in WallGoos) {
+            foreach (var o in WallGoos)
+            {
                 Walls.Add(o.Value);
             }
             foreach (var o in InletGoos)
@@ -80,9 +78,9 @@ namespace Eddy.Components.Indoor
             double cellSize = 1;
             DA.GetData(4, ref cellSize);
 
-            var dom = new IndoorDomain(dir, Walls, Inlets, Outlets, cellSize);
+            var dom = new IndoorDomain(dir, cellSize, Walls, Inlets, Outlets);
 
-            DA.SetData(0 , dom);
+            DA.SetData(0, dom);
         }
 
         /// <summary>
@@ -94,7 +92,8 @@ namespace Eddy.Components.Indoor
             {
                 //You can add image files to your project resources and access them like this:
                 return Resources.Eddy_Indoor_Domain;
-               // return null;
+
+                // return null;
             }
         }
 

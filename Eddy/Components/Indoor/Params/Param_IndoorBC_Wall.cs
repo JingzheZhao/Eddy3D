@@ -15,17 +15,17 @@ using System.Threading.Tasks;
 
 namespace Eddy.Components.Indoor.Params
 {
-    public class IndoorWallGoo : GH_Goo<IndoorBCs.Wall>, IGH_PreviewData
+    public class IndoorWallGoo : GH_Goo<IndoorBC.Wall>, IGH_PreviewData
     {
         #region constructors
 
         public IndoorWallGoo()
         {
-            this.Value = new IndoorBCs.Wall();
+            this.Value = new IndoorBC.Wall();
         }
 
         // constructor with initial value
-        public IndoorWallGoo(IndoorBCs.Wall indoorGeoValue)
+        public IndoorWallGoo(IndoorBC.Wall indoorGeoValue)
         {
             this.Value = indoorGeoValue;
         }
@@ -38,10 +38,10 @@ namespace Eddy.Components.Indoor.Params
 
         public override IGH_Goo Duplicate()
         {
-            return new IndoorWallGoo(Value == null ? new IndoorBCs.Wall() : Value.Duplicate());
+            return new IndoorWallGoo(Value == null ? new IndoorBC.Wall() : Value.Duplicate());
         }
 
-        #endregion
+        #endregion constructors
 
         #region properties
 
@@ -61,13 +61,13 @@ namespace Eddy.Components.Indoor.Params
         public override string ToString()
         {
             string s = "";
-            if (Value != null )
+            if (Value != null)
             {
-                s = "Temperature [K]: " + Value.TemperatureK ;  //JsonConvert.SerializeObject(this.Value, Formatting.Indented);
+                s = "Temperature [K]: " + Value.TemperatureK;  //JsonConvert.SerializeObject(this.Value, Formatting.Indented);
             }
 
             // to string
-            return "[Wall] " +  s;
+            return "[Wall] " + s;
         }
 
         // serlialize
@@ -85,7 +85,7 @@ namespace Eddy.Components.Indoor.Params
             var json = reader.GetString("IndoorBC_Wall");
             if (!String.IsNullOrWhiteSpace(json))
             {
-                this.Value = JsonConvert.DeserializeObject<IndoorBCs.Wall>(json);
+                this.Value = JsonConvert.DeserializeObject<IndoorBC.Wall>(json);
             }
 
             return true;
@@ -99,41 +99,41 @@ namespace Eddy.Components.Indoor.Params
                 return true;
             }
         }
+
         public override string IsValidWhyNot
         {
             get
             {
                 if (Value == null) { return "No internal instance"; }
                 if (true) { return string.Empty; }
+
                 //return "Invalid instance"; //Todo: beef this up to be more informative.
             }
         }
-       
-        #endregion
 
-       
-
-      
+        #endregion properties
 
         #region drawing methods
+
         public BoundingBox ClippingBox
         {
             get { return this.Value.Geometry.GetBoundingBox(true); }
         }
+
         public void DrawViewportMeshes(GH_PreviewMeshArgs args)
         {
             if (Value == null) { return; }
             if (Value.Geometry != null)
             {
-                args.Pipeline.DrawMeshShaded( Value.Geometry, args.Material);
+                args.Pipeline.DrawMeshShaded(Value.Geometry, args.Material);
             }
         }
+
         public void DrawViewportWires(GH_PreviewWireArgs args)
         {
-           
         }
-        #endregion
 
+        #endregion drawing methods
     }
 
     public class Param_IndoorBC_Wall : GH_PersistentParam<IndoorWallGoo>, IGH_PreviewObject
@@ -165,17 +165,18 @@ namespace Eddy.Components.Indoor.Params
             }
         }
 
-
-        //We do not allow users to pick Walls, 
+        //We do not allow users to pick Walls,
         //therefore the following 4 methods disable all this ui.
         protected override GH_GetterResult Prompt_Plural(ref List<IndoorWallGoo> values)
         {
             return GH_GetterResult.cancel;
         }
+
         protected override GH_GetterResult Prompt_Singular(ref IndoorWallGoo value)
         {
             return GH_GetterResult.cancel;
         }
+
         protected override System.Windows.Forms.ToolStripMenuItem Menu_CustomSingleValueItem()
         {
             System.Windows.Forms.ToolStripMenuItem item = new System.Windows.Forms.ToolStripMenuItem();
@@ -183,6 +184,7 @@ namespace Eddy.Components.Indoor.Params
             item.Visible = false;
             return item;
         }
+
         protected override System.Windows.Forms.ToolStripMenuItem Menu_CustomMultiValueItem()
         {
             System.Windows.Forms.ToolStripMenuItem item = new System.Windows.Forms.ToolStripMenuItem();
@@ -191,8 +193,8 @@ namespace Eddy.Components.Indoor.Params
             return item;
         }
 
-
         #region preview methods
+
         public BoundingBox ClippingBox
         {
             get
@@ -200,10 +202,12 @@ namespace Eddy.Components.Indoor.Params
                 return Preview_ComputeClippingBox();
             }
         }
+
         public void DrawViewportMeshes(IGH_PreviewArgs args)
         {
             Preview_DrawMeshes(args);
         }
+
         public void DrawViewportWires(IGH_PreviewArgs args)
         {
             //Use a standard method to draw gunk, you don't have to specifically implement this.
@@ -211,16 +215,18 @@ namespace Eddy.Components.Indoor.Params
         }
 
         private bool m_hidden = false;
+
         public bool Hidden
         {
             get { return m_hidden; }
             set { m_hidden = value; }
         }
+
         public bool IsPreviewCapable
         {
             get { return true; }
         }
-        #endregion
 
+        #endregion preview methods
     }
 }

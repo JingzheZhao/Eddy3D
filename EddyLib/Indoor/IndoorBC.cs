@@ -42,26 +42,31 @@ namespace EddyLib.Indoor
 
         public string Id { get; set; }
 
+        public Point3d Centroid { get; set; }
+
         public class Wall : IndoorBC
         {
             public double TemperatureK { get; set; }
-
-            public double internalFieldTempK { get; set; }
 
             public Wall()
             {
             }
 
-            public Wall(Mesh m, double TemperatureC, int refinementLevel, double internalFieldTempC)
+            public Wall(Mesh m, int refinementLevel, double TemperatureC)
             {
                 this.TemperatureK = TemperatureC + 273.15;
 
-                // this needs to be passed differently
-                this.internalFieldTempK = internalFieldTempC + 273.15;
                 this.Geometry = m;
+
                 this.Normals = m.FaceNormals;
                 this.Name = "Wall";
                 this.refinementLevel = refinementLevel;
+            }
+
+            public Wall Duplicate()
+            {
+                Wall dup = new Wall(Geometry, refinementLevel, TemperatureK);
+                return dup;
             }
         }
 
@@ -69,7 +74,7 @@ namespace EddyLib.Indoor
         {
             public double TemperatureK { get; set; }
 
-            public Vector3d velocity { get; set; }
+            public Vector3d Velocity { get; set; }
 
             public Inlet()
             {
@@ -78,13 +83,20 @@ namespace EddyLib.Indoor
             public Inlet(Mesh m, double TemperatureC, int refinementLevel, Vector3d velocity)
             {
                 this.TemperatureK = TemperatureC + 273.15;
-                this.velocity = velocity;
+                this.Velocity = velocity;
                 this.Geometry = m;
+                this.Centroid = AreaMassProperties.Compute(m).Centroid;
                 this.Normals = m.FaceNormals;
                 this.Name = "Inlet";
                 this.OFGeometryType = "triSurfaceMesh";
                 this.bcType = BCType.inlet;
                 this.refinementLevel = refinementLevel;
+            }
+
+            public Inlet Duplicate()
+            {
+                Inlet dup = new Inlet(Geometry, TemperatureK, refinementLevel, Velocity);
+                return dup;
             }
         }
 
@@ -97,10 +109,17 @@ namespace EddyLib.Indoor
             public Outlet(Mesh m, int refinementLevel)
             {
                 this.Geometry = m;
+                this.Centroid = AreaMassProperties.Compute(m).Centroid;
                 this.Normals = m.FaceNormals;
                 this.Name = "Outlet";
                 this.bcType = BCType.outlet;
                 this.refinementLevel = refinementLevel;
+            }
+
+            public Outlet Duplicate()
+            {
+                Outlet dup = new Outlet(Geometry, refinementLevel);
+                return dup;
             }
         }
 
@@ -113,6 +132,7 @@ namespace EddyLib.Indoor
             public Emitter(Mesh m, int refinementLevel)
             {
                 this.Geometry = m;
+                this.Centroid = AreaMassProperties.Compute(m).Centroid;
                 this.Normals = m.FaceNormals;
                 this.Name = "Emitter";
                 this.bcType = BCType.emitter;

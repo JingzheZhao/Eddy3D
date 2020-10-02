@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 
 namespace Eddy.Components.Indoor
@@ -33,7 +36,6 @@ namespace Eddy.Components.Indoor
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("Emitter", "E", "Emitter", GH_ParamAccess.item);
-
         }
 
         /// <summary>
@@ -52,8 +54,7 @@ namespace Eddy.Components.Indoor
             get
             {
                 //You can add image files to your project resources and access them like this:
-                 return Resources.Eddy_Indoor_Emitter;
-                
+                return Resources.Eddy_Indoor_Emitter;
             }
         }
 

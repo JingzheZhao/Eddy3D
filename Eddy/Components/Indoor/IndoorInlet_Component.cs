@@ -4,6 +4,7 @@ using System.Drawing;
 using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
 using EddyLib;
+using EddyLib.Indoor;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
@@ -30,8 +31,6 @@ namespace Eddy.Components.Indoor
             pManager.AddMeshParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
             pManager.AddVectorParameter("Vel", "V", "Velocity [m/s]", GH_ParamAccess.item);
             pManager.AddNumberParameter("Temp", "T", "Temperature [C]", GH_ParamAccess.item);
-
-
         }
 
         /// <summary>
@@ -40,7 +39,6 @@ namespace Eddy.Components.Indoor
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddParameter(new Param_IndoorBC_Inlet(), "Inlet", "In", "Inlet", GH_ParamAccess.item);
-
         }
 
         /// <summary>
@@ -56,13 +54,13 @@ namespace Eddy.Components.Indoor
             double T = 1;
             DA.GetData(2, ref T);
 
+            int refinement = 2;
 
-            var inlet = new IndoorBCs.Inlet(m, T , vec);
+            var inlet = new IndoorBC.Inlet(m, T, refinement, vec);
 
             var goo = new IndoorInletGoo(inlet);
 
-            DA.SetData(0 , goo);
-
+            DA.SetData(0, goo);
         }
 
         /// <summary>
@@ -74,7 +72,6 @@ namespace Eddy.Components.Indoor
             {
                 //You can add image files to your project resources and access them like this:
                 return Resources.Eddy_Indoor_Inlet;
-
             }
         }
 
@@ -85,10 +82,5 @@ namespace Eddy.Components.Indoor
         {
             get { return new Guid("cb1b044e-b0bf-4fb3-b844-9f9469931244"); }
         }
-
-
- 
-
-
     }
 }

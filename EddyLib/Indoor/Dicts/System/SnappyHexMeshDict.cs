@@ -108,11 +108,6 @@ namespace EddyLib.Indoor
             return sb.ToString();
         }
 
-        public void Export(string baseWorkingDir)
-        {
-            File.WriteAllText(baseWorkingDir + this.location, this.Serialize(this));
-        }
-
         private string LayersAndMeshqualityControls()
         {
             return @"addLayersControls
