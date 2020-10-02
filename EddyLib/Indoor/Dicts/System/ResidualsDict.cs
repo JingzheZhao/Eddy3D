@@ -9,8 +9,6 @@ namespace EddyLib.Indoor.Dicts
 {
     public class ResidualsDict : GenericDict
     {
-        public string fullDict;
-
         public ResidualsDict()
         {
             this.Name = "residuals";
