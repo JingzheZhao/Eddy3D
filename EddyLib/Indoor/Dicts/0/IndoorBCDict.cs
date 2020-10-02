@@ -308,3 +308,46 @@ namespace EddyLib.Indoor.Dicts
         }
     }
 }
+
+///*--------------------------------*- C++ -*----------------------------------*\
+//| =========                 |                                                 |
+//| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+//|  \\    /   O peration     | Version:  5.x                                   |
+//|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+//|    \\/     M anipulation  |                                                 |
+//\*---------------------------------------------------------------------------*/
+///*   Windows 32 and 64 bit porting by blueCAPE: http://www.bluecape.com.pt   *\
+//|  Based on Windows porting (2.0.x v4) by Symscape: http://www.symscape.com   |
+//\*---------------------------------------------------------------------------*/
+//FoamFile
+//{
+//    version     2.0;
+//    format      binary;
+//    class       volScalarField;
+//    location    "0";
+//    object      T;
+//}
+//// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//dimensions      [0 0 0 1 0 0 0];
+
+//internalField   uniform 299.15;
+
+//boundaryField
+//{
+//    Inlet
+//    {
+//        type            fixedValue;
+//        value           uniform 283.15;
+//    }
+//    Outlet
+//    {
+//        type            zeroGradient;
+//    }
+//    FashioShop_1
+//    {
+//        type            zeroGradient;
+//    }
+//}
+
+//// ************************************************************************* //

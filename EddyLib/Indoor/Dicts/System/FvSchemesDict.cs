@@ -9,8 +9,6 @@ namespace EddyLib.Indoor.Dicts
 {
     public class FvSchemesDict : GenericDict
     {
-        public string fullDict;
-
         public FvSchemesDict()
         {
             this.Name = "fvSchemes";
