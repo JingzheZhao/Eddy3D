@@ -157,7 +157,7 @@ namespace Eddy.Components.Indoor.Params
         {
             get
             {
-                return Resources.Eddy_Indoor_Geometry;
+                return Resources.Eddy_Indoor_Geometry_Param;
             }
         }
 

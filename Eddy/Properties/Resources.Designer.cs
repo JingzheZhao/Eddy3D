@@ -233,9 +233,29 @@ namespace Eddy.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Eddy_Indoor_Domain_Param {
+            get {
+                object obj = ResourceManager.GetObject("Eddy_Indoor_Domain_Param", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Eddy_Indoor_Emitter {
             get {
                 object obj = ResourceManager.GetObject("Eddy_Indoor_Emitter", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Eddy_Indoor_Emitter_Param {
+            get {
+                object obj = ResourceManager.GetObject("Eddy_Indoor_Emitter_Param", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -253,6 +273,16 @@ namespace Eddy.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Eddy_Indoor_Geometry_Param {
+            get {
+                object obj = ResourceManager.GetObject("Eddy_Indoor_Geometry_Param", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Eddy_Indoor_Inlet {
             get {
                 object obj = ResourceManager.GetObject("Eddy_Indoor_Inlet", resourceCulture);
@@ -263,9 +293,29 @@ namespace Eddy.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Eddy_Indoor_Inlet_Param {
+            get {
+                object obj = ResourceManager.GetObject("Eddy_Indoor_Inlet_Param", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Eddy_Indoor_Outlet {
             get {
                 object obj = ResourceManager.GetObject("Eddy_Indoor_Outlet", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Eddy_Indoor_Outlet_copy {
+            get {
+                object obj = ResourceManager.GetObject("Eddy_Indoor_Outlet_copy", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

@@ -170,7 +170,7 @@ namespace Eddy.Components.Indoor.Params
         {
             get
             {
-                return Resources.Eddy_Indoor_Outlet;
+                return Resources.Eddy_Indoor_Outlet_copy;
             }
         }
 
