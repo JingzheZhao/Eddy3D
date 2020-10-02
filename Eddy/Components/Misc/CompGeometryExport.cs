@@ -24,7 +24,7 @@ namespace Eddy
         public GeometryExportComponent()
           : base("STL Exporter", "STL Exporter",
               "STL Exporter" + EddyVersion.toString(),
-              EddyVersion.Name, "3 | PreProcessing")
+              EddyVersion.Name, "3 | Pre-Processing")
         {
         }
 

@@ -150,7 +150,7 @@ namespace Eddy.Components.Indoor.Params
     {
         // we need to supply a constructor without arguments that calls the base class constructor.
         public Param_IndoorDomain() :
-          base(new GH_InstanceDescription("Domain", "Dom", "Domain for indoor simulations", EddyVersion.Name, "7 | Indoor"))
+          base(new GH_InstanceDescription("Domain", "Dom", "Domain for indoor simulations", EddyVersion.Name, "9 | Indoor"))
 
         { }
 

@@ -23,7 +23,7 @@ namespace Eddy
         /// </summary>
         public CompComputeFlowRateFromU()
           : base("Flow Rates", "Flow Rates", "Compute flow rates across a mesh while treating its vertices as velocity probes." + EddyVersion.toString(),
-              EddyVersion.Name, "5 | PostProcessing")
+              EddyVersion.Name, "5 | Post-Processing")
         {
         }
 

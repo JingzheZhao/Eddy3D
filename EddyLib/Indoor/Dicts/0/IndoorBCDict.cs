@@ -42,6 +42,8 @@ namespace EddyLib.Indoor.Dicts
                 // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField   uniform (0 0 0);";
 
+                this.internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+
                 foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetFixedValue(i)); }
                 foreach (IndoorBC.Wall i in wall) { this.internalDict.Add(GetFixedValue(i)); }
@@ -60,6 +62,8 @@ namespace EddyLib.Indoor.Dicts
 
                 // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField   uniform 300;";
+
+                this.internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
 
                 foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
@@ -80,6 +84,8 @@ namespace EddyLib.Indoor.Dicts
                 // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField   uniform 0;";
 
+                this.internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+
                 foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
                 foreach (IndoorBC.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
@@ -98,6 +104,8 @@ namespace EddyLib.Indoor.Dicts
 
                 // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField   uniform 0;";
+
+                this.internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
 
                 foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
@@ -118,6 +126,8 @@ namespace EddyLib.Indoor.Dicts
                 // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField   uniform 0;";
 
+                this.internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+
                 foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
                 foreach (IndoorBC.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
@@ -136,6 +146,8 @@ namespace EddyLib.Indoor.Dicts
 
                 // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField   uniform 0;";
+
+                this.internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
 
                 foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
@@ -156,6 +168,8 @@ namespace EddyLib.Indoor.Dicts
                 // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField   uniform 101325;";
 
+                this.internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+
                 foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
                 foreach (IndoorBC.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
@@ -174,6 +188,8 @@ namespace EddyLib.Indoor.Dicts
 
                 // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField   uniform 0;";
+
+                this.internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
                 foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
                 foreach (IndoorBC.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
@@ -192,6 +208,8 @@ namespace EddyLib.Indoor.Dicts
 
                 // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField uniform 101325;";
+
+                this.internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
                 foreach (IndoorBC.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
                 foreach (IndoorBC.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }

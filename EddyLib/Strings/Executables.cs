@@ -2135,7 +2135,7 @@ building.stl
 
     // Write options
 
-        // Write features to obj format for PostProcessing
+        // Write features to obj format for Post-Processing
         writeObj                yes;
 }
 
@@ -2164,7 +2164,7 @@ ground.stl
 
     // Write options
 
-        // Write features to obj format for PostProcessing
+        // Write features to obj format for Post-Processing
         writeObj                yes;
 }
 
@@ -2195,7 +2195,7 @@ ground_perim.stl
 
     // Write options
 
-        // Write features to obj format for PostProcessing
+        // Write features to obj format for Post-Processing
         writeObj                yes;
 }
 

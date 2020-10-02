@@ -59,7 +59,7 @@ namespace Eddy
         /// </summary>
         public CompVisProbesCustom()
           : base("Probing", "Probing", "Probe the simulation." + EddyVersion.toString(),
-              EddyVersion.Name, "5 | PostProcessing")
+              EddyVersion.Name, "5 | Post-Processing")
         {
         }
 

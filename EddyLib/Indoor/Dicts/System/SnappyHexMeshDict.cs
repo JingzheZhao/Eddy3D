@@ -26,6 +26,7 @@ namespace EddyLib.Indoor
 
             this.locationInMesh = BBox.Center;
 
+            this.GeometryDict = new List<Dictionary<string, Dictionary<string, string>>>();
             foreach (IndoorBC i in inlet) { this.GeometryDict.Add(GetGeometryDict(i)); };
 
             string[] parts = { JsonConvert.SerializeObject(GetSettingsDict()), JsonConvert.SerializeObject(this.GeometryDict), JsonConvert.SerializeObject(GetSnapControlsDict()), JsonConvert.SerializeObject(GetCastellatedMeshControls(this.locationInMesh, wall, inlet, outlet)), LayersAndMeshqualityControls() };
@@ -215,13 +216,13 @@ meshQualityControls
         private string GetRefinementSurfaces(IndoorBC bc)
         {
             return string.Format(@"{0}
-        {
-			level           ({1} {1});
+        {{
+			level           ({1} {2});
                     patchInfo
-                    {
-                        type            {2};
-                    }
-        }", bc.Name, bc.refinementLevel, bc.bcType);
+                    {{
+                        type            {3};
+                    }}
+        }}", bc.Name, bc.refinementLevel.ToString(), bc.refinementLevel.ToString(), bc.bcType.ToString());
         }
 
         //       private string GetRefinementRegions(IndoorBC bc)

@@ -29,7 +29,7 @@ namespace Eddy
         /// </summary>
         public Cluster()
           : base("Wind Rose Cluster", "Cluster", "Create a Wind Rose Cluster from the weather " + EddyVersion.toString(),
-              EddyVersion.Name, "3 | PreProcessing")
+              EddyVersion.Name, "3 | Pre-Processing")
         {
         }
 

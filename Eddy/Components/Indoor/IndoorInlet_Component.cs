@@ -19,7 +19,7 @@ namespace Eddy.Components.Indoor
         public IndoorInlet_Component()
           : base("Inlet", "Il",
               "Inlet" + EddyVersion.toString(),
-              EddyVersion.Name, "7 | Indoor")
+              EddyVersion.Name, "9 | Indoor")
         {
         }
 

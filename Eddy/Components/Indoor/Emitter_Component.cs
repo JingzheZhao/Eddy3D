@@ -16,7 +16,7 @@ namespace Eddy.Components.Indoor
         /// Initializes a new instance of the Emitter class.
         /// </summary>
         public Emitter()
-          : base("Emitter", "Em", "Emitter" + EddyVersion.toString(), EddyVersion.Name, "7 | Indoor")
+          : base("Emitter", "Em", "Emitter" + EddyVersion.toString(), EddyVersion.Name, "9 | Indoor")
         {
         }
 

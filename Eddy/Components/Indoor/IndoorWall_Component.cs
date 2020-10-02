@@ -17,7 +17,7 @@ namespace Eddy.Components.Indoor
         public IndoorWall_Component()
           : base("Geometry", "Geo",
               "Geometry" + EddyVersion.toString(),
-              EddyVersion.Name, "7 | Indoor")
+              EddyVersion.Name, "9 | Indoor")
         {
         }
 

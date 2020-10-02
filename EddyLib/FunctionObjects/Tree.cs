@@ -154,7 +154,7 @@ namespace EddyLib
                     nearDistance 0.08;
                     curvature -100;
                 }}
-            }}", id, String.Join(" ", EddyLib.Utilities.FormatPV(pointOutside)));
+            }}", id, String.Join(" ", Utilities.FormatPV(pointOutside)));
 
             sb.AppendLine(content);
 

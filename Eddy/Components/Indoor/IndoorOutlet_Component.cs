@@ -17,7 +17,7 @@ namespace Eddy.Components.Indoor
         public IndoorOutlet_Component()
           : base("Outlet", "Ol",
               "Outlet" + EddyVersion.toString(),
-              EddyVersion.Name, "7 | Indoor")
+              EddyVersion.Name, "9 | Indoor")
         {
         }
 

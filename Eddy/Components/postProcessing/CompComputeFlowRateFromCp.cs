@@ -32,7 +32,7 @@
 // created. ///
 // </summary>
 // public CompComputeFlowRateFromCp() : base("ComputeFlowRateFromCp", "FlowRateCp", "Compute flow
-// rates from pressure coefficients", "Eddy", "5 | PostProcessing") { }
+// rates from pressure coefficients", "Eddy", "5 | Post-Processing") { }
 
 // ///
 // <summary>

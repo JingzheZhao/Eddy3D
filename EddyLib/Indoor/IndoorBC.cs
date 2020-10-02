@@ -55,7 +55,7 @@ namespace EddyLib.Indoor
             public Wall(Mesh m, int refinementLevel, double TemperatureC)
             {
                 this.TemperatureK = TemperatureC + 273.15;
-
+                m.Normals.ComputeNormals();
                 this.Geometry = m;
 
                 this.Normals = m.FaceNormals;
@@ -84,6 +84,7 @@ namespace EddyLib.Indoor
             {
                 this.TemperatureK = TemperatureC + 273.15;
                 this.Velocity = velocity;
+                m.Normals.ComputeNormals();
                 this.Geometry = m;
                 this.Centroid = AreaMassProperties.Compute(m).Centroid;
                 this.Normals = m.FaceNormals;
@@ -108,6 +109,7 @@ namespace EddyLib.Indoor
 
             public Outlet(Mesh m, int refinementLevel)
             {
+                m.Normals.ComputeNormals();
                 this.Geometry = m;
                 this.Centroid = AreaMassProperties.Compute(m).Centroid;
                 this.Normals = m.FaceNormals;

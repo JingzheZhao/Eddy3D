@@ -147,7 +147,7 @@ namespace Eddy.Components.Indoor.Params
         // we need to supply a constructor without arguments that calls the base class constructor.
         public Param_IndoorBC_Inlet() :
           base(new GH_InstanceDescription("Inlet", "Inlet",
-              "Inlet (Indoor Boundary Condition)", EddyVersion.Name, "7 | Indoor"))
+              "Inlet (Indoor Boundary Condition)", EddyVersion.Name, "9 | Indoor"))
         { }
 
         // unique id

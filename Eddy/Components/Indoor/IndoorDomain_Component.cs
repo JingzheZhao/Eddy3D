@@ -14,7 +14,7 @@ namespace Eddy.Components.Indoor
         /// <summary>
         /// Initializes a new instance of the IndoorDomain class.
         /// </summary>
-        public IndoorDomain_Component() : base("IndoorDomain", "IDom", "IndoorDomain" + EddyVersion.toString(), EddyVersion.Name, "7 | Indoor")
+        public IndoorDomain_Component() : base("IndoorDomain", "IDom", "IndoorDomain" + EddyVersion.toString(), EddyVersion.Name, "9 | Indoor")
         {
         }
 
