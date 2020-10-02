@@ -78,6 +78,7 @@
     <Compile Include="FunctionObjects\PressureCoeff.cs" />
     <Compile Include="BoundaryConditions\BoundaryConditionsBase.cs" />
     <Compile Include="FunctionObjects\Tree.cs" />
+    <Compile Include="Indoor\Dicts\CppMapSerializer.cs" />
     <Compile Include="Indoor\Dicts\System\DecomposeParDict.cs" />
     <Compile Include="Indoor\Dicts\System\ControlDict.cs" />
     <Compile Include="Indoor\Dicts\Constant\ThermophysicalPropertiesDict.cs" />

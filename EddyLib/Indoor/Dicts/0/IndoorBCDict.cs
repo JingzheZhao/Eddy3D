@@ -302,7 +302,7 @@ namespace EddyLib.Indoor.Dicts
             sb.AppendLine(dict.internalField);
 
             //TODO FOR TD: FIX THIS!
-            sb.AppendLine(JsonConvert.SerializeObject(dict.boundaryFieldDict));
+            sb.AppendLine(CppMapSerializer.Serialize(dict.boundaryFieldDict));
 
             return sb.ToString();
         }
