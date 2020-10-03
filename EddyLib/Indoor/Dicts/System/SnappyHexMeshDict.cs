@@ -11,7 +11,9 @@ namespace EddyLib.Indoor
     {
         private Point3d locationInMesh;
 
-        public List<Dictionary<string, Dictionary<string, string>>> GeometryDict { get; set; }
+        public Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>> GeometryDict { get; set; }
+
+        public List<Dictionary<string, Dictionary<string, string>>> GeometrySubDict { get; set; }
 
         public SnappyHexMeshDict(double cellSize, BoundingBox BBox, List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
         {
@@ -21,10 +23,19 @@ namespace EddyLib.Indoor
 
             this.locationInMesh = BBox.Center;
 
-            this.GeometryDict = new List<Dictionary<string, Dictionary<string, string>>>();
-            foreach (IndoorBC i in inlet) { this.GeometryDict.Add(GetGeometryDict(i)); };
+            foreach (IndoorBC i in inlet) { this.GeometrySubDict.Add(GetGeometryDict(i)); };
+            foreach (IndoorBC i in outlet) { this.GeometrySubDict.Add(GetGeometryDict(i)); };
+            foreach (IndoorBC i in wall) { this.GeometrySubDict.Add(GetGeometryDict(i)); };
 
-            string[] parts = { this.Header, JsonConvert.SerializeObject(GetSettingsDict()), JsonConvert.SerializeObject(this.GeometryDict), JsonConvert.SerializeObject(GetSnapControlsDict()), JsonConvert.SerializeObject(GetCastellatedMeshControls(this.locationInMesh, wall, inlet, outlet)), LayersAndMeshqualityControls() };
+            this.GeometryDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
+            GeometryDict.Add("geometry", GeometrySubDict);
+
+            string[] parts = { this.Header, "\n",
+               CppMapSerializer.Serialize(GetSettingsDict()),"\n",
+               CppMapSerializer.Serialize(this.GeometryDict),"\n",
+               CppMapSerializer.Serialize(GetSnapControlsDict()),"\n",
+                GetCastellatedMeshControls(this.locationInMesh, wall, inlet, outlet),"\n",
+                LayersAndMeshqualityControls() };
 
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
         }
@@ -47,14 +58,14 @@ namespace EddyLib.Indoor
         {
             Dictionary<string, string> InternalDict = new Dictionary<string, string>();
 
-            InternalDict.Add("castellatedMesh", "true;");
-            InternalDict.Add("snap", "true;");
-            InternalDict.Add("addLayers", "false;");
-            InternalDict.Add("singleRegionName", " true;");
-            InternalDict.Add("mergePatchFaces", "true;");
-            InternalDict.Add("keepPatches", "false;");
-            InternalDict.Add("mergeTolerance", "1e-8;");
-            InternalDict.Add("debug", "0;");
+            InternalDict.Add("castellatedMesh", "true");
+            InternalDict.Add("snap", "true");
+            InternalDict.Add("addLayers", "false");
+            InternalDict.Add("singleRegionName", " true");
+            InternalDict.Add("mergePatchFaces", "true");
+            InternalDict.Add("keepPatches", "false");
+            InternalDict.Add("mergeTolerance", "1e-8");
+            InternalDict.Add("debug", "0");
 
             return InternalDict;
         }
