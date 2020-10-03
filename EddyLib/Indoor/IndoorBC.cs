@@ -48,6 +48,8 @@ namespace EddyLib.Indoor
 
                 this.Normals = m.FaceNormals;
                 this.Name = "Wall";
+                this.OFGeometryType = "triSurfaceMesh";
+                this.bcType = BCType.wall;
                 this.refinementLevel = refinementLevel;
             }
 
@@ -102,6 +104,7 @@ namespace EddyLib.Indoor
                 this.Centroid = AreaMassProperties.Compute(m).Centroid;
                 this.Normals = m.FaceNormals;
                 this.Name = "Outlet";
+                this.OFGeometryType = "triSurfaceMesh";
                 this.bcType = BCType.outlet;
                 this.refinementLevel = refinementLevel;
             }
@@ -125,6 +128,7 @@ namespace EddyLib.Indoor
                 this.Centroid = AreaMassProperties.Compute(m).Centroid;
                 this.Normals = m.FaceNormals;
                 this.Name = "Emitter";
+                this.OFGeometryType = "triSurfaceMesh";
                 this.bcType = BCType.emitter;
                 this.refinementLevel = refinementLevel;
             }

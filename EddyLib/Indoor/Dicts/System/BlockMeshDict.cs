@@ -17,8 +17,10 @@ namespace EddyLib.Indoor.Dicts
         {
             this.Name = "blockMeshDict";
             this.Location = DictLocation.system;
-            this.Header = GetHeader(this);
 
+            this.FC = FieldClass.dictionary;
+
+            this.Header = GetHeader(this);
             this.divX = (int)((BBox.Max.X - BBox.Min.X) / cellSize);
             this.divY = (int)((BBox.Max.Y - BBox.Min.Y) / cellSize);
             this.divZ = (int)((BBox.Max.Z - BBox.Min.Z) / cellSize);

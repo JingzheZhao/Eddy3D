@@ -1,7 +1,9 @@
 ﻿using EddyLib.Indoor.Dicts;
+using Grasshopper.Kernel.Types.Transforms;
 using Newtonsoft.Json;
 using Rhino.Geometry;
 using System.Collections.Generic;
+using System.IO;
 
 namespace EddyLib.Indoor
 {
@@ -9,13 +11,13 @@ namespace EddyLib.Indoor
     {
         public BoundingBox BoundingBox;
 
-        private List<IndoorBC.Wall> Geometry; //Surfaces or Volumes. IE Walls, table, whatever
+        //private List<IndoorBC.Wall> Geometry { get; set; } //Surfaces or Volumes. IE Walls, table, whatever
 
-        private List<IndoorBC.Inlet> Inlets; //Surfaces
+        //private List<IndoorBC.Inlet> Inlets { get; set; } //Surfaces
 
-        private List<IndoorBC.Outlet> Outlets;//Surfaces
+        //private List<IndoorBC.Outlet> Outlets { get; set; }//Surfaces
 
-        private List<IndoorBC.Emitter> Emitters; //Volumes
+        //private List<IndoorBC.Emitter> Emitters { get; set; } //Volumes
 
         public Point3d[] Edges;
 
@@ -33,34 +35,47 @@ namespace EddyLib.Indoor
 
             int cnt = 0;
 
+            List<IndoorBC> allGeometry = new List<IndoorBC>();
+
             for (int i = 0; i < RoomGeometry.Count; i++)
             {
                 RoomGeometry[i].Id = RoomGeometry[i].Name + cnt;
+                allGeometry.Add(RoomGeometry[i]);
                 cnt++;
             }
             for (int i = 0; i < Inlets.Count; i++)
             {
                 Inlets[i].Id = Inlets[i].Name + cnt;
+                allGeometry.Add(Inlets[i]);
                 cnt++;
             }
             for (int i = 0; i < Outlets.Count; i++)
             {
                 Outlets[i].Id = Outlets[i].Name + cnt;
+                allGeometry.Add(Outlets[i]);
                 cnt++;
             }
 
             // Walls
 
-            this.BoundingBox = GetBoundingBox(RoomGeometry);
+            //this.Geometry = RoomGeometry;
+
+            var b = GetBoundingBox(RoomGeometry);
+
+            var x = Transform.Scale(b.Center, 1.2);
+            b.Transform(x);
+
+            this.BoundingBox = b;
+
             this.Edges = this.BoundingBox.GetCorners();
 
             // Inlets
 
-            this.Inlets = Inlets;
+            //this.Inlets = Inlets;
 
-            // Outlets
+            //// Outlets
 
-            this.Outlets = Outlets;
+            //this.Outlets = Outlets;
 
             // Misc
 
@@ -81,6 +96,7 @@ namespace EddyLib.Indoor
             var AoA = new IndoorBCDict.AoA(Inlets, Outlets, RoomGeometry);
             var nut = new IndoorBCDict.nut(Inlets, Outlets, RoomGeometry);
             var omega = new IndoorBCDict.omega(Inlets, Outlets, RoomGeometry);
+            var k = new IndoorBCDict.k(Inlets, Outlets, RoomGeometry);
             var p = new IndoorBCDict.p(Inlets, Outlets, RoomGeometry);
             var p_rgh = new IndoorBCDict.p_rgh(Inlets, Outlets, RoomGeometry);
             var T = new IndoorBCDict.T(Inlets, Outlets, RoomGeometry);
@@ -90,6 +106,7 @@ namespace EddyLib.Indoor
             allDicts.Add(AoA);
             allDicts.Add(nut);
             allDicts.Add(omega);
+            allDicts.Add(k);
             allDicts.Add(p);
             allDicts.Add(p_rgh);
             allDicts.Add(T);
@@ -125,6 +142,15 @@ namespace EddyLib.Indoor
             foreach (GenericDict dict in allDicts)
             {
                 dict.Export(workingDir);
+            }
+
+            // Export Geometry as STL
+
+            var stlDir = Path.Combine(workingDir, "constant", "triSurface");
+            Directory.CreateDirectory(stlDir);
+            foreach (var geo in allGeometry)
+            {
+                EddyLib.STLExport.ExportBinary(stlDir + "\\" + geo.Name + ".stl", geo.Geometry);
             }
         }
 

@@ -49,7 +49,7 @@ namespace EddyLib.Indoor.Dicts
     version     2.0;
     format      ascii;
     class       " + dict.FC + @";
-    location    " + PrintLocation(dict.Location) + @";
+    location    """ + PrintLocation(dict.Location) + @""";
     object      " + dict.Name + @";
 }";
         }

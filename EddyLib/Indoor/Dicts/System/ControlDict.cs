@@ -4,9 +4,10 @@
     {
         public ControlDict()
         {
-            this.Name = "blockMeshDict";
+            this.Name = "controlDict";
 
             this.Location = DictLocation.system;
+            this.FC = FieldClass.dictionary;
 
             this.Header = GetHeader(this);
             this.FullDictString = @"

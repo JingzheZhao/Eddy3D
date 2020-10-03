@@ -5,9 +5,9 @@
         public SurfaceFeatureExtractDict()
         {
             this.Name = "surfaceFeatureExtractDict";
-
-            this.Header = GetHeader(this);
+            this.FC = FieldClass.dictionary;
             this.Location = DictLocation.system;
+            this.Header = GetHeader(this);
 
             this.FullDictString = @"FoamFile
 {
@@ -27,7 +27,7 @@
     }
 }
 
-Inlet*.stl
+Inlet.stl
 {
     extractionMethod extractFromSurface;
     includedAngle   180.00;
@@ -44,7 +44,7 @@ Inlet*.stl
     }
 }
 
-Outlet*.stl
+Outlet.stl
 {
     extractionMethod extractFromSurface;
     includedAngle   180.00;
@@ -61,7 +61,7 @@ Outlet*.stl
     }
 }
 
-Walls*.stl
+Wall.stl
 {
     extractionMethod extractFromSurface;
     includedAngle   180.00;

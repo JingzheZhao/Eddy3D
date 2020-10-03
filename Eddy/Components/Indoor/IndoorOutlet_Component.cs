@@ -48,7 +48,7 @@ namespace Eddy.Components.Indoor
             Vector3d vec = new Vector3d(0, 0, 0);
             DA.GetData(1, ref vec);
 
-            int refinementLevel = 2;
+            int refinementLevel = 3;
 
             var inlet = new IndoorBC.Outlet(m, refinementLevel);
 

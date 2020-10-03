@@ -13,8 +13,9 @@ namespace EddyLib.Indoor.Dicts
         {
             this.Name = "residuals";
 
-            this.Header = GetHeader(this);
             this.Location = DictLocation.system;
+            this.FC = FieldClass.dictionary;
+            this.Header = GetHeader(this);
 
             this.FullDictString = @"type            residuals;
 libs            (""libutilityFunctionObjects.so"");

@@ -51,7 +51,7 @@ namespace Eddy.Components.Indoor
             double T = 1;
             DA.GetData(2, ref T);
 
-            int refinement = 2;
+            int refinement = 3;
 
             var inlet = new IndoorBC.Inlet(m, T, refinement, vec);
 

@@ -50,7 +50,7 @@ namespace Eddy.Components.Indoor
             double temp = 0;
             DA.GetData(1, ref temp);
 
-            int refinementLevel = 2;
+            int refinementLevel = 3;
 
             var wall = new IndoorBC.Wall(m, refinementLevel, temp);
             var goo = new IndoorWallGoo(wall);

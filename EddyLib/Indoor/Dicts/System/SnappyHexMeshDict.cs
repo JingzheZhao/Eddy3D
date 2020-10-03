@@ -19,10 +19,11 @@ namespace EddyLib.Indoor
         {
             this.Name = "snappyHexMeshDict";
             this.Location = DictLocation.system;
+            this.FC = FieldClass.dictionary;
             this.Header = GetHeader(this);
-
             this.locationInMesh = BBox.Center;
 
+            this.GeometrySubDict = new List<Dictionary<string, Dictionary<string, string>>>();
             foreach (IndoorBC i in inlet) { this.GeometrySubDict.Add(GetGeometryDict(i)); };
             foreach (IndoorBC i in outlet) { this.GeometrySubDict.Add(GetGeometryDict(i)); };
             foreach (IndoorBC i in wall) { this.GeometrySubDict.Add(GetGeometryDict(i)); };
@@ -156,7 +157,7 @@ meshQualityControls
         private string GetCastellatedMeshControls(Point3d locationInMesh, List<IndoorBC.Wall> RoomGeometry, List<IndoorBC.Inlet> Inlets, List<IndoorBC.Outlet> Outlets)
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append(@"
+            sb.Append(@"castellatedMeshControls
             {
     locationInMesh  (" + locationInMesh.ToString().Replace(',', ' ') + @");
     maxLocalCells   50000000;
@@ -171,23 +172,24 @@ meshQualityControls
 
         {");
 
-            foreach (IndoorBC i in Inlets) { sb.Append(@"file            " + i.Name + @".eMesh"";
+            foreach (IndoorBC i in Inlets) { sb.AppendLine(@"file """ + i.Name + @".eMesh"";
             level " + i.refinementLevel + @";"); }
-            foreach (IndoorBC i in Outlets) { sb.Append(@"file            " + i.Name + @".eMesh"";
+            foreach (IndoorBC i in Outlets) { sb.AppendLine(@"file """ + i.Name + @".eMesh"";
             level " + i.refinementLevel + @";"); }
-            foreach (IndoorBC i in RoomGeometry) { sb.Append(@"file            " + i.Name + @".eMesh"";
+            foreach (IndoorBC i in RoomGeometry) { sb.AppendLine(@"file """ + i.Name + @".eMesh"";
             level " + i.refinementLevel + @";"); }
 
-            sb.AppendLine(@"}
+            sb.AppendLine(@"
+        }
 
     );");
 
             sb.AppendLine(@"    refinementSurfaces
     {");
 
-            foreach (IndoorBC i in Inlets) { sb.Append(GetRefinementSurfaces(i)); }
-            foreach (IndoorBC i in Outlets) { sb.Append(GetRefinementSurfaces(i)); }
-            foreach (IndoorBC i in RoomGeometry) { sb.Append(GetRefinementSurfaces(i)); }
+            foreach (IndoorBC i in Inlets) { sb.AppendLine(GetRefinementSurfaces(i)); }
+            foreach (IndoorBC i in Outlets) { sb.AppendLine(GetRefinementSurfaces(i)); }
+            foreach (IndoorBC i in RoomGeometry) { sb.AppendLine(GetRefinementSurfaces(i)); }
 
             sb.AppendLine(@"}");
 
@@ -198,8 +200,8 @@ meshQualityControls
             // foreach (IndoorBC i in Outlets) { sb.Append(GetRefinementRegions(i)); }
             //  foreach (IndoorBC i in RoomGeometry) { sb.Append(GetRefinementRegions(i)); }
 
+            sb.AppendLine(@"    }");
             sb.AppendLine(@"}");
-
             return sb.ToString();
         }
 

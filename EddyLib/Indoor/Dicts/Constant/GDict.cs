@@ -16,6 +16,7 @@ namespace EddyLib.Indoor.Dicts
         {
             this.Name = "g";
             this.Location = DictLocation.constant;
+            this.FC = FieldClass.dictionary;
 
             this.Header = GetHeader(this);
 

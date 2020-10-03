@@ -84,7 +84,7 @@ namespace EddyLib.Indoor.Dicts
         {
             foreach (var key in dict.Keys)
             {
-                sb.AppendLine("\t" + "\t" + key + "\t" + dict[key] + ";");
+                sb.AppendLine(key + "\t" + dict[key] + ";");
             }
         }
     }

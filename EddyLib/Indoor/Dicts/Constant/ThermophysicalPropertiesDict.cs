@@ -15,6 +15,7 @@ namespace EddyLib.Indoor.Dicts
         {
             this.Name = "thermoPhysicalProperties";
             this.Location = DictLocation.constant;
+            this.FC = FieldClass.dictionary;
 
             this.Header = GetHeader(this);
 
