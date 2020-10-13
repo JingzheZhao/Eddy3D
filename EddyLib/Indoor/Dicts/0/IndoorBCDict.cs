@@ -130,7 +130,7 @@ namespace EddyLib.Indoor.Dicts
                 this.Dimensions = "dimensions      [0 2 -2 0 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
-                this.InternalField = "internalField   uniform 0;";
+                this.InternalField = "internalField   uniform 0.0375;";
 
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
 
@@ -185,8 +185,8 @@ namespace EddyLib.Indoor.Dicts
                 this.InternalField = "internalField uniform 101325;";
 
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
-                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetFixedValue(i, Name)); }
-                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i, Name)); }
+                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetZeroGradient(i, Name)); }
+                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetFixedValue(i, Name)); }
                 foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetCalculated(i, Name)); }
 
                 this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
@@ -211,8 +211,8 @@ namespace EddyLib.Indoor.Dicts
 
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
 
-                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetFixedValue(i, Name)); }
-                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i, Name)); }
+                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetZeroGradient(i, Name)); }
+                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetFixedValue(i, Name)); }
                 foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetFixFluxPressure(i, Name)); }
 
                 this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
@@ -238,7 +238,7 @@ namespace EddyLib.Indoor.Dicts
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
                 foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetTurbulentMixingLengthFrequencyInlet(i, Name)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i, Name)); }
-                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetZeroGradient(i, Name)); }
+                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetOmegaWallFunction(i, Name)); }
 
                 this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
                 BoundaryFieldDict.Add("boundaryField", InternalDict);
@@ -270,7 +270,7 @@ namespace EddyLib.Indoor.Dicts
             }
             else if (DictName == "p" || DictName == "p_rgh")
             {
-                IndoorBC.Inlet ii = (IndoorBC.Inlet)input;
+                IndoorBC.Outlet ii = (IndoorBC.Outlet)input;
 
                 InternalDict.Add("type", "fixedValue");
                 InternalDict.Add("value", "uniform 101325");
