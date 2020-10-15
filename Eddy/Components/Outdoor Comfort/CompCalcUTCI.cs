@@ -27,7 +27,9 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompCalcUTCI()
-          : base("Outdoor Thermal Comfort", "Outdoor Thermal Comfort", "Outdoor Thermal Comfort" + EddyVersion.toString(),
+          : base("Outdoor Thermal Comfort", "Outdoor Thermal Comfort", @"Outdoor Thermal Comfort
+
+This components computes the UTCI from the outdoor comfort objects passed. For the wind velocities, a scale-up to 10 m height above ground is applied." + EddyVersion.toString(),
               EddyVersion.Name, "6 | Outdoor Comfort")
         {
         }
