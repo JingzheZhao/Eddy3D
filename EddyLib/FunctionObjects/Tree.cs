@@ -134,7 +134,7 @@ namespace EddyLib
                 surface triSurfaceMesh;
                 file ""./constant/triSurface/Tree_{0}.stl"";
             outsidePoints (({1}));
-            includeCut no;
+            includeCut yes;
             includeInside yes;
             includeOutside no;
             nearDistance 0.08;
@@ -153,7 +153,7 @@ namespace EddyLib
                     surface triSurfaceMesh;
                     file ""./constant/triSurface/Tree_0.stl"";
                     outsidePoints (({1}));
-                    includeCut no;
+                    includeCut yes;
                     includeInside yes;
                     includeOutside no;
                     nearDistance 0.08;
