@@ -1,8 +1,13 @@
-﻿using Rhino.Geometry;
+﻿using Newtonsoft.Json;
+using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Text;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.Serialization.Json;
 using System.Text;
 
 namespace EddyLib
@@ -65,7 +70,7 @@ namespace EddyLib
                 sb.AppendLine(TreeStringHeader());
                 for (int j = 0; j < trees.Count; j++)
                 {
-                    sb.AppendLine(TreeStringBody(j, trees[j].f, trees[j].d));
+                    sb.AppendLine(TreeStringBody(j, trees[j].F, trees[j].D));
                 }
                 this.fullExportString = sb.ToString();
 
@@ -115,7 +120,7 @@ namespace EddyLib
         public static string TopoSetDictStringBody(int id, Mesh tree)
 
         {
-            var pointOutside = new Point3d(tree.GetBoundingBox(false).Max.X - 0.5, tree.GetBoundingBox(false).Max.Y, tree.GetBoundingBox(false).Max.Z);
+            var pointOutside = new Point3d(tree.GetBoundingBox(true).Max.X, tree.GetBoundingBox(true).Max.Y, tree.GetBoundingBox(true).Max.Z + 0.5);
 
             StringBuilder sb = new StringBuilder();
 
@@ -275,48 +280,143 @@ FoamFile
     public class Tree
 
     {
+        // https://www.simscale.com/docs/analysis-types/pedestrian-wind-comfort-analysis/advanced-modelling/;
+
+        // https://openfoamwiki.net/index.php/DarcyForchheimer
+
         public Mesh treeGeometries;
 
         public TreeType treeType;
 
-        public double[] d;
+        // dp = A *u + B*u^2
 
-        public double[] f;
+        private double[] A = new double[3]; // U
+
+        private double[] B = new double[3]; // U^2
+
+        public double[] D = new double[3]; // u
+
+        public double[] F = new double[3]; // u^2
+
+        public double DimX;
+
+        public double DimY;
+
+        public double DimZ;
+
+        public double[] DimXYZ = new double[3];
+
+        //private double nu = 1.5e-05; // kinematic viscosity
+
+        private double rho = 1.2041;  //At 20 °C and 101.325 kPa, dry air has a density of 1.2041 kg/m³
+
+        private double mu = 0.0000181; // dynamic viscosity
+
+        private double Cd = 0.2;
+
+        public double LAI;
+
+        public double LAD;
+
+        public string AllProperties;
 
         //public Tree(List<GeometryBase> treeGeometries, TreeType treeType)
-        public Tree(List<GeometryBase> treeGeometries, double[] f, double[] d)
+        public Tree(GeometryBase treeGeometries, double[] B, double[] A)
+        {
+            MeshGeo(treeGeometries);
+            GetDims();
+
+            for (int unitVec = 0; unitVec < 3; unitVec++)
+            {
+                this.D[unitVec] = A[unitVec] / DimXYZ[unitVec] / this.mu;
+                this.F[unitVec] = B[unitVec] / DimXYZ[unitVec] * 2 / this.rho;
+            }
+
+            this.LAD = this.B.Average() / (this.rho * this.Cd);
+            this.LAI = this.LAD * DimZ;
+
+            ExportSettings();
+        }
+
+        public Tree(GeometryBase treeGeometries, double LAI)
+        {
+            MeshGeo(treeGeometries);
+            GetDims();
+
+            //this.treeType = treeType;
+            this.LAD = LAI / DimZ;
+            this.A = new double[] { 0, 0, 0 };
+            this.B = new double[] { this.rho * this.LAD * this.Cd, this.rho * this.LAD * this.Cd, this.rho * this.LAD * this.Cd };
+
+            this.D = new double[] { 0, 0, 0 };
+            this.F = this.B.Select(x => x * 2 / this.rho).ToArray();
+
+            ExportSettings();
+        }
+
+        private void GetDims()
+        {
+            BoundingBox BBox = this.treeGeometries.GetBoundingBox(true);
+
+            this.DimX = BBox.Max.X - BBox.Min.X;
+            this.DimY = BBox.Max.Y - BBox.Min.Y;
+            this.DimZ = BBox.Max.Z - BBox.Min.Z;
+            this.DimXYZ = new double[3] { DimX, DimY, DimZ };
+        }
+
+        private void MeshGeo(GeometryBase b)
         {
             MeshingParameters mp = new MeshingParameters();
 
             Mesh allTogether = new Mesh();
             List<Mesh> allSeparate = new List<Mesh>();
 
-            foreach (GeometryBase b in treeGeometries)
+            if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
             {
-                if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
-                {
-                    Mesh obj = (Mesh)b;
-                    allTogether.Append(obj);
-                    allSeparate.Add(obj);
-                }
-                else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
-                {
-                    Brep obj = (Brep)b;
-                    var m = Mesh.CreateFromBrep(obj, mp);
-                    foreach (Mesh mm in m) allTogether.Append(mm);
-
-                    Mesh meshForMeshList = new Mesh();
-                    foreach (Mesh mm in m) meshForMeshList.Append(mm);
-                    allSeparate.Add(meshForMeshList);
-                }
+                Mesh obj = (Mesh)b;
+                allTogether.Append(obj);
+                allSeparate.Add(obj);
             }
+            else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
+            {
+                Brep obj = (Brep)b;
+                var m = Mesh.CreateFromBrep(obj, mp);
+                foreach (Mesh mm in m) allTogether.Append(mm);
 
-            this.treeGeometries = allTogether;
+                Mesh meshForMeshList = new Mesh();
+                foreach (Mesh mm in m) meshForMeshList.Append(mm);
+                allSeparate.Add(meshForMeshList);
 
-            //this.treeType = treeType;
-
-            this.d = d;
-            this.f = f;
+                this.treeGeometries = allTogether;
+            }
         }
+
+        private static Dictionary<string, object> DictionaryFromType(object atype)
+        {
+            if (atype == null) return new Dictionary<string, object>();
+            Type t = atype.GetType();
+            PropertyInfo[] props = t.GetProperties();
+            Dictionary<string, object> dict = new Dictionary<string, object>();
+            foreach (PropertyInfo prp in props)
+            {
+                object value = prp.GetValue(atype, new object[] { });
+                dict.Add(prp.Name, value);
+            }
+            return dict;
+        }
+
+        private void ExportSettings()
+        {
+            this.AllProperties = JsonConvert.SerializeObject(DictionaryFromType(this));
+        }
+
+        //public override string ToString()
+        //{
+        //    StringBuilder sb = new StringBuilder();
+
+        //    sb.AppendLine(AllProperties);
+
+        //    return sb.ToString();
+        //}
     }
 }

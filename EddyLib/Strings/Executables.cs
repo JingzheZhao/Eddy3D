@@ -2204,6 +2204,8 @@ ground_perim.stl
         }
 
         public static string TransportProperties()
+
+        // sets the kinematic viscosity in L^2/T
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |

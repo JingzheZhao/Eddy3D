@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace EddyLib.Strings
@@ -805,7 +807,7 @@ REM   --help              Display this help screen.");
                 sb.AppendLine(caseDir[0] + ":");
             }
             sb.AppendLine("REM cd " + "\"" + caseDir + "\"");
-            sb.AppendLine(@"cd /d %~dp0");
+            sb.AppendLine(@"cd /d %~dp0" + "\\" + caseDir.Split(new string[] { "\\" }, StringSplitOptions.RemoveEmptyEntries).ToList().Last());
 
             if (logging)
             {
