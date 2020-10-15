@@ -226,7 +226,7 @@ namespace EddyLib
     {{
     type axesRotation;
     e1 (1 0 0);
-    e2 (0 0 1);
+    e2 (0 1 0);
     }}
     }}
     }}
