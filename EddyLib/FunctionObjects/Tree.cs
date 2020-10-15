@@ -356,7 +356,7 @@ FoamFile
 
         private void GetDims()
         {
-            BoundingBox BBox = this.treeGeometries.GetBoundingBox(true);
+            BoundingBox BBox = treeGeometries.GetBoundingBox(true);
 
             this.DimX = BBox.Max.X - BBox.Min.X;
             this.DimY = BBox.Max.Y - BBox.Min.Y;
@@ -369,23 +369,18 @@ FoamFile
             MeshingParameters mp = new MeshingParameters();
 
             Mesh allTogether = new Mesh();
-            List<Mesh> allSeparate = new List<Mesh>();
 
             if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
             {
                 Mesh obj = (Mesh)b;
                 allTogether.Append(obj);
-                allSeparate.Add(obj);
+                this.treeGeometries = allTogether;
             }
             else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
             {
                 Brep obj = (Brep)b;
                 var m = Mesh.CreateFromBrep(obj, mp);
                 foreach (Mesh mm in m) allTogether.Append(mm);
-
-                Mesh meshForMeshList = new Mesh();
-                foreach (Mesh mm in m) meshForMeshList.Append(mm);
-                allSeparate.Add(meshForMeshList);
 
                 this.treeGeometries = allTogether;
             }
