@@ -696,6 +696,7 @@ libs
             {
                 sb.AppendLine(EddyLib.Strings.OFExecDicts.FunctionObjAOA());
                 sb.AppendLine(FunctionObjFieldMinMax());
+                sb.AppendLine(FunctionObjFieldAverage());
             }
 
             sb.AppendLine(@"};");
@@ -748,11 +749,24 @@ libs
 {
     type fieldMinMax;
     libs (""libfieldFunctionObjects.so"");
-    writeToFile yes;
-    log yes;
-    location yes;
+    writeToFile true;
+    log true;
     mode magnitude;
     fields (U p k epsilon omega nut AoA);
+}";
+        }
+
+        private static string FunctionObjFieldAverage()
+        {
+            return @"average
+{
+    type            volFieldValue;
+    libs            (""libfieldFunctionObjects.so"");
+    fields (U p);
+    operation       weightedVolAverage;
+    regionType      all;
+    writeFields     true;
+    log true;
 }";
         }
 
