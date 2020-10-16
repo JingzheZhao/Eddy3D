@@ -691,11 +691,13 @@ libs
 #includeFunc residuals
 ");
 
-            //if (topologies != null) {
-            sb.Append(EddyLib.Strings.OFExecDicts.FunctionObjCP(DOM, RunSettings, topologies, numberOfTopologies).ToString());
-            if (RunSettings.aoa_domain == true) { sb.Append(EddyLib.Strings.OFExecDicts.FunctionObjAOA().ToString()); }
+            sb.Append(FunctionObjCP(DOM, RunSettings, topologies, numberOfTopologies));
+            if (RunSettings.aoa_domain == true)
+            {
+                sb.AppendLine(EddyLib.Strings.OFExecDicts.FunctionObjAOA());
+                sb.AppendLine(FunctionObjFieldMinMax());
+            }
 
-            //}
             sb.AppendLine(@"};");
 
             return sb.ToString();
@@ -738,6 +740,20 @@ libs
         }");
 
             return sb.ToString();
+        }
+
+        private static string FunctionObjFieldMinMax()
+        {
+            return @"fieldMinMax
+{
+    type fieldMinMax;
+    libs (""libfieldFunctionObjects.so"");
+    writeToFile yes;
+    log yes;
+    location yes;
+    mode magnitude;
+    fields (U p k epsilon omega nut AoA);
+}";
         }
 
         public static string FunctionObjCP(OFBaseDomain DOM, OFRunSettings RunSettings, List<Mesh> evaluationTopology, int d)
