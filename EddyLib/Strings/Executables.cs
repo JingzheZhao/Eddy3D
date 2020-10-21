@@ -749,15 +749,15 @@ libs
 {
                     type pressure;
                     libs (""libfieldFunctionObjects.so"");
-                    enabled yes;
+                    enabled true;
                     writeControl timeStep;
                     writeInterval " + RunSettings.writeInterval + @";
                     UInf (" + Utilities.FormatPV(BCondCP.Uinf[d]) + @");     // the undistrubed velocity at building height
                     pInf " + Utilities.FormatDouble(Math.Round(BCondCP.pinf, 1)) + @";        // the dynamic undisturbed pressure at building height
                     pRef " + Utilities.FormatDouble(Math.Round(BCondCP.pref, 1)) + @";        // the dynamic pressure at reference height (usually 10 m)
                     rhoInf              1.2;
-                    calcTotal yes;
-                    calcCoeff yes;
+                    calcTotal true;
+                    calcCoeff true;
                 }");
 
             if (evaluationTopology != null)
