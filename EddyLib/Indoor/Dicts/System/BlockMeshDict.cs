@@ -5,13 +5,13 @@ namespace EddyLib.Indoor.Dicts
 {
     internal class BlockMeshDict : GenericDict
     {
-        private int divX;
+        private readonly int divX;
 
-        private int divY;
+        private readonly int divY;
 
-        private int divZ;
+        private readonly int divZ;
 
-        private Point3d[] Corners;
+        private readonly Point3d[] Corners;
 
         public BlockMeshDict(double cellSize, BoundingBox BBox)
         {

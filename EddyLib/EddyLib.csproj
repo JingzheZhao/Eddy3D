@@ -92,6 +92,7 @@
     <Compile Include="Indoor\Dicts\System\BlockMeshDict.cs" />
     <Compile Include="Indoor\Dicts\GenericDict.cs" />
     <Compile Include="Indoor\Dicts\0\IndoorBCDict.cs" />
+    <Compile Include="Indoor\IndoorSimulation.cs" />
     <Compile Include="Indoor\IndoorDomain.cs" />
     <Compile Include="Indoor\OFIndoorEmitters.cs" />
     <Compile Include="Indoor\IndoorBC.cs" />

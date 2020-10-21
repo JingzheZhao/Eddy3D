@@ -21,21 +21,23 @@ namespace EddyLib.Indoor
 
         public Point3d[] Edges;
 
-        private double CellSize;
+        private readonly double CellSize;
 
-        private string WorkingDir;
+        //private readonly string WorkingDir;
+
+        private readonly List<IndoorBC> allGeometry;
+
+        private readonly List<GenericDict> allDicts = new List<GenericDict>();
 
         public IndoorDomain()
         {
         }
 
-        public IndoorDomain(string workingDir, double CellSize, List<IndoorBC.Wall> RoomGeometry, List<IndoorBC.Inlet> Inlets, List<IndoorBC.Outlet> Outlets)
+        public IndoorDomain(double CellSize, List<IndoorBC.Wall> RoomGeometry, List<IndoorBC.Inlet> Inlets, List<IndoorBC.Outlet> Outlets)
         {
             // Give unique index to every object
 
             int cnt = 0;
-
-            List<IndoorBC> allGeometry = new List<IndoorBC>();
 
             for (int i = 0; i < RoomGeometry.Count; i++)
             {
@@ -79,13 +81,11 @@ namespace EddyLib.Indoor
 
             // Misc
 
-            this.WorkingDir = workingDir;
+            //this.WorkingDir = workingDir;
 
             this.CellSize = CellSize;
 
             // Dicts
-
-            List<GenericDict> allDicts = new List<GenericDict>();
 
             // Construct all Dicts
 
@@ -114,8 +114,8 @@ namespace EddyLib.Indoor
             // System
 
             var controlDict = new ControlDict();
-            var blockMeshDict = new BlockMeshDict(CellSize, BoundingBox);
-            var snappyHextMeshDict = new SnappyHexMeshDict(CellSize, BoundingBox, Inlets, Outlets, RoomGeometry);
+            var blockMeshDict = new BlockMeshDict(this.CellSize, BoundingBox);
+            var snappyHextMeshDict = new SnappyHexMeshDict(this.CellSize, BoundingBox, Inlets, Outlets, RoomGeometry);
             var fvSchemesDict = new FvSchemesDict();
             var fvSolutionDict = new FvSolutionDict();
             var residualsDict = new ResidualsDict();
@@ -138,7 +138,10 @@ namespace EddyLib.Indoor
             allDicts.Add(g);
             allDicts.Add(thermoPhysicalProperties);
             allDicts.Add(turbulenceProperties);
+        }
 
+        public void ExportDicts(string workingDir)
+        {
             foreach (GenericDict dict in allDicts)
             {
                 dict.Export(workingDir);
