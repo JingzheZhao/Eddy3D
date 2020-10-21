@@ -113,8 +113,8 @@ namespace EddyLib
             //File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "meshQualityDict"), EddyLib.Strings.OFExecDicts.MeshQualityDict());
             File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "decomposeParDict"), EddyLib.Strings.OFExecDicts.DecomposeParDict(RunSettings));
 
-            File.WriteAllText(Path.Combine(MeshSettings.baseWorkingDir + "run_checkMesh.bat"), EddyLib.Strings.BatFiles.Run_checkMesh(RunSettings, MeshSettings, DOM, Strings.Mode.Meshing));
-            File.WriteAllText(Path.Combine(MeshSettings.baseWorkingDir + "run_reconstructMesh.bat"), EddyLib.Strings.BatFiles.Run_reconstructMesh(RunSettings, MeshSettings, DOM, Strings.Mode.Meshing));
+            File.WriteAllText(Path.Combine(MeshSettings.baseWorkingDir + "run_checkMesh.bat"), EddyLib.Strings.BatFiles.Run_checkMesh(RunSettings, MeshSettings, DOM, Strings.OFExecutionMode.Meshing));
+            File.WriteAllText(Path.Combine(MeshSettings.baseWorkingDir + "run_reconstructMesh.bat"), EddyLib.Strings.BatFiles.Run_reconstructMesh(RunSettings, MeshSettings, DOM, Strings.OFExecutionMode.Meshing));
 
             //Autocalc number of CPUs
             if (RunSettings.CPUs == -1)
