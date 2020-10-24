@@ -1,5 +1,5 @@
-﻿using System.IO;
-using EddyLib.BCs;
+﻿using EddyLib.BCs;
+using System.IO;
 
 namespace EddyLib
 {
@@ -184,26 +184,26 @@ namespace EddyLib
                     }
                 }
 
-                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_mesh.bat"), EddyLib.Strings.BatFiles.Run_Mesh_Cyl(RunSettings, MeshSettings, DOM, Strings.Mode.Meshing));
+                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_mesh.bat"), EddyLib.Strings.BatFiles.Run_Mesh_Cyl(RunSettings, MeshSettings, DOM, Strings.OFExecutionMode.Meshing));
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run.bat"), EddyLib.Strings.BatFiles.Run(DOM, MeshSettings));
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_sim_all.bat"), EddyLib.Strings.BatFiles.RunSimOnly(DOM, MeshSettings));
 
                 //File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_ray.bat"), EddyLib.Strings.BatFiles.Run_RayTrace(DOM, MeshSettings));
 
-                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_make_trees.bat"), EddyLib.Strings.BatFiles.Run_Make_Trees(RunSettings, MeshSettings, DOM, Strings.Mode.Meshing));
+                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_make_trees.bat"), EddyLib.Strings.BatFiles.Run_Make_Trees(RunSettings, MeshSettings, DOM, Strings.OFExecutionMode.Meshing));
 
                 //File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_probes.bat"), EddyLib.Strings.BatFiles.Run_Probes(DOM, MeshSettings));
                 //File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_utci.bat"), EddyLib.Strings.BatFiles.Run_UTCI(DOM, MeshSettings));
 
 #if DEBUG
-                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_blockMesh.bat"), EddyLib.Strings.BatFiles.Run_blockMesh(RunSettings, DOM, MeshSettings, Strings.Mode.Meshing));
+                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_blockMesh.bat"), EddyLib.Strings.BatFiles.Run_blockMesh(RunSettings, DOM, MeshSettings, Strings.OFExecutionMode.Meshing));
 #endif
 
                 for (int i = 0; i < DOM.BCond.windDirs.Count; i++)
                 {
-                    File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "_run_sim.bat"), EddyLib.Strings.BatFiles.Run_sim(MeshSettings, RunSettings, DOM, Strings.Mode.Simulation, i));
-                    File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "_run_sim_continue.bat"), EddyLib.Strings.BatFiles.Run_sim_continue(MeshSettings, RunSettings, DOM, Strings.Mode.Simulation, i));
-                    File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "_run_divU.bat"), EddyLib.Strings.BatFiles.Run_divU(MeshSettings, RunSettings, DOM, Strings.Mode.Simulation, i));
+                    File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "_run_sim.bat"), EddyLib.Strings.BatFiles.Run_sim(MeshSettings, RunSettings, DOM, Strings.OFExecutionMode.Simulation, i));
+                    File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "_run_sim_continue.bat"), EddyLib.Strings.BatFiles.Run_sim_continue(MeshSettings, RunSettings, DOM, Strings.OFExecutionMode.Simulation, i));
+                    File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "_run_divU.bat"), EddyLib.Strings.BatFiles.Run_divU(MeshSettings, RunSettings, DOM, Strings.OFExecutionMode.Simulation, i));
 
                     //File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "run_reconstructSim.bat"), EddyLib.StrTemp.BatFiles.Run_reconstructSim(RunSettings, MeshSettings, DOM, StrTemp.Mode.Simulation, i));
                 }

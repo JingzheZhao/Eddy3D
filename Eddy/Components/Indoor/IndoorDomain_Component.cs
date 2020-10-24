@@ -28,7 +28,7 @@ namespace Eddy.Components.Indoor
             pManager.AddParameter(new Param_IndoorBC_Inlet(), "Inlet", "In", "Indoor CFD Objects", GH_ParamAccess.list);
             pManager.AddParameter(new Param_IndoorBC_Outlet(), "Outlet", "Out", "Indoor CFD Objects", GH_ParamAccess.list);
 
-          //  pManager.AddTextParameter("Directory", "Dir", "Working Directory", GH_ParamAccess.item, @"C:\Temp\EddyProject");
+            pManager.AddTextParameter("Directory", "Dir", "Working Directory", GH_ParamAccess.item, @"C:\Temp\EddyProject");
             pManager.AddNumberParameter("CellSize", "Cs", "Cell Size", GH_ParamAccess.item, 1);
         }
 
@@ -71,12 +71,12 @@ namespace Eddy.Components.Indoor
                 Outlets.Add(o.Value);
             }
 
-          //  string dir = "";
-          //  DA.GetData(3, ref dir);
+            string dir = "";
+            DA.GetData(3, ref dir);
             double cellSize = 1;
-            DA.GetData(3, ref cellSize);
+            DA.GetData(4, ref cellSize);
 
-            var dom = new IndoorDomain( cellSize, Walls, Inlets, Outlets);
+            var dom = new IndoorDomain(dir, cellSize, Walls, Inlets, Outlets);
             var domGoo = new IndoorDomaingGoo(dom);
             DA.SetData(0, domGoo);
         }

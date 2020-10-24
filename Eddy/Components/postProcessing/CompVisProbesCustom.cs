@@ -1,5 +1,6 @@
 ﻿using Eddy.Properties;
 using EddyLib;
+using EddyLib.Strings;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Parameters;
@@ -59,7 +60,7 @@ namespace Eddy
         /// </summary>
         public CompVisProbesCustom()
           : base("Probing", "Probing", "Probe the simulation." + EddyVersion.toString(),
-              EddyVersion.Name, "5 | Post-Processing")
+              EddyVersion.Name, "5 | PostProcessing")
         {
         }
 
@@ -174,7 +175,7 @@ namespace Eddy
 
             if (numberOfProbes < 1)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You need to pass a list of point to the component.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You need to pass a list of points to the component.");
                 return;
             }
 
@@ -276,12 +277,13 @@ namespace Eddy
                     {
                         if (RES.RunSettings.simEngine == SimEngine.Docker)
                         {
-                            var arg = EddyLib.Strings.BatFiles.DockerPrefixPath(RES.Domain, RES.MeshSettings, RES.RunSettings, EddyLib.Strings.Mode.Simulation) + command;
+                            var arg = BatFiles.DockerPrefixPath(RES.Domain, RES.MeshSettings, RES.RunSettings, OFExecutionMode.Simulation) + command;
                             Utilities.StartProcess.StartProcessCMDNT(arg, false, true, false, true, probingComplete);
                         }
                         else
                         {
-                            Utilities.StartProcess.StartProcessCMDNT(EddyLib.Strings.BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory), false, true, true, true, probingComplete);
+                            var cmdArg = BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory, RunMode.Canvas);
+                            Utilities.StartProcess.StartProcessCMDNT(cmdArg, false, true, true, true, probingComplete);
                         }
                     }
 

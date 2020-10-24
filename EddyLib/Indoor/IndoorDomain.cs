@@ -23,9 +23,9 @@ namespace EddyLib.Indoor
 
         private readonly double CellSize;
 
-        //private readonly string WorkingDir;
+        public string WorkingDir;
 
-        private readonly List<IndoorBC> allGeometry;
+        private readonly List<IndoorBC> allGeometry = new List<IndoorBC>();
 
         private readonly List<GenericDict> allDicts = new List<GenericDict>();
 
@@ -33,9 +33,11 @@ namespace EddyLib.Indoor
         {
         }
 
-        public IndoorDomain(double CellSize, List<IndoorBC.Wall> RoomGeometry, List<IndoorBC.Inlet> Inlets, List<IndoorBC.Outlet> Outlets)
+        public IndoorDomain(string WorkingDir, double CellSize, List<IndoorBC.Wall> RoomGeometry, List<IndoorBC.Inlet> Inlets, List<IndoorBC.Outlet> Outlets)
         {
             // Give unique index to every object
+
+            this.WorkingDir = WorkingDir;
 
             int cnt = 0;
 
@@ -138,6 +140,8 @@ namespace EddyLib.Indoor
             allDicts.Add(g);
             allDicts.Add(thermoPhysicalProperties);
             allDicts.Add(turbulenceProperties);
+
+            ExportDicts(WorkingDir);
         }
 
         public void ExportDicts(string workingDir)
