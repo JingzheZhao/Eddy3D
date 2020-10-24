@@ -1,5 +1,5 @@
-﻿using System.IO;
-using EddyLib.BCs;
+﻿using EddyLib.BCs;
+using System.IO;
 
 namespace EddyLib
 {
