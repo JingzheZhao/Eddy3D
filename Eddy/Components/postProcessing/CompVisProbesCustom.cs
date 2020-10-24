@@ -175,7 +175,7 @@ namespace Eddy
 
             if (numberOfProbes < 1)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You need to pass a list of point to the component.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You need to pass a list of points to the component.");
                 return;
             }
 

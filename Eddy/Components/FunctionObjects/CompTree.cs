@@ -1,13 +1,10 @@
 ﻿using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
-using Grasshopper.Kernel.Parameters;
 using Rhino.Geometry;
-using Rhino.Render;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static EddyLib.Tree;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the

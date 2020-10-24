@@ -2,7 +2,6 @@
 using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
-using Rhino.Geometry;
 using System;
 using System.IO;
 using System.Windows.Forms;
