@@ -2,7 +2,7 @@
 {
     public static class EddyVersion
     {
-        public const string ProductVersion = "0.3.8.0";
+        public const string ProductVersion = "0.3.8.2";
 
         public const string Name = "Eddy3D";
 
