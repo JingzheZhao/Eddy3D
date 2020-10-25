@@ -33,7 +33,7 @@ namespace EddyLib.Radiance
 
         private string TwoPhaseDDSFolder = @"\TwoPhaseDDS\";
 
-        public TwoPhaseDDS(string baseWorkingDir, Mesh BuildingGeometry, List<Point3d> probes, Weather weather, bool recalc, string RadianceDir = @"C:\Program Files\Radiance")
+        public TwoPhaseDDS(string baseWorkingDir, Mesh BuildingGeometry, List<Point3d> probes, Weather weather, bool recalc, string RadianceDir = @"C:\Radiance")
 
         {
             string csvDDS = Path.Combine(baseWorkingDir + fileName + del + fileNameCSVExtension);
@@ -89,7 +89,7 @@ namespace EddyLib.Radiance
             }
         }
 
-        protected void RunDDS(string baseWorkingDir, string subfolder, Mesh BuildingGeometry, List<Point3d> probes, Weather weather, bool run, string RadianceDir = @"C:\Program Files\Radiance")
+        protected void RunDDS(string baseWorkingDir, string subfolder, Mesh BuildingGeometry, List<Point3d> probes, Weather weather, bool run, string RadianceDir = @"C:\Radiance")
         {
             var numberOfProbes = probes.Count;
 
