@@ -136,7 +136,7 @@ namespace EddyLib
                 this.DiffuseHorizontalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[15])).ToArray(); // Diffuse Horizontal
 
                 this.TotalSkyCover = epwNoHeader.Select(o => Double.Parse(o.Split(',')[22])).ToArray(); // TotalSkyCover
-                this.OpaqSkyCover = epwNoHeader.Select(o => Double.Parse(o.Split(',')[23])).ToArray(); // OpaqSkyCover
+                this.OpaqSkyCover = epwNoHeader.Select(o => Double.Parse(o.Split(',')[23])).ToArray(); // OpaqSkyCover // used for Sky Temp
 
                 var Yr = epwNoHeader.Select(o => Double.Parse(o.Split(',')[0])).ToArray();
                 var Mo = epwNoHeader.Select(o => Double.Parse(o.Split(',')[1])).ToArray();
