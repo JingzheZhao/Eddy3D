@@ -460,7 +460,6 @@ namespace EddyLib.Indoor.Dicts
             sb.AppendLine(dict.Dimensions);
             sb.AppendLine(dict.InternalField);
 
-            //TODO FOR TD: FIX THIS!
             sb.AppendLine(CppMapSerializer.Serialize(dict.BoundaryFieldDict));
 
             return sb.ToString();

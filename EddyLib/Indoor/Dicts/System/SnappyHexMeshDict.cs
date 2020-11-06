@@ -15,13 +15,13 @@ namespace EddyLib.Indoor
 
         public List<Dictionary<string, Dictionary<string, string>>> GeometrySubDict { get; set; }
 
-        public SnappyHexMeshDict(double cellSize, BoundingBox BBox, List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
+        public SnappyHexMeshDict(double refineMentLevel, Point3d pointInsideDomain, BoundingBox BBox, List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
         {
             this.Name = "snappyHexMeshDict";
             this.Location = DictLocation.system;
             this.FC = FieldClass.dictionary;
             this.Header = GetHeader(this);
-            this.locationInMesh = BBox.Center;
+            this.locationInMesh = pointInsideDomain;
 
             this.GeometrySubDict = new List<Dictionary<string, Dictionary<string, string>>>();
             foreach (IndoorBC i in inlet) { this.GeometrySubDict.Add(GetGeometryDict(i)); };
@@ -163,7 +163,7 @@ meshQualityControls
     maxLocalCells   50000000;
     maxGlobalCells  60000000;
     minRefinementCells 50;
-    nCellsBetweenLevels 1;
+    nCellsBetweenLevels 2;
     resolveFeatureAngle 60;
     maxLoadUnbalance 1;
     allowFreeStandingZoneFaces false;

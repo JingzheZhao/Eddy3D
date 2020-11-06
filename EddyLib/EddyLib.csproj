@@ -89,7 +89,11 @@
     <Compile Include="FunctionObjects\PressureCoeff.cs" />
     <Compile Include="BoundaryConditions\BoundaryConditionsBase.cs" />
     <Compile Include="FunctionObjects\Tree.cs" />
-	<Compile Include="Indoor\Dicts\CppMapSerializer.cs" />
+    <Compile Include="Indoor\Dicts\CppMapSerializer.cs" />
+    <Compile Include="Indoor\Dicts\FunctionObjectDict.cs" />
+    <Compile Include="Indoor\Dicts\FunctionObjects\FunctionObjectDict.cs" />
+    <Compile Include="Indoor\FunctionObject.cs" />
+    <Compile Include="Indoor\Dicts\FunctionObjects\VolumetricHeatSourceDict.cs" />
     <Compile Include="Indoor\Dicts\System\DecomposeParDict.cs" />
     <Compile Include="Indoor\Dicts\System\ControlDict.cs" />
     <Compile Include="Indoor\Dicts\Constant\ThermophysicalPropertiesDict.cs" />
@@ -105,7 +109,7 @@
     <Compile Include="Indoor\Dicts\0\IndoorBCDict.cs" />
     <Compile Include="Indoor\IndoorSimulation.cs" />
     <Compile Include="Indoor\IndoorDomain.cs" />
-    <Compile Include="Indoor\OFIndoorEmitters.cs" />
+    <Compile Include="Indoor\IndoorEmitters.cs" />
     <Compile Include="Indoor\IndoorBC.cs" />
     <Compile Include="OutdoorComfort\WindComfort.cs" />
     <Compile Include="OutdoorComfort\WindFactors.cs" />
@@ -261,9 +265,3 @@ del /q "%25post_build_ilmerge%25"=\*
 for /d %25%25x in ("%25post_build_ilmerge%25"\*) do @rd /s /q "%25%25x"</PreBuildEvent>
   </PropertyGroup>
 </Project>
-
-
-
-
-
-

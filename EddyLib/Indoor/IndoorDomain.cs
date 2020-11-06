@@ -1,5 +1,4 @@
 ﻿using EddyLib.Indoor.Dicts;
-using Grasshopper.Kernel.Types.Transforms;
 using Newtonsoft.Json;
 using Rhino.Geometry;
 using System.Collections.Generic;
@@ -23,21 +22,27 @@ namespace EddyLib.Indoor
 
         private readonly double CellSize;
 
+        private Point3d PointInsideDomain;
+
         public string WorkingDir;
 
         private readonly List<IndoorBC> allGeometry = new List<IndoorBC>();
 
         private readonly List<GenericDict> allDicts = new List<GenericDict>();
 
+        private List<VolumetricHeatSource> vhs = new List<VolumetricHeatSource>();
+
         public IndoorDomain()
         {
         }
 
-        public IndoorDomain(string WorkingDir, double CellSize, List<IndoorBC.Wall> RoomGeometry, List<IndoorBC.Inlet> Inlets, List<IndoorBC.Outlet> Outlets)
+        public IndoorDomain(string WorkingDir, double CellSize, Point3d PointInsideDomain, List<IndoorBC.Wall> RoomGeometry, List<IndoorBC.Inlet> Inlets, List<IndoorBC.Outlet> Outlets, List<VolumetricHeatSource> vhs)
         {
             // Give unique index to every object
 
             this.WorkingDir = WorkingDir;
+
+            this.PointInsideDomain = PointInsideDomain;
 
             int cnt = 0;
 
@@ -117,7 +122,7 @@ namespace EddyLib.Indoor
 
             var controlDict = new ControlDict();
             var blockMeshDict = new BlockMeshDict(this.CellSize, BoundingBox);
-            var snappyHextMeshDict = new SnappyHexMeshDict(this.CellSize, BoundingBox, Inlets, Outlets, RoomGeometry);
+            var snappyHextMeshDict = new SnappyHexMeshDict(this.CellSize, this.PointInsideDomain, BoundingBox, Inlets, Outlets, RoomGeometry);
             var fvSchemesDict = new FvSchemesDict();
             var fvSolutionDict = new FvSolutionDict();
             var residualsDict = new ResidualsDict();
@@ -141,10 +146,21 @@ namespace EddyLib.Indoor
             allDicts.Add(thermoPhysicalProperties);
             allDicts.Add(turbulenceProperties);
 
-            ExportDicts(WorkingDir);
+            // Function Objects
+
+            // VHS
+
+            for (int i = 0; i < vhs.Count; i++)
+            {
+                this.vhs.Add(vhs[i]);
+                this.vhs[i].Id = i.ToString();
+            }
+            allDicts.Add(new VolumetricHeatSourceDict(this.vhs));
+
+            ExportGeometryAndDicts(WorkingDir);
         }
 
-        public void ExportDicts(string workingDir)
+        public void ExportGeometryAndDicts(string workingDir)
         {
             foreach (GenericDict dict in allDicts)
             {

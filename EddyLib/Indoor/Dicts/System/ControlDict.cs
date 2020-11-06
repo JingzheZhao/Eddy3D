@@ -53,6 +53,7 @@ runTimeModifiable true;
 functions
 {
 #includeFunc residuals
+#includeFunc volumetricHeatSources
     AoA
     {
         type            scalarTransport;
