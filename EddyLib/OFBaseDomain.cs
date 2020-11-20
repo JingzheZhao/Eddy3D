@@ -7,7 +7,7 @@ using System.Drawing;
 namespace EddyLib
 {
     // class for all common domain properties, every domain type inherits this
-    public class OFBaseDomain
+    public abstract class OFBaseDomain
     {
         public Point3d CenterGround;
 
@@ -35,7 +35,7 @@ namespace EddyLib
 
         public BoundaryCondition BCond;
 
-        public List<Tree> Trees;
+        public List<MomentumSink> Trees;
 
         public int NumberOFCellsInMesh;
 

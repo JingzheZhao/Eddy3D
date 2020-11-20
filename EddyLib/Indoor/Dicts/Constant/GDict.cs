@@ -14,7 +14,7 @@ namespace EddyLib.Indoor.Dicts
             (
             )
         {
-            this.Name = "g";
+            this.DictionaryName = "g";
             this.Location = DictLocation.constant;
             this.FC = FieldClass.dictionary;
 

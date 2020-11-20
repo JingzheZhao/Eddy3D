@@ -57,7 +57,7 @@ namespace EddyLib
 
         public Point3d[] pointsOnRect;
 
-        public OFCylDomain(Mesh BuildingGeometry, Mesh terrainMesh, BCs.BoundaryCondition BCond, double coreBlockSize, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0, List<Tree> Trees = null)
+        public OFCylDomain(Mesh BuildingGeometry, Mesh terrainMesh, BCs.BoundaryCondition BCond, double coreBlockSize, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0, List<MomentumSink> Trees = null)
         {
             gradingPerim = 1.0;
             cellSizeInner = coreBlockSize;

@@ -11,7 +11,7 @@ namespace EddyLib.Indoor.Dicts
     {
         public FvSolutionDict()
         {
-            this.Name = "fvSolution";
+            this.DictionaryName = "fvSolution";
 
             this.Location = DictLocation.system;
             this.FC = FieldClass.dictionary;

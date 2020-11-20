@@ -13,7 +13,7 @@ namespace EddyLib.Indoor.Dicts
        (
        )
         {
-            this.Name = "thermoPhysicalProperties";
+            this.DictionaryName = "thermoPhysicalProperties";
             this.Location = DictLocation.constant;
             this.FC = FieldClass.dictionary;
 

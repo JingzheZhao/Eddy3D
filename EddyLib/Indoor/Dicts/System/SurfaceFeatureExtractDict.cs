@@ -4,7 +4,7 @@
     {
         public SurfaceFeatureExtractDict()
         {
-            this.Name = "surfaceFeatureExtractDict";
+            this.DictionaryName = "surfaceFeatureExtractDict";
             this.FC = FieldClass.dictionary;
             this.Location = DictLocation.system;
             this.Header = GetHeader(this);

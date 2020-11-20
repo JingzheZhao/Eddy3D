@@ -4,7 +4,7 @@
     {
         public ControlDict()
         {
-            this.Name = "controlDict";
+            this.DictionaryName = "controlDict";
 
             this.Location = DictLocation.system;
             this.FC = FieldClass.dictionary;

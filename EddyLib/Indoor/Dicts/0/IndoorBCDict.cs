@@ -20,7 +20,7 @@ namespace EddyLib.Indoor.Dicts
             public U(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
                 this.FC = GenericDict.FieldClass.volVectorField;
-                this.Name = "U";
+                this.DictionaryName = "U";
                 this.Location = DictLocation.zero;
                 this.Header = GetHeader(this);
                 this.Dimensions = "dimensions      [0 1 -1 0 0 0 0];";
@@ -30,9 +30,9 @@ namespace EddyLib.Indoor.Dicts
 
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
 
-                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetFixedValue(i, Name)); }
-                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetInletOutlet(i, Name)); }
-                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetFixedValue(i, Name)); }
+                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetFixedValue(i, DictionaryName)); }
+                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetInletOutlet(i, DictionaryName)); }
+                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetFixedValue(i, DictionaryName)); }
 
                 this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
                 BoundaryFieldDict.Add("boundaryField", InternalDict);
@@ -46,7 +46,7 @@ namespace EddyLib.Indoor.Dicts
             public T(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
                 this.FC = FieldClass.volScalarField;
-                this.Name = "T";
+                this.DictionaryName = "T";
                 this.Location = DictLocation.zero;
                 this.Header = GetHeader(this);
                 this.Dimensions = "dimensions      [0 0 0 1 0 0 0];";
@@ -56,9 +56,9 @@ namespace EddyLib.Indoor.Dicts
 
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
 
-                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetFixedValue(i, Name)); }
-                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i, Name)); }
-                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetZeroGradient(i, Name)); }
+                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetFixedValue(i, DictionaryName)); }
+                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i, DictionaryName)); }
+                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetZeroGradient(i, DictionaryName)); }
 
                 this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
                 BoundaryFieldDict.Add("boundaryField", InternalDict);
@@ -72,7 +72,7 @@ namespace EddyLib.Indoor.Dicts
             public alphat(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
                 this.FC = FieldClass.volScalarField;
-                this.Name = "alphat";
+                this.DictionaryName = "alphat";
                 this.Location = DictLocation.zero;
                 this.Header = GetHeader(this);
                 this.Dimensions = "dimensions      [1 -1 -1 0 0 0 0];";
@@ -82,9 +82,9 @@ namespace EddyLib.Indoor.Dicts
 
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
 
-                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetCalculated(i, Name)); }
-                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetCalculated(i, Name)); }
-                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetAlphaWallFunction(i, Name)); }
+                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetCalculated(i, DictionaryName)); }
+                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetCalculated(i, DictionaryName)); }
+                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetAlphaWallFunction(i, DictionaryName)); }
 
                 this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
                 BoundaryFieldDict.Add("boundaryField", InternalDict);
@@ -98,7 +98,7 @@ namespace EddyLib.Indoor.Dicts
             public AoA(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
                 this.FC = FieldClass.volScalarField;
-                this.Name = "AoA";
+                this.DictionaryName = "AoA";
                 this.Location = DictLocation.zero;
                 this.Header = GetHeader(this);
                 this.Dimensions = "dimensions      [0 0 0 1 0 0 0];";
@@ -108,9 +108,9 @@ namespace EddyLib.Indoor.Dicts
 
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
 
-                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetFixedValue(i, Name)); }
-                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i, Name)); }
-                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetZeroGradient(i, Name)); }
+                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetFixedValue(i, DictionaryName)); }
+                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i, DictionaryName)); }
+                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetZeroGradient(i, DictionaryName)); }
 
                 this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
                 BoundaryFieldDict.Add("boundaryField", InternalDict);
@@ -124,19 +124,19 @@ namespace EddyLib.Indoor.Dicts
             public k(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
                 this.FC = FieldClass.volScalarField;
-                this.Name = "k";
+                this.DictionaryName = "k";
                 this.Location = DictLocation.zero;
                 this.Header = GetHeader(this);
                 this.Dimensions = "dimensions      [0 2 -2 0 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
-                this.InternalField = "internalField   uniform 0.0375;";
+                this.InternalField = "internalField   uniform 0.03375;";
 
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
 
-                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetTurbulentIntensityKineticEnergyInlet(i, Name)); }
-                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i, Name)); }
-                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetKqRWallFunction(i, Name)); }
+                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetTurbulentIntensityKineticEnergyInlet(i, DictionaryName)); }
+                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i, DictionaryName)); }
+                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetKqRWallFunction(i, DictionaryName)); }
 
                 this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
                 BoundaryFieldDict.Add("boundaryField", InternalDict);
@@ -150,7 +150,7 @@ namespace EddyLib.Indoor.Dicts
             public nut(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
                 this.FC = FieldClass.volScalarField;
-                this.Name = "nut";
+                this.DictionaryName = "nut";
                 this.Location = DictLocation.zero;
                 this.Header = GetHeader(this);
                 this.Dimensions = "dimensions      [0 2 -1 0 0 0 0];";
@@ -160,9 +160,9 @@ namespace EddyLib.Indoor.Dicts
 
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
 
-                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetCalculated(i, Name)); }
-                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetCalculated(i, Name)); }
-                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetNutKWallFunction(i, Name)); }
+                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetCalculated(i, DictionaryName)); }
+                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetCalculated(i, DictionaryName)); }
+                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetNutKWallFunction(i, DictionaryName)); }
 
                 this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
                 BoundaryFieldDict.Add("boundaryField", InternalDict);
@@ -176,7 +176,7 @@ namespace EddyLib.Indoor.Dicts
             public p(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
                 this.FC = FieldClass.volScalarField;
-                this.Name = "p";
+                this.DictionaryName = "p";
                 this.Location = DictLocation.zero;
                 this.Header = GetHeader(this);
                 this.Dimensions = "dimensions [1 -1 -2 0 0 0 0];";
@@ -185,9 +185,9 @@ namespace EddyLib.Indoor.Dicts
                 this.InternalField = "internalField uniform 101325;";
 
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
-                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetZeroGradient(i, Name)); }
-                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetFixedValue(i, Name)); }
-                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetCalculated(i, Name)); }
+                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetZeroGradient(i, DictionaryName)); }
+                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetFixedValue(i, DictionaryName)); }
+                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetCalculated(i, DictionaryName)); }
 
                 this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
                 BoundaryFieldDict.Add("boundaryField", InternalDict);
@@ -201,7 +201,7 @@ namespace EddyLib.Indoor.Dicts
             public p_rgh(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
                 this.FC = FieldClass.volScalarField;
-                this.Name = "p_rgh";
+                this.DictionaryName = "p_rgh";
                 this.Location = DictLocation.zero;
                 this.Header = GetHeader(this);
                 this.Dimensions = "dimensions      [1 -1 -2 0 0 0 0];";
@@ -211,9 +211,9 @@ namespace EddyLib.Indoor.Dicts
 
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
 
-                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetZeroGradient(i, Name)); }
-                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetFixedValue(i, Name)); }
-                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetFixFluxPressure(i, Name)); }
+                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetZeroGradient(i, DictionaryName)); }
+                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetFixedValue(i, DictionaryName)); }
+                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetFixFluxPressure(i, DictionaryName)); }
 
                 this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
                 BoundaryFieldDict.Add("boundaryField", InternalDict);
@@ -227,18 +227,18 @@ namespace EddyLib.Indoor.Dicts
             public omega(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
                 this.FC = FieldClass.volScalarField;
-                this.Name = "omega";
+                this.DictionaryName = "omega";
                 this.Location = DictLocation.zero;
                 this.Header = GetHeader(this);
                 this.Dimensions = "dimensions      [0 0 -1 0 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
-                this.InternalField = "internalField   uniform 9.18;";
+                this.InternalField = "internalField   uniform 1.8371173070873834;";
 
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
-                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetTurbulentMixingLengthFrequencyInlet(i, Name)); }
-                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i, Name)); }
-                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetOmegaWallFunction(i, Name)); }
+                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetTurbulentMixingLengthFrequencyInlet(i, DictionaryName)); }
+                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i, DictionaryName)); }
+                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetOmegaWallFunction(i, DictionaryName)); }
 
                 this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
                 BoundaryFieldDict.Add("boundaryField", InternalDict);

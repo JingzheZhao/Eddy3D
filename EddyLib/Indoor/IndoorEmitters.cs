@@ -3,7 +3,7 @@ using Rhino.Geometry;
 
 namespace EddyLib.Indoor
 {
-    public class OFIndoorEmitters : FunctionObject
+    public class OFIndoorFunctionObject : FunctionObject
     {
         //public enum EmitterType
         //{
@@ -13,7 +13,7 @@ namespace EddyLib.Indoor
 
         //public EmitterType Type { get; set; }
 
-        public string Id { get; set; }
+        //  public string Id { get; set; }
 
         public enum VolumeType
         {
@@ -30,18 +30,22 @@ namespace EddyLib.Indoor
         //public string Name { get; set; }
     }
 
-    public class VolumetricHeatSource : OFIndoorEmitters
+    public class VolumetricHeatSource : OFIndoorFunctionObject
     {
         public double Power { get; set; } = 0;
 
-        public VolumetricHeatSource(Mesh Geometry, int volumeType, double Power)
+        public VolumetricHeatSource(Mesh Geometry, int volumeType, double Power, string Name)
         {
             this.volumeType = (VolumeType)volumeType;
             this.Name = "volumetricHeatSource";
             this.Geometry = Geometry;
-            this.cellZone = "volumetricHeatSource";
+
+            if (Name == "")
+            {
+                this.cellZone = "volumetricHeatSource";
+            }
+
             this.Power = Power;
-            this.Name = "VolumetricHeatSource";
         }
 
         public VolumetricHeatSource()
@@ -50,12 +54,12 @@ namespace EddyLib.Indoor
 
         public VolumetricHeatSource Duplicate()
         {
-            VolumetricHeatSource dup = new VolumetricHeatSource(Geometry, (int)volumeType, Power);
+            VolumetricHeatSource dup = new VolumetricHeatSource(Geometry, (int)volumeType, Power, Name);
             return dup;
         }
     }
 
-    public class CO2Source : OFIndoorEmitters
+    public class CO2Source : OFIndoorFunctionObject
     {
         public double CO2 { get; set; } = 0;
 

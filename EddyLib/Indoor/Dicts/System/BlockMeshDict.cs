@@ -15,7 +15,7 @@ namespace EddyLib.Indoor.Dicts
 
         public BlockMeshDict(double cellSize, BoundingBox BBox)
         {
-            this.Name = "blockMeshDict";
+            this.DictionaryName = "blockMeshDict";
             this.Location = DictLocation.system;
 
             this.FC = FieldClass.dictionary;

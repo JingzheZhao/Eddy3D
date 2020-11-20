@@ -276,11 +276,11 @@ namespace Eddy
 
             if (DOM.Trees.Count > 0)
             {
-                var trees = new TreeObject(DOM, MeshSettings);
+                var trees = new MomentumSinkDict(DOM, MeshSettings);
             }
             else
             {
-                TreeObject.RemoveDicts(DOM, MeshSettings);
+                MomentumSinkDict.RemoveDicts(DOM, MeshSettings);
             }
 
             #endregion Trees

@@ -26,11 +26,13 @@ namespace EddyLib.Indoor
 
         public string WorkingDir;
 
-        private readonly List<IndoorBC> allGeometry = new List<IndoorBC>();
+        private readonly List<IndoorBC> AllGeometry = new List<IndoorBC>();
 
-        private readonly List<GenericDict> allDicts = new List<GenericDict>();
+        private readonly List<GenericDict> AllDicts = new List<GenericDict>();
 
-        private List<VolumetricHeatSource> vhs = new List<VolumetricHeatSource>();
+        public List<VolumetricHeatSource> VolumetricHeatSources = new List<VolumetricHeatSource>();
+
+        public List<MomentumSink> MomentumSinks = new List<MomentumSink>();
 
         public IndoorDomain()
         {
@@ -49,19 +51,19 @@ namespace EddyLib.Indoor
             for (int i = 0; i < RoomGeometry.Count; i++)
             {
                 RoomGeometry[i].Id = RoomGeometry[i].Name + cnt;
-                allGeometry.Add(RoomGeometry[i]);
+                AllGeometry.Add(RoomGeometry[i]);
                 cnt++;
             }
             for (int i = 0; i < Inlets.Count; i++)
             {
                 Inlets[i].Id = Inlets[i].Name + cnt;
-                allGeometry.Add(Inlets[i]);
+                AllGeometry.Add(Inlets[i]);
                 cnt++;
             }
             for (int i = 0; i < Outlets.Count; i++)
             {
                 Outlets[i].Id = Outlets[i].Name + cnt;
-                allGeometry.Add(Outlets[i]);
+                AllGeometry.Add(Outlets[i]);
                 cnt++;
             }
 
@@ -108,15 +110,15 @@ namespace EddyLib.Indoor
             var p_rgh = new IndoorBCDict.p_rgh(Inlets, Outlets, RoomGeometry);
             var T = new IndoorBCDict.T(Inlets, Outlets, RoomGeometry);
 
-            allDicts.Add(u);
-            allDicts.Add(alphat);
-            allDicts.Add(AoA);
-            allDicts.Add(nut);
-            allDicts.Add(omega);
-            allDicts.Add(k);
-            allDicts.Add(p);
-            allDicts.Add(p_rgh);
-            allDicts.Add(T);
+            AllDicts.Add(u);
+            AllDicts.Add(alphat);
+            AllDicts.Add(AoA);
+            AllDicts.Add(nut);
+            AllDicts.Add(omega);
+            AllDicts.Add(k);
+            AllDicts.Add(p);
+            AllDicts.Add(p_rgh);
+            AllDicts.Add(T);
 
             // System
 
@@ -128,13 +130,13 @@ namespace EddyLib.Indoor
             var residualsDict = new ResidualsDict();
             var surfaceFeatureExtractDict = new SurfaceFeatureExtractDict();
 
-            allDicts.Add(controlDict);
-            allDicts.Add(blockMeshDict);
-            allDicts.Add(snappyHextMeshDict);
-            allDicts.Add(fvSchemesDict);
-            allDicts.Add(fvSolutionDict);
-            allDicts.Add(residualsDict);
-            allDicts.Add(surfaceFeatureExtractDict);
+            AllDicts.Add(controlDict);
+            AllDicts.Add(blockMeshDict);
+            AllDicts.Add(snappyHextMeshDict);
+            AllDicts.Add(fvSchemesDict);
+            AllDicts.Add(fvSolutionDict);
+            AllDicts.Add(residualsDict);
+            AllDicts.Add(surfaceFeatureExtractDict);
 
             // Constant
 
@@ -142,9 +144,9 @@ namespace EddyLib.Indoor
             var thermoPhysicalProperties = new ThermoPhysicalPropertiesDict();
             var turbulenceProperties = new TurbulencePropertiesDict();
 
-            allDicts.Add(g);
-            allDicts.Add(thermoPhysicalProperties);
-            allDicts.Add(turbulenceProperties);
+            AllDicts.Add(g);
+            AllDicts.Add(thermoPhysicalProperties);
+            AllDicts.Add(turbulenceProperties);
 
             // Function Objects
 
@@ -152,17 +154,27 @@ namespace EddyLib.Indoor
 
             for (int i = 0; i < vhs.Count; i++)
             {
-                this.vhs.Add(vhs[i]);
-                this.vhs[i].Id = i.ToString();
+                this.VolumetricHeatSources.Add(vhs[i]);
+
+                this.VolumetricHeatSources[i].Name = i.ToString();
             }
-            allDicts.Add(new VolumetricHeatSourceDict(this.vhs));
+            AllDicts.Add(new VolumetricHeatSourceDict(this.VolumetricHeatSources));
+
+            // Momentum Sinks
+
+            for (int i = 0; i < MomentumSinks.Count; i++)
+            {
+                this.MomentumSinks.Add(MomentumSinks[i]);
+                this.MomentumSinks[i].Name = i.ToString();
+            }
+            AllDicts.Add(new MomentumSinkDict(this));
 
             ExportGeometryAndDicts(WorkingDir);
         }
 
         public void ExportGeometryAndDicts(string workingDir)
         {
-            foreach (GenericDict dict in allDicts)
+            foreach (GenericDict dict in AllDicts)
             {
                 dict.Export(workingDir);
             }
@@ -171,7 +183,7 @@ namespace EddyLib.Indoor
 
             var stlDir = Path.Combine(workingDir, "constant", "triSurface");
             Directory.CreateDirectory(stlDir);
-            foreach (var geo in allGeometry)
+            foreach (var geo in AllGeometry)
             {
                 EddyLib.STLExport.ExportBinary(stlDir + "\\" + geo.Name + ".stl", geo.Geometry);
             }

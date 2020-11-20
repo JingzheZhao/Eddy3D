@@ -187,13 +187,13 @@ for a dense tree with a 1 m diameter.
                 {
                     return;
                 }
-                var tree = new EddyLib.Tree(geo, PorosityCoeffs_B, PorosityCoeffs_A);
+                var tree = new EddyLib.MomentumSink.Tree(geo, PorosityCoeffs_B, PorosityCoeffs_A, "");
 
                 DA.SetData(0, tree);
             }
             else if (LAI != 0 && type.Count == 0)
             {
-                var tree = new EddyLib.Tree(geo, LAI);
+                var tree = new EddyLib.MomentumSink.Tree(geo, LAI, "");
 
                 DA.SetData(0, tree);
             }

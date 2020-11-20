@@ -11,7 +11,7 @@ namespace EddyLib.Indoor.Dicts
     {
         public ResidualsDict()
         {
-            this.Name = "residuals";
+            this.DictionaryName = "residuals";
 
             this.Location = DictLocation.system;
             this.FC = FieldClass.dictionary;

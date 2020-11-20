@@ -13,7 +13,7 @@ namespace EddyLib.Indoor.Dicts
        (
        )
         {
-            this.Name = "turbulenceProperties";
+            this.DictionaryName = "turbulenceProperties";
             this.Location = DictLocation.constant;
             this.FC = FieldClass.dictionary;
 

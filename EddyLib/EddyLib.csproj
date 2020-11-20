@@ -88,7 +88,7 @@
     <Compile Include="FunctionObjects.cs" />
     <Compile Include="FunctionObjects\PressureCoeff.cs" />
     <Compile Include="BoundaryConditions\BoundaryConditionsBase.cs" />
-    <Compile Include="FunctionObjects\Tree.cs" />
+    <Compile Include="FunctionObjects\MomentumSink.cs" />
     <Compile Include="Indoor\Dicts\CppMapSerializer.cs" />
     <Compile Include="Indoor\Dicts\FunctionObjectDict.cs" />
     <Compile Include="Indoor\Dicts\FunctionObjects\FunctionObjectDict.cs" />

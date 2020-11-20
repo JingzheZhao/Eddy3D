@@ -12,15 +12,6 @@ namespace EddyLib.Indoor.Dicts
 
         public VolumetricHeatSourceDict(List<VolumetricHeatSource> VHS)
         {
-            this.Type = new Dictionary<string, string>() { "type", "volumetricHeatSources;" };
-
-            this.Libs = new Dictionary<string, string>() { "libs", @"(""libutilityFunctionObjects.so"");" };
-
-            this.Name = "volumetricHeatSources";
-
-            this.Location = DictLocation.system;
-            this.FC = FieldClass.dictionary;
-
             this.Header = GetHeader(this);
 
             foreach (var item in VHS)
@@ -29,7 +20,7 @@ namespace EddyLib.Indoor.Dicts
             }
 
             string[] parts = {
-                this.Header, "\n",
+               // this.Header, "\n", This is a subdict and doesn't need a header
          String.Join("", this.InternalDict.ToArray())
             };
 
@@ -46,17 +37,17 @@ namespace EddyLib.Indoor.Dicts
 
             Dictionary<string, dynamic> injectionRateSuSpDict = new Dictionary<string, dynamic>();
 
-            Dict.Add(input.Name + "_" + input.Id, InternalDict);
+            Dict.Add(input.Name + "_" + input.Name, InternalDict);
 
             InternalDict.Add("type", "scalarSemiImplicitSource");
             InternalDict.Add("active", "on");
             InternalDict.Add("selectionMode", "cellZone");
-            InternalDict.Add("cellZone", input.cellZone + "_" + input.Id);
+            InternalDict.Add("cellZone", input.cellZone + "_" + input.Name);
 
             InternalDict.Add("scalarSemiImplicitSourceCoeffs", scalarSemiImplicitSourceCoeffsDict);
 
             scalarSemiImplicitSourceCoeffsDict.Add("selectionMode", "cellZone");
-            scalarSemiImplicitSourceCoeffsDict.Add("cellZone", input.cellZone + "_" + input.Id);
+            scalarSemiImplicitSourceCoeffsDict.Add("cellZone", input.cellZone + "_" + input.Name);
             scalarSemiImplicitSourceCoeffsDict.Add("volumeMode", input.volumeType);
             scalarSemiImplicitSourceCoeffsDict.Add("injectionRateSuSp", injectionRateSuSpDict);
 

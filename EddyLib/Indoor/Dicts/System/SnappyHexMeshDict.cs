@@ -17,7 +17,7 @@ namespace EddyLib.Indoor
 
         public SnappyHexMeshDict(double refineMentLevel, Point3d pointInsideDomain, BoundingBox BBox, List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
         {
-            this.Name = "snappyHexMeshDict";
+            this.DictionaryName = "snappyHexMeshDict";
             this.Location = DictLocation.system;
             this.FC = FieldClass.dictionary;
             this.Header = GetHeader(this);

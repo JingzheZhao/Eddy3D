@@ -48,7 +48,7 @@ namespace EddyLib
 
         public double test;
 
-        public OFBoxDomain(Mesh BuildingGeometry, Mesh terrainMesh, BoundaryCondition BCond, double blockDimension, double length = 0, double width = 0, double height = 0, List<Tree> Trees = null)
+        public OFBoxDomain(Mesh BuildingGeometry, Mesh terrainMesh, BoundaryCondition BCond, double blockDimension, double length = 0, double width = 0, double height = 0, List<MomentumSink> Trees = null)
         {
             this.BCond = BCond;
             this.BuildingGeometry = BuildingGeometry;

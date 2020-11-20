@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using EddyLib.Indoor.Dicts;
+using Newtonsoft.Json;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
@@ -9,29 +10,38 @@ using System.Text;
 
 namespace EddyLib
 {
-    //foamToVTK -cellSet Tree_0 -latestTime
-
-    public class TreeObject
+    public class MomentumSinkDict : GenericDict
     {
-        public List<Tree> trees;
+        public string fullExportString { get; set; }
 
-        public List<Mesh> treeGeometries;
+        private string topoSetDictPath { get; set; }
 
-        public String fullExportString;
-
-        private string topoSetDictPath;
-
-        public TreeObject(OFBaseDomain DOM, OFMeshSettings MeshSettings)
+        // Trees
+        public MomentumSinkDict(OFBaseDomain DOM, OFMeshSettings MeshSettings)
         {
             //this.fvObjectPath = MeshSettings.meshSystemDir + @"\fvOptions";
             this.topoSetDictPath = MeshSettings.meshSystemDir + @"\topoSetDict";
-            this.trees = DOM.Trees;
+            //this.MomentumSinks = DOM.Trees;
 
-            ExportfvOptionsDict(trees, DOM, MeshSettings);
+            ExportfvOptionsDict(DOM.Trees, DOM, MeshSettings);
 
-            ExportTopoSetDict(trees);
+            ExportTopoSetDict(DOM.Trees, this.topoSetDictPath);
 
-            ExportTreeGeometry(trees, MeshSettings);
+            ExportMomentumSinkGeometry(DOM.Trees, MeshSettings.meshStlDir);
+        }
+
+        // Trees
+        public MomentumSinkDict(Indoor.IndoorDomain IndoorDomain)
+        {
+            //this.fvObjectPath = MeshSettings.meshSystemDir + @"\fvOptions";
+            this.topoSetDictPath = IndoorDomain.WorkingDir + @"\system" + @"\topoSetDict";
+            //this.MomentumSinks = IndoorDomain.MomentumSinks;
+
+            ExportfvOptionsDict(IndoorDomain.MomentumSinks, IndoorDomain.WorkingDir);
+
+            ExportTopoSetDict(IndoorDomain.MomentumSinks);
+
+            ExportMomentumSinkGeometry(IndoorDomain.MomentumSinks, IndoorDomain.WorkingDir + @"\system\");
         }
 
         public static void RemoveDicts(OFBaseDomain DOM, OFMeshSettings MeshSettings)
@@ -48,16 +58,16 @@ namespace EddyLib
             }
         }
 
-        public void ExportTreeGeometry(List<Tree> trees, OFMeshSettings MeshSettings)
+        public void ExportMomentumSinkGeometry(List<MomentumSink> trees, string meshStlDir)
 
         {
             for (int i = 0; i < trees.Count; i++)
             {
-                STLExport.ExportBinary(MeshSettings.meshStlDir + "Tree_" + i + ".stl", trees[i].treeGeometries);
+                STLExport.ExportBinary(meshStlDir + "MS_" + i + ".stl", trees[i].Geometry);
             }
         }
 
-        public void ExportfvOptionsDict(List<Tree> trees, OFBaseDomain DOM, OFMeshSettings Meshsettings)
+        public void ExportfvOptionsDict(List<MomentumSink> trees, OFBaseDomain DOM, OFMeshSettings Meshsettings)
         {
             for (int i = 0; i < DOM.BCond.windDirs.Count; i++)
             {
@@ -65,9 +75,9 @@ namespace EddyLib
 
                 StringBuilder sb = new StringBuilder();
                 sb.AppendLine(TreeStringHeader());
-                for (int j = 0; j < trees.Count; j++)
+                foreach (MomentumSink ms in trees)
                 {
-                    sb.AppendLine(TreeStringBody(j, trees[j].F, trees[j].D));
+                    sb.AppendLine(TreeStringBody(ms));
                 }
                 this.fullExportString = sb.ToString();
 
@@ -78,18 +88,18 @@ namespace EddyLib
             }
         }
 
-        public void ExportTopoSetDict(List<Tree> trees)
+        public void ExportTopoSetDict(List<MomentumSink> momentumSink, string topoSetDictPath)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(TopoSetDictStringHeader());
             sb.AppendLine(@"actions
   (");
-            for (int i = 0; i < trees.Count; i++)
+            foreach (MomentumSink ms in momentumSink)
             {
-                sb.AppendLine(TopoSetDictStringBody(i, trees[i].treeGeometries));
+                sb.AppendLine(TopoSetDictStringBody(ms));
             }
             sb.AppendLine(");");
-            File.WriteAllText(this.topoSetDictPath, sb.ToString());
+            File.WriteAllText(topoSetDictPath, sb.ToString());
         }
 
         public static string TopoSetDictStringHeader()
@@ -114,22 +124,23 @@ namespace EddyLib
 ";
         }
 
-        public static string TopoSetDictStringBody(int id, Mesh tree)
+        public static string TopoSetDictStringBody(MomentumSink ms)
 
         {
-            var pointOutside = new Point3d(tree.GetBoundingBox(true).Max.X, tree.GetBoundingBox(true).Max.Y, tree.GetBoundingBox(true).Max.Z + 0.5);
+            var bb = ms.Geometry.GetBoundingBox(true);
+            var pointOutside = new Point3d(bb.Max.X, bb.Max.Y, bb.Max.Z + 0.4);
 
             StringBuilder sb = new StringBuilder();
 
             string content = string.Format(@"{{
-        name Tree_{0};
+        name MS_{0};
         type cellZoneSet;
         action new;
         source surfaceToCell;
         sourceInfo
         {{
                 surface triSurfaceMesh;
-                file ""./constant/triSurface/Tree_{0}.stl"";
+                file ""./constant/triSurface/MS_{0}.stl"";
             outsidePoints (({1}));
             includeCut yes;
             includeInside yes;
@@ -138,17 +149,17 @@ namespace EddyLib
             curvature -100;
         }}
 }}
-", id, String.Join(" ", EddyLib.Utilities.FormatPV(pointOutside)));
+", ms.Name, String.Join(" ", EddyLib.Utilities.FormatPV(pointOutside)));
 
             string content2 = string.Format(@"{{
-                name Tree_{0};
+                name MS_{0};
                 type faceZoneSet;
                 action new;
                 source surfaceToCell;
                 sourceInfo
         {{
                     surface triSurfaceMesh;
-                    file ""./constant/triSurface/Tree_0.stl"";
+                    file ""./constant/triSurface/MS_0.stl"";
                     outsidePoints (({1}));
                     includeCut yes;
                     includeInside yes;
@@ -156,7 +167,7 @@ namespace EddyLib
                     nearDistance 0.08;
                     curvature -100;
                 }}
-            }}", id, String.Join(" ", Utilities.FormatPV(pointOutside)));
+            }}", ms.Name, String.Join(" ", Utilities.FormatPV(pointOutside)));
 
             sb.AppendLine(content);
 
@@ -165,12 +176,11 @@ namespace EddyLib
             return sb.ToString();
         }
 
-        // public static string TreeStringBody(int id, TreeType treeType)
-        public static string TreeStringBody(int id, double[] f, double[] d)
+        public static string TreeStringBody(MomentumSink ms)
 
         {
-            var PorosityCoeffs_D = d;
-            var PorosityCoeffs_F = f;
+            //var PorosityCoeffs_D = d;
+            //var PorosityCoeffs_F = f;
 
             //var PorosityCoeffs_D = new double[] { 00.0, 00.0, 00.0 };
             //var PorosityCoeffs_F = new double[] { 0.0, 0.0, 0.0 };
@@ -208,7 +218,7 @@ namespace EddyLib
     explicitPorositySourceCoeffs
     {{
     selectionMode cellZone;
-    cellZone Tree_{0};
+    cellZone MS_{0};
 
     type DarcyForchheimer;
 
@@ -228,7 +238,7 @@ namespace EddyLib
     }}
     }}
     }}
-    ", id, String.Join(" ", PorosityCoeffs_F.Select(p => p.ToString())), String.Join(" ", PorosityCoeffs_D.Select(p => p.ToString())));
+    ", ms.Name, String.Join(" ", ms.F.Select(p => p.ToString())), String.Join(" ", ms.D.Select(p => p.ToString())));
 
             sb.AppendLine(content);
             return sb.ToString();
@@ -265,25 +275,12 @@ FoamFile
         }
     }
 
-    public enum TreeType
-    {
-        coarse,
-
-        medium,
-
-        dense
-    }
-
-    public class Tree
+    public class MomentumSink
 
     {
-        // https://www.simscale.com/docs/analysis-types/pedestrian-wind-comfort-analysis/advanced-modelling/;
+        public string Name;
 
-        // https://openfoamwiki.net/index.php/DarcyForchheimer
-
-        public Mesh treeGeometries;
-
-        public TreeType treeType;
+        public Mesh Geometry;
 
         // dp = A *u + B*u^2
 
@@ -295,11 +292,11 @@ FoamFile
 
         public double[] F = new double[3]; // u^2
 
-        public double DimX;
+        public double DimX { get; set; }
 
-        public double DimY;
+        public double DimY { get; set; }
 
-        public double DimZ;
+        public double DimZ { get; set; }
 
         public double[] DimXYZ = new double[3];
 
@@ -309,18 +306,11 @@ FoamFile
 
         private double mu = 0.0000181; // dynamic viscosity
 
-        private double Cd = 0.2;
+        public string AllProperties { get; set; }
 
-        public double LAI;
-
-        public double LAD;
-
-        public string AllProperties;
-
-        //public Tree(List<GeometryBase> treeGeometries, TreeType treeType)
-        public Tree(GeometryBase treeGeometries, double[] B, double[] A)
+        public MomentumSink(GeometryBase Geometries, double[] B, double[] A, string Name)
         {
-            MeshGeo(treeGeometries);
+            MeshGeo(Geometries);
             GetDims();
 
             for (int unitVec = 0; unitVec < 3; unitVec++)
@@ -329,31 +319,79 @@ FoamFile
                 this.F[unitVec] = B[unitVec] / DimXYZ[unitVec] * 2 / this.rho;
             }
 
-            this.LAD = this.B.Average() / (this.rho * this.Cd);
-            this.LAI = this.LAD * DimZ;
-
             ExportSettings();
         }
 
-        public Tree(GeometryBase treeGeometries, double LAI)
+        public MomentumSink()
         {
-            MeshGeo(treeGeometries);
-            GetDims();
+        }
 
-            //this.treeType = treeType;
-            this.LAD = LAI / DimZ;
-            this.A = new double[] { 0, 0, 0 };
-            this.B = new double[] { this.rho * this.LAD * this.Cd, this.rho * this.LAD * this.Cd, this.rho * this.LAD * this.Cd };
+        public MomentumSink Duplicate()
+        {
+            MomentumSink dup = new MomentumSink(Geometry, B, A, Name);
+            return dup;
+        }
 
-            this.D = new double[] { 0, 0, 0 };
-            this.F = this.B.Select(x => x * 2 / this.rho).ToArray();
+        public class Tree : MomentumSink
 
-            ExportSettings();
+        {
+            public enum TreeType
+            {
+                coarse,
+
+                medium,
+
+                dense
+            }
+
+            // https://www.simscale.com/docs/analysis-types/pedestrian-wind-comfort-analysis/advanced-modelling/;
+            // https://openfoamwiki.net/index.php/DarcyForchheimer
+
+            public TreeType treeType;
+
+            private double Cd = 0.2;
+
+            public double LAI;
+
+            public double LAD;
+
+            public Tree(GeometryBase Geometries, double[] B, double[] A, string Name) : base(Geometries, B, A, Name)
+            {
+                MeshGeo(Geometries);
+                GetDims();
+
+                for (int unitVec = 0; unitVec < 3; unitVec++)
+                {
+                    this.D[unitVec] = A[unitVec] / DimXYZ[unitVec] / this.mu;
+                    this.F[unitVec] = B[unitVec] / DimXYZ[unitVec] * 2 / this.rho;
+                }
+
+                this.LAD = this.B.Average() / (this.rho * this.Cd);
+                this.LAI = this.LAD * DimZ;
+
+                ExportSettings();
+            }
+
+            public Tree(GeometryBase Geometries, double LAI, string Name)
+            {
+                MeshGeo(Geometries);
+                GetDims();
+
+                //this.treeType = treeType;
+                this.LAD = LAI / DimZ;
+                this.A = new double[] { 0, 0, 0 };
+                this.B = new double[] { this.rho * this.LAD * this.Cd, this.rho * this.LAD * this.Cd, this.rho * this.LAD * this.Cd };
+
+                this.D = new double[] { 0, 0, 0 };
+                this.F = this.B.Select(x => x * 2 / this.rho).ToArray();
+
+                ExportSettings();
+            }
         }
 
         private void GetDims()
         {
-            BoundingBox BBox = treeGeometries.GetBoundingBox(true);
+            BoundingBox BBox = Geometry.GetBoundingBox(true);
 
             this.DimX = BBox.Max.X - BBox.Min.X;
             this.DimY = BBox.Max.Y - BBox.Min.Y;
@@ -371,7 +409,7 @@ FoamFile
             {
                 Mesh obj = (Mesh)b;
                 allTogether.Append(obj);
-                this.treeGeometries = allTogether;
+                this.Geometry = allTogether;
             }
             else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
             {
@@ -379,7 +417,7 @@ FoamFile
                 var m = Mesh.CreateFromBrep(obj, mp);
                 foreach (Mesh mm in m) allTogether.Append(mm);
 
-                this.treeGeometries = allTogether;
+                this.Geometry = allTogether;
             }
         }
 

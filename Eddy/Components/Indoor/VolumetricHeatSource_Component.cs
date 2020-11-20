@@ -27,13 +27,14 @@ namespace Eddy.Components.Indoor
         {
             pManager.AddGeometryParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
             pManager.AddNumberParameter("Power", "P", "Power", GH_ParamAccess.item);
+            pManager.AddTextParameter("Name", "N", "Name", GH_ParamAccess.item, "");
 
             pManager.AddIntegerParameter("Type", "Typ", "Type: Absolute [W] or specific [W/m³]", GH_ParamAccess.item);
-            Param_Integer param = pManager[2] as Param_Integer;
+            Param_Integer param = pManager[3] as Param_Integer;
             param.AddNamedValue("Absolute", 0);
             param.AddNamedValue("Specific", 1);
 
-            pManager[2].Optional = true;
+            pManager[3].Optional = true;
         }
 
         /// <summary>
@@ -56,10 +57,13 @@ namespace Eddy.Components.Indoor
             double Power = 1;
             DA.GetData(1, ref Power);
 
-            int Type = 0;
-            DA.GetData(2, ref Type);
+            string Name = "";
+            DA.GetData(2, ref Name);
 
-            var heatSource = new VolumetricHeatSource(m, Type, Power);
+            int Type = 0;
+            DA.GetData(3, ref Type);
+
+            var heatSource = new VolumetricHeatSource(m, Type, Power, Name);
 
             var goo = new VolumetricHeatSourceGoo(heatSource);
 
@@ -83,7 +87,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("0163E2D4-01F4-4535-8255-461483A28ACE"); }
+            get { return new Guid("{128F2233-5532-441A-BE3B-F0D9AED33C27}"); }
         }
     }
 }

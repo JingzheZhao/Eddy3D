@@ -123,7 +123,7 @@ namespace Eddy
 
             #region Trees
 
-            List<Tree> trees = new List<Tree>();
+            List<MomentumSink> trees = new List<MomentumSink>();
 
             DA.GetDataList("Trees", trees);
 
