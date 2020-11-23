@@ -29,7 +29,7 @@ namespace EddyLib
 
             ExportfvOptionsDict(trees, DOM, MeshSettings);
 
-            ExportTopoSetDict(trees);
+            ExportTopoSetDict(trees, DOM.LocationInMesh);
 
             ExportTreeGeometry(trees, MeshSettings);
         }
@@ -78,7 +78,7 @@ namespace EddyLib
             }
         }
 
-        public void ExportTopoSetDict(List<Tree> trees)
+        public void ExportTopoSetDict(List<Tree> trees, Point3d locationInMesh)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(TopoSetDictStringHeader());
@@ -86,7 +86,7 @@ namespace EddyLib
   (");
             for (int i = 0; i < trees.Count; i++)
             {
-                sb.AppendLine(TopoSetDictStringBody(i, trees[i].treeGeometries));
+                sb.AppendLine(TopoSetDictStringBody(i, trees[i].treeGeometries, locationInMesh));
             }
             sb.AppendLine(");");
             File.WriteAllText(this.topoSetDictPath, sb.ToString());
@@ -114,10 +114,10 @@ namespace EddyLib
 ";
         }
 
-        public static string TopoSetDictStringBody(int id, Mesh tree)
+        public static string TopoSetDictStringBody(int id, Mesh tree, Point3d locationInMesh)
 
         {
-            var pointOutside = new Point3d(tree.GetBoundingBox(true).Max.X, tree.GetBoundingBox(true).Max.Y, tree.GetBoundingBox(true).Max.Z + 0.5);
+            var pointOutside = locationInMesh;
 
             StringBuilder sb = new StringBuilder();
 
