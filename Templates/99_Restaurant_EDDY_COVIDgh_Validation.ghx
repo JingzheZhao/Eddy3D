@@ -49,10 +49,10 @@
             <chunk name="Projection">
               <items count="2">
                 <item name="Target" type_name="gh_drawing_point" type_code="30">
-                  <X>-2004</X>
-                  <Y>-321</Y>
+                  <X>-1621</X>
+                  <Y>-59</Y>
                 </item>
-                <item name="Zoom" type_name="gh_single" type_code="5">0.903125167</item>
+                <item name="Zoom" type_name="gh_single" type_code="5">0.767656446</item>
               </items>
             </chunk>
             <chunk name="Views">
@@ -6617,17 +6617,17 @@ Besides You can Right click on the component's icon and choose one of three prov
                     <chunk name="Attributes">
                       <items count="5">
                         <item name="Bounds" type_name="gh_drawing_rectanglef" type_code="35">
-                          <X>1590</X>
-                          <Y>1483</Y>
+                          <X>1627</X>
+                          <Y>1477</Y>
                           <W>160</W>
-                          <H>156</H>
+                          <H>101</H>
                         </item>
                         <item name="MarginLeft" type_name="gh_int32" type_code="3">0</item>
                         <item name="MarginRight" type_name="gh_int32" type_code="3">0</item>
                         <item name="MarginTop" type_name="gh_int32" type_code="3">0</item>
                         <item name="Pivot" type_name="gh_drawing_pointf" type_code="31">
-                          <X>1590.25</X>
-                          <Y>1483.731</Y>
+                          <X>1627.242</X>
+                          <Y>1477.961</Y>
                         </item>
                       </items>
                     </chunk>
@@ -7554,7 +7554,7 @@ Eddy3D 0.3.8.2</item>
                   </items>
                   <chunks count="2">
                     <chunk name="Attributes">
-                      <items count="2">
+                      <items count="3">
                         <item name="Bounds" type_name="gh_drawing_rectanglef" type_code="35">
                           <X>2553</X>
                           <Y>720</Y>
@@ -7565,6 +7565,7 @@ Eddy3D 0.3.8.2</item>
                           <X>2578.367</X>
                           <Y>730.4067</Y>
                         </item>
+                        <item name="Selected" type_name="gh_bool" type_code="1">true</item>
                       </items>
                     </chunk>
                     <chunk name="PersistentData">
