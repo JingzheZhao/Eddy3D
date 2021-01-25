@@ -10,7 +10,7 @@ using System.Text;
 
 namespace EddyLib
 {
-    public class MomentumSinkDict : GenericDict
+    public class MomentumSinkDict : FunctionObjectDictInternal
     {
         public string fullExportString { get; set; }
 
@@ -39,7 +39,7 @@ namespace EddyLib
 
             ExportfvOptionsDict(IndoorDomain.WorkingDir);
 
-            ExportTopoSetDict(IndoorDomain.MomentumSinks, IndoorDomain.WorkingDir + @"\system\");
+            ExportTopoSetDict(IndoorDomain.MomentumSinks, this.topoSetDictPath);
 
             ExportMomentumSinkGeometry(IndoorDomain.MomentumSinks, IndoorDomain.WorkingDir + @"\system\");
         }
@@ -107,6 +107,7 @@ namespace EddyLib
                 sb.AppendLine(TopoSetDictStringBody(ms));
             }
             sb.AppendLine(");");
+
             File.WriteAllText(topoSetDictPath, sb.ToString());
         }
 

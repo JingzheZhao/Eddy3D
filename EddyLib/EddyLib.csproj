@@ -90,7 +90,9 @@
     <Compile Include="BoundaryConditions\BoundaryConditionsBase.cs" />
     <Compile Include="FunctionObjects\MomentumSink.cs" />
     <Compile Include="Indoor\Dicts\CppMapSerializer.cs" />
+    <Compile Include="Indoor\Dicts\FunctionObjects\FunctionObjectDictInternal.cs" />
     <Compile Include="Indoor\Dicts\FunctionObjects\FunctionObjectDict.cs" />
+    <Compile Include="Indoor\Dicts\FunctionObjects\MomentumSourceDict.cs" />
     <Compile Include="Indoor\FunctionObject.cs" />
     <Compile Include="Indoor\Dicts\FunctionObjects\VolumetricHeatSourceDict.cs" />
     <Compile Include="Indoor\Dicts\System\DecomposeParDict.cs" />

@@ -104,7 +104,7 @@ namespace Eddy
                         avgVec = Utilities.AverageVectors(new List<Vector3d>() { U[m.Faces[mf_id].A], U[m.Faces[mf_id].B], U[m.Faces[mf_id].C] });
                         center = Utilities.AveragePoints(new List<Point3d>() { pts[0], pts[1], pts[2] });
                     }
-                    string error = "";
+                    //string error = "";
 
                     var angleBetween = Vector3d.VectorAngle(avgVec, m.FaceNormals[mf_id]);
 

@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using EddyLib.Indoor.Dicts;
 
 namespace EddyLib.Indoor.Dicts
 {
-    public class VolumetricHeatSourceDict : FunctionObjectDictInternal
+    public class MomentumSourceDict : FunctionObjectDictInternal
     {
-        public VolumetricHeatSourceDict(List<VolumetricHeatSource> VHS)
+        public MomentumSourceDict(List<VolumetricHeatSource> VHS)
         {
             foreach (var item in VHS)
             {

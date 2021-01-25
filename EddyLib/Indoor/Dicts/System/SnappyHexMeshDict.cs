@@ -47,10 +47,10 @@ namespace EddyLib.Indoor
 
             Dictionary<string, string> InternalDict = new Dictionary<string, string>();
 
-            Dict.Add(input.Name + ".stl", InternalDict);
+            Dict.Add(input.Id + ".stl", InternalDict);
 
             InternalDict.Add("type", input.OFGeometryType);
-            InternalDict.Add("name", input.Name);
+            InternalDict.Add("name", input.Id);
 
             return Dict;
         }
@@ -172,11 +172,11 @@ meshQualityControls
 
         {");
 
-            foreach (IndoorBC i in Inlets) { sb.AppendLine(@"file """ + i.Name + @".eMesh"";
+            foreach (IndoorBC i in Inlets) { sb.AppendLine(@"file """ + i.Id + @".eMesh"";
             level " + i.refinementLevel + @";"); }
-            foreach (IndoorBC i in Outlets) { sb.AppendLine(@"file """ + i.Name + @".eMesh"";
+            foreach (IndoorBC i in Outlets) { sb.AppendLine(@"file """ + i.Id + @".eMesh"";
             level " + i.refinementLevel + @";"); }
-            foreach (IndoorBC i in RoomGeometry) { sb.AppendLine(@"file """ + i.Name + @".eMesh"";
+            foreach (IndoorBC i in RoomGeometry) { sb.AppendLine(@"file """ + i.Id + @".eMesh"";
             level " + i.refinementLevel + @";"); }
 
             sb.AppendLine(@"
@@ -214,7 +214,7 @@ meshQualityControls
                     {{
                         type            {2};
                     }}
-        }}", bc.Name, bc.refinementLevel.ToString(), bc.bcType.ToString());
+        }}", bc.Id, bc.refinementLevel.ToString(), bc.bcType.ToString());
         }
 
         //       private string GetRefinementRegions(IndoorBC bc)

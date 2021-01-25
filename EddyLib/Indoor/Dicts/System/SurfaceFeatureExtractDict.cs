@@ -1,84 +1,76 @@
-﻿namespace EddyLib.Indoor.Dicts
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace EddyLib.Indoor.Dicts
 {
     internal class SurfaceFeatureExtractDict : GenericDict
     {
-        public SurfaceFeatureExtractDict()
+        public List<String> InternalDict = new List<string>();
+
+        public Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>> GeometryDict { get; set; }
+
+        public List<Dictionary<string, Dictionary<string, string>>> GeometrySubDict { get; set; }
+
+        public SurfaceFeatureExtractDict(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
         {
             this.DictionaryName = "surfaceFeatureExtractDict";
             this.FC = FieldClass.dictionary;
             this.Location = DictLocation.system;
             this.Header = GetHeader(this);
 
-            this.FullDictString = @"FoamFile
-{
-    version         1912;
-    format          ascii;
-    class           dictionary;
-    location        ""system"";
-    object          surfaceFeatureExtractDict;
+            var AllBCs = new List<IndoorBC>();
 
-	    extractFromSurfaceCoeffs
-    {
-        // Mark edges whose adjacent surface normals are at an angle less than includedAngle as features
-        // - 0 : selects no edges
-        // - 180: selects all edges
-        includedAngle   180;
-        geometricTestOnly yes;
-    }
-}
+            foreach (var sf in inlet)
+            {
+                AllBCs.Add(sf);
+            }
+            foreach (var sf in outlet)
+            {
+                AllBCs.Add(sf);
+            }
+            foreach (var sf in wall)
+            {
+                AllBCs.Add(sf);
+            }
 
-Inlet.stl
-{
-    extractionMethod extractFromSurface;
-    includedAngle   180.00;
-    geometricTestOnly yes;
-    intersectionMethod none;
-    writeObj        no;
-	    extractFromSurfaceCoeffs
-    {
-        // Mark edges whose adjacent surface normals are at an angle less than includedAngle as features
-        // - 0 : selects no edges
-        // - 180: selects all edges
-        includedAngle   180;
-        geometricTestOnly yes;
-    }
-}
+            foreach (var item in AllBCs)
+            {
+                this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetDict(item)));
+            }
 
-Outlet.stl
-{
-    extractionMethod extractFromSurface;
-    includedAngle   180.00;
-    geometricTestOnly yes;
-    intersectionMethod none;
-    writeObj        no;
-	    extractFromSurfaceCoeffs
-    {
-        // Mark edges whose adjacent surface normals are at an angle less than includedAngle as features
-        // - 0 : selects no edges
-        // - 180: selects all edges
-        includedAngle   180;
-        geometricTestOnly yes;
-    }
-}
+            string[] parts = {
+               this.Header, "\n", //(This is a subdict and doesn't need a header
+         String.Join("\n", this.InternalDict.ToArray())
+            };
 
-Wall.stl
-{
-    extractionMethod extractFromSurface;
-    includedAngle   180.00;
-    geometricTestOnly yes;
-    intersectionMethod none;
-    writeObj        no;
-	    extractFromSurfaceCoeffs
-    {
-        // Mark edges whose adjacent surface normals are at an angle less than includedAngle as features
-        // - 0 : selects no edges
-        // - 180: selects all edges
-        includedAngle   180;
-        geometricTestOnly yes;
-    }
-}
+            this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
+        }
 
-";
+        private static Dictionary<string, dynamic> GetDict(IndoorBC input)
+        {
+            Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
+
+            Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
+
+            Dictionary<string, dynamic> extractFromSurfaceCoeffs = new Dictionary<string, dynamic>();
+
+            Dictionary<string, dynamic> injectionRateSuSpDict = new Dictionary<string, dynamic>();
+
+            Dict.Add(input.Id + ".stl", InternalDict);
+
+            InternalDict.Add("extractionMethod", "extractFromSurface");
+            InternalDict.Add("includedAngle", "180.00");
+            InternalDict.Add("geometricTestOnly", "yes");
+            InternalDict.Add("intersectionMethod", "none");
+            InternalDict.Add("writeObj", "no");
+
+            InternalDict.Add("extractFromSurfaceCoeffs", extractFromSurfaceCoeffs);
+
+            extractFromSurfaceCoeffs.Add("includedAngle", "180");
+            extractFromSurfaceCoeffs.Add("geometricTestOnly", "yes");
+
+            return Dict;
         }
     }
 }
