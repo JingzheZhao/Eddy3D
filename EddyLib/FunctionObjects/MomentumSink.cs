@@ -37,9 +37,9 @@ namespace EddyLib
             this.topoSetDictPath = IndoorDomain.WorkingDir + @"\system" + @"\topoSetDict";
             //this.MomentumSinks = IndoorDomain.MomentumSinks;
 
-            ExportfvOptionsDict(IndoorDomain.MomentumSinks, IndoorDomain.WorkingDir);
+            ExportfvOptionsDict(IndoorDomain.WorkingDir);
 
-            ExportTopoSetDict(IndoorDomain.MomentumSinks);
+            ExportTopoSetDict(IndoorDomain.MomentumSinks, IndoorDomain.WorkingDir + @"\system\");
 
             ExportMomentumSinkGeometry(IndoorDomain.MomentumSinks, IndoorDomain.WorkingDir + @"\system\");
         }
@@ -85,6 +85,14 @@ namespace EddyLib
                 {
                     File.WriteAllText(simSystemDir + @"\fvOptions", fullExportString);
                 }
+            }
+        }
+
+        public void ExportfvOptionsDict(string simSystemDir)
+        {
+            if (Directory.Exists(simSystemDir))
+            {
+                File.WriteAllText(simSystemDir + @"\fvOptions", fullExportString);
             }
         }
 
