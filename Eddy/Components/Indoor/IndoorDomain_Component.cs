@@ -6,6 +6,7 @@ using Eddy.Properties;
 using EddyLib;
 using EddyLib.Indoor;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 
 namespace Eddy.Components.Indoor
@@ -31,7 +32,8 @@ namespace Eddy.Components.Indoor
             //2
             pManager.AddParameter(new Param_IndoorBC_Outlet(), "Outlet", "Out", "Indoor CFD Objects", GH_ParamAccess.list);
             //3
-            pManager.AddParameter(new Param_VolumetricHeatSource(), "Volumetric Heat Source", "VHS", "Indoor CFD Objects", GH_ParamAccess.list);
+            //pManager.AddParameter(new Param_VolumetricHeatSource(), "Volumetric Heat Source", "VHS", "Indoor CFD Objects", GH_ParamAccess.list);
+            pManager.AddParameter(new Param_FunctionObject(), "FunctionObject", "FO", "Indoor CFD Function Objects Objects", GH_ParamAccess.list);
 
             //4
             pManager.AddTextParameter("Directory", "Dir", "Working Directory", GH_ParamAccess.item, @"C:\Temp\EddyProject");
@@ -58,17 +60,18 @@ namespace Eddy.Components.Indoor
             var WallGoos = new List<IndoorWallGoo>();
             var InletGoos = new List<IndoorInletGoo>();
             var OutletGoos = new List<IndoorOutletGoo>();
-            var VolumetricHeatSourceGoos = new List<VolumetricHeatSourceGoo>();
+            //  var VolumetricHeatSourceGoos = new List<VolumetricHeatSourceGoo>();
+            var FunctionObjectGoos = new List<FunctionObjectGoo>();
 
             var Walls = new List<IndoorBC.Wall>();
             var Inlets = new List<IndoorBC.Inlet>();
             var Outlets = new List<IndoorBC.Outlet>();
-            var VolumetricHeatSources = new List<VolumetricHeatSource>();
+            var FunctionObjects = new List<EddyLib.Indoor.FunctionObject>();
 
             DA.GetDataList(0, WallGoos);
             DA.GetDataList(1, InletGoos);
             DA.GetDataList(2, OutletGoos);
-            DA.GetDataList(3, VolumetricHeatSourceGoos);
+            DA.GetDataList(3, FunctionObjectGoos);
 
             foreach (var o in WallGoos)
             {
@@ -82,9 +85,9 @@ namespace Eddy.Components.Indoor
             {
                 Outlets.Add(o.Value);
             }
-            foreach (var o in VolumetricHeatSourceGoos)
+            foreach (var o in FunctionObjectGoos)
             {
-                VolumetricHeatSources.Add(o.Value);
+                FunctionObjects.Add(o.Value);
             }
 
             string dir = "";
@@ -94,7 +97,33 @@ namespace Eddy.Components.Indoor
             double cellSize = 1;
             DA.GetData(6, ref cellSize);
 
-            var dom = new IndoorDomain(dir, cellSize, pointInsideDomain, Walls, Inlets, Outlets, VolumetricHeatSources);
+            // Function Objects
+
+            var FOs = new List<FunctionObject>();
+
+            //FunctionObject FO;
+
+            GH_ObjectWrapper gobj = null;
+            if (!DA.GetData("Function Objects", ref gobj)) { }
+
+            if ((gobj.Value is VolumetricHeatSource))
+            {
+                FOs.Add((VolumetricHeatSource)gobj.Value);
+            }
+            else if ((gobj.Value is MomentumSink))
+            {
+                FOs.Add((MomentumSink)gobj.Value);
+            }
+            else if ((gobj.Value is MomentumSource))
+            {
+                FOs.Add((MomentumSource)gobj.Value);
+            }
+            else
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid function object"); return;
+            }
+
+            var dom = new IndoorDomain(dir, cellSize, pointInsideDomain, Walls, Inlets, Outlets, FOs);
             var domGoo = new IndoorDomaingGoo(dom);
             DA.SetData(0, domGoo);
         }

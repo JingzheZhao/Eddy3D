@@ -15,30 +15,30 @@
 
 //namespace Eddy.Components.Indoor.Params
 //{
-//    public class VolumetricHeatSourceGoo : GH_Goo<VolumetricHeatSource>, IGH_PreviewData
+//    public class MomentumSourceGoo : GH_Goo<MomentumSource>, IGH_PreviewData
 //    {
 //        #region constructors
 
-//        public VolumetricHeatSourceGoo()
+//        public MomentumSourceGoo()
 //        {
-//            this.Value = new VolumetricHeatSource();
+//            this.Value = new MomentumSource();
 //        }
 
 //        // constructor with initial value
-//        public VolumetricHeatSourceGoo(VolumetricHeatSource indoorGeoValue)
+//        public MomentumSourceGoo(MomentumSource indoorGeoValue)
 //        {
 //            this.Value = indoorGeoValue;
 //        }
 
 //        // copy constructor
-//        public VolumetricHeatSourceGoo(VolumetricHeatSourceGoo indoorGeoSource)
+//        public MomentumSourceGoo(MomentumSourceGoo indoorGeoSource)
 //        {
 //            this.Value = indoorGeoSource.Value;
 //        }
 
 //        public override IGH_Goo Duplicate()
 //        {
-//            return new VolumetricHeatSourceGoo(Value == null ? new VolumetricHeatSource() : Value.Duplicate());
+//            return new MomentumSourceGoo(Value == null ? new MomentumSource() : Value.Duplicate());
 //        }
 
 //        #endregion constructors
@@ -48,13 +48,13 @@
 //        // return a string with the name of this Type.
 //        public override string TypeName
 //        {
-//            get { return "VolumetricHeatSource"; }
+//            get { return "MomentumSink"; }
 //        }
 
 //        // return a string describing what this Type is about.
 //        public override string TypeDescription
 //        {
-//            get { return "VolumetricHeatSource"; }
+//            get { return "MomentumSink"; }
 //        }
 
 //        // return a string representation of the state (value) of this instance.
@@ -67,14 +67,14 @@
 //            }
 
 //            // to string
-//            return "[VolumetricHeatSource] " + s;
+//            return "[MomentumSink] " + s;
 //        }
 
 //        // serlialize
 //        public override bool Write(GH_IO.Serialization.GH_IWriter writer)
 //        {
 //            var json = JsonConvert.SerializeObject(this.Value, Formatting.None);
-//            writer.SetString("VolumetricHeatSource", json);
+//            writer.SetString("MomentumSource", json);
 
 //            return true;
 //        }
@@ -82,10 +82,10 @@
 //        // deserialize
 //        public override bool Read(GH_IO.Serialization.GH_IReader reader)
 //        {
-//            var json = reader.GetString("VolumetricHeatSource");
+//            var json = reader.GetString("MomentumSource");
 //            if (!String.IsNullOrWhiteSpace(json))
 //            {
-//                this.Value = JsonConvert.DeserializeObject<VolumetricHeatSource>(json);
+//                this.Value = JsonConvert.DeserializeObject<MomentumSource>(json);
 //            }
 
 //            return true;
@@ -142,18 +142,17 @@
 //        #endregion drawing methods
 //    }
 
-//    public class Param_VolumetricHeatSource : GH_PersistentParam<VolumetricHeatSourceGoo>, IGH_PreviewObject
+//    public class Param_MomentumSource : GH_PersistentParam<MomentumSourceGoo>, IGH_PreviewObject
 //    {
 //        // we need to supply a constructor without arguments that calls the base class constructor.
-//        public Param_VolumetricHeatSource() :
-//          base(new GH_InstanceDescription("Inlet", "Inlet",
-//              "Inlet (Indoor Boundary Condition)", EddyVersion.Name, "9 | Indoor"))
+//        public Param_MomentumSource() :
+//          base(new GH_InstanceDescription("Function Object", "FO", "Momentum Source Function Object", EddyVersion.Name, "9 | Indoor"))
 //        { }
 
 //        // unique id
 //        public override Guid ComponentGuid
 //        {
-//            get { return new Guid("{40599E86-6DBA-418D-B6C7-C231C41E0B99}"); }
+//            get { return new Guid("{A5DEB249-0A17-4639-9D89-7B1B0C6299A7}"); }
 //        }
 
 //        // hidden parameter
@@ -173,12 +172,12 @@
 
 //        //We do not allow users to pick inlets,
 //        //therefore the following 4 methods disable all this ui.
-//        protected override GH_GetterResult Prompt_Plural(ref List<VolumetricHeatSourceGoo> values)
+//        protected override GH_GetterResult Prompt_Plural(ref List<MomentumSourceGoo> values)
 //        {
 //            return GH_GetterResult.cancel;
 //        }
 
-//        protected override GH_GetterResult Prompt_Singular(ref VolumetricHeatSourceGoo value)
+//        protected override GH_GetterResult Prompt_Singular(ref MomentumSourceGoo value)
 //        {
 //            return GH_GetterResult.cancel;
 //        }

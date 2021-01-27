@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using EddyLib.Indoor.Dicts;
+using Grasshopper.Kernel.Types;
 
 namespace EddyLib.Indoor
 {
@@ -30,17 +31,19 @@ namespace EddyLib.Indoor
         private readonly List<IndoorBC> AllGeometry = new List<IndoorBC>();
 
         private readonly List<GenericDict> AllDictsWrite2File = new List<GenericDict>();
-        private readonly List<FunctionObjectDictInternal> AllDictsInternal = new List<FunctionObjectDictInternal>();
+        private readonly List<FunctionObjectDictInternal> AllFunctionObjectInternalDicts = new List<FunctionObjectDictInternal>();
 
         public List<VolumetricHeatSource> VolumetricHeatSources = new List<VolumetricHeatSource>();
 
         public List<MomentumSink> MomentumSinks = new List<MomentumSink>();
 
+        public List<MomentumSource> MomentumSources = new List<MomentumSource>();
+
         public IndoorDomain()
         {
         }
 
-        public IndoorDomain(string WorkingDir, double CellSize, Point3d PointInsideDomain, List<IndoorBC.Wall> RoomGeometry, List<IndoorBC.Inlet> Inlets, List<IndoorBC.Outlet> Outlets, List<VolumetricHeatSource> vhs)
+        public IndoorDomain(string WorkingDir, double CellSize, Point3d PointInsideDomain, List<IndoorBC.Wall> RoomGeometry, List<IndoorBC.Inlet> Inlets, List<IndoorBC.Outlet> Outlets, List<FunctionObject> FOs)
         {
             // Give unique index to every object
 
@@ -154,21 +157,47 @@ namespace EddyLib.Indoor
 
             // VHS
 
-            for (int i = 0; i < vhs.Count; i++)
+            var VHSInternalDicts = new List<FunctionObjectDictInternal>();
+
+            for (int i = 0; i < FOs.Count; i++)
             {
-                this.VolumetricHeatSources.Add(vhs[i]);
-                this.VolumetricHeatSources[i].Name = i.ToString();
+                if (FOs[i] is VolumetricHeatSource)
+                {
+                    this.VolumetricHeatSources.Add((VolumetricHeatSource)FOs[i]);
+                    this.VolumetricHeatSources[i].ID = FOs[i].Name + i.ToString();
+                    AllFunctionObjectInternalDicts.Add(new VolumetricHeatSourceInternalDict(this.VolumetricHeatSources[i], this.PointInsideDomain));
+                }
             }
-            AllDictsInternal.Add(new VolumetricHeatSourceDict(this.VolumetricHeatSources));
 
             // Momentum Sinks
 
-            for (int i = 0; i < MomentumSinks.Count; i++)
+            for (int i = 0; i < FOs.Count; i++)
             {
-                this.MomentumSinks.Add(MomentumSinks[i]);
-                this.MomentumSinks[i].Name = i.ToString();
+                if (FOs[i] is MomentumSink)
+                {
+                    this.MomentumSinks.Add(MomentumSinks[i]);
+                    this.MomentumSinks[i].ID = FOs[i].Name + i.ToString();
+                    AllFunctionObjectInternalDicts.Add(new MomentumSinkInternalDict(this.MomentumSinks[i], this.PointInsideDomain));
+                }
             }
-            AllDictsInternal.Add(new MomentumSinkDict(this));
+
+            for (int i = 0; i < FOs.Count; i++)
+            {
+                if (FOs[i] is MomentumSource)
+                {
+                    this.MomentumSources.Add(MomentumSources[i]);
+                    this.MomentumSources[i].ID = FOs[i].Name + i.ToString();
+                    AllFunctionObjectInternalDicts.Add(new MomentumSourceInternalDict(this.MomentumSources[i], this.PointInsideDomain));
+                }
+            }
+
+            // TopoSet
+
+            var topoSetDict = new TopoSetDict(AllFunctionObjectInternalDicts, PointInsideDomain);
+
+            // fvOptions
+
+            var fvOptionsDict = new FunctionObjectDict(AllFunctionObjectInternalDicts);
 
             ExportGeometryAndDicts(WorkingDir);
         }
@@ -196,6 +225,7 @@ namespace EddyLib.Indoor
             Mesh RG = new Mesh();
 
             foreach (IndoorBC m in RoomGeometry)
+
             {
                 if (m != null)
                 {

@@ -69,5 +69,15 @@ namespace EddyLib.Indoor.Dicts
 
             return s;
         }
+
+        public void RemoveDict(string baseWorkingDir)
+        {
+            string path = baseWorkingDir + "\\" + this.Location + this.DictionaryName;
+
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
     }
 }

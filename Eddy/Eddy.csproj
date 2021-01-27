@@ -74,6 +74,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\FunctionObjects\CompTree.cs" />
+    <Compile Include="Components\Indoor\MomentumSource_Component.cs" />
+    <Compile Include="Components\Indoor\Params\Param_FObj.cs" />
+    <Compile Include="Components\Indoor\Params\Param_FObj_MomentumSource.cs" />
     <Compile Include="Components\Indoor\Params\Param_FObj_VolumentricHeatSource.cs" />
     <Compile Include="Components\Indoor\Params\Param_FObj_MomentumSink.cs" />
     <Compile Include="Components\Indoor\MomentumSink_Component.cs" />

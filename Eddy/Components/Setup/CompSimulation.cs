@@ -5,6 +5,9 @@ using Grasshopper.Kernel.Types;
 using System;
 using System.IO;
 using System.Windows.Forms;
+using EddyLib.Indoor;
+using EddyLib.Indoor.Dicts;
+using System.Collections.Generic;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -274,13 +277,26 @@ namespace Eddy
 
             #region Trees
 
+            var treeDict = new List<FunctionObjectDictInternal>();
+            var fvOptionsDict = new FunctionObjectDict(treeDict);
+            var topoSetDict = new TopoSetDict(treeDict, DOM.LocationInMesh);
+
             if (DOM.Trees.Count > 0)
+
             {
-                var trees = new MomentumSinkDict(DOM, MeshSettings);
+                foreach (var tree in DOM.Trees)
+                {
+                    var tDict = new MomentumSinkInternalDict(tree, DOM.LocationInMesh);
+                    treeDict.Add(tDict);
+                }
+
+                fvOptionsDict = new FunctionObjectDict(treeDict);
+                topoSetDict = new TopoSetDict(treeDict, DOM.LocationInMesh);
             }
             else
             {
-                MomentumSinkDict.RemoveDicts(DOM, MeshSettings);
+                fvOptionsDict.RemoveDict(baseWorkingDirectory);
+                topoSetDict.RemoveDict(baseWorkingDirectory);
             }
 
             #endregion Trees

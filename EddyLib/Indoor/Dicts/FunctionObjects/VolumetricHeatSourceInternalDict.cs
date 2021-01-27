@@ -1,30 +1,21 @@
-﻿using System;
+﻿using Rhino.Geometry;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using EddyLib.Indoor.Dicts;
 
 namespace EddyLib.Indoor.Dicts
 {
-    public class MomentumSourceDict : FunctionObjectDictInternal
+    public class VolumetricHeatSourceInternalDict : FunctionObjectDictInternal
     {
-        public MomentumSourceDict(List<VolumetricHeatSource> VHS)
+        public VolumetricHeatSourceInternalDict(VolumetricHeatSource VH, Point3d PointInsideDomain)
         {
-            foreach (var item in VHS)
-            {
-                this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetDict(item)));
-            }
-
-            string[] parts = {
-               // this.Header, "\n", This is a subdict and doesn't need a header
-         String.Join("", this.InternalDict.ToArray())
-            };
-
-            this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
+            this.TopoSetDictString = CppMapSerializerDyn.Serialize(GetInternalTopoSetDict((FunctionObject)VH, PointInsideDomain));
+            this.FvOptionsDictString = CppMapSerializerDyn.Serialize(GetInternalFvOptionsDict(VH));
         }
 
-        private static Dictionary<string, dynamic> GetDict(VolumetricHeatSource input)
+        private static Dictionary<string, dynamic> GetInternalFvOptionsDict(VolumetricHeatSource input)
         {
             Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 

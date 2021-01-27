@@ -10,6 +10,8 @@ using Grasshopper.Kernel.Parameters;
 using System.Collections.Generic;
 using System.Linq;
 
+using EddyLib.Indoor;
+
 namespace Eddy.Components.Indoor
 {
     public class MomentumSink_Component : GH_Component
@@ -87,7 +89,7 @@ Pass a multiline string that references the ""A"" and ""B"" coefficients from a 
                 {
                     return;
                 }
-                var furniture = new EddyLib.MomentumSink(geo, PorosityCoeffs_B, PorosityCoeffs_A, Name);
+                var furniture = new EddyLib.Indoor.MomentumSink.Tree(geo, PorosityCoeffs_B, PorosityCoeffs_A, Name);
 
                 DA.SetData(0, furniture);
             }

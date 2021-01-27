@@ -7,16 +7,18 @@ using Rhino.Geometry;
 using System;
 using EddyLib.Indoor.Dicts;
 using Grasshopper.Kernel.Parameters;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Eddy.Components.Indoor
 {
-    public class VolumetricHeatSource_Component : GH_Component
+    public class MomentumSource_Component : GH_Component
     {
         /// <summary>
         /// Initializes a new instance of the Emitter class.
         /// </summary>
-        public VolumetricHeatSource_Component()
-          : base("VolumetricHeatSource", "VHS", "VolumetricHeatSource" + EddyVersion.toString(), EddyVersion.Name, "9 | Indoor")
+        public MomentumSource_Component()
+          : base("Momentum Sink", "MS", "Momentum Sink" + EddyVersion.toString(), EddyVersion.Name, "9 | Indoor")
         {
         }
 
@@ -26,15 +28,14 @@ namespace Eddy.Components.Indoor
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGeometryParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Power", "P", "Power", GH_ParamAccess.item);
+            pManager.AddVectorParameter("Ubar", "Ubar", @"Ubar.
+
+Desired mean velocity.", GH_ParamAccess.item);
+
             pManager.AddTextParameter("Name", "N", "Name", GH_ParamAccess.item, "");
 
-            pManager.AddIntegerParameter("Type", "Typ", "Type: Absolute [W] or specific [W/m³]", GH_ParamAccess.item);
-            Param_Integer param = pManager[3] as Param_Integer;
-            param.AddNamedValue("Absolute", 0);
-            param.AddNamedValue("Specific", 1);
-
-            pManager[3].Optional = true;
+            pManager[1].Optional = true;
+            pManager[2].Optional = true;
         }
 
         /// <summary>
@@ -42,7 +43,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Source", "S", "Source", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Function Object", "FO", "Momentum Source Function Object", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -51,23 +52,18 @@ namespace Eddy.Components.Indoor
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            Mesh m = null;
-            DA.GetData(0, ref m);
+            GeometryBase geo = null;
+            if (!DA.GetData("Geo", ref geo)) { };
 
-            double Power = 1;
-            DA.GetData(1, ref Power);
+            Vector3d Ubar = new Vector3d(0, 0, 0);
+            DA.GetData(1, ref Ubar);
 
             string Name = "";
             DA.GetData(2, ref Name);
 
-            int Type = 0;
-            DA.GetData(3, ref Type);
+            var fan = new MomentumSource(geo, Ubar, Name);
 
-            var heatSource = new VolumetricHeatSource(m, Type, Power, Name);
-
-            var goo = new FunctionObjectGoo(heatSource);
-
-            DA.SetData(0, goo);
+            DA.SetData(0, fan);
         }
 
         /// <summary>
@@ -87,7 +83,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("{128F2233-5532-441A-BE3B-F0D9AED33C27}"); }
+            get { return new Guid("11DE2A3B-5AFE-447F-A822-5A949153DDCF"); }
         }
     }
 }

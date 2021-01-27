@@ -253,7 +253,7 @@ namespace EddyLib.Indoor.Dicts
 
             Dictionary<string, string> InternalDict = new Dictionary<string, string>();
 
-            Dict.Add(input.Name, InternalDict);
+            Dict.Add(input.Id, InternalDict);
 
             if (DictName == "U")
             {
@@ -299,7 +299,7 @@ namespace EddyLib.Indoor.Dicts
 
             Dictionary<string, string> InternalDict = new Dictionary<string, string>();
 
-            Dict.Add(input.Name, InternalDict);
+            Dict.Add(input.Id, InternalDict);
 
             InternalDict.Add("type", "inletOutlet");
             InternalDict.Add("inletValue", "uniform (0 0 0)");
@@ -314,7 +314,7 @@ namespace EddyLib.Indoor.Dicts
 
             Dictionary<string, string> InternalDict = new Dictionary<string, string>();
 
-            Dict.Add(input.Name, InternalDict);
+            Dict.Add(input.Id, InternalDict);
 
             InternalDict.Add("type", "zeroGradient");
 
@@ -327,7 +327,7 @@ namespace EddyLib.Indoor.Dicts
 
             Dictionary<string, string> InternalDict = new Dictionary<string, string>();
 
-            Dict.Add(input.Name, InternalDict);
+            Dict.Add(input.Id, InternalDict);
 
             if (DictName == "p" || DictName == "p_rgh")
             {
@@ -349,7 +349,7 @@ namespace EddyLib.Indoor.Dicts
 
             Dictionary<string, string> InternalDict = new Dictionary<string, string>();
 
-            Dict.Add(input.Name, InternalDict);
+            Dict.Add(input.Id, InternalDict);
 
             InternalDict.Add("type", "compressible::alphatJayatillekeWallFunction");
             InternalDict.Add("Prt", "0.85");
@@ -364,7 +364,7 @@ namespace EddyLib.Indoor.Dicts
 
             Dictionary<string, string> InternalDict = new Dictionary<string, string>();
 
-            Dict.Add(input.Name, InternalDict);
+            Dict.Add(input.Id, InternalDict);
 
             InternalDict.Add("type", "nutkWallFunction");
 
@@ -379,7 +379,7 @@ namespace EddyLib.Indoor.Dicts
 
             Dictionary<string, string> InternalDict = new Dictionary<string, string>();
 
-            Dict.Add(input.Name, InternalDict);
+            Dict.Add(input.Id, InternalDict);
 
             InternalDict.Add("type", "turbulentIntensityKineticEnergyInlet");
 
@@ -396,7 +396,7 @@ namespace EddyLib.Indoor.Dicts
 
             Dictionary<string, string> InternalDict = new Dictionary<string, string>();
 
-            Dict.Add(input.Name, InternalDict);
+            Dict.Add(input.Id, InternalDict);
 
             InternalDict.Add("type", "kqRWallFunction");
 
@@ -411,7 +411,7 @@ namespace EddyLib.Indoor.Dicts
 
             Dictionary<string, string> InternalDict = new Dictionary<string, string>();
 
-            Dict.Add(input.Name, InternalDict);
+            Dict.Add(input.Id, InternalDict);
 
             InternalDict.Add("type", "turbulentMixingLengthFrequencyInlet");
 
@@ -428,7 +428,7 @@ namespace EddyLib.Indoor.Dicts
 
             Dictionary<string, string> InternalDict = new Dictionary<string, string>();
 
-            Dict.Add(input.Name, InternalDict);
+            Dict.Add(input.Id, InternalDict);
 
             InternalDict.Add("type", "omegaWallFunction");
 
@@ -443,7 +443,7 @@ namespace EddyLib.Indoor.Dicts
 
             Dictionary<string, string> InternalDict = new Dictionary<string, string>();
 
-            Dict.Add(input.Name, InternalDict);
+            Dict.Add(input.Id, InternalDict);
 
             InternalDict.Add("type", "fixedFluxPressure");
             InternalDict.Add("gradient", "uniform 0");
