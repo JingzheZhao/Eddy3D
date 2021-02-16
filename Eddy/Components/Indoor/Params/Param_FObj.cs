@@ -63,7 +63,7 @@ namespace Eddy.Components.Indoor.Params
             }
 
             // to string
-            return "[FunctionObject] " + s;
+            return "[FunctionObject] " + Value.Name;
         }
 
         // serlialize

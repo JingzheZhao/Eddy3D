@@ -73,7 +73,6 @@ namespace Eddy.Components.Indoor
             DA.GetDataList(0, WallGoos);
             DA.GetDataList(1, InletGoos);
             DA.GetDataList(2, OutletGoos);
-            DA.GetDataList(3, FunctionObjectGoos);
 
             foreach (var o in WallGoos)
             {
@@ -102,13 +101,13 @@ namespace Eddy.Components.Indoor
             // Function Objects
 
             var FOs = new List<FunctionObject>();
-            var FO_GHWrappers = new List<GH_ObjectWrapper>();
+            var FO_GHWrappers = new List<FunctionObjectGoo>();
 
-            DA.GetDataList(3, FOs);
+            DA.GetDataList(3, FO_GHWrappers);
 
             for (int i = 0; i < FO_GHWrappers.Count; i++)
             {
-                GH_ObjectWrapper gobj = null;
+                FunctionObjectGoo gobj = null;
                 gobj = FO_GHWrappers[i];
 
                 if ((gobj.Value is VolumetricHeatSource))
