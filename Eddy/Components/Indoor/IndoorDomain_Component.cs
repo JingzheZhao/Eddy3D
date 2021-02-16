@@ -26,21 +26,23 @@ namespace Eddy.Components.Indoor
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             //0
-            pManager.AddParameter(new Param_IndoorBC_Wall(), "Geo", "Geo", "Indoor CFD Objects", GH_ParamAccess.list);
+            pManager.AddParameter(new Param_IndoorBC_Wall(), "Geo", "Geo", "Indoor CFD Walls", GH_ParamAccess.list);
             //1
-            pManager.AddParameter(new Param_IndoorBC_Inlet(), "Inlet", "In", "Indoor CFD Objects", GH_ParamAccess.list);
+            pManager.AddParameter(new Param_IndoorBC_Inlet(), "Inlet", "In", "Indoor CFD Inlets", GH_ParamAccess.list);
             //2
-            pManager.AddParameter(new Param_IndoorBC_Outlet(), "Outlet", "Out", "Indoor CFD Objects", GH_ParamAccess.list);
+            pManager.AddParameter(new Param_IndoorBC_Outlet(), "Outlet", "Out", "Indoor CFD Outlets", GH_ParamAccess.list);
             //3
             //pManager.AddParameter(new Param_VolumetricHeatSource(), "Volumetric Heat Source", "VHS", "Indoor CFD Objects", GH_ParamAccess.list);
-            pManager.AddParameter(new Param_FunctionObject(), "FunctionObject", "FO", "Indoor CFD Function Objects Objects", GH_ParamAccess.list);
-
+            pManager.AddParameter(new Param_FunctionObject(), "Function Objects", "FOs", "Indoor CFD Function Objects", GH_ParamAccess.list);
+            pManager[3].Optional = true;
             //4
             pManager.AddTextParameter("Directory", "Dir", "Working Directory", GH_ParamAccess.item, @"C:\Temp\EddyProject");
+            pManager[4].Optional = true;
             //5
             pManager.AddPointParameter("Point Inside", "PInside", "Point inside domain.", GH_ParamAccess.item);
             //6
             pManager.AddNumberParameter("CellSize", "Cs", "Cell Size", GH_ParamAccess.item, 1);
+            pManager[6].Optional = true;
         }
 
         /// <summary>
@@ -100,32 +102,41 @@ namespace Eddy.Components.Indoor
             // Function Objects
 
             var FOs = new List<FunctionObject>();
+            var FO_GHWrappers = new List<GH_ObjectWrapper>();
 
-            //FunctionObject FO;
+            DA.GetDataList(3, FOs);
 
-            GH_ObjectWrapper gobj = null;
-            if (!DA.GetData("Function Objects", ref gobj)) { }
+            for (int i = 0; i < FO_GHWrappers.Count; i++)
+            {
+                GH_ObjectWrapper gobj = null;
+                gobj = FO_GHWrappers[i];
 
-            if ((gobj.Value is VolumetricHeatSource))
-            {
-                FOs.Add((VolumetricHeatSource)gobj.Value);
-            }
-            else if ((gobj.Value is MomentumSink))
-            {
-                FOs.Add((MomentumSink)gobj.Value);
-            }
-            else if ((gobj.Value is MomentumSource))
-            {
-                FOs.Add((MomentumSource)gobj.Value);
-            }
-            else
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid function object"); return;
+                if ((gobj.Value is VolumetricHeatSource))
+                {
+                    FOs.Add((VolumetricHeatSource)gobj.Value);
+                }
+                else if ((gobj.Value is MomentumSink))
+                {
+                    FOs.Add((MomentumSink)gobj.Value);
+                }
+                else if ((gobj.Value is MomentumSource))
+                {
+                    FOs.Add((MomentumSource)gobj.Value);
+                }
+                else
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid function object"); return;
+                }
             }
 
             var dom = new IndoorDomain(dir, cellSize, pointInsideDomain, Walls, Inlets, Outlets, FOs);
             var domGoo = new IndoorDomaingGoo(dom);
             DA.SetData(0, domGoo);
+        }
+
+        public FunctionObject CastToFO(GH_ObjectWrapper gobj)
+        {
+            return (FunctionObject)gobj.Value;
         }
 
         /// <summary>
