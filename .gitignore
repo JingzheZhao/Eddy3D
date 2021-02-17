@@ -299,3 +299,6 @@ __pycache__/
 Build/Temp.Dotfuscated/
 Build/Build.Temp/
 Installer/ComponentsGenerated.wxs
+
+# Template Files
+Templates/**
