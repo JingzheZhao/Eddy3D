@@ -166,7 +166,7 @@ Please make sure Radiance is installed at: ""C:\Program Files\Radiance"".
 
             MRTSimulation mrtsim = null;
 
-            if (run == true)
+            if (run == true && canRun == true)
             {
                 try
                 {
@@ -180,7 +180,7 @@ Please make sure Radiance is installed at: ""C:\Program Files\Radiance"".
                     });
 
                     Thread th = new Thread(ths);
-                    th.IsBackground = true;
+                    //th. = true;
                     th.Start();
                 }
                 catch (Exception e)
@@ -190,37 +190,49 @@ Please make sure Radiance is installed at: ""C:\Program Files\Radiance"".
             }
             else if (run == false)
             {
-                mrtsim = new MRTSimulation(RES, weather, BAG, probesArr, MRT.MRTType.RadianceTwoPhaseDDS, run);
+                try
+                {
+                    mrtsim = new MRTSimulation(RES, weather, BAG, probesArr, MRT.MRTType.RadianceTwoPhaseDDS, run);
+                }
+                catch (Exception e)
+                {
+                    throw e;
+                }
             }
 
             // Order important
 
-            if (mrtsim != null)
+            try
             {
-                if (mrtsim.mrt != null)
+                if (mrtsim != null)
                 {
-                    if (mrtsim.mrt.wrongNumberOfProbes)
+                    if (mrtsim.mrt != null)
                     {
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.WrongNumberOfProbes(RES, SimMode.ToString()));
-                        return;
+                        if (mrtsim.mrt.wrongNumberOfProbes)
+                        {
+                            AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.WrongNumberOfProbes(RES, SimMode.ToString()));
+                            return;
+                        }
+
+                        if (mrtsim.mrt.Values is null)
+                        {
+                            AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.NoResults(RES, SimMode.ToString()));
+                            return;
+                        }
+
+                        if (mrtsim.mrt.resultPrecalculated)
+                        {
+                            AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.PrecalResLoaded(RES, SimMode.ToString()));
+                        }
                     }
 
-                    if (mrtsim.mrt.Values is null)
-                    {
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.NoResults(RES, SimMode.ToString()));
-                        return;
-                    }
-
-                    if (mrtsim.mrt.resultPrecalculated)
-                    {
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.PrecalResLoaded(RES, SimMode.ToString()));
-                    }
+                    DA.SetData(0, mrtsim.mrt);
+                    canRun = true;
                 }
             }
-
-            if (mrtsim != null)
+            catch (Exception e)
             {
-                DA.SetData(0, mrtsim.mrt);
+                throw e;
             }
         }
 
