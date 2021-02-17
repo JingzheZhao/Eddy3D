@@ -1400,7 +1400,7 @@ renderView1.CameraParallelProjection = 1
             DateTime dateCompile = DateTime.Today;
 
             //DateTime dateCompile = new DateTime(2020, 10, 1, 0, 00, 00).ToUniversalTime();
-            TimeSpan licenceDuration = new TimeSpan(720, 0, 0, 0);
+            TimeSpan licenceDuration = new TimeSpan(1480, 0, 0, 0);
             DateTime expiresAt = dateCompile.Add(licenceDuration);
 
             //try
