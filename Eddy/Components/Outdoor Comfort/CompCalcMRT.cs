@@ -168,18 +168,25 @@ Please make sure Radiance is installed at: ""C:\Program Files\Radiance"".
 
             if (run == true)
             {
-                EventHandler eh = MRTSimComplete;
-
-                ThreadStart ths = new ThreadStart(() =>
+                try
                 {
-                    mrtsim = new MRTSimulation(RES, weather, BAG, probesArr, MRT.MRTType.RadianceTwoPhaseDDS, run);
+                    EventHandler eh = MRTSimComplete;
 
-                    if (eh != null) { eh.Invoke(this, EventArgs.Empty); }
-                });
+                    ThreadStart ths = new ThreadStart(() =>
+                    {
+                        mrtsim = new MRTSimulation(RES, weather, BAG, probesArr, MRT.MRTType.RadianceTwoPhaseDDS, run);
 
-                Thread th = new Thread(ths);
-                th.IsBackground = true;
-                th.Start();
+                        if (eh != null) { eh.Invoke(this, EventArgs.Empty); }
+                    });
+
+                    Thread th = new Thread(ths);
+                    th.IsBackground = true;
+                    th.Start();
+                }
+                catch (Exception e)
+                {
+                    throw e;
+                }
             }
             else if (run == false)
             {

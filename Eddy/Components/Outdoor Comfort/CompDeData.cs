@@ -76,7 +76,7 @@ namespace Eddy
             var selection = new List<int>();
             if (!DA.GetDataList(1, selection)) { }
 
-            if (selection.Count == -1)
+            if (selection.Count == 1 && selection[0] == -1)
             {
                 if (!(gobj.Value is WindFactorsSpatial))
                 {

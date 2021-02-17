@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using Xunit;
 
 namespace RhinoPlugin.Tests.Xunit
@@ -14,6 +15,12 @@ namespace RhinoPlugin.Tests.Xunit
     [Collection("Rhino Collection")]
     public class OutdoorComfort
     {
+        public static void DownLoadFile(string URL, string FilePath)
+        {
+            WebClient webClient = new WebClient();
+            webClient.DownloadFile(URL, FilePath);
+        }
+
         [Fact]
         public void SkyTemp_JFK()
         {
@@ -102,7 +109,13 @@ namespace RhinoPlugin.Tests.Xunit
             }
             mm.Append(s);
 
-            string epw = @"C:\ladybug\New_York_J_F_Kennedy_IntL_Ar_NY_USA_1997\New_York_J_F_Kennedy_IntL_Ar_NY_USA_1997.epw";
+            var epwURL = @"https://energyplus.net/weather-download/north_and_central_america_wmo_region_4/USA/NY/USA_NY_New.York-J.F.Kennedy.Intl.AP.744860_TMY3/USA_NY_New.York-J.F.Kennedy.Intl.AP.744860_TMY3.epw";
+
+            if (!Directory.Exists(workingdir)) { Directory.CreateDirectory(workingdir); }
+
+            DownLoadFile(epwURL, workingdir + @"\\weather.epw");
+
+            string epw = workingdir + "\\weather.epw";
 
             var z0 = 1;
             var uref = 10;
@@ -115,10 +128,15 @@ namespace RhinoPlugin.Tests.Xunit
             Weather weather = new Weather(epw);
 
             weather.WindSpeed = Enumerable.Repeat(5.0, 8760).ToArray();
+
             weather.WindDirection = Enumerable.Repeat(0, 8760).ToArray();
+
             weather.DryBulbTemp = Enumerable.Repeat(30.0, 8760).ToArray();
+
             weather.RelativeHumidity = Enumerable.Repeat(50.0, 8760).ToArray();
+
             weather.DiffuseHorizontalRadiation = Enumerable.Repeat(0.0, 8760).ToArray();
+
             weather.DirectNormalRadiation = Enumerable.Repeat(0.0, 8760).ToArray();
 
             Vector3d[,] vecs = new Vector3d[100, 8];
@@ -313,7 +331,7 @@ namespace RhinoPlugin.Tests.Xunit
                     vecs[j, i] = new Vector3d(0, 2, 0);
                 }
             }
-       ;
+        ;
 
             OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcond, 5, 50, 300, 80);
 
