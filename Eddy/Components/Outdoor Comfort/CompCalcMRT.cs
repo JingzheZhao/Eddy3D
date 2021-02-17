@@ -1,13 +1,11 @@
 ﻿using Eddy.Properties;
 using EddyLib;
 using EddyLib.OutdoorComfort;
-using EddyLib.Radiance;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of

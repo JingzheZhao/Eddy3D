@@ -25,7 +25,17 @@ namespace EddyLib
 
         public double[] DiffuseHorizontalRadiation;
 
-        public double[] SkyCover;
+        public double[] HorRadiation;
+
+        public double[] NormalRadiation;
+
+        public double[] SkyRadiation;
+
+        public double[] GHorRadiation;
+
+        public double[] TotalSkyCover;
+
+        public double[] OpaqSkyCover;
 
         public string Location;
 
@@ -75,19 +85,58 @@ namespace EddyLib
 
                 this.epwFilePath = filePath;
 
+                //epw.Year = csv.GetField<int>(0);
+                //epw.Month = csv.GetField<int>(1);
+                //epw.Day = csv.GetField<int>(2);
+                //epw.Hour = csv.GetField<int>(3);
+                //epw.Minute = csv.GetField<int>(4);
+                //epw.UncertaintyFlag = csv.GetField<string>(5);
+                //epw.DB = csv.GetField<decimal>(6);
+                //epw.WB = csv.GetField<decimal>(7);
+                //epw.RH = csv.GetField<decimal>(8);
+                //epw.Pressure = csv.GetField<decimal>(9);
+                //epw.HorRadiation = csv.GetField<decimal>(10);
+                //epw.NormalRadiation = csv.GetField<decimal>(11);
+                //epw.SkyRadiation = csv.GetField<decimal>(12);
+                //epw.GHorRadiation = csv.GetField<decimal>(13);
+                //epw.DirectNormalRadiation = csv.GetField<decimal>(14);
+                //epw.DiffuseHorizontalRadiation = csv.GetField<decimal>(15);
+                //epw.GHorIllumination = csv.GetField<decimal>(16);
+                //epw.DirectNormalIllumination = csv.GetField<decimal>(17);
+                //epw.DiffuseHorizontalIllumination = csv.GetField<decimal>(18);
+                //epw.ZenithIllumination = csv.GetField<decimal>(19);
+                //epw.WindDirection = csv.GetField<decimal>(20);
+                //epw.WindSpeed = csv.GetField<decimal>(21);
+                //epw.TotalSkyCover = csv.GetField<decimal>(22);
+                //epw.OpaqSkyCover = csv.GetField<decimal>(23);
+                //epw.Visibility = csv.GetField<decimal>(24);
+                //epw.FieldCeilHeight = csv.GetField<decimal>(25);
+                //epw.WeatherObserv = csv.GetField<decimal>(26);
+                //epw.WeatherCodes = csv.GetField<decimal>(27);
+                //epw.PrecipitationWater = csv.GetField<decimal>(28);
+                //epw.AerosolOptical = csv.GetField<decimal>(29);
+                //epw.SnowDepth = csv.GetField<decimal>(30);
+                //epw.DaysSinceSnow = csv.GetField<decimal>(31);
+
                 this.DryBulbTemp = epwNoHeader.Select(o => Double.Parse(o.Split(',')[6])).ToArray(); // Dry Bulb Temperature
                 this.DewPointTemp = epwNoHeader.Select(o => Double.Parse(o.Split(',')[7])).ToArray(); // Dew Point Temperature
                 this.RelativeHumidity = epwNoHeader.Select(o => Double.Parse(o.Split(',')[8])).ToArray(); // Relative Humidity
                 this.Pressure = epwNoHeader.Select(o => Double.Parse(o.Split(',')[9])).ToArray(); // Barometric Pressure
                 this.WindSpeed = epwNoHeader.Select(o => Double.Parse(o.Split(',')[21])).ToArray(); // WindSpeed
-                this.WindDirection = epwNoHeader.Select(o => Int32.Parse(o.Split(',')[20])).ToArray(); // Wind Direction
+                this.WindDirection = Array.ConvertAll<double, int>(epwNoHeader.Select(o => Double.Parse(o.Split(',')[20])).ToArray(), x => (int)x); // Wind Direction, needs to be int in epw format
                 this.DirectNormalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[14])).ToArray(); // Direct Normal Radiation
                 this.DiffuseHorizontalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[15])).ToArray(); // Diffuse Horizontal Illuminance
 
-                //var GlobalHorizontalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[13])); // Global Horizontal Illuminance
-                //var SkyCover = epwNoHeader.Select(o => Double.Parse(o.Split(',')[22])); // Global Horizontal Illuminance
+                this.HorRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[10])).ToArray(); ;
+                this.NormalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[11])).ToArray(); ;
+                this.SkyRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[12])).ToArray(); ;
+                this.GHorRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[13])).ToArray(); ;
 
-                this.SkyCover = epwNoHeader.Select(o => Double.Parse(o.Split(',')[22])).ToArray(); // SkyCover
+                this.DirectNormalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[14])).ToArray(); // Direct Normal Radiation
+                this.DiffuseHorizontalRadiation = epwNoHeader.Select(o => Double.Parse(o.Split(',')[15])).ToArray(); // Diffuse Horizontal
+
+                this.TotalSkyCover = epwNoHeader.Select(o => Double.Parse(o.Split(',')[22])).ToArray(); // TotalSkyCover
+                this.OpaqSkyCover = epwNoHeader.Select(o => Double.Parse(o.Split(',')[23])).ToArray(); // OpaqSkyCover // used for Sky Temp
 
                 var Yr = epwNoHeader.Select(o => Double.Parse(o.Split(',')[0])).ToArray();
                 var Mo = epwNoHeader.Select(o => Double.Parse(o.Split(',')[1])).ToArray();

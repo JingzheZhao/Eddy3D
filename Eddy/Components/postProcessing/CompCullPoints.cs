@@ -1,15 +1,9 @@
 ﻿using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
-using Grasshopper.Kernel.Data;
-using Grasshopper.Kernel.Parameters;
-using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -26,7 +20,7 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompCullPoints()
-          : base("Probing", "Probing", @"Cull probing points outside the Building Mesh (can be slow for a large number of points and/or a large building mesh).
+          : base("Probing", "Probing", @"Solve Building/Ground Mesh intersection (can be slow for a large number of points and/or a large building mesh).
 " + EddyVersion.toString(),
               EddyVersion.Name, "5 | PostProcessing")
         {
@@ -37,8 +31,10 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Building Mesh", "BM", "Joined Building Mesh", GH_ParamAccess.item);
-            pManager.AddPointParameter("Points", "PP", "List of probing points", GH_ParamAccess.list);
+            pManager.AddMeshParameter("Building Mesh", "BM", "Joined Building Mesh.", GH_ParamAccess.item);
+            pManager.AddMeshParameter("Ground Mesh", "GM", "Ground Mesh.", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("Convert Quads to Triangles", "QT", "Convert quads to triangles in the resulting mesh.", GH_ParamAccess.item, false);
+            pManager[2].Optional = true;
         }
 
         /// <summary>
@@ -46,7 +42,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddPointParameter("Culled Porbing points", "CPP", "List of culled probing points", GH_ParamAccess.list);
+            pManager.AddMeshParameter("Culled Ground Mesh", "CGM", "Culled ground mesh", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -60,16 +56,17 @@ namespace Eddy
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            Mesh mesh = null;
-            DA.GetData(0, ref mesh);
+            Mesh BuildingMesh = null;
+            Mesh GroundMesh = null;
+            bool QT = false;
+            DA.GetData(0, ref BuildingMesh);
+            DA.GetData(1, ref GroundMesh);
+            DA.GetData(2, ref QT);
 
-            List<Point3d> listOfPoints = new List<Point3d>();
+            var outsidePoints = Utilities.GetOutsidePoints(GroundMesh, BuildingMesh, 0.5);
+            GroundMesh.Vertices.Remove(outsidePoints, QT);
 
-            DA.GetDataList(1, listOfPoints);
-
-            listOfPoints = Utilities.DiscardPoints(listOfPoints, mesh);
-
-            DA.SetDataList(0, listOfPoints);
+            DA.SetData(0, GroundMesh);
         }
 
         /// <summary>

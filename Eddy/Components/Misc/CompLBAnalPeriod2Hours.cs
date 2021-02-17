@@ -29,7 +29,9 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Analysis Period", "AP", "Analysis Period (Ladybug format)", GH_ParamAccess.list);
+            pManager.AddTextParameter("Analysis Period", "AP", @"Analysis Period (Ladybug format).
+               For example (2,2,2)
+(11,11,11) would list hours from the second hour and second day of February until the 11th hour on the 11th day of November.", GH_ParamAccess.list);
         }
 
         /// <summary>

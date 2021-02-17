@@ -29,7 +29,7 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompDeconstructOCData()
-          : base("Deconstruct Data Objects", "DeData", @"Deconstruct data objects from pedestrian and outdoor thermal comfort post-processings into data trees.
+          : base("Deconstruct Data Objects", "DeData", @"Deconstruct data objects from pedestrian and outdoor thermal comfort post-processings into data trees. This component is slow if a large number of probes are requested.
 " + EddyVersion.toString(), EddyVersion.Name, "6 | Outdoor Comfort")
         { }
 
@@ -42,7 +42,7 @@ namespace Eddy
 
             //pManager.AddIntegerParameter("windDirs", "windDirs", "windDirs", GH_ParamAccess.list);
             //pManager.AddTextParameter("pointName", "pointName", "pointName", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("Select", "S", "Select", GH_ParamAccess.list);
+            pManager.AddIntegerParameter("Select", "S", @"Select the hours you would like to process. Select ""-1"" to process the entire year (8760 h) if you are working with a temporal object, or all existing wind directions if you are working with a spatial object.", GH_ParamAccess.list);
 
             // pManager.AddPointParameter("Probes", "Probes", "Probes", GH_ParamAccess.list);
             // pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item);
@@ -76,7 +76,7 @@ namespace Eddy
             var selection = new List<int>();
             if (!DA.GetDataList(1, selection)) { }
 
-            if (selection.Count == 0)
+            if (selection.Count == -1)
             {
                 if (!(gobj.Value is WindFactorsSpatial))
                 {
@@ -137,7 +137,7 @@ namespace Eddy
                 int windDirs = ArrayHelper.CustomArray<double>.GetRow(wfs.ValuesSpatial, 0).Count();
                 DataTree<double> tree = new DataTree<double>();
 
-                if (selection.Count == 0)
+                if (selection.Count == -1)
                 {
                     selection = (new int[wfs.SimulatedWindDirections.Count]).Select((o, i) => i).ToList();
                 }

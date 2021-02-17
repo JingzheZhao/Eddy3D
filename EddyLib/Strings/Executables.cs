@@ -691,11 +691,14 @@ libs
 #includeFunc residuals
 ");
 
-            //if (topologies != null) {
-            sb.Append(EddyLib.Strings.OFExecDicts.FunctionObjCP(DOM, RunSettings, topologies, numberOfTopologies).ToString());
-            if (RunSettings.aoa_domain == true) { sb.Append(EddyLib.Strings.OFExecDicts.FunctionObjAOA().ToString()); }
+            sb.Append(FunctionObjCP(DOM, RunSettings, topologies, numberOfTopologies));
+            if (RunSettings.aoa_domain == true)
+            {
+                sb.AppendLine(EddyLib.Strings.OFExecDicts.FunctionObjAOA());
+                sb.AppendLine(FunctionObjFieldMinMax());
+                sb.AppendLine(FunctionObjFieldAverage());
+            }
 
-            //}
             sb.AppendLine(@"};");
 
             return sb.ToString();
@@ -738,6 +741,33 @@ libs
         }");
 
             return sb.ToString();
+        }
+
+        private static string FunctionObjFieldMinMax()
+        {
+            return @"fieldMinMax
+{
+    type fieldMinMax;
+    libs (""libfieldFunctionObjects.so"");
+    writeToFile true;
+    log true;
+    mode magnitude;
+    fields (U p k epsilon omega nut AoA);
+}";
+        }
+
+        private static string FunctionObjFieldAverage()
+        {
+            return @"average
+{
+    type            volFieldValue;
+    libs            (""libfieldFunctionObjects.so"");
+    fields (U p);
+    operation       weightedVolAverage;
+    regionType      all;
+    writeFields     true;
+    log true;
+}";
         }
 
         public static string FunctionObjCP(OFBaseDomain DOM, OFRunSettings RunSettings, List<Mesh> evaluationTopology, int d)
@@ -1178,6 +1208,7 @@ divSchemes
     div(phi,omega)  bounded Gauss upwind;
 	div(phi,epsilon) bounded Gauss upwind;
     div(phi,aoa)    bounded Gauss upwind;
+    div(U)          bounded Gauss upwind;
 }
 
 laplacianSchemes
@@ -2058,9 +2089,8 @@ SIMPLE
 {
     residualControl
     {
-		p               1e-4;
-        U               1e-3;
-        h               1e-3;
+		p               1e-5;
+        U               1e-4;
     }
 
     nNonOrthogonalCorrectors 0;
@@ -2204,6 +2234,8 @@ ground_perim.stl
         }
 
         public static string TransportProperties()
+
+        // sets the kinematic viscosity in L^2/T
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |

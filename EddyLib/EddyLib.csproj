@@ -25,6 +25,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -33,6 +34,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Eto, Version=2.5.0.0, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
@@ -46,6 +48,9 @@
     </Reference>
     <Reference Include="MathNet.Numerics, Version=4.11.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MathNet.Numerics.4.11.0\lib\net461\MathNet.Numerics.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Numpy, Version=3.7.1.16, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Numpy.3.7.1.16\lib\netstandard2.0\Numpy.dll</HintPath>
@@ -192,18 +197,18 @@ echo ""
 
 copy "%25build_eddy%25\Eddy.gha" "%25post_build_ilmerge%25"
 
-copy "%25build_calloc%25\CallOC.exe" "%25post_build_ilmerge%25"
+REM copy "%25build_calloc%25\CallOC.exe" "%25post_build_ilmerge%25"
 copy "%25build_batchrunner%25\CallBatchRunner.exe" "%25post_build_ilmerge%25"
-copy "%25build_callprobes%25\CallProbes.exe" "%25post_build_ilmerge%25"
-copy "%25build_callray%25\CallRay.exe" "%25post_build_ilmerge%25"
-copy "%25build_callof%25\CallOF.exe" "%25post_build_ilmerge%25"
+REM copy "%25build_callprobes%25\CallProbes.exe" "%25post_build_ilmerge%25"
+REM copy "%25build_callray%25\CallRay.exe" "%25post_build_ilmerge%25"
+REM copy "%25build_callof%25\CallOF.exe" "%25post_build_ilmerge%25"
 
 
-copy "%25build_calloc%25\CallOC.exe" "%25post_build_dotfuscated%25"
+REM copy "%25build_calloc%25\CallOC.exe" "%25post_build_dotfuscated%25"
 copy "%25build_batchrunner%25\CallBatchRunner.exe" "%25post_build_dotfuscated%25"
-copy "%25build_callprobes%25\CallProbes.exe" "%25post_build_dotfuscated%25"
-copy "%25build_callray%25\CallRay.exe" "%25post_build_dotfuscated%25"
-copy "%25build_callof%25\CallOF.exe" "%25post_build_dotfuscated%25"
+REM copy "%25build_callprobes%25\CallProbes.exe" "%25post_build_dotfuscated%25"
+REM copy "%25build_callray%25\CallRay.exe" "%25post_build_dotfuscated%25"
+REM copy "%25build_callof%25\CallOF.exe" "%25post_build_dotfuscated%25"
 
 
 

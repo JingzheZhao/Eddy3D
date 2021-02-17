@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -71,7 +70,7 @@ namespace EddyLib
                     String strInputText = argument;
                     sw.WriteLine(strInputText);
 
-                    // Window doesn't close with
+                    // Window doesn't close withwindin
                     //sw.Flush();
                 });
 
@@ -617,67 +616,35 @@ exit
             return operatingSystem;
         }
 
-        // We can start using this approach again once this bug is fixed
-        // https://discourse.mcneel.com/t/mesh-ispointinside-bug/64228/10
-
-        //public static List<Point3d> DiscardPoints(List<Point3d> listOfPoints, OFBaseDomain DOM)
-        //{
-        //    double height = DOM.DomainMesh.GetBoundingBox(true).Max.Z - DOM.DomainMesh.GetBoundingBox(true).Min.Z;
-
-        //    List<Point3d> newList = new List<Point3d>();
-
-        //    //for (int i = 0; i < listOfPoints.Count; i++)
-        //    //{
-        //    //TODO: CHECK SPEED AND ROBUSTNESS
-        //    foreach (var pt in listOfPoints)
-        //    {
-        //        if (DOM.DomainMesh.IsPointInside(pt, 0.001, true))
-        //        {
-        //            Point3d pt1 = pt;
-        //            Point3d pt2 = pt + Vector3d.ZAxis * height * 2;
-
-        //            Line l = new Line(pt1, pt2);
-        //            int[] fids;
-        //            var pts = Rhino.Geometry.Intersect.Intersection.MeshLine(DOM.BuildingGeometry, l, out fids);
-        //            if (pts.Length == 0)
-        //            {
-        //                newList.Add(pt);
-        //            }
-        //            else if (pts.Length % 2 == 0)
-        //            {
-        //                newList.Add(pt);
-        //            }
-        //        }
-
-        //        //if (!DOM.BuildingGeometry.IsPointInside(listOfPoints[i], 0.001, true))
-        //        //{
-        //        //    newList.Add(listOfPoints[i]);
-        //        //}
-        //    }
-        //    return newList;
-        //}
-
-        public static List<Point3d> DiscardPoints(List<Point3d> listOfPoints, Mesh BuildingMesh, double tol = 0.5)
+        public static List<int> GetOutsidePoints(Mesh Ground, Mesh BuildingMesh, double tol)
         {
-            List<double> wns = new List<double>();
+            //double[] wns = new double[Ground.Vertices.Count];
 
-            BuildingMesh.Faces.ConvertQuadsToTriangles();
+            //Point3d[] outsidePts = new Point3d[Ground.Vertices.Count];
 
-            List<Point3d> outsidePts = new List<Point3d>();
+            List<int> l = new List<int>();
 
-            Parallel.ForEach(listOfPoints, pt =>
-            {
-                double wn = WindingNumber(BuildingMesh, pt);
+            //BuildingMesh.Faces.ConvertQuadsToTriangles();
 
-                bool gooz = wn <= tol;
+            Parallel.For(0, Ground.Vertices.Count, v =>
+              {
+                  double wn = WindingNumber(BuildingMesh, Ground.Vertices[v]);
 
-                //cull pattern
+                  //wns[v] = wn;
 
-                if (gooz) outsidePts.Add(pt);
-            }
-            );
+                  if (Math.Abs(wn) >= tol)
+                  {
+                      l.Add(v);
+                  }
+              }
 
-            return outsidePts;
+              );
+
+            // Sort list, otherwise it fails
+
+            List<int> ll = l;
+
+            return ll;
         }
 
         //Lifted from geometry3sharp library
@@ -870,7 +837,7 @@ exit
             }
             else
             {
-                CPU = numberOfCPUsOnMachine - 1;
+                CPU = numberOfCPUsOnMachine / 2;
                 if (CPU < 1)
                 {
                     CPU = 1;
@@ -1093,8 +1060,6 @@ exit
             if (hour_end > 24) { hour_end = 24; }
 
             int cnt = 0;
-
-            int hours = hour_end - hour_start;
 
             for (int m = 0; m < 12; m++) // 0-11
             {
@@ -1818,6 +1783,48 @@ renderView1.CameraParallelProjection = 1
             }
 
             return string.Format("{0:n1} {1}", dValue, SizeSuffixes[i]);
+        }
+
+        public static Vector3d AverageVectors(List<Vector3d> list)
+        {
+            Vector3d val3 = Vector3d.Zero;
+            int num9 = 0;
+            int num10 = list.Count - 1;
+            for (int m = 0; m <= num10; m++)
+            {
+                if (list[m] != null)
+                {
+                    val3 += list[m];
+                    num9++;
+                }
+            }
+
+            // if (num9 != 0)
+            // {
+            return (val3 / (double)num9);
+
+            //}
+        }
+
+        public static Point3d AveragePoints(List<Point3d> list)
+        {
+            Point3d val2 = Point3d.Origin;
+            int num7 = 0;
+            int num8 = list.Count - 1;
+            for (int l = 0; l <= num8; l++)
+            {
+                if (list[l] != null)
+                {
+                    val2 += list[l];
+                    num7++;
+                }
+            }
+
+            //if (num7 != 0)
+            // {
+            return (val2 / (double)num7);
+
+            //  }
         }
     }
 }
