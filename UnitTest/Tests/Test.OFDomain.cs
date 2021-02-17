@@ -74,15 +74,11 @@ namespace RhinoPlugin.Tests.Xunit
             OFBoxDomain DOM = new OFBoxDomain(mm, new Mesh(), bcond, 5, 50, 300, 80);
 
             var v = Math.Round(DOM.DomainMesh.Volume(), 1);
-            var v1 = DOM.DomainMesh.Vertices[0];
-            var v7_x = Math.Round(DOM.DomainMesh.Vertices[7].X, 1);
-            var v7_y = Math.Round(DOM.DomainMesh.Vertices[7].Y, 1);
-            var v7_z = Math.Round(DOM.DomainMesh.Vertices[7].Z, 1);
 
             var area1 = Math.Round(EddyLib.Utilities.MeshFaceArea(1, DOM.DomainMeshGroundPerim), 1);
             var area3 = Math.Round(EddyLib.Utilities.MeshFaceArea(3, DOM.DomainMeshGroundPerim), 1);
 
-            Assert.True(v == 3037030.6 && v7_x == 144.7 && v7_y == 33.5 && v7_z == 0.0 && area1 == 151.5 && area3 == 454.6);
+            Assert.True(v == 3037030.6 && area1 == 151.5 && area3 == 454.6);
         }
     }
 }

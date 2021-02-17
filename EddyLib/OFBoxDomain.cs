@@ -221,6 +221,7 @@ namespace EddyLib
                 // Inner Ground Mesh
 
                 var plg1 = new Rectangle3d(orientedPlane, corners[0], corners[2]);
+
                 DomainMeshGround = Utilities.ConvertToQuads(Mesh.CreateFromPlanarBoundary(plg1.ToNurbsCurve(), mpGround, tolerance));
 
                 // 4 Surrounding Ground Meshes
@@ -252,7 +253,23 @@ namespace EddyLib
 
             this.CenterGround = centerBottomOfBuildings;
 
-            this.DomainMesh = Mesh.CreateFromBox(SBox, CellsAlongWidth, CellsAlongLength, CellsAlongHeight);
+            Brep booooox = SBox.ToBrep();
+
+            MeshingParameters mpBox = new MeshingParameters();
+
+            mpBox.MinimumEdgeLength = blockDimension;
+            mpBox.MaximumEdgeLength = blockDimension;
+
+            var bbb = Mesh.CreateFromBrep(booooox, mpBox);
+
+            var bbbb = new Mesh();
+
+            foreach (Mesh m in bbb)
+            {
+                bbbb.Append(m);
+            }
+
+            this.DomainMesh = bbbb;
 
             // Show only intersection of domain and terrain
 
