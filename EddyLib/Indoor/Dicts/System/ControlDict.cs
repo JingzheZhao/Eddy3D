@@ -1,8 +1,19 @@
-﻿namespace EddyLib.Indoor.Dicts
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace EddyLib.Indoor.Dicts
 {
     public class ControlDict : GenericDict
+
+
+
+
     {
-        public ControlDict()
+        public List<String> InternalDict = new List<string>();
+
+
+        public ControlDict(int endTime, List<FunctionObject> FOs)
         {
             this.DictionaryName = "controlDict";
 
@@ -10,86 +21,67 @@
             this.FC = FieldClass.dictionary;
 
             this.Header = GetHeader(this);
-            this.FullDictString = @"
-FoamFile
-{
-    version         1912;
-    format          ascii;
-    class           dictionary;
-    location        ""system"";
-    object          controlDict;
-}
 
-application     buoyantSimpleFoam;
 
-startFrom       startTime;
+       
 
-startTime       0;
 
-stopAt          endTime;
+            this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetDict(endTime,  FOs)));
 
-endTime         3000;
 
-deltaT          1;
+            string[] parts = {
+               this.Header, "\n",
+         String.Join("\n", this.InternalDict.ToArray())
 
-writeControl    timeStep;
 
-writeInterval   10;
+            };
 
-purgeWrite      10;
+            this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
+        }
 
-writeFormat     binary;
-
-writePrecision  9;
-
-writeCompression off;
-
-timeFormat      general;
-
-timePrecision   6;
-
-runTimeModifiable true;
-
-functions
-{
-#includeFunc residuals
-#includeFunc volumetricHeatSources
-    AoA
-    {
-        type            scalarTransport;
-        libs
-        (
-            ""libsolverFunctionObjects.dll""
-        );
-
-        writeControl    outputTime;
-        D               1.0;
-        field           AoA;
-        resetOnStartUp  false;
-        schemesField    AoA;
-        bounded01       true;
-        write           true;
-        fvOptions
+        private static Dictionary<string, dynamic> GetDict(int endTime, List<FunctionObject> FOs)
         {
-            IncrementTime
-            {
-                type            scalarSemiImplicitSource;
-                cellZone        all;
-                scalarSemiImplicitSourceCoeffs
-                {
-                    volumeMode      specific;
-                    selectionMode   all;
-                    injectionRateSuSp
-                    {
-                        AoA             (1 0);
-                    }
-                }
-            }
-        }
-    }
-}
+            Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 
-";
+            Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
+
+            Dictionary<string, dynamic> FunctionObjectlDict = new Dictionary<string, dynamic>();
+
+
+            Dict.Add("controlDict", InternalDict);
+
+            InternalDict.Add("application", "extractFromSurface");
+            InternalDict.Add("startFrom", "startTime");
+            InternalDict.Add("startTime", "0");
+            InternalDict.Add("stopAt", "endTime");
+            InternalDict.Add("endTime", endTime);
+
+            InternalDict.Add("deltaT", 1);
+            InternalDict.Add("writeControl", "timeStep");
+            InternalDict.Add("writeInterval", 10);
+            InternalDict.Add("purgeWrite", 10);
+            InternalDict.Add("writeFormat", "binary");
+            InternalDict.Add("writePrecision", 9);
+            InternalDict.Add("writeCompression", "off");
+            InternalDict.Add("timeFormat", "general");
+            InternalDict.Add("timePrecision", 6);
+            InternalDict.Add("runTimeModifiable", "true");
+
+            InternalDict.Add("functions", FunctionObjectlDict);
+
+
+         if ( FOs.OfType<VolumetricHeatSource>().Any())
+          
+            {
+                FunctionObjectlDict.Add("#includeFunc", "volumetricHeatSources");
+            }
+
+
+
+            return Dict;
         }
-    }
+
+
+    } 
+
 }

@@ -20,7 +20,9 @@ namespace EddyLib.Indoor
 
         //private List<IndoorBC.Emitter> Emitters { get; set; } //Volumes
 
-        public Point3d[] Edges;
+        public int endTime  { get; set; }
+
+        public Point3d[] Edges { get; set; }
 
         private readonly double CellSize;
 
@@ -43,11 +45,12 @@ namespace EddyLib.Indoor
         {
         }
 
-        public IndoorDomain(string WorkingDir, double CellSize, Point3d PointInsideDomain, List<IndoorBC.Wall> RoomGeometry, List<IndoorBC.Inlet> Inlets, List<IndoorBC.Outlet> Outlets, List<FunctionObject> FOs)
+        public IndoorDomain(int endTime, string WorkingDir, double CellSize, Point3d PointInsideDomain, List<IndoorBC.Wall> RoomGeometry, List<IndoorBC.Inlet> Inlets, List<IndoorBC.Outlet> Outlets, List<FunctionObject> FOs)
         {
             // Give unique index to every object
 
             this.WorkingDir = WorkingDir;
+            this.endTime = endTime;
 
             this.PointInsideDomain = PointInsideDomain;
 
@@ -72,9 +75,7 @@ namespace EddyLib.Indoor
                 cnt++;
             }
 
-            // Walls
-
-            //this.Geometry = RoomGeometry;
+       
 
             var b = GetBoundingBox(RoomGeometry);
 
@@ -85,17 +86,7 @@ namespace EddyLib.Indoor
 
             this.Edges = this.BoundingBox.GetCorners();
 
-            // Inlets
-
-            //this.Inlets = Inlets;
-
-            //// Outlets
-
-            //this.Outlets = Outlets;
-
-            // Misc
-
-            //this.WorkingDir = workingDir;
+          
 
             this.CellSize = CellSize;
 
@@ -125,23 +116,7 @@ namespace EddyLib.Indoor
             AllDictsWrite2File.Add(p_rgh);
             AllDictsWrite2File.Add(T);
 
-            // System
-
-            var controlDict = new ControlDict();
-            var blockMeshDict = new BlockMeshDict(this.CellSize, BoundingBox);
-            var snappyHextMeshDict = new SnappyHexMeshDict(this.CellSize, this.PointInsideDomain, BoundingBox, Inlets, Outlets, RoomGeometry);
-            var fvSchemesDict = new FvSchemesDict();
-            var fvSolutionDict = new FvSolutionDict();
-            var residualsDict = new ResidualsDict();
-            var surfaceFeatureExtractDict = new SurfaceFeatureExtractDict(Inlets, Outlets, RoomGeometry);
-
-            AllDictsWrite2File.Add(controlDict);
-            AllDictsWrite2File.Add(blockMeshDict);
-            AllDictsWrite2File.Add(snappyHextMeshDict);
-            AllDictsWrite2File.Add(fvSchemesDict);
-            AllDictsWrite2File.Add(fvSolutionDict);
-            AllDictsWrite2File.Add(residualsDict);
-            AllDictsWrite2File.Add(surfaceFeatureExtractDict);
+           
 
             // Constant
 
@@ -194,6 +169,27 @@ namespace EddyLib.Indoor
             // TopoSet
 
             var topoSetDict = new TopoSetDict(AllFunctionObjectInternalDicts, PointInsideDomain);
+
+
+
+            // System
+
+            var controlDict = new ControlDict(this.endTime, FOs);
+            var blockMeshDict = new BlockMeshDict(this.CellSize, BoundingBox);
+            var snappyHextMeshDict = new SnappyHexMeshDict(this.CellSize, this.PointInsideDomain, BoundingBox, Inlets, Outlets, RoomGeometry);
+            var fvSchemesDict = new FvSchemesDict();
+            var fvSolutionDict = new FvSolutionDict();
+            var residualsDict = new ResidualsDict();
+            var surfaceFeatureExtractDict = new SurfaceFeatureExtractDict(Inlets, Outlets, RoomGeometry);
+
+            AllDictsWrite2File.Add(controlDict);
+            AllDictsWrite2File.Add(blockMeshDict);
+            AllDictsWrite2File.Add(snappyHextMeshDict);
+            AllDictsWrite2File.Add(fvSchemesDict);
+            AllDictsWrite2File.Add(fvSolutionDict);
+            AllDictsWrite2File.Add(residualsDict);
+            AllDictsWrite2File.Add(surfaceFeatureExtractDict);
+
 
             // fvOptions
 

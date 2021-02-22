@@ -43,6 +43,9 @@ namespace Eddy.Components.Indoor
             //6
             pManager.AddNumberParameter("CellSize", "Cs", "Cell Size", GH_ParamAccess.item, 1);
             pManager[6].Optional = true;
+            //7
+            pManager.AddNumberParameter("Iterations", "Iter", "Iterations for Simulation.", GH_ParamAccess.item, 1);
+            pManager[7].Optional = true;
         }
 
         /// <summary>
@@ -98,6 +101,9 @@ namespace Eddy.Components.Indoor
             double cellSize = 1;
             DA.GetData(6, ref cellSize);
 
+            int endTime =2000;
+            DA.GetData(7, ref endTime);
+
             // Function Objects
 
             var FOs = new List<FunctionObject>();
@@ -128,7 +134,7 @@ namespace Eddy.Components.Indoor
                 }
             }
 
-            var dom = new IndoorDomain(dir, cellSize, pointInsideDomain, Walls, Inlets, Outlets, FOs);
+            var dom = new IndoorDomain(endTime,dir, cellSize, pointInsideDomain, Walls, Inlets, Outlets, FOs);
             var domGoo = new IndoorDomaingGoo(dom);
             DA.SetData(0, domGoo);
         }
