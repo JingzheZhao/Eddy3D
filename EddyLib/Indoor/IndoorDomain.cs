@@ -20,7 +20,7 @@ namespace EddyLib.Indoor
 
         //private List<IndoorBC.Emitter> Emitters { get; set; } //Volumes
 
-        public int endTime  { get; set; }
+        public int endTime { get; set; }
 
         public Point3d[] Edges { get; set; }
 
@@ -34,6 +34,8 @@ namespace EddyLib.Indoor
 
         private readonly List<GenericDict> AllDictsWrite2File = new List<GenericDict>();
         private readonly List<FunctionObjectDictInternal> AllFunctionObjectInternalDicts = new List<FunctionObjectDictInternal>();
+
+        public List<FunctionObject> FOs = new List<FunctionObject>();
 
         public List<VolumetricHeatSource> VolumetricHeatSources = new List<VolumetricHeatSource>();
 
@@ -75,8 +77,6 @@ namespace EddyLib.Indoor
                 cnt++;
             }
 
-       
-
             var b = GetBoundingBox(RoomGeometry);
 
             var x = Transform.Scale(b.Center, 1.2);
@@ -85,8 +85,6 @@ namespace EddyLib.Indoor
             this.BoundingBox = b;
 
             this.Edges = this.BoundingBox.GetCorners();
-
-          
 
             this.CellSize = CellSize;
 
@@ -116,8 +114,6 @@ namespace EddyLib.Indoor
             AllDictsWrite2File.Add(p_rgh);
             AllDictsWrite2File.Add(T);
 
-           
-
             // Constant
 
             var g = new GDict();
@@ -132,12 +128,13 @@ namespace EddyLib.Indoor
 
             // VHS
 
-            var VHSInternalDicts = new List<FunctionObjectDictInternal>();
+            //var VHSInternalDicts = new List<FunctionObjectDictInternal>();
 
             for (int i = 0; i < FOs.Count; i++)
             {
                 if (FOs[i] is VolumetricHeatSource)
                 {
+                    this.FOs.Add((VolumetricHeatSource)FOs[i]);
                     this.VolumetricHeatSources.Add((VolumetricHeatSource)FOs[i]);
                     this.VolumetricHeatSources[i].ID = FOs[i].Name + i.ToString();
                     AllFunctionObjectInternalDicts.Add(new VolumetricHeatSourceInternalDict(this.VolumetricHeatSources[i], this.PointInsideDomain));
@@ -150,6 +147,7 @@ namespace EddyLib.Indoor
             {
                 if (FOs[i] is MomentumSink)
                 {
+                    this.FOs.Add(MomentumSinks[i]);
                     this.MomentumSinks.Add(MomentumSinks[i]);
                     this.MomentumSinks[i].ID = FOs[i].Name + i.ToString();
                     AllFunctionObjectInternalDicts.Add(new MomentumSinkInternalDict(this.MomentumSinks[i], this.PointInsideDomain));
@@ -160,6 +158,7 @@ namespace EddyLib.Indoor
             {
                 if (FOs[i] is MomentumSource)
                 {
+                    this.FOs.Add(MomentumSources[i]);
                     this.MomentumSources.Add(MomentumSources[i]);
                     this.MomentumSources[i].ID = FOs[i].Name + i.ToString();
                     AllFunctionObjectInternalDicts.Add(new MomentumSourceInternalDict(this.MomentumSources[i], this.PointInsideDomain));
@@ -170,11 +169,9 @@ namespace EddyLib.Indoor
 
             var topoSetDict = new TopoSetDict(AllFunctionObjectInternalDicts, PointInsideDomain);
 
-
-
             // System
 
-            var controlDict = new ControlDict(this.endTime, FOs);
+            var controlDict = new ControlDict(this);
             var blockMeshDict = new BlockMeshDict(this.CellSize, BoundingBox);
             var snappyHextMeshDict = new SnappyHexMeshDict(this.CellSize, this.PointInsideDomain, BoundingBox, Inlets, Outlets, RoomGeometry);
             var fvSchemesDict = new FvSchemesDict();
@@ -189,7 +186,6 @@ namespace EddyLib.Indoor
             AllDictsWrite2File.Add(fvSolutionDict);
             AllDictsWrite2File.Add(residualsDict);
             AllDictsWrite2File.Add(surfaceFeatureExtractDict);
-
 
             // fvOptions
 

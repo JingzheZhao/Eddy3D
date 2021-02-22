@@ -114,6 +114,11 @@ namespace EddyLib.Indoor.Dicts
                 {
                     DictToString(evl.Key, evl.Value, ref sb);
                 }
+                // 3. Dictionary<string, int> dicts
+                else if (evl.Key is String && evl.Value is Int32)
+                {
+                    DictToString(evl.Key, evl.Value, ref sb);
+                }
             }
 
             return sb.ToString();
@@ -176,6 +181,10 @@ namespace EddyLib.Indoor.Dicts
                 if (evl.Key is String && evl.Value is String)
                 {
                     sb.AppendLine("\t" + "\t" + evl.Key + "\t" + evl.Value + ";");
+                }
+                else if (evl.Key is String && evl.Value is Int32)
+                {
+                    sb.AppendLine("\t" + "\t" + evl.Key + "\t" + evl.Value.ToString() + ";");
                 }
                 else
                 {

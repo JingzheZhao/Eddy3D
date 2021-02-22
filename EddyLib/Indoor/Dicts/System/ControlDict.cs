@@ -6,14 +6,10 @@ namespace EddyLib.Indoor.Dicts
 {
     public class ControlDict : GenericDict
 
-
-
-
     {
         public List<String> InternalDict = new List<string>();
 
-
-        public ControlDict(int endTime, List<FunctionObject> FOs)
+        public ControlDict(IndoorDomain IndoorDom)
         {
             this.DictionaryName = "controlDict";
 
@@ -22,24 +18,17 @@ namespace EddyLib.Indoor.Dicts
 
             this.Header = GetHeader(this);
 
-
-       
-
-
-            this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetDict(endTime,  FOs)));
-
+            this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetDict(IndoorDom)));
 
             string[] parts = {
                this.Header, "\n",
          String.Join("\n", this.InternalDict.ToArray())
-
-
             };
 
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
         }
 
-        private static Dictionary<string, dynamic> GetDict(int endTime, List<FunctionObject> FOs)
+        private static Dictionary<string, dynamic> GetDict(IndoorDomain IndoorDom)
         {
             Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 
@@ -47,14 +36,13 @@ namespace EddyLib.Indoor.Dicts
 
             Dictionary<string, dynamic> FunctionObjectlDict = new Dictionary<string, dynamic>();
 
-
             Dict.Add("controlDict", InternalDict);
 
             InternalDict.Add("application", "extractFromSurface");
             InternalDict.Add("startFrom", "startTime");
             InternalDict.Add("startTime", "0");
             InternalDict.Add("stopAt", "endTime");
-            InternalDict.Add("endTime", endTime);
+            InternalDict.Add("endTime", IndoorDom.endTime);
 
             InternalDict.Add("deltaT", 1);
             InternalDict.Add("writeControl", "timeStep");
@@ -69,19 +57,13 @@ namespace EddyLib.Indoor.Dicts
 
             InternalDict.Add("functions", FunctionObjectlDict);
 
+            if (IndoorDom.FOs.OfType<VolumetricHeatSource>().Any())
 
-         if ( FOs.OfType<VolumetricHeatSource>().Any())
-          
             {
                 FunctionObjectlDict.Add("#includeFunc", "volumetricHeatSources");
             }
 
-
-
             return Dict;
         }
-
-
-    } 
-
+    }
 }
