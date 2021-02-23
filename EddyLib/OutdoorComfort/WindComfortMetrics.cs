@@ -1,8 +1,11 @@
-﻿using System.Linq;
+﻿using MathNet.Numerics.Distributions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace EddyLib.OutdoorComfort.Metrics
 {
-    internal class WindComfortMetrics
+    internal class WindComfortMetricsCounting
     {
         public static int CalcLawsonGeneralComfort(double[] annualVelocity)
 
@@ -59,7 +62,7 @@ namespace EddyLib.OutdoorComfort.Metrics
         public static int CalcLawsonLDDCComfort(double[] annualVelocity)
 
         {
-            //            Lawson LDDC
+            // Lawson LDDC
 
             //1 - A > 2.5 m / s < 5 % Frequent sitting
             //2 - B > 4 m / s < 5 % Occasional sitting
@@ -119,7 +122,7 @@ namespace EddyLib.OutdoorComfort.Metrics
         public static int CalcLawson2001Comfort(double[] annualVelocity)
 
         {
-            //            Lawson 2001
+            //Lawson 2001
 
             //1 - A > 4 m / s < 5 % Sitting
             //2 - B > 6 m / s < 5 % Standing
