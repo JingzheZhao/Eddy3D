@@ -110,21 +110,18 @@ namespace EddyLib.Indoor.Dicts
                 {
                     DictToString(evl, ref sb);
                 }
-<<<<<<< HEAD
-=======
-                // 2. Dictionary<string, Dictionary<string, string>> dicts
->>>>>>> 0e791e0dc070df848d055a738a04ebc12ae3d44d
-                // 3. Dictionary<string, int> dicts
-                else
-                {
-                    DictToString(evl, ref sb);
-                }
 
 
                 // 2. Dictionary<string, Dictionary<string, string>> dicts
                 else if (evl.Key is String && evl.Value is Dictionary<string, dynamic>)
                 {
                     DictToString(evl.Key, evl.Value, ref sb);
+                }
+
+                // 3. Dictionary<string, int> dicts
+                else
+                {
+                    DictToString(evl, ref sb);
                 }
 
             }
