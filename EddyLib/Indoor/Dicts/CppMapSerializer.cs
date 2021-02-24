@@ -89,6 +89,7 @@ namespace EddyLib.Indoor.Dicts
         }
     }
 
+
     public class CppMapSerializerDyn
     {
         public static string Serialize(Dictionary<string, dynamic> dict)
@@ -109,16 +110,19 @@ namespace EddyLib.Indoor.Dicts
                 {
                     DictToString(evl, ref sb);
                 }
+                // 3. Dictionary<string, int> dicts
+                else if (evl.Key is String && evl.Value is Int32)
+                {
+                    DictToString(evl, ref sb);
+                }
+
+
                 // 2. Dictionary<string, Dictionary<string, string>> dicts
                 else if (evl.Key is String && evl.Value is Dictionary<string, dynamic>)
                 {
                     DictToString(evl.Key, evl.Value, ref sb);
                 }
-                // 3. Dictionary<string, int> dicts
-                else if (evl.Key is String && evl.Value is Int32)
-                {
-                    DictToString(evl.Key, evl.Value, ref sb);
-                }
+
             }
 
             return sb.ToString();
@@ -203,7 +207,20 @@ namespace EddyLib.Indoor.Dicts
 
         private static void DictToString(KeyValuePair<string, dynamic> evl, ref StringBuilder sb)
         {
-            sb.AppendLine(evl.Key + "\t" + evl.Value + ";");
+            if (evl.Key is String)
+            {
+
+                if (evl.Value is String)
+                {
+
+                    sb.AppendLine(evl.Key + "\t " + evl.Value + ";");
+                }
+                else
+                {
+
+                    sb.AppendLine(evl.Key + "\t " + evl.Value.ToString() + ";");
+                }
+            }
         }
     }
 }

@@ -30,13 +30,13 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, dynamic> GetDict(IndoorDomain IndoorDom)
         {
-            Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
+           
 
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
 
             Dictionary<string, dynamic> FunctionObjectlDict = new Dictionary<string, dynamic>();
 
-            Dict.Add("controlDict", InternalDict);
+       
 
             InternalDict.Add("application", "extractFromSurface");
             InternalDict.Add("startFrom", "startTime");
@@ -46,7 +46,7 @@ namespace EddyLib.Indoor.Dicts
 
             InternalDict.Add("deltaT", 1);
             InternalDict.Add("writeControl", "timeStep");
-            InternalDict.Add("writeInterval", 10);
+            InternalDict.Add("writeInterval", 10.ToString());
             InternalDict.Add("purgeWrite", 10);
             InternalDict.Add("writeFormat", "binary");
             InternalDict.Add("writePrecision", 9);
@@ -63,7 +63,7 @@ namespace EddyLib.Indoor.Dicts
                 FunctionObjectlDict.Add("#includeFunc", "volumetricHeatSources");
             }
 
-            return Dict;
+            return InternalDict;
         }
     }
 }

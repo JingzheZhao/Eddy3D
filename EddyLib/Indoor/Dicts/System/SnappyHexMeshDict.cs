@@ -11,7 +11,9 @@ namespace EddyLib.Indoor
     {
         private Point3d locationInMesh;
 
-        public Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>> GeometryDict { get; set; }
+      //  public Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>> GeometryDict { get; set; } // old way of doing things
+
+        public Dictionary<string, dynamic> GeometryDict { get; set; }
 
         public List<Dictionary<string, Dictionary<string, string>>> GeometrySubDict { get; set; }
 
@@ -28,12 +30,12 @@ namespace EddyLib.Indoor
             foreach (IndoorBC i in outlet) { this.GeometrySubDict.Add(GetGeometryDict(i)); };
             foreach (IndoorBC i in wall) { this.GeometrySubDict.Add(GetGeometryDict(i)); };
 
-            this.GeometryDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
+            this.GeometryDict = new Dictionary<string, dynamic>();
             GeometryDict.Add("geometry", GeometrySubDict);
 
             string[] parts = { this.Header, "\n",
                CppMapSerializer.Serialize(GetSettingsDict()),"\n",
-               CppMapSerializer.Serialize(this.GeometryDict),"\n",
+               CppMapSerializerDyn.Serialize(this.GeometryDict),"\n",
                CppMapSerializer.Serialize(GetSnapControlsDict()),"\n",
                 GetCastellatedMeshControls(this.locationInMesh, wall, inlet, outlet),"\n",
                 LayersAndMeshqualityControls() };
