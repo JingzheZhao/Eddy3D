@@ -28,44 +28,8 @@ namespace Eddy
         public CompCalcWindComfort()
           : base("Pedestrian Wind Comfort", "Pedestrian Wind Comfort", @"Pedestrian Wind Comfort
 
-" + EddyVersion.toString(),
-              EddyVersion.Name, "7 | Metrics")
-        {
-        }
-
-        /// <summary>
-        /// Registers all the input parameters for this component.
-        /// </summary>
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
-        {
-            pManager.AddGenericParameter("Wind Factors Annual", "WFA", @"Wind Factors Annual Object", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Wind Factors Spatial", "WFS", @"Wind Factors Spatial Object", GH_ParamAccess.item);
-
-            pManager.AddIntegerParameter("Wind Comfort Index", "WCmftIdx", "Select a Wind Comfort Index with a right click.", GH_ParamAccess.item, 0);
-
-            //Using an enum to generate the dropdown items
-            var types = Enum.GetNames(typeof(EddyLib.OutdoorComfort.WindComfortHelper.PCIdx));
-            Param_Integer param = pManager[2] as Param_Integer;
-
-            for (int i = 0; i < types.Length; i++)
-            {
-                param.AddNamedValue(types[i], i);
-            }
-
-            //pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item);
-
-            //pManager[4].Optional = true;
-        }
-
-        /// <summary>
-        /// Registers all the output parameters for this component.
-        /// </summary>
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
-        {
-            pManager.AddNumberParameter("Wind Comfort", "WCmft", @"Wind Comfort
-
-Simplified evaluation of annual wind velocites according to specific comfort indices.
-Binning is done by evaluating actual observed wind velocities for every hour, not by calculating maximum allowable exceedance probability given the wind statistic (to be released later).
+Evaluation of annual wind velocites according to specific comfort metrics.
+Binning is done by calculating maximum allowable exceedance probability given the wind statistic.
 
 General Lawson
 
@@ -116,9 +80,45 @@ NEN8100 Safety
 
 1 - A   > 15 m/s    < 0.05 %    No Risk,
 2 - B   > 15 m/s    < 0.3 %     Limited Risk
-3 - C   > 15 m/s    > 0.3 %     Dangerous"
+3 - C   > 15 m/s    > 0.3 %     Dangerous
 
-, GH_ParamAccess.list);
+" + EddyVersion.toString(),
+              EddyVersion.Name, @"7 | Metrics")
+        {
+        }
+
+        /// <summary>
+        /// Registers all the input parameters for this component.
+        /// </summary>
+        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        {
+            pManager.AddGenericParameter("Wind Factors Spatial", "WFS", @"Wind Factors Spatial Object", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Wind Factors Annual", "WFA", @"Wind Factors Annual Object", GH_ParamAccess.item);
+
+            pManager.AddIntegerParameter("Wind Comfort Metric", "WCmftMetr", "Select a Wind Comfort Metric with a right click.", GH_ParamAccess.item, 0);
+
+            //Using an enum to generate the dropdown items
+            var types = Enum.GetNames(typeof(EddyLib.OutdoorComfort.WindComfortHelper.PCMetric));
+            Param_Integer param = pManager[2] as Param_Integer;
+
+            for (int i = 0; i < types.Length; i++)
+            {
+                param.AddNamedValue(types[i], i);
+            }
+
+            //pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item);
+
+            //pManager[4].Optional = true;
+        }
+
+        /// <summary>
+        /// Registers all the output parameters for this component.
+        /// </summary>
+        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        {
+            pManager.AddNumberParameter("Wind Comfort Rank", "WCmft Rank", @"Wind Comfort Rank", GH_ParamAccess.list);
+            pManager.AddTextParameter("Wind Comfort Class Letter", "WCmft Class Letter", @"Wind Comfort Class Letter", GH_ParamAccess.list);
+            pManager.AddTextParameter("Wind Comfort Class", "WCmft Class", @"Wind Comfort Class", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -135,14 +135,14 @@ NEN8100 Safety
             //else { Message = "Interpolation"; }
 
             WindFactorsAnnual WFA = null;
-            DA.GetData(0, ref WFA);
+            DA.GetData(1, ref WFA);
 
             WindFactorsSpatial WFS = null;
-            DA.GetData(1, ref WFS);
+            DA.GetData(0, ref WFS);
 
-            int cmftidx = 0;
-            DA.GetData("Wind Comfort Index", ref cmftidx);
-            WindComfortHelper.PCIdx cmftcmftindex = (WindComfortHelper.PCIdx)cmftidx;
+            int cmftMetricGH = 0;
+            DA.GetData("Wind Comfort Metric", ref cmftMetricGH);
+            WindComfortHelper.PCMetric cmftMetric = (WindComfortHelper.PCMetric)cmftMetricGH;
 
             //List<Point3d> probes = new List<Point3d>();
             //DA.GetDataList("Probing points", probes);
@@ -166,7 +166,7 @@ NEN8100 Safety
 
             #region Wind Comfort
 
-            var wc = new WindComfortWeibull(WFA, WFS.SimulatedWindDirections.ToArray(), cmftcmftindex);
+            var wc = new WindComfortWeibull(WFA, WFS.SimulatedWindDirections.ToArray(), cmftMetric);
 
             if (GH_Document.IsEscapeKeyDown())
             {
@@ -174,7 +174,9 @@ NEN8100 Safety
                 GHDocument.RequestAbortSolution();
             }
 
-            DA.SetDataList(0, wc.ValuesPedestrianWindComfort);
+            DA.SetDataList(0, wc.ValuesPedestrianWindComfortCat);
+            DA.SetDataList(1, wc.ValuesPedestrianWindComfortClassLetter);
+            DA.SetDataList(2, wc.ValuesPedestrianWindComfortClass);
 
             #endregion Wind Comfort
         }

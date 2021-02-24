@@ -5,7 +5,7 @@ namespace EddyLib.OutdoorComfort
     // This is a post-processing class
     public class WindComfortHelper
     {
-        public enum PCIdx
+        public enum PCMetric
         {
             LawsonGeneral,
 

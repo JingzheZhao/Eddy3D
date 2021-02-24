@@ -9,11 +9,11 @@ namespace EddyLib.OutdoorComfort.Metrics
 {
     internal class WindComfortMetricsWeibull
     {
-        public static Dictionary<int, UThresholdInfo> ThresholdInfo(PCIdx cmftidx)
+        public static Dictionary<int, UThresholdInfo> ThresholdInfo(PCMetric cmftidx)
         {
             Dictionary<int, UThresholdInfo> UTC = new Dictionary<int, UThresholdInfo>();
 
-            if (cmftidx == PCIdx.LawsonGeneral)
+            if (cmftidx == PCMetric.LawsonGeneral)
             {
                 // General Lawson
 
@@ -35,7 +35,7 @@ namespace EddyLib.OutdoorComfort.Metrics
                 //UTC.Add(4, new UThresholdInfo { Cat = 4, UThres = 7.6, TimeThres = Percent(5), Class = "Walking Fast", ClassLetter = "D", Operator = CompOperator.GOE });
                 //UTC.Add(5, new UThresholdInfo { Cat = 5, UThres = 7.6, TimeThres = Percent(2), Class = "Uncomfortable", ClassLetter = "E", Operator = CompOperator.GOE });
             }
-            else if (cmftidx == PCIdx.LawsonLDDC)
+            else if (cmftidx == PCMetric.LawsonLDDC)
             {
                 // Lawson LDDC
 
@@ -60,7 +60,7 @@ namespace EddyLib.OutdoorComfort.Metrics
                 //UTC.Add(5, new UThresholdInfo { Cat = 5, UThres = 8, TimeThres = Percent(5), Class = "Uncomfortable", ClassLetter = "E", Operator = CompOperator.G });
                 //UTC.Add(6, new UThresholdInfo { Cat = 6, UThres = 15, TimeThres = Percent(0.022), Class = "Unsafe", ClassLetter = "S", Operator = CompOperator.G });
             }
-            else if (cmftidx == PCIdx.Lawson2001)
+            else if (cmftidx == PCMetric.Lawson2001)
             {
                 //Lawson 2001
 
@@ -88,7 +88,7 @@ namespace EddyLib.OutdoorComfort.Metrics
                 //UTC.Add(6, new UThresholdInfo { Cat = 6, UThres = 15, TimeThres = Percent(0.023), Class = "Unsafe", ClassLetter = "S15", Operator = CompOperator.G });
                 //UTC.Add(7, new UThresholdInfo { Cat = 7, UThres = 15, TimeThres = Percent(0.023), Class = "Unsafe", ClassLetter = "S20", Operator = CompOperator.G });
             }
-            else if (cmftidx == PCIdx.Davenport)
+            else if (cmftidx == PCMetric.Davenport)
             {
                 UTC.Add(1, new UThresholdInfo { Cat = 1, UThres = 3.6, TimeThres = Percent(1.5), Class = "Sitting Long", ClassLetter = "A", Operator = CompOperator.S });
                 UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 5.3, TimeThres = Percent(1.5), Class = "Sitting Short", ClassLetter = "B", Operator = CompOperator.S });
@@ -104,7 +104,7 @@ namespace EddyLib.OutdoorComfort.Metrics
                 //UTC.Add(5, new UThresholdInfo { Cat = 5, UThres = 9.8, TimeThres = Percent(1.5), Class = "Uncomfortable", ClassLetter = "E", Operator = CompOperator.GOE });
                 //UTC.Add(6, new UThresholdInfo { Cat = 6, UThres = 15.1, TimeThres = Percent(0.01), Class = "Dangerous", ClassLetter = "S", Operator = CompOperator.GOE });
             }
-            else if (cmftidx == PCIdx.NEN8100Comfort)
+            else if (cmftidx == PCMetric.NEN8100Comfort)
             {
                 UTC.Add(1, new UThresholdInfo { Cat = 1, UThres = 5, TimeThres = Percent(2.5), Class = "Sitting Long", ClassLetter = "A", Operator = CompOperator.S });
                 UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 5, TimeThres = Percent(5), Class = "Sitting Short", ClassLetter = "B", Operator = CompOperator.S });
@@ -118,7 +118,7 @@ namespace EddyLib.OutdoorComfort.Metrics
                 //UTC.Add(4, new UThresholdInfo { Cat = 4, UThres = 5, TimeThres = Percent(20), Class = "Walking Fast", ClassLetter = "D", Operator = CompOperator.G });
                 //UTC.Add(5, new UThresholdInfo { Cat = 5, UThres = 5, TimeThres = Percent(20), Class = "Uncomfortable", ClassLetter = "E", Operator = CompOperator.G });
             }
-            else if (cmftidx == PCIdx.NEN8100Safety)
+            else if (cmftidx == PCMetric.NEN8100Safety)
             {
                 UTC.Add(1, new UThresholdInfo { Cat = 1, UThres = 15, TimeThres = Percent(0.05), Class = "No Risk", ClassLetter = "A", Operator = CompOperator.S });
                 UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 15, TimeThres = Percent(0.3), Class = "Limited Risk", ClassLetter = "B", Operator = CompOperator.S });
@@ -135,15 +135,13 @@ namespace EddyLib.OutdoorComfort.Metrics
         public static UThresholdInfo CalcComfort(double[] TemporalVelocityArray, int[] simulatedWindDirections, Dictionary<int, UThresholdInfo> LTI)
 
         {
-            double ExceedanceProbability = 0.0;
-
-            var pedestrianComfort = new UThresholdInfo { Cat = 0, Class = "Not Calculated", ClassLetter = "N/A" };
+            var pedestrianComfort = LTI[1];
 
             // start from the highest and start binning
             //        Parallel.ForEach(LTI.Values.Reverse(),
             //Entry =>
             //{
-            foreach (var Entry in LTI.Values.Reverse())
+            foreach (var Entry in LTI.Values)
             {
                 // Weibull estimate
 
@@ -154,17 +152,16 @@ namespace EddyLib.OutdoorComfort.Metrics
 
                 // Treat all wind directions with equal weight, like suggested in https://www.sciencedirect.com/science/article/pii/S0360132316300415#fig22, eq. 14
 
-                double PercentagePerYear = (double)1 / simulatedWindDirections.Count();
-                double P_Upot_Utr10m = Prob_Exceedance(PercentagePerYear, Entry.UThres, Kappa, Lambda);
+                //double PercentagePerYear = (double)1 / simulatedWindDirections.Count();
+                double P_Upot_Utr10m = Prob_Exceedance(1, Entry.UThres, Kappa, Lambda);
 
-                ExceedanceProbability = P_Upot_Utr10m;
-
+                double ExceedanceProbability = P_Upot_Utr10m;
                 bool Exceedance = CheckExceedance(ExceedanceProbability, Entry);
 
                 if (Exceedance)
                 {
                     pedestrianComfort = Entry;
-                    return pedestrianComfort;
+                    //return pedestrianComfort;
                 }
             }
 

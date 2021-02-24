@@ -8,20 +8,25 @@ namespace EddyLib.OutdoorComfort
     // This is a post-processing class
     public class WindComfortWeibull
     {
-        public double[] ValuesPedestrianWindComfort { get; set; }
+        public double[] ValuesPedestrianWindComfortCat { get; set; }
+        public string[] ValuesPedestrianWindComfortClass { get; set; }
+
+        public string[] ValuesPedestrianWindComfortClassLetter { get; set; }
 
         public UThresholdInfo[] ThresholdInfo { get; set; }
 
-        public WindComfortWeibull(WindFactorsAnnual wa, int[] SimulatedWindDirections, PCIdx cmftidx)
+        public WindComfortWeibull(WindFactorsAnnual wa, int[] SimulatedWindDirections, PCMetric cmftMetric)
         {
-            CalcPedestrianComfort(wa.ValuesTemporal, SimulatedWindDirections, cmftidx);
+            CalcPedestrianComfort(wa.ValuesTemporal, SimulatedWindDirections, cmftMetric);
         }
 
-        private void CalcPedestrianComfort(double[,] ValuesTemporal, int[] SimulatedWindDirections, PCIdx cmftidx)
+        private void CalcPedestrianComfort(double[,] ValuesTemporal, int[] SimulatedWindDirections, PCMetric cmftMetric)
         {
             int sensorPointCount = ValuesTemporal.GetLength(1);
 
-            this.ValuesPedestrianWindComfort = new double[sensorPointCount];
+            this.ValuesPedestrianWindComfortCat = new double[sensorPointCount];
+            this.ValuesPedestrianWindComfortClass = new string[sensorPointCount];
+            this.ValuesPedestrianWindComfortClassLetter = new string[sensorPointCount];
             this.ThresholdInfo = new UThresholdInfo[sensorPointCount];
 
             // WindFactorsAnnual
@@ -30,7 +35,7 @@ namespace EddyLib.OutdoorComfort
             // WindFactorsSpatial
             // [SimulatedWindDirs , 8760]
 
-            Dictionary<int, UThresholdInfo> LTI = WindComfortMetricsWeibull.ThresholdInfo(cmftidx);
+            Dictionary<int, UThresholdInfo> LTI = WindComfortMetricsWeibull.ThresholdInfo(cmftMetric);
 
             for (int probe = 0; probe < sensorPointCount; probe++)
             {
@@ -38,7 +43,9 @@ namespace EddyLib.OutdoorComfort
                 var column = ArrayHelper.CustomArray<double>.GetColumn(ValuesTemporal, probe);
 
                 this.ThresholdInfo[probe] = WindComfortMetricsWeibull.CalcComfort(column, SimulatedWindDirections, LTI);
-                this.ValuesPedestrianWindComfort[probe] = ThresholdInfo[probe].Cat;
+                this.ValuesPedestrianWindComfortCat[probe] = ThresholdInfo[probe].Cat;
+                this.ValuesPedestrianWindComfortClass[probe] = ThresholdInfo[probe].Class;
+                this.ValuesPedestrianWindComfortClassLetter[probe] = ThresholdInfo[probe].ClassLetter;
             }
         }
     }

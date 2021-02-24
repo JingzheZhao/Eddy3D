@@ -9,12 +9,12 @@ namespace EddyLib.OutdoorComfort
     {
         public double[] ValuesPedestrianWindComfort;
 
-        public WindComfort(WindFactorsAnnual wf, WindComfortHelper.PCIdx pcidxx)
+        public WindComfort(WindFactorsAnnual wf, WindComfortHelper.PCMetric pcidxx)
         {
             this.ValuesPedestrianWindComfort = CalcPedestrianComfort(wf.ValuesTemporal, pcidxx);
         }
 
-        private double[] CalcPedestrianComfort(double[,] ValuesWindFactors, WindComfortHelper.PCIdx cmftidx)
+        private double[] CalcPedestrianComfort(double[,] ValuesWindFactors, WindComfortHelper.PCMetric cmftidx)
         {
             int sensorPointCount = ValuesWindFactors.GetLength(1);
 
@@ -25,19 +25,19 @@ namespace EddyLib.OutdoorComfort
                 // column is all hours of the year
                 var column = ArrayHelper.CustomArray<double>.GetColumn(ValuesWindFactors, probe);
 
-                if (cmftidx == PCIdx.Davenport)
+                if (cmftidx == PCMetric.Davenport)
                 {
                     PedestrianWindComfort[probe] = WindComfortMetricsCounting.CalcDavenportComfort(column);
                 }
-                else if (cmftidx == PCIdx.LawsonGeneral)
+                else if (cmftidx == PCMetric.LawsonGeneral)
                 {
                     PedestrianWindComfort[probe] = WindComfortMetricsCounting.CalcLawsonGeneralComfort(column);
                 }
-                else if (cmftidx == PCIdx.LawsonLDDC)
+                else if (cmftidx == PCMetric.LawsonLDDC)
                 {
                     PedestrianWindComfort[probe] = WindComfortMetricsCounting.CalcLawsonLDDCComfort(column);
                 }
-                else if (cmftidx == PCIdx.Lawson2001)
+                else if (cmftidx == PCMetric.Lawson2001)
                 {
                     PedestrianWindComfort[probe] = WindComfortMetricsCounting.CalcLawson2001Comfort(column);
                 }
