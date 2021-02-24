@@ -15,7 +15,7 @@ namespace RhinoPlugin.Tests.Xunit
     [Collection("Rhino Collection")]
     public class OutdoorComfort
     {
-        public static void DownLoadFile(string URL, string FilePath)
+        internal static void DownLoadFile(string URL, string FilePath)
         {
             WebClient webClient = new WebClient();
             webClient.DownloadFile(URL, FilePath);

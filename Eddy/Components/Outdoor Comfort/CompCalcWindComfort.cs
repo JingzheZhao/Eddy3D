@@ -26,10 +26,64 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompCalcWindComfort()
-          : base("Annual Wind Comfort", "Wind Comfort", @"Wind Comfort
+          : base("Pedestrian Wind Comfort", "Pedestrian Wind Comfort", @"Pedestrian Wind Comfort
+
+Evaluation of annual wind velocites according to specific comfort metrics.
+Binning is done by calculating maximum allowable exceedance probability given the wind statistic.
+
+General Lawson
+
+1 - A   > 1.8 m/s <   2 %   Sitting Long
+2 - B   > 3.6 m/s <   2 %   Sitting Short
+3 - C   > 5.3 m/s <   2 %   Walking Leisurely
+4 - D   > 7.6 m/s >   5 %   Walking Fast
+5 - E   > 7.6 m/s >=  2 %   Uncomfortable
+
+Lawson LDDC
+
+1 - A   > 2.5 m/s < 5 %       Frequent sitting
+2 - B   > 4 m/s   < 5 %       Occasional sitting
+3 - C   > 6 m/s   < 5 %       Standing
+4 - D   > 8 m/s   < 5 %       Walking
+5 - E   > 8 m/s   > 5 %       Uncomfortable
+6 - S   > 15 m/s  > 0.022 %   Unsafe
+
+Lawson 2001
+
+1 - A   > 4 m/s     < 5 %       Sitting
+2 - B   > 6 m/s     < 5 %       Standing
+3 - C   > 8 m/s     < 5 %       Strolling
+4 - D   > 10 m/s    < 5 %       Business Walking
+5 - E   > 10 m/s    > 5 %       Uncomfortable
+6 - S15 > 15 m/s    > 0.023 %   Unsafe frail
+7 - S20 > 20 m/s    > 0.023 %   Unsafe all
+
+Davenport
+
+1 - A   > 3.6 m/s   <   1.5 %   Sitting Long
+2 - B   > 5.3 m/s   <   1.5 %   Sitting Short
+3 - C   > 7.6 m/s   <   1.5 %   Walking Leisurely
+4 - D   > 9.8 m/s   <   1.5 %   Walking Fast
+5 - E   > 9.8 m/s   >=  1.5 %   Uncomfortable
+6 - S   > 15.1 m/s  >=  0.01 %  Dangerous
+
+NEN8100 Comfort
+
+1 - A   > 5 m/s     < 2.5 %     Sitting Long
+2 - B   > 5 m/s     < 5 %       Sitting Short
+3 - C   > 5 m/s     < 10 %      Walking Leisurely
+4 - D   > 5 m/s     < 20 %      Walking Fast
+5 - E   > 5 m/s     > 20 %      Uncomfortable
+6 - S   > 15 m/s    > 0.05 %    Dangerous
+
+NEN8100 Safety
+
+1 - A   > 15 m/s    < 0.05 %    No Risk,
+2 - B   > 15 m/s    < 0.3 %     Limited Risk
+3 - C   > 15 m/s    > 0.3 %     Dangerous
 
 " + EddyVersion.toString(),
-              EddyVersion.Name, "7 | Metrics")
+              EddyVersion.Name, @"7 | Metrics")
         {
         }
 
@@ -38,13 +92,14 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
+            pManager.AddGenericParameter("Wind Factors Spatial", "WFS", @"Wind Factors Spatial Object", GH_ParamAccess.item);
             pManager.AddGenericParameter("Wind Factors Annual", "WFA", @"Wind Factors Annual Object", GH_ParamAccess.item);
 
-            pManager.AddIntegerParameter("Wind Comfort Index", "WCmftIdx", "Select a Wind Comfort Index with a right click.", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("Wind Comfort Metric", "WCmftMetr", "Select a Wind Comfort Metric with a right click.", GH_ParamAccess.item, 0);
 
             //Using an enum to generate the dropdown items
-            var types = Enum.GetNames(typeof(EddyLib.OutdoorComfort.WindComfort.PCIdx));
-            Param_Integer param = pManager[1] as Param_Integer;
+            var types = Enum.GetNames(typeof(EddyLib.OutdoorComfort.WindComfortHelper.PCMetric));
+            Param_Integer param = pManager[2] as Param_Integer;
 
             for (int i = 0; i < types.Length; i++)
             {
@@ -61,55 +116,9 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddNumberParameter("Wind Comfort", "WCmft", @"Wind Comfort
-
-Simplified evaluation of annual wind velocites according to specific comfort indices.
-Binning is done by evaluating actual observed wind velocities for every hour, not by calculating maximum allowable exceedance probability given the wind statistic (to be released later).
-
-General Lawson
-
-1 - A > 1.8 m/s < 2 % Sitting Long
-2 - B > 3.6 m/s < 2 % Sitting Short
-3 - C > 5.3 m/s < 2 % Walking Leisurely
-4 - D > 7.6 m/s > 5 % Walking Fast
-5 - E > 7.6 m/s >= 2 % Uncomfortable
-
-Lawson LDDC
-
-1 - A > 2.5 m/s < 5 % Frequent sitting
-2 - B > 4 m/s < 5 % Occasional sitting
-3 - C > 6 m/s < 5 % Standing
-4 - D > 8 m/s < 5 % Walking
-5 - E > 8 m/s > 5 % Uncomfortable
-6 - S > 15 m/s > 0.022 % Unsafe
-
-Lawson 2001
-
-1 - A   > 4 m/s < 5 % Sitting
-2 - B   > 6 m/s < 5 % Standing
-3 - C   > 8 m/s < 5 % Strolling
-4 - D   > 10 m/s < 5 % Business Walking
-5 - E   > 10 m/s > 5 % Uncomfortable
-6 - S15 > 15 m/s > 0.023 % Unsafe frail
-7 - S20 > 20 m/s > 0.023 % Unsafe all
-
-Davenport
-
-1 - A > 3.6 m/s < 1.5 % Sitting Long
-2 - B > 5.3 m/s < 1.5 % Sitting Short
-3 - C > 7.6 m/s < 1.5 % Walking Leisurely
-4 - D > 9.8 m/s < 1.5 % Walking Fast
-5 - E > 9.8 m/s >= 1.5 % Uncomfortable
-6 - S > 15.1 m/s >= 0.01 % Dangerous
-
-NEN8100
-
-1 - A > 5 m/s < 2.5 % Sitting Long
-2 - B > 5 m/s < 5 % Sitting Short
-3 - C > 5 m/s < 10 % Walking Leisurely
-4 - D > 5 m/s < 20 % Walking Fast
-5 - E > 5 m/s > 20 % Uncomfortable
-6 - S > 15 m/s > 0.05 % Dangerous", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Wind Comfort Rank", "WCmft Rank", @"Wind Comfort Rank", GH_ParamAccess.list);
+            pManager.AddTextParameter("Wind Comfort Class Letter", "WCmft Class Letter", @"Wind Comfort Class Letter", GH_ParamAccess.list);
+            pManager.AddTextParameter("Wind Comfort Class", "WCmft Class", @"Wind Comfort Class", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -126,11 +135,14 @@ NEN8100
             //else { Message = "Interpolation"; }
 
             WindFactorsAnnual WFA = null;
-            DA.GetData(0, ref WFA);
+            DA.GetData(1, ref WFA);
 
-            int cmftidx = 0;
-            DA.GetData("Wind Comfort Index", ref cmftidx);
-            WindComfort.PCIdx cmftcmftindex = (WindComfort.PCIdx)cmftidx;
+            WindFactorsSpatial WFS = null;
+            DA.GetData(0, ref WFS);
+
+            int cmftMetricGH = 0;
+            DA.GetData("Wind Comfort Metric", ref cmftMetricGH);
+            WindComfortHelper.PCMetric cmftMetric = (WindComfortHelper.PCMetric)cmftMetricGH;
 
             //List<Point3d> probes = new List<Point3d>();
             //DA.GetDataList("Probing points", probes);
@@ -154,7 +166,7 @@ NEN8100
 
             #region Wind Comfort
 
-            var wc = new WindComfort(WFA, cmftcmftindex);
+            var wc = new WindComfortWeibull(WFA, WFS.SimulatedWindDirections.ToArray(), cmftMetric);
 
             if (GH_Document.IsEscapeKeyDown())
             {
@@ -162,7 +174,9 @@ NEN8100
                 GHDocument.RequestAbortSolution();
             }
 
-            DA.SetDataList(0, wc.ValuesPedestrianWindComfort);
+            DA.SetDataList(0, wc.ValuesPedestrianWindComfortCat);
+            DA.SetDataList(1, wc.ValuesPedestrianWindComfortClassLetter);
+            DA.SetDataList(2, wc.ValuesPedestrianWindComfortClass);
 
             #endregion Wind Comfort
         }
