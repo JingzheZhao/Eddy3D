@@ -110,8 +110,12 @@ namespace EddyLib.Indoor.Dicts
                 {
                     DictToString(evl, ref sb);
                 }
+<<<<<<< HEAD
+=======
+                // 2. Dictionary<string, Dictionary<string, string>> dicts
+>>>>>>> 0e791e0dc070df848d055a738a04ebc12ae3d44d
                 // 3. Dictionary<string, int> dicts
-                else if (evl.Key is String && evl.Value is Int32)
+                else
                 {
                     DictToString(evl, ref sb);
                 }
