@@ -174,7 +174,7 @@ namespace EddyLib.Indoor
             var controlDict = new ControlDict(this);
             var blockMeshDict = new BlockMeshDict(this.CellSize, BoundingBox);
             var snappyHextMeshDict = new SnappyHexMeshDict(this.CellSize, this.PointInsideDomain, BoundingBox, Inlets, Outlets, RoomGeometry);
-            var fvSchemesDict = new FvSchemesDict();
+            var fvSchemesDict = new FvSchemesDict(this);
             var fvSolutionDict = new FvSolutionDict();
             var residualsDict = new ResidualsDict();
             var surfaceFeatureExtractDict = new SurfaceFeatureExtractDict(Inlets, Outlets, RoomGeometry);
