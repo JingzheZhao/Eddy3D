@@ -8,15 +8,12 @@ namespace EddyLib.OutdoorComfort
     // This is a post-processing class
     public class WindComfortWeibull
     {
-        public double[] ValuesPedestrianWindComfort;
+        public double[] ValuesPedestrianWindComfort { get; set; }
 
-        public UThresholdInfo[] ThresholdInfo;
+        public UThresholdInfo[] ThresholdInfo { get; set; }
 
-        public WindComfortWeibull(WindFactorsAnnual wa, int[] SimulatedWindDirections, Weather w, PCIdx cmftidx)
+        public WindComfortWeibull(WindFactorsAnnual wa, int[] SimulatedWindDirections, PCIdx cmftidx)
         {
-            var EPWWindDirs = w.WindDirection;
-            var EPWWsp = w.WindSpeed;
-
             CalcPedestrianComfort(wa.ValuesTemporal, SimulatedWindDirections, cmftidx);
         }
 
@@ -24,7 +21,8 @@ namespace EddyLib.OutdoorComfort
         {
             int sensorPointCount = ValuesTemporal.GetLength(1);
 
-            var PedestrianWindComfort = new double[sensorPointCount];
+            this.ValuesPedestrianWindComfort = new double[sensorPointCount];
+            this.ThresholdInfo = new UThresholdInfo[sensorPointCount];
 
             // WindFactorsAnnual
             // [ProbingPoints , 8760]

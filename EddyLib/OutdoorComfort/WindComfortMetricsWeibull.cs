@@ -23,17 +23,17 @@ namespace EddyLib.OutdoorComfort.Metrics
                 //4 - D > 7.6 m / s > 5 % Walking Fast
                 //5 - E > 7.6 m / s >= 2 % Uncomfortable
 
-                //UTC.Add(1, new UThresholdInfo { Cat = 1, UThres = 1.8, TimeThres = Percent(2), Class = "Sitting Long", ClassLetter = "A", Operator = CompOperator.S });
-                //UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 3.6, TimeThres = Percent(2), Class = "Sitting Short", ClassLetter = "B", Operator = CompOperator.S });
-                //UTC.Add(3, new UThresholdInfo { Cat = 3, UThres = 5.3, TimeThres = Percent(2), Class = "Walking Leisurely", ClassLetter = "C", Operator = CompOperator.S });
-                //UTC.Add(4, new UThresholdInfo { Cat = 4, UThres = 7.6, TimeThres = Percent(5), Class = "Walking Fast", ClassLetter = "D", Operator = CompOperator.GOE });
-                //UTC.Add(5, new UThresholdInfo { Cat = 5, UThres = 7.6, TimeThres = Percent(2), Class = "Uncomfortable", ClassLetter = "E", Operator = CompOperator.GOE });
-
                 UTC.Add(1, new UThresholdInfo { Cat = 1, UThres = 1.8, TimeThres = Percent(2), Class = "Sitting Long", ClassLetter = "A", Operator = CompOperator.S });
-                UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 3.6, TimeThres = Percent(2), Class = "Sitting Short", ClassLetter = "B", Operator = CompOperator.G });
-                UTC.Add(3, new UThresholdInfo { Cat = 3, UThres = 5.3, TimeThres = Percent(2), Class = "Walking Leisurely", ClassLetter = "C", Operator = CompOperator.G });
+                UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 3.6, TimeThres = Percent(2), Class = "Sitting Short", ClassLetter = "B", Operator = CompOperator.S });
+                UTC.Add(3, new UThresholdInfo { Cat = 3, UThres = 5.3, TimeThres = Percent(2), Class = "Walking Leisurely", ClassLetter = "C", Operator = CompOperator.S });
                 UTC.Add(4, new UThresholdInfo { Cat = 4, UThres = 7.6, TimeThres = Percent(5), Class = "Walking Fast", ClassLetter = "D", Operator = CompOperator.GOE });
                 UTC.Add(5, new UThresholdInfo { Cat = 5, UThres = 7.6, TimeThres = Percent(2), Class = "Uncomfortable", ClassLetter = "E", Operator = CompOperator.GOE });
+
+                //UTC.Add(1, new UThresholdInfo { Cat = 1, UThres = 1.8, TimeThres = Percent(2), Class = "Sitting Long", ClassLetter = "A", Operator = CompOperator.S });
+                //UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 3.6, TimeThres = Percent(2), Class = "Sitting Short", ClassLetter = "B", Operator = CompOperator.G });
+                //UTC.Add(3, new UThresholdInfo { Cat = 3, UThres = 5.3, TimeThres = Percent(2), Class = "Walking Leisurely", ClassLetter = "C", Operator = CompOperator.G });
+                //UTC.Add(4, new UThresholdInfo { Cat = 4, UThres = 7.6, TimeThres = Percent(5), Class = "Walking Fast", ClassLetter = "D", Operator = CompOperator.GOE });
+                //UTC.Add(5, new UThresholdInfo { Cat = 5, UThres = 7.6, TimeThres = Percent(2), Class = "Uncomfortable", ClassLetter = "E", Operator = CompOperator.GOE });
             }
             else if (cmftidx == PCIdx.LawsonLDDC)
             {
@@ -46,19 +46,19 @@ namespace EddyLib.OutdoorComfort.Metrics
                 //5 - E > 8 m / s > 5 % Uncomfortable
                 //6 - S > 15 m / s > 0.022 % Unsafe
 
-                //UTC.Add(1, new UThresholdInfo { Cat = 1, UThres = 2.5, TimeThres = Percent(5), Class = "Frequent sitting", ClassLetter = "A", Operator = CompOperator.S });
-                //UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 4, TimeThres   = Percent(5), Class = "Occasional sitting", ClassLetter = "B", Operator = CompOperator.S });
-                //UTC.Add(3, new UThresholdInfo { Cat = 3, UThres = 6, TimeThres   = Percent(5), Class = "Standing", ClassLetter = "C", Operator = CompOperator.S });
-                //UTC.Add(4, new UThresholdInfo { Cat = 4, UThres = 8, TimeThres   = Percent(5), Class = "Walking", ClassLetter = "D", Operator = CompOperator.S });
-                //UTC.Add(5, new UThresholdInfo { Cat = 5, UThres = 8, TimeThres   = Percent(5), Class = "Uncomfortable", ClassLetter = "E", Operator = CompOperator.G });
-                //UTC.Add(6, new UThresholdInfo { Cat = 6, UThres = 15, TimeThres  = Percent(0.022), Class = "Unsafe", ClassLetter = "S", Operator = CompOperator.G });
-
                 UTC.Add(1, new UThresholdInfo { Cat = 1, UThres = 2.5, TimeThres = Percent(5), Class = "Frequent sitting", ClassLetter = "A", Operator = CompOperator.S });
-                UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 4, TimeThres = Percent(5), Class = "Occasional sitting", ClassLetter = "B", Operator = CompOperator.G });
-                UTC.Add(3, new UThresholdInfo { Cat = 3, UThres = 6, TimeThres = Percent(5), Class = "Standing", ClassLetter = "C", Operator = CompOperator.G });
-                UTC.Add(4, new UThresholdInfo { Cat = 4, UThres = 8, TimeThres = Percent(5), Class = "Walking", ClassLetter = "D", Operator = CompOperator.G });
+                UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 4, TimeThres = Percent(5), Class = "Occasional sitting", ClassLetter = "B", Operator = CompOperator.S });
+                UTC.Add(3, new UThresholdInfo { Cat = 3, UThres = 6, TimeThres = Percent(5), Class = "Standing", ClassLetter = "C", Operator = CompOperator.S });
+                UTC.Add(4, new UThresholdInfo { Cat = 4, UThres = 8, TimeThres = Percent(5), Class = "Walking", ClassLetter = "D", Operator = CompOperator.S });
                 UTC.Add(5, new UThresholdInfo { Cat = 5, UThres = 8, TimeThres = Percent(5), Class = "Uncomfortable", ClassLetter = "E", Operator = CompOperator.G });
                 UTC.Add(6, new UThresholdInfo { Cat = 6, UThres = 15, TimeThres = Percent(0.022), Class = "Unsafe", ClassLetter = "S", Operator = CompOperator.G });
+
+                //UTC.Add(1, new UThresholdInfo { Cat = 1, UThres = 2.5, TimeThres = Percent(5), Class = "Frequent sitting", ClassLetter = "A", Operator = CompOperator.S });
+                //UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 4, TimeThres = Percent(5), Class = "Occasional sitting", ClassLetter = "B", Operator = CompOperator.G });
+                //UTC.Add(3, new UThresholdInfo { Cat = 3, UThres = 6, TimeThres = Percent(5), Class = "Standing", ClassLetter = "C", Operator = CompOperator.G });
+                //UTC.Add(4, new UThresholdInfo { Cat = 4, UThres = 8, TimeThres = Percent(5), Class = "Walking", ClassLetter = "D", Operator = CompOperator.G });
+                //UTC.Add(5, new UThresholdInfo { Cat = 5, UThres = 8, TimeThres = Percent(5), Class = "Uncomfortable", ClassLetter = "E", Operator = CompOperator.G });
+                //UTC.Add(6, new UThresholdInfo { Cat = 6, UThres = 15, TimeThres = Percent(0.022), Class = "Unsafe", ClassLetter = "S", Operator = CompOperator.G });
             }
             else if (cmftidx == PCIdx.Lawson2001)
             {
@@ -72,61 +72,61 @@ namespace EddyLib.OutdoorComfort.Metrics
                 //6 - S15 > 15 m / s > 0.023 % Unsafe frail
                 //7 - S20 > 20 m / s > 0.023 % Unsafe all
 
-                //UTC.Add(1, new UThresholdInfo { Cat = 1, UThres = 4, TimeThres =  Percent(5), Class = "Frequent sitting", ClassLetter = "A", Operator = CompOperator.S });
-                //UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 6, TimeThres =  Percent(5), Class = "Occasional sitting", ClassLetter = "B", Operator = CompOperator.S });
-                //UTC.Add(3, new UThresholdInfo { Cat = 3, UThres = 8, TimeThres =  Percent(5), Class = "Standing", ClassLetter = "C", Operator = CompOperator.S });
-                //UTC.Add(4, new UThresholdInfo { Cat = 4, UThres = 10, TimeThres = Percent(5), Class = "Walking", ClassLetter = "D", Operator = CompOperator.S });
-                //UTC.Add(5, new UThresholdInfo { Cat = 5, UThres = 10, TimeThres = Percent(5), Class = "Uncomfortable", ClassLetter = "E", Operator = CompOperator.G });
-                //UTC.Add(6, new UThresholdInfo { Cat = 6, UThres = 15, TimeThres = Percent(0.023), Class = "Unsafe", ClassLetter = "S15", Operator = CompOperator.G });
-                //UTC.Add(7, new UThresholdInfo { Cat = 7, UThres = 15, TimeThres = Percent(0.023), Class = "Unsafe", ClassLetter = "S20", Operator = CompOperator.G });
-
                 UTC.Add(1, new UThresholdInfo { Cat = 1, UThres = 4, TimeThres = Percent(5), Class = "Frequent sitting", ClassLetter = "A", Operator = CompOperator.S });
-                UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 6, TimeThres = Percent(5), Class = "Occasional sitting", ClassLetter = "B", Operator = CompOperator.G });
-                UTC.Add(3, new UThresholdInfo { Cat = 3, UThres = 8, TimeThres = Percent(5), Class = "Standing", ClassLetter = "C", Operator = CompOperator.G });
-                UTC.Add(4, new UThresholdInfo { Cat = 4, UThres = 10, TimeThres = Percent(5), Class = "Walking", ClassLetter = "D", Operator = CompOperator.G });
+                UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 6, TimeThres = Percent(5), Class = "Occasional sitting", ClassLetter = "B", Operator = CompOperator.S });
+                UTC.Add(3, new UThresholdInfo { Cat = 3, UThres = 8, TimeThres = Percent(5), Class = "Standing", ClassLetter = "C", Operator = CompOperator.S });
+                UTC.Add(4, new UThresholdInfo { Cat = 4, UThres = 10, TimeThres = Percent(5), Class = "Walking", ClassLetter = "D", Operator = CompOperator.S });
                 UTC.Add(5, new UThresholdInfo { Cat = 5, UThres = 10, TimeThres = Percent(5), Class = "Uncomfortable", ClassLetter = "E", Operator = CompOperator.G });
                 UTC.Add(6, new UThresholdInfo { Cat = 6, UThres = 15, TimeThres = Percent(0.023), Class = "Unsafe", ClassLetter = "S15", Operator = CompOperator.G });
                 UTC.Add(7, new UThresholdInfo { Cat = 7, UThres = 15, TimeThres = Percent(0.023), Class = "Unsafe", ClassLetter = "S20", Operator = CompOperator.G });
+
+                //UTC.Add(1, new UThresholdInfo { Cat = 1, UThres = 4, TimeThres = Percent(5), Class = "Frequent sitting", ClassLetter = "A", Operator = CompOperator.S });
+                //UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 6, TimeThres = Percent(5), Class = "Occasional sitting", ClassLetter = "B", Operator = CompOperator.G });
+                //UTC.Add(3, new UThresholdInfo { Cat = 3, UThres = 8, TimeThres = Percent(5), Class = "Standing", ClassLetter = "C", Operator = CompOperator.G });
+                //UTC.Add(4, new UThresholdInfo { Cat = 4, UThres = 10, TimeThres = Percent(5), Class = "Walking", ClassLetter = "D", Operator = CompOperator.G });
+                //UTC.Add(5, new UThresholdInfo { Cat = 5, UThres = 10, TimeThres = Percent(5), Class = "Uncomfortable", ClassLetter = "E", Operator = CompOperator.G });
+                //UTC.Add(6, new UThresholdInfo { Cat = 6, UThres = 15, TimeThres = Percent(0.023), Class = "Unsafe", ClassLetter = "S15", Operator = CompOperator.G });
+                //UTC.Add(7, new UThresholdInfo { Cat = 7, UThres = 15, TimeThres = Percent(0.023), Class = "Unsafe", ClassLetter = "S20", Operator = CompOperator.G });
             }
             else if (cmftidx == PCIdx.Davenport)
             {
-                //UTC.Add(1, new UThresholdInfo { Cat = 1, UThres = 3.6, TimeThres = Percent(1.5), Class = "Sitting Long", ClassLetter = "A", Operator = CompOperator.S });
-                //UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 5.3, TimeThres = Percent(1.5), Class = "Sitting Short", ClassLetter = "B", Operator = CompOperator.S });
-                //UTC.Add(3, new UThresholdInfo { Cat = 3, UThres = 7.6, TimeThres = Percent(1.5), Class = "Walking Leisurely", ClassLetter = "C", Operator = CompOperator.S });
-                //UTC.Add(4, new UThresholdInfo { Cat = 4, UThres = 9.8, TimeThres = Percent(1.5), Class = "Walking Fast", ClassLetter = "D", Operator = CompOperator.S });
-                //UTC.Add(5, new UThresholdInfo { Cat = 5, UThres = 9.8, TimeThres = Percent(1.5 ), Class = "Uncomfortable", ClassLetter = "E", Operator = CompOperator.GOE });
-                //UTC.Add(6, new UThresholdInfo { Cat = 6, UThres = 15.1, TimeThres =Percent(0.01 ), Class = "Dangerous", ClassLetter = "S", Operator = CompOperator.GOE });
-
                 UTC.Add(1, new UThresholdInfo { Cat = 1, UThres = 3.6, TimeThres = Percent(1.5), Class = "Sitting Long", ClassLetter = "A", Operator = CompOperator.S });
-                UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 5.3, TimeThres = Percent(1.5), Class = "Sitting Short", ClassLetter = "B", Operator = CompOperator.G });
-                UTC.Add(3, new UThresholdInfo { Cat = 3, UThres = 7.6, TimeThres = Percent(1.5), Class = "Walking Leisurely", ClassLetter = "C", Operator = CompOperator.G });
-                UTC.Add(4, new UThresholdInfo { Cat = 4, UThres = 9.8, TimeThres = Percent(1.5), Class = "Walking Fast", ClassLetter = "D", Operator = CompOperator.G });
+                UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 5.3, TimeThres = Percent(1.5), Class = "Sitting Short", ClassLetter = "B", Operator = CompOperator.S });
+                UTC.Add(3, new UThresholdInfo { Cat = 3, UThres = 7.6, TimeThres = Percent(1.5), Class = "Walking Leisurely", ClassLetter = "C", Operator = CompOperator.S });
+                UTC.Add(4, new UThresholdInfo { Cat = 4, UThres = 9.8, TimeThres = Percent(1.5), Class = "Walking Fast", ClassLetter = "D", Operator = CompOperator.S });
                 UTC.Add(5, new UThresholdInfo { Cat = 5, UThres = 9.8, TimeThres = Percent(1.5), Class = "Uncomfortable", ClassLetter = "E", Operator = CompOperator.GOE });
                 UTC.Add(6, new UThresholdInfo { Cat = 6, UThres = 15.1, TimeThres = Percent(0.01), Class = "Dangerous", ClassLetter = "S", Operator = CompOperator.GOE });
+
+                //UTC.Add(1, new UThresholdInfo { Cat = 1, UThres = 3.6, TimeThres = Percent(1.5), Class = "Sitting Long", ClassLetter = "A", Operator = CompOperator.S });
+                //UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 5.3, TimeThres = Percent(1.5), Class = "Sitting Short", ClassLetter = "B", Operator = CompOperator.G });
+                //UTC.Add(3, new UThresholdInfo { Cat = 3, UThres = 7.6, TimeThres = Percent(1.5), Class = "Walking Leisurely", ClassLetter = "C", Operator = CompOperator.G });
+                //UTC.Add(4, new UThresholdInfo { Cat = 4, UThres = 9.8, TimeThres = Percent(1.5), Class = "Walking Fast", ClassLetter = "D", Operator = CompOperator.G });
+                //UTC.Add(5, new UThresholdInfo { Cat = 5, UThres = 9.8, TimeThres = Percent(1.5), Class = "Uncomfortable", ClassLetter = "E", Operator = CompOperator.GOE });
+                //UTC.Add(6, new UThresholdInfo { Cat = 6, UThres = 15.1, TimeThres = Percent(0.01), Class = "Dangerous", ClassLetter = "S", Operator = CompOperator.GOE });
             }
             else if (cmftidx == PCIdx.NEN8100Comfort)
             {
-                //UTC.Add(1, new UThresholdInfo { Cat = 1, UThres = 5, TimeThres = Percent(2.5), Class = "Sitting Long", ClassLetter = "A", Operator = CompOperator.S });
-                //UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 5, TimeThres = Percent(5 ), Class = "Sitting Short", ClassLetter = "B", Operator = CompOperator.S });
-                //UTC.Add(3, new UThresholdInfo { Cat = 3, UThres = 5, TimeThres = Percent(10  ), Class = "Walking Leisurely", ClassLetter = "C", Operator = CompOperator.S });
-                //UTC.Add(4, new UThresholdInfo { Cat = 4, UThres = 5, TimeThres = Percent(20  ), Class = "Walking Fast", ClassLetter = "D", Operator = CompOperator.S });
-                //UTC.Add(5, new UThresholdInfo { Cat = 5, UThres = 5, TimeThres = Percent(20  ), Class = "Uncomfortable", ClassLetter = "E", Operator = CompOperator.G });
-
                 UTC.Add(1, new UThresholdInfo { Cat = 1, UThres = 5, TimeThres = Percent(2.5), Class = "Sitting Long", ClassLetter = "A", Operator = CompOperator.S });
-                UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 5, TimeThres = Percent(5), Class = "Sitting Short", ClassLetter = "B", Operator = CompOperator.G });
-                UTC.Add(3, new UThresholdInfo { Cat = 3, UThres = 5, TimeThres = Percent(10), Class = "Walking Leisurely", ClassLetter = "C", Operator = CompOperator.G });
-                UTC.Add(4, new UThresholdInfo { Cat = 4, UThres = 5, TimeThres = Percent(20), Class = "Walking Fast", ClassLetter = "D", Operator = CompOperator.G });
+                UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 5, TimeThres = Percent(5), Class = "Sitting Short", ClassLetter = "B", Operator = CompOperator.S });
+                UTC.Add(3, new UThresholdInfo { Cat = 3, UThres = 5, TimeThres = Percent(10), Class = "Walking Leisurely", ClassLetter = "C", Operator = CompOperator.S });
+                UTC.Add(4, new UThresholdInfo { Cat = 4, UThres = 5, TimeThres = Percent(20), Class = "Walking Fast", ClassLetter = "D", Operator = CompOperator.S });
                 UTC.Add(5, new UThresholdInfo { Cat = 5, UThres = 5, TimeThres = Percent(20), Class = "Uncomfortable", ClassLetter = "E", Operator = CompOperator.G });
+
+                //UTC.Add(1, new UThresholdInfo { Cat = 1, UThres = 5, TimeThres = Percent(2.5), Class = "Sitting Long", ClassLetter = "A", Operator = CompOperator.S });
+                //UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 5, TimeThres = Percent(5), Class = "Sitting Short", ClassLetter = "B", Operator = CompOperator.G });
+                //UTC.Add(3, new UThresholdInfo { Cat = 3, UThres = 5, TimeThres = Percent(10), Class = "Walking Leisurely", ClassLetter = "C", Operator = CompOperator.G });
+                //UTC.Add(4, new UThresholdInfo { Cat = 4, UThres = 5, TimeThres = Percent(20), Class = "Walking Fast", ClassLetter = "D", Operator = CompOperator.G });
+                //UTC.Add(5, new UThresholdInfo { Cat = 5, UThres = 5, TimeThres = Percent(20), Class = "Uncomfortable", ClassLetter = "E", Operator = CompOperator.G });
             }
             else if (cmftidx == PCIdx.NEN8100Safety)
             {
-                //UTC.Add(1, new UThresholdInfo { Cat = 1, UThres = 15, TimeThres =   Percent(0.05), Class = "No Risk", ClassLetter = "A", Operator = CompOperator.S });
-                //  UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 15, TimeThres = Percent(0.3), Class = "Limited Risk", ClassLetter = "B", Operator = CompOperator.S });
-                //  UTC.Add(3, new UThresholdInfo { Cat = 3, UThres = 15, TimeThres = Percent(0.3), Class = "Dangerous", ClassLetter = "C", Operator = CompOperator.G });
-
                 UTC.Add(1, new UThresholdInfo { Cat = 1, UThres = 15, TimeThres = Percent(0.05), Class = "No Risk", ClassLetter = "A", Operator = CompOperator.S });
-                UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 15, TimeThres = Percent(0.3), Class = "Limited Risk", ClassLetter = "B", Operator = CompOperator.G });
+                UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 15, TimeThres = Percent(0.3), Class = "Limited Risk", ClassLetter = "B", Operator = CompOperator.S });
                 UTC.Add(3, new UThresholdInfo { Cat = 3, UThres = 15, TimeThres = Percent(0.3), Class = "Dangerous", ClassLetter = "C", Operator = CompOperator.G });
+
+                //UTC.Add(1, new UThresholdInfo { Cat = 1, UThres = 15, TimeThres = Percent(0.05), Class = "No Risk", ClassLetter = "A", Operator = CompOperator.S });
+                //UTC.Add(2, new UThresholdInfo { Cat = 2, UThres = 15, TimeThres = Percent(0.3), Class = "Limited Risk", ClassLetter = "B", Operator = CompOperator.G });
+                //UTC.Add(3, new UThresholdInfo { Cat = 3, UThres = 15, TimeThres = Percent(0.3), Class = "Dangerous", ClassLetter = "C", Operator = CompOperator.G });
             }
 
             return UTC;

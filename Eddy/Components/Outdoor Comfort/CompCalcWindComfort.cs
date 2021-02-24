@@ -26,7 +26,7 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompCalcWindComfort()
-          : base("Annual Wind Comfort", "Wind Comfort", @"Wind Comfort
+          : base("Pedestrian Wind Comfort", "Pedestrian Wind Comfort", @"Pedestrian Wind Comfort
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "7 | Metrics")
@@ -39,12 +39,13 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Wind Factors Annual", "WFA", @"Wind Factors Annual Object", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Wind Factors Spatial", "WFS", @"Wind Factors Spatial Object", GH_ParamAccess.item);
 
             pManager.AddIntegerParameter("Wind Comfort Index", "WCmftIdx", "Select a Wind Comfort Index with a right click.", GH_ParamAccess.item, 0);
 
             //Using an enum to generate the dropdown items
-            var types = Enum.GetNames(typeof(EddyLib.OutdoorComfort.WindComfort.PCIdx));
-            Param_Integer param = pManager[1] as Param_Integer;
+            var types = Enum.GetNames(typeof(EddyLib.OutdoorComfort.WindComfortHelper.PCIdx));
+            Param_Integer param = pManager[2] as Param_Integer;
 
             for (int i = 0; i < types.Length; i++)
             {
@@ -68,48 +69,56 @@ Binning is done by evaluating actual observed wind velocities for every hour, no
 
 General Lawson
 
-1 - A > 1.8 m/s < 2 % Sitting Long
-2 - B > 3.6 m/s < 2 % Sitting Short
-3 - C > 5.3 m/s < 2 % Walking Leisurely
-4 - D > 7.6 m/s > 5 % Walking Fast
-5 - E > 7.6 m/s >= 2 % Uncomfortable
+1 - A   > 1.8 m/s <   2 %   Sitting Long
+2 - B   > 3.6 m/s <   2 %   Sitting Short
+3 - C   > 5.3 m/s <   2 %   Walking Leisurely
+4 - D   > 7.6 m/s >   5 %   Walking Fast
+5 - E   > 7.6 m/s >=  2 %   Uncomfortable
 
 Lawson LDDC
 
-1 - A > 2.5 m/s < 5 % Frequent sitting
-2 - B > 4 m/s < 5 % Occasional sitting
-3 - C > 6 m/s < 5 % Standing
-4 - D > 8 m/s < 5 % Walking
-5 - E > 8 m/s > 5 % Uncomfortable
-6 - S > 15 m/s > 0.022 % Unsafe
+1 - A   > 2.5 m/s < 5 %       Frequent sitting
+2 - B   > 4 m/s   < 5 %       Occasional sitting
+3 - C   > 6 m/s   < 5 %       Standing
+4 - D   > 8 m/s   < 5 %       Walking
+5 - E   > 8 m/s   > 5 %       Uncomfortable
+6 - S   > 15 m/s  > 0.022 %   Unsafe
 
 Lawson 2001
 
-1 - A   > 4 m/s < 5 % Sitting
-2 - B   > 6 m/s < 5 % Standing
-3 - C   > 8 m/s < 5 % Strolling
-4 - D   > 10 m/s < 5 % Business Walking
-5 - E   > 10 m/s > 5 % Uncomfortable
-6 - S15 > 15 m/s > 0.023 % Unsafe frail
-7 - S20 > 20 m/s > 0.023 % Unsafe all
+1 - A   > 4 m/s     < 5 %       Sitting
+2 - B   > 6 m/s     < 5 %       Standing
+3 - C   > 8 m/s     < 5 %       Strolling
+4 - D   > 10 m/s    < 5 %       Business Walking
+5 - E   > 10 m/s    > 5 %       Uncomfortable
+6 - S15 > 15 m/s    > 0.023 %   Unsafe frail
+7 - S20 > 20 m/s    > 0.023 %   Unsafe all
 
 Davenport
 
-1 - A > 3.6 m/s < 1.5 % Sitting Long
-2 - B > 5.3 m/s < 1.5 % Sitting Short
-3 - C > 7.6 m/s < 1.5 % Walking Leisurely
-4 - D > 9.8 m/s < 1.5 % Walking Fast
-5 - E > 9.8 m/s >= 1.5 % Uncomfortable
-6 - S > 15.1 m/s >= 0.01 % Dangerous
+1 - A   > 3.6 m/s   <   1.5 %   Sitting Long
+2 - B   > 5.3 m/s   <   1.5 %   Sitting Short
+3 - C   > 7.6 m/s   <   1.5 %   Walking Leisurely
+4 - D   > 9.8 m/s   <   1.5 %   Walking Fast
+5 - E   > 9.8 m/s   >=  1.5 %   Uncomfortable
+6 - S   > 15.1 m/s  >=  0.01 %  Dangerous
 
-NEN8100
+NEN8100 Comfort
 
-1 - A > 5 m/s < 2.5 % Sitting Long
-2 - B > 5 m/s < 5 % Sitting Short
-3 - C > 5 m/s < 10 % Walking Leisurely
-4 - D > 5 m/s < 20 % Walking Fast
-5 - E > 5 m/s > 20 % Uncomfortable
-6 - S > 15 m/s > 0.05 % Dangerous", GH_ParamAccess.list);
+1 - A   > 5 m/s     < 2.5 %     Sitting Long
+2 - B   > 5 m/s     < 5 %       Sitting Short
+3 - C   > 5 m/s     < 10 %      Walking Leisurely
+4 - D   > 5 m/s     < 20 %      Walking Fast
+5 - E   > 5 m/s     > 20 %      Uncomfortable
+6 - S   > 15 m/s    > 0.05 %    Dangerous
+
+NEN8100 Safety
+
+1 - A   > 15 m/s    < 0.05 %    No Risk,
+2 - B   > 15 m/s    < 0.3 %     Limited Risk
+3 - C   > 15 m/s    > 0.3 %     Dangerous"
+
+, GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -128,9 +137,12 @@ NEN8100
             WindFactorsAnnual WFA = null;
             DA.GetData(0, ref WFA);
 
+            WindFactorsSpatial WFS = null;
+            DA.GetData(1, ref WFS);
+
             int cmftidx = 0;
             DA.GetData("Wind Comfort Index", ref cmftidx);
-            WindComfort.PCIdx cmftcmftindex = (WindComfort.PCIdx)cmftidx;
+            WindComfortHelper.PCIdx cmftcmftindex = (WindComfortHelper.PCIdx)cmftidx;
 
             //List<Point3d> probes = new List<Point3d>();
             //DA.GetDataList("Probing points", probes);
@@ -154,7 +166,7 @@ NEN8100
 
             #region Wind Comfort
 
-            var wc = new WindComfort(WFA, cmftcmftindex);
+            var wc = new WindComfortWeibull(WFA, WFS.SimulatedWindDirections.ToArray(), cmftcmftindex);
 
             if (GH_Document.IsEscapeKeyDown())
             {
