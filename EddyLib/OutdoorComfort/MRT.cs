@@ -72,7 +72,6 @@ namespace EddyLib.OutdoorComfort
 
         public MRT(string baseWorkingDir, Mesh BuildingGeometry, Sky sky, SkyViewFactor vf, Weather weather, MRTType type, Point3d[] probes, bool recalc)
         {
-            var csvMRT = baseWorkingDir + @"MRT.csv";
             var binMRT = baseWorkingDir + @"MRT.bin";
 
             var numberOfProbes = probes.Length;
@@ -103,10 +102,6 @@ namespace EddyLib.OutdoorComfort
             }
             else if (recalc == true)
             {
-                if (File.Exists(csvMRT))
-                {
-                    File.Delete(csvMRT);
-                }
                 if (File.Exists(binMRT))
                 {
                     File.Delete(binMRT);
@@ -148,7 +143,6 @@ namespace EddyLib.OutdoorComfort
                  });
 
                 RadianceFiles.writeBin(baseWorkingDir + @"\MRT.bin", this.Values);
-                ArrayHelper._2DArray2CSV(this.Values, baseWorkingDir + @"\MRT.csv", true, 1);
             }
 
             #endregion TwoPhaseDDS

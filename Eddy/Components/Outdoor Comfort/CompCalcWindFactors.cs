@@ -53,7 +53,7 @@ For this, we support either a look-up for the closest simulated wind direction o
             ExpireSolution(true);
         }
 
-        public bool interpolate = true;
+        public bool interpolate = false;
 
         public override bool Write(GH_IO.Serialization.GH_IWriter writer)
         {
@@ -91,9 +91,9 @@ For this, we support either a look-up for the closest simulated wind direction o
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Wind Factors Spatial", "WFS", @"Wind Factors Spatial
+            pManager.AddGenericParameter("Wind Factors Spatial", "WFS", @"Wind Amplification Factors Spatial
 
-Wind Factors (dimensionless wind velocity) for each simulated wind direction.
+Wind Amplification Factors (dimensionless wind velocity) for each simulated wind direction.
 This yields a datatree of the size [Number of simulated wind directions x number of sensor points].", GH_ParamAccess.item);
 
             pManager.AddGenericParameter("Wind Factors Annual", "WFA", @"Wind Factors Annual
@@ -126,19 +126,7 @@ This yields a datatree of the size [8760 h x number of sensor points].", GH_Para
             bool run = false;
             DA.GetData("Run", ref run);
 
-            // Do not use DataTree inside actual components, it is only meant to be used inside
-            // script components. Use GH_Structure instead.
-            // https://www.grasshopper3d.com/forum/topics/getdatatree-fro-a-datatree-point3d DataTree
-            // and GH_Structure are annoyingly similar yet non-overlapping classes.GH_Structure is
-            // used by Grasshopper itself to store data, DataTree is a version that was made
-            // specifically for the use inside script components.This part of the SDK is a mess but
-            // there's nothing we can do about it at this point.
-
-            //Grasshopper.Kernel.Data.GH_Structure<Grasshopper.Kernel.Types.IGH_Goo> U = null;
-            //DA.GetDataTree("U", out U);//
             DA.GetDataTree("Wind Velocity", out GH_Structure<GH_Vector> U);
-
-            //DA.GetDataTree("U", out DataTree<Vector> U);
 
             #region Error checks
 
@@ -204,7 +192,7 @@ This yields a datatree of the size [8760 h x number of sensor points].", GH_Para
 
                 #endregion Load weather
 
-                var wftemporal = new WindFactorsAnnual(RES.WorkingDirectory, RES.Domain.BCond, weather, wfspatial, probes, interpolate, run);
+                var wftemporal = new WindFactorsTemporal(RES.WorkingDirectory, RES.Domain.BCond, weather, wfspatial, probes, interpolate, run);
 
                 if (GH_Document.IsEscapeKeyDown())
                 {
@@ -212,7 +200,7 @@ This yields a datatree of the size [8760 h x number of sensor points].", GH_Para
                     GHDocument.RequestAbortSolution();
                 }
 
-                if (wftemporal.ValuesTemporal is null)
+                if (wftemporal.ValuesTemporalAtProbingHeight is null)
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Either precalculated results could not be loaded or the WindFactors array has not been calculated yet.");
                     return;

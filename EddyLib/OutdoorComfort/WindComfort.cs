@@ -1,53 +1,56 @@
-﻿using EddyLib.OutdoorComfort.Metrics;
-using EddyLib.OutdoorComfort;
+﻿using EddyLib.OutdoorComfort;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using static EddyLib.OutdoorComfort.WindComfortHelper;
+
+#if DEBUG
+[assembly: InternalsVisibleTo("UnitTest")]
+#endif
 
 namespace EddyLib.OutdoorComfort
 {
     // This is a post-processing class
     public class WindComfort
     {
-        public double[] ValuesPedestrianWindComfort;
+        public double[] ValuesPedestrianWindComfortCat { get; set; }
+        public string[] ValuesPedestrianWindComfortClass { get; set; }
 
-        public WindComfort(WindFactorsAnnual wf, WindComfortHelper.PCMetric pcidxx)
+        public string[] ValuesPedestrianWindComfortClassLetter { get; set; }
+
+        public UThresholdInfo[] ThresholdInfo { get; set; }
+
+        public WindComfort(WindFactorsSpatial ws, WindFactorsTemporal wa, WindComfortHelper.PCMetric pcidxx)
         {
-            this.ValuesPedestrianWindComfort = CalcPedestrianComfort(wf.ValuesTemporal, pcidxx);
+            CalcPedestrianComfort(ws, wa, pcidxx);
         }
 
-        private double[] CalcPedestrianComfort(double[,] ValuesWindFactors, WindComfortHelper.PCMetric cmftidx)
+        private void CalcPedestrianComfort(WindFactorsSpatial ws, WindFactorsTemporal wa, WindComfortHelper.PCMetric cmftidx)
         {
-            int sensorPointCount = ValuesWindFactors.GetLength(1);
+            int sensorPointCount = wa.ValuesTemporalAtProbingHeight.GetLength(1);
 
-            var PedestrianWindComfort = new double[sensorPointCount];
+            this.ValuesPedestrianWindComfortCat = new double[sensorPointCount];
+            this.ValuesPedestrianWindComfortClass = new string[sensorPointCount];
+            this.ValuesPedestrianWindComfortClassLetter = new string[sensorPointCount];
+            this.ThresholdInfo = new UThresholdInfo[sensorPointCount];
+
+            Dictionary<int, UThresholdInfo> LTI = WindComfortMetricsWeibull.ThresholdInfo(cmftidx);
 
             for (int probe = 0; probe < sensorPointCount; probe++)
             {
                 // column is all hours of the year
-                var column = ArrayHelper.CustomArray<double>.GetColumn(ValuesWindFactors, probe);
+                var column = ArrayHelper.CustomArray<double>.GetColumn(wa.ValuesTemporalAtProbingHeight, probe);
 
-                if (cmftidx == PCMetric.Davenport)
-                {
-                    PedestrianWindComfort[probe] = WindComfortMetricsCounting.CalcDavenportComfort(column);
-                }
-                else if (cmftidx == PCMetric.LawsonGeneral)
-                {
-                    PedestrianWindComfort[probe] = WindComfortMetricsCounting.CalcLawsonGeneralComfort(column);
-                }
-                else if (cmftidx == PCMetric.LawsonLDDC)
-                {
-                    PedestrianWindComfort[probe] = WindComfortMetricsCounting.CalcLawsonLDDCComfort(column);
-                }
-                else if (cmftidx == PCMetric.Lawson2001)
-                {
-                    PedestrianWindComfort[probe] = WindComfortMetricsCounting.CalcLawson2001Comfort(column);
-                }
-                else
-                {
-                    PedestrianWindComfort[probe] = WindComfortMetricsCounting.CalcNEN8100Comfort(column);
-                }
+                // Move to 10m according to Blocken
+
+                // column = column.Select(x => EddyLib.BCs.BoundaryCondition.ScaleABL(x, 1.75, ws.BCond.z0, 10)).ToArray();
+
+                this.ThresholdInfo[probe] = WindComfortMetricsCounting.CalcComfortCountBins(column, LTI);
+
+                this.ValuesPedestrianWindComfortCat[probe] = ThresholdInfo[probe].Cat;
+                this.ValuesPedestrianWindComfortClass[probe] = ThresholdInfo[probe].Class;
+                this.ValuesPedestrianWindComfortClassLetter[probe] = ThresholdInfo[probe].ClassLetter;
             }
-
-            return PedestrianWindComfort;
         }
     }
 }

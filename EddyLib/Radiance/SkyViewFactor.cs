@@ -49,7 +49,6 @@ namespace EddyLib.Radiance
             this.workingDir = workingDir;
             this.subDir = @"\Rad\ViewFactors\";
 
-            var csvSVF = subDir + @"SkyViewFactors.csv";
             var binSVF = subDir + @"SkyViewFactors.bin";
 
             var numberOfProbes = sensors.Length;
@@ -75,10 +74,6 @@ namespace EddyLib.Radiance
             }
             else if (recalc == true)
             {
-                if (File.Exists(csvSVF))
-                {
-                    File.Delete(csvSVF);
-                }
                 if (File.Exists(binSVF))
                 {
                     File.Delete(binSVF);
@@ -86,7 +81,6 @@ namespace EddyLib.Radiance
 
                 Run();
 
-                ArrayHelper._1DArray2CSV(this.Values, workingDir + subDir + @"\" + fileNameExport, true, 2);
                 RadianceFiles.writeBin1D(workingDir + subDir + @"\" + fileNameExport, this.Values);
             }
         }

@@ -614,11 +614,11 @@ namespace RhinoPlugin.Tests.Xunit
 
             Assert.Equal(0.44, Math.Round(wfs.ValuesSpatial[0, 0], 2));
 
-            var wft = new WindFactorsAnnual(workingdir, bcond, weather, wfs, points.ToList(), false, true);
+            var wft = new WindFactorsTemporal(workingdir, bcond, weather, wfs, points.ToList(), false, true);
 
             // Here, we would expect 44 % of 2.29 m/s which is the ABl velocity at 5 m height.
 
-            Assert.Equal(1.01, Math.Round(wft.ValuesTemporal[0, 0], 2));
+            Assert.Equal(1.01, Math.Round(wft.ValuesTemporalAtProbingHeight[0, 0], 2));
         }
 
         [Fact]
@@ -655,7 +655,7 @@ namespace RhinoPlugin.Tests.Xunit
             var points = Enumerable.Repeat(new Point3d(0, 0, 2), 100);
             var mdv = new MultiDirectionalVelocities(workingdir, windDirList.ToArray(), vecs, true, true);
             var wfs = new WindFactorsSpatial(workingdir, bcond, mdv, points.ToList(), false, true);
-            var wft = new WindFactorsAnnual(workingdir, bcond, weather, wfs, points.ToList(), false, true);
+            var wft = new WindFactorsTemporal(workingdir, bcond, weather, wfs, points.ToList(), false, true);
 
             //// Act
 

@@ -1,7 +1,8 @@
-﻿using EddyLib.OutdoorComfort.Metrics;
-using EddyLib.OutdoorComfort;
+﻿using EddyLib.OutdoorComfort;
+using EddyLib;
 using static EddyLib.OutdoorComfort.WindComfortHelper;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace EddyLib.OutdoorComfort
 {
@@ -15,14 +16,14 @@ namespace EddyLib.OutdoorComfort
 
         public UThresholdInfo[] ThresholdInfo { get; set; }
 
-        public WindComfortWeibull(WindFactorsAnnual wa, int[] SimulatedWindDirections, PCMetric cmftMetric)
+        public WindComfortWeibull(WindFactorsSpatial ws, WindFactorsTemporal wa, PCMetric cmftMetric)
         {
-            CalcPedestrianComfort(wa.ValuesTemporal, SimulatedWindDirections, cmftMetric);
+            CalcPedestrianComfort(ws, wa, cmftMetric);
         }
 
-        private void CalcPedestrianComfort(double[,] ValuesTemporal, int[] SimulatedWindDirections, PCMetric cmftMetric)
+        private void CalcPedestrianComfort(WindFactorsSpatial ws, WindFactorsTemporal wa, PCMetric cmftMetric)
         {
-            int sensorPointCount = ValuesTemporal.GetLength(1);
+            int sensorPointCount = wa.ValuesTemporalAtProbingHeight.GetLength(1);
 
             this.ValuesPedestrianWindComfortCat = new double[sensorPointCount];
             this.ValuesPedestrianWindComfortClass = new string[sensorPointCount];
@@ -40,9 +41,13 @@ namespace EddyLib.OutdoorComfort
             for (int probe = 0; probe < sensorPointCount; probe++)
             {
                 // column is all hours from one wind direction
-                var column = ArrayHelper.CustomArray<double>.GetColumn(ValuesTemporal, probe);
+                var column = ArrayHelper.CustomArray<double>.GetColumn(wa.ValuesTemporalAtProbingHeight, probe);
 
-                this.ThresholdInfo[probe] = WindComfortMetricsWeibull.CalcComfort(column, SimulatedWindDirections, LTI);
+                // Move to 10m according to Blocken
+
+                //  column = column.Select(x => EddyLib.BCs.BoundaryCondition.ScaleABL(x, 1.75, ws.BCond.z0, 10)).ToArray();
+
+                this.ThresholdInfo[probe] = WindComfortMetricsWeibull.CalcExceedance(column, LTI);
                 this.ValuesPedestrianWindComfortCat[probe] = ThresholdInfo[probe].Cat;
                 this.ValuesPedestrianWindComfortClass[probe] = ThresholdInfo[probe].Class;
                 this.ValuesPedestrianWindComfortClassLetter[probe] = ThresholdInfo[probe].ClassLetter;

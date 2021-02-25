@@ -101,6 +101,7 @@
     <Compile Include="Components\Residuals\CompVisResiduals.cs" />
     <Compile Include="Components\Settings\CompMeshSettings.cs" />
     <Compile Include="Components\Setup\CompDomainCyl.cs" />
+    <Compile Include="Components\WorkerWithProgBarComponent.cs" />
     <Compile Include="Licensing\LicenseTest.cs" />
     <Compile Include="Licensing\ModifyRegistry.cs" />
     <Compile Include="Components\Setup\CompDomainBox.cs" />

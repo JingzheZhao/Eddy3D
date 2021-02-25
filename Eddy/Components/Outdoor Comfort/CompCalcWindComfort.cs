@@ -4,21 +4,17 @@ using EddyLib.OutdoorComfort;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
 using System;
+using System.Windows.Forms;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
 // _GrasshopperDeveloperSettings Rhino command for that.
 
 namespace Eddy
+
 {
     public class CompCalcWindComfort : GH_Component
     {
-        // exposure
-        //public override GH_Exposure Exposure
-        //{
-        //    get { return GH_Exposure.hidden; }
-        //}
-
         /// <summary>
         /// Each implementation of GH_Component must provide a public constructor without any
         /// arguments. Category represents the Tab in which the component will appear, Subcategory
@@ -30,6 +26,7 @@ namespace Eddy
 
 Evaluation of annual wind velocites according to specific comfort metrics.
 Binning is done by calculating maximum allowable exceedance probability given the wind statistic.
+This component assumes probing at 1.75 m above ground.
 
 General Lawson
 
@@ -87,28 +84,57 @@ NEN8100 Safety
         {
         }
 
+        public bool WeibullFit = true;
+
+        protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
+        {
+            base.AppendAdditionalComponentMenuItems(menu);
+            Menu_AppendItem(menu, "Counting of Discrete Bins", Menu_DoClick, true, !WeibullFit);
+        }
+
+        private void Menu_DoClick(object sender, EventArgs e)
+        {
+            WeibullFit = !WeibullFit;
+            ExpireSolution(true);
+        }
+
+        public override bool Write(GH_IO.Serialization.GH_IWriter writer)
+        {
+            // First add our own field.
+            writer.SetBoolean("Weibull Fit", WeibullFit);
+
+            // Then call the base class implementation.
+            return base.Write(writer);
+        }
+
+        public override bool Read(GH_IO.Serialization.GH_IReader reader)
+        {
+            // First read our own field.
+            WeibullFit = reader.GetBoolean("Weibull Fit");
+
+            // Then call the base class implementation.
+            return base.Read(reader);
+        }
+
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Wind Factors Spatial", "WFS", @"Wind Factors Spatial Object", GH_ParamAccess.item);
+
             pManager.AddGenericParameter("Wind Factors Annual", "WFA", @"Wind Factors Annual Object", GH_ParamAccess.item);
 
             pManager.AddIntegerParameter("Wind Comfort Metric", "WCmftMetr", "Select a Wind Comfort Metric with a right click.", GH_ParamAccess.item, 0);
 
             //Using an enum to generate the dropdown items
-            var types = Enum.GetNames(typeof(EddyLib.OutdoorComfort.WindComfortHelper.PCMetric));
+            var types = Enum.GetNames(typeof(WindComfortHelper.PCMetric));
             Param_Integer param = pManager[2] as Param_Integer;
 
             for (int i = 0; i < types.Length; i++)
             {
                 param.AddNamedValue(types[i], i);
             }
-
-            //pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item);
-
-            //pManager[4].Optional = true;
         }
 
         /// <summary>
@@ -130,53 +156,50 @@ NEN8100 Safety
         /// </param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            //// mode to select environment
-            //if (!interpolate) { Message = "No interpolation"; }
-            //else { Message = "Interpolation"; }
-
-            WindFactorsAnnual WFA = null;
-            DA.GetData(1, ref WFA);
+            // mode to select environment
+            if (!WeibullFit) { Message = "Counting of Discrete Bins"; }
+            else { Message = "Weibull Fit"; }
 
             WindFactorsSpatial WFS = null;
             DA.GetData(0, ref WFS);
+
+            WindFactorsTemporal WFA = null;
+            DA.GetData(1, ref WFA);
 
             int cmftMetricGH = 0;
             DA.GetData("Wind Comfort Metric", ref cmftMetricGH);
             WindComfortHelper.PCMetric cmftMetric = (WindComfortHelper.PCMetric)cmftMetricGH;
 
-            //List<Point3d> probes = new List<Point3d>();
-            //DA.GetDataList("Probing points", probes);
-
-            //bool run = false;
-            //DA.GetData("Run", ref run);
-
-            // Do not use DataTree inside actual components, it is only meant to be used inside
-            // script components. Use GH_Structure instead.
-            // https://www.grasshopper3d.com/forum/topics/getdatatree-fro-a-datatree-point3d DataTree
-            // and GH_Structure are annoyingly similar yet non-overlapping classes.GH_Structure is
-            // used by Grasshopper itself to store data, DataTree is a version that was made
-            // specifically for the use inside script components.This part of the SDK is a mess but
-            // there's nothing we can do about it at this point.
-
-            //Grasshopper.Kernel.Data.GH_Structure<Grasshopper.Kernel.Types.IGH_Goo> U = null;
-            //DA.GetDataTree("U", out U);//
-            //DA.GetDataTree("Wind Velocity", out GH_Structure<GH_Vector> U);
-
-            //DA.GetDataTree("U", out DataTree<Vector> U);
-
             #region Wind Comfort
 
-            var wc = new WindComfortWeibull(WFA, WFS.SimulatedWindDirections.ToArray(), cmftMetric);
-
-            if (GH_Document.IsEscapeKeyDown())
+            if (WeibullFit == true)
             {
-                GH_Document GHDocument = OnPingDocument();
-                GHDocument.RequestAbortSolution();
-            }
+                var wc = new WindComfortWeibull(WFS, WFA, cmftMetric);
 
-            DA.SetDataList(0, wc.ValuesPedestrianWindComfortCat);
-            DA.SetDataList(1, wc.ValuesPedestrianWindComfortClassLetter);
-            DA.SetDataList(2, wc.ValuesPedestrianWindComfortClass);
+                if (GH_Document.IsEscapeKeyDown())
+                {
+                    GH_Document GHDocument = OnPingDocument();
+                    GHDocument.RequestAbortSolution();
+                }
+
+                DA.SetDataList(0, wc.ValuesPedestrianWindComfortCat);
+                DA.SetDataList(1, wc.ValuesPedestrianWindComfortClassLetter);
+                DA.SetDataList(2, wc.ValuesPedestrianWindComfortClass);
+            }
+            else
+            {
+                var wc = new WindComfort(WFS, WFA, cmftMetric);
+
+                if (GH_Document.IsEscapeKeyDown())
+                {
+                    GH_Document GHDocument = OnPingDocument();
+                    GHDocument.RequestAbortSolution();
+                }
+
+                DA.SetDataList(0, wc.ValuesPedestrianWindComfortCat);
+                DA.SetDataList(1, wc.ValuesPedestrianWindComfortClassLetter);
+                DA.SetDataList(2, wc.ValuesPedestrianWindComfortClass);
+            }
 
             #endregion Wind Comfort
         }

@@ -10,6 +10,14 @@ namespace EddyLib.OutdoorComfort
 {
     public class WindFactors
     {
+        public bool resultPrecalculated;
+
+        public bool wrongNumberOfProbes;
+
+        public string fileNameBinExtension = ".bin";
+
+        public string interpolationPref = "ip";
+
         public static double[,] VectorLengths(int sensorPointCount, int numberOfWindDirs, Vector3d[,] vectorProbes)
         {
             var velocities = new double[sensorPointCount, numberOfWindDirs];
@@ -31,21 +39,15 @@ namespace EddyLib.OutdoorComfort
         // This is just the ratio
         public double[,] ValuesSpatial;
 
-        public bool resultPrecalculated;
-
-        public bool wrongNumberOfProbes;
+        public BoundaryCondition BCond;
 
         private readonly string fileName = @"WF_S";
-
-        private readonly string fileNameCSVExtension = ".csv";
-
-        private readonly string fileNameBinExtension = ".bin";
 
         public List<int> SimulatedWindDirections;
 
         public WindFactorsSpatial(string baseWorkingDir, BoundaryCondition bcond, MultiDirectionalVelocities velocityProbes, List<Point3d> probes, bool interpolate, bool recalc)
         {
-            string csvWFSpatial = interpolate == false ? Path.Combine(baseWorkingDir + fileName + fileNameCSVExtension) : Path.Combine(baseWorkingDir + fileName + fileNameCSVExtension);
+            this.BCond = bcond;
             string binWFSpatial = interpolate == false ? Path.Combine(baseWorkingDir + fileName + fileNameBinExtension) : Path.Combine(baseWorkingDir + fileName + fileNameBinExtension);
 
             this.SimulatedWindDirections = bcond.windDirs;
@@ -67,27 +69,14 @@ namespace EddyLib.OutdoorComfort
             }
             else
             {
-                var files = new List<string>()
+                if (File.Exists(binWFSpatial))
                 {
-                     csvWFSpatial,
-                     binWFSpatial
-                };
-
-                foreach (string s in files)
-                {
-                    if (File.Exists(s))
-                    {
-                        File.Delete(s);
-                    }
+                    File.Delete(binWFSpatial);
                 }
 
                 this.ValuesSpatial = CalcWindFactorsSpatial(velocityProbes.Values, bcond, probes);
 
                 RadianceFiles.writeBin(binWFSpatial, this.ValuesSpatial);
-                ArrayHelper._2DArray2CSV(this.ValuesSpatial, csvWFSpatial, true, 1);
-
-                RadianceFiles.writeBin(binWFSpatial, this.ValuesSpatial);
-                ArrayHelper._2DArray2CSV(this.ValuesSpatial, csvWFSpatial, true, 1);
 
                 this.resultPrecalculated = false;
                 this.wrongNumberOfProbes = false;
@@ -166,35 +155,27 @@ namespace EddyLib.OutdoorComfort
         }
     }
 
-    public class WindFactorsAnnual : WindFactors
+    public class WindFactorsTemporal : WindFactors
     {
         // This is the ration times the velocity in the weather file
-        public double[,] ValuesTemporal;
-
-        public bool resultPrecalculated;
-
-        public bool wrongNumberOfProbes;
+        public double[,] ValuesTemporalAtProbingHeight;
 
         private readonly string fileName = @"WF_A";
 
-        private readonly string fileNameCSVExtension = ".csv";
-
-        private readonly string fileNameBinExtension = ".bin";
-
-        private readonly string interpolationPref = "ip";
-
         private readonly string del = "_";
 
-        public WindFactorsAnnual(string baseWorkingDir, BoundaryCondition bcond, Weather weather, WindFactorsSpatial wfspatial, List<Point3d> probes, bool interpolate, bool recalc)
+        public Weather weather;
+
+        public WindFactorsTemporal(string baseWorkingDir, BoundaryCondition bcond, Weather weather, WindFactorsSpatial wfspatial, List<Point3d> probes, bool interpolate, bool recalc)
         {
-            string csvWFTemporal = interpolate == false ? Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + fileNameCSVExtension) : Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + interpolationPref + fileNameCSVExtension);
+            this.weather = weather;
             string binWFTemporal = interpolate == false ? Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + fileNameBinExtension) : Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + interpolationPref + fileNameBinExtension);
 
             if (File.Exists(binWFTemporal) && !recalc)
             {
                 try
                 {
-                    this.ValuesTemporal = RadianceFiles.loadBinD(binWFTemporal);
+                    this.ValuesTemporalAtProbingHeight = RadianceFiles.loadBinD(binWFTemporal);
                     this.resultPrecalculated = true;
                     this.wrongNumberOfProbes = false;
                 }
@@ -207,24 +188,14 @@ namespace EddyLib.OutdoorComfort
             }
             else
             {
-                var files = new List<string>()
+                if (File.Exists(binWFTemporal))
                 {
-                     csvWFTemporal,
-                     binWFTemporal,
-                };
-
-                foreach (string s in files)
-                {
-                    if (File.Exists(s))
-                    {
-                        File.Delete(s);
-                    }
+                    File.Delete(binWFTemporal);
                 }
 
-                this.ValuesTemporal = CalcWindFactorsTemporal(wfspatial.ValuesSpatial, bcond, weather, probes, interpolate);
+                CalcWindFactorsTemporal(wfspatial.ValuesSpatial, bcond, weather, probes, interpolate);
 
-                RadianceFiles.writeBin(binWFTemporal, this.ValuesTemporal);
-                ArrayHelper._2DArray2CSV(this.ValuesTemporal, csvWFTemporal, true, 1);
+                RadianceFiles.writeBin(binWFTemporal, this.ValuesTemporalAtProbingHeight);
 
                 this.resultPrecalculated = false;
                 this.wrongNumberOfProbes = false;
@@ -233,7 +204,7 @@ namespace EddyLib.OutdoorComfort
 
         // This returns the plain annual array
 
-        private static double[,] CalcWindFactorsTemporal(double[,] WFSpatial, BoundaryCondition bcond, Weather weather, List<Point3d> probes, bool interpolate)
+        private void CalcWindFactorsTemporal(double[,] WFSpatial, BoundaryCondition bcond, Weather weather, List<Point3d> probes, bool interpolate)
         {
             var windDirsSim = bcond.windDirs;
             var windDirsEPW = weather.WindDirection;
@@ -244,83 +215,80 @@ namespace EddyLib.OutdoorComfort
             int numberOfHours = 8760;
             int round = 2;
 
-            double[,] WFTemporal = new double[numberOfHours, numberOfSensors];
+            ValuesTemporalAtProbingHeight = new double[numberOfHours, numberOfSensors];
 
             int cnt = 0;
 
             #region progressbar
 
-            using (var progress = new ASCIIProgressBar())
-            {
-                #endregion progressbar
+            using var progress = new ASCIIProgressBar();
 
-                // Create lookup table with plain vector magnitudes
+            #endregion progressbar
 
-                Console.WriteLine("Calculating: Wind reduction factors");
+            // Create lookup table with plain vector magnitudes
 
-                Parallel.For(
-                  0, numberOfSensors, p =>
+            Console.WriteLine("Calculating: Wind reduction factors");
+
+            Parallel.For(
+              0, numberOfSensors, p =>
+              {
+                  for (int h = 0; h < numberOfHours; h++)
                   {
-                      for (int h = 0; h < numberOfHours; h++)
+                      var velEPWAtProbingHeight = 0.0;
+                      if (bcond is ABL)
                       {
-                          var velEPWAtProbingHeight = 0.0;
-                          if (bcond is ABL)
-                          {
-                              ABL casted_bc = (ABL)bcond;
-                              velEPWAtProbingHeight = BoundaryCondition.ScaleABL(weather.WindSpeed[h], casted_bc.zref, casted_bc.z0, probes[p].Z);
-                          }
-                          else
-                          {
-                              ConstU casted_bc = (ConstU)bcond;
-
-                              // assume a zref of 10;
-                              velEPWAtProbingHeight = BoundaryCondition.ScaleABL(weather.WindSpeed[h], 10, bcond.z0, probes[p].Z);
-                          }
-
-                          var ratioSimProbingPoint = WFSpatial[p, bcond.ClstSimDirIndices[h]];
-
-                          // We need to multiply the normalized velocity with respect to the approaching flow
-                          // for every probing point and multiply that with the scaled-down, measured airport velocity.
-
-                          if (!interpolate)
-                          {
-                              WFTemporal[h, p] = Math.Round(velEPWAtProbingHeight * ratioSimProbingPoint, round);
-                          }
-                          else
-                          {
-                              #region Interpolation
-
-                              var IdxBelow = BoundaryCondition.ReturnNextLowerIndex(windDirsSim, (int)windDirsEPW[h]);
-                              var IdxAbove = BoundaryCondition.ReturnNextUpperIndex(windDirsSim, (int)windDirsEPW[h]);
-                              int dirBelow = windDirsSim[IdxBelow];
-                              int dirAbove = windDirsSim[IdxAbove];
-                              var distanceToLower = BoundaryCondition.DistanceBetweenWindDirs(windDirsEPW[h], dirBelow);
-                              var distanceToUpper = BoundaryCondition.DistanceBetweenWindDirs(windDirsEPW[h], dirAbove);
-
-                              var weightingDown = 1 - (distanceToLower / (distanceToLower + distanceToUpper));
-                              var weightingUp = 1 - (distanceToUpper / (distanceToLower + distanceToUpper));
-                              var nextVelocityDown = WFSpatial[p, IdxBelow];
-                              var nextVelocityUp = WFSpatial[p, IdxAbove];
-
-                              double weightedRatioSimProbingPoint = (nextVelocityDown * weightingDown) + (nextVelocityUp * weightingUp);
-
-                              #endregion Interpolation
-
-                              WFTemporal[h, p] = Math.Round(velEPWAtProbingHeight * weightedRatioSimProbingPoint, round);
-                          }
-
-                          cnt++;
-
-                          #region progressbar
-
-                          progress.Report((double)cnt / numberOfSensors);
-
-                          #endregion progressbar
+                          ABL casted_bc = (ABL)bcond;
+                          velEPWAtProbingHeight = BoundaryCondition.ScaleABL(weather.WindSpeed[h], casted_bc.zref, casted_bc.z0, probes[p].Z);
                       }
-                  });
-            }
+                      else
+                      {
+                          ConstU casted_bc = (ConstU)bcond;
 
-            return WFTemporal;
+                          // assume a zref of 10;
+                          velEPWAtProbingHeight = BoundaryCondition.ScaleABL(weather.WindSpeed[h], 10, bcond.z0, probes[p].Z);
+                      }
+
+                      var ratioSimProbingPoint = WFSpatial[p, bcond.ClstSimDirIndices[h]];
+
+                      // We need to multiply the normalized velocity with respect to the approaching flow
+                      // for every probing point and multiply that with the scaled-down, measured airport velocity.
+
+                      if (!interpolate)
+                      {
+                          ValuesTemporalAtProbingHeight[h, p] = Math.Round(velEPWAtProbingHeight * ratioSimProbingPoint, round);
+                      }
+                      else
+                      {
+                          #region Interpolation
+
+                          var IdxBelow = BoundaryCondition.ReturnNextLowerIndex(windDirsSim, (int)windDirsEPW[h]);
+                          var IdxAbove = BoundaryCondition.ReturnNextUpperIndex(windDirsSim, (int)windDirsEPW[h]);
+                          int dirBelow = windDirsSim[IdxBelow];
+                          int dirAbove = windDirsSim[IdxAbove];
+                          var distanceToLower = BoundaryCondition.DistanceBetweenWindDirs(windDirsEPW[h], dirBelow);
+                          var distanceToUpper = BoundaryCondition.DistanceBetweenWindDirs(windDirsEPW[h], dirAbove);
+
+                          var weightingDown = 1 - (distanceToLower / (distanceToLower + distanceToUpper));
+                          var weightingUp = 1 - (distanceToUpper / (distanceToLower + distanceToUpper));
+                          var nextVelocityDown = WFSpatial[p, IdxBelow];
+                          var nextVelocityUp = WFSpatial[p, IdxAbove];
+
+                          double weightedRatioSimProbingPoint = (nextVelocityDown * weightingDown) + (nextVelocityUp * weightingUp);
+
+                          #endregion Interpolation
+
+                          ValuesTemporalAtProbingHeight[h, p] = Math.Round(velEPWAtProbingHeight * weightedRatioSimProbingPoint, round);
+                      }
+
+                      cnt++;
+
+                      #region progressbar
+
+                      progress.Report((double)cnt / numberOfSensors);
+
+                      #endregion progressbar
+                  }
+              });
         }
     }
 }

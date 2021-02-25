@@ -1,4 +1,4 @@
-﻿using EddyLib.OutdoorComfort.Metrics;
+﻿using EddyLib.OutdoorComfort;
 
 namespace EddyLib.OutdoorComfort
 {

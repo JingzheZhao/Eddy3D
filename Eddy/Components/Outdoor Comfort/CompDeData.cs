@@ -106,9 +106,9 @@ namespace Eddy
 
                 DA.SetDataTree(0, tree);
             }
-            else if ((gobj.Value is WindFactorsAnnual))
+            else if ((gobj.Value is WindFactorsTemporal))
             {
-                WindFactorsAnnual wf = null;
+                WindFactorsTemporal wf = null;
 
                 DA.GetData(0, ref wf);
 
@@ -116,7 +116,7 @@ namespace Eddy
 
                 foreach (int h in selection)
                 {
-                    var tempRow = ArrayHelper.CustomArray<double>.GetRow(wf.ValuesTemporal, h);
+                    var tempRow = ArrayHelper.CustomArray<double>.GetRow(wf.ValuesTemporalAtProbingHeight, h);
                     tree.AddRange(tempRow, new Grasshopper.Kernel.Data.GH_Path(h));
                 }
 

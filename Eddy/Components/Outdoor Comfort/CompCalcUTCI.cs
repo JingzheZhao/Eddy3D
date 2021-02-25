@@ -78,7 +78,7 @@ namespace Eddy
             bool run = false;
             DA.GetData("Run", ref run);
 
-            WindFactorsAnnual windFactors = null;
+            WindFactorsTemporal windFactors = null;
             MRT mrt = null;
 
             Console.WriteLine("Load weather data...");

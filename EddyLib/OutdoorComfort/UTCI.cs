@@ -37,9 +37,8 @@ namespace EddyLib
 
         public bool resultPrecalculated;
 
-        public UTCI(Point3d[] probes, WindFactorsAnnual wf, Weather weather, MRT mrt, string baseWorkingDir, bool recalc, int truncateBy = 1)
+        public UTCI(Point3d[] probes, WindFactorsTemporal wf, Weather weather, MRT mrt, string baseWorkingDir, bool recalc, int truncateBy = 1)
         {
-            var csvUTCI = baseWorkingDir + @"UTCI.csv";
             var binUTCI = baseWorkingDir + @"UTCI.bin";
 
             this.probes = probes;
@@ -66,10 +65,6 @@ namespace EddyLib
             }
             if (recalc == true)
             {
-                if (File.Exists(csvUTCI))
-                {
-                    File.Delete(csvUTCI);
-                }
                 if (File.Exists(binUTCI))
                 {
                     File.Delete(binUTCI);
@@ -84,12 +79,11 @@ namespace EddyLib
                 this.uncertaintyWindArray = res.Item5;
 
                 RadianceFiles.writeBin(binUTCI, this.ValuesUTCI);
-                ArrayHelper._2DArray2CSV(this.ValuesUTCI, csvUTCI, true);
             }
         }
 
         //Tuple items: utci, humcondition, valuesAnnualPercentage, uncertaintyMRTArray, uncertaintyWindArray
-        public static Tuple<double[,], int[,], double[], bool[,], bool[,]> CalcUTCI(Point3d[] Probes, Weather weather, WindFactorsAnnual wf, MRT mrt, int truncateBy)
+        public static Tuple<double[,], int[,], double[], bool[,], bool[,]> CalcUTCI(Point3d[] Probes, Weather weather, WindFactorsTemporal wf, MRT mrt, int truncateBy)
         {
             int numberOfHours = 8760;
             int numberOfProbes = Probes.Length;
@@ -126,7 +120,7 @@ namespace EddyLib
 
                         // Check for extreme Windspeeds
 
-                        double resultingWindSpeedforUTCI = wf.ValuesTemporal[hour, probe];
+                        double resultingWindSpeedforUTCI = wf.ValuesTemporalAtProbingHeight[hour, probe];
 
                         if (resultingWindSpeedforUTCI > 17) { resultingWindSpeedforUTCI = 17; uncertaintyWindArray[hour, probe] = true; }
                         if (resultingWindSpeedforUTCI < 0.5) { resultingWindSpeedforUTCI = 0.5; uncertaintyWindArray[hour, probe] = true; }

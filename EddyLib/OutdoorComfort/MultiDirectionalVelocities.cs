@@ -23,7 +23,6 @@ namespace EddyLib
         public MultiDirectionalVelocities(string workingDir, int[] windDirs, Vector3d[,] vectors, bool truncateDoubles, bool recalc, int truncateTo = 1)
 
         {
-            var csvAnnualVelProbes = workingDir + "MultiDirectionalVelocities.csv";
             var binAnnualVelProbes = workingDir + "MultiDirectionalVelocities.bin";
 
             this.infValues = CheckForInfValues(vectors);
@@ -47,10 +46,6 @@ namespace EddyLib
             }
             if (recalc)
             {
-                if (File.Exists(csvAnnualVelProbes))
-                {
-                    File.Delete(csvAnnualVelProbes);
-                }
                 if (File.Exists(binAnnualVelProbes))
                 {
                     File.Delete(binAnnualVelProbes);
@@ -60,7 +55,6 @@ namespace EddyLib
                 this.WindDirs = windDirs;
 
                 RadianceFiles.writeBinVectors(binAnnualVelProbes, vectors, windDirs);
-                Write2CSV(windDirs, vectors, csvAnnualVelProbes, truncateDoubles, truncateTo);
 
                 this.resultPrecalculated = false;
                 this.wrongNumberOfProbes = false;
