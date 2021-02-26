@@ -1,6 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+
+
+#if DEBUG
+[assembly: InternalsVisibleTo("UnitTest")]
+#endif
 
 namespace EddyLib.Indoor.Dicts
 {

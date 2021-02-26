@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using EddyLib.Indoor.Dicts;
+
+#if DEBUG
+[assembly: InternalsVisibleTo("UnitTest")]
+#endif
 
 namespace EddyLib.Indoor.Dicts
 {
@@ -34,30 +39,16 @@ namespace EddyLib.Indoor.Dicts
         //private static List<Dictionary<string, dynamic>> GetSolversDict()
         //{
         //    List<Dictionary<string, dynamic>> OuterKey = new List<Dictionary<string, dynamic>>();
-     
+
         //    OuterKey.Add(GetP_RghDict());
 
         //}
 
-
-
-        private static List<Dictionary<string, dynamic>> GetSolversDict()
+      public  static Dictionary<string, dynamic> MakeDict_p_rgh()
         {
-            List<Dictionary<string, dynamic>> OuterKey = new List<Dictionary<string, dynamic>>();
-
             Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
-            Dictionary<string, dynamic> Dict2 = new Dictionary<string, dynamic>();
-            Dictionary<string, dynamic> Dict3 = new Dictionary<string, dynamic>();
-
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
-            Dictionary<string, dynamic> InternalDict2 = new Dictionary<string, dynamic>();
-            Dictionary<string, dynamic> InternalDict3 = new Dictionary<string, dynamic>();
 
-            //Dictionary<string, dynamic> FunctionObjectlDict = new Dictionary<string, dynamic>();
-
-            //string name = "solver";
-
-            OuterKey.Add(Dict);
             Dict.Add("p_rgh", InternalDict);
 
             InternalDict.Add("solver", "PCG");
@@ -65,25 +56,55 @@ namespace EddyLib.Indoor.Dicts
             InternalDict.Add("tolerance", "1e-8");
             InternalDict.Add("relTol", "0.01");
 
-            OuterKey.Add(Dict2);
-            Dict2.Add("U", InternalDict2);
-
-            InternalDict2.Add("solver", "PBiCGStab");
-            InternalDict2.Add("preconditioner", "DILU");
-            InternalDict2.Add("tolerance", "1e-5");
-            InternalDict2.Add("relTol", "0.1");
-
-            OuterKey.Add(Dict3);
-            Dict3.Add("h", InternalDict3);
-
-            InternalDict3.Add("solver", "pbicgstab");
-            InternalDict3.Add("preconditioner", "dilu");
-            InternalDict3.Add("tolerance", "1e-5");
-            InternalDict3.Add("reltol", "0.1");
-
-
-            return OuterKey;
+            return Dict;
         }
+
+        static Dictionary<string, dynamic> MakeDict_U()
+        {
+            Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
+            Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
+
+            Dict.Add("U", InternalDict);
+
+            InternalDict.Add("solver", "PBiCGStab");
+            InternalDict.Add("preconditioner", "DILU");
+            InternalDict.Add("tolerance", "1e-5");
+            InternalDict.Add("relTol", "0.1");
+
+            return Dict;
+        }
+
+        static Dictionary<string, dynamic> MakeDict_h()
+        {
+            Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
+            Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
+
+            Dict.Add("h", InternalDict);
+
+            InternalDict.Add("solver", "PBiCGStab");
+            InternalDict.Add("preconditioner", "DILU");
+            InternalDict.Add("tolerance", "1e-5");
+            InternalDict.Add("relTol", "0.1");
+
+            return Dict;
+        }
+
+
+        private static Dictionary<string, List<Dictionary<string, dynamic>>> GetSolversDict()
+        {
+            Dictionary<string, List<Dictionary<string, dynamic>>> OuterName = new Dictionary<string, List<Dictionary<string, dynamic>>>();
+
+            List<Dictionary<string, dynamic>> OuterKey = new List<Dictionary<string, dynamic>>();
+
+            OuterName.Add("solver", OuterKey);
+
+            OuterKey.Add(MakeDict_p_rgh());
+            OuterKey.Add(MakeDict_U());
+            OuterKey.Add(MakeDict_h());
+
+            return OuterName;
+        }
+
     }
 }
 
