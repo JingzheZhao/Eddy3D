@@ -20,13 +20,61 @@ namespace EddyLib.Radiance
             this.TotalRad = totalRad;
         }
 
-        //public double[][] DiffRad;
-        //public double[][] DirRad;
+
 
         [DataMember]
         List<Mesh> AnalysisMeshes { get; set; }
         [DataMember]
         public double[][] TotalRad { get; set; }
+
+        //public double[][] DiffRad;
+        //public double[][] DirRad;
+
+
+        public string ToBson()
+        {
+            using (MemoryStream ms = new MemoryStream())
+            using (BsonDataWriter datawriter = new BsonDataWriter(ms))
+            {
+                JsonSerializer serializer = new JsonSerializer();
+                serializer.Serialize(datawriter, this);
+                return Convert.ToBase64String(ms.ToArray());
+            }
+        }
+        public static RadiationSimulationDDSResult FromBson(string base64data)
+        {
+            byte[] data = Convert.FromBase64String(base64data);
+
+            using (MemoryStream ms = new MemoryStream(data))
+            using (BsonDataReader reader = new BsonDataReader(ms))
+            {
+                JsonSerializer serializer = new JsonSerializer();
+                return serializer.Deserialize<RadiationSimulationDDSResult>(reader);
+            }
+        }
+
+        //public static string ToBson<T>(T value)
+        //{
+        //    using (MemoryStream ms = new MemoryStream())
+        //    using (BsonDataWriter datawriter = new BsonDataWriter(ms))
+        //    {
+        //        JsonSerializer serializer = new JsonSerializer();
+        //        serializer.Serialize(datawriter, value);
+        //        return Convert.ToBase64String(ms.ToArray());
+        //    }
+
+        //}
+        //public static T FromBson<T>(string base64data)
+        //{
+        //    byte[] data = Convert.FromBase64String(base64data);
+
+        //    using (MemoryStream ms = new MemoryStream(data))
+        //    using (BsonDataReader reader = new BsonDataReader(ms))
+        //    {
+        //        JsonSerializer serializer = new JsonSerializer();
+        //        return serializer.Deserialize<T>(reader);
+        //    }
+        //}
     }
 
     public class RadiationSimulationDDS
@@ -39,199 +87,7 @@ namespace EddyLib.Radiance
             string[] illLines = System.IO.File.ReadAllLines(illFileName).Skip(9).ToArray();
             return illLines.Select(l => Array.ConvertAll<string, double>(l.Split(new[] { ' ' }).Skip(1).ToArray(), Double.Parse)).ToArray();
         }
-
-
-        public string command;
-
-        private readonly string ProjectName = @"TwoPhaseDDS";
-
-        private string TwoPhaseDDSFolder = @"\TwoPhaseDDS\";
-
-        private string BaseWorkingDir = "";
-
-
-
-        Mesh BuildingGeometry;
-        List<Mesh> ProbeMeshes;
-        List<Point3d> Probes;
-        Weather Weather;
-        public RadiationSimulationDDS(string filename ,string baseWorkingDir, Mesh buildingGeometry, List<Mesh> probe_meshes, Weather weather, bool recalc)
-        {
-            ProjectName = filename;
-            BaseWorkingDir = baseWorkingDir;
-
-            BuildingGeometry = buildingGeometry;
-            ProbeMeshes = probe_meshes;
-            Probes = new List<Point3d>();
-            foreach (var m in probe_meshes)
-            {
-                foreach (var p in m.Vertices)
-                {
-                    Probes.Add(p);
-                }
-            }
-
-            Weather = weather;
-
-        
-
-            var dirs = new List<String>() { baseWorkingDir + TwoPhaseDDSFolder, baseWorkingDir, baseWorkingDir + @"Rad\" };
-
-            foreach (string d in dirs)
-            {
-                if (!Directory.Exists(d))
-                {
-                    Directory.CreateDirectory(d);
-                }
-            }
-
-
-  
-
-            //RunDDS(baseWorkingDir, TwoPhaseDDSFolder, recalc);
-
-            //RadianceFiles.writeBin(baseWorkingDir + TwoPhaseDDSFolder + @"\totalIll.bin", this.totalIll);
-
-
-        }
-
-        protected RadiationSimulationDDSResult RunDDS(  bool run)
-        {
-            var numberOfProbes = this.Probes.Count;
-
-            //var skySubDivDiff = SkySubdivision.r1;
-            var skySubDivDiff = SkySubdivision.r2;
-            var skySubDivDir = SkySubdivision.r4;
-
-            // User geometry data here
-
-            string radMat = @"
-        void plastic Generic_20
-        0
-        0
-        5 0.2 0.2 0.2 0 0
-        ";
-
-            string radMatBlack = @"
-        void plastic Black
-        0
-        0
-        5 0 0 0 0 0
-        ";
-            Mesh daysimMesh = new Mesh();
-            daysimMesh.Append(this.BuildingGeometry);
-
-            // Todo: add ground plane to the above mesh
-
-            // Make sure this understands userdata
-            RadianceFiles.MeshProc(daysimMesh, this.BaseWorkingDir + @"\Rad\scene.rad", "Generic_20", radMat);
-            RadianceFiles.MeshProc(daysimMesh, this.BaseWorkingDir + @"\Rad\sceneBlack.rad", "Black", radMatBlack);
-
-            // Write Probes
-            RadianceFiles.writePTS(this.BaseWorkingDir + @"\Rad\sensors.pts", this.Probes);
-
-            // Weather
-            var weaname = RadianceFiles.Epw2Wea(this.Weather.epwFilePath, this.BaseWorkingDir + @"\Rad\Output");
-
-            // Sky
-            //Skies.Write(baseWorkingDir + @"Rad\skyglow.rad", skySubDivDiff);
-            Skies.Write(this.BaseWorkingDir + @"Rad\skyglow" + (skySubDivDir - 1) + ".rad", (skySubDivDir - 1));
-            Skies.Write(this.BaseWorkingDir + @"Rad\skyglow" + (skySubDivDiff - 1) + ".rad", (skySubDivDiff - 1));
-
-            this.command = CommandLineArgsNew(DependencyDirectories.Radiance, this.BaseWorkingDir, this.Probes.Count, weaname, this.Weather.epwFilePath, 3, 5000, skySubDivDiff, skySubDivDir, Environment.ProcessorCount - 1);
-
-            //Utilities.StartProcess.StartProcessCMDNT(arg, false, true, false, true, probingComplete);
-
-            if (run == true)
-            {
-                using (Process process = new Process())
-                {
-                    process.StartInfo.UseShellExecute = false;
-                    process.StartInfo.RedirectStandardOutput = true;
-                    process.StartInfo.RedirectStandardError = true;
-                    process.StartInfo.WorkingDirectory = this.BaseWorkingDir + @"\Rad\";
-                    process.StartInfo.FileName = Path.Combine(Environment.SystemDirectory, "cmd.exe");
-                    process.StartInfo.RedirectStandardError = true;
-
-                    // Redirects the standard input so that commands can be sent to the shell.
-                    process.StartInfo.RedirectStandardInput = true;
-
-                    // Runs the specified command and exits the shell immediately.
-                    //process.StartInfo.Arguments = @"/c ""dir""";
-
-                    //process.OutputDataReceived += ProcessOutputDataHandler;
-                    //process.ErrorDataReceived += ProcessErrorDataHandler;
-
-                    process.Start();
-                    process.BeginOutputReadLine();
-                    process.BeginErrorReadLine();
-
-                    // Send a directory command and an exit command to the shell
-                    process.StandardInput.WriteLine(CommandLineArgsNew(DependencyDirectories.Radiance, this.BaseWorkingDir, this.Probes.Count, weaname, this.Weather.epwFilePath, 3, 5000, skySubDivDiff, skySubDivDir, Environment.ProcessorCount - 1));
-                    process.StandardInput.WriteLine("exit");
-
-                    process.WaitForExit();
-                }
-            }
-
-            // this.dcill = LoadDDSIll(baseWorkingDir + @"\Output\annualR_dc.ill");
-            //this.dcdill = LoadDDSIll(baseWorkingDir + @"\Output\annualR_dcd.ill");
-            //this.dirill = LoadDDSIll(baseWorkingDir + @"\Output\annual_dir.ill");
-
-            //if (load)
-            //{
-            var totalIll = LoadDDSIll(this.BaseWorkingDir + @"Rad\Output\annual_total.ill");
-
-            //}
-
-            //  this.Values = new double[8760, numberOfProbes];
-
-            //  this.dcill = new double[8760, numberOfProbes];
-            //  this.dcdill = new double[8760, numberOfProbes];
-            //  this.dirill = new double[8760, numberOfProbes];
-            //  this.totalIll = new double[8760, numberOfProbes];
-
-            /*
-
-            System.Threading.Tasks.Parallel.For(0, 20, h =>
-            {
-            for (int p = 0; p < ; p++)
-            {
-            //this.Values[h, p] = GetMRTForPointViaKessling(weather, h, DiffRad[h][p], DirRad[h][p])[0];
-
-            // this.dcill[h, p] = Ldcill[h][p];
-            // this.dcdill[h, p] = Ldcdill[h][p];
-            // this.dirill[h, p] = Ldirill[h][p];
-            //  this.totalIll[h, p] = LtotalIll[h][p];
-            }
-            });
-
-            */
-
-            var result = new RadiationSimulationDDSResult(this.ProbeMeshes, totalIll);
-
-            MemoryStream ms = new MemoryStream();
-            using (BsonWriter writer = new BsonWriter(ms))
-            {
-                JsonSerializer serializer = new JsonSerializer();
-                serializer.Serialize(writer, result);
-            }
-            using (FileStream file = new FileStream( this.BaseWorkingDir + "/" + this.ProjectName +".Radiation.bin", FileMode.Create, System.IO.FileAccess.Write))
-            {
-                byte[] bytes = new byte[ms.Length];
-                ms.Read(bytes, 0, (int)ms.Length);
-                file.Write(bytes, 0, bytes.Length);
-                ms.Close();
-            }
-
-
-            return result;
-             
-        }
-
-
-
-        public string CommandLineArgsNew(string RadianceDir, string baseWorkingDir, int sensorCnt, string weaname, string epwpath, int ab, int ad, SkySubdivision diffSky, SkySubdivision dirSky, int n)
+        private string CommandLineArgsNew(string RadianceDir, string baseWorkingDir, int sensorCnt, string weaname, string epwpath, int ab, int ad, SkySubdivision diffSky, SkySubdivision dirSky, int n)
         {
             int skysubdiv = (int)diffSky;
             int skysubdivdirect = (int)diffSky;
@@ -319,5 +175,178 @@ namespace EddyLib.Radiance
         ";
             return command;
         }
+
+
+        public string command;
+
+        public string ProjectName = @"TwoPhaseDDS";
+
+        private string TwoPhaseDDSFolder = @"\TwoPhaseDDS\";
+
+        public string BaseWorkingDir = "";
+
+
+
+        Mesh BuildingGeometry;
+        List<Mesh> ProbeMeshes;
+        List<Point3d> Probes;
+        Weather Weather;
+        public RadiationSimulationDDS(string filename, string baseWorkingDir, Mesh buildingGeometry, List<Mesh> probe_meshes, Weather weather)
+        {
+            ProjectName = filename;
+            BaseWorkingDir = baseWorkingDir;
+
+            BuildingGeometry = buildingGeometry;
+            ProbeMeshes = probe_meshes;
+            Probes = new List<Point3d>();
+            foreach (var m in probe_meshes)
+            {
+                foreach (var p in m.Vertices)
+                {
+                    Probes.Add(p);
+                }
+            }
+
+            Weather = weather;
+
+
+
+            var dirs = new List<String>() { baseWorkingDir + TwoPhaseDDSFolder, baseWorkingDir, baseWorkingDir + @"Rad\" };
+
+            foreach (string d in dirs)
+            {
+                if (!Directory.Exists(d))
+                {
+                    Directory.CreateDirectory(d);
+                }
+            }
+        }
+
+        public RadiationSimulationDDSResult RunDDS(bool run)
+        {
+            var numberOfProbes = this.Probes.Count;
+
+            //var skySubDivDiff = SkySubdivision.r1;
+            var skySubDivDiff = SkySubdivision.r2;
+            var skySubDivDir = SkySubdivision.r4;
+
+            // User geometry data here
+
+            string radMat = @"
+        void plastic Generic_20
+        0
+        0
+        5 0.2 0.2 0.2 0 0
+        ";
+
+            string radMatBlack = @"
+        void plastic Black
+        0
+        0
+        5 0 0 0 0 0
+        ";
+            Mesh daysimMesh = new Mesh();
+            daysimMesh.Append(this.BuildingGeometry);
+
+            // Todo: add ground plane to the above mesh
+
+            // Make sure this understands userdata
+            RadianceFiles.MeshProc(daysimMesh, this.BaseWorkingDir + @"\Rad\scene.rad", "Generic_20", radMat);
+            RadianceFiles.MeshProc(daysimMesh, this.BaseWorkingDir + @"\Rad\sceneBlack.rad", "Black", radMatBlack);
+
+            // Write Probes
+            RadianceFiles.writePTS(this.BaseWorkingDir + @"\Rad\sensors.pts", this.Probes);
+
+            // Weather
+            var weaname = RadianceFiles.Epw2Wea(this.Weather.epwFilePath, this.BaseWorkingDir + @"\Rad\Output");
+
+            // Sky
+            //Skies.Write(baseWorkingDir + @"Rad\skyglow.rad", skySubDivDiff);
+            Skies.Write(this.BaseWorkingDir + @"Rad\skyglow" + (skySubDivDir - 1) + ".rad", (skySubDivDir - 1));
+            Skies.Write(this.BaseWorkingDir + @"Rad\skyglow" + (skySubDivDiff - 1) + ".rad", (skySubDivDiff - 1));
+
+            this.command = CommandLineArgsNew(DefaultDirectoriesAndPaths.RadianceDir, this.BaseWorkingDir, this.Probes.Count, weaname, this.Weather.epwFilePath, 3, 5000, skySubDivDiff, skySubDivDir, Environment.ProcessorCount - 1);
+
+            //Utilities.StartProcess.StartProcessCMDNT(arg, false, true, false, true, probingComplete);
+
+            if (run == true)
+            {
+                using (Process process = new Process())
+                {
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.RedirectStandardOutput = true;
+                    process.StartInfo.RedirectStandardError = true;
+                    process.StartInfo.WorkingDirectory = this.BaseWorkingDir + @"\Rad\";
+                    process.StartInfo.FileName = Path.Combine(Environment.SystemDirectory, "cmd.exe");
+                    process.StartInfo.RedirectStandardError = true;
+
+                    // Redirects the standard input so that commands can be sent to the shell.
+                    process.StartInfo.RedirectStandardInput = true;
+
+                    // Runs the specified command and exits the shell immediately.
+                    //process.StartInfo.Arguments = @"/c ""dir""";
+
+                    //process.OutputDataReceived += ProcessOutputDataHandler;
+                    //process.ErrorDataReceived += ProcessErrorDataHandler;
+
+                    process.Start();
+                    process.BeginOutputReadLine();
+                    process.BeginErrorReadLine();
+
+                    // Send a directory command and an exit command to the shell
+                    process.StandardInput.WriteLine(CommandLineArgsNew(DefaultDirectoriesAndPaths.RadianceDir, this.BaseWorkingDir, this.Probes.Count, weaname, this.Weather.epwFilePath, 3, 5000, skySubDivDiff, skySubDivDir, Environment.ProcessorCount - 1));
+                    process.StandardInput.WriteLine("exit");
+
+                    process.WaitForExit();
+                }
+
+
+                var totalIll = LoadDDSIll(this.BaseWorkingDir + @"Rad\Output\annual_total.ill");
+                var result = new RadiationSimulationDDSResult(this.ProbeMeshes, totalIll);
+                var bson = result.ToBson();
+
+                Console.WriteLine();
+                File.WriteAllText(this.BaseWorkingDir + "/" + this.ProjectName + ".Radiation.bin", bson);
+
+                return result;
+            }
+
+            // this.dcill = LoadDDSIll(baseWorkingDir + @"\Output\annualR_dc.ill");
+            //this.dcdill = LoadDDSIll(baseWorkingDir + @"\Output\annualR_dcd.ill");
+            //this.dirill = LoadDDSIll(baseWorkingDir + @"\Output\annual_dir.ill");
+
+            //if (load)
+            //{
+
+            //}
+
+            //  this.Values = new double[8760, numberOfProbes];
+
+            //  this.dcill = new double[8760, numberOfProbes];
+            //  this.dcdill = new double[8760, numberOfProbes];
+            //  this.dirill = new double[8760, numberOfProbes];
+            //  this.totalIll = new double[8760, numberOfProbes];
+
+            /*
+
+            System.Threading.Tasks.Parallel.For(0, 20, h =>
+            {
+            for (int p = 0; p < ; p++)
+            {
+            //this.Values[h, p] = GetMRTForPointViaKessling(weather, h, DiffRad[h][p], DirRad[h][p])[0];
+
+            // this.dcill[h, p] = Ldcill[h][p];
+            // this.dcdill[h, p] = Ldcdill[h][p];
+            // this.dirill[h, p] = Ldirill[h][p];
+            //  this.totalIll[h, p] = LtotalIll[h][p];
+            }
+            });
+
+            */
+
+            return null;
+
+        }
+
     }
 }

@@ -86,7 +86,7 @@
   <ItemGroup>
     <Compile Include="ArrayHelper.cs" />
     <Compile Include="ASCIProgressBar.cs" />
-    <Compile Include="GlobalSettings\DependencyDirectories.cs" />
+    <Compile Include="GlobalSettings\DefaultDirectoriesAndPaths.cs" />
     <Compile Include="UI\Attributes\Eddy_ComponentAttributes.cs" />
     <Compile Include="UI\Attributes\Eddy_ComponentButtonAttributes.cs" />
     <Compile Include="FunctionObjects.cs" />

@@ -1,4 +1,5 @@
 ﻿using EddyLib;
+using EddyLib.Radiance;
 using EddyLib.UI;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
@@ -12,7 +13,9 @@ namespace Eddy
 {
     public class RunRadiationDDS_Component : GH_Component
     {
-        
+
+        RadiationSimulationDDS RadiationSimulation;
+
         // exposure
         //public override GH_Exposure Exposure
         //{
@@ -32,11 +35,14 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
+            pManager.AddTextParameter("Name", "N", "Project name", GH_ParamAccess.item, "MyStudy");
+            pManager.AddTextParameter("Dir", "D", "Working directory name", GH_ParamAccess.item, @"C:\Temp\Eddy3d");
+            pManager.AddTextParameter("Weather", "W", "Weather filepath", GH_ParamAccess.item, DefaultDirectoriesAndPaths.DefaultWeather);
+
             pManager.AddMeshParameter("Model", "M", "Model", GH_ParamAccess.list);
             pManager.AddMeshParameter("Probes", "P", "Probes, analysis surface", GH_ParamAccess.list);
 
-
-            pManager.AddBooleanParameter("R", "R", "R", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Run", "R", "Run simulation", GH_ParamAccess.item, false);
         }
 
         /// <summary>
@@ -44,7 +50,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddTextParameter("T", "T", "T", GH_ParamAccess.item );
+            pManager.AddTextParameter("Result", "R", "Result file path", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -53,23 +59,46 @@ namespace Eddy
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            string name = "";
+            string workDir = "";
+            string weatherPath = "";
+
+
+            DA.GetData(0, ref name);
+            DA.GetData(1, ref workDir);
+            DA.GetData(2, ref weatherPath);
+
 
             List<Mesh> modelMeshes = new List<Mesh>();
             List<Mesh> surfMeshes = new List<Mesh>();
 
-            DA.GetDataList(0, modelMeshes);
-            DA.GetDataList(1, surfMeshes);
+            DA.GetDataList(3, modelMeshes);
+            DA.GetDataList(4, surfMeshes);
 
 
 
             bool RUN = false;
             bool HidePopUp = false;
-            DA.GetData(2, ref RUN);
+            DA.GetData(5, ref RUN);
+
+
+            Mesh buildingGeometry = new Mesh();
+            foreach (var m in modelMeshes)
+            {
+                m.Vertices.CullUnused();
+                buildingGeometry.Append(m);
+            }
 
 
 
+            if (!File.Exists(weatherPath))
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Weather file could not be found");
+                return;
+            }
+            Weather weather = new Weather(weatherPath);
 
-
+            RadiationSimulation = new RadiationSimulationDDS(name, workDir, buildingGeometry, surfMeshes, weather);
 
             // redirect stderr
             var errors = new StringWriter();
@@ -98,6 +127,10 @@ namespace Eddy
 
             }
 
+            if(RadiationSimulation != null){
+                string resultFilePath = RadiationSimulation.BaseWorkingDir + "/" + RadiationSimulation.ProjectName + ".Radiation.bin";
+                DA.SetData(0, resultFilePath);
+            }
         }
 
         /// <summary>
@@ -124,9 +157,9 @@ namespace Eddy
 
         private void DoWork(CancellationTokenSource cts)
         {
-           
+
             var success = RunSlowSimulation(cts, 100, 2);
-                   
+
         }
         private async Task DoWorkAsync(CancellationTokenSource cts)
         {
@@ -138,7 +171,8 @@ namespace Eddy
 
         public bool RunSlowSimulation(CancellationTokenSource cts, int iter = 100, int nthreads = 1)
         {
-             
+
+            if (RadiationSimulation == null) return false;
 
             // write scene rad file
             Console.WriteLine("Starting DDS Simulation");
@@ -149,9 +183,8 @@ namespace Eddy
 
                 if (!cts.IsCancellationRequested)
                 {
-                    System.Threading.Thread.Sleep(100);
-
-                     Console.WriteLine("Simulation: " + i );
+                    RadiationSimulation.RunDDS(true);
+                    Console.WriteLine("Simulation: " + i);
                     double pct = 100 * i / iter;
                     Console.WriteLine(ProgressWriter.ProgressKey + pct);
                 }
