@@ -8,14 +8,13 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Eddy
+namespace EddyLib.UI
 {
     public class ProgressDialog : Dialog
     {
         public Label Status;
         public bool Canceled = false;
         private ProgressBar pbar;
-
         public float Progress
         {
             get { return pbar.Progress; }
@@ -30,7 +29,7 @@ namespace Eddy
         {
             Title = "Simulation Progress";
             BackgroundColor = Colors.Gray;
-            //Icon = Icon.FromResource("Properties.Resources.urbano_icon.png");
+            //Icon = Icon.FromResource("Properties.Resources.eddy_icon.png");
             ClientSize = new Size(400, 200);
             ShowInTaskbar = true;
 
@@ -40,6 +39,7 @@ namespace Eddy
             var cancel = new Button { Text = "Cancel" };
             var cts = new CancellationTokenSource();
             var uiThread = SynchronizationContext.Current;
+
 
             // events
             cancel.Click += (s, e) =>
@@ -89,6 +89,7 @@ namespace Eddy
         public float Progress; // 0-1
         private Color backColor = Colors.Gray;
         private Color fillColor = Colors.Blue;
+
 
         public ProgressBar()
         {

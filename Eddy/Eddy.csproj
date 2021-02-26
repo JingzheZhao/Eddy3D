@@ -79,6 +79,7 @@
     <Compile Include="Components\Outdoor Comfort\Metrics\CompCalcUTCIMetric.cs" />
     <Compile Include="Components\postProcessing\CompParaview.cs" />
     <Compile Include="Components\postProcessing\CompVisProbesCustom.cs" />
+    <Compile Include="Components\Radiation\RunRadiationDDS_Component.cs" />
     <Compile Include="Components\Settings\CompRunSettings.cs" />
     <Compile Include="Components\Setup\CompTemplates.cs" />
     <Compile Include="Components\Setup\CompBCondABL.cs" />
