@@ -89,7 +89,6 @@ namespace EddyLib.Indoor.Dicts
         }
     }
 
-
     public class CppMapSerializerDyn
     {
         public static string Serialize(Dictionary<string, dynamic> dict)
@@ -111,13 +110,10 @@ namespace EddyLib.Indoor.Dicts
                     DictToString(evl, ref sb);
                 }
 
-
                 // 2. Dictionary<string, Dictionary<string, string>> dicts
                 else if (evl.Key is String && evl.Value is Dictionary<string, dynamic>)
                 {
                     DictToString(evl.Key, evl.Value, ref sb);
-
-
                 }
 
                 // 3. Dictionary<string, int> dicts
@@ -125,7 +121,6 @@ namespace EddyLib.Indoor.Dicts
                 {
                     DictToString(evl, ref sb);
                 }
-
             }
 
             return sb.ToString();
@@ -145,29 +140,26 @@ namespace EddyLib.Indoor.Dicts
                     {
                         DictToString(evl, ref sb);
                     }
+
                     // 2. Dictionary<string, Dictionary<string, string>> dicts
                     else if (evl.Key is String && evl.Value is Dictionary<string, dynamic>)
                     {
                         DictToString(evl.Value, ref sb);
                     }
-
                 }
-
-
-
             }
 
             return sb.ToString();
         }
 
-        public static string Serialize(Dictionary<string,List<Dictionary<string, dynamic>>> dictss)
+        public static string Serialize(Dictionary<string, List<Dictionary<string, dynamic>>> dictss)
         {
             StringBuilder sb = new StringBuilder();
 
-            foreach (KeyValuePair<string, List<Dictionary<string, dynamic>>> list in dictss) {
-                
+            foreach (KeyValuePair<string, List<Dictionary<string, dynamic>>> list in dictss)
+            {
                 // 3. List<Dictionary<string, Dictionary<string,string>>> dicts
-                foreach (var dict in list)
+                foreach (var dict in list.Value)
                 {
                     foreach (KeyValuePair<string, dynamic> evl in dict)
                     {
@@ -176,17 +168,14 @@ namespace EddyLib.Indoor.Dicts
                         {
                             DictToString(evl, ref sb);
                         }
+
                         // 2. Dictionary<string, Dictionary<string, string>> dicts
                         else if (evl.Key is String && evl.Value is Dictionary<string, dynamic>)
                         {
                             DictToString(evl.Value, ref sb);
                         }
-
                     }
                 }
-
-
-
             }
 
             return sb.ToString();
@@ -249,15 +238,12 @@ namespace EddyLib.Indoor.Dicts
         {
             if (evl.Key is String)
             {
-
                 if (evl.Value is String)
                 {
-
                     sb.AppendLine(evl.Key + "\t " + evl.Value + ";");
                 }
                 else
                 {
-
                     sb.AppendLine(evl.Key + "\t " + evl.Value.ToString() + ";");
                 }
             }
