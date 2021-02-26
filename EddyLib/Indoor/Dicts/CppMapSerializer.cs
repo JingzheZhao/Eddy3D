@@ -116,6 +116,8 @@ namespace EddyLib.Indoor.Dicts
                 else if (evl.Key is String && evl.Value is Dictionary<string, dynamic>)
                 {
                     DictToString(evl.Key, evl.Value, ref sb);
+
+
                 }
 
                 // 3. Dictionary<string, int> dicts
@@ -148,7 +150,43 @@ namespace EddyLib.Indoor.Dicts
                     {
                         DictToString(evl.Value, ref sb);
                     }
+
                 }
+
+
+
+            }
+
+            return sb.ToString();
+        }
+
+        public static string Serialize(Dictionary<string,List<Dictionary<string, dynamic>>> dictss)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            foreach (KeyValuePair<string, List<Dictionary<string, dynamic>>> list in dictss) {
+                
+                // 3. List<Dictionary<string, Dictionary<string,string>>> dicts
+                foreach (var dict in list)
+                {
+                    foreach (KeyValuePair<string, dynamic> evl in dict)
+                    {
+                        // 1. Dictionary<string, string> dict
+                        if (evl.Key is String && evl.Value is String)
+                        {
+                            DictToString(evl, ref sb);
+                        }
+                        // 2. Dictionary<string, Dictionary<string, string>> dicts
+                        else if (evl.Key is String && evl.Value is Dictionary<string, dynamic>)
+                        {
+                            DictToString(evl.Value, ref sb);
+                        }
+
+                    }
+                }
+
+
+
             }
 
             return sb.ToString();
@@ -169,6 +207,7 @@ namespace EddyLib.Indoor.Dicts
                     {
                         DictToString(evl.Key, evl.Value, ref sb);
                     }
+
                     // }
                     sb.AppendLine("}");
                 }
