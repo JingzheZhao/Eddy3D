@@ -14,7 +14,7 @@ namespace EddyLib.Radiance
     [DataContract]
     public class RadiationSimulationDDSResult
     {
-        public RadiationSimulationDDSResult(List<Mesh> meshes, double[][] totalRad)
+        public RadiationSimulationDDSResult(List<Mesh> meshes, float[][] totalRad)
         {
             this.AnalysisMeshes = meshes;
             this.TotalRad = totalRad;
@@ -25,7 +25,7 @@ namespace EddyLib.Radiance
         [DataMember]
         List<Mesh> AnalysisMeshes { get; set; }
         [DataMember]
-        public double[][] TotalRad { get; set; }
+        public float[][] TotalRad { get; set; }
 
         //public double[][] DiffRad;
         //public double[][] DirRad;
@@ -80,12 +80,12 @@ namespace EddyLib.Radiance
     public class RadiationSimulationDDS
     {
 
-        private static double[][] LoadDDSIll(string illFileName) // total illuminance data
+        private static float[][] LoadDDSIll(string illFileName) // total illuminance data
         {
             // [x][] time
             // [][x] points
             string[] illLines = System.IO.File.ReadAllLines(illFileName).Skip(9).ToArray();
-            return illLines.Select(l => Array.ConvertAll<string, double>(l.Split(new[] { ' ' }).Skip(1).ToArray(), Double.Parse)).ToArray();
+            return illLines.Select(l => Array.ConvertAll<string, float>(l.Split(new[] { ' ' }).Skip(1).ToArray(), float.Parse)).ToArray();
         }
         private string CommandLineArgsNew(string RadianceDir, string baseWorkingDir, int sensorCnt, string weaname, string epwpath, int ab, int ad, SkySubdivision diffSky, SkySubdivision dirSky, int n)
         {
@@ -181,7 +181,7 @@ namespace EddyLib.Radiance
 
         public string ProjectName = @"TwoPhaseDDS";
 
-        private string TwoPhaseDDSFolder = @"\TwoPhaseDDS\";
+        //private string TwoPhaseDDSFolder = @"\TwoPhaseDDS\";
 
         public string BaseWorkingDir = "";
 
@@ -211,7 +211,7 @@ namespace EddyLib.Radiance
 
 
 
-            var dirs = new List<String>() { baseWorkingDir + TwoPhaseDDSFolder, baseWorkingDir, baseWorkingDir + @"Rad\" };
+            var dirs = new List<String>() { baseWorkingDir, baseWorkingDir + @"\Rad\" };
 
             foreach (string d in dirs)
             {
@@ -248,6 +248,10 @@ namespace EddyLib.Radiance
             Mesh daysimMesh = new Mesh();
             daysimMesh.Append(this.BuildingGeometry);
 
+
+
+
+
             // Todo: add ground plane to the above mesh
 
             // Make sure this understands userdata
@@ -261,9 +265,8 @@ namespace EddyLib.Radiance
             var weaname = RadianceFiles.Epw2Wea(this.Weather.epwFilePath, this.BaseWorkingDir + @"\Rad\Output");
 
             // Sky
-            //Skies.Write(baseWorkingDir + @"Rad\skyglow.rad", skySubDivDiff);
-            Skies.Write(this.BaseWorkingDir + @"Rad\skyglow" + (skySubDivDir - 1) + ".rad", (skySubDivDir - 1));
-            Skies.Write(this.BaseWorkingDir + @"Rad\skyglow" + (skySubDivDiff - 1) + ".rad", (skySubDivDiff - 1));
+            Skies.Write(this.BaseWorkingDir + @"\Rad\skyglow" + (skySubDivDir - 1) + ".rad", (skySubDivDir - 1));
+            Skies.Write(this.BaseWorkingDir + @"\Rad\skyglow" + (skySubDivDiff - 1) + ".rad", (skySubDivDiff - 1));
 
             this.command = CommandLineArgsNew(DefaultDirectoriesAndPaths.RadianceDir, this.BaseWorkingDir, this.Probes.Count, weaname, this.Weather.epwFilePath, 3, 5000, skySubDivDiff, skySubDivDir, Environment.ProcessorCount - 1);
 
@@ -273,6 +276,8 @@ namespace EddyLib.Radiance
             {
                 using (Process process = new Process())
                 {
+                    process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+
                     process.StartInfo.UseShellExecute = false;
                     process.StartInfo.RedirectStandardOutput = true;
                     process.StartInfo.RedirectStandardError = true;
@@ -289,6 +294,9 @@ namespace EddyLib.Radiance
                     //process.OutputDataReceived += ProcessOutputDataHandler;
                     //process.ErrorDataReceived += ProcessErrorDataHandler;
 
+                    Console.WriteLine("Starting simulation");
+
+
                     process.Start();
                     process.BeginOutputReadLine();
                     process.BeginErrorReadLine();
@@ -298,15 +306,19 @@ namespace EddyLib.Radiance
                     process.StandardInput.WriteLine("exit");
 
                     process.WaitForExit();
+
+                    Console.WriteLine("Starting completed");
+
                 }
 
 
-                var totalIll = LoadDDSIll(this.BaseWorkingDir + @"Rad\Output\annual_total.ill");
+                var totalIll = LoadDDSIll(this.BaseWorkingDir + @"\Rad\Output\annual_total.ill");
                 var result = new RadiationSimulationDDSResult(this.ProbeMeshes, totalIll);
                 var bson = result.ToBson();
 
                 Console.WriteLine();
-                File.WriteAllText(this.BaseWorkingDir + "/" + this.ProjectName + ".Radiation.bin", bson);
+                File.WriteAllText(this.BaseWorkingDir + @"\" + this.ProjectName + ".Radiation.bin", bson);
+                Console.WriteLine("Results written");
 
                 return result;
             }

@@ -8,7 +8,7 @@ namespace EddyLib
 {
     public static class DefaultDirectoriesAndPaths
     {
-        public static string RadianceDir = @"C:\Eddy3D\Common\Radiance";
+        public static string RadianceDir = @"C:\Eddy3D\Common\Radiance\bin";
         public static string EnergyPlusDir = @"C:\Eddy3D\Common\EnergyPlusV9-4-0";
 
         public static string WeatherDir = @"C:\Eddy3D\Weather";

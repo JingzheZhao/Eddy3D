@@ -158,7 +158,7 @@ namespace Eddy
         private void DoWork(CancellationTokenSource cts)
         {
 
-            var success = RunSlowSimulation(cts, 100, 2);
+            var success = RunSlowSimulation(cts, 2);
 
         }
         private async Task DoWorkAsync(CancellationTokenSource cts)
@@ -169,7 +169,7 @@ namespace Eddy
             });
         }
 
-        public bool RunSlowSimulation(CancellationTokenSource cts, int iter = 100, int nthreads = 1)
+        public bool RunSlowSimulation(CancellationTokenSource cts,  int nthreads = 1)
         {
 
             if (RadiationSimulation == null) return false;
@@ -178,17 +178,14 @@ namespace Eddy
             Console.WriteLine("Starting DDS Simulation");
 
 
-            for (int i = 0; i < iter; i++)
-            {
-
                 if (!cts.IsCancellationRequested)
                 {
                     RadiationSimulation.RunDDS(true);
-                    Console.WriteLine("Simulation: " + i);
-                    double pct = 100 * i / iter;
-                    Console.WriteLine(ProgressWriter.ProgressKey + pct);
+                    //Console.WriteLine("Simulation: " + i);
+                    //double pct = 100 * i / iter;
+                    //Console.WriteLine(ProgressWriter.ProgressKey + pct);
                 }
-            }
+         
             return true;
         }
 
