@@ -85,8 +85,11 @@ namespace Eddy
             Mesh buildingGeometry = new Mesh();
             foreach (var m in modelMeshes)
             {
-                m.Vertices.CullUnused();
-                buildingGeometry.Append(m);
+                if (m != null)
+                {
+                    m.Vertices.CullUnused();
+                    buildingGeometry.Append(m);
+                }
             }
 
 

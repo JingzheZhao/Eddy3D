@@ -34,7 +34,9 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddNumberParameter("Hour", "H", "Hour", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Result", "Res", "Result object", GH_ParamAccess.item);
+            pManager.AddMeshParameter("Meshes", "M", "Analysis meshes", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Hour", "H", "Data for each mesh vertex for the selected hour", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -50,12 +52,29 @@ namespace Eddy.Components.Radiation
             DA.GetData(0, ref workDir);
             DA.GetData(1, ref hour);
 
-            var result = RadiationSimulationDDSResult.FromBson(File.ReadAllText(workDir));
+            if (!File.Exists(workDir)) {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Result file not found.");
+            }
 
+            RadiationSimulationDDSResult result = null;
 
-            DA.SetDataList(0, result.TotalRad[hour]);
+            try
+            {
+                result = RadiationSimulationDDSResult.FromBson(File.ReadAllText(workDir));
+            }
+            catch(Exception e) { 
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Result file could not be deserialized. Are you loading a wrong file type? " +Environment.NewLine + e.Message);
+                return;
 
+            }
 
+            if (result != null)
+            {
+                DA.SetData(0, result);
+                DA.SetDataList(1, result.AnalysisMeshes);
+                DA.SetDataList(2, result.TotalRad[hour]);
+
+            }
         }
 
         /// <summary>

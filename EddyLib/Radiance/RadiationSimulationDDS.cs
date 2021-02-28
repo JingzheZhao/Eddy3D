@@ -18,22 +18,25 @@ namespace EddyLib.Radiance
     [DataContract]
     public class RadiationSimulationDDSResult
     {
-        public RadiationSimulationDDSResult(List<Mesh> meshes, float[][] totalRad)
+        public RadiationSimulationDDSResult(List<Mesh> meshes, float[][] totalRad, float[][] DirRad)
         {
             this.AnalysisMeshes = meshes;
             this.TotalRad = totalRad;
+            //this.DiffRad = DiffRad;
+            this.DirRad = DirRad;
+
         }
 
 
 
         [DataMember]
-        List<Mesh> AnalysisMeshes { get; set; }
+        public List<Mesh> AnalysisMeshes { get; set; }
         [DataMember]
         public float[][] TotalRad { get; set; }
-
-        //public double[][] DiffRad;
-
-        //public double[][] DirRad;
+        //[DataMember]
+        //public float[][] DiffRad { get; set; }
+        [DataMember]
+        public float[][] DirRad { get; set; }
 
 
         public string ToBson()
@@ -302,8 +305,14 @@ namespace EddyLib.Radiance
                 // -----------------------------
 
                 Console.WriteLine("Create Illum DC...");
-                 // Create Illum
-                 // Illuminace Weights == 47.4 119.9 11.6  // For Radiation 0.265 0.670 0.065 ???
+                // Create Illum
+                // Illuminace Weights == 47.4 119.9 11.6  // For Radiation 0.265 0.670 0.065 ???
+                // The * "global horizontal radiation" *in the epw file is a total solar
+                // radiation value* NOT yet* integrated over the visible spectral range
+                // (380 - 780 nm)(from gendaylit man page), so we can't simply multiply it by
+                // 179 to get the illuminance value.We need to "break" the * "global
+                // horizontal radiation" *into its RGB components and then use
+                // (R * 0.265 + G * 0.670 + B * 0.065) * 179 to convert it into a illuminance value.
                  // dctimestep Rad/output/dc_r" + skysubdiv + @".mtx ""Rad/output/" + weaname + @".smx"" | rmtxop -fa -t -c 0.265 0.670 0.065 - > ""Rad/output/annualR_dc.ill""
 
                 string annualR_dc_ill_out =  (@"Rad\output\annualR_dc.ill");
@@ -558,7 +567,10 @@ namespace EddyLib.Radiance
                 // 15
                 // -----------------------------
                 var totalIll = LoadDDSIll((this.BaseWorkingDir + @"\Rad\Output\annual_total.ill"));
-                var result = new RadiationSimulationDDSResult(this.ProbeMeshes, totalIll);
+                //var diffIll = LoadDDSIll((this.BaseWorkingDir + @"\Rad\Output\annual_total.ill"));
+                var dirIll = LoadDDSIll((this.BaseWorkingDir + @"\Rad\Output\annual_dir.ill"));
+
+                var result = new RadiationSimulationDDSResult(this.ProbeMeshes, totalIll, dirIll);
                 var bson = result.ToBson();
 
                 Console.WriteLine();
@@ -576,13 +588,10 @@ namespace EddyLib.Radiance
             return null;
 
         }
-        //public string AddQuotesIfRequired(string path)
-        //{
-        //    return !string.IsNullOrWhiteSpace(path) ?
-        //        path.Contains(" ") && (!path.StartsWith("\"") && !path.EndsWith("\"")) ?
-        //            "\"" + path + "\"" : path :
-        //            string.Empty;
-        //}
+       
+        
+        
+         
         
     }
 }
