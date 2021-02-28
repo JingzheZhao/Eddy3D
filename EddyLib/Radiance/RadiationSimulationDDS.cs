@@ -92,95 +92,6 @@ namespace EddyLib.Radiance
             string[] illLines = System.IO.File.ReadAllLines(illFileName).Skip(9).ToArray();
             return illLines.Select(l => Array.ConvertAll<string, float>(l.Split(new[] { ' ' }).Skip(1).ToArray(), float.Parse)).ToArray();
         }
-        private string CommandLineArgsNew(string RadianceDir, string baseWorkingDir, int sensorCnt, string weaname, string epwpath, int ab, int ad, SkySubdivision diffSky, SkySubdivision dirSky, int n)
-        {
-            int skysubdiv = (int)diffSky;
-            int skysubdivdirect = (int)diffSky;
-
-            string command = @"
-
-        cd " + baseWorkingDir + @"
-
-        REM ###################################
-        REM Pre
-        REM ###################################
-
-        REM Convert epw to wea tape
-        REM -----------------------------------
-        epw2wea """ + epwpath + @""" ""Rad/output/" + weaname + @".wea""
-
-        REM Make the OCTREE
-        REM -----------------------------------
-        REM takes an array of rad files and combines them into one octree
-        oconv Rad/scene.rad > Rad/output/scene.oct
-        oconv Rad/sceneBlack.rad > Rad/output/sceneBlack.oct
-
-        REM ###################################
-        REM 1 Perform an annual daylight coefficient simulation.
-        REM ###################################
-
-        REM Create daylight coefficient matrix for R1 sky (145patches)
-        REM -----------------------------------
-        REM -I+ denotes that the simulation is being performed for calculating irradiance instead of radiance
-        REM The 48 in -y 48 is equal to the number of lines in the file sensors.pts
-        REM The number of processors assigned for the simulation can be set with -n 4
-        rfluxmtx -I+ -y " + sensorCnt + @" -lw 0.0001 -ab " + ab + @"  -ad " + ad + @" -n " + n + @" - Rad/skyglowR" + (skysubdiv) + @".rad -i Rad/output/scene.oct < Rad/sensors.pts > Rad/Output/dc_r" + skysubdiv + @".mtx
-
-        REM Generates SkyVector for whole year.
-        REM-----------------------------------
-        REM -m controls the sky subdivision
-        REM Use -O1 to switch to solar rad
-        REM The −d option may be used to produce a sun -only matrix, with no sky contributions. Alternatively, the −s option may be used to exclude any direct solar component from the output.
-        gendaymtx -m " + skysubdiv + @" -O1 ""Rad/output/" + weaname + @".wea"" > ""Rad/output/" + weaname + @".smx""
-
-        REM Create Illum
-        REM Illuminace Weights == 47.4 119.9 11.6  // For Radiation 0.265 0.670 0.065 ???
-        REM -----------------------------------
-        dctimestep Rad/output/dc_r" + skysubdiv + @".mtx ""Rad/output/" + weaname + @".smx"" | rmtxop -fa -t -c 0.265 0.670 0.065 - > ""Rad/output/annualR_dc.ill""
-
-        REM ###################################
-        REM 2 Perform an annual direct-only daylight coefficients simulation.
-        REM ###################################
-
-        rfluxmtx -I+ -y " + sensorCnt + @" -lw 0.0001 -ab " + ab + @" -ad " + ad + @" -n " + n + @" - Rad/skyglowR" + (skysubdiv) + @".rad -i Rad/output/sceneBlack.oct < Rad/sensors.pts > Rad/output/dcd_r" + skysubdiv + @".mtx
-
-        gendaymtx -m " + skysubdiv + @" -O1 -d ""Rad/output/" + weaname + @".wea"" > ""Rad/output/" + weaname + @"d.smx""
-
-        dctimestep Rad/output/dcd_r" + skysubdiv + @".mtx ""Rad/output/" + weaname + @"d.smx"" | rmtxop -fa -t -c 0.265 0.670 0.065 -> ""Rad/output/annualR_dcd.ill""
-
-        REM ###################################
-        REM 3 Perform an annual sun-coefficients simulation.
-        REM ###################################
-
-        echo void light solar 0 0 3 1e6 1e6 1e6 > Rad/output/suns.rad
-
-        REM Create solar discs and corresponding modifiers for 2305 suns corresponding to a Reinhart MF:4 subdivision.
-        REM 0.533 solar disc size as angle
-        cnt " + (144 * skysubdivdirect * skysubdivdirect + 1) + @" | rcalc -e MF:4 -f " + RadianceDir + @"\lib\reinsrc.cal"" -e Rbin=recno -o ""solar source sun 0 0 4 ${Dx} ${Dy} ${Dz} 0.533"" >> ""Rad/output/suns.rad""
-
-        REM Put suns in scene...
-        oconv Rad/sceneBlack.rad Rad/output/suns.rad > Rad/output/sceneBlackSuns.oct
-
-        REM Calculate illuminance sun coefficients for illuminance calculations.
-        rcontrib -I+ -ab 1 -y " + sensorCnt + @" -n 16 -ad 256 -lw 1.0e-3 -dc 1 -dt 0 -dj 0 -faf -e MF:" + skysubdivdirect + @" -f """ + RadianceDir + @"\lib\reinhart.cal"" -b rbin -bn Nrbins -m solar ""Rad/output/sceneBlackSuns.oct"" < Rad/sensors.pts > ""Rad/output/cdsDDS.mtx""
-
-        REM - 5 option indicates 5phase method mode - solar disc angele must follow that input
-        REM The -d option in the SMX messes it all up-- you can't include -d and -5 together.
-        gendaymtx -5 0.533 -m " + skysubdivdirect + @" -O1 ""Rad/output/" + weaname + @".wea"" > ""Rad/output/sunM" + skysubdivdirect + @".smx""
-
-        dctimestep ""Rad/output/cdsDDS.mtx"" ""Rad/output/sunM" + skysubdivdirect + @".smx"" | rmtxop -fa -t -c 0.265 0.670 0.065 - > ""Rad/output/annual_dir.ill""
-
-        REM ###################################
-        REM 4 Combine Results
-        REM ###################################
-        rmtxop ""Rad/output/annualR_dc.ill"" + -s -1 ""Rad/output/annualR_dcd.ill"" + ""Rad/output/annual_dir.ill"" > ""Rad/output/annual_total.ill""
-
-        pause
-
-        ";
-            return command;
-        }
-
 
 
         public string ProjectName = "";
@@ -275,14 +186,7 @@ namespace EddyLib.Radiance
             Skies.Write(this.BaseWorkingDir + @"\Rad\skyglow" + (skySubDivDir) + ".rad", (skySubDivDir));
             Skies.Write(this.BaseWorkingDir + @"\Rad\skyglow" + (skySubDivDiff) + ".rad", (skySubDivDiff));
 
-
-
-
-            //var command = CommandLineArgsNew(DefaultDirectoriesAndPaths.RadianceDir, this.BaseWorkingDir, this.Probes.Count, weaname, this.Weather.epwFilePath, 3, 5000, skySubDivDiff, skySubDivDir, Environment.ProcessorCount - 1);
-
-
-
-
+ 
             if (run == true)
             {
 
@@ -290,8 +194,6 @@ namespace EddyLib.Radiance
                 // 1 Convert epw to wea tape
                 // -----------------------------
                 Console.WriteLine("Convert epw to wea tape...");
-                //string epwin = AddQuotesIfRequired();
-                //string weaout = AddQuotesIfRequired();
                 var epw2wea = Command.Run(DefaultDirectoriesAndPaths.RadianceDir + @"\epw2wea", @"""" + this.Weather.epwFilePath + @""" ""Rad/output/" + weaname + @".wea""");
                 epw2wea.Wait();
 
@@ -329,58 +231,17 @@ namespace EddyLib.Radiance
                 // The 48 in -y 48 is equal to the number of lines in the file sensors.pts
                 // The number of processors assigned for the simulation can be set with - n 4
                 // rfluxmtx -I+ -y " + sensorCnt + @" -lw 0.0001 -ab " + ab + @"  -ad " + ad + @" -n " + n + @" - Rad/skyglowR" + (skysubdiv) + @".rad -i Rad/output/scene.oct < Rad/sensors.pts > Rad/Output/dc_r" + skysubdiv + @".mtx
-                int ab = 2;
-                int ad = 1000;
+                int ab = 3;
+                int ad = 2000;
                 int n = (Environment.ProcessorCount - 1);
                 int sensorCnt = this.Probes.Count;
-
-                //string skyglowrad = (this.BaseWorkingDir + @"\Rad\skyglow" + skySubDivDiff + @".rad");
-                //string inputoct = (this.BaseWorkingDir + @"\Rad\output\scene.oct");
-                //string ptsin = (this.BaseWorkingDir + @"\Rad\sensors.pts");
-                //string mtxout = (this.BaseWorkingDir + @"\Rad\Output\dc_" + skySubDivDiff + @".mtx");
 
                 string skyglowrad = (@"Rad\skyglow" + skySubDivDiff + @".rad");
                 string inputoct = (@"Rad\output\scene.oct");
                 string ptsin = (@"Rad\sensors.pts");
                 string mtxout = (@"Rad\Output\dc_" + skySubDivDiff + @".mtx");
 
-                //these dont works and I have no idea why
-                #region whydoesthisnotwork
-
-                ////////V1
-                //////var rfluxmtx = Command.Run(DefaultDirectoriesAndPaths.RadianceDir + @"\rfluxmtx.exe",
-                //////   new[] { "-I+ -y " + sensorCnt + " -lw 0.0001 -ab " + ab + @" -ad " + ad + " -n " + n + @" - " + skyglowrad +" -i " + inputoct + " < " + ptsin + " > " + mtxout });
-                //////rfluxmtx.Wait();
-
-                //////if (!rfluxmtx.Result.Success)
-                //////{
-                //////    Debug.WriteLine($"1 command failed with exit code {rfluxmtx.Result.ExitCode}: {rfluxmtx.Result.StandardError}");
-                //////}
-
-                ////////V2
-                //////var rfluxmtx2 = Command.Run(DefaultDirectoriesAndPaths.RadianceDir + @"\rfluxmtx.exe",
-                //////   new[] { "-I+ -y " + sensorCnt + " -lw 0.0001 -ab " + ab + @" -ad " + ad + " -n " + n + @" - " + skyglowrad +  " -i " + inputoct })
-                //////    .RedirectFrom(new FileInfo(ptsin)).RedirectTo(new FileInfo(mtxout));
-                //////rfluxmtx2.Wait();
-                //////if (!rfluxmtx2.Result.Success)
-                //////{
-                //////    Debug.WriteLine($"2 command failed with exit code {rfluxmtx2.Result.ExitCode}: {rfluxmtx2.Result.StandardError}");
-                //////}
-
-                ////////V3
-                //////var rfluxmtx3 = Command.Run(DefaultDirectoriesAndPaths.RadianceDir + @"\rfluxmtx.exe", new[] { "-I+ -y " + sensorCnt + " -lw 0.0001 -ab " + ab + @" -ad " + ad + " -n " + n+ " - " + skyglowrad + " -i " + inputoct });
-                //////rfluxmtx3.StandardInput.PipeFromAsync(new FileInfo(ptsin));
-                //////rfluxmtx3.StandardOutput.PipeToAsync(new FileInfo(mtxout));
-                //////rfluxmtx3.Wait();
-                //////if (!rfluxmtx3.Result.Success)
-                //////{
-                //////    Debug.WriteLine($"3 command failed with exit code {rfluxmtx3.Result.ExitCode}: {rfluxmtx3.Result.StandardError}");
-                //////}
-
-                #endregion
-
-                //V4
-                // string cmdArgRFLUXMTX = DefaultDirectoriesAndPaths.RadianceDir + @"\rfluxmtx -I+ -y " + sensorCnt + @" -lw 0.0001 -ab " + ab + @"  -ad " + ad + @" -n " + n + @" - """ + skyglowrad + @""" -i """ + inputoct + @""" < """ + ptsin + @""" > """ + mtxout + @"""";
+    
                 string cmdArgRFLUXMTX = DefaultDirectoriesAndPaths.RadianceDir + @"\rfluxmtx -I+ -y " + sensorCnt + @" -lw 0.0001 -ab " + ab + @"  -ad " + ad + @" -n " + n + @" - " + skyglowrad + @" -i " + inputoct + @" < " + ptsin + @" > " + mtxout ;
                 var CMDrfluxmtx = Command.Run("cmd.exe");
                 CMDrfluxmtx.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
@@ -400,7 +261,7 @@ namespace EddyLib.Radiance
 
 
                 // -----------------------------
-                // 4
+                // 4 Generate SkyVector
                 // -----------------------------
 
                 Console.WriteLine("Generate SkyVector for whole year...");
@@ -431,17 +292,20 @@ namespace EddyLib.Radiance
                 pct = 100 * stepCnt / steps;
                 Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
 
+
+
+
+
+
                 // -----------------------------
-                // 5
+                // 5 Create Illum DC
                 // -----------------------------
 
                 Console.WriteLine("Create Illum DC...");
-                /*
-                 REM Create Illum
-                 REM Illuminace Weights == 47.4 119.9 11.6  // For Radiation 0.265 0.670 0.065 ???
-                 REM -----------------------------------
-                 dctimestep Rad/output/dc_r" + skysubdiv + @".mtx ""Rad/output/" + weaname + @".smx"" | rmtxop -fa -t -c 0.265 0.670 0.065 - > ""Rad/output/annualR_dc.ill""
-                 */
+                 // Create Illum
+                 // Illuminace Weights == 47.4 119.9 11.6  // For Radiation 0.265 0.670 0.065 ???
+                 // dctimestep Rad/output/dc_r" + skysubdiv + @".mtx ""Rad/output/" + weaname + @".smx"" | rmtxop -fa -t -c 0.265 0.670 0.065 - > ""Rad/output/annualR_dc.ill""
+
                 string annualR_dc_ill_out =  (@"Rad\output\annualR_dc.ill");
                 string dctimestepArgs = DefaultDirectoriesAndPaths.RadianceDir + @"\dctimestep " + mtxout + @" " + smxout + @" | rmtxop -fa -t -c 0.265 0.670 0.065 - > " + annualR_dc_ill_out;
                 var dctimestep = Command.Run("cmd.exe");
@@ -574,7 +438,6 @@ namespace EddyLib.Radiance
                 // -----------------------------
                 // 10 Put suns in scene..
                 // -----------------------------
-
                 Console.WriteLine("Make the Octree... adding suns to scene...");
                 string blackWithSuns = (this.BaseWorkingDir + @"\Rad\output\sceneBlackSuns.oct");
 
@@ -592,7 +455,7 @@ namespace EddyLib.Radiance
 
 
                 // -----------------------------
-                // 11
+                // 11 Calculate illuminance sun coefficients
                 // -----------------------------
                 Console.WriteLine(" Calculate illuminance sun coefficients for illuminance calculations...");
                 string blackWithSunsin = ( @"Rad\output\sceneBlackSuns.oct");
@@ -616,11 +479,11 @@ namespace EddyLib.Radiance
 
 
                 // -----------------------------
-                //12
+                // 12
                 // -----------------------------
                 Console.WriteLine("Generate SkyVector for whole year...");
-                //REM - 5 option indicates 5phase method mode - solar disc angele must follow that input
-                //REM The -d option in the SMX messes it all up-- you can't include -d and -5 together.
+                // - 5 option indicates 5phase method mode - solar disc angele must follow that input
+                // The -d option in the SMX messes it all up-- you can't include -d and -5 together.
                 string smxsunout =  (@"Rad\output\sunM" + skysubdivdirect + @".smx");
                 string gendaymtx2Args = DefaultDirectoriesAndPaths.RadianceDir + @"\gendaymtx -5 0.533 -m " + skysubdivdirect + @" -O1 " + weain + @" > " + smxsunout;
 
@@ -642,7 +505,7 @@ namespace EddyLib.Radiance
 
 
                 // -----------------------------
-                //13
+                // 13 Create Illum Dir
                 // -----------------------------
                 Console.WriteLine("Create Illum Dir...");
                 string annualR_dir_ill_out = (@"Rad\output\annual_dir.ill");
@@ -670,7 +533,6 @@ namespace EddyLib.Radiance
                 // -----------------------------
                 // 14 Combine Results
                 // -----------------------------
-
                 Console.WriteLine("Combine Results...");
                 string annualR_total_ill_out = (@"Rad\output\annual_total.ill");
                 string rmtxopArgs = DefaultDirectoriesAndPaths.RadianceDir + @"\rmtxop " + annualR_dc_ill_out + @" + -s -1 " + annualR_dcd_ill_out + @" + " + annualR_dir_ill_out + @" > " + annualR_total_ill_out;
@@ -689,39 +551,6 @@ namespace EddyLib.Radiance
                 stepCnt++;
                 pct = 100 * stepCnt / steps;
                 Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
-
-
-
-
-
-                //using (Process process = new Process())
-                //{
-                //    process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-
-                //    process.StartInfo.UseShellExecute = false;
-                //    process.StartInfo.RedirectStandardOutput = true;
-                //    process.StartInfo.RedirectStandardError = true;
-                //    process.StartInfo.WorkingDirectory = this.BaseWorkingDir + @"\Rad\";
-                //    process.StartInfo.FileName = Path.Combine(Environment.SystemDirectory, "cmd.exe");
-                //    process.StartInfo.RedirectStandardError = true;
-
-                //    // Redirects the standard input so that commands can be sent to the shell.
-                //    process.StartInfo.RedirectStandardInput = true;
-
-                //    Console.WriteLine("Starting simulation");
-
-                //    process.Start();
-                //    process.BeginOutputReadLine();
-                //    process.BeginErrorReadLine();
-                //    // Send a directory command and an exit command to the shell
-                //    process.StandardInput.WriteLine(CommandLineArgsNew(DefaultDirectoriesAndPaths.RadianceDir, this.BaseWorkingDir, this.Probes.Count, weaname, this.Weather.epwFilePath, 3, 5000, skySubDivDiff, skySubDivDir, Environment.ProcessorCount - 1));
-                //    process.StandardInput.WriteLine("exit");
-
-                //    process.WaitForExit();
-
-                //    Console.WriteLine("Starting completed");
-
-                //}
 
 
 
