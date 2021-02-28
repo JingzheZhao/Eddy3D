@@ -13,6 +13,8 @@ namespace EddyLib.UI
     public class ProgressDialog : Dialog
     {
         public Label Status;
+        public TextArea StatusLog;
+
         public bool Canceled = false;
         private ProgressBar pbar;
         public float Progress
@@ -28,13 +30,15 @@ namespace EddyLib.UI
         public ProgressDialog(Func<CancellationTokenSource, Task> task, double refreshRate = 1000)
         {
             Title = "Simulation Progress";
-            BackgroundColor = Colors.Gray;
+            BackgroundColor = Colors.LightGrey;
             //Icon = Icon.FromResource("Properties.Resources.eddy_icon.png");
-            ClientSize = new Size(400, 200);
+            ClientSize = new Size(450, 250);
             ShowInTaskbar = true;
 
             // controls
             Status = new Label();
+            StatusLog = new TextArea() { Height = 150  };
+
             pbar = new ProgressBar();
             var cancel = new Button { Text = "Cancel" };
             var cts = new CancellationTokenSource();
@@ -64,6 +68,10 @@ namespace EddyLib.UI
             layout.Add(Status, true, false);
             layout.EndHorizontal();
             layout.EndVertical();
+            layout.BeginVertical();
+            layout.Add(StatusLog, true , true );
+            layout.EndVertical();
+
             layout.BeginVertical();
             layout.Add(null, true, true);
             layout.Add(cancel, true, false);
@@ -127,6 +135,8 @@ namespace EddyLib.UI
             if (context != null) context.Send((object state) =>
             {
                 dialog.Status.Text = value;
+                dialog.StatusLog.Text += value + Environment.NewLine;
+
             }, null);
         }
 
@@ -141,7 +151,12 @@ namespace EddyLib.UI
                         dialog.Progress = val / 100f;
                     }
                 }
-                else dialog.Status.Text = value;
+                else
+                {
+                    dialog.Status.Text = value;
+                    dialog.StatusLog.Text += value + Environment.NewLine;
+
+                }
             }, null);
         }
 

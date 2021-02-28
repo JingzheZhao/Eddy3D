@@ -510,7 +510,6 @@ namespace EddyLib.Radiance
                 Console.WriteLine("Create Illum Dir...");
                 string annualR_dir_ill_out = (@"Rad\output\annual_dir.ill");
                 string dctimestep2Args = DefaultDirectoriesAndPaths.RadianceDir + @"\dctimestep " + cddmtxout + @" " + smxsunout + @" | rmtxop -fa -t -c 0.265 0.670 0.065 - > " + annualR_dir_ill_out;
-
                 var dctimestep2 = Command.Run("cmd.exe");
                 dctimestep2.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 dctimestep2.StandardInput.WriteLine(dctimestep2Args);
