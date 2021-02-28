@@ -304,8 +304,8 @@ namespace EddyLib.Radiance
                 // 2 Make Octree
                 // -----------------------------
                 Console.WriteLine("Make the Octree...");
-                string radin = AddQuotesIfRequired(this.BaseWorkingDir + @"\Rad\scene.rad");
-                string octout = AddQuotesIfRequired(this.BaseWorkingDir + @"\Rad\output\scene.oct");
+                string radin = (this.BaseWorkingDir + @"\Rad\scene.rad");
+                string octout = (this.BaseWorkingDir + @"\Rad\output\scene.oct");
                 var oconv = Command.Run(DefaultDirectoriesAndPaths.RadianceDir + @"\oconv", new[] { radin },
                     options => options.WorkingDirectory(this.BaseWorkingDir)).RedirectTo(new FileInfo(octout));
                 oconv.Wait();
@@ -334,10 +334,10 @@ namespace EddyLib.Radiance
                 int n = (Environment.ProcessorCount - 1);
                 int sensorCnt = this.Probes.Count;
 
-                string skyglowrad = AddQuotesIfRequired(this.BaseWorkingDir + @"\Rad\skyglow" + skySubDivDiff + @".rad");
-                string inputoct = AddQuotesIfRequired(this.BaseWorkingDir + @"\Rad\output\scene.oct");
-                string ptsin = AddQuotesIfRequired(this.BaseWorkingDir + @"\Rad\sensors.pts");
-                string mtxout = AddQuotesIfRequired(this.BaseWorkingDir + @"\Rad\Output\dc_" + skySubDivDiff + @".mtx");
+                string skyglowrad = (this.BaseWorkingDir + @"\Rad\skyglow" + skySubDivDiff + @".rad");
+                string inputoct = (this.BaseWorkingDir + @"\Rad\output\scene.oct");
+                string ptsin = (this.BaseWorkingDir + @"\Rad\sensors.pts");
+                string mtxout = (this.BaseWorkingDir + @"\Rad\Output\dc_" + skySubDivDiff + @".mtx");
 
                 //these dont works and I have no idea why
                 #region whydoesthisnotwork
@@ -375,7 +375,7 @@ namespace EddyLib.Radiance
                 #endregion
 
                 //V4
-                string cmdArgRFLUXMTX = DefaultDirectoriesAndPaths.RadianceDir + @"\rfluxmtx -I+ -y " + sensorCnt + @" -lw 0.0001 -ab " + ab + @"  -ad " + ad + @" -n " + n + @" - " + skyglowrad + " -i " + inputoct + " < " + ptsin + " > " + mtxout;
+                string cmdArgRFLUXMTX = DefaultDirectoriesAndPaths.RadianceDir + @"\rfluxmtx -I+ -y " + sensorCnt + @" -lw 0.0001 -ab " + ab + @"  -ad " + ad + @" -n " + n + @" - """ + skyglowrad + @""" -i """ + inputoct + @""" < """ + ptsin + @""" > """ + mtxout + @"""";
                 var CMDrfluxmtx = Command.Run("cmd.exe");
                 CMDrfluxmtx.StandardInput.WriteLine(cmdArgRFLUXMTX);
                 CMDrfluxmtx.StandardInput.WriteLine("exit");
@@ -403,10 +403,10 @@ namespace EddyLib.Radiance
                   REM The −d option may be used to produce a sun -only matrix, with no sky contributions. Alternatively, the −s option may be used to exclude any direct solar component from the output.
                   gendaymtx -m " + skysubdiv + @" -O1 ""Rad/output/" + weaname + @".wea"" > ""Rad/output/" + weaname + @".smx""
                  */
-                string weain = AddQuotesIfRequired(this.BaseWorkingDir + @"\Rad\output\" + weaname + @".wea");
-                string smxout = AddQuotesIfRequired(this.BaseWorkingDir + @"\Rad\output\" + weaname + @".smx");
+                string weain = (this.BaseWorkingDir + @"\Rad\output\" + weaname + @".wea");
+                string smxout = (this.BaseWorkingDir + @"\Rad\output\" + weaname + @".smx");
 
-                string gendaymtxArgs = DefaultDirectoriesAndPaths.RadianceDir + @"\gendaymtx.exe -m " + 1 + @" -O1 " + weain + " > " + smxout;
+                string gendaymtxArgs = DefaultDirectoriesAndPaths.RadianceDir + @"\gendaymtx.exe -m " + 1 + @" -O1 """ + weain + @""" > """ + smxout+ @"""";
 
                 var gendaymtx = Command.Run("cmd.exe");
                 gendaymtx.StandardInput.WriteLine(gendaymtxArgs);
@@ -434,8 +434,8 @@ namespace EddyLib.Radiance
                  REM -----------------------------------
                  dctimestep Rad/output/dc_r" + skysubdiv + @".mtx ""Rad/output/" + weaname + @".smx"" | rmtxop -fa -t -c 0.265 0.670 0.065 - > ""Rad/output/annualR_dc.ill""
                  */
-                string annualR_dc_ill_out = AddQuotesIfRequired(this.BaseWorkingDir + @"\Rad\output\annualR_dc.ill");
-                string dctimestepArgs = DefaultDirectoriesAndPaths.RadianceDir + @"\dctimestep " + mtxout + " " + smxout + " | rmtxop -fa -t -c 0.265 0.670 0.065 - > " + annualR_dc_ill_out;
+                string annualR_dc_ill_out =  (this.BaseWorkingDir + @"\Rad\output\annualR_dc.ill");
+                string dctimestepArgs = DefaultDirectoriesAndPaths.RadianceDir + @"\dctimestep """ + mtxout + @""" """ + smxout + @""" | rmtxop -fa -t -c 0.265 0.670 0.065 - > """ + annualR_dc_ill_out + @"""";
                 var dctimestep = Command.Run("cmd.exe");
                 dctimestep.StandardInput.WriteLine(dctimestepArgs);
                 dctimestep.StandardInput.WriteLine("exit");
@@ -460,19 +460,19 @@ namespace EddyLib.Radiance
                 Console.WriteLine("Perform an annual direct-only daylight coefficients simulation...");
 
                 //Create black octree for direct sun calculations.
-                string radinblack = AddQuotesIfRequired(this.BaseWorkingDir + @"\Rad\sceneBlack.rad");
-                string octoutblack = AddQuotesIfRequired(this.BaseWorkingDir + @"\Rad\output\sceneBlack.oct");
+                string radinblack =  (this.BaseWorkingDir + @"\Rad\sceneBlack.rad");
+                string octoutblack =  (this.BaseWorkingDir + @"\Rad\output\sceneBlack.oct");
                 var oconvBlack = Command.Run(DefaultDirectoriesAndPaths.RadianceDir + @"\oconv", new[] { radinblack },
                     options => options.WorkingDirectory(this.BaseWorkingDir)).RedirectTo(new FileInfo(octoutblack));
                 oconvBlack.Wait();
 
-                string dcd_mtxout = AddQuotesIfRequired(this.BaseWorkingDir + @"\Rad\output\dcd_" + skySubDivDiff + @".mtx");
-                string d_smxout = AddQuotesIfRequired(this.BaseWorkingDir + @"\Rad\output\" + weaname + @"d.smx");
-                string annualR_dcd_ill_out = AddQuotesIfRequired(this.BaseWorkingDir + @"\Rad\output\annualR_dcd.ill");
+                string dcd_mtxout =  (this.BaseWorkingDir + @"\Rad\output\dcd_" + skySubDivDiff + @".mtx");
+                string d_smxout =  (this.BaseWorkingDir + @"\Rad\output\" + weaname + @"d.smx");
+                string annualR_dcd_ill_out =  (this.BaseWorkingDir + @"\Rad\output\annualR_dcd.ill");
 
-                string dirCalcArgs1 = DefaultDirectoriesAndPaths.RadianceDir + @"\rfluxmtx -I+ -y " + sensorCnt + @" -lw 0.0001 -ab 1 -ad " + ad + @" -n " + n + @" - " + skyglowrad + " -i " + octoutblack + " < " + ptsin + " > " + dcd_mtxout;
-                string dirCalcArgs2 = DefaultDirectoriesAndPaths.RadianceDir + @"\gendaymtx -m " + skysubdivdiffuse + @" -O1 -d " + weain + " > " + d_smxout;
-                string dirCalcArgs3 = DefaultDirectoriesAndPaths.RadianceDir + @"\dctimestep " + dcd_mtxout + " " + d_smxout + " | rmtxop -fa -t -c 0.265 0.670 0.065 -> " + annualR_dcd_ill_out;
+                string dirCalcArgs1 = DefaultDirectoriesAndPaths.RadianceDir + @"\rfluxmtx -I+ -y " + sensorCnt + @" -lw 0.0001 -ab 1 -ad " + ad + @" -n " + n + @" - """ + skyglowrad + @""" -i """ + octoutblack + @""" < """ + ptsin + @""" > """ + dcd_mtxout + @"""";
+                string dirCalcArgs2 = DefaultDirectoriesAndPaths.RadianceDir + @"\gendaymtx -m """ + skysubdivdiffuse + @""" -O1 -d """ + weain + @""" > """ + d_smxout + @"""";
+                string dirCalcArgs3 = DefaultDirectoriesAndPaths.RadianceDir + @"\dctimestep """ + dcd_mtxout + @""" """ + d_smxout + @""" | rmtxop -fa -t -c 0.265 0.670 0.065 -> """ + annualR_dcd_ill_out + @"""";
 
 
                 var dircalc1 = Command.Run("cmd.exe");
@@ -535,10 +535,10 @@ namespace EddyLib.Radiance
                 // 0.533 solar disc size as angle
 
                 Console.WriteLine("Perform an annual sun-coefficients simulation...");
-                string sunsOut = AddQuotesIfRequired(this.BaseWorkingDir + @"\Rad\output\suns.rad");
+                string sunsOut =  (this.BaseWorkingDir + @"\Rad\output\suns.rad");
 
-                string suncoeffArgs1 = "echo void light solar 0 0 3 1e6 1e6 1e6 > " + sunsOut;
-                string suncoeffArgs2 = "cnt " + (144 * skysubdivdirect * skysubdivdirect + 1) + @" | rcalc -e MF:4 -f """ + DefaultDirectoriesAndPaths.RadianceLibDir + @"\reinsrc.cal"" -e Rbin=recno -o ""solar source sun 0 0 4 ${Dx} ${Dy} ${Dz} 0.533"" >> " + sunsOut;
+                string suncoeffArgs1 = @"echo void light solar 0 0 3 1e6 1e6 1e6 > """ + sunsOut + @"""";
+                string suncoeffArgs2 = "cnt " + (144 * skysubdivdirect * skysubdivdirect + 1) + @" | rcalc -e MF:4 -f """ + DefaultDirectoriesAndPaths.RadianceLibDir + @"\reinsrc.cal"" -e Rbin=recno -o ""solar source sun 0 0 4 ${Dx} ${Dy} ${Dz} 0.533"" >> """ + sunsOut + @"""";
 
                 var suncoeff = Command.Run("cmd.exe");
                 suncoeff.StandardInput.WriteLine(suncoeffArgs1);
@@ -563,7 +563,7 @@ namespace EddyLib.Radiance
                 // -----------------------------
 
                 Console.WriteLine("Make the Octree... adding suns to scene...");
-                string blackWithSuns = AddQuotesIfRequired(this.BaseWorkingDir + @"\Rad\output\sceneBlackSuns.oct");
+                string blackWithSuns = (this.BaseWorkingDir + @"\Rad\output\sceneBlackSuns.oct");
 
                 var oconvdir = Command.Run(DefaultDirectoriesAndPaths.RadianceDir + @"\oconv", new[] { radinblack, sunsOut },
                     options => options.WorkingDirectory(this.BaseWorkingDir)).RedirectTo(new FileInfo(blackWithSuns));
@@ -582,8 +582,8 @@ namespace EddyLib.Radiance
                 // 11
                 // -----------------------------
                 Console.WriteLine(" Calculate illuminance sun coefficients for illuminance calculations...");
-                string cddmtxout = AddQuotesIfRequired(this.BaseWorkingDir + @"\Rad\output\cdsDDS.mtx");
-                string rcontribArgs1 = DefaultDirectoriesAndPaths.RadianceDir + @"\rcontrib -I+ -ab 1 -y " + sensorCnt + @" -n 16 -ad 256 -lw 1.0e-3 -dc 1 -dt 0 -dj 0 -faf -e MF:" + skysubdivdirect + @" -f """ + DefaultDirectoriesAndPaths.RadianceLibDir + @"\reinhart.cal"" -b rbin -bn Nrbins -m solar " + blackWithSuns + " < " + ptsin + " > " + cddmtxout;
+                string cddmtxout =  (this.BaseWorkingDir + @"\Rad\output\cdsDDS.mtx");
+                string rcontribArgs1 = DefaultDirectoriesAndPaths.RadianceDir + @"\rcontrib -I+ -ab 1 -y " + sensorCnt + @" -n 16 -ad 256 -lw 1.0e-3 -dc 1 -dt 0 -dj 0 -faf -e MF:" + skysubdivdirect + @" -f """ + DefaultDirectoriesAndPaths.RadianceLibDir + @"\reinhart.cal"" -b rbin -bn Nrbins -m solar """ + blackWithSuns + @""" < """ + ptsin + @""" > """ + cddmtxout + @"""";
                 var rcontrib = Command.Run("cmd.exe");
                 rcontrib.StandardInput.WriteLine(rcontribArgs1);
                 rcontrib.StandardInput.WriteLine("exit");
@@ -606,8 +606,8 @@ namespace EddyLib.Radiance
                 Console.WriteLine("Generate SkyVector for whole year...");
                 //REM - 5 option indicates 5phase method mode - solar disc angele must follow that input
                 //REM The -d option in the SMX messes it all up-- you can't include -d and -5 together.
-                string smxsunout = AddQuotesIfRequired(this.BaseWorkingDir + @"\Rad\output\sunM" + skysubdivdirect + @".smx");
-                string gendaymtx2Args = DefaultDirectoriesAndPaths.RadianceDir + @"\gendaymtx -5 0.533 -m " + skysubdivdirect + @" -O1 " + weain + " > " + smxsunout;
+                string smxsunout =  (this.BaseWorkingDir + @"\Rad\output\sunM" + skysubdivdirect + @".smx");
+                string gendaymtx2Args = DefaultDirectoriesAndPaths.RadianceDir + @"\gendaymtx -5 0.533 -m """ + skysubdivdirect + @""" -O1 """ + weain + @""" > """ + smxsunout + @"""";
 
                 var gendaymtx2 = Command.Run("cmd.exe");
                 gendaymtx2.StandardInput.WriteLine(gendaymtx2Args);
@@ -629,8 +629,8 @@ namespace EddyLib.Radiance
                 //13
                 // -----------------------------
                 Console.WriteLine("Create Illum Dir...");
-                string annualR_dir_ill_out = AddQuotesIfRequired(this.BaseWorkingDir + @"\Rad\output\annual_dir.ill");
-                string dctimestep2Args = DefaultDirectoriesAndPaths.RadianceDir + @"\dctimestep " + cddmtxout + " " + smxsunout + " | rmtxop -fa -t -c 0.265 0.670 0.065 - > " + annualR_dir_ill_out;
+                string annualR_dir_ill_out = (this.BaseWorkingDir + @"\Rad\output\annual_dir.ill");
+                string dctimestep2Args = DefaultDirectoriesAndPaths.RadianceDir + @"\dctimestep """ + cddmtxout + @""" """ + smxsunout + @""" | rmtxop -fa -t -c 0.265 0.670 0.065 - > """ + annualR_dir_ill_out + @"""";
 
                 var dctimestep2 = Command.Run("cmd.exe");
                 dctimestep2.StandardInput.WriteLine(dctimestep2Args);
@@ -655,8 +655,8 @@ namespace EddyLib.Radiance
                 // -----------------------------
 
                 Console.WriteLine("Combine Results...");
-                string annualR_total_ill_out = AddQuotesIfRequired(this.BaseWorkingDir + @"\Rad\output\annual_total.ill");
-                string rmtxopArgs = DefaultDirectoriesAndPaths.RadianceDir + @"\rmtxop " + annualR_dc_ill_out + " + -s -1 " + annualR_dcd_ill_out + " + " + annualR_dir_ill_out + " > " + annualR_total_ill_out;
+                string annualR_total_ill_out = (this.BaseWorkingDir + @"\Rad\output\annual_total.ill");
+                string rmtxopArgs = DefaultDirectoriesAndPaths.RadianceDir + @"\rmtxop """ + annualR_dc_ill_out + @""" + -s -1 """ + annualR_dcd_ill_out + @""" + """ + annualR_dir_ill_out + @""" > """ + annualR_total_ill_out + @"""";
 
                 var rmtxop = Command.Run("cmd.exe");
                 rmtxop.StandardInput.WriteLine(rmtxopArgs);
@@ -711,7 +711,7 @@ namespace EddyLib.Radiance
                 // -----------------------------
                 // 15
                 // -----------------------------
-                var totalIll = LoadDDSIll(AddQuotesIfRequired(this.BaseWorkingDir + @"\Rad\Output\annual_total.ill"));
+                var totalIll = LoadDDSIll((this.BaseWorkingDir + @"\Rad\Output\annual_total.ill"));
                 var result = new RadiationSimulationDDSResult(this.ProbeMeshes, totalIll);
                 var bson = result.ToBson();
 
@@ -730,12 +730,13 @@ namespace EddyLib.Radiance
             return null;
 
         }
-        public string AddQuotesIfRequired(string path)
-        {
-            return !string.IsNullOrWhiteSpace(path) ?
-                path.Contains(" ") && (!path.StartsWith("\"") && !path.EndsWith("\"")) ?
-                    "\"" + path + "\"" : path :
-                    string.Empty;
-        }
+        //public string AddQuotesIfRequired(string path)
+        //{
+        //    return !string.IsNullOrWhiteSpace(path) ?
+        //        path.Contains(" ") && (!path.StartsWith("\"") && !path.EndsWith("\"")) ?
+        //            "\"" + path + "\"" : path :
+        //            string.Empty;
+        //}
+        
     }
 }
