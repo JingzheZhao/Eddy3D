@@ -180,7 +180,7 @@ namespace Eddy
 
                 if (!cts.IsCancellationRequested)
                 {
-                    RadiationSimulation.RunDDS(true);
+                    RadiationSimulation.RunDDS(true , cts.Token);
                     //Console.WriteLine("Simulation: " + i);
                     //double pct = 100 * i / iter;
                     //Console.WriteLine(ProgressWriter.ProgressKey + pct);
