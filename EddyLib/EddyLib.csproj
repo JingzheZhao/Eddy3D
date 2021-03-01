@@ -61,6 +61,12 @@
     <Reference Include="Numpy, Version=3.7.1.16, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Numpy.3.7.1.16\lib\netstandard2.0\Numpy.dll</HintPath>
     </Reference>
+    <Reference Include="protobuf-net, Version=3.0.0.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
+      <HintPath>..\packages\protobuf-net.3.0.73\lib\net461\protobuf-net.dll</HintPath>
+    </Reference>
+    <Reference Include="protobuf-net.Core, Version=3.0.0.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
+      <HintPath>..\packages\protobuf-net.Core.3.0.73\lib\net461\protobuf-net.Core.dll</HintPath>
+    </Reference>
     <Reference Include="Python.Included, Version=3.7.3.4, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Python.Included.3.7.3.4\lib\netstandard2.0\Python.Included.dll</HintPath>
     </Reference>
@@ -74,9 +80,24 @@
       <HintPath>..\packages\RhinoCommon.6.26.20147.6511\lib\net45\RhinoCommon.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Collections.Immutable, Version=1.2.5.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Collections.Immutable.1.7.1\lib\net461\System.Collections.Immutable.dll</HintPath>
+    </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.5.4\lib\net461\System.Memory.dll</HintPath>
+    </Reference>
     <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.3\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
@@ -181,8 +202,8 @@
   </Target>
   <Import Project="..\packages\Grasshopper.6.26.20147.6511\build\net45\Grasshopper.targets" Condition="Exists('..\packages\Grasshopper.6.26.20147.6511\build\net45\Grasshopper.targets')" />
   <PropertyGroup>
-    <PostBuildEvent>SET ilrepack=$(SolutionDir)packages\ILMerge.3.0.40\tools\net452\ILMerge.exe
-REM SET ilrepack=$(SolutionDir)packages\ILRepack.2.0.18\tools\ILRepack.exe
+    <PostBuildEvent>REM SET ilrepack=$(SolutionDir)packages\ILMerge.3.0.40\tools\net452\ILMerge.exe
+SET ilrepack=$(SolutionDir)packages\ILRepack.2.0.18\tools\ILRepack.exe
 
 SET build_eddylib=$(SolutionDir)EddyLib\bin\
 SET build_eddy=$(SolutionDir)Eddy\bin\
@@ -198,8 +219,15 @@ SET post_build_dotfuscated=$(SolutionDir)Build\Build.Dotfuscated\
 SET cappl=$(SolutionDir)packages\ConsoleAppLauncher.1.0.6354.408\lib\net40\ConsoleAppLauncher.dll
 SET cliapp=$(SolutionDir)packages\CommandLineParser.1.9.71\lib\net45\CommandLine.dll
 
-SET rhc=$(SolutionDir)packages\RhinoCommon.6.26.20147.6511\lib\net45
-SET gh=$(SolutionDir)packages\Grasshopper.6.26.20147.6511\lib\net45
+SET rhc=$(SolutionDir)packages\RhinoCommon.6.26.20147.6511\lib\net45\RhinoCommon.dll
+SET gh=$(SolutionDir)packages\Grasshopper.6.26.20147.6511\lib\net45\Grasshopper.dll
+
+SET medallionShell=$(SolutionDir)packages\MedallionShell.1.6.2\lib\net45\MedallionShell.dll
+SET bson=$(SolutionDir)packages\Newtonsoft.Json.Bson.1.0.2\lib\net45\Newtonsoft.Json.Bson.dll
+SET json=$(SolutionDir)packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll
+SET numerics=$(SolutionDir)packages\MathNet.Numerics.4.11.0\lib\net461\MathNet.Numerics.dll
+SET protobuf=$(SolutionDir)packages\protobuf-net.Core.3.0.73\lib\net461\protobuf-net.Core.dll
+
 
 echo %25ilrepack%25
 echo %25build_eddylib%25
@@ -243,11 +271,29 @@ echo "ILMERGE"
 echo "***"
 echo ""
 
-"%25ilrepack%25" /log /lib:"C:\Windows\Microsoft.NET\Framework\v4.0.30319"  /lib:"%25gh%25" /lib:"%25rhc%25" /targetplatform:v4 /out:"%25post_build_ilmerge%25EddyLib.dll" "%25cliapp%25" "%25cappl%25" "%25build_eddylib%25EddyLib.dll"
+REM "%25gh%25" "%25rhc%25"
+
+"%25ilrepack%25" /parallel /out:"%25post_build_ilmerge%25EddyLib.dll" "%25cliapp%25" "%25cappl%25" "%25build_eddylib%25EddyLib.dll" "%25medallionShell%25" "%25json%25" "%25bson%25" "%25protobuf%25" "%25numerics%25" 
 
 if $(ConfigurationName)==Release (
 "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\PreEmptiveSolutions\DotfuscatorCE\dotfuscatorCLI.exe" "$(SolutionDir)\Build\Dotfuscator.xml"
 )
+
+
+SET installation_folder=C:\Eddy3D\
+
+echo ""
+echo "***"
+echo "COPY to %25installation_folder%25"
+echo "***"
+echo ""
+
+
+copy "%25post_build_ilmerge%25\Eddy.gha" "%25installation_folder%25"
+copy "%25post_build_ilmerge%25\EddyLib.dll" "%25installation_folder%25"
+copy "%25post_build_ilmerge%25\CallBatchRunner.exe" "%25installation_folder%25"
+
+
 
 
 

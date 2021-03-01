@@ -149,7 +149,7 @@ namespace Eddy
 
         public override void CreateAttributes()
         {
-            var att = new Eddy_ComponentButtonAttributes(this);
+            var att = new EddyLib.UI.Eddy_ComponentButtonAttributes(this);
             this.Attributes = att;
         }
 

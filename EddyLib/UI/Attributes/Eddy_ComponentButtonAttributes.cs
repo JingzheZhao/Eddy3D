@@ -2,7 +2,7 @@
 using Grasshopper.Kernel;
 using System.Drawing;
 
-namespace EddyLib
+namespace EddyLib.UI
 {
     public class Eddy_ComponentButtonAttributes : Eddy_ComponentAttributes
     {

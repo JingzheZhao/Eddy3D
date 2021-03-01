@@ -4,7 +4,7 @@ using Grasshopper.Kernel;
 using Grasshopper.Kernel.Attributes;
 using System.Drawing;
 
-namespace EddyLib
+namespace EddyLib.UI
 {
     public class Eddy_ComponentAttributes : GH_ComponentAttributes
     {
