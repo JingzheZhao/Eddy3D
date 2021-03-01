@@ -202,8 +202,8 @@
   </Target>
   <Import Project="..\packages\Grasshopper.6.26.20147.6511\build\net45\Grasshopper.targets" Condition="Exists('..\packages\Grasshopper.6.26.20147.6511\build\net45\Grasshopper.targets')" />
   <PropertyGroup>
-    <PostBuildEvent>REM SET ilrepack=$(SolutionDir)packages\ILMerge.3.0.40\tools\net452\ILMerge.exe
-SET ilrepack=$(SolutionDir)packages\ILRepack.2.0.18\tools\ILRepack.exe
+    <PostBuildEvent>SET ilrepack=$(SolutionDir)packages\ILMerge.3.0.40\tools\net452\ILMerge.exe
+REM SET ilrepack=$(SolutionDir)packages\ILRepack.2.0.18\tools\ILRepack.exe
 
 SET build_eddylib=$(SolutionDir)EddyLib\bin\
 SET build_eddy=$(SolutionDir)Eddy\bin\
@@ -242,23 +242,53 @@ echo %25build_callof%25
 echo %25post_build_ilmerge%25
 
 
+
 echo ""
 echo "***"
-echo "COPY"
+echo "COPY TO DOTFUSCATOR"
 echo "***"
 echo ""
 
-copy "%25build_eddy%25\Eddy.gha" "%25post_build_ilmerge%25"
+REM xcopy "$(ProjectDir)ApplicationFiles" "$(TargetDir)ApplicationFiles" 
+
+xcopy "$(ProjectDir)Eddy\bin" "%25post_build_dotfuscated%25"  /e /y /i /r
+xcopy "$(ProjectDir)EddyLib\bin"  "%25post_build_dotfuscated%25"  /e /y /i /r
+
+
+echo ""
+echo "***"
+echo "DOTFUSCATE"
+echo "***"
+echo ""
+
+if $(ConfigurationName)==Release (
+"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\PreEmptiveSolutions\DotfuscatorCE\dotfuscatorCLI.exe" "$(SolutionDir)\Build\Dotfuscator.xml"
+)
+
+
+
+
+echo ""
+echo "***"
+echo "COPY TO ILMERGE"
+echo "***"
+echo ""
+
+copy "%25post_build_dotfuscated%25Eddy.gha" "%25post_build_ilmerge%25"
+copy "%25post_build_dotfuscated%25\EddyLib.dll" "%25post_build_ilmerge%25"
+
+
+REM copy "%25build_eddy%25\Eddy.gha" "%25post_build_ilmerge%25"
 
 REM copy "%25build_calloc%25\CallOC.exe" "%25post_build_ilmerge%25"
-copy "%25build_batchrunner%25\CallBatchRunner.exe" "%25post_build_ilmerge%25"
+
 REM copy "%25build_callprobes%25\CallProbes.exe" "%25post_build_ilmerge%25"
 REM copy "%25build_callray%25\CallRay.exe" "%25post_build_ilmerge%25"
 REM copy "%25build_callof%25\CallOF.exe" "%25post_build_ilmerge%25"
 
 
 REM copy "%25build_calloc%25\CallOC.exe" "%25post_build_dotfuscated%25"
-copy "%25build_batchrunner%25\CallBatchRunner.exe" "%25post_build_dotfuscated%25"
+REM copy "%25build_batchrunner%25\CallBatchRunner.exe" "%25post_build_dotfuscated%25"
 REM copy "%25build_callprobes%25\CallProbes.exe" "%25post_build_dotfuscated%25"
 REM copy "%25build_callray%25\CallRay.exe" "%25post_build_dotfuscated%25"
 REM copy "%25build_callof%25\CallOF.exe" "%25post_build_dotfuscated%25"
@@ -273,25 +303,25 @@ echo ""
 
 REM "%25gh%25" "%25rhc%25"
 
-"%25ilrepack%25" /parallel /out:"%25post_build_ilmerge%25EddyLib.dll" "%25cliapp%25" "%25cappl%25" "%25build_eddylib%25EddyLib.dll" "%25medallionShell%25" "%25json%25" "%25bson%25" "%25protobuf%25" "%25numerics%25" 
+echo  "%25ilrepack%25" /out:"%25post_build_ilmerge%25EddyLib.dll" "%25cliapp%25" "%25cappl%25" "%25post_build_dotfuscated%25EddyLib.dll" "%25medallionShell%25" "%25json%25" "%25bson%25" "%25numerics%25" 
 
-if $(ConfigurationName)==Release (
-"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\PreEmptiveSolutions\DotfuscatorCE\dotfuscatorCLI.exe" "$(SolutionDir)\Build\Dotfuscator.xml"
-)
+"%25ilrepack%25" /out:"%25post_build_ilmerge%25EddyLib.dll" "%25cliapp%25" "%25cappl%25" "%25post_build_dotfuscated%25EddyLib.dll" "%25medallionShell%25" "%25json%25" "%25bson%25"  "%25numerics%25" 
+
 
 
 SET installation_folder=C:\Eddy3D\
 
 echo ""
 echo "***"
-echo "COPY to %25installation_folder%25"
+echo "COPY TO %25installation_folder%25"
 echo "***"
 echo ""
 
 
 copy "%25post_build_ilmerge%25\Eddy.gha" "%25installation_folder%25"
 copy "%25post_build_ilmerge%25\EddyLib.dll" "%25installation_folder%25"
-copy "%25post_build_ilmerge%25\CallBatchRunner.exe" "%25installation_folder%25"
+copy "%25build_batchrunner%25\CallBatchRunner.exe" "%25installation_folder%25"
+copy %25protobuf%25 "%25installation_folder%25"
 
 
 

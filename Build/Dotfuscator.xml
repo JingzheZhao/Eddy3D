@@ -6,24 +6,21 @@
     <option>debugauto</option>
   </global>
   <input>
-    <loadpaths>
-      <file dir="C:\Users\pkastner\Documents\GitHub\Eddy3d\packages\Grasshopper.6.18.19266.14201\lib\net45" />
-      <file dir="C:\Users\pkastner\Documents\GitHub\Eddy3d\packages\RhinoCommon.6.18.19266.14201\lib\net45" />
-    </loadpaths>
+    <loadpaths />
     <asmlist>
-      <inputassembly refid="ee5bd35d-8624-46b6-b209-4b3d64c7c244">
+      <inputassembly refid="04aa1a03-7f19-49be-ac95-cb0b03e58a33">
         <option>honoroas</option>
         <option>stripoa</option>
         <option>library</option>
         <option>transformxaml</option>
-        <file dir="${configdir}\Build.Ilmerge" name="EddyLib.dll" />
+        <file dir="${configdir}\..\Eddy\bin" name="Eddy.gha" />
       </inputassembly>
-      <inputassembly refid="e09ac9a0-53e9-4bdf-a13d-fd5d16f2b529">
+      <inputassembly refid="bfc81e1d-c22a-4e8a-a0af-1a03df9b19a5">
         <option>honoroas</option>
         <option>stripoa</option>
         <option>library</option>
         <option>transformxaml</option>
-        <file dir="${configdir}\Build.Ilmerge" name="Eddy.gha" />
+        <file dir="${configdir}\..\EddyLib\bin" name="EddyLib.dll" />
       </inputassembly>
     </asmlist>
   </input>
@@ -31,92 +28,13 @@
     <file dir="${configdir}\Build.Dotfuscated" />
   </output>
   <tempdir>
-    <file dir="${configdir}\Temp.Dotfuscated" />
+    <file dir="${configdir}\Build.Dotfuscated.Temp" />
   </tempdir>
   <renaming>
     <option>xmlserialization</option>
-    <excludelist>
-      <namespace name="CommandLine" />
-      <namespace name="CommandLine.Extensions" />
-      <namespace name="CommandLine.Infrastructure" />
-      <namespace name="CommandLine.Parsing" />
-      <namespace name="CommandLine.Text" />
-      <namespace name="MathNet.Numerics" />
-      <namespace name="MathNet.Numerics.Differentiation" />
-      <namespace name="MathNet.Numerics.Distributions" />
-      <namespace name="MathNet.Numerics.Financial" />
-      <namespace name="MathNet.Numerics.IntegralTransforms" />
-      <namespace name="MathNet.Numerics.Integration" />
-      <namespace name="MathNet.Numerics.Integration.GaussRule" />
-      <namespace name="MathNet.Numerics.Interpolation" />
-      <namespace name="MathNet.Numerics.LinearAlgebra" />
-      <namespace name="MathNet.Numerics.LinearAlgebra.Complex" />
-      <namespace name="MathNet.Numerics.LinearAlgebra.Complex.Factorization" />
-      <namespace name="MathNet.Numerics.LinearAlgebra.Complex.Solvers" />
-      <namespace name="MathNet.Numerics.LinearAlgebra.Complex32" />
-      <namespace name="MathNet.Numerics.LinearAlgebra.Complex32.Factorization" />
-      <namespace name="MathNet.Numerics.LinearAlgebra.Complex32.Solvers" />
-      <namespace name="MathNet.Numerics.LinearAlgebra.Double" />
-      <namespace name="MathNet.Numerics.LinearAlgebra.Double.Factorization" />
-      <namespace name="MathNet.Numerics.LinearAlgebra.Double.Solvers" />
-      <namespace name="MathNet.Numerics.LinearAlgebra.Factorization" />
-      <namespace name="MathNet.Numerics.LinearAlgebra.Single" />
-      <namespace name="MathNet.Numerics.LinearAlgebra.Single.Factorization" />
-      <namespace name="MathNet.Numerics.LinearAlgebra.Single.Solvers" />
-      <namespace name="MathNet.Numerics.LinearAlgebra.Solvers" />
-      <namespace name="MathNet.Numerics.LinearAlgebra.Storage" />
-      <namespace name="MathNet.Numerics.LinearRegression" />
-      <namespace name="MathNet.Numerics.OdeSolvers" />
-      <namespace name="MathNet.Numerics.Optimization" />
-      <namespace name="MathNet.Numerics.Optimization.LineSearch" />
-      <namespace name="MathNet.Numerics.Optimization.ObjectiveFunctions" />
-      <namespace name="MathNet.Numerics.Optimization.TrustRegion" />
-      <namespace name="MathNet.Numerics.Optimization.TrustRegion.Subproblems" />
-      <namespace name="MathNet.Numerics.Properties" />
-      <namespace name="MathNet.Numerics.Providers.Common.Cuda" />
-      <namespace name="MathNet.Numerics.Providers.Common.Mkl" />
-      <namespace name="MathNet.Numerics.Providers.Common" />
-      <namespace name="MathNet.Numerics.Providers.Common.OpenBlas" />
-      <namespace name="MathNet.Numerics.Providers.FourierTransform" />
-      <namespace name="MathNet.Numerics.Providers.FourierTransform.Managed" />
-      <namespace name="MathNet.Numerics.Providers.FourierTransform.Mkl" />
-      <namespace name="MathNet.Numerics.Providers.LinearAlgebra.Cuda" />
-      <namespace name="MathNet.Numerics.Providers.LinearAlgebra" />
-      <namespace name="MathNet.Numerics.Providers.LinearAlgebra.Managed" />
-      <namespace name="MathNet.Numerics.Providers.LinearAlgebra.ManagedReference" />
-      <namespace name="MathNet.Numerics.Providers.LinearAlgebra.Mkl" />
-      <namespace name="MathNet.Numerics.Providers.LinearAlgebra.OpenBlas" />
-      <namespace name="MathNet.Numerics.Random" />
-      <namespace name="MathNet.Numerics.RootFinding" />
-      <namespace name="MathNet.Numerics.Statistics" />
-      <namespace name="MathNet.Numerics.Statistics.Mcmc" />
-      <namespace name="MathNet.Numerics.Threading" />
-      <namespace name="Medallion.Shell" />
-      <namespace name="Medallion.Shell.Signals" />
-      <namespace name="Medallion.Shell.Streams" />
-      <namespace name="Microsoft.CodeAnalysis" />
-      <namespace name="Newtonsoft.Json.Bson" />
-      <namespace name="Newtonsoft.Json.Bson.Converters" />
-      <namespace name="Newtonsoft.Json.Bson.Utilities" />
-      <namespace name="Newtonsoft.Json" />
-      <namespace name="Newtonsoft.Json.Converters" />
-      <namespace name="Newtonsoft.Json.Linq" />
-      <namespace name="Newtonsoft.Json.Linq.JsonPath" />
-      <namespace name="Newtonsoft.Json.Schema" />
-      <namespace name="Newtonsoft.Json.Serialization" />
-      <namespace name="Newtonsoft.Json.Utilities" />
-      <namespace name="ProtoBuf" />
-      <namespace name="ProtoBuf.Internal" />
-      <namespace name="ProtoBuf.Meta" />
-      <namespace name="ProtoBuf.Serializers" />
-      <namespace name="ProtoBuf.WellKnownTypes" />
-      <namespace name="SlavaGu.ConsoleAppLauncher" />
-      <namespace name="System.Diagnostics.CodeAnalysis" />
-      <namespace name="System.Runtime.CompilerServices" />
-    </excludelist>
     <mapping>
       <mapoutput overwrite="false">
-        <file dir="${configdir}\Temp.Dotfuscated" name="Map.xml" />
+        <file dir="${configdir}\Dotfuscated" name="Map.xml" />
       </mapoutput>
     </mapping>
     <referencerulelist>
