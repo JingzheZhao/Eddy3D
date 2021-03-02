@@ -78,8 +78,6 @@ This yields a datatree of the size [8760 h x number of sensor points].", GH_Para
             var errors = new StringWriter();
             Console.SetError(errors);
 
-            bool interpolate = false;
-
             if (RUN)
             {
                 if (HidePopUp)
