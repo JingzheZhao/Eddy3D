@@ -58,20 +58,11 @@
     <Reference Include="Newtonsoft.Json.Bson, Version=1.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.Bson.1.0.2\lib\net45\Newtonsoft.Json.Bson.dll</HintPath>
     </Reference>
-    <Reference Include="Numpy, Version=3.7.1.16, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Numpy.3.7.1.16\lib\netstandard2.0\Numpy.dll</HintPath>
-    </Reference>
     <Reference Include="protobuf-net, Version=3.0.0.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
       <HintPath>..\packages\protobuf-net.3.0.73\lib\net461\protobuf-net.dll</HintPath>
     </Reference>
     <Reference Include="protobuf-net.Core, Version=3.0.0.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
       <HintPath>..\packages\protobuf-net.Core.3.0.73\lib\net461\protobuf-net.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Python.Included, Version=3.7.3.4, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Python.Included.3.7.3.4\lib\netstandard2.0\Python.Included.dll</HintPath>
-    </Reference>
-    <Reference Include="Python.Runtime.NETStandard, Version=3.7.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Python.Runtime.NETStandard.3.7.0\lib\netstandard2.0\Python.Runtime.NETStandard.dll</HintPath>
     </Reference>
     <Reference Include="Rhino.UI, Version=6.26.20147.6510, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
       <HintPath>..\packages\RhinoCommon.6.26.20147.6511\lib\net45\Rhino.UI.dll</HintPath>
