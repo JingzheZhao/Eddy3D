@@ -43,7 +43,7 @@ SolidCompression=yes
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
-Source: "..\Build.Dotfuscated\*"; DestDir: "{#Eddy3DDir}"; Flags: ignoreversion
+Source: "..\Dotfuscated\*"; DestDir: "{#Eddy3DDir}"; Flags: ignoreversion
 Source: "GHLink\*"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion 
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 

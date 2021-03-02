@@ -300,3 +300,4 @@ Build/Dotfuscated.Temp/
 Build/Dotfuscated/
 Installer/ComponentsGenerated.wxs
 
+Build/Dotfuscated/Map.xml
