@@ -1,6 +1,5 @@
 ﻿using System;
 using Xunit;
-using NumSharp;
 using EddyLib.OutdoorComfort;
 using static EddyLib.OutdoorComfort.WindComfortHelper;
 
