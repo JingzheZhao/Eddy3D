@@ -228,15 +228,15 @@ REM echo %25post_build_ilmerge%25
 echo robocopy "%25build_eddy%25" "%25post_build_dotfuscated%25"  /E
 echo robocopy "%25build_eddylib%25"  "%25post_build_dotfuscated%25"  /E
 
-echo copy "%25post_build_dotfuscated%25\Eddy.gha" "%25post_build_ilmerge%25"
-echo copy "%25post_build_dotfuscated%25\EddyLib.dll" "%25post_build_ilmerge%25"
+echo copy "%25post_build_dotfuscated%25\Eddy.gha" "%25post_build_ilmerge%25" /Y
+echo copy "%25post_build_dotfuscated%25\EddyLib.dll" "%25post_build_ilmerge%25" /Y
 
 echo  "%25ilrepack%25" /out:"%25post_build_ilmerge%25\EddyLib.dll" "%25cliapp%25" "%25cappl%25" "%25post_build_ilmerge%25\EddyLib.dll" "%25medallionShell%25" "%25json%25" "%25bson%25" "%25numerics%25" "%25protobuf%25"
 
-echo copy "%25post_build_ilmerge%25\Eddy.gha" "%25installation_folder%25"
-echo copy "%25post_build_ilmerge%25\EddyLib.dll" "%25installation_folder%25"
-echo copy "%25build_batchrunner%25\CallBatchRunner.exe" "%25installation_folder%25"
-echo copy %25protobuf%25 "%25installation_folder%25"
+echo copy "%25post_build_ilmerge%25\Eddy.gha" "%25installation_folder%25" /Y
+echo copy "%25post_build_ilmerge%25\EddyLib.dll" "%25installation_folder%25" /Y
+echo copy "%25build_batchrunner%25\CallBatchRunner.exe" "%25installation_folder%25" /Y
+echo copy %25protobuf%25 "%25installation_folder%25" /Y
 
 
 REM 
@@ -278,9 +278,9 @@ echo "***"
 echo ""
 
 
-
-copy "%25post_build_dotfuscated%25\Eddy.gha" "%25post_build_ilmerge%25"
-copy "%25post_build_dotfuscated%25\EddyLib.dll" "%25post_build_ilmerge%25"
+ 
+REM copy "%25post_build_dotfuscated%25\Eddy.gha" "%25post_build_ilmerge%25"
+copy "%25post_build_dotfuscated%25\EddyLib.dll" "%25post_build_ilmerge%25" /Y
 
 
 REM copy "%25build_eddy%25\Eddy.gha" "%25post_build_ilmerge%25"
@@ -320,10 +320,11 @@ echo ""
 
 
 
-copy "%25post_build_ilmerge%25\Eddy.gha" "%25installation_folder%25"
-copy "%25post_build_ilmerge%25\EddyLib.dll" "%25installation_folder%25"
-copy "%25build_batchrunner%25\CallBatchRunner.exe" "%25installation_folder%25"
-copy %25protobuf%25 "%25installation_folder%25"
+copy "%25post_build_dotfuscated%25\Eddy.gha" "%25installation_folder%25" /Y
+REM copy "%25post_build_ilmerge%25\Eddy.gha" "%25installation_folder%25" /Y
+copy "%25post_build_ilmerge%25\EddyLib.dll" "%25installation_folder%25" /Y
+copy "%25build_batchrunner%25\CallBatchRunner.exe" "%25installation_folder%25" /Y
+copy "%25protobuf%25" "%25installation_folder%25" /Y
 
 
 </PostBuildEvent>
