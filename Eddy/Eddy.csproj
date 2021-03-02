@@ -246,31 +246,25 @@
 Erase "$(TargetPath)"
 
 
-
-
-SET build_eddy=$(SolutionDir)Eddy\bin\
-
-
-SET post_build_ilmerge=$(SolutionDir)Build\Build.Ilmerge\
+SET build_eddy=$(SolutionDir)Eddy\bin
+SET post_build_ilmerge=$(SolutionDir)Build\Ilmerge
+SET post_build_dotfuscated=$(SolutionDir)Build\Dotfuscated
 
 
 
 
 
 echo %25build_eddy%25
-
-
-
 echo %25post_build_ilmerge%25
 
 
 echo ""
 echo "***"
-echo "COPY"
+echo "COPY EDDY.GHA to DOTFUSCATED"
 echo "***"
 echo ""
 
-copy "%25build_eddy%25\Eddy.gha" "%25post_build_ilmerge%25"
+copy "%25build_eddy%25\Eddy.gha" post_build_dotfuscated%25"
 
 
 

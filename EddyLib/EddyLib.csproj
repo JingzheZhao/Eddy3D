@@ -202,19 +202,18 @@
   </Target>
   <Import Project="..\packages\Grasshopper.6.26.20147.6511\build\net45\Grasshopper.targets" Condition="Exists('..\packages\Grasshopper.6.26.20147.6511\build\net45\Grasshopper.targets')" />
   <PropertyGroup>
-    <PostBuildEvent>SET ilrepack=$(SolutionDir)packages\ILMerge.3.0.40\tools\net452\ILMerge.exe
-REM SET ilrepack=$(SolutionDir)packages\ILRepack.2.0.18\tools\ILRepack.exe
+    <PostBuildEvent>
+REM SET ilrepack=$(SolutionDir)packages\ILMerge.3.0.40\tools\net452\ILMerge.exe
+SET ilrepack=$(SolutionDir)packages\ILRepack.2.0.18\tools\ILRepack.exe
 
-SET build_eddylib=$(SolutionDir)EddyLib\bin\
-SET build_eddy=$(SolutionDir)Eddy\bin\
-SET build_calloc=$(SolutionDir)CallOC\bin\
-SET build_batchrunner=$(SolutionDir)CallBatchRunner\bin\
-SET build_callprobes=$(SolutionDir)CallProbes\bin\
-SET build_callray=$(SolutionDir)CallRay\bin\
-SET build_callof=$(SolutionDir)CallOF\bin\
+SET build_eddylib=$(SolutionDir)EddyLib\bin
+SET build_eddy=$(SolutionDir)Eddy\bin
+SET build_batchrunner=$(SolutionDir)CallBatchRunner\bin
 
-SET post_build_ilmerge=$(SolutionDir)Build\Build.Ilmerge\
-SET post_build_dotfuscated=$(SolutionDir)Build\Build.Dotfuscated\
+SET post_build_ilmerge=$(SolutionDir)Build\Ilmerge
+SET post_build_dotfuscated=$(SolutionDir)Build\Dotfuscated
+SET post_build=$(SolutionDir)Build
+SET installation_folder=C:\Eddy3D
 
 SET cappl=$(SolutionDir)packages\ConsoleAppLauncher.1.0.6354.408\lib\net40\ConsoleAppLauncher.dll
 SET cliapp=$(SolutionDir)packages\CommandLineParser.1.9.71\lib\net45\CommandLine.dll
@@ -226,22 +225,32 @@ SET medallionShell=$(SolutionDir)packages\MedallionShell.1.6.2\lib\net45\Medalli
 SET bson=$(SolutionDir)packages\Newtonsoft.Json.Bson.1.0.2\lib\net45\Newtonsoft.Json.Bson.dll
 SET json=$(SolutionDir)packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll
 SET numerics=$(SolutionDir)packages\MathNet.Numerics.4.11.0\lib\net461\MathNet.Numerics.dll
-SET protobuf=$(SolutionDir)packages\protobuf-net.Core.3.0.73\lib\net461\protobuf-net.Core.dll
+SET protobuf=$(SolutionDir)packages\protobuf-net.3.0.73\lib\net461\protobuf-net.dll
 
 
-echo %25ilrepack%25
-echo %25build_eddylib%25
-echo %25build_eddy%25
-echo %25build_calloc%25
-echo %25build_batchrunner%25
-echo %25build_callprobes%25
-echo %25build_callray%25
-echo %25build_callof%25
+REM echo %25ilrepack%25
+REM echo %25build_eddylib%25
+REM echo %25build_eddy%25
+REM echo %25build_batchrunner%25
+REM echo %25post_build_ilmerge%25
+
+echo robocopy "%25build_eddy%25" "%25post_build_dotfuscated%25"  /E
+echo robocopy "%25build_eddylib%25"  "%25post_build_dotfuscated%25"  /E
+
+echo copy "%25post_build_dotfuscated%25\Eddy.gha" "%25post_build_ilmerge%25"
+echo copy "%25post_build_dotfuscated%25\EddyLib.dll" "%25post_build_ilmerge%25"
+
+echo  "%25ilrepack%25" /out:"%25post_build_ilmerge%25\EddyLib.dll" "%25cliapp%25" "%25cappl%25" "%25post_build_ilmerge%25\EddyLib.dll" "%25medallionShell%25" "%25json%25" "%25bson%25" "%25numerics%25" "%25protobuf%25"
+
+echo copy "%25post_build_ilmerge%25\Eddy.gha" "%25installation_folder%25"
+echo copy "%25post_build_ilmerge%25\EddyLib.dll" "%25installation_folder%25"
+echo copy "%25build_batchrunner%25\CallBatchRunner.exe" "%25installation_folder%25"
+echo copy %25protobuf%25 "%25installation_folder%25"
 
 
-echo %25post_build_ilmerge%25
-
-
+REM 
+REM
+REM
 
 echo ""
 echo "***"
@@ -251,8 +260,10 @@ echo ""
 
 REM xcopy "$(ProjectDir)ApplicationFiles" "$(TargetDir)ApplicationFiles" 
 
-xcopy "$(ProjectDir)Eddy\bin" "%25post_build_dotfuscated%25"  /e /y /i /r
-xcopy "$(ProjectDir)EddyLib\bin"  "%25post_build_dotfuscated%25"  /e /y /i /r
+
+
+robocopy "%25build_eddy%25" "%25post_build_dotfuscated%25"  /E
+robocopy "%25build_eddylib%25"  "%25post_build_dotfuscated%25"  /E
 
 
 echo ""
@@ -262,7 +273,8 @@ echo "***"
 echo ""
 
 if $(ConfigurationName)==Release (
-"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\PreEmptiveSolutions\DotfuscatorCE\dotfuscatorCLI.exe" "$(SolutionDir)\Build\Dotfuscator.xml"
+echo "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\PreEmptiveSolutions\DotfuscatorCE\dotfuscatorCLI.exe" "%25post_build%25\Dotfuscator.xml"
+"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\PreEmptiveSolutions\DotfuscatorCE\dotfuscatorCLI.exe" "%25post_build%25\Dotfuscator.xml"
 )
 
 
@@ -274,19 +286,17 @@ echo "COPY TO ILMERGE"
 echo "***"
 echo ""
 
-copy "%25post_build_dotfuscated%25Eddy.gha" "%25post_build_ilmerge%25"
+
+
+copy "%25post_build_dotfuscated%25\Eddy.gha" "%25post_build_ilmerge%25"
 copy "%25post_build_dotfuscated%25\EddyLib.dll" "%25post_build_ilmerge%25"
 
 
 REM copy "%25build_eddy%25\Eddy.gha" "%25post_build_ilmerge%25"
-
 REM copy "%25build_calloc%25\CallOC.exe" "%25post_build_ilmerge%25"
-
 REM copy "%25build_callprobes%25\CallProbes.exe" "%25post_build_ilmerge%25"
 REM copy "%25build_callray%25\CallRay.exe" "%25post_build_ilmerge%25"
 REM copy "%25build_callof%25\CallOF.exe" "%25post_build_ilmerge%25"
-
-
 REM copy "%25build_calloc%25\CallOC.exe" "%25post_build_dotfuscated%25"
 REM copy "%25build_batchrunner%25\CallBatchRunner.exe" "%25post_build_dotfuscated%25"
 REM copy "%25build_callprobes%25\CallProbes.exe" "%25post_build_dotfuscated%25"
@@ -303,13 +313,13 @@ echo ""
 
 REM "%25gh%25" "%25rhc%25"
 
-echo  "%25ilrepack%25" /out:"%25post_build_ilmerge%25EddyLib.dll" "%25cliapp%25" "%25cappl%25" "%25post_build_dotfuscated%25EddyLib.dll" "%25medallionShell%25" "%25json%25" "%25bson%25" "%25numerics%25" 
-
-"%25ilrepack%25" /out:"%25post_build_ilmerge%25EddyLib.dll" "%25cliapp%25" "%25cappl%25" "%25post_build_dotfuscated%25EddyLib.dll" "%25medallionShell%25" "%25json%25" "%25bson%25"  "%25numerics%25" 
 
 
+"%25ilrepack%25" /out:"%25post_build_ilmerge%25\EddyLib.dll" "%25cliapp%25" "%25cappl%25" "%25post_build_ilmerge%25\EddyLib.dll" "%25medallionShell%25" "%25json%25" "%25bson%25"  "%25numerics%25" "%25protobuf%25"
 
-SET installation_folder=C:\Eddy3D\
+
+
+
 
 echo ""
 echo "***"
@@ -318,15 +328,11 @@ echo "***"
 echo ""
 
 
+
 copy "%25post_build_ilmerge%25\Eddy.gha" "%25installation_folder%25"
 copy "%25post_build_ilmerge%25\EddyLib.dll" "%25installation_folder%25"
 copy "%25build_batchrunner%25\CallBatchRunner.exe" "%25installation_folder%25"
 copy %25protobuf%25 "%25installation_folder%25"
-
-
-
-
-
 
 
 </PostBuildEvent>
@@ -338,9 +344,14 @@ echo "DELETE"
 echo "***"
 echo ""
 
-SET post_build_ilmerge=$(SolutionDir)Build\Build.Ilmerge\
+SET post_build_ilmerge=$(SolutionDir)Build\Ilmerge\
 if not exist "%25post_build_ilmerge%25" mkdir "%25post_build_ilmerge%25"
 del /q "%25post_build_ilmerge%25"=\*
-for /d %25%25x in ("%25post_build_ilmerge%25"\*) do @rd /s /q "%25%25x"</PreBuildEvent>
+for /d %25%25x in ("%25post_build_ilmerge%25"\*) do @rd /s /q "%25%25x"
+
+SET post_build_dotfuscate=$(SolutionDir)Build\Dotfuscated\
+if not exist "%25post_build_dotfuscate%25" mkdir "%25post_build_dotfuscate%25"
+del /q "%25post_build_dotfuscate%25"=\*
+for /d %25%25x in ("%25post_build_dotfuscate%25"\*) do @rd /s /q "%25%25x"</PreBuildEvent>
   </PropertyGroup>
 </Project>

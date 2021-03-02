@@ -8,27 +8,25 @@
   <input>
     <loadpaths />
     <asmlist>
-      <inputassembly refid="04aa1a03-7f19-49be-ac95-cb0b03e58a33">
+      <inputassembly refid="003aee6d-93af-409c-953a-ed04d000a405">
         <option>honoroas</option>
         <option>stripoa</option>
-        <option>library</option>
         <option>transformxaml</option>
         <file dir="${configdir}\..\Eddy\bin" name="Eddy.gha" />
       </inputassembly>
-      <inputassembly refid="bfc81e1d-c22a-4e8a-a0af-1a03df9b19a5">
+      <inputassembly refid="f05189db-1639-43d3-9f32-b83c879d630e">
         <option>honoroas</option>
         <option>stripoa</option>
-        <option>library</option>
         <option>transformxaml</option>
         <file dir="${configdir}\..\EddyLib\bin" name="EddyLib.dll" />
       </inputassembly>
     </asmlist>
   </input>
   <output>
-    <file dir="${configdir}\Build.Dotfuscated" />
+    <file dir="${configdir}\Dotfuscated" />
   </output>
   <tempdir>
-    <file dir="${configdir}\Build.Dotfuscated.Temp" />
+    <file dir="${configdir}\Dotfuscated.Temp" />
   </tempdir>
   <renaming>
     <option>xmlserialization</option>
