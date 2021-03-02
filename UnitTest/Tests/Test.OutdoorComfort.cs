@@ -171,7 +171,7 @@ namespace RhinoPlugin.Tests.Xunit
             Assert.Equal(20, Math.Round(mrt.Values[0, 0], 2));
         }
 
-        public string epw = @"C:Eddy3D\Weather\USA_NY_New.York-LaGuardia.AP.725030_TMY3.epw";
+        public string epw = @"C:\Eddy3D\Common\Weather\USA_NY_New.York-LaGuardia.AP.725030_TMY3.epw";
 
         [Fact]
         public void MRT_60Sky_40Buildings_Returns_18()
