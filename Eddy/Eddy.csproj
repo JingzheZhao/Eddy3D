@@ -264,7 +264,7 @@ echo "COPY EDDY.GHA to DOTFUSCATED"
 echo "***"
 echo ""
 
-copy "%25build_eddy%25\Eddy.gha" post_build_dotfuscated%25"
+copy "%25build_eddy%25\Eddy.gha" "%25post_build_dotfuscated%25"
 
 
 
