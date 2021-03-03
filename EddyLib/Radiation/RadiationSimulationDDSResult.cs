@@ -16,7 +16,7 @@ namespace EddyLib.Radiance
 {
     [DataContract]
     public class RadiationSimulationDDSResult
-    {
+    { 
         public RadiationSimulationDDSResult(List<Mesh> meshes, float[][] totalRad, float[][] DirRad)
         {
             this.AnalysisMeshes = meshes;
