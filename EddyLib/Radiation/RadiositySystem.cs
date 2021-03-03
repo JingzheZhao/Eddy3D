@@ -146,7 +146,6 @@ namespace EddyLib.Radiation
 
     class RProbe
     {
-
         public Point3d cen;
         public double[] VFtoPolys;
         public Dictionary<string, double> VFtoMaterial;

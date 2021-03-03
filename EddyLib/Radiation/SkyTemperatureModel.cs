@@ -2,7 +2,7 @@
 
 namespace EddyLib.Radiation
 {
-    public class Sky
+    public class SkyTemperatureModel
 
     {
         //Real64 const Sigma(5.6697e-8); // Stefan-Boltzmann constant; Taken from E+
@@ -27,7 +27,7 @@ namespace EddyLib.Radiation
             Idso,
         }
 
-        public Sky(double[] T_dew, double[] T_DryBulb, double[] OpaqueSkyCover, double[] RelHum, bool run, CalculationType type, double[] HZ_IR_EPW = null)
+        public SkyTemperatureModel(double[] T_dew, double[] T_DryBulb, double[] OpaqueSkyCover, double[] RelHum, bool run, CalculationType type, double[] HZ_IR_EPW = null)
         {
             if (run)
             {

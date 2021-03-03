@@ -130,7 +130,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Radiation\Sky.cs" />
+    <Compile Include="Radiation\SkyTemperatureModel.cs" />
     <Compile Include="Radiation\SkyViewFactor.cs" />
     <Compile Include="Radiation\SolarGain.cs" />
     <Compile Include="Radiation\RadiationSimulationDDS.cs" />
@@ -142,7 +142,7 @@
     <Compile Include="OutdoorComfort\MRT.cs" />
     <Compile Include="OutdoorComfort\MultiDirectionalVelocities.cs" />
     <Compile Include="Radiation\TwoPhaseDDS.cs" />
-    <Compile Include="Radiation\Skies.cs" />
+    <Compile Include="Radiation\RadienceSkies.cs" />
     <Compile Include="Residuals.cs" />
     <Compile Include="RunBlockMesh.cs" />
     <Compile Include="RunFoamSimulation.cs" />

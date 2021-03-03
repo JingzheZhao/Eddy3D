@@ -17,7 +17,7 @@ namespace EddyLib.Radiation
         r6
     }
 
-    public class Skies
+    public class RadianceSkies
     {
         public static void Write(string path, SkySubdivision R)
         {
