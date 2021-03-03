@@ -48,7 +48,6 @@
   </renaming>
   <sos mergeruntime="true">
     <option>version:v4</option>
-    <option>sendanalytics</option>
     <option>dontsendtamper</option>
   </sos>
   <smartobfuscation>
