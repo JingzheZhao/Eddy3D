@@ -1,5 +1,5 @@
 ﻿using EddyLib;
-using EddyLib.Radiance;
+using EddyLib.Radiation;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 using System;

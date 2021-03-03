@@ -1,4 +1,4 @@
-﻿using EddyLib.Radiance;
+﻿using EddyLib.Radiation;
 using Rhino.Geometry;
 using System;
 using System.IO;
@@ -12,7 +12,7 @@ namespace EddyLib.OutdoorComfort
 
         public SkyViewFactor svf;
 
-        public Sky sky;
+        public SkyTemperatureModel sky;
 
         public MRT mrt;
 
@@ -32,7 +32,7 @@ namespace EddyLib.OutdoorComfort
 
             var svf = new SkyViewFactor(RES.WorkingDirectory, BAG, probesArr, run);
 
-            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.TotalSkyCover, weather.RelativeHumidity, run, Sky.CalculationType.DefaultClarkAllen);
+            var sky = new SkyTemperatureModel(weather.DewPointTemp, weather.DryBulbTemp, weather.TotalSkyCover, weather.RelativeHumidity, run, SkyTemperatureModel.CalculationType.DefaultClarkAllen);
 
             var mrt = new MRT(RES.WorkingDirectory, RES.Domain.BuildingGeometry, sky, svf, weather, SimMode, probesArr, run);
 
@@ -70,7 +70,7 @@ namespace EddyLib.OutdoorComfort
 
         public double[] SkyTemp;
 
-        public MRT(string baseWorkingDir, Mesh BuildingGeometry, Sky sky, SkyViewFactor vf, Weather weather, MRTType type, Point3d[] probes, bool recalc)
+        public MRT(string baseWorkingDir, Mesh BuildingGeometry, SkyTemperatureModel sky, SkyViewFactor vf, Weather weather, MRTType type, Point3d[] probes, bool recalc)
         {
             var binMRT = baseWorkingDir + @"MRT.bin";
 
@@ -110,7 +110,7 @@ namespace EddyLib.OutdoorComfort
                 //Utilities.CleanDirectory(baseWorkingDir + @"Rad\");
                 //Utilities.CleanDirectory(baseWorkingDir + @"Output\");
 
-                EddyLib.Radiance.TwoPhaseDDS dds = new EddyLib.Radiance.TwoPhaseDDS(baseWorkingDir, BuildingGeometry, probes.ToList(), weather, recalc);
+                EddyLib.Radiation.TwoPhaseDDS dds = new EddyLib.Radiation.TwoPhaseDDS(baseWorkingDir, BuildingGeometry, probes.ToList(), weather, recalc);
 
                 this.SkyTemp = sky.Temp;
 

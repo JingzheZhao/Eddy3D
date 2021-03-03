@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace EddyLib.Radiance
+namespace EddyLib.Radiation
 {
     public enum SkySubdivision
     {
@@ -17,7 +17,7 @@ namespace EddyLib.Radiance
         r6
     }
 
-    public class Skies
+    public class RadianceSkies
     {
         public static void Write(string path, SkySubdivision R)
         {

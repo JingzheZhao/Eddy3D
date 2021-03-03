@@ -1,7 +1,7 @@
 ﻿using EddyLib;
 using EddyLib.BCs;
 using EddyLib.OutdoorComfort;
-using EddyLib.Radiance;
+using EddyLib.Radiation;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
@@ -41,7 +41,7 @@ namespace RhinoPlugin.Tests.Xunit
             Weather w = new Weather(epw);
 
             // Tested: E+ does not use the SkyRadiation from the weather file when started through the Showbox template with ClimateStudio
-            var sky = new Sky(w.DewPointTemp, w.DryBulbTemp, w.OpaqSkyCover, w.RelativeHumidity, true, Sky.CalculationType.DefaultClarkAllen);
+            var sky = new SkyTemperatureModel(w.DewPointTemp, w.DryBulbTemp, w.OpaqSkyCover, w.RelativeHumidity, true, SkyTemperatureModel.CalculationType.DefaultClarkAllen);
 
             var skyTemp = sky.Temp;
 
@@ -160,7 +160,7 @@ namespace RhinoPlugin.Tests.Xunit
             // Set the view factors to 50 % sky and 50 % buildings
             vf.Values = Enumerable.Repeat(0.5, 100).ToArray();
 
-            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.TotalSkyCover, weather.RelativeHumidity, false, Sky.CalculationType.DefaultClarkAllen);
+            var sky = new SkyTemperatureModel(weather.DewPointTemp, weather.DryBulbTemp, weather.TotalSkyCover, weather.RelativeHumidity, false, SkyTemperatureModel.CalculationType.DefaultClarkAllen);
 
             // Set the Skytemp to 10°C
             sky.Temp = Enumerable.Repeat(10.0, 8760).ToArray();
@@ -252,7 +252,7 @@ namespace RhinoPlugin.Tests.Xunit
                 Values = Enumerable.Repeat(0.6, 100).ToArray()
             };
 
-            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.TotalSkyCover, weather.RelativeHumidity, false, Sky.CalculationType.DefaultClarkAllen)
+            var sky = new SkyTemperatureModel(weather.DewPointTemp, weather.DryBulbTemp, weather.TotalSkyCover, weather.RelativeHumidity, false, SkyTemperatureModel.CalculationType.DefaultClarkAllen)
             {
                 // Set the Skytemp to 10°C
                 Temp = Enumerable.Repeat(10.0, 8760).ToArray()
@@ -342,7 +342,7 @@ namespace RhinoPlugin.Tests.Xunit
             // Set the view factors to 40 % sky and 60 % buildings
             vf.Values = Enumerable.Repeat(0.4, 100).ToArray();
 
-            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.TotalSkyCover, weather.RelativeHumidity, false, Sky.CalculationType.DefaultClarkAllen);
+            var sky = new SkyTemperatureModel(weather.DewPointTemp, weather.DryBulbTemp, weather.TotalSkyCover, weather.RelativeHumidity, false, SkyTemperatureModel.CalculationType.DefaultClarkAllen);
 
             // Set the Skytemp to 10°C
             sky.Temp = Enumerable.Repeat(10.0, 8760).ToArray();
@@ -377,7 +377,7 @@ namespace RhinoPlugin.Tests.Xunit
 
             // Assert
 
-            EddyLib.Radiance.SolarGain.ERF(solAlt, sharp, EddyLib.Radiance.SolarGain.Posture.seating, directBeam, tSol, fsvv, fbes, avgShortAbs, out ERF, out dMRT);
+            EddyLib.Radiation.SolarGain.ERF(solAlt, sharp, EddyLib.Radiation.SolarGain.Posture.seating, directBeam, tSol, fsvv, fbes, avgShortAbs, out ERF, out dMRT);
 
             Assert.Equal(23.2, Math.Round(dMRT, 1));
             Assert.Equal(97.0, Math.Round(ERF, 1));
@@ -396,7 +396,7 @@ namespace RhinoPlugin.Tests.Xunit
 
             // Assert
 
-            EddyLib.Radiance.SolarGain.ERF(0, 120, EddyLib.Radiance.SolarGain.Posture.seating, 800, 0.5, 0.5, 0.5, 0.7, out ERF, out dMRT);
+            EddyLib.Radiation.SolarGain.ERF(0, 120, EddyLib.Radiation.SolarGain.Posture.seating, 800, 0.5, 0.5, 0.5, 0.7, out ERF, out dMRT);
 
             Assert.Equal(10.3, Math.Round(dMRT, 1));
             Assert.Equal(42.9, Math.Round(ERF, 1));
@@ -665,7 +665,7 @@ namespace RhinoPlugin.Tests.Xunit
 
             var vf = new SkyViewFactor(workingdir, Mesh.CreateFromBox(box2, 100, 100, 100), points.ToArray(), true);
 
-            var sky = new Sky(weather.DewPointTemp, weather.DryBulbTemp, weather.TotalSkyCover, weather.RelativeHumidity, true, Sky.CalculationType.DefaultClarkAllen);
+            var sky = new SkyTemperatureModel(weather.DewPointTemp, weather.DryBulbTemp, weather.TotalSkyCover, weather.RelativeHumidity, true, SkyTemperatureModel.CalculationType.DefaultClarkAllen);
 
             var mrt = new MRT(workingdir, Mesh.CreateFromBox(box2, 100, 100, 100), sky, vf, weather, MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true)
             {

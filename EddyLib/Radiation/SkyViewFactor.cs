@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace EddyLib.Radiance
+namespace EddyLib.Radiation
 {
     public class SkyViewFactor
     {
