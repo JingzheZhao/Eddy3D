@@ -14,7 +14,7 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
         public LoadRadiationData_Component()
-          : base("Radiation", "Rad", "Load radiation data" + EddyVersion.toString(), EddyVersion.Name, "X | Radiation")
+          : base("Load Radiation", "LRad", "Load radiation data" + EddyVersion.toString(), EddyVersion.Name, "X | Radiation")
 
         {
         }
