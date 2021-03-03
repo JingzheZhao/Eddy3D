@@ -76,7 +76,7 @@ namespace EddyLib.Radiation
         {
 
             double pct = 0;
-            double steps = 15;
+            double steps = 16;
             double stepCnt = 0;
 
             var numberOfProbes = this.Probes.Count;
@@ -496,13 +496,30 @@ namespace EddyLib.Radiation
 
 
                 // -----------------------------
-                // 15
+                // 15 Compute dMRT
                 // -----------------------------
+
+
                 var totalIll = LoadDDSIll((this.BaseWorkingDir + @"\Rad\Output\annual_total.ill"));
                 //var diffIll = LoadDDSIll((this.BaseWorkingDir + @"\Rad\Output\annual_total.ill"));
                 var dirIll = LoadDDSIll((this.BaseWorkingDir + @"\Rad\Output\annual_dir.ill"));
 
-                var result = new RadiationSimulationDDSResult(this.ProbeMeshes, totalIll, dirIll);
+                Console.WriteLine("Compute dMRT");
+
+                float[][] dMRT = SolarGain.ComputeStanding(this.Weather, totalIll, dirIll);
+              
+                stepCnt++;
+                pct = 100 * stepCnt / steps;
+                Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+
+
+                // -----------------------------
+                // 16 
+                // -----------------------------
+
+
+
+                var result = new RadiationSimulationDDSResult(this.ProbeMeshes, totalIll, dirIll, dMRT);
                 var bson = result.ToBson();
 
                 Console.WriteLine();

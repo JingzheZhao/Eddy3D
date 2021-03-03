@@ -4,6 +4,40 @@ namespace EddyLib.Radiation
 {
     public class SolarGain
     {
+
+        public static float[][] ComputeStanding(Weather weather, float[][] totalRad, float[][] directRad)
+        {
+
+
+            int numberOfHours = directRad.Length;
+            int numberOfSensors = directRad[0].Length;
+
+            float[][] Values = new float[numberOfHours][];
+            for (int h = 0; h < numberOfHours; h++)
+            {
+                Values[h] = new float[numberOfSensors];
+            }
+
+ 
+
+            System.Threading.Tasks.Parallel.For(0, numberOfSensors, p =>
+            {
+                for (int h = 0; h < numberOfHours; h++)
+                {
+                    double dMRT;
+                    double diffRad = totalRad[h][p] - directRad[h][p];
+                    double dirRad = directRad[h][p];
+                    dMRT = SolarGain.ERF_Modified(weather.SolarElevation[h], weather.SolarAzi[h], SolarGain.Posture.standing, dirRad, diffRad, weather.DryBulbTemp[h]);
+
+
+                    Values[h][p] = (float)dMRT;
+                }
+            });
+
+            return Values;
+        }
+
+
         //// https://github.com/CenterForTheBuiltEnvironment/pythermalcomfort/blob/master/src/pythermalcomfort/models.py
 
         ////
@@ -61,6 +95,53 @@ namespace EddyLib.Radiation
             standing
         };
 
+        public static double ERF_Modified(double alt, double az, Posture posture, double Idir, double Idiff, double tsol, double fbes = 0.5, double asa = 0.7, double tsol_factor = 1.0)
+        {
+            //  ERF function to estimate the impact of solar radiation on occupant comfort
+            //  INPUTS:
+            //  alt : altitude of sun in degrees [0, 90]
+            //  az : azimuth of sun in degrees [0, 180]
+            //  posture: posture of occupant ('seated', 'standing', or 'supine')
+            //  Idir : direct beam intensity (normal)
+            //  tsol: total solar transmittance (SC * 0.87)
+            //  fsvv : sky vault view fraction : fraction of sky vault in occupant's view [0, 1]
+            //  fbes : fraction body exposed to sun [0, 1]
+            //  asa : avg shortwave abs : average shortwave absorptivity of body [0, 1]
+            //  tsol_factor : (optional) correction to tsol based on angle of incidence
+
+            //var DEG_TO_RAD = 0.0174532925;
+            var hr = 6;
+            //var Idiff = 0.2 * Idir;
+            double fsvv = 1;
+
+            // Floor reflectance
+            // var Rfloor = 0.6;
+
+            var fp = Get_fp(alt, az, posture);
+
+            double feff;
+            if (posture == Posture.standing || posture == Posture.supine)
+            {
+                feff = 0.725;
+            }
+            else
+            {
+                feff = 0.696;
+            }
+
+            var sw_abs = asa;
+            var lw_abs = 0.95;
+
+            var E_diff = feff * fsvv * 0.5 * tsol * Idiff;
+            var E_direct = fp * tsol * fbes * Idir;
+            //var E_refl = feff * fsvv * 0.5 * tsol * (Idir * Math.Sin(alt * DEG_TO_RAD) + Idiff) * Rfloor;
+
+            var E_solar = E_diff + E_direct; // + E_refl;
+            var ERF = E_solar * (sw_abs / lw_abs);
+            var dMRT = ERF / (hr * feff);
+
+            return dMRT;
+        }
         public static void ERF(double alt, double az, Posture posture, double Idir, double tsol, double fsvv, double fbes, double asa, out double ERF, out double dMRT, double tsol_factor = 1.0)
         {
             //  ERF function to estimate the impact of solar radiation on occupant comfort
@@ -89,8 +170,6 @@ namespace EddyLib.Radiation
             {
                 feff = 0.725;
             }
-
-            // (posture == Posture.seating)
             else
             {
                 feff = 0.696;

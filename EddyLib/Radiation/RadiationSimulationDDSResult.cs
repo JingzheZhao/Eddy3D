@@ -17,13 +17,13 @@ namespace EddyLib.Radiation
     [DataContract]
     public class RadiationSimulationDDSResult
     { 
-        public RadiationSimulationDDSResult(List<Mesh> meshes, float[][] totalRad, float[][] DirRad)
+        public RadiationSimulationDDSResult(List<Mesh> meshes, float[][] totalRad, float[][] DirRad, float[][] dMRT)
         {
             this.AnalysisMeshes = meshes;
             this.TotalRad = totalRad;
             //this.DiffRad = DiffRad;
             this.DirRad = DirRad;
-
+            this.SolarGain_dMRT = dMRT;
         }
 
 
@@ -36,7 +36,8 @@ namespace EddyLib.Radiation
         //public float[][] DiffRad { get; set; }
         [DataMember]
         public float[][] DirRad { get; set; }
-
+        [DataMember]
+        public float[][] SolarGain_dMRT { get; set; }
 
         public string ToBson()
         {
