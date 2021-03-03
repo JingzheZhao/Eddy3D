@@ -80,7 +80,7 @@
     <Compile Include="Components\postProcessing\CompParaview.cs" />
     <Compile Include="Components\postProcessing\CompVisProbesCustom.cs" />
     <Compile Include="Components\Radiation\LoadRadiationData_Component.cs" />
-    <Compile Include="Components\Radiation\MakeRadiationMesh_Component.cs" />
+    <Compile Include="Components\Radiation\MakeRadiationSurface_Component.cs" />
     <Compile Include="Components\Radiation\RunRadiationDDS_Component.cs" />
     <Compile Include="Components\Settings\CompRunSettings.cs" />
     <Compile Include="Components\Setup\CompTemplates.cs" />

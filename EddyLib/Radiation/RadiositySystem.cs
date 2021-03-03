@@ -140,33 +140,9 @@ namespace EddyLib.Radiation
 
     }
 
+     
 
-
-    // <Custom additional code> 
-
-    class RProbe
-    {
-        public Point3d cen;
-        public double[] VFtoPolys;
-        public Dictionary<string, double> VFtoMaterial;
-    }
-
-
-    class RPolygon
-    {
-        public double rin = 0.0;
-        public double rout = 0.0;
-        public double refl = 0.0;
-
-        public Vector3d n;
-        public Point3d cen;
-        public double area = 0.0;
-        public Mesh m;
-        public string matName;
-    }
-
-
-    class RSystem
+    public class RSystem
     {
         public RSystem()
         {

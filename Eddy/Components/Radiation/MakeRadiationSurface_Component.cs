@@ -5,16 +5,17 @@ using Grasshopper.Kernel.Parameters;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
+using static EddyLib.Radiation.RSurface;
 
 namespace Eddy.Components.Radiation
 {
-    public class MakeRadiationMesh_Component : GH_Component
+    public class MakeRadiationSurface_Component : GH_Component
     {
         /// <summary>
         /// Initializes a new instance of the MakeRadiationMesh_Component class.
         /// </summary>
-        public MakeRadiationMesh_Component()
-          : base("Radiation Mesh", "RadMesh", "Radiation Simulation Mesh Surface" + EddyVersion.toString(), EddyVersion.Name, "X | Radiation")
+        public MakeRadiationSurface_Component()
+          : base("Radiation Surface", "RadSurf", "Radiation Simulation Surface" + EddyVersion.toString(), EddyVersion.Name, "X | Radiation")
         {
         }
 
@@ -24,16 +25,17 @@ namespace Eddy.Components.Radiation
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
 
-            pManager.AddMeshParameter("Mesh", "M", "Mesh", GH_ParamAccess.list);
+            pManager.AddBrepParameter("Brep", "B", "Radiation surface", GH_ParamAccess.list);
             pManager.AddIntegerParameter("Type", "T", "Type", GH_ParamAccess.item, 0);
 
-            var types = Enum.GetNames(typeof(RadiationSimulationSurface.RadiationSurfaceType));
+            var types = Enum.GetNames(typeof(RSurface.RadiationSurfaceType));
             Param_Integer param = pManager[1] as Param_Integer;
             for (int i = 0; i < types.Length; i++)
             {
                 param.AddNamedValue(types[i], i);
             }
 
+            pManager.AddNumberParameter("Patch", "Ps", "Patch size", GH_ParamAccess.item, 2);
             pManager.AddNumberParameter("Reflectance", "Refl", "Reflectance", GH_ParamAccess.item, 0.2);
 
         }
@@ -43,7 +45,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddMeshParameter("Mesh", "M", "Mesh", GH_ParamAccess.list);
+            pManager.AddGenericParameter("RSurf", "RSurf", "RSurf", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -52,6 +54,31 @@ namespace Eddy.Components.Radiation
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+
+            var breps = new List<Brep>();
+            int typeInt = 0;
+            double patchSize = 2;
+            double refl = 0.2;
+
+            if(!DA.GetDataList(0, breps)) return;
+            if (!DA.GetData (1,ref typeInt)) return;
+            if (!DA.GetData (2,ref patchSize)) return;
+            if (!DA.GetData (3,ref refl)) return;
+
+            RadiationSurfaceType thetype = (RadiationSurfaceType) typeInt;
+
+
+            var RSurfs = new List<RSurface>();
+
+            foreach (var b in breps) {
+
+                RSurfs.Add(new RSurface("surf", b, thetype, patchSize, refl));
+            
+            }
+
+
+            DA.SetDataList(0, RSurfs);
+
         }
 
         /// <summary>

@@ -107,11 +107,13 @@
     <Compile Include="ArrayHelper.cs" />
     <Compile Include="ASCIProgressBar.cs" />
     <Compile Include="GlobalSettings\DefaultDirectoriesAndPaths.cs" />
-    <Compile Include="Radiation\DaylightSimulationHelpers.cs" />
-    <Compile Include="Radiation\RadianceHelpers.cs" />
+    <Compile Include="Radiation\Old\DaylightSimulationHelpers.cs" />
+    <Compile Include="Radiation\Old\RadianceHelpers.cs" />
     <Compile Include="Radiation\RadiationSimulationDDSResult.cs" />
-    <Compile Include="Radiation\RadiationSimulationSurface.cs" />
+    <Compile Include="Radiation\RSurface.cs" />
     <Compile Include="Radiation\RadiositySystem.cs" />
+    <Compile Include="Radiation\RPolygon.cs" />
+    <Compile Include="Radiation\RProbe.cs" />
     <Compile Include="UI\Attributes\Eddy_ComponentAttributes.cs" />
     <Compile Include="UI\Attributes\Eddy_ComponentButtonAttributes.cs" />
     <Compile Include="FunctionObjects.cs" />
@@ -141,8 +143,8 @@
     <Compile Include="OFMeshSettings.cs" />
     <Compile Include="OutdoorComfort\MRT.cs" />
     <Compile Include="OutdoorComfort\MultiDirectionalVelocities.cs" />
-    <Compile Include="Radiation\TwoPhaseDDS.cs" />
-    <Compile Include="Radiation\RadienceSkies.cs" />
+    <Compile Include="Radiation\Old\TwoPhaseDDS.cs" />
+    <Compile Include="Radiation\RadianceSkies.cs" />
     <Compile Include="Residuals.cs" />
     <Compile Include="RunBlockMesh.cs" />
     <Compile Include="RunFoamSimulation.cs" />
@@ -151,7 +153,7 @@
     <Compile Include="Strings\BatchFiles.cs" />
     <Compile Include="Strings\BoundaryConditions.cs" />
     <Compile Include="SymbolicLink.cs" />
-    <Compile Include="Radiation\Daysim.cs" />
+    <Compile Include="Radiation\Old\Daysim.cs" />
     <Compile Include="JenksFisherNaturalBreaks.cs" />
     <Compile Include="KMeansClustering.cs" />
     <Compile Include="OFBaseDomain.cs" />
