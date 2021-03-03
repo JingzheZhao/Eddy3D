@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace EddyLib.Radiance
+namespace EddyLib.Radiation
 {
     public enum SkySubdivision
     {

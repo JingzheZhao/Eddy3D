@@ -12,7 +12,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 
-namespace EddyLib.Radiance
+namespace EddyLib.Radiation
 {
     [DataContract]
     public class RadiationSimulationDDSResult

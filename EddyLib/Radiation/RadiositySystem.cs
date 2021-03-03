@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EddyLib.Radiance
+namespace EddyLib.Radiation
 {
 
 

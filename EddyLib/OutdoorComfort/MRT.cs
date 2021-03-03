@@ -1,4 +1,4 @@
-﻿using EddyLib.Radiance;
+﻿using EddyLib.Radiation;
 using Rhino.Geometry;
 using System;
 using System.IO;
@@ -110,7 +110,7 @@ namespace EddyLib.OutdoorComfort
                 //Utilities.CleanDirectory(baseWorkingDir + @"Rad\");
                 //Utilities.CleanDirectory(baseWorkingDir + @"Output\");
 
-                EddyLib.Radiance.TwoPhaseDDS dds = new EddyLib.Radiance.TwoPhaseDDS(baseWorkingDir, BuildingGeometry, probes.ToList(), weather, recalc);
+                EddyLib.Radiation.TwoPhaseDDS dds = new EddyLib.Radiation.TwoPhaseDDS(baseWorkingDir, BuildingGeometry, probes.ToList(), weather, recalc);
 
                 this.SkyTemp = sky.Temp;
 

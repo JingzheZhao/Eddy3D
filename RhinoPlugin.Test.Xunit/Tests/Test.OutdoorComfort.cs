@@ -1,7 +1,7 @@
 ﻿using EddyLib;
 using EddyLib.BCs;
 using EddyLib.OutdoorComfort;
-using EddyLib.Radiance;
+using EddyLib.Radiation;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
@@ -377,7 +377,7 @@ namespace RhinoPlugin.Tests.Xunit
 
             // Assert
 
-            EddyLib.Radiance.SolarGain.ERF(solAlt, sharp, EddyLib.Radiance.SolarGain.Posture.seating, directBeam, tSol, fsvv, fbes, avgShortAbs, out ERF, out dMRT);
+            EddyLib.Radiation.SolarGain.ERF(solAlt, sharp, EddyLib.Radiation.SolarGain.Posture.seating, directBeam, tSol, fsvv, fbes, avgShortAbs, out ERF, out dMRT);
 
             Assert.Equal(23.2, Math.Round(dMRT, 1));
             Assert.Equal(97.0, Math.Round(ERF, 1));
@@ -396,7 +396,7 @@ namespace RhinoPlugin.Tests.Xunit
 
             // Assert
 
-            EddyLib.Radiance.SolarGain.ERF(0, 120, EddyLib.Radiance.SolarGain.Posture.seating, 800, 0.5, 0.5, 0.5, 0.7, out ERF, out dMRT);
+            EddyLib.Radiation.SolarGain.ERF(0, 120, EddyLib.Radiation.SolarGain.Posture.seating, 800, 0.5, 0.5, 0.5, 0.7, out ERF, out dMRT);
 
             Assert.Equal(10.3, Math.Round(dMRT, 1));
             Assert.Equal(42.9, Math.Round(ERF, 1));

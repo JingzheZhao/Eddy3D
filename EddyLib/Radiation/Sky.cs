@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace EddyLib.Radiance
+namespace EddyLib.Radiation
 {
     public class Sky
 

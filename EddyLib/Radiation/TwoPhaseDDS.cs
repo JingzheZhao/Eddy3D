@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-namespace EddyLib.Radiance
+namespace EddyLib.Radiation
 {
     public class TwoPhaseDDS
     {
