@@ -498,13 +498,13 @@ namespace EddyLib.Radiation
                 // -----------------------------
                 // 15 Compute dMRT
                 // -----------------------------
+                Console.WriteLine("Compute dMRT");
 
 
                 var totalIll = LoadDDSIll((this.BaseWorkingDir + @"\Rad\Output\annual_total.ill"));
                 //var diffIll = LoadDDSIll((this.BaseWorkingDir + @"\Rad\Output\annual_total.ill"));
                 var dirIll = LoadDDSIll((this.BaseWorkingDir + @"\Rad\Output\annual_dir.ill"));
 
-                Console.WriteLine("Compute dMRT");
 
                 float[][] dMRT = SolarGain.ComputeStanding(this.Weather, totalIll, dirIll);
               
