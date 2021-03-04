@@ -1,7 +1,5 @@
 ﻿using EddyLib.UI;
 using Medallion.Shell;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Bson;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
@@ -9,7 +7,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Threading;
 
 namespace EddyLib.Radiation
@@ -22,9 +19,16 @@ namespace EddyLib.Radiation
 
         private static float[][] LoadDDSIll(string illFileName) // total illuminance data
         {
+            string[] illLines = System.IO.File.ReadAllLines(illFileName).ToArray();
+            int skip = 0;
+
+            for (int i = 0; i < illLines.Length; i++) {
+                if (illLines[i].Contains("FORMAT")) { skip = i + i; break; }
+            }
+
             // [x][] time
             // [][x] points
-            string[] illLines = System.IO.File.ReadAllLines(illFileName).Skip(9).ToArray();
+            illLines = illLines.Skip(skip).ToArray();
             return illLines.Select(l => Array.ConvertAll<string, float>(l.Split(new[] { ' ' }).Skip(1).ToArray(), float.Parse)).ToArray();
         }
 
@@ -398,7 +402,7 @@ namespace EddyLib.Radiation
                 // -----------------------------
                 // 11 Calculate illuminance sun coefficients
                 // -----------------------------
-                Console.WriteLine(" Calculate illuminance sun coefficients for illuminance calculations...");
+                Console.WriteLine("Calculate illuminance sun coefficients for illuminance calculations...");
                 string blackWithSunsin = ( @"Rad\output\sceneBlackSuns.oct");
                 string cddmtxout =  ( @"Rad\output\cdsDDS.mtx");
                 string rcontribArgs1 = DefaultDirectoriesAndPaths.RadianceDir + @"\rcontrib -I+ -ab 1 -y " + sensorCnt + @" -n 16 -ad 256 -lw 1.0e-3 -dc 1 -dt 0 -dj 0 -faf -e MF:" + skysubdivdirect + @" -f """ + DefaultDirectoriesAndPaths.RadianceLibDir + @"\reinhart.cal"" -b rbin -bn Nrbins -m solar " + blackWithSunsin + @" < " + ptsin + @" > " + cddmtxout;
@@ -501,9 +505,9 @@ namespace EddyLib.Radiation
                 Console.WriteLine("Compute dMRT");
 
 
-                var totalIll = LoadDDSIll((this.BaseWorkingDir + @"\Rad\Output\annual_total.ill"));
+                var totalIll = LoadDDSIll((this.BaseWorkingDir + @"\" + annualR_total_ill_out));
                 //var diffIll = LoadDDSIll((this.BaseWorkingDir + @"\Rad\Output\annual_total.ill"));
-                var dirIll = LoadDDSIll((this.BaseWorkingDir + @"\Rad\Output\annual_dir.ill"));
+                var dirIll = LoadDDSIll((this.BaseWorkingDir + @"\" + annualR_dir_ill_out));
 
 
                 float[][] dMRT = SolarGain.ComputeStanding(this.Weather, totalIll, dirIll);
