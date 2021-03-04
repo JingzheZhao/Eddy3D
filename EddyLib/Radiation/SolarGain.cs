@@ -27,7 +27,7 @@ namespace EddyLib.Radiation
                     double dMRT;
                     double diffRad = totalRad[h][p] - directRad[h][p];
                     double dirRad = directRad[h][p];
-                    dMRT = SolarGain.ERF_Modified(weather.SolarElevation[h], weather.SolarAzi[h], SolarGain.Posture.standing, dirRad, diffRad, weather.DryBulbTemp[h]);
+                    dMRT = SolarGain.ERF_Modified(weather.SolarElevation[h], 90 , SolarGain.Posture.standing, dirRad, diffRad);
 
 
                     Values[h][p] = (float)dMRT;
@@ -95,7 +95,7 @@ namespace EddyLib.Radiation
             standing
         };
 
-        public static double ERF_Modified(double alt, double az, Posture posture, double Idir, double Idiff, double tsol, double fbes = 0.5, double asa = 0.7, double tsol_factor = 1.0)
+        public static double ERF_Modified(double alt, double az, Posture posture, double Idir, double Idiff, double tsol = 1, double fbes = 0.5, double asa = 0.7, double tsol_factor = 1.0)
         {
             //  ERF function to estimate the impact of solar radiation on occupant comfort
             //  INPUTS:
