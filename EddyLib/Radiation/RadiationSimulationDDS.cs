@@ -23,13 +23,14 @@ namespace EddyLib.Radiation
             int skip = 0;
 
             for (int i = 0; i < illLines.Length; i++) {
-                if (illLines[i].Contains("FORMAT")) { skip = i + i; break; }
+                if (illLines[i].Contains("FORMAT")) { skip = i + 2; break; }
             }
+
+        
+            return illLines.Skip(skip).Select(l => Array.ConvertAll<string, float>(l.Split(new[] { ' ' }).Skip(1).ToArray(), float.Parse)).ToArray();
 
             // [x][] time
             // [][x] points
-            illLines = illLines.Skip(skip).ToArray();
-            return illLines.Select(l => Array.ConvertAll<string, float>(l.Split(new[] { ' ' }).Skip(1).ToArray(), float.Parse)).ToArray();
         }
 
 
