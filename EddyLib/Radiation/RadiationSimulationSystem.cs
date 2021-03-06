@@ -14,7 +14,7 @@ namespace EddyLib.Radiation
 
 
 
-    public class RadiationSimulationSystemDDS
+    public class RadiationSimulationSystem
     {
 
         private static float[][] LoadDDSIll(string illFileName) // total illuminance data
@@ -48,7 +48,7 @@ namespace EddyLib.Radiation
         public List<Mesh> ProbeMeshes;
         public List<Point3d> Probes;
         public Weather Weather;
-        public RadiationSimulationSystemDDS(string filename, string baseWorkingDir, List<RSurface> rsurfaces, List<Mesh> probe_meshes, Weather weather)
+        public RadiationSimulationSystem(string filename, string baseWorkingDir, List<RSurface> rsurfaces, List<Mesh> probe_meshes, Weather weather)
         {
             ProjectName = filename;
             BaseWorkingDir = baseWorkingDir;
@@ -63,8 +63,7 @@ namespace EddyLib.Radiation
             foreach (var rs in RSurfaces)
             {
                 if (rs == null) continue;
-                if (rs.Type == RSurface.RadiationSurfaceType.Sky) continue;
-
+                //if (rs.Type == RSurface.RadiationSurfaceType.Sky) continue;
                 if (rs.LowPoly != null)
                 {
                     rs.LowPoly.Vertices.CullUnused();
@@ -103,7 +102,7 @@ namespace EddyLib.Radiation
             }
             // Mesh.CreateFromSphere(sphere, 40, 20);
 
-
+             
 
             ProbeMeshes = probe_meshes;
             Probes = new List<Point3d>();
@@ -130,7 +129,7 @@ namespace EddyLib.Radiation
             }
         }
 
-        public RadiationSimulationDDSResult RunDDS(bool run, CancellationToken ct)
+        public RadiationSimulationResult RunDDS(bool run, CancellationToken ct)
         {
 
             double pct = 0;
@@ -577,7 +576,7 @@ namespace EddyLib.Radiation
 
 
 
-                var result = new RadiationSimulationDDSResult(this.ProbeMeshes, totalIll, dirIll, dMRT);
+                var result = new RadiationSimulationResult(this.ProbeMeshes, totalIll, dirIll, dMRT);
                 var bson = result.ToBson();
 
                 Console.WriteLine();

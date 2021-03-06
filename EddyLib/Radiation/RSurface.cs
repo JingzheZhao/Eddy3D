@@ -118,7 +118,7 @@ namespace EddyLib.Radiation
             Ground = 1,
             Vegetation = 2,
             Tree = 3,
-            Sky = 4
+         //   Sky = 4
         }
     }
 }

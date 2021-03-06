@@ -106,11 +106,14 @@
   <ItemGroup>
     <Compile Include="ArrayHelper.cs" />
     <Compile Include="ASCIProgressBar.cs" />
+    <Compile Include="Geometry\EddyMesh.cs" />
+    <Compile Include="Geometry\EddyPoint.cs" />
+    <Compile Include="Geometry\EddyVector.cs" />
     <Compile Include="GlobalSettings\DefaultDirectoriesAndPaths.cs" />
     <Compile Include="Radiation\Old\DaylightSimulationHelpers.cs" />
     <Compile Include="Radiation\Old\RadianceHelpers.cs" />
     <Compile Include="Radiation\RadianceMaterials.cs" />
-    <Compile Include="Radiation\RadiationSimulationDDSResult.cs" />
+    <Compile Include="Radiation\RadiationSimulationResult.cs" />
     <Compile Include="Radiation\RSurface.cs" />
     <Compile Include="Radiation\RadiositySystem.cs" />
     <Compile Include="Radiation\RPolygon.cs" />
@@ -136,7 +139,7 @@
     <Compile Include="Radiation\SkyTemperatureModel.cs" />
     <Compile Include="Radiation\SkyViewFactor.cs" />
     <Compile Include="Radiation\SolarGain.cs" />
-    <Compile Include="Radiation\RadiationSimulationSystemDDS.cs" />
+    <Compile Include="Radiation\RadiationSimulationSystem.cs" />
     <Compile Include="Strings\ReturnMsg.cs" />
     <Compile Include="GlobalSettings\EddyVersion.cs" />
     <Compile Include="OFResult.cs" />

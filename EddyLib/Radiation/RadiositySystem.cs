@@ -1,4 +1,5 @@
-﻿using Grasshopper;
+﻿using EddyLib.Geometry;
+using Grasshopper;
 using Grasshopper.Kernel.Data;
 using Rhino.Geometry;
 using System;
@@ -213,7 +214,7 @@ namespace EddyLib.Radiation
             {
                 for (int j = 0; j < polys.Count; j++)
                 {
-                    Point3d probe_pt = probes[i].cen;
+                    Point3d probe_pt = probes[i].Point.Value;
                     probes[i].VFtoPolys[j] = FFactorProbe(probe_pt, polys[j], Obst);
                 }
             });
@@ -441,7 +442,7 @@ namespace EddyLib.Radiation
         {
             foreach (Point3d p in pts)
             {
-                probes.Add(new RProbe() { cen = p, VFtoPolys = new double[polys.Count] });
+                probes.Add(new RProbe() { Point = new EddyPoint(p), VFtoPolys = new double[polys.Count] });
             }
         }
 

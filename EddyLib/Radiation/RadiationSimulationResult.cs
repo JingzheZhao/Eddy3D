@@ -15,9 +15,9 @@ using System.Threading;
 namespace EddyLib.Radiation
 {
     [DataContract]
-    public class RadiationSimulationDDSResult
+    public class RadiationSimulationResult
     { 
-        public RadiationSimulationDDSResult(List<Mesh> meshes, float[][] totalRad, float[][] DirRad, float[][] dMRT)
+        public RadiationSimulationResult(List<Mesh> meshes, float[][] totalRad, float[][] DirRad, float[][] dMRT)
         {
             this.AnalysisMeshes = meshes;
             this.TotalRad = totalRad;
@@ -49,7 +49,7 @@ namespace EddyLib.Radiation
                 return Convert.ToBase64String(ms.ToArray());
             }
         }
-        public static RadiationSimulationDDSResult FromBson(string base64data)
+        public static RadiationSimulationResult FromBson(string base64data)
         {
             byte[] data = Convert.FromBase64String(base64data);
 
@@ -57,7 +57,7 @@ namespace EddyLib.Radiation
             using (BsonDataReader reader = new BsonDataReader(ms))
             {
                 JsonSerializer serializer = new JsonSerializer();
-                return serializer.Deserialize<RadiationSimulationDDSResult>(reader);
+                return serializer.Deserialize<RadiationSimulationResult>(reader);
             }
         }
 

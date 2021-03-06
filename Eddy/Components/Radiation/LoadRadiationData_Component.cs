@@ -56,11 +56,11 @@ namespace Eddy.Components.Radiation
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Result file not found.");
             }
 
-            RadiationSimulationDDSResult result = null;
+            RadiationSimulationResult result = null;
 
             try
             {
-                result = RadiationSimulationDDSResult.FromBson(File.ReadAllText(workDir));
+                result = RadiationSimulationResult.FromBson(File.ReadAllText(workDir));
             }
             catch(Exception e) { 
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Result file could not be deserialized. Are you loading a wrong file type? " +Environment.NewLine + e.Message);

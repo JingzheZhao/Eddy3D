@@ -16,7 +16,7 @@ namespace Eddy
     public class RadiationSystem_Component : GH_Component
     {
 
-        RadiationSimulationSystemDDS RadiationSimulation;
+        RadiationSimulationSystem RadiationSimulation;
 
         
 
@@ -118,7 +118,7 @@ namespace Eddy
             }
             Weather weather = new Weather(weatherPath);
 
-            RadiationSimulation = new RadiationSimulationSystemDDS(name, workDir, modelRSurfaces, surfMeshes, weather);
+            RadiationSimulation = new RadiationSimulationSystem(name, workDir, modelRSurfaces, surfMeshes, weather);
 
             // redirect stderr
             var errors = new StringWriter();
