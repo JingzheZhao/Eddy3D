@@ -136,7 +136,7 @@
     <Compile Include="Radiation\SkyTemperatureModel.cs" />
     <Compile Include="Radiation\SkyViewFactor.cs" />
     <Compile Include="Radiation\SolarGain.cs" />
-    <Compile Include="Radiation\RadiationSimulationDDS.cs" />
+    <Compile Include="Radiation\RadiationSimulationSystemDDS.cs" />
     <Compile Include="Strings\ReturnMsg.cs" />
     <Compile Include="GlobalSettings\EddyVersion.cs" />
     <Compile Include="OFResult.cs" />

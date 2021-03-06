@@ -22,11 +22,12 @@ namespace EddyLib.Radiation
             string[] illLines = System.IO.File.ReadAllLines(illFileName).ToArray();
             int skip = 0;
 
-            for (int i = 0; i < illLines.Length; i++) {
+            for (int i = 0; i < illLines.Length; i++)
+            {
                 if (illLines[i].Contains("FORMAT")) { skip = i + 2; break; }
             }
 
-        
+
             return illLines.Skip(skip).Select(l => Array.ConvertAll<string, float>(l.Split(new[] { ' ' }).Skip(1).ToArray(), float.Parse)).ToArray();
 
             // [x][] time
@@ -41,11 +42,12 @@ namespace EddyLib.Radiation
         public string BaseWorkingDir = "";
 
 
-        List<RSurface> RSurfaces;
-        Mesh UnifiedMeshLowPolyNoSky;
-        List<Mesh> ProbeMeshes;
-        List<Point3d> Probes;
-        Weather Weather;
+        public List<RSurface> RSurfaces;
+        public Mesh SkyDomeForVF;
+        public Mesh UnifiedMeshLowPolyNoSky;
+        public List<Mesh> ProbeMeshes;
+        public List<Point3d> Probes;
+        public Weather Weather;
         public RadiationSimulationSystemDDS(string filename, string baseWorkingDir, List<RSurface> rsurfaces, List<Mesh> probe_meshes, Weather weather)
         {
             ProjectName = filename;
@@ -54,18 +56,52 @@ namespace EddyLib.Radiation
 
 
 
+            // ---------------------
+            // Make a unified mesh radiance
+            // ---------------------
             UnifiedMeshLowPolyNoSky = new Mesh();
-             foreach (var rs in RSurfaces)
+            foreach (var rs in RSurfaces)
             {
                 if (rs == null) continue;
                 if (rs.Type == RSurface.RadiationSurfaceType.Sky) continue;
 
-                if (rs.LowPoly != null) 
+                if (rs.LowPoly != null)
                 {
                     rs.LowPoly.Vertices.CullUnused();
                     UnifiedMeshLowPolyNoSky.Append(rs.LowPoly);
                 }
             }
+
+            // ---------------------
+            // Make a sky dome for VF calculation
+            // ---------------------
+
+            var bb = UnifiedMeshLowPolyNoSky.GetBoundingBox(false);
+            var center = new Point3d(bb.Center.X, bb.Center.Y, bb.Min.Z);
+            var radius = bb.Diagonal.Length;
+
+            Sphere sphere = new Sphere(center, radius);
+            var sphereM = Mesh.CreateQuadSphere(sphere, 4);
+            SkyDomeForVF = new Mesh();
+
+            if (sphereM != null)
+            {
+                sphereM.FaceNormals.ComputeFaceNormals();
+                var findex = new List<int>();
+                for (int i = 0; i < sphereM.Faces.Count; i++)
+                {
+                    var dot = sphereM.FaceNormals[i] * Vector3d.ZAxis;
+                    if (dot > 0 - 0.0001)
+                    {
+                        findex.Add(i);
+                    }
+                }
+
+                SkyDomeForVF.Append(sphereM.Faces.ExtractFaces(findex));
+                SkyDomeForVF.FaceNormals.ComputeFaceNormals();
+
+            }
+            // Mesh.CreateFromSphere(sphere, 40, 20);
 
 
 
@@ -110,12 +146,12 @@ namespace EddyLib.Radiation
             int skysubdivdirect = 4;
             // User geometry data here
 
-        //    string radMat = @"
-        //void plastic Generic_20
-        //0
-        //0
-        //5 0.2 0.2 0.2 0 0
-        //";
+            //    string radMat = @"
+            //void plastic Generic_20
+            //0
+            //0
+            //5 0.2 0.2 0.2 0 0
+            //";
 
             string radMatBlack = @"
         void plastic Black
@@ -143,7 +179,7 @@ namespace EddyLib.Radiation
             RadianceSkies.Write(this.BaseWorkingDir + @"\Rad\skyglow" + (skySubDivDir) + ".rad", (skySubDivDir));
             RadianceSkies.Write(this.BaseWorkingDir + @"\Rad\skyglow" + (skySubDivDiff) + ".rad", (skySubDivDiff));
 
- 
+
             if (run == true)
             {
 
@@ -198,8 +234,8 @@ namespace EddyLib.Radiation
                 string ptsin = (@"Rad\sensors.pts");
                 string mtxout = (@"Rad\Output\dc_" + skySubDivDiff + @".mtx");
 
-    
-                string cmdArgRFLUXMTX = DefaultDirectoriesAndPaths.RadianceDir + @"\rfluxmtx -I+ -y " + sensorCnt + @" -lw 0.0001 -ab " + ab + @"  -ad " + ad + @" -n " + n + @" - " + skyglowrad + @" -i " + inputoct + @" < " + ptsin + @" > " + mtxout ;
+
+                string cmdArgRFLUXMTX = DefaultDirectoriesAndPaths.RadianceDir + @"\rfluxmtx -I+ -y " + sensorCnt + @" -lw 0.0001 -ab " + ab + @"  -ad " + ad + @" -n " + n + @" - " + skyglowrad + @" -i " + inputoct + @" < " + ptsin + @" > " + mtxout;
                 var CMDrfluxmtx = Command.Run("cmd.exe");
                 CMDrfluxmtx.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 CMDrfluxmtx.StandardInput.WriteLine(cmdArgRFLUXMTX);
@@ -228,8 +264,8 @@ namespace EddyLib.Radiation
                   REM The −d option may be used to produce a sun -only matrix, with no sky contributions. Alternatively, the −s option may be used to exclude any direct solar component from the output.
                   gendaymtx -m " + skysubdiv + @" -O1 ""Rad/output/" + weaname + @".wea"" > ""Rad/output/" + weaname + @".smx""
                  */
-                string weain = ( @"Rad\output\" + weaname + @".wea");
-                string smxout = ( @"Rad\output\" + weaname + @".smx");
+                string weain = (@"Rad\output\" + weaname + @".wea");
+                string smxout = (@"Rad\output\" + weaname + @".smx");
 
                 string gendaymtxArgs = DefaultDirectoriesAndPaths.RadianceDir + @"\gendaymtx.exe -m " + 1 + @" -O1 " + weain + @" > " + smxout;
 
@@ -267,9 +303,9 @@ namespace EddyLib.Radiation
                 // 179 to get the illuminance value.We need to "break" the * "global
                 // horizontal radiation" *into its RGB components and then use
                 // (R * 0.265 + G * 0.670 + B * 0.065) * 179 to convert it into a illuminance value.
-                 // dctimestep Rad/output/dc_r" + skysubdiv + @".mtx ""Rad/output/" + weaname + @".smx"" | rmtxop -fa -t -c 0.265 0.670 0.065 - > ""Rad/output/annualR_dc.ill""
+                // dctimestep Rad/output/dc_r" + skysubdiv + @".mtx ""Rad/output/" + weaname + @".smx"" | rmtxop -fa -t -c 0.265 0.670 0.065 - > ""Rad/output/annualR_dc.ill""
 
-                string annualR_dc_ill_out =  (@"Rad\output\annualR_dc.ill");
+                string annualR_dc_ill_out = (@"Rad\output\annualR_dc.ill");
                 string dctimestepArgs = DefaultDirectoriesAndPaths.RadianceDir + @"\dctimestep " + mtxout + @" " + smxout + @" | rmtxop -fa -t -c 0.265 0.670 0.065 - > " + annualR_dc_ill_out;
                 var dctimestep = Command.Run("cmd.exe");
                 dctimestep.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
@@ -294,20 +330,20 @@ namespace EddyLib.Radiation
                 Console.WriteLine("Perform an annual direct-only daylight coefficients simulation...");
 
                 //Create black octree for direct sun calculations.
-                string radinblack =  (this.BaseWorkingDir + @"\Rad\sceneBlack.rad");
-                string octoutblack =  (this.BaseWorkingDir + @"\Rad\output\sceneBlack.oct");
+                string radinblack = (this.BaseWorkingDir + @"\Rad\sceneBlack.rad");
+                string octoutblack = (this.BaseWorkingDir + @"\Rad\output\sceneBlack.oct");
 
                 var oconvBlack = Command.Run(DefaultDirectoriesAndPaths.RadianceDir + @"\oconv", new[] { radinblack },
                     options => options.WorkingDirectory(this.BaseWorkingDir)).RedirectTo(new FileInfo(octoutblack));
                 oconvBlack.Wait();
 
                 string octblackin = (@"Rad\output\sceneBlack.oct");
-                string dcd_mtxout =  (  @"Rad\output\dcd_" + skySubDivDiff + @".mtx");
-                string d_smxout =  (  @"Rad\output\" + weaname + @"d.smx");
-                string annualR_dcd_ill_out =  ( @"Rad\output\annualR_dcd.ill");
+                string dcd_mtxout = (@"Rad\output\dcd_" + skySubDivDiff + @".mtx");
+                string d_smxout = (@"Rad\output\" + weaname + @"d.smx");
+                string annualR_dcd_ill_out = (@"Rad\output\annualR_dcd.ill");
 
-                string dirCalcArgs1 = DefaultDirectoriesAndPaths.RadianceDir + @"\rfluxmtx -I+ -y " + sensorCnt + @" -lw 0.0001 -ab 1 -ad " + ad + @" -n " + n + @" - " + skyglowrad + @" -i " + octblackin + @" < " + ptsin + @" > " + dcd_mtxout ;
-                string dirCalcArgs2 = DefaultDirectoriesAndPaths.RadianceDir + @"\gendaymtx -m " + skysubdivdiffuse + @" -O1 -d " + weain + @" > " + d_smxout ;
+                string dirCalcArgs1 = DefaultDirectoriesAndPaths.RadianceDir + @"\rfluxmtx -I+ -y " + sensorCnt + @" -lw 0.0001 -ab 1 -ad " + ad + @" -n " + n + @" - " + skyglowrad + @" -i " + octblackin + @" < " + ptsin + @" > " + dcd_mtxout;
+                string dirCalcArgs2 = DefaultDirectoriesAndPaths.RadianceDir + @"\gendaymtx -m " + skysubdivdiffuse + @" -O1 -d " + weain + @" > " + d_smxout;
                 string dirCalcArgs3 = DefaultDirectoriesAndPaths.RadianceDir + @"\dctimestep " + dcd_mtxout + @" " + d_smxout + @" | rmtxop -fa -t -c 0.265 0.670 0.065 -> " + annualR_dcd_ill_out;
 
 
@@ -374,10 +410,10 @@ namespace EddyLib.Radiation
                 // 0.533 solar disc size as angle
 
                 Console.WriteLine("Perform an annual sun-coefficients simulation...");
-                string sunsOut =  (@"Rad\output\suns.rad");
+                string sunsOut = (@"Rad\output\suns.rad");
 
                 string suncoeffArgs1 = @"echo void light solar 0 0 3 1e6 1e6 1e6 > """ + sunsOut + @"""";
-                string suncoeffArgs2 = "cnt " + (144 * skysubdivdirect * skysubdivdirect + 1) + @" | rcalc -e MF:4 -f """ + DefaultDirectoriesAndPaths.RadianceLibDir + @"\reinsrc.cal"" -e Rbin=recno -o ""solar source sun 0 0 4 ${Dx} ${Dy} ${Dz} 0.533"" >> " + sunsOut ;
+                string suncoeffArgs2 = "cnt " + (144 * skysubdivdirect * skysubdivdirect + 1) + @" | rcalc -e MF:4 -f """ + DefaultDirectoriesAndPaths.RadianceLibDir + @"\reinsrc.cal"" -e Rbin=recno -o ""solar source sun 0 0 4 ${Dx} ${Dy} ${Dz} 0.533"" >> " + sunsOut;
 
                 var suncoeff = Command.Run("cmd.exe");
                 suncoeff.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
@@ -421,8 +457,8 @@ namespace EddyLib.Radiation
                 // 11 Calculate illuminance sun coefficients
                 // -----------------------------
                 Console.WriteLine("Calculate illuminance sun coefficients for illuminance calculations...");
-                string blackWithSunsin = ( @"Rad\output\sceneBlackSuns.oct");
-                string cddmtxout =  ( @"Rad\output\cdsDDS.mtx");
+                string blackWithSunsin = (@"Rad\output\sceneBlackSuns.oct");
+                string cddmtxout = (@"Rad\output\cdsDDS.mtx");
                 string rcontribArgs1 = DefaultDirectoriesAndPaths.RadianceDir + @"\rcontrib -I+ -ab 1 -y " + sensorCnt + @" -n 16 -ad 256 -lw 1.0e-3 -dc 1 -dt 0 -dj 0 -faf -e MF:" + skysubdivdirect + @" -f """ + DefaultDirectoriesAndPaths.RadianceLibDir + @"\reinhart.cal"" -b rbin -bn Nrbins -m solar " + blackWithSunsin + @" < " + ptsin + @" > " + cddmtxout;
                 var rcontrib = Command.Run("cmd.exe");
                 rcontrib.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
@@ -447,7 +483,7 @@ namespace EddyLib.Radiation
                 Console.WriteLine("Generate SkyVector for whole year...");
                 // - 5 option indicates 5phase method mode - solar disc angele must follow that input
                 // The -d option in the SMX messes it all up-- you can't include -d and -5 together.
-                string smxsunout =  (@"Rad\output\sunM" + skysubdivdirect + @".smx");
+                string smxsunout = (@"Rad\output\sunM" + skysubdivdirect + @".smx");
                 string gendaymtx2Args = DefaultDirectoriesAndPaths.RadianceDir + @"\gendaymtx -5 0.533 -m " + skysubdivdirect + @" -O1 " + weain + @" > " + smxsunout;
 
                 var gendaymtx2 = Command.Run("cmd.exe");
@@ -529,7 +565,7 @@ namespace EddyLib.Radiation
 
 
                 float[][] dMRT = SolarGain.ComputeStanding(this.Weather, totalIll, dirIll);
-              
+
                 stepCnt++;
                 pct = 100 * stepCnt / steps;
                 Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
@@ -559,10 +595,10 @@ namespace EddyLib.Radiation
             return null;
 
         }
-       
-        
-        
-         
-        
+
+
+
+
+
     }
 }
