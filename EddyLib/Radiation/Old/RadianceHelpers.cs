@@ -14,8 +14,7 @@ namespace EddyLib.Radiation
 {
     public static class RadianceHelpers
     {
-        // Radiance isn't exactly culture-aware, so we have to make everything here en-US
-        private static readonly CultureInfo radianceCulture = new CultureInfo("en-US");
+         private static readonly CultureInfo radianceCulture = new CultureInfo("en-US");
 
         #region Geometry
         //equi-solid-angle vectors covering 4pi
@@ -71,7 +70,6 @@ namespace EddyLib.Radiation
             catch (Exception ex) { RhinoApp.WriteLine("Mesh2Rad failed " + ex.Message); }
             return s.ToString();
         }
-
         public static string Mesh2RadUniqueFMat(Mesh m, string IDbase)
         {
 
@@ -85,7 +83,7 @@ namespace EddyLib.Radiation
                     string id = IDbase + "_" + i;
                     string matName = "Mat_" + IDbase + "_" + i;
 
-                    s.AppendLine(RadiancePlasticMaterial(matName, Color.White, 0.5));
+                    s.AppendLine(RadianceMaterial.RadiancePlasticMaterial(matName, Color.White, 0.5));
 
                     if (m.Faces[i].IsTriangle)
                     {
@@ -127,7 +125,6 @@ namespace EddyLib.Radiation
             catch (Exception ex) { RhinoApp.WriteLine("Mesh2Rad failed " + ex.Message); }
             return s.ToString();
         }
-
         public static string SensorPoints4PI(List<Point3d> pts)
         {
             StringBuilder sb = new StringBuilder();
@@ -142,7 +139,6 @@ namespace EddyLib.Radiation
             }
             return sb.ToString();
         }
-
         public static void SensorPoints4PI_Binary(List<Point3d> pts, string file)
         {
             using (FileStream fs = File.OpenWrite(file))
@@ -164,8 +160,6 @@ namespace EddyLib.Radiation
                 }
             }
         }
-         
-
         public static List<float> ReadRadianceDatFile_Binary(string file)
         {
             List<float> results = new List<float>();
@@ -197,7 +191,6 @@ namespace EddyLib.Radiation
             }
             return results;
         }
-
         public static void WriteBinArray(List<float[]> data, string file)
         {
             using (FileStream fs = File.OpenWrite(file))
@@ -261,9 +254,6 @@ namespace EddyLib.Radiation
             }
             return data;
         }
-
-
-        
         public static string SensorPoints(List<Point3d> pts, List<Vector3d> pts_norm)
         {
             StringBuilder sb = new StringBuilder();
@@ -274,7 +264,6 @@ namespace EddyLib.Radiation
             }
             return sb.ToString();
         }
-
         public static string SensorPoints(List<Point3d> pts, Vector3d pts_norm)
         {
             StringBuilder sb = new StringBuilder();
@@ -285,7 +274,6 @@ namespace EddyLib.Radiation
             }
             return sb.ToString();
         }
-
         public static string Rays(Point3d pt, List<Vector3d> pts_norm)
         {
             StringBuilder sb = new StringBuilder();
@@ -296,7 +284,6 @@ namespace EddyLib.Radiation
             }
             return sb.ToString();
         }
-
         private static string FormatPointAndNormal(Point3d p, Vector3d n) =>
             String.Format(radianceCulture, "{0:0.0000} {1:0.0000} {2:0.0000} {3:0.0000} {4:0.0000} {5:0.0000}", p.X, p.Y, p.Z, n.X, n.Y, n.Z);
         private static string FormatPoint(Point3d p) =>
@@ -304,56 +291,7 @@ namespace EddyLib.Radiation
         private static string FormatPoint(Point3f p) =>
            String.Format(radianceCulture, "{0:0.0000} {1:0.0000} {2:0.0000}", p.X, p.Y, p.Z);
 
-        private static Brep ExtrudePlanarFace(Brep f, Vector3d n, double thickness)
-        {
-            List<Brep> toMerge = new List<Brep>();
-            toMerge.Add(f);
-            Brep otherFace = (Brep)f.Duplicate();
-            otherFace.Translate(Vector3d.ZAxis);
-            toMerge.Add(otherFace);
-            foreach (var l in f.DuplicateEdgeCurves(true))
-            {
-                var s = Extrusion.CreateExtrusion(l, n * thickness);
-                toMerge.Add(s.ToBrep());
-            }
-            return Brep.JoinBreps(toMerge, 0.001)[0];
-        }
-
-     
-         
-
         #endregion
-
-        #region Materials
-
-        public static string RadiancePlasticMaterial(string Name, Color Color, double Reflectance, double Specularilty = 0, double Roughness = 0)
-        {
-
-            const double LuminousEfficacyRed = 0.3;
-            const double LuminousEfficacyGreen = 0.59;
-            const double LuminousEfficacyBlue = 0.11;
-
-            double Red = Color.R;
-            double Green = Color.G;
-            double Blue = Color.B;
-
-
-            double w = Red * LuminousEfficacyRed + Green * LuminousEfficacyGreen + Blue * LuminousEfficacyBlue;
-
-            return String.Format(radianceCulture, "void plastic {5} 0 0 5 {0} {1} {2} {3} {4}\n", (Red / w * Reflectance), (Green / w * Reflectance), (Blue / w * Reflectance), Specularilty, Roughness, Name);
-        }
-
-        public static string RadianceGlassMaterial(string Name, double Transmittance)
-        {
-            const double refractiveIndex = 1.52;
-            double Transmisivity = (Math.Sqrt(0.8402528435 + 0.0072522239 * Transmittance * Transmittance) - 0.9166530661) / 0.0036261119 / Transmittance;
-            return String.Format(radianceCulture , "void glass {4} 0 0 4 {0} {1} {2} {3}\n", Transmisivity, Transmisivity, Transmisivity, refractiveIndex, Name);
-        }
-
-        #endregion
-
-
-
 
         public static void RunOconv(string radFilePath, string octFilePath)
         {
@@ -379,8 +317,6 @@ namespace EddyLib.Radiation
             p.WaitForExit();
             p.Close();
         }
-
-
         public static void RunRayCastMat(string octree_path, string pts_path, string output_path)
         {
 
@@ -437,8 +373,6 @@ namespace EddyLib.Radiation
 
 
         }
-
-
         public static void RunRayCastTrans(string octree_path, string pts_path, string output_path)
         {
 
@@ -490,8 +424,6 @@ namespace EddyLib.Radiation
             p.WaitForExit();
             p.Close();
         }
-
-
         public static void RunRayCastSurf(string octree_path, string pts_path, string output_path)
         {
 

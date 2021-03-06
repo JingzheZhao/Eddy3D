@@ -109,6 +109,7 @@
     <Compile Include="GlobalSettings\DefaultDirectoriesAndPaths.cs" />
     <Compile Include="Radiation\Old\DaylightSimulationHelpers.cs" />
     <Compile Include="Radiation\Old\RadianceHelpers.cs" />
+    <Compile Include="Radiation\RadianceMaterials.cs" />
     <Compile Include="Radiation\RadiationSimulationDDSResult.cs" />
     <Compile Include="Radiation\RSurface.cs" />
     <Compile Include="Radiation\RadiositySystem.cs" />

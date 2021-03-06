@@ -1,4 +1,5 @@
-﻿using Rhino;
+﻿using EddyLib.Radiation;
+using Rhino;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
@@ -14,7 +15,8 @@ namespace EddyLib
 
     public class RadianceFiles
     {
-        public static string DaysimInstallation = @"C:\DIVA\DaysimBinaries";
+        private static readonly CultureInfo radianceCulture = new CultureInfo("en-US");
+
 
         public static string Epw2Wea(string weatherFilePath, string targetPath)
         {
@@ -42,8 +44,8 @@ namespace EddyLib
                     ProcessStartInfo processInfo = new ProcessStartInfo
                     {
                         Arguments = arguments,
-                        FileName = DaysimInstallation + @"\epw2wea",
-                        WorkingDirectory = DaysimInstallation,
+                        FileName = DefaultDirectoriesAndPaths.RadianceDir + @"\epw2wea",
+                        WorkingDirectory = DefaultDirectoriesAndPaths.RadianceDir,
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
@@ -88,8 +90,6 @@ namespace EddyLib
             }
         }
 
-        // Radiance isn't exactly culture-aware, so we have to make everything here en-US
-        private static readonly CultureInfo radianceCulture = new CultureInfo("en-US");
 
         private static string FormatPointAndNormal(Point3d p, Vector3d n) =>
            String.Format(radianceCulture, "{0:0.###} {1:0.###} {2:0.###} {3:0.###} {4:0.###} {5:0.###}", p.X, p.Y, p.Z, n.X, n.Y, n.Z);
@@ -97,10 +97,12 @@ namespace EddyLib
         private static string FormatPoint(Point3d p) =>
         String.Format(radianceCulture, "{0:0.###} {1:0.###} {2:0.###}", p.X, p.Y, p.Z);
 
+
+
         public static void MeshProc(Mesh _m, string _fname, string _mat)
         {
             System.IO.StreamWriter sw = new System.IO.StreamWriter(_fname);
-            sw.WriteLine("#Grasshopper Eddy 2019");
+            sw.WriteLine("# Grasshopper Eddy3D " + EddyLib.EddyVersion.ProductVersion);
             sw.WriteLine("");
 
             //_m.Faces.ConvertQuadsToTriangles();
@@ -136,6 +138,7 @@ namespace EddyLib
                     sw.WriteLine(FormatPoint(_m.Vertices[v0]));
                     sw.WriteLine(FormatPoint(_m.Vertices[v1]));
                     sw.WriteLine(FormatPoint(_m.Vertices[v2]));
+                    sw.WriteLine();
                 }
                 else
                 {
@@ -153,6 +156,7 @@ namespace EddyLib
                     sw.WriteLine(FormatPoint(_m.Vertices[v1]));
                     sw.WriteLine(FormatPoint(_m.Vertices[v2]));
                     sw.WriteLine(FormatPoint(_m.Vertices[v3]));
+                    sw.WriteLine();
                 }
             }
 
@@ -162,7 +166,7 @@ namespace EddyLib
         public static void MeshProc(Mesh _m, string _fname, string _mat, string _matLib)
         {
             System.IO.StreamWriter sw = new System.IO.StreamWriter(_fname);
-            sw.WriteLine("#Grasshopper Eddy 2020");
+            sw.WriteLine("# Grasshopper Eddy3D " + EddyLib.EddyVersion.ProductVersion);
             sw.WriteLine("");
             sw.WriteLine(_matLib);
             sw.WriteLine("");
@@ -223,6 +227,7 @@ namespace EddyLib
                     sw.WriteLine(FormatPoint(_m.Vertices[v0]));
                     sw.WriteLine(FormatPoint(_m.Vertices[v1]));
                     sw.WriteLine(FormatPoint(_m.Vertices[v2]));
+                    sw.WriteLine();
                 }
                 else
                 {
@@ -240,11 +245,129 @@ namespace EddyLib
                     sw.WriteLine(FormatPoint(_m.Vertices[v1]));
                     sw.WriteLine(FormatPoint(_m.Vertices[v2]));
                     sw.WriteLine(FormatPoint(_m.Vertices[v3]));
+                    sw.WriteLine();
                 }
             }
 
             sw.Close();
         }
+
+        public static void MeshProc(List<RSurface> rsurfs, string _fname)
+        {
+
+            StringBuilder _matLib = new StringBuilder();
+            Dictionary<string, string> matLib = new Dictionary<string, string>();
+
+            foreach (var s in rsurfs)
+            {
+                if (!matLib.ContainsKey(s.MaterialID))
+                {
+                    matLib.Add(s.MaterialID, s.Material);
+                    _matLib.AppendLine(s.Material);
+                    _matLib.AppendLine();
+                }
+            }
+
+ 
+
+            System.IO.StreamWriter sw = new System.IO.StreamWriter(_fname);
+            sw.WriteLine("# Grasshopper Eddy3D " + EddyLib.EddyVersion.ProductVersion);
+            sw.WriteLine("");
+            sw.WriteLine(_matLib.ToString());
+            sw.WriteLine("");
+
+
+            int polyCnt = 0;
+
+            foreach (var s in rsurfs)
+            {
+
+                Mesh _m = s.LowPoly.DuplicateMesh();
+
+
+                //_m.Faces.ConvertQuadsToTriangles();
+
+                //_m.Faces.ExtractDuplicateFaces();
+
+                // Need this for unit testing
+                if (RhinoDoc.ActiveDoc == null)
+                {
+                    _m.Faces.ConvertNonPlanarQuadsToTriangles(0.01, 0.01, 0);
+                }
+                else
+                {
+                    _m.Faces.ConvertNonPlanarQuadsToTriangles(RhinoDoc.ActiveDoc.ModelAbsoluteTolerance, RhinoDoc.ActiveDoc.ModelAngleToleranceRadians, 0);
+                }
+
+                // Sometimes Octrees are not written robustly
+
+                //int fixCount = 0;
+                //_m.Faces.RemoveZeroAreaFaces(ref fixCount);
+                _m.Faces.CullDegenerateFaces();
+
+                for (int i = 0; i < _m.Faces.Count; ++i)
+                {
+                    var area = Utilities.MeshFaceArea(i, _m);
+
+                    // Need this for unit testing
+                    if (RhinoDoc.ActiveDoc == null)
+                    {
+                        if (area < 0.01)
+                        {
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        if (area < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)
+                        {
+                            continue;
+                        }
+                    }
+
+                    if (_m.Faces[i].IsTriangle)
+                    {
+                        // Change this material for 2Phase method
+
+                        sw.WriteLine(s.MaterialID + " polygon " + s.MaterialID + "." + (polyCnt + 1).ToString());
+                        sw.WriteLine("0");
+                        sw.WriteLine("0");
+                        sw.WriteLine("9");
+
+                        int v0 = _m.Faces[i].A;
+                        int v1 = _m.Faces[i].B;
+                        int v2 = _m.Faces[i].C;
+
+                        sw.WriteLine(FormatPoint(_m.Vertices[v0]));
+                        sw.WriteLine(FormatPoint(_m.Vertices[v1]));
+                        sw.WriteLine(FormatPoint(_m.Vertices[v2]));
+                        sw.WriteLine();
+                    }
+                    else
+                    {
+                        sw.WriteLine(s.MaterialID + " polygon " + s.MaterialID + "." + (polyCnt + 1).ToString());
+                        sw.WriteLine("0");
+                        sw.WriteLine("0");
+                        sw.WriteLine("12");
+
+                        int v0 = _m.Faces[i].A;
+                        int v1 = _m.Faces[i].B;
+                        int v2 = _m.Faces[i].C;
+                        int v3 = _m.Faces[i].D;
+
+                        sw.WriteLine(FormatPoint(_m.Vertices[v0]));
+                        sw.WriteLine(FormatPoint(_m.Vertices[v1]));
+                        sw.WriteLine(FormatPoint(_m.Vertices[v2]));
+                        sw.WriteLine(FormatPoint(_m.Vertices[v3]));
+                        sw.WriteLine();
+                    }
+                    polyCnt++;
+                }
+            }
+            sw.Close();
+        }
+
+
 
         public static void writePTS(string pts_path, List<Point3d> pts, List<Vector3d> pts_norm)
         {

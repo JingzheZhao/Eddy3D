@@ -19,14 +19,22 @@ namespace EddyLib.Radiation
 
         public RadiationSurfaceType Type;
         public double PatchSize;
-        public double Reflectance;
+
+        public string MaterialID;
+        public string Material;
         public RSurface() { }
-        public RSurface(string name , Brep b, RadiationSurfaceType type, double patchSize = 2, double refl = 0.2)
+        public RSurface(string name, Brep b, RadiationSurfaceType type, string material, double patchSize = 3)
         {
             Name = name;
             Surface = b;
             PatchSize = patchSize > 0 ? patchSize : 2;
-            Reflectance = refl > 1 ? 1 : refl;
+            Material = material;
+
+
+            MaterialID = "";
+            RadianceMaterial.GetID(Material, out MaterialID);
+
+            //Material = refl > 1 ? 1 : refl;
             Type = type;
 
 
@@ -51,7 +59,7 @@ namespace EddyLib.Radiation
             }
 
 
-            Polys = MakePolys(HighPoly, 0, Reflectance, Name +"_"+Type.ToString(), this);
+            Polys = MakePolys(HighPoly, 0, 0.5, Name + "_" + Type.ToString(), this);
         }
         private static List<RPolygon> MakePolys(Mesh _ms, double rad, double refl, string matName, RSurface parent)
         {
@@ -110,7 +118,7 @@ namespace EddyLib.Radiation
             Ground = 1,
             Vegetation = 2,
             Tree = 3,
-            Sky=4
+            Sky = 4
         }
     }
 }

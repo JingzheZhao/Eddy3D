@@ -2,6 +2,8 @@
 using EddyLib.Radiation;
 using EddyLib.UI;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Data;
+using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
@@ -39,7 +41,8 @@ namespace Eddy
             pManager.AddTextParameter("Dir", "D", "Working directory name", GH_ParamAccess.item, @"C:\Temp\Eddy3d");
             pManager.AddTextParameter("Weather", "W", "Weather filepath", GH_ParamAccess.item, DefaultDirectoriesAndPaths.DefaultWeather);
 
-            pManager.AddMeshParameter("Model", "M", "Model", GH_ParamAccess.list);
+            pManager.AddGenericParameter("RSurf", "RS", "Radiation Model Surfaces", GH_ParamAccess.tree);
+            
             pManager.AddMeshParameter("Probes", "P", "Probes, analysis surface", GH_ParamAccess.list);
 
             pManager.AddBooleanParameter("Run", "R", "Run simulation", GH_ParamAccess.item, false);
@@ -69,11 +72,35 @@ namespace Eddy
             DA.GetData(2, ref weatherPath);
 
 
-            List<Mesh> modelMeshes = new List<Mesh>();
-            List<Mesh> surfMeshes = new List<Mesh>();
+            // ---------------------
+            // Get the RSurf objects
+            // ---------------------
 
-            DA.GetDataList(3, modelMeshes);
+            List<RSurface> modelRSurfaces = new List<RSurface>();         
+            GH_Structure<IGH_Goo> GH_RSurfTree;
+            if (!DA.GetDataTree(3, out GH_RSurfTree)) { }
+            foreach (GH_Path p in GH_RSurfTree.Paths)
+            {
+                foreach (IGH_Goo o in GH_RSurfTree.get_Branch(p))
+                {
+                    if (o != null)
+                    {
+                        RSurface im;
+                        if (!o.CastTo(out im)) continue;
+                        modelRSurfaces.Add(im);
+                    }
+                }
+            }
+
+            // ----------------------
+            // Get the probing points
+            // ----------------------
+
+
+            List<Mesh> surfMeshes = new List<Mesh>();
             DA.GetDataList(4, surfMeshes);
+
+
 
 
 
@@ -82,15 +109,7 @@ namespace Eddy
             DA.GetData(5, ref RUN);
 
 
-            Mesh buildingGeometry = new Mesh();
-            foreach (var m in modelMeshes)
-            {
-                if (m != null)
-                {
-                    m.Vertices.CullUnused();
-                    buildingGeometry.Append(m);
-                }
-            }
+       
 
 
 
@@ -101,7 +120,7 @@ namespace Eddy
             }
             Weather weather = new Weather(weatherPath);
 
-            RadiationSimulation = new RadiationSimulationDDS(name, workDir, buildingGeometry, surfMeshes, weather);
+            RadiationSimulation = new RadiationSimulationDDS(name, workDir, modelRSurfaces, surfMeshes, weather);
 
             // redirect stderr
             var errors = new StringWriter();

@@ -12,5 +12,9 @@ namespace EddyLib.Radiation
         public Point3d cen;
         public double[] VFtoPolys;
         public Dictionary<string, double> VFtoMaterial;
+        
+        
+        //public float[] Rad;
+
     }
 }

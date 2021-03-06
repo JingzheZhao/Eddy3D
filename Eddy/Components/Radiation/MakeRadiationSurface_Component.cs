@@ -35,8 +35,8 @@ namespace Eddy.Components.Radiation
                 param.AddNamedValue(types[i], i);
             }
 
-            pManager.AddNumberParameter("Patch", "Ps", "Patch size", GH_ParamAccess.item, 2);
-            pManager.AddNumberParameter("Reflectance", "Refl", "Reflectance", GH_ParamAccess.item, 0.2);
+            pManager.AddNumberParameter("Patch", "Ps", "Patch size", GH_ParamAccess.item, 3);
+            pManager.AddTextParameter("Material", "M", "Optional Radiance Material", GH_ParamAccess.item, "");
 
         }
 
@@ -45,7 +45,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("RSurf", "RSurf", "RSurf", GH_ParamAccess.list);
+            pManager.AddGenericParameter("RSurf", "RS", "Radiation Model Surfaces", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -58,21 +58,31 @@ namespace Eddy.Components.Radiation
             var breps = new List<Brep>();
             int typeInt = 0;
             double patchSize = 2;
-            double refl = 0.2;
+            string mat = "";
 
             if(!DA.GetDataList(0, breps)) return;
             if (!DA.GetData (1,ref typeInt)) return;
             if (!DA.GetData (2,ref patchSize)) return;
-            if (!DA.GetData (3,ref refl)) return;
+            if (!DA.GetData (3,ref mat)) return;
 
             RadiationSurfaceType thetype = (RadiationSurfaceType) typeInt;
+
+
+            if (String.IsNullOrWhiteSpace(mat)) {
+
+                if (thetype == RadiationSurfaceType.Ground) { mat = RadianceMaterial.DefaultGround; }
+                else if (thetype == RadiationSurfaceType.Building) { mat = RadianceMaterial.DefaultFacade; }
+                else if (thetype == RadiationSurfaceType.Vegetation) { mat = RadianceMaterial.DefaultGrass; }
+                else if (thetype == RadiationSurfaceType.Tree) { mat = RadianceMaterial.DefaultTree; }
+
+            }
 
 
             var RSurfs = new List<RSurface>();
 
             foreach (var b in breps) {
 
-                RSurfs.Add(new RSurface("surf", b, thetype, patchSize, refl));
+                RSurfs.Add(new RSurface("surf", b, thetype, mat, patchSize));
             
             }
 

@@ -41,17 +41,34 @@ namespace EddyLib.Radiation
         public string BaseWorkingDir = "";
 
 
-
-        Mesh BuildingGeometry;
+        List<RSurface> RSurfaces;
+        Mesh UnifiedMeshLowPolyNoSky;
         List<Mesh> ProbeMeshes;
         List<Point3d> Probes;
         Weather Weather;
-        public RadiationSimulationDDS(string filename, string baseWorkingDir, Mesh buildingGeometry, List<Mesh> probe_meshes, Weather weather)
+        public RadiationSimulationDDS(string filename, string baseWorkingDir, List<RSurface> rsurfaces, List<Mesh> probe_meshes, Weather weather)
         {
             ProjectName = filename;
             BaseWorkingDir = baseWorkingDir;
+            RSurfaces = rsurfaces;
 
-            BuildingGeometry = buildingGeometry;
+
+
+            UnifiedMeshLowPolyNoSky = new Mesh();
+             foreach (var rs in RSurfaces)
+            {
+                if (rs == null) continue;
+                if (rs.Type == RSurface.RadiationSurfaceType.Sky) continue;
+
+                if (rs.LowPoly != null) 
+                {
+                    rs.LowPoly.Vertices.CullUnused();
+                    UnifiedMeshLowPolyNoSky.Append(rs.LowPoly);
+                }
+            }
+
+
+
             ProbeMeshes = probe_meshes;
             Probes = new List<Point3d>();
             foreach (var m in probe_meshes)
@@ -93,12 +110,12 @@ namespace EddyLib.Radiation
             int skysubdivdirect = 4;
             // User geometry data here
 
-            string radMat = @"
-        void plastic Generic_20
-        0
-        0
-        5 0.2 0.2 0.2 0 0
-        ";
+        //    string radMat = @"
+        //void plastic Generic_20
+        //0
+        //0
+        //5 0.2 0.2 0.2 0 0
+        //";
 
             string radMatBlack = @"
         void plastic Black
@@ -106,15 +123,15 @@ namespace EddyLib.Radiation
         0
         5 0 0 0 0 0
         ";
-            Mesh daysimMesh = new Mesh();
-            daysimMesh.Append(this.BuildingGeometry);
 
 
 
             Console.WriteLine("Writing files...");
             // Make sure this understands userdata
-            RadianceFiles.MeshProc(daysimMesh, this.BaseWorkingDir + @"\Rad\scene.rad", "Generic_20", radMat);
-            RadianceFiles.MeshProc(daysimMesh, this.BaseWorkingDir + @"\Rad\sceneBlack.rad", "Black", radMatBlack);
+            //RadianceFiles.MeshProc(this.UnifiedMeshLowPolyNoSky, this.BaseWorkingDir + @"\Rad\scene.rad", "Generic_20", radMat);
+            RadianceFiles.MeshProc(RSurfaces, this.BaseWorkingDir + @"\Rad\scene.rad");
+
+            RadianceFiles.MeshProc(this.UnifiedMeshLowPolyNoSky, this.BaseWorkingDir + @"\Rad\sceneBlack.rad", "Black", radMatBlack);
 
             // Write Probes
             RadianceFiles.writePTS(this.BaseWorkingDir + @"\Rad\sensors.pts", this.Probes);
