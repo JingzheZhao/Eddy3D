@@ -14,7 +14,7 @@ namespace EddyLib.Radiation
 
 
 
-    public class RadiationSimulationDDS
+    public class RadiationSimulationSystemDDS
     {
 
         private static float[][] LoadDDSIll(string illFileName) // total illuminance data
@@ -46,7 +46,7 @@ namespace EddyLib.Radiation
         List<Mesh> ProbeMeshes;
         List<Point3d> Probes;
         Weather Weather;
-        public RadiationSimulationDDS(string filename, string baseWorkingDir, List<RSurface> rsurfaces, List<Mesh> probe_meshes, Weather weather)
+        public RadiationSimulationSystemDDS(string filename, string baseWorkingDir, List<RSurface> rsurfaces, List<Mesh> probe_meshes, Weather weather)
         {
             ProjectName = filename;
             BaseWorkingDir = baseWorkingDir;

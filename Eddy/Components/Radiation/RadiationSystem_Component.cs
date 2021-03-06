@@ -13,22 +13,18 @@ using System.Threading.Tasks;
 
 namespace Eddy
 {
-    public class RunRadiationDDS_Component : GH_Component
+    public class RadiationSystem_Component : GH_Component
     {
 
-        RadiationSimulationDDS RadiationSimulation;
+        RadiationSimulationSystemDDS RadiationSimulation;
 
-        // exposure
-        //public override GH_Exposure Exposure
-        //{
-        //    get { return GH_Exposure.hidden; }
-        //}
+        
 
         /// <summary>
         /// Initializes a new instance of the WorkerWithProgBarComponent class.
         /// </summary>
-        public RunRadiationDDS_Component()
-          : base("Radiation", "Rad", "Radiation exposure simulated with Radiance DDS method " + EddyVersion.toString(), EddyVersion.Name, "X | Radiation")
+        public RadiationSystem_Component()
+          : base("RadSystem", "Rad", "Radiation System to simulate solar exposure simulated with Radiance DDS method " + EddyVersion.toString(), EddyVersion.Name, "X | Radiation")
         {
         }
 
@@ -120,7 +116,7 @@ namespace Eddy
             }
             Weather weather = new Weather(weatherPath);
 
-            RadiationSimulation = new RadiationSimulationDDS(name, workDir, modelRSurfaces, surfMeshes, weather);
+            RadiationSimulation = new RadiationSimulationSystemDDS(name, workDir, modelRSurfaces, surfMeshes, weather);
 
             // redirect stderr
             var errors = new StringWriter();
