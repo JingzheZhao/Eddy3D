@@ -1,10 +1,10 @@
 ﻿using EddyLib;
 using EddyLib.Radiation;
 using Grasshopper.Kernel;
-using Rhino.Geometry;
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace Eddy.Components.Radiation
 {
@@ -26,6 +26,7 @@ namespace Eddy.Components.Radiation
         {
             pManager.AddTextParameter("Path", "P", "Result path", GH_ParamAccess.item);
             pManager.AddIntegerParameter("Hour", "H", "Hour", GH_ParamAccess.item, 12);
+            pManager.AddBooleanParameter("Load", "L", "Load data from disk", GH_ParamAccess.item, false);
 
         }
 
@@ -36,6 +37,8 @@ namespace Eddy.Components.Radiation
         {
             pManager.AddGenericParameter("Result", "Res", "Result object", GH_ParamAccess.item);
             pManager.AddMeshParameter("Meshes", "M", "Analysis meshes", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Probes", "P", "Analysis probes", GH_ParamAccess.list);
+
             pManager.AddNumberParameter("Hour", "H", "Data for each mesh vertex for the selected hour", GH_ParamAccess.list);
         }
 
@@ -48,32 +51,45 @@ namespace Eddy.Components.Radiation
 
              string workDir = "";
             int hour = 0;
+            bool run = false;
 
             DA.GetData(0, ref workDir);
             DA.GetData(1, ref hour);
+            DA.GetData(2, ref run);
+
+
+            if (!run) return;
+
 
             if (!File.Exists(workDir)) {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Result file not found.");
             }
 
-            RadiationSimulationResult result = null;
+            var prep = PrepareProtoBufSingleton.Instance;
+
+            RadiationSimulationResultProto resultProto = null;
 
             try
             {
-                result = RadiationSimulationResult.FromBson(File.ReadAllText(workDir));
+                Stopwatch sp = new Stopwatch();
+                sp.Restart();
+                resultProto = RadiationSimulationResultProto.ReadFromFile(workDir);
+                sp.Stop();
+                Debug.WriteLine("Loading RadiationSimulationResultProto: " + sp.ElapsedMilliseconds);
+
             }
-            catch(Exception e) { 
+            catch (Exception e) { 
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Result file could not be deserialized. Are you loading a wrong file type? " +Environment.NewLine + e.Message);
                 return;
 
             }
 
-            if (result != null)
+            if (resultProto != null)
             {
-                DA.SetData(0, result);
-                DA.SetDataList(1, result.AnalysisMeshes);
-                DA.SetDataList(2, result.TotalRad[hour]);
-
+                DA.SetData(0, resultProto);
+                DA.SetDataList(1, resultProto.Meshes.Select(x=>x.Value));
+                DA.SetDataList(2, resultProto.Probes);
+                DA.SetDataList(3, resultProto.Probes.Select(x => x.TotalRad[hour]));
             }
         }
 

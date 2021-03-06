@@ -110,10 +110,11 @@
     <Compile Include="Geometry\EddyPoint.cs" />
     <Compile Include="Geometry\EddyVector.cs" />
     <Compile Include="GlobalSettings\DefaultDirectoriesAndPaths.cs" />
+    <Compile Include="PrepareProtobuff.cs" />
     <Compile Include="Radiation\Old\DaylightSimulationHelpers.cs" />
     <Compile Include="Radiation\Old\RadianceHelpers.cs" />
     <Compile Include="Radiation\RadianceMaterials.cs" />
-    <Compile Include="Radiation\RadiationSimulationResult.cs" />
+    <Compile Include="Radiation\RadiationSimulationResultProto.cs" />
     <Compile Include="Radiation\RSurface.cs" />
     <Compile Include="Radiation\RadiositySystem.cs" />
     <Compile Include="Radiation\RPolygon.cs" />

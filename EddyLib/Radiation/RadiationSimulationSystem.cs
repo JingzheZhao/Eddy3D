@@ -46,7 +46,7 @@ namespace EddyLib.Radiation
         public Mesh SkyDomeForVF;
         public Mesh UnifiedMeshLowPolyNoSky;
         public List<Mesh> ProbeMeshes;
-        public List<Point3d> Probes;
+        public List<RProbe> Probes;
         public Weather Weather;
         public RadiationSimulationSystem(string filename, string baseWorkingDir, List<RSurface> rsurfaces, List<Mesh> probe_meshes, Weather weather)
         {
@@ -105,12 +105,15 @@ namespace EddyLib.Radiation
              
 
             ProbeMeshes = probe_meshes;
-            Probes = new List<Point3d>();
+            Probes = new List<RProbe>();
             foreach (var m in probe_meshes)
             {
-                foreach (var p in m.Vertices)
+                m.Normals.ComputeNormals();
+                for (int i =0; i < m.Vertices.Count; i++)
                 {
-                    Probes.Add(p);
+                    var p = m.Vertices[i];
+                    var v = m.Normals[i];
+                    Probes.Add(new RProbe(p, v) );
                 }
             }
 
@@ -129,7 +132,7 @@ namespace EddyLib.Radiation
             }
         }
 
-        public RadiationSimulationResult RunDDS(bool run, CancellationToken ct)
+        public RadiationSimulationResultProto RunDDS(bool run, CancellationToken ct)
         {
 
             double pct = 0;
@@ -169,7 +172,7 @@ namespace EddyLib.Radiation
             RadianceFiles.MeshProc(this.UnifiedMeshLowPolyNoSky, this.BaseWorkingDir + @"\Rad\sceneBlack.rad", "Black", radMatBlack);
 
             // Write Probes
-            RadianceFiles.writePTS(this.BaseWorkingDir + @"\Rad\sensors.pts", this.Probes);
+            RadianceFiles.writePTS(this.BaseWorkingDir + @"\Rad\sensors.pts", this.Probes.Select(x=>x.Point.Value).ToList(), this.Probes.Select(x => x.Normal.Value).ToList());
 
             // Weather
             var weaname = RadianceFiles.Epw2Wea(this.Weather.epwFilePath, this.BaseWorkingDir + @"\Rad\Output");
@@ -571,23 +574,43 @@ namespace EddyLib.Radiation
 
 
                 // -----------------------------
-                // 16 
+                // 16 Write results
                 // -----------------------------
+                var prep = PrepareProtoBufSingleton.Instance;
+
+                Stopwatch sp = new Stopwatch();
+                sp.Start();
+                for (int i = 0; i < this.Probes.Count; i++) {
+                    this.Probes[i].TotalRad = new float[totalIll.Length];
+                    this.Probes[i].DirRad = new float[dirIll.Length];
+                    this.Probes[i].SolarGain_dMRT = new float[dMRT.Length];
+                    for (int h = 0; h < totalIll.Length; h++)
+                    {
+                        this.Probes[i].TotalRad[h] = totalIll[h][i];
+                        this.Probes[i].DirRad[h] = dirIll[h][i];
+                        this.Probes[i].SolarGain_dMRT[h] = dMRT[h][i];
+                    }
+                }
+                sp.Stop();
+                Debug.WriteLine("Reformat results : " + sp.ElapsedMilliseconds);
+                sp.Restart();
+
+
+                var protoResult = new RadiationSimulationResultProto(this.Probes, this.ProbeMeshes);
+                protoResult.WriteToFile(this.BaseWorkingDir + @"\" + this.ProjectName + ".Radiation.bin");
+
+                sp.Stop();
+                Debug.WriteLine("Results Proto: "+ sp.ElapsedMilliseconds);
+                sp.Restart();
 
 
 
-                var result = new RadiationSimulationResult(this.ProbeMeshes, totalIll, dirIll, dMRT);
-                var bson = result.ToBson();
-
-                Console.WriteLine();
-                File.WriteAllText(this.BaseWorkingDir + @"\" + this.ProjectName + ".Radiation.bin", bson);
                 Console.WriteLine("Results written");
                 stepCnt++;
                 pct = 100 * stepCnt / steps;
                 Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
 
-                return result;
-
+                return protoResult;
             }
 
 

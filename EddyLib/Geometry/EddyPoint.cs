@@ -7,16 +7,19 @@ using Rhino.Geometry;
 using ProtoBuf;
 using Newtonsoft.Json;
 using System.IO;
+using System.Runtime.Serialization;
 
 namespace EddyLib.Geometry
 { 
     [ProtoContract]
+
     public class EddyPoint
     {
         [ProtoMember(1)]
         private string json; // obsolete
         [ProtoMember(2)]
         private double[] coords;
+
         public Point3d Value;
 
         public EddyPoint()

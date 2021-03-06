@@ -11,38 +11,36 @@ using System.Threading.Tasks;
 namespace EddyLib.Radiation
 {
     [ProtoContract]
-    [DataContract]
-
     public class RProbe
     {
-        [DataMember]
-        [ProtoMember(0)]
-        public EddyPoint Point { get; set; }
-        [DataMember]
+
+        public RProbe() { }
+        public RProbe(Point3d pt , Vector3d vec) {
+            Point = new EddyPoint(pt);
+            Normal = new EddyVector(vec);
+        }
+
+
         [ProtoMember(1)]
+        public EddyPoint Point { get; set; }
+        [ProtoMember(2)]
         public EddyVector Normal { get; set; }
 
 
 
         //View factor data
-
-        [DataMember]
         [ProtoMember(100)]
         public double[] VFtoPolys { get; set; }
-        [DataMember]
         [ProtoMember(101)]
         public Dictionary<string, double> VFtoMaterial { get; set; }
 
 
         //Radiation Data
 
-        [DataMember]
         [ProtoMember(110)]
         public float[] TotalRad { get; set; }
-        [DataMember]
         [ProtoMember(111)]
         public float[] DirRad { get; set; }
-        [DataMember]
         [ProtoMember(112)]
         public float[] SolarGain_dMRT { get; set; }
 
