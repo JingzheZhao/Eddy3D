@@ -79,5 +79,12 @@ namespace EddyLib.Indoor.Dicts
                 File.Delete(path);
             }
         }
+
+        public static string InParenthesis(string input)
+        {
+
+
+            return "(" + input + ")";
+        }
     }
 }

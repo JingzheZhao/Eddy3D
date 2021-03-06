@@ -163,6 +163,26 @@ namespace RhinoPlugin.Tests.Xunit
 
         }
 
-     
+        //[Fact]
+        //public void TestSnappyHexMeshDict()
+        //{
+
+        //    var dict = EddyLib.Indoor.Dicts.SnappyHexMeshDict.;
+
+        //    var d = CppMapSerializerDyn.Serialize(dict);
+
+        //    string[] parts = {
+
+        // String.Join("\n", d.ToArray())
+        //    };
+
+        //    var FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
+
+        //    Assert.StartsWith("a", FullDictString);
+
+
+        //}
+
+
     }
 }

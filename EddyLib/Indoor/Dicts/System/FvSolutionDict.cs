@@ -20,7 +20,6 @@ namespace EddyLib.Indoor.Dicts
         public FvSolutionDict()
         {
             this.DictionaryName = "fvSolution";
-
             this.Location = DictLocation.system;
             this.FC = FieldClass.dictionary;
             this.Header = GetHeader(this);
@@ -31,7 +30,7 @@ namespace EddyLib.Indoor.Dicts
 
             string[] parts = {
                this.Header, "\n",
-         String.Join("\n", this.InternalDict.ToArray())
+               String.Join("\n", this.InternalDict.ToArray())
             };
 
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");

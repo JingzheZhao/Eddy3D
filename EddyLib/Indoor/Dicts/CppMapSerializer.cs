@@ -105,16 +105,16 @@ namespace EddyLib.Indoor.Dicts
                 }
 
                 // 1. Dictionary<string, string> dict
-                else if (evl.Key is String && evl.Value is String)
+                else if (evl.Key is String && evl.Value is String || evl.Value is Int32)
                 {
                     DictToString(evl, ref sb);
                 }
 
                 // 2. Dictionary<string, Dictionary<string, string>> dicts
-                else if (evl.Key is String && evl.Value is Dictionary<string, dynamic>)
-                {
-                    DictToString(evl.Key, evl.Value, ref sb);
-                }
+                //else if (evl.Key is String && evl.Value is Dictionary<string, dynamic>)
+                //{
+                //    DictToString(evl.Key, evl.Value, ref sb);
+                //}
 
                 // 3. Dictionary<string, int> dicts
                 else
@@ -183,35 +183,6 @@ namespace EddyLib.Indoor.Dicts
             return sb.ToString();
         }
 
-        //private static void DictToString(Dictionary<string, List<Dictionary<string, dynamic>>> dicts, ref StringBuilder sb)
-        //{
-        //    foreach (KeyValuePair<string,List<Dictionary<string,dynamic>>> list in dicts)
-        //    {
-        //        sb.AppendLine();
-        //        sb.AppendLine(list.Key);
-        //        sb.AppendLine("{");
-
-        //        foreach (var dict in list.Value)
-        //        {
-        //            foreach (KeyValuePair<string, dynamic> evl in dict)
-        //            {
-        //                sb.AppendLine();
-        //                sb.AppendLine(evl.Key);
-        //                sb.AppendLine("{");
-
-        //                //  foreach (var dict in dict[evl.Key]) {
-        //                if (evl.Key is String && evl.Value is String)
-        //                {
-        //                    DictToString(evl.Key, evl.Value, ref sb);
-        //                }
-
-        //                // }
-        //                sb.AppendLine("}");
-        //            }
-        //        }
-        //        sb.AppendLine("}");
-        //    }
-        //}
 
         private static void DictToString(List<Dictionary<string, dynamic>> dicts, ref StringBuilder sb)
         {
