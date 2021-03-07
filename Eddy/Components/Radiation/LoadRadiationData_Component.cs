@@ -49,7 +49,7 @@ namespace Eddy.Components.Radiation
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-             string workDir = "";
+            string workDir = "";
             int hour = 0;
             bool run = false;
 
@@ -61,7 +61,8 @@ namespace Eddy.Components.Radiation
             if (!run) return;
 
 
-            if (!File.Exists(workDir)) {
+            if (!File.Exists(workDir))
+            {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Result file not found.");
             }
 
@@ -78,8 +79,9 @@ namespace Eddy.Components.Radiation
                 Debug.WriteLine("Loading RadiationSimulationResultProto: " + sp.ElapsedMilliseconds);
 
             }
-            catch (Exception e) { 
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Result file could not be deserialized. Are you loading a wrong file type? " +Environment.NewLine + e.Message);
+            catch (Exception e)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Result file could not be deserialized. Are you loading a wrong file type? " + Environment.NewLine + e.Message);
                 return;
 
             }
@@ -87,9 +89,15 @@ namespace Eddy.Components.Radiation
             if (resultProto != null)
             {
                 DA.SetData(0, resultProto);
-                DA.SetDataList(1, resultProto.Meshes.Select(x=>x.Value));
+                if (resultProto.Meshes != null)
+                {
+                    DA.SetDataList(1, resultProto.Meshes.Select(x => x.Value));
+                }
                 DA.SetDataList(2, resultProto.Probes);
-                DA.SetDataList(3, resultProto.Probes.Select(x => x.TotalRad[hour]));
+                if (resultProto.Probes != null)
+                {
+                    DA.SetDataList(3, resultProto.Probes.Select(x => x.TotalRad[hour]));
+                }
             }
         }
 

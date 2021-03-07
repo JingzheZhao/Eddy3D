@@ -39,7 +39,7 @@ namespace Eddy
 
             pManager.AddGenericParameter("RSurf", "RS", "Radiation Model Surfaces", GH_ParamAccess.tree);
             
-            pManager.AddMeshParameter("Probes", "P", "Probes, analysis surface", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Sensors", "Sen", "Radiation sensors. Provide as [Mesh] or [RProbe]", GH_ParamAccess.tree);
 
             pManager.AddBooleanParameter("Run", "R", "Run simulation", GH_ParamAccess.item, false);
         }
@@ -94,11 +94,28 @@ namespace Eddy
             // Get the probing points
             // ----------------------
 
+            List<RProbe> probes = new List<RProbe>();
+            List<Mesh> probeMeshes = new List<Mesh>();
+            //DA.GetDataList(4, probeMeshes);
 
-            List<Mesh> surfMeshes = new List<Mesh>();
-            DA.GetDataList(4, surfMeshes);
+            GH_Structure<IGH_Goo> GH_RProbeTree;
+            if (!DA.GetDataTree(4, out GH_RProbeTree)) { }
+            foreach (GH_Path p in GH_RProbeTree.Paths)
+            {
+                foreach (IGH_Goo o in GH_RProbeTree.get_Branch(p))
+                {
+                    if (o != null)
+                    {
+                        Mesh m;
+                        RProbe pr;
+                        if (o.CastTo(out m)) 
+                        { probeMeshes.Add(m); }
 
-
+                        else if (o.CastTo(out pr))
+                        { probes.Add(pr); }
+                    }
+                }
+            }
 
 
 
@@ -118,7 +135,7 @@ namespace Eddy
             }
             Weather weather = new Weather(weatherPath);
 
-            RadiationSimulation = new RadiationSimulationSystem(name, workDir, modelRSurfaces, surfMeshes, weather);
+            RadiationSimulation = new RadiationSimulationSystem(name, workDir, weather, modelRSurfaces, probeMeshes, probes );
 
             // redirect stderr
             var errors = new StringWriter();
@@ -126,8 +143,6 @@ namespace Eddy
 
             if (RUN)
             {
-
-
                 if (HidePopUp)
                 {
                     DoWork(new CancellationTokenSource());
@@ -144,7 +159,6 @@ namespace Eddy
                         OnPingDocument().RequestAbortSolution();
                     }
                 }
-
             }
 
 

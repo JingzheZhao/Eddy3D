@@ -48,7 +48,7 @@ namespace EddyLib.Radiation
         public List<Mesh> ProbeMeshes;
         public List<RProbe> Probes;
         public Weather Weather;
-        public RadiationSimulationSystem(string filename, string baseWorkingDir, List<RSurface> rsurfaces, List<Mesh> probe_meshes, Weather weather)
+        public RadiationSimulationSystem(string filename, string baseWorkingDir, Weather weather, List<RSurface> rsurfaces,  List<Mesh> probe_meshes, List<RProbe> rprobes )
         {
             ProjectName = filename;
             BaseWorkingDir = baseWorkingDir;
@@ -102,19 +102,25 @@ namespace EddyLib.Radiation
             }
             // Mesh.CreateFromSphere(sphere, 40, 20);
 
-             
+
 
             ProbeMeshes = probe_meshes;
             Probes = new List<RProbe>();
+
             foreach (var m in probe_meshes)
             {
                 m.Normals.ComputeNormals();
-                for (int i =0; i < m.Vertices.Count; i++)
+                for (int i = 0; i < m.Vertices.Count; i++)
                 {
                     var p = m.Vertices[i];
                     var v = m.Normals[i];
-                    Probes.Add(new RProbe(p, v) );
+                    Probes.Add(new RProbe(p, v));
                 }
+            }
+
+            foreach (var m in rprobes)
+            {
+                Probes.Add(m);
             }
 
             Weather = weather;
@@ -172,7 +178,7 @@ namespace EddyLib.Radiation
             RadianceFiles.MeshProc(this.UnifiedMeshLowPolyNoSky, this.BaseWorkingDir + @"\Rad\sceneBlack.rad", "Black", radMatBlack);
 
             // Write Probes
-            RadianceFiles.writePTS(this.BaseWorkingDir + @"\Rad\sensors.pts", this.Probes.Select(x=>x.Point.Value).ToList(), this.Probes.Select(x => x.Normal.Value).ToList());
+            RadianceFiles.writePTS(this.BaseWorkingDir + @"\Rad\sensors.pts", this.Probes.Select(x => x.Point.Value).ToList(), this.Probes.Select(x => x.Normal.Value).ToList());
 
             // Weather
             var weaname = RadianceFiles.Epw2Wea(this.Weather.epwFilePath, this.BaseWorkingDir + @"\Rad\Output");
@@ -580,7 +586,8 @@ namespace EddyLib.Radiation
 
                 Stopwatch sp = new Stopwatch();
                 sp.Start();
-                for (int i = 0; i < this.Probes.Count; i++) {
+                for (int i = 0; i < this.Probes.Count; i++)
+                {
                     this.Probes[i].TotalRad = new float[totalIll.Length];
                     this.Probes[i].DirRad = new float[dirIll.Length];
                     this.Probes[i].SolarGain_dMRT = new float[dMRT.Length];
@@ -600,7 +607,7 @@ namespace EddyLib.Radiation
                 protoResult.WriteToFile(this.BaseWorkingDir + @"\" + this.ProjectName + ".Radiation.bin");
 
                 sp.Stop();
-                Debug.WriteLine("Results Proto: "+ sp.ElapsedMilliseconds);
+                Debug.WriteLine("Results Proto: " + sp.ElapsedMilliseconds);
                 sp.Restart();
 
 
