@@ -26,7 +26,6 @@ namespace EddyLib.Radiation
                 obstr.Append(m);
             }
 
-            HashSet<string> matNameHash = new HashSet<string>();
 
             RSystem radio = new RSystem();
             foreach (GeometryBase g in geo)
@@ -35,7 +34,6 @@ namespace EddyLib.Radiation
                 Mesh m = (Mesh)g;
                 string matName = (string)g.UserDictionary["EddyConstruction"];
                 radio.AddMesh(m, 1.0, 1.0, matName);
-                matNameHash.Add(matName);
             }
 
 
@@ -48,7 +46,7 @@ namespace EddyLib.Radiation
 
             radio.BuildVFToProbes(obstr);
 
-            radio.BuildVFToProbesByMaterial(matNameHash.ToList());
+            radio.BuildVFToProbesByMaterial();
 
 
 
@@ -63,15 +61,15 @@ namespace EddyLib.Radiation
             // getting the material view factors for the probes
             // --------------------------------
 
-            List<string> probevflabels = new List<string>(matNameHash);
+            List<string> probevflabels = radio.UniqueMaterialNames;
             DataTree<double> probevfs = new DataTree<double>();
 
-            for (int i = 0; i < radio.probes.Count; i++)
+            for (int i = 0; i < radio.RProbes.Count; i++)
             {
 
                 for (int j = 0; j < probevflabels.Count; j++)
                 {
-                    probevfs.Add(radio.probes[i].VFtoMaterial[probevflabels[j]], new GH_Path(j));
+                    probevfs.Add(radio.RProbes[i].VFtoMaterial[probevflabels[j]], new GH_Path(j));
                 }
             }
 
@@ -84,9 +82,9 @@ namespace EddyLib.Radiation
 
             DataTree<double> probevfs2surfaces = new DataTree<double>();
 
-            for (int i = 0; i < radio.probes.Count; i++)
+            for (int i = 0; i < radio.RProbes.Count; i++)
             {
-                probevfs2surfaces.AddRange(radio.probes[i].VFtoPolys, new GH_Path(i));
+                probevfs2surfaces.AddRange(radio.RProbes[i].VFtoPolys, new GH_Path(i));
             }
             ProbeVF2Surfs = probevfs2surfaces;
 
@@ -122,9 +120,9 @@ namespace EddyLib.Radiation
             List<double> probe_vfIcanSee = new List<double>();
             List<Mesh> probe_geoIcanSee = new List<Mesh>();
 
-            for (int i = 0; i < radio.probes[selP].VFtoPolys.Length; i++)
+            for (int i = 0; i < radio.RProbes[selP].VFtoPolys.Length; i++)
             {
-                double pvf = radio.probes[selP].VFtoPolys[i];
+                double pvf = radio.RProbes[selP].VFtoPolys[i];
                 if (pvf > 0)
                 {
                     probe_vfIcanSee.Add(pvf);
@@ -141,7 +139,7 @@ namespace EddyLib.Radiation
 
     }
 
-     
+
 
     public class RSystem
     {
@@ -151,9 +149,9 @@ namespace EddyLib.Radiation
 
         public double maxv = 0.0;
 
-        public List<RProbe> probes = new List<RProbe>();
+        public List<RProbe> RProbes = new List<RProbe>();
         public List<RPolygon> polys = new List<RPolygon>();
-
+        public List<string> UniqueMaterialNames = new List<string>();
         public double[][] F;
 
         public double[] xk0;
@@ -164,39 +162,43 @@ namespace EddyLib.Radiation
 
 
         //Sum up view factors to the different materials in the model
-        public void BuildVFToProbesByMaterial(List<string> matNames)
+        public void BuildVFToProbesByMaterial()
         {
 
+            UniqueMaterialNames = polys.Select(s => s.matName).ToHashSet().ToList();
+
+
+
             // set up dictionary
-            for (int i = 0; i < probes.Count; i++)
+            for (int i = 0; i < RProbes.Count; i++)
             {
-                probes[i].VFtoMaterial = new Dictionary<string, double>();
-                for (int j = 0; j < matNames.Count; j++)
+                RProbes[i].VFtoMaterial = new Dictionary<string, double>();
+                for (int j = 0; j < UniqueMaterialNames.Count; j++)
                 {
-                    probes[i].VFtoMaterial.Add(matNames[j], 0);
+                    RProbes[i].VFtoMaterial.Add(UniqueMaterialNames[j], 0);
                 }
             }
 
-            for (int i = 0; i < probes.Count; i++)
+            for (int i = 0; i < RProbes.Count; i++)
             {
                 for (int j = 0; j < polys.Count; j++)
                 {
-                    probes[i].VFtoMaterial[polys[j].matName] += probes[i].VFtoPolys[j];
+                    RProbes[i].VFtoMaterial[polys[j].matName] += RProbes[i].VFtoPolys[j];
                 }
             }
 
             // normalize results
-            for (int i = 0; i < probes.Count; i++)
+            for (int i = 0; i < RProbes.Count; i++)
             {
                 double total = 0;
-                for (int j = 0; j < matNames.Count; j++)
+                for (int j = 0; j < UniqueMaterialNames.Count; j++)
                 {
-                    total += probes[i].VFtoMaterial[matNames[j]];
+                    total += RProbes[i].VFtoMaterial[UniqueMaterialNames[j]];
                 }
                 double scale = 1 / total;
-                for (int j = 0; j < matNames.Count; j++)
+                for (int j = 0; j < UniqueMaterialNames.Count; j++)
                 {
-                    probes[i].VFtoMaterial[matNames[j]] *= scale;
+                    RProbes[i].VFtoMaterial[UniqueMaterialNames[j]] *= scale;
                 }
 
 
@@ -210,27 +212,27 @@ namespace EddyLib.Radiation
         //Compute Form factors taking into account occlusions from a list of meshes
         public void BuildVFToProbes(Mesh Obst)
         {
-            System.Threading.Tasks.Parallel.For(0, probes.Count, i =>
+            System.Threading.Tasks.Parallel.For(0, RProbes.Count, i =>
             {
                 for (int j = 0; j < polys.Count; j++)
                 {
-                    Point3d probe_pt = probes[i].Point.Value;
-                    probes[i].VFtoPolys[j] = FFactorProbe(probe_pt, polys[j], Obst);
+                    Point3d probe_pt = RProbes[i].Point.Value;
+                    RProbes[i].VFtoPolys[j] = FFactorProbe(probe_pt, polys[j], Obst);
                 }
             });
 
             // normalize results
-            for (int i = 0; i < probes.Count; i++)
+            for (int i = 0; i < RProbes.Count; i++)
             {
                 double total = 0;
-                for (int j = 0; j < probes[i].VFtoPolys.Length; j++)
+                for (int j = 0; j < RProbes[i].VFtoPolys.Length; j++)
                 {
-                    total += probes[i].VFtoPolys[j];
+                    total += RProbes[i].VFtoPolys[j];
                 }
                 double scale = 1 / total;
-                for (int j = 0; j < probes[i].VFtoPolys.Length; j++)
+                for (int j = 0; j < RProbes[i].VFtoPolys.Length; j++)
                 {
-                    probes[i].VFtoPolys[j] *= scale;
+                    RProbes[i].VFtoPolys[j] *= scale;
                 }
 
 
@@ -438,14 +440,74 @@ namespace EddyLib.Radiation
         }
 
 
+        public void AddMesh(RSurface rSurf)
+        {
+            double rad = 0;
+            double refl = 0.5;
+
+            Mesh _ms = rSurf.HighPoly;
+
+            if (_ms == null) return;
+
+            _ms.FaceNormals.ComputeFaceNormals();
+
+            for (int i = 0; i < _ms.Faces.Count; ++i)
+            {
+                RPolygon pg = new RPolygon();
+                polys.Add(pg);
+
+                pg.cen = _ms.Faces.GetFaceCenter(i);
+                pg.n = _ms.FaceNormals[i];
+                pg.n.Unitize();
+
+                pg.rin = rad;
+                pg.rout = 0.0;
+                pg.refl = refl;
+                pg.m = _ms;
+                pg.matName = rSurf.Type.ToString();
+
+
+                if (_ms.Faces[i].IsQuad)
+                {
+                    Point3d v0 = new Point3d(_ms.Vertices[_ms.Faces[i].A]);
+                    Point3d v1 = new Point3d(_ms.Vertices[_ms.Faces[i].B]);
+                    Point3d v2 = new Point3d(_ms.Vertices[_ms.Faces[i].C]);
+                    Point3d v3 = new Point3d(_ms.Vertices[_ms.Faces[i].D]);
+
+                    Vector3d n1 = Vector3d.CrossProduct(v1 - v0, v2 - v0);
+                    Vector3d n2 = Vector3d.CrossProduct(v2 - v0, v3 - v0);
+
+                    pg.area = n1.Length * 0.5 + n2.Length * 0.5;
+                }
+                else
+                {
+                    Point3d v0 = new Point3d(_ms.Vertices[_ms.Faces[i].A]);
+                    Point3d v1 = new Point3d(_ms.Vertices[_ms.Faces[i].B]);
+                    Point3d v2 = new Point3d(_ms.Vertices[_ms.Faces[i].C]);
+
+                    Vector3d n1 = Vector3d.CrossProduct(v1 - v0, v2 - v0);
+
+                    pg.area = n1.Length * 0.5;
+                }
+            }
+        }
+
+
+
         public void AddProbes(List<Point3d> pts)
         {
             foreach (Point3d p in pts)
             {
-                probes.Add(new RProbe() { Point = new EddyPoint(p), VFtoPolys = new double[polys.Count] });
+                RProbes.Add(new RProbe() { Point = new EddyPoint(p), VFtoPolys = new double[polys.Count] });
             }
         }
-
+        public void AddProbes(List<RProbe> pts)
+        {
+            foreach (var p in pts) {
+                p.VFtoPolys = new double[polys.Count];
+                RProbes.Add(p);
+            }
+        }
 
         //Used for visualization. Its purpose is to calculate the vertex colours form the faces values for each mesh
         public void ColorMesh(Mesh ms, ref int pcount, double mult)

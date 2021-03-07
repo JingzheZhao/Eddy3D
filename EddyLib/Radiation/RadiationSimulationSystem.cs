@@ -48,7 +48,7 @@ namespace EddyLib.Radiation
         public List<Mesh> ProbeMeshes;
         public List<RProbe> Probes;
         public Weather Weather;
-        public RadiationSimulationSystem(string filename, string baseWorkingDir, Weather weather, List<RSurface> rsurfaces,  List<Mesh> probe_meshes, List<RProbe> rprobes )
+        public RadiationSimulationSystem(string filename, string baseWorkingDir, Weather weather, List<RSurface> rsurfaces, List<Mesh> probe_meshes, List<RProbe> rprobes)
         {
             ProjectName = filename;
             BaseWorkingDir = baseWorkingDir;
@@ -99,6 +99,8 @@ namespace EddyLib.Radiation
                 SkyDomeForVF.Append(sphereM.Faces.ExtractFaces(findex));
                 SkyDomeForVF.FaceNormals.ComputeFaceNormals();
 
+                SkyDomeForVF.Flip(true, true, true);
+
             }
             // Mesh.CreateFromSphere(sphere, 40, 20);
 
@@ -138,12 +140,20 @@ namespace EddyLib.Radiation
             }
         }
 
-        public RadiationSimulationResultProto RunDDS(bool run, CancellationToken ct)
-        {
 
-            double pct = 0;
-            double steps = 16;
-            double stepCnt = 0;
+
+        private double pct = 0;
+        private double steps = 17;
+        private double stepCnt = 0;
+
+        private string annualR_dc_ill_out = (@"Rad\output\annualR_dc.ill");
+        private string annualR_dcd_ill_out = (@"Rad\output\annualR_dcd.ill");
+        private string annualR_dir_ill_out = (@"Rad\output\annual_dir.ill");
+        private string annualR_total_ill_out = (@"Rad\output\annual_total.ill");
+
+
+        public bool RunDDS(bool run, CancellationToken ct)
+        {
 
             var numberOfProbes = this.Probes.Count;
 
@@ -203,6 +213,49 @@ namespace EddyLib.Radiation
                 Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
 
 
+
+
+                // -----------------------------
+                // 4 Generate SkyVector Coarse
+                // -----------------------------
+
+                Console.WriteLine("Generate r" + 1 + " SkyVector for whole year...");
+                /*
+                  REM -m controls the sky subdivision
+                  REM Use -O1 to switch to solar rad
+                  REM The −d option may be used to produce a sun -only matrix, with no sky contributions. Alternatively, the −s option may be used to exclude any direct solar component from the output.
+                  gendaymtx -m " + skysubdiv + @" -O1 ""Rad/output/" + weaname + @".wea"" > ""Rad/output/" + weaname + @".smx""
+                 */
+                string weain = (@"Rad\output\" + weaname + @".wea");
+                string smxout = (@"Rad\output\" + weaname + @".smx");
+
+                string gendaymtxArgs = DefaultDirectoriesAndPaths.RadianceDir + @"\gendaymtx.exe -m " + 1 + @" -O1 " + weain + @" > " + smxout;
+
+                var gendaymtx = Command.Run("cmd.exe");
+                gendaymtx.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
+                gendaymtx.StandardInput.WriteLine(gendaymtxArgs);
+                gendaymtx.StandardInput.WriteLine("exit");
+
+
+
+
+                // -----------------------------
+                // 12 Generate SkyVector Fine
+                // -----------------------------
+                Console.WriteLine("Generate r" + skysubdivdirect + " SkyVector for whole year...");
+                // - 5 option indicates 5phase method mode - solar disc angele must follow that input
+                // The -d option in the SMX messes it all up-- you can't include -d and -5 together.
+                string smxsunout = (@"Rad\output\sunM" + skysubdivdirect + @".smx");
+                string gendaymtx2Args = DefaultDirectoriesAndPaths.RadianceDir + @"\gendaymtx -5 0.533 -m " + skysubdivdirect + @" -O1 " + weain + @" > " + smxsunout;
+
+                var gendaymtx2 = Command.Run("cmd.exe");
+                gendaymtx2.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
+                gendaymtx2.StandardInput.WriteLine(gendaymtx2Args);
+                gendaymtx2.StandardInput.WriteLine("exit");
+
+
+
+
                 // -----------------------------
                 // 2 Make Octree
                 // -----------------------------
@@ -215,7 +268,7 @@ namespace EddyLib.Radiation
                 if (!oconv.Result.Success)
                 {
                     Debug.WriteLine($"oconv command failed with exit code {oconv.Result.ExitCode}: {oconv.Result.StandardError}");
-                    return null;
+                    return false;
                 }
                 stepCnt++;
                 pct = 100 * stepCnt / steps;
@@ -254,49 +307,27 @@ namespace EddyLib.Radiation
                 if (!CMDrfluxmtx.Result.Success)
                 {
                     Debug.WriteLine($"4 command failed with exit code {CMDrfluxmtx.Result.ExitCode}: {CMDrfluxmtx.Result.StandardError}");
-                    return null;
+                    return false;
                 }
                 stepCnt++;
                 pct = 100 * stepCnt / steps;
                 Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
 
 
+
+
                 // -----------------------------
-                // 4 Generate SkyVector
+                // wait for 4 Generate SkyVector Coarse
                 // -----------------------------
-
-                Console.WriteLine("Generate SkyVector for whole year...");
-                /*
-                  REM -m controls the sky subdivision
-                  REM Use -O1 to switch to solar rad
-                  REM The −d option may be used to produce a sun -only matrix, with no sky contributions. Alternatively, the −s option may be used to exclude any direct solar component from the output.
-                  gendaymtx -m " + skysubdiv + @" -O1 ""Rad/output/" + weaname + @".wea"" > ""Rad/output/" + weaname + @".smx""
-                 */
-                string weain = (@"Rad\output\" + weaname + @".wea");
-                string smxout = (@"Rad\output\" + weaname + @".smx");
-
-                string gendaymtxArgs = DefaultDirectoriesAndPaths.RadianceDir + @"\gendaymtx.exe -m " + 1 + @" -O1 " + weain + @" > " + smxout;
-
-                var gendaymtx = Command.Run("cmd.exe");
-                gendaymtx.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
-                gendaymtx.StandardInput.WriteLine(gendaymtxArgs);
-                gendaymtx.StandardInput.WriteLine("exit");
                 gendaymtx.Wait();
-
                 if (!gendaymtx.Result.Success)
                 {
                     Debug.WriteLine($"gendaymtx command failed with exit code {gendaymtx.Result.ExitCode}: {gendaymtx.Result.StandardError}");
-                    return null;
+                    return false;
                 }
-
                 stepCnt++;
                 pct = 100 * stepCnt / steps;
                 Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
-
-
-
-
-
 
                 // -----------------------------
                 // 5 Create Illum DC
@@ -313,18 +344,23 @@ namespace EddyLib.Radiation
                 // (R * 0.265 + G * 0.670 + B * 0.065) * 179 to convert it into a illuminance value.
                 // dctimestep Rad/output/dc_r" + skysubdiv + @".mtx ""Rad/output/" + weaname + @".smx"" | rmtxop -fa -t -c 0.265 0.670 0.065 - > ""Rad/output/annualR_dc.ill""
 
-                string annualR_dc_ill_out = (@"Rad\output\annualR_dc.ill");
                 string dctimestepArgs = DefaultDirectoriesAndPaths.RadianceDir + @"\dctimestep " + mtxout + @" " + smxout + @" | rmtxop -fa -t -c 0.265 0.670 0.065 - > " + annualR_dc_ill_out;
                 var dctimestep = Command.Run("cmd.exe");
                 dctimestep.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 dctimestep.StandardInput.WriteLine(dctimestepArgs);
                 dctimestep.StandardInput.WriteLine("exit");
+
+
+                // -----------------------------
+                // wait for 5 Create Illum DC
+                // -----------------------------
+
                 dctimestep.Wait();
 
                 if (!dctimestep.Result.Success)
                 {
                     Debug.WriteLine($"dctimestep command failed with exit code {dctimestep.Result.ExitCode}: {dctimestep.Result.StandardError}");
-                    return null;
+                    return false;
                 }
                 stepCnt++;
                 pct = 100 * stepCnt / steps;
@@ -332,7 +368,7 @@ namespace EddyLib.Radiation
 
 
                 // -----------------------------
-                // 6 ComputeDirectOnlyForLowResSky
+                // 6 Compute Direct Only for LowResSky
                 // -----------------------------
 
                 Console.WriteLine("Perform an annual direct-only daylight coefficients simulation...");
@@ -348,7 +384,6 @@ namespace EddyLib.Radiation
                 string octblackin = (@"Rad\output\sceneBlack.oct");
                 string dcd_mtxout = (@"Rad\output\dcd_" + skySubDivDiff + @".mtx");
                 string d_smxout = (@"Rad\output\" + weaname + @"d.smx");
-                string annualR_dcd_ill_out = (@"Rad\output\annualR_dcd.ill");
 
                 string dirCalcArgs1 = DefaultDirectoriesAndPaths.RadianceDir + @"\rfluxmtx -I+ -y " + sensorCnt + @" -lw 0.0001 -ab 1 -ad " + ad + @" -n " + n + @" - " + skyglowrad + @" -i " + octblackin + @" < " + ptsin + @" > " + dcd_mtxout;
                 string dirCalcArgs2 = DefaultDirectoriesAndPaths.RadianceDir + @"\gendaymtx -m " + skysubdivdiffuse + @" -O1 -d " + weain + @" > " + d_smxout;
@@ -364,7 +399,7 @@ namespace EddyLib.Radiation
                 if (!dircalc1.Result.Success)
                 {
                     Debug.WriteLine($"dircalc1 command failed with exit code {dircalc1.Result.ExitCode}: {dircalc1.Result.StandardError}");
-                    return null;
+                    return false;
 
                 }
                 stepCnt++;
@@ -382,7 +417,7 @@ namespace EddyLib.Radiation
                 if (!dircalc2.Result.Success)
                 {
                     Debug.WriteLine($"dircalc2 command failed with exit code {dircalc2.Result.ExitCode}: {dircalc2.Result.StandardError}");
-                    return null;
+                    return false;
                 }
                 stepCnt++;
                 pct = 100 * stepCnt / steps;
@@ -399,15 +434,11 @@ namespace EddyLib.Radiation
                 if (!dircalc3.Result.Success)
                 {
                     Debug.WriteLine($"dircalc3 command failed with exit code {dircalc3.Result.ExitCode}: {dircalc3.Result.StandardError}");
-                    return null;
+                    return false;
                 }
                 stepCnt++;
                 pct = 100 * stepCnt / steps;
                 Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
-
-
-
-
 
 
 
@@ -435,7 +466,7 @@ namespace EddyLib.Radiation
                 if (!suncoeff.Result.Success)
                 {
                     Debug.WriteLine($"suncoeff command failed with exit code {suncoeff.Result.ExitCode}: {suncoeff.Result.StandardError}");
-                    return null;
+                    return false;
                 }
                 stepCnt++;
                 pct = 100 * stepCnt / steps;
@@ -454,7 +485,7 @@ namespace EddyLib.Radiation
                 if (!oconvdir.Result.Success)
                 {
                     Debug.WriteLine($"oconvdir command failed with exit code {oconvdir.Result.ExitCode}: {oconvdir.Result.StandardError}");
-                    return null;
+                    return false;
                 }
                 stepCnt++;
                 pct = 100 * stepCnt / steps;
@@ -478,7 +509,7 @@ namespace EddyLib.Radiation
                 if (!rcontrib.Result.Success)
                 {
                     Debug.WriteLine($"suncoeff command failed with exit code {rcontrib.Result.ExitCode}: {rcontrib.Result.StandardError}");
-                    return null;
+                    return false;
                 }
                 stepCnt++;
                 pct = 100 * stepCnt / steps;
@@ -486,36 +517,24 @@ namespace EddyLib.Radiation
 
 
                 // -----------------------------
-                // 12
+                // 12 Started earlier
                 // -----------------------------
-                Console.WriteLine("Generate SkyVector for whole year...");
-                // - 5 option indicates 5phase method mode - solar disc angele must follow that input
-                // The -d option in the SMX messes it all up-- you can't include -d and -5 together.
-                string smxsunout = (@"Rad\output\sunM" + skysubdivdirect + @".smx");
-                string gendaymtx2Args = DefaultDirectoriesAndPaths.RadianceDir + @"\gendaymtx -5 0.533 -m " + skysubdivdirect + @" -O1 " + weain + @" > " + smxsunout;
 
-                var gendaymtx2 = Command.Run("cmd.exe");
-                gendaymtx2.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
-                gendaymtx2.StandardInput.WriteLine(gendaymtx2Args);
-                gendaymtx2.StandardInput.WriteLine("exit");
                 gendaymtx2.Wait();
-
                 if (!gendaymtx2.Result.Success)
                 {
                     Debug.WriteLine($"gendaymtx2 command failed with exit code {gendaymtx2.Result.ExitCode}: {gendaymtx2.Result.StandardError}");
-                    return null;
+                    return false;
                 }
                 stepCnt++;
                 pct = 100 * stepCnt / steps;
                 Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
-
 
 
                 // -----------------------------
                 // 13 Create Illum Dir
                 // -----------------------------
                 Console.WriteLine("Create Illum Dir...");
-                string annualR_dir_ill_out = (@"Rad\output\annual_dir.ill");
                 string dctimestep2Args = DefaultDirectoriesAndPaths.RadianceDir + @"\dctimestep " + cddmtxout + @" " + smxsunout + @" | rmtxop -fa -t -c 0.265 0.670 0.065 - > " + annualR_dir_ill_out;
                 var dctimestep2 = Command.Run("cmd.exe");
                 dctimestep2.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
@@ -528,7 +547,7 @@ namespace EddyLib.Radiation
                 if (!dctimestep2.Result.Success)
                 {
                     Debug.WriteLine($"dctimestep2 dir command failed with exit code {dctimestep2.Result.ExitCode}: {dctimestep2.Result.StandardError}");
-                    return null;
+                    return false;
                 }
                 stepCnt++;
                 pct = 100 * stepCnt / steps;
@@ -540,7 +559,6 @@ namespace EddyLib.Radiation
                 // 14 Combine Results
                 // -----------------------------
                 Console.WriteLine("Combine Results...");
-                string annualR_total_ill_out = (@"Rad\output\annual_total.ill");
                 string rmtxopArgs = DefaultDirectoriesAndPaths.RadianceDir + @"\rmtxop " + annualR_dc_ill_out + @" + -s -1 " + annualR_dcd_ill_out + @" + " + annualR_dir_ill_out + @" > " + annualR_total_ill_out;
 
                 var rmtxop = Command.Run("cmd.exe");
@@ -552,7 +570,7 @@ namespace EddyLib.Radiation
                 if (!rmtxop.Result.Success)
                 {
                     Debug.WriteLine($"dctimestep dir command failed with exit code {rmtxop.Result.ExitCode}: {rmtxop.Result.StandardError}");
-                    return null;
+                    return false;
                 }
                 stepCnt++;
                 pct = 100 * stepCnt / steps;
@@ -561,71 +579,102 @@ namespace EddyLib.Radiation
 
 
 
-                // -----------------------------
-                // 15 Compute dMRT
-                // -----------------------------
-                Console.WriteLine("Compute dMRT");
 
-
-                var totalIll = LoadDDSIll((this.BaseWorkingDir + @"\" + annualR_total_ill_out));
-                //var diffIll = LoadDDSIll((this.BaseWorkingDir + @"\Rad\Output\annual_total.ill"));
-                var dirIll = LoadDDSIll((this.BaseWorkingDir + @"\" + annualR_dir_ill_out));
-
-
-                float[][] dMRT = SolarGain.ComputeStanding(this.Weather, totalIll, dirIll);
-
-                stepCnt++;
-                pct = 100 * stepCnt / steps;
-                Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
-
-
-                // -----------------------------
-                // 16 Write results
-                // -----------------------------
-                var prep = PrepareProtoBufSingleton.Instance;
-
-                Stopwatch sp = new Stopwatch();
-                sp.Start();
-                for (int i = 0; i < this.Probes.Count; i++)
-                {
-                    this.Probes[i].TotalRad = new float[totalIll.Length];
-                    this.Probes[i].DirRad = new float[dirIll.Length];
-                    this.Probes[i].SolarGain_dMRT = new float[dMRT.Length];
-                    for (int h = 0; h < totalIll.Length; h++)
-                    {
-                        this.Probes[i].TotalRad[h] = totalIll[h][i];
-                        this.Probes[i].DirRad[h] = dirIll[h][i];
-                        this.Probes[i].SolarGain_dMRT[h] = dMRT[h][i];
-                    }
-                }
-                sp.Stop();
-                Debug.WriteLine("Reformat results : " + sp.ElapsedMilliseconds);
-                sp.Restart();
-
-
-                var protoResult = new RadiationSimulationResultProto(this.Probes, this.ProbeMeshes);
-                protoResult.WriteToFile(this.BaseWorkingDir + @"\" + this.ProjectName + ".Radiation.bin");
-
-                sp.Stop();
-                Debug.WriteLine("Results Proto: " + sp.ElapsedMilliseconds);
-                sp.Restart();
-
-
-
-                Console.WriteLine("Results written");
-                stepCnt++;
-                pct = 100 * stepCnt / steps;
-                Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
-
-                return protoResult;
             }
 
 
-            return null;
+            return true;
 
         }
 
 
+        public bool RunVF(bool run, CancellationToken ct) {
+
+
+            RSystem radio = new RSystem();
+            foreach (var rs in RSurfaces) {
+                radio.AddMesh(rs);
+            }
+            radio.AddMesh(SkyDomeForVF, 0,0, "SKY");
+
+            radio.AddProbes(Probes);
+
+
+            radio.BuildVFToProbes(UnifiedMeshLowPolyNoSky);
+
+            radio.BuildVFToProbesByMaterial();
+
+            stepCnt++;
+            pct = 100 * stepCnt / steps;
+            Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+
+            return true;
+        }
+
+
+
+        public RadiationSimulationResultProto SaveResults(bool run, CancellationToken ct)
+        {
+
+
+            // -----------------------------
+            // 15 Compute dMRT
+            // -----------------------------
+            Console.WriteLine("Compute dMRT");
+
+
+            var totalIll = LoadDDSIll((this.BaseWorkingDir + @"\" + annualR_total_ill_out));
+            //var diffIll = LoadDDSIll((this.BaseWorkingDir + @"\Rad\Output\annual_total.ill"));
+            var dirIll = LoadDDSIll((this.BaseWorkingDir + @"\" + annualR_dir_ill_out));
+
+
+            float[][] dMRT = SolarGain.ComputeStanding(this.Weather, totalIll, dirIll);
+
+            stepCnt++;
+            pct = 100 * stepCnt / steps;
+            Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+
+
+            // -----------------------------
+            // 16 Write results
+            // -----------------------------
+            var prep = PrepareProtoBufSingleton.Instance;
+
+            Stopwatch sp = new Stopwatch();
+            sp.Start();
+            for (int i = 0; i < this.Probes.Count; i++)
+            {
+                this.Probes[i].TotalRad = new float[totalIll.Length];
+                this.Probes[i].DirRad = new float[dirIll.Length];
+                this.Probes[i].SolarGain_dMRT = new float[dMRT.Length];
+                for (int h = 0; h < totalIll.Length; h++)
+                {
+                    this.Probes[i].TotalRad[h] = totalIll[h][i];
+                    this.Probes[i].DirRad[h] = dirIll[h][i];
+                    this.Probes[i].SolarGain_dMRT[h] = dMRT[h][i];
+                }
+            }
+            sp.Stop();
+            Debug.WriteLine("Reformat results : " + sp.ElapsedMilliseconds);
+            sp.Restart();
+
+
+            var protoResult = new RadiationSimulationResultProto(this.Probes, this.ProbeMeshes);
+            protoResult.WriteToFile(this.BaseWorkingDir + @"\" + this.ProjectName + ".Radiation.bin");
+
+            sp.Stop();
+            Debug.WriteLine("Results Proto: " + sp.ElapsedMilliseconds);
+            sp.Restart();
+
+
+
+            Console.WriteLine("Results written");
+            stepCnt++;
+            pct = 100 * stepCnt / steps;
+            Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+
+            return protoResult;
+        }
 
 
 

@@ -18,7 +18,7 @@ namespace Eddy
 
         RadiationSimulationSystem RadiationSimulation;
 
-        
+
 
         /// <summary>
         /// Initializes a new instance of the WorkerWithProgBarComponent class.
@@ -38,7 +38,7 @@ namespace Eddy
             pManager.AddTextParameter("Weather", "W", "Weather filepath", GH_ParamAccess.item, DefaultDirectoriesAndPaths.DefaultWeather);
 
             pManager.AddGenericParameter("RSurf", "RS", "Radiation Model Surfaces", GH_ParamAccess.tree);
-            
+
             pManager.AddGenericParameter("Sensors", "Sen", "Radiation sensors. Provide as [Mesh] or [RProbe]", GH_ParamAccess.tree);
 
             pManager.AddBooleanParameter("Run", "R", "Run simulation", GH_ParamAccess.item, false);
@@ -74,7 +74,7 @@ namespace Eddy
             // Get the RSurf objects
             // ---------------------
 
-            List<RSurface> modelRSurfaces = new List<RSurface>();         
+            List<RSurface> modelRSurfaces = new List<RSurface>();
             GH_Structure<IGH_Goo> GH_RSurfTree;
             if (!DA.GetDataTree(3, out GH_RSurfTree)) { }
             foreach (GH_Path p in GH_RSurfTree.Paths)
@@ -108,7 +108,7 @@ namespace Eddy
                     {
                         Mesh m;
                         RProbe pr;
-                        if (o.CastTo(out m)) 
+                        if (o.CastTo(out m))
                         { probeMeshes.Add(m); }
 
                         else if (o.CastTo(out pr))
@@ -124,7 +124,7 @@ namespace Eddy
             DA.GetData(5, ref RUN);
 
 
-       
+
 
 
 
@@ -135,7 +135,7 @@ namespace Eddy
             }
             Weather weather = new Weather(weatherPath);
 
-            RadiationSimulation = new RadiationSimulationSystem(name, workDir, weather, modelRSurfaces, probeMeshes, probes );
+            RadiationSimulation = new RadiationSimulationSystem(name, workDir, weather, modelRSurfaces, probeMeshes, probes);
 
             // redirect stderr
             var errors = new StringWriter();
@@ -164,7 +164,8 @@ namespace Eddy
 
             DA.SetData(0, RadiationSimulation);
 
-            if (RadiationSimulation != null){
+            if (RadiationSimulation != null)
+            {
                 string resultFilePath = RadiationSimulation.BaseWorkingDir + "/" + RadiationSimulation.ProjectName + ".Radiation.bin";
                 DA.SetData(1, resultFilePath);
             }
@@ -206,23 +207,28 @@ namespace Eddy
             });
         }
 
-        public bool RunSlowSimulation(CancellationTokenSource cts,  int nthreads = 1)
+        public bool RunSlowSimulation(CancellationTokenSource cts, int nthreads = 1)
         {
 
             if (RadiationSimulation == null) return false;
 
-            // write scene rad file
+            Console.WriteLine("Starting ViewFactor Calculation");
+            if (cts.IsCancellationRequested) return false;
+            if (!RadiationSimulation.RunVF(true, cts.Token)) { return false; }
+
+
+
+            if (cts.IsCancellationRequested) return false;
             Console.WriteLine("Starting DDS Simulation");
+            if (!RadiationSimulation.RunDDS(true, cts.Token)) { return false; }
 
 
-                if (!cts.IsCancellationRequested)
-                {
-                    RadiationSimulation.RunDDS(true , cts.Token);
-                    //Console.WriteLine("Simulation: " + i);
-                    //double pct = 100 * i / iter;
-                    //Console.WriteLine(ProgressWriter.ProgressKey + pct);
-                }
-         
+            if (cts.IsCancellationRequested) return false;
+            RadiationSimulation.SaveResults(true, cts.Token);
+
+
+
+
             return true;
         }
 
