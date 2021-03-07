@@ -17,22 +17,7 @@ namespace EddyLib.Radiation
     public class RadiationSimulationSystem
     {
 
-        private static float[][] LoadDDSIll(string illFileName) // total illuminance data
-        {
-            string[] illLines = System.IO.File.ReadAllLines(illFileName).ToArray();
-            int skip = 0;
-
-            for (int i = 0; i < illLines.Length; i++)
-            {
-                if (illLines[i].Contains("FORMAT")) { skip = i + 2; break; }
-            }
-
-
-            return illLines.Skip(skip).Select(l => Array.ConvertAll<string, float>(l.Split(new[] { ' ' }).Skip(1).ToArray(), float.Parse)).ToArray();
-
-            // [x][] time
-            // [][x] points
-        }
+      
 
 
         public string ProjectName = "";
@@ -47,6 +32,7 @@ namespace EddyLib.Radiation
         public Mesh UnifiedMeshLowPolyNoSky;
         public List<Mesh> ProbeMeshes;
         public List<RProbe> Probes;
+        public RSystem Radio;
         public Weather Weather;
         public RadiationSimulationSystem(string filename, string baseWorkingDir, Weather weather, List<RSurface> rsurfaces, List<Mesh> probe_meshes, List<RProbe> rprobes)
         {
@@ -143,7 +129,7 @@ namespace EddyLib.Radiation
 
 
         private double pct = 0;
-        private double steps = 17;
+        private double steps = 18;
         private double stepCnt = 0;
 
         private string annualR_dc_ill_out = (@"Rad\output\annualR_dc.ill");
@@ -586,23 +572,28 @@ namespace EddyLib.Radiation
             return true;
 
         }
-
-
         public bool RunVF(bool run, CancellationToken ct) {
 
 
-            RSystem radio = new RSystem();
+            Radio = new RSystem();
             foreach (var rs in RSurfaces) {
-                radio.AddMesh(rs);
+                Radio.AddMesh(rs);
             }
-            radio.AddMesh(SkyDomeForVF, 0,0, "SKY");
+            Radio.AddMesh(SkyDomeForVF, 0,0, "SKY");
 
-            radio.AddProbes(Probes);
+            Radio.AddProbes(Probes);
+
+            Radio.BuildVFToProbes(UnifiedMeshLowPolyNoSky);
+
+            Radio.BuildVFToProbesByMaterial();
+
+            stepCnt++;
+            pct = 100 * stepCnt / steps;
+            Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
 
 
-            radio.BuildVFToProbes(UnifiedMeshLowPolyNoSky);
 
-            radio.BuildVFToProbesByMaterial();
+
 
             stepCnt++;
             pct = 100 * stepCnt / steps;
@@ -610,9 +601,6 @@ namespace EddyLib.Radiation
 
             return true;
         }
-
-
-
         public RadiationSimulationResultProto SaveResults(bool run, CancellationToken ct)
         {
 
@@ -677,6 +665,21 @@ namespace EddyLib.Radiation
         }
 
 
+        private static float[][] LoadDDSIll(string illFileName) // total illuminance data
+        {
+            string[] illLines = System.IO.File.ReadAllLines(illFileName).ToArray();
+            int skip = 0;
 
+            for (int i = 0; i < illLines.Length; i++)
+            {
+                if (illLines[i].Contains("FORMAT")) { skip = i + 2; break; }
+            }
+
+
+            return illLines.Skip(skip).Select(l => Array.ConvertAll<string, float>(l.Split(new[] { ' ' }).Skip(1).ToArray(), float.Parse)).ToArray();
+
+            // [x][] time
+            // [][x] points
+        }
     }
 }
