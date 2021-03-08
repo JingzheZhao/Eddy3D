@@ -98,7 +98,6 @@
     <Compile Include="Components\Outdoor Comfort\ReadUTCIByProbe.cs" />
     <Compile Include="Components\Outdoor Comfort\ReadComfortHours.cs" />
     <Compile Include="Components\Outdoor Comfort\ReadHumanConditions.cs" />
-    <Compile Include="Components\Outdoor Comfort\CompReadUTCILadybug.cs" />
     <Compile Include="Components\Outdoor Comfort\ReadUTCIByHour.cs" />
     <Compile Include="Components\Outdoor Comfort\CompCalcUTCI.cs" />
     <Compile Include="Components\Misc\CompCluster.cs" />
