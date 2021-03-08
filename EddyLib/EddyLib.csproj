@@ -91,6 +91,7 @@
     <Compile Include="FunctionObjects\PressureCoeff.cs" />
     <Compile Include="BoundaryConditions\BoundaryConditionsBase.cs" />
     <Compile Include="FunctionObjects\MomentumSink\MomentumSink.cs" />
+    <Compile Include="Indoor\BatchFiles\RunMeshBatch.cs" />
     <Compile Include="Indoor\BatchFiles\GenericBatchFile.cs" />
     <Compile Include="Indoor\Dicts\CppMapSerializer.cs" />
     <Compile Include="Indoor\Dicts\FunctionObjects\MomentumSourceInternalDict.cs" />

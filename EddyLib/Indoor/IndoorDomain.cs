@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using EddyLib.Indoor.Dicts;
+using EddyLib.Indoor.BatchFiles;
 using Grasshopper.Kernel.Types;
 
 namespace EddyLib.Indoor
@@ -32,7 +33,10 @@ namespace EddyLib.Indoor
 
         private readonly List<IndoorBC> AllGeometry = new List<IndoorBC>();
 
+        private readonly List<GenericBatchFile> AllBatsWrite2File = new List<GenericBatchFile>();
+
         private readonly List<GenericDict> AllDictsWrite2File = new List<GenericDict>();
+
         private readonly List<FunctionObjectDictInternal> AllFunctionObjectInternalDicts = new List<FunctionObjectDictInternal>();
 
         public List<FunctionObject> FOs = new List<FunctionObject>();
@@ -187,12 +191,11 @@ namespace EddyLib.Indoor
             AllDictsWrite2File.Add(residualsDict);
             AllDictsWrite2File.Add(surfaceFeatureExtractDict);
 
-            // fvOptions
-
-            var fvOptionsDict = new FunctionObjectDict(AllFunctionObjectInternalDicts);
-
-            ExportGeometryAndDicts(WorkingDir);
+            //Batch Files
+            var runMeshBatch = new RunMeshBatch(this);
+            AllBatsWrite2File.Add(runMeshBatch);
         }
+
 
         public void ExportGeometryAndDicts(string workingDir)
         {
@@ -200,7 +203,6 @@ namespace EddyLib.Indoor
             {
                 dict.Export(workingDir);
             }
-
             // Export Geometry as STL
 
             var stlDir = Path.Combine(workingDir, "constant", "triSurface");
