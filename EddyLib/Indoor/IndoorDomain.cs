@@ -182,6 +182,7 @@ namespace EddyLib.Indoor
             var fvSolutionDict = new FvSolutionDict();
             var residualsDict = new ResidualsDict();
             var surfaceFeatureExtractDict = new SurfaceFeatureExtractDict(Inlets, Outlets, RoomGeometry);
+            var decomposeParDict = new DecomposeParDict();
 
             AllDictsWrite2File.Add(controlDict);
             AllDictsWrite2File.Add(blockMeshDict);
@@ -190,6 +191,7 @@ namespace EddyLib.Indoor
             AllDictsWrite2File.Add(fvSolutionDict);
             AllDictsWrite2File.Add(residualsDict);
             AllDictsWrite2File.Add(surfaceFeatureExtractDict);
+            AllDictsWrite2File.Add(decomposeParDict);
 
 
             ExportGeometryAndDicts(WorkingDir);
