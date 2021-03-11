@@ -15,13 +15,15 @@ namespace EddyLib.Indoor.BatchFiles
 
         public string BatchName { get; set; }
 
-        public string BatchLocation { get; set; }
+        //public string BatchLocation { get; set; }
+
+        public string BatchLocation = "\0";
 
         public string FullDictString;
 
-        public void Export()
+        public void Export(string baseWorkingDir)
         {
-            var path = Path.GetDirectoryName(this.BatchLocation);
+            var path = Path.Combine(baseWorkingDir,BatchLocation);
             Directory.CreateDirectory(path);
             //if (!path.EndsWith("\\")) path += "\\";
             File.WriteAllText(path + this.BatchName, this.FullDictString);
@@ -31,13 +33,13 @@ namespace EddyLib.Indoor.BatchFiles
         {
             return
                    @"call ""C:\Program Files\blueCFD-Core-2017\\setvars.bat""
-                    //set PATH=%HOME%msys64\usr\bin;%PATH%
-                    //cd " + BatchLocation.ToString();
+                    set PATH=%HOME%msys64\usr\bin;%PATH%
+                    cd " + BatchLocation.ToString();
         }
 
-        public void RemoveDict()
+        public void RemoveBatch(string baseWorkingDir)
         {
-            string path = this.BatchLocation + "\\" + this.BatchName;
+            string path = baseWorkingDir + @"\" + this.BatchName;
 
             if (File.Exists(path))
             {

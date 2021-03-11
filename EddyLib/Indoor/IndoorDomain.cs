@@ -191,9 +191,21 @@ namespace EddyLib.Indoor
             AllDictsWrite2File.Add(residualsDict);
             AllDictsWrite2File.Add(surfaceFeatureExtractDict);
 
+
+            ExportGeometryAndDicts(WorkingDir);
+
             //Batch Files
+
             var runMeshBatch = new RunMeshBatch(this);
+            var runSimBatch = new RunSimBatch(this);
+            var runTopoBatch = new RunTopoBatch(this);
+
             AllBatsWrite2File.Add(runMeshBatch);
+            AllBatsWrite2File.Add(runSimBatch);
+            AllBatsWrite2File.Add(runTopoBatch);
+
+
+            ExportBatch(WorkingDir);
         }
 
 
@@ -210,6 +222,14 @@ namespace EddyLib.Indoor
             foreach (var geo in AllGeometry)
             {
                 EddyLib.STLExport.ExportBinary(stlDir + "\\" + geo.Id + ".stl", geo.Geometry);
+            }
+        }
+
+        public void ExportBatch(string workingDir) 
+        {
+            foreach (GenericBatchFile dict in AllBatsWrite2File)
+            {
+                dict.Export(workingDir);
             }
         }
 
