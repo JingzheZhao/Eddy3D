@@ -87,6 +87,8 @@
     <Compile Include="Attributes\Eddy_ComponentButtonAttributes.cs" />
     <Compile Include="FunctionObjects.cs" />
     <Compile Include="FunctionObjects\FunctionObject.cs" />
+    <Compile Include="Indoor\Dicts\FunctionObjects\ViralEmitterInternalDict.cs" />
+    <Compile Include="Indoor\FunctionObjects\ViralEmitter.cs" />
     <Compile Include="Indoor\FunctionObjects\VolumetricHeatSource.cs" />
     <Compile Include="Indoor\FunctionObjects\MomentumSource.cs" />
     <Compile Include="FunctionObjects\PressureCoeff.cs" />
@@ -97,7 +99,7 @@
     <Compile Include="Indoor\BatchFiles\RunMeshBatch.cs" />
     <Compile Include="Indoor\BatchFiles\GenericBatchFile.cs" />
     <Compile Include="Indoor\Dicts\CppMapSerializer.cs" />
-    <Compile Include="Indoor\Dicts\FunctionObjects\EmitterInternalDict.cs" />
+    <Compile Include="Indoor\Dicts\FunctionObjects\CO2EmitterInternalDict.cs" />
     <Compile Include="Indoor\Dicts\FunctionObjects\MomentumSourceInternalDict.cs" />
     <Compile Include="Indoor\Dicts\FunctionObjects\TopoSetDict.cs" />
     <Compile Include="Indoor\Dicts\FunctionObjects\FunctionObjectDictInternal.cs" />
@@ -120,7 +122,7 @@
     <Compile Include="Indoor\Dicts\0\IndoorBCDict.cs" />
     <Compile Include="Indoor\IndoorSimulation.cs" />
     <Compile Include="Indoor\IndoorDomain.cs" />
-    <Compile Include="Indoor\FunctionObjects\Emitters.cs" />
+    <Compile Include="Indoor\FunctionObjects\CO2Emitter.cs" />
     <Compile Include="Indoor\IndoorBC.cs" />
     <Compile Include="OutdoorComfort\WindComfort.cs" />
     <Compile Include="OutdoorComfort\WindFactors.cs" />

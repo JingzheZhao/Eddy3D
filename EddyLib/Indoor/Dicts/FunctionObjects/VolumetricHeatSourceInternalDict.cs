@@ -1,4 +1,5 @@
-﻿using Rhino.Geometry;
+﻿using EddyLib.Indoor.FunctionObjects;
+using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Linq;

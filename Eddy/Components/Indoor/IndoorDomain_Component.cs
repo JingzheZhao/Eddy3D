@@ -5,6 +5,7 @@ using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
 using EddyLib;
 using EddyLib.Indoor;
+using EddyLib.Indoor.FunctionObjects;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
@@ -128,6 +129,15 @@ namespace Eddy.Components.Indoor
                 {
                     FOs.Add((MomentumSource)gobj.Value);
                 }
+                else if ((gobj.Value is ViralEmitter))
+                {
+                    FOs.Add((ViralEmitter)gobj.Value);
+                }
+                else if ((gobj.Value is CO2Emitter))
+                {
+                    FOs.Add((CO2Emitter)gobj.Value);
+                }
+
                 else
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid function object"); return;

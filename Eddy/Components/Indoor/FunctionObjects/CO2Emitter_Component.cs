@@ -3,21 +3,19 @@ using Eddy.Properties;
 using EddyLib;
 using EddyLib.Indoor;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Parameters;
 using Rhino.Geometry;
 using System;
-using EddyLib.Indoor.Dicts;
-using Grasshopper.Kernel.Parameters;
-using EddyLib.Indoor.FunctionObjects;
 
 namespace Eddy.Components.Indoor
 {
-    public class VolumetricHeatSource_Component : GH_Component
+    public class CO2Emitter_Component : GH_Component
     {
         /// <summary>
         /// Initializes a new instance of the Emitter class.
         /// </summary>
-        public VolumetricHeatSource_Component()
-          : base("VolumetricHeatSource", "VHS", "VolumetricHeatSource" + EddyVersion.toString(), EddyVersion.Name, "9 | Indoor")
+        public CO2Emitter_Component()
+          : base("CO2 Emitter", "CO2Em", "CO2 Emitter" + EddyVersion.toString(), EddyVersion.Name, "9 | Indoor")
         {
         }
 
@@ -26,11 +24,18 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGeometryParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Power", "P", "Power", GH_ParamAccess.item);
-            pManager.AddTextParameter("Name", "N", "Name", GH_ParamAccess.item, "");
 
-            pManager.AddIntegerParameter("Type", "Typ", "Type: Absolute [W] or specific [W/m³]", GH_ParamAccess.item);
+
+
+            //0
+            pManager.AddGeometryParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
+            //1
+            pManager.AddTextParameter("Name", "N", "Name", GH_ParamAccess.item, "");
+            //2
+            pManager.AddNumberParameter("Injection Rate", "IR", "Injection Rate imposed on object", GH_ParamAccess.item);
+       
+            //3
+            pManager.AddIntegerParameter("Type", "Typ", "Type: Absolute [W] or specific [W/m³]", GH_ParamAccess.item,0);
             Param_Integer param = pManager[3] as Param_Integer;
             param.AddNamedValue("Absolute", 0);
             param.AddNamedValue("Specific", 1);
@@ -52,23 +57,28 @@ namespace Eddy.Components.Indoor
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            Mesh m = null;
-            DA.GetData(0, ref m);
 
-            double Power = 1;
-            DA.GetData(1, ref Power);
+            Mesh geo = null;
+            if (!DA.GetData("Geo", ref geo)) { };
+                      
 
             string Name = "";
-            DA.GetData(2, ref Name);
+            DA.GetData("Name", ref Name);
+
+
+            double IR =0;
+            DA.GetData("Injection Rate", ref IR);
 
             int Type = 0;
-            DA.GetData(3, ref Type);
+            DA.GetData("Type", ref Type);
 
-            var heatSource = new VolumetricHeatSource(m, Type, Power, Name);
 
-            var goo = new FunctionObjectGoo(heatSource);
+            var em = new CO2Emitter(  geo, Type, IR, Name);
+
+            var goo = new FunctionObjectGoo(em);
 
             DA.SetData(0, goo);
+
         }
 
         /// <summary>
@@ -88,7 +98,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("{128F2233-5532-441A-BE3B-F0D9AED33C27}"); }
+            get { return new Guid("9afa2ec3-39af-4454-9c43-8f31f521dab2"); }
         }
     }
 }

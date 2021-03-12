@@ -9,13 +9,13 @@ using System;
 
 namespace Eddy.Components.Indoor
 {
-    public class Emitter_Component : GH_Component
+    public class ViralEmitter_Component : GH_Component
     {
         /// <summary>
         /// Initializes a new instance of the Emitter class.
         /// </summary>
-        public Emitter_Component()
-          : base("Emitter", "Em", "Emitter" + EddyVersion.toString(), EddyVersion.Name, "9 | Indoor")
+        public ViralEmitter_Component()
+          : base("Viral Emitter", "ViralEm", "Viral Emitter" + EddyVersion.toString(), EddyVersion.Name, "9 | Indoor")
         {
         }
 
@@ -58,7 +58,7 @@ namespace Eddy.Components.Indoor
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-            GeometryBase geo = null;
+            Mesh geo = null;
             if (!DA.GetData("Geo", ref geo)) { };
                       
 
@@ -72,8 +72,9 @@ namespace Eddy.Components.Indoor
             int Type = 0;
             DA.GetData("Type", ref Type);
 
+            var em = new ViralEmitter(geo, Type, IR, Name);
 
-            var em = new CO2Source(  geo, Type, IR, Name);
+            //var em = new CO2Emitters(  geo, Type, IR, Name);
 
             var goo = new FunctionObjectGoo(em);
 

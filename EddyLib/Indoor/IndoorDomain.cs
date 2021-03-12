@@ -40,16 +40,26 @@ namespace EddyLib.Indoor
 
         private readonly List<FunctionObjectDict> AllFOWrite2File = new List<FunctionObjectDict>();
 
+        //private readonly List<FunctionObjectDict> AllFOWrite2File = new List<FunctionObjectDict>();
+
         private readonly List<FunctionObjectDictInternal> AllFunctionObjectInternalDicts = new List<FunctionObjectDictInternal>();
 
         public List<FunctionObject> FOs = new List<FunctionObject>();
 
         public List<VolumetricHeatSource> VolumetricHeatSources = new List<VolumetricHeatSource>();
+        public List<FunctionObjectDictInternal> VHSID = new List<FunctionObjectDictInternal>();
 
         public List<MomentumSink> MomentumSinks = new List<MomentumSink>();
         public List<FunctionObjectDictInternal> MSinkID = new List<FunctionObjectDictInternal>();
 
         public List<MomentumSource> MomentumSources = new List<MomentumSource>();
+        public List<FunctionObjectDictInternal> MSourceID = new List<FunctionObjectDictInternal>();
+
+        public List<CO2Emitter> CO2Emitters = new List<CO2Emitter>();
+        public List<FunctionObjectDictInternal> CO2ID = new List<FunctionObjectDictInternal>();
+
+        public List<ViralEmitter> ViralEmitters = new List<ViralEmitter>();
+        public List<FunctionObjectDictInternal> ViralID = new List<FunctionObjectDictInternal>();
 
         public IndoorDomain()
         {
@@ -145,7 +155,11 @@ namespace EddyLib.Indoor
                     this.FOs.Add((VolumetricHeatSource)FOs[i]);
                     this.VolumetricHeatSources.Add((VolumetricHeatSource)FOs[i]);
                     this.VolumetricHeatSources[i].ID = FOs[i].Name + i.ToString();
-                    AllFunctionObjectInternalDicts.Add(new VolumetricHeatSourceInternalDict(this.VolumetricHeatSources[i], this.PointInsideDomain));
+                    //AllFunctionObjectInternalDicts.Add(new VolumetricHeatSourceInternalDict(this.VolumetricHeatSources[i], this.PointInsideDomain));
+
+                    var dict = new VolumetricHeatSourceInternalDict(this.VolumetricHeatSources[i], this.PointInsideDomain);
+                    AllFunctionObjectInternalDicts.Add(dict);
+                    VHSID.Add(dict);
                 }
             }
 
@@ -167,6 +181,8 @@ namespace EddyLib.Indoor
                 }
             }
 
+            // Momentum Source
+
             for (int i = 0; i < FOs.Count; i++)
             {
                 if (FOs[i] is MomentumSource)
@@ -174,7 +190,47 @@ namespace EddyLib.Indoor
                     this.FOs.Add(MomentumSources[i]);
                     this.MomentumSources.Add(MomentumSources[i]);
                     this.MomentumSources[i].ID = FOs[i].Name + i.ToString();
-                    AllFunctionObjectInternalDicts.Add(new MomentumSourceInternalDict(this.MomentumSources[i], this.PointInsideDomain));
+                    //AllFunctionObjectInternalDicts.Add(new MomentumSourceInternalDict(this.MomentumSources[i], this.PointInsideDomain));
+
+                    var dict = new MomentumSourceInternalDict(this.MomentumSources[i], this.PointInsideDomain);
+                    AllFunctionObjectInternalDicts.Add(dict);
+                    MSourceID.Add(dict);
+
+                }
+            }
+
+
+            //CO2 Emitters
+
+            for (int i = 0; i < FOs.Count; i++)
+            {
+                if (FOs[i] is CO2Emitter)
+                {
+                    this.FOs.Add(CO2Emitters[i]);
+                    this.CO2Emitters.Add(CO2Emitters[i]);
+                    this.CO2Emitters[i].ID = FOs[i].Name + i.ToString();
+
+                    var dict = new CO2EmitterInternalDict(this.CO2Emitters[i], this.PointInsideDomain);
+                    AllFunctionObjectInternalDicts.Add(dict);
+                    CO2ID.Add(dict);
+
+                }
+            }
+
+
+            //Viral Emitters
+
+            for (int i = 0; i < FOs.Count; i++)
+            {
+                if (FOs[i] is ViralEmitter)
+                {
+                    this.FOs.Add(ViralEmitters[i]);
+                    this.ViralEmitters.Add(ViralEmitters[i]);
+                    this.ViralEmitters[i].ID = FOs[i].Name + i.ToString();
+
+                    var dict = new ViralEmitterInternalDict(this.ViralEmitters[i], this.PointInsideDomain);
+                    AllFunctionObjectInternalDicts.Add(dict);
+                    ViralID.Add(dict);
 
                 }
             }
@@ -194,10 +250,15 @@ namespace EddyLib.Indoor
             var surfaceFeatureExtractDict = new SurfaceFeatureExtractDict(Inlets, Outlets, RoomGeometry);
             var decomposeParDict = new DecomposeParDict();
 
-            var momentumSinkDict = new FunctionObjectDict(MSinkID, "momentumSinkDict");
+            var momentumSinkDict = new FunctionObjectDict(MSinkID);
+            var momentumSourceDict = new FunctionObjectDict(MSourceID);
+            var co2EmittersDict = new FunctionObjectDict(CO2ID);
+            var viralEmittersDict = new FunctionObjectDict(ViralID);
+
+            //var momentumSinkDict = new FunctionObjectDict(MSinkID, "momentumSinkDict");
 
 
-          
+
 
 
 
@@ -209,10 +270,14 @@ namespace EddyLib.Indoor
             AllDictsWrite2File.Add(residualsDict);
             AllDictsWrite2File.Add(surfaceFeatureExtractDict);
             AllDictsWrite2File.Add(decomposeParDict);
-            // FOs
-            AllDictsWrite2File.Add(momentumSinkDict);
 
-           // AllFOWrite2File.Add(fvOptionsDict);
+            // FOs
+            AllFOWrite2File.Add(momentumSinkDict);
+            AllFOWrite2File.Add(momentumSourceDict);
+            AllFOWrite2File.Add(co2EmittersDict);
+            AllFOWrite2File.Add(viralEmittersDict);
+
+            // AllFOWrite2File.Add(fvOptionsDict);
 
 
             ExportGeometryAndDicts(WorkingDir);
@@ -232,6 +297,7 @@ namespace EddyLib.Indoor
         }
 
 
+        //export geomety and dictionaries
         public void ExportGeometryAndDicts(string workingDir)
         {
             foreach (GenericDict dict in AllDictsWrite2File)
@@ -248,6 +314,18 @@ namespace EddyLib.Indoor
             }
         }
 
+        //export FOs
+
+        public void ExportFO(string workingDir)
+        {
+            foreach (FunctionObjectDict dict in AllFOWrite2File)
+            {
+                dict.Export(workingDir);
+            }
+        }
+
+
+        //export batch files
         public void ExportBatch(string workingDir) 
         {
             foreach (GenericBatchFile dict in AllBatsWrite2File)
