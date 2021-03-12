@@ -24,12 +24,6 @@ namespace EddyLib.Indoor
         public VolumetricHeatSource()
         {
         }
-
-        //public VolumetricHeatSource Duplicate()
-        //{
-        //    VolumetricHeatSource dup = new VolumetricHeatSource(Geometry, (int)volumeType, Power, Name);
-        //    return dup;
-        //}
     }
 
     public class CO2Source : FunctionObject
@@ -48,11 +42,5 @@ namespace EddyLib.Indoor
         public CO2Source()
         {
         }
-
-        //public CO2Source Duplicate()
-        //{
-        //    CO2Source dup = new CO2Source(Geometry, (int)volumeType, CO2);
-        //    return dup;
-        //}
     }
 }
