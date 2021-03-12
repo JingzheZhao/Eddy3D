@@ -87,7 +87,8 @@
     <Compile Include="Attributes\Eddy_ComponentButtonAttributes.cs" />
     <Compile Include="FunctionObjects.cs" />
     <Compile Include="FunctionObjects\FunctionObject.cs" />
-    <Compile Include="FunctionObjects\MomentumSource\MomentumSource.cs" />
+    <Compile Include="Indoor\FunctionObjects\VolumetricHeatSource.cs" />
+    <Compile Include="Indoor\FunctionObjects\MomentumSource.cs" />
     <Compile Include="FunctionObjects\PressureCoeff.cs" />
     <Compile Include="BoundaryConditions\BoundaryConditionsBase.cs" />
     <Compile Include="FunctionObjects\MomentumSink\MomentumSink.cs" />
@@ -96,12 +97,13 @@
     <Compile Include="Indoor\BatchFiles\RunMeshBatch.cs" />
     <Compile Include="Indoor\BatchFiles\GenericBatchFile.cs" />
     <Compile Include="Indoor\Dicts\CppMapSerializer.cs" />
+    <Compile Include="Indoor\Dicts\FunctionObjects\EmitterInternalDict.cs" />
     <Compile Include="Indoor\Dicts\FunctionObjects\MomentumSourceInternalDict.cs" />
     <Compile Include="Indoor\Dicts\FunctionObjects\TopoSetDict.cs" />
     <Compile Include="Indoor\Dicts\FunctionObjects\FunctionObjectDictInternal.cs" />
     <Compile Include="Indoor\Dicts\FunctionObjects\FunctionObjectDict.cs" />
     <Compile Include="Indoor\Dicts\FunctionObjects\MomentumSinkInternalDict.cs" />
-    <Compile Include="Indoor\FunctionObject.cs" />
+    <Compile Include="Indoor\FunctionObjects\FunctionObject.cs" />
     <Compile Include="Indoor\Dicts\FunctionObjects\VolumetricHeatSourceInternalDict.cs" />
     <Compile Include="Indoor\Dicts\System\DecomposeParDict.cs" />
     <Compile Include="Indoor\Dicts\System\ControlDict.cs" />
@@ -118,7 +120,7 @@
     <Compile Include="Indoor\Dicts\0\IndoorBCDict.cs" />
     <Compile Include="Indoor\IndoorSimulation.cs" />
     <Compile Include="Indoor\IndoorDomain.cs" />
-    <Compile Include="Indoor\IndoorEmitters.cs" />
+    <Compile Include="Indoor\FunctionObjects\Emitters.cs" />
     <Compile Include="Indoor\IndoorBC.cs" />
     <Compile Include="OutdoorComfort\WindComfort.cs" />
     <Compile Include="OutdoorComfort\WindFactors.cs" />

@@ -45,7 +45,7 @@ Pass a multiline string that references the ""A"" and ""B"" coefficients from a 
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Momentum Sink", "MS", "Momentum Sink", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Function Object", "FO", "Momentum Source Function Object", GH_ParamAccess.item);
         }
 
         /// <summary>

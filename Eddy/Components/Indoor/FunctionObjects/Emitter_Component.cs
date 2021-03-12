@@ -1,16 +1,20 @@
-﻿using Eddy.Properties;
+﻿using Eddy.Components.Indoor.Params;
+using Eddy.Properties;
 using EddyLib;
+using EddyLib.Indoor;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Parameters;
+using Rhino.Geometry;
 using System;
 
 namespace Eddy.Components.Indoor
 {
-    public class Emitter : GH_Component
+    public class Emitter_Component : GH_Component
     {
         /// <summary>
         /// Initializes a new instance of the Emitter class.
         /// </summary>
-        public Emitter()
+        public Emitter_Component()
           : base("Emitter", "Em", "Emitter" + EddyVersion.toString(), EddyVersion.Name, "9 | Indoor")
         {
         }
@@ -20,7 +24,23 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
+
+
+
+            //0
             pManager.AddGeometryParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
+            //1
+            pManager.AddTextParameter("Name", "N", "Name", GH_ParamAccess.item, "");
+            //2
+            pManager.AddNumberParameter("Injection Rate", "IR", "Injection Rate imposed on object", GH_ParamAccess.item);
+       
+            //3
+            pManager.AddIntegerParameter("Type", "Typ", "Type: Absolute [W] or specific [W/m³]", GH_ParamAccess.item,0);
+            Param_Integer param = pManager[3] as Param_Integer;
+            param.AddNamedValue("Absolute", 0);
+            param.AddNamedValue("Specific", 1);
+
+            pManager[3].Optional = true;
         }
 
         /// <summary>
@@ -28,7 +48,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Emitter", "E", "Emitter", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Function Object", "FO", "Momentum Source Function Object", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -37,6 +57,28 @@ namespace Eddy.Components.Indoor
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+
+            GeometryBase geo = null;
+            if (!DA.GetData("Geo", ref geo)) { };
+                      
+
+            string Name = "";
+            DA.GetData("Name", ref Name);
+
+
+            double IR =0;
+            DA.GetData("Injection Rate", ref IR);
+
+            int Type = 0;
+            DA.GetData("Type", ref Type);
+
+
+            var em = new CO2Source(  geo, Type, IR, Name);
+
+            var goo = new FunctionObjectGoo(em);
+
+            DA.SetData(0, goo);
+
         }
 
         /// <summary>

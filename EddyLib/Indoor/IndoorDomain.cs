@@ -6,6 +6,7 @@ using System.IO;
 using EddyLib.Indoor.Dicts;
 using EddyLib.Indoor.BatchFiles;
 using Grasshopper.Kernel.Types;
+using EddyLib.Indoor.FunctionObjects;
 
 namespace EddyLib.Indoor
 {
@@ -37,6 +38,8 @@ namespace EddyLib.Indoor
 
         private readonly List<GenericDict> AllDictsWrite2File = new List<GenericDict>();
 
+        private readonly List<FunctionObjectDict> AllFOWrite2File = new List<FunctionObjectDict>();
+
         private readonly List<FunctionObjectDictInternal> AllFunctionObjectInternalDicts = new List<FunctionObjectDictInternal>();
 
         public List<FunctionObject> FOs = new List<FunctionObject>();
@@ -44,6 +47,7 @@ namespace EddyLib.Indoor
         public List<VolumetricHeatSource> VolumetricHeatSources = new List<VolumetricHeatSource>();
 
         public List<MomentumSink> MomentumSinks = new List<MomentumSink>();
+        public List<FunctionObjectDictInternal> MSinkID = new List<FunctionObjectDictInternal>();
 
         public List<MomentumSource> MomentumSources = new List<MomentumSource>();
 
@@ -154,7 +158,12 @@ namespace EddyLib.Indoor
                     this.FOs.Add(MomentumSinks[i]);
                     this.MomentumSinks.Add(MomentumSinks[i]);
                     this.MomentumSinks[i].ID = FOs[i].Name + i.ToString();
-                    AllFunctionObjectInternalDicts.Add(new MomentumSinkInternalDict(this.MomentumSinks[i], this.PointInsideDomain));
+
+                    var dict = new MomentumSinkInternalDict(this.MomentumSinks[i], this.PointInsideDomain);
+                    AllFunctionObjectInternalDicts.Add(dict);
+                    MSinkID.Add(dict);
+
+
                 }
             }
 
@@ -166,6 +175,7 @@ namespace EddyLib.Indoor
                     this.MomentumSources.Add(MomentumSources[i]);
                     this.MomentumSources[i].ID = FOs[i].Name + i.ToString();
                     AllFunctionObjectInternalDicts.Add(new MomentumSourceInternalDict(this.MomentumSources[i], this.PointInsideDomain));
+
                 }
             }
 
@@ -184,6 +194,13 @@ namespace EddyLib.Indoor
             var surfaceFeatureExtractDict = new SurfaceFeatureExtractDict(Inlets, Outlets, RoomGeometry);
             var decomposeParDict = new DecomposeParDict();
 
+            var momentumSinkDict = new FunctionObjectDict(MSinkID, "momentumSinkDict");
+
+
+          
+
+
+
             AllDictsWrite2File.Add(controlDict);
             AllDictsWrite2File.Add(blockMeshDict);
             AllDictsWrite2File.Add(snappyHextMeshDict);
@@ -192,6 +209,10 @@ namespace EddyLib.Indoor
             AllDictsWrite2File.Add(residualsDict);
             AllDictsWrite2File.Add(surfaceFeatureExtractDict);
             AllDictsWrite2File.Add(decomposeParDict);
+            // FOs
+            AllDictsWrite2File.Add(momentumSinkDict);
+
+           // AllFOWrite2File.Add(fvOptionsDict);
 
 
             ExportGeometryAndDicts(WorkingDir);

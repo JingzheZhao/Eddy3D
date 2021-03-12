@@ -18,7 +18,7 @@ namespace Eddy.Components.Indoor
         /// Initializes a new instance of the Emitter class.
         /// </summary>
         public MomentumSource_Component()
-          : base("Momentum Sink", "MS", "Momentum Sink" + EddyVersion.toString(), EddyVersion.Name, "9 | Indoor")
+          : base("Momentum Source", "MS", "Momentum Source" + EddyVersion.toString(), EddyVersion.Name, "9 | Indoor")
         {
         }
 
@@ -63,7 +63,9 @@ Desired mean velocity.", GH_ParamAccess.item);
 
             var fan = new MomentumSource(geo, Ubar, Name);
 
-            DA.SetData(0, fan);
+            var goo = new FunctionObjectGoo(fan);
+
+            DA.SetData(0, goo);
         }
 
         /// <summary>

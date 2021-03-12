@@ -1,7 +1,11 @@
-﻿using EddyLib.Indoor.Dicts;
-using Rhino.Geometry;
+﻿using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace EddyLib.Indoor
+namespace EddyLib.Indoor.FunctionObjects
 {
     public class VolumetricHeatSource : FunctionObject
     {
@@ -22,24 +26,6 @@ namespace EddyLib.Indoor
         }
 
         public VolumetricHeatSource()
-        {
-        }
-    }
-
-    public class CO2Source : FunctionObject
-    {
-        public double CO2 { get; set; } = 0;
-
-        public CO2Source(Mesh Geometry, int volumeType, double CO2)
-        {
-            this.volumeType = (VolumeType)volumeType;
-            this.Geometry = Geometry;
-            this.cellZone = cellZone;
-            this.CO2 = CO2;
-            this.Name = "CO2Source";
-        }
-
-        public CO2Source()
         {
         }
     }

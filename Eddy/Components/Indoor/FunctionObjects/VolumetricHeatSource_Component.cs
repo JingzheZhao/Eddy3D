@@ -42,7 +42,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Source", "S", "Source", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Function Object", "FO", "Momentum Source Function Object", GH_ParamAccess.item);
         }
 
         /// <summary>
