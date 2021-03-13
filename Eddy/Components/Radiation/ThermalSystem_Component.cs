@@ -37,9 +37,8 @@ namespace Eddy.Components.Radiation
             pManager.AddTextParameter("Weather", "W", "Weather filepath", GH_ParamAccess.item, DefaultDirectoriesAndPaths.DefaultWeather);
 
 
-            pManager.AddGenericParameter("RSurf", "RS", "Radiation Model Surfaces", GH_ParamAccess.tree);
+            pManager.AddGenericParameter("System", "RSS", "RadiationSimulationSystem", GH_ParamAccess.item);
 
-            pManager.AddGenericParameter("Sensors", "Sen", "Radiation sensors. Provide as [Mesh] or [RProbe]", GH_ParamAccess.tree);
 
             pManager.AddBooleanParameter("Run", "R", "Run simulation", GH_ParamAccess.item, false);
         }
@@ -72,54 +71,19 @@ namespace Eddy.Components.Radiation
             // Get the RSurf objects
             // ---------------------
 
-            List<RSurface> modelRSurfaces = new List<RSurface>();
-            GH_Structure<IGH_Goo> GH_RSurfTree;
-            if (!DA.GetDataTree(3, out GH_RSurfTree)) { }
-            foreach (GH_Path p in GH_RSurfTree.Paths)
-            {
-                foreach (IGH_Goo o in GH_RSurfTree.get_Branch(p))
-                {
-                    if (o != null)
-                    {
-                        RSurface im;
-                        if (!o.CastTo(out im)) continue;
-                        modelRSurfaces.Add(im);
-                    }
-                }
-            }
+            IGH_Goo system = null;
+             if (!DA.GetData(3, ref system)) { }
 
-            // ----------------------
-            // Get the probing points
-            // ----------------------
+            RadiationSimulationSystem RSystem;
 
-            List<RProbe> probes = new List<RProbe>();
-            List<Mesh> probeMeshes = new List<Mesh>();
-            //DA.GetDataList(4, probeMeshes);
+            if (!system.CastTo<RadiationSimulationSystem>(out RSystem)) return;
 
-            GH_Structure<IGH_Goo> GH_RProbeTree;
-            if (!DA.GetDataTree(4, out GH_RProbeTree)) { }
-            foreach (GH_Path p in GH_RProbeTree.Paths)
-            {
-                foreach (IGH_Goo o in GH_RProbeTree.get_Branch(p))
-                {
-                    if (o != null)
-                    {
-                        Mesh m;
-                        RProbe pr;
-                        if (o.CastTo(out m))
-                        { probeMeshes.Add(m); }
-
-                        else if (o.CastTo(out pr))
-                        { probes.Add(pr); }
-                    }
-                }
-            }
 
 
 
             bool RUN = false;
             bool HidePopUp = false;
-            DA.GetData(5, ref RUN);
+            DA.GetData(4, ref RUN);
 
 
 
@@ -134,7 +98,7 @@ namespace Eddy.Components.Radiation
             Weather weather = new Weather(weatherPath);
 
 
-            ThermalSimulation = new ThermalSystem(name, workDir, weather, modelRSurfaces, null);
+            ThermalSimulation = new ThermalSystem(RSystem);
 
 
 

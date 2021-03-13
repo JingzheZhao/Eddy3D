@@ -32,7 +32,7 @@ namespace EddyLib.Radiation
         public Mesh UnifiedMeshLowPolyNoSky;
         public List<Mesh> ProbeMeshes;
         public List<RProbe> Probes;
-        public RSystem Radio;
+        public RadiositySystem Radio;
         public Weather Weather;
         public RadiationSimulationSystem(string filename, string baseWorkingDir, Weather weather, List<RSurface> rsurfaces, List<Mesh> probe_meshes, List<RProbe> rprobes)
         {
@@ -112,6 +112,22 @@ namespace EddyLib.Radiation
             }
 
             Weather = weather;
+
+
+
+            // ---------------------
+            // Setup the radiosity system
+            // ---------------------
+            this.Radio = new RadiositySystem();
+            foreach (var rs in this.RSurfaces)
+            {
+                this.Radio.AddMesh(rs);
+            }
+            this.Radio.AddMesh(SkyDomeForVF, 0, 0, "SKY");
+
+            this.Radio.AddProbes(Probes);
+
+
 
 
 
@@ -574,18 +590,9 @@ namespace EddyLib.Radiation
         }
         public bool RunVF(bool run, CancellationToken ct) {
 
+            this.Radio.BuildVFToProbes(UnifiedMeshLowPolyNoSky);
 
-            Radio = new RSystem();
-            foreach (var rs in RSurfaces) {
-                Radio.AddMesh(rs);
-            }
-            Radio.AddMesh(SkyDomeForVF, 0,0, "SKY");
-
-            Radio.AddProbes(Probes);
-
-            Radio.BuildVFToProbes(UnifiedMeshLowPolyNoSky);
-
-            Radio.BuildVFToProbesByMaterial();
+            this.Radio.BuildVFToProbesByMaterial();
 
             stepCnt++;
             pct = 100 * stepCnt / steps;
@@ -603,8 +610,6 @@ namespace EddyLib.Radiation
         }
         public RadiationSimulationResultProto SaveResults(bool run, CancellationToken ct)
         {
-
-
             // -----------------------------
             // 15 Compute dMRT
             // -----------------------------

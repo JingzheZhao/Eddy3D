@@ -27,7 +27,7 @@ namespace EddyLib.Radiation
             }
 
 
-            RSystem radio = new RSystem();
+            RadiositySystem radio = new RadiositySystem();
             foreach (GeometryBase g in geo)
             {
 
@@ -141,9 +141,9 @@ namespace EddyLib.Radiation
 
 
 
-    public class RSystem
+    public class RadiositySystem
     {
-        public RSystem()
+        public RadiositySystem()
         {
         }
 

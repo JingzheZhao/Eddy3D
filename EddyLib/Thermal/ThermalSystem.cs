@@ -2,6 +2,7 @@
 using EddyLib.Radiation;
 using EddyLib.UI;
 using Medallion.Shell;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -23,21 +24,20 @@ namespace EddyLib.Thermal
 
 
 
-
+        RadiationSimulationSystem RSystem;
 
         public string ProjectName = "";
         public string BaseWorkingDir = "";
-        public List<RSurface> RSurfaces;
-        public RSystem Radio;
+         public RadiositySystem Radio;
         public Weather Weather;
-        public ThermalSystem(string filename, string baseWorkingDir, Weather weather, List<RSurface> rsurfaces, RSystem radio)
+        public ThermalSystem(RadiationSimulationSystem sys)
         {
+            RSystem = sys;
 
-            ProjectName = filename;
-            BaseWorkingDir = baseWorkingDir;
-            RSurfaces = rsurfaces;
-            Radio = radio;
-            Weather = weather;
+            ProjectName = RSystem.ProjectName;
+            BaseWorkingDir = RSystem.BaseWorkingDir;
+             Radio = RSystem.Radio;
+            Weather = RSystem.Weather;
 
         }
 
@@ -48,6 +48,44 @@ namespace EddyLib.Thermal
             if (run == true)
             {
                 // -----------------------------
+                // 0 Prepare EPJSON
+                // -----------------------------
+                var epjsonObject = new EPJson();
+
+                int surfIndex = 0; 
+
+                foreach (var s in this.Radio.polys) {
+
+
+                    var mesh =s.m;
+
+                    var epsurf = new BuildingSurfaceDetailed();
+                    epsurf.Vertices = new List<DetailedVertex>();
+                    foreach (var v in s.m.Vertices) {
+
+                        var dv = new DetailedVertex();
+                        dv.X = v.X;
+                        dv.Y = v.Y;
+                        dv.Z = v.Z;
+
+                        epsurf.Vertices.Add(dv);
+                    }
+
+
+                }
+
+
+
+
+
+
+
+
+
+
+
+
+                // -----------------------------
                 // 1 Write EPJSON
                 // -----------------------------
                 string epjsonfile = (this.BaseWorkingDir + @"\Ep\" + ProjectName + ".epjson");
@@ -56,9 +94,15 @@ namespace EddyLib.Thermal
 
                 var str = System.Text.Encoding.Default.GetString(Resources.Box);
 
+
+                string inject = JsonConvert.SerializeObject(epjsonObject);
+
+                string epjson = str.Replace("\"@@SURFS@@\": null,", inject);
+            
+
                 Console.WriteLine("Writing EnergyPlus input files...");
 
-                File.WriteAllText(epjsonfile, str);
+                File.WriteAllText(epjsonfile, epjson);
 
                 stepCnt++;
                 pct = 100 * stepCnt / steps;

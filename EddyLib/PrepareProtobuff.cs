@@ -18,11 +18,13 @@ namespace EddyLib
             // not to mark type as beforefieldinit
             static Nested()
             {
-                ProtoBuf.Serializer.PrepareSerializer<RadiationSimulationResultProto>();
-                ProtoBuf.Serializer.PrepareSerializer<RProbe>();
                 ProtoBuf.Serializer.PrepareSerializer<EddyPoint>();
                 ProtoBuf.Serializer.PrepareSerializer<EddyVector>();
                 ProtoBuf.Serializer.PrepareSerializer<EddyMesh>();
+
+                ProtoBuf.Serializer.PrepareSerializer<RProbe>();
+                ProtoBuf.Serializer.PrepareSerializer<RadiationSimulationResultProto>();
+
             }
 
             internal static readonly PrepareProtoBufSingleton instance = new PrepareProtoBufSingleton();

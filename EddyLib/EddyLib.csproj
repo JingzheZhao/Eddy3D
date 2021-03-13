@@ -121,6 +121,7 @@
     <Compile Include="Radiation\RadiositySystem.cs" />
     <Compile Include="Radiation\RPolygon.cs" />
     <Compile Include="Radiation\RProbe.cs" />
+    <Compile Include="Thermal\EPJson.cs" />
     <Compile Include="Thermal\EsoReader.cs" />
     <Compile Include="Thermal\ThermalSystem.cs" />
     <Compile Include="UI\Attributes\Eddy_ComponentAttributes.cs" />
@@ -197,6 +198,7 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup />
