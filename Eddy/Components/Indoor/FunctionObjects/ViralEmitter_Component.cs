@@ -99,7 +99,8 @@ namespace Eddy.Components.Indoor
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("9afa2ec3-39af-4454-9c43-8f31f521dab2"); }
+            //get { return new Guid("9afa2ec3-39af-4454-9c43-8f31f521dab2"); }
+            get { return new Guid("9afa2ec3-39af-4454-9c43-8f31f521dab3"); }
         }
     }
 }

@@ -73,7 +73,7 @@ namespace Eddy.Components.Indoor
             DA.GetData("Type", ref Type);
 
 
-            var em = new CO2Emitter(  geo, Type, IR, Name);
+            var em = new CO2Emitter( geo, Type, IR, Name);
 
             var goo = new FunctionObjectGoo(em);
 

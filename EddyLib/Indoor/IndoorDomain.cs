@@ -169,8 +169,8 @@ namespace EddyLib.Indoor
             {
                 if (FOs[i] is MomentumSink)
                 {
-                    this.FOs.Add(MomentumSinks[i]);
-                    this.MomentumSinks.Add(MomentumSinks[i]);
+                    this.FOs.Add((MomentumSink)FOs[i]);
+                    this.MomentumSinks.Add((MomentumSink)FOs[i]);
                     this.MomentumSinks[i].ID = FOs[i].Name + i.ToString();
 
                     var dict = new MomentumSinkInternalDict(this.MomentumSinks[i], this.PointInsideDomain);
@@ -187,8 +187,8 @@ namespace EddyLib.Indoor
             {
                 if (FOs[i] is MomentumSource)
                 {
-                    this.FOs.Add(MomentumSources[i]);
-                    this.MomentumSources.Add(MomentumSources[i]);
+                    this.FOs.Add((MomentumSource)FOs[i]);
+                    this.MomentumSources.Add((MomentumSource)FOs[i]);
                     this.MomentumSources[i].ID = FOs[i].Name + i.ToString();
                     //AllFunctionObjectInternalDicts.Add(new MomentumSourceInternalDict(this.MomentumSources[i], this.PointInsideDomain));
 
@@ -206,8 +206,8 @@ namespace EddyLib.Indoor
             {
                 if (FOs[i] is CO2Emitter)
                 {
-                    this.FOs.Add(CO2Emitters[i]);
-                    this.CO2Emitters.Add(CO2Emitters[i]);
+                    this.FOs.Add((CO2Emitter)FOs[i]);
+                    this.CO2Emitters.Add((CO2Emitter)FOs[i]);
                     this.CO2Emitters[i].ID = FOs[i].Name + i.ToString();
 
                     var dict = new CO2EmitterInternalDict(this.CO2Emitters[i], this.PointInsideDomain);
@@ -224,8 +224,8 @@ namespace EddyLib.Indoor
             {
                 if (FOs[i] is ViralEmitter)
                 {
-                    this.FOs.Add(ViralEmitters[i]);
-                    this.ViralEmitters.Add(ViralEmitters[i]);
+                    this.FOs.Add((ViralEmitter)FOs[i]);
+                    this.ViralEmitters.Add((ViralEmitter)FOs[i]);
                     this.ViralEmitters[i].ID = FOs[i].Name + i.ToString();
 
                     var dict = new ViralEmitterInternalDict(this.ViralEmitters[i], this.PointInsideDomain);
@@ -250,10 +250,11 @@ namespace EddyLib.Indoor
             var surfaceFeatureExtractDict = new SurfaceFeatureExtractDict(Inlets, Outlets, RoomGeometry);
             var decomposeParDict = new DecomposeParDict();
 
-            var momentumSinkDict = new FunctionObjectDict(MSinkID);
-            var momentumSourceDict = new FunctionObjectDict(MSourceID);
-            var co2EmittersDict = new FunctionObjectDict(CO2ID);
-            var viralEmittersDict = new FunctionObjectDict(ViralID);
+            var momentumSinkDict = new FunctionObjectDict(MSinkID, "MomentumSink");
+            var momentumSourceDict = new FunctionObjectDict(MSourceID, "MomentumSource");
+            var co2EmittersDict = new FunctionObjectDict(CO2ID, "CO2Emitters");
+            var viralEmittersDict = new FunctionObjectDict(ViralID, "ViralEmitters");
+            var volumetricHeatSourceDict = new FunctionObjectDict(VHSID, "VolumetricHeatSource");
 
             //var momentumSinkDict = new FunctionObjectDict(MSinkID, "momentumSinkDict");
 
@@ -271,16 +272,21 @@ namespace EddyLib.Indoor
             AllDictsWrite2File.Add(surfaceFeatureExtractDict);
             AllDictsWrite2File.Add(decomposeParDict);
 
+            ExportGeometryAndDicts(WorkingDir);
+
             // FOs
             AllFOWrite2File.Add(momentumSinkDict);
             AllFOWrite2File.Add(momentumSourceDict);
             AllFOWrite2File.Add(co2EmittersDict);
             AllFOWrite2File.Add(viralEmittersDict);
+            AllFOWrite2File.Add(volumetricHeatSourceDict);
+
+            ExportFO(WorkingDir);
 
             // AllFOWrite2File.Add(fvOptionsDict);
 
 
-            ExportGeometryAndDicts(WorkingDir);
+
 
             //Batch Files
 

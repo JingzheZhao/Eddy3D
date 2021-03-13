@@ -13,10 +13,12 @@ namespace EddyLib.Indoor.Dicts
         public new DictLocation Location = DictLocation.system;
         public new readonly FieldClass FC = FieldClass.dictionary;
 
-        public FunctionObjectDict(List<FunctionObjectDictInternal> InternalDicts)
+
+
+        public FunctionObjectDict(List<FunctionObjectDictInternal> InternalDicts, string Name )
         {
             this.Header = GetHeader(this);
-            //this.DictionaryName = Name;
+            this.DictionaryName = Name;
 
             string[] parts = {
                this.Header, "\n",

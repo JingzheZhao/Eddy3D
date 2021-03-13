@@ -278,7 +278,7 @@ namespace Eddy
             #region Trees
 
             var treeDict = new List<FunctionObjectDictInternal>();
-            var fvOptionsDict = new FunctionObjectDict(treeDict);
+            var fvOptionsDict = new FunctionObjectDict(treeDict,"fvOptions");
             var topoSetDict = new TopoSetDict(treeDict, DOM.LocationInMesh);
 
             if (DOM.Trees.Count > 0)
@@ -290,7 +290,7 @@ namespace Eddy
                     treeDict.Add(tDict);
                 }
 
-                fvOptionsDict = new FunctionObjectDict(treeDict);
+                fvOptionsDict = new FunctionObjectDict(treeDict, "fvOptions");
                 topoSetDict = new TopoSetDict(treeDict, DOM.LocationInMesh);
             }
             else
