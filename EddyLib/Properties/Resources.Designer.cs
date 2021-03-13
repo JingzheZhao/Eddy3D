@@ -59,5 +59,15 @@ namespace EddyLib.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Box {
+            get {
+                object obj = ResourceManager.GetObject("Box", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }
