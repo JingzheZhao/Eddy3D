@@ -25,17 +25,15 @@ namespace Eddy
 
         public override Guid ComponentGuid => new Guid("{D8E619A8-BF03-422F-962B-0D52A05559DF}");
 
-        //protected override System.Drawing.Bitmap Icon => Properties.Resources.HVACTemplate;
-
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Directory", "Dir", "Additional folder path to import Eddy templates.", GH_ParamAccess.list);
+            pManager.AddTextParameter("Directory", "Dir", "Additional folder path to import Eddy3D templates.", GH_ParamAccess.list);
             pManager[0].Optional = true;
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddTextParameter("Templates", "out", "Eddy templates found in folders.", GH_ParamAccess.list);
+            pManager.AddTextParameter("Templates", "T", "Eddy3D templates found in folders.", GH_ParamAccess.list);
         }
 
         protected override void SolveInstance(IGH_DataAccess DA)
@@ -46,7 +44,7 @@ namespace Eddy
             var dirs = new List<string>()
             {
                             //Utilities.GetPathToUserHome() +   @"\Eddy3D\Templates\"
-                            @"C:\Eddy3D\"
+                            @"C:\Eddy3D\Templates"
             };
             DA.GetDataList(0, dirs);
 
@@ -54,7 +52,7 @@ namespace Eddy
 
             foreach (var dir in dirs)
             {
-                var fs = Directory.GetFiles(dir, "*.gh*", SearchOption.AllDirectories).ToList();
+                var fs = Directory.GetFiles(dir, "*.ghx", SearchOption.AllDirectories).ToList();
                 if (fs.Any())
                 {
                     this.folderList.Add(Path.GetDirectoryName(Path.Combine(dir, "test.txt")));
