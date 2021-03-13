@@ -31,7 +31,7 @@ namespace EddyLib.Radiation
             }
         }
 
-       [ProtoMember(1)]
+        [ProtoMember(1)]
         public List<RProbe> Probes { get; set; }
 
         [ProtoMember(2)]

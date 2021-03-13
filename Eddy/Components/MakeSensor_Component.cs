@@ -13,7 +13,7 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the MakeRadiationSensor_Component class.
         /// </summary>
         public MakeRadiationSensor_Component()
-          : base("Sensor", "Sen", "Radiation Simulation Sensor" + EddyVersion.toString(), EddyVersion.Name, "X | Radiation")
+          : base("Sensor", "Sen", "Simulation Sensor" + EddyVersion.toString(), EddyVersion.Name, "X | Radiation")
         {
         }
 
@@ -46,7 +46,7 @@ namespace Eddy.Components.Radiation
             DA.GetData(0, ref pt);
             DA.GetData(1, ref vec);
 
-            RProbe rp = new RProbe(pt, vec);
+            EddyProbe rp = new EddyProbe(pt, vec);
 
             DA.SetData(0, rp);
 

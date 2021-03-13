@@ -93,8 +93,7 @@ namespace Eddy
             // ----------------------
             // Get the probing points
             // ----------------------
-
-            List<RProbe> probes = new List<RProbe>();
+            List<EddyProbe> probes = new List<EddyProbe>();
             List<Mesh> probeMeshes = new List<Mesh>();
             //DA.GetDataList(4, probeMeshes);
 
@@ -107,7 +106,7 @@ namespace Eddy
                     if (o != null)
                     {
                         Mesh m;
-                        RProbe pr;
+                        EddyProbe pr;
                         if (o.CastTo(out m))
                         { probeMeshes.Add(m); }
 
@@ -135,7 +134,12 @@ namespace Eddy
             }
             Weather weather = new Weather(weatherPath);
 
-            RadiationSimulation = new RadiationSimulationSystem(name, workDir, weather, modelRSurfaces, probeMeshes, probes);
+            List<RProbe> RadProbes = new List<RProbe>();
+            foreach (var p in probes) {
+                RadProbes.Add(new RProbe(p.Point, p.Normal));
+            }
+
+            RadiationSimulation = new RadiationSimulationSystem(name, workDir, weather, modelRSurfaces, probeMeshes, RadProbes);
 
             // redirect stderr
             var errors = new StringWriter();
