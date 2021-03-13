@@ -410,11 +410,14 @@ namespace EddyLib.Radiation
                 pg.rin = rad;
                 pg.rout = 0.0;
                 pg.refl = refl;
-                pg.m = _ms;
+
+               
                 pg.matName = matName;
 
 
-                if (_ms.Faces[i].IsQuad)
+               
+
+                 if (_ms.Faces[i].IsQuad)
                 {
                     Point3d v0 = new Point3d(_ms.Vertices[_ms.Faces[i].A]);
                     Point3d v1 = new Point3d(_ms.Vertices[_ms.Faces[i].B]);
@@ -425,6 +428,14 @@ namespace EddyLib.Radiation
                     Vector3d n2 = Vector3d.CrossProduct(v2 - v0, v3 - v0);
 
                     pg.area = n1.Length * 0.5 + n2.Length * 0.5;
+
+                    pg.m = new Mesh();
+                    pg.m.Vertices.Add(v0);
+                    pg.m.Vertices.Add(v1);
+                    pg.m.Vertices.Add(v2);
+                    pg.m.Vertices.Add(v3);
+                    pg.m.Faces.AddFace(0, 1, 2, 3);
+
                 }
                 else
                 {
@@ -435,6 +446,12 @@ namespace EddyLib.Radiation
                     Vector3d n1 = Vector3d.CrossProduct(v1 - v0, v2 - v0);
 
                     pg.area = n1.Length * 0.5;
+
+                    pg.m = new Mesh();
+                    pg.m.Vertices.Add(v0);
+                    pg.m.Vertices.Add(v1);
+                    pg.m.Vertices.Add(v2);
+                    pg.m.Faces.AddFace(0, 1, 2);
                 }
             }
         }
@@ -463,7 +480,7 @@ namespace EddyLib.Radiation
                 pg.rin = rad;
                 pg.rout = 0.0;
                 pg.refl = refl;
-                pg.m = _ms;
+                
                 pg.matName = rSurf.Type.ToString();
 
 
@@ -478,6 +495,13 @@ namespace EddyLib.Radiation
                     Vector3d n2 = Vector3d.CrossProduct(v2 - v0, v3 - v0);
 
                     pg.area = n1.Length * 0.5 + n2.Length * 0.5;
+
+                    pg.m = new Mesh();
+                    pg.m.Vertices.Add(v0);
+                    pg.m.Vertices.Add(v1);
+                    pg.m.Vertices.Add(v2);
+                    pg.m.Vertices.Add(v3);
+                    pg.m.Faces.AddFace(0, 1, 2, 3);
                 }
                 else
                 {
@@ -488,6 +512,12 @@ namespace EddyLib.Radiation
                     Vector3d n1 = Vector3d.CrossProduct(v1 - v0, v2 - v0);
 
                     pg.area = n1.Length * 0.5;
+
+                    pg.m = new Mesh();
+                    pg.m.Vertices.Add(v0);
+                    pg.m.Vertices.Add(v1);
+                    pg.m.Vertices.Add(v2);
+                     pg.m.Faces.AddFace(0, 1, 2);
                 }
             }
         }

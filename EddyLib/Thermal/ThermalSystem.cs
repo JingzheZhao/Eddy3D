@@ -56,9 +56,10 @@ namespace EddyLib.Thermal
 
                 foreach (var s in this.Radio.polys) {
 
+ 
+                    if (!s.matName.Contains("Building") && !s.matName.Contains("Ground")) continue;
 
-                    var mesh =s.m;
-
+ 
                     var epsurf = new BuildingSurfaceDetailed();
                     epsurf.Vertices = new List<DetailedVertex>();
                     foreach (var v in s.m.Vertices) {
@@ -69,9 +70,14 @@ namespace EddyLib.Thermal
                         dv.Z = v.Z;
 
                         epsurf.Vertices.Add(dv);
+
+                      
                     }
 
+                    epsurf.NumberOfVertices = s.m.Vertices.Count;
 
+                    epjsonObject.AllThermalSurfaces.Add(s.matName + surfIndex, epsurf);
+                    surfIndex++;
                 }
 
 
@@ -95,7 +101,8 @@ namespace EddyLib.Thermal
                 var str = System.Text.Encoding.Default.GetString(Resources.Box);
 
 
-                string inject = JsonConvert.SerializeObject(epjsonObject);
+                string inject = JsonConvert.SerializeObject(epjsonObject, Formatting.Indented).Trim().Trim('{', '}').Trim(); ;
+                inject += ",";
 
                 string epjson = str.Replace("\"@@SURFS@@\": null,", inject);
             

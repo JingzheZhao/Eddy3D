@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -83,7 +84,7 @@ namespace EddyLib.Thermal
         public double? Vertex4_ZCoordinate { get; set; }
 
         [JsonProperty("view_factor_to_ground", NullValueHandling = NullValueHandling.Ignore)]
-        public NumberOrAutocalculate? ViewFactorToGround { get; set; }
+        public string ViewFactorToGround { get; set; } = "Autocalculate";
 
         [JsonProperty("idf_max_extensible_fields", NullValueHandling = NullValueHandling.Ignore)]
         public double? idfMaxExtensibleFields { get; set; } = 0;
@@ -96,8 +97,8 @@ namespace EddyLib.Thermal
         [JsonProperty("construction_name")]
         public string ConstructionName { get; set; } = "RedBrick";
 
-        //[JsonProperty("number_of_vertices", NullValueHandling = NullValueHandling.Ignore)]
-        //public int NumberOfVertices { get; set; }
+        [JsonProperty("number_of_vertices", NullValueHandling = NullValueHandling.Ignore)]
+        public int NumberOfVertices { get; set; }
 
         [JsonProperty("outside_boundary_condition")]
         public BuildingSurfaceDetailedOutsideBoundaryCondition OutsideBoundaryCondition { get; set; } = BuildingSurfaceDetailedOutsideBoundaryCondition.Outdoors;
@@ -115,7 +116,7 @@ namespace EddyLib.Thermal
         public List<DetailedVertex> Vertices { get; set; }
 
         [JsonProperty("view_factor_to_ground", NullValueHandling = NullValueHandling.Ignore)]
-        public NumberOrAutocalculate? ViewFactorToGround { get; set; } = AutocalculateEnum.Autocalculate;
+        public string ViewFactorToGround { get; set; } = "Autocalculate";
 
         [JsonProperty("wind_exposure", NullValueHandling = NullValueHandling.Ignore)]
         public WindExposure? WindExposure { get; set; } = Thermal.WindExposure.WindExposed;
@@ -152,19 +153,20 @@ namespace EddyLib.Thermal
 
 
 
+    [JsonConverter(typeof(StringEnumConverter))]
 
     public enum FenestrationSurfaceDetailedSurfaceType { Door, GlassDoor, TubularDaylightDiffuser, TubularDaylightDome, Window };
-    public enum BuildingSurfaceDetailedOutsideBoundaryCondition { Adiabatic, Foundation, Ground, GroundBasementPreprocessorAverageFloor, GroundBasementPreprocessorAverageWall, GroundBasementPreprocessorLowerWall, GroundBasementPreprocessorUpperWall, GroundFCfactorMethod, GroundSlabPreprocessorAverage, GroundSlabPreprocessorCore, GroundSlabPreprocessorPerimeter, OtherSideCoefficients, OtherSideConditionsModel, Outdoors, Surface, Zone };
-    public enum BuildingSurfaceDetailedSunExposure { Empty, NoSun, SunExposed };
-    public enum BuildingSurfaceDetailedSurfaceType { Ceiling, Floor, Roof, Wall };
-    public enum WindExposure { Empty, NoWind, WindExposed };
-    public partial struct NumberOrAutocalculate
-    {
-        public double? Double;
-        public AutocalculateEnum? Enum;
+    [JsonConverter(typeof(StringEnumConverter))]
 
-        public static implicit operator NumberOrAutocalculate(double Double) => new NumberOrAutocalculate { Double = Double };
-        public static implicit operator NumberOrAutocalculate(AutocalculateEnum Enum) => new NumberOrAutocalculate { Enum = Enum };
-    }
-    public enum AutocalculateEnum { Autocalculate, Empty };
+    public enum BuildingSurfaceDetailedOutsideBoundaryCondition { Adiabatic, Foundation, Ground, GroundBasementPreprocessorAverageFloor, GroundBasementPreprocessorAverageWall, GroundBasementPreprocessorLowerWall, GroundBasementPreprocessorUpperWall, GroundFCfactorMethod, GroundSlabPreprocessorAverage, GroundSlabPreprocessorCore, GroundSlabPreprocessorPerimeter, OtherSideCoefficients, OtherSideConditionsModel, Outdoors, Surface, Zone };
+    [JsonConverter(typeof(StringEnumConverter))]
+
+    public enum BuildingSurfaceDetailedSunExposure { Empty, NoSun, SunExposed };
+    [JsonConverter(typeof(StringEnumConverter))]
+
+    public enum BuildingSurfaceDetailedSurfaceType { Ceiling, Floor, Roof, Wall };
+    [JsonConverter(typeof(StringEnumConverter))]
+
+    public enum WindExposure { Empty, NoWind, WindExposed };
+    
 }
