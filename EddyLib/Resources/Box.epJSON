@@ -175,7 +175,7 @@
   },
 
   "RunPeriod": {
-    "Climate Studio": {
+    "Eddy3D": {
       "apply_weekend_holiday_rule": "No",
       "begin_day_of_month": 1,
       "begin_month": 1,
