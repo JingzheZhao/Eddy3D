@@ -127,8 +127,8 @@ namespace EddyLib.Thermal
 
     public partial class ShadingBuildingDetailed
     {
-        //[JsonProperty("number_of_vertices", NullValueHandling = NullValueHandling.Ignore)]
-        //public int NumberOfVertices { get; set; }
+        [JsonProperty("number_of_vertices", NullValueHandling = NullValueHandling.Ignore)]
+        public int NumberOfVertices { get; set; }
 
         [JsonProperty("transmittance_schedule_name", NullValueHandling = NullValueHandling.Ignore)]
         public string TransmittanceScheduleName { get; set; } = "Off";

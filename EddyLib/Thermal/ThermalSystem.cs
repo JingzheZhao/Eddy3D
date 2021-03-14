@@ -19,7 +19,7 @@ namespace EddyLib.Thermal
     {
 
         private double pct = 0;
-        private double steps = 18;
+        private double steps = 52 + 2; // energyplus prints 52 lines
         private double stepCnt = 0;
 
 
@@ -28,7 +28,7 @@ namespace EddyLib.Thermal
 
         public string ProjectName = "";
         public string BaseWorkingDir = "";
-         public RadiositySystem Radio;
+        public RadiositySystem Radio;
         public Weather Weather;
         public ThermalSystem(RadiationSimulationSystem sys)
         {
@@ -36,7 +36,7 @@ namespace EddyLib.Thermal
 
             ProjectName = RSystem.ProjectName;
             BaseWorkingDir = RSystem.BaseWorkingDir;
-             Radio = RSystem.Radio;
+            Radio = RSystem.Radio;
             Weather = RSystem.Weather;
 
         }
@@ -52,32 +52,62 @@ namespace EddyLib.Thermal
                 // -----------------------------
                 var epjsonObject = new EPJson();
 
-                int surfIndex = 0; 
-
-                foreach (var s in this.Radio.polys) {
-
- 
-                    if (!s.matName.Contains("Building") && !s.matName.Contains("Ground")) continue;
-
- 
-                    var epsurf = new BuildingSurfaceDetailed();
-                    epsurf.Vertices = new List<DetailedVertex>();
-                    foreach (var v in s.m.Vertices) {
-
-                        var dv = new DetailedVertex();
-                        dv.X = v.X;
-                        dv.Y = v.Y;
-                        dv.Z = v.Z;
-
-                        epsurf.Vertices.Add(dv);
-
-                      
+                int surfIndex = 0;
+                int groundIndex = 0;
+                int shaderIndex = 0;
+                foreach (var s in this.Radio.polys)
+                {
+                    if (s.matName == "SKY") { continue; }
+                    else if (s.matName.Contains("Building"))
+                    {
+                        var epsurf = new BuildingSurfaceDetailed();
+                        epsurf.ConstructionName = "RedBrick";
+                        epsurf.Vertices = new List<DetailedVertex>();
+                        foreach (var v in s.m.Vertices)
+                        {
+                            var dv = new DetailedVertex();
+                            dv.X = v.X;
+                            dv.Y = v.Y;
+                            dv.Z = v.Z;
+                            epsurf.Vertices.Add(dv);
+                        }
+                        epsurf.NumberOfVertices = s.m.Vertices.Count;
+                        epjsonObject.AllThermalSurfaces.Add(s.matName + surfIndex, epsurf);
+                        surfIndex++;
                     }
-
-                    epsurf.NumberOfVertices = s.m.Vertices.Count;
-
-                    epjsonObject.AllThermalSurfaces.Add(s.matName + surfIndex, epsurf);
-                    surfIndex++;
+                    else if (s.matName.Contains("Ground"))
+                    {
+                        var epsurf = new BuildingSurfaceDetailed();
+                        epsurf.ConstructionName = "Asphalt";
+                        epsurf.Vertices = new List<DetailedVertex>();
+                        foreach (var v in s.m.Vertices)
+                        {
+                            var dv = new DetailedVertex();
+                            dv.X = v.X;
+                            dv.Y = v.Y;
+                            dv.Z = v.Z;
+                            epsurf.Vertices.Add(dv);
+                        }
+                        epsurf.NumberOfVertices = s.m.Vertices.Count;
+                        epjsonObject.AllThermalSurfaces.Add(s.matName + groundIndex, epsurf);
+                        groundIndex++;
+                    }
+                    else if (s.matName.Contains("Tree"))
+                    {
+                        var epsurf = new ShadingBuildingDetailed();
+                        epsurf.Vertices = new List<DetailedVertex>();
+                        foreach (var v in s.m.Vertices)
+                        {
+                            var dv = new DetailedVertex();
+                            dv.X = v.X;
+                            dv.Y = v.Y;
+                            dv.Z = v.Z;
+                            epsurf.Vertices.Add(dv);
+                        }
+                        epsurf.NumberOfVertices = s.m.Vertices.Count;
+                        epjsonObject.AllShaders.Add("Shader" + shaderIndex, epsurf);
+                        shaderIndex++;
+                    }
                 }
 
 
@@ -105,7 +135,7 @@ namespace EddyLib.Thermal
                 inject += ",";
 
                 string epjson = str.Replace("\"@@SURFS@@\": null,", inject);
-            
+
 
                 Console.WriteLine("Writing EnergyPlus input files...");
 
@@ -122,6 +152,20 @@ namespace EddyLib.Thermal
                 Console.WriteLine("Run EnergyPlus...");
                 var energyPlus = Command.Run(DefaultDirectoriesAndPaths.EnergyPlusDir + @"\energyplus.exe", new[] { "-w", Path.GetFullPath(Weather.epwFilePath), "-p", ProjectName, epjsonfile },
                   options => options.WorkingDirectory(this.BaseWorkingDir + @"\Ep"));
+
+                int cnt = 0;
+
+                string line;
+                while ((line = energyPlus.StandardOutput.ReadLine()) != null)
+                {
+                    Console.WriteLine(line);
+                    stepCnt++;
+                    pct = 100 * stepCnt / steps;
+                    Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+                    cnt++;
+                }
+
+
                 energyPlus.Wait();
                 if (!energyPlus.Result.Success)
                 {
