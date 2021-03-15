@@ -49,11 +49,11 @@ namespace Eddy.Components.Radiation
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-            string workDir = "";
+            string filePath = "";
             int hour = 0;
             bool run = false;
 
-            DA.GetData(0, ref workDir);
+            DA.GetData(0, ref filePath);
             DA.GetData(1, ref hour);
             DA.GetData(2, ref run);
 
@@ -61,7 +61,7 @@ namespace Eddy.Components.Radiation
             if (!run) return;
 
 
-            if (!File.Exists(workDir))
+            if (!File.Exists(filePath))
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Result file not found.");
             }
@@ -74,7 +74,7 @@ namespace Eddy.Components.Radiation
             {
                 Stopwatch sp = new Stopwatch();
                 sp.Restart();
-                resultProto = RadiationSimulationResultProto.ReadFromFile(workDir);
+                resultProto = RadiationSimulationResultProto.ReadFromFile(filePath);
                 sp.Stop();
                 Debug.WriteLine("Loading RadiationSimulationResultProto: " + sp.ElapsedMilliseconds);
 

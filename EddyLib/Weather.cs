@@ -1,53 +1,80 @@
-﻿using System;
+﻿using ProtoBuf;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
 namespace EddyLib
 {
+
+    [ProtoContract]
     public class Weather
     {
+
+        public Weather() { }
+
+        [ProtoMember(1)]
+
         public string epwFilePath;
+        [ProtoMember(2)]
 
         public double[] DryBulbTemp;
+        [ProtoMember(3)]
 
         public double[] DewPointTemp;
+        [ProtoMember(4)]
 
         public double[] RelativeHumidity;
+        [ProtoMember(5)]
 
         public double[] Pressure;
+        [ProtoMember(6)]
 
         public double[] WindSpeed;
+        [ProtoMember(7)]
 
         public int[] WindDirection;
+        [ProtoMember(8)]
 
         public double[] DirectNormalRadiation;
+        [ProtoMember(9)]
 
         public double[] DiffuseHorizontalRadiation;
+        [ProtoMember(10)]
 
         public double[] HorRadiation;
+        [ProtoMember(11)]
 
         public double[] NormalRadiation;
+        [ProtoMember(12)]
 
         public double[] SkyRadiation;
+        [ProtoMember(13)]
 
         public double[] GHorRadiation;
+        [ProtoMember(14)]
 
         public double[] TotalSkyCover;
+        [ProtoMember(15)]
 
         public double[] OpaqSkyCover;
+        [ProtoMember(16)]
 
         public string Location;
+        [ProtoMember(17)]
 
         private double Latitude;
+        [ProtoMember(18)]
 
         private double Longitude;
+        [ProtoMember(19)]
 
         private double TimeZone;
 
-        //public string KoeppenZone;
+        [ProtoMember(20)]
 
         public List<double> SolarElevation = new List<double>();
+        [ProtoMember(21)]
 
         public List<double> SolarAzi = new List<double>();
 

@@ -18,6 +18,8 @@ namespace EddyLib.Radiation
         public List<RPolygon> Polys;
 
         public RadiationSurfaceType Type;
+        public SimulationType SimulationType;
+
         public double PatchSize;
 
         public string MaterialID;
@@ -59,31 +61,32 @@ namespace EddyLib.Radiation
             }
 
 
-            Polys = MakePolys(HighPoly, 0, 0.5, Name + "_" + Type.ToString(), this);
+            MakePolys();
         }
-        private static List<RPolygon> MakePolys(Mesh _ms, double rad, double refl, string matName, RSurface parent)
+        private void MakePolys(double rad = 0, double refl =0.5)
         {
-            var polys = new List<RPolygon>();
-
-            if (_ms == null) return polys;
-
+            Polys = new List<RPolygon>();
+            Mesh _ms = this.HighPoly;
+            if (_ms == null) return;
+    
             _ms.FaceNormals.ComputeFaceNormals();
 
             for (int i = 0; i < _ms.Faces.Count; ++i)
             {
                 RPolygon pg = new RPolygon();
-                polys.Add(pg);
+                Polys.Add(pg);
 
-                pg.cen = _ms.Faces.GetFaceCenter(i);
-                pg.n = _ms.FaceNormals[i];
-                pg.n.Unitize();
+                pg.Centroid.Value = _ms.Faces.GetFaceCenter(i);
+                pg.Normal.Value = _ms.FaceNormals[i];
+                pg.Normal.Value.Unitize();
 
                 pg.rin = rad;
                 pg.rout = 0.0;
                 pg.refl = refl;
-                pg.m = _ms;
-                pg.matName = matName;
-                pg.parent = parent;
+
+                pg.Name = this.Name + "_" + this.Type.ToString()   ;
+                pg.Type = this.Type;
+                pg.SimulationType = this.SimulationType;
 
 
                 if (_ms.Faces[i].IsQuad)
@@ -96,7 +99,14 @@ namespace EddyLib.Radiation
                     Vector3d n1 = Vector3d.CrossProduct(v1 - v0, v2 - v0);
                     Vector3d n2 = Vector3d.CrossProduct(v2 - v0, v3 - v0);
 
-                    pg.area = n1.Length * 0.5 + n2.Length * 0.5;
+                    pg.Area = n1.Length * 0.5 + n2.Length * 0.5;
+
+                    pg.Mesh.Value = new Mesh();
+                    pg.Mesh.Value.Vertices.Add(v0);
+                    pg.Mesh.Value.Vertices.Add(v1);
+                    pg.Mesh.Value.Vertices.Add(v2);
+                    pg.Mesh.Value.Vertices.Add(v3);
+                    pg.Mesh.Value.Faces.AddFace(0, 1, 2, 3);
                 }
                 else
                 {
@@ -106,19 +116,18 @@ namespace EddyLib.Radiation
 
                     Vector3d n1 = Vector3d.CrossProduct(v1 - v0, v2 - v0);
 
-                    pg.area = n1.Length * 0.5;
+                    pg.Area = n1.Length * 0.5;
+
+                    pg.Mesh.Value = new Mesh();
+                    pg.Mesh.Value.Vertices.Add(v0);
+                    pg.Mesh.Value.Vertices.Add(v1);
+                    pg.Mesh.Value.Vertices.Add(v2);
+                    pg.Mesh.Value.Faces.AddFace(0, 1, 2);
                 }
             }
-            return polys;
+            return ;
         }
 
-        public enum RadiationSurfaceType
-        {
-            Building = 0,
-            Ground = 1,
-            Vegetation = 2,
-            Tree = 3,
-         //   Sky = 4
-        }
+        
     }
 }

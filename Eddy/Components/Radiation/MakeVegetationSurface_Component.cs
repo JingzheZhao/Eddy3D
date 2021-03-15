@@ -9,13 +9,13 @@ using static EddyLib.Radiation.RSurface;
 
 namespace Eddy.Components.Radiation
 {
-    public class MakeRadiationSurface_Component : GH_Component
+    public class MakeVegetationSurface_Component : GH_Component
     {
         /// <summary>
         /// Initializes a new instance of the MakeRadiationMesh_Component class.
         /// </summary>
-        public MakeRadiationSurface_Component()
-          : base("Radiation Surface", "RadSurf", "Radiation Simulation Surface" + EddyVersion.toString(), EddyVersion.Name, "X | Radiation")
+        public MakeVegetationSurface_Component()
+          : base("Vegetation Surface", "VegSurf", "Vegetation Simulation Surface" + EddyVersion.toString(), EddyVersion.Name, "X | Radiation")
         {
         }
 
@@ -63,7 +63,7 @@ namespace Eddy.Components.Radiation
              if (!DA.GetData (1,ref patchSize)) return;
             if (!DA.GetData (2,ref mat)) return;
 
-            RadiationSurfaceType thetype = RadiationSurfaceType.Building;
+            RadiationSurfaceType thetype = RadiationSurfaceType.Vegetation;
 
 
             if (String.IsNullOrWhiteSpace(mat)) {
@@ -80,7 +80,7 @@ namespace Eddy.Components.Radiation
 
             foreach (var b in breps) {
 
-                RSurfs.Add(new RSurface("surf", b, thetype, mat, patchSize));
+                RSurfs.Add(new RSurface("vegetation", b, thetype, mat, patchSize));
             
             }
 
@@ -107,7 +107,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("52358012-b580-4a80-8d61-7d02bf600e76"); }
+            get { return new Guid("{192A5188-B15F-473C-9B63-D73A6B91A91E}"); }
         }
     }
 }

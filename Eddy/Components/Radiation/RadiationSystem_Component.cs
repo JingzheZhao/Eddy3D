@@ -49,7 +49,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("RadSystem", "RS", "Radiation Systemh", GH_ParamAccess.item);
+            pManager.AddGenericParameter("RadSystem", "RS", "Radiation System", GH_ParamAccess.item);
 
             pManager.AddTextParameter("Result", "R", "Result file path", GH_ParamAccess.item);
         }
@@ -170,7 +170,7 @@ namespace Eddy
 
             if (RadiationSimulation != null)
             {
-                string resultFilePath = RadiationSimulation.BaseWorkingDir + "/" + RadiationSimulation.ProjectName + ".Radiation.bin";
+                string resultFilePath = RadiationSimulation.BaseWorkingDir + "/" + RadiationSimulation.ProjectName + ".eddy";
                 DA.SetData(1, resultFilePath);
             }
         }

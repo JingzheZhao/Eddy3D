@@ -32,12 +32,8 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Name", "N", "Project name", GH_ParamAccess.item, "MyStudy");
-            pManager.AddTextParameter("Dir", "D", "Working directory name", GH_ParamAccess.item, @"C:\Temp\Eddy3d");
-            pManager.AddTextParameter("Weather", "W", "Weather filepath", GH_ParamAccess.item, DefaultDirectoriesAndPaths.DefaultWeather);
-
-
-            pManager.AddGenericParameter("System", "RSS", "RadiationSimulationSystem", GH_ParamAccess.item);
+        
+            pManager.AddGenericParameter("Res", "Res", "Radiation Simulation Result", GH_ParamAccess.item);
 
 
             pManager.AddBooleanParameter("Run", "R", "Run simulation", GH_ParamAccess.item, false);
@@ -48,6 +44,9 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
+            pManager.AddGenericParameter("ThermSys", "TS", "Thermal System", GH_ParamAccess.item);
+            pManager.AddTextParameter("Result", "R", "Result file path", GH_ParamAccess.item);
+
         }
 
         /// <summary>
@@ -57,45 +56,30 @@ namespace Eddy.Components.Radiation
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-            string name = "";
-            string workDir = "";
-            string weatherPath = "";
-
-
-            DA.GetData(0, ref name);
-            DA.GetData(1, ref workDir);
-            DA.GetData(2, ref weatherPath);
-
-
+           
             // ---------------------
             // Get the RSurf objects
             // ---------------------
 
             IGH_Goo system = null;
-             if (!DA.GetData(3, ref system)) { }
+             if (!DA.GetData(0, ref system)) { }
 
-            RadiationSimulationSystem RSystem;
+            RadiationSimulationResultProto RSystem;
 
-            if (!system.CastTo<RadiationSimulationSystem>(out RSystem)) return;
+            if (!system.CastTo<RadiationSimulationResultProto>(out RSystem)) return;
 
 
 
 
             bool RUN = false;
             bool HidePopUp = false;
-            DA.GetData(4, ref RUN);
+            DA.GetData(1, ref RUN);
 
 
 
 
 
-
-            if (!File.Exists(weatherPath))
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Weather file could not be found");
-                return;
-            }
-            Weather weather = new Weather(weatherPath);
+ 
 
 
             ThermalSimulation = new ThermalSystem(RSystem);
@@ -125,6 +109,11 @@ namespace Eddy.Components.Radiation
                     }
                 }
             }
+
+
+            DA.SetData(0, ThermalSimulation);
+
+
         }
 
         /// <summary>

@@ -23,21 +23,18 @@ namespace EddyLib.Thermal
         private double stepCnt = 0;
 
 
-
-        RadiationSimulationSystem RSystem;
+        RadiationSimulationResultProto RSystem;
 
         public string ProjectName = "";
         public string BaseWorkingDir = "";
-        public RadiositySystem Radio;
-        public Weather Weather;
-        public ThermalSystem(RadiationSimulationSystem sys)
+         public Weather Weather;
+        public ThermalSystem(RadiationSimulationResultProto sys)
         {
             RSystem = sys;
 
             ProjectName = RSystem.ProjectName;
             BaseWorkingDir = RSystem.BaseWorkingDir;
-            Radio = RSystem.Radio;
-            Weather = RSystem.Weather;
+             Weather = RSystem.Weather;
 
         }
 
@@ -55,15 +52,19 @@ namespace EddyLib.Thermal
                 int surfIndex = 0;
                 int groundIndex = 0;
                 int shaderIndex = 0;
-                foreach (var s in this.Radio.polys)
+                foreach (var s in this.RSystem.Polys)
                 {
-                    if (s.matName == "SKY") { continue; }
-                    else if (s.matName.Contains("Building"))
+                    if (s.Type == RadiationSurfaceType.Sky) { continue; }
+
+                    if (s.SeenByProbes < 0.05) { continue; }
+
+
+                    else if (s.Type == RadiationSurfaceType.Building)
                     {
                         var epsurf = new BuildingSurfaceDetailed();
                         epsurf.ConstructionName = "RedBrick";
                         epsurf.Vertices = new List<DetailedVertex>();
-                        foreach (var v in s.m.Vertices)
+                        foreach (var v in s.Mesh.Value.Vertices)
                         {
                             var dv = new DetailedVertex();
                             dv.X = v.X;
@@ -71,16 +72,16 @@ namespace EddyLib.Thermal
                             dv.Z = v.Z;
                             epsurf.Vertices.Add(dv);
                         }
-                        epsurf.NumberOfVertices = s.m.Vertices.Count;
-                        epjsonObject.AllThermalSurfaces.Add(s.matName + surfIndex, epsurf);
+                        epsurf.NumberOfVertices = s.Mesh.Value.Vertices.Count;
+                        epjsonObject.AllThermalSurfaces.Add(s.ID.ToString(), epsurf);
                         surfIndex++;
                     }
-                    else if (s.matName.Contains("Ground"))
+                    else if (s.Type == RadiationSurfaceType.Ground)
                     {
                         var epsurf = new BuildingSurfaceDetailed();
                         epsurf.ConstructionName = "Asphalt";
                         epsurf.Vertices = new List<DetailedVertex>();
-                        foreach (var v in s.m.Vertices)
+                        foreach (var v in s.Mesh.Value.Vertices)
                         {
                             var dv = new DetailedVertex();
                             dv.X = v.X;
@@ -88,15 +89,32 @@ namespace EddyLib.Thermal
                             dv.Z = v.Z;
                             epsurf.Vertices.Add(dv);
                         }
-                        epsurf.NumberOfVertices = s.m.Vertices.Count;
-                        epjsonObject.AllThermalSurfaces.Add(s.matName + groundIndex, epsurf);
+                        epsurf.NumberOfVertices = s.Mesh.Value.Vertices.Count;
+                        epjsonObject.AllThermalSurfaces.Add(s.ID.ToString(), epsurf);
                         groundIndex++;
                     }
-                    else if (s.matName.Contains("Tree"))
+                    else if (s.Type == RadiationSurfaceType.Vegetation)
+                    {
+                        var epsurf = new BuildingSurfaceDetailed();
+                        epsurf.ConstructionName = "GreenRoofConstruction";
+                        epsurf.Vertices = new List<DetailedVertex>();
+                        foreach (var v in s.Mesh.Value.Vertices)
+                        {
+                            var dv = new DetailedVertex();
+                            dv.X = v.X;
+                            dv.Y = v.Y;
+                            dv.Z = v.Z;
+                            epsurf.Vertices.Add(dv);
+                        }
+                        epsurf.NumberOfVertices = s.Mesh.Value.Vertices.Count;
+                        epjsonObject.AllThermalSurfaces.Add(s.ID.ToString(), epsurf);
+                        groundIndex++;
+                    }
+                    else if (s.Type == RadiationSurfaceType.Tree)
                     {
                         var epsurf = new ShadingBuildingDetailed();
                         epsurf.Vertices = new List<DetailedVertex>();
-                        foreach (var v in s.m.Vertices)
+                        foreach (var v in s.Mesh.Value.Vertices)
                         {
                             var dv = new DetailedVertex();
                             dv.X = v.X;
@@ -104,7 +122,7 @@ namespace EddyLib.Thermal
                             dv.Z = v.Z;
                             epsurf.Vertices.Add(dv);
                         }
-                        epsurf.NumberOfVertices = s.m.Vertices.Count;
+                        epsurf.NumberOfVertices = s.Mesh.Value.Vertices.Count;
                         epjsonObject.AllShaders.Add("Shader" + shaderIndex, epsurf);
                         shaderIndex++;
                     }
@@ -167,11 +185,11 @@ namespace EddyLib.Thermal
 
 
                 energyPlus.Wait();
-                if (!energyPlus.Result.Success)
-                {
-                    Debug.WriteLine($"EnergyPlus command failed with exit code {energyPlus.Result.ExitCode}: {energyPlus.Result.StandardError}");
-                    return null;
-                }
+                //if (!energyPlus.Result.Success)
+                //{
+                //    Debug.WriteLine($"EnergyPlus command failed with exit code {energyPlus.Result.ExitCode}: {energyPlus.Result.StandardError}");
+                //    return null;
+                //}
                 stepCnt++;
                 pct = 100 * stepCnt / steps;
                 Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
@@ -186,6 +204,22 @@ namespace EddyLib.Thermal
                 {
                     Console.WriteLine("Read results...");
                     var res = EsoReader.LoadEsoFile(esofile);
+
+                    foreach (var p in this.RSystem.Polys) {
+
+                        if (res.Any(x => x.zone == p.ID.ToString())){
+
+                            p.SurfaceTemperature = res.First(x => x.zone == p.ID.ToString()).values.ToArray();
+
+
+                        }
+                    }
+
+
+
+                    stepCnt++;
+                    pct = 100 * stepCnt / steps;
+                    Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
                     return res;
                 }
 

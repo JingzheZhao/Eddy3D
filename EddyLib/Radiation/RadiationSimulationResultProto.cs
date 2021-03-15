@@ -21,21 +21,36 @@ namespace EddyLib.Radiation
 
         public RadiationSimulationResultProto() { }
 
-        public RadiationSimulationResultProto(List<RProbe> probes, List<Mesh> meshes)
+        public RadiationSimulationResultProto(string name , string dir , Weather weather ,List<RProbe> probes, List<Mesh> meshes, List <RPolygon> polys)
         {
+            this.ProjectName = name;
+            this.BaseWorkingDir = dir;
+            this.Weather = weather;
             this.Probes = probes;
             this.Meshes = new List<EddyMesh>();
             foreach (var  m in meshes)
             {
                 Meshes.Add(new EddyMesh(m));
             }
+            this.Polys = polys;
         }
 
+
         [ProtoMember(1)]
+        public string ProjectName = "";
+        [ProtoMember(2)]
+        public string BaseWorkingDir = "";
+        [ProtoMember(3)]
+        public Weather Weather;
+
+        [ProtoMember(4)]
         public List<RProbe> Probes { get; set; }
 
-        [ProtoMember(2)]
+        [ProtoMember(5)]
         public List<EddyMesh> Meshes { get; set; }
+
+        [ProtoMember(6)]
+        public List<RPolygon> Polys { get; set; } 
 
 
         public string buffMe()

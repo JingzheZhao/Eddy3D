@@ -118,7 +118,7 @@
     <Compile Include="Radiation\RadiationSimulationResultProto.cs" />
     <Compile Include="Geometry\EddyProbe.cs" />
     <Compile Include="Radiation\RSurface.cs" />
-    <Compile Include="Radiation\RadiositySystem.cs" />
+    <Compile Include="Radiation\Old\RadiositySystem.cs" />
     <Compile Include="Radiation\RPolygon.cs" />
     <Compile Include="Radiation\RProbe.cs" />
     <Compile Include="Thermal\EPJson.cs" />

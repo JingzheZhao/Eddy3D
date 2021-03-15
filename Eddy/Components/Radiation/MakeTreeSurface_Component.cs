@@ -9,13 +9,13 @@ using static EddyLib.Radiation.RSurface;
 
 namespace Eddy.Components.Radiation
 {
-    public class MakeRadiationSurface_Component : GH_Component
+    public class MakeTreeSurface_Component : GH_Component
     {
         /// <summary>
         /// Initializes a new instance of the MakeRadiationMesh_Component class.
         /// </summary>
-        public MakeRadiationSurface_Component()
-          : base("Radiation Surface", "RadSurf", "Radiation Simulation Surface" + EddyVersion.toString(), EddyVersion.Name, "X | Radiation")
+        public MakeTreeSurface_Component()
+          : base("Tree", "Tree", "Tree for Radiation Simulation" + EddyVersion.toString(), EddyVersion.Name, "X | Radiation")
         {
         }
 
@@ -26,18 +26,18 @@ namespace Eddy.Components.Radiation
         {
 
             pManager.AddBrepParameter("Brep", "B", "Radiation surface", GH_ParamAccess.list);
-            //pManager.AddIntegerParameter("Type", "T", "Type", GH_ParamAccess.item, 0);
-
-            //var types = Enum.GetNames(typeof(RSurface.RadiationSurfaceType));
-            //Param_Integer param = pManager[1] as Param_Integer;
-            //for (int i = 0; i < types.Length; i++)
-            //{
-            //    param.AddNamedValue(types[i], i);
-            //}
-
             pManager.AddNumberParameter("Patch", "Ps", "Patch size", GH_ParamAccess.item, 3);
             pManager.AddTextParameter("Material", "M", "Optional Radiance Material", GH_ParamAccess.item, "");
 
+            pManager.AddIntegerParameter("Type", "Type", "Surface Temparature Simulation Type", GH_ParamAccess.item, 1);
+            var types = Enum.GetNames(typeof(SimulationType));
+            Param_Integer param = pManager[3] as Param_Integer;
+            for (int i = 0; i < types.Length; i++)
+            {
+                param.AddNamedValue(types[i], i);
+            }
+            pManager.AddNumberParameter("Temp", "Temp", "Surface Temparature Input", GH_ParamAccess.list);
+            pManager[4].Optional = true;
         }
 
         /// <summary>
@@ -56,18 +56,21 @@ namespace Eddy.Components.Radiation
         {
 
             var breps = new List<Brep>();
-             double patchSize = 2;
+            double patchSize = 2;
             string mat = "";
 
-            if(!DA.GetDataList(0, breps)) return;
-             if (!DA.GetData (1,ref patchSize)) return;
-            if (!DA.GetData (2,ref mat)) return;
+            if (!DA.GetDataList(0, breps)) return;
+            if (!DA.GetData(1, ref patchSize)) return;
+            if (!DA.GetData(2, ref mat)) return;
 
-            RadiationSurfaceType thetype = RadiationSurfaceType.Building;
+            int simType = 0;
+            if (!DA.GetData(3, ref simType)) return;
+            SimulationType simsim = (SimulationType)simType;
+ 
 
-
-            if (String.IsNullOrWhiteSpace(mat)) {
-
+            RadiationSurfaceType thetype = RadiationSurfaceType.Tree;
+            if (String.IsNullOrWhiteSpace(mat))
+            {
                 if (thetype == RadiationSurfaceType.Ground) { mat = RadianceMaterial.DefaultGround; }
                 else if (thetype == RadiationSurfaceType.Building) { mat = RadianceMaterial.DefaultFacade; }
                 else if (thetype == RadiationSurfaceType.Vegetation) { mat = RadianceMaterial.DefaultGrass; }
@@ -78,10 +81,11 @@ namespace Eddy.Components.Radiation
 
             var RSurfs = new List<RSurface>();
 
-            foreach (var b in breps) {
+            foreach (var b in breps)
+            {
 
-                RSurfs.Add(new RSurface("surf", b, thetype, mat, patchSize));
-            
+                RSurfs.Add(new RSurface("tree", b, thetype, mat, patchSize));
+
             }
 
 
@@ -107,7 +111,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("52358012-b580-4a80-8d61-7d02bf600e76"); }
+            get { return new Guid("{EE662406-5CF2-40E3-B128-A751C66247EF}"); }
         }
     }
 }
