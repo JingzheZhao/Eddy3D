@@ -52,8 +52,8 @@ Source: "..\..\Templates\*"; DestDir: "{#TemplatesDir}"; Flags: ignoreversion
 
 #include "Strings\User.txt"
 
-;#include "Strings\AdditionalCOmponents.txt"
-;Source: "{#GDrive}\*"; DestDir: "{#Eddy3DDir}\"; Flags: ignoreversion recursesubdirs
+#include "Strings\AdditionalCOmponents.txt"
+Source: "{#GDrive}\*"; DestDir: "{#Eddy3DDir}\"; Flags: ignoreversion recursesubdirs
 
 
    
