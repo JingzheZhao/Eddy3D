@@ -1,1 +1,1 @@
-#define GDrive "G:\My Drive\Patrick\Eddy\Installer\AdditionalComponents"
+#define GDrive "X:\Patrick\Eddy\Installer\AdditionalComponents"
