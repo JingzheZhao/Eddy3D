@@ -4,7 +4,7 @@
 
 #define MyAppName "Eddy3D"
 #define MyAppPublisher "Patrick Kastner, Timur Dogan"
-#define MyAppURL "http://www.eddy3d.com"
+#define MyAppURL "https://www.eddy3d.com"
 #define MyAppExeName "Eddy3D"
 #define SrcApp "..\..\Eddy\bin\Eddy.gha"
 #define FileVerStr GetFileVersion(SrcApp)
@@ -19,6 +19,7 @@
 AppId={{9A556759-FCEE-44BA-B145-42EA1CBDAF5B}
 AppName={#MyAppName}
 AppVersion={#AppVerStr}
+VersionInfoVersion={#AppVerStr}
 ;AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
@@ -51,8 +52,8 @@ Source: "..\..\Templates\*"; DestDir: "{#TemplatesDir}"; Flags: ignoreversion
 
 #include "Strings\User.txt"
 
-#include "Strings\AdditionalCOmponents.txt"
-Source: "{#GDrive}\*"; DestDir: "{#Eddy3DDir}\"; Flags: ignoreversion recursesubdirs
+;#include "Strings\AdditionalCOmponents.txt"
+;Source: "{#GDrive}\*"; DestDir: "{#Eddy3DDir}\"; Flags: ignoreversion recursesubdirs
 
 
    

@@ -30,6 +30,11 @@
   </tempdir>
   <renaming>
     <option>xmlserialization</option>
+    <excludelist>
+      <assembly>
+        <file dir="${configdir}\..\Eddy\bin" name="Eddy.gha" />
+      </assembly>
+    </excludelist>
     <mapping>
       <mapoutput overwrite="false">
         <file dir="${configdir}\Dotfuscated" name="Map.xml" />
