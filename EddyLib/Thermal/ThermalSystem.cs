@@ -23,7 +23,7 @@ namespace EddyLib.Thermal
         private double stepCnt = 0;
 
 
-        RadiationSimulationResultProto RSystem;
+        MRTSimulationResultProto RSystem;
 
         public string ProjectName = "";
         public string BaseWorkingDir = "";
@@ -32,7 +32,7 @@ namespace EddyLib.Thermal
         public double[] AmbientTemperature;
         public double[] SkyTemperature;
 
-        public ThermalSystem(RadiationSimulationResultProto sys)
+        public ThermalSystem(MRTSimulationResultProto sys)
         {
             RSystem = sys;
 
@@ -287,7 +287,7 @@ namespace EddyLib.Thermal
 
         }
 
-        public RadiationSimulationResultProto SaveResults(bool run, CancellationToken ct)
+        public MRTSimulationResultProto SaveResults(bool run, CancellationToken ct)
         {
 
             // -----------------------------

@@ -17,11 +17,11 @@ using System.Threading;
 namespace EddyLib.Radiation
 {
     [ProtoContract]
-    public class RadiationSimulationResultProto    {
+    public class MRTSimulationResultProto    {
 
-        public RadiationSimulationResultProto() { }
+        public MRTSimulationResultProto() { }
 
-        public RadiationSimulationResultProto(string name , string dir , Weather weather ,List<RProbe> probes, List<Mesh> meshes, List <RPolygon> polys)
+        public MRTSimulationResultProto(string name , string dir , Weather weather ,List<RProbe> probes, List<Mesh> meshes, List <RPolygon> polys)
         {
             this.ProjectName = name;
             this.BaseWorkingDir = dir;
@@ -62,11 +62,11 @@ namespace EddyLib.Radiation
                 return Convert.ToBase64String(ms.GetBuffer(), 0, (int)ms.Length);
             }
         }
-        public static RadiationSimulationResultProto unBuffMe(string txt)
+        public static MRTSimulationResultProto unBuffMe(string txt)
         {
             byte[] arr = Convert.FromBase64String(txt);
             using (MemoryStream ms = new MemoryStream(arr))
-                return ProtoBuf.Serializer.Deserialize<RadiationSimulationResultProto>(ms);
+                return ProtoBuf.Serializer.Deserialize<MRTSimulationResultProto>(ms);
         }
 
         public bool WriteToFile(string path)
@@ -90,10 +90,10 @@ namespace EddyLib.Radiation
             return true;
         }
 
-        public static RadiationSimulationResultProto ReadFromFile(string path)
+        public static MRTSimulationResultProto ReadFromFile(string path)
         {
 
-            RadiationSimulationResultProto result = null;
+            MRTSimulationResultProto result = null;
             using (var br = new BinaryReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)))
             {
                 // read body
@@ -101,7 +101,7 @@ namespace EddyLib.Radiation
                 var bytes = br.ReadBytes(size);
                 using (var ms = new MemoryStream(bytes))
                 {
-                    result = ProtoBuf.Serializer.Deserialize<RadiationSimulationResultProto>(ms);
+                    result = ProtoBuf.Serializer.Deserialize<MRTSimulationResultProto>(ms);
                 }
             }
             return result;

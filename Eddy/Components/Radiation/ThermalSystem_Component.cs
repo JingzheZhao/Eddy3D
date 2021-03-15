@@ -64,9 +64,9 @@ namespace Eddy.Components.Radiation
             IGH_Goo system = null;
              if (!DA.GetData(0, ref system)) { }
 
-            RadiationSimulationResultProto RSystem;
+            MRTSimulationResultProto RSystem;
 
-            if (!system.CastTo<RadiationSimulationResultProto>(out RSystem)) return;
+            if (!system.CastTo<MRTSimulationResultProto>(out RSystem)) return;
 
 
 
