@@ -166,6 +166,21 @@
       "key_value": "*",
       "reporting_frequency": "Hourly",
       "variable_name": "Surface Outside Face Temperature"
+    },
+    "Output:Variable 2": {
+      "key_value": "*",
+      "reporting_frequency": "Hourly",
+      "variable_name": "Site Sky Temperature"
+    },
+    "Output:Variable 3": {
+      "key_value": "*",
+      "reporting_frequency": "Hourly",
+      "variable_name": "Green Roof Soil Temperature"
+    },
+    "Output:Variable 4": {
+      "key_value": "*",
+      "reporting_frequency": "Hourly",
+      "variable_name": "Green Roof Vegetation Temperature"
     }
   },
   "Output:VariableDictionary": {
