@@ -112,7 +112,7 @@ namespace Eddy.Components.Radiation
 
 
             DA.SetData(0, ThermalSimulation);
-
+            DA.SetData(1, ThermalSimulation.BaseWorkingDir + @"\" + ThermalSimulation.ProjectName + ".mrt.eddy");
 
         }
 
@@ -161,14 +161,15 @@ namespace Eddy.Components.Radiation
 
             if (ThermalSimulation == null) return false;
 
-       
-
             if (cts.IsCancellationRequested) return false;
-
-
             var data = ThermalSimulation.RunEP(true, cts.Token);
 
- 
+            if (cts.IsCancellationRequested) return false;
+            ThermalSimulation.ComputeMRT(true, cts.Token);
+
+            if (cts.IsCancellationRequested) return false;
+            var proto  = ThermalSimulation.SaveResults(true, cts.Token);
+
 
             return true;
         }

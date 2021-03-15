@@ -27,15 +27,23 @@ namespace EddyLib.Thermal
 
         public string ProjectName = "";
         public string BaseWorkingDir = "";
-         public Weather Weather;
+        public Weather Weather;
+
+        public double[] AmbientTemperature;
+        public double[] SkyTemperature;
+
         public ThermalSystem(RadiationSimulationResultProto sys)
         {
             RSystem = sys;
 
             ProjectName = RSystem.ProjectName;
             BaseWorkingDir = RSystem.BaseWorkingDir;
-             Weather = RSystem.Weather;
+            Weather = RSystem.Weather;
 
+            AmbientTemperature = Weather.DryBulbTemp;
+
+            var sky = new SkyTemperatureModel(Weather.DewPointTemp, Weather.DryBulbTemp, Weather.TotalSkyCover, Weather.RelativeHumidity, true, SkyTemperatureModel.CalculationType.DefaultClarkAllen);
+            SkyTemperature = sky.Temp;
         }
 
         public List<EsoResult> RunEP(bool run, CancellationToken ct)
@@ -134,11 +142,6 @@ namespace EddyLib.Thermal
 
 
 
-
-
-
-
-
                 // -----------------------------
                 // 1 Write EPJSON
                 // -----------------------------
@@ -196,7 +199,7 @@ namespace EddyLib.Thermal
 
 
                 // -----------------------------
-                // 3 Read data
+                // 3 Read data and store with Polygons
                 // -----------------------------
                 string esofile = (this.BaseWorkingDir + @"\Ep\" + ProjectName + "out.eso");
 
@@ -205,9 +208,11 @@ namespace EddyLib.Thermal
                     Console.WriteLine("Read results...");
                     var res = EsoReader.LoadEsoFile(esofile);
 
-                    foreach (var p in this.RSystem.Polys) {
+                    foreach (var p in this.RSystem.Polys)
+                    {
 
-                        if (res.Any(x => x.zone == p.ID.ToString())){
+                        if (res.Any(x => x.zone == p.ID.ToString()))
+                        {
 
                             p.SurfaceTemperature = res.First(x => x.zone == p.ID.ToString()).values.ToArray();
 
@@ -227,6 +232,88 @@ namespace EddyLib.Thermal
             return null;
 
         }
+
+
+
+        public void ComputeMRT(bool run, CancellationToken ct)
+        {
+
+
+            foreach (var p in RSystem.Probes)
+            {
+
+                p.LongWave_MRT = new float[8760];
+
+                for (int i = 0; i < p.VFtoPolys.Length; i++)
+                {
+
+
+                    var poly = RSystem.Polys[i];
+
+
+
+                    /// ------------------
+                    /// Logic for picking surface temperatures. Come from different sources depending on the object type.
+                    /// ------------------
+
+                    if (poly.SurfaceTemperature != null)
+                    {
+                        for (int h = 0; h < p.LongWave_MRT.Length; h++)
+                        {
+                            p.LongWave_MRT[h] += (float)(poly.SurfaceTemperature[h] * p.VFtoPolys[i]);
+                        }
+                    }
+                    else if (poly.Type == RadiationSurfaceType.Sky)
+                    {
+                        for (int h = 0; h < p.LongWave_MRT.Length; h++)
+                        {
+                            p.LongWave_MRT[h] += (float)(SkyTemperature[h] * p.VFtoPolys[i]);
+                        }
+                    }
+                    else
+                    {
+                        for (int h = 0; h < p.LongWave_MRT.Length; h++)
+                        {
+                            p.LongWave_MRT[h] += (float)(AmbientTemperature[h] * p.VFtoPolys[i]);
+                        }
+                    }
+
+
+                }
+
+
+            }
+
+
+        }
+
+        public RadiationSimulationResultProto SaveResults(bool run, CancellationToken ct)
+        {
+
+            // -----------------------------
+            // Write results
+            // -----------------------------
+            var prep = PrepareProtoBufSingleton.Instance;
+
+            Stopwatch sp = new Stopwatch();
+            sp.Start();
+
+
+            RSystem.WriteToFile(this.BaseWorkingDir + @"\" + this.ProjectName + ".mrt.eddy");
+
+            Debug.WriteLine("Results Proto: " + sp.ElapsedMilliseconds);
+
+
+
+            Console.WriteLine("Results written");
+            stepCnt++;
+            pct = 100 * stepCnt / steps;
+            Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+
+            return RSystem;
+
+        }
+
 
     }
 }

@@ -43,7 +43,8 @@ namespace EddyLib.Radiation
         public float[] DirRad { get; set; }
         [ProtoMember(112)]
         public float[] SolarGain_dMRT { get; set; }
-
+        [ProtoMember(113)]
+        public float[] LongWave_MRT { get; set; }
 
     }
 }

@@ -170,7 +170,7 @@ namespace Eddy
 
             if (RadiationSimulation != null)
             {
-                string resultFilePath = RadiationSimulation.BaseWorkingDir + "/" + RadiationSimulation.ProjectName + ".eddy";
+                string resultFilePath = RadiationSimulation.BaseWorkingDir + "/" + RadiationSimulation.ProjectName + ".rad.eddy";
                 DA.SetData(1, resultFilePath);
             }
         }

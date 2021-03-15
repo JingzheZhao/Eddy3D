@@ -646,7 +646,7 @@ namespace EddyLib.Radiation
 
 
             var protoResult = new RadiationSimulationResultProto(this.ProjectName, this.BaseWorkingDir, this.Weather, this.RProbes, this.ProbeMeshes, this.Polys);
-            protoResult.WriteToFile(this.BaseWorkingDir + @"\" + this.ProjectName + ".eddy");
+            protoResult.WriteToFile(this.BaseWorkingDir + @"\" + this.ProjectName + ".rad.eddy");
 
             sp.Stop();
             Debug.WriteLine("Results Proto: " + sp.ElapsedMilliseconds);
