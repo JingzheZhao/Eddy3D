@@ -19,13 +19,14 @@ namespace EddyLib.Radiation
 
         public RadiationSurfaceType Type;
         public SimulationType SimulationType;
+        public float[] TemperatureOverride;
 
         public double PatchSize;
 
         public string MaterialID;
         public string Material;
         public RSurface() { }
-        public RSurface(string name, Brep b, RadiationSurfaceType type, string material, double patchSize = 3)
+        public RSurface(string name, Brep b, RadiationSurfaceType type, SimulationType simtype, string material, double patchSize = 3)
         {
             Name = name;
             Surface = b;
@@ -38,7 +39,7 @@ namespace EddyLib.Radiation
 
             //Material = refl > 1 ? 1 : refl;
             Type = type;
-
+            SimulationType = simtype;
 
             // simple mesh for rad sim and obstruction calculation
             MeshingParameters mp_low = new MeshingParameters();

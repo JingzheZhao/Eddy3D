@@ -123,6 +123,7 @@
     <Compile Include="Radiation\RProbe.cs" />
     <Compile Include="Thermal\EPJson.cs" />
     <Compile Include="Thermal\EsoReader.cs" />
+    <Compile Include="Thermal\LongWaveInjectedIDFCode.cs" />
     <Compile Include="Thermal\ThermalSystem.cs" />
     <Compile Include="UI\Attributes\Eddy_ComponentAttributes.cs" />
     <Compile Include="UI\Attributes\Eddy_ComponentButtonAttributes.cs" />

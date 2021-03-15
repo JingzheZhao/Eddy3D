@@ -26,18 +26,18 @@ namespace Eddy.Components.Radiation
         {
 
             pManager.AddBrepParameter("Brep", "B", "Radiation surface", GH_ParamAccess.list);
-            //pManager.AddIntegerParameter("Type", "T", "Type", GH_ParamAccess.item, 0);
-
-            //var types = Enum.GetNames(typeof(RSurface.RadiationSurfaceType));
-            //Param_Integer param = pManager[1] as Param_Integer;
-            //for (int i = 0; i < types.Length; i++)
-            //{
-            //    param.AddNamedValue(types[i], i);
-            //}
-
             pManager.AddNumberParameter("Patch", "Ps", "Patch size", GH_ParamAccess.item, 3);
             pManager.AddTextParameter("Material", "M", "Optional Radiance Material", GH_ParamAccess.item, "");
 
+            pManager.AddIntegerParameter("SimType", "Sts", "Surface Temparature Simulation Type", GH_ParamAccess.item, 1);
+            var types = Enum.GetNames(typeof(SimulationType));
+            Param_Integer param = pManager[3] as Param_Integer;
+            for (int i = 0; i < types.Length; i++)
+            {
+                param.AddNamedValue(types[i], i);
+            }
+            pManager.AddNumberParameter("Temp", "Temp", "Surface Temparature Input", GH_ParamAccess.list);
+            pManager[4].Optional = true;
         }
 
         /// <summary>
@@ -56,17 +56,17 @@ namespace Eddy.Components.Radiation
         {
 
             var breps = new List<Brep>();
-             double patchSize = 2;
+            double patchSize = 2;
             string mat = "";
 
-            if(!DA.GetDataList(0, breps)) return;
-             if (!DA.GetData (1,ref patchSize)) return;
-            if (!DA.GetData (2,ref mat)) return;
+            if (!DA.GetDataList(0, breps)) return;
+            if (!DA.GetData(1, ref patchSize)) return;
+            if (!DA.GetData(2, ref mat)) return;
+
 
             RadiationSurfaceType thetype = RadiationSurfaceType.Vegetation;
-
-
-            if (String.IsNullOrWhiteSpace(mat)) {
+            if (String.IsNullOrWhiteSpace(mat))
+            {
 
                 if (thetype == RadiationSurfaceType.Ground) { mat = RadianceMaterial.DefaultGround; }
                 else if (thetype == RadiationSurfaceType.Building) { mat = RadianceMaterial.DefaultFacade; }
@@ -76,12 +76,47 @@ namespace Eddy.Components.Radiation
             }
 
 
+            int simType = 0;
+            if (!DA.GetData(3, ref simType)) return;
+            SimulationType simsim = (SimulationType)simType;
+
+
+
+
+            float[] toverride = new float[8760];
+            List<double> temperatureOverride = new List<double>();
+            if (DA.GetDataList(4, temperatureOverride))
+            {
+                if (temperatureOverride.Count < 8760 && temperatureOverride.Count > 0)
+                {
+                    int cnt = 0;
+                    while (cnt < 8760)
+                    {
+                        for (int i = 0; i < temperatureOverride.Count; i++)
+                        {
+                            if (cnt >= 8760) { break; }
+                            toverride[cnt] = (float)temperatureOverride[i];
+                            cnt++;
+                        }
+                    }
+                }
+            }
+
+
+
+
+
             var RSurfs = new List<RSurface>();
 
-            foreach (var b in breps) {
+            foreach (var b in breps)
+            {
+                var rs = new RSurface("vegetation", b, thetype, simsim, mat, patchSize);
+                if (simsim == SimulationType.TemperatureInput)
+                {
+                    rs.TemperatureOverride = toverride;
+                }
+                RSurfs.Add(rs);
 
-                RSurfs.Add(new RSurface("vegetation", b, thetype, mat, patchSize));
-            
             }
 
 

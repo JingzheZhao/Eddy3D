@@ -29,7 +29,7 @@ namespace Eddy.Components.Radiation
             pManager.AddNumberParameter("Patch", "Ps", "Patch size", GH_ParamAccess.item, 3);
             pManager.AddTextParameter("Material", "M", "Optional Radiance Material", GH_ParamAccess.item, "");
 
-            pManager.AddIntegerParameter("Type", "Type", "Surface Temparature Simulation Type", GH_ParamAccess.item, 1);
+            pManager.AddIntegerParameter("SimType", "Sts", "Surface Temparature Simulation Type", GH_ParamAccess.item, 1);
             var types = Enum.GetNames(typeof(SimulationType));
             Param_Integer param = pManager[3] as Param_Integer;
             for (int i = 0; i < types.Length; i++)
@@ -66,7 +66,7 @@ namespace Eddy.Components.Radiation
             int simType = 0;
             if (!DA.GetData(3, ref simType)) return;
             SimulationType simsim = (SimulationType)simType;
- 
+
 
             RadiationSurfaceType thetype = RadiationSurfaceType.Tree;
             if (String.IsNullOrWhiteSpace(mat))
@@ -79,13 +79,33 @@ namespace Eddy.Components.Radiation
             }
 
 
-            var RSurfs = new List<RSurface>();
+           float[] toverride = new float[8760];
+            List<double> temperatureOverride = new List<double>();
 
+            if (DA.GetDataList(4, temperatureOverride))
+            {
+                if (temperatureOverride.Count < 8760 && temperatureOverride.Count > 0)
+                {
+                    int cnt = 0;
+                    while (cnt < 8760) {
+                        for (int i = 0; i < temperatureOverride.Count; i++) {
+                            if (cnt >= 8760) { break; }
+                            toverride[cnt] = (float)temperatureOverride[i];
+                            cnt++;
+                        }
+                    }
+                }
+            }
+
+
+            var RSurfs = new List<RSurface>();
             foreach (var b in breps)
             {
-
-                RSurfs.Add(new RSurface("tree", b, thetype, mat, patchSize));
-
+                var rs = new RSurface("tree", b, thetype, simsim, mat, patchSize);
+                if (simsim == SimulationType.TemperatureInput) {
+                    rs.TemperatureOverride = toverride;
+                }
+                RSurfs.Add(rs);
             }
 
 
