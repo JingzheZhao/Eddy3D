@@ -240,100 +240,13 @@ SET numerics=$(SolutionDir)packages\MathNet.Numerics.4.11.0\lib\net461\MathNet.N
 SET protobuf=$(SolutionDir)packages\protobuf-net.3.0.73\lib\net461\protobuf-net.dll
 
 
-REM echo %25ilrepack%25
-REM echo %25build_eddylib%25
-REM echo %25build_eddy%25
-REM echo %25build_batchrunner%25
-REM echo %25post_build_ilmerge%25
-
-echo robocopy "%25build_eddy%25" "%25post_build_dotfuscated%25"  /E
-echo robocopy "%25build_eddylib%25"  "%25post_build_dotfuscated%25"  /E
-
-echo copy "%25post_build_dotfuscated%25\Eddy.gha" "%25post_build_ilmerge%25" /Y
-echo copy "%25post_build_dotfuscated%25\EddyLib.dll" "%25post_build_ilmerge%25" /Y
-
-echo  "%25ilrepack%25" /out:"%25post_build_ilmerge%25\EddyLib.dll" "%25cliapp%25" "%25cappl%25" "%25post_build_ilmerge%25\EddyLib.dll" "%25medallionShell%25" "%25json%25" "%25bson%25" "%25numerics%25" "%25protobuf%25"
-
-echo copy "%25post_build_ilmerge%25\Eddy.gha" "%25installation_folder%25" /Y
-echo copy "%25post_build_ilmerge%25\EddyLib.dll" "%25installation_folder%25" /Y
-echo copy "%25build_batchrunner%25\CallBatchRunner.exe" "%25installation_folder%25" /Y
-echo copy %25protobuf%25 "%25installation_folder%25" /Y
-
-
-REM 
-REM
-REM
-
-echo ""
-echo "***"
-echo "COPY TO DOTFUSCATOR"
-echo "***"
-echo ""
-
-REM xcopy "$(ProjectDir)ApplicationFiles" "$(TargetDir)ApplicationFiles" 
 
 
 
-robocopy "%25build_eddy%25" "%25post_build_dotfuscated%25"  /E
-robocopy "%25build_eddylib%25"  "%25post_build_dotfuscated%25"  /E
-
-
-echo ""
-echo "***"
-echo "DOTFUSCATE"
-echo "***"
-echo ""
-
-if $(ConfigurationName)==Release (
-echo "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\PreEmptiveSolutions\DotfuscatorCE\dotfuscatorCLI.exe" "%25post_build%25\Dotfuscator.xml"
-"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\PreEmptiveSolutions\DotfuscatorCE\dotfuscatorCLI.exe" "%25post_build%25\Dotfuscator.xml"
-)
-
-echo ""
-echo "***"
-echo "COPY TO ILMERGE"
-echo "***"
-echo ""
-
-copy "%25protobuf%25" "%25post_build_ilmerge%25" /Y
-copy "%25post_build_dotfuscated%25\Eddy.gha" "%25post_build_ilmerge%25" /Y
-copy "%25post_build_dotfuscated%25\EddyLib.dll" "%25post_build_ilmerge%25" /Y
-
-
-REM copy "%25build_eddy%25\Eddy.gha" "%25post_build_ilmerge%25"
-REM copy "%25build_calloc%25\CallOC.exe" "%25post_build_ilmerge%25"
-REM copy "%25build_callprobes%25\CallProbes.exe" "%25post_build_ilmerge%25"
-REM copy "%25build_callray%25\CallRay.exe" "%25post_build_ilmerge%25"
-REM copy "%25build_callof%25\CallOF.exe" "%25post_build_ilmerge%25"
-REM copy "%25build_calloc%25\CallOC.exe" "%25post_build_dotfuscated%25"
-REM copy "%25build_batchrunner%25\CallBatchRunner.exe" "%25post_build_dotfuscated%25"
-REM copy "%25build_callprobes%25\CallProbes.exe" "%25post_build_dotfuscated%25"
-REM copy "%25build_callray%25\CallRay.exe" "%25post_build_dotfuscated%25"
-REM copy "%25build_callof%25\CallOF.exe" "%25post_build_dotfuscated%25"
-
-echo ""
-echo "***"
-echo "ILMERGE"
-echo "***"
-echo ""
-
-REM "%25gh%25" "%25rhc%25"
-
-"%25ilrepack%25" /out:"%25post_build_ilmerge%25\EddyLib.dll" "%25cliapp%25" "%25cappl%25" "%25post_build_ilmerge%25\EddyLib.dll" "%25medallionShell%25" "%25json%25" "%25bson%25"  "%25numerics%25" "%25protobuf%25"
-
-echo ""
-echo "***"
-echo "COPY TO %25installation_folder%25"
-echo "***"
-echo ""
-
-
-
-copy "%25post_build_dotfuscated%25\Eddy.gha" "%25installation_folder%25" /Y
-copy "%25post_build_ilmerge%25\Eddy.gha" "%25installation_folder%25" /Y
-copy "%25post_build_ilmerge%25\EddyLib.dll" "%25installation_folder%25" /Y
-copy "%25build_batchrunner%25\CallBatchRunner.exe" "%25installation_folder%25" /Y
-copy "%25protobuf%25" "%25installation_folder%25" /Y</PostBuildEvent>
+if $(ConfigurationName)==Debug (
+echo robocopy "%25build_eddy%25" "%25installation_folder%25" /E
+robocopy "%25build_eddy%25" "%25installation_folder%25" /E
+)</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>echo ""
