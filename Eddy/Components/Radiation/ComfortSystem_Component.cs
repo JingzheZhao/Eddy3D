@@ -22,7 +22,7 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the ThermalSystem_Component class.
         /// </summary>
         public ComfortSystem_Component()
-          : base("Comfort", "Comf", "Comfort System  " + EddyVersion.toString(), EddyVersion.Name, "X | Radiation")
+          : base("Comfort", "Comf", "Comfort System " + EddyVersion.toString(), EddyVersion.Name, "X | Radiation")
         {
         }
 
@@ -32,9 +32,11 @@ namespace Eddy.Components.Radiation
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
         
-            pManager.AddGenericParameter("VRes", "VRes", "Wind Velocity Simulation Result", GH_ParamAccess.item);
-            pManager.AddGenericParameter("MRTRes", "MRTRes", "MRT Simulation Result", GH_ParamAccess.item);
+          
 
+            pManager.AddGenericParameter("MRTRes", "MRTRes", "MRT Simulation Result", GH_ParamAccess.item);
+            pManager.AddGenericParameter("VRes", "VRes", "Wind Velocity Simulation Result", GH_ParamAccess.item);
+            pManager[1].Optional = true;
 
             pManager.AddBooleanParameter("Run", "R", "Run simulation", GH_ParamAccess.item, false);
         }
@@ -73,7 +75,7 @@ namespace Eddy.Components.Radiation
 
             bool RUN = false;
             bool HidePopUp = false;
-            DA.GetData(1, ref RUN);
+            DA.GetData(2, ref RUN);
 
 
 
@@ -112,7 +114,7 @@ namespace Eddy.Components.Radiation
 
 
             DA.SetData(0, System);
-            DA.SetData(1, System.BaseWorkingDir + @"\" + System.ProjectName + ".UTCI.eddy");
+            DA.SetData(1, System.BaseWorkingDir + @"\" + System.ProjectName + ".utci.eddy");
 
         }
 

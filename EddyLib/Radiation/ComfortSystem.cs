@@ -53,6 +53,8 @@ namespace EddyLib.Radiation
         public void ComputeUTCI(bool run, CancellationToken ct)
         {
 
+            steps = RSystem.Probes.Count;
+
             System.Threading.Tasks.Parallel.For(0, RSystem.Probes.Count, i =>
             {
                 var probe = RSystem.Probes[i];
@@ -95,6 +97,10 @@ namespace EddyLib.Radiation
                     double utci = UTCI.CalcUTCI(this.Weather.DryBulbTemp[h], this.Weather.RelativeHumidity[h], windspeed[h], mrt[h]);
                     probe.UTCI[h] = (float) utci;
                 }
+
+                stepCnt++;
+                pct = 100 * stepCnt / steps;
+                Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
             });
 
 
@@ -110,7 +116,7 @@ namespace EddyLib.Radiation
             var prep = PrepareProtoBufSingleton.Instance;
 
 
-            RSystem.WriteToFile(this.BaseWorkingDir + @"\" + this.ProjectName + ".mrt.eddy");
+            RSystem.WriteToFile(this.BaseWorkingDir + @"\" + this.ProjectName + ".utci.eddy");
 
             Console.WriteLine("Results written");
             stepCnt++;
