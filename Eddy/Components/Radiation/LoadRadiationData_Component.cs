@@ -25,7 +25,7 @@ namespace Eddy.Components.Radiation
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("Path", "P", "Result path", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("Hour", "H", "Hour", GH_ParamAccess.item, 12);
+            //pManager.AddIntegerParameter("Hour", "H", "Hour", GH_ParamAccess.item, 12);
             pManager.AddBooleanParameter("Load", "L", "Load data from disk", GH_ParamAccess.item, false);
 
         }
@@ -35,12 +35,14 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Result", "Res", "Result object", GH_ParamAccess.item);
-            pManager.AddMeshParameter("Meshes", "M", "Analysis meshes", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Probes", "P", "Analysis probes", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Result", "Res", "Result object containing probes, polygons and result data", GH_ParamAccess.item);
 
-            pManager.AddNumberParameter("Hour", "H", "Data for each mesh vertex for the selected hour", GH_ParamAccess.list);
-        }
+            pManager.AddGenericParameter("Probes", "Prb", "Analysis probes", GH_ParamAccess.list);
+            
+            pManager.AddGenericParameter("Polys", "Ply", "Polygons", GH_ParamAccess.list);
+           
+            //pManager.AddMeshParameter("Meshes", "M", "Analysis meshes", GH_ParamAccess.list);
+         }
 
         /// <summary>
         /// This is the method that actually does the work.
@@ -50,12 +52,12 @@ namespace Eddy.Components.Radiation
         {
 
             string filePath = "";
-            int hour = 0;
+            //int hour = 0;
             bool run = false;
 
             DA.GetData(0, ref filePath);
-            DA.GetData(1, ref hour);
-            DA.GetData(2, ref run);
+            //DA.GetData(1, ref hour);
+            DA.GetData(1, ref run);
 
 
             if (!run) return;
@@ -83,21 +85,23 @@ namespace Eddy.Components.Radiation
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Result file could not be deserialized. Are you loading a wrong file type? " + Environment.NewLine + e.Message);
                 return;
-
             }
 
             if (resultProto != null)
             {
                 DA.SetData(0, resultProto);
-                if (resultProto.Meshes != null)
-                {
-                    DA.SetDataList(1, resultProto.Meshes.Select(x => x.Value));
-                }
-                DA.SetDataList(2, resultProto.Probes);
-                if (resultProto.Probes != null)
-                {
-                    DA.SetDataList(3, resultProto.Probes.Select(x => x.TotalRad[hour]));
-                }
+                
+                DA.SetDataList(1, resultProto.Probes);
+                DA.SetDataList(2, resultProto.Polys);
+
+                //if (resultProto.Meshes != null)
+                //{
+                //    DA.SetDataList(3, resultProto.Meshes.Select(x => x.Value));
+                //}
+                //if (resultProto.Probes != null)
+                //{
+                //    DA.SetDataList(3, resultProto.Probes.Select(x => x.TotalRad[hour]));
+                //}
             }
         }
 

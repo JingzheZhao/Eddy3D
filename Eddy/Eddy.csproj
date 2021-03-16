@@ -86,6 +86,7 @@
     <Compile Include="Components\Radiation\MakeRadiationSurface_Component.cs" />
     <Compile Include="Components\Radiation\RadiationSystem_Component.cs" />
     <Compile Include="Components\Radiation\SkyTemperature_Component.cs" />
+    <Compile Include="Components\Radiation\ComfortSystem_Component.cs" />
     <Compile Include="Components\Radiation\ThermalSystem_Component.cs" />
     <Compile Include="Components\Settings\CompRunSettings.cs" />
     <Compile Include="Components\Setup\CompTemplates.cs" />
