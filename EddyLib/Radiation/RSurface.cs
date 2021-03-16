@@ -64,6 +64,9 @@ namespace EddyLib.Radiation
 
             MakePolys();
         }
+
+
+
         private void MakePolys(double rad = 0, double refl =0.5)
         {
             Polys = new List<RPolygon>();
@@ -72,10 +75,16 @@ namespace EddyLib.Radiation
     
             _ms.FaceNormals.ComputeFaceNormals();
 
+ 
+
             for (int i = 0; i < _ms.Faces.Count; ++i)
             {
                 RPolygon pg = new RPolygon();
                 Polys.Add(pg);
+
+                if (this.TemperatureOverride != null) {
+                    pg.TemperatureOverride = this.TemperatureOverride;
+                }
 
                 pg.Centroid.Value = _ms.Faces.GetFaceCenter(i);
                 pg.Normal.Value = _ms.FaceNormals[i];

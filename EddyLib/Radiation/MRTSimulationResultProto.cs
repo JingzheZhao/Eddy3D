@@ -45,10 +45,8 @@ namespace EddyLib.Radiation
 
         [ProtoMember(4)]
         public List<RProbe> Probes { get; set; }
-
         [ProtoMember(5)]
         public List<EddyMesh> Meshes { get; set; }
-
         [ProtoMember(6)]
         public List<RPolygon> Polys { get; set; } 
 

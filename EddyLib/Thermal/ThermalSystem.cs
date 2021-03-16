@@ -210,17 +210,22 @@ namespace EddyLib.Thermal
 
                     foreach (var p in this.RSystem.Polys)
                     {
-
-                        if (res.Any(x => x.zone == p.ID.ToString()))
+                        if (p.Type == RadiationSurfaceType.Vegetation && p.SimulationType == SimulationType.Simulated)
                         {
-
-                            p.SurfaceTemperature = res.First(x => x.zone == p.ID.ToString()).values.ToArray();
-
-
+                            var tag = "Green Roof Vegetation Temperature";
+                            if (res.Any(x =>   x.tag == tag))
+                            {
+                                p.SurfaceTemperature = res.First(x =>   x.tag == tag).values.ToArray();
+                            }
+                        }
+                        else
+                        {
+                            if (res.Any(x => x.zone == p.ID.ToString()))
+                            {
+                                p.SurfaceTemperature = res.First(x => x.zone == p.ID.ToString()).values.ToArray();
+                            }
                         }
                     }
-
-
 
                     stepCnt++;
                     pct = 100 * stepCnt / steps;
@@ -268,6 +273,13 @@ namespace EddyLib.Thermal
                         for (int h = 0; h < p.LongWave_MRT.Length; h++)
                         {
                             p.LongWave_MRT[h] += (float)(SkyTemperature[h] * p.VFtoPolys[i]);
+                        }
+                    }
+                    else if (poly.SimulationType == SimulationType.TemperatureInput && poly.TemperatureOverride != null)
+                    {
+                        for (int h = 0; h < p.LongWave_MRT.Length; h++)
+                        {
+                            p.LongWave_MRT[h] += (float)(poly.TemperatureOverride[h] * p.VFtoPolys[i]);
                         }
                     }
                     else

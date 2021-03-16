@@ -57,6 +57,9 @@ namespace EddyLib.Radiation
         public int ID { get; set; }
 
 
+        [ProtoMember(99)]
+        public float[] TemperatureOverride { get; set; }
+
         [ProtoMember(100)]
         public double[] SurfaceTemperature { get; set; }
 
