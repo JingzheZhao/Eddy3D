@@ -16,7 +16,7 @@ namespace Eddy
     public class RadiationSystem_Component : GH_Component
     {
 
-        RadiationSimulationSystem RadiationSimulation;
+        RadiationSystem RadiationSimulation;
 
 
 
@@ -139,7 +139,7 @@ namespace Eddy
                 RadProbes.Add(new RProbe(p.Point, p.Normal));
             }
 
-            RadiationSimulation = new RadiationSimulationSystem(name, workDir, weather, modelRSurfaces, probeMeshes, RadProbes);
+            RadiationSimulation = new RadiationSystem(name, workDir, weather, modelRSurfaces, probeMeshes, RadProbes);
 
             // redirect stderr
             var errors = new StringWriter();

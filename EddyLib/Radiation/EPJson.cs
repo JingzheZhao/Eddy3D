@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EddyLib.Thermal
+namespace EddyLib.Radiation
 {
    public class EPJson
     {
@@ -119,7 +119,7 @@ namespace EddyLib.Thermal
         public string ViewFactorToGround { get; set; } = "Autocalculate";
 
         [JsonProperty("wind_exposure", NullValueHandling = NullValueHandling.Ignore)]
-        public WindExposure? WindExposure { get; set; } = Thermal.WindExposure.WindExposed;
+        public WindExposure? WindExposure { get; set; } = Radiation.WindExposure.WindExposed;
 
         [JsonProperty("zone_name")]
         public string ZoneName { get; set; } = "UNZ_0";

@@ -1,13 +1,9 @@
 ﻿using EddyLib;
 using EddyLib.Radiation;
-using EddyLib.Thermal;
 using EddyLib.UI;
 using Grasshopper.Kernel;
-using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
-using Rhino.Geometry;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;

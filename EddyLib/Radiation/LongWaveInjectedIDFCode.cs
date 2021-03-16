@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EddyLib.Thermal
+namespace EddyLib.Radiation
 {
     class LongWaveInjectedIDFCode
     {

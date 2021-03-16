@@ -46,5 +46,27 @@ namespace EddyLib.Radiation
         [ProtoMember(113)]
         public float[] LongWave_MRT { get; set; }
 
+
+        [ProtoMember(130)]
+        public float[] WindSpeed { get; set; }
+
+
+
+        [ProtoMember(200)]
+        public float[] UTCI { get; set; }
+
+
+
+        [ProtoMember(201)]
+        public float ComfortAutonomy_Spring { get; set; }
+        [ProtoMember(202)]
+        public float ComfortAutonomy_Summer { get; set; }
+        [ProtoMember(203)]
+        public float ComfortAutonomy_Fall { get; set; }
+        [ProtoMember(204)]
+        public float ComfortAutonomy_Winter { get; set; }
+      
+
+
     }
 }

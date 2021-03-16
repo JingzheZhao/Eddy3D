@@ -81,6 +81,7 @@
     <Compile Include="Components\postProcessing\CompVisProbesCustom.cs" />
     <Compile Include="Components\Radiation\LoadRadiationData_Component.cs" />
     <Compile Include="Components\MakeSensor_Component.cs" />
+    <Compile Include="Components\Radiation\MakeGroundSurface_Component.cs" />
     <Compile Include="Components\Radiation\MakeTreeSurface_Component.cs" />
     <Compile Include="Components\Radiation\MakeVegetationSurface_Component.cs" />
     <Compile Include="Components\Radiation\MakeRadiationSurface_Component.cs" />
@@ -250,7 +251,17 @@
   <PropertyGroup>
     <PostBuildEvent>Copy "$(TargetPath)" "$(TargetDir)$(ProjectName).gha"
 Erase "$(TargetPath)"
-</PostBuildEvent>
+
+SET build_eddy=$(SolutionDir)Eddy\bin
+SET build_batchrunner=$(SolutionDir)CallBatchRunner\bin
+SET installation_folder=C:\Eddy3D
+ 
+if $(ConfigurationName)==Debug (
+xcopy /e /v /c /y "%25build_eddy%25" "%25installation_folder%25" 
+)
+if $(ConfigurationName)==Release (
+xcopy /e /v /c /y "%25build_eddy%25" "%25installation_folder%25" 
+)</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <FallbackCulture>en-US</FallbackCulture>

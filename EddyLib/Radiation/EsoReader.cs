@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
  
 using ProtoBuf;
 
-namespace EddyLib.Thermal
+namespace EddyLib.Radiation
 {
     public enum esoType
     {

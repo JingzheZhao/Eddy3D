@@ -14,7 +14,7 @@ namespace EddyLib.Radiation
 {
 
 
-    public class RadiationSimulationSystem
+    public class RadiationSystem
     {
         public string ProjectName = "";
         public string BaseWorkingDir = "";
@@ -29,7 +29,7 @@ namespace EddyLib.Radiation
         public List<RPolygon> Polys = new List<RPolygon>();
 
         public Weather Weather;
-        public RadiationSimulationSystem(string filename, string baseWorkingDir, Weather weather, List<RSurface> rsurfaces, List<Mesh> probe_meshes, List<RProbe> rprobes)
+        public RadiationSystem(string filename, string baseWorkingDir, Weather weather, List<RSurface> rsurfaces, List<Mesh> probe_meshes, List<RProbe> rprobes)
         {
             ProjectName = filename;
             BaseWorkingDir = baseWorkingDir;

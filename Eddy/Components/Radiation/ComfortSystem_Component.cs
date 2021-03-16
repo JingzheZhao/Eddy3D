@@ -1,6 +1,5 @@
 ﻿using EddyLib;
 using EddyLib.Radiation;
-using EddyLib.Thermal;
 using EddyLib.UI;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
@@ -17,7 +16,7 @@ namespace Eddy.Components.Radiation
     public class ComfortSystem_Component : GH_Component
     {
 
-        ThermalSystem ThermalSimulation;
+        ComfortSystem System;
 
         /// <summary>
         /// Initializes a new instance of the ThermalSystem_Component class.
@@ -33,7 +32,8 @@ namespace Eddy.Components.Radiation
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
         
-            pManager.AddGenericParameter("Res", "Res", "Radiation Simulation Result", GH_ParamAccess.item);
+            pManager.AddGenericParameter("VRes", "VRes", "Wind Velocity Simulation Result", GH_ParamAccess.item);
+            pManager.AddGenericParameter("MRTRes", "MRTRes", "MRT Simulation Result", GH_ParamAccess.item);
 
 
             pManager.AddBooleanParameter("Run", "R", "Run simulation", GH_ParamAccess.item, false);
@@ -44,7 +44,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("ThermSys", "TS", "Thermal System", GH_ParamAccess.item);
+            pManager.AddGenericParameter("ComfSys", "CS", "Comf System", GH_ParamAccess.item);
             pManager.AddTextParameter("Result", "R", "Result file path", GH_ParamAccess.item);
 
         }
@@ -82,7 +82,7 @@ namespace Eddy.Components.Radiation
  
 
 
-            ThermalSimulation = new ThermalSystem(RSystem);
+            System = new ComfortSystem(RSystem);
 
 
 
@@ -111,8 +111,8 @@ namespace Eddy.Components.Radiation
             }
 
 
-            DA.SetData(0, ThermalSimulation);
-            DA.SetData(1, ThermalSimulation.BaseWorkingDir + @"\" + ThermalSimulation.ProjectName + ".mrt.eddy");
+            DA.SetData(0, System);
+            DA.SetData(1, System.BaseWorkingDir + @"\" + System.ProjectName + ".UTCI.eddy");
 
         }
 
@@ -159,16 +159,15 @@ namespace Eddy.Components.Radiation
         public bool RunSlowSimulation(CancellationTokenSource cts, int nthreads = 1)
         {
 
-            if (ThermalSimulation == null) return false;
+            if (System == null) return false;
+
+            
 
             if (cts.IsCancellationRequested) return false;
-            var data = ThermalSimulation.RunEP(true, cts.Token);
+            System.ComputeUTCI(true, cts.Token);
 
             if (cts.IsCancellationRequested) return false;
-            ThermalSimulation.ComputeMRT(true, cts.Token);
-
-            if (cts.IsCancellationRequested) return false;
-            var proto  = ThermalSimulation.SaveResults(true, cts.Token);
+            var proto  = System.SaveResults(true, cts.Token);
 
 
             return true;

@@ -13,7 +13,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EddyLib.Thermal
+namespace EddyLib.Radiation
 {
     public class ThermalSystem
     {
