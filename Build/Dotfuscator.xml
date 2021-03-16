@@ -17,6 +17,7 @@
       <inputassembly refid="f05189db-1639-43d3-9f32-b83c879d630e">
         <option>honoroas</option>
         <option>stripoa</option>
+        <option>library</option>
         <option>transformxaml</option>
         <file dir="${configdir}\..\EddyLib\bin" name="EddyLib.dll" />
       </inputassembly>
