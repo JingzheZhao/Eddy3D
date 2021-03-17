@@ -67,7 +67,7 @@ namespace Eddy.Components.Radiation
              if (!DA.GetData(0, ref system)) { }
 
             MRTSimulationResultProto RSystem;
-
+            if (system == null) return;
             if (!system.CastTo<MRTSimulationResultProto>(out RSystem)) return;
 
 

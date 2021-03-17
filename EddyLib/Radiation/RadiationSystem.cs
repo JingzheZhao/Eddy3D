@@ -201,7 +201,8 @@ namespace EddyLib.Radiation
                 // 1 Convert epw to wea tape
                 // -----------------------------
                 Console.WriteLine("Convert epw to wea tape...");
-                var epw2wea = Command.Run(DefaultDirectoriesAndPaths.RadianceDir + @"\epw2wea", @"""" + this.Weather.epwFilePath + @""" ""Rad/output/" + weaname + @".wea""");
+                var epw2wea = Command.Run(DefaultDirectoriesAndPaths.RadianceDir + @"\epw2wea", new[] { @"""" + this.Weather.epwFilePath + @""" ""Rad/output/" + weaname + @".wea""" },
+                  options => options.WorkingDirectory(this.BaseWorkingDir + @"\Rad").CancellationToken(ct));
                 epw2wea.Wait();
 
                 stepCnt++;
@@ -227,7 +228,8 @@ namespace EddyLib.Radiation
 
                 string gendaymtxArgs = DefaultDirectoriesAndPaths.RadianceDir + @"\gendaymtx.exe -m " + 1 + @" -O1 " + weain + @" > " + smxout;
 
-                var gendaymtx = Command.Run("cmd.exe");
+                var gendaymtx = Command.Run("cmd.exe", new []{ "" },
+                  options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct));
                 gendaymtx.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 gendaymtx.StandardInput.WriteLine(gendaymtxArgs);
                 gendaymtx.StandardInput.WriteLine("exit");
@@ -244,7 +246,8 @@ namespace EddyLib.Radiation
                 string smxsunout = (@"Rad\output\sunM" + skysubdivdirect + @".smx");
                 string gendaymtx2Args = DefaultDirectoriesAndPaths.RadianceDir + @"\gendaymtx -5 0.533 -m " + skysubdivdirect + @" -O1 " + weain + @" > " + smxsunout;
 
-                var gendaymtx2 = Command.Run("cmd.exe");
+                var gendaymtx2 = Command.Run("cmd.exe", new[] { "" },
+                  options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct));
                 gendaymtx2.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 gendaymtx2.StandardInput.WriteLine(gendaymtx2Args);
                 gendaymtx2.StandardInput.WriteLine("exit");
@@ -259,7 +262,7 @@ namespace EddyLib.Radiation
                 string radin = (this.BaseWorkingDir + @"\Rad\scene.rad");
                 string octout = (this.BaseWorkingDir + @"\Rad\output\scene.oct");
                 var oconv = Command.Run(DefaultDirectoriesAndPaths.RadianceDir + @"\oconv", new[] { radin },
-                    options => options.WorkingDirectory(this.BaseWorkingDir)).RedirectTo(new FileInfo(octout));
+                    options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct)).RedirectTo(new FileInfo(octout));
                 oconv.Wait();
                 if (!oconv.Result.Success)
                 {
@@ -293,7 +296,8 @@ namespace EddyLib.Radiation
 
 
                 string cmdArgRFLUXMTX = DefaultDirectoriesAndPaths.RadianceDir + @"\rfluxmtx -I+ -y " + sensorCnt + @" -lw 0.0001 -ab " + ab + @"  -ad " + ad + @" -n " + n + @" - " + skyglowrad + @" -i " + inputoct + @" < " + ptsin + @" > " + mtxout;
-                var CMDrfluxmtx = Command.Run("cmd.exe");
+                var CMDrfluxmtx = Command.Run("cmd.exe", new[] { "" },
+                  options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct));
                 CMDrfluxmtx.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 CMDrfluxmtx.StandardInput.WriteLine(cmdArgRFLUXMTX);
                 CMDrfluxmtx.StandardInput.WriteLine("exit");
@@ -341,7 +345,8 @@ namespace EddyLib.Radiation
                 // dctimestep Rad/output/dc_r" + skysubdiv + @".mtx ""Rad/output/" + weaname + @".smx"" | rmtxop -fa -t -c 0.265 0.670 0.065 - > ""Rad/output/annualR_dc.ill""
 
                 string dctimestepArgs = DefaultDirectoriesAndPaths.RadianceDir + @"\dctimestep " + mtxout + @" " + smxout + @" | rmtxop -fa -t -c 0.265 0.670 0.065 - > " + annualR_dc_ill_out;
-                var dctimestep = Command.Run("cmd.exe");
+                var dctimestep = Command.Run("cmd.exe", new[] { "" },
+                  options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct));
                 dctimestep.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 dctimestep.StandardInput.WriteLine(dctimestepArgs);
                 dctimestep.StandardInput.WriteLine("exit");
@@ -374,7 +379,7 @@ namespace EddyLib.Radiation
                 string octoutblack = (this.BaseWorkingDir + @"\Rad\output\sceneBlack.oct");
 
                 var oconvBlack = Command.Run(DefaultDirectoriesAndPaths.RadianceDir + @"\oconv", new[] { radinblack },
-                    options => options.WorkingDirectory(this.BaseWorkingDir)).RedirectTo(new FileInfo(octoutblack));
+                    options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct)).RedirectTo(new FileInfo(octoutblack));
                 oconvBlack.Wait();
 
                 string octblackin = (@"Rad\output\sceneBlack.oct");
@@ -405,7 +410,8 @@ namespace EddyLib.Radiation
                 // -----------------------------
                 // 7 
                 // -----------------------------
-                var dircalc2 = Command.Run("cmd.exe");
+                var dircalc2 = Command.Run("cmd.exe", new[] { "" },
+                  options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct));
                 dircalc2.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 dircalc2.StandardInput.WriteLine(dirCalcArgs2);
                 dircalc2.StandardInput.WriteLine("exit");
@@ -422,7 +428,8 @@ namespace EddyLib.Radiation
                 // -----------------------------
                 // 8
                 // -----------------------------
-                var dircalc3 = Command.Run("cmd.exe");
+                var dircalc3 = Command.Run("cmd.exe", new[] { "" },
+                  options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct));
                 dircalc3.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 dircalc3.StandardInput.WriteLine(dirCalcArgs3);
                 dircalc3.StandardInput.WriteLine("exit");
@@ -450,7 +457,8 @@ namespace EddyLib.Radiation
                 string suncoeffArgs1 = @"echo void light solar 0 0 3 1e6 1e6 1e6 > """ + sunsOut + @"""";
                 string suncoeffArgs2 = "cnt " + (144 * skysubdivdirect * skysubdivdirect + 1) + @" | rcalc -e MF:4 -f """ + DefaultDirectoriesAndPaths.RadianceLibDir + @"\reinsrc.cal"" -e Rbin=recno -o ""solar source sun 0 0 4 ${Dx} ${Dy} ${Dz} 0.533"" >> " + sunsOut;
 
-                var suncoeff = Command.Run("cmd.exe");
+                var suncoeff = Command.Run("cmd.exe", new[] { "" },
+                  options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct));
                 suncoeff.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 suncoeff.StandardInput.WriteLine(suncoeffArgs1);
                 suncoeff.StandardInput.WriteLine(suncoeffArgs2);
@@ -476,7 +484,7 @@ namespace EddyLib.Radiation
                 string blackWithSuns = (this.BaseWorkingDir + @"\Rad\output\sceneBlackSuns.oct");
 
                 var oconvdir = Command.Run(DefaultDirectoriesAndPaths.RadianceDir + @"\oconv", new[] { radinblack, sunsOut },
-                    options => options.WorkingDirectory(this.BaseWorkingDir)).RedirectTo(new FileInfo(blackWithSuns));
+                    options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct)).RedirectTo(new FileInfo(blackWithSuns));
                 oconvdir.Wait();
                 if (!oconvdir.Result.Success)
                 {
@@ -495,7 +503,8 @@ namespace EddyLib.Radiation
                 string blackWithSunsin = (@"Rad\output\sceneBlackSuns.oct");
                 string cddmtxout = (@"Rad\output\cdsDDS.mtx");
                 string rcontribArgs1 = DefaultDirectoriesAndPaths.RadianceDir + @"\rcontrib -I+ -ab 1 -y " + sensorCnt + @" -n 16 -ad 256 -lw 1.0e-3 -dc 1 -dt 0 -dj 0 -faf -e MF:" + skysubdivdirect + @" -f """ + DefaultDirectoriesAndPaths.RadianceLibDir + @"\reinhart.cal"" -b rbin -bn Nrbins -m solar " + blackWithSunsin + @" < " + ptsin + @" > " + cddmtxout;
-                var rcontrib = Command.Run("cmd.exe");
+                var rcontrib = Command.Run("cmd.exe", new[] { "" },
+                  options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct));
                 rcontrib.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 rcontrib.StandardInput.WriteLine(rcontribArgs1);
                 rcontrib.StandardInput.WriteLine("exit");
@@ -532,14 +541,14 @@ namespace EddyLib.Radiation
                 // -----------------------------
                 Console.WriteLine("Create Illum Dir...");
                 string dctimestep2Args = DefaultDirectoriesAndPaths.RadianceDir + @"\dctimestep " + cddmtxout + @" " + smxsunout + @" | rmtxop -fa -t -c 0.265 0.670 0.065 - > " + annualR_dir_ill_out;
-                var dctimestep2 = Command.Run("cmd.exe");
+                var dctimestep2 = Command.Run("cmd.exe", new[] { "" },
+                  options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct));
                 dctimestep2.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 dctimestep2.StandardInput.WriteLine(dctimestep2Args);
                 dctimestep2.StandardInput.WriteLine("exit");
 
 
                 dctimestep2.Wait();
-
                 if (!dctimestep2.Result.Success)
                 {
                     Debug.WriteLine($"dctimestep2 dir command failed with exit code {dctimestep2.Result.ExitCode}: {dctimestep2.Result.StandardError}");
@@ -557,7 +566,8 @@ namespace EddyLib.Radiation
                 Console.WriteLine("Combine Results...");
                 string rmtxopArgs = DefaultDirectoriesAndPaths.RadianceDir + @"\rmtxop " + annualR_dc_ill_out + @" + -s -1 " + annualR_dcd_ill_out + @" + " + annualR_dir_ill_out + @" > " + annualR_total_ill_out;
 
-                var rmtxop = Command.Run("cmd.exe");
+                var rmtxop = Command.Run("cmd.exe", new[] { "" },
+                  options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct));
                 rmtxop.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 rmtxop.StandardInput.WriteLine(rmtxopArgs);
                 rmtxop.StandardInput.WriteLine("exit");
