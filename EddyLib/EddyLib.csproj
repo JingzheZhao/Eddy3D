@@ -111,8 +111,10 @@
     <Compile Include="Geometry\EddyPoint.cs" />
     <Compile Include="Geometry\EddyVector.cs" />
     <Compile Include="GlobalSettings\DefaultDirectoriesAndPaths.cs" />
+    <Compile Include="OutdoorComfort\WProbe.cs" />
     <Compile Include="PrepareProtobuff.cs" />
     <Compile Include="Radiation\ComfortSystem.cs" />
+    <Compile Include="OutdoorComfort\WProbeResultProto.cs" />
     <Compile Include="Radiation\MRT_Simulation_System.cs" />
     <Compile Include="Radiation\MRT_Simulation_Settings.cs" />
     <Compile Include="Radiation\Old\DaylightSimulationHelpers.cs" />
