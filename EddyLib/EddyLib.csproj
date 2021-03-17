@@ -118,7 +118,7 @@
     <Compile Include="Radiation\Old\DaylightSimulationHelpers.cs" />
     <Compile Include="Radiation\Old\RadianceHelpers.cs" />
     <Compile Include="Radiation\RadianceMaterials.cs" />
-    <Compile Include="Radiation\MRTSimulationResultProto.cs" />
+    <Compile Include="Radiation\MRT_Simulation_ResultProto.cs" />
     <Compile Include="Geometry\EddyProbe.cs" />
     <Compile Include="Radiation\RSurface.cs" />
     <Compile Include="Radiation\Old\RadiositySystem.cs" />

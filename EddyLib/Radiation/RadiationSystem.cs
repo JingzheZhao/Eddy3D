@@ -611,7 +611,7 @@ namespace EddyLib.Radiation
 
         //    return true;
         //}
-        public MRTSimulationResultProto SaveResults(bool run, CancellationToken ct)
+        public MRT_Simulation_ResultProto SaveResults(bool run, CancellationToken ct)
         {
             // -----------------------------
             // 15 Compute dMRT
@@ -655,7 +655,7 @@ namespace EddyLib.Radiation
             sp.Restart();
 
 
-            var protoResult = new MRTSimulationResultProto(this.ProjectName, this.BaseWorkingDir, this.Weather, this.RProbes, this.ProbeMeshes, this.Polys);
+            var protoResult = new MRT_Simulation_ResultProto(this.ProjectName, this.BaseWorkingDir, this.Weather, this.RProbes, this.ProbeMeshes, this.Polys);
             protoResult.WriteToFile(this.BaseWorkingDir + @"\" + this.ProjectName + ".rad.eddy");
 
             sp.Stop();

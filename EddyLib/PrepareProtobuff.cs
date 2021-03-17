@@ -23,7 +23,7 @@ namespace EddyLib
                 ProtoBuf.Serializer.PrepareSerializer<EddyMesh>();
 
                 ProtoBuf.Serializer.PrepareSerializer<RProbe>();
-                ProtoBuf.Serializer.PrepareSerializer<MRTSimulationResultProto>();
+                ProtoBuf.Serializer.PrepareSerializer<MRT_Simulation_ResultProto>();
 
             }
 

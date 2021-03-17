@@ -3,6 +3,7 @@ using EddyLib.Radiation;
 using EddyLib.UI;
 using Medallion.Shell;
 using Newtonsoft.Json;
+using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -24,29 +25,45 @@ namespace EddyLib.Radiation
 
         public double CummulativeViewFactorCutoff;
 
-        MRTSimulationResultProto RSystem;
-
+ 
         public string ProjectName = "";
         public string BaseWorkingDir = "";
         public Weather Weather;
 
+        public List<RProbe> Probes;
+        public List<RPolygon> Polys;
+
+        public List<Mesh> ProbeMeshes;
+
+
+
         public double[] AmbientTemperature;
         public double[] SkyTemperature;
 
-        public ThermalSystem(MRTSimulationResultProto sys, double vf_cutoff = 0.05)
+ 
+
+
+        public ThermalSystem(string filename, string baseWorkingDir, Weather weather, List<RProbe> probes , List<RPolygon> polys, List<Mesh> probe_meshes, double vf_cutoff = 0.05)
         {
-            RSystem = sys;
+            ProjectName = filename;
+            BaseWorkingDir = baseWorkingDir;
+            Weather = weather;
+            Probes = probes;
+            Polys = polys;
+
+            ProbeMeshes = probe_meshes;
+
             CummulativeViewFactorCutoff = vf_cutoff;
 
-            ProjectName = RSystem.ProjectName;
-            BaseWorkingDir = RSystem.BaseWorkingDir;
-            Weather = RSystem.Weather;
-
+       
+ 
             AmbientTemperature = Weather.DryBulbTemp;
 
             var sky = new SkyTemperatureModel(Weather.DewPointTemp, Weather.DryBulbTemp, Weather.TotalSkyCover, Weather.RelativeHumidity, true, SkyTemperatureModel.CalculationType.DefaultClarkAllen);
             SkyTemperature = sky.Temp;
         }
+
+
 
         public List<EsoResult> RunEP(bool run, CancellationToken ct)
         {
@@ -62,7 +79,7 @@ namespace EddyLib.Radiation
                 int surfIndex = 0;
                 int groundIndex = 0;
                 int shaderIndex = 0;
-                foreach (var s in this.RSystem.Polys)
+                foreach (var s in this.Polys)
                 {
                     if (s.Type == RadiationSurfaceType.Sky) { continue; }
 
@@ -210,7 +227,7 @@ namespace EddyLib.Radiation
                     Console.WriteLine("Read results...");
                     var res = EsoReader.LoadEsoFile(esofile);
 
-                    foreach (var p in this.RSystem.Polys)
+                    foreach (var p in this.Polys)
                     {
                         if (p.Type == RadiationSurfaceType.Vegetation && p.SimulationType == SimulationType.Simulated)
                         {
@@ -242,14 +259,14 @@ namespace EddyLib.Radiation
 
         public void ComputeMRT(bool run, CancellationToken ct)
         {
-            foreach (var p in RSystem.Probes)
+            foreach (var p in this.Probes)
             {
 
                 p.LongWave_MRT = new float[8760];
 
                 for (int i = 0; i < p.VFtoPolys.Length; i++)
                 {
-                    var poly = RSystem.Polys[i];
+                    var poly = this.Polys[i];
 
                     /// ------------------
                     /// Logic for picking surface temperatures. Come from different sources depending on the object type.
@@ -293,7 +310,7 @@ namespace EddyLib.Radiation
 
         }
 
-        public MRTSimulationResultProto SaveResults(bool run, CancellationToken ct)
+        public MRT_Simulation_ResultProto SaveResults(bool run, CancellationToken ct)
         {
 
             // -----------------------------
@@ -304,8 +321,9 @@ namespace EddyLib.Radiation
             Stopwatch sp = new Stopwatch();
             sp.Start();
 
+            var protoResult = new MRT_Simulation_ResultProto(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.ProbeMeshes, this.Polys);
 
-            RSystem.WriteToFile(this.BaseWorkingDir + @"\" + this.ProjectName + ".mrt.eddy");
+            protoResult.WriteToFile(this.BaseWorkingDir + @"\" + this.ProjectName + ".mrt.eddy");
 
             Debug.WriteLine("Results Proto: " + sp.ElapsedMilliseconds);
 
@@ -316,7 +334,7 @@ namespace EddyLib.Radiation
             pct = 100 * stepCnt / steps;
             Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
 
-            return RSystem;
+            return protoResult;
 
         }
 

@@ -5,6 +5,7 @@ using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,7 +14,7 @@ namespace Eddy.Components.Radiation
     public class ThermalSystem_Component : GH_Component
     {
 
-        ThermalSystem ThermalSimulation;
+        ThermalSystem ThermalSystem;
 
         /// <summary>
         /// Initializes a new instance of the ThermalSystem_Component class.
@@ -60,10 +61,9 @@ namespace Eddy.Components.Radiation
             IGH_Goo system = null;
              if (!DA.GetData(0, ref system)) { }
 
-            MRTSimulationResultProto RSystem;
+            MRT_Simulation_ResultProto res;
 
-            if (!system.CastTo<MRTSimulationResultProto>(out RSystem)) return;
-
+            if (!system.CastTo<MRT_Simulation_ResultProto>(out res)) return;
 
 
 
@@ -73,12 +73,7 @@ namespace Eddy.Components.Radiation
 
 
 
-
-
- 
-
-
-            ThermalSimulation = new ThermalSystem(RSystem);
+            ThermalSystem = new ThermalSystem(res.ProjectName, res.BaseWorkingDir, res.Weather, res.Probes, res.Polys, res.Meshes.Select(x => x.Value).ToList());
 
 
 
@@ -107,8 +102,8 @@ namespace Eddy.Components.Radiation
             }
 
 
-            DA.SetData(0, ThermalSimulation);
-            DA.SetData(1, ThermalSimulation.BaseWorkingDir + @"\" + ThermalSimulation.ProjectName + ".mrt.eddy");
+            DA.SetData(0, ThermalSystem);
+            DA.SetData(1, ThermalSystem.BaseWorkingDir + @"\" + ThermalSystem.ProjectName + ".mrt.eddy");
 
         }
 
@@ -155,16 +150,16 @@ namespace Eddy.Components.Radiation
         public bool RunSlowSimulation(CancellationTokenSource cts, int nthreads = 1)
         {
 
-            if (ThermalSimulation == null) return false;
+            if (ThermalSystem == null) return false;
 
             if (cts.IsCancellationRequested) return false;
-            var data = ThermalSimulation.RunEP(true, cts.Token);
+            var data = ThermalSystem.RunEP(true, cts.Token);
 
             if (cts.IsCancellationRequested) return false;
-            ThermalSimulation.ComputeMRT(true, cts.Token);
+            ThermalSystem.ComputeMRT(true, cts.Token);
 
             if (cts.IsCancellationRequested) return false;
-            var proto  = ThermalSimulation.SaveResults(true, cts.Token);
+            var proto  = ThermalSystem.SaveResults(true, cts.Token);
 
 
             return true;
