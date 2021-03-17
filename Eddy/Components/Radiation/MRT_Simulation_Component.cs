@@ -128,17 +128,20 @@ namespace Eddy
 
             string settingsInput = "";
             MRT_Simulation_Settings set = null;
-             DA.GetData(5, ref settingsInput);
+            DA.GetData(5, ref settingsInput);
 
             if (!String.IsNullOrWhiteSpace(settingsInput))
             {
-                try {
-                    set  = MRT_Simulation_Settings.fromJSON(settingsInput);
+                try
+                {
+                    set = MRT_Simulation_Settings.fromJSON(settingsInput);
                 }
-                catch {
+                catch
+                {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Don't understand your settings...");
-                    set = null; }
-            
+                    set = null;
+                }
+
             }
 
 
@@ -161,7 +164,8 @@ namespace Eddy
             Weather weather = new Weather(weatherPath);
 
             List<RProbe> RadProbes = new List<RProbe>();
-            foreach (var p in probes) {
+            foreach (var p in probes)
+            {
                 RadProbes.Add(new RProbe(p.Point, p.Normal));
             }
 
@@ -198,7 +202,7 @@ namespace Eddy
 
             if (MRTSystem != null)
             {
-                string resultFilePath = MRTSystem.BaseWorkingDir + "/" + MRTSystem.ProjectName + ".rad.eddy";
+                string resultFilePath = MRTSystem.BaseWorkingDir + "/" + MRTSystem.ProjectName + ".mrt.eddy";
                 DA.SetData(1, resultFilePath);
 
                 DA.SetData(2, MRTSystem.Settings.toJSON());
@@ -263,17 +267,23 @@ namespace Eddy
                 if (cts.IsCancellationRequested) return false;
                 MRTSystem.RadiationSystem.LoadDDSData(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
             }
-            else {
+            else
+            {
                 throw new NotImplementedException();
             }
 
             if (MRTSystem.ThermalSystem == null) return false;
 
-            if (cts.IsCancellationRequested) return false;
-            var data = MRTSystem.ThermalSystem.RunEP(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
+
+            if (MRTSystem.Settings.ComputeSurfaceTemperatureEnergyPlus)
+            {
+                if (cts.IsCancellationRequested) return false;
+                var data = MRTSystem.ThermalSystem.RunEP(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
+            }
 
             if (cts.IsCancellationRequested) return false;
             MRTSystem.ThermalSystem.ComputeMRT(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
+
 
             if (cts.IsCancellationRequested) return false;
             var proto = MRTSystem.ThermalSystem.SaveResults(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
