@@ -106,7 +106,7 @@
     <Compile Include="Components\1_Wind\5_CompVisResiduals.cs" />
     <Compile Include="Components\1_Wind\3_CompMeshSettings.cs" />
     <Compile Include="Components\1_Wind\2_CompDomainCyl.cs" />
-    <Compile Include="Components\WorkerWithProgBarComponent.cs" />
+    <Compile Include="Components\1_Wind\Hidden\WorkerWithProgBarComponent.cs" />
     <Compile Include="Licensing\LicenseTest.cs" />
     <Compile Include="Licensing\ModifyRegistry.cs" />
     <Compile Include="Components\1_Wind\2_CompDomainBox.cs" />
