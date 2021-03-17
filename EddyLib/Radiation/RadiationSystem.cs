@@ -32,6 +32,7 @@ namespace EddyLib.Radiation
         {
             ProjectName = filename;
             BaseWorkingDir = baseWorkingDir;
+            Weather = weather;
             RSurfaces = rsurfaces;
             Probes = probes;
             Polys = polys;
