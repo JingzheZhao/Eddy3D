@@ -22,7 +22,7 @@ namespace EddyLib.Radiation
         private double steps = 52 + 2; // energyplus prints 52 lines
         private double stepCnt = 0;
 
-        public double CummulativeViewFactorCutoff = 0.05;
+        public double CummulativeViewFactorCutoff;
 
         MRTSimulationResultProto RSystem;
 
@@ -33,9 +33,10 @@ namespace EddyLib.Radiation
         public double[] AmbientTemperature;
         public double[] SkyTemperature;
 
-        public ThermalSystem(MRTSimulationResultProto sys)
+        public ThermalSystem(MRTSimulationResultProto sys, double vf_cutoff = 0.05)
         {
             RSystem = sys;
+            CummulativeViewFactorCutoff = vf_cutoff;
 
             ProjectName = RSystem.ProjectName;
             BaseWorkingDir = RSystem.BaseWorkingDir;

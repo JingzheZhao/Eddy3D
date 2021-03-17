@@ -17,7 +17,7 @@ namespace Eddy
     public class MRT_Simulation_Component : GH_Component
     {
 
-        RadiationSystem RadiationSimulation;
+        MRT_Simulation_System MRTSystem;
 
 
 
@@ -42,6 +42,8 @@ namespace Eddy
 
             pManager.AddGenericParameter("Sensors", "Sen", "Radiation sensors. Provide as [Mesh] or [RProbe]", GH_ParamAccess.tree);
 
+            pManager.AddTextParameter("Settings", "Set", "MRT System Settings", GH_ParamAccess.item, DefaultDirectoriesAndPaths.DefaultWeather);
+
             pManager.AddBooleanParameter("Run", "R", "Run simulation", GH_ParamAccess.item, false);
         }
 
@@ -50,9 +52,12 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("RadSystem", "RS", "Radiation System", GH_ParamAccess.item);
+            pManager.AddGenericParameter("System", "SYS", "MRT Simulation System", GH_ParamAccess.item);
 
-            pManager.AddTextParameter("Result", "R", "Result file path", GH_ParamAccess.item);
+            pManager.AddTextParameter("Result", "RES", "MRT Result file path", GH_ParamAccess.item);
+
+            pManager.AddTextParameter("Settings", "SET", "MRT System Settings", GH_ParamAccess.item);
+
         }
 
         /// <summary>
@@ -140,7 +145,7 @@ namespace Eddy
                 RadProbes.Add(new RProbe(p.Point, p.Normal));
             }
 
-            RadiationSimulation = new RadiationSystem(name, workDir, weather, modelRSurfaces, probeMeshes, RadProbes);
+            MRTSystem = new MRT_Simulation_System(name, workDir, weather, modelRSurfaces, probeMeshes, RadProbes);
 
             // redirect stderr
             var errors = new StringWriter();
@@ -167,12 +172,14 @@ namespace Eddy
             }
 
 
-            DA.SetData(0, RadiationSimulation);
+            DA.SetData(0, MRTSystem);
 
-            if (RadiationSimulation != null)
+            if (MRTSystem != null)
             {
-                string resultFilePath = RadiationSimulation.BaseWorkingDir + "/" + RadiationSimulation.ProjectName + ".rad.eddy";
+                string resultFilePath = MRTSystem.BaseWorkingDir + "/" + MRTSystem.ProjectName + ".rad.eddy";
                 DA.SetData(1, resultFilePath);
+
+                DA.SetData(2, MRTSystem.Settings.toJSON());
             }
         }
 
@@ -215,21 +222,21 @@ namespace Eddy
         public bool RunSlowSimulation(CancellationTokenSource cts, int nthreads = 1)
         {
 
-            if (RadiationSimulation == null) return false;
+            if (MRTSystem == null) return false;
 
             Console.WriteLine("Starting ViewFactor Calculation");
             if (cts.IsCancellationRequested) return false;
-            if (!RadiationSimulation.RunVF(true, cts.Token)) { return false; }
+            if (!MRTSystem.RunVF(true, cts.Token)) { return false; }
 
 
 
             if (cts.IsCancellationRequested) return false;
             Console.WriteLine("Starting DDS Simulation");
-            if (!RadiationSimulation.RunDDS(true, cts.Token)) { return false; }
+            if (!MRTSystem.RadiationSystem.RunDDS(true, cts.Token)) { return false; }
 
 
             if (cts.IsCancellationRequested) return false;
-            RadiationSimulation.SaveResults(true, cts.Token);
+            MRTSystem.RadiationSystem.SaveResults(true, cts.Token);
 
 
 

@@ -113,6 +113,8 @@
     <Compile Include="GlobalSettings\DefaultDirectoriesAndPaths.cs" />
     <Compile Include="PrepareProtobuff.cs" />
     <Compile Include="Radiation\ComfortSystem.cs" />
+    <Compile Include="Radiation\MRT_Simulation_System.cs" />
+    <Compile Include="Radiation\MRT_Simulation_Settings.cs" />
     <Compile Include="Radiation\Old\DaylightSimulationHelpers.cs" />
     <Compile Include="Radiation\Old\RadianceHelpers.cs" />
     <Compile Include="Radiation\RadianceMaterials.cs" />
