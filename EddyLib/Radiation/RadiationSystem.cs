@@ -21,119 +21,23 @@ namespace EddyLib.Radiation
 
 
         public List<RSurface> RSurfaces;
-        public Mesh SkyDomeForVF;
-        public Mesh UnifiedMeshHighPolyNoSky;
-        public List<Mesh> ProbeMeshes;
 
-        public List<RProbe> RProbes;
+        public Mesh UnifiedMeshHighPolyNoSky;
+
+        public List<RProbe> Probes;
         public List<RPolygon> Polys = new List<RPolygon>();
 
         public Weather Weather;
-        public RadiationSystem(string filename, string baseWorkingDir, Weather weather, List<RSurface> rsurfaces, List<Mesh> probe_meshes, List<RProbe> rprobes)
+        public RadiationSystem(string filename, string baseWorkingDir, Weather weather, List<RSurface> rsurfaces, List<RProbe> probes, List<RPolygon> polys, Mesh unified)
         {
             ProjectName = filename;
             BaseWorkingDir = baseWorkingDir;
             RSurfaces = rsurfaces;
+            Probes = probes;
+            Polys = polys;
 
+            UnifiedMeshHighPolyNoSky = unified;
 
-
-            //// ---------------------
-            //// Make a unified mesh radiance
-            //// ---------------------
-            //UnifiedMeshHighPolyNoSky = new Mesh();
-            //foreach (var rs in RSurfaces)
-            //{
-            //    if (rs == null) continue;
-            //    //if (rs.Type == RSurface.RadiationSurfaceType.Sky) continue;
-            //    if (rs.HighPoly != null)
-            //    {
-            //        rs.LowPoly.Vertices.CullUnused();
-            //        UnifiedMeshHighPolyNoSky.Append(rs.HighPoly);
-            //    }
-            //}
-
-            //// ---------------------
-            //// Make a sky dome for VF calculation
-            //// ---------------------
-
-            //var bb = UnifiedMeshHighPolyNoSky.GetBoundingBox(false);
-            //var center = new Point3d(bb.Center.X, bb.Center.Y, bb.Min.Z);
-            //var radius = bb.Diagonal.Length;
-
-            //Sphere sphere = new Sphere(center, radius);
-            //var sphereM = Mesh.CreateQuadSphere(sphere, 4);
-            //SkyDomeForVF = new Mesh();
-
-            //if (sphereM != null)
-            //{
-            //    sphereM.FaceNormals.ComputeFaceNormals();
-            //    var findex = new List<int>();
-            //    for (int i = 0; i < sphereM.Faces.Count; i++)
-            //    {
-            //        var dot = sphereM.FaceNormals[i] * Vector3d.ZAxis;
-            //        if (dot > 0 - 0.0001)
-            //        {
-            //            findex.Add(i);
-            //        }
-            //    }
-
-            //    SkyDomeForVF.Append(sphereM.Faces.ExtractFaces(findex));
-            //    SkyDomeForVF.FaceNormals.ComputeFaceNormals();
-
-            //    SkyDomeForVF.Flip(true, true, true);
-
-            //}
-            // Mesh.CreateFromSphere(sphere, 40, 20);
-
-
-
-            //ProbeMeshes = probe_meshes;
-            //RProbes = new List<RProbe>();
-
-            //foreach (var m in probe_meshes)
-            //{
-            //    m.Normals.ComputeNormals();
-            //    for (int i = 0; i < m.Vertices.Count; i++)
-            //    {
-            //        var p = m.Vertices[i];
-            //        var v = m.Normals[i];
-            //        RProbes.Add(new RProbe(p, v));
-            //    }
-            //}
-
-            //foreach (var m in rprobes)
-            //{
-            //    RProbes.Add(m);
-            //}
-
-            //Weather = weather;
-
-
-
-            //// ---------------------
-            //// Setup the radiosity system
-            //// ---------------------
-            //foreach (var rs in this.RSurfaces)
-            //{
-            //    this.Polys.AddRange(rs.Polys);
-            //}
-            //this.Polys.AddRange(MakeRPolygons(SkyDomeForVF, RadiationSurfaceType.Sky, "SKY", SimulationType.Ignore));
-            //// set unique ids
-            //int idcnt = 0;
-            //foreach (var p in this.Polys)
-            //{ p.ID = idcnt; idcnt++; }
-
-
-
-            //var dirs = new List<String>() { baseWorkingDir, baseWorkingDir + @"\Rad\" };
-
-            //foreach (string d in dirs)
-            //{
-            //    if (!Directory.Exists(d))
-            //    {
-            //        Directory.CreateDirectory(d);
-            //    }
-            //}
         }
 
 
@@ -151,7 +55,7 @@ namespace EddyLib.Radiation
         public bool RunDDS(bool run, CancellationToken ct)
         {
 
-            var numberOfProbes = this.RProbes.Count;
+            var numberOfProbes = this.Probes.Count;
 
             var skySubDivDiff = SkySubdivision.r1;
             //var skySubDivDiff = SkySubdivision.r2;
@@ -184,7 +88,7 @@ namespace EddyLib.Radiation
             RadianceFiles.MeshProc(this.UnifiedMeshHighPolyNoSky, this.BaseWorkingDir + @"\Rad\sceneBlack.rad", "Black", radMatBlack);
 
             // Write Probes
-            RadianceFiles.writePTS(this.BaseWorkingDir + @"\Rad\sensors.pts", this.RProbes.Select(x => x.Point.Value).ToList(), this.RProbes.Select(x => x.Normal.Value).ToList());
+            RadianceFiles.writePTS(this.BaseWorkingDir + @"\Rad\sensors.pts", this.Probes.Select(x => x.Point.Value).ToList(), this.Probes.Select(x => x.Normal.Value).ToList());
 
             // Weather
             var weaname = RadianceFiles.Epw2Wea(this.Weather.epwFilePath, this.BaseWorkingDir + @"\Rad\Output");
@@ -287,7 +191,7 @@ namespace EddyLib.Radiation
                 int ab = 3;
                 int ad = 2000;
                 int n = (Environment.ProcessorCount - 1);
-                int sensorCnt = this.RProbes.Count;
+                int sensorCnt = this.Probes.Count;
 
                 string skyglowrad = (@"Rad\skyglow" + skySubDivDiff + @".rad");
                 string inputoct = (@"Rad\output\scene.oct");
@@ -638,16 +542,16 @@ namespace EddyLib.Radiation
 
             Stopwatch sp = new Stopwatch();
             sp.Start();
-            for (int i = 0; i < this.RProbes.Count; i++)
+            for (int i = 0; i < this.Probes.Count; i++)
             {
-                this.RProbes[i].TotalRad = new float[totalIll.Length];
-                this.RProbes[i].DirRad = new float[dirIll.Length];
-                this.RProbes[i].SolarGain_dMRT = new float[dMRT.Length];
+                this.Probes[i].TotalRad = new float[totalIll.Length];
+                this.Probes[i].DirRad = new float[dirIll.Length];
+                this.Probes[i].SolarGain_dMRT = new float[dMRT.Length];
                 for (int h = 0; h < totalIll.Length; h++)
                 {
-                    this.RProbes[i].TotalRad[h] = totalIll[h][i];
-                    this.RProbes[i].DirRad[h] = dirIll[h][i];
-                    this.RProbes[i].SolarGain_dMRT[h] = dMRT[h][i];
+                    this.Probes[i].TotalRad[h] = totalIll[h][i];
+                    this.Probes[i].DirRad[h] = dirIll[h][i];
+                    this.Probes[i].SolarGain_dMRT[h] = dMRT[h][i];
                 }
             }
             sp.Stop();
@@ -655,7 +559,7 @@ namespace EddyLib.Radiation
             sp.Restart();
 
 
-            var protoResult = new MRT_Simulation_ResultProto(this.ProjectName, this.BaseWorkingDir, this.Weather, this.RProbes, this.ProbeMeshes, this.Polys);
+            var protoResult = new MRT_Simulation_ResultProto(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
             protoResult.WriteToFile(this.BaseWorkingDir + @"\" + this.ProjectName + ".rad.eddy");
 
             sp.Stop();

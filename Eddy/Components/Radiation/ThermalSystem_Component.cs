@@ -73,7 +73,7 @@ namespace Eddy.Components.Radiation
 
 
 
-            ThermalSystem = new ThermalSystem(res.ProjectName, res.BaseWorkingDir, res.Weather, res.Probes, res.Polys, res.Meshes.Select(x => x.Value).ToList());
+            ThermalSystem = new ThermalSystem(res.ProjectName, res.BaseWorkingDir, res.Weather, res.Probes, res.Polys);
 
 
 

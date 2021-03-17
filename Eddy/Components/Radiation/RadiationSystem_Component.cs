@@ -140,7 +140,6 @@ namespace Eddy
             }
 
             MRTSystem = new MRT_Simulation_System(name, workDir, weather, modelRSurfaces, probeMeshes, RadProbes);
-            MRTSystem.RadiationSystem = new RadiationSystem(name, workDir, weather, modelRSurfaces, probeMeshes, RadProbes);
 
             // redirect stderr
             var errors = new StringWriter();

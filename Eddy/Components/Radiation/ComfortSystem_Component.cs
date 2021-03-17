@@ -85,7 +85,7 @@ namespace Eddy.Components.Radiation
 
 
 
-            ComfortSystem = new ComfortSystem(res.ProjectName, res.BaseWorkingDir, res.Weather, res.Probes, res.Polys, res.Meshes.Select(x => x.Value).ToList()) ;
+            ComfortSystem = new ComfortSystem(res.ProjectName, res.BaseWorkingDir, res.Weather, res.Probes, res.Polys) ;
 
 
 

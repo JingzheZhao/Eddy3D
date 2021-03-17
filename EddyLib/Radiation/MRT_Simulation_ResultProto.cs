@@ -21,18 +21,19 @@ namespace EddyLib.Radiation
 
         public MRT_Simulation_ResultProto() { }
 
-        public MRT_Simulation_ResultProto(string name , string dir , Weather weather ,List<RProbe> probes, List<Mesh> meshes, List <RPolygon> polys)
+        public MRT_Simulation_ResultProto(string name , string dir , Weather weather ,List<RProbe> probes, List <RPolygon> polys)//List<Mesh> meshes, 
         {
             this.ProjectName = name;
             this.BaseWorkingDir = dir;
             this.Weather = weather;
             this.Probes = probes;
-            this.Meshes = new List<EddyMesh>();
-            foreach (var  m in meshes)
-            {
-                Meshes.Add(new EddyMesh(m));
-            }
             this.Polys = polys;
+
+            //this.Meshes = new List<EddyMesh>();
+            //foreach (var  m in meshes)
+            //{
+            //    Meshes.Add(new EddyMesh(m));
+            //}
         }
 
 
@@ -45,8 +46,8 @@ namespace EddyLib.Radiation
 
         [ProtoMember(4)]
         public List<RProbe> Probes { get; set; }
-        [ProtoMember(5)]
-        public List<EddyMesh> Meshes { get; set; }
+        //[ProtoMember(5)]
+        //public List<EddyMesh> Meshes { get; set; }
         [ProtoMember(6)]
         public List<RPolygon> Polys { get; set; } 
 

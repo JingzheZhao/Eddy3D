@@ -35,14 +35,13 @@ namespace EddyLib.Radiation
         public List<RProbe> Probes;
         public List<RPolygon> Polys;
 
-        public List<Mesh> ProbeMeshes;
 
  
 
 
 
 
-        public ComfortSystem(string filename, string baseWorkingDir, Weather weather, List<RProbe> probes, List<RPolygon> polys, List<Mesh> probe_meshes)
+        public ComfortSystem(string filename, string baseWorkingDir, Weather weather, List<RProbe> probes, List<RPolygon> polys)
         {
 
             ProjectName = filename;
@@ -51,7 +50,6 @@ namespace EddyLib.Radiation
             Probes = probes;
             Polys = polys;
 
-            ProbeMeshes = probe_meshes;
 
         }
 
@@ -152,7 +150,7 @@ namespace EddyLib.Radiation
             // -----------------------------
             var prep = PrepareProtoBufSingleton.Instance;
 
-            var protoResult = new MRT_Simulation_ResultProto(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.ProbeMeshes, this.Polys);
+            var protoResult = new MRT_Simulation_ResultProto(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
 
 
             protoResult.WriteToFile(this.BaseWorkingDir + @"\" + this.ProjectName + ".utci.eddy");
