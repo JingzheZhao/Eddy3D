@@ -18,7 +18,7 @@ namespace EddyLib.Radiation
         public string ProjectName = "";
         public string BaseWorkingDir = "";
 
-        public MRT_Simulation_Settings Settings;
+        public MRT_Simulation_Settings Settings = new MRT_Simulation_Settings();
 
         public Weather Weather;
 

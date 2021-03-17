@@ -43,6 +43,7 @@ namespace Eddy
             pManager.AddGenericParameter("Sensors", "Sen", "Radiation sensors. Provide as [Mesh] or [RProbe]", GH_ParamAccess.tree);
 
             pManager.AddTextParameter("Settings", "Set", "MRT System Settings", GH_ParamAccess.item, DefaultDirectoriesAndPaths.DefaultWeather);
+            pManager[5].Optional = true;
 
             pManager.AddBooleanParameter("Run", "R", "Run simulation", GH_ParamAccess.item, false);
         }
@@ -124,9 +125,28 @@ namespace Eddy
 
 
 
+
+            string settingsInput = "";
+            MRT_Simulation_Settings set = null;
+             DA.GetData(5, ref settingsInput);
+
+            if (!String.IsNullOrWhiteSpace(settingsInput))
+            {
+                try {
+                    set  = MRT_Simulation_Settings.fromJSON(settingsInput);
+                }
+                catch {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Don't understand your settings...");
+                    set = null; }
+            
+            }
+
+
+
+
             bool RUN = false;
             bool HidePopUp = false;
-            DA.GetData(5, ref RUN);
+            DA.GetData(6, ref RUN);
 
 
 
@@ -146,6 +166,8 @@ namespace Eddy
             }
 
             MRTSystem = new MRT_Simulation_System(name, workDir, weather, modelRSurfaces, probeMeshes, RadProbes);
+
+            if (set != null) { MRTSystem.Settings = set; }
 
             // redirect stderr
             var errors = new StringWriter();
