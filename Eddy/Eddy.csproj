@@ -243,6 +243,30 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\Eddy_MRT_Surface_Settings.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_MRT_Tree_Settings.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_MRT_Vegetation_Settings.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Sensor.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_calUTCI copy.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_MRT_Building.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_MRT_Ground.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_MRT_LoadResults.png" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="Resources\Eddy_MRT_System.png" />
   </ItemGroup>
   <ItemGroup>
@@ -252,16 +276,7 @@
     <None Include="Resources\Eddy_MRT_Vegetation.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Eddy_MRT_Building.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_calUTCI copy.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_MRT_Ground.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_MRT_LoadResults.png" />
+    <None Include="Resources\Eddy_CFD_LoadResults.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
