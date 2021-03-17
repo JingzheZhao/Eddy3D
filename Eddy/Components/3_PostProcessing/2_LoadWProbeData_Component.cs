@@ -13,7 +13,7 @@ namespace Eddy.Components.Radiation
     {
         public override GH_Exposure Exposure
         {
-            get { return GH_Exposure.secondary; }
+            get { return GH_Exposure.primary; }
         }
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace Eddy.Components.Radiation
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return Resources.Eddy_MRT_LoadResults;
+                return Resources.Eddy_CFD_LoadResults;
             }
         }
 
