@@ -5,6 +5,7 @@ using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,7 +13,14 @@ namespace Eddy.Components.Radiation
 {
     public class ThermalSystem_Component : GH_Component
     {
-        private ThermalSystem ThermalSimulation;
+        public override GH_Exposure Exposure
+        {
+            get { return GH_Exposure.hidden; }
+        }
+
+        public int TOTAL = 0;
+        public int STEP = 0;
+        ThermalSystem ThermalSystem;
 
         /// <summary>
         /// Initializes a new instance of the ThermalSystem_Component class.
@@ -27,7 +35,9 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
+        
             pManager.AddGenericParameter("Res", "Res", "Radiation Simulation Result", GH_ParamAccess.item);
+
 
             pManager.AddBooleanParameter("Run", "R", "Run simulation", GH_ParamAccess.item, false);
         }
@@ -39,6 +49,7 @@ namespace Eddy.Components.Radiation
         {
             pManager.AddGenericParameter("ThermSys", "TS", "Thermal System", GH_ParamAccess.item);
             pManager.AddTextParameter("Result", "R", "Result file path", GH_ParamAccess.item);
+
         }
 
         /// <summary>
@@ -47,22 +58,31 @@ namespace Eddy.Components.Radiation
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            // ---------------------
-            // Get the RSurf objects
-            // ---------------------
+       
 
-            IGH_Goo system = null;
-            if (!DA.GetData(0, ref system)) { }
+        // ---------------------
+        // Get the RSurf objects
+        // ---------------------
 
-            MRTSimulationResultProto RSystem;
+        IGH_Goo system = null;
+             if (!DA.GetData(0, ref system)) { }
 
-            if (!system.CastTo<MRTSimulationResultProto>(out RSystem)) return;
+            MRT_Simulation_ResultProto res;
+
+            if (!system.CastTo<MRT_Simulation_ResultProto>(out res)) return;
+
+
 
             bool RUN = false;
             bool HidePopUp = false;
             DA.GetData(1, ref RUN);
 
-            ThermalSimulation = new ThermalSystem(RSystem);
+
+
+            ThermalSystem = new ThermalSystem(res.ProjectName, res.BaseWorkingDir, res.Weather, res.Probes, res.Polys);
+
+            TOTAL = ThermalSystem.methodsteps;
+            STEP = 0;
 
             // redirect stderr
             var errors = new StringWriter();
@@ -88,8 +108,10 @@ namespace Eddy.Components.Radiation
                 }
             }
 
-            DA.SetData(0, ThermalSimulation);
-            DA.SetData(1, ThermalSimulation.BaseWorkingDir + @"\" + ThermalSimulation.ProjectName + ".mrt.eddy");
+
+            DA.SetData(0, ThermalSystem);
+            DA.SetData(1, ThermalSystem.BaseWorkingDir + @"\" + ThermalSystem.ProjectName + ".mrt.eddy");
+
         }
 
         /// <summary>
@@ -113,11 +135,17 @@ namespace Eddy.Components.Radiation
             get { return new Guid("04b1c5e2-c626-42e0-87f3-1d87f0b9c5a0"); }
         }
 
+
+
+
+
+
         private void DoWork(CancellationTokenSource cts)
         {
-            var success = RunSlowSimulation(cts, 2);
-        }
 
+            var success = RunSlowSimulation(cts, 2);
+
+        }
         private async Task DoWorkAsync(CancellationTokenSource cts)
         {
             await Task.Run(() =>
@@ -128,16 +156,18 @@ namespace Eddy.Components.Radiation
 
         public bool RunSlowSimulation(CancellationTokenSource cts, int nthreads = 1)
         {
-            if (ThermalSimulation == null) return false;
+
+            if (ThermalSystem == null) return false;
 
             if (cts.IsCancellationRequested) return false;
-            var data = ThermalSimulation.RunEP(true, cts.Token);
+            var data = ThermalSystem.RunEP(true, cts.Token, TOTAL, ref STEP);
 
             if (cts.IsCancellationRequested) return false;
-            ThermalSimulation.ComputeMRT(true, cts.Token);
+            ThermalSystem.ComputeMRT(true, cts.Token, TOTAL, ref STEP);
 
             if (cts.IsCancellationRequested) return false;
-            var proto = ThermalSimulation.SaveResults(true, cts.Token);
+            var proto  = ThermalSystem.SaveResults(true, cts.Token, TOTAL, ref STEP);
+
 
             return true;
         }
