@@ -22,7 +22,7 @@ namespace EddyLib.Radiation
         // Surface Temperatures with EnergyPlus
 
         [DataMember]
-        public double CummulativeViewFactorCutoff { get; set; } = 0.1;
+        public double CummulativeViewFactorCutoff { get; set; } = 0.001;
 
         [DataMember]
         public bool ComputeSurfaceTemperatureEnergyPlus { get; set; } = true;

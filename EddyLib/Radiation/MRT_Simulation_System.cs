@@ -2,6 +2,7 @@
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -15,7 +16,16 @@ namespace EddyLib.Radiation
     public class MRT_Simulation_System
     {
 
-        private int STEPS = 0;
+        public int TOTAL = 0;
+        public int STEP = 0;
+
+
+
+     
+        public int methodsteps = 2;
+ 
+
+
 
         public string ProjectName = "";
         public string BaseWorkingDir = "";
@@ -171,22 +181,34 @@ namespace EddyLib.Radiation
             this.ThermalSystem =   new ThermalSystem(this.ProjectName,this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.Settings.CummulativeViewFactorCutoff);
             this.ComfortSystem =   new ComfortSystem(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
 
-
+            TOTAL += this.methodsteps + RadiationSystem.methodsteps + ThermalSystem.methodsteps;
 
         }
 
 
 
-        public bool RunVF(bool run, CancellationToken ct)
+        public bool RunVF(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
+            Stopwatch sp = new Stopwatch();
 
+
+            Console.WriteLine("Computing probe view factors...");
             this.BuildVFToProbes(UnifiedMeshHighPolyNoSky);
-
-
             this.BuildVFToProbesByMaterial();
+            Console.WriteLine("Probe view factors: " + sp.ElapsedMilliseconds + " ms"); sp.Restart(); Interlocked.Increment(ref stepCnt);
+            Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+
+
+
+
+
 
             // optional
+            Console.WriteLine("Computing polygon view factors...");
             this.BuildFFMatrix(UnifiedMeshHighPolyNoSky);
+
+            Console.WriteLine("Polygon view factors: " + sp.ElapsedMilliseconds + " ms"); sp.Stop(); Interlocked.Increment(ref stepCnt);
+            Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
             return true;
         }
@@ -316,7 +338,7 @@ namespace EddyLib.Radiation
                 p.VFtoPolys = new double[Polys.Count];
             }
 
-            System.Threading.Tasks.Parallel.For(0, Probes.Count, i =>
+            Parallel.For(0, Probes.Count, i =>
             {
                 for (int j = 0; j < Polys.Count; j++)
                 {
@@ -385,6 +407,13 @@ namespace EddyLib.Radiation
                 }
             }
 
+            for (int j = 0; j < Polys.Count; j++)
+            {
+                if (Polys[j].SeenByProbes != 0)
+                {
+                    Polys[j].SeenByProbes /= Probes.Count;
+                }
+            }
         }
 
         public double maxv = 0.0;
