@@ -237,6 +237,30 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\Eddy_MRT_Surface_Settings.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_MRT_Tree_Settings.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_MRT_Vegetation_Settings.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Sensor.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_calUTCI copy.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_MRT_Building.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_MRT_Ground.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_MRT_LoadResults.png" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="Resources\Eddy_MRT_System.png" />
   </ItemGroup>
   <ItemGroup>
@@ -246,18 +270,8 @@
     <None Include="Resources\Eddy_MRT_Vegetation.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Eddy_MRT_Building.png" />
+    <None Include="Resources\Eddy_CFD_LoadResults.png" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_calUTCI copy.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_MRT_Ground.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_MRT_LoadResults.png" />
-  </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
@@ -273,12 +287,12 @@ Erase "$(TargetPath)"
 SET build_eddy=$(SolutionDir)Eddy\bin
 SET build_batchrunner=$(SolutionDir)CallBatchRunner\bin
 SET installation_folder=C:\Eddy3D
- 
+
 if $(ConfigurationName)==Debug (
-xcopy /e /v /c /y "%25build_eddy%25" "%25installation_folder%25" 
+xcopy /e /v /c /y "%25build_eddy%25" "%25installation_folder%25"
 )
 if $(ConfigurationName)==Release (
-xcopy /e /v /c /y "%25build_eddy%25" "%25installation_folder%25" 
+xcopy /e /v /c /y "%25build_eddy%25" "%25installation_folder%25"
 )</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>

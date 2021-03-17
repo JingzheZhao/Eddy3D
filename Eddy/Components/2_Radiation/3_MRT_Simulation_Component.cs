@@ -187,7 +187,7 @@ namespace Eddy
 
             if (MRTSystem != null)
             {
-                string resultFilePath = MRTSystem.BaseWorkingDir + "/" + MRTSystem.ProjectName + ".rad.eddy";
+                string resultFilePath = MRTSystem.BaseWorkingDir + "/" + MRTSystem.ProjectName + ".mrt.eddy";
                 DA.SetData(1, resultFilePath);
 
                 DA.SetData(2, MRTSystem.Settings.toJSON());
@@ -253,11 +253,16 @@ namespace Eddy
 
             if (MRTSystem.ThermalSystem == null) return false;
 
-            if (cts.IsCancellationRequested) return false;
-            var data = MRTSystem.ThermalSystem.RunEP(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
+
+            if (MRTSystem.Settings.ComputeSurfaceTemperatureEnergyPlus)
+            {
+                if (cts.IsCancellationRequested) return false;
+                var data = MRTSystem.ThermalSystem.RunEP(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
+            }
 
             if (cts.IsCancellationRequested) return false;
             MRTSystem.ThermalSystem.ComputeMRT(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
+
 
             if (cts.IsCancellationRequested) return false;
             var proto = MRTSystem.ThermalSystem.SaveResults(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
