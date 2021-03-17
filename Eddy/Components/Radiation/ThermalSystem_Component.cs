@@ -13,7 +13,13 @@ namespace Eddy.Components.Radiation
 {
     public class ThermalSystem_Component : GH_Component
     {
+        public override GH_Exposure Exposure
+        {
+            get { return GH_Exposure.hidden; }
+        }
 
+        public int TOTAL = 0;
+        public int STEP = 0;
         ThermalSystem ThermalSystem;
 
         /// <summary>
@@ -52,13 +58,13 @@ namespace Eddy.Components.Radiation
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+       
 
-           
-            // ---------------------
-            // Get the RSurf objects
-            // ---------------------
+        // ---------------------
+        // Get the RSurf objects
+        // ---------------------
 
-            IGH_Goo system = null;
+        IGH_Goo system = null;
              if (!DA.GetData(0, ref system)) { }
 
             MRT_Simulation_ResultProto res;
@@ -75,7 +81,8 @@ namespace Eddy.Components.Radiation
 
             ThermalSystem = new ThermalSystem(res.ProjectName, res.BaseWorkingDir, res.Weather, res.Probes, res.Polys);
 
-
+            TOTAL = ThermalSystem.methodsteps;
+            STEP = 0;
 
             // redirect stderr
             var errors = new StringWriter();
@@ -153,13 +160,13 @@ namespace Eddy.Components.Radiation
             if (ThermalSystem == null) return false;
 
             if (cts.IsCancellationRequested) return false;
-            var data = ThermalSystem.RunEP(true, cts.Token);
+            var data = ThermalSystem.RunEP(true, cts.Token, TOTAL, ref STEP);
 
             if (cts.IsCancellationRequested) return false;
-            ThermalSystem.ComputeMRT(true, cts.Token);
+            ThermalSystem.ComputeMRT(true, cts.Token, TOTAL, ref STEP);
 
             if (cts.IsCancellationRequested) return false;
-            var proto  = ThermalSystem.SaveResults(true, cts.Token);
+            var proto  = ThermalSystem.SaveResults(true, cts.Token, TOTAL, ref STEP);
 
 
             return true;

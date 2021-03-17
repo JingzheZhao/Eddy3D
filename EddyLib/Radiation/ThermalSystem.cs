@@ -18,10 +18,8 @@ namespace EddyLib.Radiation
 {
     public class ThermalSystem
     {
+        public int methodsteps = 52 + 2; // energyplus prints 52 lines
 
-        private double pct = 0;
-        private double steps = 52 + 2; // energyplus prints 52 lines
-        private double stepCnt = 0;
 
         public double CummulativeViewFactorCutoff;
 
@@ -60,7 +58,7 @@ namespace EddyLib.Radiation
 
 
 
-        public List<EsoResult> RunEP(bool run, CancellationToken ct)
+        public List<EsoResult> RunEP(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
 
 
@@ -176,9 +174,8 @@ namespace EddyLib.Radiation
 
                 File.WriteAllText(epjsonfile, epjson);
 
-                stepCnt++;
-                pct = 100 * stepCnt / steps;
-                Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+                Interlocked.Increment(ref stepCnt);
+                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
                 // -----------------------------
@@ -194,9 +191,8 @@ namespace EddyLib.Radiation
                 while ((line = energyPlus.StandardOutput.ReadLine()) != null)
                 {
                     Console.WriteLine(line);
-                    stepCnt++;
-                    pct = 100 * stepCnt / steps;
-                    Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+                    Interlocked.Increment(ref stepCnt);
+                     Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
                     cnt++;
                 }
 
@@ -207,9 +203,8 @@ namespace EddyLib.Radiation
                 //    Debug.WriteLine($"EnergyPlus command failed with exit code {energyPlus.Result.ExitCode}: {energyPlus.Result.StandardError}");
                 //    return null;
                 //}
-                stepCnt++;
-                pct = 100 * stepCnt / steps;
-                Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+                Interlocked.Increment(ref stepCnt);
+                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
                 // -----------------------------
@@ -241,9 +236,8 @@ namespace EddyLib.Radiation
                         }
                     }
 
-                    stepCnt++;
-                    pct = 100 * stepCnt / steps;
-                    Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+                    Interlocked.Increment(ref stepCnt);
+                     Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
                     return res;
                 }
 
@@ -252,7 +246,7 @@ namespace EddyLib.Radiation
 
         }
 
-        public void ComputeMRT(bool run, CancellationToken ct)
+        public void ComputeMRT(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
             foreach (var p in this.Probes)
             {
@@ -305,7 +299,7 @@ namespace EddyLib.Radiation
 
         }
 
-        public MRT_Simulation_ResultProto SaveResults(bool run, CancellationToken ct)
+        public MRT_Simulation_ResultProto SaveResults(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
 
             // -----------------------------
@@ -325,9 +319,8 @@ namespace EddyLib.Radiation
 
 
             Console.WriteLine("Results written");
-            stepCnt++;
-            pct = 100 * stepCnt / steps;
-            Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+            Interlocked.Increment(ref stepCnt);
+             Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
             return protoResult;
 

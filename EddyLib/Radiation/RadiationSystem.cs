@@ -16,6 +16,11 @@ namespace EddyLib.Radiation
 
     public class RadiationSystem
     {
+
+
+         public int methodsteps = 18;
+ 
+
         public string ProjectName = "";
         public string BaseWorkingDir = "";
 
@@ -43,9 +48,6 @@ namespace EddyLib.Radiation
 
 
 
-        private double pct = 0;
-        private double steps = 18;
-        private double stepCnt = 0;
 
         private string annualR_dc_ill_out = (@"Rad\output\annualR_dc.ill");
         private string annualR_dcd_ill_out = (@"Rad\output\annualR_dcd.ill");
@@ -53,8 +55,9 @@ namespace EddyLib.Radiation
         private string annualR_total_ill_out = (@"Rad\output\annual_total.ill");
 
 
-        public bool RunDDS(bool run, CancellationToken ct)
+        public bool RunDDS(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
+            Console.WriteLine("Starting DDS Simulation");
 
             var numberOfProbes = this.Probes.Count;
 
@@ -63,14 +66,7 @@ namespace EddyLib.Radiation
             var skySubDivDir = SkySubdivision.r4;
             int skysubdivdiffuse = 1;
             int skysubdivdirect = 4;
-            // User geometry data here
-
-            //    string radMat = @"
-            //void plastic Generic_20
-            //0
-            //0
-            //5 0.2 0.2 0.2 0 0
-            //";
+ 
 
             string radMatBlack = @"
         void plastic Black
@@ -110,9 +106,8 @@ namespace EddyLib.Radiation
                   options => options.WorkingDirectory(this.BaseWorkingDir + @"\Rad").CancellationToken(ct));
                 epw2wea.Wait();
 
-                stepCnt++;
-                pct = 100 * stepCnt / steps;
-                Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+                Interlocked.Increment(ref stepCnt);
+                Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
 
@@ -174,9 +169,8 @@ namespace EddyLib.Radiation
                     Debug.WriteLine($"oconv command failed with exit code {oconv.Result.ExitCode}: {oconv.Result.StandardError}");
                     return false;
                 }
-                stepCnt++;
-                pct = 100 * stepCnt / steps;
-                Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+                Interlocked.Increment(ref stepCnt); 
+                Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
 
@@ -214,9 +208,8 @@ namespace EddyLib.Radiation
                     Debug.WriteLine($"4 command failed with exit code {CMDrfluxmtx.Result.ExitCode}: {CMDrfluxmtx.Result.StandardError}");
                     return false;
                 }
-                stepCnt++;
-                pct = 100 * stepCnt / steps;
-                Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+                Interlocked.Increment(ref stepCnt);
+                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
 
@@ -230,9 +223,8 @@ namespace EddyLib.Radiation
                     Debug.WriteLine($"gendaymtx command failed with exit code {gendaymtx.Result.ExitCode}: {gendaymtx.Result.StandardError}");
                     return false;
                 }
-                stepCnt++;
-                pct = 100 * stepCnt / steps;
-                Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+                Interlocked.Increment(ref stepCnt);
+                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
                 // -----------------------------
                 // 5 Create Illum DC
@@ -268,9 +260,8 @@ namespace EddyLib.Radiation
                     Debug.WriteLine($"dctimestep command failed with exit code {dctimestep.Result.ExitCode}: {dctimestep.Result.StandardError}");
                     return false;
                 }
-                stepCnt++;
-                pct = 100 * stepCnt / steps;
-                Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+                Interlocked.Increment(ref stepCnt);
+                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
                 // -----------------------------
@@ -308,9 +299,8 @@ namespace EddyLib.Radiation
                     return false;
 
                 }
-                stepCnt++;
-                pct = 100 * stepCnt / steps;
-                Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+                Interlocked.Increment(ref stepCnt);
+                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
                 // -----------------------------
                 // 7 
@@ -326,9 +316,8 @@ namespace EddyLib.Radiation
                     Debug.WriteLine($"dircalc2 command failed with exit code {dircalc2.Result.ExitCode}: {dircalc2.Result.StandardError}");
                     return false;
                 }
-                stepCnt++;
-                pct = 100 * stepCnt / steps;
-                Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+                Interlocked.Increment(ref stepCnt);
+                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
                 // -----------------------------
                 // 8
@@ -344,9 +333,8 @@ namespace EddyLib.Radiation
                     Debug.WriteLine($"dircalc3 command failed with exit code {dircalc3.Result.ExitCode}: {dircalc3.Result.StandardError}");
                     return false;
                 }
-                stepCnt++;
-                pct = 100 * stepCnt / steps;
-                Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+                Interlocked.Increment(ref stepCnt);
+                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
 
@@ -377,9 +365,8 @@ namespace EddyLib.Radiation
                     Debug.WriteLine($"suncoeff command failed with exit code {suncoeff.Result.ExitCode}: {suncoeff.Result.StandardError}");
                     return false;
                 }
-                stepCnt++;
-                pct = 100 * stepCnt / steps;
-                Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+                Interlocked.Increment(ref stepCnt);
+                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
                 // -----------------------------
@@ -396,9 +383,8 @@ namespace EddyLib.Radiation
                     Debug.WriteLine($"oconvdir command failed with exit code {oconvdir.Result.ExitCode}: {oconvdir.Result.StandardError}");
                     return false;
                 }
-                stepCnt++;
-                pct = 100 * stepCnt / steps;
-                Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+                Interlocked.Increment(ref stepCnt);
+                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
                 // -----------------------------
@@ -421,9 +407,8 @@ namespace EddyLib.Radiation
                     Debug.WriteLine($"suncoeff command failed with exit code {rcontrib.Result.ExitCode}: {rcontrib.Result.StandardError}");
                     return false;
                 }
-                stepCnt++;
-                pct = 100 * stepCnt / steps;
-                Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+                Interlocked.Increment(ref stepCnt);
+                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
                 // -----------------------------
@@ -436,9 +421,8 @@ namespace EddyLib.Radiation
                     Debug.WriteLine($"gendaymtx2 command failed with exit code {gendaymtx2.Result.ExitCode}: {gendaymtx2.Result.StandardError}");
                     return false;
                 }
-                stepCnt++;
-                pct = 100 * stepCnt / steps;
-                Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+                Interlocked.Increment(ref stepCnt);
+                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
                 // -----------------------------
@@ -459,9 +443,8 @@ namespace EddyLib.Radiation
                     Debug.WriteLine($"dctimestep2 dir command failed with exit code {dctimestep2.Result.ExitCode}: {dctimestep2.Result.StandardError}");
                     return false;
                 }
-                stepCnt++;
-                pct = 100 * stepCnt / steps;
-                Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+                Interlocked.Increment(ref stepCnt);
+                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
 
@@ -483,9 +466,8 @@ namespace EddyLib.Radiation
                     Debug.WriteLine($"dctimestep dir command failed with exit code {rmtxop.Result.ExitCode}: {rmtxop.Result.StandardError}");
                     return false;
                 }
-                stepCnt++;
-                pct = 100 * stepCnt / steps;
-                Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+                Interlocked.Increment(ref stepCnt);
+                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
 
@@ -497,26 +479,8 @@ namespace EddyLib.Radiation
             return true;
 
         }
-        //public bool RunVF(bool run, CancellationToken ct)
-        //{
-
-        //    this.BuildVFToProbes(UnifiedMeshHighPolyNoSky);
-
-        //    this.BuildVFToProbesByMaterial();
-
-        //    stepCnt++;
-        //    pct = 100 * stepCnt / steps;
-        //    Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
-
-        //    this.BuildFFMatrix(UnifiedMeshHighPolyNoSky);
-
-        //    stepCnt++;
-        //    pct = 100 * stepCnt / steps;
-        //    Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
-
-        //    return true;
-        //}
-        public MRT_Simulation_ResultProto SaveResults(bool run, CancellationToken ct)
+ 
+        public void LoadDDSData(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
             // -----------------------------
             // 15 Compute dMRT
@@ -531,18 +495,15 @@ namespace EddyLib.Radiation
 
             float[][] dMRT = SolarGain.ComputeStanding(this.Weather, totalIll, dirIll);
 
-            stepCnt++;
-            pct = 100 * stepCnt / steps;
-            Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+            Interlocked.Increment(ref stepCnt);
+             Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
             // -----------------------------
-            // 16 Write results
+            // 16 Load results
             // -----------------------------
-            var prep = PrepareProtoBufSingleton.Instance;
-
-            Stopwatch sp = new Stopwatch();
-            sp.Start();
+             
+ 
             for (int i = 0; i < this.Probes.Count; i++)
             {
                 this.Probes[i].TotalRad = new float[totalIll.Length];
@@ -555,31 +516,28 @@ namespace EddyLib.Radiation
                     this.Probes[i].SolarGain_dMRT[h] = dMRT[h][i];
                 }
             }
-            sp.Stop();
-            Debug.WriteLine("Reformat results : " + sp.ElapsedMilliseconds);
-            sp.Restart();
-
-
-            var protoResult = new MRT_Simulation_ResultProto(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
-            protoResult.WriteToFile(this.BaseWorkingDir + @"\" + this.ProjectName + ".rad.eddy");
-
-            sp.Stop();
-            Debug.WriteLine("Results Proto: " + sp.ElapsedMilliseconds);
-            sp.Restart();
-
-
-
-            Console.WriteLine("Results written");
-            stepCnt++;
-            pct = 100 * stepCnt / steps;
-            Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
-
-            return protoResult;
+            
         }
 
 
 
+        public MRT_Simulation_ResultProto SaveResults(bool run, CancellationToken ct, int steps, ref int stepCnt)
+        {
+          
+            // -----------------------------
+            // 16 Write results
+            // -----------------------------
+            var prep = PrepareProtoBufSingleton.Instance;
+ 
+            var protoResult = new MRT_Simulation_ResultProto(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
+            protoResult.WriteToFile(this.BaseWorkingDir + @"\" + this.ProjectName + ".rad.eddy");
 
+            Console.WriteLine("Results written");
+            Interlocked.Increment(ref stepCnt);
+            Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+
+            return protoResult;
+        }
 
 
 
@@ -600,346 +558,6 @@ namespace EddyLib.Radiation
             // [][x] points
         }
 
-
-
-
-
-
-        //#region VIEW FACTOR SYSTEM 
-
-        //public static List<RPolygon> MakeRPolygons(Mesh _ms, RadiationSurfaceType type, string matName, SimulationType simtype, double rad = 0, double refl = 0.5)
-        //{
-        //    List<RPolygon> polys = new List<RPolygon>();
-        //    if (_ms == null) return polys;
-
-        //    _ms.FaceNormals.ComputeFaceNormals();
-
-        //    for (int i = 0; i < _ms.Faces.Count; ++i)
-        //    {
-        //        RPolygon pg = new RPolygon();
-        //        polys.Add(pg);
-
-        //        pg.Centroid.Value = _ms.Faces.GetFaceCenter(i);
-        //        pg.Normal.Value = _ms.FaceNormals[i];
-        //        pg.Normal.Value.Unitize();
-
-        //        pg.rin = rad;
-        //        pg.rout = 0.0;
-        //        pg.refl = refl;
-
-
-        //        pg.Name = matName;
-        //        pg.Type = type;
-        //        pg.SimulationType = simtype;
-
-
-
-        //        if (_ms.Faces[i].IsQuad)
-        //        {
-        //            Point3d v0 = new Point3d(_ms.Vertices[_ms.Faces[i].A]);
-        //            Point3d v1 = new Point3d(_ms.Vertices[_ms.Faces[i].B]);
-        //            Point3d v2 = new Point3d(_ms.Vertices[_ms.Faces[i].C]);
-        //            Point3d v3 = new Point3d(_ms.Vertices[_ms.Faces[i].D]);
-
-        //            Vector3d n1 = Vector3d.CrossProduct(v1 - v0, v2 - v0);
-        //            Vector3d n2 = Vector3d.CrossProduct(v2 - v0, v3 - v0);
-
-        //            pg.Area = n1.Length * 0.5 + n2.Length * 0.5;
-
-        //            pg.Mesh.Value = new Mesh();
-        //            pg.Mesh.Value.Vertices.Add(v0);
-        //            pg.Mesh.Value.Vertices.Add(v1);
-        //            pg.Mesh.Value.Vertices.Add(v2);
-        //            pg.Mesh.Value.Vertices.Add(v3);
-        //            pg.Mesh.Value.Faces.AddFace(0, 1, 2, 3);
-
-        //        }
-        //        else
-        //        {
-        //            Point3d v0 = new Point3d(_ms.Vertices[_ms.Faces[i].A]);
-        //            Point3d v1 = new Point3d(_ms.Vertices[_ms.Faces[i].B]);
-        //            Point3d v2 = new Point3d(_ms.Vertices[_ms.Faces[i].C]);
-
-        //            Vector3d n1 = Vector3d.CrossProduct(v1 - v0, v2 - v0);
-
-        //            pg.Area = n1.Length * 0.5;
-
-        //            pg.Mesh.Value = new Mesh();
-        //            pg.Mesh.Value.Vertices.Add(v0);
-        //            pg.Mesh.Value.Vertices.Add(v1);
-        //            pg.Mesh.Value.Vertices.Add(v2);
-        //            pg.Mesh.Value.Faces.AddFace(0, 1, 2);
-        //        }
-        //    }
-        //    return polys;
-        //}
-
-        //public List<string> UniqueSurfaceTypesInModel = new List<string>();
-
-        ////Sum up view factors to the different materials in the model
-        //public void BuildVFToProbesByMaterial()
-        //{
-
-        //    UniqueSurfaceTypesInModel = Polys.Select(s => s.Type.ToString()).ToHashSet().ToList();
-
-        //    // set up dictionary
-        //    for (int i = 0; i < RProbes.Count; i++)
-        //    {
-        //        RProbes[i].VFtoMaterial = new Dictionary<string, double>();
-        //        for (int j = 0; j < UniqueSurfaceTypesInModel.Count; j++)
-        //        {
-        //            RProbes[i].VFtoMaterial.Add(UniqueSurfaceTypesInModel[j], 0);
-        //        }
-        //    }
-
-        //    for (int i = 0; i < RProbes.Count; i++)
-        //    {
-        //        for (int j = 0; j < Polys.Count; j++)
-        //        {
-        //            RProbes[i].VFtoMaterial[Polys[j].Type.ToString()] += RProbes[i].VFtoPolys[j];
-        //        }
-        //    }
-
-        //    // normalize results
-        //    for (int i = 0; i < RProbes.Count; i++)
-        //    {
-        //        double total = 0;
-        //        for (int j = 0; j < UniqueSurfaceTypesInModel.Count; j++)
-        //        {
-        //            total += RProbes[i].VFtoMaterial[UniqueSurfaceTypesInModel[j]];
-        //        }
-        //        double scale = 1 / total;
-        //        for (int j = 0; j < UniqueSurfaceTypesInModel.Count; j++)
-        //        {
-        //            RProbes[i].VFtoMaterial[UniqueSurfaceTypesInModel[j]] *= scale;
-        //        }
-
-
-        //    }
-
-        //}
-
-
-        ////Compute Form factors taking into account occlusions from a list of meshes
-        //public void BuildVFToProbes(Mesh Obst)
-        //{
-        //    foreach (var p in RProbes)
-        //    {
-        //        p.VFtoPolys = new double[Polys.Count];
-        //    }
-
-        //    System.Threading.Tasks.Parallel.For(0, RProbes.Count, i =>
-        //    {
-        //        for (int j = 0; j < Polys.Count; j++)
-        //        {
-        //            Point3d probe_pt = RProbes[i].Point.Value;
-        //            RProbes[i].VFtoPolys[j] = FFactorProbe(probe_pt, Polys[j], Obst);
-        //        }
-        //    });
-
-        //    // normalize results
-        //    for (int i = 0; i < RProbes.Count; i++)
-        //    {
-        //        double total = 0;
-        //        for (int j = 0; j < RProbes[i].VFtoPolys.Length; j++)
-        //        {
-        //            total += RProbes[i].VFtoPolys[j];
-        //        }
-        //        double scale = 1 / total;
-        //        for (int j = 0; j < RProbes[i].VFtoPolys.Length; j++)
-        //        {
-        //            RProbes[i].VFtoPolys[j] *= scale;
-        //        }
-        //    }
-        //    FindPolysSeenByProbes();
-        //}
-        //public double FFactorProbe(Point3d probe_pt, RPolygon p1, Mesh Obst)
-        //{
-        //    Vector3d probe_n = p1.Centroid.Value - probe_pt;
-        //    probe_n.Unitize();
-        //    if (p1.Normal.Value * probe_n > 0.0001) return 0.0; //if normals don't face each other return 0
-
-        //    Plane pl = new Plane(p1.Centroid.Value, p1.Normal.Value);
-        //    if (pl.DistanceTo(probe_pt) < 0) return 0.0; // if the other face is behind the test face return 0
-
-        //    double f = 0.0;
-
-        //    Vector3d dv;
-        //    dv = p1.Centroid.Value - probe_pt;
-        //    double r = dv.Length;
-        //    if (r < 0.1) return 0.0;
-
-
-        //    double cosThetaI = dv * probe_n / (dv.Length * probe_n.Length);
-        //    double cosThetaJ = -dv * p1.Normal.Value / (dv.Length * p1.Normal.Value.Length);
-        //    f = ((cosThetaI * cosThetaJ) / (4 * Math.PI * r * r)) * p1.Area;
-
-
-
-        //    //only do occlusion test for large view factors -- zero all others
-        //    if (f < 0.00001) return 0.0;
-
-        //    Vector3d dv_forRaycast = (p1.Centroid.Value + (0.01 * p1.Normal.Value)) - (probe_pt + (0.01 * probe_n));
-        //    Line line = new Line(p1.Centroid.Value + (0.01 * p1.Normal.Value), probe_pt + (0.01 * probe_n));
-        //    int[] fid;
-        //    var pts = Rhino.Geometry.Intersect.Intersection.MeshLine(Obst, line, out fid);
-        //    if (pts.Length > 0) return 0.0;
-
-        //    return f;
-        //}
-        //private void FindPolysSeenByProbes()
-        //{
-        //    for (int j = 0; j < Polys.Count; j++)
-        //    {
-        //        for (int i = 0; i < RProbes.Count; i++)
-        //        {
-        //            Polys[j].SeenByProbes += RProbes[i].VFtoPolys[j];
-        //        }
-        //    }
-
-        //}
-
-        //public double maxv = 0.0;
-        //public double[][] F;
-        //public double[] xk0;
-        //public double[] xk1;
-        //public double[] b;
-        ////Compute Form factors taking into account occlusions from a list of meshes
-        //public void BuildFFMatrix(Mesh Obst)
-        //{
-        //    int Ps = Polys.Count;
-        //    //F = new double[Ps, Ps];
-
-        //    F = new double[Ps][];
-        //    for (int i = 0; i < Ps; i++)
-        //    {
-        //        F[i] = new double[Ps];
-        //    }
-
-        //    xk0 = new double[Ps];
-        //    xk1 = new double[Ps];
-        //    b = new double[Ps];
-
-        //    for (int i = 0; i < Ps; ++i)
-        //    {
-        //        xk0[i] = 0.0;
-        //        xk1[i] = 0.0;
-        //        b[i] = Polys[i].rin;
-        //    }
-
-        //    double Fij = 0.0;
-
-
-        //    // DO NOT USE THIS - THE F[i][j] IS NOT THREAD SAFE
-        //    // System.Threading.Tasks.Parallel.For(0, Ps, j =>
-        //    //  {
-        //    for (int j = 0; j < Ps; ++j)
-        //    {
-        //        for (int i = j; i < Ps; ++i)
-        //        {
-
-        //            if (i == j)
-        //            {
-        //                F[j][i] = 0.0;
-        //            }
-        //            else
-        //            {
-        //                Fij = FFactor(Polys[i], Polys[j], Obst);
-        //                F[j][i] = Fij * Polys[i].Area;
-        //                F[i][j] = Fij * Polys[j].Area;
-        //            }
-        //        }
-        //    }
-        //    // });
-        //}
-
-        ////Computes the form factor between two polygons. It returns
-        //// 0.0 if the polygons are facing in opposite ways or are nearly coplanar or too close to each other
-        //public double FFactor(RPolygon p0, RPolygon p1, Mesh Obst)
-        //{
-
-        //    // --- 6/25/2020
-        //    if (p0.Normal.Value * p1.Normal.Value > 0.0001) return 0.0; //if normals don't face each other return 0
-        //    Plane pl = new Plane(p0.Centroid.Value, p0.Normal.Value);
-        //    if (pl.DistanceTo(p1.Centroid.Value) < 0) return 0.0; // if the other face is behind the test face return 0
-        //                                                          // ---
-
-        //    double f = 0.0;
-
-        //    Vector3d dv;
-        //    dv = p1.Centroid.Value - p0.Centroid.Value;
-        //    double r = dv.Length;
-        //    if (r < 0.1) return 0.0;
-        //    //dv *= (1.0 / r);
-
-
-        //    double cosThetaI = dv * p0.Normal.Value / (dv.Length * p0.Normal.Value.Length);
-        //    double cosThetaJ = -dv * p1.Normal.Value / (dv.Length * p1.Normal.Value.Length);
-
-        //    //if (Math.Abs(dv * p0.n) < 0.0001 && Math.Abs(dv * p1.n) < 0.0001) return 0.0;
-        //    //if ((dv * p0.n) < 0.0001 && -(dv * p1.n) < 0.0001) return 0.0;
-
-        //    // if (cosThetaI < 0.0001 && cosThetaJ < 0.0001) return 0.0;
-
-        //    f = ((cosThetaI * cosThetaJ) / (Math.PI * r * r));//*p0.area * p1.area;
-
-        //    //if (f < 0.0) return 0.0;
-
-
-
-        //    //only do occlusion test for large view factors -- zero all others
-        //    if (f < 0.0000001) return 0.0;
-
-
-        //    Vector3d dv_forRaycast = (p1.Centroid.Value + (0.01 * p1.Normal.Value)) - (p0.Centroid.Value + (0.01 * p0.Normal.Value));
-        //    Line line = new Line(p1.Centroid.Value + (0.01 * p1.Normal.Value), p0.Centroid.Value + (0.01 * p0.Normal.Value));
-        //    int[] fid;
-        //    var pts = Rhino.Geometry.Intersect.Intersection.MeshLine(Obst, line, out fid);
-        //    if (pts.Length > 0) return 0.0;
-
-        //    //Ray3d ry = new Ray3d(p0.cen + 0.01 * p0.n, dv_forRaycast);
-        //    //double il = Rhino.Geometry.Intersect.Intersection.MeshRay(Obst, ry);
-        //    //if (il > 0.0 && il < dv_forRaycast.Length) return 0.0;
-
-
-
-        //    return f;
-        //}
-        ////Do one iteration step of Gauss-Seidel method.
-        //public void Iterate()
-        //{
-        //    if (F == null) return;
-
-
-        //    for (int i = 0; i < Polys.Count; ++i)
-        //    {
-        //        xk1[i] = b[i];
-
-
-        //        for (int j = i + 1; j < Polys.Count; ++j)
-        //        {
-        //            xk1[i] -= F[j][i] * xk0[j];
-        //        }
-        //        for (int j = 0; j < i; ++j)
-        //        {
-        //            xk1[i] -= F[j][i] * xk1[j];
-        //        }
-        //        xk1[i] /= F[i][i];
-        //    }
-
-
-        //    maxv = 0.0;
-        //    for (int i = 0; i < Polys.Count; ++i)
-        //    {
-        //        xk0[i] = xk1[i];
-
-        //        Polys[i].rout = xk0[i];
-        //        if (Math.Abs(Polys[i].rout) > maxv) maxv = Math.Abs(Polys[i].rout);
-        //    }
-
-
-        //}
-
-        //#endregion
+ 
     }
 }

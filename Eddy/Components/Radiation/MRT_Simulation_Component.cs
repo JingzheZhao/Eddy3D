@@ -245,20 +245,38 @@ namespace Eddy
         {
 
             if (MRTSystem == null) return false;
+            if (MRTSystem.RadiationSystem == null) return false;
+            if (MRTSystem.ThermalSystem == null) return false;
+
+
 
             Console.WriteLine("Starting ViewFactor Calculation");
             if (cts.IsCancellationRequested) return false;
-            if (!MRTSystem.RunVF(true, cts.Token)) { return false; }
+            if (!MRTSystem.RunVF(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP)) { return false; }
 
 
+            if (MRTSystem.Settings.ComputeReflectionsAndDiffuseRadiation)
+            {
+                if (cts.IsCancellationRequested) return false;
+                if (!MRTSystem.RadiationSystem.RunDDS(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP)) { return false; }
+
+                if (cts.IsCancellationRequested) return false;
+                MRTSystem.RadiationSystem.LoadDDSData(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
+            }
+            else {
+                throw new NotImplementedException();
+            }
+
+            if (MRTSystem.ThermalSystem == null) return false;
 
             if (cts.IsCancellationRequested) return false;
-            Console.WriteLine("Starting DDS Simulation");
-            if (!MRTSystem.RadiationSystem.RunDDS(true, cts.Token)) { return false; }
-
+            var data = MRTSystem.ThermalSystem.RunEP(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
 
             if (cts.IsCancellationRequested) return false;
-            MRTSystem.RadiationSystem.SaveResults(true, cts.Token);
+            MRTSystem.ThermalSystem.ComputeMRT(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
+
+            if (cts.IsCancellationRequested) return false;
+            var proto = MRTSystem.ThermalSystem.SaveResults(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
 
 
 

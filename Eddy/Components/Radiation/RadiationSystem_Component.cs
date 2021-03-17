@@ -15,6 +15,11 @@ namespace Eddy
 {
     public class RadiationSystem_Component : GH_Component
     {
+        public override GH_Exposure Exposure
+        {
+            get { return GH_Exposure.hidden; }
+        }
+
 
         MRT_Simulation_System MRTSystem;
 
@@ -218,17 +223,19 @@ namespace Eddy
 
             Console.WriteLine("Starting ViewFactor Calculation");
             if (cts.IsCancellationRequested) return false;
-            if (!MRTSystem.RunVF(true, cts.Token)) { return false; }
+            if (!MRTSystem.RunVF(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP)) { return false; }
 
 
 
             if (cts.IsCancellationRequested) return false;
             Console.WriteLine("Starting DDS Simulation");
-            if (!MRTSystem.RadiationSystem.RunDDS(true, cts.Token)) { return false; }
-
+            if (!MRTSystem.RadiationSystem.RunDDS(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP)) { return false; }
 
             if (cts.IsCancellationRequested) return false;
-            MRTSystem.RadiationSystem.SaveResults(true, cts.Token);
+            MRTSystem.RadiationSystem.LoadDDSData(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
+
+            if (cts.IsCancellationRequested) return false;
+            MRTSystem.RadiationSystem.SaveResults(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
 
 
 
