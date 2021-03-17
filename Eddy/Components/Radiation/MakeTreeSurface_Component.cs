@@ -1,4 +1,5 @@
-﻿using EddyLib;
+﻿using Eddy.Properties;
+using EddyLib;
 using EddyLib.Radiation;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
@@ -122,7 +123,7 @@ namespace Eddy.Components.Radiation
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return null;
+                return Resources.Eddy_MRT_Tree ;
             }
         }
 

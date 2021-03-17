@@ -1,4 +1,5 @@
-﻿using EddyLib;
+﻿using Eddy.Properties;
+using EddyLib;
 using EddyLib.Radiation;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
@@ -9,12 +10,12 @@ using static EddyLib.Radiation.RSurface;
 
 namespace Eddy.Components.Radiation
 {
-    public class MakeRadiationSurface_Component : GH_Component
+    public class MakeBuildingSurface_Component : GH_Component
     {
         /// <summary>
         /// Initializes a new instance of the MakeRadiationMesh_Component class.
         /// </summary>
-        public MakeRadiationSurface_Component()
+        public MakeBuildingSurface_Component()
           : base("Radiation Surface", "RadSurf", "Radiation Simulation Surface" + EddyVersion.toString(), EddyVersion.Name, "X | Radiation")
         {
         }
@@ -132,10 +133,9 @@ namespace Eddy.Components.Radiation
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return null;
+                return Resources.Eddy_MRT_Building;
             }
         }
-
         /// <summary>
         /// Gets the unique ID for this component. Do not change this ID after release.
         /// </summary>

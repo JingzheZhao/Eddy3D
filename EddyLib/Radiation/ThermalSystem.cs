@@ -22,6 +22,7 @@ namespace EddyLib.Radiation
         private double steps = 52 + 2; // energyplus prints 52 lines
         private double stepCnt = 0;
 
+        public double CummulativeViewFactorCutoff = 0.05;
 
         MRTSimulationResultProto RSystem;
 
@@ -64,7 +65,7 @@ namespace EddyLib.Radiation
                 {
                     if (s.Type == RadiationSurfaceType.Sky) { continue; }
 
-                    if (s.SeenByProbes < 0.05) { continue; }
+                    if (s.SeenByProbes < CummulativeViewFactorCutoff) { continue; }
 
 
                     else if (s.Type == RadiationSurfaceType.Building)
@@ -238,12 +239,8 @@ namespace EddyLib.Radiation
 
         }
 
-
-
         public void ComputeMRT(bool run, CancellationToken ct)
         {
-
-
             foreach (var p in RSystem.Probes)
             {
 
@@ -251,11 +248,7 @@ namespace EddyLib.Radiation
 
                 for (int i = 0; i < p.VFtoPolys.Length; i++)
                 {
-
-
                     var poly = RSystem.Polys[i];
-
-
 
                     /// ------------------
                     /// Logic for picking surface temperatures. Come from different sources depending on the object type.

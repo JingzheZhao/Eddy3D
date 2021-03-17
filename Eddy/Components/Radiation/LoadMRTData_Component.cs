@@ -1,4 +1,5 @@
-﻿using EddyLib;
+﻿using Eddy.Properties;
+using EddyLib;
 using EddyLib.Radiation;
 using Grasshopper.Kernel;
 using System;
@@ -8,13 +9,13 @@ using System.Linq;
 
 namespace Eddy.Components.Radiation
 {
-    public class LoadRadiationData_Component : GH_Component
+    public class LoadMRTData_Component : GH_Component
     {
         /// <summary>
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
-        public LoadRadiationData_Component()
-          : base("Load Radiation", "LRad", "Load radiation data" + EddyVersion.toString(), EddyVersion.Name, "X | Radiation")
+        public LoadMRTData_Component()
+          : base("Load MRT", "MRT", "Load radiation and MRT data" + EddyVersion.toString(), EddyVersion.Name, "X | Radiation")
 
         {
         }
@@ -114,7 +115,7 @@ namespace Eddy.Components.Radiation
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return null;
+                return Resources.Eddy_MRT_LoadResults;
             }
         }
 

@@ -148,6 +148,9 @@
   <data name="Eddy_calUTCI" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_calUTCI.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="Eddy_calUTCI_copy" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_calUTCI copy.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="Eddy_castU" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_castU.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -177,6 +180,24 @@
   </data>
   <data name="Eddy_modelSTLexport" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_modelSTLexport.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_MRT_Building" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_MRT_Building.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_MRT_Ground" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_MRT_Ground.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_MRT_LoadResults" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_MRT_LoadResults.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_MRT_System" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_MRT_System.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_MRT_Tree" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_MRT_Tree.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_MRT_Vegetation" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_MRT_Vegetation.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="Eddy_paraview" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_paraview.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>

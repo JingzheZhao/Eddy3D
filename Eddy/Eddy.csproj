@@ -81,12 +81,13 @@
     <Compile Include="Components\Outdoor Comfort\Metrics\CompCalcUTCIMetric.cs" />
     <Compile Include="Components\postProcessing\CompParaview.cs" />
     <Compile Include="Components\postProcessing\CompVisProbesCustom.cs" />
-    <Compile Include="Components\Radiation\LoadRadiationData_Component.cs" />
+    <Compile Include="Components\Radiation\LoadMRTData_Component.cs" />
     <Compile Include="Components\MakeSensor_Component.cs" />
     <Compile Include="Components\Radiation\MakeGroundSurface_Component.cs" />
     <Compile Include="Components\Radiation\MakeTreeSurface_Component.cs" />
     <Compile Include="Components\Radiation\MakeVegetationSurface_Component.cs" />
-    <Compile Include="Components\Radiation\MakeRadiationSurface_Component.cs" />
+    <Compile Include="Components\Radiation\MakeBuildingSurface_Component.cs" />
+    <Compile Include="Components\Radiation\MRT_Simulation_Component.cs" />
     <Compile Include="Components\Radiation\RadiationSystem_Component.cs" />
     <Compile Include="Components\Radiation\SkyTemperature_Component.cs" />
     <Compile Include="Components\Radiation\ComfortSystem_Component.cs" />
@@ -241,6 +242,27 @@
       <Project>{cd46984c-eb80-48de-b903-ce9f1bbca21e}</Project>
       <Name>EddyLib</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_MRT_System.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_MRT_Tree.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_MRT_Vegetation.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_MRT_Building.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_calUTCI copy.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_MRT_Ground.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_MRT_LoadResults.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
