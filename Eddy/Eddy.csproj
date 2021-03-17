@@ -81,6 +81,8 @@
     <Compile Include="Components\Outdoor Comfort\Metrics\CompCalcUTCIMetric.cs" />
     <Compile Include="Components\postProcessing\CompParaview.cs" />
     <Compile Include="Components\postProcessing\CompVisProbesCustom.cs" />
+    <Compile Include="Components\postProcessing\CompVisProbesCustomWProbes.cs" />
+    <Compile Include="Components\postProcessing\LoadWProbeData_Component.cs" />
     <Compile Include="Components\Radiation\LoadMRTData_Component.cs" />
     <Compile Include="Components\MakeSensor_Component.cs" />
     <Compile Include="Components\Radiation\MakeGroundSurface_Component.cs" />
@@ -97,9 +99,6 @@
     <Compile Include="Components\Setup\CompBCondABL.cs" />
     <Compile Include="Components\Setup\CompBCondConstantU.cs" />
     <Compile Include="Components\OSSettings.cs" />
-    <Compile Include="Components\postProcessing\CompComputeFlowRateFromCp.cs" />
-    <Compile Include="Components\postProcessing\CompAnnualUToCSV.cs" />
-    <Compile Include="Components\postProcessing\CompAnnualCPToCSV.cs" />
     <Compile Include="Components\Misc\CompCellSize.cs" />
     <Compile Include="Components\postProcessing\CompComputeFlowRateFromU.cs" />
     <Compile Include="Components\postProcessing\CompCullPoints.cs" />
