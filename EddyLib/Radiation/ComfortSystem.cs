@@ -59,6 +59,8 @@ namespace EddyLib.Radiation
             {
                 var probe = RSystem.Probes[i];
                 probe.UTCI = new float[8760];
+                probe.ComfortHours = 0;
+
 
                 // get wind speed data -- init array with wind speed data from weather
                 var windspeed = this.Weather.WindSpeed;
@@ -97,26 +99,33 @@ namespace EddyLib.Radiation
 
 
                     // Check for extreme MRTs
-
                     double resultingMRT = mrt[h];
 
                     if (resultingMRT < this.Weather.DryBulbTemp[h] - 30) { resultingMRT = this.Weather.DryBulbTemp[h] - 30;  }
                     if (resultingMRT > this.Weather.DryBulbTemp[h] + 70) { resultingMRT = this.Weather.DryBulbTemp[h] + 70;  }
 
                     // Check for extreme Windspeeds
-
                     double resultingWindSpeedforUTCI = windspeed[h];
 
                     if (resultingWindSpeedforUTCI > 17) { resultingWindSpeedforUTCI = 17;   }
                     if (resultingWindSpeedforUTCI < 0.5) { resultingWindSpeedforUTCI = 0.5; }
 
-                    // lift to 10 m height as required
 
+
+                    // lift to 10 m height as required
                     var resultingWindSpeedforUTCI_At10 = UTCI.At10Meters(resultingWindSpeedforUTCI, probe.Point.Value.Z);
 
 
 
                     double utci = UTCI.CalcUTCI(this.Weather.DryBulbTemp[h], this.Weather.RelativeHumidity[h], resultingWindSpeedforUTCI, resultingMRT);
+
+                    if (utci < -40) utci = -40;
+                    if (utci > 46) utci = 46;
+
+                    var condition =  UTCI.CalcConditionOfPerson(utci);
+
+                   if(condition == 0) probe.ComfortHours++;
+
                     probe.UTCI[h] = (float) utci;
                 }
 

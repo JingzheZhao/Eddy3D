@@ -55,15 +55,16 @@ namespace EddyLib.Radiation
         [ProtoMember(200)]
         public float[] UTCI { get; set; }
 
-
-
         [ProtoMember(201)]
-        public float ComfortAutonomy_Spring { get; set; }
+        public int ComfortHours { get; set; }
+
         [ProtoMember(202)]
-        public float ComfortAutonomy_Summer { get; set; }
+        public float ComfortAutonomy_Spring { get; set; }
         [ProtoMember(203)]
-        public float ComfortAutonomy_Fall { get; set; }
+        public float ComfortAutonomy_Summer { get; set; }
         [ProtoMember(204)]
+        public float ComfortAutonomy_Fall { get; set; }
+        [ProtoMember(205)]
         public float ComfortAutonomy_Winter { get; set; }
       
 
