@@ -572,6 +572,23 @@ namespace RhinoPlugin.Tests.Xunit
         }
 
         [Fact]
+        public void ScaleABL_10m_Returns_5()
+        {
+            // Arrange
+
+            var z0 = 1;
+            var uref = 2.89;
+            var zref = 3;
+
+            // Act
+            var res = EddyLib.BCs.BoundaryCondition.ScaleABL(uref, zref, z0, 10);
+
+            // Assert
+
+            Assert.Equal(5, Math.Round(res, 2));
+        }
+
+        [Fact]
         public void WindFactors()
         {
             //// Arrange
