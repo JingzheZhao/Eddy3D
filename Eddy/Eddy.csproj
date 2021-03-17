@@ -72,54 +72,48 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Components\FunctionObjects\CompTree.cs" />
-    <Compile Include="Components\Misc\CompLBAnalPeriod2Hours.cs" />
-    <Compile Include="Components\Outdoor Comfort\CompCalcWindFactors.cs" />
-    <Compile Include="Components\Outdoor Comfort\CompCalcWindComfort.cs" />
-    <Compile Include="Components\Outdoor Comfort\CompDeData.cs" />
-    <Compile Include="Components\Outdoor Comfort\CompCalcMRT.cs" />
-    <Compile Include="Components\Outdoor Comfort\Metrics\CompCalcUTCIMetric.cs" />
-    <Compile Include="Components\postProcessing\CompParaview.cs" />
-    <Compile Include="Components\postProcessing\CompVisProbesCustom.cs" />
-    <Compile Include="Components\postProcessing\CompVisProbesCustomWProbes.cs" />
-    <Compile Include="Components\postProcessing\LoadWProbeData_Component.cs" />
-    <Compile Include="Components\Radiation\LoadMRTData_Component.cs" />
-    <Compile Include="Components\MakeSensor_Component.cs" />
-    <Compile Include="Components\Radiation\MakeGroundSurface_Component.cs" />
-    <Compile Include="Components\Radiation\MakeTreeSurface_Component.cs" />
-    <Compile Include="Components\Radiation\MakeVegetationSurface_Component.cs" />
-    <Compile Include="Components\Radiation\MakeBuildingSurface_Component.cs" />
-    <Compile Include="Components\Radiation\MRT_Simulation_Component.cs" />
-    <Compile Include="Components\Radiation\RadiationSystem_Component.cs" />
-    <Compile Include="Components\Radiation\SkyTemperature_Component.cs" />
-    <Compile Include="Components\Radiation\ComfortSystem_Component.cs" />
-    <Compile Include="Components\Radiation\ThermalSystem_Component.cs" />
-    <Compile Include="Components\Settings\CompRunSettings.cs" />
-    <Compile Include="Components\Setup\CompTemplates.cs" />
-    <Compile Include="Components\Setup\CompBCondABL.cs" />
-    <Compile Include="Components\Setup\CompBCondConstantU.cs" />
-    <Compile Include="Components\OSSettings.cs" />
-    <Compile Include="Components\Misc\CompCellSize.cs" />
-    <Compile Include="Components\postProcessing\CompComputeFlowRateFromU.cs" />
-    <Compile Include="Components\postProcessing\CompCullPoints.cs" />
-    <Compile Include="Components\Outdoor Comfort\ReadResults.cs" />
-    <Compile Include="Components\Outdoor Comfort\ReadUTCIByProbe.cs" />
-    <Compile Include="Components\Outdoor Comfort\ReadComfortHours.cs" />
-    <Compile Include="Components\Outdoor Comfort\ReadHumanConditions.cs" />
-    <Compile Include="Components\Outdoor Comfort\ReadUTCIByHour.cs" />
-    <Compile Include="Components\Outdoor Comfort\CompCalcUTCI.cs" />
-    <Compile Include="Components\Misc\CompCluster.cs" />
-    <Compile Include="Components\Residuals\CompVisResiduals.cs" />
-    <Compile Include="Components\Settings\CompMeshSettings.cs" />
-    <Compile Include="Components\Setup\CompDomainCyl.cs" />
+    <Compile Include="Components\1_Wind\7_CompTree.cs" />
+    <Compile Include="Components\1_Wind\4o_CompLBAnalPeriod2Hours.cs" />
+    <Compile Include="Components\3_PostProcessing\1o_CompCalcWindFactors.cs" />
+    <Compile Include="Components\3_PostProcessing\1o_CompCalcWindComfort.cs" />
+    <Compile Include="Components\3_PostProcessing\1o_CompDeData.cs" />
+    <Compile Include="Components\3_PostProcessing\1o_CompCalcMRT.cs" />
+    <Compile Include="Components\3_PostProcessing\7_CompCalcUTCIMetric.cs" />
+    <Compile Include="Components\1_Wind\6_CompParaview.cs" />
+    <Compile Include="Components\1_Wind\6_CompVisProbesCustom.cs" />
+    <Compile Include="Components\1_Wind\6_CompVisProbesCustomWProbes.cs" />
+    <Compile Include="Components\3_PostProcessing\2_LoadWProbeData_Component.cs" />
+    <Compile Include="Components\3_PostProcessing\3_LoadMRTData_Component.cs" />
+    <Compile Include="Components\2_Radiation\1_MakeSensor_Component.cs" />
+    <Compile Include="Components\2_Radiation\2_MakeGroundSurface_Component.cs" />
+    <Compile Include="Components\2_Radiation\2_MakeTreeSurface_Component.cs" />
+    <Compile Include="Components\2_Radiation\2_MakeVegetationSurface_Component.cs" />
+    <Compile Include="Components\2_Radiation\2_MakeBuildingSurface_Component.cs" />
+    <Compile Include="Components\2_Radiation\3_MRT_Simulation_Component.cs" />
+    <Compile Include="Components\2_Radiation\2h_RadiationSystem_Component.cs" />
+    <Compile Include="Components\2_Radiation\2h_SkyTemperature_Component.cs" />
+    <Compile Include="Components\3_PostProcessing\4_ComfortSystem_Component.cs" />
+    <Compile Include="Components\2_Radiation\2h_ThermalSystem_Component.cs" />
+    <Compile Include="Components\1_Wind\3_CompRunSettings.cs" />
+    <Compile Include="Components\0_Templates\1_CompTemplates.cs" />
+    <Compile Include="Components\1_Wind\1_CompBCondABL.cs" />
+    <Compile Include="Components\1_Wind\1_CompBCondConstantU.cs" />
+    <Compile Include="Components\1_Wind\4_CompCellSize.cs" />
+    <Compile Include="Components\1_Wind\6o_CompComputeFlowRateFromU.cs" />
+    <Compile Include="Components\1_Wind\6_CompCullPoints.cs" />
+    <Compile Include="Components\3_PostProcessing\1o_CompCalcUTCI.cs" />
+    <Compile Include="Components\1_Wind\4_CompCluster.cs" />
+    <Compile Include="Components\1_Wind\5_CompVisResiduals.cs" />
+    <Compile Include="Components\1_Wind\3_CompMeshSettings.cs" />
+    <Compile Include="Components\1_Wind\2_CompDomainCyl.cs" />
     <Compile Include="Components\WorkerWithProgBarComponent.cs" />
     <Compile Include="Licensing\LicenseTest.cs" />
     <Compile Include="Licensing\ModifyRegistry.cs" />
-    <Compile Include="Components\Setup\CompDomainBox.cs" />
-    <Compile Include="Components\Setup\CompSimpleFoam.cs" />
-    <Compile Include="Components\Misc\CompClean.cs" />
+    <Compile Include="Components\1_Wind\2_CompDomainBox.cs" />
+    <Compile Include="Components\1_Wind\2_CompSimpleFoam.cs" />
+    <Compile Include="Components\1_Wind\4_CompClean.cs" />
     <Compile Include="Licensing\License.cs" />
-    <Compile Include="Components\Misc\CompGeometryExport.cs" />
+    <Compile Include="Components\1_Wind\4o_CompGeometryExport.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -263,6 +257,7 @@
   <ItemGroup>
     <None Include="Resources\Eddy_MRT_LoadResults.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
