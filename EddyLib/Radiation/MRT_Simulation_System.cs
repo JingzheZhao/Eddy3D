@@ -15,6 +15,8 @@ namespace EddyLib.Radiation
     public class MRT_Simulation_System
     {
 
+        private int STEPS = 0;
+
         public string ProjectName = "";
         public string BaseWorkingDir = "";
 
@@ -22,7 +24,7 @@ namespace EddyLib.Radiation
 
         public Weather Weather;
 
-        public List<RProbe> RProbes;
+        public List<RProbe> Probes;
 
         public List<RSurface> RSurfaces;
 
@@ -59,7 +61,7 @@ namespace EddyLib.Radiation
             // ---------------------
 
             ProbeMeshes = probe_meshes;
-            RProbes = new List<RProbe>();
+            Probes = new List<RProbe>();
 
             foreach (var m in probe_meshes)
             {
@@ -68,13 +70,13 @@ namespace EddyLib.Radiation
                 {
                     var p = m.Vertices[i];
                     var v = m.Normals[i];
-                    RProbes.Add(new RProbe(p, v));
+                    Probes.Add(new RProbe(p, v));
                 }
             }
 
             foreach (var m in rprobes)
             {
-                RProbes.Add(m);
+                Probes.Add(m);
             }
 
 
@@ -161,6 +163,15 @@ namespace EddyLib.Radiation
                     Directory.CreateDirectory(d);
                 }
             }
+
+
+
+
+            this.RadiationSystem = new RadiationSystem(this.ProjectName,this.BaseWorkingDir, this.Weather, this.RSurfaces, this.Probes, this.Polys, this.UnifiedMeshHighPolyNoSky);
+            this.ThermalSystem =   new ThermalSystem(this.ProjectName,this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.Settings.CummulativeViewFactorCutoff);
+            this.ComfortSystem =   new ComfortSystem(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
+
+
 
         }
 
@@ -260,35 +271,35 @@ namespace EddyLib.Radiation
             UniqueSurfaceTypesInModel = Polys.Select(s => s.Type.ToString()).ToHashSet().ToList();
 
             // set up dictionary
-            for (int i = 0; i < RProbes.Count; i++)
+            for (int i = 0; i < Probes.Count; i++)
             {
-                RProbes[i].VFtoMaterial = new Dictionary<string, double>();
+                Probes[i].VFtoMaterial = new Dictionary<string, double>();
                 for (int j = 0; j < UniqueSurfaceTypesInModel.Count; j++)
                 {
-                    RProbes[i].VFtoMaterial.Add(UniqueSurfaceTypesInModel[j], 0);
+                    Probes[i].VFtoMaterial.Add(UniqueSurfaceTypesInModel[j], 0);
                 }
             }
 
-            for (int i = 0; i < RProbes.Count; i++)
+            for (int i = 0; i < Probes.Count; i++)
             {
                 for (int j = 0; j < Polys.Count; j++)
                 {
-                    RProbes[i].VFtoMaterial[Polys[j].Type.ToString()] += RProbes[i].VFtoPolys[j];
+                    Probes[i].VFtoMaterial[Polys[j].Type.ToString()] += Probes[i].VFtoPolys[j];
                 }
             }
 
             // normalize results
-            for (int i = 0; i < RProbes.Count; i++)
+            for (int i = 0; i < Probes.Count; i++)
             {
                 double total = 0;
                 for (int j = 0; j < UniqueSurfaceTypesInModel.Count; j++)
                 {
-                    total += RProbes[i].VFtoMaterial[UniqueSurfaceTypesInModel[j]];
+                    total += Probes[i].VFtoMaterial[UniqueSurfaceTypesInModel[j]];
                 }
                 double scale = 1 / total;
                 for (int j = 0; j < UniqueSurfaceTypesInModel.Count; j++)
                 {
-                    RProbes[i].VFtoMaterial[UniqueSurfaceTypesInModel[j]] *= scale;
+                    Probes[i].VFtoMaterial[UniqueSurfaceTypesInModel[j]] *= scale;
                 }
 
 
@@ -300,32 +311,32 @@ namespace EddyLib.Radiation
         //Compute Form factors taking into account occlusions from a list of meshes
         public void BuildVFToProbes(Mesh Obst)
         {
-            foreach (var p in RProbes)
+            foreach (var p in Probes)
             {
                 p.VFtoPolys = new double[Polys.Count];
             }
 
-            System.Threading.Tasks.Parallel.For(0, RProbes.Count, i =>
+            System.Threading.Tasks.Parallel.For(0, Probes.Count, i =>
             {
                 for (int j = 0; j < Polys.Count; j++)
                 {
-                    Point3d probe_pt = RProbes[i].Point.Value;
-                    RProbes[i].VFtoPolys[j] = FFactorProbe(probe_pt, Polys[j], Obst);
+                    Point3d probe_pt = Probes[i].Point.Value;
+                    Probes[i].VFtoPolys[j] = FFactorProbe(probe_pt, Polys[j], Obst);
                 }
             });
 
             // normalize results
-            for (int i = 0; i < RProbes.Count; i++)
+            for (int i = 0; i < Probes.Count; i++)
             {
                 double total = 0;
-                for (int j = 0; j < RProbes[i].VFtoPolys.Length; j++)
+                for (int j = 0; j < Probes[i].VFtoPolys.Length; j++)
                 {
-                    total += RProbes[i].VFtoPolys[j];
+                    total += Probes[i].VFtoPolys[j];
                 }
                 double scale = 1 / total;
-                for (int j = 0; j < RProbes[i].VFtoPolys.Length; j++)
+                for (int j = 0; j < Probes[i].VFtoPolys.Length; j++)
                 {
-                    RProbes[i].VFtoPolys[j] *= scale;
+                    Probes[i].VFtoPolys[j] *= scale;
                 }
             }
             FindPolysSeenByProbes();
@@ -368,9 +379,9 @@ namespace EddyLib.Radiation
         {
             for (int j = 0; j < Polys.Count; j++)
             {
-                for (int i = 0; i < RProbes.Count; i++)
+                for (int i = 0; i < Probes.Count; i++)
                 {
-                    Polys[j].SeenByProbes += RProbes[i].VFtoPolys[j];
+                    Polys[j].SeenByProbes += Probes[i].VFtoPolys[j];
                 }
             }
 

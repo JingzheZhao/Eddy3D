@@ -71,13 +71,13 @@ namespace Eddy.Components.Radiation
 
             var prep = PrepareProtoBufSingleton.Instance;
 
-            MRTSimulationResultProto resultProto = null;
+            MRT_Simulation_ResultProto resultProto = null;
 
             try
             {
                 Stopwatch sp = new Stopwatch();
                 sp.Restart();
-                resultProto = MRTSimulationResultProto.ReadFromFile(filePath);
+                resultProto = MRT_Simulation_ResultProto.ReadFromFile(filePath);
                 sp.Stop();
                 Debug.WriteLine("Loading RadiationSimulationResultProto: " + sp.ElapsedMilliseconds);
 

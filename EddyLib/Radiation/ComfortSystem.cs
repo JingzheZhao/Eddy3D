@@ -1,4 +1,5 @@
 ﻿using EddyLib.UI;
+using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -27,24 +28,27 @@ namespace EddyLib.Radiation
         private double steps = 52 + 2;
         private double stepCnt = 0;
 
-        MRTSimulationResultProto RSystem;
-
         public string ProjectName = "";
         public string BaseWorkingDir = "";
         public Weather Weather;
 
+        public List<RProbe> Probes;
+        public List<RPolygon> Polys;
+
+
+ 
 
 
 
-        public ComfortSystem(MRTSimulationResultProto sys)
+
+        public ComfortSystem(string filename, string baseWorkingDir, Weather weather, List<RProbe> probes, List<RPolygon> polys)
         {
 
-            RSystem = sys;
-
-            ProjectName = RSystem.ProjectName;
-            BaseWorkingDir = RSystem.BaseWorkingDir;
-            Weather = RSystem.Weather;
-
+            ProjectName = filename;
+            BaseWorkingDir = baseWorkingDir;
+            Weather = weather;
+            Probes = probes;
+            Polys = polys;
 
 
         }
@@ -53,11 +57,11 @@ namespace EddyLib.Radiation
         public void ComputeUTCI(bool run, CancellationToken ct)
         {
 
-            steps = RSystem.Probes.Count;
+            steps = this.Probes.Count;
 
-            System.Threading.Tasks.Parallel.For(0, RSystem.Probes.Count, i =>
+            System.Threading.Tasks.Parallel.For(0, this.Probes.Count, i =>
             {
-                var probe = RSystem.Probes[i];
+                var probe = this.Probes[i];
                 probe.UTCI = new float[8760];
                 probe.ComfortHours = 0;
 
@@ -138,7 +142,7 @@ namespace EddyLib.Radiation
 
         }
 
-        public MRTSimulationResultProto SaveResults(bool run, CancellationToken ct)
+        public MRT_Simulation_ResultProto SaveResults(bool run, CancellationToken ct)
         {
 
             // -----------------------------
@@ -146,15 +150,17 @@ namespace EddyLib.Radiation
             // -----------------------------
             var prep = PrepareProtoBufSingleton.Instance;
 
+            var protoResult = new MRT_Simulation_ResultProto(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
 
-            RSystem.WriteToFile(this.BaseWorkingDir + @"\" + this.ProjectName + ".utci.eddy");
+
+            protoResult.WriteToFile(this.BaseWorkingDir + @"\" + this.ProjectName + ".utci.eddy");
 
             Console.WriteLine("Results written");
             stepCnt++;
             pct = 100 * stepCnt / steps;
             Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
 
-            return RSystem;
+            return protoResult;
 
         }
     }

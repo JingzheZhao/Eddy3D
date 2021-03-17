@@ -8,6 +8,7 @@ using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,7 +17,7 @@ namespace Eddy.Components.Radiation
     public class ComfortSystem_Component : GH_Component
     {
 
-        ComfortSystem System;
+        ComfortSystem ComfortSystem;
 
         /// <summary>
         /// Initializes a new instance of the ThermalSystem_Component class.
@@ -66,9 +67,9 @@ namespace Eddy.Components.Radiation
             IGH_Goo system = null;
              if (!DA.GetData(0, ref system)) { }
 
-            MRTSimulationResultProto RSystem;
+            MRT_Simulation_ResultProto res;
             if (system == null) return;
-            if (!system.CastTo<MRTSimulationResultProto>(out RSystem)) return;
+            if (!system.CastTo<MRT_Simulation_ResultProto>(out res)) return;
 
 
 
@@ -81,10 +82,10 @@ namespace Eddy.Components.Radiation
 
 
 
- 
 
 
-            System = new ComfortSystem(RSystem);
+
+            ComfortSystem = new ComfortSystem(res.ProjectName, res.BaseWorkingDir, res.Weather, res.Probes, res.Polys) ;
 
 
 
@@ -113,8 +114,8 @@ namespace Eddy.Components.Radiation
             }
 
 
-            DA.SetData(0, System);
-            DA.SetData(1, System.BaseWorkingDir + @"\" + System.ProjectName + ".utci.eddy");
+            DA.SetData(0, ComfortSystem);
+            DA.SetData(1, ComfortSystem.BaseWorkingDir + @"\" + ComfortSystem.ProjectName + ".utci.eddy");
 
         }
 
@@ -161,15 +162,15 @@ namespace Eddy.Components.Radiation
         public bool RunSlowSimulation(CancellationTokenSource cts, int nthreads = 1)
         {
 
-            if (System == null) return false;
+            if (ComfortSystem == null) return false;
 
             
 
             if (cts.IsCancellationRequested) return false;
-            System.ComputeUTCI(true, cts.Token);
+            ComfortSystem.ComputeUTCI(true, cts.Token);
 
             if (cts.IsCancellationRequested) return false;
-            var proto  = System.SaveResults(true, cts.Token);
+            var proto  = ComfortSystem.SaveResults(true, cts.Token);
 
 
             return true;
