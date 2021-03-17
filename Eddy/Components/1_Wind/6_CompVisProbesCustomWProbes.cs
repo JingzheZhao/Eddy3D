@@ -1,0 +1,418 @@
+﻿using Eddy.Properties;
+using EddyLib;
+using EddyLib.Geometry;
+using EddyLib.Radiation;
+using EddyLib.Strings;
+using Grasshopper.Kernel;
+using Grasshopper.Kernel.Data;
+using Grasshopper.Kernel.Parameters;
+using Grasshopper.Kernel.Types;
+using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+
+// In order to load the result of this wizard, you will also need to add the output bin/ folder of
+// this project to the list of loaded folder in Grasshopper. You can use the
+// _GrasshopperDeveloperSettings Rhino command for that.
+
+namespace Eddy
+{
+    public class CompVisProbesCustomWProbes : GH_Component
+    {
+        public override GH_Exposure Exposure
+        {
+            get { return GH_Exposure.senary; }
+        }
+
+        //protected override void AppendAdditionalComponentMenuItems(System.Windows.Forms.ToolStripDropDown menu)
+        //{
+        //    base.AppendAdditionalComponentMenuItems(menu);
+        //    Menu_AppendItem(menu, "No Culling of Probing Points", Menu_DoClick, true, !Culling);
+        //}
+
+        //private void Menu_DoClick(object sender, EventArgs e)
+        //{
+        //    Culling = !Culling;
+        //    ExpireSolution(true);
+        //}
+
+        //public bool Culling = false;
+
+        //public override bool Write(GH_IO.Serialization.GH_IWriter writer)
+        //{
+        //    // First add our own field.
+        //    writer.SetBoolean("Culling", Culling);
+
+        //    // Then call the base class implementation.
+        //    return base.Write(writer);
+        //}
+
+        //public override bool Read(GH_IO.Serialization.GH_IReader reader)
+        //{
+        //    // First read our own field.
+        //    Culling = reader.GetBoolean("Culling");
+
+        //    // Then call the base class implementation.
+        //    return base.Read(reader);
+        //}
+
+        /// <summary>
+        /// Each implementation of GH_Component must provide a public constructor without any
+        /// arguments. Category represents the Tab in which the component will appear, Subcategory
+        /// the panel. If you use non-existing tab or panel names, new tabs/panels will automatically
+        /// be created.
+        /// </summary>
+        public CompVisProbesCustomWProbes()
+          : base("WProbes", "WProbes", "Probe the simulation." + EddyVersion.toString(),
+              EddyVersion.Name, "1 | Wind")
+        {
+        }
+
+        /// <summary>
+        /// Registers all the input parameters for this component.
+        /// </summary>
+        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        {
+            pManager.AddGenericParameter("Result", "Res", "Eddy Result", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Sensors", "Sen", "Radiation sensors. Provide as [Mesh] or [RProbe]", GH_ParamAccess.tree);
+            pManager.AddTextParameter("Name of instance", "Name", "Name of instance to be probed", GH_ParamAccess.item);
+
+            pManager.AddIntegerParameter("Name of field", "Field", "Name of field to be probed", GH_ParamAccess.item, 0);
+            Param_Integer param = pManager[3] as Param_Integer;
+            param.AddNamedValue("Velocity (U) [m/s]", 0);
+            param.AddNamedValue("Pressure coefficient (total(p)_coeff) [-]", 1);
+            param.AddNamedValue("Pressure (p) [m^2/s^2]", 2);
+            param.AddNamedValue("Turbulent dissipation rate (epsilon) [m^2/s^3]", 3);
+            param.AddNamedValue("Scale of turbulence (omega) [1/s] ", 4);
+            param.AddNamedValue("Turbulent kinetic energy (k) [m^2/s^2]", 5);
+            param.AddNamedValue("Turbulent viscosity (nut) [m^2/s]", 6);
+            param.AddNamedValue("Mass flow (phi) [m^3/s]", 7);
+            param.AddNamedValue("Age of air (aoa) [s]", 8);
+
+            //pManager.AddIntegerParameter("FieldType", "FieldType", "FieldType", GH_ParamAccess.item, 1);
+            //Param_Integer param2 = pManager[4] as Param_Integer;
+            //param2.AddNamedValue("Scalar", 0);
+            //param2.AddNamedValue("Vector", 1);
+
+            pManager.AddBooleanParameter("Run", "Run", "Run the component.", GH_ParamAccess.item, false);
+
+            pManager[2].Optional = true;
+        }
+
+        /// <summary>
+        /// Registers all the output parameters for this component.
+        /// </summary>
+        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        {
+            pManager.AddTextParameter("Result", "R", "Result file path", GH_ParamAccess.item);
+        }
+
+        /// <summary>
+        /// This is the method that actually does the work.
+        /// </summary>
+        /// <param name="DA">
+        /// The DA object can be used to retrieve data from input parameters and to store data in
+        /// output parameters.
+        /// </param>
+        ///
+
+        private bool canRun = true;
+
+        public void probingComplete(object sender, System.EventArgs e)
+        {
+            //RhinoApp.WriteLine("Proping complete");
+            canRun = false;
+            this.ExpireSolution(true);
+        }
+
+        protected override void SolveInstance(IGH_DataAccess DA)
+        {
+            #region Load Inputs
+
+            // mode to select simulation environment
+            //if (Culling) { Message = "Cull Points"; }
+            //else { Message = "No Culling"; }
+
+            OFResult RES = null;
+            DA.GetData(0, ref RES);
+
+            bool run = false;
+            int OFFieldInt = 0;
+            string probeNameByUser = "";
+
+            // ----------------------
+            // Get the probing points
+            // ----------------------
+            List<EddyProbe> probes = new List<EddyProbe>();
+            List<Mesh> probeMeshes = new List<Mesh>();
+            //DA.GetDataList(4, probeMeshes);
+
+            GH_Structure<IGH_Goo> GH_RProbeTree;
+            if (!DA.GetDataTree(1, out GH_RProbeTree)) { }
+            foreach (GH_Path p in GH_RProbeTree.Paths)
+            {
+                foreach (IGH_Goo o in GH_RProbeTree.get_Branch(p))
+                {
+                    if (o != null)
+                    {
+                        Mesh m;
+                        EddyProbe pr;
+                        if (o.CastTo(out m))
+                        { probeMeshes.Add(m); }
+                        else if (o.CastTo(out pr))
+                        { probes.Add(pr); }
+                    }
+                }
+            }
+
+            //
+
+            DA.GetData(2, ref probeNameByUser);
+            DA.GetData(3, ref OFFieldInt);
+
+            DA.GetData(4, ref run);
+
+            #endregion Load Inputs
+
+            #region Instantiate types
+
+            // ----------------------
+            // New approach
+            // ----------------------
+
+            List<WProbe> WProbes = new List<WProbe>();
+            foreach (var p in probes)
+            {
+                WProbes.Add(new WProbe(p.Point, RES.Domain.BCond.windDirs.Count));
+            }
+
+            // ----------------------
+            // New approach
+            // ----------------------
+
+            List<Point3d> Probes = new List<Point3d>();
+            foreach (var p in probes)
+            {
+                Probes.Add(p.Point);
+            }
+            int numberOfProbes = Probes.Count();
+
+            GH_Structure<GH_Number> treeDouble = new GH_Structure<GH_Number>();
+            GH_Structure<GH_Vector> treeVector = new GH_Structure<GH_Vector>();
+
+            string OFField = EddyLib.OFField.ReformatOFFields(OFFieldInt);
+            OFField currField = new OFField(OFField, probeNameByUser);
+
+            #endregion Instantiate types
+
+            #region Error handling
+
+            bool meshExists = false;
+
+            if (numberOfProbes < 1)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You need to pass a list of points to the component.");
+                return;
+            }
+
+            if (probeNameByUser == "")
+            {
+                probeNameByUser = "test";
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, @"Please provide a unique name for this probing instance, otherwise a new instance will overwrite the results.");
+            }
+
+            // Check if U file is in last iteration
+            for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
+            {
+                string path = RES.WorkingDirectory + @"\" + RES.Domain.BCond.windDirs[i];
+                string iter = Utilities.GetLastIterationFromDirectory(path).ToString();
+                string fp = RES.WorkingDirectory + @"\" + RES.Domain.BCond.windDirs[i] + @"\" + iter + @"\U";
+
+                if (!File.Exists(fp))
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The last iteration """ + iter + @""" of the wind direction """ + RES.Domain.BCond.windDirs[i] + @""" misses the velocity (U) result file. Please make sure that U is calculated for this particular timestep (change WriteInterval) and recompute the solution.");
+                }
+            }
+
+            if (Directory.Exists(RES.MeshSettings.meshPolyMeshDir) == false)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The mesh folder does not exist. Please create a mesh first.");
+
+                return;
+            }
+            else
+            {
+                if (Utilities.Directories.IsDirectoryEmpty(RES.MeshSettings.meshPolyMeshDir) == true)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The mesh folder is still empty. Can't retrieve probes from a mesh that does not exist.");
+
+                    return;
+                }
+                else
+                {
+                    meshExists = true;
+                }
+            }
+
+            int threshold = 5000;
+            if (numberOfProbes > threshold)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Probing more than " + threshold + " points may slow down Grasshopper considerably.");
+            }
+
+            if (RES.RunSettings.writeInterval > 1 && currField.FieldName == "total(p)_coeff")
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.ProbingFuncObjects(RES, currField));
+            }
+
+            #endregion Error handling
+
+            if (numberOfProbes > 0 && meshExists)
+            {
+                try
+                {
+                    StringBuilder command = new StringBuilder();
+
+                    for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
+                    {
+                        // Check if mesh exists
+
+                        string pathToPointFile = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\constant\polyMesh\points";
+                        string currCase = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i];
+
+                        if (!File.Exists(pathToPointFile))
+                        {
+                            base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.MeshDoesntExist(pathToPointFile));
+                            return;
+                        }
+
+                        // If yes, write the dicts for both Docker and BlueCFD
+                        string path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + probeNameByUser;
+                        File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbes(Probes, currField));
+
+                        if (RES.RunSettings.simEngine == SimEngine.Docker)
+                        {
+                            command.Append(@"postProcess -func " + currField.ProbeName + @" -time " + Probing.GetLatestTime(currCase, RES, currField) + @"| tee  " + RES.Domain.BCond.windDirs[i] + @"/log_probes;");
+                        }
+                        else
+                        {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
+                            // Todo: check here if we need a semicolon to sepaate the command
+                            // from the suffix
+                            command.AppendLine(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + probeNameByUser + @" -time " + Probing.GetLatestTime(currCase, RES, currField));
+                        }
+                    }
+
+                    if (run == true && canRun == true)
+                    {
+                        if (RES.RunSettings.simEngine == SimEngine.Docker)
+                        {
+                            var arg = BatFiles.DockerPrefixPath(RES.Domain, RES.MeshSettings, RES.RunSettings, OFExecutionMode.Simulation) + command;
+                            Utilities.StartProcess.StartProcessCMDNT(arg, false, true, false, true, probingComplete);
+                        }
+                        else
+                        {
+                            var cmdArg = BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory, RunMode.Canvas);
+                            Utilities.StartProcess.StartProcessCMDNT(cmdArg, false, true, true, true, probingComplete);
+                        }
+                    }
+
+                    for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
+                    {
+                        string currentCaseDir = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i];
+
+                        // We must check if this exists before we construct the Probing object
+                        string pathToProbeFile = Probing.GetPathToProbedResults(currentCaseDir, currField, RES);
+                        if (File.Exists(pathToProbeFile))
+                        {
+                            if (currField.FieldType == EddyLib.OFField.fieldType.vector)
+                            {
+                                Probing Vectors = new Probing(Probes, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES);
+
+                                // Create datatree
+                                // treeVector.AppendRange(Vectors.ResultVec, new Grasshopper.Kernel.Data.GH_Path(i));
+
+                                for (int p = 0; p < numberOfProbes; p++)
+                                {
+                                    WProbes[p].U[i] = new EddyVector(Vectors.ResultVec[p].Value);
+                                }
+                            }
+                            else
+                            {
+                                Probing Scalars = new Probing(Probes, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES);
+
+                                // Create datatree
+                                //treeDouble.AppendRange(Scalars.ResultScalar, new Grasshopper.Kernel.Data.GH_Path(i));
+                            }
+                        }
+                        else
+                        {
+                            base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.FieldDoesntExist(currentCaseDir, currField));
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, EddyLib.Strings.ReturnMsg.ParsingFailed());
+
+                    //throw new System.ArgumentException("Parsing of the probes failed. This data does not exist yet. Please run the probing component.");
+                }
+            }
+
+            // Todo: Move this into class object once its properly architected
+
+            if (currField.FieldType == EddyLib.OFField.fieldType.vector)
+            {
+                try
+                {
+                    if (!treeVector.IsEmpty)
+                    {
+                        var list = treeVector.get_Branch(new GH_Path(0));
+                        var listVecs = new List<GH_Vector>();
+
+                        foreach (object item in list)
+                        {
+                            listVecs.Add((GH_Vector)item);
+                        }
+
+                        int[] IndecesOfExtremeProbes = Probing.ReturnProbeIndicesOutsideDomain(listVecs);
+                        if (IndecesOfExtremeProbes.Length > 0)
+                        {
+                            AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.PointsOutsideDomain(IndecesOfExtremeProbes));
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.PleaseRunProbingComponent());
+                }
+            }
+
+            string resultFilePath = RES.WorkingDirectory + "/" + "wind.eddy";
+
+            WProbeResultProto res = new WProbeResultProto("probes", RES.WorkingDirectory, WProbes);
+            res.WriteToFile(resultFilePath);
+
+            DA.SetData(0, resultFilePath);
+
+            canRun = true;
+        }
+
+        /// <summary>
+        /// Provides an Icon for every component that will be visible in the User Interface. Icons
+        /// need to be 24x24 pixels.
+        /// </summary>
+        protected override System.Drawing.Bitmap Icon =>
+
+                // You can add image files to your project resources and access them like this:
+                Resources.Eddy_visualProbs;
+
+        /// <summary>
+        /// Each component must have a unique Guid to identify it. It is vital this Guid doesn't
+        /// change otherwise old ghx files that use the old ID will partially fail during loading.
+        /// </summary>
+        public override Guid ComponentGuid => new Guid("{8469A83F-B88C-431B-A2EC-EEF101AC69ED}");
+    }
+}
