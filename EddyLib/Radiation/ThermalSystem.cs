@@ -172,7 +172,7 @@ namespace EddyLib.Radiation
                 // -----------------------------
                 Console.WriteLine("Run EnergyPlus...");
                 var energyPlus = Command.Run(DefaultDirectoriesAndPaths.EnergyPlusDir + @"\energyplus.exe", new[] { "-w", Path.GetFullPath(Weather.epwFilePath), "-p", ProjectName, epjsonfile },
-                  options => options.WorkingDirectory(this.BaseWorkingDir + @"\Ep"));
+                  options => options.WorkingDirectory(this.BaseWorkingDir + @"\Ep").CancellationToken(ct));
 
                 int cnt = 0;
 
