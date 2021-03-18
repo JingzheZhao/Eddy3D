@@ -10,18 +10,18 @@ using static EddyLib.Radiation.RSurface;
 
 namespace Eddy.Components.Radiation
 {
-    public class MakeBuildingSurface_Component : GH_Component
+    public class MakeGroundSurface_Component : GH_Component
     {
         public override GH_Exposure Exposure
         {
-            get { return GH_Exposure.secondary; }
+            get { return GH_Exposure.primary; }
         }
 
         /// <summary>
         /// Initializes a new instance of the MakeRadiationMesh_Component class.
         /// </summary>
-        public MakeBuildingSurface_Component()
-          : base("Radiation Surface", "RadSurf", "Radiation Simulation Surface" + EddyVersion.toString(), EddyVersion.Name, "2 | Radiation")
+        public MakeGroundSurface_Component()
+          : base("Ground Surface", "Ground", "Ground Radiation Simulation Surface" + EddyVersion.toString(), EddyVersion.Name, "2 | Radiation")
         {
         }
 
@@ -71,7 +71,7 @@ namespace Eddy.Components.Radiation
             if (!DA.GetData(3, ref simType)) return;
             SimulationType simsim = (SimulationType)simType;
 
-            RadiationSurfaceType thetype = RadiationSurfaceType.Building;
+            RadiationSurfaceType thetype = RadiationSurfaceType.Ground;
             if (String.IsNullOrWhiteSpace(mat))
             {
                 if (thetype == RadiationSurfaceType.Ground) { mat = RadianceMaterial.DefaultGround; }
@@ -122,7 +122,7 @@ namespace Eddy.Components.Radiation
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return Resources.Eddy_MRT_Building;
+                return Resources.Eddy_MRT_Ground;
             }
         }
 
@@ -131,7 +131,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("52358012-b580-4a80-8d61-7d02bf600e76"); }
+            get { return new Guid("{C3180228-B5A4-4459-9F08-9256C28495AC}"); }
         }
     }
 }

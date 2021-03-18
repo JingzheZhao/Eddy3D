@@ -74,25 +74,30 @@
   <ItemGroup>
     <Compile Include="Components\1_Wind\7_CompTree.cs" />
     <Compile Include="Components\1_Wind\4o_CompLBAnalPeriod2Hours.cs" />
-    <Compile Include="Components\3_PostProcessing\1o_CompCalcWindFactors.cs" />
-    <Compile Include="Components\3_PostProcessing\1o_CompCalcWindComfort.cs" />
-    <Compile Include="Components\3_PostProcessing\1o_CompDeData.cs" />
+    <Compile Include="Components\2_Radiation\2_SimulationSettings_Component.cs" />
+    <Compile Include="Components\2_Radiation\2_TreeSettings_Component.cs" />
+    <Compile Include="Components\2_Radiation\2_VegetationSurfaceSettings_Component.cs" />
+    <Compile Include="Components\2_Radiation\2_SurfaceSettings_Component.cs" />
+    <Compile Include="Components\3_PostProcessing\2o_CompCalcWindFactors.cs" />
+    <Compile Include="Components\3_PostProcessing\2o_CompCalcWindComfort.cs" />
+    <Compile Include="Components\3_PostProcessing\2o_CompDeData.cs" />
+    <Compile Include="Components\3_PostProcessing\2_InspectProbe_Component.cs" />
     <Compile Include="Components\3_PostProcessing\Hidden\1o_CompCalcMRT.cs" />
     <Compile Include="Components\3_PostProcessing\Hidden\7_CompCalcUTCIMetric.cs" />
     <Compile Include="Components\1_Wind\6_CompParaview.cs" />
     <Compile Include="Components\1_Wind\6_CompVisProbesCustom.cs" />
     <Compile Include="Components\1_Wind\6_CompVisProbesCustomWProbes.cs" />
-    <Compile Include="Components\3_PostProcessing\2_LoadWProbeData_Component.cs" />
-    <Compile Include="Components\3_PostProcessing\3_LoadMRTData_Component.cs" />
+    <Compile Include="Components\3_PostProcessing\1_LoadWindData_Component.cs" />
+    <Compile Include="Components\3_PostProcessing\1_LoadMRTData_Component.cs" />
     <Compile Include="Components\2_Radiation\1_MakeSensor_Component.cs" />
-    <Compile Include="Components\2_Radiation\2_MakeGroundSurface_Component.cs" />
-    <Compile Include="Components\2_Radiation\2_MakeTreeSurface_Component.cs" />
-    <Compile Include="Components\2_Radiation\2_MakeVegetationSurface_Component.cs" />
-    <Compile Include="Components\2_Radiation\2_MakeBuildingSurface_Component.cs" />
+    <Compile Include="Components\2_Radiation\1_MakeGroundSurface_Component.cs" />
+    <Compile Include="Components\2_Radiation\1_MakeTreeSurface_Component.cs" />
+    <Compile Include="Components\2_Radiation\1_MakeVegetationSurface_Component.cs" />
+    <Compile Include="Components\2_Radiation\1_MakeBuildingSurface_Component.cs" />
     <Compile Include="Components\2_Radiation\3_MRT_Simulation_Component.cs" />
     <Compile Include="Components\2_Radiation\Hidden\2h_RadiationSystem_Component.cs" />
     <Compile Include="Components\2_Radiation\Hidden\2h_SkyTemperature_Component.cs" />
-    <Compile Include="Components\3_PostProcessing\4_ComfortSystem_Component.cs" />
+    <Compile Include="Components\3_PostProcessing\2_ComfortSystem_Component.cs" />
     <Compile Include="Components\2_Radiation\Hidden\2h_ThermalSystem_Component.cs" />
     <Compile Include="Components\1_Wind\3_CompRunSettings.cs" />
     <Compile Include="Components\0_Templates\1_CompTemplates.cs" />
@@ -237,6 +242,18 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\Eddy_MRT_InspectSurface.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_MRT_Sim_Settings.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Sensor_Inspect.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_CFD_LoadResults.png" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="Resources\Eddy_MRT_Surface_Settings.png" />
   </ItemGroup>
   <ItemGroup>
@@ -268,9 +285,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Eddy_MRT_Vegetation.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_CFD_LoadResults.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

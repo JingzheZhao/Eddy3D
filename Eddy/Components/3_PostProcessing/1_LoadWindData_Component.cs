@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Eddy.Components.Radiation
 {
-    public class LoadMRTData_Component : GH_Component
+    public class LoadWProbeData_Component : GH_Component
     {
         public override GH_Exposure Exposure
         {
@@ -19,8 +19,8 @@ namespace Eddy.Components.Radiation
         /// <summary>
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
-        public LoadMRTData_Component()
-          : base("Load MRT", "MRT", "Load radiation and MRT data" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
+        public LoadWProbeData_Component()
+          : base("Load Wind", "LoadWind", "Load CFD data such as windspeed, pressure" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
 
         {
         }
@@ -43,10 +43,6 @@ namespace Eddy.Components.Radiation
             pManager.AddGenericParameter("Result", "Res", "Result object containing probes, polygons and result data", GH_ParamAccess.item);
 
             pManager.AddGenericParameter("Probes", "Prb", "Analysis probes", GH_ParamAccess.list);
-
-            pManager.AddGenericParameter("Polys", "Ply", "Polygons", GH_ParamAccess.list);
-
-            //pManager.AddMeshParameter("Meshes", "M", "Analysis meshes", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -72,15 +68,15 @@ namespace Eddy.Components.Radiation
 
             var prep = PrepareProtoBufSingleton.Instance;
 
-            MRT_Simulation_ResultProto resultProto = null;
+            WProbeResultProto resultProto = null;
 
             try
             {
                 Stopwatch sp = new Stopwatch();
                 sp.Restart();
-                resultProto = MRT_Simulation_ResultProto.ReadFromFile(filePath);
+                resultProto = WProbeResultProto.ReadFromFile(filePath);
                 sp.Stop();
-                Debug.WriteLine("Loading RadiationSimulationResultProto: " + sp.ElapsedMilliseconds);
+                Debug.WriteLine("Loading WProbeResultProto: " + sp.ElapsedMilliseconds);
             }
             catch (Exception e)
             {
@@ -93,16 +89,6 @@ namespace Eddy.Components.Radiation
                 DA.SetData(0, resultProto);
 
                 DA.SetDataList(1, resultProto.Probes);
-                DA.SetDataList(2, resultProto.Polys);
-
-                //if (resultProto.Meshes != null)
-                //{
-                //    DA.SetDataList(3, resultProto.Meshes.Select(x => x.Value));
-                //}
-                //if (resultProto.Probes != null)
-                //{
-                //    DA.SetDataList(3, resultProto.Probes.Select(x => x.TotalRad[hour]));
-                //}
             }
         }
 
@@ -115,7 +101,7 @@ namespace Eddy.Components.Radiation
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return Resources.Eddy_MRT_LoadResults;
+                return Resources.Eddy_CFD_LoadResults;
             }
         }
 
@@ -124,7 +110,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("a0eba267-ad9c-4b6b-9e9a-366b8e8a1c94"); }
+            get { return new Guid("{48B164A8-4DD4-4BED-8C8A-EB30861E59EF}"); }
         }
     }
 }
