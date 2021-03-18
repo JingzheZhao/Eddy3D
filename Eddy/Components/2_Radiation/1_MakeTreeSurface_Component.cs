@@ -3,6 +3,7 @@ using EddyLib;
 using EddyLib.Radiation;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
+using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
@@ -32,7 +33,10 @@ namespace Eddy.Components.Radiation
         {
             pManager.AddBrepParameter("Brep", "B", "Radiation surface", GH_ParamAccess.list);
             pManager.AddNumberParameter("Patch", "Ps", "Patch size", GH_ParamAccess.item, 3);
-            pManager.AddTextParameter("Material", "M", "Optional Radiance Material", GH_ParamAccess.item, "");
+            //pManager.AddTextParameter("Material", "M", "Optional Radiance Material", GH_ParamAccess.item, "");
+            pManager.AddGenericParameter("Settings", "Set", "Optional material and surface property settings", GH_ParamAccess.item);
+            pManager[2].Optional = true;
+
 
             pManager.AddIntegerParameter("SimType", "Sts", "Surface Temparature Simulation Type", GH_ParamAccess.item, 1);
             var types = Enum.GetNames(typeof(SimulationType));
@@ -65,20 +69,46 @@ namespace Eddy.Components.Radiation
 
             if (!DA.GetDataList(0, breps)) return;
             if (!DA.GetData(1, ref patchSize)) return;
-            if (!DA.GetData(2, ref mat)) return;
+            //if (!DA.GetData(2, ref mat)) return;
+
+            //RadiationSurfaceType thetype = RadiationSurfaceType.Tree;
+            //if (String.IsNullOrWhiteSpace(mat))
+            //{
+            //    if (thetype == RadiationSurfaceType.Ground) { mat = RadianceMaterials.DefaultGround; }
+            //    else if (thetype == RadiationSurfaceType.Building) { mat = RadianceMaterials.DefaultFacade; }
+            //    else if (thetype == RadiationSurfaceType.Vegetation) { mat = RadianceMaterials.DefaultGrass; }
+            //    else if (thetype == RadiationSurfaceType.Tree) { mat = RadianceMaterials.DefaultTree; }
+            //}
+
+
+
+            IGH_Goo goo_settings = null;
+            if (!DA.GetData(2, ref goo_settings)) { }
+            Tree_Settings settings = null;
+            if (goo_settings != null)
+            {
+                if (!goo_settings.CastTo<Tree_Settings>(out settings))
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Settings provided cannot be cast into the correct format. Are you sure you are passing the correct input?");
+                    return;
+                }
+            }
+            if (settings == null)
+            {
+                settings = Tree_Settings.GenerateTree();
+            }
+             
+
+
+
 
             int simType = 0;
             if (!DA.GetData(3, ref simType)) return;
             SimulationType simsim = (SimulationType)simType;
 
-            RadiationSurfaceType thetype = RadiationSurfaceType.Tree;
-            if (String.IsNullOrWhiteSpace(mat))
-            {
-                if (thetype == RadiationSurfaceType.Ground) { mat = RadianceMaterial.DefaultGround; }
-                else if (thetype == RadiationSurfaceType.Building) { mat = RadianceMaterial.DefaultFacade; }
-                else if (thetype == RadiationSurfaceType.Vegetation) { mat = RadianceMaterial.DefaultGrass; }
-                else if (thetype == RadiationSurfaceType.Tree) { mat = RadianceMaterial.DefaultTree; }
-            }
+
+
+
 
             float[] toverride = new float[8760];
             List<double> temperatureOverride = new List<double>();
@@ -103,7 +133,7 @@ namespace Eddy.Components.Radiation
             var RSurfs = new List<RSurface>();
             foreach (var b in breps)
             {
-                var rs = new RSurface("tree", b, thetype, simsim, mat, patchSize);
+                var rs = new RSurface("tree", b, RadiationSurfaceType.Tree, simsim, settings, patchSize);
                 if (simsim == SimulationType.TemperatureInput)
                 {
                     rs.TemperatureOverride = toverride;

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace EddyLib.Radiation
 {
-   public class EPJson
+    public class EPJson
     {
         [JsonProperty("Shading:Building:Detailed", NullValueHandling = NullValueHandling.Ignore)]
         public Dictionary<string, ShadingBuildingDetailed> AllShaders { get; set; } = new Dictionary<string, ShadingBuildingDetailed>();
@@ -24,7 +24,7 @@ namespace EddyLib.Radiation
 
 
 
-    public  class FenestrationSurfaceDetailed
+    public class FenestrationSurfaceDetailed
     {
         [JsonProperty("building_surface_name")]
         public string BuildingSurfaceName { get; set; }
@@ -92,7 +92,7 @@ namespace EddyLib.Radiation
         public double? idfMaxFields { get; set; } = 21;
     }
 
-    public  class BuildingSurfaceDetailed
+    public class BuildingSurfaceDetailed
     {
         [JsonProperty("construction_name")]
         public string ConstructionName { get; set; } = "RedBrick";
@@ -125,7 +125,7 @@ namespace EddyLib.Radiation
         public string ZoneName { get; set; } = "UNZ_0";
     }
 
-    public partial class ShadingBuildingDetailed
+    public class ShadingBuildingDetailed
     {
         [JsonProperty("number_of_vertices", NullValueHandling = NullValueHandling.Ignore)]
         public int NumberOfVertices { get; set; }
@@ -137,7 +137,7 @@ namespace EddyLib.Radiation
         public List<DetailedVertex> Vertices { get; set; }
     }
 
-    public partial class DetailedVertex
+    public class DetailedVertex
     {
         [JsonProperty("vertex_x_coordinate")]
         public double X { get; set; }
@@ -149,9 +149,74 @@ namespace EddyLib.Radiation
         public double Z { get; set; }
     }
 
+    public class Material
+    {
+        [JsonProperty("conductivity")]
+        public double Conductivity { get; set; }
+
+        [JsonProperty("density")]
+        public double Density { get; set; }
+
+        [JsonProperty("roughness")]
+        public RoughnessOfCollectorEnum Roughness { get; set; }
+
+        [JsonProperty("solar_absorptance", NullValueHandling = NullValueHandling.Ignore)]
+        public double? SolarAbsorptance { get; set; }
+
+        [JsonProperty("specific_heat")]
+        public double SpecificHeat { get; set; }
+
+        [JsonProperty("thermal_absorptance", NullValueHandling = NullValueHandling.Ignore)]
+        public double? ThermalAbsorptance { get; set; }
+
+        [JsonProperty("thickness")]
+        public double Thickness { get; set; }
+
+        [JsonProperty("visible_absorptance", NullValueHandling = NullValueHandling.Ignore)]
+        public double? VisibleAbsorptance { get; set; }
+    }
+
+    public partial class Construction
+    {
+        [JsonProperty("layer_10", NullValueHandling = NullValueHandling.Ignore)]
+        public string Layer10 { get; set; }
+
+        [JsonProperty("layer_2", NullValueHandling = NullValueHandling.Ignore)]
+        public string Layer2 { get; set; }
+
+        [JsonProperty("layer_3", NullValueHandling = NullValueHandling.Ignore)]
+        public string Layer3 { get; set; }
+
+        [JsonProperty("layer_4", NullValueHandling = NullValueHandling.Ignore)]
+        public string Layer4 { get; set; }
+
+        [JsonProperty("layer_5", NullValueHandling = NullValueHandling.Ignore)]
+        public string Layer5 { get; set; }
+
+        [JsonProperty("layer_6", NullValueHandling = NullValueHandling.Ignore)]
+        public string Layer6 { get; set; }
+
+        [JsonProperty("layer_7", NullValueHandling = NullValueHandling.Ignore)]
+        public string Layer7 { get; set; }
+
+        [JsonProperty("layer_8", NullValueHandling = NullValueHandling.Ignore)]
+        public string Layer8 { get; set; }
+
+        [JsonProperty("layer_9", NullValueHandling = NullValueHandling.Ignore)]
+        public string Layer9 { get; set; }
+
+        [JsonProperty("outside_layer")]
+        public string OutsideLayer { get; set; }
+
+
+        [JsonProperty("idf_max_extensible_fields", NullValueHandling = NullValueHandling.Ignore)]
+        public double? idfMaxExtensibleFields { get; set; } = 0;
+        [JsonProperty("idf_max_fields", NullValueHandling = NullValueHandling.Ignore)]
+        public double? idfMaxFields { get; set; }
 
 
 
+    }
 
     [JsonConverter(typeof(StringEnumConverter))]
 
@@ -168,5 +233,9 @@ namespace EddyLib.Radiation
     [JsonConverter(typeof(StringEnumConverter))]
 
     public enum WindExposure { Empty, NoWind, WindExposed };
-    
+    [JsonConverter(typeof(StringEnumConverter))]
+
+    public enum RoughnessOfCollectorEnum { MediumRough, MediumSmooth, Rough, Smooth, VeryRough, VerySmooth };
+
+
 }

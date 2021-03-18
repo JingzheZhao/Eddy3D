@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace EddyLib.Radiation
 {
-    public static class RadianceMaterial
+    public static class RadianceMaterials
     {
          private static readonly CultureInfo radianceCulture = new CultureInfo("en-US");
 

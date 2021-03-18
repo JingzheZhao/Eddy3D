@@ -1,6 +1,8 @@
 ﻿using Eddy.Properties;
 using EddyLib;
+using EddyLib.Radiation;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Parameters;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
@@ -26,6 +28,30 @@ namespace Eddy.Components._2_Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
+            pManager.AddTextParameter("Name", "Name", "Material Name", GH_ParamAccess.item, "MySurface");
+            pManager.AddNumberParameter("Thickness", "Thick", "Material Thickness [m]", GH_ParamAccess.item, 0.1);
+
+            //pManager.AddIntegerParameter("Roughness", "Rhn", "Roughness [0 VeryRough,1 Rough,2 MediumRough,3 MediumSmooth,4 Smooth,5 VerySmooth]", GH_ParamAccess.item, 1);
+            pManager.AddNumberParameter("Conductivity", "Con", "Material Conductivity [W/(m-K)]", GH_ParamAccess.item, 2.3);
+            pManager.AddNumberParameter("Density", "Den", "Material Density [kg/m3]", GH_ParamAccess.item, 2400);
+            pManager.AddNumberParameter("SpecificHeat", "Sph", "Material SpecificHeat [J/(kg-K)]", GH_ParamAccess.item, 840);
+            pManager.AddNumberParameter("Thermal absorptance", "Tabs", "Material thermal absorptance", GH_ParamAccess.item, 0.9);
+            pManager.AddNumberParameter("Solar absorptance", "Sabs", "Material solar absorptance", GH_ParamAccess.item, 0.7);
+            pManager.AddNumberParameter("Visible absorptance", "Vabs", "Material visible absorptance", GH_ParamAccess.item, 0.7);
+           
+            
+
+            pManager.AddTextParameter("Surface", "SMat", "Optional Radiance Surface Material", GH_ParamAccess.item, "");
+
+
+
+            //Param_Integer param = pManager[1] as Param_Integer;
+            //param.AddNamedValue("VeryRough", 0);
+            //param.AddNamedValue("Rough", 1);
+            //param.AddNamedValue("MediumRough", 2);
+            //param.AddNamedValue("MediumSmooth", 3);
+            //param.AddNamedValue("Smooth", 4);
+            //param.AddNamedValue("VerySmooth", 5);
         }
 
         /// <summary>
@@ -33,6 +59,8 @@ namespace Eddy.Components._2_Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
+            pManager.Register_GenericParam("SurfSet", "Set", "Surface settings");
+
         }
 
         /// <summary>
@@ -41,6 +69,50 @@ namespace Eddy.Components._2_Radiation
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+
+
+            string Name = "";
+            double Conductivity = 2.4;
+            double Density = 2400;
+            // string Roughness = "Rough";
+            double SpecificHeat = 840;
+            double ThermalAbsorbtance = 0.9;
+            double SolarAbsorptance = 0.7;
+            double VisibleAbsorptance = 0.7;
+
+            //int roughselect = 0;
+
+            double Thickness = 0.7;
+            string RadianceMaterial = "";
+
+
+            if (!DA.GetData(0, ref Name)) return;
+            if (!DA.GetData(1, ref Thickness)) return;
+            //if (!DA.GetData(1, ref roughselect)) return;
+            if (!DA.GetData(2, ref Conductivity)) return;
+            if (!DA.GetData(3, ref Density)) return;
+            if (!DA.GetData(4, ref SpecificHeat)) return;
+            if (!DA.GetData(5, ref ThermalAbsorbtance)) return;
+            if (!DA.GetData(6, ref SolarAbsorptance)) return;
+            if (!DA.GetData(7, ref VisibleAbsorptance)) return;
+            if (!DA.GetData(8, ref RadianceMaterial)) return;
+
+
+            var surfSettings = new RSurface_Settings();
+
+
+            surfSettings.Name = Name;
+            surfSettings.Conductivity = Conductivity;
+            surfSettings.SpecificHeat = SpecificHeat;
+            surfSettings.ThermalAbsorptance = ThermalAbsorbtance;
+            surfSettings.Density = Density;
+            surfSettings.SolarAbsorptance = SolarAbsorptance;
+            surfSettings.VisibleAbsorptance = VisibleAbsorptance;
+            surfSettings.Thickness = Thickness;
+            surfSettings.RadianceMaterial = RadianceMaterial;
+ 
+
+            DA.SetData(0, surfSettings);
         }
 
         /// <summary>

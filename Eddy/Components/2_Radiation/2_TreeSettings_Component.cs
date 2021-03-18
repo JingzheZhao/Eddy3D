@@ -1,5 +1,6 @@
 ﻿using Eddy.Properties;
 using EddyLib;
+using EddyLib.Radiation;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 using System;
@@ -26,6 +27,7 @@ namespace Eddy.Components._2_Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
+            pManager.AddTextParameter("Surface", "SMat", "Optional Radiance Surface Material", GH_ParamAccess.item, "");
         }
 
         /// <summary>
@@ -33,6 +35,8 @@ namespace Eddy.Components._2_Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
+            pManager.Register_GenericParam("SurfSet", "Set", "Surface settings");
+
         }
 
         /// <summary>
@@ -41,6 +45,25 @@ namespace Eddy.Components._2_Radiation
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+          
+            string RadianceMaterial = "";
+
+
+            
+            if (!DA.GetData(0, ref RadianceMaterial)) return;
+
+
+            var surfSettings = new Tree_Settings();
+
+
+            surfSettings.RadianceMaterial = RadianceMaterial;
+            if (String.IsNullOrWhiteSpace(surfSettings.RadianceMaterial))
+            {
+                surfSettings.RadianceMaterial = RadianceMaterials.DefaultTree;
+            }
+
+
+            DA.SetData(0, surfSettings);
         }
 
         /// <summary>
