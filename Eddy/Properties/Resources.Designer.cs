@@ -293,9 +293,29 @@ namespace Eddy.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Eddy_MRT_InspectSurface {
+            get {
+                object obj = ResourceManager.GetObject("Eddy_MRT_InspectSurface", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Eddy_MRT_LoadResults {
             get {
                 object obj = ResourceManager.GetObject("Eddy_MRT_LoadResults", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Eddy_MRT_Sim_Settings {
+            get {
+                object obj = ResourceManager.GetObject("Eddy_MRT_Sim_Settings", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -406,6 +426,16 @@ namespace Eddy.Properties {
         internal static System.Drawing.Bitmap Eddy_Sensor {
             get {
                 object obj = ResourceManager.GetObject("Eddy_Sensor", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Eddy_Sensor_Inspect {
+            get {
+                object obj = ResourceManager.GetObject("Eddy_Sensor_Inspect", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
