@@ -9,6 +9,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace EddyLib.Radiation
 {
@@ -18,8 +19,8 @@ namespace EddyLib.Radiation
     {
 
 
-         public int methodsteps = 18;
- 
+        public int methodsteps = 18;
+
 
         public string ProjectName = "";
         public string BaseWorkingDir = "";
@@ -66,7 +67,7 @@ namespace EddyLib.Radiation
             var skySubDivDir = SkySubdivision.r4;
             int skysubdivdiffuse = 1;
             int skysubdivdirect = 4;
- 
+
 
             string radMatBlack = @"
         void plastic Black
@@ -128,7 +129,7 @@ namespace EddyLib.Radiation
 
                 string gendaymtxArgs = DefaultDirectoriesAndPaths.RadianceDir + @"\gendaymtx.exe -m " + 1 + @" -O1 " + weain + @" > " + smxout;
 
-                var gendaymtx = Command.Run("cmd.exe", new []{ "" },
+                var gendaymtx = Command.Run("cmd.exe", new[] { "" },
                   options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct));
                 gendaymtx.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 gendaymtx.StandardInput.WriteLine(gendaymtxArgs);
@@ -169,7 +170,7 @@ namespace EddyLib.Radiation
                     Debug.WriteLine($"oconv command failed with exit code {oconv.Result.ExitCode}: {oconv.Result.StandardError}");
                     return false;
                 }
-                Interlocked.Increment(ref stepCnt); 
+                Interlocked.Increment(ref stepCnt);
                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
@@ -209,7 +210,7 @@ namespace EddyLib.Radiation
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
-                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+                Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
 
@@ -224,7 +225,7 @@ namespace EddyLib.Radiation
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
-                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+                Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
                 // -----------------------------
                 // 5 Create Illum DC
@@ -261,7 +262,7 @@ namespace EddyLib.Radiation
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
-                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+                Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
                 // -----------------------------
@@ -300,7 +301,7 @@ namespace EddyLib.Radiation
 
                 }
                 Interlocked.Increment(ref stepCnt);
-                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+                Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
                 // -----------------------------
                 // 7 
@@ -317,7 +318,7 @@ namespace EddyLib.Radiation
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
-                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+                Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
                 // -----------------------------
                 // 8
@@ -334,7 +335,7 @@ namespace EddyLib.Radiation
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
-                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+                Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
 
@@ -366,7 +367,7 @@ namespace EddyLib.Radiation
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
-                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+                Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
                 // -----------------------------
@@ -384,7 +385,7 @@ namespace EddyLib.Radiation
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
-                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+                Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
                 // -----------------------------
@@ -408,7 +409,7 @@ namespace EddyLib.Radiation
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
-                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+                Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
                 // -----------------------------
@@ -422,7 +423,7 @@ namespace EddyLib.Radiation
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
-                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+                Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
                 // -----------------------------
@@ -444,7 +445,7 @@ namespace EddyLib.Radiation
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
-                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+                Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
 
@@ -467,7 +468,7 @@ namespace EddyLib.Radiation
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
-                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+                Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
 
@@ -479,7 +480,7 @@ namespace EddyLib.Radiation
             return true;
 
         }
- 
+
         public void LoadDDSData(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
             // -----------------------------
@@ -496,14 +497,14 @@ namespace EddyLib.Radiation
             float[][] dMRT = SolarGain.ComputeStanding(this.Weather, totalIll, dirIll);
 
             Interlocked.Increment(ref stepCnt);
-             Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+            Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
             // -----------------------------
             // 16 Load results
             // -----------------------------
-             
- 
+
+
             for (int i = 0; i < this.Probes.Count; i++)
             {
                 this.Probes[i].TotalRad = new float[totalIll.Length];
@@ -516,19 +517,114 @@ namespace EddyLib.Radiation
                     this.Probes[i].SolarGain_dMRT[h] = dMRT[h][i];
                 }
             }
-            
+
         }
 
+        public void RunDirectRayCast(bool run, CancellationToken ct, int steps, ref int stepCnt)
+        {
+            Console.WriteLine("Computing radiation and dMRT...");
 
+
+            SolarGeometry sg = new SolarGeometry();
+            int vcnt = 0;
+            Vector3d[] sunPositions = new Vector3d[12 * 24];
+            var el = new List<double>();
+            for (int m = 0; m < 12; m++)
+            {
+                for (int h = 0; h < 24; h++)
+                {
+                    int hourOfYear = sg.HourInYear(m , 0, h );
+
+                    double _el = Weather.SolarElevation[hourOfYear];
+                    double _az = Weather.SolarAzi[hourOfYear];
+
+                    if (_el > 3.0)
+                    {
+
+                        double x = Math.Cos(sg.deg2rad(90 - _az)) * Math.Cos(sg.deg2rad(_el));
+                        double y = Math.Sin(sg.deg2rad(90 - _az)) * Math.Cos(sg.deg2rad(_el));
+                        double z = Math.Sin(sg.deg2rad(_el));
+                        sunPositions[vcnt] = new Vector3d(x, y, z);
+                    }
+                    else
+                    {
+                        sunPositions[vcnt] = Vector3d.Zero;
+                    }
+                    { }
+                    vcnt++;
+                }
+            }
+
+         
+
+            //Parallel.For(0, Probes.Count, i =>
+            for (int i = 0; i < Probes.Count; i++)
+            {
+
+                 Probes[i].TotalRad = new float[8760];
+                Probes[i].DirRad = new float[8760];
+
+                double[] dotproduct = new double[12 * 24];
+                bool[] inDirSunlight = new bool[12 * 24];
+
+
+                for (int h = 0; h < sunPositions.Length; h++)
+                {
+                    if (sunPositions[h] == Vector3d.Zero) { continue; }
+
+                    var dt = Rhino.Geometry.Intersect.Intersection.MeshRay(UnifiedMeshHighPolyNoSky, new Ray3d(Probes[i].Point.Value, sunPositions[h]));
+
+                    if (dt < 0.1)
+                    {
+
+                        inDirSunlight[h] = true;
+                        var dot = Probes[i].Normal.Value * sunPositions[h];
+
+                        if (inDirSunlight[h]) { dotproduct[h] = dot; }
+                        else { dotproduct[h] = 0; }
+
+                    }
+                    else { inDirSunlight[h] = false; }
+                }
+
+                for (int h = 0; h < 8760; h++)
+                {
+                    int month = 0;
+                    int day = 0;
+                    int hour = 0;
+                    sg.HourOfYear_To_MDH(h , out month, out day, out hour);
+
+                    var scale = dotproduct[(month  * 24) + hour ];
+
+                    float rad = (float) ( Weather.DirectNormalRadiation[h] * scale);
+
+                    float diff = (float) ( Weather.DiffuseHorizontalRadiation[h] * Probes[i].VFtoMaterial["Sky"]) ;
+
+                    Probes[i].TotalRad[h] = rad + diff;
+                    Probes[i].DirRad[h] = rad ;
+
+                }
+
+                Console.WriteLine("Compute dMRT for probe "+ i);
+                Probes[i].SolarGain_dMRT = SolarGain.ComputeStanding(Weather, Probes[i].TotalRad, Probes[i].DirRad);
+
+
+                Interlocked.Increment(ref stepCnt);
+                Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+
+            }//);
+
+            Console.WriteLine("Solar gain finished");
+        }
 
         public MRT_Simulation_ResultProto SaveResults(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
-          
+
             // -----------------------------
             // 16 Write results
             // -----------------------------
             var prep = PrepareProtoBufSingleton.Instance;
- 
+
             var protoResult = new MRT_Simulation_ResultProto(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
             protoResult.WriteToFile(this.BaseWorkingDir + @"\" + this.ProjectName + ".rad.eddy");
 
@@ -558,6 +654,6 @@ namespace EddyLib.Radiation
             // [][x] points
         }
 
- 
+
     }
 }

@@ -18,7 +18,7 @@ namespace EddyLib.Radiation
                 Values[h] = new float[numberOfSensors];
             }
 
- 
+
 
             System.Threading.Tasks.Parallel.For(0, numberOfSensors, p =>
             {
@@ -27,12 +27,36 @@ namespace EddyLib.Radiation
                     double dMRT;
                     double diffRad = totalRad[h][p] - directRad[h][p];
                     double dirRad = directRad[h][p];
-                    dMRT = SolarGain.ERF_Modified(weather.SolarElevation[h], 90 , SolarGain.Posture.standing, dirRad, diffRad);
+                    dMRT = SolarGain.ERF_Modified(weather.SolarElevation[h], 90, SolarGain.Posture.standing, dirRad, diffRad);
 
 
                     Values[h][p] = (float)dMRT;
                 }
             });
+
+            return Values;
+        }
+
+        public static float[] ComputeStanding(Weather weather, float[] totalRad, float[] directRad)
+        {
+
+
+            int numberOfHours = directRad.Length;
+
+            float[] Values = new float[numberOfHours];
+
+
+            for (int h = 0; h < numberOfHours; h++)
+            {
+                double dMRT;
+                double diffRad = totalRad[h] - directRad[h];
+                double dirRad = directRad[h];
+                dMRT = SolarGain.ERF_Modified(weather.SolarElevation[h], 90, SolarGain.Posture.standing, dirRad, diffRad);
+
+
+                Values[h] = (float)dMRT;
+            }
+
 
             return Values;
         }

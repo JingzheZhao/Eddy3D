@@ -248,6 +248,8 @@ namespace EddyLib.Radiation
 
         public void ComputeMRT(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
+            Console.WriteLine("Computing MRT at probe level...");
+
             foreach (var p in this.Probes)
             {
 
@@ -296,11 +298,13 @@ namespace EddyLib.Radiation
 
             }
 
+            Console.WriteLine("MRT calculaiton complete...");
 
         }
 
         public MRT_Simulation_ResultProto SaveResults(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
+            Console.WriteLine("Writing Results...");
 
             // -----------------------------
             // Write results

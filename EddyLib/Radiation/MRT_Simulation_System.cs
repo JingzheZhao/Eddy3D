@@ -198,18 +198,15 @@ namespace EddyLib.Radiation
             Console.WriteLine("Probe view factors: " + sp.ElapsedMilliseconds + " ms"); sp.Restart(); Interlocked.Increment(ref stepCnt);
             Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
+            if (Settings.ComputeLongWaveExchangeEnergyPlus)
+            {
+                // optional
+                Console.WriteLine("Computing polygon view factors...");
+                this.BuildFFMatrix(UnifiedMeshHighPolyNoSky);
 
-
-
-
-
-            // optional
-            Console.WriteLine("Computing polygon view factors...");
-            this.BuildFFMatrix(UnifiedMeshHighPolyNoSky);
-
-            Console.WriteLine("Polygon view factors: " + sp.ElapsedMilliseconds + " ms"); sp.Stop(); Interlocked.Increment(ref stepCnt);
-            Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
-
+                Console.WriteLine("Polygon view factors: " + sp.ElapsedMilliseconds + " ms"); sp.Stop(); Interlocked.Increment(ref stepCnt);
+                Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+            }
             return true;
         }
 
