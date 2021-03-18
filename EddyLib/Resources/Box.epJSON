@@ -88,6 +88,7 @@
     }
   },
   "Material:RoofVegetation": {
+    "@@VEGETATION@@": null,
     "MyGreenRoof": {
       "conductivity_of_dry_soil": 0.4,
       "density_of_dry_soil": 641,
@@ -250,15 +251,6 @@
       "upper_limit_value": 200
     }
   },
-
-
-
-
-
-
-
-
-
 
 
   "ShadowCalculation": {
