@@ -250,8 +250,11 @@ namespace EddyLib.Radiation
         {
             Console.WriteLine("Computing MRT at probe level...");
 
-            foreach (var p in this.Probes)
+            Parallel.For(0, Probes.Count, x =>
+            //for (int x = 0; x < Probes.Count; x++)
             {
+
+                var p = Probes[x];
 
                 p.LongWave_MRT = new float[8760];
 
@@ -296,7 +299,7 @@ namespace EddyLib.Radiation
                 }
 
 
-            }
+            });
 
             Console.WriteLine("MRT calculaiton complete...");
 
