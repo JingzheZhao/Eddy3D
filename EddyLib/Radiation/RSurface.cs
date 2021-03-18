@@ -166,6 +166,9 @@ namespace EddyLib.Radiation
             for (int i = 0; i < _ms.Faces.Count; ++i)
             {
                 RPolygon pg = new RPolygon();
+
+                pg.Parent = this;
+
                 Polys.Add(pg);
 
                 if (this.TemperatureOverride != null) {

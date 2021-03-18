@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace EddyLib.Radiation
 {
-    public class EPJson
+    public class EPJsonSurfaces
     {
         [JsonProperty("Shading:Building:Detailed", NullValueHandling = NullValueHandling.Ignore)]
         public Dictionary<string, ShadingBuildingDetailed> AllShaders { get; set; } = new Dictionary<string, ShadingBuildingDetailed>();
@@ -19,6 +19,8 @@ namespace EddyLib.Radiation
         [JsonProperty("FenestrationSurface:Detailed", NullValueHandling = NullValueHandling.Ignore)]
         public Dictionary<string, FenestrationSurfaceDetailed> AllWindows { get; set; } = new Dictionary<string, FenestrationSurfaceDetailed>();
     }
+
+    
 
 
 
@@ -178,41 +180,42 @@ namespace EddyLib.Radiation
 
     public partial class Construction
     {
-        [JsonProperty("layer_10", NullValueHandling = NullValueHandling.Ignore)]
-        public string Layer10 { get; set; }
+        //[JsonProperty("layer_10", NullValueHandling = NullValueHandling.Ignore)]
+        //public string Layer10 { get; set; }
 
-        [JsonProperty("layer_2", NullValueHandling = NullValueHandling.Ignore)]
-        public string Layer2 { get; set; }
+        //[JsonProperty("layer_4", NullValueHandling = NullValueHandling.Ignore)]
+        //public string Layer4 { get; set; }
+
+        //[JsonProperty("layer_5", NullValueHandling = NullValueHandling.Ignore)]
+        //public string Layer5 { get; set; }
+
+        //[JsonProperty("layer_6", NullValueHandling = NullValueHandling.Ignore)]
+        //public string Layer6 { get; set; }
+
+        //[JsonProperty("layer_7", NullValueHandling = NullValueHandling.Ignore)]
+        //public string Layer7 { get; set; }
+
+        //[JsonProperty("layer_8", NullValueHandling = NullValueHandling.Ignore)]
+        //public string Layer8 { get; set; }
+
+        //[JsonProperty("layer_9", NullValueHandling = NullValueHandling.Ignore)]
+        //public string Layer9 { get; set; }
+
 
         [JsonProperty("layer_3", NullValueHandling = NullValueHandling.Ignore)]
         public string Layer3 { get; set; }
 
-        [JsonProperty("layer_4", NullValueHandling = NullValueHandling.Ignore)]
-        public string Layer4 { get; set; }
-
-        [JsonProperty("layer_5", NullValueHandling = NullValueHandling.Ignore)]
-        public string Layer5 { get; set; }
-
-        [JsonProperty("layer_6", NullValueHandling = NullValueHandling.Ignore)]
-        public string Layer6 { get; set; }
-
-        [JsonProperty("layer_7", NullValueHandling = NullValueHandling.Ignore)]
-        public string Layer7 { get; set; }
-
-        [JsonProperty("layer_8", NullValueHandling = NullValueHandling.Ignore)]
-        public string Layer8 { get; set; }
-
-        [JsonProperty("layer_9", NullValueHandling = NullValueHandling.Ignore)]
-        public string Layer9 { get; set; }
+        [JsonProperty("layer_2", NullValueHandling = NullValueHandling.Ignore)]
+        public string Layer2 { get; set; }
 
         [JsonProperty("outside_layer")]
         public string OutsideLayer { get; set; }
 
 
-        [JsonProperty("idf_max_extensible_fields", NullValueHandling = NullValueHandling.Ignore)]
-        public double? idfMaxExtensibleFields { get; set; } = 0;
-        [JsonProperty("idf_max_fields", NullValueHandling = NullValueHandling.Ignore)]
-        public double? idfMaxFields { get; set; }
+        //[JsonProperty("idf_max_extensible_fields", NullValueHandling = NullValueHandling.Ignore)]
+        //public double? idfMaxExtensibleFields { get; set; } = 0;
+        //[JsonProperty("idf_max_fields", NullValueHandling = NullValueHandling.Ignore)]
+        //public double? idfMaxFields { get; set; }
 
 
 

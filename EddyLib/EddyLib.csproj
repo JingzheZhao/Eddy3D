@@ -128,7 +128,7 @@
     <Compile Include="Radiation\Old\RadiositySystem.cs" />
     <Compile Include="Radiation\RPolygon.cs" />
     <Compile Include="Radiation\RProbe.cs" />
-    <Compile Include="Radiation\EPJson.cs" />
+    <Compile Include="Radiation\EPJsonSurfaces.cs" />
     <Compile Include="Radiation\EsoReader.cs" />
     <Compile Include="Radiation\LongWaveInjectedIDFCode.cs" />
     <Compile Include="Radiation\ThermalSystem.cs" />
