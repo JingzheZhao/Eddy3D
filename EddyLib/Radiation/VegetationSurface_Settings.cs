@@ -15,7 +15,7 @@ namespace EddyLib.Radiation
         public VegetationSurface_Settings() { }
 
         [DataMember]
-        public string Name { get; set; } = "MyVegetation";
+        public string Name { get; set; } = "Vegetation";
 
         [DataMember]
         public double HeightOfPlants { get; set; } = 0.5;
@@ -41,14 +41,14 @@ namespace EddyLib.Radiation
         public RoughnessOfCollectorEnum Roughness { get; set; } = RoughnessOfCollectorEnum.Rough;
 
         [DataMember]
-        public double Conductivity { get; set; } = 0.4;
+        public double ConductivityOfDrySoil { get; set; } = 0.4;
 
         [DataMember]
-        public double Density { get; set; } = 641;
+        public double DensityOfDrySoil { get; set; } = 641;
 
 
         [DataMember]
-        public double SpecificHeat { get; set; } = 1100;
+        public double SpecificHeatOfDrySoil { get; set; } = 1100;
 
         [DataMember]
         public double ThermalAbsorptance { get; set; } = 0.95;
@@ -61,13 +61,13 @@ namespace EddyLib.Radiation
 
 
         [DataMember]
-        public double SaturationVolumetricMoistureContentSoilLayer { get; set; } = 0.4;
+        public double SaturationVolumetricMoistureContentOfTheSoilLayer { get; set; } = 0.4;
 
         [DataMember]
-        public double ResidualVolumetricMoistureContentSoilLayer { get; set; } = 0.01;
+        public double ResidualVolumetricMoistureContentOfTheSoilLayer { get; set; } = 0.01;
 
         [DataMember]
-        public double InitialVolumetricMoistureContentSoilLayer { get; set; } = 0.2;
+        public double InitialVolumetricMoistureContentOfTheSoilLayer { get; set; } = 0.2;
 
 
 
@@ -75,6 +75,58 @@ namespace EddyLib.Radiation
         [DataMember]
 
         public string RadianceMaterial { get; set; } = RadianceMaterials.DefaultGrass;
+
+
+
+
+
+        public MaterialRoofVegetation GetMaterial()
+        {
+
+            MaterialRoofVegetation mat = new MaterialRoofVegetation();
+ 
+
+
+            mat.HeightOfPlants = HeightOfPlants;
+            mat.LeafAreaIndex = LeafAreaIndex;
+            mat.LeafReflectivity = LeafReflectivity;
+            mat.LeafEmissivity = LeafEmissivity;
+            mat.MinimumStomatalResistance = MinimumStomatalResistance;
+            mat.SoilLayerName  = "GreenRoofSoil";
+            mat.Roughness  = RoughnessOfCollectorEnum.Rough;
+            mat.ConductivityOfDrySoil = ConductivityOfDrySoil;
+            mat.DensityOfDrySoil = DensityOfDrySoil;
+            mat.SpecificHeatOfDrySoil = SpecificHeatOfDrySoil;
+            mat.ThermalAbsorptance = ThermalAbsorptance;
+            mat.SolarAbsorptance = SolarAbsorptance;
+            mat.VisibleAbsorptance = VisibleAbsorptance;
+            mat.SaturationVolumetricMoistureContentOfTheSoilLayer = SaturationVolumetricMoistureContentOfTheSoilLayer;
+            mat.ResidualVolumetricMoistureContentOfTheSoilLayer = ResidualVolumetricMoistureContentOfTheSoilLayer;
+            mat.InitialVolumetricMoistureContentOfTheSoilLayer = InitialVolumetricMoistureContentOfTheSoilLayer;
+
+
+
+
+            return mat;
+        }
+        public Construction GetConstruction()
+        {
+            Construction con = new Construction();
+            con.Layer3 = "DefaultXPS";
+            con.Layer2 = "DefaultConcrete";
+            con.OutsideLayer = Name;
+            return con;
+        }
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -11,72 +11,8 @@ namespace EddyLib.Radiation
     [DataContract]
     public class RSurface_Settings
     {
-        public static RSurface_Settings GenerateTree()
-        {
+         
 
-            var o = new RSurface_Settings();
-            o.RadianceMaterial = RadianceMaterials.DefaultTree;
-            //o.Name = "Asphalt_10cm";
-            //o.Conductivity = 0.75;
-            //o.SpecificHeat = 920;
-            //o.ThermalAbsorptance = .9;
-            //o.Density = 2350;
-            //o.SolarAbsorptance = 0.32;
-            //o.VisibleAbsorptance = 0.32;
-            //o.Thickness = 0.1;
-
-            return o;
-        }
-
-        public static RSurface_Settings GenerateVegetation()
-        {
-
-            var o = new RSurface_Settings();
-            o.RadianceMaterial = RadianceMaterials.DefaultGrass;
-            //o.Name = "Asphalt_10cm";
-            //o.Conductivity = 0.75;
-            //o.SpecificHeat = 920;
-            //o.ThermalAbsorptance = .9;
-            //o.Density = 2350;
-            //o.SolarAbsorptance = 0.32;
-            //o.VisibleAbsorptance = 0.32;
-            //o.Thickness = 0.1;
-
-            return o;
-        }
-
-        public static RSurface_Settings GenerateGround() {
-
-            var o = new RSurface_Settings();
-            o.RadianceMaterial = RadianceMaterials.DefaultGround;
-            o.Name = "Asphalt_10cm";
-            o.Conductivity = 0.75;
-            o.SpecificHeat = 920;
-            o.ThermalAbsorptance = .9;
-            o.Density = 2350;
-            o.SolarAbsorptance = 0.32;
-            o.VisibleAbsorptance = 0.32;
-            o.Thickness = 0.1;
- 
-            return o;
-        }
-
-        public static RSurface_Settings GenerateFacade()
-        {
-
-            var o = new RSurface_Settings();
-            o.RadianceMaterial = RadianceMaterials.DefaultFacade;
-            o.Name = "RedBrick_20cm";
-            o.Conductivity = 0.89;
-            o.SpecificHeat = 920;
-            o.ThermalAbsorptance = .9;
-            o.Density = 1920;
-            o.SolarAbsorptance = 0.6;
-            o.VisibleAbsorptance = 0.6;
-            o.Thickness = 0.2;
-
-            return o;
-        }
 
         public RSurface_Settings() { }
 
@@ -116,22 +52,70 @@ namespace EddyLib.Radiation
 
 
 
+       public Material GetMaterial() {
 
+            Material mat = new Material();
+            mat.Conductivity = Conductivity;
+            mat.Density = Density;
+            mat.Roughness = Roughness;
+            mat.SolarAbsorptance = SolarAbsorptance;
+            mat.SpecificHeat = SpecificHeat;
+            mat.ThermalAbsorptance = ThermalAbsorptance;
+            mat.Thickness = Thickness;
+            mat.VisibleAbsorptance = VisibleAbsorptance;
 
+            return mat;
+    }
+        public Construction GetConstruction()
+        {
+            Construction con = new Construction();
+            con.Layer2 = "DefaultXPS";
+            con.OutsideLayer = Name;
+            return con;
+        }
+        public static RSurface_Settings GenerateGround()
+        {
+
+            var o = new RSurface_Settings();
+            o.RadianceMaterial = RadianceMaterials.DefaultGround;
+            o.Name = "Asphalt";
+            o.Conductivity = 0.75;
+            o.SpecificHeat = 920;
+            o.ThermalAbsorptance = .9;
+            o.Density = 2350;
+            o.SolarAbsorptance = 0.32;
+            o.VisibleAbsorptance = 0.32;
+            o.Thickness = 0.1;
+
+            return o;
+        }
+
+        public static RSurface_Settings GenerateFacade()
+        {
+
+            var o = new RSurface_Settings();
+            o.RadianceMaterial = RadianceMaterials.DefaultFacade;
+            o.Name = "RedBrick";
+            o.Conductivity = 0.89;
+            o.SpecificHeat = 920;
+            o.ThermalAbsorptance = .9;
+            o.Density = 1920;
+            o.SolarAbsorptance = 0.6;
+            o.VisibleAbsorptance = 0.6;
+            o.Thickness = 0.2;
+
+            return o;
+        }
 
         public static RSurface_Settings fromJSON(string json)
         {
             return DeserializeJSON<RSurface_Settings>(json);
         }
 
-
         public string toJSON()
         {
             return SerializeJSON<RSurface_Settings>(this);
         }
-
-
-
 
         private static T DeserializeJSON<T>(string json)
         {

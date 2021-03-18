@@ -67,7 +67,12 @@ namespace EddyLib.Radiation
                 // -----------------------------
                 // 0 Prepare EPJSON
                 // -----------------------------
-                var epjsonObject = new EPJson();
+                var epjsonObject = new EPJSON();
+
+                Dictionary<string, Material> AllMats = new Dictionary<string, Material>();
+                Dictionary<string, Construction> AllCons = new Dictionary<string, Construction>();
+                Dictionary<string, MaterialRoofVegetation> AllVeget = new Dictionary<string, MaterialRoofVegetation>();
+
 
                 int surfIndex = 0;
                 int groundIndex = 0;
@@ -75,14 +80,12 @@ namespace EddyLib.Radiation
                 foreach (var s in this.Polys)
                 {
                     if (s.Type == RadiationSurfaceType.Sky) { continue; }
-
                     if (s.SeenByProbes < CummulativeViewFactorCutoff) { continue; }
-
 
                     else if (s.Type == RadiationSurfaceType.Building)
                     {
                         var epsurf = new BuildingSurfaceDetailed();
-                        epsurf.ConstructionName = "RedBrick";
+                        epsurf.ConstructionName = "DefaultConstruction";
                         epsurf.Vertices = new List<DetailedVertex>();
                         foreach (var v in s.Mesh.Value.Vertices)
                         {
@@ -93,13 +96,28 @@ namespace EddyLib.Radiation
                             epsurf.Vertices.Add(dv);
                         }
                         epsurf.NumberOfVertices = s.Mesh.Value.Vertices.Count;
+
+
+                        // set constructions
+                        if (s.Parent != null && s.Parent.Settings != null)
+                        {
+                            epsurf.ConstructionName = s.Parent.Settings.Name;
+
+                            if (!AllMats.ContainsKey(s.Parent.Settings.Name) && !AllCons.ContainsKey(s.Parent.Settings.Name))
+                            {
+                                AllMats.Add(s.Parent.Settings.Name, s.Parent.Settings.GetMaterial());
+                                AllCons.Add(s.Parent.Settings.Name, s.Parent.Settings.GetConstruction());
+                            }
+                        }
+
+
                         epjsonObject.AllThermalSurfaces.Add(s.ID.ToString(), epsurf);
                         surfIndex++;
                     }
                     else if (s.Type == RadiationSurfaceType.Ground)
                     {
                         var epsurf = new BuildingSurfaceDetailed();
-                        epsurf.ConstructionName = "Asphalt";
+                        epsurf.ConstructionName = "DefaultConstruction";
                         epsurf.Vertices = new List<DetailedVertex>();
                         foreach (var v in s.Mesh.Value.Vertices)
                         {
@@ -110,6 +128,21 @@ namespace EddyLib.Radiation
                             epsurf.Vertices.Add(dv);
                         }
                         epsurf.NumberOfVertices = s.Mesh.Value.Vertices.Count;
+
+
+                        // set constructions
+                        if (s.Parent != null && s.Parent.Settings != null)
+                        {
+                            epsurf.ConstructionName = s.Parent.Settings.Name;
+
+                            if (!AllMats.ContainsKey(s.Parent.Settings.Name) && !AllCons.ContainsKey(s.Parent.Settings.Name)) 
+                            {
+                                AllMats.Add(s.Parent.Settings.Name, s.Parent.Settings.GetMaterial());
+                                AllCons.Add(s.Parent.Settings.Name, s.Parent.Settings.GetConstruction());
+                            }
+                        }
+
+
                         epjsonObject.AllThermalSurfaces.Add(s.ID.ToString(), epsurf);
                         groundIndex++;
                     }
@@ -127,6 +160,22 @@ namespace EddyLib.Radiation
                             epsurf.Vertices.Add(dv);
                         }
                         epsurf.NumberOfVertices = s.Mesh.Value.Vertices.Count;
+
+
+                        // set constructions
+                        if (s.Parent != null && s.Parent.VegSettings != null)
+                        {
+                            epsurf.ConstructionName = s.Parent.VegSettings.Name;
+
+                            if (!AllVeget.ContainsKey(s.Parent.VegSettings.Name) && !AllCons.ContainsKey(s.Parent.VegSettings.Name))
+                            {
+                                AllVeget.Add(s.Parent.VegSettings.Name, s.Parent.VegSettings.GetMaterial());
+                                AllCons.Add(s.Parent.VegSettings.Name, s.Parent.VegSettings.GetConstruction());
+                            }
+                        }
+
+
+
                         epjsonObject.AllThermalSurfaces.Add(s.ID.ToString(), epsurf);
                         groundIndex++;
                     }
@@ -149,6 +198,7 @@ namespace EddyLib.Radiation
                 }
 
 
+                
 
 
 
@@ -162,12 +212,43 @@ namespace EddyLib.Radiation
                 Directory.CreateDirectory(this.BaseWorkingDir + @"\Ep");
 
                 var str = System.Text.Encoding.Default.GetString(Resources.Box);
-
-
                 string inject = JsonConvert.SerializeObject(epjsonObject, Formatting.Indented).Trim().Trim('{', '}').Trim(); ;
                 inject += ",";
-
                 string epjson = str.Replace("\"@@SURFS@@\": null,", inject);
+
+
+
+
+
+
+
+                // Material and Construction Injection Logic
+                string injectMaterials = "";
+                string injectConstructions = "";
+                string injectVegetation = "";
+
+                injectMaterials += JsonConvert.SerializeObject(AllMats, Formatting.Indented).Trim().Trim('{', '}').Trim(); ;
+                if(! String.IsNullOrWhiteSpace(injectMaterials)) injectMaterials+= ",";
+                injectConstructions += JsonConvert.SerializeObject(AllCons, Formatting.Indented).Trim().Trim('{', '}').Trim(); ;
+                if (!String.IsNullOrWhiteSpace(injectConstructions)) injectConstructions += ",";
+                epjson = epjson.Replace("\"@@MATERIALS@@\": null,", injectMaterials);
+                epjson = epjson.Replace("\"@@CONSTRUCTIONS@@\": null,", injectConstructions);
+
+                injectVegetation += JsonConvert.SerializeObject(AllVeget, Formatting.Indented).Trim().Trim('{', '}').Trim(); ;
+                if (!String.IsNullOrWhiteSpace(injectVegetation)) injectVegetation += ",";
+                epjson = epjson.Replace("\"@@VEGETATION@@\": null,", injectVegetation);
+ 
+
+
+
+
+
+
+
+
+
+
+
 
 
                 Console.WriteLine("Writing EnergyPlus input files...");
@@ -175,7 +256,7 @@ namespace EddyLib.Radiation
                 File.WriteAllText(epjsonfile, epjson);
 
                 Interlocked.Increment(ref stepCnt);
-                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+                Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
                 // -----------------------------
@@ -196,15 +277,9 @@ namespace EddyLib.Radiation
                     cnt++;
                 }
 
-
                 energyPlus.Wait();
-                //if (!energyPlus.Result.Success)
-                //{
-                //    Debug.WriteLine($"EnergyPlus command failed with exit code {energyPlus.Result.ExitCode}: {energyPlus.Result.StandardError}");
-                //    return null;
-                //}
                 Interlocked.Increment(ref stepCnt);
-                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+                Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
 
                 // -----------------------------
