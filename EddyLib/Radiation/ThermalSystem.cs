@@ -248,8 +248,13 @@ namespace EddyLib.Radiation
 
         public void ComputeMRT(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
-            foreach (var p in this.Probes)
+            Console.WriteLine("Computing MRT at probe level...");
+
+            Parallel.For(0, Probes.Count, x =>
+            //for (int x = 0; x < Probes.Count; x++)
             {
+
+                var p = Probes[x];
 
                 p.LongWave_MRT = new float[8760];
 
@@ -294,13 +299,15 @@ namespace EddyLib.Radiation
                 }
 
 
-            }
+            });
 
+            Console.WriteLine("MRT calculaiton complete...");
 
         }
 
         public MRT_Simulation_ResultProto SaveResults(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
+            Console.WriteLine("Writing Results...");
 
             // -----------------------------
             // Write results

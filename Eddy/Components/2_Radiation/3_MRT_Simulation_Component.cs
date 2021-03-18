@@ -230,6 +230,9 @@ namespace Eddy
 
         public bool RunSlowSimulation(CancellationTokenSource cts, int nthreads = 1)
         {
+            if (!MRTSystem.Settings.ComputeReflectionsAndDiffuseRadiation) { MRTSystem.TOTAL += MRTSystem.Probes.Count - MRTSystem.RadiationSystem.methodsteps; }
+            if (!MRTSystem.Settings.ComputeSurfaceTemperatureEnergyPlus) { MRTSystem.TOTAL -= MRTSystem.ThermalSystem.methodsteps; }
+
             if (MRTSystem == null) return false;
             if (MRTSystem.RadiationSystem == null) return false;
             if (MRTSystem.ThermalSystem == null) return false;
@@ -248,7 +251,7 @@ namespace Eddy
             }
             else
             {
-                throw new NotImplementedException();
+                MRTSystem.RadiationSystem.RunDirectRayCast(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
             }
 
             if (MRTSystem.ThermalSystem == null) return false;

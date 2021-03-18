@@ -4,6 +4,49 @@ namespace EddyLib
 {
     public class SolarGeometry
     {
+        public static int[] DaysInMonth = new int[] { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+
+        public int HourInYear(int monthIndex, int dayIndex, int hourIndex)
+        {
+            int hr = 0;
+            for (int m = 0; m < 12; m++)
+            {
+                if (m < monthIndex) hr += DaysInMonth[m] * 24;
+                else
+                {
+                    hr += dayIndex * 24 + hourIndex;
+                    break;
+                }
+            }
+            return hr;
+        }
+
+
+        public  void DayOfYear_To_MonthAndDay(int dayOfYear, out int month, out int day)
+        {
+            month = 0;
+            day = 0;
+            int doy = 0;
+            for (int m = 0; m < 12; m++)
+            {
+                if (doy + DaysInMonth[m] > dayOfYear)
+                {
+                    month = m;
+                    day = dayOfYear - doy;
+                    return;
+                }
+                doy += DaysInMonth[m];
+            }
+        }
+
+        public  void HourOfYear_To_MDH(int hourOfYear, out int month, out int day, out int hour)
+        {
+            int dayOfYear = (int)Math.Floor(hourOfYear / 24d);
+            DayOfYear_To_MonthAndDay(dayOfYear, out month, out day);
+            hour = hourOfYear - dayOfYear * 24;
+        }
+
+
         public double solarazimuth(double lat, double lon, double year, double month, double day, double hours, double minutes, double seconds, double timezone, double dlstime)
         {
             //***********************************************************************/
