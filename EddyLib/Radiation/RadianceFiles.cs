@@ -262,13 +262,19 @@ namespace EddyLib
             {
                 if (!matLib.ContainsKey(s.MaterialID))
                 {
-                    matLib.Add(s.MaterialID, s.Material);
-                    _matLib.AppendLine(s.Material);
+                    if (s.Settings != null) matLib.Add(s.MaterialID, s.Settings.RadianceMaterial);
+                    if (s.VegSettings != null) matLib.Add(s.MaterialID, s.VegSettings.RadianceMaterial);
+                    if (s.TreeSettings != null) matLib.Add(s.MaterialID, s.TreeSettings.RadianceMaterial);
+
+                    if (s.Settings != null) _matLib.AppendLine(s.Settings.RadianceMaterial);
+                    if (s.VegSettings != null) _matLib.AppendLine(s.VegSettings.RadianceMaterial);
+                    if (s.TreeSettings != null) _matLib.AppendLine(s.TreeSettings.RadianceMaterial);
+
                     _matLib.AppendLine();
                 }
             }
 
- 
+
 
             System.IO.StreamWriter sw = new System.IO.StreamWriter(_fname);
             sw.WriteLine("# Grasshopper Eddy3D " + EddyLib.EddyVersion.ProductVersion);

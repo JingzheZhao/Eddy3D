@@ -1,5 +1,6 @@
 ﻿using Eddy.Properties;
 using EddyLib;
+using EddyLib.Radiation;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 using System;
@@ -26,6 +27,15 @@ namespace Eddy.Components._2_Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
+            pManager.AddTextParameter("Name", "Name", "Material Name", GH_ParamAccess.item, "MyVegetationSurface");
+
+            pManager.AddNumberParameter("Height Plants", "HP", "Height of Plants [m]", GH_ParamAccess.item,0.5);
+            pManager.AddNumberParameter("LeafAreaIndex", "LAI", "LeafAreaIndex [dimensionless]", GH_ParamAccess.item, 5);
+            pManager.AddNumberParameter("LeafReflectivity", "LR", "LeafReflectivity [0-1]", GH_ParamAccess.item, 0.2);
+            pManager.AddNumberParameter("LeafEmissivity", "LE", "LeafEmissivity [0-1]", GH_ParamAccess.item, 0.95);
+            pManager.AddNumberParameter("MinimumStomatalResistance", "MSR", "MinimumStomatalResistance [s/m]", GH_ParamAccess.item, 180);
+
+            pManager.AddTextParameter("Surface", "SMat", "Optional Radiance Surface Material", GH_ParamAccess.item, "");
         }
 
         /// <summary>
@@ -33,6 +43,8 @@ namespace Eddy.Components._2_Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
+            pManager.Register_GenericParam("VegSet", "Set", "Vegetation settings");
+
         }
 
         /// <summary>
@@ -41,6 +53,51 @@ namespace Eddy.Components._2_Radiation
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+
+
+
+            string Name = "";
+            double HeightOfPlants = 2.4;
+            double LeafAreaIndex = 2400;
+            double LeafReflectivity = 840;
+            double LeafEmissivity = 0.9;
+            double MinimumStomatalResistance = 0.7;
+          
+
+            
+            string RadianceMaterial = "";
+
+
+            if (!DA.GetData(0, ref Name)) return;
+            if (!DA.GetData(1, ref HeightOfPlants)) return;
+            if (!DA.GetData(2, ref LeafAreaIndex)) return;
+            if (!DA.GetData(3, ref LeafReflectivity)) return;
+            if (!DA.GetData(4, ref LeafEmissivity)) return;
+            if (!DA.GetData(5, ref MinimumStomatalResistance)) return;
+
+            if (!DA.GetData(6, ref RadianceMaterial)) return;
+
+
+            var surfSettings = new VegetationSurface_Settings();
+
+
+            surfSettings.Name = Name;
+            surfSettings.HeightOfPlants = HeightOfPlants;
+            surfSettings.LeafAreaIndex = LeafAreaIndex;
+            surfSettings.LeafReflectivity = LeafReflectivity;
+            surfSettings.LeafEmissivity = LeafEmissivity;
+            surfSettings.MinimumStomatalResistance = MinimumStomatalResistance;
+            surfSettings.RadianceMaterial = RadianceMaterial;
+
+            surfSettings.RadianceMaterial = RadianceMaterial;
+            if (String.IsNullOrWhiteSpace(surfSettings.RadianceMaterial))
+            {
+                surfSettings.RadianceMaterial = RadianceMaterials.DefaultGrass;
+            }
+
+            DA.SetData(0, surfSettings);
+
+
         }
 
         /// <summary>
