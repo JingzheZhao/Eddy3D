@@ -15,6 +15,11 @@ namespace EddyLib.Strings
             return @"The file """ + currentCaseDir + @"\postProcessing\" + field.ProbeName + @"\" + Utilities.GetLastIterationFromDirectory(currentCaseDir).ToString() + @"\" + field.FieldName + @""" does not exist. Please run the probing component.";
         }
 
+        public static string FieldDoesntExist(string currentCaseDir, OFFieldNew field)
+        {
+            return @"The file """ + currentCaseDir + @"\postProcessing\" + field.ProbeName + @"\" + Utilities.GetLastIterationFromDirectory(currentCaseDir).ToString() + @"\" + field.FieldName + @""" does not exist. Please run the probing component.";
+        }
+
         public static string ParsingFailed()
         {
             return @"Parsing of the probes failed. This data does not exist yet. Please run the probing component.";
@@ -55,6 +60,11 @@ can't be probed within the simulation domain and have been discarded.");
         }
 
         public static string ProbingFuncObjects(OFResult RES, OFField field)
+        {
+            return @"You are probing a function object (" + field.FieldName + ") and WriteInt is set to " + RES.RunSettings.iter + ". Please lower the WriteInt to 1 and simulate one more iteration to enable the probing for this special case.";
+        }
+
+        public static string ProbingFuncObjects(OFResult RES, OFFieldNew field)
         {
             return @"You are probing a function object (" + field.FieldName + ") and WriteInt is set to " + RES.RunSettings.iter + ". Please lower the WriteInt to 1 and simulate one more iteration to enable the probing for this special case.";
         }

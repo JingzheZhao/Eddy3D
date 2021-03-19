@@ -300,7 +300,7 @@ namespace Eddy
                         string pathToProbeFile = Probing.GetPathToProbedResults(currentCaseDir, currField, RES);
                         if (File.Exists(pathToProbeFile))
                         {
-                            if (currField.FieldType == EddyLib.OFField.fieldType.vector)
+                            if (currField.FieldType == fieldType.vector)
                             {
                                 Probing Vectors = new Probing(listOfPoints, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES);
 
@@ -331,7 +331,7 @@ namespace Eddy
 
             // Todo: Move this into class object once its properly architected
 
-            if (currField.FieldType == EddyLib.OFField.fieldType.vector)
+            if (currField.FieldType == fieldType.vector)
             {
                 try
                 {
@@ -358,12 +358,12 @@ namespace Eddy
                 }
             }
 
-            if (currField.FieldType == EddyLib.OFField.fieldType.scalar)
+            if (currField.FieldType == fieldType.scalar)
             {
                 DA.SetDataTree(1, treeDouble);
                 DA.SetDataList(0, listOfPoints);
             }
-            else if (currField.FieldType == EddyLib.OFField.fieldType.vector)
+            else if (currField.FieldType == fieldType.vector)
             {
                 DA.SetDataTree(1, treeVector);
                 DA.SetDataList(0, listOfPoints);

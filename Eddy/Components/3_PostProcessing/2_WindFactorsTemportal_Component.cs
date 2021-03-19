@@ -1,7 +1,9 @@
 ﻿using Eddy.Properties;
 using EddyLib;
+using EddyLib.OutdoorComfort;
 using EddyLib.Radiation;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Types;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -9,7 +11,7 @@ using System.Linq;
 
 namespace Eddy.Components.Radiation
 {
-    public class LoadWProbeData_Component : GH_Component
+    public class WindFactorsTemportal_Component : GH_Component
     {
         public override GH_Exposure Exposure
         {
@@ -19,8 +21,8 @@ namespace Eddy.Components.Radiation
         /// <summary>
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
-        public LoadWProbeData_Component()
-          : base("Load WProbe", "WProbe", "Load WProbe" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
+        public WindFactorsTemportal_Component()
+          : base("WindFactorsTemporal", "WindFactorsTemporal", "WindFactorsTemporal" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
 
         {
         }
@@ -30,9 +32,11 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Path", "P", "Result path", GH_ParamAccess.item);
-            //pManager.AddIntegerParameter("Hour", "H", "Hour", GH_ParamAccess.item, 12);
-            pManager.AddBooleanParameter("Load", "L", "Load data from disk", GH_ParamAccess.item, false);
+            pManager.AddGenericParameter("Res", "Res", "Res", GH_ParamAccess.item);
+
+            pManager.AddTextParameter("EPW", "EPW", "EPW", GH_ParamAccess.item, "");
+
+            pManager.AddBooleanParameter("Run", "Run", "Run", GH_ParamAccess.item, false);
         }
 
         /// <summary>
@@ -51,53 +55,39 @@ namespace Eddy.Components.Radiation
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            string filePath = "";
-            //int hour = 0;
+            string EPW = "";
             bool run = false;
 
-            DA.GetData(0, ref filePath);
-            //DA.GetData(1, ref hour);
-            DA.GetData(1, ref run);
+            DA.GetData(1, ref EPW);
+            DA.GetData(2, ref run);
 
             if (!run) return;
 
-            if (!File.Exists(filePath))
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Result file not found.");
-            }
+            IGH_Goo system = null;
+            if (!DA.GetData(0, ref system)) { }
 
-            var prep = PrepareProtoBufSingleton.Instance;
-
-            WProbeResultProto resultProto = null;
-
-            try
-            {
-                Stopwatch sp = new Stopwatch();
-                sp.Restart();
-                resultProto = WProbeResultProto.ReadFromFile(filePath);
-                sp.Stop();
-                Debug.WriteLine("Loading WProbeResultProto: " + sp.ElapsedMilliseconds);
-            }
-            catch (Exception e)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Result file could not be deserialized. Are you loading a wrong file type? " + Environment.NewLine + e.Message);
-                return;
-            }
+            WProbeResultProto res;
+            if (system == null) return;
+            if (!system.CastTo<WProbeResultProto>(out res)) return;
 
             // WindFactorSpatial
 
-            foreach (var p in resultProto.Probes)
+            Weather w = new Weather(EPW);
+
+            WindSystem WS = new WindSystem(w, res.Probes[0].WindDirections.ToList());
+
+            foreach (var p in res.Probes)
             {
-                p.WindFactorsSpatial = EddyLib.OutdoorComfort.WindFactorsSpatial.CalcWindFactorsSpatialSP(p);
+                p.WindFactorsTemporal = EddyLib.OutdoorComfort.WindFactorsTemporal.CalcWindFactorsTemporalSP(w, p, WS, true);
             }
 
             ///////////////////
 
-            if (resultProto != null)
+            if (res != null)
             {
-                DA.SetData(0, resultProto);
+                DA.SetData(0, res);
 
-                DA.SetDataList(1, resultProto.Probes);
+                DA.SetDataList(1, res.Probes);
             }
         }
 
@@ -110,7 +100,7 @@ namespace Eddy.Components.Radiation
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return Resources.Eddy_MRT_LoadResults;
+                return Resources.Eddy_CFD_LoadResults;
             }
         }
 
@@ -119,7 +109,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("{48B164A8-4DD4-4BED-8C8A-EB30861E59EF}"); }
+            get { return new Guid("{7BF96608-D018-4F30-A5B3-F7F6D459D26D}"); }
         }
     }
 }
