@@ -74,7 +74,7 @@
   <ItemGroup>
     <Compile Include="Components\1_Wind\7_CompTree.cs" />
     <Compile Include="Components\1_Wind\4o_CompLBAnalPeriod2Hours.cs" />
-    <Compile Include="Components\2_Radiation\2_SimulationSettings_Component.cs" />
+    <Compile Include="Components\2_Radiation\3_MRT_SimulationSettings_Component.cs" />
     <Compile Include="Components\2_Radiation\2_TreeSettings_Component.cs" />
     <Compile Include="Components\2_Radiation\2_VegetationSurfaceSettings_Component.cs" />
     <Compile Include="Components\2_Radiation\2_SurfaceSettings_Component.cs" />
