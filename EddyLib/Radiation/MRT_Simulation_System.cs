@@ -185,9 +185,13 @@ namespace EddyLib.Radiation
 
         }
 
-
-
         public bool RunVF(bool run, CancellationToken ct, int steps, ref int stepCnt)
+        {
+           return RunVF_Internal( run,  ct,  steps, ref  stepCnt);
+        }
+
+
+        private bool RunVF_Internal(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
             Stopwatch sp = new Stopwatch();
 
@@ -214,7 +218,7 @@ namespace EddyLib.Radiation
 
         #region VIEW FACTOR SYSTEM 
 
-        public static List<RPolygon> MakeRPolygons(Mesh _ms, RadiationSurfaceType type, string matName, SimulationType simtype, double rad = 0, double refl = 0.5)
+        private static List<RPolygon> MakeRPolygons(Mesh _ms, RadiationSurfaceType type, string matName, SimulationType simtype, double rad = 0, double refl = 0.5)
         {
             List<RPolygon> polys = new List<RPolygon>();
             if (_ms == null) return polys;
@@ -284,7 +288,7 @@ namespace EddyLib.Radiation
         public List<string> UniqueSurfaceTypesInModel = new List<string>();
 
         //Sum up view factors to the different materials in the model
-        public void BuildVFToProbesByMaterial()
+        private void BuildVFToProbesByMaterial()
         {
 
             UniqueSurfaceTypesInModel = Polys.Select(s => s.Type.ToString()).ToHashSet().ToList();
@@ -328,7 +332,7 @@ namespace EddyLib.Radiation
 
 
         //Compute Form factors taking into account occlusions from a list of meshes
-        public void BuildVFToProbes(Mesh Obst)
+        private void BuildVFToProbes(Mesh Obst)
         {
             foreach (var p in Probes)
             {
@@ -360,7 +364,7 @@ namespace EddyLib.Radiation
             }
             FindPolysSeenByProbes();
         }
-        public double FFactorProbe(Point3d probe_pt, RPolygon p1, Mesh Obst)
+        private double FFactorProbe(Point3d probe_pt, RPolygon p1, Mesh Obst)
         {
             Vector3d probe_n = p1.Centroid.Value - probe_pt;
             probe_n.Unitize();
@@ -419,7 +423,7 @@ namespace EddyLib.Radiation
         public double[] xk1;
         public double[] b;
         //Compute Form factors taking into account occlusions from a list of meshes
-        public void BuildFFMatrix(Mesh Obst)
+        private void BuildFFMatrix(Mesh Obst)
         {
             int Ps = Polys.Count;
             //F = new double[Ps, Ps];
@@ -469,7 +473,7 @@ namespace EddyLib.Radiation
 
         //Computes the form factor between two polygons. It returns
         // 0.0 if the polygons are facing in opposite ways or are nearly coplanar or too close to each other
-        public double FFactor(RPolygon p0, RPolygon p1, Mesh Obst)
+        private double FFactor(RPolygon p0, RPolygon p1, Mesh Obst)
         {
 
             // --- 6/25/2020
@@ -520,7 +524,7 @@ namespace EddyLib.Radiation
             return f;
         }
         //Do one iteration step of Gauss-Seidel method.
-        public void Iterate()
+        private void Iterate()
         {
             if (F == null) return;
 
