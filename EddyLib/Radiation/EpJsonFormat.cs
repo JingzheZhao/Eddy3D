@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace EddyLib.Radiation
 {
-    public class EPJSON
+    public class EpJsonFormat
     {
         [JsonProperty("Shading:Building:Detailed", NullValueHandling = NullValueHandling.Ignore)]
         public Dictionary<string, ShadingBuildingDetailed> AllShaders { get; set; } = new Dictionary<string, ShadingBuildingDetailed>();
