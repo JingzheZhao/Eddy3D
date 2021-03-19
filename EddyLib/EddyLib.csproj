@@ -111,6 +111,7 @@
     <Compile Include="Geometry\EddyPoint.cs" />
     <Compile Include="Geometry\EddyVector.cs" />
     <Compile Include="GlobalSettings\DefaultDirectoriesAndPaths.cs" />
+    <Compile Include="OutdoorComfort\WindSystem.cs" />
     <Compile Include="OutdoorComfort\WProbe.cs" />
     <Compile Include="PrepareProtobuff.cs" />
     <Compile Include="Radiation\ComfortSystem.cs" />

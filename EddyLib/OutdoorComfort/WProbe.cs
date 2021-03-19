@@ -21,7 +21,7 @@ namespace EddyLib.Radiation
         {
             Point = new EddyPoint(pt);
 
-            WindDirections = new float[NumberOfWindDirections];
+            WindDirections = new int[NumberOfWindDirections];
             U = new EddyVector[NumberOfWindDirections];
         }
 
@@ -32,7 +32,16 @@ namespace EddyLib.Radiation
 
         // BCs
         [ProtoMember(100)]
-        public float[] WindDirections { get; set; }
+        public int[] WindDirections { get; set; }
+
+        [ProtoMember(101)]
+        public float Z0 { get; set; }
+
+        [ProtoMember(102)]
+        public float Zref { get; set; }
+
+        [ProtoMember(103)]
+        public float Uref { get; set; }
 
         // FieldData
 
@@ -62,5 +71,30 @@ namespace EddyLib.Radiation
 
         [ProtoMember(118)]
         public float[] Aoa { get; set; }
+
+        // Comfort Data
+        [ProtoMember(200)]
+        public float[] WindFactorsSpatial { get; set; }
+
+        [ProtoMember(201)]
+        public float[] WindFactorsTemporal { get; set; }
+
+        [ProtoMember(210)]
+        public float[] LawsonGeneral { get; set; }
+
+        [ProtoMember(211)]
+        public float[] LawsonLDDC { get; set; }
+
+        [ProtoMember(212)]
+        public float[] Lawson2001 { get; set; }
+
+        [ProtoMember(213)]
+        public float[] Davenport { get; set; }
+
+        [ProtoMember(14)]
+        public float[] NEN8100Comfort { get; set; }
+
+        [ProtoMember(215)]
+        public float[] NEN8100Safety { get; set; }
     }
 }
