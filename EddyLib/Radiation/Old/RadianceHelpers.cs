@@ -83,7 +83,7 @@ namespace EddyLib.Radiation
                     string id = IDbase + "_" + i;
                     string matName = "Mat_" + IDbase + "_" + i;
 
-                    s.AppendLine(RadianceMaterial.RadiancePlasticMaterial(matName, Color.White, 0.5));
+                    s.AppendLine(RadianceMaterials.RadiancePlasticMaterial(matName, Color.White, 0.5));
 
                     if (m.Faces[i].IsTriangle)
                     {

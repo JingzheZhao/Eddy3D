@@ -1,9 +1,13 @@
-﻿using EddyLib;
+﻿using Eddy.Properties;
+using EddyLib;
 using EddyLib.Radiation;
 using EddyLib.UI;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
+using Rhino.Geometry;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -11,22 +15,20 @@ using System.Threading.Tasks;
 
 namespace Eddy.Components.Radiation
 {
-    public class ThermalSystem_Component : GH_Component
+    public class ComfortSystem_Component : GH_Component
     {
         public override GH_Exposure Exposure
         {
-            get { return GH_Exposure.tertiary | GH_Exposure.hidden; }
+            get { return GH_Exposure.secondary; }
         }
 
-        public int TOTAL = 0;
-        public int STEP = 0;
-        private ThermalSystem ThermalSystem;
+        private ComfortSystem ComfortSystem;
 
         /// <summary>
         /// Initializes a new instance of the ThermalSystem_Component class.
         /// </summary>
-        public ThermalSystem_Component()
-          : base("Thermal", "Therm", "Thermal System to simulate surface temperatures using EnergyPlus " + EddyVersion.toString(), EddyVersion.Name, "2 | Radiation")
+        public ComfortSystem_Component()
+          : base("Comfort", "Comf", "Comfort System " + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
         {
         }
 
@@ -35,7 +37,9 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Res", "Res", "Radiation Simulation Result", GH_ParamAccess.item);
+            pManager.AddGenericParameter("MRTRes", "MRTRes", "MRT Simulation Result", GH_ParamAccess.item);
+            pManager.AddGenericParameter("VRes", "VRes", "Wind Velocity Simulation Result", GH_ParamAccess.item);
+            pManager[1].Optional = true;
 
             pManager.AddBooleanParameter("Run", "R", "Run simulation", GH_ParamAccess.item, false);
         }
@@ -45,7 +49,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("ThermSys", "TS", "Thermal System", GH_ParamAccess.item);
+            pManager.AddGenericParameter("ComfSys", "CS", "Comf System", GH_ParamAccess.item);
             pManager.AddTextParameter("Result", "R", "Result file path", GH_ParamAccess.item);
         }
 
@@ -63,17 +67,14 @@ namespace Eddy.Components.Radiation
             if (!DA.GetData(0, ref system)) { }
 
             MRT_Simulation_ResultProto res;
-
+            if (system == null) return;
             if (!system.CastTo<MRT_Simulation_ResultProto>(out res)) return;
 
             bool RUN = false;
             bool HidePopUp = false;
-            DA.GetData(1, ref RUN);
+            DA.GetData(2, ref RUN);
 
-            ThermalSystem = new ThermalSystem(res.ProjectName, res.BaseWorkingDir, res.Weather, res.Probes, res.Polys);
-
-            TOTAL = ThermalSystem.methodsteps;
-            STEP = 0;
+            ComfortSystem = new ComfortSystem(res.ProjectName, res.BaseWorkingDir, res.Weather, res.Probes, res.Polys);
 
             // redirect stderr
             var errors = new StringWriter();
@@ -99,8 +100,8 @@ namespace Eddy.Components.Radiation
                 }
             }
 
-            DA.SetData(0, ThermalSystem);
-            DA.SetData(1, ThermalSystem.BaseWorkingDir + @"\" + ThermalSystem.ProjectName + ".mrt.eddy");
+            DA.SetData(0, ComfortSystem);
+            DA.SetData(1, ComfortSystem.BaseWorkingDir + @"\" + ComfortSystem.ProjectName + ".utci.eddy");
         }
 
         /// <summary>
@@ -112,7 +113,7 @@ namespace Eddy.Components.Radiation
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return null;
+                return Resources.Eddy_calUTCI;
             }
         }
 
@@ -121,7 +122,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("04b1c5e2-c626-42e0-87f3-1d87f0b9c5a0"); }
+            get { return new Guid("{50868516-DF58-43FC-8A66-9F2B18C62864}"); }
         }
 
         private void DoWork(CancellationTokenSource cts)
@@ -139,16 +140,13 @@ namespace Eddy.Components.Radiation
 
         public bool RunSlowSimulation(CancellationTokenSource cts, int nthreads = 1)
         {
-            if (ThermalSystem == null) return false;
+            if (ComfortSystem == null) return false;
 
             if (cts.IsCancellationRequested) return false;
-            var data = ThermalSystem.RunEP(true, cts.Token, TOTAL, ref STEP);
+            ComfortSystem.ComputeUTCI(true, cts.Token);
 
             if (cts.IsCancellationRequested) return false;
-            ThermalSystem.ComputeMRT(true, cts.Token, TOTAL, ref STEP);
-
-            if (cts.IsCancellationRequested) return false;
-            var proto = ThermalSystem.SaveResults(true, cts.Token, TOTAL, ref STEP);
+            var proto = ComfortSystem.SaveResults(true, cts.Token);
 
             return true;
         }

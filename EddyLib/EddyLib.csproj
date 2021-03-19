@@ -116,6 +116,8 @@
     <Compile Include="PrepareProtobuff.cs" />
     <Compile Include="Radiation\ComfortSystem.cs" />
     <Compile Include="OutdoorComfort\WProbeResultProto.cs" />
+    <Compile Include="Radiation\Tree_Settings.cs" />
+    <Compile Include="Radiation\RSurface_Settings.cs" />
     <Compile Include="Radiation\MRT_Simulation_System.cs" />
     <Compile Include="Radiation\MRT_Simulation_Settings.cs" />
     <Compile Include="Radiation\Old\DaylightSimulationHelpers.cs" />
@@ -127,10 +129,11 @@
     <Compile Include="Radiation\Old\RadiositySystem.cs" />
     <Compile Include="Radiation\RPolygon.cs" />
     <Compile Include="Radiation\RProbe.cs" />
-    <Compile Include="Radiation\EPJson.cs" />
+    <Compile Include="Radiation\EPJSON.cs" />
     <Compile Include="Radiation\EsoReader.cs" />
     <Compile Include="Radiation\LongWaveInjectedIDFCode.cs" />
     <Compile Include="Radiation\ThermalSystem.cs" />
+    <Compile Include="Radiation\VegetationSurface_Settings.cs" />
     <Compile Include="UI\Attributes\Eddy_ComponentAttributes.cs" />
     <Compile Include="UI\Attributes\Eddy_ComponentButtonAttributes.cs" />
     <Compile Include="FunctionObjects.cs" />

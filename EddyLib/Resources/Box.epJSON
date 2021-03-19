@@ -15,23 +15,17 @@
     }
   },
   "Construction": {
-    "Asphalt": {
-      "layer_2": "XPS Board_0.2_Asphalt",
-      "outside_layer": "Asphalt_0.05_Asphalt"
-    },
+    "@@CONSTRUCTIONS@@": null,
+
     "DoublePaneClr": {
       "outside_layer": "DoublePaneClrWindow"
     },
     "GreenRoofConstruction": {
-      "layer_2": "Concrete_0.2_GreenRoofConstruction",
-      "outside_layer": "MyGreenRoof_0.2_GreenRoofConstruction"
+      "layer_2": "DefaultConcrete",
+      "outside_layer": "MyGreenRoof"
     },
-    "RedBrick": {
-      "layer_2": "XPS Board_0.2_RedBrick",
-      "outside_layer": "RedBrick_0.2_RedBrick"
-    },
-    "defaultConstruction": {
-      "outside_layer": "defaultMat_0.25_defaultConstruction"
+    "DefaultConstruction": {
+      "outside_layer": "DefaultConcrete"
     }
   },
   "ConvergenceLimits": {
@@ -60,7 +54,9 @@
   },
 
   "Material": {
-    "Asphalt_0.05_Asphalt": {
+    "@@MATERIALS@@": null,
+     
+    "DefaultAsphalt": {
       "conductivity": 0.75,
       "density": 2350,
       "roughness": "Rough",
@@ -70,27 +66,7 @@
       "thickness": 0.05,
       "visible_absorptance": 0.32
     },
-    "Concrete_0.2_GreenRoofConstruction": {
-      "conductivity": 2,
-      "density": 2400,
-      "roughness": "Rough",
-      "solar_absorptance": 0.7,
-      "specific_heat": 950,
-      "thermal_absorptance": 0.9,
-      "thickness": 0.2,
-      "visible_absorptance": 0.7
-    },
-    "RedBrick_0.2_RedBrick": {
-      "conductivity": 0.89,
-      "density": 1920,
-      "roughness": "Rough",
-      "solar_absorptance": 0.6,
-      "specific_heat": 790,
-      "thermal_absorptance": 0.9,
-      "thickness": 0.2,
-      "visible_absorptance": 0.6
-    },
-    "XPS Board_0.2_Asphalt": {
+    "DefaultXPS": {
       "conductivity": 0.034,
       "density": 35,
       "roughness": "Rough",
@@ -100,17 +76,7 @@
       "thickness": 0.2,
       "visible_absorptance": 0.7
     },
-    "XPS Board_0.2_RedBrick": {
-      "conductivity": 0.034,
-      "density": 35,
-      "roughness": "Rough",
-      "solar_absorptance": 0.7,
-      "specific_heat": 1400,
-      "thermal_absorptance": 0.9,
-      "thickness": 0.2,
-      "visible_absorptance": 0.7
-    },
-    "defaultMat_0.25_defaultConstruction": {
+    "DefaultConcrete": {
       "conductivity": 2.3,
       "density": 2400,
       "roughness": "Rough",
@@ -122,7 +88,8 @@
     }
   },
   "Material:RoofVegetation": {
-    "MyGreenRoof_0.2_GreenRoofConstruction": {
+    "@@VEGETATION@@": null,
+    "MyGreenRoof": {
       "conductivity_of_dry_soil": 0.4,
       "density_of_dry_soil": 641,
       "height_of_plants": 0.5,
@@ -284,15 +251,6 @@
       "upper_limit_value": 200
     }
   },
-
-
-
-
-
-
-
-
-
 
 
   "ShadowCalculation": {

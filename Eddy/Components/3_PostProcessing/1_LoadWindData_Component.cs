@@ -13,14 +13,14 @@ namespace Eddy.Components.Radiation
     {
         public override GH_Exposure Exposure
         {
-            get { return GH_Exposure.secondary; }
+            get { return GH_Exposure.primary; }
         }
 
         /// <summary>
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
         public LoadWProbeData_Component()
-          : base("Load WProbe", "WProbe", "Load WProbe" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
+          : base("Load Wind", "LoadWind", "Load CFD data such as windspeed, pressure" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
 
         {
         }
@@ -110,7 +110,7 @@ namespace Eddy.Components.Radiation
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return Resources.Eddy_MRT_LoadResults;
+                return Resources.Eddy_CFD_LoadResults;
             }
         }
 

@@ -63,5 +63,8 @@ namespace EddyLib.Radiation
         [ProtoMember(100)]
         public double[] SurfaceTemperature { get; set; }
 
+
+        public RSurface Parent;
+
     }
 }

@@ -24,18 +24,104 @@ namespace EddyLib.Radiation
         public double PatchSize;
 
         public string MaterialID;
-        public string Material;
+        public RSurface_Settings Settings;
+        public VegetationSurface_Settings VegSettings;
+        public Tree_Settings TreeSettings;
         public RSurface() { }
-        public RSurface(string name, Brep b, RadiationSurfaceType type, SimulationType simtype, string material, double patchSize = 3)
+
+
+        public void SetMeshes() {
+        
+        
+        }
+
+        public RSurface(string name, Brep b, RadiationSurfaceType type, SimulationType simtype, Tree_Settings settings, double patchSize = 3)
         {
             Name = name;
             Surface = b;
             PatchSize = patchSize > 0 ? patchSize : 2;
-            Material = material;
+            TreeSettings = settings;
 
 
             MaterialID = "";
-            RadianceMaterial.GetID(Material, out MaterialID);
+            RadianceMaterials.GetID(TreeSettings.RadianceMaterial, out MaterialID);
+
+            //Material = refl > 1 ? 1 : refl;
+            Type = type;
+            SimulationType = simtype;
+
+            // simple mesh for rad sim and obstruction calculation
+            MeshingParameters mp_low = new MeshingParameters();
+            LowPoly = new Mesh();
+            foreach (var m in Mesh.CreateFromBrep(b, mp_low))
+            {
+                LowPoly.Append(m);
+            }
+
+
+            // fine subdivisions for viewfactor analysis
+            MeshingParameters mp_high = new MeshingParameters();
+            mp_high.MinimumEdgeLength = patchSize;
+            mp_high.MaximumEdgeLength = patchSize;
+
+            HighPoly = new Mesh();
+            foreach (var m in Mesh.CreateFromBrep(b, mp_high))
+            {
+                HighPoly.Append(m);
+            }
+
+
+            MakePolys();
+        }
+        public RSurface(string name, Brep b, RadiationSurfaceType type, SimulationType simtype, VegetationSurface_Settings settings, double patchSize = 3)
+        {
+            Name = name;
+            Surface = b;
+            PatchSize = patchSize > 0 ? patchSize : 2;
+            VegSettings = settings;
+
+
+            MaterialID = "";
+            RadianceMaterials.GetID(VegSettings.RadianceMaterial, out MaterialID);
+
+            //Material = refl > 1 ? 1 : refl;
+            Type = type;
+            SimulationType = simtype;
+
+            // simple mesh for rad sim and obstruction calculation
+            MeshingParameters mp_low = new MeshingParameters();
+            LowPoly = new Mesh();
+            foreach (var m in Mesh.CreateFromBrep(b, mp_low))
+            {
+                LowPoly.Append(m);
+            }
+
+
+            // fine subdivisions for viewfactor analysis
+            MeshingParameters mp_high = new MeshingParameters();
+            mp_high.MinimumEdgeLength = patchSize;
+            mp_high.MaximumEdgeLength = patchSize;
+
+            HighPoly = new Mesh();
+            foreach (var m in Mesh.CreateFromBrep(b, mp_high))
+            {
+                HighPoly.Append(m);
+            }
+
+
+            MakePolys();
+        }
+
+        public RSurface(string name, Brep b, RadiationSurfaceType type, SimulationType simtype, RSurface_Settings settings, double patchSize = 3)
+        {
+            Name = name;
+            Surface = b;
+            PatchSize = patchSize > 0 ? patchSize : 2;
+            Settings = settings;
+
+
+            MaterialID = "";
+            RadianceMaterials.GetID(Settings.RadianceMaterial, out MaterialID);
 
             //Material = refl > 1 ? 1 : refl;
             Type = type;
@@ -80,6 +166,9 @@ namespace EddyLib.Radiation
             for (int i = 0; i < _ms.Faces.Count; ++i)
             {
                 RPolygon pg = new RPolygon();
+
+                pg.Parent = this;
+
                 Polys.Add(pg);
 
                 if (this.TemperatureOverride != null) {

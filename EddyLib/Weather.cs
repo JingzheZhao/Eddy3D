@@ -63,13 +63,13 @@ namespace EddyLib
         public string Location;
         [ProtoMember(17)]
 
-        private double Latitude;
+        public double Latitude;
         [ProtoMember(18)]
 
-        private double Longitude;
+        public double Longitude;
         [ProtoMember(19)]
 
-        private double TimeZone;
+        public double TimeZone;
 
         [ProtoMember(20)]
 

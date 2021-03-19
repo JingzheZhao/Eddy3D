@@ -13,14 +13,14 @@ namespace Eddy.Components.Radiation
     {
         public override GH_Exposure Exposure
         {
-            get { return GH_Exposure.tertiary; }
+            get { return GH_Exposure.primary; }
         }
 
         /// <summary>
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
         public LoadMRTData_Component()
-          : base("Load MRT", "MRT", "Load radiation and MRT data" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
+          : base("Load MRT", "LoadMRT", "Load radiation and MRT data" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
 
         {
         }

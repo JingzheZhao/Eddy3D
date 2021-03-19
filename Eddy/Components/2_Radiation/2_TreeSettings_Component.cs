@@ -1,33 +1,33 @@
-﻿using EddyLib;
+﻿using Eddy.Properties;
+using EddyLib;
 using EddyLib.Radiation;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
-using System.IO;
 
-namespace Eddy.Components.Radiation
+namespace Eddy.Components._2_Radiation
 {
-    public class SkyTemperature_Component : GH_Component
+    public class TreeSettings_Component : GH_Component
     {
         public override GH_Exposure Exposure
         {
-            get { return GH_Exposure.tertiary | GH_Exposure.hidden; }
+            get { return GH_Exposure.secondary; }
         }
-
         /// <summary>
-        /// Initializes a new instance of the SkyTemperature_Component class.
+        /// Initializes a new instance of the _2_SurfaceMaterialSettings_Component class.
         /// </summary>
-        public SkyTemperature_Component()
-          : base("Sky temperature", "SkyT", "Sky temperature " + EddyVersion.toString(), EddyVersion.Name, "2 | Radiation")
-        { }
+        public TreeSettings_Component()
+          : base("Tree Settings", "TreeSet", "Tree settings " + EddyVersion.toString(), EddyVersion.Name, "2 | Radiation")
+        {
+        }
 
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Weather", "W", "Weather filepath", GH_ParamAccess.item, DefaultDirectoriesAndPaths.DefaultWeather);
+            pManager.AddTextParameter("Surface", "SMat", "Optional Radiance Surface Material", GH_ParamAccess.item, "");
         }
 
         /// <summary>
@@ -35,7 +35,8 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddNumberParameter("SkyT", "ST", "Sky temperature", GH_ParamAccess.item);
+            pManager.Register_GenericParam("SurfSet", "Set", "Surface settings");
+
         }
 
         /// <summary>
@@ -44,18 +45,25 @@ namespace Eddy.Components.Radiation
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            string weatherPath = "";
-            DA.GetData(0, ref weatherPath);
+          
+            string RadianceMaterial = "";
 
-            if (!File.Exists(weatherPath))
+
+            
+            if (!DA.GetData(0, ref RadianceMaterial)) return;
+
+
+            var surfSettings = new Tree_Settings();
+
+
+            surfSettings.RadianceMaterial = RadianceMaterial;
+            if (String.IsNullOrWhiteSpace(surfSettings.RadianceMaterial))
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Weather file could not be found");
-                return;
+                surfSettings.RadianceMaterial = RadianceMaterials.DefaultTree;
             }
-            Weather weather = new Weather(weatherPath);
-            var sky = new SkyTemperatureModel(weather.DewPointTemp, weather.DryBulbTemp, weather.TotalSkyCover, weather.RelativeHumidity, true, SkyTemperatureModel.CalculationType.DefaultClarkAllen);
-            var SkyTemp = sky.Temp;
-            DA.SetDataList(0, SkyTemp);
+
+
+            DA.SetData(0, surfSettings);
         }
 
         /// <summary>
@@ -67,7 +75,7 @@ namespace Eddy.Components.Radiation
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return null;
+                return Resources.Eddy_MRT_Tree_Settings;
             }
         }
 
@@ -76,7 +84,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("e6291958-a327-4d45-860d-437e80083405"); }
+            get { return new Guid("{F94CC435-D5CC-4F00-AD55-434138BCBB48}"); }
         }
     }
 }
