@@ -879,6 +879,47 @@ FoamFile
             return sb.ToString();
         }
 
+        public static string SampleProbesAllFields(List<Point3d> listOfPoints, string ProbeName)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
+  | =========                 |                                                 |
+  | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+  |  \\    /   O peration     | Version:  5                                     |
+  |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+  |    \\/     M anipulation  |                                                 |
+  \*---------------------------------------------------------------------------*/
+
+" + ProbeName + @"
+{
+                type probes;
+                libs (""libsampling.so"");
+                writeControl writeTime;
+
+                //interpolationScheme cellPointFace;
+                interpolationScheme cellPoint;
+
+                setFormat csv;
+
+                fields (U p total(p)_coeff epsilon omega k nut phi AoA);
+
+                probeLocations
+                  (");
+            sb.Append(Environment.NewLine);
+            for (int i = 0; i < listOfPoints.Count; i++)
+            {
+                sb.Append(@"(" + Utilities.FormatPV(listOfPoints[i]) + @")");
+                sb.Append(Environment.NewLine);
+            }
+
+            sb.Append(@");
+        }
+
+            // ************************************************************************* //");
+
+            return sb.ToString();
+        }
+
         public static string SampleProbes(List<Point3d> listOfPoints, OFField ofField)
         {
             StringBuilder sb = new StringBuilder();

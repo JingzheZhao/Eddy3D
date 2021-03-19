@@ -20,6 +20,8 @@ namespace EddyLib
 
         public bool infValues;
 
+        // [WindDirections, Probes]
+
         public MultiDirectionalVelocities(string workingDir, int[] windDirs, Vector3d[,] vectors, bool truncateDoubles, bool recalc, int truncateTo = 1)
 
         {
@@ -69,53 +71,6 @@ namespace EddyLib
                 if (vec.Length > 10000) { infValues = true; }
             }
             return infValues;
-        }
-
-        private void Write2CSV(int[] windDirs, Vector3d[,] vectors, string filePath, bool truncateDoubles, int truncateBy = 1)
-        {
-            //writing output to csv
-
-            StringBuilder sb = new StringBuilder();
-
-            string header = "";
-
-            for (int d = 0; d <= vectors.GetUpperBound(1); d++)
-            {
-                header += windDirs[d] + ", , ,";
-            }
-            sb.AppendLine(header);
-
-            if (!truncateDoubles)
-            {
-                truncateBy = 3;
-            }
-            else
-            {
-                truncateBy = 1;
-            }
-
-            for (int p = 0; p <= vectors.GetUpperBound(0); p++)
-            {
-                string content = "";
-                for (int d = 0; d <= vectors.GetUpperBound(1); d++)
-                {
-                    // Filter extreme values
-                    if (vectors[p, d].Length > 10000)
-                    {
-                        content += "0 , 0 , 0 , ";
-                        continue;
-                    }
-                    else
-                    {
-                        var X = Math.Round(vectors[p, d].X, truncateBy).ToString();
-                        var Y = Math.Round(vectors[p, d].Y, truncateBy).ToString();
-                        var Z = Math.Round(vectors[p, d].Z, truncateBy).ToString();
-                        content += X + "," + Y + "," + Z + ",";
-                    }
-                }
-                sb.AppendLine(content);
-            }
-            File.WriteAllText(filePath, sb.ToString());
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using EddyLib.BCs;
+using EddyLib.Radiation;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
@@ -84,6 +85,37 @@ namespace EddyLib.OutdoorComfort
         }
 
         // This returns the plain annual array
+
+        public static float[] CalcWindFactorsSpatialSP(WProbe Probe)
+        {
+            var windDirsSim = Probe.WindDirections;
+
+            int numberOfWindDirs = windDirsSim.Count();
+
+            float[] WFSpatial = new float[numberOfWindDirs];
+
+            int cnt = 0;
+
+            Console.WriteLine("Calculating: Wind reduction factors");
+
+            // Independent of hour
+
+            var velSimAtProbingHeight = BoundaryCondition.ScaleABL(Probe.Uref, Probe.Zref, Probe.Z0, Probe.Point.Value.Z);
+
+            for (int w = 0; w < numberOfWindDirs; w++)
+            {
+                var velSimProbingPoint = Probe.U[w].Value.Length;
+
+                // Avoid Infinity
+                var velSimRatio = velSimAtProbingHeight == 0 ? 0.00000 : velSimProbingPoint / velSimAtProbingHeight;
+
+                WFSpatial[w] = (float)velSimRatio;
+
+                cnt++;
+            }
+
+            return WFSpatial;
+        }
 
         private static double[,] CalcWindFactorsSpatial(Vector3d[,] MultiDirectionalVelocities, BoundaryCondition bcond, List<Point3d> probes)
         {
@@ -289,6 +321,61 @@ namespace EddyLib.OutdoorComfort
                       #endregion progressbar
                   }
               });
+        }
+
+        public static float[] CalcWindFactorsTemporalSP(Weather weather, WProbe Probe, WindSystem WS, bool interpolate)
+        {
+            var windDirsSim = Probe.WindDirections.ToList();
+            var windDirsEPW = weather.WindDirection;
+
+            int numberOfHours = 8760;
+
+            var WindFactorsTemporal = new float[numberOfHours];
+
+            // Create lookup table with plain vector magnitudes
+
+            Console.WriteLine("Calculating: Wind reduction factors");
+
+            for (int h = 0; h < numberOfHours; h++)
+            {
+                var velEPWAtProbingHeight = 0.0;
+
+                velEPWAtProbingHeight = WindSystem.ScaleABL(weather.WindSpeed[h], Probe.Zref, Probe.Z0, Probe.Point.Value.Z);
+
+                var ratioSimProbingPoint = Probe.WindFactorsSpatial[WS.ClstSimDirIndices[h]];
+
+                // We need to multiply the normalized velocity with respect to the approaching flow
+                // for every probing point and multiply that with the scaled-down, measured airport velocity.
+
+                if (!interpolate)
+                {
+                    WindFactorsTemporal[h] = (float)velEPWAtProbingHeight * ratioSimProbingPoint;
+                }
+                else
+                {
+                    #region Interpolation
+
+                    var IdxBelow = WindSystem.ReturnNextLowerIndex(windDirsSim, (int)windDirsEPW[h]);
+                    var IdxAbove = WindSystem.ReturnNextUpperIndex(windDirsSim, (int)windDirsEPW[h]);
+                    int dirBelow = windDirsSim[IdxBelow];
+                    int dirAbove = windDirsSim[IdxAbove];
+                    var distanceToLower = WindSystem.DistanceBetweenWindDirs(windDirsEPW[h], dirBelow);
+                    var distanceToUpper = WindSystem.DistanceBetweenWindDirs(windDirsEPW[h], dirAbove);
+
+                    var weightingDown = 1 - (distanceToLower / (distanceToLower + distanceToUpper));
+                    var weightingUp = 1 - (distanceToUpper / (distanceToLower + distanceToUpper));
+                    var nextVelocityDown = Probe.WindFactorsSpatial[IdxBelow];
+                    var nextVelocityUp = Probe.WindFactorsSpatial[IdxAbove];
+
+                    double weightedRatioSimProbingPoint = (nextVelocityDown * weightingDown) + (nextVelocityUp * weightingUp);
+
+                    #endregion Interpolation
+
+                    WindFactorsTemporal[h] = (float)(velEPWAtProbingHeight * weightedRatioSimProbingPoint);
+                }
+            }
+
+            return WindFactorsTemporal;
         }
     }
 }

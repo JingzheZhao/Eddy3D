@@ -1,5 +1,6 @@
 ﻿using Eddy.Properties;
 using EddyLib;
+using EddyLib.BCs;
 using EddyLib.Geometry;
 using EddyLib.Radiation;
 using EddyLib.Strings;
@@ -80,26 +81,7 @@ namespace Eddy
             pManager.AddGenericParameter("Sensors", "Sen", "Radiation sensors. Provide as [Mesh] or [RProbe]", GH_ParamAccess.tree);
             pManager.AddTextParameter("Name of instance", "Name", "Name of instance to be probed", GH_ParamAccess.item);
 
-            pManager.AddIntegerParameter("Name of field", "Field", "Name of field to be probed", GH_ParamAccess.item, 0);
-            Param_Integer param = pManager[3] as Param_Integer;
-            param.AddNamedValue("Velocity (U) [m/s]", 0);
-            param.AddNamedValue("Pressure coefficient (total(p)_coeff) [-]", 1);
-            param.AddNamedValue("Pressure (p) [m^2/s^2]", 2);
-            param.AddNamedValue("Turbulent dissipation rate (epsilon) [m^2/s^3]", 3);
-            param.AddNamedValue("Scale of turbulence (omega) [1/s] ", 4);
-            param.AddNamedValue("Turbulent kinetic energy (k) [m^2/s^2]", 5);
-            param.AddNamedValue("Turbulent viscosity (nut) [m^2/s]", 6);
-            param.AddNamedValue("Mass flow (phi) [m^3/s]", 7);
-            param.AddNamedValue("Age of air (aoa) [s]", 8);
-
-            //pManager.AddIntegerParameter("FieldType", "FieldType", "FieldType", GH_ParamAccess.item, 1);
-            //Param_Integer param2 = pManager[4] as Param_Integer;
-            //param2.AddNamedValue("Scalar", 0);
-            //param2.AddNamedValue("Vector", 1);
-
             pManager.AddBooleanParameter("Run", "Run", "Run the component.", GH_ParamAccess.item, false);
-
-            pManager[2].Optional = true;
         }
 
         /// <summary>
@@ -137,10 +119,10 @@ namespace Eddy
             //else { Message = "No Culling"; }
 
             OFResult RES = null;
-            DA.GetData(0, ref RES);
+            DA.GetData("Result", ref RES);
 
             bool run = false;
-            int OFFieldInt = 0;
+
             string probeNameByUser = "";
 
             // ----------------------
@@ -151,7 +133,7 @@ namespace Eddy
             //DA.GetDataList(4, probeMeshes);
 
             GH_Structure<IGH_Goo> GH_RProbeTree;
-            if (!DA.GetDataTree(1, out GH_RProbeTree)) { }
+            if (!DA.GetDataTree("Sensors", out GH_RProbeTree)) { }
             foreach (GH_Path p in GH_RProbeTree.Paths)
             {
                 foreach (IGH_Goo o in GH_RProbeTree.get_Branch(p))
@@ -170,10 +152,9 @@ namespace Eddy
 
             //
 
-            DA.GetData(2, ref probeNameByUser);
-            DA.GetData(3, ref OFFieldInt);
+            DA.GetData("Name of instance", ref probeNameByUser);
 
-            DA.GetData(4, ref run);
+            DA.GetData("Run", ref run);
 
             #endregion Load Inputs
 
@@ -183,10 +164,27 @@ namespace Eddy
             // New approach
             // ----------------------
 
+            float zref = 0;
+            if (RES.Domain.BCond is ABL)
+            {
+                ABL casted_bc = (ABL)RES.Domain.BCond;
+                zref = (float)casted_bc.zref;
+            }
+            else
+            {
+                zref = 10;
+            }
+
             List<WProbe> WProbes = new List<WProbe>();
             foreach (var p in probes)
             {
-                WProbes.Add(new WProbe(p.Point, RES.Domain.BCond.windDirs.Count));
+                WProbes.Add(new WProbe(p.Point, RES.Domain.BCond.windDirs.Count)
+                {
+                    WindDirections = RES.Domain.BCond.windDirs.ToArray(),
+                    Uref = (float)RES.Domain.BCond.URef,
+                    Z0 = (float)RES.Domain.BCond.z0,
+                    Zref = zref
+                });
             }
 
             // ----------------------
@@ -203,8 +201,7 @@ namespace Eddy
             GH_Structure<GH_Number> treeDouble = new GH_Structure<GH_Number>();
             GH_Structure<GH_Vector> treeVector = new GH_Structure<GH_Vector>();
 
-            string OFField = EddyLib.OFField.ReformatOFFields(OFFieldInt);
-            OFField currField = new OFField(OFField, probeNameByUser);
+            // OFFieldNew currField = null;
 
             #endregion Instantiate types
 
@@ -263,10 +260,10 @@ namespace Eddy
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Probing more than " + threshold + " points may slow down Grasshopper considerably.");
             }
 
-            if (RES.RunSettings.writeInterval > 1 && currField.FieldName == "total(p)_coeff")
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.ProbingFuncObjects(RES, currField));
-            }
+            //if (RES.RunSettings.writeInterval > 1 && currField.FieldName == "total(p)_coeff")
+            //{
+            //    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.ProbingFuncObjects(RES, currField));
+            //}
 
             #endregion Error handling
 
@@ -291,17 +288,17 @@ namespace Eddy
 
                         // If yes, write the dicts for both Docker and BlueCFD
                         string path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + probeNameByUser;
-                        File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbes(Probes, currField));
+                        File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbesAllFields(Probes, probeNameByUser));
 
                         if (RES.RunSettings.simEngine == SimEngine.Docker)
                         {
-                            command.Append(@"postProcess -func " + currField.ProbeName + @" -time " + Probing.GetLatestTime(currCase, RES, currField) + @"| tee  " + RES.Domain.BCond.windDirs[i] + @"/log_probes;");
+                            command.Append(@"postProcess -func " + probeNameByUser + @" -time " + ProbingNew.GetLatestTime(currCase, RES) + @"| tee  " + RES.Domain.BCond.windDirs[i] + @"/log_probes;");
                         }
                         else
                         {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
                             // Todo: check here if we need a semicolon to sepaate the command
                             // from the suffix
-                            command.AppendLine(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + probeNameByUser + @" -time " + Probing.GetLatestTime(currCase, RES, currField));
+                            command.AppendLine(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + probeNameByUser + @" -time " + ProbingNew.GetLatestTime(currCase, RES));
                         }
                     }
 
@@ -323,33 +320,38 @@ namespace Eddy
                     {
                         string currentCaseDir = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i];
 
-                        // We must check if this exists before we construct the Probing object
-                        string pathToProbeFile = Probing.GetPathToProbedResults(currentCaseDir, currField, RES);
-                        if (File.Exists(pathToProbeFile))
+                        //foreach (field f in Enum.GetValues(typeof(field)))
                         {
-                            if (currField.FieldType == EddyLib.OFField.fieldType.vector)
+                            //  var currField = new OFFieldNew(probeNameByUser, f);
+                            var currField = new OFFieldNew(probeNameByUser, field.U);
+
+                            // We must check if this exists before we construct the Probing object
+                            string pathToProbeFile = ProbingNew.GetPathToProbedResults(currentCaseDir, currField, RES);
+                            if (File.Exists(pathToProbeFile))
                             {
-                                Probing Vectors = new Probing(Probes, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES);
-
-                                // Create datatree
-                                // treeVector.AppendRange(Vectors.ResultVec, new Grasshopper.Kernel.Data.GH_Path(i));
-
-                                for (int p = 0; p < numberOfProbes; p++)
+                                if (currField.FieldType == fieldType.vector)
                                 {
-                                    WProbes[p].U[i] = new EddyVector(Vectors.ResultVec[p].Value);
+                                    ProbingNew Vectors = new ProbingNew(Probes, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES);
+
+                                    for (int p = 0; p < numberOfProbes; p++)
+                                    {
+                                        WProbes[p].U[i] = new EddyVector(Vectors.ResultVec[p].Value);
+                                    }
+                                }
+                                else
+                                {
+                                    ProbingNew Scalars = new ProbingNew(Probes, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES);
+
+                                    //      for (int p = 0; p < numberOfProbes; p++)
+                                    //{
+                                    //    WProbes[p].U[i] = new EddyVector(Vectors.ResultVec[p].Value);
+                                    //}
                                 }
                             }
                             else
                             {
-                                Probing Scalars = new Probing(Probes, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES);
-
-                                // Create datatree
-                                //treeDouble.AppendRange(Scalars.ResultScalar, new Grasshopper.Kernel.Data.GH_Path(i));
+                                base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.FieldDoesntExist(currentCaseDir, currField));
                             }
-                        }
-                        else
-                        {
-                            base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.FieldDoesntExist(currentCaseDir, currField));
                         }
                     }
                 }
@@ -358,35 +360,6 @@ namespace Eddy
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Error, EddyLib.Strings.ReturnMsg.ParsingFailed());
 
                     //throw new System.ArgumentException("Parsing of the probes failed. This data does not exist yet. Please run the probing component.");
-                }
-            }
-
-            // Todo: Move this into class object once its properly architected
-
-            if (currField.FieldType == EddyLib.OFField.fieldType.vector)
-            {
-                try
-                {
-                    if (!treeVector.IsEmpty)
-                    {
-                        var list = treeVector.get_Branch(new GH_Path(0));
-                        var listVecs = new List<GH_Vector>();
-
-                        foreach (object item in list)
-                        {
-                            listVecs.Add((GH_Vector)item);
-                        }
-
-                        int[] IndecesOfExtremeProbes = Probing.ReturnProbeIndicesOutsideDomain(listVecs);
-                        if (IndecesOfExtremeProbes.Length > 0)
-                        {
-                            AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.PointsOutsideDomain(IndecesOfExtremeProbes));
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.PleaseRunProbingComponent());
                 }
             }
 

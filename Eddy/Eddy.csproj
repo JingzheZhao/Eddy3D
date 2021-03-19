@@ -307,6 +307,11 @@ xcopy /e /v /c /y "%25build_eddy%25" "%25installation_folder%25"
 )
 if $(ConfigurationName)==Release (
 xcopy /e /v /c /y "%25build_eddy%25" "%25installation_folder%25"
+)
+
+if $(ConfigurationName)==Release (
+"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\PreEmptiveSolutions\DotfuscatorCE\dotfuscatorCLI.exe" "$(SolutionDir)\Build\Dotfuscator_TD.xml"
+xcopy /e /v /c /y "$(SolutionDir)\Build\Dotfuscated" "%25installation_folder%25"
 )</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
