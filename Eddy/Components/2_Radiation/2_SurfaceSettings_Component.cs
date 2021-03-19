@@ -74,7 +74,6 @@ namespace Eddy.Components._2_Radiation
             string Name = "";
             double Conductivity = 2.4;
             double Density = 2400;
-            // string Roughness = "Rough";
             double SpecificHeat = 840;
             double ThermalAbsorbtance = 0.9;
             double SolarAbsorptance = 0.7;
@@ -88,7 +87,6 @@ namespace Eddy.Components._2_Radiation
 
             if (!DA.GetData(0, ref Name)) return;
             if (!DA.GetData(1, ref Thickness)) return;
-            //if (!DA.GetData(1, ref roughselect)) return;
             if (!DA.GetData(2, ref Conductivity)) return;
             if (!DA.GetData(3, ref Density)) return;
             if (!DA.GetData(4, ref SpecificHeat)) return;
