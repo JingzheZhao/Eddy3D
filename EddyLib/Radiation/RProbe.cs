@@ -10,6 +10,21 @@ using System.Threading.Tasks;
 
 namespace EddyLib.Radiation
 {
+
+    public enum RProbeMetric {
+
+        UTCI,
+        MRT,
+        dMRT,
+        lwMRT,
+        TotalRad,
+        DirRad,
+        WindSpeed
+
+
+    }
+
+
     [ProtoContract]
     public class RProbe
     {

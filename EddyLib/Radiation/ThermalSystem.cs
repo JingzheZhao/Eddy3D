@@ -67,7 +67,7 @@ namespace EddyLib.Radiation
                 // -----------------------------
                 // 0 Prepare EPJSON
                 // -----------------------------
-                var epjsonObject = new EPJSON();
+                var epjsonObject = new EpJsonFormat();
 
                 Dictionary<string, Material> AllMats = new Dictionary<string, Material>();
                 Dictionary<string, Construction> AllCons = new Dictionary<string, Construction>();

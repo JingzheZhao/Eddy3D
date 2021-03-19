@@ -74,7 +74,7 @@
   <ItemGroup>
     <Compile Include="Components\1_Wind\7_CompTree.cs" />
     <Compile Include="Components\1_Wind\4o_CompLBAnalPeriod2Hours.cs" />
-    <Compile Include="Components\2_Radiation\2_SimulationSettings_Component.cs" />
+    <Compile Include="Components\2_Radiation\3_MRT_SimulationSettings_Component.cs" />
     <Compile Include="Components\2_Radiation\2_TreeSettings_Component.cs" />
     <Compile Include="Components\2_Radiation\2_VegetationSurfaceSettings_Component.cs" />
     <Compile Include="Components\2_Radiation\2_SurfaceSettings_Component.cs" />
@@ -82,6 +82,7 @@
     <Compile Include="Components\3_PostProcessing\2o_CompCalcWindComfort.cs" />
     <Compile Include="Components\3_PostProcessing\2o_CompDeData.cs" />
     <Compile Include="Components\3_PostProcessing\2_InspectProbe_Component.cs" />
+    <Compile Include="Components\3_PostProcessing\2_WindFactorsTemportal_Component.cs" />
     <Compile Include="Components\3_PostProcessing\Hidden\1o_CompCalcMRT.cs" />
     <Compile Include="Components\3_PostProcessing\Hidden\7_CompCalcUTCIMetric.cs" />
     <Compile Include="Components\1_Wind\6_CompParaview.cs" />
@@ -307,6 +308,11 @@ xcopy /e /v /c /y "%25build_eddy%25" "%25installation_folder%25"
 )
 if $(ConfigurationName)==Release (
 xcopy /e /v /c /y "%25build_eddy%25" "%25installation_folder%25"
+)
+
+if $(ConfigurationName)==Release (
+"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\PreEmptiveSolutions\DotfuscatorCE\dotfuscatorCLI.exe" "$(SolutionDir)\Build\Dotfuscator_TD.xml"
+xcopy /e /v /c /y "$(SolutionDir)\Build\Dotfuscated" "%25installation_folder%25"
 )</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>

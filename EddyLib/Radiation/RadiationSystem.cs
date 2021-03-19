@@ -10,6 +10,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
+[assembly: InternalsVisibleTo("Eddy")]
 
 namespace EddyLib.Radiation
 {
@@ -57,6 +59,10 @@ namespace EddyLib.Radiation
 
 
         public bool RunDDS(bool run, CancellationToken ct, int steps, ref int stepCnt)
+        {        
+            return RunRadianceDDS( run,  ct,  steps, ref  stepCnt);
+        }
+        private bool RunRadianceDDS(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
             Console.WriteLine("Starting DDS Simulation");
 
@@ -480,7 +486,6 @@ namespace EddyLib.Radiation
             return true;
 
         }
-
         public void LoadDDSData(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
             // -----------------------------
@@ -519,8 +524,11 @@ namespace EddyLib.Radiation
             }
 
         }
-
         public void RunDirectRayCast(bool run, CancellationToken ct, int steps, ref int stepCnt)
+        {
+            RunSimpleRadiation(run, ct, steps, ref stepCnt);
+        }
+        private void RunSimpleRadiation(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
             Console.WriteLine("Computing radiation and dMRT...");
 
@@ -533,7 +541,7 @@ namespace EddyLib.Radiation
             {
                 for (int h = 0; h < 24; h++)
                 {
-                    int hourOfYear = sg.HourInYear(m , 0, h );
+                    int hourOfYear = sg.HourInYear(m, 0, h);
 
                     double _el = Weather.SolarElevation[hourOfYear];
                     double _az = Weather.SolarAzi[hourOfYear];
@@ -555,13 +563,13 @@ namespace EddyLib.Radiation
                 }
             }
 
-         
+
 
             //Parallel.For(0, Probes.Count, i =>
             for (int i = 0; i < Probes.Count; i++)
             {
 
-                 Probes[i].TotalRad = new float[8760];
+                Probes[i].TotalRad = new float[8760];
                 Probes[i].DirRad = new float[8760];
 
                 double[] dotproduct = new double[12 * 24];
@@ -592,20 +600,20 @@ namespace EddyLib.Radiation
                     int month = 0;
                     int day = 0;
                     int hour = 0;
-                    sg.HourOfYear_To_MDH(h , out month, out day, out hour);
+                    sg.HourOfYear_To_MDH(h, out month, out day, out hour);
 
-                    var scale = dotproduct[(month  * 24) + hour ];
+                    var scale = dotproduct[(month * 24) + hour];
 
-                    float rad = (float) ( Weather.DirectNormalRadiation[h] * scale);
+                    float rad = (float)(Weather.DirectNormalRadiation[h] * scale);
 
-                    float diff = (float) ( Weather.DiffuseHorizontalRadiation[h] * Probes[i].VFtoMaterial["Sky"]) ;
+                    float diff = (float)(Weather.DiffuseHorizontalRadiation[h] * Probes[i].VFtoMaterial["Sky"]);
 
                     Probes[i].TotalRad[h] = rad + diff;
-                    Probes[i].DirRad[h] = rad ;
+                    Probes[i].DirRad[h] = rad;
 
                 }
 
-                Console.WriteLine("Compute dMRT for probe "+ i);
+                Console.WriteLine("Compute dMRT for probe " + i);
                 Probes[i].SolarGain_dMRT = SolarGain.ComputeStanding(Weather, Probes[i].TotalRad, Probes[i].DirRad);
 
 
@@ -616,7 +624,6 @@ namespace EddyLib.Radiation
 
             Console.WriteLine("Solar gain finished");
         }
-
         public MRT_Simulation_ResultProto SaveResults(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
 

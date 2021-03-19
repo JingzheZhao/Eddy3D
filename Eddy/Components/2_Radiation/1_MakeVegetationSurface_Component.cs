@@ -33,7 +33,7 @@ namespace Eddy.Components.Radiation
         {
             pManager.AddBrepParameter("Brep", "B", "Radiation surface", GH_ParamAccess.list);
             pManager.AddNumberParameter("Patch", "Ps", "Patch size", GH_ParamAccess.item, 3);
-            pManager.AddGenericParameter("Settings", "Set", "Optional material and surface property settings", GH_ParamAccess.item);
+            pManager.AddTextParameter("Settings", "Set", "Optional material and surface property settings", GH_ParamAccess.item);
             pManager[2].Optional = true;
 
             pManager.AddIntegerParameter("SimType", "Sts", "Surface Temparature Simulation Type", GH_ParamAccess.item, 1);
@@ -78,13 +78,21 @@ namespace Eddy.Components.Radiation
             //    else if (thetype == RadiationSurfaceType.Tree) { mat = RadianceMaterials.DefaultTree; }
             //}
 
-            IGH_Goo goo_settings = null;
-            if (!DA.GetData(2, ref goo_settings)) { }
+            string settingsInput = "";
             VegetationSurface_Settings settings = null;
-            if (goo_settings != null)
+
+            if (!DA.GetData(2, ref settingsInput)) { }
+
+            if (!String.IsNullOrWhiteSpace(settingsInput))
             {
-                if (!goo_settings.CastTo<VegetationSurface_Settings>(out settings)) {
+                try
+                {
+                    settings = VegetationSurface_Settings.fromJSON(settingsInput);
+                }
+                catch
+                {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Settings provided cannot be cast into the correct format. Are you sure you are passing the correct input?");
+                    settings = null;
                     return;
                 }
             }
