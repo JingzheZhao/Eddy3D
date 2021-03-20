@@ -23,7 +23,7 @@ namespace EddyLib.Radiation
 
         public double CummulativeViewFactorCutoff;
 
- 
+
         public string ProjectName = "";
         public string BaseWorkingDir = "";
         public Weather Weather;
@@ -34,23 +34,32 @@ namespace EddyLib.Radiation
         public double[] AmbientTemperature;
         public double[] SkyTemperature;
 
- 
+
+        public Mesh UnifiedMeshLowPolyNoSky;
 
 
-        public ThermalSystem(string filename, string baseWorkingDir, Weather weather, List<RProbe> probes , List<RPolygon> polys,double vf_cutoff = 0.05)
+        public ThermalSystem(string filename, string baseWorkingDir, Weather weather, List<RProbe> probes, List<RPolygon> polys, Mesh lowPoly, double vf_cutoff = 0.05)
         {
             ProjectName = filename;
             BaseWorkingDir = baseWorkingDir;
             Weather = weather;
             Probes = probes;
             Polys = polys;
-
+            UnifiedMeshLowPolyNoSky = lowPoly;
 
             CummulativeViewFactorCutoff = vf_cutoff;
 
-       
- 
+
+
             AmbientTemperature = Weather.DryBulbTemp;
+
+
+            // store ambient temperature in surfaces
+            foreach (var poly in polys)
+            {
+                if (poly.SimulationType == SimulationType.Ambient)
+                    poly.TemperatureOverride = RPolygon.toFloatArray(AmbientTemperature);
+            }
 
             var sky = new SkyTemperatureModel(Weather.DewPointTemp, Weather.DryBulbTemp, Weather.TotalSkyCover, Weather.RelativeHumidity, true, SkyTemperatureModel.CalculationType.DefaultClarkAllen);
             SkyTemperature = sky.Temp;
@@ -90,9 +99,9 @@ namespace EddyLib.Radiation
                         foreach (var v in s.Mesh.Value.Vertices)
                         {
                             var dv = new DetailedVertex();
-                            dv.X = v.X;
-                            dv.Y = v.Y;
-                            dv.Z = v.Z;
+                            dv.X = v.X + s.Normal.Value.X * 0.05;
+                            dv.Y = v.Y + s.Normal.Value.Y * 0.05;
+                            dv.Z = v.Z + s.Normal.Value.Z * 0.05;
                             epsurf.Vertices.Add(dv);
                         }
                         epsurf.NumberOfVertices = s.Mesh.Value.Vertices.Count;
@@ -111,7 +120,7 @@ namespace EddyLib.Radiation
                         }
 
 
-                        epjsonObject.AllThermalSurfaces.Add(s.ID.ToString(), epsurf);
+                        epjsonObject.AllThermalSurfaces.Add("S_"+s.ID.ToString(), epsurf);
                         surfIndex++;
                     }
                     else if (s.Type == RadiationSurfaceType.Ground)
@@ -122,9 +131,9 @@ namespace EddyLib.Radiation
                         foreach (var v in s.Mesh.Value.Vertices)
                         {
                             var dv = new DetailedVertex();
-                            dv.X = v.X;
-                            dv.Y = v.Y;
-                            dv.Z = v.Z;
+                            dv.X = v.X + s.Normal.Value.X * 0.05;
+                            dv.Y = v.Y + s.Normal.Value.Y * 0.05;
+                            dv.Z = v.Z + s.Normal.Value.Z * 0.05;
                             epsurf.Vertices.Add(dv);
                         }
                         epsurf.NumberOfVertices = s.Mesh.Value.Vertices.Count;
@@ -135,7 +144,7 @@ namespace EddyLib.Radiation
                         {
                             epsurf.ConstructionName = s.Parent.Settings.Name;
 
-                            if (!AllMats.ContainsKey(s.Parent.Settings.Name) && !AllCons.ContainsKey(s.Parent.Settings.Name)) 
+                            if (!AllMats.ContainsKey(s.Parent.Settings.Name) && !AllCons.ContainsKey(s.Parent.Settings.Name))
                             {
                                 AllMats.Add(s.Parent.Settings.Name, s.Parent.Settings.GetMaterial());
                                 AllCons.Add(s.Parent.Settings.Name, s.Parent.Settings.GetConstruction());
@@ -143,7 +152,7 @@ namespace EddyLib.Radiation
                         }
 
 
-                        epjsonObject.AllThermalSurfaces.Add(s.ID.ToString(), epsurf);
+                        epjsonObject.AllThermalSurfaces.Add("G_" + s.ID.ToString(), epsurf);
                         groundIndex++;
                     }
                     else if (s.Type == RadiationSurfaceType.Vegetation)
@@ -154,9 +163,9 @@ namespace EddyLib.Radiation
                         foreach (var v in s.Mesh.Value.Vertices)
                         {
                             var dv = new DetailedVertex();
-                            dv.X = v.X;
-                            dv.Y = v.Y;
-                            dv.Z = v.Z;
+                            dv.X = v.X + s.Normal.Value.X * 0.05;
+                            dv.Y = v.Y + s.Normal.Value.Y * 0.05;
+                            dv.Z = v.Z + s.Normal.Value.Z * 0.05;
                             epsurf.Vertices.Add(dv);
                         }
                         epsurf.NumberOfVertices = s.Mesh.Value.Vertices.Count;
@@ -176,29 +185,116 @@ namespace EddyLib.Radiation
 
 
 
-                        epjsonObject.AllThermalSurfaces.Add(s.ID.ToString(), epsurf);
+                        epjsonObject.AllThermalSurfaces.Add("V_" + s.ID.ToString(), epsurf);
                         groundIndex++;
                     }
-                    else if (s.Type == RadiationSurfaceType.Tree)
-                    {
-                        var epsurf = new ShadingBuildingDetailed();
-                        epsurf.Vertices = new List<DetailedVertex>();
-                        foreach (var v in s.Mesh.Value.Vertices)
-                        {
-                            var dv = new DetailedVertex();
-                            dv.X = v.X;
-                            dv.Y = v.Y;
-                            dv.Z = v.Z;
-                            epsurf.Vertices.Add(dv);
-                        }
-                        epsurf.NumberOfVertices = s.Mesh.Value.Vertices.Count;
-                        epjsonObject.AllShaders.Add("Shader" + shaderIndex, epsurf);
-                        shaderIndex++;
-                    }
+                    //else if (s.Type == RadiationSurfaceType.Tree)
+                    //{
+                    //    var epsurf = new ShadingBuildingDetailed();
+                    //    epsurf.Vertices = new List<DetailedVertex>();
+                    //    foreach (var v in s.Mesh.Value.Vertices)
+                    //    {
+                    //        var dv = new DetailedVertex();
+                    //        dv.X = v.X;
+                    //        dv.Y = v.Y;
+                    //        dv.Z = v.Z;
+                    //        epsurf.Vertices.Add(dv);
+                    //    }
+                    //    epsurf.NumberOfVertices = s.Mesh.Value.Vertices.Count;
+                    //    epjsonObject.AllShaders.Add("Shader" + shaderIndex, epsurf);
+                    //    shaderIndex++;
+                    //}
                 }
 
+                // -----------------------------
+                // 0 Add shaders
+                // -----------------------------
 
-                
+                foreach (var s in this.UnifiedMeshLowPolyNoSky.Faces)
+                {
+                    var epsurf = new ShadingBuildingDetailed();
+                    epsurf.Vertices = new List<DetailedVertex>();
+                    if(s.IsQuad )
+                    {
+                        epsurf.Vertices.Add(new DetailedVertex()
+                        {
+                            X = this.UnifiedMeshLowPolyNoSky.Vertices[s.A].X,
+                            Y = this.UnifiedMeshLowPolyNoSky.Vertices[s.A].Y,
+                            Z = this.UnifiedMeshLowPolyNoSky.Vertices[s.A].Z
+                        }
+                        );
+                        epsurf.Vertices.Add(new DetailedVertex()
+                        {
+                            X = this.UnifiedMeshLowPolyNoSky.Vertices[s.B].X,
+                            Y = this.UnifiedMeshLowPolyNoSky.Vertices[s.B].Y,
+                            Z = this.UnifiedMeshLowPolyNoSky.Vertices[s.B].Z
+                        }
+                       );
+                        epsurf.Vertices.Add(new DetailedVertex()
+                        {
+                            X = this.UnifiedMeshLowPolyNoSky.Vertices[s.C].X,
+                            Y = this.UnifiedMeshLowPolyNoSky.Vertices[s.C].Y,
+                            Z = this.UnifiedMeshLowPolyNoSky.Vertices[s.C].Z
+                        }
+                       );
+                        epsurf.Vertices.Add(new DetailedVertex()
+                        {
+                            X = this.UnifiedMeshLowPolyNoSky.Vertices[s.D].X,
+                            Y = this.UnifiedMeshLowPolyNoSky.Vertices[s.D].Y,
+                            Z = this.UnifiedMeshLowPolyNoSky.Vertices[s.D].Z
+                        }
+                       );
+                        epsurf.NumberOfVertices = 4;
+                    }
+                    else
+                    {
+                        epsurf.Vertices.Add(new DetailedVertex()
+                        {
+                            X = this.UnifiedMeshLowPolyNoSky.Vertices[s.A].X,
+                            Y = this.UnifiedMeshLowPolyNoSky.Vertices[s.A].Y,
+                            Z = this.UnifiedMeshLowPolyNoSky.Vertices[s.A].Z
+                        }
+                        );
+                        epsurf.Vertices.Add(new DetailedVertex()
+                        {
+                            X = this.UnifiedMeshLowPolyNoSky.Vertices[s.B].X,
+                            Y = this.UnifiedMeshLowPolyNoSky.Vertices[s.B].Y,
+                            Z = this.UnifiedMeshLowPolyNoSky.Vertices[s.B].Z
+                        }
+                       );
+                        epsurf.Vertices.Add(new DetailedVertex()
+                        {
+                            X = this.UnifiedMeshLowPolyNoSky.Vertices[s.C].X,
+                            Y = this.UnifiedMeshLowPolyNoSky.Vertices[s.C].Y,
+                            Z = this.UnifiedMeshLowPolyNoSky.Vertices[s.C].Z
+                        }
+                       );
+                        
+                        epsurf.NumberOfVertices = 3;
+                    }
+                    epjsonObject.AllShaders.Add("Shader" + shaderIndex, epsurf);
+                    shaderIndex++;
+
+                }
+
+                //foreach (var s in this.Polys)
+                //{
+                //    if (s.Type == RadiationSurfaceType.Sky) { continue; }
+                //    var epsurf = new ShadingBuildingDetailed();
+                //    epsurf.Vertices = new List<DetailedVertex>();
+                //    foreach (var v in s.Mesh.Value.Vertices)
+                //    {
+                //        var dv = new DetailedVertex();
+                //        dv.X = v.X;
+                //        dv.Y = v.Y;
+                //        dv.Z = v.Z;
+                //        epsurf.Vertices.Add(dv);
+                //    }
+                //    epsurf.NumberOfVertices = s.Mesh.Value.Vertices.Count;
+                //    epjsonObject.AllShaders.Add("Shader" + shaderIndex, epsurf);
+                //    shaderIndex++;
+
+                //}
 
 
 
@@ -228,7 +324,7 @@ namespace EddyLib.Radiation
                 string injectVegetation = "";
 
                 injectMaterials += JsonConvert.SerializeObject(AllMats, Formatting.Indented).Trim().Trim('{', '}').Trim(); ;
-                if(! String.IsNullOrWhiteSpace(injectMaterials)) injectMaterials+= ",";
+                if (!String.IsNullOrWhiteSpace(injectMaterials)) injectMaterials += ",";
                 injectConstructions += JsonConvert.SerializeObject(AllCons, Formatting.Indented).Trim().Trim('{', '}').Trim(); ;
                 if (!String.IsNullOrWhiteSpace(injectConstructions)) injectConstructions += ",";
                 epjson = epjson.Replace("\"@@MATERIALS@@\": null,", injectMaterials);
@@ -237,7 +333,7 @@ namespace EddyLib.Radiation
                 injectVegetation += JsonConvert.SerializeObject(AllVeget, Formatting.Indented).Trim().Trim('{', '}').Trim(); ;
                 if (!String.IsNullOrWhiteSpace(injectVegetation)) injectVegetation += ",";
                 epjson = epjson.Replace("\"@@VEGETATION@@\": null,", injectVegetation);
- 
+
 
 
 
@@ -273,7 +369,7 @@ namespace EddyLib.Radiation
                 {
                     Console.WriteLine(line);
                     Interlocked.Increment(ref stepCnt);
-                     Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+                    Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
                     cnt++;
                 }
 
@@ -297,22 +393,29 @@ namespace EddyLib.Radiation
                         if (p.Type == RadiationSurfaceType.Vegetation && p.SimulationType == SimulationType.Simulated)
                         {
                             var tag = "Green Roof Vegetation Temperature";
-                            if (res.Any(x =>   x.tag == tag))
+                            if (res.Any(x => x.tag == tag))
                             {
-                                p.SurfaceTemperature = res.First(x =>   x.tag == tag).values.ToArray();
+                                p.SurfaceTemperature = RPolygon.toFloatArray(res.First(x => x.tag == tag).values.ToArray());
                             }
                         }
-                        else
+                        else if (p.Type == RadiationSurfaceType.Ground && p.SimulationType == SimulationType.Simulated)
                         {
-                            if (res.Any(x => x.zone == p.ID.ToString()))
+                            if (res.Any(x => x.zone == "G_" + p.ID.ToString()))
                             {
-                                p.SurfaceTemperature = res.First(x => x.zone == p.ID.ToString()).values.ToArray();
+                                p.SurfaceTemperature = RPolygon.toFloatArray(res.First(x => x.zone == p.ID.ToString()).values.ToArray());
+                            }
+                        }
+                        else if (p.Type == RadiationSurfaceType.Building && p.SimulationType == SimulationType.Simulated)
+                        {
+                            if (res.Any(x => x.zone == "S_" + p.ID.ToString()))
+                            {
+                                p.SurfaceTemperature = RPolygon.toFloatArray(res.First(x => x.zone == p.ID.ToString()).values.ToArray());
                             }
                         }
                     }
 
                     Interlocked.Increment(ref stepCnt);
-                     Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+                    Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
                     return res;
                 }
 
@@ -392,7 +495,7 @@ namespace EddyLib.Radiation
             Stopwatch sp = new Stopwatch();
             sp.Start();
 
-            var protoResult = new MRT_Simulation_ResultProto(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes,  this.Polys);
+            var protoResult = new MRT_Simulation_ResultProto(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
 
             protoResult.WriteToFile(this.BaseWorkingDir + @"\" + this.ProjectName + ".mrt.eddy");
 
@@ -402,7 +505,7 @@ namespace EddyLib.Radiation
 
             Console.WriteLine("Results written");
             Interlocked.Increment(ref stepCnt);
-             Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+            Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
             return protoResult;
 
