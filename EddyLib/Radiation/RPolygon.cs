@@ -13,8 +13,7 @@ namespace EddyLib.Radiation
     {
 
         SurfaceTemperature,
-        SeenByProbes,
-        VFtoPolys
+        SeenByProbes
 
 
     }
