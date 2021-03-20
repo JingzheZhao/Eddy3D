@@ -114,6 +114,7 @@
     <Compile Include="OutdoorComfort\WindSystem.cs" />
     <Compile Include="OutdoorComfort\WProbe.cs" />
     <Compile Include="PrepareProtobuff.cs" />
+    <Compile Include="Radiation\AnalysisSystem.cs" />
     <Compile Include="Radiation\ComfortSystem.cs" />
     <Compile Include="OutdoorComfort\WProbeResultProto.cs" />
     <Compile Include="Radiation\Tree_Settings.cs" />
