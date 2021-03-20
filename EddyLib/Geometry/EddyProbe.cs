@@ -19,13 +19,18 @@ namespace EddyLib.Radiation
             Normal =  vec;
         }
 
- 
+        public EddyProbe(Point3d pt, Vector3d vec, Mesh geo)
+        {
+            Point = pt;
+            Normal = vec;
+            PreviewGeo = geo;
+        }
         public Point3d Point { get; set; }
       
         public Vector3d Normal { get; set; }
 
          
-
+        public Mesh PreviewGeo { get; set; }
 
     }
 }
