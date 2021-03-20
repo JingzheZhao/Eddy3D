@@ -149,13 +149,33 @@ namespace Eddy
             }
             Weather weather = new Weather(weatherPath);
 
+
+
+
+            // ---------------------
+            // Setup probes
+            // ---------------------
+
             List<RProbe> RadProbes = new List<RProbe>();
+            foreach (var m in probeMeshes)
+            {
+                RadProbes.AddRange(RProbe.Mesh2Probes(m));
+            }
             foreach (var p in probes)
             {
-                RadProbes.Add(new RProbe(p.Point, p.Normal));
+                if (p.PreviewGeo == null)
+                { RadProbes.Add(new RProbe(p.Point, p.Normal)); }
+                else
+                { RadProbes.Add(new RProbe(p.Point, p.Normal, p.PreviewGeo)); }
             }
 
-            MRTSystem = new MRT_Simulation_System(name, workDir, weather, modelRSurfaces, probeMeshes, RadProbes);
+
+
+
+            // ---------------------
+            // Setup system
+            // ---------------------
+            MRTSystem = new MRT_Simulation_System(name, workDir, weather, modelRSurfaces, RadProbes);
 
             if (set != null) { MRTSystem.Settings = set; }
 

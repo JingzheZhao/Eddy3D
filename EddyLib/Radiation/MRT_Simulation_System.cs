@@ -21,9 +21,9 @@ namespace EddyLib.Radiation
 
 
 
-     
+
         public int methodsteps = 2;
- 
+
 
 
 
@@ -57,7 +57,8 @@ namespace EddyLib.Radiation
         public ComfortSystem ComfortSystem;
 
 
-        public MRT_Simulation_System(string filename, string baseWorkingDir, Weather weather, List<RSurface> rsurfaces, List<Mesh> probe_meshes, List<RProbe> rprobes) {
+        public MRT_Simulation_System(string filename, string baseWorkingDir, Weather weather, List<RSurface> rsurfaces,  List<RProbe> rprobes)
+        {
 
             ProjectName = filename;
             BaseWorkingDir = baseWorkingDir;
@@ -66,29 +67,7 @@ namespace EddyLib.Radiation
 
 
 
-            // ---------------------
-            // Setup probes
-            // ---------------------
-
-            ProbeMeshes = probe_meshes;
-            Probes = new List<RProbe>();
-
-            foreach (var m in probe_meshes)
-            {
-                m.Normals.ComputeNormals();
-                for (int i = 0; i < m.Vertices.Count; i++)
-                {
-                    var p = m.Vertices[i];
-                    var v = m.Normals[i];
-                    Probes.Add(new RProbe(p, v));
-                }
-            }
-
-            foreach (var m in rprobes)
-            {
-                Probes.Add(m);
-            }
-
+            Probes = rprobes;
 
 
 
@@ -177,9 +156,9 @@ namespace EddyLib.Radiation
 
 
 
-            this.RadiationSystem = new RadiationSystem(this.ProjectName,this.BaseWorkingDir, this.Weather, this.RSurfaces, this.Probes, this.Polys, this.UnifiedMeshHighPolyNoSky);
-            this.ThermalSystem =   new ThermalSystem(this.ProjectName,this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.Settings.CummulativeViewFactorCutoff);
-            this.ComfortSystem =   new ComfortSystem(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
+            this.RadiationSystem = new RadiationSystem(this.ProjectName, this.BaseWorkingDir, this.Weather, this.RSurfaces, this.Probes, this.Polys, this.UnifiedMeshHighPolyNoSky);
+            this.ThermalSystem = new ThermalSystem(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.Settings.CummulativeViewFactorCutoff);
+            this.ComfortSystem = new ComfortSystem(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
 
             TOTAL += this.methodsteps + RadiationSystem.methodsteps + ThermalSystem.methodsteps;
 
@@ -187,7 +166,7 @@ namespace EddyLib.Radiation
 
         public bool RunVF(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
-           return RunVF_Internal( run,  ct,  steps, ref  stepCnt);
+            return RunVF_Internal(run, ct, steps, ref stepCnt);
         }
 
 
