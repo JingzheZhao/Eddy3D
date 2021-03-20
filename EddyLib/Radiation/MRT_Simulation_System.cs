@@ -45,7 +45,8 @@ namespace EddyLib.Radiation
 
         // Aux geometry
         public Mesh SkyDomeForVF;
-        public Mesh UnifiedMeshHighPolyNoSky;
+        public Mesh HighPolyNoSky;
+        public Mesh LowPolyNoSky;
 
 
 
@@ -74,15 +75,27 @@ namespace EddyLib.Radiation
             // ---------------------
             // Make a unified mesh radiance
             // ---------------------
-            UnifiedMeshHighPolyNoSky = new Mesh();
+            HighPolyNoSky = new Mesh();
             foreach (var rs in RSurfaces)
             {
                 if (rs == null) continue;
                 //if (rs.Type == RSurface.RadiationSurfaceType.Sky) continue;
                 if (rs.HighPoly != null)
                 {
+                    rs.HighPoly.Vertices.CullUnused();
+                    HighPolyNoSky.Append(rs.HighPoly);
+                }
+            }
+
+            LowPolyNoSky = new Mesh();
+            foreach (var rs in RSurfaces)
+            {
+                if (rs == null) continue;
+                //if (rs.Type == RSurface.RadiationSurfaceType.Sky) continue;
+                if (rs.LowPoly != null)
+                {
                     rs.LowPoly.Vertices.CullUnused();
-                    UnifiedMeshHighPolyNoSky.Append(rs.HighPoly);
+                    LowPolyNoSky.Append(rs.LowPoly);
                 }
             }
 
@@ -93,7 +106,7 @@ namespace EddyLib.Radiation
             // Make a sky dome for VF calculation
             // ---------------------
 
-            var bb = UnifiedMeshHighPolyNoSky.GetBoundingBox(false);
+            var bb = HighPolyNoSky.GetBoundingBox(false);
             var center = new Point3d(bb.Center.X, bb.Center.Y, bb.Min.Z);
             var radius = bb.Diagonal.Length;
 
@@ -156,8 +169,8 @@ namespace EddyLib.Radiation
 
 
 
-            this.RadiationSystem = new RadiationSystem(this.ProjectName, this.BaseWorkingDir, this.Weather, this.RSurfaces, this.Probes, this.Polys, this.UnifiedMeshHighPolyNoSky);
-            this.ThermalSystem = new ThermalSystem(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.Settings.CummulativeViewFactorCutoff);
+            this.RadiationSystem = new RadiationSystem(this.ProjectName, this.BaseWorkingDir, this.Weather, this.RSurfaces, this.Probes, this.Polys, this.HighPolyNoSky);
+            this.ThermalSystem = new ThermalSystem(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.LowPolyNoSky, this.Settings.CummulativeViewFactorCutoff);
             this.ComfortSystem = new ComfortSystem(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
 
             TOTAL += this.methodsteps + RadiationSystem.methodsteps + ThermalSystem.methodsteps;
@@ -176,7 +189,7 @@ namespace EddyLib.Radiation
 
 
             Console.WriteLine("Computing probe view factors...");
-            this.BuildVFToProbes(UnifiedMeshHighPolyNoSky);
+            this.BuildVFToProbes(HighPolyNoSky);
             this.BuildVFToProbesByMaterial();
             Console.WriteLine("Probe view factors: " + sp.ElapsedMilliseconds + " ms"); sp.Restart(); Interlocked.Increment(ref stepCnt);
             Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
@@ -185,7 +198,7 @@ namespace EddyLib.Radiation
             {
                 // optional
                 Console.WriteLine("Computing polygon view factors...");
-                this.BuildFFMatrix(UnifiedMeshHighPolyNoSky);
+                this.BuildFFMatrix(HighPolyNoSky);
 
                 Console.WriteLine("Polygon view factors: " + sp.ElapsedMilliseconds + " ms"); sp.Stop(); Interlocked.Increment(ref stepCnt);
                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
