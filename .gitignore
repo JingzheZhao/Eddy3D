@@ -301,3 +301,7 @@ Build/Dotfuscated/
 Installer/ComponentsGenerated.wxs
 
 Build/Dotfuscated/Map.xml
+*.3dm_tmp
+*.3dmbak
+*.rhl
+*.3dmbak

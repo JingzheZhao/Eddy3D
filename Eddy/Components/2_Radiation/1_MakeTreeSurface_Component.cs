@@ -37,7 +37,6 @@ namespace Eddy.Components.Radiation
             pManager.AddGenericParameter("Settings", "Set", "Optional material and surface property settings", GH_ParamAccess.item);
             pManager[2].Optional = true;
 
-
             pManager.AddIntegerParameter("SimType", "Sts", "Surface Temparature Simulation Type", GH_ParamAccess.item, 1);
             var types = Enum.GetNames(typeof(SimulationType));
             Param_Integer param = pManager[3] as Param_Integer;
@@ -65,7 +64,7 @@ namespace Eddy.Components.Radiation
         {
             var breps = new List<Brep>();
             double patchSize = 2;
-            string mat = "";
+            //string mat = "";
 
             if (!DA.GetDataList(0, breps)) return;
             if (!DA.GetData(1, ref patchSize)) return;
@@ -79,8 +78,6 @@ namespace Eddy.Components.Radiation
             //    else if (thetype == RadiationSurfaceType.Vegetation) { mat = RadianceMaterials.DefaultGrass; }
             //    else if (thetype == RadiationSurfaceType.Tree) { mat = RadianceMaterials.DefaultTree; }
             //}
-
-
 
             IGH_Goo goo_settings = null;
             if (!DA.GetData(2, ref goo_settings)) { }
@@ -97,18 +94,10 @@ namespace Eddy.Components.Radiation
             {
                 settings = Tree_Settings.GenerateTree();
             }
-             
-
-
-
 
             int simType = 0;
             if (!DA.GetData(3, ref simType)) return;
             SimulationType simsim = (SimulationType)simType;
-
-
-
-
 
             float[] toverride = new float[8760];
             List<double> temperatureOverride = new List<double>();
