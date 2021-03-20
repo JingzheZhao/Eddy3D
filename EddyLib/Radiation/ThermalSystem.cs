@@ -402,14 +402,14 @@ namespace EddyLib.Radiation
                         {
                             if (res.Any(x => x.zone == "G_" + p.ID.ToString()))
                             {
-                                p.SurfaceTemperature = RPolygon.toFloatArray(res.First(x => x.zone == p.ID.ToString()).values.ToArray());
+                                p.SurfaceTemperature = RPolygon.toFloatArray(res.First(x => x.zone == "G_" + p.ID.ToString()).values.ToArray());
                             }
                         }
                         else if (p.Type == RadiationSurfaceType.Building && p.SimulationType == SimulationType.Simulated)
                         {
                             if (res.Any(x => x.zone == "S_" + p.ID.ToString()))
                             {
-                                p.SurfaceTemperature = RPolygon.toFloatArray(res.First(x => x.zone == p.ID.ToString()).values.ToArray());
+                                p.SurfaceTemperature = RPolygon.toFloatArray(res.First(x => x.zone == "S_" + p.ID.ToString()).values.ToArray());
                             }
                         }
                     }
