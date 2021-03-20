@@ -91,7 +91,7 @@ namespace EddyLib.Radiation
                     if (s.Type == RadiationSurfaceType.Sky) { continue; }
                     if (s.SeenByProbes < CummulativeViewFactorCutoff) { continue; }
 
-                    else if (s.Type == RadiationSurfaceType.Building)
+                    else if (s.Type == RadiationSurfaceType.Building && s.SimulationType == SimulationType.Simulated)
                     {
                         var epsurf = new BuildingSurfaceDetailed();
                         epsurf.ConstructionName = "DefaultConstruction";
@@ -123,7 +123,7 @@ namespace EddyLib.Radiation
                         epjsonObject.AllThermalSurfaces.Add("S_"+s.ID.ToString(), epsurf);
                         surfIndex++;
                     }
-                    else if (s.Type == RadiationSurfaceType.Ground)
+                    else if (s.Type == RadiationSurfaceType.Ground && s.SimulationType == SimulationType.Simulated)
                     {
                         var epsurf = new BuildingSurfaceDetailed();
                         epsurf.ConstructionName = "DefaultConstruction";
@@ -155,7 +155,7 @@ namespace EddyLib.Radiation
                         epjsonObject.AllThermalSurfaces.Add("G_" + s.ID.ToString(), epsurf);
                         groundIndex++;
                     }
-                    else if (s.Type == RadiationSurfaceType.Vegetation)
+                    else if (s.Type == RadiationSurfaceType.Vegetation && s.SimulationType == SimulationType.Simulated)
                     {
                         var epsurf = new BuildingSurfaceDetailed();
                         epsurf.ConstructionName = "GreenRoofConstruction";
@@ -188,22 +188,6 @@ namespace EddyLib.Radiation
                         epjsonObject.AllThermalSurfaces.Add("V_" + s.ID.ToString(), epsurf);
                         groundIndex++;
                     }
-                    //else if (s.Type == RadiationSurfaceType.Tree)
-                    //{
-                    //    var epsurf = new ShadingBuildingDetailed();
-                    //    epsurf.Vertices = new List<DetailedVertex>();
-                    //    foreach (var v in s.Mesh.Value.Vertices)
-                    //    {
-                    //        var dv = new DetailedVertex();
-                    //        dv.X = v.X;
-                    //        dv.Y = v.Y;
-                    //        dv.Z = v.Z;
-                    //        epsurf.Vertices.Add(dv);
-                    //    }
-                    //    epsurf.NumberOfVertices = s.Mesh.Value.Vertices.Count;
-                    //    epjsonObject.AllShaders.Add("Shader" + shaderIndex, epsurf);
-                    //    shaderIndex++;
-                    //}
                 }
 
                 // -----------------------------
@@ -277,24 +261,7 @@ namespace EddyLib.Radiation
 
                 }
 
-                //foreach (var s in this.Polys)
-                //{
-                //    if (s.Type == RadiationSurfaceType.Sky) { continue; }
-                //    var epsurf = new ShadingBuildingDetailed();
-                //    epsurf.Vertices = new List<DetailedVertex>();
-                //    foreach (var v in s.Mesh.Value.Vertices)
-                //    {
-                //        var dv = new DetailedVertex();
-                //        dv.X = v.X;
-                //        dv.Y = v.Y;
-                //        dv.Z = v.Z;
-                //        epsurf.Vertices.Add(dv);
-                //    }
-                //    epsurf.NumberOfVertices = s.Mesh.Value.Vertices.Count;
-                //    epjsonObject.AllShaders.Add("Shader" + shaderIndex, epsurf);
-                //    shaderIndex++;
-
-                //}
+                 
 
 
 
