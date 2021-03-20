@@ -52,6 +52,13 @@ namespace EddyLib.Radiation
  
             AmbientTemperature = Weather.DryBulbTemp;
 
+
+            // store ambient temperature in surfaces
+            foreach (var poly in polys) {
+                if (poly.SimulationType == SimulationType.Ambient)
+                    poly.TemperatureOverride = RPolygon.toFloatArray(AmbientTemperature);
+            }
+
             var sky = new SkyTemperatureModel(Weather.DewPointTemp, Weather.DryBulbTemp, Weather.TotalSkyCover, Weather.RelativeHumidity, true, SkyTemperatureModel.CalculationType.DefaultClarkAllen);
             SkyTemperature = sky.Temp;
         }
@@ -299,14 +306,14 @@ namespace EddyLib.Radiation
                             var tag = "Green Roof Vegetation Temperature";
                             if (res.Any(x =>   x.tag == tag))
                             {
-                                p.SurfaceTemperature = res.First(x =>   x.tag == tag).values.ToArray();
+                                p.SurfaceTemperature = RPolygon.toFloatArray(res.First(x =>   x.tag == tag).values.ToArray());
                             }
                         }
                         else
                         {
                             if (res.Any(x => x.zone == p.ID.ToString()))
                             {
-                                p.SurfaceTemperature = res.First(x => x.zone == p.ID.ToString()).values.ToArray();
+                                p.SurfaceTemperature = RPolygon.toFloatArray(res.First(x => x.zone == p.ID.ToString()).values.ToArray());
                             }
                         }
                     }

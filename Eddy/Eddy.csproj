@@ -78,6 +78,7 @@
     <Compile Include="Components\2_Radiation\2_TreeSettings_Component.cs" />
     <Compile Include="Components\2_Radiation\2_VegetationSurfaceSettings_Component.cs" />
     <Compile Include="Components\2_Radiation\2_SurfaceSettings_Component.cs" />
+    <Compile Include="Components\3_PostProcessing\2_InspectPolygon_Component.cs" />
     <Compile Include="Components\3_PostProcessing\3_AnalysisSystem_Component.cs" />
     <Compile Include="Components\3_PostProcessing\3_TimeDifference_Component.cs" />
     <Compile Include="Components\3_PostProcessing\3_TimeDifference_Spring_Component.cs" />
