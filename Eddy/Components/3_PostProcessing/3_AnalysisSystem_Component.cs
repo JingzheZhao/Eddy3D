@@ -71,7 +71,7 @@ namespace Eddy.Components.Radiation
                 }
             }
 
-            DA.SetData(0, AS_Tree);
+            DA.SetDataTree(0, AS_Tree);
         }
 
         /// <summary>
