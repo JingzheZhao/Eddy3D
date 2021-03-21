@@ -21,7 +21,7 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
         public AnalysisBins_DayTime_Component()
-         : base("AnalysisBinsDayTime", "ABDayTime", "ABDayTime" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
+         : base("Analysis Bins Day Time", "ABDayTime", "ABDayTime" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
 
         {
         }

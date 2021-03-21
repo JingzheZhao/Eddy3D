@@ -13,14 +13,14 @@ namespace Eddy.Components.Radiation
     {
         public override GH_Exposure Exposure
         {
-            get { return GH_Exposure.hidden; }
+            get { return GH_Exposure.obscure | GH_Exposure.tertiary; }
         }
 
         /// <summary>
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
         public AnalysisBins_Component()
-          : base("AnalysisBinsCustom", "ABC", "ABC" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
+          : base("Analysis Bins Custom", "ABC", "ABC" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
 
         {
         }

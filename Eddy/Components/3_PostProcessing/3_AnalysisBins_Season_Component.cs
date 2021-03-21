@@ -21,7 +21,7 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
         public AnalysisBins_Season_Component()
-         : base("AnalysisBinsSeason", "ABSeason", "ABSeason" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
+         : base("Analysis Bins Season", "ABSeason", "ABSeason" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
 
         {
         }
@@ -62,8 +62,8 @@ namespace Eddy.Components.Radiation
 
             var UserSeason = new Season((Season.SeasonE)S);
 
-            DateTime dt1 = new DateTime(UserSeason.YearBegin, UserSeason.MonthBegin, 1);
-            DateTime dt2 = new DateTime(UserSeason.YearEnd, UserSeason.MonthEnd, 1);
+            DateTime dt1 = new DateTime(UserSeason.YearBegin, UserSeason.MonthBegin, UserSeason.DayBegin);
+            DateTime dt2 = new DateTime(UserSeason.YearEnd, UserSeason.MonthEnd, UserSeason.DayEnd);
 
             AnalysisBins TS = new AnalysisBins(dt2, dt1);
 

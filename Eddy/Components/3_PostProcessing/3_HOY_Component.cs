@@ -10,18 +10,18 @@ using DateTimeExtensions;
 
 namespace Eddy.Components.Radiation
 {
-    public class HOY_Component : GH_Component
+    public class DateTime_To_HOY_Component : GH_Component
     {
         public override GH_Exposure Exposure
         {
-            get { return GH_Exposure.hidden; }
+            get { return GH_Exposure.obscure | GH_Exposure.tertiary; }
         }
 
         /// <summary>
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
-        public HOY_Component()
-          : base("HOY", "HOY", "HOY" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
+        public DateTime_To_HOY_Component()
+          : base("Hour Of Year", "HOY", "HOY" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
 
         {
         }
