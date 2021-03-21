@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Obfuscar.2.2.29\build\obfuscar.props" Condition="Exists('..\packages\Obfuscar.2.2.29\build\obfuscar.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -74,10 +75,12 @@
   <ItemGroup>
     <Compile Include="Components\1_Wind\7_CompTree.cs" />
     <Compile Include="Components\1_Wind\4o_CompLBAnalPeriod2Hours.cs" />
+    <Compile Include="Components\2_Radiation\1_MakeSensorFromMesh_Component.cs" />
     <Compile Include="Components\2_Radiation\3_MRT_SimulationSettings_Component.cs" />
     <Compile Include="Components\2_Radiation\2_TreeSettings_Component.cs" />
     <Compile Include="Components\2_Radiation\2_VegetationSurfaceSettings_Component.cs" />
     <Compile Include="Components\2_Radiation\2_SurfaceSettings_Component.cs" />
+    <Compile Include="Components\3_PostProcessing\2_InspectPolygon_Component.cs" />
     <Compile Include="Components\3_PostProcessing\3_AnalysisSystem_Component.cs" />
     <Compile Include="Components\3_PostProcessing\3_HOY_Component.cs" />
     <Compile Include="Components\3_PostProcessing\3_AnalysisBins_Component.cs" />
@@ -87,7 +90,7 @@
     <Compile Include="Components\3_PostProcessing\2o_CompCalcWindComfort.cs" />
     <Compile Include="Components\3_PostProcessing\2o_CompDeData.cs" />
     <Compile Include="Components\3_PostProcessing\2_InspectProbe_Component.cs" />
-    <Compile Include="Components\3_PostProcessing\2_WindFactorsTemportal_Component.cs" />
+    <Compile Include="Components\3_PostProcessing\Hidden\2_WindFactorsTemportal_Component.cs" />
     <Compile Include="Components\3_PostProcessing\Hidden\1o_CompCalcMRT.cs" />
     <Compile Include="Components\3_PostProcessing\Hidden\7_CompCalcUTCIMetric.cs" />
     <Compile Include="Components\1_Wind\6_CompParaview.cs" />
@@ -95,13 +98,13 @@
     <Compile Include="Components\1_Wind\6_CompVisProbesCustomWProbes.cs" />
     <Compile Include="Components\3_PostProcessing\1_LoadWindData_Component.cs" />
     <Compile Include="Components\3_PostProcessing\1_LoadMRTData_Component.cs" />
-    <Compile Include="Components\2_Radiation\1_MakeSensor_Component.cs" />
+    <Compile Include="Components\2_Radiation\1_MakeSensorFromPoint_Component.cs" />
     <Compile Include="Components\2_Radiation\1_MakeGroundSurface_Component.cs" />
     <Compile Include="Components\2_Radiation\1_MakeTreeSurface_Component.cs" />
     <Compile Include="Components\2_Radiation\1_MakeVegetationSurface_Component.cs" />
     <Compile Include="Components\2_Radiation\1_MakeBuildingSurface_Component.cs" />
     <Compile Include="Components\2_Radiation\3_MRT_Simulation_Component.cs" />
-    <Compile Include="Components\3_PostProcessing\2_ComfortSystem_Component.cs" />
+    <Compile Include="Components\3_PostProcessing\Hidden\2_ComfortSystem_Component.cs" />
     <Compile Include="Components\1_Wind\3_CompRunSettings.cs" />
     <Compile Include="Components\0_Templates\1_CompTemplates.cs" />
     <Compile Include="Components\1_Wind\1_CompBCondABL.cs" />
@@ -150,88 +153,13 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Eddy_cluster.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_abl.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_clean.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_resizeMesh.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_run_settings.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_simulation.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_stability.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_visualProbs.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_writeProbs.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_analysisCul.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_annual.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_calUTCI.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_castU.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_domainBox.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_flow.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_mesh.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_mesh_settings.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_modelSTLexport.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_readUTCI.png" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\Eddy_blockmesh copy.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Eddy_blockmesh.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Eddy_paraview.png" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\Eddy_calMRT.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_decomposeData.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_templates.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_windFactors.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_analysisPeriod.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_calcMRT.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Eddy_cullPoints.png" />
@@ -245,40 +173,16 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Eddy_MRT_InspectSurface.png" />
+    <Folder Include="Components\2_Radiation\Hidden\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_MRT_LoadResults.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Eddy_MRT_Sim_Settings.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Eddy_Sensor_Inspect.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_CFD_LoadResults.png" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\Eddy_MRT_Surface_Settings.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_MRT_Tree_Settings.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_MRT_Vegetation_Settings.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_Sensor.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_calUTCI copy.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_MRT_Building.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_MRT_Ground.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_MRT_LoadResults.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Eddy_MRT_System.png" />
@@ -287,10 +191,142 @@
     <None Include="Resources\Eddy_MRT_Tree.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\Eddy_MRT_Tree_Settings.png" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="Resources\Eddy_MRT_Vegetation.png" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Components\2_Radiation\Hidden\" />
+    <None Include="Resources\Eddy_MRT_Vegetation_Settings.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_paraview.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_readUTCI.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_resizeMesh.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_run_settings.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Sensor.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Sensor_Inspect.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_SensorFromMesh.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_simulation.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_stability.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_templates.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_visualProbs.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_windFactors.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_writeProbs.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_abl.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_analysisCul.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_analysisPeriod.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_annual.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_calcMRT.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_calUTCI copy.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_calUTCI.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_castU.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_CFD_LoadResults.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_clean.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_cluster.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_decomposeData.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_domainBox.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_flow.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Domain.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Domain_Param.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Emitter.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Emitter_Param.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Geometry.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Geometry_Param.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Inlet.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Inlet_Param.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Outlet copy.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Outlet.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_mesh.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_mesh_settings.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_modelSTLexport.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_MRT_Building.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_MRT_Ground.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_MRT_InspectSurface.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
@@ -304,6 +340,7 @@
     <PostBuildEvent>Copy "$(TargetPath)" "$(TargetDir)$(ProjectName).gha"
 Erase "$(TargetPath)"
 
+SET obfuscar=$(SolutionDir)packages\Obfuscar.2.2.29\tools\Obfuscar.Console.exe
 SET build_eddy=$(SolutionDir)Eddy\bin
 SET build_batchrunner=$(SolutionDir)CallBatchRunner\bin
 SET installation_folder=C:\Eddy3D
@@ -316,9 +353,27 @@ xcopy /e /v /c /y "%25build_eddy%25" "%25installation_folder%25"
 )
 
 if $(ConfigurationName)==Release (
-"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\PreEmptiveSolutions\DotfuscatorCE\dotfuscatorCLI.exe" "$(SolutionDir)\Build\Dotfuscator_TD.xml"
-xcopy /e /v /c /y "$(SolutionDir)\Build\Dotfuscated" "%25installation_folder%25"
-)</PostBuildEvent>
+REM --------
+REM DOTFUSCATOR
+REM --------
+REM "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\PreEmptiveSolutions\DotfuscatorCE\dotfuscatorCLI.exe" "$(SolutionDir)\Build\Dotfuscator_TD.xml"
+REM xcopy /e /v /c /y "$(SolutionDir)\Build\Dotfuscated" "%25installation_folder%25"
+
+REM --------
+REM OBFUSCAR
+REM --------
+if not exist "$(SolutionDir)Build\Obfuscator_Input" mkdir "$(SolutionDir)Build\Obfuscator_Input"
+if not exist "$(SolutionDir)Build\Obfuscator_Output" mkdir "$(SolutionDir)Build\Obfuscator_Output"
+xcopy /e /v /c /y "%25build_eddy%25" "$(SolutionDir)Build\Obfuscator_Input"
+xcopy /e /v /c /y "$(SolutionDir)packages\Grasshopper.7.3.21053.23031\lib\net45" "$(SolutionDir)\Build\Obfuscator_Input"
+xcopy /e /v /c /y "$(SolutionDir)packages\RhinoCommon.7.3.21053.23031\lib\net45" "$(SolutionDir)\Build\Obfuscator_Input"
+"%25obfuscar%25" "$(SolutionDir)Build\ObfuscarConfig.xml"
+xcopy /e /v /c /y "$(SolutionDir)Build\Obfuscator_Output" "%25installation_folder%25"
+)
+
+
+
+</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <FallbackCulture>en-US</FallbackCulture>
@@ -337,6 +392,7 @@ xcopy /e /v /c /y "$(SolutionDir)\Build\Dotfuscated" "%25installation_folder%25"
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\RhinoCommon.7.3.21053.23031\build\RhinoCommon.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\RhinoCommon.7.3.21053.23031\build\RhinoCommon.targets'))" />
     <Error Condition="!Exists('..\packages\Grasshopper.7.3.21053.23031\build\Grasshopper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Grasshopper.7.3.21053.23031\build\Grasshopper.targets'))" />
+    <Error Condition="!Exists('..\packages\Obfuscar.2.2.29\build\obfuscar.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Obfuscar.2.2.29\build\obfuscar.props'))" />
   </Target>
   <Import Project="..\packages\Grasshopper.7.3.21053.23031\build\Grasshopper.targets" Condition="Exists('..\packages\Grasshopper.7.3.21053.23031\build\Grasshopper.targets')" />
 </Project>

@@ -1,4 +1,5 @@
-﻿using EddyLib.UI;
+﻿using EddyLib.OutdoorComfort;
+using EddyLib.UI;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,9 @@ namespace EddyLib.Radiation
 {
     public class ComfortSystem
     {
+        public int methodsteps = 4; // energyplus prints 52 lines
+
+
         private DateTime winter_start = new DateTime(2004, 1, 1);
         private DateTime winter_spring = new DateTime(2004, 2, 7);
         private DateTime spring_summer = new DateTime(2004, 5, 7);
@@ -23,25 +27,121 @@ namespace EddyLib.Radiation
         private double steps = 52 + 2;
         private double stepCnt = 0;
 
-        public string ProjectName = "";
-        public string BaseWorkingDir = "";
+         public string BaseWorkingDir = "";
         public Weather Weather;
 
         public List<RProbe> Probes;
         public List<RPolygon> Polys;
 
-        public ComfortSystem(string filename, string baseWorkingDir, Weather weather, List<RProbe> probes, List<RPolygon> polys)
+        public string CFDDataPath = "";
+
+
+        public ComfortSystem(  string baseWorkingDir, Weather weather, List<RProbe> probes, List<RPolygon> polys, string cfdpath)
         {
-            ProjectName = filename;
-            BaseWorkingDir = baseWorkingDir;
+             BaseWorkingDir = baseWorkingDir;
             Weather = weather;
             Probes = probes;
             Polys = polys;
+            CFDDataPath = cfdpath;
+
         }
 
-        public void ComputeUTCI(bool run, CancellationToken ct)
+        public void LoadCFD_ComputeWindfactors(bool run, CancellationToken ct, int steps, ref int stepCnt) {
+
+
+
+            // ---------------------
+            // 1  Load CFD Result
+            // ---------------------
+
+
+            WProbeResultProto resultProto_CFD = null;
+
+            if (!String.IsNullOrWhiteSpace(CFDDataPath))
+            {
+
+                
+                try
+                {
+                    Stopwatch sp = new Stopwatch();
+                    sp.Restart();
+                    resultProto_CFD = WProbeResultProto.ReadFromFile(CFDDataPath);
+                    sp.Stop();
+                    Console.WriteLine("Loading WProbeResultProto: " + sp.ElapsedMilliseconds);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine( "CFD Result file could not be deserialized. Are you loading a wrong file type? " + Environment.NewLine + e.Message);
+                    return ;
+                }
+
+
+              
+
+
+                Console.WriteLine("Probe Count: " + this.Probes.Count);
+                Console.WriteLine("CFD Probe Count: " + resultProto_CFD.Probes.Count);
+
+
+                if (this.Probes.Count != resultProto_CFD.Probes.Count) {
+
+                    Console.WriteLine("CFD and MRT worflows have different probe count... using weather data for prove air velocity");
+                    return;
+                }
+
+
+                Interlocked.Increment(ref stepCnt);
+                Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+
+
+                // ---------------------
+                // 2  Compute Wind Factors
+                // ---------------------
+
+
+
+                // WindFactorSpatial
+                Console.WriteLine("Computing Spatial Wind Factors...");
+
+                foreach (var p in resultProto_CFD.Probes)
+                {
+                    p.WindFactorsSpatial = EddyLib.OutdoorComfort.WindFactorsSpatial.CalcWindFactorsSpatialSP(p);
+                }
+                Console.WriteLine("Computing Spatial Wind Factors...");
+
+
+                WindSystem WS = new WindSystem(this.Weather, resultProto_CFD.Probes[0].WindDirections.ToList());
+                Console.WriteLine("Computing Temporal Wind Factors...");
+
+                int pcnt = 0;
+                foreach (var p in resultProto_CFD.Probes)
+                {
+                    p.WindFactorsTemporal = WindFactorsTemporal.CalcWindFactorsTemporalSP(this.Weather, p, WS, true);
+                }
+
+
+                for (int i = 0; i < this.Probes.Count; i++)
+                {
+                    if (i < resultProto_CFD.Probes.Count)
+                    {
+                        this.Probes[i].WindSpeed = resultProto_CFD.Probes[i].WindFactorsTemporal;
+                    }
+                }
+
+                Interlocked.Increment(ref stepCnt);
+                Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+            }
+
+        }
+
+        public void ComputeUTCI(bool run, CancellationToken ct,  int steps, ref int stepCnt)
         {
             steps = this.Probes.Count;
+
+            // ---------------------
+            // 3 Compute UTCI
+            // ---------------------
+            Console.WriteLine("Computing UTCI...");
 
             System.Threading.Tasks.Parallel.For(0, this.Probes.Count, i =>
             {
@@ -117,27 +217,34 @@ namespace EddyLib.Radiation
                     probe.UTCI[h] = (float)utci;
                 }
 
-                stepCnt++;
-                pct = 100 * stepCnt / steps;
-                Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+                //stepCnt++;
+                //pct = 100 * stepCnt / steps;
+                //Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+
             });
+
+            Interlocked.Increment(ref stepCnt);
+            Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+
         }
 
-        public MRT_Simulation_ResultProto SaveResults(bool run, CancellationToken ct)
+        public MRT_Simulation_ResultProto SaveResults(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
             // -----------------------------
-            // Write results
+            // 4 Write results
             // -----------------------------
+
+            Console.WriteLine("Saving results...");
+
             var prep = PrepareProtoBufSingleton.Instance;
 
-            var protoResult = new MRT_Simulation_ResultProto(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
+            var protoResult = new MRT_Simulation_ResultProto(  this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
 
-            protoResult.WriteToFile(this.BaseWorkingDir + @"\" + this.ProjectName + ".utci.eddy");
+            protoResult.WriteToFile(this.BaseWorkingDir + @"\UTCI.eddy");
 
             Console.WriteLine("Results written");
-            stepCnt++;
-            pct = 100 * stepCnt / steps;
-            Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
+            Interlocked.Increment(ref stepCnt);
+            Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
             return protoResult;
         }

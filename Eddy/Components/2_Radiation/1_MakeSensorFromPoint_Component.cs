@@ -8,12 +8,12 @@ using System.Collections.Generic;
 
 namespace Eddy.Components.Radiation
 {
-    public class MakeRadiationSensor_Component : GH_Component
+    public class MakeRadiationSensorFromPoint_Component : GH_Component
     {
         /// <summary>
         /// Initializes a new instance of the MakeRadiationSensor_Component class.
         /// </summary>
-        public MakeRadiationSensor_Component()
+        public MakeRadiationSensorFromPoint_Component()
           : base("Sensor", "Sen", "Simulation Sensor" + EddyVersion.toString(), EddyVersion.Name, "2 | Radiation")
         {
         }

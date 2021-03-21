@@ -1,4 +1,4 @@
-﻿using EddyLib.UI;
+﻿ using EddyLib.UI;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
@@ -27,8 +27,9 @@ namespace EddyLib.Radiation
 
 
 
-        public string ProjectName = "";
-        public string BaseWorkingDir = "";
+         public string BaseWorkingDir = "";
+        public string CFDDataPath = "";
+
 
         public MRT_Simulation_Settings Settings = new MRT_Simulation_Settings();
 
@@ -45,7 +46,8 @@ namespace EddyLib.Radiation
 
         // Aux geometry
         public Mesh SkyDomeForVF;
-        public Mesh UnifiedMeshHighPolyNoSky;
+        public Mesh HighPolyNoSky;
+        public Mesh LowPolyNoSky;
 
 
 
@@ -56,12 +58,11 @@ namespace EddyLib.Radiation
 
         public ComfortSystem ComfortSystem;
 
-
-        public MRT_Simulation_System(string filename, string baseWorkingDir, Weather weather, List<RSurface> rsurfaces,  List<RProbe> rprobes)
+ 
+        public MRT_Simulation_System(  string baseWorkingDir, Weather weather, List<RSurface> rsurfaces,  List<RProbe> rprobes, string cfd_data_path)
         {
 
-            ProjectName = filename;
-            BaseWorkingDir = baseWorkingDir;
+             BaseWorkingDir = baseWorkingDir;
             RSurfaces = rsurfaces;
             Weather = weather;
 
@@ -69,20 +70,32 @@ namespace EddyLib.Radiation
 
             Probes = rprobes;
 
-
+            CFDDataPath = cfd_data_path;
 
             // ---------------------
             // Make a unified mesh radiance
             // ---------------------
-            UnifiedMeshHighPolyNoSky = new Mesh();
+            HighPolyNoSky = new Mesh();
             foreach (var rs in RSurfaces)
             {
                 if (rs == null) continue;
                 //if (rs.Type == RSurface.RadiationSurfaceType.Sky) continue;
                 if (rs.HighPoly != null)
                 {
+                    rs.HighPoly.Vertices.CullUnused();
+                    HighPolyNoSky.Append(rs.HighPoly);
+                }
+            }
+
+            LowPolyNoSky = new Mesh();
+            foreach (var rs in RSurfaces)
+            {
+                if (rs == null) continue;
+                //if (rs.Type == RSurface.RadiationSurfaceType.Sky) continue;
+                if (rs.LowPoly != null)
+                {
                     rs.LowPoly.Vertices.CullUnused();
-                    UnifiedMeshHighPolyNoSky.Append(rs.HighPoly);
+                    LowPolyNoSky.Append(rs.LowPoly);
                 }
             }
 
@@ -93,7 +106,7 @@ namespace EddyLib.Radiation
             // Make a sky dome for VF calculation
             // ---------------------
 
-            var bb = UnifiedMeshHighPolyNoSky.GetBoundingBox(false);
+            var bb = HighPolyNoSky.GetBoundingBox(false);
             var center = new Point3d(bb.Center.X, bb.Center.Y, bb.Min.Z);
             var radius = bb.Diagonal.Length;
 
@@ -156,11 +169,11 @@ namespace EddyLib.Radiation
 
 
 
-            this.RadiationSystem = new RadiationSystem(this.ProjectName, this.BaseWorkingDir, this.Weather, this.RSurfaces, this.Probes, this.Polys, this.UnifiedMeshHighPolyNoSky);
-            this.ThermalSystem = new ThermalSystem(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.Settings.CummulativeViewFactorCutoff);
-            this.ComfortSystem = new ComfortSystem(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
+            this.RadiationSystem = new RadiationSystem( this.BaseWorkingDir, this.Weather, this.RSurfaces, this.Probes, this.Polys, this.HighPolyNoSky);
+            this.ThermalSystem = new ThermalSystem(  this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.LowPolyNoSky, this.Settings.CummulativeViewFactorCutoff);
+            this.ComfortSystem = new ComfortSystem(  this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.CFDDataPath);
 
-            TOTAL += this.methodsteps + RadiationSystem.methodsteps + ThermalSystem.methodsteps;
+            TOTAL += this.methodsteps + RadiationSystem.methodsteps + ThermalSystem.methodsteps + ComfortSystem.methodsteps;
 
         }
 
@@ -176,7 +189,7 @@ namespace EddyLib.Radiation
 
 
             Console.WriteLine("Computing probe view factors...");
-            this.BuildVFToProbes(UnifiedMeshHighPolyNoSky);
+            this.BuildVFToProbes(HighPolyNoSky);
             this.BuildVFToProbesByMaterial();
             Console.WriteLine("Probe view factors: " + sp.ElapsedMilliseconds + " ms"); sp.Restart(); Interlocked.Increment(ref stepCnt);
             Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
@@ -185,7 +198,7 @@ namespace EddyLib.Radiation
             {
                 // optional
                 Console.WriteLine("Computing polygon view factors...");
-                this.BuildFFMatrix(UnifiedMeshHighPolyNoSky);
+                this.BuildFFMatrix(HighPolyNoSky);
 
                 Console.WriteLine("Polygon view factors: " + sp.ElapsedMilliseconds + " ms"); sp.Stop(); Interlocked.Increment(ref stepCnt);
                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));

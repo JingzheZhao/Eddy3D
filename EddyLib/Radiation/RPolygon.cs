@@ -9,7 +9,14 @@ using System.Threading.Tasks;
 
 namespace EddyLib.Radiation
 {
+    public enum RPolyMetric
+    {
 
+        SurfaceTemperature,
+        SeenByProbes
+
+
+    }
     public enum RadiationSurfaceType
     {
         Building = 0,
@@ -61,10 +68,25 @@ namespace EddyLib.Radiation
         public float[] TemperatureOverride { get; set; }
 
         [ProtoMember(100)]
-        public double[] SurfaceTemperature { get; set; }
+        public float[] SurfaceTemperature { get; set; }
 
 
         public RSurface Parent;
+
+
+
+
+        public static float[] toFloatArray(double[] arr)
+        {
+            if (arr == null) return null;
+            int n = arr.Length;
+            float[] ret = new float[n];
+            for (int i = 0; i < n; i++)
+            {
+                ret[i] = (float)arr[i];
+            }
+            return ret;
+        }
 
     }
 }

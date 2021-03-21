@@ -24,8 +24,7 @@ namespace EddyLib.Radiation
         public int methodsteps = 18;
 
 
-        public string ProjectName = "";
-        public string BaseWorkingDir = "";
+         public string BaseWorkingDir = "";
 
 
         public List<RSurface> RSurfaces;
@@ -36,10 +35,9 @@ namespace EddyLib.Radiation
         public List<RPolygon> Polys = new List<RPolygon>();
 
         public Weather Weather;
-        public RadiationSystem(string filename, string baseWorkingDir, Weather weather, List<RSurface> rsurfaces, List<RProbe> probes, List<RPolygon> polys, Mesh unified)
+        public RadiationSystem(  string baseWorkingDir, Weather weather, List<RSurface> rsurfaces, List<RProbe> probes, List<RPolygon> polys, Mesh unified)
         {
-            ProjectName = filename;
-            BaseWorkingDir = baseWorkingDir;
+             BaseWorkingDir = baseWorkingDir;
             Weather = weather;
             RSurfaces = rsurfaces;
             Probes = probes;
@@ -632,8 +630,8 @@ namespace EddyLib.Radiation
             // -----------------------------
             var prep = PrepareProtoBufSingleton.Instance;
 
-            var protoResult = new MRT_Simulation_ResultProto(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
-            protoResult.WriteToFile(this.BaseWorkingDir + @"\" + this.ProjectName + ".rad.eddy");
+            var protoResult = new MRT_Simulation_ResultProto(  this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
+            protoResult.WriteToFile(this.BaseWorkingDir + @"\RAD.eddy");
 
             Console.WriteLine("Results written");
             Interlocked.Increment(ref stepCnt);

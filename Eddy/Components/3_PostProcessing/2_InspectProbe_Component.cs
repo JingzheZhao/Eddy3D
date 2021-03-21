@@ -271,6 +271,8 @@ namespace Eddy.Components.Radiation
 
             else
             {
+                if (h >= rprobeList.Count) return;
+
                 var rprobe = rprobeList[h];
 
                 points.Add(rprobe.Point.Value);
