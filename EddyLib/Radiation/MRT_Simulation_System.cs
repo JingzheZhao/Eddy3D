@@ -1,4 +1,4 @@
-﻿using EddyLib.UI;
+﻿ using EddyLib.UI;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
@@ -29,6 +29,8 @@ namespace EddyLib.Radiation
 
         public string ProjectName = "";
         public string BaseWorkingDir = "";
+        public string CFDDataPath = "";
+
 
         public MRT_Simulation_Settings Settings = new MRT_Simulation_Settings();
 
@@ -57,7 +59,7 @@ namespace EddyLib.Radiation
 
         public ComfortSystem ComfortSystem;
 
-
+ 
         public MRT_Simulation_System(string filename, string baseWorkingDir, Weather weather, List<RSurface> rsurfaces,  List<RProbe> rprobes)
         {
 
@@ -171,9 +173,9 @@ namespace EddyLib.Radiation
 
             this.RadiationSystem = new RadiationSystem(this.ProjectName, this.BaseWorkingDir, this.Weather, this.RSurfaces, this.Probes, this.Polys, this.HighPolyNoSky);
             this.ThermalSystem = new ThermalSystem(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.LowPolyNoSky, this.Settings.CummulativeViewFactorCutoff);
-            this.ComfortSystem = new ComfortSystem(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
+            this.ComfortSystem = new ComfortSystem(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.CFDDataPath);
 
-            TOTAL += this.methodsteps + RadiationSystem.methodsteps + ThermalSystem.methodsteps;
+            TOTAL += this.methodsteps + RadiationSystem.methodsteps + ThermalSystem.methodsteps + ComfortSystem.methodsteps;
 
         }
 

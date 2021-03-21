@@ -44,8 +44,11 @@ namespace Eddy
 
             pManager.AddGenericParameter("Sensors", "Sen", "Radiation sensors. Provide as [Mesh] or [RProbe]", GH_ParamAccess.tree);
 
-            pManager.AddTextParameter("Settings", "Set", "MRT System Settings", GH_ParamAccess.item, DefaultDirectoriesAndPaths.DefaultWeather);
+            pManager.AddTextParameter("Settings", "Set", "MRT System Settings", GH_ParamAccess.item , "");
             pManager[5].Optional = true;
+
+            pManager.AddTextParameter("CFD result", "CFD", "File path to *.wind.eddy file. If provided wind velocities are loaded from CFD result.", GH_ParamAccess.item , "");
+            pManager[6].Optional = true;
 
             pManager.AddBooleanParameter("Run", "R", "Run simulation", GH_ParamAccess.item, false);
         }
@@ -68,6 +71,11 @@ namespace Eddy
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+
+            // ---------------------
+            // Weather and work dir
+            // ---------------------
+
             string name = "";
             string workDir = "";
             string weatherPath = "";
@@ -75,6 +83,15 @@ namespace Eddy
             DA.GetData(0, ref name);
             DA.GetData(1, ref workDir);
             DA.GetData(2, ref weatherPath);
+
+
+            if (!File.Exists(weatherPath))
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Weather file could not be found");
+                return;
+            }
+            Weather weather = new Weather(weatherPath);
+
 
             // ---------------------
             // Get the RSurf objects
@@ -101,8 +118,7 @@ namespace Eddy
             // ----------------------
             List<EddyProbe> probes = new List<EddyProbe>();
             List<Mesh> probeMeshes = new List<Mesh>();
-            //DA.GetDataList(4, probeMeshes);
-
+ 
             GH_Structure<IGH_Goo> GH_RProbeTree;
             if (!DA.GetDataTree(4, out GH_RProbeTree)) { }
             foreach (GH_Path p in GH_RProbeTree.Paths)
@@ -138,16 +154,36 @@ namespace Eddy
                 }
             }
 
+
+            // ----------------------
+            // CFD results ?
+            // ----------------------
+
+
+            string CFDResultPath = "";
+            DA.GetData(6, ref CFDResultPath);
+            if (!String.IsNullOrWhiteSpace(CFDResultPath))
+            {
+                if (!File.Exists(CFDResultPath))
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "CFD result file not found.");
+                    return;
+                }
+            }
+
+
+
+            // ---------------------
+            // Run
+            // ---------------------
+
+
+
             bool RUN = false;
             bool HidePopUp = false;
-            DA.GetData(6, ref RUN);
+            DA.GetData(7, ref RUN);
 
-            if (!File.Exists(weatherPath))
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Weather file could not be found");
-                return;
-            }
-            Weather weather = new Weather(weatherPath);
+           
 
 
 
@@ -207,7 +243,7 @@ namespace Eddy
 
             if (MRTSystem != null)
             {
-                string resultFilePath = MRTSystem.BaseWorkingDir + "/" + MRTSystem.ProjectName + ".mrt.eddy";
+                string resultFilePath = MRTSystem.BaseWorkingDir + "/" + MRTSystem.ProjectName + ".utci.eddy";
                 DA.SetData(1, resultFilePath);
 
                 DA.SetData(2, MRTSystem.Settings.toJSON());
@@ -286,9 +322,17 @@ namespace Eddy
             if (cts.IsCancellationRequested) return false;
             MRTSystem.ThermalSystem.ComputeMRT(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
 
+            if (cts.IsCancellationRequested) return false;
+            MRTSystem.ThermalSystem.SaveResults(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
 
             if (cts.IsCancellationRequested) return false;
-            var proto = MRTSystem.ThermalSystem.SaveResults(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
+            MRTSystem.ComfortSystem.LoadCFD_ComputeWindfactors(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
+
+            if (cts.IsCancellationRequested) return false;
+            MRTSystem.ComfortSystem.ComputeUTCI(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
+
+            if (cts.IsCancellationRequested) return false;
+            var proto = MRTSystem.ComfortSystem.SaveResults(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
 
             return true;
         }
