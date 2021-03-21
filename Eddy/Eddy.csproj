@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Obfuscar.2.2.29\build\obfuscar.props" Condition="Exists('..\packages\Obfuscar.2.2.29\build\obfuscar.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -303,6 +304,7 @@
     <PostBuildEvent>Copy "$(TargetPath)" "$(TargetDir)$(ProjectName).gha"
 Erase "$(TargetPath)"
 
+SET obfuscar=$(SolutionDir)packages\Obfuscar.2.2.29\tools\Obfuscar.Console.exe
 SET build_eddy=$(SolutionDir)Eddy\bin
 SET build_batchrunner=$(SolutionDir)CallBatchRunner\bin
 SET installation_folder=C:\Eddy3D
@@ -315,9 +317,27 @@ xcopy /e /v /c /y "%25build_eddy%25" "%25installation_folder%25"
 )
 
 if $(ConfigurationName)==Release (
-"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\PreEmptiveSolutions\DotfuscatorCE\dotfuscatorCLI.exe" "$(SolutionDir)\Build\Dotfuscator_TD.xml"
-xcopy /e /v /c /y "$(SolutionDir)\Build\Dotfuscated" "%25installation_folder%25"
-)</PostBuildEvent>
+REM --------
+REM DOTFUSCATOR
+REM --------
+REM "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\PreEmptiveSolutions\DotfuscatorCE\dotfuscatorCLI.exe" "$(SolutionDir)\Build\Dotfuscator_TD.xml"
+REM xcopy /e /v /c /y "$(SolutionDir)\Build\Dotfuscated" "%25installation_folder%25"
+
+REM --------
+REM OBFUSCAR
+REM --------
+if not exist "$(SolutionDir)Build\Obfuscator_Input" mkdir "$(SolutionDir)Build\Obfuscator_Input"
+if not exist "$(SolutionDir)Build\Obfuscator_Output" mkdir "$(SolutionDir)Build\Obfuscator_Output"
+xcopy /e /v /c /y "%25build_eddy%25" "$(SolutionDir)Build\Obfuscator_Input"
+xcopy /e /v /c /y "$(SolutionDir)packages\Grasshopper.7.3.21053.23031\lib\net45" "$(SolutionDir)\Build\Obfuscator_Input"
+xcopy /e /v /c /y "$(SolutionDir)packages\RhinoCommon.7.3.21053.23031\lib\net45" "$(SolutionDir)\Build\Obfuscator_Input"
+"%25obfuscar%25" "$(SolutionDir)Build\ObfuscarConfig.xml"
+xcopy /e /v /c /y "$(SolutionDir)Build\Obfuscator_Output" "%25installation_folder%25"
+)
+
+
+
+</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <FallbackCulture>en-US</FallbackCulture>
@@ -336,6 +356,7 @@ xcopy /e /v /c /y "$(SolutionDir)\Build\Dotfuscated" "%25installation_folder%25"
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\RhinoCommon.7.3.21053.23031\build\RhinoCommon.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\RhinoCommon.7.3.21053.23031\build\RhinoCommon.targets'))" />
     <Error Condition="!Exists('..\packages\Grasshopper.7.3.21053.23031\build\Grasshopper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Grasshopper.7.3.21053.23031\build\Grasshopper.targets'))" />
+    <Error Condition="!Exists('..\packages\Obfuscar.2.2.29\build\obfuscar.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Obfuscar.2.2.29\build\obfuscar.props'))" />
   </Target>
   <Import Project="..\packages\Grasshopper.7.3.21053.23031\build\Grasshopper.targets" Condition="Exists('..\packages\Grasshopper.7.3.21053.23031\build\Grasshopper.targets')" />
 </Project>

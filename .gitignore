@@ -303,6 +303,8 @@ __pycache__/
 
 Build/Dotfuscated.Temp/
 Build/Dotfuscated/
+Build/Obfuscator_Input/
+Build/Obfuscator_Output/
 Installer/ComponentsGenerated.wxs
 
 Build/Dotfuscated/Map.xml
