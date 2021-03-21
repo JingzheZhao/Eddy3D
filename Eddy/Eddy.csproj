@@ -102,7 +102,7 @@
     <Compile Include="Components\2_Radiation\1_MakeVegetationSurface_Component.cs" />
     <Compile Include="Components\2_Radiation\1_MakeBuildingSurface_Component.cs" />
     <Compile Include="Components\2_Radiation\3_MRT_Simulation_Component.cs" />
-    <Compile Include="Components\3_PostProcessing\2_ComfortSystem_Component.cs" />
+    <Compile Include="Components\3_PostProcessing\Hidden\2_ComfortSystem_Component.cs" />
     <Compile Include="Components\1_Wind\3_CompRunSettings.cs" />
     <Compile Include="Components\0_Templates\1_CompTemplates.cs" />
     <Compile Include="Components\1_Wind\1_CompBCondABL.cs" />

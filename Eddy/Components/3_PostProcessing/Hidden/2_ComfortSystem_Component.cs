@@ -27,7 +27,7 @@ namespace Eddy.Components.Radiation
 
         public override GH_Exposure Exposure
         {
-            get { return GH_Exposure.secondary; }
+            get { return GH_Exposure.hidden; }
         }
 
         private ComfortSystem ComfortSystem;
@@ -71,7 +71,7 @@ namespace Eddy.Components.Radiation
             bool run = false;
             bool HidePopUp = false;
             DA.GetData(2, ref run);
- 
+
 
 
 
@@ -192,7 +192,7 @@ namespace Eddy.Components.Radiation
             }
 
 
-           
+
 
 
 
@@ -201,11 +201,11 @@ namespace Eddy.Components.Radiation
             // ---------------------
             // Load CFD Result
             // ---------------------
-             filePath_CFD = "";
+            filePath_CFD = "";
 
             DA.GetData(1, ref filePath_CFD);
 
-           
+
 
             if (!String.IsNullOrWhiteSpace(filePath_CFD))
             {
@@ -215,7 +215,7 @@ namespace Eddy.Components.Radiation
                 }
             }
 
-            
+
 
 
 
@@ -252,7 +252,7 @@ namespace Eddy.Components.Radiation
             }
 
 
-            if (ComfortSystem == null) return ;
+            if (ComfortSystem == null) return;
             DA.SetData(0, ComfortSystem);
             DA.SetData(1, ComfortSystem.BaseWorkingDir + @"\" + ComfortSystem.ProjectName + ".utci.eddy");
         }
@@ -299,7 +299,7 @@ namespace Eddy.Components.Radiation
             // ---------------------
 
 
-            
+
             var prep = PrepareProtoBufSingleton.Instance;
 
             MRT_Simulation_ResultProto resultProto_MRT = null;
@@ -328,7 +328,7 @@ namespace Eddy.Components.Radiation
             // ---------------------
             // Load CFD Result
             // ---------------------
-         
+
 
             WProbeResultProto resultProto_CFD = null;
 
@@ -383,7 +383,8 @@ namespace Eddy.Components.Radiation
 
 
 
-                for (int i = 0; i < resultProto_MRT.Probes.Count; i++) {
+                for (int i = 0; i < resultProto_MRT.Probes.Count; i++)
+                {
                     if (i < resultProto_CFD.Probes.Count)
                     {
                         resultProto_MRT.Probes[i].WindSpeed = resultProto_CFD.Probes[i].WindFactorsTemporal;
@@ -395,24 +396,23 @@ namespace Eddy.Components.Radiation
             }
 
 
-            
-
-
-
-            ComfortSystem = new ComfortSystem(resultProto_MRT.ProjectName, resultProto_MRT.BaseWorkingDir, resultProto_MRT.Weather, resultProto_MRT.Probes, resultProto_MRT.Polys);
 
 
 
 
+            ComfortSystem = new ComfortSystem(resultProto_MRT.ProjectName, resultProto_MRT.BaseWorkingDir, resultProto_MRT.Weather, resultProto_MRT.Probes, resultProto_MRT.Polys, "");
+
+
+
+            int xxx = 0;
 
 
             if (ComfortSystem == null) return false;
+            if (cts.IsCancellationRequested) return false;
+            ComfortSystem.ComputeUTCI(true, cts.Token, 0, ref xxx);
 
             if (cts.IsCancellationRequested) return false;
-            ComfortSystem.ComputeUTCI(true, cts.Token);
-
-            if (cts.IsCancellationRequested) return false;
-            var proto = ComfortSystem.SaveResults(true, cts.Token);
+            var proto = ComfortSystem.SaveResults(true, cts.Token, 0, ref xxx);
 
             return true;
         }
