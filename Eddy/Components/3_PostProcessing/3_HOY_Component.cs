@@ -21,7 +21,7 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
         public DateTime_To_HOY_Component()
-          : base("Hour Of Year", "HOY", "HOY" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
+          : base("Hour Of Year", "HOY", "Hour Of Year" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
 
         {
         }
@@ -31,9 +31,13 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddIntegerParameter("M", "M", "M", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("D", "D", "D", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("H", "H", "H", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Month", "M", "Month [1-12]", GH_ParamAccess.item, 1);
+            pManager.AddIntegerParameter("Day", "D", "Day [1-31]", GH_ParamAccess.item, 1);
+            pManager.AddIntegerParameter("Hour", "H", "Hour [0-23]", GH_ParamAccess.item, 0);
+
+            pManager[0].Optional = true;
+            pManager[1].Optional = true;
+            pManager[2].Optional = true;
         }
 
         /// <summary>
@@ -41,7 +45,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("HOY", "HOY", "HOY", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Hour Of Year", "HOY", "Hour Of Year", GH_ParamAccess.item);
 
             //pManager.AddMeshParameter("Meshes", "M", "Analysis meshes", GH_ParamAccess.list);
         }
@@ -60,7 +64,7 @@ namespace Eddy.Components.Radiation
             DA.GetData(1, ref d);
             DA.GetData(2, ref h);
 
-            var dt = new DateTime(m, d, h);
+            var dt = new DateTime(2021, m, d, h, 0, 0);
 
             DA.SetData(0, dt.HOY());
         }
@@ -68,15 +72,15 @@ namespace Eddy.Components.Radiation
         /// <summary>
         /// Provides an Icon for the component.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
-                //You can add image files to your project resources and access them like this:
-                // return Resources.IconForThisComponent;
-                return Resources.Eddy_stability;
-            }
-        }
+        //protected override System.Drawing.Bitmap Icon
+        //{
+        //    get
+        //    {
+        //        //You can add image files to your project resources and access them like this:
+        //        // return Resources.IconForThisComponent;
+        //        return Resources.Eddy_stability;
+        //    }
+        //}
 
         /// <summary>
         /// Gets the unique ID for this component. Do not change this ID after release.

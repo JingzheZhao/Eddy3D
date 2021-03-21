@@ -21,7 +21,7 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
         public AnalysisSystem_Component()
-          : base("Analysis System", "AS", "AS" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
+          : base("Analysis System", "AS", "Analysis System" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
 
         {
         }
@@ -31,7 +31,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("AnalysisBins", "AB", "AB", GH_ParamAccess.list);
+            pManager.AddGenericParameter("AnalysisBins", "AB", "AnalysisBins", GH_ParamAccess.list);
 
             //pManager.AddIntegerParameter("Hour", "H", "Hour", GH_ParamAccess.item, 12);
             //pManager.AddGenericParameter("T", "T", "T", GH_ParamAccess.item);
@@ -42,7 +42,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("AnalysisSystem", "AS", "AS", GH_ParamAccess.tree);
+            pManager.AddGenericParameter("AnalysisSystem", "AS", "AnalysisSystem", GH_ParamAccess.tree);
 
             //pManager.AddMeshParameter("Meshes", "M", "Analysis meshes", GH_ParamAccess.list);
         }
@@ -77,15 +77,15 @@ namespace Eddy.Components.Radiation
         /// <summary>
         /// Provides an Icon for the component.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
-                //You can add image files to your project resources and access them like this:
-                // return Resources.IconForThisComponent;
-                return Resources.Eddy_stability;
-            }
-        }
+        //protected override System.Drawing.Bitmap Icon
+        //{
+        //    get
+        //    {
+        //        //You can add image files to your project resources and access them like this:
+        //        // return Resources.IconForThisComponent;
+        //        return Resources.Eddy_stability;
+        //    }
+        //}
 
         /// <summary>
         /// Gets the unique ID for this component. Do not change this ID after release.

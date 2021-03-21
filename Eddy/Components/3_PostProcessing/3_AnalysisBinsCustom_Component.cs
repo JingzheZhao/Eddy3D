@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Eddy.Components.Radiation
 {
-    public class AnalysisBins_Component : GH_Component
+    public class AnalysisBinsCustom_Component : GH_Component
     {
         public override GH_Exposure Exposure
         {
@@ -19,7 +19,7 @@ namespace Eddy.Components.Radiation
         /// <summary>
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
-        public AnalysisBins_Component()
+        public AnalysisBinsCustom_Component()
           : base("Analysis Bins Custom", "ABC", "ABC" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
 
         {
@@ -30,10 +30,10 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("From", "F", "F", GH_ParamAccess.item);
+            pManager.AddGenericParameter("From", "F", "From DateTime Object", GH_ParamAccess.item);
 
             //pManager.AddIntegerParameter("Hour", "H", "Hour", GH_ParamAccess.item, 12);
-            pManager.AddGenericParameter("To", "T", "T", GH_ParamAccess.item);
+            pManager.AddGenericParameter("To", "T", "To DateTime Object", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -72,15 +72,15 @@ namespace Eddy.Components.Radiation
         /// <summary>
         /// Provides an Icon for the component.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
-                //You can add image files to your project resources and access them like this:
-                // return Resources.IconForThisComponent;
-                return Resources.Eddy_stability;
-            }
-        }
+        //protected override System.Drawing.Bitmap Icon
+        //{
+        //    get
+        //    {
+        //        //You can add image files to your project resources and access them like this:
+        //        // return Resources.IconForThisComponent;
+        //        return Resources.Eddy_stability;
+        //    }
+        //}
 
         /// <summary>
         /// Gets the unique ID for this component. Do not change this ID after release.
