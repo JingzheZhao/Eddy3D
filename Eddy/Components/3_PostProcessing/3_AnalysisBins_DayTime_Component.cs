@@ -21,7 +21,16 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
         public AnalysisBins_DayTime_Component()
-         : base("Analysis Bins Day Time", "ABDayTime", "ABDayTime" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
+         : base("Analysis Bins Day Time", "ABDayTime", @"Analysis Bins Day Time
+
+Morning,    // 12pm - 6am
+Breakfast,  // 7am - 11am
+Lunch,      // 12am - 3pm
+Afternoon,  // 4pm - 5pm
+Dinner,     // 6pm - 9pm
+Nightlife   // 10pm - 12pm
+
+" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
 
         {
         }
@@ -31,11 +40,11 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("ABSeason", "AB", "AB", GH_ParamAccess.item);
+            pManager.AddGenericParameter("ABSeason", "AB", "ABSeason", GH_ParamAccess.item);
 
             pManager[0].Optional = true;
 
-            pManager.AddIntegerParameter("DayTime", "DT", "DT", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("DayTime", "DT", "DayTime", GH_ParamAccess.item, 0);
 
             //Using an enum to generate the dropdown items
             var types = Enum.GetNames(typeof(DayTime.DayTimeE));
@@ -52,7 +61,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("AB", "AB", "AB", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Analysis Bins", "AB", "Analysis Bins", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -88,15 +97,15 @@ namespace Eddy.Components.Radiation
         /// <summary>
         /// Provides an Icon for the component.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
-                //You can add image files to your project resources and access them like this:
-                // return Resources.IconForThisComponent;
-                return Resources.Eddy_stability;
-            }
-        }
+        //protected override System.Drawing.Bitmap Icon
+        //{
+        //    get
+        //    {
+        //        //You can add image files to your project resources and access them like this:
+        //        // return Resources.IconForThisComponent;
+        //        return Resources.Eddy_stability;
+        //    }
+        //}
 
         /// <summary>
         /// Gets the unique ID for this component. Do not change this ID after release.
