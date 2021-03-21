@@ -175,6 +175,36 @@
   <data name="Eddy_flow" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_flow.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="Eddy_Indoor_Domain" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_Indoor_Domain.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_Indoor_Domain_Param" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_Indoor_Domain_Param.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_Indoor_Emitter" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_Indoor_Emitter.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_Indoor_Emitter_Param" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_Indoor_Emitter_Param.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_Indoor_Geometry" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_Indoor_Geometry.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_Indoor_Geometry_Param" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_Indoor_Geometry_Param.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_Indoor_Inlet" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_Indoor_Inlet.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_Indoor_Inlet_Param" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_Indoor_Inlet_Param.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_Indoor_Outlet" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_Indoor_Outlet.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_Indoor_Outlet_copy" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_Indoor_Outlet copy.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="Eddy_mesh" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_mesh.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -231,6 +261,9 @@
   </data>
   <data name="Eddy_Sensor" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_Sensor.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_SensorFromMesh" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_SensorFromMesh.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="Eddy_Sensor_Inspect" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_Sensor_Inspect.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
