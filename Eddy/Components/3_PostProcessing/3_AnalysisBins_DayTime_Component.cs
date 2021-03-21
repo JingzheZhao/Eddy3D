@@ -2,6 +2,7 @@
 using EddyLib;
 using EddyLib.Radiation;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Parameters;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -9,7 +10,7 @@ using System.Linq;
 
 namespace Eddy.Components.Radiation
 {
-    public class TimeDifference_Component : GH_Component
+    public class AnalysisBins_DayTime_Component : GH_Component
     {
         public override GH_Exposure Exposure
         {
@@ -19,8 +20,8 @@ namespace Eddy.Components.Radiation
         /// <summary>
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
-        public TimeDifference_Component()
-          : base("TimeDifference", "TD", "TD" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
+        public AnalysisBins_DayTime_Component()
+         : base("AnalysisBinsDayTime", "ABDayTime", "ABDayTime" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
 
         {
         }
@@ -30,10 +31,20 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("From", "F", "F", GH_ParamAccess.item);
+            pManager.AddGenericParameter("ABSeason", "AB", "AB", GH_ParamAccess.item);
 
-            //pManager.AddIntegerParameter("Hour", "H", "Hour", GH_ParamAccess.item, 12);
-            pManager.AddGenericParameter("To", "T", "T", GH_ParamAccess.item);
+            pManager[0].Optional = true;
+
+            pManager.AddIntegerParameter("DayTime", "DT", "DT", GH_ParamAccess.item, 0);
+
+            //Using an enum to generate the dropdown items
+            var types = Enum.GetNames(typeof(DayTime.DayTimeE));
+            Param_Integer param = pManager[1] as Param_Integer;
+
+            for (int i = 0; i < types.Length; i++)
+            {
+                param.AddNamedValue(types[i], i);
+            }
         }
 
         /// <summary>
@@ -41,9 +52,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("TimeDifference", "TD", "TD", GH_ParamAccess.item);
-
-            //pManager.AddMeshParameter("Meshes", "M", "Analysis meshes", GH_ParamAccess.list);
+            pManager.AddGenericParameter("AB", "AB", "AB", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -52,21 +61,28 @@ namespace Eddy.Components.Radiation
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            DateTime dt1 = new DateTime();
-            DateTime dt2 = new DateTime();
+            AnalysisBins ABPrevious = null;
+            DA.GetData(0, ref ABPrevious);
 
-            DA.GetData(0, ref dt1);
-            DA.GetData(1, ref dt2);
+            int DTE = 0;
+            DA.GetData(1, ref DTE);
 
-            TimeDiff TD = new TimeDiff(dt2, dt1);
+            var UserDayTime = new DayTime((DayTime.DayTimeE)DTE);
 
-            if (dt2 < dt1)
+            DateTime dt1 = new DateTime(2021, 1, 1, UserDayTime.HourBegin, 0, 0);
+            DateTime dt2 = new DateTime(2021, 12, 31, UserDayTime.HourEnd, 0, 0);
+
+            AnalysisBins ABNew = new AnalysisBins(dt2, dt1, UserDayTime.dayTimeE);
+
+            if (ABPrevious != null)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "'To' Date is before 'From' Date.");
-                return;
+                AnalysisBins ABResult = new AnalysisBins(ABPrevious, ABNew);
+                DA.SetData(0, ABResult);
             }
-
-            DA.SetData(0, TD);
+            else
+            {
+                DA.SetData(0, ABNew);
+            }
         }
 
         /// <summary>
@@ -87,7 +103,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("{3EBF6D3D-8FD3-4614-B78B-CE2E819F36DF}"); }
+            get { return new Guid("{6EE1CAC2-856F-4E28-A298-28985884A523}"); }
         }
     }
 }

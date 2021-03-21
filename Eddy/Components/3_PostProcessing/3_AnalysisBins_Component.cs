@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Eddy.Components.Radiation
 {
-    public class TimeDifference_Sping_Component : GH_Component
+    public class AnalysisBins_Component : GH_Component
     {
         public override GH_Exposure Exposure
         {
@@ -19,8 +19,8 @@ namespace Eddy.Components.Radiation
         /// <summary>
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
-        public TimeDifference_Sping_Component()
-         : base("TimeDifferenceSpring", "TDSpring", "TDSpring" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
+        public AnalysisBins_Component()
+          : base("AnalysisBinsCustom", "ABC", "ABC" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
 
         {
         }
@@ -30,6 +30,10 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
+            pManager.AddGenericParameter("From", "F", "F", GH_ParamAccess.item);
+
+            //pManager.AddIntegerParameter("Hour", "H", "Hour", GH_ParamAccess.item, 12);
+            pManager.AddGenericParameter("To", "T", "T", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -37,7 +41,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("TimeDifference", "TD", "TD", GH_ParamAccess.item);
+            pManager.AddGenericParameter("AB", "AB", "AB", GH_ParamAccess.item);
 
             //pManager.AddMeshParameter("Meshes", "M", "Analysis meshes", GH_ParamAccess.list);
         }
@@ -48,12 +52,21 @@ namespace Eddy.Components.Radiation
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            DateTime dt1 = new DateTime(2021, 3, 1);
-            DateTime dt2 = new DateTime(2021, 6, 1);
+            DateTime dt1 = new DateTime();
+            DateTime dt2 = new DateTime();
 
-            TimeDiff TS = new TimeDiff(dt2, dt1);
+            DA.GetData(0, ref dt1);
+            DA.GetData(1, ref dt2);
 
-            DA.SetData(0, TS);
+            AnalysisBins TD = new AnalysisBins(dt2, dt1);
+
+            if (dt2 < dt1)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "'To' Date is before 'From' Date.");
+                return;
+            }
+
+            DA.SetData(0, TD);
         }
 
         /// <summary>
@@ -74,7 +87,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("{499DF5C0-1C48-4459-97A7-A28100140052}"); }
+            get { return new Guid("{3EBF6D3D-8FD3-4614-B78B-CE2E819F36DF}"); }
         }
     }
 }
