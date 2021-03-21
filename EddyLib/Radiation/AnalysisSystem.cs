@@ -81,13 +81,18 @@ public class Season
     public int MonthBegin { get; set; }
     public int MonthEnd { get; set; }
 
+    public int DayBegin { get; set; }
+    public int DayEnd { get; set; }
+
     public SeasonE season { get; set; }
 
     public Season(SeasonE S)
     {
+        this.DayBegin = 1;
         switch (S)
         {
             case SeasonE.Spring:
+                this.DayEnd = 31;
                 this.MonthBegin = 3;
                 this.MonthEnd = 5;
                 this.YearBegin = 2021;
@@ -96,6 +101,7 @@ public class Season
                 break;
 
             case SeasonE.Summer:
+                this.DayEnd = 31;
                 this.MonthBegin = 6;
                 this.MonthEnd = 8;
                 this.YearBegin = 2021;
@@ -103,6 +109,7 @@ public class Season
                 break;
 
             case SeasonE.Fall:
+                this.DayEnd = 30;
                 this.MonthBegin = 9;
                 this.MonthEnd = 11;
                 this.YearBegin = 2021;
@@ -110,6 +117,7 @@ public class Season
                 break;
 
             case SeasonE.Winter:
+                this.DayEnd = 28;
                 this.MonthBegin = 12;
                 this.MonthEnd = 2;
                 this.YearBegin = 2021;
