@@ -254,7 +254,7 @@ namespace Eddy.Components.Radiation
 
             if (ComfortSystem == null) return;
             DA.SetData(0, ComfortSystem);
-            DA.SetData(1, ComfortSystem.BaseWorkingDir + @"\" + ComfortSystem.ProjectName + ".utci.eddy");
+            DA.SetData(1, ComfortSystem.BaseWorkingDir + @"\UTCI.eddy");
         }
 
         /// <summary>
@@ -400,7 +400,7 @@ namespace Eddy.Components.Radiation
 
 
 
-            ComfortSystem = new ComfortSystem(resultProto_MRT.ProjectName, resultProto_MRT.BaseWorkingDir, resultProto_MRT.Weather, resultProto_MRT.Probes, resultProto_MRT.Polys, "");
+            ComfortSystem = new ComfortSystem(  resultProto_MRT.BaseWorkingDir, resultProto_MRT.Weather, resultProto_MRT.Probes, resultProto_MRT.Polys, "");
 
 
 

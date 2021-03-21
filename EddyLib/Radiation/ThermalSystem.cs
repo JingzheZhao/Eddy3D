@@ -24,7 +24,7 @@ namespace EddyLib.Radiation
         public double CummulativeViewFactorCutoff;
 
 
-        public string ProjectName = "";
+        public string ProjectName = "EddySim";
         public string BaseWorkingDir = "";
         public Weather Weather;
 
@@ -38,10 +38,9 @@ namespace EddyLib.Radiation
         public Mesh UnifiedMeshLowPolyNoSky;
 
 
-        public ThermalSystem(string filename, string baseWorkingDir, Weather weather, List<RProbe> probes, List<RPolygon> polys, Mesh lowPoly, double vf_cutoff = 0.05)
+        public ThermalSystem(  string baseWorkingDir, Weather weather, List<RProbe> probes, List<RPolygon> polys, Mesh lowPoly, double vf_cutoff = 0.05)
         {
-            ProjectName = filename;
-            BaseWorkingDir = baseWorkingDir;
+             BaseWorkingDir = baseWorkingDir;
             Weather = weather;
             Probes = probes;
             Polys = polys;
@@ -462,9 +461,9 @@ namespace EddyLib.Radiation
             Stopwatch sp = new Stopwatch();
             sp.Start();
 
-            var protoResult = new MRT_Simulation_ResultProto(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
+            var protoResult = new MRT_Simulation_ResultProto(  this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
 
-            protoResult.WriteToFile(this.BaseWorkingDir + @"\" + this.ProjectName + ".mrt.eddy");
+            protoResult.WriteToFile(this.BaseWorkingDir + @"\MRT.eddy");
 
             Debug.WriteLine("Results Proto: " + sp.ElapsedMilliseconds);
 

@@ -27,8 +27,7 @@ namespace EddyLib.Radiation
         private double steps = 52 + 2;
         private double stepCnt = 0;
 
-        public string ProjectName = "";
-        public string BaseWorkingDir = "";
+         public string BaseWorkingDir = "";
         public Weather Weather;
 
         public List<RProbe> Probes;
@@ -37,10 +36,9 @@ namespace EddyLib.Radiation
         public string CFDDataPath = "";
 
 
-        public ComfortSystem(string filename, string baseWorkingDir, Weather weather, List<RProbe> probes, List<RPolygon> polys, string cfdpath)
+        public ComfortSystem(  string baseWorkingDir, Weather weather, List<RProbe> probes, List<RPolygon> polys, string cfdpath)
         {
-            ProjectName = filename;
-            BaseWorkingDir = baseWorkingDir;
+             BaseWorkingDir = baseWorkingDir;
             Weather = weather;
             Probes = probes;
             Polys = polys;
@@ -240,9 +238,9 @@ namespace EddyLib.Radiation
 
             var prep = PrepareProtoBufSingleton.Instance;
 
-            var protoResult = new MRT_Simulation_ResultProto(this.ProjectName, this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
+            var protoResult = new MRT_Simulation_ResultProto(  this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
 
-            protoResult.WriteToFile(this.BaseWorkingDir + @"\" + this.ProjectName + ".utci.eddy");
+            protoResult.WriteToFile(this.BaseWorkingDir + @"\UTCI.eddy");
 
             Console.WriteLine("Results written");
             Interlocked.Increment(ref stepCnt);
