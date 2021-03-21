@@ -25,6 +25,8 @@ namespace Eddy.Components.Radiation
         {
             pManager.AddPointParameter("Point", "Pt", "Sensor node", GH_ParamAccess.item, Point3d.Origin);
             pManager.AddVectorParameter("Normal", "V", "Sensor normal", GH_ParamAccess.item, Vector3d.ZAxis);
+            pManager.AddMeshParameter("Mesh", "M", "Mesh geometry for previews", GH_ParamAccess.item);
+            pManager[2].Optional = true;
         }
 
         /// <summary>
@@ -43,11 +45,15 @@ namespace Eddy.Components.Radiation
         {
             Point3d pt = Point3d.Origin;
             Vector3d vec = Vector3d.ZAxis;
+            Mesh m = null;
 
             DA.GetData(0, ref pt);
             DA.GetData(1, ref vec);
+            DA.GetData(2, ref m);
 
             EddyProbe rp = new EddyProbe(pt, vec);
+
+            if (m != null) rp = new EddyProbe(pt, vec, m);
 
             DA.SetData(0, rp);
         }
