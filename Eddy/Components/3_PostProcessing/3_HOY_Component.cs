@@ -1,16 +1,16 @@
 ﻿using Eddy.Properties;
 using EddyLib;
-using Grasshopper;
+using EddyLib.Radiation;
 using Grasshopper.Kernel;
-using Grasshopper.Kernel.Data;
-using Grasshopper.Kernel.Types;
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using DateTimeExtensions;
 
 namespace Eddy.Components.Radiation
 {
-    public class AnalysisSystem_Component : GH_Component
+    public class HOY_Component : GH_Component
     {
         public override GH_Exposure Exposure
         {
@@ -20,8 +20,8 @@ namespace Eddy.Components.Radiation
         /// <summary>
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
-        public AnalysisSystem_Component()
-          : base("AnalysisSystem", "AS", "AS" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
+        public HOY_Component()
+          : base("HOY", "HOY", "HOY" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
 
         {
         }
@@ -31,10 +31,9 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("AnalysisBins", "AB", "AB", GH_ParamAccess.list);
-
-            //pManager.AddIntegerParameter("Hour", "H", "Hour", GH_ParamAccess.item, 12);
-            //pManager.AddGenericParameter("T", "T", "T", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("M", "M", "M", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("D", "D", "D", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("H", "H", "H", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -42,7 +41,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("AnalysisSystem", "AS", "AS", GH_ParamAccess.tree);
+            pManager.AddGenericParameter("HOY", "HOY", "HOY", GH_ParamAccess.item);
 
             //pManager.AddMeshParameter("Meshes", "M", "Analysis meshes", GH_ParamAccess.list);
         }
@@ -53,25 +52,17 @@ namespace Eddy.Components.Radiation
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            var ABs = new List<AnalysisBins>();
+            int m = 1;
+            int d = 1;
+            int h = 1;
 
-            DA.GetDataList(0, ABs);
+            DA.GetData(0, ref m);
+            DA.GetData(1, ref d);
+            DA.GetData(2, ref h);
 
-            AnalysisSystem AS = new AnalysisSystem(ABs);
+            var dt = new DateTime(m, d, h);
 
-            var hours = AS.AnalysisHourBins;
-
-            GH_Structure<GH_Number> AS_Tree = new GH_Structure<GH_Number>();
-
-            for (int i = 0; i < hours.GetLength(0); i++)
-            {
-                for (int j = 0; j < hours[i].GetLength(0); j++)
-                {
-                    AS_Tree.Append(new GH_Number(hours[i][j]), new GH_Path(i));
-                }
-            }
-
-            DA.SetDataTree(0, AS_Tree);
+            DA.SetData(0, dt.HOY());
         }
 
         /// <summary>
@@ -92,7 +83,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("{C42B171D-96CA-4275-BE2C-F11AD25226B7}"); }
+            get { return new Guid("{D5234126-347B-456F-8C9C-93B4CAB6ED1D}"); }
         }
     }
 }

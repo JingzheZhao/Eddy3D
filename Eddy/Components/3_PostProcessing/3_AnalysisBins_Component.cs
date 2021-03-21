@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Eddy.Components.Radiation
 {
-    public class TimeDifference_Component : GH_Component
+    public class AnalysisBins_Component : GH_Component
     {
         public override GH_Exposure Exposure
         {
@@ -19,8 +19,8 @@ namespace Eddy.Components.Radiation
         /// <summary>
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
-        public TimeDifference_Component()
-          : base("TimeDifference", "TD", "TD" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
+        public AnalysisBins_Component()
+          : base("AnalysisBinsCustom", "ABC", "ABC" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
 
         {
         }
@@ -41,7 +41,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("TimeDifference", "TD", "TD", GH_ParamAccess.item);
+            pManager.AddGenericParameter("AB", "AB", "AB", GH_ParamAccess.item);
 
             //pManager.AddMeshParameter("Meshes", "M", "Analysis meshes", GH_ParamAccess.list);
         }
@@ -58,7 +58,7 @@ namespace Eddy.Components.Radiation
             DA.GetData(0, ref dt1);
             DA.GetData(1, ref dt2);
 
-            TimeDiff TD = new TimeDiff(dt2, dt1);
+            AnalysisBins TD = new AnalysisBins(dt2, dt1);
 
             if (dt2 < dt1)
             {

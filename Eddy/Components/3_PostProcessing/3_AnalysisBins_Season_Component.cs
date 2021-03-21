@@ -1,27 +1,27 @@
 ﻿using Eddy.Properties;
 using EddyLib;
-using Grasshopper;
+using EddyLib.Radiation;
 using Grasshopper.Kernel;
-using Grasshopper.Kernel.Data;
-using Grasshopper.Kernel.Types;
+using Grasshopper.Kernel.Parameters;
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace Eddy.Components.Radiation
 {
-    public class AnalysisSystem_Component : GH_Component
+    public class AnalysisBins_Season_Component : GH_Component
     {
         public override GH_Exposure Exposure
         {
-            get { return GH_Exposure.hidden; }
+            get { return GH_Exposure.tertiary; }
         }
 
         /// <summary>
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
-        public AnalysisSystem_Component()
-          : base("AnalysisSystem", "AS", "AS" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
+        public AnalysisBins_Season_Component()
+         : base("AnalysisBinsSeason", "ABSeason", "ABSeason" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
 
         {
         }
@@ -31,10 +31,16 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("AnalysisBins", "AB", "AB", GH_ParamAccess.list);
+            pManager.AddIntegerParameter("Season", "S", "S", GH_ParamAccess.item, 0);
 
-            //pManager.AddIntegerParameter("Hour", "H", "Hour", GH_ParamAccess.item, 12);
-            //pManager.AddGenericParameter("T", "T", "T", GH_ParamAccess.item);
+            //Using an enum to generate the dropdown items
+            var types = Enum.GetNames(typeof(Season.SeasonE));
+            Param_Integer param = pManager[0] as Param_Integer;
+
+            for (int i = 0; i < types.Length; i++)
+            {
+                param.AddNamedValue(types[i], i);
+            }
         }
 
         /// <summary>
@@ -42,9 +48,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("AnalysisSystem", "AS", "AS", GH_ParamAccess.tree);
-
-            //pManager.AddMeshParameter("Meshes", "M", "Analysis meshes", GH_ParamAccess.list);
+            pManager.AddGenericParameter("AB", "AB", "AB", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -53,25 +57,17 @@ namespace Eddy.Components.Radiation
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            var ABs = new List<AnalysisBins>();
+            int S = 0;
+            DA.GetData(0, ref S);
 
-            DA.GetDataList(0, ABs);
+            var UserSeason = new Season((Season.SeasonE)S);
 
-            AnalysisSystem AS = new AnalysisSystem(ABs);
+            DateTime dt1 = new DateTime(UserSeason.YearBegin, UserSeason.MonthBegin, 1);
+            DateTime dt2 = new DateTime(UserSeason.YearEnd, UserSeason.MonthEnd, 1);
 
-            var hours = AS.AnalysisHourBins;
+            AnalysisBins TS = new AnalysisBins(dt2, dt1);
 
-            GH_Structure<GH_Number> AS_Tree = new GH_Structure<GH_Number>();
-
-            for (int i = 0; i < hours.GetLength(0); i++)
-            {
-                for (int j = 0; j < hours[i].GetLength(0); j++)
-                {
-                    AS_Tree.Append(new GH_Number(hours[i][j]), new GH_Path(i));
-                }
-            }
-
-            DA.SetDataTree(0, AS_Tree);
+            DA.SetData(0, TS);
         }
 
         /// <summary>
@@ -92,7 +88,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("{C42B171D-96CA-4275-BE2C-F11AD25226B7}"); }
+            get { return new Guid("{202B2EAD-3D2D-490C-B122-D0D4CD503371}"); }
         }
     }
 }
