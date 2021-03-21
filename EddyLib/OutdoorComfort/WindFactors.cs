@@ -334,7 +334,7 @@ namespace EddyLib.OutdoorComfort
 
             // Create lookup table with plain vector magnitudes
 
-            Console.WriteLine("Calculating: Wind reduction factors");
+           // Console.WriteLine("Calculating: Wind reduction factors");
 
             for (int h = 0; h < numberOfHours; h++)
             {

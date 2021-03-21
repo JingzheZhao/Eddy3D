@@ -264,15 +264,8 @@ namespace Eddy.Components.Radiation
                         else meshes.Add(null);
                         data.Add(p.TemperatureOverride[h]);
                     }
-                    //else { data.Add(float.NaN); }
                 }
-                else if (metric == RPolyMetric.VFtoPolys)
-                {
-                    if (p.Centroid != null) points.Add(p.Centroid.Value);
-                    if (p.Mesh != null) meshes.Add(p.Mesh.Value);
-                    else meshes.Add(null);
-                    data.Add((float)p.VFtoPolys[h]);
-                }
+
                 else if (metric == RPolyMetric.SeenByProbes)
                 {
                     if (p.Centroid != null) points.Add(p.Centroid.Value);

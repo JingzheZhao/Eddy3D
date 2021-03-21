@@ -363,7 +363,9 @@ namespace Eddy
                 }
             }
 
-            string resultFilePath = RES.WorkingDirectory + "/" + "wind.eddy";
+            DirectoryInfo parentDir = Directory.GetParent(RES.WorkingDirectory.EndsWith("\\") ? RES.WorkingDirectory : string.Concat(RES.WorkingDirectory, "\\"));
+
+             string resultFilePath = parentDir + @"\Result.wind.eddy";
 
             WProbeResultProto res = new WProbeResultProto("probes", RES.WorkingDirectory, WProbes);
             res.WriteToFile(resultFilePath);

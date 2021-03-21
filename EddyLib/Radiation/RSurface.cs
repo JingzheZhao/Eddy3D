@@ -127,6 +127,28 @@ namespace EddyLib.Radiation
             Type = type;
             SimulationType = simtype;
 
+            //// simple mesh for rad sim and obstruction calculation
+            //MeshingParameters mp_low = new MeshingParameters();
+            //LowPoly = new Mesh();
+            //foreach (var m in Mesh.CreateFromBrep(b, mp_low))
+            //{
+            //    LowPoly.Append(m);
+            //}
+
+
+            //// fine subdivisions for viewfactor analysis
+            //MeshingParameters mp_high = new MeshingParameters();
+            //mp_high.MinimumEdgeLength = patchSize;
+            //mp_high.MaximumEdgeLength = patchSize;
+
+            //HighPoly = new Mesh();
+            //foreach (var m in Mesh.CreateFromBrep(b, mp_high))
+            //{
+            //    HighPoly.Append(m);
+            //}
+
+          
+
             // simple mesh for rad sim and obstruction calculation
             MeshingParameters mp_low = new MeshingParameters();
             LowPoly = new Mesh();
@@ -137,16 +159,16 @@ namespace EddyLib.Radiation
 
 
             // fine subdivisions for viewfactor analysis
-            MeshingParameters mp_high = new MeshingParameters();
-            mp_high.MinimumEdgeLength = patchSize;
-            mp_high.MaximumEdgeLength = patchSize;
+            var area = b.GetArea();
 
-            HighPoly = new Mesh();
-            foreach (var m in Mesh.CreateFromBrep(b, mp_high))
-            {
-                HighPoly.Append(m);
-            }
+            QuadRemeshParameters qparam = new QuadRemeshParameters();
+            qparam.AdaptiveQuadCount = false;
+            qparam.AdaptiveSize = 0;
+            qparam.DetectHardEdges = true;
+            
+            qparam.TargetQuadCount = (int)(area / ( patchSize * patchSize) );
 
+            HighPoly = Mesh.QuadRemeshBrep(b, qparam);
 
             MakePolys();
         }
