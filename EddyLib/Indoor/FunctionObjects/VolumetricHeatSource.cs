@@ -14,13 +14,13 @@ namespace EddyLib.Indoor.FunctionObjects
         public VolumetricHeatSource(Mesh Geometry, int volumeType, double Power, string Name)
         {
             this.volumeType = (VolumeType)volumeType;
-            this.Name = "volumetricHeatSource";
+            this.Name = Name;
             this.Geometry = Geometry;
 
-            if (Name == "")
-            {
-                this.cellZone = "volumetricHeatSource";
-            }
+            //if (String.IsNullOrWhiteSpace(Name))
+            //{
+            //    this.cellZone = "volumetricHeatSource";
+            //}
 
             this.Power = Power;
         }

@@ -9,16 +9,23 @@ namespace EddyLib.Indoor.Dicts
     public class FunctionObjectDict : GenericDict
 
     {
-        public new string DictionaryName;
-        public new DictLocation Location = DictLocation.system;
-        public new readonly FieldClass FC = FieldClass.dictionary;
+       
+        //GOAL: REMOVE FUNCTION OBJECT DICT
+        
+        //public new string DictionaryName; 
+
+       // public new DictLocation Location = DictLocation.system;
+        //public new readonly FieldClass FC = FieldClass.dictionary;
 
 
 
-        public FunctionObjectDict(List<FunctionObjectDictInternal> InternalDicts, string Name )
+        public FunctionObjectDict(List<TopoSetSubDict> InternalDicts, string Name )
         {
             this.Header = GetHeader(this);
             this.DictionaryName = Name;
+
+            Location = DictLocation.system;
+            FC = FieldClass.dictionary;
 
             string[] parts = {
                this.Header, "\n",

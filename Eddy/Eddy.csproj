@@ -74,13 +74,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\FunctionObjects\CompTree.cs" />
+    <Compile Include="Components\Indoor\FunctionObjects\MomentumSink_Component.cs" />
     <Compile Include="Components\Indoor\FunctionObjects\ViralEmitter_Component.cs" />
     <Compile Include="Components\Indoor\FunctionObjects\MomentumSource_Component.cs" />
     <Compile Include="Components\Indoor\Params\Param_FObj.cs" />
     <Compile Include="Components\Indoor\Params\Param_FObj_MomentumSource.cs" />
     <Compile Include="Components\Indoor\Params\Param_FObj_VolumentricHeatSource.cs" />
     <Compile Include="Components\Indoor\Params\Param_FObj_MomentumSink.cs" />
-    <Compile Include="Components\Indoor\FunctionObjects\MomentumSink_Component.cs" />
+    <Compile Include="Components\FunctionObjects\MomentumSinkOutdoor_Component.cs" />
     <Compile Include="Components\Indoor\FunctionObjects\VolumetricHeatSource_Component.cs" />
     <Compile Include="Components\Indoor\FunctionObjects\CO2Emitter_Component.cs" />
     <Compile Include="Components\Indoor\IndoorSimulation_Component.cs" />

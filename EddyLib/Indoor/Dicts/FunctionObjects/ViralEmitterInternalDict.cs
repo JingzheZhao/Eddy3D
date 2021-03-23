@@ -7,15 +7,32 @@ using System.Threading.Tasks;
 
 namespace EddyLib.Indoor.Dicts
 {
-    class ViralEmitterInternalDict : FunctionObjectDictInternal
+    class ViralEmitterInternalDict : GenericDict
     {
-        public ViralEmitterInternalDict(ViralEmitter VEm, Point3d PointInsideDomain)
+
+        public List<String> InternalDict = new List<string>();
+
+        public ViralEmitterInternalDict(ViralEmitter viralEm, Point3d PointInsideDomain)
         {
-            this.TopoSetDictString = CppMapSerializerDyn.Serialize(GetInternalTopoSetDict((FunctionObject)VEm, PointInsideDomain));
-            this.FvOptionsDictString = CppMapSerializerDyn.Serialize(GetInternalC02Dict(VEm));
+            this.DictionaryName = "viralEmitter";
+            this.Location = DictLocation.system;
+            this.FC = FieldClass.dictionary;
+            this.Header = GetHeader(this);
+
+            this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalViralDict(viralEm)));
+
+            string[] parts = {
+               String.Join("\n", this.InternalDict.ToArray())
+            };
+
+            this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
+
+
+            //this.TopoSetDictString = CppMapSerializerDyn.Serialize(GetInternalTopoSetDict((FunctionObject)VEm, PointInsideDomain));
+            //this.FunctionObjectSubDictString = CppMapSerializerDyn.Serialize(GetInternalC02Dict(VEm));
         }
 
-        private static Dictionary<string, dynamic> GetInternalC02Dict(ViralEmitter input)
+        private static Dictionary<string, dynamic> GetInternalViralDict(ViralEmitter input)
         {
             Dictionary<string, dynamic> Dict1 = new Dictionary<string, dynamic>();
             Dictionary<string, dynamic> Dict2 = new Dictionary<string, dynamic>();
@@ -29,7 +46,7 @@ namespace EddyLib.Indoor.Dicts
             Dict2.Add("scalarSemiImplicitSourceCoeffs", Dict3);
 
             Dict3.Add("selectionMode", "cellZone");
-            Dict3.Add("cellZone", input.Name + "_" + input.ID);
+            Dict3.Add("cellZone", input.ID);
             Dict3.Add("volumeMode", "specific");
             Dict3.Add("injectionRateSuSp", Dict4);
 

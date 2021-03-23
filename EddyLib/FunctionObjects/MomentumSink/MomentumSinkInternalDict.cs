@@ -8,14 +8,31 @@ using Rhino.Geometry;
 
 namespace EddyLib.Indoor.Dicts
 {
-    public class MomentumSinkInternalDict : FunctionObjectDictInternal
+    public class MomentumSinkInternalDict : GenericDict
     {
-        public MomentumSinkInternalDict(MomentumSink MomSink, Point3d PointInsideDomain)
-        {
-            this.TopoSetDictString = CppMapSerializerDyn.Serialize(GetInternalTopoSetDict((FunctionObject)MomSink, PointInsideDomain));
-            this.FvOptionsDictString = CppMapSerializerDyn.Serialize(GetInternalFvOptionsDict(MomSink));
 
-          
+        public List<String> InternalDict = new List<string>();
+
+        public MomentumSinkInternalDict(MomentumSink momSink, Point3d PointInsideDomain)
+        {
+            this.DictionaryName = "momentumSink";
+            this.Location = DictLocation.system;
+            this.FC = FieldClass.dictionary;
+            this.Header = GetHeader(this);
+
+            this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalFvOptionsDict(momSink)));
+
+            string[] parts = {
+               String.Join("\n", this.InternalDict.ToArray())
+            };
+
+            this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
+
+
+            //this.TopoSetDictString = CppMapSerializerDyn.Serialize(GetInternalTopoSetDict((FunctionObject)MomSink, PointInsideDomain));
+            // this.FunctionObjectSubDictString = CppMapSerializerDyn.Serialize(GetInternalFvOptionsDict(MomSink));
+
+
         }
 
         public static Dictionary<string, dynamic> GetInternalFvOptionsDict(MomentumSink input)

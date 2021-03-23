@@ -18,7 +18,7 @@ namespace Eddy.Components.Indoor
         /// Initializes a new instance of the Emitter class.
         /// </summary>
         public MomentumSource_Component()
-          : base("Momentum Source", "MS", "Momentum Source" + EddyVersion.toString(), EddyVersion.Name, "9 | Indoor")
+          : base("Momentum Source", "MSource", "Momentum Source" + EddyVersion.toString(), EddyVersion.Name, "9 | Indoor")
         {
         }
 
@@ -52,7 +52,7 @@ Desired mean velocity.", GH_ParamAccess.item);
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            GeometryBase geo = null;
+            Mesh geo = null;
             if (!DA.GetData("Geo", ref geo)) { };
 
             Vector3d Ubar = new Vector3d(0, 0, 0);

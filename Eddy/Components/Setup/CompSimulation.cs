@@ -277,26 +277,26 @@ namespace Eddy
 
             #region Trees
 
-            var treeDict = new List<FunctionObjectDictInternal>();
+            var treeDict = new List<TopoSetSubDict>();
             var fvOptionsDict = new FunctionObjectDict(treeDict,"fvOptions");
-            var topoSetDict = new TopoSetDict(treeDict, DOM.LocationInMesh);
+            //var topoSetDict = new TopoSetDict(treeDict, DOM.LocationInMesh);
 
             if (DOM.Trees.Count > 0)
 
             {
-                foreach (var tree in DOM.Trees)
-                {
-                    var tDict = new MomentumSinkInternalDict(tree, DOM.LocationInMesh);
-                    treeDict.Add(tDict);
-                }
+                //foreach (var tree in DOM.Trees)
+                //{
+                //    var tDict = new MomentumSinkInternalDictOutdoor(tree, DOM.LocationInMesh);
+                //    treeDict.Add(tDict);
+                //}
 
-                fvOptionsDict = new FunctionObjectDict(treeDict, "fvOptions");
-                topoSetDict = new TopoSetDict(treeDict, DOM.LocationInMesh);
+                //fvOptionsDict = new FunctionObjectDict(treeDict, "fvOptions");
+                //topoSetDict = new TopoSetDict(treeDict, DOM.LocationInMesh);
             }
             else
             {
                 fvOptionsDict.RemoveDict(baseWorkingDirectory);
-                topoSetDict.RemoveDict(baseWorkingDirectory);
+                //topoSetDict.RemoveDict(baseWorkingDirectory);
             }
 
             #endregion Trees

@@ -8,15 +8,31 @@ using System.Threading.Tasks;
 
 namespace EddyLib.Indoor.Dicts
 {
-    public class VolumetricHeatSourceInternalDict : FunctionObjectDictInternal
+    public class VolumetricHeatSourceInternalDict : GenericDict
     {
+
+        public List<String> InternalDict = new List<string>();
+
         public VolumetricHeatSourceInternalDict(VolumetricHeatSource VH, Point3d PointInsideDomain)
         {
-            this.TopoSetDictString = CppMapSerializerDyn.Serialize(GetInternalTopoSetDict((FunctionObject)VH, PointInsideDomain));
-            this.FvOptionsDictString = CppMapSerializerDyn.Serialize(GetInternalFvOptionsDict(VH));
+            this.DictionaryName = "volumetricHeatSource";
+            this.Location = DictLocation.system;
+            this.FC = FieldClass.dictionary;
+            this.Header = GetHeader(this);
+
+            this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalVHSDict(VH)));
+
+            string[] parts = {
+               String.Join("\n", this.InternalDict.ToArray())
+            };
+
+            this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
+
+            //this.TopoSetDictString = CppMapSerializerDyn.Serialize(GetInternalTopoSetDict((FunctionObject)VH, PointInsideDomain));
+            //this.FunctionObjectSubDictString = CppMapSerializerDyn.Serialize(GetInternalFvOptionsDict(VH));
         }
 
-        private static Dictionary<string, dynamic> GetInternalFvOptionsDict(VolumetricHeatSource input)
+        private static Dictionary<string, dynamic> GetInternalVHSDict(VolumetricHeatSource input)
         {
             Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 
@@ -26,17 +42,23 @@ namespace EddyLib.Indoor.Dicts
 
             Dictionary<string, dynamic> injectionRateSuSpDict = new Dictionary<string, dynamic>();
 
-            Dict.Add(input.Name + "_" + input.Name, InternalDict);
+            Dict.Add(input.ID, InternalDict);
+
+            //Dict.Add(input.Name + "_" + input.Name, InternalDict);
 
             InternalDict.Add("type", "scalarSemiImplicitSource");
             InternalDict.Add("active", "on");
             InternalDict.Add("selectionMode", "cellZone");
-            InternalDict.Add("cellZone", input.cellZone + "_" + input.Name);
+            InternalDict.Add("cellZone", input.ID);
+
+            //InternalDict.Add("cellZone", input.cellZone + "_" + input.Name);
 
             InternalDict.Add("scalarSemiImplicitSourceCoeffs", scalarSemiImplicitSourceCoeffsDict);
 
             scalarSemiImplicitSourceCoeffsDict.Add("selectionMode", "cellZone");
-            scalarSemiImplicitSourceCoeffsDict.Add("cellZone", input.cellZone + "_" + input.Name);
+            scalarSemiImplicitSourceCoeffsDict.Add("cellZone", input.ID);
+            //scalarSemiImplicitSourceCoeffsDict.Add("cellZone", input.cellZone + "_" + input.Name);
+
             scalarSemiImplicitSourceCoeffsDict.Add("volumeMode", input.volumeType);
             scalarSemiImplicitSourceCoeffsDict.Add("injectionRateSuSp", injectionRateSuSpDict);
 

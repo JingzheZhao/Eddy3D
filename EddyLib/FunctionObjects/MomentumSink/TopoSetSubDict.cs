@@ -5,11 +5,14 @@ using System.IO;
 
 namespace EddyLib.Indoor.Dicts
 {
-    public class FunctionObjectDictInternal
+    public class TopoSetSubDict
 
     {
+
+        //SOULD BE REMOVED
+
         public string TopoSetDictString;
-        public string FvOptionsDictString;
+        public string FunctionObjectSubDictString;
 
         public static Dictionary<string, dynamic> GetInternalTopoSetDict(FunctionObject input, Point3d PointInsideDomain)
         {

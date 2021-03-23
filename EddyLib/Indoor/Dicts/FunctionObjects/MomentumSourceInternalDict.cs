@@ -8,12 +8,28 @@ using Rhino.Geometry;
 
 namespace EddyLib.Indoor.Dicts
 {
-    public class MomentumSourceInternalDict : FunctionObjectDictInternal
+    public class MomentumSourceInternalDict : GenericDict
     {
-        public MomentumSourceInternalDict(MomentumSource MomSource, Point3d PointInsideDomain)
+
+        public List<String> InternalDict = new List<string>();
+
+        public MomentumSourceInternalDict(MomentumSource momSource, Point3d PointInsideDomain)
         {
-            this.TopoSetDictString = CppMapSerializerDyn.Serialize(GetInternalTopoSetDict((FunctionObject)MomSource, PointInsideDomain));
-            this.FvOptionsDictString = CppMapSerializerDyn.Serialize(GetInternalFvOptionsDict(MomSource));
+            this.DictionaryName = "momentumSource";
+            this.Location = DictLocation.system;
+            this.FC = FieldClass.dictionary;
+            this.Header = GetHeader(this);
+
+            this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalFvOptionsDict(momSource)));
+
+            string[] parts = {
+               String.Join("\n", this.InternalDict.ToArray())
+            };
+
+            this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
+
+            //this.TopoSetDictString = CppMapSerializerDyn.Serialize(GetInternalTopoSetDict((FunctionObject)MomSource, PointInsideDomain));
+            //this.FunctionObjectSubDictString = CppMapSerializerDyn.Serialize(GetInternalFvOptionsDict(MomSource));
         }
 
         private static Dictionary<string, dynamic> GetInternalFvOptionsDict(MomentumSource input)
@@ -32,7 +48,7 @@ namespace EddyLib.Indoor.Dicts
             InternalDict.Add("meanVelocityForceCoeffs", meanVelocityForceCoeffs);
 
             meanVelocityForceCoeffs.Add("selectionMode", "cellZone");
-            meanVelocityForceCoeffs.Add("cellZone", input.ID + "_" + input.Name);
+            meanVelocityForceCoeffs.Add("cellZone", input.ID);
             meanVelocityForceCoeffs.Add("fields", "(U)");
             meanVelocityForceCoeffs.Add("Ubar", Utilities.FormatPV(input.Ubar));
             meanVelocityForceCoeffs.Add("relaxation", "1.0");

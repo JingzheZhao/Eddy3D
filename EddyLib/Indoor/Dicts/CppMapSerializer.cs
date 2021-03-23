@@ -121,6 +121,13 @@ namespace EddyLib.Indoor.Dicts
                 //{
                 //    DictToString(evl, ref sb);
                 //}
+
+
+               
+                //else if(evl.Key is String && evl.Value is List<string>)
+                //{
+                //    DictToStrings(evl.Key,evl.Value, ref sb);
+                //}
             }
 
             return sb.ToString();
@@ -251,5 +258,20 @@ namespace EddyLib.Indoor.Dicts
                 }
             }
         }
+
+        //private static void DictToStrings(string key, List<string> value, ref StringBuilder sb) 
+        //{
+
+        //    sb.AppendLine("\t" + key);
+
+        //    sb.AppendLine("\t" + "{");
+
+        //    foreach( String s in value) 
+        //    { sb.AppendLine("\t" + "\t" + s); }
+
+        //    sb.AppendLine("\t" + "\t" + "}");
+        //}
+
+
     }
 }

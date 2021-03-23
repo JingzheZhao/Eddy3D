@@ -9,13 +9,32 @@ using EddyLib.Indoor.FunctionObjects;
 
 namespace EddyLib.Indoor.Dicts
 {
-    public class CO2EmitterInternalDict : FunctionObjectDictInternal
+    public class CO2EmitterInternalDict : GenericDict
     {
+
+        public List<String> InternalDict = new List<string>();
 
         public CO2EmitterInternalDict(CO2Emitter co2Em, Point3d PointInsideDomain)
         {
-            this.TopoSetDictString = CppMapSerializerDyn.Serialize(GetInternalTopoSetDict((FunctionObject)co2Em, PointInsideDomain));
-            this.FvOptionsDictString = CppMapSerializerDyn.Serialize(GetInternalC02Dict(co2Em));
+
+            this.DictionaryName = "co2Emitter";
+            this.Location = DictLocation.system;
+            this.FC = FieldClass.dictionary;
+            this.Header = GetHeader(this);
+
+            this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalC02Dict(co2Em)));
+
+            string[] parts = {
+               String.Join("\n", this.InternalDict.ToArray())
+            };
+
+            this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
+
+
+
+
+            //this.TopoSetDictString = CppMapSerializerDyn.Serialize(GetInternalTopoSetDict((FunctionObject)co2Em, PointInsideDomain));
+            //this.FunctionObjectSubDictString = CppMapSerializerDyn.Serialize(GetInternalC02Dict(co2Em));
         }
 
         private static Dictionary<string, dynamic> GetInternalC02Dict(CO2Emitter input)
@@ -32,7 +51,7 @@ namespace EddyLib.Indoor.Dicts
             Dict2.Add("scalarSemiImplicitSourceCoeffs", Dict3);
 
             Dict3.Add("selectionMode", "cellZone");
-            Dict3.Add("cellZone", input.Name + "_" + input.ID);
+            Dict3.Add("cellZone", input.ID);
             Dict3.Add("volumeMode", "specific");
             Dict3.Add("injectionRateSuSp", Dict4);
 

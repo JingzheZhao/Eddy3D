@@ -121,9 +121,9 @@ namespace Eddy.Components.Indoor
                 {
                     FOs.Add((VolumetricHeatSource)gobj.Value);
                 }
-                else if ((gobj.Value is MomentumSink))
+                else if ((gobj.Value is MomentumSinkIndoor))
                 {
-                    FOs.Add((MomentumSink)gobj.Value);
+                    FOs.Add((MomentumSinkIndoor)gobj.Value);
                 }
                 else if ((gobj.Value is MomentumSource))
                 {

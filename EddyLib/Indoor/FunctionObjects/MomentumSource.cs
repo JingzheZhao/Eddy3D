@@ -19,9 +19,19 @@ namespace EddyLib.Indoor
 
         // only if selectionModel is cellZone
 
-        public MomentumSource(GeometryBase Geometries, Vector3d Ubar, string Name)
+        public MomentumSource(Mesh Geometry, Vector3d Ubar, string Name)
         {
+            this.Name = Name;
+            this.Geometry = Geometry;
+            this.Ubar = Ubar;
+
         }
+
+        //public MomentumSource(GeometryBase Geometries, Vector3d Ubar, string Name)
+        //{
+
+        //    this.Name = Name;
+        //}
 
         public MomentumSource()
         {
