@@ -74,6 +74,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\FunctionObjects\CompTree.cs" />
+    <Compile Include="Components\FunctionObjects\FunctionObjectDict.cs" />
     <Compile Include="Components\Indoor\FunctionObjects\MomentumSink_Component.cs" />
     <Compile Include="Components\Indoor\FunctionObjects\ViralEmitter_Component.cs" />
     <Compile Include="Components\Indoor\FunctionObjects\MomentumSource_Component.cs" />
