@@ -284,6 +284,24 @@
   <ItemGroup>
     <None Include="Resources\Eddy_Indoor_Outlet copy.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_VolumetricHeatSource.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_VHS.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor__Indoor_VHS.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor__Indoor_MomentumSink.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor__Indoor_ViralEmitter.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor__Indoor_CO2Emitter.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.

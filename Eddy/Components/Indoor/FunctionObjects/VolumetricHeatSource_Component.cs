@@ -79,7 +79,7 @@ namespace Eddy.Components.Indoor
             get
             {
                 //You can add image files to your project resources and access them like this:
-                return Resources.Eddy_Indoor_Emitter;
+                return Resources.Eddy_Indoor__Indoor_VHS;
             }
         }
 

@@ -199,6 +199,18 @@
   <data name="Eddy_Indoor_Outlet_copy" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_Indoor_Outlet copy.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="Eddy_Indoor__Indoor_CO2Emitter" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_Indoor__Indoor_CO2Emitter.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_Indoor__Indoor_MomentumSink" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_Indoor__Indoor_MomentumSink.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_Indoor__Indoor_VHS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_Indoor__Indoor_VHS.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_Indoor__Indoor_ViralEmitter" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_Indoor__Indoor_ViralEmitter.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="Eddy_mesh" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_mesh.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
