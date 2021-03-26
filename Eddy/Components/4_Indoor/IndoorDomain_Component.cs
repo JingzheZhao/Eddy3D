@@ -8,6 +8,7 @@ using EddyLib.Indoor;
 using EddyLib.Indoor.FunctionObjects;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
+using Medallion.Shell;
 using Rhino.Geometry;
 
 namespace Eddy.Components.Indoor
@@ -167,28 +168,57 @@ namespace Eddy.Components.Indoor
             DA.GetData(9, ref runSimulation);
             DA.GetData(10, ref runMeshing);
 
-            if (makeFOs == true )
+            if (makeFOs == true)
             {
-                //Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_make_trees.bat", taskComplete);
+
+                var makeFOCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_topoSet.bat" },
+                  options => options.WorkingDirectory(dom.WorkingDir));
+
             }
 
-            if (runMeshing == true && runSimulation == true )
+            if (runMeshing == true && runSimulation == true)
             {
+                var makeMeshCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_mesh.bat" },
+                options => options.WorkingDirectory(dom.WorkingDir));
+                makeMeshCommand.Wait();
+                if (!makeMeshCommand.Result.Success)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Mesh command failed with exit code {makeMeshCommand.Result.ExitCode}: {makeMeshCommand.Result.StandardError}");
+                    return;
+                }
 
-               
-               // Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_mesh.bat", taskComplete);
-                //Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_sim_all.bat", taskComplete);
 
+                var simulateCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_sim.bat" },
+                 options => options.WorkingDirectory(dom.WorkingDir));
+                simulateCommand.Wait();
+                if (!simulateCommand.Result.Success)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Simulation failed with exit code {simulateCommand.Result.ExitCode}: {simulateCommand.Result.StandardError}");
+                    return;
+                }
             }
             else if (runMeshing == true && runSimulation == false)
             {
-                
-                //Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_mesh.bat", taskComplete);
+                var makeMeshCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_mesh.bat" },
+options => options.WorkingDirectory(dom.WorkingDir));
+                //makeMeshCommand.Wait();
+                //if (!makeMeshCommand.Result.Success)
+                //{
+                //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Mesh command failed with exit code {makeMeshCommand.Result.ExitCode}: {makeMeshCommand.Result.StandardError}");
+                //    return;
+                //}
             }
-            else if (runMeshing == false && runSimulation == true )
+            else if (runMeshing == false && runSimulation == true)
             {
-                
-                //Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_sim_all.bat", taskComplete);
+
+                var simulateCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_sim.bat" },
+                                options => options.WorkingDirectory(dom.WorkingDir));
+                //simulateCommand.Wait();
+                //if (!simulateCommand.Result.Success)
+                //{
+                //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Simulation failed with exit code {simulateCommand.Result.ExitCode}: {simulateCommand.Result.StandardError}");
+                //    return;
+                //}
             }
 
             #endregion START PROCESSES
