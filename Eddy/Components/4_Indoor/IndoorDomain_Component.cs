@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Windows.Forms;
 using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
@@ -170,16 +171,15 @@ namespace Eddy.Components.Indoor
 
             if (makeFOs == true)
             {
-
                 var makeFOCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_topoSet.bat" },
-                  options => options.WorkingDirectory(dom.WorkingDir));
+                  options => options.WorkingDirectory(dom.WorkingDir).StartInfo(x => x.CreateNoWindow =false )) ;
 
             }
 
             if (runMeshing == true && runSimulation == true)
             {
                 var makeMeshCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_mesh.bat" },
-                options => options.WorkingDirectory(dom.WorkingDir));
+                options => options.WorkingDirectory(dom.WorkingDir).StartInfo(x => x.CreateNoWindow = false));
                 makeMeshCommand.Wait();
                 if (!makeMeshCommand.Result.Success)
                 {
@@ -189,7 +189,7 @@ namespace Eddy.Components.Indoor
 
 
                 var simulateCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_sim.bat" },
-                 options => options.WorkingDirectory(dom.WorkingDir));
+                 options => options.WorkingDirectory(dom.WorkingDir).StartInfo(x => x.CreateNoWindow = false));
                 simulateCommand.Wait();
                 if (!simulateCommand.Result.Success)
                 {
@@ -200,7 +200,7 @@ namespace Eddy.Components.Indoor
             else if (runMeshing == true && runSimulation == false)
             {
                 var makeMeshCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_mesh.bat" },
-options => options.WorkingDirectory(dom.WorkingDir));
+options => options.WorkingDirectory(dom.WorkingDir).StartInfo(x => x.CreateNoWindow = false));
                 //makeMeshCommand.Wait();
                 //if (!makeMeshCommand.Result.Success)
                 //{
