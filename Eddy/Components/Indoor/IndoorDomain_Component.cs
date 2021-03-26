@@ -47,6 +47,15 @@ namespace Eddy.Components.Indoor
             //7
             pManager.AddIntegerParameter("Iterations", "Iter", "Iterations for Simulation.", GH_ParamAccess.item, 1);
             pManager[7].Optional = true;
+
+            //8
+            pManager.AddBooleanParameter("Run Meshing", "RunMsh", "Run Meshing", GH_ParamAccess.item, false);
+
+            //9
+            pManager.AddBooleanParameter("Make FOS", "MakeFOS", "Create Function Objects", GH_ParamAccess.item, false);
+
+            //10
+            pManager.AddBooleanParameter("Run Simulation", "RunSim", "Run Simulation", GH_ParamAccess.item, false);
         }
 
         /// <summary>
@@ -146,6 +155,45 @@ namespace Eddy.Components.Indoor
 
             var dom = new IndoorDomain(endTime, dir, cellSize, pointInsideDomain, Walls, Inlets, Outlets, FOs);
             var domGoo = new IndoorDomaingGoo(dom);
+
+            //bool toggle
+            #region START PROCESSES
+
+            bool makeFOs = false;
+            bool runSimulation = false;
+            bool runMeshing = false;
+
+            DA.GetData(8, ref makeFOs);
+            DA.GetData(9, ref runSimulation);
+            DA.GetData(10, ref runMeshing);
+
+            if (makeFOs == true )
+            {
+                //Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_make_trees.bat", taskComplete);
+            }
+
+            if (runMeshing == true && runSimulation == true )
+            {
+
+               
+               // Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_mesh.bat", taskComplete);
+                //Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_sim_all.bat", taskComplete);
+
+            }
+            else if (runMeshing == true && runSimulation == false)
+            {
+                
+                //Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_mesh.bat", taskComplete);
+            }
+            else if (runMeshing == false && runSimulation == true )
+            {
+                
+                //Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_sim_all.bat", taskComplete);
+            }
+
+            #endregion START PROCESSES
+
+
             DA.SetData(0, domGoo);
         }
 
