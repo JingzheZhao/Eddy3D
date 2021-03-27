@@ -15,7 +15,7 @@ namespace EddyLib.Indoor.Dicts
 
         public VolumetricHeatSourceInternalDict(VolumetricHeatSource VH, Point3d PointInsideDomain)
         {
-            this.DictionaryName = "volumetricHeatSource";
+            this.DictionaryName = "volumetricHeatSources";
             this.Location = DictLocation.system;
             this.FC = FieldClass.dictionary;
             this.Header = GetHeader(this);

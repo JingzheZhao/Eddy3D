@@ -14,7 +14,7 @@ namespace EddyLib.Indoor.Dicts
 
         public ViralEmitterInternalDict(ViralEmitter viralEm, Point3d PointInsideDomain)
         {
-            this.DictionaryName = "viralEmitter";
+            this.DictionaryName = "viralEmitters";
             this.Location = DictLocation.system;
             this.FC = FieldClass.dictionary;
             this.Header = GetHeader(this);

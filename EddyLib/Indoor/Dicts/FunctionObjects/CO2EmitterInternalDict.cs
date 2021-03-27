@@ -17,7 +17,7 @@ namespace EddyLib.Indoor.Dicts
         public CO2EmitterInternalDict(CO2Emitter co2Em, Point3d PointInsideDomain)
         {
 
-            this.DictionaryName = "co2Emitter";
+            this.DictionaryName = "co2Emitters";
             this.Location = DictLocation.system;
             this.FC = FieldClass.dictionary;
             this.Header = GetHeader(this);

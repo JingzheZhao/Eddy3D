@@ -110,16 +110,16 @@ namespace EddyLib.Indoor.Dicts
             { sb.AppendLine("#includeFunc volumetricHeatSources");}
 
             if (IndDom.FOs.OfType<MomentumSinkIndoor>().Any())
-            { sb.AppendLine("#includeFunc momentumSink"); }
+            { sb.AppendLine("#includeFunc momentumSinks"); }
 
             if (IndDom.FOs.OfType<MomentumSource>().Any())
-            { sb.AppendLine("#includeFunc momentumSource"); }
+            { sb.AppendLine("#includeFunc momentumSources"); }
 
             if (IndDom.FOs.OfType<CO2Emitter>().Any())
-            { sb.AppendLine("#includeFunc co2Emitter"); }
+            { sb.AppendLine("#includeFunc co2Emitters"); }
 
             if (IndDom.FOs.OfType<ViralEmitter>().Any())
-            { sb.AppendLine("#includeFunc viralEmitter"); }
+            { sb.AppendLine("#includeFunc viralEmitters"); }
 
             sb.Append(@"}");
 

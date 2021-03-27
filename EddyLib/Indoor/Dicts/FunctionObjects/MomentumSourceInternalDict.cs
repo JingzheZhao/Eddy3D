@@ -15,7 +15,7 @@ namespace EddyLib.Indoor.Dicts
 
         public MomentumSourceInternalDict(MomentumSource momSource, Point3d PointInsideDomain)
         {
-            this.DictionaryName = "momentumSource";
+            this.DictionaryName = "momentumSources";
             this.Location = DictLocation.system;
             this.FC = FieldClass.dictionary;
             this.Header = GetHeader(this);

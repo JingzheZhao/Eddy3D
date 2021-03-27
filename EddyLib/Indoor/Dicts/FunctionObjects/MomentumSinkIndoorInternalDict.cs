@@ -15,7 +15,7 @@ namespace EddyLib.Indoor.Dicts
 
         public MomentumSinkIndoorInternalDict(MomentumSinkIndoor momSink, Point3d PointInsideDomain)
         {
-            this.DictionaryName = "momentumSink";
+            this.DictionaryName = "momentumSinks";
             this.Location = DictLocation.system;
             this.FC = FieldClass.dictionary;
             this.Header = GetHeader(this);
