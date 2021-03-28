@@ -13,14 +13,16 @@ namespace EddyLib.Indoor.Dicts
 
         public List<String> InternalDict = new List<string>();
 
-        public VolumetricHeatSourceInternalDict(VolumetricHeatSource VH, Point3d PointInsideDomain)
+        //public VolumetricHeatSourceInternalDict(VolumetricHeatSource VH, Point3d PointInsideDomain)
+        public VolumetricHeatSourceInternalDict(List<VolumetricHeatSource> volumetricHeatSources, Point3d PointInsideDomain)
         {
             this.DictionaryName = "volumetricHeatSources";
             this.Location = DictLocation.system;
             this.FC = FieldClass.dictionary;
             this.Header = GetHeader(this);
 
-            this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalVHSDict(VH)));
+            //this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalVHSDict(VH)));
+            foreach (VolumetricHeatSource i in volumetricHeatSources) { this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalVHSDict(i))); }
 
             string[] parts = {
                String.Join("\n", this.InternalDict.ToArray())

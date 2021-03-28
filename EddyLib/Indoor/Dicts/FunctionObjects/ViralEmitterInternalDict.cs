@@ -12,24 +12,22 @@ namespace EddyLib.Indoor.Dicts
 
         public List<String> InternalDict = new List<string>();
 
-        public ViralEmitterInternalDict(ViralEmitter viralEm, Point3d PointInsideDomain)
+        //public ViralEmitterInternalDict(ViralEmitter viralEm, Point3d PointInsideDomain)
+        public ViralEmitterInternalDict(List<ViralEmitter> viralEmitters, Point3d PointInsideDomain)
         {
             this.DictionaryName = "viralEmitters";
             this.Location = DictLocation.system;
             this.FC = FieldClass.dictionary;
             this.Header = GetHeader(this);
 
-            this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalViralDict(viralEm)));
+            //this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalViralDict(viralEm)));
+            foreach (ViralEmitter i in viralEmitters) { this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalViralDict(i))); }
 
             string[] parts = {
                String.Join("\n", this.InternalDict.ToArray())
             };
 
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
-
-
-            //this.TopoSetDictString = CppMapSerializerDyn.Serialize(GetInternalTopoSetDict((FunctionObject)VEm, PointInsideDomain));
-            //this.FunctionObjectSubDictString = CppMapSerializerDyn.Serialize(GetInternalC02Dict(VEm));
         }
 
         private static Dictionary<string, dynamic> GetInternalViralDict(ViralEmitter input)

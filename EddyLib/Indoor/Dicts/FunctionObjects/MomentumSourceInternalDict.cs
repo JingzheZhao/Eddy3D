@@ -13,14 +13,16 @@ namespace EddyLib.Indoor.Dicts
 
         public List<String> InternalDict = new List<string>();
 
-        public MomentumSourceInternalDict(MomentumSource momSource, Point3d PointInsideDomain)
+        //public MomentumSourceInternalDict(MomentumSource momSource, Point3d PointInsideDomain)
+        public MomentumSourceInternalDict(List<MomentumSource> momentumSources, Point3d PointInsideDomain)
         {
             this.DictionaryName = "momentumSources";
             this.Location = DictLocation.system;
             this.FC = FieldClass.dictionary;
             this.Header = GetHeader(this);
 
-            this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalFvOptionsDict(momSource)));
+            // this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalFvOptionsDict(momSource)));
+            foreach (MomentumSource i in momentumSources) { this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalFvOptionsDict(i))); }
 
             string[] parts = {
                String.Join("\n", this.InternalDict.ToArray())
