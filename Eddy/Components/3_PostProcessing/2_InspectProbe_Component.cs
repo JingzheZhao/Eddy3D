@@ -22,8 +22,6 @@ namespace Eddy.Components.Radiation
 {
     public class InspectProbe_Component : GH_Component
     {
-
-
         public string ProbeInspectorMode = "Sensor";
 
         public override bool Write(GH_IO.Serialization.GH_IWriter writer)
@@ -39,7 +37,6 @@ namespace Eddy.Components.Radiation
             return base.Read(reader);
         }
 
-
         public override void CreateAttributes()
         {
             m_attributes = new CustomAttributes(this);
@@ -47,14 +44,14 @@ namespace Eddy.Components.Radiation
 
         public class CustomAttributes : GH_ComponentAttributes
         {
-
-
-            public CustomAttributes(InspectProbe_Component owner) : base(owner) { }
+            public CustomAttributes(InspectProbe_Component owner) : base(owner)
+            {
+            }
 
             #region Custom layout logic
+
             private RectangleF isSensor { get; set; }
             private RectangleF isHour { get; set; }
-
 
             protected override void Layout()
             {
@@ -66,10 +63,10 @@ namespace Eddy.Components.Radiation
 
                 Bounds = new RectangleF(Bounds.X, Bounds.Y, Bounds.Width, Bounds.Height + 40);
             }
-            #endregion
+
+            #endregion Custom layout logic
 
             #region Custom Mouse handling
-
 
             public override GH_ObjectResponse RespondToMouseDown(GH_Canvas sender, GH_CanvasMouseEvent e)
             {
@@ -94,14 +91,14 @@ namespace Eddy.Components.Radiation
                         comp.ExpireSolution(true);
                         return GH_ObjectResponse.Handled;
                     }
-
-
                 }
                 return base.RespondToMouseDown(sender, e);
             }
-            #endregion
+
+            #endregion Custom Mouse handling
 
             #region Custom Render logic
+
             protected override void Render(GH_Canvas canvas, System.Drawing.Graphics graphics, GH_CanvasChannel channel)
             {
                 switch (channel)
@@ -110,7 +107,6 @@ namespace Eddy.Components.Radiation
                         //We need to draw everything outselves.
                         // base.RenderComponentCapsule(canvas, graphics, true, false, false, true, true, true);
                         base.RenderComponentCapsule(canvas, graphics, true, true, false, true, true, true);
-
 
                         InspectProbe_Component comp = Owner as InspectProbe_Component;
 
@@ -122,36 +118,21 @@ namespace Eddy.Components.Radiation
                         buttonHour.Render(graphics, this.Selected, Owner.Locked, Owner.Hidden);
                         buttonHour.Dispose();
 
-
                         break;
+
                     default:
                         base.Render(canvas, graphics, channel);
                         break;
                 }
             }
-            #endregion
+
+            #endregion Custom Render logic
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         public override GH_Exposure Exposure
         {
             get { return GH_Exposure.secondary; }
         }
-
 
         /// <summary>
         /// Initializes a new instance of the ThermalSystem_Component class.
@@ -176,7 +157,6 @@ namespace Eddy.Components.Radiation
                 param.AddNamedValue(types[i], i);
             }
             pManager.AddIntegerParameter("Index", "i", "Hour or sensor index", GH_ParamAccess.item, 0);
-
         }
 
         /// <summary>
@@ -202,8 +182,6 @@ namespace Eddy.Components.Radiation
             int h = 0;
             if (!DA.GetData(2, ref h)) return;
 
-
-
             List<IGH_Goo> gooProbeList = new List<IGH_Goo>();
             if (!DA.GetDataList(0, gooProbeList)) { }
             List<RProbe> rprobeList = new List<RProbe>();
@@ -223,7 +201,6 @@ namespace Eddy.Components.Radiation
                         return;
                     }
                 }
-
             }
 
             List<Point3d> points = new List<Point3d>();
@@ -231,13 +208,12 @@ namespace Eddy.Components.Radiation
             List<float> data = new List<float>();
 
             if (ProbeInspectorMode == "Hour")
-
+            {
                 foreach (var rprobe in rprobeList)
                 {
                     points.Add(rprobe.Point.Value);
                     if (rprobe.PreviewGeo != null) meshes.Add(rprobe.PreviewGeo.Value);
                     else meshes.Add(null);
-
 
                     if (metric == RProbeMetric.MRT)
                     {
@@ -263,26 +239,33 @@ namespace Eddy.Components.Radiation
                     {
                         data.Add(rprobe.LongWave_MRT[h]);
                     }
-                    else if (metric == RProbeMetric.WindSpeed)
+                }
+                foreach (var wprobe in wprobeList)
+                {
+                    //points.Add(wprobe.Point.Value);
+                    //if (wprobe.PreviewGeo != null) meshes.Add(wprobe.PreviewGeo.Value);
+                    //else meshes.Add(null);
+
+                    if (metric == RProbeMetric.WindVelMag)
                     {
-                        data.Add(rprobe.WindSpeed[h]);
+                        data.Add(wprobe.WindFactorsTemporal[h]);
                     }
                 }
-
+            }
             else
             {
-                if (h >= rprobeList.Count) return;
+                if (h >= rprobeList.Count || h >= wprobeList.Count) return;
 
                 var rprobe = rprobeList[h];
+                var wprobe = wprobeList[h];
 
                 points.Add(rprobe.Point.Value);
                 if (rprobe.PreviewGeo != null) meshes.Add(rprobe.PreviewGeo.Value);
                 else meshes.Add(null);
 
-
                 if (metric == RProbeMetric.MRT)
                 {
-                    data.AddRange( rprobe.LongWave_MRT.Zip(rprobe.SolarGain_dMRT, (a, b) => a + b) );
+                    data.AddRange(rprobe.LongWave_MRT.Zip(rprobe.SolarGain_dMRT, (a, b) => a + b));
                 }
                 else if (metric == RProbeMetric.UTCI)
                 {
@@ -304,11 +287,10 @@ namespace Eddy.Components.Radiation
                 {
                     data.AddRange(rprobe.LongWave_MRT);
                 }
-                else if (metric == RProbeMetric.WindSpeed)
+                else if (metric == RProbeMetric.WindVelMag)
                 {
-                    data.AddRange(rprobe.WindSpeed);
+                    data.Add(wprobe.WindFactorsTemporal[h]);
                 }
-
             }
 
             DA.SetDataList(0, points);
@@ -316,7 +298,6 @@ namespace Eddy.Components.Radiation
 
             DA.SetDataList(2, data);
         }
-
 
         /// <summary>
         /// Provides an Icon for the component.
@@ -338,6 +319,5 @@ namespace Eddy.Components.Radiation
         {
             get { return new Guid("{FF0BDCD5-D39E-4943-83E5-25C8B0D24034}"); }
         }
-
     }
 }

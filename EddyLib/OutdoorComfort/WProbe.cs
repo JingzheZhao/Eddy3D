@@ -23,10 +23,33 @@ namespace EddyLib.Radiation
 
             WindDirections = new int[NumberOfWindDirections];
             U = new EddyVector[NumberOfWindDirections];
+            UMag = new float[NumberOfWindDirections];
+
+            Cp_coeff = new float[NumberOfWindDirections];
+
+            P = new float[NumberOfWindDirections];
+
+            Epsilon = new float[NumberOfWindDirections];
+
+            Omega = new float[NumberOfWindDirections];
+
+            K = new float[NumberOfWindDirections];
+
+            Nut = new float[NumberOfWindDirections];
+
+            Phi = new float[NumberOfWindDirections];
+
+            Aoa = new float[NumberOfWindDirections];
         }
 
         [ProtoMember(1)]
         public EddyPoint Point { get; set; }
+
+        //[ProtoMember(3)]
+        //public EddyMesh PreviewGeo { get; set; }
+
+        //[ProtoMember(4)]
+        //public float Area { get; set; } = 1;
 
         // OpenFOAM Data
 
@@ -67,10 +90,13 @@ namespace EddyLib.Radiation
         public float[] Nut { get; set; }
 
         [ProtoMember(117)]
-        public EddyVector[] Phi { get; set; }
+        public float[] Phi { get; set; }
 
         [ProtoMember(118)]
         public float[] Aoa { get; set; }
+
+        [ProtoMember(119)]
+        public float[] UMag { get; set; }
 
         // Comfort Data
         [ProtoMember(200)]
@@ -96,5 +122,55 @@ namespace EddyLib.Radiation
 
         [ProtoMember(215)]
         public float[] NEN8100Safety { get; set; }
+
+        public void SetOFFields(field Field, Vector3d Value, int WindDirection)
+        {
+            switch (Field)
+            {
+                case field.U:
+
+                    this.U[WindDirection] = new EddyVector(Value);
+                    this.UMag[WindDirection] = (float)Value.Length;
+                    break;
+            }
+        }
+
+        public void SetOFFields(field Field, float Value, int WindDirection)
+        {
+            switch (Field)
+            {
+                case field.p:
+                    this.P[WindDirection] = Value;
+                    break;
+
+                case field.cp_coeff:
+                    this.Cp_coeff[WindDirection] = Value;
+                    break;
+
+                case field.epsilon:
+                    this.Epsilon[WindDirection] = Value;
+                    break;
+
+                case field.omega:
+                    this.Omega[WindDirection] = Value;
+                    break;
+
+                case field.k:
+                    this.K[WindDirection] = Value;
+                    break;
+
+                case field.nut:
+                    this.Nut[WindDirection] = Value;
+                    break;
+
+                case field.phi:
+                    this.Phi[WindDirection] = Value;
+                    break;
+
+                case field.AoA:
+                    this.Aoa[WindDirection] = Value;
+                    break;
+            }
+        }
     }
 }

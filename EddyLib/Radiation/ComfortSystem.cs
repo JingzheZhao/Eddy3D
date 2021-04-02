@@ -16,7 +16,6 @@ namespace EddyLib.Radiation
     {
         public int methodsteps = 4; // energyplus prints 52 lines
 
-
         private DateTime winter_start = new DateTime(2004, 1, 1);
         private DateTime winter_spring = new DateTime(2004, 2, 7);
         private DateTime spring_summer = new DateTime(2004, 5, 7);
@@ -27,7 +26,7 @@ namespace EddyLib.Radiation
         private double steps = 52 + 2;
         private double stepCnt = 0;
 
-         public string BaseWorkingDir = "";
+        public string BaseWorkingDir = "";
         public Weather Weather;
 
         public List<RProbe> Probes;
@@ -35,32 +34,25 @@ namespace EddyLib.Radiation
 
         public string CFDDataPath = "";
 
-
-        public ComfortSystem(  string baseWorkingDir, Weather weather, List<RProbe> probes, List<RPolygon> polys, string cfdpath)
+        public ComfortSystem(string baseWorkingDir, Weather weather, List<RProbe> probes, List<RPolygon> polys, string cfdpath)
         {
-             BaseWorkingDir = baseWorkingDir;
+            BaseWorkingDir = baseWorkingDir;
             Weather = weather;
             Probes = probes;
             Polys = polys;
             CFDDataPath = cfdpath;
-
         }
 
-        public void LoadCFD_ComputeWindfactors(bool run, CancellationToken ct, int steps, ref int stepCnt) {
-
-
-
+        public void LoadCFD_ComputeWindfactors(bool run, CancellationToken ct, int steps, ref int stepCnt)
+        {
             // ---------------------
             // 1  Load CFD Result
             // ---------------------
-
 
             WProbeResultProto resultProto_CFD = null;
 
             if (!String.IsNullOrWhiteSpace(CFDDataPath))
             {
-
-                
                 try
                 {
                     Stopwatch sp = new Stopwatch();
@@ -71,34 +63,25 @@ namespace EddyLib.Radiation
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine( "CFD Result file could not be deserialized. Are you loading a wrong file type? " + Environment.NewLine + e.Message);
-                    return ;
+                    Console.WriteLine("CFD Result file could not be deserialized. Are you loading a wrong file type? " + Environment.NewLine + e.Message);
+                    return;
                 }
-
-
-              
-
 
                 Console.WriteLine("Probe Count: " + this.Probes.Count);
                 Console.WriteLine("CFD Probe Count: " + resultProto_CFD.Probes.Count);
 
-
-                if (this.Probes.Count != resultProto_CFD.Probes.Count) {
-
+                if (this.Probes.Count != resultProto_CFD.Probes.Count)
+                {
                     Console.WriteLine("CFD and MRT worflows have different probe count... using weather data for prove air velocity");
                     return;
                 }
 
-
                 Interlocked.Increment(ref stepCnt);
                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
-
 
                 // ---------------------
                 // 2  Compute Wind Factors
                 // ---------------------
-
-
 
                 // WindFactorSpatial
                 Console.WriteLine("Computing Spatial Wind Factors...");
@@ -109,7 +92,6 @@ namespace EddyLib.Radiation
                 }
                 Console.WriteLine("Computing Spatial Wind Factors...");
 
-
                 WindSystem WS = new WindSystem(this.Weather, resultProto_CFD.Probes[0].WindDirections.ToList());
                 Console.WriteLine("Computing Temporal Wind Factors...");
 
@@ -118,7 +100,6 @@ namespace EddyLib.Radiation
                 {
                     p.WindFactorsTemporal = WindFactorsTemporal.CalcWindFactorsTemporalSP(this.Weather, p, WS, true);
                 }
-
 
                 for (int i = 0; i < this.Probes.Count; i++)
                 {
@@ -131,10 +112,9 @@ namespace EddyLib.Radiation
                 Interlocked.Increment(ref stepCnt);
                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
             }
-
         }
 
-        public void ComputeUTCI(bool run, CancellationToken ct,  int steps, ref int stepCnt)
+        public void ComputeUTCI(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
             steps = this.Probes.Count;
 
@@ -220,12 +200,10 @@ namespace EddyLib.Radiation
                 //stepCnt++;
                 //pct = 100 * stepCnt / steps;
                 //Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
-
             });
 
             Interlocked.Increment(ref stepCnt);
             Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
-
         }
 
         public MRT_Simulation_ResultProto SaveResults(bool run, CancellationToken ct, int steps, ref int stepCnt)
@@ -238,7 +216,7 @@ namespace EddyLib.Radiation
 
             var prep = PrepareProtoBufSingleton.Instance;
 
-            var protoResult = new MRT_Simulation_ResultProto(  this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
+            var protoResult = new MRT_Simulation_ResultProto(this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
 
             protoResult.WriteToFile(this.BaseWorkingDir + @"\UTCI.eddy");
 
