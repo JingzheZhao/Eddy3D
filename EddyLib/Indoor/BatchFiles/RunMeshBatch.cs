@@ -20,7 +20,7 @@ namespace EddyLib.Indoor.BatchFiles
 
             string[] parts = {
                this.Header, "\n",
-               String.Join("\n", BatchBody(),"\"","\n","PAUSE")
+               String.Join("\n", BatchBody(),"\n","PAUSE")
             };
 
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");

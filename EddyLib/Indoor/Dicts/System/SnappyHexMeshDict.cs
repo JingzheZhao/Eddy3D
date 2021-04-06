@@ -37,9 +37,10 @@ namespace EddyLib.Indoor.Dicts
 
 
 
-            foreach (IndoorBC i in inlet) { this.GeometrySubDict.Add(i.Id, GetGeometryDict(i)); };
-            foreach (IndoorBC i in outlet) { this.GeometrySubDict.Add(i.Id, GetGeometryDict(i)); };
-            foreach (IndoorBC i in wall) { this.GeometrySubDict.Add(i.Id, GetGeometryDict(i)); };
+            foreach (IndoorBC i in inlet) { this.GeometrySubDict.Add(i.Id + ".stl", GetGeometryDict(i)); };
+            foreach (IndoorBC i in outlet) { this.GeometrySubDict.Add(i.Id + ".stl", GetGeometryDict(i)); };
+            foreach (IndoorBC i in wall) { this.GeometrySubDict.Add(i.Id + ".stl", GetGeometryDict(i)); };
+
 
 
             this.GeometryDict = new Dictionary<string, dynamic>();
@@ -61,16 +62,16 @@ namespace EddyLib.Indoor.Dicts
         public static Dictionary<string, dynamic> GetGeometryDict(IndoorBC input)
         {
 
-            Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
+            //Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
 
-            Dict.Add(input.Id + ".stl", InternalDict);
+            //Dict.Add(input.Id + ".stl", InternalDict);
 
             InternalDict.Add("type", input.OFGeometryType);
             InternalDict.Add("name", input.Id);
 
-            return Dict;
+            return InternalDict;
         }
 
         private static Dictionary<string, dynamic> GetSettingsDict()
@@ -178,7 +179,7 @@ namespace EddyLib.Indoor.Dicts
             Dict2.Add("minDeterminant", "0.001");
             Dict2.Add("minFaceWeight", "0.05");
             Dict2.Add("minVolRatio", "0.01");
-            Dict2.Add("minTriangleTwist", "- 1");
+            Dict2.Add("minTriangleTwist", "-1");
             Dict2.Add("nSmoothScale", "4");
             Dict2.Add("errorReduction", "0.75");
 
@@ -294,7 +295,8 @@ namespace EddyLib.Indoor.Dicts
 
                 sb.Append(@"}");
 
-                return GenericDict.InParenthesis(sb.ToString());
+                //return GenericDict.InParenthesis(sb.ToString());
+                return sb.ToString();
             }
         }
 
