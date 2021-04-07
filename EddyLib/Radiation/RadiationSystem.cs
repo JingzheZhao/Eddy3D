@@ -103,6 +103,13 @@ namespace EddyLib.Radiation
             if (run == true)
             {
 
+             
+                string radbin = @"C:\Eddy3D\Common\Radiance\bin";
+                string radlib = @"C:\Eddy3D\Common\Radiance\lib";
+                 char ps =  ';'  ;
+                Environment.SetEnvironmentVariable("PATH", "." + ps + radlib + ps + radbin +    ps + "$PATH");
+                Environment.SetEnvironmentVariable("RAYPATH", "." + ps + radlib + ps + radbin   + ps + "$RAYPATH");
+
                 // -----------------------------
                 // 1 Convert epw to wea tape
                 // -----------------------------
@@ -202,6 +209,7 @@ namespace EddyLib.Radiation
                 string cmdArgRFLUXMTX = DefaultDirectoriesAndPaths.RadianceDir + @"\rfluxmtx -I+ -y " + sensorCnt + @" -lw 0.0001 -ab " + ab + @"  -ad " + ad + @" -n " + n + @" - " + skyglowrad + @" -i " + inputoct + @" < " + ptsin + @" > " + mtxout;
                 var CMDrfluxmtx = Command.Run("cmd.exe", new[] { "" },
                   options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct));
+          
                 CMDrfluxmtx.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 CMDrfluxmtx.StandardInput.WriteLine(cmdArgRFLUXMTX);
                 CMDrfluxmtx.StandardInput.WriteLine("exit");
