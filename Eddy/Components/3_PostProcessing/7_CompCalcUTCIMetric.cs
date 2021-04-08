@@ -11,10 +11,10 @@ namespace Eddy
 {
     public class CompUTCI : GH_Component
     {
-        public override GH_Exposure Exposure
-        {
-            get { return GH_Exposure.hidden; }
-        }
+        //public override GH_Exposure Exposure
+        //{
+        //    get { return GH_Exposure.hidden; }
+        //}
 
         // exposure
         //public override GH_Exposure Exposure
