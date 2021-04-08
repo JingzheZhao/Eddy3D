@@ -94,7 +94,7 @@
     <Compile Include="Components\3_PostProcessing\2_InspectProbe_Component.cs" />
     <Compile Include="Components\3_PostProcessing\Hidden\2_WindFactorsTemportal_Component.cs" />
     <Compile Include="Components\3_PostProcessing\Hidden\1o_CompCalcMRT.cs" />
-    <Compile Include="Components\3_PostProcessing\7_CompCalcUTCIMetric.cs" />
+    <Compile Include="Components\3_PostProcessing\3_CompCalcUTCIMetric.cs" />
     <Compile Include="Components\1_Wind\6_CompParaview.cs" />
     <Compile Include="Components\1_Wind\6_CompVisProbesCustom.cs" />
     <Compile Include="Components\1_Wind\6_CompVisProbesCustomWProbes.cs" />
