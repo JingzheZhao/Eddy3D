@@ -161,6 +161,8 @@ namespace Eddy.Components.Indoor
             //bool toggle
             #region START PROCESSES
 
+            TIMUR-  FUNCTION OBJECT BUTTONS 
+
             bool makeFOs = false;
             bool runSimulation = false;
             bool runMeshing = false;
