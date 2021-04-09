@@ -165,9 +165,9 @@ namespace Eddy.Components.Indoor
             bool runSimulation = false;
             bool runMeshing = false;
 
-            DA.GetData(8, ref makeFOs);
-            DA.GetData(9, ref runSimulation);
-            DA.GetData(10, ref runMeshing);
+            DA.GetData(9, ref makeFOs);
+            DA.GetData(10, ref runSimulation);
+            DA.GetData(8, ref runMeshing);
 
             if (makeFOs == true)
             {
