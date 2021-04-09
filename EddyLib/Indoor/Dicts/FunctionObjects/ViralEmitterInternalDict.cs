@@ -40,7 +40,7 @@ namespace EddyLib.Indoor.Dicts
             Dict1.Add(input.ID, Dict2);
 
             Dict2.Add("active", "true");
-            Dict2.Add("type", "semiImplicitSource");
+            Dict2.Add("type", "scalarSemiImplicitSource");
             Dict2.Add("scalarSemiImplicitSourceCoeffs", Dict3);
 
             Dict3.Add("selectionMode", "cellZone");

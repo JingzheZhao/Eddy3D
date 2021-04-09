@@ -33,7 +33,7 @@ namespace EddyLib.Indoor.Dicts
 
             string[] parts = {
                this.Header, "\n", "actions", "\n", "(",
-               String.Join("\n", this.InternalDict.ToArray()),"\n",")"
+               String.Join("\n", this.InternalDict.ToArray()),"\n",");"
             };
 
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");

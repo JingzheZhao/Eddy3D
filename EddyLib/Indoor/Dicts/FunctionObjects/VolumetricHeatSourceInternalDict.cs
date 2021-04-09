@@ -57,11 +57,12 @@ namespace EddyLib.Indoor.Dicts
 
             InternalDict.Add("scalarSemiImplicitSourceCoeffs", scalarSemiImplicitSourceCoeffsDict);
 
+            scalarSemiImplicitSourceCoeffsDict.Add("volumeMode", "absolute");
             scalarSemiImplicitSourceCoeffsDict.Add("selectionMode", "cellZone");
             scalarSemiImplicitSourceCoeffsDict.Add("cellZone", input.ID);
             //scalarSemiImplicitSourceCoeffsDict.Add("cellZone", input.cellZone + "_" + input.Name);
 
-            scalarSemiImplicitSourceCoeffsDict.Add("volumeMode", input.volumeType);
+            //scalarSemiImplicitSourceCoeffsDict.Add("volumeMode", input.volumeType);
             scalarSemiImplicitSourceCoeffsDict.Add("injectionRateSuSp", injectionRateSuSpDict);
 
             injectionRateSuSpDict.Add("h", @"(" + input.Power.ToString() + " 0 )");

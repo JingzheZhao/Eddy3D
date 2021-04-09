@@ -66,6 +66,7 @@ namespace EddyLib.Indoor.Dicts
             Dict3.Add("origin", "(0 0 0)");
             Dict3.Add("coordinateRotation", Dict4);
 
+            Dict4.Add("type", "axesRotation");
             Dict4.Add("e1", "(1 0 0)");
             Dict4.Add("e2", "(0 1 0)");
 

@@ -125,6 +125,7 @@
     <Compile Include="Indoor\Dicts\System\BlockMeshDict.cs" />
     <Compile Include="Indoor\Dicts\System\ControlDict.cs" />
     <Compile Include="Indoor\Dicts\System\DecomposeParDict.cs" />
+    <Compile Include="Indoor\Dicts\System\FvOptions.cs" />
     <Compile Include="Indoor\Dicts\System\FvSchemesDict.cs" />
     <Compile Include="Indoor\Dicts\System\FvSolutionDict.cs" />
     <Compile Include="Indoor\Dicts\System\ResidualsDict.cs" />

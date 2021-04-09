@@ -106,20 +106,45 @@ namespace EddyLib.Indoor.Dicts
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(@"{");
 
-            if (IndDom.FOs.OfType<VolumetricHeatSource>().Any())            
-            { sb.AppendLine("#includeFunc volumetricHeatSources");}
+            sb.AppendLine("#includeFunc  residuals");
 
-            if (IndDom.FOs.OfType<MomentumSinkIndoor>().Any())
-            { sb.AppendLine("#includeFunc momentumSinks"); }
+            sb.AppendLine(@"	fieldMinMax
+{
+                type fieldMinMax;
+                libs (""libfieldFunctionObjects.so"");
+                writeToFile true;
+                log true;
+                mode magnitude;
+                fields (U  T);
+            }
 
-            if (IndDom.FOs.OfType<MomentumSource>().Any())
-            { sb.AppendLine("#includeFunc momentumSources"); }
+            average
+{
+                type volFieldValue;
+                libs (""libfieldFunctionObjects.so"");
+                fields (U T);
+                operation weightedVolAverage;
+                regionType all;
+                writeFields     true;
+                log true;
+            }");
 
-            if (IndDom.FOs.OfType<CO2Emitter>().Any())
-            { sb.AppendLine("#includeFunc co2Emitters"); }
+            
 
-            if (IndDom.FOs.OfType<ViralEmitter>().Any())
-            { sb.AppendLine("#includeFunc viralEmitters"); }
+            //if (IndDom.FOs.OfType<VolumetricHeatSource>().Any())            
+            //{ sb.AppendLine("#includeFunc volumetricHeatSources");}
+
+            //if (IndDom.FOs.OfType<MomentumSinkIndoor>().Any())
+            //{ sb.AppendLine("#includeFunc momentumSinks"); }
+
+            //if (IndDom.FOs.OfType<MomentumSource>().Any())
+            //{ sb.AppendLine("#includeFunc momentumSources"); }
+
+            //if (IndDom.FOs.OfType<CO2Emitter>().Any())
+            //{ sb.AppendLine("#includeFunc co2Emitters"); }
+
+            //if (IndDom.FOs.OfType<ViralEmitter>().Any())
+            //{ sb.AppendLine("#includeFunc viralEmitters"); }
 
             sb.Append(@"}");
 

@@ -52,7 +52,7 @@ namespace EddyLib.Indoor.Dicts
             meanVelocityForceCoeffs.Add("selectionMode", "cellZone");
             meanVelocityForceCoeffs.Add("cellZone", input.ID);
             meanVelocityForceCoeffs.Add("fields", "(U)");
-            meanVelocityForceCoeffs.Add("Ubar", Utilities.FormatPV(input.Ubar));
+            meanVelocityForceCoeffs.Add("Ubar", "(" + Utilities.FormatPV(input.Ubar) + ")");
             meanVelocityForceCoeffs.Add("relaxation", "1.0");
 
             return Dict;

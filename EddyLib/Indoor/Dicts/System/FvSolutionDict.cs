@@ -126,6 +126,26 @@ namespace EddyLib.Indoor.Dicts
             return Dict3;
         }
 
+        static Dictionary<string, dynamic> MakeDict_Covid19()
+        {
+            Dictionary<string, dynamic> Dict3 = new Dictionary<string, dynamic>();
+
+            Dict3.Add("solver", "GAMG");
+            Dict3.Add("tolerance", "1e-7");
+            Dict3.Add("relTol", "1e-8");
+            Dict3.Add("nPreSweeps", "0");
+            Dict3.Add("nPostSweeps", "2");
+            Dict3.Add("cacheAgglomeration", "true");
+            Dict3.Add("smoother", "GaussSeidel");
+            Dict3.Add("agglomerator", "faceAreaPair");
+            Dict3.Add("nCellsInCoarsestLevel", "10");
+            Dict3.Add("mergeLevels", "1");
+            Dict3.Add("maxIter", "100");
+
+
+            return Dict3;
+        }
+
         //Solvers - 3 Nested Dict
         private static Dictionary<string, dynamic> GetSolversDict()
         {
@@ -133,7 +153,7 @@ namespace EddyLib.Indoor.Dicts
 
             Dictionary<string, dynamic> Dict2 = new Dictionary<string, dynamic>();
 
-            Dict1.Add("solver", Dict2);
+            Dict1.Add("solvers", Dict2);
 
             Dict2.Add("p_rgh",MakeDict_p_rgh());
             Dict2.Add("U",MakeDict_U());
@@ -141,6 +161,7 @@ namespace EddyLib.Indoor.Dicts
             Dict2.Add("k", MakeDict_k());
             Dict2.Add("omega", MakeDict_omega());
             Dict2.Add("AoA", MakeDict_AoA());
+            Dict2.Add("covid19", MakeDict_Covid19());
 
             return Dict1;
         }
@@ -189,6 +210,8 @@ namespace EddyLib.Indoor.Dicts
 
             Dict3.Add("p_rgh", "0.3");
             Dict3.Add("AoA", "0.5");
+            Dict3.Add("Covid19", "0.5");
+
 
             return Dict3;
         }

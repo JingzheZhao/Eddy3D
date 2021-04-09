@@ -93,6 +93,8 @@ namespace EddyLib.Indoor
                 cnt++;
             }
 
+            
+
             var b = GetBoundingBox(RoomGeometry);
 
             var x = Transform.Scale(b.Center, 1.2);
@@ -140,7 +142,7 @@ namespace EddyLib.Indoor
             AllDictsWrite2File.Add(thermoPhysicalProperties);
             AllDictsWrite2File.Add(turbulenceProperties);
 
-            ExportGeometryAndDicts(WorkingDir);
+            
 
             // Function Objects
 
@@ -269,7 +271,7 @@ namespace EddyLib.Indoor
                     //var dict = new VolumetricHeatSourceInternalDict(this.VolumetricHeatSources[ctVHS], this.PointInsideDomain);
                     var dict = new VolumetricHeatSourceInternalDict(this.VolumetricHeatSources, this.PointInsideDomain);
 
-                    dict.Export(WorkingDir);
+                    //dict.Export(WorkingDir);
 
                     AllFunctionObjectInternalDicts.Add(dict);
                     ctVHS++; 
@@ -283,7 +285,7 @@ namespace EddyLib.Indoor
 
                     //var dict = new MomentumSinkIndoorInternalDict(this.MomentumSinks[ctMsi], this.PointInsideDomain);
                     var dict = new MomentumSinkIndoorInternalDict(this.MomentumSinks, this.PointInsideDomain);
-                    dict.Export(WorkingDir);
+                    //dict.Export(WorkingDir);
 
                     AllFunctionObjectInternalDicts.Add(dict);
 
@@ -298,7 +300,7 @@ namespace EddyLib.Indoor
 
                     // var dict = new MomentumSourceInternalDict(this.MomentumSources[ctMso], this.PointInsideDomain);
                     var dict = new MomentumSourceInternalDict(this.MomentumSources, this.PointInsideDomain);
-                    dict.Export(WorkingDir);
+                    //dict.Export(WorkingDir);
 
                     AllFunctionObjectInternalDicts.Add(dict);
 
@@ -313,7 +315,7 @@ namespace EddyLib.Indoor
 
                     //var dict = new CO2EmitterInternalDict(this.CO2Emitters[ctCo2], this.PointInsideDomain);
                     var dict = new CO2EmitterInternalDict(this.CO2Emitters, this.PointInsideDomain);
-                    dict.Export(WorkingDir);
+                    //dict.Export(WorkingDir);
 
                     AllFunctionObjectInternalDicts.Add(dict);
 
@@ -330,7 +332,7 @@ namespace EddyLib.Indoor
                     //var dict = new ViralEmitterInternalDict(this.ViralEmitters[ctVir], this.PointInsideDomain);
                     var dict = new ViralEmitterInternalDict(this.ViralEmitters, this.PointInsideDomain);
 
-                    dict.Export(WorkingDir);
+                    //dict.Export(WorkingDir);
 
                     AllFunctionObjectInternalDicts.Add(dict);
 
@@ -338,6 +340,9 @@ namespace EddyLib.Indoor
                 }
 
             }
+
+
+            ExportGeometryAndDicts(WorkingDir);
 
 
             ////iterate through each of the fos
@@ -474,8 +479,13 @@ namespace EddyLib.Indoor
             var decomposeParDict = new DecomposeParDict();
             decomposeParDict.Export(WorkingDir);
 
-           
-            
+            //fOs
+            var fvOpt = new FvOptions(this.AllFunctionObjectInternalDicts);
+            fvOpt.Export(WorkingDir);
+
+
+
+
 
 
             //FOS -     OLD IMPLEMENTATION  - NOT NECESSARY?
@@ -560,6 +570,12 @@ namespace EddyLib.Indoor
             foreach (var geo in AllGeometry)
             {
                 EddyLib.STLExport.ExportBinary(stlDir + "\\" + geo.Id + ".stl", geo.Geometry);
+            }
+
+            
+            foreach (var g in this.FOs)
+            {
+                EddyLib.STLExport.ExportBinary(stlDir + "\\" + g.ID + ".stl", g.Geometry);
             }
         }
 
