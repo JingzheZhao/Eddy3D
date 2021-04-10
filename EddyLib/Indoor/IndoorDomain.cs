@@ -546,6 +546,9 @@ namespace EddyLib.Indoor
             var runTopoBatch = new RunTopoBatch(this);
             runTopoBatch.Export(WorkingDir);
 
+            var runAllBatch = new RunAllBatch(this);
+            runAllBatch.Export(WorkingDir);
+
             //AllBatsWrite2File.Add(runMeshBatch);
             //AllBatsWrite2File.Add(runSimBatch);
             //AllBatsWrite2File.Add(runTopoBatch);
