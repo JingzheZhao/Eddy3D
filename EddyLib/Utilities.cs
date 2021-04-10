@@ -97,6 +97,8 @@ namespace EddyLib
 
             public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, string executable = @"C:\Windows\System32\cmd.exe", EventHandler eh = null)
             {
+                if (!File.Exists(executable)) { return; }
+
                 System.Diagnostics.Process p = new System.Diagnostics.Process();
 
                 // if(eh!=null) p.Exited += eh;

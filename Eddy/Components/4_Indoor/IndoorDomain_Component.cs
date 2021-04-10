@@ -172,33 +172,40 @@ namespace Eddy.Components.Indoor
             DA.GetData(8, ref runMeshing);
 
 
-            string toposetBat = dom.WorkingDir  + @"\run_make_trees.bat";
+            string toposetBat = dom.WorkingDir  + @"\run_topoSet.bat";
             string meshBat = dom.WorkingDir + @"\run_mesh.bat";
             string simBat = dom.WorkingDir + @"\run_sim.bat";
 
-
-            if (makeFOs == true && canRun)
-            {
-                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, toposetBat, taskComplete);
-            }
-
-            if (runMeshing == true && runSimulation == true && canRun)
+            try
             {
 
-                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, meshBat, taskComplete);
-                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, simBat, taskComplete);
-                
+                if (makeFOs == true && canRun)
+                {
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, toposetBat, taskComplete);
+                }
+
+                if (runMeshing == true && runSimulation == true && canRun)
+                {
+
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, meshBat, taskComplete);
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, simBat, taskComplete);
+
+                }
+                else if (runMeshing == true && runSimulation == false && canRun)
+                {
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, meshBat, taskComplete);
+
+                }
+                else if (runMeshing == false && runSimulation == true && canRun)
+                {
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, simBat, taskComplete);
+                }
             }
-            else if (runMeshing == true && runSimulation == false && canRun)
-            {
-                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, meshBat, taskComplete);
+            catch (Exception ex) {
+
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, ex.Message); return;
 
             }
-            else if (runMeshing == false && runSimulation == true && canRun)
-            {
-                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, simBat, taskComplete);
-            }
-
             #endregion START PROCESSES
 
 
