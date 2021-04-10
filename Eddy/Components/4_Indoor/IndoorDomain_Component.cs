@@ -161,7 +161,7 @@ namespace Eddy.Components.Indoor
             //bool toggle
             #region START PROCESSES
 
-            TIMUR-  FUNCTION OBJECT BUTTONS 
+           
 
             bool makeFOs = false;
             bool runSimulation = false;
@@ -174,7 +174,7 @@ namespace Eddy.Components.Indoor
             if (makeFOs == true)
             {
                 var makeFOCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_topoSet.bat" },
-                  options => options.WorkingDirectory(dom.WorkingDir).StartInfo(x => x.CreateNoWindow =false )) ;
+                  options => options.WorkingDirectory(dom.WorkingDir).StartInfo(x => x.CreateNoWindow =false ).StartInfo(x=> x.RedirectStandardOutput = false) );
 
             }
 
