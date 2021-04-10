@@ -13,7 +13,7 @@ namespace EddyLib.Indoor.BatchFiles
         public RunAllBatch(IndoorDomain IndoorDom)
         {
             this.BatchLocation = IndoorDom.WorkingDir;
-            this.BatchName = "run_mesh.bat";
+            this.BatchName = "run_all.bat";
             this.Header = GetHeader();
             //this.RemoveDict();
             //this.Export();
