@@ -190,7 +190,7 @@ namespace EddyLib.Indoor.Dicts
             return sb.ToString();
         }
 
-        private static void DictToString(List<Dictionary<string, dynamic>> dicts, ref StringBuilder sb)
+        public static void DictToString(List<Dictionary<string, dynamic>> dicts, ref StringBuilder sb)
         {
             foreach (var dict in dicts)
             {
@@ -212,7 +212,7 @@ namespace EddyLib.Indoor.Dicts
             }
         }
 
-        private static void DictToString(string name, Dictionary<string, dynamic> dict, ref StringBuilder sb)
+        public static void DictToString(string name, Dictionary<string, dynamic> dict, ref StringBuilder sb)
         {
             sb.AppendLine("\t" + name);
 
@@ -243,7 +243,7 @@ namespace EddyLib.Indoor.Dicts
             sb.AppendLine("\t" + "}");
         }
 
-        private static void DictToString(KeyValuePair<string, dynamic> evl, ref StringBuilder sb)
+        public static void DictToString(KeyValuePair<string, dynamic> evl, ref StringBuilder sb)
         {
             if (evl.Key is String)
             {

@@ -171,62 +171,47 @@ namespace Eddy.Components.Indoor
             DA.GetData(10, ref runSimulation);
             DA.GetData(8, ref runMeshing);
 
-            if (makeFOs == true)
-            {
-                var makeFOCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_topoSet.bat" },
-                  options => options.WorkingDirectory(dom.WorkingDir).StartInfo(x => x.CreateNoWindow =false ).StartInfo(x=> x.RedirectStandardOutput = false) );
 
+            string toposetBat = dom.WorkingDir  + @"\run_make_trees.bat";
+            string meshBat = dom.WorkingDir + @"\run_mesh.bat";
+            string simBat = dom.WorkingDir + @"\run_sim.bat";
+
+
+            if (makeFOs == true && canRun)
+            {
+                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, toposetBat, taskComplete);
             }
 
-            if (runMeshing == true && runSimulation == true)
+            if (runMeshing == true && runSimulation == true && canRun)
             {
-                var makeMeshCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_mesh.bat" },
-                options => options.WorkingDirectory(dom.WorkingDir).StartInfo(x => x.CreateNoWindow = false));
-                makeMeshCommand.Wait();
-                if (!makeMeshCommand.Result.Success)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Mesh command failed with exit code {makeMeshCommand.Result.ExitCode}: {makeMeshCommand.Result.StandardError}");
-                    return;
-                }
 
-
-                var simulateCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_sim.bat" },
-                 options => options.WorkingDirectory(dom.WorkingDir).StartInfo(x => x.CreateNoWindow = false));
-                simulateCommand.Wait();
-                if (!simulateCommand.Result.Success)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Simulation failed with exit code {simulateCommand.Result.ExitCode}: {simulateCommand.Result.StandardError}");
-                    return;
-                }
+                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, meshBat, taskComplete);
+                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, simBat, taskComplete);
+                
             }
-            else if (runMeshing == true && runSimulation == false)
+            else if (runMeshing == true && runSimulation == false && canRun)
             {
-                var makeMeshCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_mesh.bat" },
-options => options.WorkingDirectory(dom.WorkingDir).StartInfo(x => x.CreateNoWindow = false));
-                //makeMeshCommand.Wait();
-                //if (!makeMeshCommand.Result.Success)
-                //{
-                //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Mesh command failed with exit code {makeMeshCommand.Result.ExitCode}: {makeMeshCommand.Result.StandardError}");
-                //    return;
-                //}
-            }
-            else if (runMeshing == false && runSimulation == true)
-            {
+                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, meshBat, taskComplete);
 
-                var simulateCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_sim.bat" },
-                                options => options.WorkingDirectory(dom.WorkingDir));
-                //simulateCommand.Wait();
-                //if (!simulateCommand.Result.Success)
-                //{
-                //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Simulation failed with exit code {simulateCommand.Result.ExitCode}: {simulateCommand.Result.StandardError}");
-                //    return;
-                //}
+            }
+            else if (runMeshing == false && runSimulation == true && canRun)
+            {
+                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, simBat, taskComplete);
             }
 
             #endregion START PROCESSES
 
 
             DA.SetData(0, domGoo);
+            canRun = true;
+        }
+
+        private bool canRun = true;
+
+        public void taskComplete(object sender, System.EventArgs e)
+        {
+            canRun = false;
+            this.ExpireSolution(true);
         }
 
         public FunctionObject CastToFO(GH_ObjectWrapper gobj)
