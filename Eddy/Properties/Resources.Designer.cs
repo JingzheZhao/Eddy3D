@@ -93,6 +93,26 @@ namespace Eddy.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Eddy_analysisPeriod_Days {
+            get {
+                object obj = ResourceManager.GetObject("Eddy_analysisPeriod_Days", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Eddy_analysisPeriod_Hours {
+            get {
+                object obj = ResourceManager.GetObject("Eddy_analysisPeriod_Hours", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Eddy_annual {
             get {
                 object obj = ResourceManager.GetObject("Eddy_annual", resourceCulture);
@@ -240,9 +260,19 @@ namespace Eddy.Properties {
             }
         }
         
+ 
+        internal static System.Drawing.Bitmap Eddy_HOY {
+            get {
+                object obj = ResourceManager.GetObject("Eddy_HOY", resourceCulture);
+ return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+
         internal static System.Drawing.Bitmap Eddy_Indoor__Indoor_CO2Emitter {
             get {
                 object obj = ResourceManager.GetObject("Eddy_Indoor__Indoor_CO2Emitter", resourceCulture);
@@ -276,6 +306,7 @@ namespace Eddy.Properties {
         internal static System.Drawing.Bitmap Eddy_Indoor__Indoor_ViralEmitter {
             get {
                 object obj = ResourceManager.GetObject("Eddy_Indoor__Indoor_ViralEmitter", resourceCulture);
+
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -626,6 +657,16 @@ namespace Eddy.Properties {
         internal static System.Drawing.Bitmap Eddy_trees {
             get {
                 object obj = ResourceManager.GetObject("Eddy_trees", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Eddy_UTCI_Rating {
+            get {
+                object obj = ResourceManager.GetObject("Eddy_UTCI_Rating", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

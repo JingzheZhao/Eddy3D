@@ -87,7 +87,9 @@
     <Compile Include="Components\2_Radiation\2_VegetationSurfaceSettings_Component.cs" />
     <Compile Include="Components\2_Radiation\2_SurfaceSettings_Component.cs" />
     <Compile Include="Components\3_PostProcessing\2_InspectPolygon_Component.cs" />
+    <Compile Include="Components\3_PostProcessing\3_HOYSelector_Component.cs" />
     <Compile Include="Components\3_PostProcessing\3_AnalysisSystem_Component.cs" />
+    <Compile Include="Components\3_PostProcessing\3_UTCI_ConditionOfPerson_Component.cs" />
     <Compile Include="Components\3_PostProcessing\3_HOY_Component.cs" />
     <Compile Include="Components\3_PostProcessing\3_AnalysisBinsCustom_Component.cs" />
     <Compile Include="Components\3_PostProcessing\3_AnalysisBins_DayTime_Component.cs" />
@@ -98,7 +100,7 @@
     <Compile Include="Components\3_PostProcessing\2_InspectProbe_Component.cs" />
     <Compile Include="Components\3_PostProcessing\Hidden\2_WindFactorsTemportal_Component.cs" />
     <Compile Include="Components\3_PostProcessing\Hidden\1o_CompCalcMRT.cs" />
-    <Compile Include="Components\3_PostProcessing\Hidden\7_CompCalcUTCIMetric.cs" />
+    <Compile Include="Components\3_PostProcessing\3_CompCalcUTCIMetric.cs" />
     <Compile Include="Components\1_Wind\6_CompParaview.cs" />
     <Compile Include="Components\1_Wind\6_CompVisProbesCustom.cs" />
     <Compile Include="Components\1_Wind\6_CompVisProbesCustomWProbes.cs" />
@@ -270,9 +272,6 @@
     <None Include="Resources\Eddy_analysisCul.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Eddy_analysisPeriod.png" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\Eddy_annual.png" />
   </ItemGroup>
   <ItemGroup>
@@ -364,6 +363,21 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Eddy_Indoor_Outlet.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_analysisPeriod.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_analysisPeriod_Days.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_analysisPeriod_Hours.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_UTCI_Rating.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_HOY.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

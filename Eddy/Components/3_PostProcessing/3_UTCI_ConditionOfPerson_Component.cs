@@ -7,10 +7,11 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using DateTimeExtensions;
+using System.Collections.Generic;
 
 namespace Eddy.Components.Radiation
 {
-    public class DateTime_To_HOY_Component : GH_Component
+    public class UTCI_ConditionOfPerson_Component : GH_Component
     {
         public override GH_Exposure Exposure
         {
@@ -20,8 +21,8 @@ namespace Eddy.Components.Radiation
         /// <summary>
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
-        public DateTime_To_HOY_Component()
-          : base("Hour Of Year", "HOY", "Hour Of Year" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
+        public UTCI_ConditionOfPerson_Component()
+          : base("UTCI Rating", "UTCI", "UTCI condition of person rating" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
         {
         }
 
@@ -30,13 +31,8 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddIntegerParameter("Month", "M", "Month [1-12]", GH_ParamAccess.item, 1);
-            pManager.AddIntegerParameter("Day", "D", "Day [1-31]", GH_ParamAccess.item, 1);
-            pManager.AddIntegerParameter("Hour", "H", "Hour [0-23]", GH_ParamAccess.item, 0);
-
-            pManager[0].Optional = true;
-            pManager[1].Optional = true;
-            pManager[2].Optional = true;
+            pManager.AddNumberParameter("UTCI", "UTCI", "UTCI Temperature [°C]", GH_ParamAccess.list );
+          
         }
 
         /// <summary>
@@ -44,7 +40,18 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Hour Of Year", "HOY", "Hour Of Year", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Rating", "Cond", @"Condition of person rating: 
+< -40 = -5(extreme cold stress)
+- 40 to - 27 = -4(very strong cold stress)
+- 27 to - 13 = -3(strong cold stress)
+- 13 to 0 = -2(moderate cold stress)
+0 to 9 = -1(slight cold stress)
+9 to 26 = 0(no thermal stress)
+26 to 28 = 1(slight heat stress)
+28 to 32 = 2(moderate heat stress)
+32 to 38 = 3(strong heat stress)
+38 to 46 = 4(very strong heat stress)
+> 46 = 5(extreme heat stress)", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -53,17 +60,19 @@ namespace Eddy.Components.Radiation
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            int m = 1;
-            int d = 1;
-            int h = 1;
+            List<int> rating = new List<int>();
 
-            DA.GetData(0, ref m);
-            DA.GetData(1, ref d);
-            DA.GetData(2, ref h);
+            List<double> data = new List<double>();
+            DA.GetDataList(0, data);
+           
+            foreach (var d in data)
+            {
+                rating.Add(UTCI.CalcConditionOfPerson(d));
 
-            var dt = new DateTime(2021, m, d, h, 0, 0);
+            }
 
-            DA.SetData(0, dt.HOY());
+ 
+            DA.SetDataList(0, rating);
         }
 
         /// <summary>
@@ -75,7 +84,7 @@ namespace Eddy.Components.Radiation
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return Resources.Eddy_HOY;
+                return Resources.Eddy_UTCI_Rating;
             }
         }
 
@@ -84,7 +93,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("{D5234126-347B-456F-8C9C-93B4CAB6ED1D}"); }
+            get { return new Guid("{5353A1D7-8D77-4028-811A-D89AC1150B48}"); }
         }
     }
 }
