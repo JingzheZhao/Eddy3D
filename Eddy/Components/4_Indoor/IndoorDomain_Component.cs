@@ -11,6 +11,10 @@ using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using Medallion.Shell;
 using Rhino.Geometry;
+using System.Threading;
+using System.Threading.Tasks;
+using EddyLib.UI;
+using System.Globalization;
 
 namespace Eddy.Components.Indoor
 {
@@ -58,6 +62,9 @@ namespace Eddy.Components.Indoor
 
             //10
             pManager.AddBooleanParameter("Run Simulation", "RunSim", "Run Simulation", GH_ParamAccess.item, false);
+
+            //11
+            pManager.AddBooleanParameter("Run All Batch", "RunAll", "Run All Batch", GH_ParamAccess.item, false);
         }
 
         /// <summary>
@@ -161,8 +168,52 @@ namespace Eddy.Components.Indoor
             //bool toggle
             #region START PROCESSES
 
-           
+            //ONE BUTTON -ALLBATCH FILES IN ONE
 
+            bool makeBatch = false;
+
+            DA.GetData(11, ref makeBatch);
+
+            string allBat = dom.WorkingDir + @"\run_all.bat";
+
+            try {
+                if (makeBatch == true && canRun)
+                {
+                    Console.WriteLine("Run Simulation...");
+
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, allBat, taskComplete);
+
+                    //PROGRESSBAR
+
+                    int lineCounter = 0;
+
+                    while (Console.ReadLine() != null)
+                    {
+                        lineCounter++;
+
+                        double iterations = 1;
+                        DA.GetData(7, ref iterations);
+                        
+                        double numFuncObj = 1;
+                        DA.GetData(3, ref numFuncObj);
+
+                        double steps = 1962 + 37 + (9 * numFuncObj) +1731+ (26 * iterations) ;
+
+                        Console.WriteLine(ProgressWriter.ProgressKey + (100 * lineCounter / steps).ToString(CultureInfo.InvariantCulture));
+                        
+                    }
+
+                }
+            }
+
+            catch (Exception ex)
+            {
+
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, ex.Message); return;
+
+            }
+
+            //THREE BUTTONS - THREE BATCH FILES IN SEPARATE BUTTONS
             bool makeFOs = false;
             bool runSimulation = false;
             bool runMeshing = false;

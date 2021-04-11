@@ -131,6 +131,8 @@ exit
                     if (eh != null) { eh.Invoke(p, new EventArgs()); }
                 });
 
+
+
                 Thread th = new Thread(ths);
                 th.Start();
 
