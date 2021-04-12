@@ -131,6 +131,7 @@
     <Compile Include="Components\4_Indoor\FunctionObjects\MomentumSource_Component.cs" />
     <Compile Include="Components\4_Indoor\FunctionObjects\ViralEmitter_Component.cs" />
     <Compile Include="Components\4_Indoor\FunctionObjects\VolumetricHeatSource_Component.cs" />
+    <Compile Include="Components\4_Indoor\IndoorDomainV2_Component.cs" />
     <Compile Include="Components\4_Indoor\IndoorDomain_Component.cs" />
     <Compile Include="Components\4_Indoor\IndoorInlet_Component.cs" />
     <Compile Include="Components\4_Indoor\IndoorOutlet_Component.cs" />
