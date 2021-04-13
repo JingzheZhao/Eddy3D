@@ -44,7 +44,7 @@ SolidCompression=yes
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
-Source: "..\Ilmerge\*"; DestDir: "{#Eddy3DDir}"; Flags: ignoreversion
+; Source: "..\Ilmerge\*"; DestDir: "{#Eddy3DDir}"; Flags: ignoreversion
 Source: "GHLink\*"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion 
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
