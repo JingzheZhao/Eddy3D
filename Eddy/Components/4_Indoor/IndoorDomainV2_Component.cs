@@ -174,7 +174,7 @@ namespace Eddy.Components.Indoor
 
 
             DA.GetData(7, ref iterations);       
-            DA.GetData(3, ref numFuncObj);
+            //DA.GetData(3, ref numFuncObj);
 
 
             DA.GetData(8, ref RUN);
