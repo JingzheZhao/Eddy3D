@@ -11,21 +11,17 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
+using System.Text;
+
 [assembly: InternalsVisibleTo("Eddy")]
 
 namespace EddyLib.Radiation
 {
-
-
     public class RadiationSystem
     {
-
-
         public int methodsteps = 18;
 
-
-         public string BaseWorkingDir = "";
-
+        public string BaseWorkingDir = "";
 
         public List<RSurface> RSurfaces;
 
@@ -35,31 +31,30 @@ namespace EddyLib.Radiation
         public List<RPolygon> Polys = new List<RPolygon>();
 
         public Weather Weather;
-        public RadiationSystem(  string baseWorkingDir, Weather weather, List<RSurface> rsurfaces, List<RProbe> probes, List<RPolygon> polys, Mesh unified)
+
+        public StringBuilder ErrorLog = new StringBuilder();
+
+        public RadiationSystem(string baseWorkingDir, Weather weather, List<RSurface> rsurfaces, List<RProbe> probes, List<RPolygon> polys, Mesh unified)
         {
-             BaseWorkingDir = baseWorkingDir;
+            BaseWorkingDir = baseWorkingDir;
             Weather = weather;
             RSurfaces = rsurfaces;
             Probes = probes;
             Polys = polys;
 
             UnifiedMeshHighPolyNoSky = unified;
-
         }
-
-
-
 
         private string annualR_dc_ill_out = (@"Rad\output\annualR_dc.ill");
         private string annualR_dcd_ill_out = (@"Rad\output\annualR_dcd.ill");
         private string annualR_dir_ill_out = (@"Rad\output\annual_dir.ill");
         private string annualR_total_ill_out = (@"Rad\output\annual_total.ill");
 
-
         public bool RunDDS(bool run, CancellationToken ct, int steps, ref int stepCnt)
-        {        
-            return RunRadianceDDS( run,  ct,  steps, ref  stepCnt);
+        {
+            return RunRadianceDDS(run, ct, steps, ref stepCnt);
         }
+
         private bool RunRadianceDDS(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
             Console.WriteLine("Starting DDS Simulation");
@@ -72,15 +67,12 @@ namespace EddyLib.Radiation
             int skysubdivdiffuse = 1;
             int skysubdivdirect = 4;
 
-
             string radMatBlack = @"
         void plastic Black
         0
         0
         5 0 0 0 0 0
         ";
-
-
 
             Console.WriteLine("Writing files...");
             // Make sure this understands userdata
@@ -99,9 +91,17 @@ namespace EddyLib.Radiation
             RadianceSkies.Write(this.BaseWorkingDir + @"\Rad\skyglow" + (skySubDivDir) + ".rad", (skySubDivDir));
             RadianceSkies.Write(this.BaseWorkingDir + @"\Rad\skyglow" + (skySubDivDiff) + ".rad", (skySubDivDiff));
 
-
             if (run == true)
             {
+<<<<<<< Updated upstream
+=======
+                string radbin = @"C:\Eddy3D\Common\Radiance\bin";
+                string radlib = @"C:\Eddy3D\Common\Radiance\lib";
+                char ps = ';';
+
+                Environment.SetEnvironmentVariable("PATH", "." + ps + radlib + ps + radbin + ps + "$PATH");
+                Environment.SetEnvironmentVariable("RAYPATH", "." + ps + radlib + ps + radbin + ps + "$RAYPATH");
+>>>>>>> Stashed changes
 
                 // -----------------------------
                 // 1 Convert epw to wea tape
@@ -113,9 +113,6 @@ namespace EddyLib.Radiation
 
                 Interlocked.Increment(ref stepCnt);
                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
-
-
-
 
                 // -----------------------------
                 // 4 Generate SkyVector Coarse
@@ -135,12 +132,12 @@ namespace EddyLib.Radiation
 
                 var gendaymtx = Command.Run("cmd.exe", new[] { "" },
                   options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct));
+
+                gendaymtx.StandardInput.WriteLine("set PATH=" + ps + radlib + ps + radbin + ps + "%PATH%");
+                gendaymtx.StandardInput.WriteLine("set RAYPATH=" + ps + radlib + ps + radbin + ps + "%PATH%");
                 gendaymtx.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 gendaymtx.StandardInput.WriteLine(gendaymtxArgs);
                 gendaymtx.StandardInput.WriteLine("exit");
-
-
-
 
                 // -----------------------------
                 // 12 Generate SkyVector Fine
@@ -153,12 +150,12 @@ namespace EddyLib.Radiation
 
                 var gendaymtx2 = Command.Run("cmd.exe", new[] { "" },
                   options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct));
+
+                gendaymtx2.StandardInput.WriteLine("set PATH=" + ps + radlib + ps + radbin + ps + "%PATH%");
+                gendaymtx2.StandardInput.WriteLine("set RAYPATH=" + ps + radlib + ps + radbin + ps + "%PATH%");
                 gendaymtx2.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 gendaymtx2.StandardInput.WriteLine(gendaymtx2Args);
                 gendaymtx2.StandardInput.WriteLine("exit");
-
-
-
 
                 // -----------------------------
                 // 2 Make Octree
@@ -172,13 +169,11 @@ namespace EddyLib.Radiation
                 if (!oconv.Result.Success)
                 {
                     Debug.WriteLine($"oconv command failed with exit code {oconv.Result.ExitCode}: {oconv.Result.StandardError}");
+                    ErrorLog.AppendLine($"oconv command failed with exit code {oconv.Result.ExitCode}: {oconv.Result.StandardError}");
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
-
-
-
 
                 // -----------------------------
                 // 3 Create daylight coefficient matrix
@@ -198,10 +193,14 @@ namespace EddyLib.Radiation
                 string ptsin = (@"Rad\sensors.pts");
                 string mtxout = (@"Rad\Output\dc_" + skySubDivDiff + @".mtx");
 
-
                 string cmdArgRFLUXMTX = DefaultDirectoriesAndPaths.RadianceDir + @"\rfluxmtx -I+ -y " + sensorCnt + @" -lw 0.0001 -ab " + ab + @"  -ad " + ad + @" -n " + n + @" - " + skyglowrad + @" -i " + inputoct + @" < " + ptsin + @" > " + mtxout;
                 var CMDrfluxmtx = Command.Run("cmd.exe", new[] { "" },
                   options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct));
+<<<<<<< Updated upstream
+=======
+                CMDrfluxmtx.StandardInput.WriteLine("set PATH=" + ps + radlib + ps + radbin + ps + "%PATH%");
+                CMDrfluxmtx.StandardInput.WriteLine("set RAYPATH=" + ps + radlib + ps + radbin + ps + "%PATH%");
+>>>>>>> Stashed changes
                 CMDrfluxmtx.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 CMDrfluxmtx.StandardInput.WriteLine(cmdArgRFLUXMTX);
                 CMDrfluxmtx.StandardInput.WriteLine("exit");
@@ -211,13 +210,11 @@ namespace EddyLib.Radiation
                 if (!CMDrfluxmtx.Result.Success)
                 {
                     Debug.WriteLine($"4 command failed with exit code {CMDrfluxmtx.Result.ExitCode}: {CMDrfluxmtx.Result.StandardError}");
+                    ErrorLog.AppendLine($"4 command failed with exit code {CMDrfluxmtx.Result.ExitCode}: {CMDrfluxmtx.Result.StandardError}");
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
-
-
-
 
                 // -----------------------------
                 // wait for 4 Generate SkyVector Coarse
@@ -226,6 +223,7 @@ namespace EddyLib.Radiation
                 if (!gendaymtx.Result.Success)
                 {
                     Debug.WriteLine($"gendaymtx command failed with exit code {gendaymtx.Result.ExitCode}: {gendaymtx.Result.StandardError}");
+                    ErrorLog.AppendLine($"gendaymtx command failed with exit code {gendaymtx.Result.ExitCode}: {gendaymtx.Result.StandardError}");
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
@@ -249,10 +247,11 @@ namespace EddyLib.Radiation
                 string dctimestepArgs = DefaultDirectoriesAndPaths.RadianceDir + @"\dctimestep " + mtxout + @" " + smxout + @" | rmtxop -fa -t -c 0.265 0.670 0.065 - > " + annualR_dc_ill_out;
                 var dctimestep = Command.Run("cmd.exe", new[] { "" },
                   options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct));
+                dctimestep.StandardInput.WriteLine("set PATH=" + ps + radlib + ps + radbin + ps + "%PATH%");
+                dctimestep.StandardInput.WriteLine("set RAYPATH=" + ps + radlib + ps + radbin + ps + "%PATH%");
                 dctimestep.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 dctimestep.StandardInput.WriteLine(dctimestepArgs);
                 dctimestep.StandardInput.WriteLine("exit");
-
 
                 // -----------------------------
                 // wait for 5 Create Illum DC
@@ -263,11 +262,11 @@ namespace EddyLib.Radiation
                 if (!dctimestep.Result.Success)
                 {
                     Debug.WriteLine($"dctimestep command failed with exit code {dctimestep.Result.ExitCode}: {dctimestep.Result.StandardError}");
+                    ErrorLog.AppendLine($"dctimestep command failed with exit code {dctimestep.Result.ExitCode}: {dctimestep.Result.StandardError}");
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
-
 
                 // -----------------------------
                 // 6 Compute Direct Only for LowResSky
@@ -291,8 +290,14 @@ namespace EddyLib.Radiation
                 string dirCalcArgs2 = DefaultDirectoriesAndPaths.RadianceDir + @"\gendaymtx -m " + skysubdivdiffuse + @" -O1 -d " + weain + @" > " + d_smxout;
                 string dirCalcArgs3 = DefaultDirectoriesAndPaths.RadianceDir + @"\dctimestep " + dcd_mtxout + @" " + d_smxout + @" | rmtxop -fa -t -c 0.265 0.670 0.065 -> " + annualR_dcd_ill_out;
 
-
                 var dircalc1 = Command.Run("cmd.exe");
+
+                //Environment.SetEnvironmentVariable("PATH", "." + ps + radlib + ps + radbin +    ps + "$PATH");
+                //Environment.SetEnvironmentVariable("RAYPATH", "." + ps + radlib + ps + radbin   + ps + "$RAYPATH");
+                //set PATH=%HOME%\msys64\usr\bin;%PATH%
+
+                dircalc1.StandardInput.WriteLine("set PATH=" + ps + radlib + ps + radbin + ps + "%PATH%");
+                dircalc1.StandardInput.WriteLine("set RAYPATH=" + ps + radlib + ps + radbin + ps + "%PATH%");
                 dircalc1.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 dircalc1.StandardInput.WriteLine(dirCalcArgs1);
                 dircalc1.StandardInput.WriteLine("exit");
@@ -301,17 +306,20 @@ namespace EddyLib.Radiation
                 if (!dircalc1.Result.Success)
                 {
                     Debug.WriteLine($"dircalc1 command failed with exit code {dircalc1.Result.ExitCode}: {dircalc1.Result.StandardError}");
-                    return false;
+                    ErrorLog.AppendLine($"dircalc1 command failed with exit code {dircalc1.Result.ExitCode}: {dircalc1.Result.StandardError}");
 
+                    return false;
                 }
                 Interlocked.Increment(ref stepCnt);
                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
                 // -----------------------------
-                // 7 
+                // 7
                 // -----------------------------
                 var dircalc2 = Command.Run("cmd.exe", new[] { "" },
                   options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct));
+                dircalc2.StandardInput.WriteLine("set PATH=" + ps + radlib + ps + radbin + ps + "%PATH%");
+                dircalc2.StandardInput.WriteLine("set RAYPATH=" + ps + radlib + ps + radbin + ps + "%PATH%");
                 dircalc2.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 dircalc2.StandardInput.WriteLine(dirCalcArgs2);
                 dircalc2.StandardInput.WriteLine("exit");
@@ -319,6 +327,7 @@ namespace EddyLib.Radiation
                 if (!dircalc2.Result.Success)
                 {
                     Debug.WriteLine($"dircalc2 command failed with exit code {dircalc2.Result.ExitCode}: {dircalc2.Result.StandardError}");
+                    ErrorLog.AppendLine($"dircalc2 command failed with exit code {dircalc2.Result.ExitCode}: {dircalc2.Result.StandardError}");
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
@@ -329,6 +338,8 @@ namespace EddyLib.Radiation
                 // -----------------------------
                 var dircalc3 = Command.Run("cmd.exe", new[] { "" },
                   options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct));
+                dircalc3.StandardInput.WriteLine("set PATH=" + ps + radlib + ps + radbin + ps + "%PATH%");
+                dircalc3.StandardInput.WriteLine("set RAYPATH=" + ps + radlib + ps + radbin + ps + "%PATH%");
                 dircalc3.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 dircalc3.StandardInput.WriteLine(dirCalcArgs3);
                 dircalc3.StandardInput.WriteLine("exit");
@@ -336,12 +347,11 @@ namespace EddyLib.Radiation
                 if (!dircalc3.Result.Success)
                 {
                     Debug.WriteLine($"dircalc3 command failed with exit code {dircalc3.Result.ExitCode}: {dircalc3.Result.StandardError}");
+                    ErrorLog.AppendLine($"dircalc3 command failed with exit code {dircalc3.Result.ExitCode}: {dircalc3.Result.StandardError}");
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
-
-
 
                 // -----------------------------
                 // 9 DDS - Higher resolution sun positions
@@ -357,6 +367,8 @@ namespace EddyLib.Radiation
 
                 var suncoeff = Command.Run("cmd.exe", new[] { "" },
                   options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct));
+                suncoeff.StandardInput.WriteLine("set PATH=" + ps + radlib + ps + radbin + ps + "%PATH%");
+                suncoeff.StandardInput.WriteLine("set RAYPATH=" + ps + radlib + ps + radbin + ps + "%PATH%");
                 suncoeff.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 suncoeff.StandardInput.WriteLine(suncoeffArgs1);
                 suncoeff.StandardInput.WriteLine(suncoeffArgs2);
@@ -368,11 +380,11 @@ namespace EddyLib.Radiation
                 if (!suncoeff.Result.Success)
                 {
                     Debug.WriteLine($"suncoeff command failed with exit code {suncoeff.Result.ExitCode}: {suncoeff.Result.StandardError}");
+                    ErrorLog.AppendLine($"suncoeff command failed with exit code {suncoeff.Result.ExitCode}: {suncoeff.Result.StandardError}");
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
-
 
                 // -----------------------------
                 // 10 Put suns in scene..
@@ -386,11 +398,11 @@ namespace EddyLib.Radiation
                 if (!oconvdir.Result.Success)
                 {
                     Debug.WriteLine($"oconvdir command failed with exit code {oconvdir.Result.ExitCode}: {oconvdir.Result.StandardError}");
+                    ErrorLog.AppendLine($"oconvdir command failed with exit code {oconvdir.Result.ExitCode}: {oconvdir.Result.StandardError}");
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
-
 
                 // -----------------------------
                 // 11 Calculate illuminance sun coefficients
@@ -401,6 +413,8 @@ namespace EddyLib.Radiation
                 string rcontribArgs1 = DefaultDirectoriesAndPaths.RadianceDir + @"\rcontrib -I+ -ab 1 -y " + sensorCnt + @" -n 16 -ad 256 -lw 1.0e-3 -dc 1 -dt 0 -dj 0 -faf -e MF:" + skysubdivdirect + @" -f """ + DefaultDirectoriesAndPaths.RadianceLibDir + @"\reinhart.cal"" -b rbin -bn Nrbins -m solar " + blackWithSunsin + @" < " + ptsin + @" > " + cddmtxout;
                 var rcontrib = Command.Run("cmd.exe", new[] { "" },
                   options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct));
+                rcontrib.StandardInput.WriteLine("set PATH=" + ps + radlib + ps + radbin + ps + "%PATH%");
+                rcontrib.StandardInput.WriteLine("set RAYPATH=" + ps + radlib + ps + radbin + ps + "%PATH%");
                 rcontrib.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 rcontrib.StandardInput.WriteLine(rcontribArgs1);
                 rcontrib.StandardInput.WriteLine("exit");
@@ -410,11 +424,11 @@ namespace EddyLib.Radiation
                 if (!rcontrib.Result.Success)
                 {
                     Debug.WriteLine($"suncoeff command failed with exit code {rcontrib.Result.ExitCode}: {rcontrib.Result.StandardError}");
+                    ErrorLog.AppendLine($"suncoeff command failed with exit code {rcontrib.Result.ExitCode}: {rcontrib.Result.StandardError}");
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
-
 
                 // -----------------------------
                 // 12 Started earlier
@@ -424,11 +438,12 @@ namespace EddyLib.Radiation
                 if (!gendaymtx2.Result.Success)
                 {
                     Debug.WriteLine($"gendaymtx2 command failed with exit code {gendaymtx2.Result.ExitCode}: {gendaymtx2.Result.StandardError}");
+                    ErrorLog.AppendLine($"gendaymtx2 command failed with exit code {gendaymtx2.Result.ExitCode}: {gendaymtx2.Result.StandardError}");
+
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
-
 
                 // -----------------------------
                 // 13 Create Illum Dir
@@ -437,21 +452,21 @@ namespace EddyLib.Radiation
                 string dctimestep2Args = DefaultDirectoriesAndPaths.RadianceDir + @"\dctimestep " + cddmtxout + @" " + smxsunout + @" | rmtxop -fa -t -c 0.265 0.670 0.065 - > " + annualR_dir_ill_out;
                 var dctimestep2 = Command.Run("cmd.exe", new[] { "" },
                   options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct));
+                dctimestep2.StandardInput.WriteLine("set PATH=" + ps + radlib + ps + radbin + ps + "%PATH%");
+                dctimestep2.StandardInput.WriteLine("set RAYPATH=" + ps + radlib + ps + radbin + ps + "%PATH%");
                 dctimestep2.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 dctimestep2.StandardInput.WriteLine(dctimestep2Args);
                 dctimestep2.StandardInput.WriteLine("exit");
-
 
                 dctimestep2.Wait();
                 if (!dctimestep2.Result.Success)
                 {
                     Debug.WriteLine($"dctimestep2 dir command failed with exit code {dctimestep2.Result.ExitCode}: {dctimestep2.Result.StandardError}");
+                    ErrorLog.AppendLine($"dctimestep2 dir command failed with exit code {dctimestep2.Result.ExitCode}: {dctimestep2.Result.StandardError}");
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
-
-
 
                 // -----------------------------
                 // 14 Combine Results
@@ -461,6 +476,8 @@ namespace EddyLib.Radiation
 
                 var rmtxop = Command.Run("cmd.exe", new[] { "" },
                   options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct));
+                rmtxop.StandardInput.WriteLine("set PATH=" + ps + radlib + ps + radbin + ps + "%PATH%");
+                rmtxop.StandardInput.WriteLine("set RAYPATH=" + ps + radlib + ps + radbin + ps + "%PATH%");
                 rmtxop.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 rmtxop.StandardInput.WriteLine(rmtxopArgs);
                 rmtxop.StandardInput.WriteLine("exit");
@@ -469,21 +486,16 @@ namespace EddyLib.Radiation
                 if (!rmtxop.Result.Success)
                 {
                     Debug.WriteLine($"dctimestep dir command failed with exit code {rmtxop.Result.ExitCode}: {rmtxop.Result.StandardError}");
+                    ErrorLog.AppendLine($"dctimestep dir command failed with exit code {rmtxop.Result.ExitCode}: {rmtxop.Result.StandardError}");
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
-
-
-
-
-
             }
 
-
             return true;
-
         }
+
         public void LoadDDSData(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
             // -----------------------------
@@ -491,22 +503,18 @@ namespace EddyLib.Radiation
             // -----------------------------
             Console.WriteLine("Compute dMRT");
 
-
             var totalIll = LoadDDSIll((this.BaseWorkingDir + @"\" + annualR_total_ill_out));
             //var diffIll = LoadDDSIll((this.BaseWorkingDir + @"\Rad\Output\annual_total.ill"));
             var dirIll = LoadDDSIll((this.BaseWorkingDir + @"\" + annualR_dir_ill_out));
-
 
             float[][] dMRT = SolarGain.ComputeStanding(this.Weather, totalIll, dirIll);
 
             Interlocked.Increment(ref stepCnt);
             Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
-
             // -----------------------------
             // 16 Load results
             // -----------------------------
-
 
             for (int i = 0; i < this.Probes.Count; i++)
             {
@@ -520,16 +528,16 @@ namespace EddyLib.Radiation
                     this.Probes[i].SolarGain_dMRT[h] = dMRT[h][i];
                 }
             }
-
         }
+
         public void RunDirectRayCast(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
             RunSimpleRadiation(run, ct, steps, ref stepCnt);
         }
+
         private void RunSimpleRadiation(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
             Console.WriteLine("Computing radiation and dMRT...");
-
 
             SolarGeometry sg = new SolarGeometry();
             int vcnt = 0;
@@ -546,7 +554,6 @@ namespace EddyLib.Radiation
 
                     if (_el > 3.0)
                     {
-
                         double x = Math.Cos(sg.deg2rad(90 - _az)) * Math.Cos(sg.deg2rad(_el));
                         double y = Math.Sin(sg.deg2rad(90 - _az)) * Math.Cos(sg.deg2rad(_el));
                         double z = Math.Sin(sg.deg2rad(_el));
@@ -561,18 +568,14 @@ namespace EddyLib.Radiation
                 }
             }
 
-
-
             //Parallel.For(0, Probes.Count, i =>
             for (int i = 0; i < Probes.Count; i++)
             {
-
                 Probes[i].TotalRad = new float[8760];
                 Probes[i].DirRad = new float[8760];
 
                 double[] dotproduct = new double[12 * 24];
                 bool[] inDirSunlight = new bool[12 * 24];
-
 
                 for (int h = 0; h < sunPositions.Length; h++)
                 {
@@ -582,13 +585,11 @@ namespace EddyLib.Radiation
 
                     if (dt < 0.1)
                     {
-
                         inDirSunlight[h] = true;
                         var dot = Probes[i].Normal.Value * sunPositions[h];
 
                         if (inDirSunlight[h]) { dotproduct[h] = dot; }
                         else { dotproduct[h] = 0; }
-
                     }
                     else { inDirSunlight[h] = false; }
                 }
@@ -608,29 +609,26 @@ namespace EddyLib.Radiation
 
                     Probes[i].TotalRad[h] = rad + diff;
                     Probes[i].DirRad[h] = rad;
-
                 }
 
                 Console.WriteLine("Compute dMRT for probe " + i);
                 Probes[i].SolarGain_dMRT = SolarGain.ComputeStanding(Weather, Probes[i].TotalRad, Probes[i].DirRad);
 
-
                 Interlocked.Increment(ref stepCnt);
                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
-
             }//);
 
             Console.WriteLine("Solar gain finished");
         }
+
         public MRT_Simulation_ResultProto SaveResults(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
-
             // -----------------------------
             // 16 Write results
             // -----------------------------
             var prep = PrepareProtoBufSingleton.Instance;
 
-            var protoResult = new MRT_Simulation_ResultProto(  this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
+            var protoResult = new MRT_Simulation_ResultProto(this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
             protoResult.WriteToFile(this.BaseWorkingDir + @"\RAD.eddy");
 
             Console.WriteLine("Results written");
@@ -639,8 +637,6 @@ namespace EddyLib.Radiation
 
             return protoResult;
         }
-
-
 
         private static float[][] LoadDDSIll(string illFileName) // total illuminance data
         {
@@ -652,13 +648,10 @@ namespace EddyLib.Radiation
                 if (illLines[i].Contains("FORMAT")) { skip = i + 2; break; }
             }
 
-
             return illLines.Skip(skip).Select(l => Array.ConvertAll<string, float>(l.Split(new[] { ' ' }).Skip(1).ToArray(), float.Parse)).ToArray();
 
             // [x][] time
             // [][x] points
         }
-
-
     }
 }

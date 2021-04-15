@@ -134,9 +134,22 @@ namespace EddyLib.Radiation
                 // if CFD wind speed data exsists - then override
                 if (probe.WindSpeed != null)
                 {
-                    for (int j = 0; j < windspeed.Length; j++)
+                    for (int h = 0; h < windspeed.Length; h++)
                     {
-                        windspeed[j] = (double)probe.WindSpeed[j];
+                        // lift to 10 m height as required
+
+                        // scale up to 10 m
+                        //var z0 = 1;
+                        //var uref = 2.89;
+                        //var zref = 3;
+
+                        //// Act
+                        //var res = EddyLib.BCs.BoundaryCondition.ScaleABL(uref, zref, z0, 10);
+
+                        var resultingWindSpeedforUTCI_At10 = UTCI.At10Meters((double)probe.WindSpeed[h], 1.8);
+                        //  var resultingWindSpeedforUTCI_At10 = UTCI.At10Meters(resultingWindSpeedforUTCI, probe.Point.Value.Z);
+
+                        windspeed[h] = resultingWindSpeedforUTCI_At10;
                     }
                 }
 
@@ -145,50 +158,24 @@ namespace EddyLib.Radiation
                 // if longwave mrt data exsists - then override
                 if (probe.LongWave_MRT != null)
                 {
-                    for (int j = 0; j < mrt.Length; j++)
+                    for (int h = 0; h < mrt.Length; h++)
                     {
-                        mrt[j] = (double)probe.LongWave_MRT[j];
+                        mrt[h] = (double)probe.LongWave_MRT[h];
                     }
                 }
                 // if radiation data exsists - add dMRT to mrt
                 if (probe.SolarGain_dMRT != null)
                 {
-                    for (int j = 0; j < mrt.Length; j++)
+                    for (int h = 0; h < mrt.Length; h++)
                     {
-                        mrt[j] = mrt[j] + (double)probe.SolarGain_dMRT[j];
+                        mrt[h] = mrt[h] + (double)probe.SolarGain_dMRT[h];
                     }
                 }
 
                 for (int h = 0; h < 8760; h++)
+
                 {
-                    // Check for extreme MRTs
-                    double resultingMRT = mrt[h];
-
-                    if (resultingMRT < this.Weather.DryBulbTemp[h] - 30) { resultingMRT = this.Weather.DryBulbTemp[h] - 30; }
-                    if (resultingMRT > this.Weather.DryBulbTemp[h] + 70) { resultingMRT = this.Weather.DryBulbTemp[h] + 70; }
-
-                    // Check for extreme Windspeeds
-                    double resultingWindSpeedforUTCI = windspeed[h];
-
-                    if (resultingWindSpeedforUTCI > 17) { resultingWindSpeedforUTCI = 17; }
-                    if (resultingWindSpeedforUTCI < 0.5) { resultingWindSpeedforUTCI = 0.5; }
-
-                    // scale up to 10 m
-                    //var z0 = 1;
-                    //var uref = 2.89;
-                    //var zref = 3;
-
-                    //// Act
-                    //var res = EddyLib.BCs.BoundaryCondition.ScaleABL(uref, zref, z0, 10);
-
-                    // lift to 10 m height as required
-                    var resultingWindSpeedforUTCI_At10 = UTCI.At10Meters(resultingWindSpeedforUTCI, 1.8);
-                    //  var resultingWindSpeedforUTCI_At10 = UTCI.At10Meters(resultingWindSpeedforUTCI, probe.Point.Value.Z);
-
-                    double utci = UTCI.CalcUTCI(this.Weather.DryBulbTemp[h], this.Weather.RelativeHumidity[h], resultingWindSpeedforUTCI, resultingMRT);
-
-                    //if (utci < -40) utci = -40;
-                    //if (utci > 46) utci = 46;
+                    double utci = UTCI.CalcUTCICorrectBounds(this.Weather.DryBulbTemp[h], this.Weather.RelativeHumidity[h], windspeed[h], mrt[h], out bool outOfBounds);
 
                     var condition = UTCI.CalcConditionOfPerson(utci);
 
