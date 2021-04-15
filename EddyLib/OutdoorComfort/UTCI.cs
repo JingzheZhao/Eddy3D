@@ -143,6 +143,41 @@ namespace EddyLib
             return new Tuple<double[,], int[,], double[], bool[,], bool[,]>(utci, humcondition, valuesAnnualPercentage, uncertaintyMRTArray, uncertaintyWindArray);
         }
 
+        public static double CalcUTCICorrectBounds(double TaC_IN, double RH_IN, double Wsp_IN, double MRT_IN, out bool outOfBounds)
+        {
+            // Bröde, P., Fiala, D., Błażejczyk, K., Holmér, I., Jendritzky, G., Kampmann, B., Tinz, B., & Havenith, G. (2012). Deriving the operational procedure for the Universal Thermal Climate Index (UTCI). International Journal of Biometeorology, 56(3), 481–494. https://doi.org/10.1007/s00484-011-0454-1
+
+            var TaC_New = TaC_IN;
+            var RH_New = RH_IN;
+            var MRT_New = MRT_IN;
+            var Wsp_New = Wsp_IN;
+            outOfBounds = false;
+
+            // Check for extreme ambient temperatures
+
+            if (TaC_IN < (-50)) { TaC_New = -50; outOfBounds = true; }
+            else if (TaC_IN > (50)) { TaC_New = 50; outOfBounds = true; }
+
+            // Check for extreme MRTs
+
+            if (MRT_IN - TaC_New < -30) { MRT_New = 30; outOfBounds = true; }
+            else if (MRT_IN - TaC_New > 70) { MRT_New = 70; outOfBounds = true; }
+
+            // Check for extreme RH
+            if (RH_IN < (5)) { RH_New = 5; outOfBounds = true; }
+            else if (RH_IN > (100)) { RH_New = 100; outOfBounds = true; }
+
+            // Check for extreme Windspeeds
+            // Tested: Wsp needs to be clamped at 17, otherwise polynomial goes crazy!
+
+            if (Wsp_IN > 17) { Wsp_New = 17; outOfBounds = true; }
+            else if (Wsp_IN < 0.5) { Wsp_New = 0.5; outOfBounds = true; }
+
+            double utci = CalcUTCI(TaC_New, RH_New, Wsp_New, MRT_New);
+
+            return utci;
+        }
+
         public static double CalcUTCI(double TaC, double RH, double Wsp, double mrt)
         {
             double v = Wsp;//wind speed

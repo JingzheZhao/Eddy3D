@@ -1,4 +1,4 @@
-﻿ using EddyLib.UI;
+﻿using EddyLib.UI;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
@@ -15,21 +15,13 @@ namespace EddyLib.Radiation
 {
     public class MRT_Simulation_System
     {
-
         public int TOTAL = 0;
         public int STEP = 0;
 
-
-
-
         public int methodsteps = 2;
 
-
-
-
-         public string BaseWorkingDir = "";
+        public string BaseWorkingDir = "";
         public string CFDDataPath = "";
-
 
         public MRT_Simulation_Settings Settings = new MRT_Simulation_Settings();
 
@@ -43,13 +35,11 @@ namespace EddyLib.Radiation
 
         public List<Mesh> ProbeMeshes;
 
-
         // Aux geometry
         public Mesh SkyDomeForVF;
+
         public Mesh HighPolyNoSky;
         public Mesh LowPolyNoSky;
-
-
 
         // Sub-Systems
         public RadiationSystem RadiationSystem;
@@ -58,15 +48,11 @@ namespace EddyLib.Radiation
 
         public ComfortSystem ComfortSystem;
 
- 
-        public MRT_Simulation_System(  string baseWorkingDir, Weather weather, List<RSurface> rsurfaces,  List<RProbe> rprobes, string cfd_data_path)
+        public MRT_Simulation_System(string baseWorkingDir, Weather weather, List<RSurface> rsurfaces, List<RProbe> rprobes, string cfd_data_path)
         {
-
-             BaseWorkingDir = baseWorkingDir;
+            BaseWorkingDir = baseWorkingDir;
             RSurfaces = rsurfaces;
             Weather = weather;
-
-
 
             Probes = rprobes;
 
@@ -99,9 +85,6 @@ namespace EddyLib.Radiation
                 }
             }
 
-
-
-
             // ---------------------
             // Make a sky dome for VF calculation
             // ---------------------
@@ -131,10 +114,7 @@ namespace EddyLib.Radiation
                 SkyDomeForVF.FaceNormals.ComputeFaceNormals();
 
                 SkyDomeForVF.Flip(true, true, true);
-
             }
-
-
 
             // ---------------------
             // Setup polygons
@@ -148,9 +128,6 @@ namespace EddyLib.Radiation
             int idcnt = 0;
             foreach (var p in this.Polys)
             { p.ID = idcnt; idcnt++; }
-
-
-
 
             // ---------------------
             // Setup working dir
@@ -166,15 +143,11 @@ namespace EddyLib.Radiation
                 }
             }
 
-
-
-
-            this.RadiationSystem = new RadiationSystem( this.BaseWorkingDir, this.Weather, this.RSurfaces, this.Probes, this.Polys, this.HighPolyNoSky);
-            this.ThermalSystem = new ThermalSystem(  this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.LowPolyNoSky, this.Settings.CummulativeViewFactorCutoff);
-            this.ComfortSystem = new ComfortSystem(  this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.CFDDataPath);
+            this.RadiationSystem = new RadiationSystem(this.BaseWorkingDir, this.Weather, this.RSurfaces, this.Probes, this.Polys, this.HighPolyNoSky);
+            this.ThermalSystem = new ThermalSystem(this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.LowPolyNoSky, this.Settings.CummulativeViewFactorCutoff);
+            this.ComfortSystem = new ComfortSystem(this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.CFDDataPath);
 
             TOTAL += this.methodsteps + RadiationSystem.methodsteps + ThermalSystem.methodsteps + ComfortSystem.methodsteps;
-
         }
 
         public bool RunVF(bool run, CancellationToken ct, int steps, ref int stepCnt)
@@ -182,11 +155,9 @@ namespace EddyLib.Radiation
             return RunVF_Internal(run, ct, steps, ref stepCnt);
         }
 
-
         private bool RunVF_Internal(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
             Stopwatch sp = new Stopwatch();
-
 
             Console.WriteLine("Computing probe view factors...");
             this.BuildVFToProbes(HighPolyNoSky);
@@ -206,9 +177,7 @@ namespace EddyLib.Radiation
             return true;
         }
 
-
-
-        #region VIEW FACTOR SYSTEM 
+        #region VIEW FACTOR SYSTEM
 
         private static List<RPolygon> MakeRPolygons(Mesh _ms, RadiationSurfaceType type, string matName, SimulationType simtype, double rad = 0, double refl = 0.5)
         {
@@ -230,12 +199,9 @@ namespace EddyLib.Radiation
                 pg.rout = 0.0;
                 pg.refl = refl;
 
-
                 pg.Name = matName;
                 pg.Type = type;
                 pg.SimulationType = simtype;
-
-
 
                 if (_ms.Faces[i].IsQuad)
                 {
@@ -255,7 +221,6 @@ namespace EddyLib.Radiation
                     pg.Mesh.Value.Vertices.Add(v2);
                     pg.Mesh.Value.Vertices.Add(v3);
                     pg.Mesh.Value.Faces.AddFace(0, 1, 2, 3);
-
                 }
                 else
                 {
@@ -282,7 +247,6 @@ namespace EddyLib.Radiation
         //Sum up view factors to the different materials in the model
         private void BuildVFToProbesByMaterial()
         {
-
             UniqueSurfaceTypesInModel = Polys.Select(s => s.Type.ToString()).ToHashSet().ToList();
 
             // set up dictionary
@@ -316,12 +280,8 @@ namespace EddyLib.Radiation
                 {
                     Probes[i].VFtoMaterial[UniqueSurfaceTypesInModel[j]] *= scale;
                 }
-
-
             }
-
         }
-
 
         //Compute Form factors taking into account occlusions from a list of meshes
         private void BuildVFToProbes(Mesh Obst)
@@ -356,6 +316,7 @@ namespace EddyLib.Radiation
             }
             FindPolysSeenByProbes();
         }
+
         private double FFactorProbe(Point3d probe_pt, RPolygon p1, Mesh Obst)
         {
             Vector3d probe_n = p1.Centroid.Value - probe_pt;
@@ -372,12 +333,9 @@ namespace EddyLib.Radiation
             double r = dv.Length;
             if (r < 0.1) return 0.0;
 
-
             double cosThetaI = dv * probe_n / (dv.Length * probe_n.Length);
             double cosThetaJ = -dv * p1.Normal.Value / (dv.Length * p1.Normal.Value.Length);
             f = ((cosThetaI * cosThetaJ) / (4 * Math.PI * r * r)) * p1.Area;
-
-
 
             //only do occlusion test for large view factors -- zero all others
             if (f < 0.00001) return 0.0;
@@ -390,6 +348,7 @@ namespace EddyLib.Radiation
 
             return f;
         }
+
         private void FindPolysSeenByProbes()
         {
             for (int j = 0; j < Polys.Count; j++)
@@ -414,6 +373,7 @@ namespace EddyLib.Radiation
         public double[] xk0;
         public double[] xk1;
         public double[] b;
+
         //Compute Form factors taking into account occlusions from a list of meshes
         private void BuildFFMatrix(Mesh Obst)
         {
@@ -439,7 +399,6 @@ namespace EddyLib.Radiation
 
             double Fij = 0.0;
 
-
             // DO NOT USE THIS - THE F[i][j] IS NOT THREAD SAFE
             // System.Threading.Tasks.Parallel.For(0, Ps, j =>
             //  {
@@ -447,7 +406,6 @@ namespace EddyLib.Radiation
             {
                 for (int i = j; i < Ps; ++i)
                 {
-
                     if (i == j)
                     {
                         F[j][i] = 0.0;
@@ -467,7 +425,6 @@ namespace EddyLib.Radiation
         // 0.0 if the polygons are facing in opposite ways or are nearly coplanar or too close to each other
         private double FFactor(RPolygon p0, RPolygon p1, Mesh Obst)
         {
-
             // --- 6/25/2020
             if (p0.Normal.Value * p1.Normal.Value > 0.0001) return 0.0; //if normals don't face each other return 0
             Plane pl = new Plane(p0.Centroid.Value, p0.Normal.Value);
@@ -482,7 +439,6 @@ namespace EddyLib.Radiation
             if (r < 0.1) return 0.0;
             //dv *= (1.0 / r);
 
-
             double cosThetaI = dv * p0.Normal.Value / (dv.Length * p0.Normal.Value.Length);
             double cosThetaJ = -dv * p1.Normal.Value / (dv.Length * p1.Normal.Value.Length);
 
@@ -495,11 +451,8 @@ namespace EddyLib.Radiation
 
             //if (f < 0.0) return 0.0;
 
-
-
             //only do occlusion test for large view factors -- zero all others
             if (f < 0.0000001) return 0.0;
-
 
             Vector3d dv_forRaycast = (p1.Centroid.Value + (0.01 * p1.Normal.Value)) - (p0.Centroid.Value + (0.01 * p0.Normal.Value));
             Line line = new Line(p1.Centroid.Value + (0.01 * p1.Normal.Value), p0.Centroid.Value + (0.01 * p0.Normal.Value));
@@ -511,20 +464,17 @@ namespace EddyLib.Radiation
             //double il = Rhino.Geometry.Intersect.Intersection.MeshRay(Obst, ry);
             //if (il > 0.0 && il < dv_forRaycast.Length) return 0.0;
 
-
-
             return f;
         }
+
         //Do one iteration step of Gauss-Seidel method.
         private void Iterate()
         {
             if (F == null) return;
 
-
             for (int i = 0; i < Polys.Count; ++i)
             {
                 xk1[i] = b[i];
-
 
                 for (int j = i + 1; j < Polys.Count; ++j)
                 {
@@ -537,7 +487,6 @@ namespace EddyLib.Radiation
                 xk1[i] /= F[i][i];
             }
 
-
             maxv = 0.0;
             for (int i = 0; i < Polys.Count; ++i)
             {
@@ -546,10 +495,8 @@ namespace EddyLib.Radiation
                 Polys[i].rout = xk0[i];
                 if (Math.Abs(Polys[i].rout) > maxv) maxv = Math.Abs(Polys[i].rout);
             }
-
-
         }
 
-        #endregion
+        #endregion VIEW FACTOR SYSTEM
     }
 }
