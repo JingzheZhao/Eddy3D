@@ -49,8 +49,14 @@
       <HintPath>..\packages\Grasshopper.7.3.21053.23031\lib\net45\Grasshopper.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="MedallionShell, Version=1.6.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MedallionShell.1.6.2\lib\net471\MedallionShell.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="Rhino.UI, Version=7.3.21053.23030, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
       <HintPath>..\packages\RhinoCommon.7.3.21053.23031\lib\net45\Rhino.UI.dll</HintPath>
       <Private>False</Private>
@@ -81,7 +87,9 @@
     <Compile Include="Components\2_Radiation\2_VegetationSurfaceSettings_Component.cs" />
     <Compile Include="Components\2_Radiation\2_SurfaceSettings_Component.cs" />
     <Compile Include="Components\3_PostProcessing\2_InspectPolygon_Component.cs" />
+    <Compile Include="Components\3_PostProcessing\3_HOYSelector_Component.cs" />
     <Compile Include="Components\3_PostProcessing\3_AnalysisSystem_Component.cs" />
+    <Compile Include="Components\3_PostProcessing\3_UTCI_ConditionOfPerson_Component.cs" />
     <Compile Include="Components\3_PostProcessing\3_HOY_Component.cs" />
     <Compile Include="Components\3_PostProcessing\3_AnalysisBinsCustom_Component.cs" />
     <Compile Include="Components\3_PostProcessing\3_AnalysisBins_DayTime_Component.cs" />
@@ -92,7 +100,7 @@
     <Compile Include="Components\3_PostProcessing\2_InspectProbe_Component.cs" />
     <Compile Include="Components\3_PostProcessing\Hidden\2_WindFactorsTemportal_Component.cs" />
     <Compile Include="Components\3_PostProcessing\Hidden\1o_CompCalcMRT.cs" />
-    <Compile Include="Components\3_PostProcessing\Hidden\7_CompCalcUTCIMetric.cs" />
+    <Compile Include="Components\3_PostProcessing\3_CompCalcUTCIMetric.cs" />
     <Compile Include="Components\1_Wind\6_CompParaview.cs" />
     <Compile Include="Components\1_Wind\6_CompVisProbesCustom.cs" />
     <Compile Include="Components\1_Wind\6_CompVisProbesCustomWProbes.cs" />
@@ -118,6 +126,25 @@
     <Compile Include="Components\1_Wind\3_CompMeshSettings.cs" />
     <Compile Include="Components\1_Wind\2_CompDomainCyl.cs" />
     <Compile Include="Components\1_Wind\Hidden\WorkerWithProgBarComponent.cs" />
+    <Compile Include="Components\4_Indoor\FunctionObjects\CO2Emitter_Component.cs" />
+    <Compile Include="Components\4_Indoor\FunctionObjects\MomentumSink_Component.cs" />
+    <Compile Include="Components\4_Indoor\FunctionObjects\MomentumSource_Component.cs" />
+    <Compile Include="Components\4_Indoor\FunctionObjects\ViralEmitter_Component.cs" />
+    <Compile Include="Components\4_Indoor\FunctionObjects\VolumetricHeatSource_Component.cs" />
+    <Compile Include="Components\4_Indoor\IndoorDomain_Component.cs" />
+    <Compile Include="Components\4_Indoor\IndoorInlet_Component.cs" />
+    <Compile Include="Components\4_Indoor\IndoorOutlet_Component.cs" />
+    <Compile Include="Components\4_Indoor\IndoorSimulation_Component.cs" />
+    <Compile Include="Components\4_Indoor\IndoorWall_Component.cs" />
+    <Compile Include="Components\4_Indoor\Params\Param_FObj.cs" />
+    <Compile Include="Components\4_Indoor\Params\Param_FObj_MomentumSink.cs" />
+    <Compile Include="Components\4_Indoor\Params\Param_FObj_MomentumSource.cs" />
+    <Compile Include="Components\4_Indoor\Params\Param_FObj_VolumentricHeatSource.cs" />
+    <Compile Include="Components\4_Indoor\Params\Param_IndoorBC_Inlet.cs" />
+    <Compile Include="Components\4_Indoor\Params\Param_IndoorBC_Outlet.cs" />
+    <Compile Include="Components\4_Indoor\Params\Param_IndoorBC_Wall.cs" />
+    <Compile Include="Components\4_Indoor\Params\Param_IndoorDomain.cs" />
+    <Compile Include="Components\4_Indoor\Params\Param_IndoorResult.cs" />
     <Compile Include="Licensing\LicenseTest.cs" />
     <Compile Include="Licensing\ModifyRegistry.cs" />
     <Compile Include="Components\1_Wind\2_CompDomainBox.cs" />
@@ -245,9 +272,6 @@
     <None Include="Resources\Eddy_analysisCul.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Eddy_analysisPeriod.png" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\Eddy_annual.png" />
   </ItemGroup>
   <ItemGroup>
@@ -281,6 +305,36 @@
     <None Include="Resources\Eddy_flow.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\Eddy_mesh.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_mesh_settings.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_modelSTLexport.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_MRT_Building.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_MRT_Ground.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_MRT_InspectSurface.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor__Indoor_CO2Emitter.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor__Indoor_MomentumSink.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor__Indoor_VHS.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor__Indoor_ViralEmitter.png" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="Resources\Eddy_Indoor_Domain.png" />
   </ItemGroup>
   <ItemGroup>
@@ -311,22 +365,19 @@
     <None Include="Resources\Eddy_Indoor_Outlet.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Eddy_mesh.png" />
+    <None Include="Resources\Eddy_analysisPeriod.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Eddy_mesh_settings.png" />
+    <None Include="Resources\Eddy_analysisPeriod_Days.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Eddy_modelSTLexport.png" />
+    <None Include="Resources\Eddy_analysisPeriod_Hours.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Eddy_MRT_Building.png" />
+    <None Include="Resources\Eddy_UTCI_Rating.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Eddy_MRT_Ground.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Eddy_MRT_InspectSurface.png" />
+    <None Include="Resources\Eddy_HOY.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
