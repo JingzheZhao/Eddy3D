@@ -130,7 +130,9 @@ namespace EddyLib.Radiation
                 probe.ComfortHours = 0;
 
                 // get wind speed data -- init array with wind speed data from weather
-                var windspeed = this.Weather.WindSpeed;
+                double[] windspeed = new double[this.Weather.WindSpeed.Length];
+                Array.Copy(this.Weather.WindSpeed, windspeed, this.Weather.WindSpeed.Length);
+
                 // if CFD wind speed data exsists - then override
                 if (probe.WindSpeed != null)
                 {
@@ -154,7 +156,9 @@ namespace EddyLib.Radiation
                 }
 
                 // init mrt with dry bulb temperature from weather
-                var mrt = this.Weather.DryBulbTemp;
+                double[] mrt = new double[this.Weather.DryBulbTemp.Length];
+                Array.Copy(mrt, this.Weather.DryBulbTemp, this.Weather.DryBulbTemp.Length);
+
                 // if longwave mrt data exsists - then override
                 if (probe.LongWave_MRT != null)
                 {

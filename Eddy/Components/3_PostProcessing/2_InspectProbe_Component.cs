@@ -239,25 +239,17 @@ namespace Eddy.Components.Radiation
                     {
                         data.Add(rprobe.LongWave_MRT[h]);
                     }
-                }
-                foreach (var wprobe in wprobeList)
-                {
-                    //points.Add(wprobe.Point.Value);
-                    //if (wprobe.PreviewGeo != null) meshes.Add(wprobe.PreviewGeo.Value);
-                    //else meshes.Add(null);
-
-                    if (metric == RProbeMetric.WindVelMag)
+                    else if (metric == RProbeMetric.WindVelMag)
                     {
-                        data.Add(wprobe.WindFactorsTemporal[h]);
+                        data.Add(rprobe.WindSpeed[h]);
                     }
                 }
             }
             else
             {
-                if (h >= rprobeList.Count || h >= wprobeList.Count) return;
+                if (h >= rprobeList.Count) return;
 
                 var rprobe = rprobeList[h];
-                var wprobe = wprobeList[h];
 
                 points.Add(rprobe.Point.Value);
                 if (rprobe.PreviewGeo != null) meshes.Add(rprobe.PreviewGeo.Value);
@@ -289,7 +281,7 @@ namespace Eddy.Components.Radiation
                 }
                 else if (metric == RProbeMetric.WindVelMag)
                 {
-                    data.Add(wprobe.WindFactorsTemporal[h]);
+                    data.AddRange(rprobe.WindSpeed);
                 }
             }
 
