@@ -22,7 +22,6 @@ namespace Eddy.Components.Radiation
         /// </summary>
         public DateTime_To_HOY_Component()
           : base("Hour Of Year", "HOY", "Hour Of Year" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
-
         {
         }
 
@@ -46,8 +45,6 @@ namespace Eddy.Components.Radiation
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("Hour Of Year", "HOY", "Hour Of Year", GH_ParamAccess.item);
-
-            //pManager.AddMeshParameter("Meshes", "M", "Analysis meshes", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -72,15 +69,15 @@ namespace Eddy.Components.Radiation
         /// <summary>
         /// Provides an Icon for the component.
         /// </summary>
-        //protected override System.Drawing.Bitmap Icon
-        //{
-        //    get
-        //    {
-        //        //You can add image files to your project resources and access them like this:
-        //        // return Resources.IconForThisComponent;
-        //        return Resources.Eddy_stability;
-        //    }
-        //}
+        protected override System.Drawing.Bitmap Icon
+        {
+            get
+            {
+                //You can add image files to your project resources and access them like this:
+                // return Resources.IconForThisComponent;
+                return Resources.Eddy_HOY;
+            }
+        }
 
         /// <summary>
         /// Gets the unique ID for this component. Do not change this ID after release.
