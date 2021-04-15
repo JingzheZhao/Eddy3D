@@ -36,7 +36,7 @@ namespace EddyLib
         {
             Field = field;
 
-            if (this.Field == field.U || this.Field == field.phi)
+            if (this.Field == field.U)
             {
                 this.FieldType = fieldType.vector;
             }
@@ -273,7 +273,7 @@ namespace EddyLib
             }
             else if (fieldName == "phi")
             {
-                FieldType = fieldType.vector;
+                FieldType = fieldType.scalar;
             }
             else if (fieldName == "aoa")
             {

@@ -6,6 +6,7 @@ namespace EddyLib.OutdoorComfort
 {
     public class PET
     {
+        // https://github.com/eddes/AREP
         public class PET2017
         {
             public static int age = 35;
