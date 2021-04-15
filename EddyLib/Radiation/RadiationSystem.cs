@@ -93,13 +93,11 @@ namespace EddyLib.Radiation
 
             if (run == true)
             {
-
-
                 string radbin = @"C:\Eddy3D\Common\Radiance\bin";
                 string radlib = @"C:\Eddy3D\Common\Radiance\lib";
-                 char ps =  ';'  ;
-                Environment.SetEnvironmentVariable("PATH", "." + ps + radlib + ps + radbin +    ps + "$PATH");
-                Environment.SetEnvironmentVariable("RAYPATH", "." + ps + radlib + ps + radbin   + ps + "$RAYPATH");
+                char ps = ';';
+                Environment.SetEnvironmentVariable("PATH", "." + ps + radlib + ps + radbin + ps + "$PATH");
+                Environment.SetEnvironmentVariable("RAYPATH", "." + ps + radlib + ps + radbin + ps + "$RAYPATH");
 
                 // -----------------------------
                 // 1 Convert epw to wea tape
@@ -168,6 +166,7 @@ namespace EddyLib.Radiation
                 {
                     Debug.WriteLine($"oconv command failed with exit code {oconv.Result.ExitCode}: {oconv.Result.StandardError}");
                     ErrorLog.AppendLine($"oconv command failed with exit code {oconv.Result.ExitCode}: {oconv.Result.StandardError}");
+                    WriteErrorLog();
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
@@ -207,6 +206,7 @@ namespace EddyLib.Radiation
                 {
                     Debug.WriteLine($"4 command failed with exit code {CMDrfluxmtx.Result.ExitCode}: {CMDrfluxmtx.Result.StandardError}");
                     ErrorLog.AppendLine($"4 command failed with exit code {CMDrfluxmtx.Result.ExitCode}: {CMDrfluxmtx.Result.StandardError}");
+                    WriteErrorLog();
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
@@ -220,6 +220,7 @@ namespace EddyLib.Radiation
                 {
                     Debug.WriteLine($"gendaymtx command failed with exit code {gendaymtx.Result.ExitCode}: {gendaymtx.Result.StandardError}");
                     ErrorLog.AppendLine($"gendaymtx command failed with exit code {gendaymtx.Result.ExitCode}: {gendaymtx.Result.StandardError}");
+                    WriteErrorLog();
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
@@ -259,6 +260,7 @@ namespace EddyLib.Radiation
                 {
                     Debug.WriteLine($"dctimestep command failed with exit code {dctimestep.Result.ExitCode}: {dctimestep.Result.StandardError}");
                     ErrorLog.AppendLine($"dctimestep command failed with exit code {dctimestep.Result.ExitCode}: {dctimestep.Result.StandardError}");
+                    WriteErrorLog();
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
@@ -303,7 +305,7 @@ namespace EddyLib.Radiation
                 {
                     Debug.WriteLine($"dircalc1 command failed with exit code {dircalc1.Result.ExitCode}: {dircalc1.Result.StandardError}");
                     ErrorLog.AppendLine($"dircalc1 command failed with exit code {dircalc1.Result.ExitCode}: {dircalc1.Result.StandardError}");
-
+                    WriteErrorLog();
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
@@ -324,6 +326,7 @@ namespace EddyLib.Radiation
                 {
                     Debug.WriteLine($"dircalc2 command failed with exit code {dircalc2.Result.ExitCode}: {dircalc2.Result.StandardError}");
                     ErrorLog.AppendLine($"dircalc2 command failed with exit code {dircalc2.Result.ExitCode}: {dircalc2.Result.StandardError}");
+                    WriteErrorLog();
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
@@ -344,6 +347,7 @@ namespace EddyLib.Radiation
                 {
                     Debug.WriteLine($"dircalc3 command failed with exit code {dircalc3.Result.ExitCode}: {dircalc3.Result.StandardError}");
                     ErrorLog.AppendLine($"dircalc3 command failed with exit code {dircalc3.Result.ExitCode}: {dircalc3.Result.StandardError}");
+                    WriteErrorLog();
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
@@ -377,6 +381,7 @@ namespace EddyLib.Radiation
                 {
                     Debug.WriteLine($"suncoeff command failed with exit code {suncoeff.Result.ExitCode}: {suncoeff.Result.StandardError}");
                     ErrorLog.AppendLine($"suncoeff command failed with exit code {suncoeff.Result.ExitCode}: {suncoeff.Result.StandardError}");
+                    WriteErrorLog();
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
@@ -395,6 +400,7 @@ namespace EddyLib.Radiation
                 {
                     Debug.WriteLine($"oconvdir command failed with exit code {oconvdir.Result.ExitCode}: {oconvdir.Result.StandardError}");
                     ErrorLog.AppendLine($"oconvdir command failed with exit code {oconvdir.Result.ExitCode}: {oconvdir.Result.StandardError}");
+                    WriteErrorLog();
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
@@ -421,6 +427,7 @@ namespace EddyLib.Radiation
                 {
                     Debug.WriteLine($"suncoeff command failed with exit code {rcontrib.Result.ExitCode}: {rcontrib.Result.StandardError}");
                     ErrorLog.AppendLine($"suncoeff command failed with exit code {rcontrib.Result.ExitCode}: {rcontrib.Result.StandardError}");
+                    WriteErrorLog();
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
@@ -435,7 +442,7 @@ namespace EddyLib.Radiation
                 {
                     Debug.WriteLine($"gendaymtx2 command failed with exit code {gendaymtx2.Result.ExitCode}: {gendaymtx2.Result.StandardError}");
                     ErrorLog.AppendLine($"gendaymtx2 command failed with exit code {gendaymtx2.Result.ExitCode}: {gendaymtx2.Result.StandardError}");
-
+                    WriteErrorLog();
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
@@ -459,6 +466,7 @@ namespace EddyLib.Radiation
                 {
                     Debug.WriteLine($"dctimestep2 dir command failed with exit code {dctimestep2.Result.ExitCode}: {dctimestep2.Result.StandardError}");
                     ErrorLog.AppendLine($"dctimestep2 dir command failed with exit code {dctimestep2.Result.ExitCode}: {dctimestep2.Result.StandardError}");
+                    WriteErrorLog();
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
@@ -483,6 +491,7 @@ namespace EddyLib.Radiation
                 {
                     Debug.WriteLine($"dctimestep dir command failed with exit code {rmtxop.Result.ExitCode}: {rmtxop.Result.StandardError}");
                     ErrorLog.AppendLine($"dctimestep dir command failed with exit code {rmtxop.Result.ExitCode}: {rmtxop.Result.StandardError}");
+                    WriteErrorLog();
                     return false;
                 }
                 Interlocked.Increment(ref stepCnt);
@@ -524,6 +533,15 @@ namespace EddyLib.Radiation
                     this.Probes[i].SolarGain_dMRT[h] = dMRT[h][i];
                 }
             }
+        }
+
+        private void WriteErrorLog()
+        {
+            // ---------------------
+            // Error Logs
+            // ---------------------
+
+            File.WriteAllText(Path.Combine(this.BaseWorkingDir, "RadiationErrorLog.log"), this.ErrorLog.ToString());
         }
 
         public void RunDirectRayCast(bool run, CancellationToken ct, int steps, ref int stepCnt)

@@ -147,12 +147,6 @@ namespace EddyLib.Radiation
             this.ThermalSystem = new ThermalSystem(this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.LowPolyNoSky, this.Settings.CummulativeViewFactorCutoff);
             this.ComfortSystem = new ComfortSystem(this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.CFDDataPath);
 
-            // ---------------------
-            // Error Logs
-            // ---------------------
-
-            File.WriteAllText(Path.Combine(this.BaseWorkingDir, "RadiationErrorLog.log"), RadiationSystem.ErrorLog.ToString());
-
             TOTAL += this.methodsteps + RadiationSystem.methodsteps + ThermalSystem.methodsteps + ComfortSystem.methodsteps;
         }
 
