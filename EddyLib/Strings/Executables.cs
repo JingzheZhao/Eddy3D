@@ -162,8 +162,8 @@ FoamFile
                 if (MeshSettings.snappySetting != SnappySnapSettings.Blocks)
                 {
                     sb.Append(@"
-            {file ""building.eMesh""; level " + (MeshSettings.accFeatures) + @" ;}
-            {file ""ground.eMesh""; level " + (MeshSettings.accFeatures) + @" ;}");
+            {file ""building.eMesh""; levels ((0.3 " + (MeshSettings.accFeatures) + @")) ;}
+            {file ""ground.eMesh""; levels ((0.3 " + (MeshSettings.accFeatures) + @")) ;}");
                 }
 
                 sb.Append(@"
@@ -210,7 +210,7 @@ refinementBox {mode inside; levels ((" + MeshSettings.accRefinement + @" " + Mes
     maxGlobalCells      100000000;
     minRefinementCells  1;
     maxLoadUnbalance    0.20;
-    nCellsBetweenLevels 3;
+    nCellsBetweenLevels 4;
     resolveFeatureAngle 30;
     allowFreeStandingZoneFaces false;
     }
@@ -460,8 +460,8 @@ FoamFile
                 if (MeshSettings.snappySetting != SnappySnapSettings.Blocks)
                 {
                     sb.Append(@"
-            {file ""building.eMesh""; level " + (MeshSettings.accFeatures) + @" ;}
-            {file ""ground.eMesh""; level " + (MeshSettings.accFeatures) + @" ;}");
+            {file ""building.eMesh""; levels ((0.3 " + (MeshSettings.accFeatures) + @")) ;}
+            {file ""ground.eMesh""; levels ((0.3 " + (MeshSettings.accFeatures) + @")) ;}");
                 }
 
                 sb.Append(@"
@@ -508,7 +508,7 @@ refinementBox {mode inside; levels ((" + MeshSettings.accRefinement + @" " + Mes
     maxGlobalCells      60000000;
     minRefinementCells  50;
     maxLoadUnbalance    1;
-    nCellsBetweenLevels 1;
+    nCellsBetweenLevels 4;
     resolveFeatureAngle 60;
     allowFreeStandingZoneFaces false;
     }
@@ -662,7 +662,8 @@ libs
 (
         ""libOpenFOAM.so""
         ""libutilityFunctionObjects.so""
-        ""libsolverFunctionObjects.so""");
+        ""libsolverFunctionObjects.so""
+        ""libatmosphericModels.so""");
             if (RunSettings.simEngine == SimEngine.Docker)
             {
                 sb.Append(@"""libsimpleSwakFunctionObjects.so""
@@ -691,12 +692,12 @@ libs
 #includeFunc residuals
 ");
 
-            sb.Append(FunctionObjCP(DOM, RunSettings, topologies, numberOfTopologies));
+            sb.AppendLine(FunctionObjCP(DOM, RunSettings, topologies, numberOfTopologies));
+            sb.AppendLine(FunctionObjFieldMinMax());
+            sb.AppendLine(FunctionObjFieldAverage());
             if (RunSettings.aoa_domain == true)
             {
                 sb.AppendLine(EddyLib.Strings.OFExecDicts.FunctionObjAOA());
-                sb.AppendLine(FunctionObjFieldMinMax());
-                sb.AppendLine(FunctionObjFieldAverage());
             }
 
             sb.AppendLine(@"};");
@@ -724,16 +725,16 @@ libs
         {
                 aoa_00
             {
-                    type scalarSemiImplicitSource;
+                    type semiImplicitSource;
                     active          true;
-                    cellZone all;
-                    scalarSemiImplicitSourceCoeffs
+					selectionMode all;
+					volumeMode specific;
+                    sources
                 {
-                        volumeMode specific;
-                        selectionMode all;
-                        injectionRateSuSp
+                        aoa
                     {
-                            aoa (1 0);
+                            explicit 1;
+							implicit 0;
                         }
                     }
                 }
@@ -1130,14 +1131,14 @@ FoamFile
             }
         }
 
-        public static string FvSchemesDefault()
+        public static string FvSchemesOptimized()
         {
             return
         @"/*--------------------------------*- C++ -*----------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Version:  6
+    \\  /    A nd           | Version:  8
      \\/     M anipulation  |
 \*---------------------------------------------------------------------------*/
 FoamFile
@@ -1152,53 +1153,50 @@ FoamFile
 
 ddtSchemes
 {
-    default         steadyState;
+    default                         steadyState;
 }
 
 gradSchemes
 {
-    default         Gauss linear;
+    default                         cellLimited Gauss linear 1;
 
-    limited         cellLimited Gauss linear 1;
-    grad(U)         $limited;
-    grad(k)         $limited;
-    grad(epsilon)   $limited;
+    grad(U)                         $default;
+    grad(k)                         $default;
+    grad(epsilon)                   $default;
 }
 
 divSchemes
 {
-    default         none;
+    default                         none;
 
-    div(phi,U)      bounded Gauss linearUpwind limited;
-
-    turbulence      bounded Gauss limitedLinear 1;
-    div(phi,k)       $turbulence;
-    div(phi,epsilon) $turbulence;
-    div(phi,omega)   $turbulence;
-    div(U) Gauss linear;
-
-    div((nuEff*dev2(T(grad(U))))) Gauss linear;
-    div(phi,aoa)    bounded Gauss upwind;
+    turbulenceScheme                bounded Gauss limitedLinear 0.33;
+    div(phi,U)                      bounded Gauss linearUpwind grad(U);
+    div(phi,k)                      $turbulenceScheme;
+    div(phi,epsilon)                $turbulenceScheme;
+    div(phi,omega)                  $turbulenceScheme;
+    div(U)                          Gauss limitedLinear 0.33;
+    div((nuEff*dev2(T(grad(U)))))   Gauss linear;
+    div(phi,aoa)                    Gauss limitedLinear 0.5;
 }
 
 laplacianSchemes
 {
-    default         Gauss linear corrected;
+    default                         Gauss linear limited corrected 0.33;
 }
 
 interpolationSchemes
 {
-    default         linear;
+    default                         linear;
 }
 
 snGradSchemes
 {
-    default         corrected;
+    default                         limited corrected 0.33;
 }
 
 wallDist
 {
-    method meshWave;
+    method                          meshWave;
 }
 
 // ************************************************************************* //
@@ -1206,7 +1204,7 @@ wallDist
 ";
         }
 
-        public static string FvSchemesOptimized()
+        public static string FvSchemesDefault()
 
         //BIMHVAC
         {
@@ -1871,15 +1869,15 @@ fluxRequired
 {
     fields
     {
-        p               0.3;
+        p               0.4;
         aoa             0.5;
     }
     equations
     {
-        U               0.7;
-        k               0.7;
-       epsilon          0.7;
-	   omega			0.7;
+        U               0.6;
+        k               0.6;
+        epsilon         0.6;
+	    omega			0.6;
     }
 }"); }
             else if (RunSettings.relaxationFactors == RelaxationFactors.Fluent)
@@ -1895,8 +1893,8 @@ fluxRequired
     {
         U               0.3;
         k               0.3;
-       epsilon          0.3;
-	   omega			0.3;
+        epsilon         0.3;
+	    omega			0.3;
     }
 }"
         );
@@ -1905,15 +1903,15 @@ fluxRequired
 {
     fields
     {
-        p               0.3;
-        aoa             0.5;
+       p               0.3;
+       aoa             0.5;
     }
     equations
     {
-        U               0.1;
-        k               0.1;
-       epsilon          0.1;
-	   omega			0.1;
+       U               0.1;
+       k               0.1;
+       epsilon         0.1;
+	   omega		   0.1;
     }
 }"); }
             else if (RunSettings.relaxationFactors == RelaxationFactors.Optimized) { sb.Append(@"relaxationFactors
@@ -2081,48 +2079,53 @@ solvers
     {
         solver          PCG;
         preconditioner  DIC;
-        tolerance       1e-8;
+        tolerance       1e-12;
         relTol          0.01;
+        minIter         1;
     }
 
     U
     {
         solver          PBiCGStab;
         preconditioner  DILU;
-        tolerance       1e-5;
+        tolerance       1e-12;
         relTol          0.1;
+        minIter         1;
     }
     k
     {
         solver          PBiCGStab;
         preconditioner  DILU;
-        tolerance       1e-5;
+        tolerance       1e-12;
         relTol          0.1;
+        minIter         1;
     }
 
     omega
     {
         solver          PBiCGStab;
         preconditioner  DILU;
-        tolerance       1e-5;
+        tolerance       1e-12;
         relTol          0.1;
+        minIter         1;
     }
 
 	epsilon
     {
         solver          PBiCGStab;
         preconditioner  DILU;
-        tolerance       1e-5;
+        tolerance       1e-12;
         relTol          0.1;
+        minIter         1;
     }
     aoa
     {
-    solver          PBiCG;
-    preconditioner  DILU;
-    tolerance       1e-05;
-    relTol          0.1;
-    minIter 1;
-    maxIter 10;
+    solver              PBiCG;
+    preconditioner      DILU;
+    tolerance           1e-12;
+    relTol              0.1;
+    minIter             1;
+    maxIter             10;
     }
 }
 
@@ -2135,8 +2138,8 @@ SIMPLE
     }
 
     nNonOrthogonalCorrectors 0;
-    pRefCell        0;
-    pRefValue       0;
+    pRefCell            0;
+    pRefValue           0;
 }
 
 ");
@@ -2165,110 +2168,43 @@ SIMPLE
         public static string SurfaceFeatureExtractDict()
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
-| =========                 |                                                 |
-| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.2.2                                 |
-|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
-|    \\/     M anipulation  |                                                 |
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  8
+     \\/     M anipulation  |
 \*---------------------------------------------------------------------------*/
 FoamFile
 {
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      surfaceFeatureExtractDict;
+    object      surfaceFeaturesDict;
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-building.stl
+surfaces
+(
+    ""building.stl""
+    ""ground.stl""
+);
+
+includedAngle    150;
+
+subsetFeatures
 {
-    // How to obtain raw features (extractFromFile || extractFromSurface)
-    extractionMethod    extractFromSurface;
-
-    extractFromSurfaceCoeffs
-    {
-        // Mark edges whose adjacent surface normals are at an angle less than includedAngle as features
-        // - 0 : selects no edges
-        // - 180: selects all edges
-        includedAngle   180;
-        geometricTestOnly yes;
-    }
-
-    subsetFeatures
-    {
-        // Keep nonManifold edges (edges with >2 connected faces)
-        nonManifoldEdges       no;
-
-        // Keep open edges (edges with 1 connected face)
-        openEdges       yes;
-    }
-
-    // Write options
-
-        // Write features to obj format for Post-Processing
-        writeObj                yes;
+    nonManifoldEdges yes;
+    openEdges        yes;
 }
 
-ground.stl
+trimFeatures
 {
-    // How to obtain raw features (extractFromFile || extractFromSurface)
-    extractionMethod    extractFromSurface;
-
-    extractFromSurfaceCoeffs
-    {
-        // Mark edges whose adjacent surface normals are at an angle less than includedAngle as features
-        // - 0 : selects no edges
-        // - 180: selects all edges
-        includedAngle   180;
-        geometricTestOnly yes;
-    }
-
-    subsetFeatures
-    {
-        // Keep nonManifold edges (edges with >2 connected faces)
-        nonManifoldEdges       no;
-
-        // Keep open edges (edges with 1 connected face)
-        openEdges       yes;
-    }
-
-    // Write options
-
-        // Write features to obj format for Post-Processing
-        writeObj                yes;
+    minElem          0;
+    minLen           0;
 }
 
-// ************************************************************************* //
-
-ground_perim.stl
-{
-    // How to obtain raw features (extractFromFile || extractFromSurface)
-    extractionMethod    extractFromSurface;
-
-    extractFromSurfaceCoeffs
-    {
-        // Mark edges whose adjacent surface normals are at an angle less than includedAngle as features
-        // - 0 : selects no edges
-        // - 180: selects all edges
-        includedAngle   180;
-        geometricTestOnly yes;
-    }
-
-    subsetFeatures
-    {
-        // Keep nonManifold edges (edges with >2 connected faces)
-        nonManifoldEdges       no;
-
-        // Keep open edges (edges with 1 connected face)
-        openEdges       yes;
-    }
-
-    // Write options
-
-        // Write features to obj format for Post-Processing
-        writeObj                yes;
-}
+writeObj             yes;
 
 // ************************************************************************* //
 ";
@@ -2381,7 +2317,7 @@ fields (U p epsilon omega  k);
 	case ""CASE"";
 
     class dictionary;
-        object nix;
+        object banana;
     }
     method scotch;
     numberOfSubdomains " + RunSettings.CPUs + @";
