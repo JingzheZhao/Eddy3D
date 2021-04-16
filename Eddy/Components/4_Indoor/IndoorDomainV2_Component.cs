@@ -21,7 +21,7 @@ namespace Eddy.Components.Indoor
 {
     public class IndoorDomainV2_Component : GH_Component
     {
-        double iterations = 1;
+        int iterations = 1;
         double numFuncObj = 1;
         string BaseWorkingDir = "";
 
@@ -164,64 +164,68 @@ namespace Eddy.Components.Indoor
             var dom = new IndoorDomain(endTime, dir, cellSize, pointInsideDomain, Walls, Inlets, Outlets, FOs);
             var domGoo = new IndoorDomaingGoo(dom);
 
-            //bool toggle
-            #region START PROCESSES
 
-            //ONE BUTTON -ALLBATCH FILES IN ONE
 
+
+
+             #region START PROCESSES
+          
             bool RUN = false;
-            bool HidePopUp = false;
-
-
-            DA.GetData(7, ref iterations);       
-            //DA.GetData(3, ref numFuncObj);
-
-
+            bool HidePopUp = true;
+            iterations = endTime;
             DA.GetData(8, ref RUN);
 
-            
 
+            bool runWithConsoleWindow = true;
 
-            try {
-
-                // redirect stderr
-                var errors = new StringWriter();
-                Console.SetError(errors);
-
-                if (RUN)
+            if (runWithConsoleWindow)
+            {
+                if (canRun)
                 {
-                    if (HidePopUp)
+                    string runall = this.BaseWorkingDir + @"\run_all.bat";
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, runall, taskComplete);
+                }
+            }
+            else
+            {
+                try
+                {
+                    // redirect stderr
+                    var errors = new StringWriter();
+                    Console.SetError(errors);
+                    if (RUN)
                     {
-                        DoWork(new CancellationTokenSource());
-                    }
-                    else
-                    {
-                        // show progress form
-                        var progress = new ProgressDialog(DoWorkAsync);
-                        progress.ShowModal();
-
-                        // if user cancellation, abort solution
-                        if (progress.Canceled)
+                        if (HidePopUp)
                         {
-                            OnPingDocument().RequestAbortSolution();
+                            DoWork(new CancellationTokenSource());
+                        }
+                        else
+                        {
+                            // show progress form
+                            var progress = new ProgressDialog(DoWorkAsync);
+                            progress.ShowModal();
+                            // if user cancellation, abort solution
+                            if (progress.Canceled)
+                            {
+                                OnPingDocument().RequestAbortSolution();
+                            }
                         }
                     }
                 }
-            }
-
-            catch (Exception ex)
-            {
-
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, ex.Message); return;
-
+                catch (Exception ex)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, ex.Message); return;
+                }
             }
  
             #endregion START PROCESSES
 
 
             DA.SetData(0, domGoo);
-         }
- 
+            canRun = true;
+
+        }
+
 
         public FunctionObject CastToFO(GH_ObjectWrapper gobj)
         {
@@ -250,8 +254,12 @@ namespace Eddy.Components.Indoor
             get { return new Guid("{E9C2B577-8E30-4945-8982-D99AB92A1759}"); }
         }
 
-
-
+        private bool canRun = true;
+        public void taskComplete(object sender, System.EventArgs e)
+        {
+            canRun = false;
+            this.ExpireSolution(true);
+        }
 
 
 
