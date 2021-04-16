@@ -157,7 +157,7 @@ age of air = {10}"
 
                 //string MPIWindows = Is64BitOS == true ? MPIWindows64 : MPIWindows32;
 
-                string MPIBlueCFD = @"C:\Program Files\blueCFD-Core-2017\ThirdParty-5.x\platforms\mingw_w64Gcc\MS-MPI-7.1\bin\msmpi.dll";
+                string MPIBlueCFD = @"C:\Program Files\blueCFD-Core-2020\ThirdParty-8\platforms\mingw_w64Gcc\MS-MPI-7.1\bin\msmpi.dll";
 
                 FileInfo FileVol1 = new FileInfo(MPIWindows32);
                 string fileLength1 = FileVol1.Length.ToString();
@@ -182,8 +182,8 @@ age of air = {10}"
         {
             bool IsBlueCFDInstalled = false;
 
-            var pathGnuplotBlueCFD = @"C:\Program Files\blueCFD-Core-2017\msys64\mingw64\bin\gnuplot.exe";
-            var pathParaviewBlueCFD = @"C:\Program Files\blueCFD-Core-2017\AddOns\ParaView\bin\paraview.exe";
+            var pathGnuplotBlueCFD = @"C:\Program Files\blueCFD-Core-2020\msys64\mingw64\bin\gnuplot.exe";
+            var pathParaviewBlueCFD = @"C:\Program Files\blueCFD-Core-2020\AddOns\ParaView\bin\paraview.exe";
 
             if (File.Exists(pathGnuplotBlueCFD) && File.Exists(pathParaviewBlueCFD))
             {
