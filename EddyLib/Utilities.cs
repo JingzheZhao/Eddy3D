@@ -1317,11 +1317,11 @@ renderView1.CameraParallelProjection = 1
             }
             else if (version == 1 && RS.BlueCFDIsInstalled)
             {
-                gnuplotpath = @"C:\Program Files\blueCFD-Core-2017\msys64\mingw64\bin\gnuplot.exe";
+                gnuplotpath = @"C:\Program Files\blueCFD-Core-2020\msys64\mingw64\bin\gnuplot.exe";
             }
             else if (version == 0 && !RS.WindowsGnuplotInstalled && RS.BlueCFDIsInstalled)
             {
-                gnuplotpath = @"C:\Program Files\blueCFD-Core-2017\msys64\mingw64\bin\gnuplot.exe";
+                gnuplotpath = @"C:\Program Files\blueCFD-Core-2020\msys64\mingw64\bin\gnuplot.exe";
             }
             else if (version == 1 && !RS.BlueCFDIsInstalled && RS.WindowsGnuplotInstalled)
             {
@@ -1371,7 +1371,7 @@ renderView1.CameraParallelProjection = 1
             }
             else
             {
-                paraviewPath = @"C:\Program Files\blueCFD-Core-2017\AddOns\ParaView\bin\paraview.exe";
+                paraviewPath = @"C:\Program Files\blueCFD-Core-2020\AddOns\ParaView\bin\paraview.exe";
             }
 
             return paraviewPath;

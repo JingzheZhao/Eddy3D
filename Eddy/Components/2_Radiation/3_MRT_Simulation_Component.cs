@@ -114,7 +114,6 @@ namespace Eddy
             // Get the probing points
             // ----------------------
             List<EddyProbe> probes = new List<EddyProbe>();
-            List<Mesh> probeMeshes = new List<Mesh>();
 
             GH_Structure<IGH_Goo> GH_RProbeTree;
             if (!DA.GetDataTree(3, out GH_RProbeTree)) { }
@@ -124,12 +123,14 @@ namespace Eddy
                 {
                     if (o != null)
                     {
-                        Mesh m;
                         EddyProbe pr;
-                        if (o.CastTo(out m))
-                        { probeMeshes.Add(m); }
-                        else if (o.CastTo(out pr))
+
+                        if (o.CastTo(out pr))
                         { probes.Add(pr); }
+                        else
+                        {
+                            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide EddyProbes as Sensors.");
+                        }
                     }
                 }
             }
@@ -179,10 +180,7 @@ namespace Eddy
             // ---------------------
 
             List<RProbe> RadProbes = new List<RProbe>();
-            foreach (var m in probeMeshes)
-            {
-                RadProbes.AddRange(RProbe.Mesh2Probes(m));
-            }
+
             foreach (var p in probes)
             {
                 if (p.PreviewGeo == null)
