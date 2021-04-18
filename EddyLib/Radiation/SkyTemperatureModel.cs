@@ -50,7 +50,14 @@ namespace EddyLib.Radiation
                 {
                     for (int h = 0; h < numberOfHours; h++)
                     {
+                        // Fix if Opaque Sky Cover is missing (99999) --> rely on simpler model
+                        if (OpaqueSkyCover[h] <= 0 || OpaqueSkyCover[h] > 10)
+                        {
+                            type = CalculationType.MartinBerdahl;
+                        }
+
                         this.Emissivity[h] = CalcEmissivityEnergyPlus(OpaqueSkyCover[h], T_DryBulb[h], T_dew[h], RelHum[h], type);
+
                         this.Temp[h] = CalcTemp(T_DryBulb[h], this.Emissivity[h]);
                     }
                 }
