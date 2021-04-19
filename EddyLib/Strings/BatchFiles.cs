@@ -744,7 +744,7 @@ REM   --help              Display this help screen.");
             StringBuilder sb = new StringBuilder();
 
             sb.AppendLine(string.Format(@"setlocal"));
-            sb.AppendLine(string.Format(@"call """ + installationPath + @"\setvars_OF8.bat"""));
+            sb.AppendLine(string.Format(@"call """ + installationPath + @"\setvars.bat"""));
             sb.AppendLine(@"set PATH=%HOME%\msys64\usr\bin;%PATH%");
             if (notOnC)
             {

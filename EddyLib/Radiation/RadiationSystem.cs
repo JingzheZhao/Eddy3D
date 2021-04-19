@@ -33,7 +33,6 @@ namespace EddyLib.Radiation
         public Weather Weather;
 
         public StringBuilder ErrorLog = new StringBuilder();
-        public StringBuilder Commands = new StringBuilder();
 
         public RadiationSystem(string baseWorkingDir, Weather weather, List<RSurface> rsurfaces, List<RProbe> probes, List<RPolygon> polys, Mesh unified)
         {
@@ -127,10 +126,6 @@ namespace EddyLib.Radiation
 
                 string gendaymtxArgs = DefaultDirectoriesAndPaths.RadianceDir + @"\gendaymtx.exe -m " + 1 + @" -O1 " + weain + @" > " + smxout;
 
-                //#if DEBUG
-                Commands.AppendLine(gendaymtxArgs);
-                //#endif
-
                 var gendaymtx = Command.Run("cmd.exe", new[] { "" },
                   options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct));
 
@@ -148,10 +143,6 @@ namespace EddyLib.Radiation
                 // The -d option in the SMX messes it all up-- you can't include -d and -5 together.
                 string smxsunout = (@"Rad\output\sunM" + skysubdivdirect + @".smx");
                 string gendaymtx2Args = DefaultDirectoriesAndPaths.RadianceDir + @"\gendaymtx -5 0.533 -m " + skysubdivdirect + @" -O1 " + weain + @" > " + smxsunout;
-
-                //#if DEBUG
-                Commands.AppendLine(gendaymtx2Args);
-                //#endif
 
                 var gendaymtx2 = Command.Run("cmd.exe", new[] { "" },
                   options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct));
@@ -171,7 +162,6 @@ namespace EddyLib.Radiation
                 var oconv = Command.Run(DefaultDirectoriesAndPaths.RadianceDir + @"\oconv", new[] { radin },
                     options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(ct)).RedirectTo(new FileInfo(octout));
                 oconv.Wait();
-
                 if (!oconv.Result.Success)
                 {
                     Debug.WriteLine($"oconv command failed with exit code {oconv.Result.ExitCode}: {oconv.Result.StandardError}");
@@ -209,10 +199,6 @@ namespace EddyLib.Radiation
                 CMDrfluxmtx.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
                 CMDrfluxmtx.StandardInput.WriteLine(cmdArgRFLUXMTX);
                 CMDrfluxmtx.StandardInput.WriteLine("exit");
-
-                //#if DEBUG
-                Commands.AppendLine(cmdArgRFLUXMTX);
-                //#endif
 
                 CMDrfluxmtx.Wait();
 
@@ -264,10 +250,6 @@ namespace EddyLib.Radiation
                 dctimestep.StandardInput.WriteLine(dctimestepArgs);
                 dctimestep.StandardInput.WriteLine("exit");
 
-                //#if DEBUG
-                Commands.AppendLine(dctimestepArgs);
-                //#endif
-
                 // -----------------------------
                 // wait for 5 Create Illum DC
                 // -----------------------------
@@ -305,12 +287,6 @@ namespace EddyLib.Radiation
                 string dirCalcArgs1 = DefaultDirectoriesAndPaths.RadianceDir + @"\rfluxmtx -I+ -y " + sensorCnt + @" -lw 0.0001 -ab 1 -ad " + ad + @" -n " + n + @" - " + skyglowrad + @" -i " + octblackin + @" < " + ptsin + @" > " + dcd_mtxout;
                 string dirCalcArgs2 = DefaultDirectoriesAndPaths.RadianceDir + @"\gendaymtx -m " + skysubdivdiffuse + @" -O1 -d " + weain + @" > " + d_smxout;
                 string dirCalcArgs3 = DefaultDirectoriesAndPaths.RadianceDir + @"\dctimestep " + dcd_mtxout + @" " + d_smxout + @" | rmtxop -fa -t -c 0.265 0.670 0.065 -> " + annualR_dcd_ill_out;
-
-                //#if DEBUG
-                Commands.AppendLine(dirCalcArgs1);
-                Commands.AppendLine(dirCalcArgs2);
-                Commands.AppendLine(dirCalcArgs3);
-                //#endif
 
                 var dircalc1 = Command.Run("cmd.exe");
 
@@ -401,12 +377,6 @@ namespace EddyLib.Radiation
 
                 suncoeff.Wait();
 
-                //#if DEBUG
-                Commands.AppendLine(suncoeffArgs1);
-                Commands.AppendLine(suncoeffArgs2);
-
-                //#endif
-
                 if (!suncoeff.Result.Success)
                 {
                     Debug.WriteLine($"suncoeff command failed with exit code {suncoeff.Result.ExitCode}: {suncoeff.Result.StandardError}");
@@ -453,11 +423,6 @@ namespace EddyLib.Radiation
 
                 rcontrib.Wait();
 
-                //#if DEBUG
-                Commands.AppendLine(rcontribArgs1);
-
-                //#endif
-
                 if (!rcontrib.Result.Success)
                 {
                     Debug.WriteLine($"suncoeff command failed with exit code {rcontrib.Result.ExitCode}: {rcontrib.Result.StandardError}");
@@ -496,11 +461,6 @@ namespace EddyLib.Radiation
                 dctimestep2.StandardInput.WriteLine(dctimestep2Args);
                 dctimestep2.StandardInput.WriteLine("exit");
 
-                //#if DEBUG
-                Commands.AppendLine(dctimestep2Args);
-
-                //#endif
-
                 dctimestep2.Wait();
                 if (!dctimestep2.Result.Success)
                 {
@@ -526,11 +486,6 @@ namespace EddyLib.Radiation
                 rmtxop.StandardInput.WriteLine(rmtxopArgs);
                 rmtxop.StandardInput.WriteLine("exit");
                 rmtxop.Wait();
-
-                //#if DEBUG
-                Commands.AppendLine(rmtxopArgs);
-
-                //#endif
 
                 if (!rmtxop.Result.Success)
                 {
@@ -586,11 +541,7 @@ namespace EddyLib.Radiation
             // Error Logs
             // ---------------------
 
-            //#if DEBUG
             File.WriteAllText(Path.Combine(this.BaseWorkingDir, "RadiationErrorLog.log"), this.ErrorLog.ToString());
-            File.WriteAllText(Path.Combine(this.BaseWorkingDir, "Commands.log"), this.Commands.ToString());
-
-            //#endif
         }
 
         public void RunDirectRayCast(bool run, CancellationToken ct, int steps, ref int stepCnt)

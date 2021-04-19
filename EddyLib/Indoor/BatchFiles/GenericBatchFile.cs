@@ -23,7 +23,7 @@ namespace EddyLib.Indoor.BatchFiles
 
         public void Export(string baseWorkingDir)
         {
-            var path = Path.Combine(baseWorkingDir, BatchLocation);
+            var path = Path.Combine(baseWorkingDir,BatchLocation);
             Directory.CreateDirectory(path);
             //if (!path.EndsWith("\\")) path += "\\";
             File.WriteAllText(path + this.BatchName, this.FullDictString);
@@ -32,7 +32,7 @@ namespace EddyLib.Indoor.BatchFiles
         public string GetHeader()
         {
             return
-                   @"call ""C:\Program Files\blueCFD-Core-2020\\setvars_OF8.bat.bat""
+                   @"call ""C:\Program Files\blueCFD-Core-2017\\setvars.bat""
                     set PATH=%HOME%msys64\usr\bin;%PATH%
                     cd " + "\"" + BatchLocation.ToString() + "\"";
         }
