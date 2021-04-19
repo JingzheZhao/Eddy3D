@@ -78,6 +78,7 @@ namespace EddyLib.Strings
         }
 
         private static readonly List<string> RCCheckMeshSingleCPU = new List<string> {
+
        // "checkMesh -allGeometry -allTopology -writeAllFields -writeSets vtk",  // Not supported in OpenFOAM 5 yet
         "checkMesh -allGeometry -allTopology -writeSets vtk",
         "foamToVTK -faceSet highAspectRatioCells -ascii",
@@ -731,7 +732,7 @@ REM   --help              Display this help screen.");
         }
 
         public static string TempBlueCFD
-            (List<string> commands, string caseDir, RunMode runmode = RunMode.Batchfile, bool logging = true, string installationPath = @"C:\Program Files\blueCFD-Core-2020\")
+            (List<string> commands, string caseDir, RunMode runmode = RunMode.Batchfile, bool logging = true, string installationPath = @"C:\Program Files\blueCFD-Core-2017\")
 
         {
             bool notOnC = false;
