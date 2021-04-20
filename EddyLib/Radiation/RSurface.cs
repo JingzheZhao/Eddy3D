@@ -126,8 +126,10 @@ namespace EddyLib.Radiation
             //Material = refl > 1 ? 1 : refl;
             Type = type;
             SimulationType = simtype;
+ 
 
-            //// simple mesh for rad sim and obstruction calculation
+
+            // simple mesh for rad sim and obstruction calculation
             //MeshingParameters mp_low = new MeshingParameters();
             //LowPoly = new Mesh();
             //foreach (var m in Mesh.CreateFromBrep(b, mp_low))
@@ -135,40 +137,45 @@ namespace EddyLib.Radiation
             //    LowPoly.Append(m);
             //}
 
+           
 
-            //// fine subdivisions for viewfactor analysis
-            //MeshingParameters mp_high = new MeshingParameters();
-            //mp_high.MinimumEdgeLength = patchSize;
-            //mp_high.MaximumEdgeLength = patchSize;
-
-            //HighPoly = new Mesh();
-            //foreach (var m in Mesh.CreateFromBrep(b, mp_high))
-            //{
-            //    HighPoly.Append(m);
-            //}
-
-          
-
-            // simple mesh for rad sim and obstruction calculation
             MeshingParameters mp_low = new MeshingParameters();
             LowPoly = new Mesh();
-            foreach (var m in Mesh.CreateFromBrep(b, mp_low))
-            {
-                LowPoly.Append(m);
+            HighPoly = new Mesh();
+            foreach (var bf in b.Faces) {
+                Brep f = bf.DuplicateFace(true);
+                if (f==null) continue;
+                var farea = f.GetArea();
+                if (farea < 0.1) continue;
+
+
+                //LOW Poly
+                foreach (var m in Mesh.CreateFromBrep(f, mp_low))
+                {
+                    LowPoly.Append(m);
+                }
+
+                //HIGH Poly
+                QuadRemeshParameters qparam = new QuadRemeshParameters();
+                qparam.AdaptiveQuadCount = false;
+                qparam.AdaptiveSize = 0;
+                qparam.DetectHardEdges = true;
+                qparam.TargetQuadCount = (int)(farea / (patchSize * patchSize));
+                var qmesh = Mesh.QuadRemeshBrep(f, qparam);
+                HighPoly.Append(qmesh);
+                
             }
 
 
-            // fine subdivisions for viewfactor analysis
-            var area = b.GetArea();
+            //// fine subdivisions for viewfactor analysis
+            //var area = b.GetArea();
+            //QuadRemeshParameters qparam = new QuadRemeshParameters();
+            //qparam.AdaptiveQuadCount = false;
+            //qparam.AdaptiveSize = 0;
+            //qparam.DetectHardEdges = true;
+            //qparam.TargetQuadCount = (int)(area / (patchSize * patchSize));
+            //HighPoly = Mesh.QuadRemeshBrep(b, qparam);
 
-            QuadRemeshParameters qparam = new QuadRemeshParameters();
-            qparam.AdaptiveQuadCount = false;
-            qparam.AdaptiveSize = 0;
-            qparam.DetectHardEdges = true;
-            
-            qparam.TargetQuadCount = (int)(area / ( patchSize * patchSize) );
-
-            HighPoly = Mesh.QuadRemeshBrep(b, qparam);
 
             MakePolys();
         }
