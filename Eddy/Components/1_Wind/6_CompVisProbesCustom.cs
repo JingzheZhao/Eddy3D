@@ -22,7 +22,7 @@ namespace Eddy
     {
         public override GH_Exposure Exposure
         {
-            get { return GH_Exposure.senary; }
+            get { return GH_Exposure.senary | GH_Exposure.obscure; }
         }
 
         //protected override void AppendAdditionalComponentMenuItems(System.Windows.Forms.ToolStripDropDown menu)

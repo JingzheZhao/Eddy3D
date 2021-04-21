@@ -10,32 +10,30 @@ using System.Threading.Tasks;
 
 namespace EddyLib.Radiation
 {
-
     public enum RProbeMetric
     {
-
         UTCI,
         MRT,
         dMRT,
         lwMRT,
         TotalRad,
         DirRad,
-        WindSpeed
-
-
+        WindVelMag
     }
-
 
     [ProtoContract]
     public class RProbe
     {
+        public RProbe()
+        {
+        }
 
-        public RProbe() { }
         public RProbe(Point3d pt, Vector3d vec)
         {
             Point = new EddyPoint(pt);
             Normal = new EddyVector(vec);
         }
+
         public RProbe(Point3d pt, Vector3d vec, Mesh geo)
         {
             Point = new EddyPoint(pt);
@@ -45,36 +43,39 @@ namespace EddyLib.Radiation
 
         [ProtoMember(1)]
         public EddyPoint Point { get; set; }
+
         [ProtoMember(2)]
         public EddyVector Normal { get; set; }
+
         [ProtoMember(3)]
         public EddyMesh PreviewGeo { get; set; }
+
         [ProtoMember(4)]
         public float Area { get; set; } = 1;
 
         //View factor data
         [ProtoMember(100)]
         public double[] VFtoPolys { get; set; }
+
         [ProtoMember(101)]
         public Dictionary<string, double> VFtoMaterial { get; set; }
-
 
         //Radiation Data
 
         [ProtoMember(110)]
         public float[] TotalRad { get; set; }
+
         [ProtoMember(111)]
         public float[] DirRad { get; set; }
+
         [ProtoMember(112)]
         public float[] SolarGain_dMRT { get; set; }
+
         [ProtoMember(113)]
         public float[] LongWave_MRT { get; set; }
 
-
         [ProtoMember(130)]
         public float[] WindSpeed { get; set; }
-
-
 
         [ProtoMember(200)]
         public float[] UTCI { get; set; }
@@ -84,13 +85,15 @@ namespace EddyLib.Radiation
 
         [ProtoMember(202)]
         public float ComfortAutonomy_Spring { get; set; }
+
         [ProtoMember(203)]
         public float ComfortAutonomy_Summer { get; set; }
+
         [ProtoMember(204)]
         public float ComfortAutonomy_Fall { get; set; }
+
         [ProtoMember(205)]
         public float ComfortAutonomy_Winter { get; set; }
-
 
         public static List<RProbe> Mesh2Probes(Mesh _ms)
         {
@@ -99,17 +102,14 @@ namespace EddyLib.Radiation
 
             _ms.FaceNormals.ComputeFaceNormals();
 
-
-
             for (int i = 0; i < _ms.Faces.Count; ++i)
             {
                 RProbe pg = new RProbe();
-                pg.Point = new EddyPoint( _ms.Faces.GetFaceCenter(i) );
-                pg.Normal = new EddyVector( _ms.FaceNormals[i] );
+                pg.Point = new EddyPoint(_ms.Faces.GetFaceCenter(i));
+                pg.Normal = new EddyVector(_ms.FaceNormals[i]);
                 pg.Normal.Value.Unitize();
 
                 probes.Add(pg);
-
 
                 if (_ms.Faces[i].IsQuad)
                 {
@@ -123,7 +123,7 @@ namespace EddyLib.Radiation
 
                     pg.Area = (float)(n1.Length * 0.5 + n2.Length * 0.5);
 
-                    pg.PreviewGeo = new EddyMesh( new Mesh() );
+                    pg.PreviewGeo = new EddyMesh(new Mesh());
                     pg.PreviewGeo.Value.Vertices.Add(v0);
                     pg.PreviewGeo.Value.Vertices.Add(v1);
                     pg.PreviewGeo.Value.Vertices.Add(v2);
@@ -149,6 +149,5 @@ namespace EddyLib.Radiation
             }
             return probes;
         }
-
     }
 }

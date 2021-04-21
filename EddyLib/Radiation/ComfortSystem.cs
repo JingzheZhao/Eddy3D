@@ -16,7 +16,6 @@ namespace EddyLib.Radiation
     {
         public int methodsteps = 4; // energyplus prints 52 lines
 
-
         private DateTime winter_start = new DateTime(2004, 1, 1);
         private DateTime winter_spring = new DateTime(2004, 2, 7);
         private DateTime spring_summer = new DateTime(2004, 5, 7);
@@ -27,7 +26,7 @@ namespace EddyLib.Radiation
         private double steps = 52 + 2;
         private double stepCnt = 0;
 
-         public string BaseWorkingDir = "";
+        public string BaseWorkingDir = "";
         public Weather Weather;
 
         public List<RProbe> Probes;
@@ -35,32 +34,25 @@ namespace EddyLib.Radiation
 
         public string CFDDataPath = "";
 
-
-        public ComfortSystem(  string baseWorkingDir, Weather weather, List<RProbe> probes, List<RPolygon> polys, string cfdpath)
+        public ComfortSystem(string baseWorkingDir, Weather weather, List<RProbe> probes, List<RPolygon> polys, string cfdpath)
         {
-             BaseWorkingDir = baseWorkingDir;
+            BaseWorkingDir = baseWorkingDir;
             Weather = weather;
             Probes = probes;
             Polys = polys;
             CFDDataPath = cfdpath;
-
         }
 
-        public void LoadCFD_ComputeWindfactors(bool run, CancellationToken ct, int steps, ref int stepCnt) {
-
-
-
+        public void LoadCFD_ComputeWindfactors(bool run, CancellationToken ct, int steps, ref int stepCnt)
+        {
             // ---------------------
             // 1  Load CFD Result
             // ---------------------
-
 
             WProbeResultProto resultProto_CFD = null;
 
             if (!String.IsNullOrWhiteSpace(CFDDataPath))
             {
-
-                
                 try
                 {
                     Stopwatch sp = new Stopwatch();
@@ -71,34 +63,25 @@ namespace EddyLib.Radiation
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine( "CFD Result file could not be deserialized. Are you loading a wrong file type? " + Environment.NewLine + e.Message);
-                    return ;
+                    Console.WriteLine("CFD Result file could not be deserialized. Are you loading a wrong file type? " + Environment.NewLine + e.Message);
+                    return;
                 }
-
-
-              
-
 
                 Console.WriteLine("Probe Count: " + this.Probes.Count);
                 Console.WriteLine("CFD Probe Count: " + resultProto_CFD.Probes.Count);
 
-
-                if (this.Probes.Count != resultProto_CFD.Probes.Count) {
-
+                if (this.Probes.Count != resultProto_CFD.Probes.Count)
+                {
                     Console.WriteLine("CFD and MRT worflows have different probe count... using weather data for prove air velocity");
                     return;
                 }
 
-
                 Interlocked.Increment(ref stepCnt);
                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
-
 
                 // ---------------------
                 // 2  Compute Wind Factors
                 // ---------------------
-
-
 
                 // WindFactorSpatial
                 Console.WriteLine("Computing Spatial Wind Factors...");
@@ -109,7 +92,6 @@ namespace EddyLib.Radiation
                 }
                 Console.WriteLine("Computing Spatial Wind Factors...");
 
-
                 WindSystem WS = new WindSystem(this.Weather, resultProto_CFD.Probes[0].WindDirections.ToList());
                 Console.WriteLine("Computing Temporal Wind Factors...");
 
@@ -118,7 +100,6 @@ namespace EddyLib.Radiation
                 {
                     p.WindFactorsTemporal = WindFactorsTemporal.CalcWindFactorsTemporalSP(this.Weather, p, WS, true);
                 }
-
 
                 for (int i = 0; i < this.Probes.Count; i++)
                 {
@@ -131,10 +112,9 @@ namespace EddyLib.Radiation
                 Interlocked.Increment(ref stepCnt);
                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
             }
-
         }
 
-        public void ComputeUTCI(bool run, CancellationToken ct,  int steps, ref int stepCnt)
+        public void ComputeUTCI(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
             steps = this.Probes.Count;
 
@@ -150,65 +130,56 @@ namespace EddyLib.Radiation
                 probe.ComfortHours = 0;
 
                 // get wind speed data -- init array with wind speed data from weather
-                var windspeed = this.Weather.WindSpeed;
+                double[] windspeed = new double[this.Weather.WindSpeed.Length];
+                Array.Copy(this.Weather.WindSpeed, windspeed, this.Weather.WindSpeed.Length);
+
                 // if CFD wind speed data exsists - then override
                 if (probe.WindSpeed != null)
                 {
-                    for (int j = 0; j < windspeed.Length; j++)
+                    for (int h = 0; h < windspeed.Length; h++)
                     {
-                        windspeed[j] = (double)probe.WindSpeed[j];
+                        // lift to 10 m height as required
+
+                        // scale up to 10 m
+                        //var z0 = 1;
+                        //var uref = 2.89;
+                        //var zref = 3;
+
+                        //// Act
+                        //var res = EddyLib.BCs.BoundaryCondition.ScaleABL(uref, zref, z0, 10);
+
+                        var resultingWindSpeedforUTCI_At10 = UTCI.At10Meters((double)probe.WindSpeed[h], 1.8);
+                        //  var resultingWindSpeedforUTCI_At10 = UTCI.At10Meters(resultingWindSpeedforUTCI, probe.Point.Value.Z);
+
+                        windspeed[h] = resultingWindSpeedforUTCI_At10;
                     }
                 }
 
                 // init mrt with dry bulb temperature from weather
-                var mrt = this.Weather.DryBulbTemp;
+                double[] mrt = new double[this.Weather.DryBulbTemp.Length];
+                Array.Copy(mrt, this.Weather.DryBulbTemp, this.Weather.DryBulbTemp.Length);
+
                 // if longwave mrt data exsists - then override
                 if (probe.LongWave_MRT != null)
                 {
-                    for (int j = 0; j < mrt.Length; j++)
+                    for (int h = 0; h < mrt.Length; h++)
                     {
-                        mrt[j] = (double)probe.LongWave_MRT[j];
+                        mrt[h] = (double)probe.LongWave_MRT[h];
                     }
                 }
                 // if radiation data exsists - add dMRT to mrt
                 if (probe.SolarGain_dMRT != null)
                 {
-                    for (int j = 0; j < mrt.Length; j++)
+                    for (int h = 0; h < mrt.Length; h++)
                     {
-                        mrt[j] = mrt[j] + (double)probe.SolarGain_dMRT[j];
+                        mrt[h] = mrt[h] + (double)probe.SolarGain_dMRT[h];
                     }
                 }
 
                 for (int h = 0; h < 8760; h++)
+
                 {
-                    // Check for extreme MRTs
-                    double resultingMRT = mrt[h];
-
-                    if (resultingMRT < this.Weather.DryBulbTemp[h] - 30) { resultingMRT = this.Weather.DryBulbTemp[h] - 30; }
-                    if (resultingMRT > this.Weather.DryBulbTemp[h] + 70) { resultingMRT = this.Weather.DryBulbTemp[h] + 70; }
-
-                    // Check for extreme Windspeeds
-                    double resultingWindSpeedforUTCI = windspeed[h];
-
-                    if (resultingWindSpeedforUTCI > 17) { resultingWindSpeedforUTCI = 17; }
-                    if (resultingWindSpeedforUTCI < 0.5) { resultingWindSpeedforUTCI = 0.5; }
-
-                    // scale up to 10 m
-                    //var z0 = 1;
-                    //var uref = 2.89;
-                    //var zref = 3;
-
-                    //// Act
-                    //var res = EddyLib.BCs.BoundaryCondition.ScaleABL(uref, zref, z0, 10);
-
-                    // lift to 10 m height as required
-                    var resultingWindSpeedforUTCI_At10 = UTCI.At10Meters(resultingWindSpeedforUTCI, 1.8);
-                    //  var resultingWindSpeedforUTCI_At10 = UTCI.At10Meters(resultingWindSpeedforUTCI, probe.Point.Value.Z);
-
-                    double utci = UTCI.CalcUTCI(this.Weather.DryBulbTemp[h], this.Weather.RelativeHumidity[h], resultingWindSpeedforUTCI, resultingMRT);
-
-                    //if (utci < -40) utci = -40;
-                    //if (utci > 46) utci = 46;
+                    double utci = UTCI.CalcUTCICorrectBounds(this.Weather.DryBulbTemp[h], this.Weather.RelativeHumidity[h], windspeed[h], mrt[h], out bool outOfBounds);
 
                     var condition = UTCI.CalcConditionOfPerson(utci);
 
@@ -220,12 +191,10 @@ namespace EddyLib.Radiation
                 //stepCnt++;
                 //pct = 100 * stepCnt / steps;
                 //Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
-
             });
 
             Interlocked.Increment(ref stepCnt);
             Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
-
         }
 
         public MRT_Simulation_ResultProto SaveResults(bool run, CancellationToken ct, int steps, ref int stepCnt)
@@ -238,7 +207,7 @@ namespace EddyLib.Radiation
 
             var prep = PrepareProtoBufSingleton.Instance;
 
-            var protoResult = new MRT_Simulation_ResultProto(  this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
+            var protoResult = new MRT_Simulation_ResultProto(this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
 
             protoResult.WriteToFile(this.BaseWorkingDir + @"\UTCI.eddy");
 

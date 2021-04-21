@@ -320,38 +320,43 @@ namespace Eddy
                     {
                         string currentCaseDir = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i];
 
-                        //foreach (field f in Enum.GetValues(typeof(field)))
+                        foreach (field f in Enum.GetValues(typeof(field)))
                         {
-                            //  var currField = new OFFieldNew(probeNameByUser, f);
-                            var currField = new OFFieldNew(probeNameByUser, field.U);
+                            var currField = new OFFieldNew(probeNameByUser, f);
+                            //  var currField = new OFFieldNew(probeNameByUser, field.U);
 
-                            // We must check if this exists before we construct the Probing object
-                            string pathToProbeFile = ProbingNew.GetPathToProbedResults(currentCaseDir, currField, RES);
-                            if (File.Exists(pathToProbeFile))
+                            try
                             {
-                                if (currField.FieldType == fieldType.vector)
+                                string pathToProbeFile = ProbingNew.GetPathToProbedResults(currentCaseDir, currField, RES);
+                                if (File.Exists(pathToProbeFile))
                                 {
-                                    ProbingNew Vectors = new ProbingNew(Probes, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES);
-
-                                    for (int p = 0; p < numberOfProbes; p++)
+                                    if (currField.FieldType == fieldType.vector)
                                     {
-                                        WProbes[p].U[i] = new EddyVector(Vectors.ResultVec[p].Value);
+                                        ProbingNew Vectors = new ProbingNew(Probes, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES);
+
+                                        for (int p = 0; p < numberOfProbes; p++)
+                                        {
+                                            //  WProbes[p].U[i] = new EddyVector(Vectors.ResultVec[p].Value);
+                                            WProbes[p].SetOFFields(f, Vectors.ResultVec[p].Value, i);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        ProbingNew Scalars = new ProbingNew(Probes, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES);
+
+                                        for (int p = 0; p < numberOfProbes; p++)
+                                        {
+                                            WProbes[p].SetOFFields(f, (float)Scalars.ResultScalar[p].Value, i);
+                                        }
                                     }
                                 }
-                                else
-                                {
-                                    ProbingNew Scalars = new ProbingNew(Probes, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES);
-
-                                    //      for (int p = 0; p < numberOfProbes; p++)
-                                    //{
-                                    //    WProbes[p].U[i] = new EddyVector(Vectors.ResultVec[p].Value);
-                                    //}
-                                }
                             }
-                            else
+                            catch (Exception)
                             {
-                                base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.FieldDoesntExist(currentCaseDir, currField));
+                                base.AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.FieldDoesntExist(currentCaseDir, currField));
                             }
+
+                            // We must check if this exists before we construct the Probing object
                         }
                     }
                 }
@@ -363,13 +368,12 @@ namespace Eddy
                 }
             }
 
-
             var respath = Path.GetFullPath(RES.WorkingDirectory);
 
             //DirectoryInfo parentDir = Directory.GetParent(respath.EndsWith("\\") ? respath : string.Concat(respath, "\\"));
             DirectoryInfo parentDir = Directory.GetParent(respath);
 
-            string resultFilePath = parentDir.Parent.FullName + @"\Wind.eddy";
+            string resultFilePath = parentDir.Parent.FullName + @"\Wind.eddy." + probeNameByUser;
 
             WProbeResultProto res = new WProbeResultProto("probes", RES.WorkingDirectory, WProbes);
             res.WriteToFile(resultFilePath);

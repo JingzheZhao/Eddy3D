@@ -17,7 +17,7 @@ namespace EddyLib.Strings
 
         public static string FieldDoesntExist(string currentCaseDir, OFFieldNew field)
         {
-            return @"The file """ + currentCaseDir + @"\postProcessing\" + field.ProbeName + @"\" + Utilities.GetLastIterationFromDirectory(currentCaseDir).ToString() + @"\" + field.FieldName + @""" does not exist. Please run the probing component.";
+            return @"The file """ + currentCaseDir + @"\postProcessing\" + field.ProbeName + @"\" + Utilities.GetLastIterationFromDirectory(currentCaseDir).ToString() + @"\" + field.FieldName + @""" does not exist.";
         }
 
         public static string ParsingFailed()

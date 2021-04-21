@@ -44,10 +44,10 @@ namespace Eddy
 
             pManager.AddGenericParameter("Sensors", "Sen", "Radiation sensors. Provide as [Mesh] or [RProbe]", GH_ParamAccess.tree);
 
-            pManager.AddTextParameter("Settings", "Set", "MRT System Settings", GH_ParamAccess.item , "");
+            pManager.AddTextParameter("Settings", "Set", "MRT System Settings", GH_ParamAccess.item, "");
             pManager[4].Optional = true;
 
-            pManager.AddTextParameter("CFD result", "CFD", "File path to *.wind.eddy file. If provided wind velocities are loaded from CFD result.", GH_ParamAccess.item , "");
+            pManager.AddTextParameter("CFD result", "CFD", "File path to *.wind.eddy file. If provided wind velocities are loaded from CFD result.", GH_ParamAccess.item, "");
             pManager[5].Optional = true;
 
             pManager.AddBooleanParameter("Run", "R", "Run simulation", GH_ParamAccess.item, false);
@@ -71,7 +71,6 @@ namespace Eddy
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-
             // ---------------------
             // Weather and work dir
             // ---------------------
@@ -84,14 +83,12 @@ namespace Eddy
             DA.GetData(0, ref workDir);
             DA.GetData(1, ref weatherPath);
 
-
             if (!File.Exists(weatherPath))
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Weather file could not be found");
                 return;
             }
             Weather weather = new Weather(weatherPath);
-
 
             // ---------------------
             // Get the RSurf objects
@@ -118,7 +115,7 @@ namespace Eddy
             // ----------------------
             List<EddyProbe> probes = new List<EddyProbe>();
             List<Mesh> probeMeshes = new List<Mesh>();
- 
+
             GH_Structure<IGH_Goo> GH_RProbeTree;
             if (!DA.GetDataTree(3, out GH_RProbeTree)) { }
             foreach (GH_Path p in GH_RProbeTree.Paths)
@@ -154,11 +151,9 @@ namespace Eddy
                 }
             }
 
-
             // ----------------------
             // CFD results ?
             // ----------------------
-
 
             string CFDResultPath = "";
             DA.GetData(5, ref CFDResultPath);
@@ -171,22 +166,13 @@ namespace Eddy
                 }
             }
 
-
-
             // ---------------------
             // Run
             // ---------------------
 
-
-
             bool RUN = false;
             bool HidePopUp = false;
             DA.GetData(6, ref RUN);
-
-           
-
-
-
 
             // ---------------------
             // Setup probes
@@ -205,13 +191,10 @@ namespace Eddy
                 { RadProbes.Add(new RProbe(p.Point, p.Normal, p.PreviewGeo)); }
             }
 
-
-
-
             // ---------------------
             // Setup system
             // ---------------------
-            MRTSystem = new MRT_Simulation_System(  workDir, weather, modelRSurfaces, RadProbes, CFDResultPath);
+            MRTSystem = new MRT_Simulation_System(workDir, weather, modelRSurfaces, RadProbes, CFDResultPath);
 
             if (set != null) { MRTSystem.Settings = set; }
             // redirect stderr
@@ -310,7 +293,6 @@ namespace Eddy
             }
 
             if (MRTSystem.ThermalSystem == null) return false;
-
 
             if (MRTSystem.Settings.ComputeSurfaceTemperatureEnergyPlus)
             {
