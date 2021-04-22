@@ -18,7 +18,7 @@ namespace Eddy.Components._2_Radiation
         /// Initializes a new instance of the _2_SurfaceMaterialSettings_Component class.
         /// </summary>
         public SimulationSettings_Component()
-          : base("Settings", "Set", "Simulation settings " + EddyVersion.toString(), EddyVersion.Name, "2 | Radiation")
+          : base("Settings", "Set", "Simulation settings, A higher VFC will slow down the simulation, approximately 30-50% for every 0.1 increase" + EddyVersion.toString(), EddyVersion.Name, "2 | Radiation")
         {
         }
 
