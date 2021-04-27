@@ -30,8 +30,10 @@ namespace Eddy.Components._2_Radiation
             pManager.AddBooleanParameter("ComputeReflectionsAndDiffuseRadiation", "Refl", "ComputeReflectionsAndDiffuseRadiation", GH_ParamAccess.item, true);
             pManager.AddNumberParameter("CummulativeViewFactorCutoff", "VFC", "CummulativeViewFactorCutoff", GH_ParamAccess.item, 0.2);
             pManager.AddBooleanParameter("ComputeSurfaceTemperatureEnergyPlus", "Ep", "ComputeSurfaceTemperatureEnergyPlus", GH_ParamAccess.item, true);
-            pManager.AddBooleanParameter("ComputeLongWaveExchangeEnergyPlus", "LWR", "ComputeLongWaveExchangeEnergyPlus", GH_ParamAccess.item, false);
-         }
+            pManager.AddBooleanParameter("ComputeLongWaveExchangeEnergyPlus", "LWR", "ComputeLongWaveExchangeEnergyPlus", GH_ParamAccess.item, false);  // this parameter does nothing - LW is not implemented in Ep yet.
+            pManager.AddNumberParameter("WindScaling", "Wsf", "Wind scaling factor", GH_ParamAccess.item, 1);
+
+        }
 
         /// <summary>
         /// Registers all the output parameters for this component.
@@ -51,19 +53,21 @@ namespace Eddy.Components._2_Radiation
             double CummulativeViewFactorCutoff = 0.2;
             bool ComputeSurfaceTemperatureEnergyPlus = true;
             bool ComputeLongWaveExchangeEnergyPlus = false;
-           
+            double wsf = 1;
 
             if (!DA.GetData(0, ref ComputeReflectionsAndDiffuseRadiation)) return;
             if (!DA.GetData(1, ref CummulativeViewFactorCutoff)) return;
             if (!DA.GetData(2, ref ComputeSurfaceTemperatureEnergyPlus)) return;
             if (!DA.GetData(3, ref ComputeLongWaveExchangeEnergyPlus)) return;
- 
+            if (!DA.GetData(4, ref wsf)) return;
+
 
             MRT_Simulation_Settings settings = new MRT_Simulation_Settings();
             settings.ComputeReflectionsAndDiffuseRadiation = ComputeReflectionsAndDiffuseRadiation;
             settings.CummulativeViewFactorCutoff = CummulativeViewFactorCutoff;
             settings.ComputeSurfaceTemperatureEnergyPlus = ComputeSurfaceTemperatureEnergyPlus;
             settings.ComputeLongWaveExchangeEnergyPlus = ComputeLongWaveExchangeEnergyPlus;
+            settings.WindScalingFactor = wsf;
 
             DA.SetData(0, settings);
 

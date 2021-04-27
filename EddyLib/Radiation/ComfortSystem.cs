@@ -16,11 +16,11 @@ namespace EddyLib.Radiation
     {
         public int methodsteps = 4; // energyplus prints 52 lines
 
-        private DateTime winter_start = new DateTime(2004, 1, 1);
-        private DateTime winter_spring = new DateTime(2004, 2, 7);
-        private DateTime spring_summer = new DateTime(2004, 5, 7);
-        private DateTime summer_fall = new DateTime(2004, 8, 6);
-        private DateTime fall_winter = new DateTime(2004, 11, 6);
+        //private DateTime winter_start = new DateTime(2004, 1, 1);
+        //private DateTime winter_spring = new DateTime(2004, 2, 7);
+        //private DateTime spring_summer = new DateTime(2004, 5, 7);
+        //private DateTime summer_fall = new DateTime(2004, 8, 6);
+        //private DateTime fall_winter = new DateTime(2004, 11, 6);
 
         private double pct = 0;
         private double steps = 52 + 2;
@@ -34,13 +34,15 @@ namespace EddyLib.Radiation
 
         public string CFDDataPath = "";
 
-        public ComfortSystem(string baseWorkingDir, Weather weather, List<RProbe> probes, List<RPolygon> polys, string cfdpath)
+        public double WindScalingFactor = 1;
+        public ComfortSystem(string baseWorkingDir, Weather weather, List<RProbe> probes, List<RPolygon> polys, string cfdpath, double wsf)
         {
             BaseWorkingDir = baseWorkingDir;
             Weather = weather;
             Probes = probes;
             Polys = polys;
             CFDDataPath = cfdpath;
+            WindScalingFactor = wsf;
         }
 
         public void LoadCFD_ComputeWindfactors(bool run, CancellationToken ct, int steps, ref int stepCnt)
@@ -179,7 +181,7 @@ namespace EddyLib.Radiation
                 for (int h = 0; h < 8760; h++)
 
                 {
-                    double utci = UTCI.CalcUTCICorrectBounds(this.Weather.DryBulbTemp[h], this.Weather.RelativeHumidity[h], windspeed[h], mrt[h], out bool outOfBounds);
+                    double utci = UTCI.CalcUTCICorrectBounds(this.Weather.DryBulbTemp[h], this.Weather.RelativeHumidity[h], windspeed[h]* WindScalingFactor, mrt[h], out bool outOfBounds);
 
                     var condition = UTCI.CalcConditionOfPerson(utci);
 
