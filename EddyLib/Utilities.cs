@@ -1471,6 +1471,11 @@ renderView1.CameraParallelProjection = 1
             webClient.DownloadFile(URL, FilePath);
         }
 
+        public static double Deg2Rad(double angleDeg)
+        {
+            return Math.PI * angleDeg / 180.0;
+        }
+
         public static double Rad2Deg(Vector3d windVec)
         {
             Vector3d vec1 = new Vector3d(0, 1, 0);
@@ -1756,16 +1761,6 @@ renderView1.CameraParallelProjection = 1
         }//EOC
 
         // <Custom additional code>
-
-        public static double rad2deg(double angleRad)
-        {
-            return (180.0 * angleRad / Math.PI);
-        }
-
-        public static double deg2rad(double angleDeg)
-        {
-            return Math.PI * angleDeg / 180.0;
-        }
 
         private static readonly string[] SizeSuffixes =
                   { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };

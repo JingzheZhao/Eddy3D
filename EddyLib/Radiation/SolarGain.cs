@@ -1,14 +1,14 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("RhinoPlugin.Tests.Xunit")]
 
 namespace EddyLib.Radiation
 {
     public class SolarGain
     {
-
         public static float[][] ComputeStanding(Weather weather, float[][] totalRad, float[][] directRad)
         {
-
-
             int numberOfHours = directRad.Length;
             int numberOfSensors = directRad[0].Length;
 
@@ -18,8 +18,6 @@ namespace EddyLib.Radiation
                 Values[h] = new float[numberOfSensors];
             }
 
-
-
             System.Threading.Tasks.Parallel.For(0, numberOfSensors, p =>
             {
                 for (int h = 0; h < numberOfHours; h++)
@@ -27,8 +25,7 @@ namespace EddyLib.Radiation
                     double dMRT;
                     double diffRad = totalRad[h][p] - directRad[h][p];
                     double dirRad = directRad[h][p];
-                    dMRT = SolarGain.ERF_Modified(weather.SolarElevation[h], 90, SolarGain.Posture.standing, dirRad, diffRad);
-
+                    dMRT = SolarGain.ERF_Modified(weather.SolarElevation[h], SolarGain.Posture.standing, dirRad, diffRad);
 
                     Values[h][p] = (float)dMRT;
                 }
@@ -39,28 +36,22 @@ namespace EddyLib.Radiation
 
         public static float[] ComputeStanding(Weather weather, float[] totalRad, float[] directRad)
         {
-
-
             int numberOfHours = directRad.Length;
 
             float[] Values = new float[numberOfHours];
-
 
             for (int h = 0; h < numberOfHours; h++)
             {
                 double dMRT;
                 double diffRad = totalRad[h] - directRad[h];
                 double dirRad = directRad[h];
-                dMRT = SolarGain.ERF_Modified(weather.SolarElevation[h], 90, SolarGain.Posture.standing, dirRad, diffRad);
-
+                dMRT = SolarGain.ERF_Modified(weather.SolarElevation[h], SolarGain.Posture.standing, dirRad, diffRad);
 
                 Values[h] = (float)dMRT;
             }
 
-
             return Values;
         }
-
 
         //// https://github.com/CenterForTheBuiltEnvironment/pythermalcomfort/blob/master/src/pythermalcomfort/models.py
 
@@ -119,7 +110,7 @@ namespace EddyLib.Radiation
             standing
         };
 
-        public static double ERF_Modified(double alt, double az, Posture posture, double Idir, double Idiff, double tsol = 1, double fbes = 0.5, double asa = 0.7, double tsol_factor = 1.0)
+        public static double ERF_Modified(double alt, Posture posture, double Idir, double Idiff, double asa = 0.7)
         {
             //  ERF function to estimate the impact of solar radiation on occupant comfort
             //  INPUTS:
@@ -129,19 +120,22 @@ namespace EddyLib.Radiation
             //  Idir : direct beam intensity (normal)
             //  tsol: total solar transmittance (SC * 0.87)
             //  fsvv : sky vault view fraction : fraction of sky vault in occupant's view [0, 1]
-            //  fbes : fraction body exposed to sun [0, 1]
+            //  fbes : fraction body exposed to sun [0, 1] // Patrick: In our case 1 since we have no windows
             //  asa : avg shortwave abs : average shortwave absorptivity of body [0, 1]
             //  tsol_factor : (optional) correction to tsol based on angle of incidence
 
             //var DEG_TO_RAD = 0.0174532925;
             var hr = 6;
+
             //var Idiff = 0.2 * Idir;
             double fsvv = 1;
 
             // Floor reflectance
             // var Rfloor = 0.6;
 
-            var fp = Get_fp(alt, az, posture);
+            var rad = Utilities.Deg2Rad(alt);
+
+            var fp = Get_fp_cylinder(rad);
 
             double feff;
             if (posture == Posture.standing || posture == Posture.supine)
@@ -156,8 +150,13 @@ namespace EddyLib.Radiation
             var sw_abs = asa;
             var lw_abs = 0.95;
 
-            var E_diff = feff * fsvv * 0.5 * tsol * Idiff;
-            var E_direct = fp * tsol * fbes * Idir;
+            // We take Idiff directly from the simulation
+
+            //var E_diff = feff * fsvv * 0.5 * tsol * Idiff;
+            var E_diff = feff * Idiff;
+
+            var E_direct = fp * Idir;
+
             //var E_refl = feff * fsvv * 0.5 * tsol * (Idir * Math.Sin(alt * DEG_TO_RAD) + Idiff) * Rfloor;
 
             var E_solar = E_diff + E_direct; // + E_refl;
@@ -166,6 +165,7 @@ namespace EddyLib.Radiation
 
             return dMRT;
         }
+
         public static void ERF(double alt, double az, Posture posture, double Idir, double tsol, double fsvv, double fbes, double asa, out double ERF, out double dMRT, double tsol_factor = 1.0)
         {
             //  ERF function to estimate the impact of solar radiation on occupant comfort
@@ -225,6 +225,20 @@ namespace EddyLib.Radiation
             }
 
             return -1;
+        }
+
+        public static double Get_fp_cylinder(double theta, double r = 0.3, double h = 1.75)
+
+        {
+            //# From scratch:
+            //# Consider a cylinder of radius r and height h rotated with respect to the flow direction of a fluid by  about an axis parallel to the base. The frontal area of the cylinder is the area perpendicular to the flow direction. If this shape is projected onto the 2D plane, the resulting 2D area is pi r^2 sin theta + 2 r h cos theta
+            //# Test: For a cylinder with r = 1 and h = 2 this should be
+            //# A = 2*1 = 2 m^2 for theta = 90°
+            //# A = r^2 * PI = 3.14 m^2 for theta = 0°
+            //# PI*r*2*sin(B) + 2*r*h*cos*(B)
+            double diameter = 2 * r;
+
+            return Math.PI * Math.Pow(r, 2) * Math.Sin(theta) + diameter * h * Math.Cos(theta);
         }
 
         private static double Get_fp(double alt, double az, Posture posture)

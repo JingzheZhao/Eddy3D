@@ -10,7 +10,7 @@ using Xunit;
 namespace RhinoPlugin.Tests.Xunit
 {
     [Collection("Rhino Collection")]
-    public class OFDomain
+    public class OFDomainTests
     {
         [Fact]
         public void CreateCylDomain_PredefinedGeometry_ReturnCorrectMesh()
