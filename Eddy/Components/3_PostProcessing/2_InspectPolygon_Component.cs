@@ -235,57 +235,102 @@ namespace Eddy.Components.Radiation
             List<float> data = new List<float>();
 
 
-            foreach (var p in rpolyList)
-            {
-                if (p == null) continue;
 
 
 
-                if (metric == RPolyMetric.SurfaceTemperature)
-                {
-                    if (p.SurfaceTemperature != null && p.SimulationType == SimulationType.Simulated)
-                    {
-                        if (p.Centroid != null) points.Add(p.Centroid.Value);
-                        if (p.Mesh != null) meshes.Add(p.Mesh.Value);
-                        else meshes.Add(null);
-                        data.Add(p.SurfaceTemperature[h]);
-                    }
-                    else if (p.TemperatureOverride != null && p.SimulationType == SimulationType.TemperatureInput)
-                    {
-                        if (p.Centroid != null) points.Add(p.Centroid.Value);
-                        if (p.Mesh != null) meshes.Add(p.Mesh.Value);
-                        else meshes.Add(null);
-                        data.Add(p.TemperatureOverride[h]);
-                    }
-                    else if (p.SimulationType == SimulationType.Ambient)
-                    {
-                        if (p.Centroid != null) points.Add(p.Centroid.Value);
-                        if (p.Mesh != null) meshes.Add(p.Mesh.Value);
-                        else meshes.Add(null);
-                        data.Add(p.TemperatureOverride[h]);
-                    }
-                }
 
-                else if (metric == RPolyMetric.SeenByProbes)
-                {
-                    if (p.Centroid != null) points.Add(p.Centroid.Value);
-                    if (p.Mesh != null) meshes.Add(p.Mesh.Value);
-                    else meshes.Add(null);
-                    data.Add((float)p.SeenByProbes);
-                }
 
-            }
             if (ProbePolyMode == "Hour")
             {
+                foreach (var p in rpolyList)
+                {
+                    if (p == null) continue;
+                    if (metric == RPolyMetric.SurfaceTemperature)
+                    {
+                        if (p.SurfaceTemperature != null && p.SimulationType == SimulationType.Simulated)
+                        {
+                            if (p.Centroid != null) points.Add(p.Centroid.Value);
+                            if (p.Mesh != null) meshes.Add(p.Mesh.Value);
+                            else meshes.Add(null);
+                            data.Add(p.SurfaceTemperature[h]);
+                        }
+                        else if (p.TemperatureOverride != null && p.SimulationType == SimulationType.TemperatureInput)
+                        {
+                            if (p.Centroid != null) points.Add(p.Centroid.Value);
+                            if (p.Mesh != null) meshes.Add(p.Mesh.Value);
+                            else meshes.Add(null);
+                            data.Add(p.TemperatureOverride[h]);
+                        }
+                        else if (p.SimulationType == SimulationType.Ambient)
+                        {
+                            if (p.Centroid != null) points.Add(p.Centroid.Value);
+                            if (p.Mesh != null) meshes.Add(p.Mesh.Value);
+                            else meshes.Add(null);
+                            data.Add(p.TemperatureOverride[h]);
+                        }
+                    }
+
+                    else if (metric == RPolyMetric.SeenByProbes)
+                    {
+                        if (p.Centroid != null) points.Add(p.Centroid.Value);
+                        if (p.Mesh != null) meshes.Add(p.Mesh.Value);
+                        else meshes.Add(null);
+                        data.Add((float)p.SeenByProbes);
+                    }
+
+                }
+
                 DA.SetDataList(0, points);
                 DA.SetDataList(1, meshes);
                 DA.SetDataList(2, data);
             }
+
+
+
+
+
             else
             {
-                DA.SetDataList(0, new Point3d[] { points[h] });
-                DA.SetDataList(1, new Mesh[] { meshes[h] });
-                DA.SetDataList(2, new float[] { data[h] });
+                var p = rpolyList[h];
+                
+                     if (metric == RPolyMetric.SurfaceTemperature)
+                    {
+                        if (p.SurfaceTemperature != null && p.SimulationType == SimulationType.Simulated)
+                        {
+                            if (p.Centroid != null) points.Add(p.Centroid.Value);
+                            if (p.Mesh != null) meshes.Add(p.Mesh.Value);
+                            else meshes.Add(null);
+                            data.AddRange(p.SurfaceTemperature);
+                        }
+                        else if (p.TemperatureOverride != null && p.SimulationType == SimulationType.TemperatureInput)
+                        {
+                            if (p.Centroid != null) points.Add(p.Centroid.Value);
+                            if (p.Mesh != null) meshes.Add(p.Mesh.Value);
+                            else meshes.Add(null);
+                            data.AddRange(p.TemperatureOverride);
+                        }
+                        else if (p.SimulationType == SimulationType.Ambient)
+                        {
+                            if (p.Centroid != null) points.Add(p.Centroid.Value);
+                            if (p.Mesh != null) meshes.Add(p.Mesh.Value);
+                            else meshes.Add(null);
+                            data.AddRange(p.TemperatureOverride);
+                        }
+                    }
+
+                    else if (metric == RPolyMetric.SeenByProbes)
+                    {
+                        if (p.Centroid != null) points.Add(p.Centroid.Value);
+                        if (p.Mesh != null) meshes.Add(p.Mesh.Value);
+                        else meshes.Add(null);
+                        data.Add((float)p.SeenByProbes);
+                    }
+
+                
+
+                DA.SetDataList(0, points);
+                DA.SetDataList(1, meshes);
+                DA.SetDataList(2, data);
             }
         }
 

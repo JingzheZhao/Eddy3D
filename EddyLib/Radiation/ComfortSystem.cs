@@ -132,9 +132,12 @@ namespace EddyLib.Radiation
                 probe.ComfortHours = 0;
 
                 // get wind speed data -- init array with wind speed data from weather
-                double[] windspeed = new double[this.Weather.WindSpeed.Length];
-                Array.Copy(this.Weather.WindSpeed, windspeed, this.Weather.WindSpeed.Length);
-
+                float[] windspeed = new float[this.Weather.WindSpeed.Length];
+                for (int h = 0; h < this.Weather.WindSpeed.Length; h++)
+                {
+                    windspeed[h] = (float)(this.Weather.WindSpeed[h] * WindScalingFactor);
+                }
+ 
                 // if CFD wind speed data exsists - then override
                 if (probe.WindSpeed != null)
                 {
@@ -153,8 +156,11 @@ namespace EddyLib.Radiation
                         var resultingWindSpeedforUTCI_At10 = UTCI.At10Meters((double)probe.WindSpeed[h], 1.8);
                         //  var resultingWindSpeedforUTCI_At10 = UTCI.At10Meters(resultingWindSpeedforUTCI, probe.Point.Value.Z);
 
-                        windspeed[h] = resultingWindSpeedforUTCI_At10;
+                        windspeed[h] = (float)resultingWindSpeedforUTCI_At10;
                     }
+                }
+                else {
+                    probe.WindSpeed = windspeed;
                 }
 
                 // init mrt with dry bulb temperature from weather
@@ -181,7 +187,7 @@ namespace EddyLib.Radiation
                 for (int h = 0; h < 8760; h++)
 
                 {
-                    double utci = UTCI.CalcUTCICorrectBounds(this.Weather.DryBulbTemp[h], this.Weather.RelativeHumidity[h], windspeed[h]* WindScalingFactor, mrt[h], out bool outOfBounds);
+                    double utci = UTCI.CalcUTCICorrectBounds(this.Weather.DryBulbTemp[h], this.Weather.RelativeHumidity[h], (double)windspeed[h], mrt[h], out bool outOfBounds);
 
                     var condition = UTCI.CalcConditionOfPerson(utci);
 

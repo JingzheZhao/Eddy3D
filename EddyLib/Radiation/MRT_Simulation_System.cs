@@ -23,7 +23,7 @@ namespace EddyLib.Radiation
         public string BaseWorkingDir = "";
         public string CFDDataPath = "";
 
-        public MRT_Simulation_Settings Settings = new MRT_Simulation_Settings();
+        public MRT_Simulation_Settings Settings;
 
         public Weather Weather;
 
@@ -48,12 +48,12 @@ namespace EddyLib.Radiation
 
         public ComfortSystem ComfortSystem;
 
-        public MRT_Simulation_System(string baseWorkingDir, Weather weather, List<RSurface> rsurfaces, List<RProbe> rprobes, string cfd_data_path)
+        public MRT_Simulation_System(string baseWorkingDir, Weather weather, List<RSurface> rsurfaces, List<RProbe> rprobes, string cfd_data_path, MRT_Simulation_Settings _set)
         {
             BaseWorkingDir = baseWorkingDir;
             RSurfaces = rsurfaces;
             Weather = weather;
-
+            Settings = _set;
             Probes = rprobes;
 
             CFDDataPath = cfd_data_path;
