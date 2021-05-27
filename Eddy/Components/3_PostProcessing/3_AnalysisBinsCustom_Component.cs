@@ -11,10 +11,10 @@ namespace Eddy.Components.Radiation
 {
     public class AnalysisBinsCustom_Component : GH_Component
     {
-        public override GH_Exposure Exposure
-        {
-            get { return GH_Exposure.hidden; }
-        }
+        //public override GH_Exposure Exposure
+        //{
+        //    get { return GH_Exposure.hidden; }
+        //}
 
         /// <summary>
         /// Initializes a new instance of the LoadRadiationData_Component class.

@@ -31,8 +31,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddNumberParameter("UTCI", "UTCI", "UTCI Temperature [°C]", GH_ParamAccess.list );
-          
+            pManager.AddNumberParameter("UTCI", "UTCI", "UTCI Temperature [°C]", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -40,7 +39,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddIntegerParameter("Rating", "Cond", @"Condition of person rating: 
+            pManager.AddIntegerParameter("Rating", "Cond", @"Condition of person rating:
 < -40 = -5(extreme cold stress)
 - 40 to - 27 = -4(very strong cold stress)
 - 27 to - 13 = -3(strong cold stress)
@@ -64,14 +63,12 @@ namespace Eddy.Components.Radiation
 
             List<double> data = new List<double>();
             DA.GetDataList(0, data);
-           
+
             foreach (var d in data)
             {
                 rating.Add(UTCI.CalcConditionOfPerson(d));
-
             }
 
- 
             DA.SetDataList(0, rating);
         }
 

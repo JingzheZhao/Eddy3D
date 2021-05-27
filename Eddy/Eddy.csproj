@@ -89,6 +89,7 @@
     <Compile Include="Components\3_PostProcessing\2_InspectPolygon_Component.cs" />
     <Compile Include="Components\3_PostProcessing\3_HOYSelector_Component.cs" />
     <Compile Include="Components\3_PostProcessing\3_AnalysisSystem_Component.cs" />
+    <Compile Include="Components\3_PostProcessing\3_UTCI_Binning.cs" />
     <Compile Include="Components\3_PostProcessing\3_UTCI_ConditionOfPerson_Component.cs" />
     <Compile Include="Components\3_PostProcessing\3_HOY_Component.cs" />
     <Compile Include="Components\3_PostProcessing\3_AnalysisBinsCustom_Component.cs" />

@@ -390,8 +390,33 @@ namespace EddyLib
             return pa_temp;
         }
 
-        public static void Binning(List<double> Vals, ref object StrngCold, ref object MdrtCold, ref object SlgtCold, ref object NoStress, ref object SlgtHeat, ref object MdrtHeat, ref object StrngHeat)
+        public static void Binning(List<double> Vals,
+            ref double ExtrCold,
+            ref double VryStrngCold,
+            ref double StrngCold,
+            ref double MdrtCold,
+            ref double SlgtCold,
+            ref double NoStress,
+            ref double SlgtHeat,
+            ref double MdrtHeat,
+            ref double StrngHeat,
+            ref double VryStrngHeat,
+            ref double ExtrHeat)
         {
+            //< -40 = -5(extreme cold stress)
+            //- 40 to - 27 = -4(very strong cold stress)
+            //- 27 to - 13 = -3(strong cold stress)
+            //- 13 to 0 = -2(moderate cold stress)
+            //0 to 9 = -1(slight cold stress)
+            //9 to 26 = 0(no thermal stress)
+            //26 to 28 = 1(slight heat stress)
+            //28 to 32 = 2(moderate heat stress)
+            //32 to 38 = 3(strong heat stress)
+            //38 to 46 = 4(very strong heat stress)
+            //> 46 = 5(extreme heat stress)
+
+            int eC = 0;
+            int vsC = 0;
             int sC = 0;
             int mC = 0;
             int lC = 0;
@@ -399,10 +424,20 @@ namespace EddyLib
             int lH = 0;
             int mH = 0;
             int sH = 0;
+            int vsH = 0;
+            int eH = 0;
 
             foreach (int v in Vals)
             {
-                if (v == 3)
+                if (v == 5)
+                {
+                    eH += 1;
+                }
+                else if (v == 4)
+                {
+                    vsH += 1;
+                }
+                else if (v == 3)
                 {
                     sH += 1;
                 }
@@ -430,10 +465,20 @@ namespace EddyLib
                 {
                     sC += 1;
                 }
+                else if (v == -4)
+                {
+                    vsC += 1;
+                }
+                else if (v == -5)
+                {
+                    eC += 1;
+                }
 
                 // else RhinoApp.WriteLine("Wrong UTCI value");
             }
 
+            ExtrCold = Math.Round((double)eC / Vals.Count, 3);
+            VryStrngCold = Math.Round((double)vsC / Vals.Count, 3);
             StrngCold = Math.Round((double)sC / Vals.Count, 3);
             MdrtCold = Math.Round((double)mC / Vals.Count, 3);
             SlgtCold = Math.Round((double)lC / Vals.Count, 3);
@@ -441,6 +486,8 @@ namespace EddyLib
             SlgtHeat = Math.Round((double)lH / Vals.Count, 3);
             MdrtHeat = Math.Round((double)mH / Vals.Count, 3);
             StrngHeat = Math.Round((double)sH / Vals.Count, 3);
+            VryStrngHeat = Math.Round((double)vsH / Vals.Count, 3);
+            ExtrHeat = Math.Round((double)eH / Vals.Count, 3);
         }
 
         //public static void ConditionOfPerson(List<double> UTCI, ref object conditionOfPerson)

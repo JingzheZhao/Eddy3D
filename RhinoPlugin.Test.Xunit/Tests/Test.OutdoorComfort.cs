@@ -21,6 +21,24 @@ namespace RhinoPlugin.Tests.Xunit
             webClient.DownloadFile(URL, FilePath);
         }
 
+        public string DL_Link = @"https://energyplus.net/weather-download/north_and_central_america_wmo_region_4/USA/NY/USA_NY_New.York-LaGuardia.AP.725030_TMY3/USA_NY_New.York-LaGuardia.AP.725030_TMY3.epw";
+
+        public string epw = @"C:\Eddy3D\Common\Weather\USA_NY_New.York-LaGuardia.AP.725030_TMY3.epw";
+
+        [Fact]
+        public void DownloadWeather()
+        {
+            if (!Directory.Exists(@"C:\Eddy3D\Common\Weather\"))
+            {
+                Directory.CreateDirectory(@"C:\Eddy3D\Common\Weather\");
+            }
+
+            if (!File.Exists(Path.Combine(@"C:\Eddy3D\Common\Weather\" + epw)))
+            {
+                DownLoadFile(DL_Link, epw);
+            }
+        }
+
         [Fact]
         public void SkyTemp_JFK()
         {
@@ -80,7 +98,10 @@ namespace RhinoPlugin.Tests.Xunit
 
         [Fact]
         public void MRT_50Sky_50Buildings_Returns_20()
+
         {
+            DownloadWeather();
+
             // Arrange
             var workingdir = @"C:\Testing\";
 
@@ -147,7 +168,7 @@ namespace RhinoPlugin.Tests.Xunit
                     vecs[j, i] = new Vector3d(0, 2, 0);
                 }
             }
-         ;
+       ;
 
             OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcond, 5, 50, 300, 80);
 
@@ -172,13 +193,12 @@ namespace RhinoPlugin.Tests.Xunit
             Assert.Equal(20, Math.Round(mrt.Values[0, 0], 2));
         }
 
-        public string epw = @"C:\Eddy3D\Common\Weather\USA_NY_New.York-LaGuardia.AP.725030_TMY3.epw";
-
         [Fact]
         public void MRT_60Sky_40Buildings_Returns_18()
         {
             // Arrange
             var workingdir = @"C:\Testing\";
+            DownloadWeather();
 
             if (Directory.Exists(workingdir)) { EddyLib.Utilities.Directories.RecursiveDelete(new DirectoryInfo(workingdir)); }
             else { Directory.CreateDirectory(workingdir); }
@@ -592,6 +612,10 @@ namespace RhinoPlugin.Tests.Xunit
         public void WindFactors()
         {
             //// Arrange
+            ///
+
+            DownloadWeather();
+
             var windDirList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
 
             var z0 = 1;
@@ -639,6 +663,9 @@ namespace RhinoPlugin.Tests.Xunit
         public void UTCI()
         {
             //// Arrange
+            ///
+            DownloadWeather();
+
             var windDirList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
 
             var z0 = 1;
