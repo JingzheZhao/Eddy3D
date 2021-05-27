@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("RhinoPlugin.Tests.Xunit")]
+[assembly: InternalsVisibleTo("RhinoPlugin.Tests.Xunit.SolarGainTests")]
 
 namespace EddyLib.Radiation
 {
@@ -152,8 +152,9 @@ namespace EddyLib.Radiation
 
             // We take Idiff directly from the simulation
 
-            //var E_diff = feff * fsvv * 0.5 * tsol * Idiff;
             var E_diff = feff * Idiff;
+
+            //var E_diff = feff * Idiff;
 
             var E_direct = fp * Idir;
 
@@ -227,7 +228,7 @@ namespace EddyLib.Radiation
             return -1;
         }
 
-        public static double Get_fp_cylinder(double theta, double r = 0.3, double h = 1.75)
+        private static double Get_fp_cylinder(double theta, double r = 0.3, double h = 1.75)
 
         {
             //# From scratch:
@@ -236,9 +237,11 @@ namespace EddyLib.Radiation
             //# A = 2*1 = 2 m^2 for theta = 90°
             //# A = r^2 * PI = 3.14 m^2 for theta = 0°
             //# PI*r*2*sin(B) + 2*r*h*cos*(B)
+            double cyl_surf_area = 2 * Math.Pow(r, 2) * Math.PI + 2 * r * Math.PI * h;
+
             double diameter = 2 * r;
 
-            return Math.PI * Math.Pow(r, 2) * Math.Sin(theta) + diameter * h * Math.Cos(theta);
+            return (Math.PI * Math.Pow(r, 2) * Math.Sin(theta) + diameter * h * Math.Cos(theta)) / cyl_surf_area;
         }
 
         private static double Get_fp(double alt, double az, Posture posture)
