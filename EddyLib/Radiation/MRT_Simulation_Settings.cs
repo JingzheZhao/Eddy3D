@@ -15,14 +15,18 @@ namespace EddyLib.Radiation
 
 
         // Switch between direct only raycast and Radiance DDS
-
         [DataMember]
         public bool ComputeReflectionsAndDiffuseRadiation { get; set; } = true;
 
         // Surface Temperatures with EnergyPlus
-
         [DataMember]
         public double CummulativeViewFactorCutoff { get; set; } = 0.001;
+
+        [DataMember]
+        public double WindScalingFactor { get; set; } = 1;
+
+        [DataMember]
+        public double SmallFaceCutoff { get; set; } = 0.1;
 
         [DataMember]
         public bool ComputeSurfaceTemperatureEnergyPlus { get; set; } = true;

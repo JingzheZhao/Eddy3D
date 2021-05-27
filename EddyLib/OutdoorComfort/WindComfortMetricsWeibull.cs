@@ -5,9 +5,7 @@ using System.Runtime.CompilerServices;
 using static EddyLib.OutdoorComfort.WindComfortHelper;
 using System.Linq;
 
-#if DEBUG
-[assembly: InternalsVisibleTo("UnitTest")]
-#endif
+[assembly: InternalsVisibleTo("RhinoPlugin.Test.Xunit")]
 
 namespace EddyLib.OutdoorComfort
 {
@@ -167,6 +165,7 @@ namespace EddyLib.OutdoorComfort
                     pedestrianComfort = Entry;
                     return pedestrianComfort;
                 }
+
                 // return pedestrianComfort;
             }
 
@@ -187,6 +186,7 @@ namespace EddyLib.OutdoorComfort
             else
             {
                 return ExceedanceProbability < TI.TimeThres;
+
                 //return ExceedanceProbability > 1 - TI.TimeThres;
             }
         }

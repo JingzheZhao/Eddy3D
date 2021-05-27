@@ -23,7 +23,7 @@ namespace EddyLib.Radiation
         public string BaseWorkingDir = "";
         public string CFDDataPath = "";
 
-        public MRT_Simulation_Settings Settings = new MRT_Simulation_Settings();
+        public MRT_Simulation_Settings Settings;
 
         public Weather Weather;
 
@@ -48,12 +48,12 @@ namespace EddyLib.Radiation
 
         public ComfortSystem ComfortSystem;
 
-        public MRT_Simulation_System(string baseWorkingDir, Weather weather, List<RSurface> rsurfaces, List<RProbe> rprobes, string cfd_data_path)
+        public MRT_Simulation_System(string baseWorkingDir, Weather weather, List<RSurface> rsurfaces, List<RProbe> rprobes, string cfd_data_path, MRT_Simulation_Settings _set)
         {
             BaseWorkingDir = baseWorkingDir;
             RSurfaces = rsurfaces;
             Weather = weather;
-
+            Settings = _set;
             Probes = rprobes;
 
             CFDDataPath = cfd_data_path;
@@ -144,8 +144,8 @@ namespace EddyLib.Radiation
             }
 
             this.RadiationSystem = new RadiationSystem(this.BaseWorkingDir, this.Weather, this.RSurfaces, this.Probes, this.Polys, this.HighPolyNoSky);
-            this.ThermalSystem = new ThermalSystem(this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.LowPolyNoSky, this.Settings.CummulativeViewFactorCutoff);
-            this.ComfortSystem = new ComfortSystem(this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.CFDDataPath);
+            this.ThermalSystem = new ThermalSystem(this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.LowPolyNoSky, this.Settings.CummulativeViewFactorCutoff, this.Settings.SmallFaceCutoff);
+            this.ComfortSystem = new ComfortSystem(this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.CFDDataPath, this.Settings.WindScalingFactor);
 
             TOTAL += this.methodsteps + RadiationSystem.methodsteps + ThermalSystem.methodsteps + ComfortSystem.methodsteps;
         }

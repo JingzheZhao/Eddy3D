@@ -20,6 +20,7 @@ namespace EddyLib.Radiation
     {
         public int methodsteps = 52 + 2; // energyplus prints 52 lines
 
+        public double IgnoreSmallFacesCutoff = 0.1;
 
         public double CummulativeViewFactorCutoff;
 
@@ -38,16 +39,16 @@ namespace EddyLib.Radiation
         public Mesh UnifiedMeshLowPolyNoSky;
 
 
-        public ThermalSystem(  string baseWorkingDir, Weather weather, List<RProbe> probes, List<RPolygon> polys, Mesh lowPoly, double vf_cutoff = 0.05)
+        public ThermalSystem(string baseWorkingDir, Weather weather, List<RProbe> probes, List<RPolygon> polys, Mesh lowPoly, double vf_cutoff = 0.05, double smallf_cutoff = 0.1)
         {
-             BaseWorkingDir = baseWorkingDir;
+            BaseWorkingDir = baseWorkingDir;
             Weather = weather;
             Probes = probes;
             Polys = polys;
             UnifiedMeshLowPolyNoSky = lowPoly;
 
             CummulativeViewFactorCutoff = vf_cutoff;
-
+            IgnoreSmallFacesCutoff = smallf_cutoff;
 
 
             AmbientTemperature = Weather.DryBulbTemp;
@@ -119,7 +120,7 @@ namespace EddyLib.Radiation
                         }
 
 
-                        epjsonObject.AllThermalSurfaces.Add("S_"+s.ID.ToString(), epsurf);
+                        epjsonObject.AllThermalSurfaces.Add("S_" + s.ID.ToString(), epsurf);
                         surfIndex++;
                     }
                     else if (s.Type == RadiationSurfaceType.Ground && s.SimulationType == SimulationType.Simulated)
@@ -192,67 +193,91 @@ namespace EddyLib.Radiation
                 // -----------------------------
                 // 0 Add shaders
                 // -----------------------------
-
-                foreach (var s in this.UnifiedMeshLowPolyNoSky.Faces)
+                Mesh unifiedMeshPlanar = this.UnifiedMeshLowPolyNoSky.DuplicateMesh();
+                int reduced = unifiedMeshPlanar.Faces.ConvertNonPlanarQuadsToTriangles(0.0, Rhino.RhinoMath.UnsetValue, 0);
+                int collapsed = unifiedMeshPlanar.CollapseFacesByArea(IgnoreSmallFacesCutoff, 10000);
+                foreach (var s in unifiedMeshPlanar.Faces)
                 {
                     var epsurf = new ShadingBuildingDetailed();
                     epsurf.Vertices = new List<DetailedVertex>();
-                    if(s.IsQuad )
+
+                    if (s.IsQuad)
                     {
+                        Point3d v0 = new Point3d(unifiedMeshPlanar.Vertices[s.A]);
+                        Point3d v1 = new Point3d(unifiedMeshPlanar.Vertices[s.B]);
+                        Point3d v2 = new Point3d(unifiedMeshPlanar.Vertices[s.C]);
+                        Point3d v3 = new Point3d(unifiedMeshPlanar.Vertices[s.D]);
+
+                        Vector3d n1 = Vector3d.CrossProduct(v1 - v0, v2 - v0);
+                        Vector3d n2 = Vector3d.CrossProduct(v2 - v0, v3 - v0);
+
+                        var facearea = n1.Length * 0.5 + n2.Length * 0.5;
+
+                        if (facearea < IgnoreSmallFacesCutoff + 0.1) continue;
+
                         epsurf.Vertices.Add(new DetailedVertex()
                         {
-                            X = this.UnifiedMeshLowPolyNoSky.Vertices[s.A].X,
-                            Y = this.UnifiedMeshLowPolyNoSky.Vertices[s.A].Y,
-                            Z = this.UnifiedMeshLowPolyNoSky.Vertices[s.A].Z
+                            X = v0.X,
+                            Y = v0.Y,
+                            Z = v0.Z
                         }
                         );
                         epsurf.Vertices.Add(new DetailedVertex()
                         {
-                            X = this.UnifiedMeshLowPolyNoSky.Vertices[s.B].X,
-                            Y = this.UnifiedMeshLowPolyNoSky.Vertices[s.B].Y,
-                            Z = this.UnifiedMeshLowPolyNoSky.Vertices[s.B].Z
+                            X = v1.X,
+                            Y = v1.Y,
+                            Z = v1.Z
                         }
                        );
                         epsurf.Vertices.Add(new DetailedVertex()
                         {
-                            X = this.UnifiedMeshLowPolyNoSky.Vertices[s.C].X,
-                            Y = this.UnifiedMeshLowPolyNoSky.Vertices[s.C].Y,
-                            Z = this.UnifiedMeshLowPolyNoSky.Vertices[s.C].Z
+                            X = v2.X,
+                            Y = v2.Y,
+                            Z = v2.Z
                         }
                        );
                         epsurf.Vertices.Add(new DetailedVertex()
                         {
-                            X = this.UnifiedMeshLowPolyNoSky.Vertices[s.D].X,
-                            Y = this.UnifiedMeshLowPolyNoSky.Vertices[s.D].Y,
-                            Z = this.UnifiedMeshLowPolyNoSky.Vertices[s.D].Z
+                            X = v3.X,
+                            Y = v3.Y,
+                            Z = v3.Z
                         }
                        );
                         epsurf.NumberOfVertices = 4;
                     }
                     else
                     {
+                        Point3d v0 = new Point3d(unifiedMeshPlanar.Vertices[s.A]);
+                        Point3d v1 = new Point3d(unifiedMeshPlanar.Vertices[s.B]);
+                        Point3d v2 = new Point3d(unifiedMeshPlanar.Vertices[s.C]);
+
+                        Vector3d n1 = Vector3d.CrossProduct(v1 - v0, v2 - v0);
+
+                        var facearea = n1.Length * 0.5;
+                        if (facearea < IgnoreSmallFacesCutoff+0.1) continue;
+
                         epsurf.Vertices.Add(new DetailedVertex()
                         {
-                            X = this.UnifiedMeshLowPolyNoSky.Vertices[s.A].X,
-                            Y = this.UnifiedMeshLowPolyNoSky.Vertices[s.A].Y,
-                            Z = this.UnifiedMeshLowPolyNoSky.Vertices[s.A].Z
+                            X = v0.X,
+                            Y = v0.Y,
+                            Z = v0.Z
                         }
                         );
                         epsurf.Vertices.Add(new DetailedVertex()
                         {
-                            X = this.UnifiedMeshLowPolyNoSky.Vertices[s.B].X,
-                            Y = this.UnifiedMeshLowPolyNoSky.Vertices[s.B].Y,
-                            Z = this.UnifiedMeshLowPolyNoSky.Vertices[s.B].Z
+                            X = v1.X,
+                            Y = v1.Y,
+                            Z = v1.Z
                         }
                        );
                         epsurf.Vertices.Add(new DetailedVertex()
                         {
-                            X = this.UnifiedMeshLowPolyNoSky.Vertices[s.C].X,
-                            Y = this.UnifiedMeshLowPolyNoSky.Vertices[s.C].Y,
-                            Z = this.UnifiedMeshLowPolyNoSky.Vertices[s.C].Z
+                            X = v2.X,
+                            Y = v2.Y,
+                            Z = v2.Z
                         }
                        );
-                        
+
                         epsurf.NumberOfVertices = 3;
                     }
                     epjsonObject.AllShaders.Add("Shader" + shaderIndex, epsurf);
@@ -260,7 +285,7 @@ namespace EddyLib.Radiation
 
                 }
 
-                 
+
 
 
 
@@ -325,7 +350,7 @@ namespace EddyLib.Radiation
                 // 2 Run EnergyPlus
                 // -----------------------------
                 Console.WriteLine("Run EnergyPlus...");
-                var energyPlus = Command.Run(DefaultDirectoriesAndPaths.EnergyPlusDir + @"\energyplus.exe", new[] { "-w", Path.GetFullPath(Weather.epwFilePath), "-p", ProjectName, epjsonfile },
+                var energyPlus = Command.Run(DefaultDirectoriesAndPaths.EnergyPlusDir + @"\energyplus.exe", new[] { "-r", "-w",  Path.GetFullPath(Weather.epwFilePath), "-p", ProjectName, epjsonfile },
                   options => options.WorkingDirectory(this.BaseWorkingDir + @"\Ep").CancellationToken(ct));
 
                 int cnt = 0;
@@ -461,7 +486,7 @@ namespace EddyLib.Radiation
             Stopwatch sp = new Stopwatch();
             sp.Start();
 
-            var protoResult = new MRT_Simulation_ResultProto(  this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
+            var protoResult = new MRT_Simulation_ResultProto(this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
 
             protoResult.WriteToFile(this.BaseWorkingDir + @"\MRT.eddy");
 

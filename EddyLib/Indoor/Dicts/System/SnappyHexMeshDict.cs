@@ -7,10 +7,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-
-#if DEBUG
-[assembly: InternalsVisibleTo("UnitTest")]
-#endif
+[assembly: InternalsVisibleTo("RhinoPlugin.Test.Xunit")]
 
 namespace EddyLib.Indoor.Dicts
 {
@@ -24,7 +21,6 @@ namespace EddyLib.Indoor.Dicts
 
         public Dictionary<string, dynamic> GeometrySubDict { get; set; }
 
-
         public SnappyHexMeshDict(double refineMentLevel, Point3d pointInsideDomain, BoundingBox BBox, List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
         {
             this.DictionaryName = "snappyHexMeshDict";
@@ -35,13 +31,9 @@ namespace EddyLib.Indoor.Dicts
 
             this.GeometrySubDict = new Dictionary<string, dynamic>();
 
-
-
             foreach (IndoorBC i in inlet) { this.GeometrySubDict.Add(i.Id + ".stl", GetGeometryDict(i)); };
             foreach (IndoorBC i in outlet) { this.GeometrySubDict.Add(i.Id + ".stl", GetGeometryDict(i)); };
             foreach (IndoorBC i in wall) { this.GeometrySubDict.Add(i.Id + ".stl", GetGeometryDict(i)); };
-
-
 
             this.GeometryDict = new Dictionary<string, dynamic>();
             GeometryDict.Add("geometry", GeometrySubDict);
@@ -54,14 +46,11 @@ namespace EddyLib.Indoor.Dicts
                CppMapSerializerDyn.Serialize(GetAddLayersControls()),"\n",
                CppMapSerializerDyn.Serialize(GetMeshQualityControls()),"\n" };
 
-
-
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
         }
 
         public static Dictionary<string, dynamic> GetGeometryDict(IndoorBC input)
         {
-
             //Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
@@ -89,7 +78,6 @@ namespace EddyLib.Indoor.Dicts
 
             return InternalDict;
         }
-
 
         private static Dictionary<string, dynamic> GetSnapControlsDict()
         {
@@ -192,11 +180,9 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, dynamic> GetCastellatedMeshControls(Point3d locationInMesh, List<IndoorBC.Wall> wall, List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet)
         {
-
             Dictionary<string, dynamic> Dict1 = new Dictionary<string, dynamic>();
             Dictionary<string, dynamic> Dict2 = new Dictionary<string, dynamic>();
             Dictionary<string, dynamic> Dict3 = new Dictionary<string, dynamic>();
-
 
             Dict1.Add("castellatedMeshControls", Dict2);
 
@@ -220,30 +206,27 @@ namespace EddyLib.Indoor.Dicts
             Dict2.Add("refinementRegions", Dict3);
             Dict3.Add(" ", " ");
 
-
             return Dict1;
         }
 
         //Mesh Features Object
-        class MeshFeatureObject
+        private class MeshFeatureObject
         {
-
             private List<IndoorBC.Inlet> inlet { get; set; }
-            private List<IndoorBC.Outlet> outlet { get; set; }
-            private List<IndoorBC.Wall> wall { get; set; }
 
+            private List<IndoorBC.Outlet> outlet { get; set; }
+
+            private List<IndoorBC.Wall> wall { get; set; }
 
             public MeshFeatureObject(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
                 this.inlet = inlet;
                 this.outlet = outlet;
                 this.wall = wall;
-
             }
 
             public override string ToString()
             {
-
                 StringBuilder sb = new StringBuilder();
                 sb.Append(@"{");
 
@@ -261,25 +244,23 @@ namespace EddyLib.Indoor.Dicts
         }
 
         //Mesh Refinement Object
-        class MeshRefinementObject
+        private class MeshRefinementObject
         {
-
             private List<IndoorBC.Inlet> inlet { get; set; }
-            private List<IndoorBC.Outlet> outlet { get; set; }
-            private List<IndoorBC.Wall> wall { get; set; }
 
+            private List<IndoorBC.Outlet> outlet { get; set; }
+
+            private List<IndoorBC.Wall> wall { get; set; }
 
             public MeshRefinementObject(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
                 this.inlet = inlet;
                 this.outlet = outlet;
                 this.wall = wall;
-
             }
 
             public override string ToString()
             {
-
                 StringBuilder sb = new StringBuilder();
                 sb.Append(@"{");
 
@@ -312,6 +293,5 @@ namespace EddyLib.Indoor.Dicts
                     }}
         }}", bc.Id, bc.refinementLevel.ToString(), bc.bcType.ToString());
         }
-
     }
 }

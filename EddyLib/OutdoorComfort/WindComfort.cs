@@ -4,9 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using static EddyLib.OutdoorComfort.WindComfortHelper;
 
-#if DEBUG
-[assembly: InternalsVisibleTo("UnitTest")]
-#endif
+[assembly: InternalsVisibleTo("RhinoPlugin.Tests.Xunit")]
 
 namespace EddyLib.OutdoorComfort
 {
@@ -14,6 +12,7 @@ namespace EddyLib.OutdoorComfort
     public class WindComfort
     {
         public double[] ValuesPedestrianWindComfortCat { get; set; }
+
         public string[] ValuesPedestrianWindComfortClass { get; set; }
 
         public string[] ValuesPedestrianWindComfortClassLetter { get; set; }

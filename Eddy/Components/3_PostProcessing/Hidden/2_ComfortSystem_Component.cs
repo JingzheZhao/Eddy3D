@@ -400,7 +400,7 @@ namespace Eddy.Components.Radiation
 
 
 
-            ComfortSystem = new ComfortSystem(  resultProto_MRT.BaseWorkingDir, resultProto_MRT.Weather, resultProto_MRT.Probes, resultProto_MRT.Polys, "");
+            ComfortSystem = new ComfortSystem(  resultProto_MRT.BaseWorkingDir, resultProto_MRT.Weather, resultProto_MRT.Probes, resultProto_MRT.Polys, "", 1);
 
 
 

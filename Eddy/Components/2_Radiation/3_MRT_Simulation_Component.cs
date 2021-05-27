@@ -146,8 +146,8 @@ namespace Eddy
                 }
                 catch
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Don't understand your settings...");
-                    set = null;
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Don't understand your settings. Using defaults.");
+                    set = new MRT_Simulation_Settings();
                 }
             }
 
@@ -194,10 +194,10 @@ namespace Eddy
             // ---------------------
             // Setup system
             // ---------------------
-            MRTSystem = new MRT_Simulation_System(workDir, weather, modelRSurfaces, RadProbes, CFDResultPath);
+ 
+            MRTSystem = new MRT_Simulation_System(workDir, weather, modelRSurfaces, RadProbes, CFDResultPath, set);
 
-            if (set != null) { MRTSystem.Settings = set; }
-            // redirect stderr
+             // redirect stderr
             var errors = new StringWriter();
             Console.SetError(errors);
 

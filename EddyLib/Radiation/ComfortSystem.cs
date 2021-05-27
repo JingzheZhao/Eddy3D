@@ -16,11 +16,11 @@ namespace EddyLib.Radiation
     {
         public int methodsteps = 4; // energyplus prints 52 lines
 
-        private DateTime winter_start = new DateTime(2004, 1, 1);
-        private DateTime winter_spring = new DateTime(2004, 2, 7);
-        private DateTime spring_summer = new DateTime(2004, 5, 7);
-        private DateTime summer_fall = new DateTime(2004, 8, 6);
-        private DateTime fall_winter = new DateTime(2004, 11, 6);
+        //private DateTime winter_start = new DateTime(2004, 1, 1);
+        //private DateTime winter_spring = new DateTime(2004, 2, 7);
+        //private DateTime spring_summer = new DateTime(2004, 5, 7);
+        //private DateTime summer_fall = new DateTime(2004, 8, 6);
+        //private DateTime fall_winter = new DateTime(2004, 11, 6);
 
         private double pct = 0;
         private double steps = 52 + 2;
@@ -34,13 +34,15 @@ namespace EddyLib.Radiation
 
         public string CFDDataPath = "";
 
-        public ComfortSystem(string baseWorkingDir, Weather weather, List<RProbe> probes, List<RPolygon> polys, string cfdpath)
+        public double WindScalingFactor = 1;
+        public ComfortSystem(string baseWorkingDir, Weather weather, List<RProbe> probes, List<RPolygon> polys, string cfdpath, double wsf)
         {
             BaseWorkingDir = baseWorkingDir;
             Weather = weather;
             Probes = probes;
             Polys = polys;
             CFDDataPath = cfdpath;
+            WindScalingFactor = wsf;
         }
 
         public void LoadCFD_ComputeWindfactors(bool run, CancellationToken ct, int steps, ref int stepCnt)
@@ -130,9 +132,12 @@ namespace EddyLib.Radiation
                 probe.ComfortHours = 0;
 
                 // get wind speed data -- init array with wind speed data from weather
-                double[] windspeed = new double[this.Weather.WindSpeed.Length];
-                Array.Copy(this.Weather.WindSpeed, windspeed, this.Weather.WindSpeed.Length);
-
+                float[] windspeed = new float[this.Weather.WindSpeed.Length];
+                for (int h = 0; h < this.Weather.WindSpeed.Length; h++)
+                {
+                    windspeed[h] = (float)(this.Weather.WindSpeed[h] * WindScalingFactor);
+                }
+ 
                 // if CFD wind speed data exsists - then override
                 if (probe.WindSpeed != null)
                 {
@@ -151,8 +156,11 @@ namespace EddyLib.Radiation
                         var resultingWindSpeedforUTCI_At10 = UTCI.At10Meters((double)probe.WindSpeed[h], 1.8);
                         //  var resultingWindSpeedforUTCI_At10 = UTCI.At10Meters(resultingWindSpeedforUTCI, probe.Point.Value.Z);
 
-                        windspeed[h] = resultingWindSpeedforUTCI_At10;
+                        windspeed[h] = (float)resultingWindSpeedforUTCI_At10;
                     }
+                }
+                else {
+                    probe.WindSpeed = windspeed;
                 }
 
                 // init mrt with dry bulb temperature from weather
@@ -179,7 +187,7 @@ namespace EddyLib.Radiation
                 for (int h = 0; h < 8760; h++)
 
                 {
-                    double utci = UTCI.CalcUTCICorrectBounds(this.Weather.DryBulbTemp[h], this.Weather.RelativeHumidity[h], windspeed[h], mrt[h], out bool outOfBounds);
+                    double utci = UTCI.CalcUTCICorrectBounds(this.Weather.DryBulbTemp[h], this.Weather.RelativeHumidity[h], (double)windspeed[h], mrt[h], out bool outOfBounds);
 
                     var condition = UTCI.CalcConditionOfPerson(utci);
 

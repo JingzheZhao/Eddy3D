@@ -13,7 +13,7 @@ using Xunit;
 namespace RhinoPlugin.Tests.Xunit
 {
     [Collection("Rhino Collection")]
-    public class OutdoorComfort
+    public class OutdoorComfortTests
     {
         internal static void DownLoadFile(string URL, string FilePath)
         {
