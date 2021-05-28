@@ -323,7 +323,7 @@ namespace EddyLib.Radiation
 
             public string DaysimBinDir;
 
-            private const string windows_root = @"C:\DIVA";
+            private const string windows_root = @"C:\Eddy3D\Common\Radiance\bin";
 
             private const string linux_root = "/opt/diva";
 
@@ -354,13 +354,13 @@ namespace EddyLib.Radiation
                     this.OS = OSType.Windows;
                     this.RootDir = windows_root;
                     this.RadDir = Path.Combine(windows_root, "Radiance");
-                    this.RadBinDir = Path.Combine(windows_root, "Radiance", "bin_64");
-                    if (!Environment.Is64BitOperatingSystem)
-                    {
-                        // 32 bit binaries (Windows)
-                        string bin32 = Path.Combine(windows_root, "Radiance", "bin_32");
-                        if (Directory.Exists(bin32)) this.RadBinDir = bin32;
-                    }
+                    this.RadBinDir = Path.Combine(windows_root, "Radiance", "bin");
+                    //if (!Environment.Is64BitOperatingSystem)
+                    //{
+                    //    // 32 bit binaries (Windows)
+                    //    string bin32 = Path.Combine(windows_root, "Radiance", "bin_32");
+                    //    if (Directory.Exists(bin32)) this.RadBinDir = bin32;
+                    //}
                     this.DaysimBinDir = Path.Combine(windows_root, "DaysimBinaries");
                 }
 
