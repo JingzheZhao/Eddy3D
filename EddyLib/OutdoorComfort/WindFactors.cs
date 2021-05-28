@@ -149,15 +149,16 @@ namespace EddyLib.OutdoorComfort
                       var velSimAtProbingHeight = 0.0;
                       if (bcond is ABL)
                       {
+                          // We assume a probing height of z = 2m
                           ABL casted_bc = (ABL)bcond;
-                          velSimAtProbingHeight = BoundaryCondition.ScaleABL(casted_bc.URef, casted_bc.zref, casted_bc.z0, probes[p].Z);
+                          velSimAtProbingHeight = BoundaryCondition.ScaleABL(casted_bc.URef, casted_bc.zref, casted_bc.z0, 2);
                       }
                       else
                       {
                           ConstU casted_bc = (ConstU)bcond;
-
+                          // We assume a probing height of z = 2m
                           // assume a zref of 10;
-                          velSimAtProbingHeight = BoundaryCondition.ScaleABL(casted_bc.URef, 10, bcond.z0, probes[p].Z);
+                          velSimAtProbingHeight = BoundaryCondition.ScaleABL(casted_bc.URef, 10, bcond.z0, 2);
                       }
 
                       for (int w = 0; w < numberOfWindDirs; w++)
@@ -238,7 +239,7 @@ namespace EddyLib.OutdoorComfort
 
         private void CalcWindFactorsTemporal(double[,] WFSpatial, BoundaryCondition bcond, Weather weather, List<Point3d> probes, bool interpolate)
         {
-            var windDirsSim = bcond.windDirs;
+            var windDirsSim = bcond.windDirs.ToArray();
             var windDirsEPW = weather.WindDirection;
 
             int numberOfWindDirs = windDirsSim.Count();
@@ -266,18 +267,19 @@ namespace EddyLib.OutdoorComfort
               {
                   for (int h = 0; h < numberOfHours; h++)
                   {
+                      // We assume a probing height of z = 2m
                       var velEPWAtProbingHeight = 0.0;
                       if (bcond is ABL)
                       {
                           ABL casted_bc = (ABL)bcond;
-                          velEPWAtProbingHeight = BoundaryCondition.ScaleABL(weather.WindSpeed[h], casted_bc.zref, casted_bc.z0, probes[p].Z);
+                          velEPWAtProbingHeight = BoundaryCondition.ScaleABL(weather.WindSpeed[h], casted_bc.zref, casted_bc.z0, 2);
                       }
                       else
                       {
                           ConstU casted_bc = (ConstU)bcond;
 
                           // assume a zref of 10;
-                          velEPWAtProbingHeight = BoundaryCondition.ScaleABL(weather.WindSpeed[h], 10, bcond.z0, probes[p].Z);
+                          velEPWAtProbingHeight = BoundaryCondition.ScaleABL(weather.WindSpeed[h], 10, bcond.z0, 2);
                       }
 
                       var ratioSimProbingPoint = WFSpatial[p, bcond.ClstSimDirIndices[h]];
@@ -293,12 +295,12 @@ namespace EddyLib.OutdoorComfort
                       {
                           #region Interpolation
 
-                          var IdxBelow = BoundaryCondition.ReturnNextLowerIndex(windDirsSim, (int)windDirsEPW[h]);
-                          var IdxAbove = BoundaryCondition.ReturnNextUpperIndex(windDirsSim, (int)windDirsEPW[h]);
+                          var IdxBelow = WindSystem.ReturnNextLowerIndex(windDirsSim, (int)windDirsEPW[h]);
+                          var IdxAbove = WindSystem.ReturnNextHigherIndex(windDirsSim, (int)windDirsEPW[h]);
                           int dirBelow = windDirsSim[IdxBelow];
                           int dirAbove = windDirsSim[IdxAbove];
-                          var distanceToLower = BoundaryCondition.DistanceBetweenWindDirs(windDirsEPW[h], dirBelow);
-                          var distanceToUpper = BoundaryCondition.DistanceBetweenWindDirs(windDirsEPW[h], dirAbove);
+                          var distanceToLower = WindSystem.DistanceBetweenWindDirs(windDirsEPW[h], dirBelow);
+                          var distanceToUpper = WindSystem.DistanceBetweenWindDirs(windDirsEPW[h], dirAbove);
 
                           var weightingDown = 1 - (distanceToLower / (distanceToLower + distanceToUpper));
                           var weightingUp = 1 - (distanceToUpper / (distanceToLower + distanceToUpper));
@@ -325,7 +327,7 @@ namespace EddyLib.OutdoorComfort
 
         public static float[] CalcWindFactorsTemporalSP(Weather weather, WProbe Probe, WindSystem WS, bool interpolate)
         {
-            var windDirsSim = Probe.WindDirections.ToList();
+            var windDirsSim = Probe.WindDirections;
             var windDirsEPW = weather.WindDirection;
 
             int numberOfHours = 8760;
@@ -334,13 +336,14 @@ namespace EddyLib.OutdoorComfort
 
             // Create lookup table with plain vector magnitudes
 
-           // Console.WriteLine("Calculating: Wind reduction factors");
+            // Console.WriteLine("Calculating: Wind reduction factors");
 
             for (int h = 0; h < numberOfHours; h++)
             {
                 var velEPWAtProbingHeight = 0.0;
 
-                velEPWAtProbingHeight = WindSystem.ScaleABL(weather.WindSpeed[h], Probe.Zref, Probe.Z0, Probe.Point.Value.Z);
+                // We assume a probing height of z = 2m
+                velEPWAtProbingHeight = WindSystem.ScaleABL(weather.WindSpeed[h], Probe.Zref, Probe.Z0, 2);
 
                 var ratioSimProbingPoint = Probe.WindFactorsSpatial[WS.ClstSimDirIndices[h]];
 
@@ -356,7 +359,7 @@ namespace EddyLib.OutdoorComfort
                     #region Interpolation
 
                     var IdxBelow = WindSystem.ReturnNextLowerIndex(windDirsSim, (int)windDirsEPW[h]);
-                    var IdxAbove = WindSystem.ReturnNextUpperIndex(windDirsSim, (int)windDirsEPW[h]);
+                    var IdxAbove = WindSystem.ReturnNextHigherIndex(windDirsSim, (int)windDirsEPW[h]);
                     int dirBelow = windDirsSim[IdxBelow];
                     int dirAbove = windDirsSim[IdxAbove];
                     var distanceToLower = WindSystem.DistanceBetweenWindDirs(windDirsEPW[h], dirBelow);

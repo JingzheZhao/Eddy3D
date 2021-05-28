@@ -94,7 +94,7 @@ namespace EddyLib.Radiation
                 }
                 Console.WriteLine("Computing Spatial Wind Factors...");
 
-                WindSystem WS = new WindSystem(this.Weather, resultProto_CFD.Probes[0].WindDirections.ToList());
+                WindSystem WS = new WindSystem(this.Weather, resultProto_CFD.Probes[0].WindDirections);
                 Console.WriteLine("Computing Temporal Wind Factors...");
 
                 int pcnt = 0;

@@ -25,6 +25,7 @@ namespace EddyLib.Radiation
                     double dMRT;
                     double diffRad = totalRad[h][p] - directRad[h][p];
                     double dirRad = directRad[h][p];
+
                     dMRT = SolarGain.ERF_Modified(weather.SolarElevation[h], SolarGain.Posture.standing, dirRad, diffRad);
 
                     Values[h][p] = (float)dMRT;
@@ -45,6 +46,7 @@ namespace EddyLib.Radiation
                 double dMRT;
                 double diffRad = totalRad[h] - directRad[h];
                 double dirRad = directRad[h];
+
                 dMRT = SolarGain.ERF_Modified(weather.SolarElevation[h], SolarGain.Posture.standing, dirRad, diffRad);
 
                 Values[h] = (float)dMRT;
