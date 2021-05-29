@@ -209,19 +209,8 @@ namespace EddyLib.Radiation
         {
             // [x][] time
             // [][x] points
-            string[] illLines = System.IO.File.ReadAllLines(illFileName).Skip(9).ToArray();
+            string[] illLines = System.IO.File.ReadAllLines(illFileName).Skip(22).ToArray();
             return illLines.Select(l => Array.ConvertAll<string, double>(l.Split(new[] { ' ' }).Skip(1).ToArray(), Double.Parse)).ToArray();
-
-            //string[] lines = System.IO.File.ReadAllLines(illFileName);
-            //double[][] values = new double[lines.Length][];
-
-            /* for (int h = 0; h < lines.Length; h++)
-            {
-            string[] hourData = lines[h].Split(' ').Skip(4).ToArray();
-            double[] hourDataDouble = Array.ConvertAll<string, double>(hourData, Double.Parse);
-            values[h] = hourDataDouble;
-            }
-            return values;*/
         }
 
         public string CommandLineArgsNew(string RadianceDir, string baseWorkingDir, int sensorCnt, string weaname, string epwpath, int ab, int ad, SkySubdivision diffSky, SkySubdivision dirSky, int n)
