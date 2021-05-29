@@ -74,7 +74,7 @@ namespace Eddy.Components.Radiation
 
             Weather w = new Weather(EPW);
 
-            WindSystem WS = new WindSystem(w, res.Probes[0].WindDirections.ToList());
+            WindSystem WS = new WindSystem(w, res.Probes[0].WindDirections);
 
             foreach (var p in res.Probes)
             {

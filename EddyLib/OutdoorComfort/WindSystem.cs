@@ -16,7 +16,7 @@ namespace EddyLib.OutdoorComfort
 
         public double WindDirOffSetAverage = 0;
 
-        public WindSystem(Weather w, List<int> SimulatedWindDirections)
+        public WindSystem(Weather w, int[] SimulatedWindDirections)
         {
             var (SimDirIndices, ClstSimDirs, OffSet, OffSetAverage) = GetClosestWindDirs(w, SimulatedWindDirections);
             this.WindDirOffset = OffSet.ToArray();
@@ -35,60 +35,58 @@ namespace EddyLib.OutdoorComfort
             return U_star / Kappa * Math.Log((probingHeight - zGround + z0) / z0);
         }
 
-        public static Tuple<List<int>, List<int>, List<int>, double> GetClosestWindDirs(Weather weather, List<int> SimulatedWindDirections)
+        public static Tuple<int[], int[], int[], double> GetClosestWindDirs(Weather weather, int[] SimulatedWindDirections)
         {
-            var offSet = new List<int>();
-            var clstSimIndices = new List<int>();
-            var clstSimDirs = new List<int>();
+            var offSet = new int[8760];
+            var clstSimIndices = new int[8760];
+            var clstSimDirs = new int[8760];
 
             var windDirsEPW = weather.WindDirection;
 
             for (int h = 0; h < 8760; h++)
             {
                 int weatherDir = (int)weather.WindDirection[h];
-                int closestIndex = 0;
-                var distance = 0;
+                int closestIndex;
+                int distance;
 
                 // Treat 360 as 0 and add that right away if it exists
                 if (weatherDir == 360 && SimulatedWindDirections.Contains(0))
                 {
                     closestIndex = 0;
-
                     distance = 0;
-                    offSet.Add(distance);
-                    clstSimIndices.Add(closestIndex);
-                    clstSimDirs.Add(SimulatedWindDirections[closestIndex]);
-
-                    continue;
+                    offSet[h] = 0;
+                    clstSimIndices[h] = closestIndex;
+                    clstSimDirs[h] = (SimulatedWindDirections[closestIndex]);
                 }
 
                 // Check what is closest for all other cases
-
-                if (SimulatedWindDirections.Contains(weatherDir))
+                else if (SimulatedWindDirections.Contains(weatherDir))
                 {
-                    closestIndex = SimulatedWindDirections.IndexOf(weather.WindDirection[h]);
+                    closestIndex = Array.IndexOf(SimulatedWindDirections, weather.WindDirection[h]);
+                    distance = 0;
                 }
                 else
                 {
                     var nextIndexDown = ReturnNextLowerIndex(SimulatedWindDirections, (int)windDirsEPW[h]);
-                    var nextIndexUp = ReturnNextUpperIndex(SimulatedWindDirections, (int)windDirsEPW[h]);
+                    var nextIndexUp = ReturnNextHigherIndex(SimulatedWindDirections, (int)windDirsEPW[h]);
 
                     var nextDirDown = SimulatedWindDirections[nextIndexDown];
                     var nextDirUp = SimulatedWindDirections[nextIndexUp];
 
-                    double distanceToLower = Math.Abs(windDirsEPW[h] - nextDirDown);
-                    double distanceToUpper = Math.Abs(windDirsEPW[h] - nextDirUp);
+                    double distanceToLower = DistanceBetweenWindDirs(windDirsEPW[h], nextDirDown);
+                    double distanceToUpper = DistanceBetweenWindDirs(windDirsEPW[h], nextDirUp);
 
                     closestIndex = distanceToLower < distanceToUpper ? nextIndexDown : nextIndexUp;
+
+                    distance = DistanceBetweenWindDirs(SimulatedWindDirections[closestIndex], weatherDir);
                 }
 
-                distance = Math.Abs(SimulatedWindDirections[closestIndex] - weatherDir);
-                offSet.Add(distance);
-                clstSimIndices.Add(closestIndex);
-                clstSimDirs.Add(SimulatedWindDirections[closestIndex]);
+                offSet[h] = (distance);
+                clstSimIndices[h] = closestIndex;
+                clstSimDirs[h] = SimulatedWindDirections[closestIndex];
             }
 
-            return new Tuple<List<int>, List<int>, List<int>, double>(clstSimIndices, clstSimDirs, offSet, offSet.Average());
+            return new Tuple<int[], int[], int[], double>(clstSimIndices, clstSimDirs, offSet, offSet.Average());
         }
 
         public static int DistanceBetweenWindDirs(int dir1, int dir2)
@@ -96,47 +94,51 @@ namespace EddyLib.OutdoorComfort
             var vec2 = Utilities.Dir2Vec(dir1);
             var vec1 = Utilities.Dir2Vec(dir2);
 
-            return (int)Math.Abs(Utilities.AngleBetweenVectors(vec1, vec2));
+            double dist = Math.Abs(Math.Round(Utilities.AngleBetweenVectors(vec1, vec2)));
+
+            int distInt = (int)dist;
+
+            return distInt;
         }
 
-        public static int ReturnNextLowerIndex(List<int> list, int compareTo)
+        public static int ReturnNextLowerIndex(int[] list, int compareTo)
         {
             int lowerIndex;
 
             if (compareTo <= list.Min())
             {
-                lowerIndex = list.IndexOf(list.Max());
+                lowerIndex = Array.IndexOf(list, list.Max());
             }
             else
             {
                 // Take everything smaller than compare
-                var smaller = list.Where(x => x < compareTo);
+                var smaller = list.Where(x => x < compareTo).ToArray();
 
                 // Take the max from that selection and then take the index
-                lowerIndex = list.IndexOf(smaller.Max(y => y));
+                lowerIndex = Array.IndexOf(list, smaller.Max(y => y));
             }
 
             return lowerIndex;
         }
 
-        public static int ReturnNextUpperIndex(List<int> list, int compareTo)
+        public static int ReturnNextHigherIndex(int[] list, int compareTo)
         {
-            // If values to compare if larger than everything in the list, return the first in the
-            // list which is usually 0
+            // Radial approach
 
             int upperIndex;
 
+            // If compareTo is larger than max of array, take the smallest wind direction: 320 --> 0
             if (compareTo >= list.Max())
             {
-                upperIndex = list.IndexOf(list.Min());
+                upperIndex = Array.IndexOf(list, list.Min());
             }
-            else
+            else // 180 --> 225
             {
-                // Take everything larger than compare
-                var larger = list.Where(x => x > compareTo);
+                // Take everything larger than compareTo
+                var larger = list.Where(x => x > compareTo).ToArray();
 
                 // Take the min from that selection and then take the index
-                upperIndex = list.IndexOf(larger.Min(y => y));
+                upperIndex = Array.IndexOf(list, larger.Min(y => y));
             }
             return upperIndex;
         }

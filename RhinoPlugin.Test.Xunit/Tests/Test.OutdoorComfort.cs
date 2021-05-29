@@ -540,7 +540,7 @@ namespace RhinoPlugin.Tests.Xunit
             var dir2 = 355;
 
             // Act
-            var res = BoundaryCondition.DistanceBetweenWindDirs(dir1, dir2);
+            var res = EddyLib.OutdoorComfort.WindSystem.DistanceBetweenWindDirs(dir1, dir2);
 
             // Assert
             Assert.Equal(5, res);
@@ -554,7 +554,7 @@ namespace RhinoPlugin.Tests.Xunit
             var dir2 = 90;
 
             // Act
-            var res = BoundaryCondition.DistanceBetweenWindDirs(dir1, dir2);
+            var res = EddyLib.OutdoorComfort.WindSystem.DistanceBetweenWindDirs(dir1, dir2);
 
             // Assert
             Assert.Equal(45, res);
@@ -567,7 +567,7 @@ namespace RhinoPlugin.Tests.Xunit
             var windDirList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
 
             // Act
-            var res = BoundaryCondition.ReturnNextLowerIndex(windDirList, 0);
+            var res = EddyLib.OutdoorComfort.WindSystem.ReturnNextLowerIndex(windDirList.ToArray(), 0);
 
             // Assert
 
@@ -612,10 +612,6 @@ namespace RhinoPlugin.Tests.Xunit
         public void WindFactors()
         {
             //// Arrange
-            ///
-
-            DownloadWeather();
-
             var windDirList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
 
             var z0 = 1;

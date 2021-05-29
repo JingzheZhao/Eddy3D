@@ -20,7 +20,7 @@ namespace Eddy
     {// exposure
         public override GH_Exposure Exposure
         {
-            get { return GH_Exposure.secondary | GH_Exposure.obscure;  }
+            get { return GH_Exposure.secondary | GH_Exposure.obscure; }
         }
 
         // exposure
@@ -84,7 +84,7 @@ For this, we support either a look-up for the closest simulated wind direction o
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Result", "Res", "Eddy Result", GH_ParamAccess.item);
-            pManager.AddPointParameter("Probing points", "Points", "List of probing points (caution: might have been culled)", GH_ParamAccess.list);
+            pManager.AddPointParameter("Probing points", "Points", "List of probing points (caution: might have been culled). It is assumed that your probes are probed at z= 2, regardless of the z-values of the probing points.", GH_ParamAccess.list);
             pManager.AddVectorParameter("Wind Velocity", "U", @"Wind Velocity [DataTree] where the [branches] are the wind directions and the [items] are the values for each probing point.", GH_ParamAccess.tree);
             pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item);
 

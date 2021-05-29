@@ -19,11 +19,8 @@ namespace Eddy.Components.Radiation
 {
     public class ComfortSystem_Component : GH_Component
     {
-
-        string filePath_CFD = "";
-        string filePath_MRT = "";
-
-
+        private string filePath_CFD = "";
+        private string filePath_MRT = "";
 
         public override GH_Exposure Exposure
         {
@@ -67,22 +64,16 @@ namespace Eddy.Components.Radiation
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-
             bool run = false;
             bool HidePopUp = false;
             DA.GetData(2, ref run);
-
-
-
 
             //// ---------------------
             //// Load MRT Result
             //// ---------------------
 
-
             //  filePath_MRT = "";
             //DA.GetData(0, ref filePath_MRT);
-
 
             //if (!File.Exists(filePath_MRT))
             //{
@@ -107,12 +98,7 @@ namespace Eddy.Components.Radiation
             //    return;
             //}
 
-
             //if (resultProto_MRT == null) return;
-
-
-
-
 
             //// ---------------------
             //// Load CFD Result
@@ -125,7 +111,6 @@ namespace Eddy.Components.Radiation
 
             //if (!String.IsNullOrWhiteSpace(filePath_CFD))
             //{
-
             //    if (!File.Exists(filePath_CFD))
             //    {
             //        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Result file not found.");
@@ -151,7 +136,6 @@ namespace Eddy.Components.Radiation
             //        p.WindFactorsSpatial = EddyLib.OutdoorComfort.WindFactorsSpatial.CalcWindFactorsSpatialSP(p);
             //    }
 
-
             //    WindSystem WS = new WindSystem(resultProto_MRT.Weather, resultProto_CFD.Probes[0].WindDirections.ToList());
 
             //    foreach (var p in resultProto_CFD.Probes)
@@ -159,44 +143,23 @@ namespace Eddy.Components.Radiation
             //        p.WindFactorsTemporal = EddyLib.OutdoorComfort.WindFactorsTemporal.CalcWindFactorsTemporalSP(resultProto_MRT.Weather, p, WS, true);
             //    }
 
-
             //}
 
             //ComfortSystem = new ComfortSystem(resultProto_MRT.ProjectName, resultProto_MRT.BaseWorkingDir, resultProto_MRT.Weather, resultProto_MRT.Probes, resultProto_MRT.Polys);
 
-
-
-
-
-
-
-
-
-
-
             var prep = PrepareProtoBufSingleton.Instance;
-
 
             // ---------------------
             // Load MRT Result
             // ---------------------
 
-
             filePath_MRT = "";
             DA.GetData(0, ref filePath_MRT);
-
 
             if (!File.Exists(filePath_MRT))
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Result file not found.");
             }
-
-
-
-
-
-
-
 
             // ---------------------
             // Load CFD Result
@@ -205,8 +168,6 @@ namespace Eddy.Components.Radiation
 
             DA.GetData(1, ref filePath_CFD);
 
-
-
             if (!String.IsNullOrWhiteSpace(filePath_CFD))
             {
                 if (!File.Exists(filePath_CFD))
@@ -214,18 +175,6 @@ namespace Eddy.Components.Radiation
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Result file not found.");
                 }
             }
-
-
-
-
-
-
-
-
-
-
-
-
 
             // redirect stderr
             var errors = new StringWriter();
@@ -250,7 +199,6 @@ namespace Eddy.Components.Radiation
                     }
                 }
             }
-
 
             if (ComfortSystem == null) return;
             DA.SetData(0, ComfortSystem);
@@ -293,12 +241,9 @@ namespace Eddy.Components.Radiation
 
         public bool RunSlowSimulation(CancellationTokenSource cts, int nthreads = 1)
         {
-
             // ---------------------
             // Load MRT Result
             // ---------------------
-
-
 
             var prep = PrepareProtoBufSingleton.Instance;
 
@@ -318,23 +263,16 @@ namespace Eddy.Components.Radiation
                 return false;
             }
 
-
             if (resultProto_MRT == null) return false;
-
-
-
-
 
             // ---------------------
             // Load CFD Result
             // ---------------------
 
-
             WProbeResultProto resultProto_CFD = null;
 
             if (!String.IsNullOrWhiteSpace(filePath_CFD))
             {
-
                 if (!File.Exists(filePath_CFD))
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Result file not found.");
@@ -353,11 +291,8 @@ namespace Eddy.Components.Radiation
                     return false;
                 }
 
-
-
                 Console.WriteLine("MRT Probe Count: " + resultProto_MRT.Probes.Count);
                 Console.WriteLine("CFD Probe Count: " + resultProto_CFD.Probes.Count);
-
 
                 // WindFactorSpatial
                 Console.WriteLine("Computing Spatial Wind Factors...");
@@ -368,8 +303,7 @@ namespace Eddy.Components.Radiation
                 }
                 Console.WriteLine("Computing Spatial Wind Factors...");
 
-
-                WindSystem WS = new WindSystem(resultProto_MRT.Weather, resultProto_CFD.Probes[0].WindDirections.ToList());
+                WindSystem WS = new WindSystem(resultProto_MRT.Weather, resultProto_CFD.Probes[0].WindDirections);
                 Console.WriteLine("Computing Temporal Wind Factors...");
 
                 int pcnt = 0;
@@ -377,11 +311,7 @@ namespace Eddy.Components.Radiation
                 {
                     p.WindFactorsTemporal = EddyLib.OutdoorComfort.WindFactorsTemporal.CalcWindFactorsTemporalSP(resultProto_MRT.Weather, p, WS, true);
                     //Console.WriteLine("Wind factors for Probe: " + pcnt); pcnt++;
-
                 }
-
-
-
 
                 for (int i = 0; i < resultProto_MRT.Probes.Count; i++)
                 {
@@ -390,22 +320,11 @@ namespace Eddy.Components.Radiation
                         resultProto_MRT.Probes[i].WindSpeed = resultProto_CFD.Probes[i].WindFactorsTemporal;
                     }
                 }
-
-
-
             }
 
-
-
-
-
-
-            ComfortSystem = new ComfortSystem(  resultProto_MRT.BaseWorkingDir, resultProto_MRT.Weather, resultProto_MRT.Probes, resultProto_MRT.Polys, "", 1);
-
-
+            ComfortSystem = new ComfortSystem(resultProto_MRT.BaseWorkingDir, resultProto_MRT.Weather, resultProto_MRT.Probes, resultProto_MRT.Polys, "", 1);
 
             int xxx = 0;
-
 
             if (ComfortSystem == null) return false;
             if (cts.IsCancellationRequested) return false;
