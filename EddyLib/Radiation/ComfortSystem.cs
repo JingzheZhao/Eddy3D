@@ -35,6 +35,7 @@ namespace EddyLib.Radiation
         public string CFDDataPath = "";
 
         public double WindScalingFactor = 1;
+
         public ComfortSystem(string baseWorkingDir, Weather weather, List<RProbe> probes, List<RPolygon> polys, string cfdpath, double wsf)
         {
             BaseWorkingDir = baseWorkingDir;
@@ -137,7 +138,7 @@ namespace EddyLib.Radiation
                 {
                     windspeed[h] = (float)(this.Weather.WindSpeed[h] * WindScalingFactor);
                 }
- 
+
                 // if CFD wind speed data exsists - then override
                 if (probe.WindSpeed != null)
                 {
@@ -159,13 +160,14 @@ namespace EddyLib.Radiation
                         windspeed[h] = (float)resultingWindSpeedforUTCI_At10;
                     }
                 }
-                else {
+                else
+                {
                     probe.WindSpeed = windspeed;
                 }
 
                 // init mrt with dry bulb temperature from weather
                 double[] mrt = new double[this.Weather.DryBulbTemp.Length];
-                Array.Copy(mrt, this.Weather.DryBulbTemp, this.Weather.DryBulbTemp.Length);
+                Array.Copy(this.Weather.DryBulbTemp, mrt, this.Weather.DryBulbTemp.Length);
 
                 // if longwave mrt data exsists - then override
                 if (probe.LongWave_MRT != null)
@@ -187,7 +189,12 @@ namespace EddyLib.Radiation
                 for (int h = 0; h < 8760; h++)
 
                 {
-                    double utci = UTCI.CalcUTCICorrectBounds(this.Weather.DryBulbTemp[h], this.Weather.RelativeHumidity[h], (double)windspeed[h], mrt[h], out bool outOfBounds);
+                    var mrt_t = mrt[h];
+                    var wsp_t = (double)windspeed[h];
+                    var tamb_t = this.Weather.DryBulbTemp[h];
+                    var rh_t = this.Weather.RelativeHumidity[h];
+
+                    double utci = UTCI.CalcUTCICorrectBounds(tamb_t, rh_t, wsp_t, mrt_t, out bool outOfBounds);
 
                     var condition = UTCI.CalcConditionOfPerson(utci);
 

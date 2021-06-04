@@ -10,6 +10,19 @@ using System.Linq;
 using System.Net;
 using Xunit;
 
+using EddyLib.OutdoorComfort;
+using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
+
+using System.Diagnostics;
+using System.Drawing;
+
+using System.IO;
+using System.Linq;
+
+using System.Threading.Tasks;
+
 namespace RhinoPlugin.Tests.Xunit
 {
     [Collection("Rhino Collection")]
@@ -653,6 +666,86 @@ namespace RhinoPlugin.Tests.Xunit
             // Here, we would expect 44 % of 2.29 m/s which is the ABl velocity at 5 m height.
 
             Assert.Equal(1.01, Math.Round(wft.ValuesTemporalAtProbingHeight[0, 0], 2));
+        }
+
+        [Fact]
+        public void UTCIBounds()
+        {
+            //// Arrange
+
+            var outOfBounds = new bool[10];
+            var utci = new double[10];
+
+            var mrt = new double[] {10
+,20
+,30
+,40
+,50
+,10
+,20
+,30
+,40
+,50
+ };
+
+            var tamb = new double[] {30
+,35
+,40
+,25
+,10
+,5
+,15
+,20
+,25
+,20
+ };
+
+            var rh = new double[] {
+        30
+,40
+,75
+,95
+,10
+,30
+,20
+,45
+,55
+,60
+};
+
+            var wsp = new double[] {                0
+,1
+,5
+,4
+,10
+,15
+,7
+,5
+,3
+,8
+ };
+
+            //// Act
+
+            for (int i = 0; i < mrt.Length; i++)
+            {
+                bool ob;
+                var val = EddyLib.UTCI.CalcUTCICorrectBounds(tamb[i], rh[i], wsp[i], mrt[i], out ob);
+                outOfBounds[i] = ob;
+
+                utci[i] = val;
+            }
+
+            Assert.Equal(Math.Round(23.36079, 3), Math.Round(utci[0], 3));
+            Assert.Equal(Math.Round(31.826409, 3), Math.Round(utci[1], 3));
+            Assert.Equal(Math.Round(52.290443, 3), Math.Round(utci[2], 3));
+            Assert.Equal(Math.Round(27.897167, 3), Math.Round(utci[3], 3));
+            Assert.Equal(Math.Round(2.689566, 3), Math.Round(utci[4], 3));
+            Assert.Equal(Math.Round(-25.777969, 3), Math.Round(utci[5], 3));
+            Assert.Equal(Math.Round(3.610271, 3), Math.Round(utci[6], 3));
+            Assert.Equal(Math.Round(15.771004, 3), Math.Round(utci[7], 3));
+            Assert.Equal(Math.Round(26.627918, 3), Math.Round(utci[8], 3));
+            Assert.Equal(Math.Round(19.105775, 3), Math.Round(utci[9], 3));
         }
 
         [Fact]
