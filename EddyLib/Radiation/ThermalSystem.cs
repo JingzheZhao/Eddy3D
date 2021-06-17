@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using MathNet.Numerics.Statistics;
 
 namespace EddyLib.Radiation
 {
@@ -22,37 +23,37 @@ namespace EddyLib.Radiation
 
         public double IgnoreSmallFacesCutoff = 0.1;
 
-        public double CummulativeViewFactorCutoff;
-
-
         public string ProjectName = "EddySim";
+
         public string BaseWorkingDir = "";
+
         public Weather Weather;
 
         public List<RProbe> Probes;
+
         public List<RPolygon> Polys;
 
         public double[] AmbientTemperature;
-        public double[] SkyTemperature;
 
+        public double[] SkyTemperature;
 
         public Mesh UnifiedMeshLowPolyNoSky;
 
+        // View Factors
 
-        public ThermalSystem(string baseWorkingDir, Weather weather, List<RProbe> probes, List<RPolygon> polys, Mesh lowPoly, double vf_cutoff = 0.05, double smallf_cutoff = 0.1)
+        public int CumulativeViewFactorCutoffPercentile; // We exclude everything lower than this percentile
+
+        public double ViewFactorCutoffFromPercentile;
+
+        public ThermalSystem(string baseWorkingDir, Weather weather, List<RProbe> probes, List<RPolygon> polys, Mesh lowPoly, int cumulativeViewFactorCutoffPercentile = 20, double ignoreSmallFacesCutoff = 0.1)
         {
-            BaseWorkingDir = baseWorkingDir;
-            Weather = weather;
-            Probes = probes;
-            Polys = polys;
-            UnifiedMeshLowPolyNoSky = lowPoly;
-
-            CummulativeViewFactorCutoff = vf_cutoff;
-            IgnoreSmallFacesCutoff = smallf_cutoff;
-
-
-            AmbientTemperature = Weather.DryBulbTemp;
-
+            this.BaseWorkingDir = baseWorkingDir;
+            this.Weather = weather;
+            this.Probes = probes;
+            this.Polys = polys;
+            this.UnifiedMeshLowPolyNoSky = lowPoly;
+            this.CumulativeViewFactorCutoffPercentile = cumulativeViewFactorCutoffPercentile;
+            this.IgnoreSmallFacesCutoff = ignoreSmallFacesCutoff;
 
             // store ambient temperature in surfaces
             foreach (var poly in polys)
@@ -61,16 +62,18 @@ namespace EddyLib.Radiation
                     poly.TemperatureOverride = RPolygon.toFloatArray(AmbientTemperature);
             }
 
+            // View Factors
+
+            var seenByProbe = polys.Select(s => s.SeenByProbes).ToArray();
+            ViewFactorCutoffFromPercentile = Statistics.Percentile(seenByProbe, CumulativeViewFactorCutoffPercentile);
+
+            AmbientTemperature = Weather.DryBulbTemp;
             var sky = new SkyTemperatureModel(Weather.DewPointTemp, Weather.DryBulbTemp, Weather.TotalSkyCover, Weather.RelativeHumidity, true, SkyTemperatureModel.CalculationType.DefaultClarkAllen);
             SkyTemperature = sky.Temp;
         }
 
-
-
         public List<EsoResult> RunEP(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
-
-
             if (run == true)
             {
                 // -----------------------------
@@ -82,15 +85,13 @@ namespace EddyLib.Radiation
                 Dictionary<string, Construction> AllCons = new Dictionary<string, Construction>();
                 Dictionary<string, MaterialRoofVegetation> AllVeget = new Dictionary<string, MaterialRoofVegetation>();
 
-
                 int surfIndex = 0;
                 int groundIndex = 0;
                 int shaderIndex = 0;
                 foreach (var s in this.Polys)
                 {
                     if (s.Type == RadiationSurfaceType.Sky) { continue; }
-                    if (s.SeenByProbes < CummulativeViewFactorCutoff) { continue; }
-
+                    if (s.SeenByProbes < ViewFactorCutoffFromPercentile) { continue; }
                     else if (s.Type == RadiationSurfaceType.Building && s.SimulationType == SimulationType.Simulated)
                     {
                         var epsurf = new BuildingSurfaceDetailed();
@@ -106,7 +107,6 @@ namespace EddyLib.Radiation
                         }
                         epsurf.NumberOfVertices = s.Mesh.Value.Vertices.Count;
 
-
                         // set constructions
                         if (s.Parent != null && s.Parent.Settings != null)
                         {
@@ -118,7 +118,6 @@ namespace EddyLib.Radiation
                                 AllCons.Add(s.Parent.Settings.Name, s.Parent.Settings.GetConstruction());
                             }
                         }
-
 
                         epjsonObject.AllThermalSurfaces.Add("S_" + s.ID.ToString(), epsurf);
                         surfIndex++;
@@ -138,7 +137,6 @@ namespace EddyLib.Radiation
                         }
                         epsurf.NumberOfVertices = s.Mesh.Value.Vertices.Count;
 
-
                         // set constructions
                         if (s.Parent != null && s.Parent.Settings != null)
                         {
@@ -150,7 +148,6 @@ namespace EddyLib.Radiation
                                 AllCons.Add(s.Parent.Settings.Name, s.Parent.Settings.GetConstruction());
                             }
                         }
-
 
                         epjsonObject.AllThermalSurfaces.Add("G_" + s.ID.ToString(), epsurf);
                         groundIndex++;
@@ -170,7 +167,6 @@ namespace EddyLib.Radiation
                         }
                         epsurf.NumberOfVertices = s.Mesh.Value.Vertices.Count;
 
-
                         // set constructions
                         if (s.Parent != null && s.Parent.VegSettings != null)
                         {
@@ -182,8 +178,6 @@ namespace EddyLib.Radiation
                                 AllCons.Add(s.Parent.VegSettings.Name, s.Parent.VegSettings.GetConstruction());
                             }
                         }
-
-
 
                         epjsonObject.AllThermalSurfaces.Add("V_" + s.ID.ToString(), epsurf);
                         groundIndex++;
@@ -254,7 +248,7 @@ namespace EddyLib.Radiation
                         Vector3d n1 = Vector3d.CrossProduct(v1 - v0, v2 - v0);
 
                         var facearea = n1.Length * 0.5;
-                        if (facearea < IgnoreSmallFacesCutoff+0.1) continue;
+                        if (facearea < IgnoreSmallFacesCutoff + 0.1) continue;
 
                         epsurf.Vertices.Add(new DetailedVertex()
                         {
@@ -282,14 +276,7 @@ namespace EddyLib.Radiation
                     }
                     epjsonObject.AllShaders.Add("Shader" + shaderIndex, epsurf);
                     shaderIndex++;
-
                 }
-
-
-
-
-
-
 
                 // -----------------------------
                 // 1 Write EPJSON
@@ -302,12 +289,6 @@ namespace EddyLib.Radiation
                 string inject = JsonConvert.SerializeObject(epjsonObject, Formatting.Indented).Trim().Trim('{', '}').Trim(); ;
                 inject += ",";
                 string epjson = str.Replace("\"@@SURFS@@\": null,", inject);
-
-
-
-
-
-
 
                 // Material and Construction Injection Logic
                 string injectMaterials = "";
@@ -325,19 +306,6 @@ namespace EddyLib.Radiation
                 if (!String.IsNullOrWhiteSpace(injectVegetation)) injectVegetation += ",";
                 epjson = epjson.Replace("\"@@VEGETATION@@\": null,", injectVegetation);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
                 Console.WriteLine("Writing EnergyPlus input files...");
 
                 File.WriteAllText(epjsonfile, epjson);
@@ -345,12 +313,11 @@ namespace EddyLib.Radiation
                 Interlocked.Increment(ref stepCnt);
                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
-
                 // -----------------------------
                 // 2 Run EnergyPlus
                 // -----------------------------
                 Console.WriteLine("Run EnergyPlus...");
-                var energyPlus = Command.Run(DefaultDirectoriesAndPaths.EnergyPlusDir + @"\energyplus.exe", new[] { "-r", "-w",  Path.GetFullPath(Weather.epwFilePath), "-p", ProjectName, epjsonfile },
+                var energyPlus = Command.Run(DefaultDirectoriesAndPaths.EnergyPlusDir + @"\energyplus.exe", new[] { "-r", "-w", Path.GetFullPath(Weather.epwFilePath), "-p", ProjectName, epjsonfile },
                   options => options.WorkingDirectory(this.BaseWorkingDir + @"\Ep").CancellationToken(ct));
 
                 int cnt = 0;
@@ -367,7 +334,6 @@ namespace EddyLib.Radiation
                 energyPlus.Wait();
                 Interlocked.Increment(ref stepCnt);
                 Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
-
 
                 // -----------------------------
                 // 3 Read data and store with Polygons
@@ -409,10 +375,8 @@ namespace EddyLib.Radiation
                     Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
                     return res;
                 }
-
             }
             return null;
-
         }
 
         public void ComputeMRT(bool run, CancellationToken ct, int steps, ref int stepCnt)
@@ -420,9 +384,9 @@ namespace EddyLib.Radiation
             Console.WriteLine("Computing MRT at probe level...");
 
             Parallel.For(0, Probes.Count, x =>
+
             //for (int x = 0; x < Probes.Count; x++)
             {
-
                 var p = Probes[x];
 
                 p.LongWave_MRT = new float[8760];
@@ -463,15 +427,10 @@ namespace EddyLib.Radiation
                             p.LongWave_MRT[h] += (float)(AmbientTemperature[h] * p.VFtoPolys[i]);
                         }
                     }
-
-
                 }
-
-
             });
 
             Console.WriteLine("MRT calculaiton complete...");
-
         }
 
         public MRT_Simulation_ResultProto SaveResults(bool run, CancellationToken ct, int steps, ref int stepCnt)
@@ -492,16 +451,11 @@ namespace EddyLib.Radiation
 
             Debug.WriteLine("Results Proto: " + sp.ElapsedMilliseconds);
 
-
-
             Console.WriteLine("Results written");
             Interlocked.Increment(ref stepCnt);
             Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
 
             return protoResult;
-
         }
-
-
     }
 }
