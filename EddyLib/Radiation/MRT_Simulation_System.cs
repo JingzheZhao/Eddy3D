@@ -16,11 +16,13 @@ namespace EddyLib.Radiation
     public class MRT_Simulation_System
     {
         public int TOTAL = 0;
+
         public int STEP = 0;
 
         public int methodsteps = 2;
 
         public string BaseWorkingDir = "";
+
         public string CFDDataPath = "";
 
         public MRT_Simulation_Settings Settings;
@@ -39,6 +41,7 @@ namespace EddyLib.Radiation
         public Mesh SkyDomeForVF;
 
         public Mesh HighPolyNoSky;
+
         public Mesh LowPolyNoSky;
 
         // Sub-Systems
@@ -65,6 +68,7 @@ namespace EddyLib.Radiation
             foreach (var rs in RSurfaces)
             {
                 if (rs == null) continue;
+
                 //if (rs.Type == RSurface.RadiationSurfaceType.Sky) continue;
                 if (rs.HighPoly != null)
                 {
@@ -77,6 +81,7 @@ namespace EddyLib.Radiation
             foreach (var rs in RSurfaces)
             {
                 if (rs == null) continue;
+
                 //if (rs.Type == RSurface.RadiationSurfaceType.Sky) continue;
                 if (rs.LowPoly != null)
                 {
@@ -124,6 +129,7 @@ namespace EddyLib.Radiation
                 this.Polys.AddRange(rs.Polys);
             }
             this.Polys.AddRange(MakeRPolygons(SkyDomeForVF, RadiationSurfaceType.Sky, "SKY", SimulationType.Ignore));
+
             // set unique ids
             int idcnt = 0;
             foreach (var p in this.Polys)
@@ -144,7 +150,7 @@ namespace EddyLib.Radiation
             }
 
             this.RadiationSystem = new RadiationSystem(this.BaseWorkingDir, this.Weather, this.RSurfaces, this.Probes, this.Polys, this.HighPolyNoSky);
-            this.ThermalSystem = new ThermalSystem(this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.LowPolyNoSky, this.Settings.CummulativeViewFactorCutoff, this.Settings.SmallFaceCutoff);
+            this.ThermalSystem = new ThermalSystem(this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.LowPolyNoSky, this.Settings.CumulativeViewFactorCutoffPercentile, this.Settings.SmallFaceCutoff);
             this.ComfortSystem = new ComfortSystem(this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.CFDDataPath, this.Settings.WindScalingFactor);
 
             TOTAL += this.methodsteps + RadiationSystem.methodsteps + ThermalSystem.methodsteps + ComfortSystem.methodsteps;
@@ -369,15 +375,20 @@ namespace EddyLib.Radiation
         }
 
         public double maxv = 0.0;
+
         public double[][] F;
+
         public double[] xk0;
+
         public double[] xk1;
+
         public double[] b;
 
         //Compute Form factors taking into account occlusions from a list of meshes
         private void BuildFFMatrix(Mesh Obst)
         {
             int Ps = Polys.Count;
+
             //F = new double[Ps, Ps];
 
             F = new double[Ps][];
@@ -418,6 +429,7 @@ namespace EddyLib.Radiation
                     }
                 }
             }
+
             // });
         }
 
@@ -429,7 +441,8 @@ namespace EddyLib.Radiation
             if (p0.Normal.Value * p1.Normal.Value > 0.0001) return 0.0; //if normals don't face each other return 0
             Plane pl = new Plane(p0.Centroid.Value, p0.Normal.Value);
             if (pl.DistanceTo(p1.Centroid.Value) < 0) return 0.0; // if the other face is behind the test face return 0
-                                                                  // ---
+
+            // ---
 
             double f = 0.0;
 
@@ -437,6 +450,7 @@ namespace EddyLib.Radiation
             dv = p1.Centroid.Value - p0.Centroid.Value;
             double r = dv.Length;
             if (r < 0.1) return 0.0;
+
             //dv *= (1.0 / r);
 
             double cosThetaI = dv * p0.Normal.Value / (dv.Length * p0.Normal.Value.Length);
