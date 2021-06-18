@@ -1,0 +1,43 @@
+name: Build Eddy3D
+ 
+# Controls when the action will run. 
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: 
+      - master
+      - dev
+      - timur
+      - patrick
+      - zoe
+  pull_request:
+    branches: 
+      - master
+      - dev
+      - timur
+      - patrick
+      - zoe
+ 
+jobs:
+  build:
+ 
+    runs-on: windows-latest
+ 
+    steps:
+    - uses: actions/checkout@master
+
+    - name: Setup MSBuild.exe
+      uses: warrenbuckley/Setup-MSBuild@v1
+      env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
+       
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v1.0.2
+      env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
+     
+    - name: Restore NuGet Packages
+      run: nuget restore Eddy.sln
+ 
+    - name: Build
+      run: msbuild Eddy.sln
