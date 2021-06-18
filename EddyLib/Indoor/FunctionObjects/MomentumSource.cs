@@ -1,13 +1,4 @@
-﻿using EddyLib.FunctionObjects;
-using EddyLib.Indoor.Dicts;
-using Newtonsoft.Json;
-using Rhino.Geometry;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
+﻿using Rhino.Geometry;
 
 namespace EddyLib.Indoor
 {
@@ -24,12 +15,10 @@ namespace EddyLib.Indoor
             this.Name = Name;
             this.Geometry = Geometry;
             this.Ubar = Ubar;
-
         }
 
         //public MomentumSource(GeometryBase Geometries, Vector3d Ubar, string Name)
         //{
-
         //    this.Name = Name;
         //}
 

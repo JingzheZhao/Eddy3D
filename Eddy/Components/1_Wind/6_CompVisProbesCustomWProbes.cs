@@ -1,12 +1,10 @@
 ﻿using Eddy.Properties;
 using EddyLib;
 using EddyLib.BCs;
-using EddyLib.Geometry;
 using EddyLib.Radiation;
 using EddyLib.Strings;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
-using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using System;

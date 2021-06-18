@@ -1,22 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Rhino.Geometry;
+﻿using Newtonsoft.Json;
 using ProtoBuf;
-using Newtonsoft.Json;
-using System.IO;
-using System.Runtime.Serialization;
+using Rhino.Geometry;
 
 namespace EddyLib.Geometry
 {
     [ProtoContract]
-
     public class EddyVector
     {
         [ProtoMember(1)]
         private string json;
+
         [ProtoMember(2)]
         private double[] coords;
 

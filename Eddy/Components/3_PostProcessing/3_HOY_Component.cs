@@ -1,12 +1,8 @@
-﻿using Eddy.Properties;
+﻿using DateTimeExtensions;
+using Eddy.Properties;
 using EddyLib;
-using EddyLib.Radiation;
 using Grasshopper.Kernel;
 using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using DateTimeExtensions;
 
 namespace Eddy.Components.Radiation
 {

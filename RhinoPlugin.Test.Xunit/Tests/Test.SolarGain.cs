@@ -1,9 +1,6 @@
-﻿using EddyLib.Radiation;
-using EddyLib;
+﻿using EddyLib;
+using EddyLib.Radiation;
 using System;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using Xunit;
 
 namespace RhinoPlugin.Tests.Xunit

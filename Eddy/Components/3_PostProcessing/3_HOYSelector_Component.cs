@@ -1,13 +1,9 @@
 ﻿using DateTimeExtensions;
 using Eddy.Properties;
 using EddyLib;
-using EddyLib.Radiation;
 using Grasshopper.Kernel;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 
 namespace Eddy.Components.Radiation
 {
@@ -35,7 +31,7 @@ namespace Eddy.Components.Radiation
             pManager.AddIntegerParameter("From", "F", "From Day [1-365]", GH_ParamAccess.item, 1);
             pManager.AddIntegerParameter("To", "T", "To Day [1-365]", GH_ParamAccess.item, 365);
 
-            pManager.AddIntegerParameter("Start", "S", "Start Hour [1-24]", GH_ParamAccess.item , 8);
+            pManager.AddIntegerParameter("Start", "S", "Start Hour [1-24]", GH_ParamAccess.item, 8);
             pManager.AddIntegerParameter("End", "E", "End Hour [1-24]", GH_ParamAccess.item, 18);
         }
 
@@ -46,7 +42,6 @@ namespace Eddy.Components.Radiation
         {
             pManager.AddIntegerParameter("HOY", "HOY", "Hours in the year", GH_ParamAccess.list);
             pManager.AddGenericParameter("DateTime", "Date", "DateTime objects", GH_ParamAccess.list);
-
         }
 
         /// <summary>
@@ -61,27 +56,25 @@ namespace Eddy.Components.Radiation
             DA.GetData(0, ref dt1);
             DA.GetData(1, ref dt2);
 
-
-
-            if (dt1 < 1 || dt1 > 365 || dt2 < 1 || dt2 > 365) {
+            if (dt1 < 1 || dt1 > 365 || dt2 < 1 || dt2 > 365)
+            {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "'To' or 'From' day of year input is invalid. Must be an integer from 1-365.");
                 return;
             }
 
-
             int days = Math.Abs(dt1 - dt2);
-            if (dt1 > dt2) {
+            if (dt1 > dt2)
+            {
                 int _d = Math.Abs(dt1 - 365);
                 days = Math.Abs(_d + dt2);
             }
 
-
-                int h1 = 0;
+            int h1 = 0;
             int h2 = 0;
 
             DA.GetData(2, ref h1);
             DA.GetData(3, ref h2);
-            if (h1 < 1 || h1 > 24 || h2 <1 || h2 > 24)
+            if (h1 < 1 || h1 > 24 || h2 < 1 || h2 > 24)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "'Start' or 'End' hour of day input is invalid. Must be an integer from 0-24.");
                 return;
@@ -93,10 +86,10 @@ namespace Eddy.Components.Radiation
             List<int> HOYS = new List<int>();
             List<DateTime> HOYSDateTime = new List<DateTime>();
 
-            for (int i = 0; i < days+1; i++)
+            for (int i = 0; i < days + 1; i++)
             {
-                var currentDay = fromDay.AddDays(i).AddHours(h1-1);
-                for (int j = 0; j < hours+1; j++)
+                var currentDay = fromDay.AddDays(i).AddHours(h1 - 1);
+                for (int j = 0; j < hours + 1; j++)
                 {
                     var currentHour = currentDay.AddHours(j);
                     HOYS.Add(currentHour.HOY());
@@ -106,7 +99,6 @@ namespace Eddy.Components.Radiation
 
             DA.SetDataList(0, HOYS);
             DA.SetDataList(1, HOYSDateTime);
-
         }
 
         /// <summary>

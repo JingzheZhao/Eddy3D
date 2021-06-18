@@ -1,22 +1,18 @@
-﻿using EddyLib.Geometry;
-using Rhino.Geometry;
-using System;
+﻿using Rhino.Geometry;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EddyLib.Radiation
 {
-   
     public class EddyProbe
     {
+        public EddyProbe()
+        {
+        }
 
-        public EddyProbe() { }
-        public EddyProbe(Point3d pt , Vector3d vec) {
-            Point =  pt;
-            Normal =  vec;
+        public EddyProbe(Point3d pt, Vector3d vec)
+        {
+            Point = pt;
+            Normal = vec;
         }
 
         public EddyProbe(Point3d pt, Vector3d vec, Mesh geo)
@@ -25,15 +21,13 @@ namespace EddyLib.Radiation
             Normal = vec;
             PreviewGeo = geo;
         }
+
         public Point3d Point { get; set; }
-      
+
         public Vector3d Normal { get; set; }
 
-         public double Area { get; set; }
+        public double Area { get; set; }
         public Mesh PreviewGeo { get; set; }
-
-
-
 
         public static List<EddyProbe> Mesh2Probes(Mesh _ms)
         {
@@ -42,17 +36,14 @@ namespace EddyLib.Radiation
 
             _ms.FaceNormals.ComputeFaceNormals();
 
-
-
             for (int i = 0; i < _ms.Faces.Count; ++i)
             {
                 EddyProbe pg = new EddyProbe();
-                pg.Point =  (_ms.Faces.GetFaceCenter(i));
+                pg.Point = (_ms.Faces.GetFaceCenter(i));
                 pg.Normal = (_ms.FaceNormals[i]);
                 pg.Normal.Unitize();
 
                 probes.Add(pg);
-
 
                 if (_ms.Faces[i].IsQuad)
                 {
@@ -64,7 +55,7 @@ namespace EddyLib.Radiation
                     Vector3d n1 = Vector3d.CrossProduct(v1 - v0, v2 - v0);
                     Vector3d n2 = Vector3d.CrossProduct(v2 - v0, v3 - v0);
 
-                    pg.Area =  (n1.Length * 0.5 + n2.Length * 0.5);
+                    pg.Area = (n1.Length * 0.5 + n2.Length * 0.5);
 
                     pg.PreviewGeo = (new Mesh());
                     pg.PreviewGeo.Vertices.Add(v0);
@@ -81,9 +72,9 @@ namespace EddyLib.Radiation
 
                     Vector3d n1 = Vector3d.CrossProduct(v1 - v0, v2 - v0);
 
-                    pg.Area =  (n1.Length * 0.5);
+                    pg.Area = (n1.Length * 0.5);
 
-                    pg.PreviewGeo =  (new Mesh());
+                    pg.PreviewGeo = (new Mesh());
                     pg.PreviewGeo.Vertices.Add(v0);
                     pg.PreviewGeo.Vertices.Add(v1);
                     pg.PreviewGeo.Vertices.Add(v2);

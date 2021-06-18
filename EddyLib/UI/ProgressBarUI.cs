@@ -1,9 +1,7 @@
 ﻿using Eto.Drawing;
 using Eto.Forms;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +15,7 @@ namespace EddyLib.UI
 
         public bool Canceled = false;
         private ProgressBar pbar;
+
         public float Progress
         {
             get { return pbar.Progress; }
@@ -37,13 +36,12 @@ namespace EddyLib.UI
 
             // controls
             Status = new Label();
-            StatusLog = new TextArea() { Height = 150  };
+            StatusLog = new TextArea() { Height = 150 };
 
             pbar = new ProgressBar();
             var cancel = new Button { Text = "Cancel" };
             var cts = new CancellationTokenSource();
             var uiThread = SynchronizationContext.Current;
-
 
             // events
             cancel.Click += (s, e) =>
@@ -69,7 +67,7 @@ namespace EddyLib.UI
             layout.EndHorizontal();
             layout.EndVertical();
             layout.BeginVertical();
-            layout.Add(StatusLog, true , true );
+            layout.Add(StatusLog, true, true);
             layout.EndVertical();
 
             layout.BeginVertical();
@@ -97,7 +95,6 @@ namespace EddyLib.UI
         public float Progress; // 0-1
         private Color backColor = Colors.Gray;
         private Color fillColor = Colors.Blue;
-
 
         public ProgressBar()
         {
@@ -136,7 +133,6 @@ namespace EddyLib.UI
             {
                 dialog.Status.Text = value;
                 dialog.StatusLog.Text += value + Environment.NewLine;
-
             }, null);
         }
 
@@ -155,7 +151,6 @@ namespace EddyLib.UI
                 {
                     dialog.Status.Text = value;
                     dialog.StatusLog.Text += value + Environment.NewLine;
-
                 }
             }, null);
         }

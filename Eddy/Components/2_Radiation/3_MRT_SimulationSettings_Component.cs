@@ -2,9 +2,7 @@
 using EddyLib;
 using EddyLib.Radiation;
 using Grasshopper.Kernel;
-using Rhino.Geometry;
 using System;
-using System.Collections.Generic;
 
 namespace Eddy.Components._2_Radiation
 {
@@ -14,6 +12,7 @@ namespace Eddy.Components._2_Radiation
         {
             get { return GH_Exposure.tertiary | GH_Exposure.obscure; }
         }
+
         /// <summary>
         /// Initializes a new instance of the _2_SurfaceMaterialSettings_Component class.
         /// </summary>
@@ -32,7 +31,6 @@ namespace Eddy.Components._2_Radiation
             pManager.AddBooleanParameter("ComputeSurfaceTemperatureEnergyPlus", "Ep", "ComputeSurfaceTemperatureEnergyPlus", GH_ParamAccess.item, true);
             pManager.AddBooleanParameter("ComputeLongWaveExchangeEnergyPlus", "LWR", "ComputeLongWaveExchangeEnergyPlus", GH_ParamAccess.item, false);  // this parameter does nothing - LW is not implemented in Ep yet.
             pManager.AddNumberParameter("WindScaling", "Wsf", "Wind scaling factor", GH_ParamAccess.item, 1);
-
         }
 
         /// <summary>
@@ -61,7 +59,6 @@ namespace Eddy.Components._2_Radiation
             if (!DA.GetData(3, ref ComputeLongWaveExchangeEnergyPlus)) return;
             if (!DA.GetData(4, ref wsf)) return;
 
-
             MRT_Simulation_Settings settings = new MRT_Simulation_Settings();
             settings.ComputeReflectionsAndDiffuseRadiation = ComputeReflectionsAndDiffuseRadiation;
             settings.CummulativeViewFactorCutoff = CummulativeViewFactorCutoff;
@@ -70,7 +67,6 @@ namespace Eddy.Components._2_Radiation
             settings.WindScalingFactor = wsf;
 
             DA.SetData(0, settings);
-
         }
 
         /// <summary>

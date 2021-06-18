@@ -1,18 +1,14 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EddyLib.Radiation
 {
     [DataContract]
-
     public class VegetationSurface_Settings
     {
-        public VegetationSurface_Settings() { }
+        public VegetationSurface_Settings()
+        {
+        }
 
         [DataMember]
         public string Name { get; set; } = "Vegetation";
@@ -23,10 +19,8 @@ namespace EddyLib.Radiation
         [DataMember]
         public double LeafAreaIndex { get; set; } = 5;
 
-
         [DataMember]
         public double LeafReflectivity { get; set; } = 0.2;
-
 
         [DataMember]
         public double LeafEmissivity { get; set; } = 0.95;
@@ -46,7 +40,6 @@ namespace EddyLib.Radiation
         [DataMember]
         public double DensityOfDrySoil { get; set; } = 641;
 
-
         [DataMember]
         public double SpecificHeatOfDrySoil { get; set; } = 1100;
 
@@ -59,7 +52,6 @@ namespace EddyLib.Radiation
         [DataMember]
         public double VisibleAbsorptance { get; set; } = 0.7;
 
-
         [DataMember]
         public double SaturationVolumetricMoistureContentOfTheSoilLayer { get; set; } = 0.4;
 
@@ -69,31 +61,20 @@ namespace EddyLib.Radiation
         [DataMember]
         public double InitialVolumetricMoistureContentOfTheSoilLayer { get; set; } = 0.2;
 
-
-
-
         [DataMember]
-
         public string RadianceMaterial { get; set; } = RadianceMaterials.DefaultGrass;
-
-
-
-
 
         public MaterialRoofVegetation GetMaterial()
         {
-
             MaterialRoofVegetation mat = new MaterialRoofVegetation();
- 
-
 
             mat.HeightOfPlants = HeightOfPlants;
             mat.LeafAreaIndex = LeafAreaIndex;
             mat.LeafReflectivity = LeafReflectivity;
             mat.LeafEmissivity = LeafEmissivity;
             mat.MinimumStomatalResistance = MinimumStomatalResistance;
-            mat.SoilLayerName  = "GreenRoofSoil";
-            mat.Roughness  = RoughnessOfCollectorEnum.Rough;
+            mat.SoilLayerName = "GreenRoofSoil";
+            mat.Roughness = RoughnessOfCollectorEnum.Rough;
             mat.ConductivityOfDrySoil = ConductivityOfDrySoil;
             mat.DensityOfDrySoil = DensityOfDrySoil;
             mat.SpecificHeatOfDrySoil = SpecificHeatOfDrySoil;
@@ -104,11 +85,9 @@ namespace EddyLib.Radiation
             mat.ResidualVolumetricMoistureContentOfTheSoilLayer = ResidualVolumetricMoistureContentOfTheSoilLayer;
             mat.InitialVolumetricMoistureContentOfTheSoilLayer = InitialVolumetricMoistureContentOfTheSoilLayer;
 
-
-
-
             return mat;
         }
+
         public Construction GetConstruction()
         {
             Construction con = new Construction();
@@ -118,33 +97,20 @@ namespace EddyLib.Radiation
             return con;
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-        public override string ToString() { return this.toJSON(); }
-
+        public override string ToString()
+        {
+            return this.toJSON();
+        }
 
         public static VegetationSurface_Settings fromJSON(string json)
         {
             return DeserializeJSON<VegetationSurface_Settings>(json);
         }
 
-
         public string toJSON()
         {
             return SerializeJSON<VegetationSurface_Settings>(this);
         }
-
 
         private static T DeserializeJSON<T>(string json)
         {
@@ -171,9 +137,5 @@ namespace EddyLib.Radiation
             };
             return JsonConvert.SerializeObject(component, set);
         }
-
-
-
     }
-
 }

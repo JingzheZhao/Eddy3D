@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 
 namespace EddyLib.Indoor.BatchFiles
 {
@@ -23,7 +18,7 @@ namespace EddyLib.Indoor.BatchFiles
 
         public void Export(string baseWorkingDir)
         {
-            var path = Path.Combine(baseWorkingDir,BatchLocation);
+            var path = Path.Combine(baseWorkingDir, BatchLocation);
             Directory.CreateDirectory(path);
             //if (!path.EndsWith("\\")) path += "\\";
             File.WriteAllText(path + this.BatchName, this.FullDictString);

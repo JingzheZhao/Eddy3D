@@ -2,10 +2,7 @@
 using EddyLib;
 using EddyLib.Radiation;
 using Grasshopper.Kernel;
-using Grasshopper.Kernel.Parameters;
-using Rhino.Geometry;
 using System;
-using System.Collections.Generic;
 
 namespace Eddy.Components._2_Radiation
 {
@@ -15,6 +12,7 @@ namespace Eddy.Components._2_Radiation
         {
             get { return GH_Exposure.secondary; }
         }
+
         /// <summary>
         /// Initializes a new instance of the _2_SurfaceMaterialSettings_Component class.
         /// </summary>
@@ -38,12 +36,8 @@ namespace Eddy.Components._2_Radiation
             pManager.AddNumberParameter("Thermal absorptance", "Tabs", "Material thermal absorptance", GH_ParamAccess.item, 0.9);
             pManager.AddNumberParameter("Solar absorptance", "Sabs", "Material solar absorptance", GH_ParamAccess.item, 0.7);
             pManager.AddNumberParameter("Visible absorptance", "Vabs", "Material visible absorptance", GH_ParamAccess.item, 0.7);
-           
-            
 
             pManager.AddTextParameter("Surface", "SMat", "Optional Radiance Surface Material", GH_ParamAccess.item, "");
-
-
 
             //Param_Integer param = pManager[1] as Param_Integer;
             //param.AddNamedValue("VeryRough", 0);
@@ -60,7 +54,6 @@ namespace Eddy.Components._2_Radiation
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.Register_GenericParam("SurfSet", "Set", "Surface settings");
-
         }
 
         /// <summary>
@@ -69,8 +62,6 @@ namespace Eddy.Components._2_Radiation
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-
-
             string Name = "";
             double Conductivity = 2.4;
             double Density = 2400;
@@ -84,7 +75,6 @@ namespace Eddy.Components._2_Radiation
             double Thickness = 0.7;
             string RadianceMaterial = "";
 
-
             if (!DA.GetData(0, ref Name)) return;
             if (!DA.GetData(1, ref Thickness)) return;
             if (!DA.GetData(2, ref Conductivity)) return;
@@ -95,9 +85,7 @@ namespace Eddy.Components._2_Radiation
             if (!DA.GetData(7, ref VisibleAbsorptance)) return;
             if (!DA.GetData(8, ref RadianceMaterial)) return;
 
-
             var surfSettings = new RSurface_Settings();
-
 
             surfSettings.Name = Name;
             surfSettings.Conductivity = Conductivity;
@@ -108,7 +96,6 @@ namespace Eddy.Components._2_Radiation
             surfSettings.VisibleAbsorptance = VisibleAbsorptance;
             surfSettings.Thickness = Thickness;
             surfSettings.RadianceMaterial = RadianceMaterial;
- 
 
             DA.SetData(0, surfSettings);
         }

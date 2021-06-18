@@ -7,7 +7,6 @@ using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
-using static EddyLib.Radiation.RSurface;
 
 namespace Eddy.Components.Radiation
 {
@@ -64,10 +63,8 @@ namespace Eddy.Components.Radiation
             var breps = new List<Brep>();
             double patchSize = 2;
 
-
             if (!DA.GetDataList(0, breps)) return;
             if (!DA.GetData(1, ref patchSize)) return;
-
 
             IGH_Goo goo_settings = null;
             if (!DA.GetData(2, ref goo_settings)) { }
@@ -90,13 +87,9 @@ namespace Eddy.Components.Radiation
                 settings.RadianceMaterial = RadianceMaterials.DefaultFacade;
             }
 
-
-
-
             int simType = 0;
             if (!DA.GetData(3, ref simType)) return;
             SimulationType simsim = (SimulationType)simType;
-
 
             float[] toverride = new float[8760];
             List<double> temperatureOverride = new List<double>();

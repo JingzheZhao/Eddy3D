@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Windows.Forms;
-using Eddy.Components.Indoor.Params;
+﻿using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
 using EddyLib;
 using EddyLib.Indoor;
@@ -11,6 +7,8 @@ using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using Medallion.Shell;
 using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
 
 namespace Eddy.Components.Indoor
 {
@@ -148,7 +146,6 @@ namespace Eddy.Components.Indoor
                 {
                     FOs.Add((CO2Emitter)gobj.Value);
                 }
-
                 else
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid function object"); return;
@@ -159,9 +156,8 @@ namespace Eddy.Components.Indoor
             var domGoo = new IndoorDomaingGoo(dom);
 
             //bool toggle
-            #region START PROCESSES
 
-           
+            #region START PROCESSES
 
             bool makeFOs = false;
             bool runSimulation = false;
@@ -174,8 +170,7 @@ namespace Eddy.Components.Indoor
             if (makeFOs == true)
             {
                 var makeFOCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_topoSet.bat" },
-                  options => options.WorkingDirectory(dom.WorkingDir).StartInfo(x => x.CreateNoWindow =false ).StartInfo(x=> x.RedirectStandardOutput = false) );
-
+                  options => options.WorkingDirectory(dom.WorkingDir).StartInfo(x => x.CreateNoWindow = false).StartInfo(x => x.RedirectStandardOutput = false));
             }
 
             if (runMeshing == true && runSimulation == true)
@@ -188,7 +183,6 @@ namespace Eddy.Components.Indoor
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Mesh command failed with exit code {makeMeshCommand.Result.ExitCode}: {makeMeshCommand.Result.StandardError}");
                     return;
                 }
-
 
                 var simulateCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_sim.bat" },
                  options => options.WorkingDirectory(dom.WorkingDir).StartInfo(x => x.CreateNoWindow = false));
@@ -212,7 +206,6 @@ options => options.WorkingDirectory(dom.WorkingDir).StartInfo(x => x.CreateNoWin
             }
             else if (runMeshing == false && runSimulation == true)
             {
-
                 var simulateCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_sim.bat" },
                                 options => options.WorkingDirectory(dom.WorkingDir));
                 //simulateCommand.Wait();
@@ -224,7 +217,6 @@ options => options.WorkingDirectory(dom.WorkingDir).StartInfo(x => x.CreateNoWin
             }
 
             #endregion START PROCESSES
-
 
             DA.SetData(0, domGoo);
         }

@@ -1,8 +1,5 @@
-﻿using EddyLib.OutdoorComfort;
-using EddyLib;
+﻿using System.Collections.Generic;
 using static EddyLib.OutdoorComfort.WindComfortHelper;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace EddyLib.OutdoorComfort
 {

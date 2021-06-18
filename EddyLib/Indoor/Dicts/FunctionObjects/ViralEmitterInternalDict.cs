@@ -1,15 +1,12 @@
-﻿using System;
+﻿using Rhino.Geometry;
+using System;
 using System.Collections.Generic;
-using Rhino.Geometry;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EddyLib.Indoor.Dicts
 {
-    class ViralEmitterInternalDict : GenericDict
+    internal class ViralEmitterInternalDict : GenericDict
     {
-
         public List<String> InternalDict = new List<string>();
 
         //public ViralEmitterInternalDict(ViralEmitter viralEm, Point3d PointInsideDomain)

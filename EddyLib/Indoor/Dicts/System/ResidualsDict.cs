@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using EddyLib.Indoor.Dicts;
 
 namespace EddyLib.Indoor.Dicts
 {
     public class ResidualsDict : GenericDict
     {
-
         public List<String> InternalDict = new List<string>();
 
         public ResidualsDict()
@@ -22,7 +18,7 @@ namespace EddyLib.Indoor.Dicts
 
             this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetWriteControlDict()));
 
-           string[] parts = {
+            string[] parts = {
          //      this.Header, "\n",
          String.Join("\n", this.InternalDict.ToArray())
             };
@@ -32,7 +28,6 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, dynamic> GetWriteControlDict()
         {
-
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
 
             //Dictionary<string, dynamic> FunctionObjectlDict = new Dictionary<string, dynamic>();

@@ -1,19 +1,8 @@
-﻿using EddyLib.Geometry;
-using EddyLib.Radiation;
-using EddyLib.UI;
-using Medallion.Shell;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Bson;
+﻿using EddyLib.Radiation;
 using ProtoBuf;
-using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Threading;
 
 namespace EddyLib
 {

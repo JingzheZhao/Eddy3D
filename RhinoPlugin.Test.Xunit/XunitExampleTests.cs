@@ -1,9 +1,5 @@
-﻿using System;
-
-using Rhino.Geometry;
-using Grasshopper;
-using Grasshopper.Kernel.Types;
-
+﻿using Rhino.Geometry;
+using System;
 using Xunit;
 
 namespace RhinoPlugin.Tests.Xunit

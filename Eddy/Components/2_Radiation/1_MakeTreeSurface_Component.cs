@@ -7,7 +7,6 @@ using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
-using static EddyLib.Radiation.RSurface;
 
 namespace Eddy.Components.Radiation
 {

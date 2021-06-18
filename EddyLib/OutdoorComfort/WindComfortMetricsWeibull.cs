@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using static EddyLib.OutdoorComfort.WindComfortHelper;
-using System.Linq;
 
 [assembly: InternalsVisibleTo("RhinoPlugin.Test.Xunit")]
 

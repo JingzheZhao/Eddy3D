@@ -1,19 +1,14 @@
 ﻿using Grasshopper;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace EddyLib.Radiation
 {
-    class LongWaveInjectedIDFCode
+    internal class LongWaveInjectedIDFCode
     {
         private void GenerateLongWaveIDFCode(DataTree<double> vf, ref object A)
         {
-
             StringBuilder sb = new StringBuilder();
-
 
             for (int i = 0; i < vf.BranchCount; i++)
             {
@@ -35,7 +30,6 @@ namespace EddyLib.Radiation
         UNZ_" + i + @"_F1_STSCHED_Override,
         UNZ_" + i + @":F1_STSCHED,Schedule:Constant,Schedule Value;
 
-
         SurfaceProperty:LocalEnvironment,
         UNZ_" + i + @":f1_LocalEnv,                   !- Name
         UNZ_" + i + @":f1,                            !- Exterior Surface Name
@@ -54,7 +48,6 @@ namespace EddyLib.Radiation
 
                 for (int j = 0; j < viewFacs.Count; j++)
                 {
-
                     if (viewFacs[j] == 0) continue;
 
                     string s = @"
@@ -68,11 +61,8 @@ namespace EddyLib.Radiation
                 for1patch = for1patch.Trim();
                 for1patch = for1patch.Remove(for1patch.Length - 1, 1) + ";";
 
-
-
                 sb.AppendLine(for1patch);
                 sb.AppendLine("");
-
             }
 
             sb.AppendLine(@"
@@ -89,15 +79,10 @@ namespace EddyLib.Radiation
             for (int i = 0; i < vf.BranchCount; i++)
             {
                 if (i == vf.BranchCount - 1) sb.AppendLine("  Set UNZ_" + i + @"_F1_STSCHED_Override = UNZ_" + i + @"_F1_ST;");
-
                 else sb.AppendLine("  Set UNZ_" + i + @"_F1_STSCHED_Override = UNZ_" + i + @"_F1_ST,");
-
             }
 
-
-
             A = sb;
-
         }
     }
 }

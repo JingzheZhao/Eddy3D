@@ -3,11 +3,9 @@ using EddyLib;
 using EddyLib.Radiation;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
-using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
-using static EddyLib.Radiation.RSurface;
 
 namespace Eddy.Components.Radiation
 {
@@ -104,7 +102,6 @@ namespace Eddy.Components.Radiation
             {
                 settings.RadianceMaterial = RadianceMaterials.DefaultGrass;
             }
-
 
             int simType = 0;
             if (!DA.GetData(3, ref simType)) return;

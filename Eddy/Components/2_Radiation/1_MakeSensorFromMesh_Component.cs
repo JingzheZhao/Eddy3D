@@ -24,7 +24,7 @@ namespace Eddy.Components.Radiation
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddMeshParameter("Mesh", "M", "Grid mesh. Each face is turned into a sensor.", GH_ParamAccess.item);
-         }
+        }
 
         /// <summary>
         /// Registers all the output parameters for this component.
@@ -40,16 +40,14 @@ namespace Eddy.Components.Radiation
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-           
             Mesh m = null;
 
-           
             DA.GetData(0, ref m);
 
             List<EddyProbe> probes = new List<EddyProbe>();
 
-            if (m != null) {
-
+            if (m != null)
+            {
                 probes.AddRange(EddyProbe.Mesh2Probes(m));
             }
 

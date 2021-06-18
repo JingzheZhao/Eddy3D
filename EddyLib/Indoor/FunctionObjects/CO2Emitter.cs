@@ -1,10 +1,7 @@
-﻿using EddyLib.Indoor.Dicts;
-using Rhino.Geometry;
+﻿using Rhino.Geometry;
 
 namespace EddyLib.Indoor
 {
-   
-
     public class CO2Emitter : FunctionObject
     {
         public double CO2 { get; set; } = 0;

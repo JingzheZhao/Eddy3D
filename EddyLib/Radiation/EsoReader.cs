@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using ProtoBuf;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
- 
-using ProtoBuf;
 
 namespace EddyLib.Radiation
 {
@@ -52,7 +51,6 @@ namespace EddyLib.Radiation
 
         public EsoResult(string _zone, string _tag, string _unit, string _res)
         {
-
             string zo = "";
             if (_zone.Contains("IDEAL LOADS AIR SYSTEM")) // templates spit out variable with SYSTEM in the end ???
             {
@@ -64,7 +62,6 @@ namespace EddyLib.Radiation
                 zo = _zone.Replace("IDEAL LOADS AIR", "").Trim();
                 typ = esoType.Zone;
             }
-
             else if (_zone.Contains("DHW "))
             {
                 zo = _zone.Replace("DHW ", "").Trim();
@@ -106,13 +103,10 @@ namespace EddyLib.Radiation
 
         public override string ToString()
         {
-
             return string.Format("EsoResult: {0},{1},{2},{3},{4}", zone, tag, unit, res, values.Count);
-
         }
     }
 
- 
     public class EsoReader
     {
         public static List<EsoResult> LoadEsoFile(string path)
@@ -130,7 +124,6 @@ namespace EddyLib.Radiation
             bool pastHeader = false;
             bool pastEnd = false;
             List<string> list = new List<string>();
-
 
             using (FileStream fs = File.Open(path, FileMode.Open))
             using (BufferedStream bs = new BufferedStream(fs))
@@ -161,7 +154,6 @@ namespace EddyLib.Radiation
                     }
                 }
             }
-
 
             Dictionary<string, EsoResult> res = new Dictionary<string, EsoResult>();
 
@@ -194,11 +186,7 @@ namespace EddyLib.Radiation
                 string vari = sss[0].Split('[')[0].Trim();
                 //Print("vari: " + vari);
 
-
                 res.Add(id, new EsoResult(zone, vari, unit, reso));
-
-
-
             }
 
             foreach (string s in list)
@@ -218,17 +206,9 @@ namespace EddyLib.Radiation
                 if (!res.Keys.Contains(id)) continue;
 
                 res[id].values.Add(val);
-
             }
-
-
-
-
 
             return res.Values.ToList();
         }
-
     }
-
-
 }

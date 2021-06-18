@@ -194,10 +194,10 @@ namespace Eddy
             // ---------------------
             // Setup system
             // ---------------------
- 
+
             MRTSystem = new MRT_Simulation_System(workDir, weather, modelRSurfaces, RadProbes, CFDResultPath, set);
 
-             // redirect stderr
+            // redirect stderr
             var errors = new StringWriter();
             Console.SetError(errors);
 

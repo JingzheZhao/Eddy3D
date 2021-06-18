@@ -1,7 +1,7 @@
-﻿using System;
+﻿using DateTimeExtensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using DateTimeExtensions;
 
 public class AnalysisBins
 {

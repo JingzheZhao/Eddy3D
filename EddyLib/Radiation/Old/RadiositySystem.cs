@@ -9,14 +9,11 @@ using System.Linq;
 
 namespace EddyLib.Radiation
 {
-
     [Obsolete]
-    class RunRSystem
+    internal class RunRSystem
     {
         private void RunScript(List<GeometryBase> geo, List<Point3d> probes, int selF, int selP, ref object Geo, ref object GeoSee, ref object VFSee, ref object AllGeo, ref object Probe, ref object PGeoSee, ref object PVFSee, ref object ProbeVFLabels, ref object ProbeVFs, ref object ProbeVF2Surfs)
         {
-
-
             Mesh obstr = new Mesh();
             foreach (Mesh m in geo)
             {
@@ -24,21 +21,16 @@ namespace EddyLib.Radiation
                 obstr.Append(m);
             }
 
-
             RadiositySystem radio = new RadiositySystem();
             foreach (GeometryBase g in geo)
             {
-
                 Mesh m = (Mesh)g;
                 string matName = (string)g.UserDictionary["EddyConstruction"];
                 radio.AddMesh(m, 1.0, 1.0, matName);
             }
 
-
-
             // only for Face - Face view factors
             radio.BuildFFMatrix(obstr);
-
 
             radio.AddProbes(probes);
 
@@ -46,14 +38,11 @@ namespace EddyLib.Radiation
 
             radio.BuildVFToProbesByMaterial();
 
-
-
             for (int i = 0; i < geo.Count; i++)
             {
                 geo[i].UserDictionary.Set("EddyViewFactorArray", radio.F[i]);
             }
             AllGeo = geo;
-
 
             // --------------------------------
             // getting the material view factors for the probes
@@ -64,7 +53,6 @@ namespace EddyLib.Radiation
 
             for (int i = 0; i < radio.RProbes.Count; i++)
             {
-
                 for (int j = 0; j < probevflabels.Count; j++)
                 {
                     probevfs.Add(radio.RProbes[i].VFtoMaterial[probevflabels[j]], new GH_Path(j));
@@ -85,9 +73,6 @@ namespace EddyLib.Radiation
                 probevfs2surfaces.AddRange(radio.RProbes[i].VFtoPolys, new GH_Path(i));
             }
             ProbeVF2Surfs = probevfs2surfaces;
-
-
-
 
             // --------------------------------
             // select one surface for debugging
@@ -130,13 +115,8 @@ namespace EddyLib.Radiation
 
             PVFSee = probe_vfIcanSee;
             PGeoSee = probe_geoIcanSee;
-
-
         }
-
-
     }
-
 
     [Obsolete]
     public class RadiositySystem
@@ -157,16 +137,10 @@ namespace EddyLib.Radiation
         public double[] xk1;
         public double[] b;
 
-
-
-
         //Sum up view factors to the different materials in the model
         public void BuildVFToProbesByMaterial()
         {
-
             UniqueMaterialNames = polys.Select(s => s.Name).ToHashSet().ToList();
-
-
 
             // set up dictionary
             for (int i = 0; i < RProbes.Count; i++)
@@ -199,10 +173,7 @@ namespace EddyLib.Radiation
                 {
                     RProbes[i].VFtoMaterial[UniqueMaterialNames[j]] *= scale;
                 }
-
-
             }
-
         }
 
         //Compute Form factors taking into account occlusions from a list of meshes
@@ -230,10 +201,9 @@ namespace EddyLib.Radiation
                 {
                     RProbes[i].VFtoPolys[j] *= scale;
                 }
-
-
             }
         }
+
         public double FFactorProbe(Point3d probe_pt, RPolygon p1, Mesh Obst)
         {
             Vector3d probe_n = p1.Centroid.Value - probe_pt;
@@ -250,12 +220,9 @@ namespace EddyLib.Radiation
             double r = dv.Length;
             if (r < 0.1) return 0.0;
 
-
             double cosThetaI = dv * probe_n / (dv.Length * probe_n.Length);
             double cosThetaJ = -dv * p1.Normal.Value / (dv.Length * p1.Normal.Value.Length);
             f = ((cosThetaI * cosThetaJ) / (4 * Math.PI * r * r)) * p1.Area;
-
-
 
             //only do occlusion test for large view factors -- zero all others
             if (f < 0.00001) return 0.0;
@@ -268,10 +235,6 @@ namespace EddyLib.Radiation
 
             return f;
         }
-
-
-
-
 
         //Compute Form factors taking into account occlusions from a list of meshes
         public void BuildFFMatrix(Mesh Obst)
@@ -298,7 +261,6 @@ namespace EddyLib.Radiation
 
             double Fij = 0.0;
 
-
             // DO NOT USE THIS - THE F[i][j] IS NOT THREAD SAFE
             // System.Threading.Tasks.Parallel.For(0, Ps, j =>
             //  {
@@ -306,7 +268,6 @@ namespace EddyLib.Radiation
             {
                 for (int i = j; i < Ps; ++i)
                 {
-
                     if (i == j)
                     {
                         F[j][i] = 0.0;
@@ -326,12 +287,11 @@ namespace EddyLib.Radiation
         // 0.0 if the polygons are facing in opposite ways or are nearly coplanar or too close to each other
         public double FFactor(RPolygon p0, RPolygon p1, Mesh Obst)
         {
-
             // --- 6/25/2020
             if (p0.Normal.Value * p1.Normal.Value > 0.0001) return 0.0; //if normals don't face each other return 0
             Plane pl = new Plane(p0.Centroid.Value, p0.Normal.Value);
             if (pl.DistanceTo(p1.Centroid.Value) < 0) return 0.0; // if the other face is behind the test face return 0
-                                                             // ---
+                                                                  // ---
 
             double f = 0.0;
 
@@ -340,7 +300,6 @@ namespace EddyLib.Radiation
             double r = dv.Length;
             if (r < 0.1) return 0.0;
             //dv *= (1.0 / r);
-
 
             double cosThetaI = dv * p0.Normal.Value / (dv.Length * p0.Normal.Value.Length);
             double cosThetaJ = -dv * p1.Normal.Value / (dv.Length * p1.Normal.Value.Length);
@@ -354,11 +313,8 @@ namespace EddyLib.Radiation
 
             //if (f < 0.0) return 0.0;
 
-
-
             //only do occlusion test for large view factors -- zero all others
             if (f < 0.0000001) return 0.0;
-
 
             Vector3d dv_forRaycast = (p1.Centroid.Value + (0.01 * p1.Normal.Value)) - (p0.Centroid.Value + (0.01 * p0.Normal.Value));
             Line line = new Line(p1.Centroid.Value + (0.01 * p1.Normal.Value), p0.Centroid.Value + (0.01 * p0.Normal.Value));
@@ -370,13 +326,8 @@ namespace EddyLib.Radiation
             //double il = Rhino.Geometry.Intersect.Intersection.MeshRay(Obst, ry);
             //if (il > 0.0 && il < dv_forRaycast.Length) return 0.0;
 
-
-
             return f;
         }
-
-
-
 
         //Adds a mesh to the system. For each Face in the mesh it adds
         //a polygon to the list of polygon and sets its emission and reflectivity to rad and refl
@@ -399,11 +350,7 @@ namespace EddyLib.Radiation
                 pg.rout = 0.0;
                 pg.refl = refl;
 
-
                 pg.Name = matName;
-
-
-
 
                 if (_ms.Faces[i].IsQuad)
                 {
@@ -423,7 +370,6 @@ namespace EddyLib.Radiation
                     pg.Mesh.Value.Vertices.Add(v2);
                     pg.Mesh.Value.Vertices.Add(v3);
                     pg.Mesh.Value.Faces.AddFace(0, 1, 2, 3);
-
                 }
                 else
                 {
@@ -451,6 +397,7 @@ namespace EddyLib.Radiation
                 RProbes.Add(new RProbe() { Point = new EddyPoint(p), VFtoPolys = new double[polys.Count] });
             }
         }
+
         public void AddProbes(List<RProbe> pts)
         {
             foreach (var p in pts)
@@ -474,7 +421,6 @@ namespace EddyLib.Radiation
 
             for (int i = 0; i < ms.Faces.Count; ++i)
             {
-
                 radv[ms.Faces[i].A] += polys[pcount].rout * polys[pcount].Area;
                 radcount[ms.Faces[i].A] += polys[pcount].Area;
 
@@ -520,11 +466,9 @@ namespace EddyLib.Radiation
         {
             if (F == null) return;
 
-
             for (int i = 0; i < polys.Count; ++i)
             {
                 xk1[i] = b[i];
-
 
                 for (int j = i + 1; j < polys.Count; ++j)
                 {
@@ -537,7 +481,6 @@ namespace EddyLib.Radiation
                 xk1[i] /= F[i][i];
             }
 
-
             maxv = 0.0;
             for (int i = 0; i < polys.Count; ++i)
             {
@@ -546,11 +489,6 @@ namespace EddyLib.Radiation
                 polys[i].rout = xk0[i];
                 if (Math.Abs(polys[i].rout) > maxv) maxv = Math.Abs(polys[i].rout);
             }
-
-
         }
-
     };
-
-
 }

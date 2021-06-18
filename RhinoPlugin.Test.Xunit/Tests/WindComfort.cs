@@ -1,13 +1,13 @@
-﻿using System;
-using Xunit;
-using EddyLib.OutdoorComfort;
-using static EddyLib.OutdoorComfort.WindComfortHelper;
-using System.Collections.Generic;
+﻿using EddyLib;
 using EddyLib.BCs;
-using EddyLib;
-using System.Linq;
+using EddyLib.OutdoorComfort;
 using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Xunit;
+using static EddyLib.OutdoorComfort.WindComfortHelper;
 
 namespace RhinoPlugin.Tests.Xunit
 {
