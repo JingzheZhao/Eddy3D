@@ -17,7 +17,7 @@ public class AnalysisBins
         else
         {
             AddHours(dt1.HOY(), 8760);
-            AddHours(1, dt2.HOY());
+            AddHours(0, dt2.HOY());
         }
     }
 
@@ -30,7 +30,7 @@ public class AnalysisBins
         else
         {
             AddHours(dt1.HOY(), 8760, DTE);
-            AddHours(1, dt2.HOY(), DTE);
+            AddHours(0, dt2.HOY(), DTE);
         }
     }
 
@@ -88,53 +88,56 @@ public class Season
 
     public Season(SeasonE S)
     {
-        this.DayBegin = 1;
         switch (S)
         {
             case SeasonE.Spring:
-                this.DayEnd = 31;
+                this.DayBegin = 20;
+                this.DayEnd = 20;
                 this.MonthBegin = 3;
-                this.MonthEnd = 5;
+                this.MonthEnd = 6;
                 this.YearBegin = 2021;
                 this.YearEnd = 2021;
 
                 break;
 
             case SeasonE.Summer:
-                this.DayEnd = 31;
+                this.DayBegin = 20;
+                this.DayEnd = 22;
                 this.MonthBegin = 6;
-                this.MonthEnd = 8;
+                this.MonthEnd = 9;
                 this.YearBegin = 2021;
                 this.YearEnd = 2021;
                 break;
 
             case SeasonE.Fall:
-                this.DayEnd = 30;
+                this.DayBegin = 22;
+                this.DayEnd = 21;
                 this.MonthBegin = 9;
-                this.MonthEnd = 11;
+                this.MonthEnd = 12;
                 this.YearBegin = 2021;
                 this.YearEnd = 2021;
                 break;
 
             case SeasonE.Winter:
-                this.DayEnd = 28;
+                this.DayBegin = 21;
+                this.DayEnd = 20;
                 this.MonthBegin = 12;
-                this.MonthEnd = 2;
+                this.MonthEnd = 3;
                 this.YearBegin = 2021;
                 this.YearEnd = 2022;
                 break;
         }
     }
 
-    private Season.SeasonE getSeasonExact(DateTime date)
-    {
-        float value = (float)date.Month + date.Day / 100f;  // <month>.<day(2 digit)>
-        if (value < 3.21 || value >= 12.22) return Season.SeasonE.Winter;   // Winter
-        if (value < 6.21) return Season.SeasonE.Spring; // Spring
-        if (value < 9.23) return Season.SeasonE.Summer; // Summer
+    //private Season.SeasonE getSeasonExact(DateTime date)
+    //{
+    //    float value = (float)date.Month + date.Day / 100f;  // <month>.<day(2 digit)>
+    //    if (value < 3.21 || value >= 12.22) return Season.SeasonE.Winter;   // Winter
+    //    if (value < 6.21) return Season.SeasonE.Spring; // Spring
+    //    if (value < 9.23) return Season.SeasonE.Summer; // Summer
 
-        return Season.SeasonE.Fall;   // Autumn
-    }
+    //    return Season.SeasonE.Fall;   // Autumn
+    //}
 
     //private int getSeason(DateTime date, bool ofSouthernHemisphere) {
     //    int hemisphereConst = ofSouthernHemisphere ? 2 : 0;
