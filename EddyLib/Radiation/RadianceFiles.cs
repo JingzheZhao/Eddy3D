@@ -17,7 +17,6 @@ namespace EddyLib
     {
         private static readonly CultureInfo radianceCulture = new CultureInfo("en-US");
 
-
         public static string Epw2Wea(string weatherFilePath, string targetPath)
         {
             string epwdatname = Path.GetFileNameWithoutExtension(weatherFilePath);
@@ -90,14 +89,11 @@ namespace EddyLib
             }
         }
 
-
         private static string FormatPointAndNormal(Point3d p, Vector3d n) =>
            String.Format(radianceCulture, "{0:0.###} {1:0.###} {2:0.###} {3:0.###} {4:0.###} {5:0.###}", p.X, p.Y, p.Z, n.X, n.Y, n.Z);
 
         private static string FormatPoint(Point3d p) =>
         String.Format(radianceCulture, "{0:0.###} {1:0.###} {2:0.###}", p.X, p.Y, p.Z);
-
-
 
         public static void MeshProc(Mesh _m, string _fname, string _mat)
         {
@@ -254,7 +250,6 @@ namespace EddyLib
 
         public static void MeshProc(List<RSurface> rsurfs, string _fname)
         {
-
             StringBuilder _matLib = new StringBuilder();
             Dictionary<string, string> matLib = new Dictionary<string, string>();
 
@@ -274,22 +269,17 @@ namespace EddyLib
                 }
             }
 
-
-
             System.IO.StreamWriter sw = new System.IO.StreamWriter(_fname);
             sw.WriteLine("# Grasshopper Eddy3D " + EddyLib.EddyVersion.ProductVersion);
             sw.WriteLine("");
             sw.WriteLine(_matLib.ToString());
             sw.WriteLine("");
 
-
             int polyCnt = 0;
 
             foreach (var s in rsurfs)
             {
-
                 Mesh _m = s.LowPoly.DuplicateMesh();
-
 
                 //_m.Faces.ConvertQuadsToTriangles();
 
@@ -372,8 +362,6 @@ namespace EddyLib
             }
             sw.Close();
         }
-
-
 
         public static void writePTS(string pts_path, List<Point3d> pts, List<Vector3d> pts_norm)
         {

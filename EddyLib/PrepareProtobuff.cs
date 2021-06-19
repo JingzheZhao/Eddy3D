@@ -1,5 +1,4 @@
-﻿
-using EddyLib.Geometry;
+﻿using EddyLib.Geometry;
 using EddyLib.Radiation;
 
 namespace EddyLib
@@ -24,7 +23,6 @@ namespace EddyLib
 
                 ProtoBuf.Serializer.PrepareSerializer<RProbe>();
                 ProtoBuf.Serializer.PrepareSerializer<MRT_Simulation_ResultProto>();
-
             }
 
             internal static readonly PrepareProtoBufSingleton instance = new PrepareProtoBufSingleton();

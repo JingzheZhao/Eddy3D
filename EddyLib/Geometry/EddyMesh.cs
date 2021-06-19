@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Rhino.Geometry;
+﻿using Newtonsoft.Json;
 using ProtoBuf;
-using Newtonsoft.Json;
-using System.IO;
+using Rhino.Geometry;
 
 namespace EddyLib.Geometry
 {
@@ -15,6 +9,7 @@ namespace EddyLib.Geometry
     {
         [ProtoMember(1)]
         private string json;
+
         public Mesh Value;
 
         public EddyMesh()

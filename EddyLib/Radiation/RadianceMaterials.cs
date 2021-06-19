@@ -4,14 +4,12 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EddyLib.Radiation
 {
     public static class RadianceMaterials
     {
-         private static readonly CultureInfo radianceCulture = new CultureInfo("en-US");
+        private static readonly CultureInfo radianceCulture = new CultureInfo("en-US");
 
         public const string DefaultFacade = "void plastic GenericOpaque_r40\n0\n0\n5 0.4 0.4 0.4 0 0\n";
         public const string DefaultGround = "void plastic GenericOpaque_r20\n0\n0\n5 0.2 0.2 0.2 0 0\n";
@@ -19,17 +17,11 @@ namespace EddyLib.Radiation
         public const string DefaultGlass = "void glass GenericGlazing_t65\n0\n0\n3 0.71 0.71 0.71\n";
         public const string DefaultTree = "void trans GenericTree_t19\n0\n0\n7 0.28 0.7 0.37 0 0 0.8 1\n";
 
- 
-
-        
-
         /// valid Radiance material types and modifiers
-        public static readonly string[] Types = {  "plastic", "metal", "trans", "plastic2", "metal2", "trans2", "glass" };
+        public static readonly string[] Types = { "plastic", "metal", "trans", "plastic2", "metal2", "trans2", "glass" };
 
-     
         public static string RadiancePlasticMaterial(string Name, Color Color, double Reflectance, double Specularilty = 0, double Roughness = 0)
         {
-
             const double LuminousEfficacyRed = 0.3;
             const double LuminousEfficacyGreen = 0.59;
             const double LuminousEfficacyBlue = 0.11;
@@ -37,7 +29,6 @@ namespace EddyLib.Radiation
             double Red = Color.R;
             double Green = Color.G;
             double Blue = Color.B;
-
 
             double w = Red * LuminousEfficacyRed + Green * LuminousEfficacyGreen + Blue * LuminousEfficacyBlue;
 
@@ -50,8 +41,6 @@ namespace EddyLib.Radiation
             double Transmisivity = (Math.Sqrt(0.8402528435 + 0.0072522239 * Transmittance * Transmittance) - 0.9166530661) / 0.0036261119 / Transmittance;
             return String.Format(radianceCulture, "void glass {4} 0 0 4 {0} {1} {2} {3}\n", Transmisivity, Transmisivity, Transmisivity, refractiveIndex, Name);
         }
-
-       
 
         public static bool GetID(string description, out string id)
         {
@@ -83,7 +72,7 @@ namespace EddyLib.Radiation
             }
             return false;
         }
- 
+
         public static string GetType(string description)
         {
             // assign initial value
@@ -173,7 +162,5 @@ namespace EddyLib.Radiation
                 else return "";
             }
         }
-
- 
     }
 }

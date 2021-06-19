@@ -1,7 +1,4 @@
-﻿using EddyLib.Indoor.Dicts;
-using Newtonsoft.Json;
-using Rhino.Geometry;
-using System;
+﻿using Rhino.Geometry;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;

@@ -1,12 +1,7 @@
-﻿using Eddy.Properties;
-using EddyLib;
-using EddyLib.Radiation;
+﻿using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
 using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 
 namespace Eddy.Components.Radiation
 {

@@ -1,22 +1,14 @@
 ﻿using EddyLib.Geometry;
 using ProtoBuf;
-using Rhino.Geometry;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EddyLib.Radiation
 {
     public enum RPolyMetric
     {
-
         SurfaceTemperature,
         SeenByProbes
-
-
     }
+
     public enum RadiationSurfaceType
     {
         Building = 0,
@@ -43,26 +35,33 @@ namespace EddyLib.Radiation
 
         [ProtoMember(1)]
         public EddyVector Normal { get; set; } = new EddyVector();
+
         [ProtoMember(2)]
         public EddyPoint Centroid { get; set; } = new EddyPoint();
+
         [ProtoMember(3)]
         public EddyMesh Mesh { get; set; } = new EddyMesh();
+
         [ProtoMember(4)]
         public double Area { get; set; } = 0.0;
+
         [ProtoMember(5)]
         public string Name { get; set; }
+
         [ProtoMember(6)]
         public RadiationSurfaceType Type { get; set; }
+
         [ProtoMember(7)]
         public SimulationType SimulationType { get; set; }
+
         [ProtoMember(8)]
         public double[] VFtoPolys { get; set; }
+
         [ProtoMember(9)]
         public double SeenByProbes { get; set; } = 0;
 
         [ProtoMember(10)]
         public int ID { get; set; }
-
 
         [ProtoMember(99)]
         public float[] TemperatureOverride { get; set; }
@@ -70,11 +69,7 @@ namespace EddyLib.Radiation
         [ProtoMember(100)]
         public float[] SurfaceTemperature { get; set; }
 
-
         public RSurface Parent;
-
-
-
 
         public static float[] toFloatArray(double[] arr)
         {
@@ -87,6 +82,5 @@ namespace EddyLib.Radiation
             }
             return ret;
         }
-
     }
 }

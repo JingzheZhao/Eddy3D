@@ -6,30 +6,33 @@ using System.IO;
 namespace EddyLib.Radiation
 {
     [ProtoContract]
-    public class MRT_Simulation_ResultProto    {
-
-        public MRT_Simulation_ResultProto() { }
-
-        public MRT_Simulation_ResultProto(  string dir , Weather weather ,List<RProbe> probes, List <RPolygon> polys)
+    public class MRT_Simulation_ResultProto
+    {
+        public MRT_Simulation_ResultProto()
         {
-             this.BaseWorkingDir = dir;
+        }
+
+        public MRT_Simulation_ResultProto(string dir, Weather weather, List<RProbe> probes, List<RPolygon> polys)
+        {
+            this.BaseWorkingDir = dir;
             this.Weather = weather;
             this.Probes = probes;
             this.Polys = polys;
         }
 
-
         //[ProtoMember(1)]
         //public string ProjectName = "";
         [ProtoMember(2)]
         public string BaseWorkingDir = "";
+
         [ProtoMember(3)]
         public Weather Weather;
+
         [ProtoMember(4)]
         public List<RProbe> Probes { get; set; }
-        [ProtoMember(5)]
-        public List<RPolygon> Polys { get; set; } 
 
+        [ProtoMember(5)]
+        public List<RPolygon> Polys { get; set; }
 
         public string buffMe()
         {
@@ -39,6 +42,7 @@ namespace EddyLib.Radiation
                 return Convert.ToBase64String(ms.GetBuffer(), 0, (int)ms.Length);
             }
         }
+
         public static MRT_Simulation_ResultProto unBuffMe(string txt)
         {
             byte[] arr = Convert.FromBase64String(txt);
@@ -48,7 +52,6 @@ namespace EddyLib.Radiation
 
         public bool WriteToFile(string path)
         {
-
             using (var bw = new BinaryWriter(File.Create(path)))
             {
                 // write body
@@ -69,7 +72,6 @@ namespace EddyLib.Radiation
 
         public static MRT_Simulation_ResultProto ReadFromFile(string path)
         {
-
             MRT_Simulation_ResultProto result = null;
             using (var br = new BinaryReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)))
             {

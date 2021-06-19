@@ -1,18 +1,14 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EddyLib.Radiation
 {
     [DataContract]
     public class MRT_Simulation_Settings
     {
-        public MRT_Simulation_Settings() { }
-
+        public MRT_Simulation_Settings()
+        {
+        }
 
         // Switch between direct only raycast and Radiance DDS
         [DataMember]
@@ -34,37 +30,20 @@ namespace EddyLib.Radiation
         [DataMember]
         public bool ComputeLongWaveExchangeEnergyPlus { get; set; } = false;
 
-        public override string ToString() { return this.toJSON(); }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        public override string ToString()
+        {
+            return this.toJSON();
+        }
 
         public static MRT_Simulation_Settings fromJSON(string json)
         {
             return DeserializeJSON<MRT_Simulation_Settings>(json);
         }
 
-
         public string toJSON()
         {
             return SerializeJSON<MRT_Simulation_Settings>(this);
         }
-
-
-
 
         private static T DeserializeJSON<T>(string json)
         {

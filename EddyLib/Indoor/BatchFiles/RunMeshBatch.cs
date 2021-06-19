@@ -1,15 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.IO;
-using System.Runtime.CompilerServices;
-
 
 namespace EddyLib.Indoor.BatchFiles
 {
     public class RunMeshBatch : GenericBatchFile
     {
-
         public RunMeshBatch(IndoorDomain IndoorDom)
         {
             this.BatchLocation = IndoorDom.WorkingDir;
@@ -24,7 +19,6 @@ namespace EddyLib.Indoor.BatchFiles
             };
 
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
-
         }
 
         private static string BatchBody()

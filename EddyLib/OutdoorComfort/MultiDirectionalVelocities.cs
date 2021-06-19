@@ -1,7 +1,5 @@
 ﻿using Rhino.Geometry;
-using System;
 using System.IO;
-using System.Text;
 
 namespace EddyLib
 {

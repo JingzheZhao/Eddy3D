@@ -8,8 +8,6 @@ namespace EddyLib.Radiation
 {
     public class DaylightSimulationHelpers
     {
-
-
         //============================================EXT SENSOR POINT GEN=========================================
 
         public static Vector3d[] genFaceSensorsNormals(Mesh m)
@@ -22,13 +20,13 @@ namespace EddyLib.Radiation
             }
             return FaceSensorNormals;
         }
+
         public static Point3d[] genFaceSensorPoints(Mesh m, Vector3d[] v, double offset)
         {
             Point3d[] FaceSensors = new Point3d[m.Faces.Count];
 
             for (int f = 0; f < m.Faces.Count; f++)
             {
-
                 if (m.Faces[f].IsTriangle)
                 {
                     Point3d p1 = m.Vertices[m.Faces[f].A];
@@ -38,7 +36,6 @@ namespace EddyLib.Radiation
                     Point3d sen = ((p1 + p2 + p3) / 3.0) + v[f] * offset;
                     FaceSensors[f] = sen;
                 }
-
                 else
                 {
                     Point3d p1 = m.Vertices[m.Faces[f].A];
@@ -49,17 +46,16 @@ namespace EddyLib.Radiation
                     Point3d sen = ((p1 + p2 + p3 + p4) / 4.0) + v[f] * offset;
                     FaceSensors[f] = sen;
                 }
-
             }
             return FaceSensors;
         }
+
         public static Point3d[] genFaceSensorPoints(Mesh m)
         {
             Point3d[] FaceSensors = new Point3d[m.Faces.Count];
 
             for (int f = 0; f < m.Faces.Count; f++)
             {
-
                 if (m.Faces[f].IsTriangle)
                 {
                     Point3d p1 = m.Vertices[m.Faces[f].A];
@@ -69,7 +65,6 @@ namespace EddyLib.Radiation
                     Point3d sen = ((p1 + p2 + p3) / 3.0);
                     FaceSensors[f] = sen;
                 }
-
                 else
                 {
                     Point3d p1 = m.Vertices[m.Faces[f].A];
@@ -80,7 +75,6 @@ namespace EddyLib.Radiation
                     Point3d sen = ((p1 + p2 + p3 + p4) / 4.0);
                     FaceSensors[f] = sen;
                 }
-
             }
             return FaceSensors;
         }
@@ -93,14 +87,12 @@ namespace EddyLib.Radiation
             return roundVal;
         }
 
-
         //===================================BARYCENTRIC FROM ENV MESH TO SENSOR VALUES=====================================
         public static int BarycentricInterpolation(Point3d pt, Mesh EnvMesh, int[][] VertexRadValues, int h)  // used to/in sensor class
         {
             double ipolval = -99;
 
             MeshPoint mp = EnvMesh.ClosestMeshPoint(pt, 0.5);
-
 
             if (mp != null)
             {
@@ -122,10 +114,10 @@ namespace EddyLib.Radiation
                 ipolval = VertexRadValues[vertexindex][h];
             }
 
-
             int roundVal = (int)Math.Round(ipolval);
             return roundVal;
         }
+
         public static Mesh ColorMeshFaces2(Mesh m, double[] results, double maxval, Color low, Color hi)
         {
             for (int i = 0; i < m.Vertices.Count; ++i)
@@ -135,7 +127,6 @@ namespace EddyLib.Radiation
 
             for (int f = 0; f < m.Faces.Count; f++)
             {
-
                 //Calc area of the triangle
                 MeshFace fc = m.Faces.GetFace(f);
                 Vector3d v1 = new Point3d(m.Vertices[m.Faces[f].B]) - (new Point3d(m.Vertices[m.Faces[f].A]));
@@ -180,6 +171,7 @@ namespace EddyLib.Radiation
             }
             return m;
         }
+
         public static Mesh ColorMeshFaces2(Mesh m, double[] results, double maxval, Color low, Color mid, Color hi)
         {
             for (int i = 0; i < m.Vertices.Count; ++i)
@@ -189,7 +181,6 @@ namespace EddyLib.Radiation
 
             for (int f = 0; f < m.Faces.Count; f++)
             {
-
                 //Calc area of the triangle
                 MeshFace fc = m.Faces.GetFace(f);
                 Vector3d v1 = new Point3d(m.Vertices[m.Faces[f].B]) - (new Point3d(m.Vertices[m.Faces[f].A]));
@@ -234,6 +225,7 @@ namespace EddyLib.Radiation
             }
             return m;
         }
+
         public static Mesh ColorMeshFaces2(Mesh m, double[] results, double maxval)
         {
             for (int i = 0; i < m.Vertices.Count; ++i)
@@ -243,7 +235,6 @@ namespace EddyLib.Radiation
 
             for (int f = 0; f < m.Faces.Count; f++)
             {
-
                 //Calc area of the triangle
                 MeshFace fc = m.Faces.GetFace(f);
                 Vector3d v1 = new Point3d(m.Vertices[m.Faces[f].B]) - (new Point3d(m.Vertices[m.Faces[f].A]));
@@ -288,6 +279,7 @@ namespace EddyLib.Radiation
             }
             return m;
         }
+
         public static Mesh ColorMeshFaces2(Mesh m, double[] results)
         {
             for (int i = 0; i < m.Vertices.Count; ++i)
@@ -297,7 +289,6 @@ namespace EddyLib.Radiation
 
             for (int f = 0; f < m.Faces.Count; f++)
             {
-
                 //Calc area of the triangle
                 MeshFace fc = m.Faces.GetFace(f);
                 Vector3d v1 = new Point3d(m.Vertices[m.Faces[f].B]) - (new Point3d(m.Vertices[m.Faces[f].A]));
@@ -343,7 +334,6 @@ namespace EddyLib.Radiation
             return m;
         }
 
-
         //==========================================Min Max Remap=============================================
 
         public static double GetMax(List<double> dl)
@@ -355,6 +345,7 @@ namespace EddyLib.Radiation
             }
             return max;
         }
+
         public static double GetAbsMax(List<double> dl)
         {
             double max = double.MinValue;
@@ -364,6 +355,7 @@ namespace EddyLib.Radiation
             }
             return max;
         }
+
         public static double GetAbsMax(double[] dl)
         {
             double max = double.MinValue;
@@ -373,6 +365,7 @@ namespace EddyLib.Radiation
             }
             return max;
         }
+
         public static int GetAbsMax(int[] dl)
         {
             int max = int.MinValue;
@@ -382,6 +375,7 @@ namespace EddyLib.Radiation
             }
             return max;
         }
+
         public static int GetAbsMax(List<int> dl)
         {
             int max = int.MinValue;
@@ -391,17 +385,13 @@ namespace EddyLib.Radiation
             }
             return max;
         }
+
         public static double Remap(double OldValue, double OldMax, double OldMin, double NewMax, double NewMin)
         {
             double OldRange = (OldMax - OldMin);
             double NewRange = (NewMax - NewMin);
             return (((OldValue - OldMin) * NewRange) / OldRange) + NewMin;
         }
-
-
-
-
-
 
         public class ColorGenerator
         {
@@ -439,7 +429,6 @@ namespace EddyLib.Radiation
                    percent < 0.5 ? left : right, centre);
             }
 
-
             public static Eto.Drawing.Color GetTriColour(double percent, Eto.Drawing.Color left, Eto.Drawing.Color centre, Eto.Drawing.Color right)
             {
                 if (percent < 0 || percent > 1)
@@ -451,7 +440,6 @@ namespace EddyLib.Radiation
                 return GetColourFromLinearGradient(weight,
                    percent < 0.5 ? left : right, centre);
             }
-
 
             public static Color GetColourFromLinearGradient(double percent, Color start, Color end)
             {
@@ -486,7 +474,6 @@ namespace EddyLib.Radiation
 
                 return Eto.Drawing.Color.FromArgb((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255));
             }
-
         }
     }
 }

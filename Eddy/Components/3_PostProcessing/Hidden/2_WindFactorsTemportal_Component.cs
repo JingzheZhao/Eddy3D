@@ -1,13 +1,9 @@
 ﻿using Eddy.Properties;
 using EddyLib;
 using EddyLib.OutdoorComfort;
-using EddyLib.Radiation;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 
 namespace Eddy.Components.Radiation
 {

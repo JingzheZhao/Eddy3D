@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using EddyLib.Indoor.Dicts;
 
 namespace EddyLib.Indoor.Dicts
 {
     public class FvSchemesDict : GenericDict
     {
-
         public List<String> InternalDict = new List<string>();
 
         public FvSchemesDict(IndoorDomain IndoorDom)
@@ -30,7 +26,6 @@ namespace EddyLib.Indoor.Dicts
             this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetFluxRequiredDict(IndoorDom)));
             this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetWallDistDict(IndoorDom)));
 
-
             string[] parts = {
                this.Header, "\n",
          String.Join("\n", this.InternalDict.ToArray())
@@ -41,7 +36,6 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, dynamic> GetddtSchemesDict(IndoorDomain IndoorDom)
         {
-
             Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
@@ -57,12 +51,10 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, dynamic> GetGradSchemesDict(IndoorDomain IndoorDom)
         {
-
             Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
 
-            
             Dict.Add("gradSchemes", InternalDict);
 
             InternalDict.Add("default", "Gauss linear");
@@ -72,11 +64,9 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, dynamic> GetDivSchemesDict(IndoorDomain IndoorDom)
         {
-
             Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
-
 
             Dict.Add("divSchemes", InternalDict);
 
@@ -94,13 +84,11 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, dynamic> GetLaplacianSchemesDict(IndoorDomain IndoorDom)
         {
-
             Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
 
             Dict.Add("laplacianSchemes", InternalDict);
-
 
             InternalDict.Add("default", "Gauss linear corrected");
             InternalDict.Add("laplacian(DkEff,k)", "Gauss linear uncorrected");
@@ -112,7 +100,6 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, dynamic> GetInterpolationSchemesDict(IndoorDomain IndoorDom)
         {
-
             Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
@@ -126,7 +113,6 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, dynamic> GetSnGradSchemesDict(IndoorDomain IndoorDom)
         {
-
             Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
@@ -140,7 +126,6 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, dynamic> GetFluxRequiredDict(IndoorDomain IndoorDom)
         {
-
             Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
@@ -154,7 +139,6 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, dynamic> GetWallDistDict(IndoorDomain IndoorDom)
         {
-
             Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
@@ -168,14 +152,14 @@ namespace EddyLib.Indoor.Dicts
     }
 }
 
-            //            this.FullDictString = @"FoamFile
-            //{
-            //    version         1912;
-            //    format          ascii;
-            //    class           dictionary;
-            //    location        ""system"";
-            //    object          fvSchemes;
-            //}
+//            this.FullDictString = @"FoamFile
+//{
+//    version         1912;
+//    format          ascii;
+//    class           dictionary;
+//    location        ""system"";
+//    object          fvSchemes;
+//}
 
 //ddtSchemes
 //{

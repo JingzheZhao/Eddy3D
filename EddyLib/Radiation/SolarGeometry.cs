@@ -21,8 +21,7 @@ namespace EddyLib
             return hr;
         }
 
-
-        public  void DayOfYear_To_MonthAndDay(int dayOfYear, out int month, out int day)
+        public void DayOfYear_To_MonthAndDay(int dayOfYear, out int month, out int day)
         {
             month = 0;
             day = 0;
@@ -39,13 +38,12 @@ namespace EddyLib
             }
         }
 
-        public  void HourOfYear_To_MDH(int hourOfYear, out int month, out int day, out int hour)
+        public void HourOfYear_To_MDH(int hourOfYear, out int month, out int day, out int hour)
         {
             int dayOfYear = (int)Math.Floor(hourOfYear / 24d);
             DayOfYear_To_MonthAndDay(dayOfYear, out month, out day);
             hour = hourOfYear - dayOfYear * 24;
         }
-
 
         public double solarazimuth(double lat, double lon, double year, double month, double day, double hours, double minutes, double seconds, double timezone, double dlstime)
         {

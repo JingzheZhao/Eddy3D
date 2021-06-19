@@ -4,7 +4,6 @@ using EddyLib.Radiation;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 using System;
-using System.Collections.Generic;
 
 namespace Eddy.Components.Radiation
 {

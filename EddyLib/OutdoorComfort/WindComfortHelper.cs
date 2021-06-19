@@ -1,6 +1,4 @@
-﻿using EddyLib.OutdoorComfort;
-
-namespace EddyLib.OutdoorComfort
+﻿namespace EddyLib.OutdoorComfort
 {
     // This is a post-processing class
     public class WindComfortHelper

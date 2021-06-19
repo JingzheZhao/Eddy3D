@@ -1,6 +1,5 @@
 ﻿using EddyLib.UI;
 using Medallion.Shell;
-using ProtoBuf;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
@@ -8,10 +7,9 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 
 [assembly: InternalsVisibleTo("Eddy")]
 

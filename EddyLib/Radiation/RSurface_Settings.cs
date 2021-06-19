@@ -1,21 +1,14 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EddyLib.Radiation
 {
     [DataContract]
     public class RSurface_Settings
     {
-         
-
-
-        public RSurface_Settings() { }
-
+        public RSurface_Settings()
+        {
+        }
 
         [DataMember]
         public double Conductivity { get; set; }
@@ -42,18 +35,18 @@ namespace EddyLib.Radiation
         public double VisibleAbsorptance { get; set; }
 
         [DataMember]
-
         public string Name { get; set; }
-        [DataMember]
 
+        [DataMember]
         public string RadianceMaterial { get; set; }
 
-        public override string ToString() { return this.toJSON(); }
+        public override string ToString()
+        {
+            return this.toJSON();
+        }
 
-
-
-       public Material GetMaterial() {
-
+        public Material GetMaterial()
+        {
             Material mat = new Material();
             mat.Conductivity = Conductivity;
             mat.Density = Density;
@@ -65,7 +58,8 @@ namespace EddyLib.Radiation
             mat.VisibleAbsorptance = VisibleAbsorptance;
 
             return mat;
-    }
+        }
+
         public Construction GetConstruction()
         {
             Construction con = new Construction();
@@ -73,9 +67,9 @@ namespace EddyLib.Radiation
             con.OutsideLayer = Name;
             return con;
         }
+
         public static RSurface_Settings GenerateGround()
         {
-
             var o = new RSurface_Settings();
             o.RadianceMaterial = RadianceMaterials.DefaultGround;
             o.Name = "Asphalt";
@@ -92,7 +86,6 @@ namespace EddyLib.Radiation
 
         public static RSurface_Settings GenerateFacade()
         {
-
             var o = new RSurface_Settings();
             o.RadianceMaterial = RadianceMaterials.DefaultFacade;
             o.Name = "RedBrick";

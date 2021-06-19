@@ -16,7 +16,6 @@ namespace Eddy
         //    get { return GH_Exposure.hidden; }
         //}
 
-  
         /// <summary>
         /// Each implementation of GH_Component must provide a public constructor without any
         /// arguments. Category represents the Tab in which the component will appear, Subcategory

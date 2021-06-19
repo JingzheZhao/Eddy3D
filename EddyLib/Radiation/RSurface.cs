@@ -1,15 +1,10 @@
 ﻿using Rhino.Geometry;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EddyLib.Radiation
 {
     public class RSurface
     {
-
         public string Name;
         public Brep Surface;
         public Mesh LowPoly;
@@ -27,12 +22,13 @@ namespace EddyLib.Radiation
         public RSurface_Settings Settings;
         public VegetationSurface_Settings VegSettings;
         public Tree_Settings TreeSettings;
-        public RSurface() { }
 
+        public RSurface()
+        {
+        }
 
-        public void SetMeshes() {
-        
-        
+        public void SetMeshes()
+        {
         }
 
         public RSurface(string name, Brep b, RadiationSurfaceType type, SimulationType simtype, Tree_Settings settings, double patchSize = 3)
@@ -41,7 +37,6 @@ namespace EddyLib.Radiation
             Surface = b;
             PatchSize = patchSize > 0 ? patchSize : 2;
             TreeSettings = settings;
-
 
             MaterialID = "";
             RadianceMaterials.GetID(TreeSettings.RadianceMaterial, out MaterialID);
@@ -58,7 +53,6 @@ namespace EddyLib.Radiation
                 LowPoly.Append(m);
             }
 
-
             // fine subdivisions for viewfactor analysis
             MeshingParameters mp_high = new MeshingParameters();
             mp_high.MinimumEdgeLength = patchSize;
@@ -70,16 +64,15 @@ namespace EddyLib.Radiation
                 HighPoly.Append(m);
             }
 
-
             MakePolys();
         }
+
         public RSurface(string name, Brep b, RadiationSurfaceType type, SimulationType simtype, VegetationSurface_Settings settings, double patchSize = 3)
         {
             Name = name;
             Surface = b;
             PatchSize = patchSize > 0 ? patchSize : 2;
             VegSettings = settings;
-
 
             MaterialID = "";
             RadianceMaterials.GetID(VegSettings.RadianceMaterial, out MaterialID);
@@ -96,7 +89,6 @@ namespace EddyLib.Radiation
                 LowPoly.Append(m);
             }
 
-
             // fine subdivisions for viewfactor analysis
             MeshingParameters mp_high = new MeshingParameters();
             mp_high.MinimumEdgeLength = patchSize;
@@ -108,7 +100,6 @@ namespace EddyLib.Radiation
                 HighPoly.Append(m);
             }
 
-
             MakePolys();
         }
 
@@ -119,15 +110,12 @@ namespace EddyLib.Radiation
             PatchSize = patchSize > 0 ? patchSize : 2;
             Settings = settings;
 
-
             MaterialID = "";
             RadianceMaterials.GetID(Settings.RadianceMaterial, out MaterialID);
 
             //Material = refl > 1 ? 1 : refl;
             Type = type;
             SimulationType = simtype;
- 
-
 
             // simple mesh for rad sim and obstruction calculation
             //MeshingParameters mp_low = new MeshingParameters();
@@ -137,17 +125,15 @@ namespace EddyLib.Radiation
             //    LowPoly.Append(m);
             //}
 
-           
-
             MeshingParameters mp_low = new MeshingParameters();
             LowPoly = new Mesh();
             HighPoly = new Mesh();
-            foreach (var bf in b.Faces) {
+            foreach (var bf in b.Faces)
+            {
                 Brep f = bf.DuplicateFace(true);
-                if (f==null) continue;
+                if (f == null) continue;
                 var farea = f.GetArea();
                 if (farea < 0.1) continue;
-
 
                 //LOW Poly
                 foreach (var m in Mesh.CreateFromBrep(f, mp_low))
@@ -163,9 +149,7 @@ namespace EddyLib.Radiation
                 qparam.TargetQuadCount = (int)(farea / (patchSize * patchSize));
                 var qmesh = Mesh.QuadRemeshBrep(f, qparam);
                 HighPoly.Append(qmesh);
-                
             }
-
 
             //// fine subdivisions for viewfactor analysis
             //var area = b.GetArea();
@@ -176,21 +160,16 @@ namespace EddyLib.Radiation
             //qparam.TargetQuadCount = (int)(area / (patchSize * patchSize));
             //HighPoly = Mesh.QuadRemeshBrep(b, qparam);
 
-
             MakePolys();
         }
 
-
-
-        private void MakePolys(double rad = 0, double refl =0.5)
+        private void MakePolys(double rad = 0, double refl = 0.5)
         {
             Polys = new List<RPolygon>();
             Mesh _ms = this.HighPoly;
             if (_ms == null) return;
-    
-            _ms.FaceNormals.ComputeFaceNormals();
 
- 
+            _ms.FaceNormals.ComputeFaceNormals();
 
             for (int i = 0; i < _ms.Faces.Count; ++i)
             {
@@ -200,7 +179,8 @@ namespace EddyLib.Radiation
 
                 Polys.Add(pg);
 
-                if (this.TemperatureOverride != null) {
+                if (this.TemperatureOverride != null)
+                {
                     pg.TemperatureOverride = this.TemperatureOverride;
                 }
 
@@ -212,10 +192,9 @@ namespace EddyLib.Radiation
                 pg.rout = 0.0;
                 pg.refl = refl;
 
-                pg.Name = this.Name + "_" + this.Type.ToString()   ;
+                pg.Name = this.Name + "_" + this.Type.ToString();
                 pg.Type = this.Type;
                 pg.SimulationType = this.SimulationType;
-
 
                 if (_ms.Faces[i].IsQuad)
                 {
@@ -253,9 +232,7 @@ namespace EddyLib.Radiation
                     pg.Mesh.Value.Faces.AddFace(0, 1, 2);
                 }
             }
-            return ;
+            return;
         }
-
-        
     }
 }

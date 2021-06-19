@@ -2,9 +2,7 @@
 using EddyLib;
 using EddyLib.Radiation;
 using Grasshopper.Kernel;
-using Rhino.Geometry;
 using System;
-using System.Collections.Generic;
 
 namespace Eddy.Components._2_Radiation
 {
@@ -14,6 +12,7 @@ namespace Eddy.Components._2_Radiation
         {
             get { return GH_Exposure.secondary; }
         }
+
         /// <summary>
         /// Initializes a new instance of the _2_SurfaceMaterialSettings_Component class.
         /// </summary>
@@ -29,7 +28,7 @@ namespace Eddy.Components._2_Radiation
         {
             pManager.AddTextParameter("Name", "Name", "Material Name", GH_ParamAccess.item, "MyVegetationSurface");
 
-            pManager.AddNumberParameter("Height Plants", "HP", "Height of Plants [m]", GH_ParamAccess.item,0.5);
+            pManager.AddNumberParameter("Height Plants", "HP", "Height of Plants [m]", GH_ParamAccess.item, 0.5);
             pManager.AddNumberParameter("LeafAreaIndex", "LAI", "LeafAreaIndex [dimensionless]", GH_ParamAccess.item, 5);
             pManager.AddNumberParameter("LeafReflectivity", "LR", "LeafReflectivity [0-1]", GH_ParamAccess.item, 0.2);
             pManager.AddNumberParameter("LeafEmissivity", "LE", "LeafEmissivity [0-1]", GH_ParamAccess.item, 0.95);
@@ -44,7 +43,6 @@ namespace Eddy.Components._2_Radiation
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.Register_GenericParam("VegSet", "Set", "Vegetation settings");
-
         }
 
         /// <summary>
@@ -53,20 +51,14 @@ namespace Eddy.Components._2_Radiation
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-
-
-
             string Name = "";
             double HeightOfPlants = 2.4;
             double LeafAreaIndex = 2400;
             double LeafReflectivity = 840;
             double LeafEmissivity = 0.9;
             double MinimumStomatalResistance = 0.7;
-          
 
-            
             string RadianceMaterial = "";
-
 
             if (!DA.GetData(0, ref Name)) return;
             if (!DA.GetData(1, ref HeightOfPlants)) return;
@@ -77,9 +69,7 @@ namespace Eddy.Components._2_Radiation
 
             if (!DA.GetData(6, ref RadianceMaterial)) return;
 
-
             var surfSettings = new VegetationSurface_Settings();
-
 
             surfSettings.Name = Name;
             surfSettings.HeightOfPlants = HeightOfPlants;
@@ -96,8 +86,6 @@ namespace Eddy.Components._2_Radiation
             }
 
             DA.SetData(0, surfSettings);
-
-
         }
 
         /// <summary>

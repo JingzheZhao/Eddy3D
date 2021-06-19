@@ -1,10 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EddyLib.Radiation
 {
@@ -19,12 +15,6 @@ namespace EddyLib.Radiation
         [JsonProperty("FenestrationSurface:Detailed", NullValueHandling = NullValueHandling.Ignore)]
         public Dictionary<string, FenestrationSurfaceDetailed> AllWindows { get; set; } = new Dictionary<string, FenestrationSurfaceDetailed>();
     }
-
-    
-
-
-
-
 
     public class FenestrationSurfaceDetailed
     {
@@ -90,6 +80,7 @@ namespace EddyLib.Radiation
 
         [JsonProperty("idf_max_extensible_fields", NullValueHandling = NullValueHandling.Ignore)]
         public double? idfMaxExtensibleFields { get; set; } = 0;
+
         [JsonProperty("idf_max_fields", NullValueHandling = NullValueHandling.Ignore)]
         public double? idfMaxFields { get; set; } = 21;
     }
@@ -178,7 +169,7 @@ namespace EddyLib.Radiation
         public double? VisibleAbsorptance { get; set; }
     }
 
-    public  class Construction
+    public class Construction
     {
         //[JsonProperty("layer_10", NullValueHandling = NullValueHandling.Ignore)]
         //public string Layer10 { get; set; }
@@ -201,7 +192,6 @@ namespace EddyLib.Radiation
         //[JsonProperty("layer_9", NullValueHandling = NullValueHandling.Ignore)]
         //public string Layer9 { get; set; }
 
-
         [JsonProperty("layer_3", NullValueHandling = NullValueHandling.Ignore)]
         public string Layer3 { get; set; }
 
@@ -211,18 +201,13 @@ namespace EddyLib.Radiation
         [JsonProperty("outside_layer")]
         public string OutsideLayer { get; set; }
 
-
         //[JsonProperty("idf_max_extensible_fields", NullValueHandling = NullValueHandling.Ignore)]
         //public double? idfMaxExtensibleFields { get; set; } = 0;
         //[JsonProperty("idf_max_fields", NullValueHandling = NullValueHandling.Ignore)]
         //public double? idfMaxFields { get; set; }
-
-
-
     }
 
-
-    public  class MaterialRoofVegetation
+    public class MaterialRoofVegetation
     {
         [JsonProperty("conductivity_of_dry_soil", NullValueHandling = NullValueHandling.Ignore)]
         public double? ConductivityOfDrySoil { get; set; }
@@ -279,29 +264,24 @@ namespace EddyLib.Radiation
         public double? VisibleAbsorptance { get; set; }
     }
 
-
-
     [JsonConverter(typeof(StringEnumConverter))]
-
     public enum MoistureDiffusionCalculationMethod { Advanced, Empty, Simple };
 
     [JsonConverter(typeof(StringEnumConverter))]
     public enum FenestrationSurfaceDetailedSurfaceType { Door, GlassDoor, TubularDaylightDiffuser, TubularDaylightDome, Window };
-    [JsonConverter(typeof(StringEnumConverter))]
 
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum BuildingSurfaceDetailedOutsideBoundaryCondition { Adiabatic, Foundation, Ground, GroundBasementPreprocessorAverageFloor, GroundBasementPreprocessorAverageWall, GroundBasementPreprocessorLowerWall, GroundBasementPreprocessorUpperWall, GroundFCfactorMethod, GroundSlabPreprocessorAverage, GroundSlabPreprocessorCore, GroundSlabPreprocessorPerimeter, OtherSideCoefficients, OtherSideConditionsModel, Outdoors, Surface, Zone };
-    [JsonConverter(typeof(StringEnumConverter))]
 
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum BuildingSurfaceDetailedSunExposure { Empty, NoSun, SunExposed };
-    [JsonConverter(typeof(StringEnumConverter))]
 
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum BuildingSurfaceDetailedSurfaceType { Ceiling, Floor, Roof, Wall };
-    [JsonConverter(typeof(StringEnumConverter))]
 
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum WindExposure { Empty, NoWind, WindExposed };
+
     [JsonConverter(typeof(StringEnumConverter))]
-
     public enum RoughnessOfCollectorEnum { MediumRough, MediumSmooth, Rough, Smooth, VeryRough, VerySmooth };
-
-
 }
