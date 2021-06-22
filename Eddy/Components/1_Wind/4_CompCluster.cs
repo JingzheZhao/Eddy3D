@@ -57,6 +57,7 @@ namespace Eddy
 
             pManager.AddGenericParameter("Clusters", "Cl", "Clusters", GH_ParamAccess.item);
             pManager.AddGenericParameter("Breaks", "B", "Natural Breaks", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Total Distance", "TD", "Total Distance", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -130,6 +131,7 @@ namespace Eddy
 
             var breaks = JenksFisher.CreateJenksFisherBreaksArray(dirsDeg, bins);
             DA.SetDataList(3, breaks);
+            DA.SetData(4, results.TotalDistance);
         }
 
         /// <summary>
