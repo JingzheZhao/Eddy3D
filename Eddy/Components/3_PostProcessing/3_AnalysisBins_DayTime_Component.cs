@@ -1,4 +1,5 @@
-﻿using EddyLib;
+﻿using Eddy.Properties;
+using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
 using System;
@@ -92,15 +93,10 @@ Nightlife   // 10pm - 12pm
         /// <summary>
         /// Provides an Icon for the component.
         /// </summary>
-        //protected override System.Drawing.Bitmap Icon
-        //{
-        //    get
-        //    {
-        //        //You can add image files to your project resources and access them like this:
-        //        // return Resources.IconForThisComponent;
-        //        return Resources.Eddy_stability;
-        //    }
-        //}
+        protected override System.Drawing.Bitmap Icon =>
+
+                 // You can add image files to your project resources and access them like this:
+                 Resources.Eddy_AnalysisBins_DayTime;
 
         /// <summary>
         /// Gets the unique ID for this component. Do not change this ID after release.

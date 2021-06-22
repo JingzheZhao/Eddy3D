@@ -1,4 +1,5 @@
-﻿using EddyLib;
+﻿using Eddy.Properties;
+using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
@@ -7,7 +8,7 @@ using System.Collections.Generic;
 
 namespace Eddy.Components.Radiation
 {
-    public class AnalysisSystem_Component : GH_Component
+    public class AnalysisBins_System_Component : GH_Component
     {
         //public override GH_Exposure Exposure
         //{
@@ -17,7 +18,7 @@ namespace Eddy.Components.Radiation
         /// <summary>
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
-        public AnalysisSystem_Component()
+        public AnalysisBins_System_Component()
           : base("Analysis System", "AS", "Analysis System" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
 
         {
@@ -71,18 +72,10 @@ namespace Eddy.Components.Radiation
             DA.SetDataTree(0, AS_Tree);
         }
 
-        /// <summary>
-        /// Provides an Icon for the component.
-        /// </summary>
-        //protected override System.Drawing.Bitmap Icon
-        //{
-        //    get
-        //    {
-        //        //You can add image files to your project resources and access them like this:
-        //        // return Resources.IconForThisComponent;
-        //        return Resources.Eddy_stability;
-        //    }
-        //}
+        protected override System.Drawing.Bitmap Icon =>
+
+               // You can add image files to your project resources and access them like this:
+               Resources.Eddy_AnalysisBins_System;
 
         /// <summary>
         /// Gets the unique ID for this component. Do not change this ID after release.

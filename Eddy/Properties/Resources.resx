@@ -124,6 +124,18 @@
   <data name="Eddy_abl" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_abl.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="Eddy_AnalysisBins_Custom" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_AnalysisBins_Custom.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_AnalysisBins_DayTime" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_AnalysisBins_DayTime.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_AnalysisBins_Season" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_AnalysisBins_Season.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_AnalysisBins_System" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_AnalysisBins_System.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="Eddy_analysisCul" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_analysisCul.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>

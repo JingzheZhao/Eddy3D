@@ -88,11 +88,11 @@
     <Compile Include="Components\2_Radiation\2_SurfaceSettings_Component.cs" />
     <Compile Include="Components\3_PostProcessing\2_InspectPolygon_Component.cs" />
     <Compile Include="Components\3_PostProcessing\3_HOYSelector_Component.cs" />
-    <Compile Include="Components\3_PostProcessing\3_AnalysisSystem_Component.cs" />
+    <Compile Include="Components\3_PostProcessing\3_AnalysisBins_System_Component.cs" />
     <Compile Include="Components\3_PostProcessing\3_UTCI_Binning.cs" />
     <Compile Include="Components\3_PostProcessing\3_UTCI_ConditionOfPerson_Component.cs" />
     <Compile Include="Components\3_PostProcessing\3_HOY_Component.cs" />
-    <Compile Include="Components\3_PostProcessing\3_AnalysisBinsCustom_Component.cs" />
+    <Compile Include="Components\3_PostProcessing\3_AnalysisBins_Custom_Component.cs" />
     <Compile Include="Components\3_PostProcessing\3_AnalysisBins_DayTime_Component.cs" />
     <Compile Include="Components\3_PostProcessing\3_AnalysisBins_Season_Component.cs" />
     <Compile Include="Components\3_PostProcessing\2o_CompCalcWindFactors.cs" />
@@ -379,6 +379,18 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Eddy_HOY.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_AnalysisBins_System.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_AnalysisBins_Custom.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_AnalysisBins_DayTime.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_AnalysisBins_Season.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

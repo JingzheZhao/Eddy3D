@@ -73,6 +73,46 @@ namespace Eddy.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Eddy_AnalysisBins_Custom {
+            get {
+                object obj = ResourceManager.GetObject("Eddy_AnalysisBins_Custom", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Eddy_AnalysisBins_DayTime {
+            get {
+                object obj = ResourceManager.GetObject("Eddy_AnalysisBins_DayTime", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Eddy_AnalysisBins_Season {
+            get {
+                object obj = ResourceManager.GetObject("Eddy_AnalysisBins_Season", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Eddy_AnalysisBins_System {
+            get {
+                object obj = ResourceManager.GetObject("Eddy_AnalysisBins_System", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Eddy_analysisCul {
             get {
                 object obj = ResourceManager.GetObject("Eddy_analysisCul", resourceCulture);
@@ -260,19 +300,19 @@ namespace Eddy.Properties {
             }
         }
         
- 
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Eddy_HOY {
             get {
                 object obj = ResourceManager.GetObject("Eddy_HOY", resourceCulture);
- return ((System.Drawing.Bitmap)(obj));
+                return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
         
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-
         internal static System.Drawing.Bitmap Eddy_Indoor__Indoor_CO2Emitter {
             get {
                 object obj = ResourceManager.GetObject("Eddy_Indoor__Indoor_CO2Emitter", resourceCulture);
@@ -306,7 +346,6 @@ namespace Eddy.Properties {
         internal static System.Drawing.Bitmap Eddy_Indoor__Indoor_ViralEmitter {
             get {
                 object obj = ResourceManager.GetObject("Eddy_Indoor__Indoor_ViralEmitter", resourceCulture);
-
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
