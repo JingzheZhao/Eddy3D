@@ -401,13 +401,16 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>Copy "$(TargetPath)" "$(TargetDir)$(ProjectName).gha"
+    <PostBuildEvent>
+
+Copy "$(TargetPath)" "$(TargetDir)$(ProjectName).gha"
 Erase "$(TargetPath)"
 
 SET obfuscar=$(SolutionDir)packages\Obfuscar.2.2.29\tools\Obfuscar.Console.exe
 SET build_eddy=$(SolutionDir)Eddy\bin
 SET build_batchrunner=$(SolutionDir)CallBatchRunner\bin
 SET installation_folder=C:\Eddy3D
+if not exist "installation_folder" mkdir installation_folder
 
 if $(ConfigurationName)==Debug (
 xcopy /e /v  /y "%25build_eddy%25" "%25installation_folder%25"
