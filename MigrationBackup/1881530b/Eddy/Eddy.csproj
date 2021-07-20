@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Obfuscar.2.2.29\build\obfuscar.props" Condition="Exists('..\packages\Obfuscar.2.2.29\build\obfuscar.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -36,8 +37,34 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Eto, Version=2.5.0.0, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
+      <HintPath>..\packages\RhinoCommon.7.3.21053.23031\lib\net45\Eto.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="GH_IO, Version=7.3.21053.23030, Culture=neutral, PublicKeyToken=6a29997d2e6b4f97, processorArchitecture=MSIL">
+      <HintPath>..\packages\Grasshopper.7.3.21053.23031\lib\net45\GH_IO.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Grasshopper, Version=7.3.21053.23030, Culture=neutral, PublicKeyToken=dda4f5ec2cd80803, processorArchitecture=MSIL">
+      <HintPath>..\packages\Grasshopper.7.3.21053.23031\lib\net45\Grasshopper.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="MedallionShell, Version=1.6.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MedallionShell.1.6.2\lib\net471\MedallionShell.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Rhino.UI, Version=7.3.21053.23030, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
+      <HintPath>..\packages\RhinoCommon.7.3.21053.23031\lib\net45\Rhino.UI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="RhinoCommon, Version=7.3.21053.23030, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
+      <HintPath>..\packages\RhinoCommon.7.3.21053.23031\lib\net45\RhinoCommon.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -147,6 +174,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -421,4 +449,14 @@ xcopy /e /v  /y "$(SolutionDir)Build\Obfuscator_Output" "%25installation_folder%
     <StartAction>Program</StartAction>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
+  <Import Project="..\packages\RhinoCommon.7.3.21053.23031\build\RhinoCommon.targets" Condition="Exists('..\packages\RhinoCommon.7.3.21053.23031\build\RhinoCommon.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\RhinoCommon.7.3.21053.23031\build\RhinoCommon.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\RhinoCommon.7.3.21053.23031\build\RhinoCommon.targets'))" />
+    <Error Condition="!Exists('..\packages\Grasshopper.7.3.21053.23031\build\Grasshopper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Grasshopper.7.3.21053.23031\build\Grasshopper.targets'))" />
+    <Error Condition="!Exists('..\packages\Obfuscar.2.2.29\build\obfuscar.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Obfuscar.2.2.29\build\obfuscar.props'))" />
+  </Target>
+  <Import Project="..\packages\Grasshopper.7.3.21053.23031\build\Grasshopper.targets" Condition="Exists('..\packages\Grasshopper.7.3.21053.23031\build\Grasshopper.targets')" />
 </Project>
