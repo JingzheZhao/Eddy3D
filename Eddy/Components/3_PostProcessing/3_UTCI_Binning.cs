@@ -37,7 +37,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddNumberParameter("UTCI Condition", "UC", "UTCI Condition [-]", GH_ParamAccess.list);
+            pManager.AddNumberParameter("UTCI Condition", "Cond", "UTCI Condition of Person", GH_ParamAccess.list);
         }
 
         /// <summary>
