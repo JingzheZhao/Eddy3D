@@ -1,4 +1,9 @@
-﻿using System.IO;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace EddyLib.Indoor.BatchFiles
 {
@@ -18,7 +23,7 @@ namespace EddyLib.Indoor.BatchFiles
 
         public void Export(string baseWorkingDir)
         {
-            var path = Path.Combine(baseWorkingDir, BatchLocation);
+            var path = Path.Combine(baseWorkingDir,BatchLocation);
             Directory.CreateDirectory(path);
             //if (!path.EndsWith("\\")) path += "\\";
             File.WriteAllText(path + this.BatchName, this.FullDictString);
@@ -29,7 +34,7 @@ namespace EddyLib.Indoor.BatchFiles
             return
                    @"call ""C:\Program Files\blueCFD-Core-2017\\setvars.bat""
                     set PATH=%HOME%msys64\usr\bin;%PATH%
-                    cd " + "\"" + BatchLocation.ToString() + "\"";
+                    cd " + BatchLocation.ToString();
         }
 
         public void RemoveBatch(string baseWorkingDir)

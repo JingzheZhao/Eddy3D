@@ -1,4 +1,5 @@
-﻿using Rhino.Geometry;
+﻿using EddyLib.Indoor;
+using Rhino.Geometry;
 using System;
 using System.Drawing;
 using System.IO;
@@ -115,6 +116,8 @@ namespace EddyLib
                 }
             }
         }
+
+       
 
         public static void SaveFrontagePNGs(String dirToSavePNGs, int windDir, Bitmap[] bitmapArray)
         {

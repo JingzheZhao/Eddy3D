@@ -1,4 +1,12 @@
-﻿namespace EddyLib.Indoor.Dicts
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text;
+using System.Threading.Tasks;
+using EddyLib.Indoor.Dicts;
+
+namespace EddyLib.Indoor.Dicts
 {
     public class GDict : GenericDict
     {

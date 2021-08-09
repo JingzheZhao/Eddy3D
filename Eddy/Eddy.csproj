@@ -61,6 +61,9 @@
       <HintPath>..\packages\RhinoCommon.7.3.21053.23031\lib\net45\Rhino.UI.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="RhinoCommon, Version=7.3.21053.23030, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
       <HintPath>..\packages\RhinoCommon.7.3.21053.23031\lib\net45\RhinoCommon.dll</HintPath>
       <Private>False</Private>
@@ -391,6 +394,54 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Eddy_AnalysisBins_Season.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Domain.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Emitter.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Geometry.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Inlet.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Outlet.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Domain_Param.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Emitter_Param.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Geometry_Param.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Inlet_Param.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Outlet copy.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_VolumetricHeatSource.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_VHS.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor__Indoor_VHS.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor__Indoor_MomentumSink.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor__Indoor_ViralEmitter.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor__Indoor_CO2Emitter.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

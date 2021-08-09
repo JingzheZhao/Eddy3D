@@ -48,7 +48,7 @@ namespace EddyLib.Indoor
         //public List<TopoSetSubDict> VHSID = new List<TopoSetSubDict>();
 
         public List<MomentumSinkIndoor> MomentumSinks = new List<MomentumSinkIndoor>();
-        // public List<TopoSetSubDict> MSinkID = new List<TopoSetSubDict>();
+       // public List<TopoSetSubDict> MSinkID = new List<TopoSetSubDict>();
 
         public List<MomentumSource> MomentumSources = new List<MomentumSource>();
         //public List<TopoSetSubDict> MSourceID = new List<TopoSetSubDict>();
@@ -139,6 +139,8 @@ namespace EddyLib.Indoor
             AllDictsWrite2File.Add(g);
             AllDictsWrite2File.Add(thermoPhysicalProperties);
             AllDictsWrite2File.Add(turbulenceProperties);
+
+            ExportGeometryAndDicts(WorkingDir);
 
             // Function Objects
 
@@ -232,6 +234,8 @@ namespace EddyLib.Indoor
             //    v++;
             //}
 
+
+            
             //iterate through FOs and count each type of fo per type
             int ctVHS = 0;
             int ctMsi = 0;
@@ -257,80 +261,78 @@ namespace EddyLib.Indoor
                     //dict.Export(WorkingDir);
 
                     this.VolumetricHeatSources.Add((VolumetricHeatSource)FOs[i]);
-                    this.VolumetricHeatSources[ctVHS].ID = FOs[i].Name + "_" + i.ToString();
+                    this.VolumetricHeatSources[ctVHS].ID = FOs[i].Name + "_"+ i.ToString();
 
-                    //var dict = new VolumetricHeatSourceInternalDict(this.VolumetricHeatSources[ctVHS], this.PointInsideDomain);
-                    var dict = new VolumetricHeatSourceInternalDict(this.VolumetricHeatSources, this.PointInsideDomain);
-
-                    //dict.Export(WorkingDir);
+                    var dict = new VolumetricHeatSourceInternalDict(this.VolumetricHeatSources[ctVHS], this.PointInsideDomain);
+                    dict.Export(WorkingDir);
 
                     AllFunctionObjectInternalDicts.Add(dict);
-                    ctVHS++;
+                    ctVHS++; 
                 }
+
                 else if (FOs[i] is MomentumSinkIndoor)
                 {
                     this.FOs.Add((MomentumSinkIndoor)FOs[i]);
                     this.MomentumSinks.Add((MomentumSinkIndoor)FOs[i]);
                     this.MomentumSinks[ctMsi].ID = FOs[i].Name + "_" + i.ToString();
 
-                    //var dict = new MomentumSinkIndoorInternalDict(this.MomentumSinks[ctMsi], this.PointInsideDomain);
-                    var dict = new MomentumSinkIndoorInternalDict(this.MomentumSinks, this.PointInsideDomain);
-                    //dict.Export(WorkingDir);
+                    var dict = new MomentumSinkIndoorInternalDict(this.MomentumSinks[ctMsi], this.PointInsideDomain);
+                    dict.Export(WorkingDir);
 
                     AllFunctionObjectInternalDicts.Add(dict);
 
-                    ctMsi++;
+                    ctMsi++; 
                 }
+
                 else if (FOs[i] is MomentumSource)
                 {
                     this.FOs.Add((MomentumSource)FOs[i]);
                     this.MomentumSources.Add((MomentumSource)FOs[i]);
                     this.MomentumSources[ctMso].ID = FOs[i].Name + "_" + i.ToString();
 
-                    // var dict = new MomentumSourceInternalDict(this.MomentumSources[ctMso], this.PointInsideDomain);
-                    var dict = new MomentumSourceInternalDict(this.MomentumSources, this.PointInsideDomain);
-                    //dict.Export(WorkingDir);
+                    var dict = new MomentumSourceInternalDict(this.MomentumSources[ctMso], this.PointInsideDomain);
+                    dict.Export(WorkingDir);
 
                     AllFunctionObjectInternalDicts.Add(dict);
 
-                    ctMso++;
+                    ctMso++; 
                 }
+
                 else if (FOs[i] is CO2Emitter)
                 {
                     this.FOs.Add((CO2Emitter)FOs[i]);
                     this.CO2Emitters.Add((CO2Emitter)FOs[i]);
                     this.CO2Emitters[ctCo2].ID = FOs[i].Name + "_" + i.ToString();
 
-                    //var dict = new CO2EmitterInternalDict(this.CO2Emitters[ctCo2], this.PointInsideDomain);
-                    var dict = new CO2EmitterInternalDict(this.CO2Emitters, this.PointInsideDomain);
-                    //dict.Export(WorkingDir);
+                    var dict = new CO2EmitterInternalDict(this.CO2Emitters[ctCo2], this.PointInsideDomain);
+                    dict.Export(WorkingDir);
 
                     AllFunctionObjectInternalDicts.Add(dict);
 
-                    ctCo2++;
+                    ctCo2++; 
                 }
+
                 else if (FOs[i] is ViralEmitter)
                 {
+
                     this.FOs.Add((ViralEmitter)FOs[i]);
                     this.ViralEmitters.Add((ViralEmitter)FOs[i]);
                     this.ViralEmitters[ctVir].ID = FOs[i].Name + "_" + i.ToString();
 
-                    //var dict = new ViralEmitterInternalDict(this.ViralEmitters[ctVir], this.PointInsideDomain);
-                    var dict = new ViralEmitterInternalDict(this.ViralEmitters, this.PointInsideDomain);
-
-                    //dict.Export(WorkingDir);
+                    var dict = new ViralEmitterInternalDict(this.ViralEmitters[ctVir], this.PointInsideDomain);
+                    dict.Export(WorkingDir);
 
                     AllFunctionObjectInternalDicts.Add(dict);
 
-                    ctVir++;
+                    ctVir++; 
                 }
+
             }
 
-            ExportGeometryAndDicts(WorkingDir);
 
             ////iterate through each of the fos
 
-            //for (int i = 0; i < FOs.Count; i++)
+            //for (int i = 0; i < FOs.Count; i++) 
             //{
             //    if (FOs[i] is VolumetricHeatSource)
             //    {
@@ -348,8 +350,11 @@ namespace EddyLib.Indoor
 
             //}
 
+
+
             //    for (int i = 0; i < FOs.Count; i++)
             //{
+
             //    //Voluetric Heat Source
             //    if (FOs[i] is VolumetricHeatSource)
             //    {
@@ -427,9 +432,10 @@ namespace EddyLib.Indoor
             //    }
             //}
 
+
             // TopoSetDict - pass a list of Function Objects with updated IDs.
 
-            var topoSetDict = new TopoSetDict(ViralEmitters, CO2Emitters, VolumetricHeatSources, MomentumSinks, MomentumSources, PointInsideDomain);
+            var topoSetDict = new TopoSetDict(ViralEmitters,CO2Emitters,VolumetricHeatSources,MomentumSinks,MomentumSources, PointInsideDomain);
             topoSetDict.Export(WorkingDir);
 
             // System
@@ -458,9 +464,9 @@ namespace EddyLib.Indoor
             var decomposeParDict = new DecomposeParDict();
             decomposeParDict.Export(WorkingDir);
 
-            //fOs
-            var fvOpt = new FvOptions(this.AllFunctionObjectInternalDicts);
-            fvOpt.Export(WorkingDir);
+           
+            
+
 
             //FOS -     OLD IMPLEMENTATION  - NOT NECESSARY?
 
@@ -471,6 +477,11 @@ namespace EddyLib.Indoor
             //var volumetricHeatSourceDict = new FunctionObjectDict(VHSID, "VolumetricHeatSource");
 
             //var momentumSinkDict = new FunctionObjectDict(MSinkID, "momentumSinkDict");
+
+
+
+
+
 
             //AllDictsWrite2File.Add(controlDict);
 
@@ -493,9 +504,16 @@ namespace EddyLib.Indoor
 
             //ExportFO(WorkingDir);
 
+
+
+
             //AllFOWrite2File.Add(topoSetDict);
 
+
             // AllFOWrite2File.Add(fvOptionsDict);
+
+
+
 
             //Exoprt Batch Files
 
@@ -531,11 +549,6 @@ namespace EddyLib.Indoor
             foreach (var geo in AllGeometry)
             {
                 EddyLib.STLExport.ExportBinary(stlDir + "\\" + geo.Id + ".stl", geo.Geometry);
-            }
-
-            foreach (var g in this.FOs)
-            {
-                EddyLib.STLExport.ExportBinary(stlDir + "\\" + g.ID + ".stl", g.Geometry);
             }
         }
 

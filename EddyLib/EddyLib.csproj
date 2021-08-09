@@ -168,6 +168,13 @@
     <Compile Include="UI\Attributes\Eddy_ComponentAttributes.cs" />
     <Compile Include="UI\Attributes\Eddy_ComponentButtonAttributes.cs" />
     <Compile Include="FunctionObjects.cs" />
+    <Compile Include="FunctionObjects\FunctionObject.cs" />
+    <Compile Include="Indoor\Dicts\FunctionObjects\MomentumSinkIndoorInternalDict.cs" />
+    <Compile Include="Indoor\Dicts\FunctionObjects\ViralEmitterInternalDict.cs" />
+    <Compile Include="Indoor\FunctionObjects\MomentumSinkIndoor.cs" />
+    <Compile Include="Indoor\FunctionObjects\ViralEmitter.cs" />
+    <Compile Include="Indoor\FunctionObjects\VolumetricHeatSource.cs" />
+    <Compile Include="Indoor\FunctionObjects\MomentumSource.cs" />
     <Compile Include="FunctionObjects\PressureCoeff.cs" />
     <Compile Include="BoundaryConditions\BoundaryConditionsBase.cs" />
     <Compile Include="FunctionObjects\Tree.cs" />

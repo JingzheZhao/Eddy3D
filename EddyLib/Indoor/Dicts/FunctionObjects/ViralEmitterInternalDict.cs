@@ -1,30 +1,35 @@
-﻿using Rhino.Geometry;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Rhino.Geometry;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace EddyLib.Indoor.Dicts
 {
-    internal class ViralEmitterInternalDict : GenericDict
+    class ViralEmitterInternalDict : GenericDict
     {
+
         public List<String> InternalDict = new List<string>();
 
-        //public ViralEmitterInternalDict(ViralEmitter viralEm, Point3d PointInsideDomain)
-        public ViralEmitterInternalDict(List<ViralEmitter> viralEmitters, Point3d PointInsideDomain)
+        public ViralEmitterInternalDict(ViralEmitter viralEm, Point3d PointInsideDomain)
         {
-            this.DictionaryName = "viralEmitters";
+            this.DictionaryName = "viralEmitter";
             this.Location = DictLocation.system;
             this.FC = FieldClass.dictionary;
             this.Header = GetHeader(this);
 
-            //this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalViralDict(viralEm)));
-            foreach (ViralEmitter i in viralEmitters) { this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalViralDict(i))); }
+            this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalViralDict(viralEm)));
 
             string[] parts = {
                String.Join("\n", this.InternalDict.ToArray())
             };
 
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
+
+
+            //this.TopoSetDictString = CppMapSerializerDyn.Serialize(GetInternalTopoSetDict((FunctionObject)VEm, PointInsideDomain));
+            //this.FunctionObjectSubDictString = CppMapSerializerDyn.Serialize(GetInternalC02Dict(VEm));
         }
 
         private static Dictionary<string, dynamic> GetInternalViralDict(ViralEmitter input)
@@ -37,7 +42,7 @@ namespace EddyLib.Indoor.Dicts
             Dict1.Add(input.ID, Dict2);
 
             Dict2.Add("active", "true");
-            Dict2.Add("type", "scalarSemiImplicitSource");
+            Dict2.Add("type", "semiImplicitSource");
             Dict2.Add("scalarSemiImplicitSourceCoeffs", Dict3);
 
             Dict3.Add("selectionMode", "cellZone");

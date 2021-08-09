@@ -2,7 +2,9 @@
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace EddyLib.Indoor.Dicts
 {
@@ -10,8 +12,9 @@ namespace EddyLib.Indoor.Dicts
 
     {
         //public new string DictionaryName = "topoSetDict";
-        //public new DictLocation Location =
+        //public new DictLocation Location = 
         //public new readonly FieldClass FC = FieldClass.dictionary;
+
 
         public List<String> InternalDict = new List<string>();
 
@@ -22,7 +25,7 @@ namespace EddyLib.Indoor.Dicts
             this.FC = FieldClass.dictionary;
             this.Header = GetHeader(this);
 
-            foreach (ViralEmitter i in viralEmitters) { this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetTopoSetDict(i, pointInsideDomain))); }
+            foreach (ViralEmitter i in viralEmitters) { this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetTopoSetDict(i,pointInsideDomain)));}
             foreach (CO2Emitter i in cO2Emitters) { this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetTopoSetDict(i, pointInsideDomain))); }
             foreach (VolumetricHeatSource i in volumetricHeatSources) { this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetTopoSetDict(i, pointInsideDomain))); }
             foreach (MomentumSinkIndoor i in momentumSinks) { this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetTopoSetDict(i, pointInsideDomain))); }
@@ -30,7 +33,7 @@ namespace EddyLib.Indoor.Dicts
 
             string[] parts = {
                this.Header, "\n", "actions", "\n", "(",
-               String.Join("\n", this.InternalDict.ToArray()),"\n",");"
+               String.Join("\n", this.InternalDict.ToArray()),"\n",")"
             };
 
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
@@ -42,6 +45,13 @@ namespace EddyLib.Indoor.Dicts
         //    ///FIX FOR TREE DICT
 
         //    //foreach (FunctionObject i in fo)
+
+
+
+
+
+
+
 
         //    //   string[] parts = {
         //    //      this.Header, "\n", //(This is a subdict and doesn't need a header
@@ -70,8 +80,8 @@ namespace EddyLib.Indoor.Dicts
             InternalDict.Add("sourceInfo", sourceInfo);
 
             sourceInfo.Add("surface", "triSurfaceMesh");
-            sourceInfo.Add("file", "\"" + "./constant/triSurface/" + input.ID + ".stl" + "\"");
-            sourceInfo.Add("outsidePoints", "((" + Utilities.FormatPV(PointInsideDomain) + "))");
+            sourceInfo.Add("file",  "\"" +  "./constant/triSurface/" + input.ID + ".stl" + "\"");
+            sourceInfo.Add("outsidePoints", "(("+ Utilities.FormatPV(PointInsideDomain) +"))" );
             sourceInfo.Add("includeCut", "yes");
             sourceInfo.Add("includeInside", "yes");
             sourceInfo.Add("includeOutside", "no");

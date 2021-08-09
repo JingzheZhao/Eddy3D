@@ -1,10 +1,16 @@
-﻿using Rhino.Geometry;
+using EddyLib.Indoor.Dicts;
+using Newtonsoft.Json;
+using Rhino.Geometry;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-[assembly: InternalsVisibleTo("RhinoPlugin.Test.Xunit")]
+
+#if DEBUG
+[assembly: InternalsVisibleTo("UnitTest")]
+#endif
 
 namespace EddyLib.Indoor.Dicts
 {
@@ -28,9 +34,12 @@ namespace EddyLib.Indoor.Dicts
 
             this.GeometrySubDict = new Dictionary<string, dynamic>();
 
-            foreach (IndoorBC i in inlet) { this.GeometrySubDict.Add(i.Id + ".stl", GetGeometryDict(i)); };
-            foreach (IndoorBC i in outlet) { this.GeometrySubDict.Add(i.Id + ".stl", GetGeometryDict(i)); };
-            foreach (IndoorBC i in wall) { this.GeometrySubDict.Add(i.Id + ".stl", GetGeometryDict(i)); };
+
+
+            foreach (IndoorBC i in inlet) { this.GeometrySubDict.Add(i.Id, GetGeometryDict(i)); };
+            foreach (IndoorBC i in outlet) { this.GeometrySubDict.Add(i.Id, GetGeometryDict(i)); };
+            foreach (IndoorBC i in wall) { this.GeometrySubDict.Add(i.Id, GetGeometryDict(i)); };
+
 
             this.GeometryDict = new Dictionary<string, dynamic>();
             GeometryDict.Add("geometry", GeometrySubDict);
@@ -43,21 +52,24 @@ namespace EddyLib.Indoor.Dicts
                CppMapSerializerDyn.Serialize(GetAddLayersControls()),"\n",
                CppMapSerializerDyn.Serialize(GetMeshQualityControls()),"\n" };
 
+
+
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
         }
 
         public static Dictionary<string, dynamic> GetGeometryDict(IndoorBC input)
         {
-            //Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
+
+            Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
 
-            //Dict.Add(input.Id + ".stl", InternalDict);
+            Dict.Add(input.Id + ".stl", InternalDict);
 
             InternalDict.Add("type", input.OFGeometryType);
             InternalDict.Add("name", input.Id);
 
-            return InternalDict;
+            return Dict;
         }
 
         private static Dictionary<string, dynamic> GetSettingsDict()
@@ -164,7 +176,7 @@ namespace EddyLib.Indoor.Dicts
             Dict2.Add("minDeterminant", "0.001");
             Dict2.Add("minFaceWeight", "0.05");
             Dict2.Add("minVolRatio", "0.01");
-            Dict2.Add("minTriangleTwist", "-1");
+            Dict2.Add("minTriangleTwist", "- 1");
             Dict2.Add("nSmoothScale", "4");
             Dict2.Add("errorReduction", "0.75");
 
@@ -207,13 +219,13 @@ namespace EddyLib.Indoor.Dicts
         }
 
         //Mesh Features Object
-        private class MeshFeatureObject
+        class MeshFeatureObject
         {
+
             private List<IndoorBC.Inlet> inlet { get; set; }
-
             private List<IndoorBC.Outlet> outlet { get; set; }
-
             private List<IndoorBC.Wall> wall { get; set; }
+
 
             public MeshFeatureObject(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
@@ -241,13 +253,13 @@ namespace EddyLib.Indoor.Dicts
         }
 
         //Mesh Refinement Object
-        private class MeshRefinementObject
+        class MeshRefinementObject
         {
+
             private List<IndoorBC.Inlet> inlet { get; set; }
-
             private List<IndoorBC.Outlet> outlet { get; set; }
-
             private List<IndoorBC.Wall> wall { get; set; }
+
 
             public MeshRefinementObject(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
@@ -273,8 +285,7 @@ namespace EddyLib.Indoor.Dicts
 
                 sb.Append(@"}");
 
-                //return GenericDict.InParenthesis(sb.ToString());
-                return sb.ToString();
+                return GenericDict.InParenthesis(sb.ToString());
             }
         }
 

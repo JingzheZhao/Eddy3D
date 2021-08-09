@@ -117,6 +117,12 @@ namespace Eddy
             DA.SetData(0, BCInflow);
         }
 
+        // hidden parameter
+        public override GH_Exposure Exposure
+        {
+            get { return GH_Exposure.primary; }
+        }
+
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface. Icons
         /// need to be 24x24 pixels.

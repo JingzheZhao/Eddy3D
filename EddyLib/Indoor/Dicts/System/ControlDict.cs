@@ -1,7 +1,14 @@
-﻿using System;
+using EddyLib.Indoor.FunctionObjects;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
+
+
+#if DEBUG
+[assembly: InternalsVisibleTo("UnitTest")]
+#endif
 
 namespace EddyLib.Indoor.Dicts
 {
@@ -27,6 +34,8 @@ namespace EddyLib.Indoor.Dicts
             };
 
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
+
+
         }
 
         //ADD LIBRARIES
@@ -56,15 +65,19 @@ namespace EddyLib.Indoor.Dicts
             return sb.ToString();
         }
 
+
         private static Dictionary<string, dynamic> GetDict(IndoorDomain IndoorDom)
         {
+
+
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
 
-            //OLD IMPLEMENTAION
+           //OLD IMPLEMENTAION
             //Dictionary<string, dynamic> FunctionObjectlDict = new Dictionary<string, dynamic>();
 
-            InternalDict.Add("application", "buoyantSimpleFoam");
 
+
+            InternalDict.Add("application", "buoyantSimpleFoam");
             //InternalDict.Add("application", "extractFromSurface");
             InternalDict.Add("startFrom", "startTime");
             InternalDict.Add("startTime", "0");
@@ -92,45 +105,23 @@ namespace EddyLib.Indoor.Dicts
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(@"{");
 
-            sb.AppendLine("#includeFunc  residuals");
+            if (IndDom.FOs.OfType<VolumetricHeatSource>().Any())            
+            { sb.AppendLine("#includeFunc volumetricHeatSources");}
 
-            sb.AppendLine(@"	fieldMinMax
-{
-                type fieldMinMax;
-                libs (""libfieldFunctionObjects.so"");
-                writeToFile true;
-                log true;
-                mode magnitude;
-                fields (U  T);
-            }
+            if (IndDom.FOs.OfType<MomentumSinkIndoor>().Any())
+            { sb.AppendLine("#includeFunc momentumSink"); }
 
-            average
-{
-                type volFieldValue;
-                libs (""libfieldFunctionObjects.so"");
-                fields (U T);
-                operation weightedVolAverage;
-                regionType all;
-                writeFields     true;
-                log true;
-            }");
+            if (IndDom.FOs.OfType<MomentumSource>().Any())
+            { sb.AppendLine("#includeFunc momentumSource"); }
 
-            //if (IndDom.FOs.OfType<VolumetricHeatSource>().Any())
-            //{ sb.AppendLine("#includeFunc volumetricHeatSources");}
+            if (IndDom.FOs.OfType<CO2Emitter>().Any())
+            { sb.AppendLine("#includeFunc co2Emitter"); }
 
-            //if (IndDom.FOs.OfType<MomentumSinkIndoor>().Any())
-            //{ sb.AppendLine("#includeFunc momentumSinks"); }
-
-            //if (IndDom.FOs.OfType<MomentumSource>().Any())
-            //{ sb.AppendLine("#includeFunc momentumSources"); }
-
-            //if (IndDom.FOs.OfType<CO2Emitter>().Any())
-            //{ sb.AppendLine("#includeFunc co2Emitters"); }
-
-            //if (IndDom.FOs.OfType<ViralEmitter>().Any())
-            //{ sb.AppendLine("#includeFunc viralEmitters"); }
+            if (IndDom.FOs.OfType<ViralEmitter>().Any())
+            { sb.AppendLine("#includeFunc viralEmitter"); }
 
             sb.Append(@"}");
+
 
             return sb.ToString();
         }
@@ -144,9 +135,12 @@ namespace EddyLib.Indoor.Dicts
         //if (IndoorDom.FOs.OfType<MomentumSink>().Any())
         //{ fos.Add("momentumSink"); }
 
+
         //FunctionObjectlDict.Add("#includeFunc", fos);
 
+
         //SNAPPYHEX
+
 
         //OLD IMPLEMENTAION
 
@@ -182,9 +176,12 @@ namespace EddyLib.Indoor.Dicts
         //    FunctionObjectlDict.Add("#includeFunc5", "viralEmitter");
         //}
 
+
         //class IncludeStatements
         //{
-        //    public IncludeStatements(IndoorDomain IndoorDom)
+
+
+        //    public IncludeStatements(IndoorDomain IndoorDom) 
 
         //    { }
 
@@ -199,6 +196,9 @@ namespace EddyLib.Indoor.Dicts
 
         //    }
 
+
         //}
+
+
     }
 }

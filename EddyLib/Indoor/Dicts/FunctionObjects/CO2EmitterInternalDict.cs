@@ -1,30 +1,37 @@
-﻿using Rhino.Geometry;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using EddyLib.Indoor.Dicts;
+using Rhino.Geometry;
+using EddyLib.Indoor.FunctionObjects;
 
 namespace EddyLib.Indoor.Dicts
 {
     public class CO2EmitterInternalDict : GenericDict
     {
+
         public List<String> InternalDict = new List<string>();
 
-        public CO2EmitterInternalDict(List<CO2Emitter> cO2Emitters, Point3d PointInsideDomain)
+        public CO2EmitterInternalDict(CO2Emitter co2Em, Point3d PointInsideDomain)
         {
-            this.DictionaryName = "co2Emitters";
+
+            this.DictionaryName = "co2Emitter";
             this.Location = DictLocation.system;
             this.FC = FieldClass.dictionary;
             this.Header = GetHeader(this);
 
-            foreach (CO2Emitter i in cO2Emitters) { this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalC02Dict(i))); }
-
-            //this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalC02Dict(co2Em)));
+            this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalC02Dict(co2Em)));
 
             string[] parts = {
                String.Join("\n", this.InternalDict.ToArray())
             };
 
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
+
+
+
 
             //this.TopoSetDictString = CppMapSerializerDyn.Serialize(GetInternalTopoSetDict((FunctionObject)co2Em, PointInsideDomain));
             //this.FunctionObjectSubDictString = CppMapSerializerDyn.Serialize(GetInternalC02Dict(co2Em));
@@ -40,7 +47,7 @@ namespace EddyLib.Indoor.Dicts
             Dict1.Add(input.ID, Dict2);
 
             Dict2.Add("active", "true");
-            Dict2.Add("type", "scalarSemiImplicitSource");
+            Dict2.Add("type", "semiImplicitSource");
             Dict2.Add("scalarSemiImplicitSourceCoeffs", Dict3);
 
             Dict3.Add("selectionMode", "cellZone");

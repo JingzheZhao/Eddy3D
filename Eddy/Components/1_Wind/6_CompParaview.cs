@@ -27,7 +27,7 @@ namespace Eddy
         /// </summary>
         public CompParaview()
           : base("Open Paraview", "Paraview", "Open Paraview" + EddyVersion.toString(),
-              EddyVersion.Name, "1 | Wind")
+              EddyVersion.Name, "5 | Post-Processing")
         {
         }
 

@@ -25,7 +25,7 @@ namespace Eddy
         /// </summary>
         public AnalysisPeriodToHours()
           : base("Translate date to hours", "Date2Hours", "Translate Ladybug analysis period to hours of the year." + EddyVersion.toString(),
-              EddyVersion.Name, "1 | Wind")
+              EddyVersion.Name, "5 | Post-Processing")
         {
         }
 
@@ -35,8 +35,9 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("Analysis Period", "AP", @"Analysis Period (Ladybug format).
-               For example (2,2,2)
-(11,11,11) would list hours from the second hour and second day of February until the 11th hour on the 11th day of November.", GH_ParamAccess.list);
+The following would for example list hours from the second hour and second day of February until the 11th hour on the 11th day of November:
+(2,2,2)
+(11,11,11)", GH_ParamAccess.list);
         }
 
         /// <summary>
