@@ -48,7 +48,7 @@ namespace EddyLib.Indoor
         //public List<TopoSetSubDict> VHSID = new List<TopoSetSubDict>();
 
         public List<MomentumSinkIndoor> MomentumSinks = new List<MomentumSinkIndoor>();
-       // public List<TopoSetSubDict> MSinkID = new List<TopoSetSubDict>();
+        // public List<TopoSetSubDict> MSinkID = new List<TopoSetSubDict>();
 
         public List<MomentumSource> MomentumSources = new List<MomentumSource>();
         //public List<TopoSetSubDict> MSourceID = new List<TopoSetSubDict>();
@@ -58,6 +58,8 @@ namespace EddyLib.Indoor
 
         public List<ViralEmitter> ViralEmitters = new List<ViralEmitter>();
         //public List<TopoSetSubDict> ViralID = new List<TopoSetSubDict>();
+
+        public int functionObjectCount  { get; set; }
 
         public IndoorDomain()
         {
@@ -244,6 +246,8 @@ namespace EddyLib.Indoor
             int ctMso = 0;
             int ctCo2 = 0;
             int ctVir = 0;
+
+            this.functionObjectCount = FOs.Count;
 
             for (int i = 0; i < FOs.Count; i++)
             {
@@ -528,6 +532,9 @@ namespace EddyLib.Indoor
 
             var runTopoBatch = new RunTopoBatch(this);
             runTopoBatch.Export(WorkingDir);
+
+            var runAllBatch = new RunAllBatch(this);
+            runAllBatch.Export(WorkingDir);
 
             //AllBatsWrite2File.Add(runMeshBatch);
             //AllBatsWrite2File.Add(runSimBatch);

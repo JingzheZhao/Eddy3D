@@ -108,6 +108,7 @@
     <Compile Include="Geometry\EddyVector.cs" />
     <Compile Include="GlobalSettings\DefaultDirectoriesAndPaths.cs" />
     <Compile Include="Indoor\BatchFiles\GenericBatchFile.cs" />
+    <Compile Include="Indoor\BatchFiles\RunAllBatch.cs" />
     <Compile Include="Indoor\BatchFiles\RunMeshBatch.cs" />
     <Compile Include="Indoor\BatchFiles\RunSimBatch.cs" />
     <Compile Include="Indoor\BatchFiles\RunTopoBatch.cs" />

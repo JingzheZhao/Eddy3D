@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Windows.Forms;
 using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
@@ -8,26 +9,30 @@ using EddyLib.Indoor;
 using EddyLib.Indoor.FunctionObjects;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
+using Medallion.Shell;
 using Rhino.Geometry;
 using System.Threading;
 using System.Threading.Tasks;
 using EddyLib.UI;
 using System.Globalization;
+using System.IO;
 
 namespace Eddy.Components.Indoor
 {
-    public class IndoorDomain_Component : GH_Component
+    public class IndoorDomainV2_Component : GH_Component
     {
+        int iterations = 1;
+        double numFuncObj = 1;
+        string BaseWorkingDir = "";
+
+
         /// <summary>
         /// Initializes a new instance of the IndoorDomain class.
         /// </summary>
-        public IndoorDomain_Component() : base("IndoorDomain", "IDom", "IndoorDomain" + EddyVersion.toString(), EddyVersion.Name, "9 | Indoor")
+        /// 
+        
+        public IndoorDomainV2_Component() : base("IndoorDomain", "IDom", "IndoorDomain" + EddyVersion.toString(), EddyVersion.Name, "9 | Indoor")
         {
-        }
-
-        public override GH_Exposure Exposure
-        {
-            get { return GH_Exposure.hidden; }
         }
 
         /// <summary>
@@ -56,18 +61,8 @@ namespace Eddy.Components.Indoor
             //7
             pManager.AddIntegerParameter("Iterations", "Iter", "Iterations for Simulation.", GH_ParamAccess.item, 1);
             pManager[7].Optional = true;
-
             //8
-            pManager.AddBooleanParameter("Run Meshing", "RunMsh", "Run Meshing", GH_ParamAccess.item, false);
-
-            //9
-            pManager.AddBooleanParameter("Make FOS", "MakeFOS", "Create Function Objects", GH_ParamAccess.item, false);
-
-            //10
-            pManager.AddBooleanParameter("Run Simulation", "RunSim", "Run Simulation", GH_ParamAccess.item, false);
-
-            //11
-            pManager.AddBooleanParameter("Run All Batch", "RunAll", "Run All Batch", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Run", "Run", "Run case setup routines and simulation", GH_ParamAccess.item, false);
         }
 
         /// <summary>
@@ -118,6 +113,9 @@ namespace Eddy.Components.Indoor
 
             string dir = "";
             DA.GetData(4, ref dir);
+            BaseWorkingDir = dir;
+
+
             Point3d pointInsideDomain = new Point3d();
             DA.GetData(5, ref pointInsideDomain);
             double cellSize = 1;
@@ -168,112 +166,68 @@ namespace Eddy.Components.Indoor
             var dom = new IndoorDomain(endTime, dir, cellSize, pointInsideDomain, Walls, Inlets, Outlets, FOs);
             var domGoo = new IndoorDomaingGoo(dom);
 
-            //bool toggle
-            #region START PROCESSES
 
-            //ONE BUTTON -ALLBATCH FILES IN ONE
 
-            bool makeBatch = false;
 
-            DA.GetData(11, ref makeBatch);
 
-            string allBat = dom.WorkingDir + @"\run_all.bat";
+             #region START PROCESSES
+          
+            bool RUN = false;
+            bool HidePopUp = true;
+            iterations = endTime;
+            DA.GetData(8, ref RUN);
 
-            try {
-                if (makeBatch == true && canRun)
+
+            bool runWithConsoleWindow = true;
+
+            if (runWithConsoleWindow)
+            {
+                if (canRun)
                 {
-                    Console.WriteLine("Run Simulation...");
-
-                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, allBat, taskComplete);
-
-                    //PROGRESSBAR
-
-                    int lineCounter = 0;
-
-                    while (Console.ReadLine() != null)
+                    string runall = this.BaseWorkingDir + @"\run_all.bat";
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, runall, taskComplete);
+                }
+            }
+            else
+            {
+                try
+                {
+                    // redirect stderr
+                    var errors = new StringWriter();
+                    Console.SetError(errors);
+                    if (RUN)
                     {
-                        lineCounter++;
-
-                        double iterations = 1;
-                        DA.GetData(7, ref iterations);
-                        
-                        double numFuncObj = 1;
-                        DA.GetData(3, ref numFuncObj);
-
-                        double steps = 1962 + 37 + (9 * numFuncObj) +1731+ (26 * iterations) ;
-
-                        Console.WriteLine(ProgressWriter.ProgressKey + (100 * lineCounter / steps).ToString(CultureInfo.InvariantCulture));
-                        
+                        if (HidePopUp)
+                        {
+                            DoWork(new CancellationTokenSource());
+                        }
+                        else
+                        {
+                            // show progress form
+                            var progress = new ProgressDialog(DoWorkAsync);
+                            progress.ShowModal();
+                            // if user cancellation, abort solution
+                            if (progress.Canceled)
+                            {
+                                OnPingDocument().RequestAbortSolution();
+                            }
+                        }
                     }
-
+                }
+                catch (Exception ex)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, ex.Message); return;
                 }
             }
-
-            catch (Exception ex)
-            {
-
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, ex.Message); return;
-
-            }
-
-            //THREE BUTTONS - THREE BATCH FILES IN SEPARATE BUTTONS
-            bool makeFOs = false;
-            bool runSimulation = false;
-            bool runMeshing = false;
-
-            DA.GetData(8, ref makeFOs);
-            DA.GetData(9, ref runSimulation);
-            DA.GetData(10, ref runMeshing);
-
-
-            string toposetBat = dom.WorkingDir  + @"\run_topoSet.bat";
-            string meshBat = dom.WorkingDir + @"\run_mesh.bat";
-            string simBat = dom.WorkingDir + @"\run_sim.bat";
-
-            try
-            {
-
-                if (makeFOs == true && canRun)
-                {
-                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, toposetBat, taskComplete);
-                }
-
-                if (runMeshing == true && runSimulation == true && canRun)
-                {
-
-                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, meshBat, taskComplete);
-                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, simBat, taskComplete);
-
-                }
-                else if (runMeshing == true && runSimulation == false && canRun)
-                {
-                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, meshBat, taskComplete);
-
-                }
-                else if (runMeshing == false && runSimulation == true && canRun)
-                {
-                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, simBat, taskComplete);
-                }
-            }
-            catch (Exception ex) {
-
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, ex.Message); return;
-
-            }
+ 
             #endregion START PROCESSES
 
 
             DA.SetData(0, domGoo);
             canRun = true;
+
         }
 
-        private bool canRun = true;
-
-        public void taskComplete(object sender, System.EventArgs e)
-        {
-            canRun = false;
-            this.ExpireSolution(true);
-        }
 
         public FunctionObject CastToFO(GH_ObjectWrapper gobj)
         {
@@ -299,7 +253,71 @@ namespace Eddy.Components.Indoor
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("f275e34c-c8ba-4b2b-8a2f-917b01ed028f"); }
+            get { return new Guid("{E9C2B577-8E30-4945-8982-D99AB92A1759}"); }
         }
+
+        private bool canRun = true;
+        public void taskComplete(object sender, System.EventArgs e)
+        {
+            canRun = false;
+            this.ExpireSolution(true);
+        }
+
+
+
+
+        private void DoWork(CancellationTokenSource cts)
+        {
+            var success = RunSlowSimulation(cts, 2);
+        }
+
+        private async Task DoWorkAsync(CancellationTokenSource cts)
+        {
+            await Task.Run(() =>
+            {
+                DoWork(cts);
+            });
+        }
+
+        public bool RunSlowSimulation(CancellationTokenSource cts, int nthreads = 1)
+        {
+            // -----------------------------
+            // run the simulation
+            // -----------------------------
+
+            int steps = (int) (1962 + 37 + (9 * numFuncObj) + 1731 + (26 * iterations));
+            int stepCnt = 0;
+
+
+            string allBat = this.BaseWorkingDir + @"\run_all.bat";
+
+
+            Console.WriteLine("Run Eddy Simulation...");
+
+
+            var runIndoorEddy = Command.Run("cmd.exe", new[] { "" },
+  options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(cts.Token));
+            runIndoorEddy.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
+            runIndoorEddy.StandardInput.WriteLine(allBat);
+            runIndoorEddy.StandardInput.WriteLine("exit");
+
+            int cnt = 0;
+
+            string line;
+            while ((line = runIndoorEddy.StandardOutput.ReadLine()) != null)
+            {
+                Console.WriteLine(line);
+                Interlocked.Increment(ref stepCnt);
+                Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+                cnt++;
+            }
+
+            runIndoorEddy.Wait();
+
+            return true;
+        }
+
+
+
     }
 }
