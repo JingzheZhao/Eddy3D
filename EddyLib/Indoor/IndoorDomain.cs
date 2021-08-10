@@ -148,9 +148,11 @@ namespace EddyLib.Indoor
 
             //var VHSInternalDicts = new List<FunctionObjectDictInternal>();
 
+
             //Iterate through function objects
             //Name each item per FO type
             //Create a new dictionary for each FO type with  entires for each item.
+
 
             //FOREACH IMPLEMENTATION
 
@@ -245,6 +247,7 @@ namespace EddyLib.Indoor
 
             for (int i = 0; i < FOs.Count; i++)
             {
+
                 //Voluetric Heat Source
                 if (FOs[i] is VolumetricHeatSource)
                 {
@@ -535,6 +538,7 @@ namespace EddyLib.Indoor
 
         //OLD IMPLEMENTATION
 
+
         //export geomety and dictionaries of 0 folders and STLs
         public void ExportGeometryAndDicts(string workingDir)
         {
@@ -561,6 +565,7 @@ namespace EddyLib.Indoor
         //        dict.Export(workingDir);
         //    }
         //}
+
 
         //export batch files
         //public void ExportBatch(string workingDir)

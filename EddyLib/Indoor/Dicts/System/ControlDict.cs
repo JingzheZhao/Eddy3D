@@ -1,4 +1,4 @@
-using EddyLib.Indoor.FunctionObjects;
+﻿using EddyLib.Indoor.FunctionObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -100,6 +100,7 @@ namespace EddyLib.Indoor.Dicts
             return InternalDict;
         }
 
+
         private static String FunctionObjectInclude(IndoorDomain IndDom)
         {
             StringBuilder sb = new StringBuilder();
@@ -146,6 +147,7 @@ namespace EddyLib.Indoor.Dicts
 
         //Add include statements to the dictionary if the respective FuntionObjects are added to IndoorDomai
 
+
         //if (IndoorDom.FOs.OfType<VolumetricHeatSource>().Any())
 
         //{
@@ -191,6 +193,7 @@ namespace EddyLib.Indoor.Dicts
         //        sb.Append(@"{");
 
         //        if (IndoorDom.FOs.OfType<VolumetricHeatSource>().Any()) { sb.AppendLine(""; }
+
 
         //        return GenericDict.InParenthesis(sb.ToString());
 

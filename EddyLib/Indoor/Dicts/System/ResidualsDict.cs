@@ -9,6 +9,7 @@ namespace EddyLib.Indoor.Dicts
 {
     public class ResidualsDict : GenericDict
     {
+
         public List<String> InternalDict = new List<string>();
 
         public ResidualsDict()
@@ -31,6 +32,7 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, dynamic> GetWriteControlDict()
         {
+
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
 
             //Dictionary<string, dynamic> FunctionObjectlDict = new Dictionary<string, dynamic>();

@@ -1,14 +1,14 @@
-﻿using Eddy.Components.Indoor.Params;
+﻿using System;
+using System.Collections.Generic;
+using System.Windows.Forms;
+using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
 using EddyLib;
 using EddyLib.Indoor;
 using EddyLib.Indoor.FunctionObjects;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
-using Medallion.Shell;
 using Rhino.Geometry;
-using System;
-using System.Collections.Generic;
 
 namespace Eddy.Components.Indoor
 {
@@ -146,6 +146,7 @@ namespace Eddy.Components.Indoor
                 {
                     FOs.Add((CO2Emitter)gobj.Value);
                 }
+
                 else
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid function object"); return;
@@ -156,67 +157,42 @@ namespace Eddy.Components.Indoor
             var domGoo = new IndoorDomaingGoo(dom);
 
             //bool toggle
-
             #region START PROCESSES
 
             bool makeFOs = false;
             bool runSimulation = false;
             bool runMeshing = false;
 
-            DA.GetData(9, ref makeFOs);
-            DA.GetData(10, ref runSimulation);
-            DA.GetData(8, ref runMeshing);
+            DA.GetData(8, ref makeFOs);
+            DA.GetData(9, ref runSimulation);
+            DA.GetData(10, ref runMeshing);
 
-            if (makeFOs == true)
+            if (makeFOs == true )
             {
-                var makeFOCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_topoSet.bat" },
-                  options => options.WorkingDirectory(dom.WorkingDir).StartInfo(x => x.CreateNoWindow = false).StartInfo(x => x.RedirectStandardOutput = false));
+                //Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_make_trees.bat", taskComplete);
             }
 
-            if (runMeshing == true && runSimulation == true)
+            if (runMeshing == true && runSimulation == true )
             {
-                var makeMeshCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_mesh.bat" },
-                options => options.WorkingDirectory(dom.WorkingDir).StartInfo(x => x.CreateNoWindow = false));
-                makeMeshCommand.Wait();
-                if (!makeMeshCommand.Result.Success)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Mesh command failed with exit code {makeMeshCommand.Result.ExitCode}: {makeMeshCommand.Result.StandardError}");
-                    return;
-                }
 
-                var simulateCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_sim.bat" },
-                 options => options.WorkingDirectory(dom.WorkingDir).StartInfo(x => x.CreateNoWindow = false));
-                simulateCommand.Wait();
-                if (!simulateCommand.Result.Success)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Simulation failed with exit code {simulateCommand.Result.ExitCode}: {simulateCommand.Result.StandardError}");
-                    return;
-                }
+               
+               // Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_mesh.bat", taskComplete);
+                //Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_sim_all.bat", taskComplete);
+
             }
             else if (runMeshing == true && runSimulation == false)
             {
-                var makeMeshCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_mesh.bat" },
-options => options.WorkingDirectory(dom.WorkingDir).StartInfo(x => x.CreateNoWindow = false));
-                //makeMeshCommand.Wait();
-                //if (!makeMeshCommand.Result.Success)
-                //{
-                //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Mesh command failed with exit code {makeMeshCommand.Result.ExitCode}: {makeMeshCommand.Result.StandardError}");
-                //    return;
-                //}
+                
+                //Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_mesh.bat", taskComplete);
             }
-            else if (runMeshing == false && runSimulation == true)
+            else if (runMeshing == false && runSimulation == true )
             {
-                var simulateCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_sim.bat" },
-                                options => options.WorkingDirectory(dom.WorkingDir));
-                //simulateCommand.Wait();
-                //if (!simulateCommand.Result.Success)
-                //{
-                //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Simulation failed with exit code {simulateCommand.Result.ExitCode}: {simulateCommand.Result.StandardError}");
-                //    return;
-                //}
+                
+                //Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_sim_all.bat", taskComplete);
             }
 
             #endregion START PROCESSES
+
 
             DA.SetData(0, domGoo);
         }

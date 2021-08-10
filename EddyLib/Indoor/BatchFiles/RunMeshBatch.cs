@@ -9,6 +9,7 @@ namespace EddyLib.Indoor.BatchFiles
 {
     public class RunMeshBatch : GenericBatchFile
     {
+
         public RunMeshBatch(IndoorDomain IndoorDom)
         {
             this.BatchLocation = IndoorDom.WorkingDir;

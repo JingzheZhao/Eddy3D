@@ -14,6 +14,7 @@ namespace EddyLib.Indoor.Dicts
 {
     public class FvSolutionDict : GenericDict
     {
+
         public List<String> InternalDict = new List<string>();
 
         public FvSolutionDict()

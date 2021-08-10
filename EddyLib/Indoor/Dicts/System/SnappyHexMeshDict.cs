@@ -1,4 +1,4 @@
-using EddyLib.Indoor.Dicts;
+﻿using EddyLib.Indoor.Dicts;
 using Newtonsoft.Json;
 using Rhino.Geometry;
 using System;
@@ -23,6 +23,7 @@ namespace EddyLib.Indoor.Dicts
         //NEW IMPLEMENTATION
 
         public Dictionary<string, dynamic> GeometrySubDict { get; set; }
+
 
         public SnappyHexMeshDict(double refineMentLevel, Point3d pointInsideDomain, BoundingBox BBox, List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
         {
@@ -87,6 +88,7 @@ namespace EddyLib.Indoor.Dicts
 
             return InternalDict;
         }
+
 
         private static Dictionary<string, dynamic> GetSnapControlsDict()
         {
@@ -189,9 +191,11 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, dynamic> GetCastellatedMeshControls(Point3d locationInMesh, List<IndoorBC.Wall> wall, List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet)
         {
+
             Dictionary<string, dynamic> Dict1 = new Dictionary<string, dynamic>();
             Dictionary<string, dynamic> Dict2 = new Dictionary<string, dynamic>();
             Dictionary<string, dynamic> Dict3 = new Dictionary<string, dynamic>();
+
 
             Dict1.Add("castellatedMeshControls", Dict2);
 
@@ -215,6 +219,7 @@ namespace EddyLib.Indoor.Dicts
             Dict2.Add("refinementRegions", Dict3);
             Dict3.Add(" ", " ");
 
+
             return Dict1;
         }
 
@@ -232,10 +237,12 @@ namespace EddyLib.Indoor.Dicts
                 this.inlet = inlet;
                 this.outlet = outlet;
                 this.wall = wall;
+
             }
 
             public override string ToString()
             {
+
                 StringBuilder sb = new StringBuilder();
                 sb.Append(@"{");
 
@@ -266,10 +273,12 @@ namespace EddyLib.Indoor.Dicts
                 this.inlet = inlet;
                 this.outlet = outlet;
                 this.wall = wall;
+
             }
 
             public override string ToString()
             {
+
                 StringBuilder sb = new StringBuilder();
                 sb.Append(@"{");
 
@@ -301,5 +310,6 @@ namespace EddyLib.Indoor.Dicts
                     }}
         }}", bc.Id, bc.refinementLevel.ToString(), bc.bcType.ToString());
         }
+
     }
 }

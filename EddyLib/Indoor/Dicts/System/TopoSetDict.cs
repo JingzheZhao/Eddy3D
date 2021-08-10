@@ -61,6 +61,7 @@ namespace EddyLib.Indoor.Dicts
         //    //this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
         //}
 
+
         public static Dictionary<string, dynamic> GetTopoSetDict(FunctionObject input, Point3d PointInsideDomain)
         {
             Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();

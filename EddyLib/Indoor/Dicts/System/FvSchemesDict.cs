@@ -9,6 +9,7 @@ namespace EddyLib.Indoor.Dicts
 {
     public class FvSchemesDict : GenericDict
     {
+
         public List<String> InternalDict = new List<string>();
 
         public FvSchemesDict(IndoorDomain IndoorDom)
@@ -28,6 +29,7 @@ namespace EddyLib.Indoor.Dicts
             this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetSnGradSchemesDict(IndoorDom)));
             this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetFluxRequiredDict(IndoorDom)));
 
+
             string[] parts = {
                this.Header, "\n",
          String.Join("\n", this.InternalDict.ToArray())
@@ -38,6 +40,7 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, dynamic> GetddtSchemesDict(IndoorDomain IndoorDom)
         {
+
             Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
@@ -53,6 +56,7 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, dynamic> GetGradSchemesDict(IndoorDomain IndoorDom)
         {
+
             Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
@@ -67,9 +71,11 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, dynamic> GetDivSchemesDict(IndoorDomain IndoorDom)
         {
+
             Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
+
 
             Dict.Add("divSchemes", InternalDict);
 
@@ -87,11 +93,13 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, dynamic> GetLaplacianSchemesDict(IndoorDomain IndoorDom)
         {
+
             Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
 
             Dict.Add("laplacianSchemes", InternalDict);
+
 
             InternalDict.Add("default", "Gauss linear corrected");
             InternalDict.Add("laplacian(DkEff,k)", "Gauss linear uncorrected");
@@ -103,6 +111,7 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, dynamic> GetInterpolationSchemesDict(IndoorDomain IndoorDom)
         {
+
             Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
@@ -116,6 +125,7 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, dynamic> GetSnGradSchemesDict(IndoorDomain IndoorDom)
         {
+
             Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
@@ -129,6 +139,7 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, dynamic> GetFluxRequiredDict(IndoorDomain IndoorDom)
         {
+
             Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
@@ -142,6 +153,7 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, dynamic> GetWallDistDict(IndoorDomain IndoorDom)
         {
+
             Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();

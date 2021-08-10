@@ -24,15 +24,18 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
+
+
+
             //0
             pManager.AddGeometryParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
             //1
             pManager.AddTextParameter("Name", "N", "Name", GH_ParamAccess.item, "");
             //2
             pManager.AddNumberParameter("Injection Rate", "IR", "Injection Rate imposed on object", GH_ParamAccess.item);
-
+       
             //3
-            pManager.AddIntegerParameter("Type", "Typ", "Type: Absolute [W] or specific [W/m³]", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("Type", "Typ", "Type: Absolute [W] or specific [W/m³]", GH_ParamAccess.item,0);
             Param_Integer param = pManager[3] as Param_Integer;
             param.AddNamedValue("Absolute", 0);
             param.AddNamedValue("Specific", 1);
@@ -54,13 +57,16 @@ namespace Eddy.Components.Indoor
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+
             Mesh geo = null;
             if (!DA.GetData("Geo", ref geo)) { };
+                      
 
             string Name = "";
             DA.GetData("Name", ref Name);
 
-            double IR = 0;
+
+            double IR =0;
             DA.GetData("Injection Rate", ref IR);
 
             int Type = 0;
@@ -73,6 +79,7 @@ namespace Eddy.Components.Indoor
             var goo = new FunctionObjectGoo(em);
 
             DA.SetData(0, goo);
+
         }
 
         /// <summary>

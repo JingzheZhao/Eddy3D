@@ -1,4 +1,4 @@
-using EddyLib.Indoor.Dicts;
+﻿using EddyLib.Indoor.Dicts;
 using Rhino.Geometry;
 
 namespace EddyLib.Indoor

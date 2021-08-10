@@ -5,6 +5,10 @@ using EddyLib.Indoor;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 using System;
+using EddyLib.Indoor.Dicts;
+using Grasshopper.Kernel.Parameters;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Eddy.Components.Indoor
 {
