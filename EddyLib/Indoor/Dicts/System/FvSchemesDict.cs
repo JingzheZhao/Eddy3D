@@ -28,6 +28,7 @@ namespace EddyLib.Indoor.Dicts
             this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInterpolationSchemesDict(IndoorDom)));
             this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetSnGradSchemesDict(IndoorDom)));
             this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetFluxRequiredDict(IndoorDom)));
+            this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetWallDistDict(IndoorDom)));
 
 
             string[] parts = {

@@ -22,7 +22,7 @@ namespace EddyLib.Indoor.Dicts
                 this.FC = GenericDict.FieldClass.volVectorField;
                 this.DictionaryName = "U";
                 this.Location = DictLocation.zero;
-                this.Header = GetHeader(this);
+                this.Header = GetHeader0(this);
                 this.Dimensions = "dimensions      [0 1 -1 0 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
@@ -48,7 +48,7 @@ namespace EddyLib.Indoor.Dicts
                 this.FC = FieldClass.volScalarField;
                 this.DictionaryName = "T";
                 this.Location = DictLocation.zero;
-                this.Header = GetHeader(this);
+                this.Header = GetHeader0(this);
                 this.Dimensions = "dimensions      [0 0 0 1 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
@@ -74,7 +74,7 @@ namespace EddyLib.Indoor.Dicts
                 this.FC = FieldClass.volScalarField;
                 this.DictionaryName = "alphat";
                 this.Location = DictLocation.zero;
-                this.Header = GetHeader(this);
+                this.Header = GetHeader0(this);
                 this.Dimensions = "dimensions      [1 -1 -1 0 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
@@ -100,7 +100,7 @@ namespace EddyLib.Indoor.Dicts
                 this.FC = FieldClass.volScalarField;
                 this.DictionaryName = "AoA";
                 this.Location = DictLocation.zero;
-                this.Header = GetHeader(this);
+                this.Header = GetHeader0(this);
                 this.Dimensions = "dimensions      [0 0 0 1 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
@@ -126,7 +126,7 @@ namespace EddyLib.Indoor.Dicts
                 this.FC = FieldClass.volScalarField;
                 this.DictionaryName = "k";
                 this.Location = DictLocation.zero;
-                this.Header = GetHeader(this);
+                this.Header = GetHeader0(this);
                 this.Dimensions = "dimensions      [0 2 -2 0 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
@@ -152,7 +152,7 @@ namespace EddyLib.Indoor.Dicts
                 this.FC = FieldClass.volScalarField;
                 this.DictionaryName = "nut";
                 this.Location = DictLocation.zero;
-                this.Header = GetHeader(this);
+                this.Header = GetHeader0(this);
                 this.Dimensions = "dimensions      [0 2 -1 0 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
@@ -178,7 +178,7 @@ namespace EddyLib.Indoor.Dicts
                 this.FC = FieldClass.volScalarField;
                 this.DictionaryName = "p";
                 this.Location = DictLocation.zero;
-                this.Header = GetHeader(this);
+                this.Header = GetHeader0(this);
                 this.Dimensions = "dimensions [1 -1 -2 0 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
@@ -203,7 +203,7 @@ namespace EddyLib.Indoor.Dicts
                 this.FC = FieldClass.volScalarField;
                 this.DictionaryName = "p_rgh";
                 this.Location = DictLocation.zero;
-                this.Header = GetHeader(this);
+                this.Header = GetHeader0(this);
                 this.Dimensions = "dimensions      [1 -1 -2 0 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
@@ -229,7 +229,7 @@ namespace EddyLib.Indoor.Dicts
                 this.FC = FieldClass.volScalarField;
                 this.DictionaryName = "omega";
                 this.Location = DictLocation.zero;
-                this.Header = GetHeader(this);
+                this.Header = GetHeader0(this);
                 this.Dimensions = "dimensions      [0 0 -1 0 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
@@ -353,6 +353,9 @@ namespace EddyLib.Indoor.Dicts
 
             InternalDict.Add("type", "compressible::alphatJayatillekeWallFunction");
             InternalDict.Add("Prt", "0.85");
+            InternalDict.Add("Cmu", "0.09");
+            InternalDict.Add("kappa", "0.41");
+            InternalDict.Add("E", "9.8");
             InternalDict.Add("value", "uniform 0");
 
             return Dict;

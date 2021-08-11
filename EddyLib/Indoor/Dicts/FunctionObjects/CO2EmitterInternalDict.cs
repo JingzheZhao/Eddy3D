@@ -14,15 +14,17 @@ namespace EddyLib.Indoor.Dicts
 
         public List<String> InternalDict = new List<string>();
 
-        public CO2EmitterInternalDict(CO2Emitter co2Em, Point3d PointInsideDomain)
+        public CO2EmitterInternalDict(List<CO2Emitter> cO2Emitters, Point3d PointInsideDomain)
         {
 
-            this.DictionaryName = "co2Emitter";
+            this.DictionaryName = "co2Emitters";
             this.Location = DictLocation.system;
             this.FC = FieldClass.dictionary;
             this.Header = GetHeader(this);
 
-            this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalC02Dict(co2Em)));
+            foreach (CO2Emitter i in cO2Emitters) { this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalC02Dict(i))); }
+
+            //this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalC02Dict(co2Em)));
 
             string[] parts = {
                String.Join("\n", this.InternalDict.ToArray())
@@ -47,7 +49,7 @@ namespace EddyLib.Indoor.Dicts
             Dict1.Add(input.ID, Dict2);
 
             Dict2.Add("active", "true");
-            Dict2.Add("type", "semiImplicitSource");
+            Dict2.Add("type", "scalarSemiImplicitSource");
             Dict2.Add("scalarSemiImplicitSourceCoeffs", Dict3);
 
             Dict3.Add("selectionMode", "cellZone");

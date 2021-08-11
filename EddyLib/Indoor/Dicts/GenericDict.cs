@@ -55,6 +55,18 @@ namespace EddyLib.Indoor.Dicts
 }";
         }
 
+        public static string GetHeader0(GenericDict dict)
+        {
+            return @"FoamFile
+{
+    version     2.0;
+    format      binary;
+    class       " + dict.FC + @";
+    location    """ + PrintLocation(dict.Location) + @""";
+    object      " + dict.DictionaryName + @";
+}";
+        }
+
         public static string GetHeader2(GenericDict dict)
         {
             return @"FoamFile

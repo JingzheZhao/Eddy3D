@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using EddyLib.Indoor.Dicts;
 
 namespace EddyLib.Indoor.Dicts
 {
     public class FvOptions : GenericDict
     {
+
         //public List<String> InternalDict = new List<string>();
 
         public FvOptions(List<GenericDict> fv)
@@ -31,17 +34,22 @@ namespace EddyLib.Indoor.Dicts
 
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
         }
+
+
+        
     }
 }
 
-//            this.FullDictString = @"FoamFile
-//{
-//    version         1912;
-//    format          ascii;
-//    class           dictionary;
-//    location        ""system"";
-//    object          fvSchemes;
-//}
+
+
+            //            this.FullDictString = @"FoamFile
+            //{
+            //    version         1912;
+            //    format          ascii;
+            //    class           dictionary;
+            //    location        ""system"";
+            //    object          fvSchemes;
+            //}
 
 //ddtSchemes
 //{

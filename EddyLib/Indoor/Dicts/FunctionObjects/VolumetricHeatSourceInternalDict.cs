@@ -13,14 +13,16 @@ namespace EddyLib.Indoor.Dicts
 
         public List<String> InternalDict = new List<string>();
 
-        public VolumetricHeatSourceInternalDict(VolumetricHeatSource VH, Point3d PointInsideDomain)
+        //public VolumetricHeatSourceInternalDict(VolumetricHeatSource VH, Point3d PointInsideDomain)
+        public VolumetricHeatSourceInternalDict(List<VolumetricHeatSource> volumetricHeatSources, Point3d PointInsideDomain)
         {
-            this.DictionaryName = "volumetricHeatSource";
+            this.DictionaryName = "volumetricHeatSources";
             this.Location = DictLocation.system;
             this.FC = FieldClass.dictionary;
             this.Header = GetHeader(this);
 
-            this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalVHSDict(VH)));
+            //this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalVHSDict(VH)));
+            foreach (VolumetricHeatSource i in volumetricHeatSources) { this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalVHSDict(i))); }
 
             string[] parts = {
                String.Join("\n", this.InternalDict.ToArray())
@@ -55,11 +57,12 @@ namespace EddyLib.Indoor.Dicts
 
             InternalDict.Add("scalarSemiImplicitSourceCoeffs", scalarSemiImplicitSourceCoeffsDict);
 
+            scalarSemiImplicitSourceCoeffsDict.Add("volumeMode", "absolute");
             scalarSemiImplicitSourceCoeffsDict.Add("selectionMode", "cellZone");
             scalarSemiImplicitSourceCoeffsDict.Add("cellZone", input.ID);
             //scalarSemiImplicitSourceCoeffsDict.Add("cellZone", input.cellZone + "_" + input.Name);
 
-            scalarSemiImplicitSourceCoeffsDict.Add("volumeMode", input.volumeType);
+            //scalarSemiImplicitSourceCoeffsDict.Add("volumeMode", input.volumeType);
             scalarSemiImplicitSourceCoeffsDict.Add("injectionRateSuSp", injectionRateSuSpDict);
 
             injectionRateSuSpDict.Add("h", @"(" + input.Power.ToString() + " 0 )");

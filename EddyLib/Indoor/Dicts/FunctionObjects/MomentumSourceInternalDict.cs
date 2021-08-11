@@ -13,14 +13,16 @@ namespace EddyLib.Indoor.Dicts
 
         public List<String> InternalDict = new List<string>();
 
-        public MomentumSourceInternalDict(MomentumSource momSource, Point3d PointInsideDomain)
+        //public MomentumSourceInternalDict(MomentumSource momSource, Point3d PointInsideDomain)
+        public MomentumSourceInternalDict(List<MomentumSource> momentumSources, Point3d PointInsideDomain)
         {
-            this.DictionaryName = "momentumSource";
+            this.DictionaryName = "momentumSources";
             this.Location = DictLocation.system;
             this.FC = FieldClass.dictionary;
             this.Header = GetHeader(this);
 
-            this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalFvOptionsDict(momSource)));
+            // this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalFvOptionsDict(momSource)));
+            foreach (MomentumSource i in momentumSources) { this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalFvOptionsDict(i))); }
 
             string[] parts = {
                String.Join("\n", this.InternalDict.ToArray())
@@ -50,7 +52,7 @@ namespace EddyLib.Indoor.Dicts
             meanVelocityForceCoeffs.Add("selectionMode", "cellZone");
             meanVelocityForceCoeffs.Add("cellZone", input.ID);
             meanVelocityForceCoeffs.Add("fields", "(U)");
-            meanVelocityForceCoeffs.Add("Ubar", Utilities.FormatPV(input.Ubar));
+            meanVelocityForceCoeffs.Add("Ubar", "(" + Utilities.FormatPV(input.Ubar) + ")");
             meanVelocityForceCoeffs.Add("relaxation", "1.0");
 
             return Dict;

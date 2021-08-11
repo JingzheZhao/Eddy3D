@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Windows.Forms;
 using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
@@ -8,6 +9,7 @@ using EddyLib.Indoor;
 using EddyLib.Indoor.FunctionObjects;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
+using Medallion.Shell;
 using Rhino.Geometry;
 using System.Threading;
 using System.Threading.Tasks;
@@ -221,9 +223,9 @@ namespace Eddy.Components.Indoor
             bool runSimulation = false;
             bool runMeshing = false;
 
-            DA.GetData(8, ref makeFOs);
-            DA.GetData(9, ref runSimulation);
-            DA.GetData(10, ref runMeshing);
+            DA.GetData(9, ref makeFOs);
+            DA.GetData(10, ref runSimulation);
+            DA.GetData(8, ref runMeshing);
 
 
             string toposetBat = dom.WorkingDir  + @"\run_topoSet.bat";

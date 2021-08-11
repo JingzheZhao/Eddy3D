@@ -13,14 +13,17 @@ namespace EddyLib.Indoor.Dicts
 
         public List<String> InternalDict = new List<string>();
 
-        public MomentumSinkIndoorInternalDict(MomentumSinkIndoor momSink, Point3d PointInsideDomain)
+
+        //public MomentumSinkIndoorInternalDict(MomentumSinkIndoor momSink, Point3d PointInsideDomain)
+        public MomentumSinkIndoorInternalDict(List<MomentumSinkIndoor> momentumSinks, Point3d PointInsideDomain)
         {
-            this.DictionaryName = "momentumSink";
+            this.DictionaryName = "momentumSinks";
             this.Location = DictLocation.system;
             this.FC = FieldClass.dictionary;
             this.Header = GetHeader(this);
 
-            this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalFvOptionsDict(momSink)));
+            foreach (MomentumSinkIndoor i in momentumSinks) { this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalFvOptionsDict(i))); }
+            //this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetInternalFvOptionsDict(momSink)));
 
             string[] parts = {
                String.Join("\n", this.InternalDict.ToArray())
@@ -63,6 +66,7 @@ namespace EddyLib.Indoor.Dicts
             Dict3.Add("origin", "(0 0 0)");
             Dict3.Add("coordinateRotation", Dict4);
 
+            Dict4.Add("type", "axesRotation");
             Dict4.Add("e1", "(1 0 0)");
             Dict4.Add("e2", "(0 1 0)");
 
