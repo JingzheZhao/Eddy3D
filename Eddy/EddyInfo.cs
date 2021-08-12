@@ -46,7 +46,7 @@ namespace Eddy
             get
             {
                 //Return a string identifying you or your company.
-                return "Patrick Kastner, Timur Dogan";
+                return "Patrick Kastner, Zoe De Simone, Timur Dogan - 2021";
             }
         }
 
