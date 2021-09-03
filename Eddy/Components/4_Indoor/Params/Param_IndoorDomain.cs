@@ -41,6 +41,8 @@ namespace Eddy.Components.Indoor.Params
             return new IndoorDomaingGoo(Value == null ? new IndoorDomain() : Value.Duplicate());
         }
 
+
+
         #endregion constructors
 
         #region properties
