@@ -18,6 +18,8 @@ using System.Globalization;
 
 namespace Eddy.Components.Indoor
 {
+
+    [Obsolete]
     public class IndoorDomain_Component : GH_Component
     {
         /// <summary>

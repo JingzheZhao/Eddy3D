@@ -170,27 +170,30 @@ namespace Eddy.Components.Indoor
             var domGoo = new IndoorDomaingGoo(dom);
 
 
-
+            bool RUN = false;
+            DA.GetData(8, ref RUN);
 
              #region START PROCESSES
           
-            bool RUN = false;
-            bool HidePopUp = true;
+           
             iterations = endTime;
-            DA.GetData(8, ref RUN);
 
+            bool HidePopUp = true;
 
             bool runWithConsoleWindow = true;
 
             if (runWithConsoleWindow)
             {
-                if (canRun)
+                if (RUN)
                 {
-                    string runall = this.BaseWorkingDir + @"\run_all.bat";
-                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, runall, taskComplete);
+                    if (canRun)
+                    {
+                        string runall = this.BaseWorkingDir + @"\run_all.bat";
+                        Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, runall, taskComplete);
+                    }
                 }
             }
-            else
+            else   // @Zoe and @Patrick --> this seems to be a dead code section since runWithConsoleWindow is always true. Did the ProgressDialog version not work for you?
             {
                 try
                 {
