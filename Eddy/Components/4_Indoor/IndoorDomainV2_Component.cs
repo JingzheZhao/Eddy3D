@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using EddyLib.UI;
 using System.Globalization;
 using System.IO;
+using EddyLib.BCs;
 
 namespace Eddy.Components.Indoor
 {
@@ -71,6 +72,8 @@ namespace Eddy.Components.Indoor
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddParameter(new Param_IndoorDomain(), "Domain", "Dom", "Indoor CFD Domain", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Result", "Res", "Indoor Eddy Result", GH_ParamAccess.item);
+
         }
 
         /// <summary>
@@ -167,28 +170,30 @@ namespace Eddy.Components.Indoor
             var domGoo = new IndoorDomaingGoo(dom);
 
 
-
-
+            bool RUN = false;
+            DA.GetData(8, ref RUN);
 
              #region START PROCESSES
           
-            bool RUN = false;
-            bool HidePopUp = true;
+           
             iterations = endTime;
-            DA.GetData(8, ref RUN);
 
+            bool HidePopUp = true;
 
             bool runWithConsoleWindow = true;
 
             if (runWithConsoleWindow)
             {
-                if (canRun)
+                if (RUN)
                 {
-                    string runall = this.BaseWorkingDir + @"\run_all.bat";
-                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, runall, taskComplete);
+                    if (canRun)
+                    {
+                        string runall = this.BaseWorkingDir + @"\run_all.bat";
+                        Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, runall, taskComplete);
+                    }
                 }
             }
-            else
+            else   // @Zoe and @Patrick --> this seems to be a dead code section since runWithConsoleWindow is always true. Did the ProgressDialog version not work for you?
             {
                 try
                 {
@@ -224,6 +229,9 @@ namespace Eddy.Components.Indoor
 
 
             DA.SetData(0, domGoo);
+
+            DA.SetData(1, IndoorResult(dom));
+
             canRun = true;
 
         }
@@ -232,6 +240,71 @@ namespace Eddy.Components.Indoor
         public FunctionObject CastToFO(GH_ObjectWrapper gobj)
         {
             return (FunctionObject)gobj.Value;
+        }
+
+        /// <summary>
+        /// Hack function to convert indoor domain to result for the probing component
+        /// </summary>
+        /// <param name="Dom"></param>
+        /// <param name="Res"></param>
+        public OFResult IndoorResult(IndoorDomain Dom)
+        {
+            var point0 = new Rhino.Geometry.Point3d(0, 0, 0);
+            var point1 = new Rhino.Geometry.Point3d(20, 0, 0);
+            var point2 = new Rhino.Geometry.Point3d(0, 20, 0);
+            var point3 = new Rhino.Geometry.Point3d(20, 20, 0);
+            var point4 = new Rhino.Geometry.Point3d(0, 0, 40);
+            var point5 = new Rhino.Geometry.Point3d(20, 0, 40);
+            var point6 = new Rhino.Geometry.Point3d(0, 20, 40);
+            var point7 = new Rhino.Geometry.Point3d(20, 20, 40);
+            Rhino.Geometry.Box box1 = new Rhino.Geometry.Box(Rhino.Geometry.Plane.WorldXY, new List<Rhino.Geometry.Point3d>() { point0, point1, point2, point3, point4, point5, point6, point7 });
+            Rhino.Geometry.MeshingParameters mp = new Rhino.Geometry.MeshingParameters();
+            var m = Mesh.CreateFromBrep(box1.ToBrep(), mp);
+
+            Rhino.Geometry.Mesh mm = new Rhino.Geometry.Mesh();
+
+            foreach (Rhino.Geometry.Mesh im in m)
+            {
+                mm.Append(im);
+            }
+
+
+
+            var windDirList = new List<int>() { 0 };
+            BoundaryCondition bcond = new ABL(windDirList, 5, 10, 1, 0, "");
+
+            OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcond, 5, 50, 300, 80);
+
+
+
+
+            var DOM = (EddyLib.Indoor.IndoorDomain)Dom;
+
+            var RUNSETTINGS = new OFRunSettings(1000, 20, 5, fvSchemes.Optimized, 1, SimEngine.BlueCFD, OSType.Windows10, TurbModel.RNGkEpsilon, RelaxationFactors.Optimized, false, false);
+            var MESHSETTINGS = new OFMeshSettings();
+
+
+            var baseWorkingDirectory = DOM.WorkingDir;
+
+
+            MESHSETTINGS.meshStlDir = baseWorkingDirectory + @"\\constant\triSurface\";
+            MESHSETTINGS.meshPolyMeshDir = baseWorkingDirectory + @"\\constant\polyMesh\";
+            MESHSETTINGS.meshSystemDir = baseWorkingDirectory + @"\\system\";
+            MESHSETTINGS.meshConstantDir = baseWorkingDirectory + @"\\constant\";
+            MESHSETTINGS.meshWorkingDir = baseWorkingDirectory + @"\\";
+
+
+            // MESHSETTINGS.meshStlFilenameBuildings = baseWorkingDirectory + @"\\constant\triSurface\building.stl";
+            //MESHSETTINGS.meshStlFilenameGround = baseWorkingDirectory + @"\\constant\triSurface\ground.stl";
+            // MESHSETTINGS.meshStlFilenameGroundPerim = baseWorkingDirectory + @"\\constant\triSurface\ground_perim.stl";
+            // MESHSETTINGS.meshBoundaryConditionsDirectory = baseWorkingDirectory + @"\\0.org\";
+
+
+            var RES = new EddyLib.OFResult(DOMCYL, RUNSETTINGS, MESHSETTINGS, DOM.WorkingDir.Replace("0\\", ""));
+
+            return RES;
+
+
         }
 
         /// <summary>
