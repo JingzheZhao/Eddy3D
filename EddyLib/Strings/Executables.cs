@@ -765,7 +765,7 @@ libs
     fields (U p);
     operation       weightedVolAverage;
     regionType      all;
-    writeFields     true;
+    writeFields     false;
     log true;
 }";
         }

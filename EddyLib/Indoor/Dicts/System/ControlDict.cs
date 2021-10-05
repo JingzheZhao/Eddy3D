@@ -5,7 +5,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-
 #if DEBUG
 [assembly: InternalsVisibleTo("UnitTest")]
 #endif
@@ -34,8 +33,6 @@ namespace EddyLib.Indoor.Dicts
             };
 
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
-
-
         }
 
         //ADD LIBRARIES
@@ -65,17 +62,12 @@ namespace EddyLib.Indoor.Dicts
             return sb.ToString();
         }
 
-
         private static Dictionary<string, dynamic> GetDict(IndoorDomain IndoorDom)
         {
-
-
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
 
-           //OLD IMPLEMENTAION
+            //OLD IMPLEMENTAION
             //Dictionary<string, dynamic> FunctionObjectlDict = new Dictionary<string, dynamic>();
-
-
 
             InternalDict.Add("application", "buoyantSimpleFoam");
             //InternalDict.Add("application", "extractFromSurface");
@@ -100,7 +92,6 @@ namespace EddyLib.Indoor.Dicts
             return InternalDict;
         }
 
-
         private static String FunctionObjectInclude(IndoorDomain IndDom)
         {
             StringBuilder sb = new StringBuilder();
@@ -112,7 +103,7 @@ namespace EddyLib.Indoor.Dicts
 {
                 type fieldMinMax;
                 libs (""libfieldFunctionObjects.so"");
-                writeToFile true;
+                writeFields false;
                 log true;
                 mode magnitude;
                 fields (U  T);
@@ -125,13 +116,11 @@ namespace EddyLib.Indoor.Dicts
                 fields (U T);
                 operation weightedVolAverage;
                 regionType all;
-                writeFields     true;
+                writeFields false;
                 log true;
             }");
 
-            
-
-            //if (IndDom.FOs.OfType<VolumetricHeatSource>().Any())            
+            //if (IndDom.FOs.OfType<VolumetricHeatSource>().Any())
             //{ sb.AppendLine("#includeFunc volumetricHeatSources");}
 
             //if (IndDom.FOs.OfType<MomentumSinkIndoor>().Any())
@@ -148,7 +137,6 @@ namespace EddyLib.Indoor.Dicts
 
             sb.Append(@"}");
 
-
             return sb.ToString();
         }
 
@@ -161,17 +149,13 @@ namespace EddyLib.Indoor.Dicts
         //if (IndoorDom.FOs.OfType<MomentumSink>().Any())
         //{ fos.Add("momentumSink"); }
 
-
         //FunctionObjectlDict.Add("#includeFunc", fos);
 
-
         //SNAPPYHEX
-
 
         //OLD IMPLEMENTAION
 
         //Add include statements to the dictionary if the respective FuntionObjects are added to IndoorDomai
-
 
         //if (IndoorDom.FOs.OfType<VolumetricHeatSource>().Any())
 
@@ -203,12 +187,9 @@ namespace EddyLib.Indoor.Dicts
         //    FunctionObjectlDict.Add("#includeFunc5", "viralEmitter");
         //}
 
-
         //class IncludeStatements
         //{
-
-
-        //    public IncludeStatements(IndoorDomain IndoorDom) 
+        //    public IncludeStatements(IndoorDomain IndoorDom)
 
         //    { }
 
@@ -219,14 +200,10 @@ namespace EddyLib.Indoor.Dicts
 
         //        if (IndoorDom.FOs.OfType<VolumetricHeatSource>().Any()) { sb.AppendLine(""; }
 
-
         //        return GenericDict.InParenthesis(sb.ToString());
 
         //    }
 
-
         //}
-
-
     }
 }
