@@ -120,6 +120,39 @@ namespace EddyLib.Indoor.Dicts
                 log true;
             }");
 
+            sb.AppendLine(@"aoa
+    {
+        type            scalarTransport;
+        libs (""libfieldFunctionObjects.so"");
+
+        writeControl    outputTime;
+            D               1.0;
+            field aoa;
+            resetOnStartUp  false;
+            schemesField aoa;
+            bounded01       true;
+            write           true;
+
+            fvOptions
+        {
+                aoa_00
+            {
+                    type scalarSemiImplicitSource;
+                    active          true;
+                    cellZone all;
+                    scalarSemiImplicitSourceCoeffs
+                {
+                        volumeMode specific;
+                        selectionMode all;
+                        injectionRateSuSp
+                    {
+                            AoA (1 0);
+                        }
+                    }
+                }
+            }
+        }");
+
             //if (IndDom.FOs.OfType<VolumetricHeatSource>().Any())
             //{ sb.AppendLine("#includeFunc volumetricHeatSources");}
 
