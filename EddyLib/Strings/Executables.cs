@@ -752,7 +752,7 @@ libs
     writeToFile true;
     log true;
     mode magnitude;
-    fields (U p k epsilon omega nut AoA);
+    fields (U p k epsilon omega nut aoa);
 }";
         }
 
@@ -901,7 +901,7 @@ FoamFile
 
                 setFormat csv;
 
-                fields (U p total(p)_coeff epsilon omega k nut phi AoA);
+                fields (U p total(p)_coeff epsilon omega k nut phi aoa);
 
                 probeLocations
                   (");

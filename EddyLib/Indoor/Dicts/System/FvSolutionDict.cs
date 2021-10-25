@@ -14,7 +14,6 @@ namespace EddyLib.Indoor.Dicts
 {
     public class FvSolutionDict : GenericDict
     {
-
         public List<String> InternalDict = new List<string>();
 
         public FvSolutionDict()
@@ -36,8 +35,7 @@ namespace EddyLib.Indoor.Dicts
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
         }
 
-
-      public  static Dictionary<string, dynamic> MakeDict_p_rgh()
+        public static Dictionary<string, dynamic> MakeDict_p_rgh()
         {
             //Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
             Dictionary<string, dynamic> Dict3 = new Dictionary<string, dynamic>();
@@ -52,7 +50,7 @@ namespace EddyLib.Indoor.Dicts
             return Dict3;
         }
 
-        static Dictionary<string, dynamic> MakeDict_U()
+        private static Dictionary<string, dynamic> MakeDict_U()
         {
             //Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
             Dictionary<string, dynamic> Dict3 = new Dictionary<string, dynamic>();
@@ -67,7 +65,7 @@ namespace EddyLib.Indoor.Dicts
             return Dict3;
         }
 
-        static Dictionary<string, dynamic> MakeDict_h()
+        private static Dictionary<string, dynamic> MakeDict_h()
         {
             //Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
             Dictionary<string, dynamic> Dict3 = new Dictionary<string, dynamic>();
@@ -82,7 +80,7 @@ namespace EddyLib.Indoor.Dicts
             return Dict3;
         }
 
-        static Dictionary<string, dynamic> MakeDict_k()
+        private static Dictionary<string, dynamic> MakeDict_k()
         {
             Dictionary<string, dynamic> Dict3 = new Dictionary<string, dynamic>();
 
@@ -94,7 +92,7 @@ namespace EddyLib.Indoor.Dicts
             return Dict3;
         }
 
-        static Dictionary<string, dynamic> MakeDict_omega()
+        private static Dictionary<string, dynamic> MakeDict_omega()
         {
             Dictionary<string, dynamic> Dict3 = new Dictionary<string, dynamic>();
 
@@ -106,7 +104,7 @@ namespace EddyLib.Indoor.Dicts
             return Dict3;
         }
 
-        static Dictionary<string, dynamic> MakeDict_AoA()
+        private static Dictionary<string, dynamic> MakeDict_AoA()
         {
             Dictionary<string, dynamic> Dict3 = new Dictionary<string, dynamic>();
 
@@ -122,11 +120,10 @@ namespace EddyLib.Indoor.Dicts
             Dict3.Add("mergeLevels", "1");
             Dict3.Add("maxIter", "100");
 
-
             return Dict3;
         }
 
-        static Dictionary<string, dynamic> MakeDict_Covid19()
+        private static Dictionary<string, dynamic> MakeDict_Covid19()
         {
             Dictionary<string, dynamic> Dict3 = new Dictionary<string, dynamic>();
 
@@ -141,7 +138,6 @@ namespace EddyLib.Indoor.Dicts
             Dict3.Add("nCellsInCoarsestLevel", "10");
             Dict3.Add("mergeLevels", "1");
             Dict3.Add("maxIter", "100");
-
 
             return Dict3;
         }
@@ -155,20 +151,18 @@ namespace EddyLib.Indoor.Dicts
 
             Dict1.Add("solvers", Dict2);
 
-            Dict2.Add("p_rgh",MakeDict_p_rgh());
-            Dict2.Add("U",MakeDict_U());
+            Dict2.Add("p_rgh", MakeDict_p_rgh());
+            Dict2.Add("U", MakeDict_U());
             Dict2.Add("h", MakeDict_h());
             Dict2.Add("k", MakeDict_k());
             Dict2.Add("omega", MakeDict_omega());
-            Dict2.Add("AoA", MakeDict_AoA());
+            Dict2.Add("aoa", MakeDict_AoA());
             Dict2.Add("covid19", MakeDict_Covid19());
 
             return Dict1;
         }
 
-
-
-        static Dictionary<string, dynamic> MakeDict_residualControl()
+        private static Dictionary<string, dynamic> MakeDict_residualControl()
         {
             Dictionary<string, dynamic> Dict3 = new Dictionary<string, dynamic>();
 
@@ -199,24 +193,22 @@ namespace EddyLib.Indoor.Dicts
             return Dict1;
         }
 
-
         //relaxationFactors
-        // Dict level 2 : 
+        // Dict level 2 :
         //    fields
         //    equations
-        static Dictionary<string, dynamic> MakeDict_fields()
+        private static Dictionary<string, dynamic> MakeDict_fields()
         {
             Dictionary<string, dynamic> Dict3 = new Dictionary<string, dynamic>();
 
             Dict3.Add("p_rgh", "0.3");
-            Dict3.Add("AoA", "0.5");
+            Dict3.Add("aoa", "0.5");
             Dict3.Add("Covid19", "0.5");
-
 
             return Dict3;
         }
 
-        static Dictionary<string, dynamic> MakeDict_equations()
+        private static Dictionary<string, dynamic> MakeDict_equations()
         {
             Dictionary<string, dynamic> Dict3 = new Dictionary<string, dynamic>();
 
@@ -243,11 +235,8 @@ namespace EddyLib.Indoor.Dicts
             Dict2.Add("fields", MakeDict_fields());
             Dict2.Add("equations", MakeDict_equations());
 
-
             return Dict1;
         }
-
-
     }
 }
 

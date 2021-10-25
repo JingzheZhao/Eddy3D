@@ -98,7 +98,7 @@ namespace EddyLib.Indoor.Dicts
             public AoA(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
                 this.FC = FieldClass.volScalarField;
-                this.DictionaryName = "AoA";
+                this.DictionaryName = "aoa";
                 this.Location = DictLocation.zero;
                 this.Header = GetHeader0(this);
                 this.Dimensions = "dimensions      [0 0 0 1 0 0 0];";
@@ -282,7 +282,7 @@ namespace EddyLib.Indoor.Dicts
                 InternalDict.Add("type", "fixedValue");
                 InternalDict.Add("value", "uniform " + ii.TemperatureK.ToString() + "");
             }
-            else if (DictName == "AoA")
+            else if (DictName == "aoa")
             {
                 IndoorBC.Inlet ii = (IndoorBC.Inlet)input;
 

@@ -146,7 +146,7 @@ namespace EddyLib.Indoor.Dicts
                         selectionMode all;
                         injectionRateSuSp
                     {
-                            AoA (1 0);
+                            aoa (1 0);
                         }
                     }
                 }

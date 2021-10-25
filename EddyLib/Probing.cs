@@ -19,7 +19,7 @@ namespace EddyLib
 
     public enum field
     {
-        U, p, cp_coeff, epsilon, omega, k, nut, phi, AoA
+        U, p, cp_coeff, epsilon, omega, k, nut, phi, aoa
     }
 
     public class OFFieldNew

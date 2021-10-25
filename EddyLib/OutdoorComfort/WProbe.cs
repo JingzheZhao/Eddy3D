@@ -161,7 +161,7 @@ namespace EddyLib.Radiation
                     this.Phi[WindDirection] = Value;
                     break;
 
-                case field.AoA:
+                case field.aoa:
                     this.Aoa[WindDirection] = Value;
                     break;
             }
