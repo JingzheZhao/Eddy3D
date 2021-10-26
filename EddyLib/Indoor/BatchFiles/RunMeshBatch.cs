@@ -27,6 +27,7 @@ namespace EddyLib.Indoor.BatchFiles
 
         }
 
+        //**Changed numer of CPUs to 1 instead of 8   (mpiexec -np 8 snappyHexMesh -overwrite -parallel )
         private static string BatchBody()
         {
             return @"
@@ -34,7 +35,7 @@ namespace EddyLib.Indoor.BatchFiles
         blockMesh.exe
         surfaceFeatureExtract
         decomposePar -force
-        mpiexec -np 8 snappyHexMesh -overwrite -parallel
+        mpiexec -np 1 snappyHexMesh -overwrite -parallel 
         reconstructParMesh -constant
         renumberMesh -overwrite ";
         }
