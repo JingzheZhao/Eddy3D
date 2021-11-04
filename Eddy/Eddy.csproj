@@ -461,14 +461,14 @@ Erase "$(TargetPath)"
 SET obfuscar=$(SolutionDir)packages\Obfuscar.2.2.29\tools\Obfuscar.Console.exe
 SET build_eddy=$(SolutionDir)Eddy\bin
 SET build_batchrunner=$(SolutionDir)CallBatchRunner\bin
-SET installation_folder=C:\Eddy3D
-if not exist "installation_folder" mkdir installation_folder
+SET INSTALLDIR=C:\Eddy3D
+if not exist "%25INSTALLDIR%25" mkdir "%25INSTALLDIR%25"
 
 if $(ConfigurationName)==Debug (
-xcopy /e /v  /y "%25build_eddy%25" "%25installation_folder%25"
+xcopy /e /v  /y "%25build_eddy%25" "%25INSTALLDIR%25"
 )
 if $(ConfigurationName)==Release (
-xcopy /e /v  /y "%25build_eddy%25" "%25installation_folder%25"
+xcopy /e /v  /y "%25build_eddy%25" "%25INSTALLDIR%25"
 )
 
 if $(ConfigurationName)==Release (
@@ -476,7 +476,7 @@ REM --------
 REM DOTFUSCATOR
 REM --------
 REM "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\PreEmptiveSolutions\DotfuscatorCE\dotfuscatorCLI.exe" "$(SolutionDir)\Build\Dotfuscator_TD.xml"
-REM xcopy /e /v  /y "$(SolutionDir)\Build\Dotfuscated" "%25installation_folder%25"
+REM xcopy /e /v  /y "$(SolutionDir)\Build\Dotfuscated" "%25INSTALLDIR%25"
 
 REM --------
 REM OBFUSCAR
@@ -487,7 +487,7 @@ xcopy /e /v  /y "%25build_eddy%25" "$(SolutionDir)Build\Obfuscator_Input"
 xcopy /e /v  /y "$(SolutionDir)packages\Grasshopper.7.3.21053.23031\lib\net45" "$(SolutionDir)\Build\Obfuscator_Input"
 xcopy /e /v  /y "$(SolutionDir)packages\RhinoCommon.7.3.21053.23031\lib\net45" "$(SolutionDir)\Build\Obfuscator_Input"
 "%25obfuscar%25" "$(SolutionDir)Build\ObfuscarConfig.xml"
-xcopy /e /v  /y "$(SolutionDir)Build\Obfuscator_Output" "%25installation_folder%25"
+xcopy /e /v  /y "$(SolutionDir)Build\Obfuscator_Output" "%25INSTALLDIR%25"
 )
 
 
