@@ -12,8 +12,8 @@ https://drive.google.com/open?id=1j9BhRqOfTzyD-dVEXMs_V4mWRfYXnoZL
 
 # Additional Repos
 
-https://github.com/kastnerp/Eddy3D-Plots 
-https://github.com/kastnerp/Eddy3D-Residuals 
-https://github.com/kastnerp/Eddy3D-Validation 
-https://github.com/kastnerp/Eddy3D-SimCompleted 
-https://github.com/kastnerp/Eddy3D-CaseStudies 
+https://github.com/kastnerp/Eddy3D-Plots  
+https://github.com/kastnerp/Eddy3D-Residuals  
+https://github.com/kastnerp/Eddy3D-Validation  
+https://github.com/kastnerp/Eddy3D-SimCompleted  
+https://github.com/kastnerp/Eddy3D-CaseStudies  
