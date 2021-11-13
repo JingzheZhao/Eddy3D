@@ -20,7 +20,12 @@ namespace EddyLib.Indoor.BatchFiles
 
             string[] parts = {
                this.Header, "\n",
-               String.Join("\n", BatchBody(),"\n","PAUSE")
+               String.Join("\n", BatchBody()
+#if (DEBUG == true)
+               ,"\nPAUSE"
+#endif
+
+               )
             };
 
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
@@ -30,14 +35,12 @@ namespace EddyLib.Indoor.BatchFiles
         //**Changed numer of CPUs to 1 instead of 8   (mpiexec -np 8 snappyHexMesh -overwrite -parallel )
         private static string BatchBody()
         {
-            return @"
-
-        blockMesh.exe
-        surfaceFeatureExtract
-        decomposePar -force
-        mpiexec -np 1 snappyHexMesh -overwrite -parallel 
-        reconstructParMesh -constant
-        renumberMesh -overwrite ";
+            return @"blockMesh.exe
+surfaceFeatureExtract
+decomposePar -force
+mpiexec -np 1 snappyHexMesh -overwrite -parallel 
+reconstructParMesh -constant
+renumberMesh -overwrite ";
         }
     }
 }
