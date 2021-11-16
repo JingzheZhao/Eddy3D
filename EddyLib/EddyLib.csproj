@@ -118,9 +118,7 @@
     <Compile Include="Indoor\Dicts\Constant\TurbulencePropertiesDict.cs" />
     <Compile Include="Indoor\Dicts\CppMapSerializer.cs" />
     <Compile Include="Indoor\Dicts\FunctionObjects\CO2EmitterInternalDict.cs" />
-    <Compile Include="Indoor\Dicts\FunctionObjects\MomentumSinkIndoorInternalDict.cs" />
     <Compile Include="Indoor\Dicts\FunctionObjects\MomentumSourceInternalDict.cs" />
-    <Compile Include="Indoor\Dicts\FunctionObjects\ViralEmitterInternalDict.cs" />
     <Compile Include="Indoor\Dicts\FunctionObjects\VolumetricHeatSourceInternalDict.cs" />
     <Compile Include="Indoor\Dicts\GenericDict.cs" />
     <Compile Include="Indoor\Dicts\System\BlockMeshDict.cs" />
@@ -136,9 +134,6 @@
     <Compile Include="Indoor\FunctionObjects\CO2Emitter.cs" />
     <Compile Include="Indoor\FunctionObjects\FunctionObject.cs" />
     <Compile Include="Indoor\FunctionObjects\MomentumSinkIndoor.cs" />
-    <Compile Include="Indoor\FunctionObjects\MomentumSource.cs" />
-    <Compile Include="Indoor\FunctionObjects\ViralEmitter.cs" />
-    <Compile Include="Indoor\FunctionObjects\VolumetricHeatSource.cs" />
     <Compile Include="Indoor\IndoorBC.cs" />
     <Compile Include="Indoor\IndoorDomain.cs" />
     <Compile Include="Indoor\IndoorSimulation.cs" />
@@ -169,10 +164,8 @@
     <Compile Include="UI\Attributes\Eddy_ComponentAttributes.cs" />
     <Compile Include="UI\Attributes\Eddy_ComponentButtonAttributes.cs" />
     <Compile Include="FunctionObjects.cs" />
-    <Compile Include="FunctionObjects\FunctionObject.cs" />
     <Compile Include="Indoor\Dicts\FunctionObjects\MomentumSinkIndoorInternalDict.cs" />
     <Compile Include="Indoor\Dicts\FunctionObjects\ViralEmitterInternalDict.cs" />
-    <Compile Include="Indoor\FunctionObjects\MomentumSinkIndoor.cs" />
     <Compile Include="Indoor\FunctionObjects\ViralEmitter.cs" />
     <Compile Include="Indoor\FunctionObjects\VolumetricHeatSource.cs" />
     <Compile Include="Indoor\FunctionObjects\MomentumSource.cs" />
