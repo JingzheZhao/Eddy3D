@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Obfuscar.2.2.32\build\obfuscar.props" Condition="Exists('..\packages\Obfuscar.2.2.32\build\obfuscar.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -251,6 +252,7 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\RhinoCommon.7.3.21053.23031\build\RhinoCommon.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\RhinoCommon.7.3.21053.23031\build\RhinoCommon.targets'))" />
     <Error Condition="!Exists('..\packages\Grasshopper.7.3.21053.23031\build\Grasshopper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Grasshopper.7.3.21053.23031\build\Grasshopper.targets'))" />
+    <Error Condition="!Exists('..\packages\Obfuscar.2.2.32\build\obfuscar.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Obfuscar.2.2.32\build\obfuscar.props'))" />
   </Target>
   <PropertyGroup>
     <PostBuildEvent>
