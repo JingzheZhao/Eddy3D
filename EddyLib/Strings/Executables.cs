@@ -881,7 +881,7 @@ FoamFile
             return sb.ToString();
         }
 
-        public static string SampleProbesAllFields(List<Point3d> listOfPoints, string ProbeName)
+        public static string SampleProbesAllFields(List<Point3d> listOfPoints, string ProbeName, string InterpolationScheme)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -898,8 +898,7 @@ FoamFile
                 libs (""libsampling.so"");
                 writeControl writeTime;
 
-                //interpolationScheme cellPointFace;
-                interpolationScheme cellPoint;
+                interpolationScheme " + InterpolationScheme + @";
 
                 setFormat csv;
 
@@ -939,8 +938,7 @@ FoamFile
                 libs (""libsampling.so"");
                 writeControl writeTime;
 
-                //interpolationScheme cellPointFace;
-                interpolationScheme cellPoint;
+                interpolationScheme " + ofField.InterpolationScheme + @";
 
                 setFormat csv;
 
