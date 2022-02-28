@@ -305,7 +305,8 @@ namespace EddyLib
         private double RequiredInletArea(double FrontageFacadeArea)
         {
             // Required area for 3 % blocking ratio
-            return 100 / 3 * (FrontageFacadeArea);
+           var  blockingRatio = 2; // twice the size for now
+            return 100 / blockingRatio * (FrontageFacadeArea);
         }
 
         public override string ToString()
