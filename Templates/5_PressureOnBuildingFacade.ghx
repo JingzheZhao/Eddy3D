@@ -49,10 +49,17 @@
             <chunk name="Projection">
               <items count="2">
                 <item name="Target" type_name="gh_drawing_point" type_code="30">
+<<<<<<< HEAD
                   <X>25</X>
                   <Y>-18</Y>
                 </item>
                 <item name="Zoom" type_name="gh_single" type_code="5">0.85</item>
+=======
+                  <X>484</X>
+                  <Y>283</Y>
+                </item>
+                <item name="Zoom" type_name="gh_single" type_code="5">0.4437055</item>
+>>>>>>> 82632e3904ced87a6ea24120467e2c6bc9c1168f
               </items>
             </chunk>
             <chunk name="Views">
@@ -86,6 +93,7 @@
         </chunk>
         <chunk name="DefinitionObjects">
           <items count="1">
+<<<<<<< HEAD
             <item name="ObjectCount" type_name="gh_int32" type_code="3">54</item>
           </items>
           <chunks count="54">
@@ -5078,24 +5086,39 @@ Eddy3D 0.3.8.0</item>
               </chunks>
             </chunk>
             <chunk name="Object" index="49">
+=======
+            <item name="ObjectCount" type_name="gh_int32" type_code="3">1</item>
+          </items>
+          <chunks count="1">
+            <chunk name="Object" index="0">
+>>>>>>> 82632e3904ced87a6ea24120467e2c6bc9c1168f
               <items count="3">
-                <item name="GUID" type_name="gh_guid" type_code="9">012e1f38-3eeb-4b0e-ba77-3994af3429f9</item>
+                <item name="GUID" type_name="gh_guid" type_code="9">d8e619a8-bf03-422f-962b-0d52a05559df</item>
                 <item name="Lib" type_name="gh_guid" type_code="9">2e38bada-fd78-4b1a-a943-dc06595af3d5</item>
-                <item name="Name" type_name="gh_string" type_code="10">Mesh Settings</item>
+                <item name="Name" type_name="gh_string" type_code="10">Templates</item>
               </items>
               <chunks count="1">
                 <chunk name="Container">
                   <items count="4">
+<<<<<<< HEAD
                     <item name="Description" type_name="gh_string" type_code="10">Mesh Settings
 Eddy3D 0.3.8.0</item>
                     <item name="InstanceGuid" type_name="gh_guid" type_code="9">a70c89ac-564a-4934-8ac6-bf433ee14daa</item>
                     <item name="Name" type_name="gh_string" type_code="10">Mesh Settings</item>
                     <item name="NickName" type_name="gh_string" type_code="10">MSet</item>
+=======
+                    <item name="Description" type_name="gh_string" type_code="10">Templates
+Eddy3D 0.4.0.10</item>
+                    <item name="InstanceGuid" type_name="gh_guid" type_code="9">8170806f-888d-4cb7-ab85-f70271ba1b47</item>
+                    <item name="Name" type_name="gh_string" type_code="10">Templates</item>
+                    <item name="NickName" type_name="gh_string" type_code="10">Templates</item>
+>>>>>>> 82632e3904ced87a6ea24120467e2c6bc9c1168f
                   </items>
-                  <chunks count="9">
+                  <chunks count="3">
                     <chunk name="Attributes">
                       <items count="2">
                         <item name="Bounds" type_name="gh_drawing_rectanglef" type_code="35">
+<<<<<<< HEAD
                           <X>2095</X>
                           <Y>731</Y>
                           <W>134</W>
@@ -5104,10 +5127,21 @@ Eddy3D 0.3.8.0</item>
                         <item name="Pivot" type_name="gh_drawing_pointf" type_code="31">
                           <X>2177</X>
                           <Y>803</Y>
+=======
+                          <X>83</X>
+                          <Y>87</Y>
+                          <W>71</W>
+                          <H>50</H>
+                        </item>
+                        <item name="Pivot" type_name="gh_drawing_pointf" type_code="31">
+                          <X>121</X>
+                          <Y>101</Y>
+>>>>>>> 82632e3904ced87a6ea24120467e2c6bc9c1168f
                         </item>
                       </items>
                     </chunk>
                     <chunk name="param_input" index="0">
+<<<<<<< HEAD
                       <items count="6">
                         <item name="Description" type_name="gh_string" type_code="10">Level accuracy of building mesh.</item>
                         <item name="InstanceGuid" type_name="gh_guid" type_code="9">a51fd0d2-d76e-424b-8338-89958a26ae3b</item>
@@ -5395,12 +5429,22 @@ Eddy3D 0.3.8.0</item>
                         <item name="Name" type_name="gh_string" type_code="10">Mode</item>
                         <item name="NickName" type_name="gh_string" type_code="10">Mode</item>
                         <item name="Optional" type_name="gh_bool" type_code="1">false</item>
+=======
+                      <items count="7">
+                        <item name="Access" type_name="gh_int32" type_code="3">1</item>
+                        <item name="Description" type_name="gh_string" type_code="10">Additional folder path to import Eddy3D templates.</item>
+                        <item name="InstanceGuid" type_name="gh_guid" type_code="9">3febccc4-99b5-43db-a481-909aa780fb8d</item>
+                        <item name="Name" type_name="gh_string" type_code="10">Directory</item>
+                        <item name="NickName" type_name="gh_string" type_code="10">Dir</item>
+                        <item name="Optional" type_name="gh_bool" type_code="1">true</item>
+>>>>>>> 82632e3904ced87a6ea24120467e2c6bc9c1168f
                         <item name="SourceCount" type_name="gh_int32" type_code="3">0</item>
                       </items>
-                      <chunks count="2">
+                      <chunks count="1">
                         <chunk name="Attributes">
                           <items count="2">
                             <item name="Bounds" type_name="gh_drawing_rectanglef" type_code="35">
+<<<<<<< HEAD
                               <X>2097</X>
                               <Y>853</Y>
                               <W>65</W>
@@ -5409,37 +5453,36 @@ Eddy3D 0.3.8.0</item>
                             <item name="Pivot" type_name="gh_drawing_pointf" type_code="31">
                               <X>2131</X>
                               <Y>863</Y>
+=======
+                              <X>85</X>
+                              <Y>89</Y>
+                              <W>21</W>
+                              <H>24</H>
+                            </item>
+                            <item name="Pivot" type_name="gh_drawing_pointf" type_code="31">
+                              <X>97</X>
+                              <Y>101</Y>
+>>>>>>> 82632e3904ced87a6ea24120467e2c6bc9c1168f
                             </item>
                           </items>
-                        </chunk>
-                        <chunk name="PersistentData">
-                          <items count="1">
-                            <item name="Count" type_name="gh_int32" type_code="3">1</item>
-                          </items>
-                          <chunks count="1">
-                            <chunk name="Branch" index="0">
-                              <items count="2">
-                                <item name="Count" type_name="gh_int32" type_code="3">1</item>
-                                <item name="Path" type_name="gh_string" type_code="10">{0}</item>
-                              </items>
-                              <chunks count="1">
-                                <chunk name="Item" index="0">
-                                  <items count="1">
-                                    <item name="number" type_name="gh_int32" type_code="3">2</item>
-                                  </items>
-                                </chunk>
-                              </chunks>
-                            </chunk>
-                          </chunks>
                         </chunk>
                       </chunks>
                     </chunk>
                     <chunk name="param_output" index="0">
+<<<<<<< HEAD
                       <items count="6">
                         <item name="Description" type_name="gh_string" type_code="10">Mesh Settings</item>
                         <item name="InstanceGuid" type_name="gh_guid" type_code="9">057e4e9f-769c-4579-8793-f1e03ae417d3</item>
                         <item name="Name" type_name="gh_string" type_code="10">Mesh Settings</item>
                         <item name="NickName" type_name="gh_string" type_code="10">MSet</item>
+=======
+                      <items count="7">
+                        <item name="Access" type_name="gh_int32" type_code="3">1</item>
+                        <item name="Description" type_name="gh_string" type_code="10">Eddy3D templates found in folders.</item>
+                        <item name="InstanceGuid" type_name="gh_guid" type_code="9">91203e32-1cd4-4cc4-8c31-e635cadec4a9</item>
+                        <item name="Name" type_name="gh_string" type_code="10">Templates</item>
+                        <item name="NickName" type_name="gh_string" type_code="10">T</item>
+>>>>>>> 82632e3904ced87a6ea24120467e2c6bc9c1168f
                         <item name="Optional" type_name="gh_bool" type_code="1">false</item>
                         <item name="SourceCount" type_name="gh_int32" type_code="3">0</item>
                       </items>
@@ -5447,6 +5490,7 @@ Eddy3D 0.3.8.0</item>
                         <chunk name="Attributes">
                           <items count="2">
                             <item name="Bounds" type_name="gh_drawing_rectanglef" type_code="35">
+<<<<<<< HEAD
                               <X>2192</X>
                               <Y>733</Y>
                               <W>35</W>
@@ -5455,6 +5499,16 @@ Eddy3D 0.3.8.0</item>
                             <item name="Pivot" type_name="gh_drawing_pointf" type_code="31">
                               <X>2209.5</X>
                               <Y>803</Y>
+=======
+                              <X>136</X>
+                              <Y>89</Y>
+                              <W>16</W>
+                              <H>24</H>
+                            </item>
+                            <item name="Pivot" type_name="gh_drawing_pointf" type_code="31">
+                              <X>144</X>
+                              <Y>101</Y>
+>>>>>>> 82632e3904ced87a6ea24120467e2c6bc9c1168f
                             </item>
                           </items>
                         </chunk>
@@ -5464,6 +5518,7 @@ Eddy3D 0.3.8.0</item>
                 </chunk>
               </chunks>
             </chunk>
+<<<<<<< HEAD
             <chunk name="Object" index="50">
               <items count="2">
                 <item name="GUID" type_name="gh_guid" type_code="9">ac2bc2cb-70fb-4dd5-9c78-7e1ea97fe278</item>
@@ -5699,6 +5754,8 @@ Eddy3D 0.3.8.0</item>
                 </chunk>
               </chunks>
             </chunk>
+=======
+>>>>>>> 82632e3904ced87a6ea24120467e2c6bc9c1168f
           </chunks>
         </chunk>
       </chunks>
@@ -5706,7 +5763,11 @@ Eddy3D 0.3.8.0</item>
     <chunk name="Thumbnail">
       <items count="1">
         <item name="Thumbnail" type_name="gh_drawing_bitmap" type_code="37">
+<<<<<<< HEAD
           <bitmap length="4807">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</bitmap>
+=======
+          <bitmap length="654">iVBORw0KGgoAAAANSUhEUgAAAJYAAABkCAIAAADrOV6nAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAIjSURBVHhe7doxSxthHIDxfK7iIIV+DIeS0U4ZhFIEEczQoZFCIYpaq6I2uiRKMySUiEtHY9Vkq6TXnIFowC9gX8JBeUs/QJ7m+XHc8L/bHv73LpfT/+BJWH8Svv32rLTz/uvZzefj06XllVfz841G49fYT02qKGFxZ+nDp+O1jYP9g0qxWKzX60mS2G/CRQm/nJ6X1z5WaydXV99rtZr7hxAlXFx8s7W52el0Wq1WuKdpmr2lCRYlzOfz4fsZ9i/0c/8oooSFQiGcfyGe+wcSJWw2m+Pjz/0jiRLaj+jvhNlYHFHCbCYUE+KZEM+EeCbEMyGeCfFMiGdCPBPimRDPhHgmxDMhngnxTIhnQjwT4pkQz4R4JsQzIR4sYb/fv7tLw5Wm/Ww09UgJkyTpdrsXF+12+/L6+iabTj1SwrB5R0cn5fLh+nple7tye/sjRM2eTTFSwoeH+4WF1zMzz2dnX8zNvQz5/P08ICUcDAbVarVUere6Wtrb2w393MKAlLDX6w2Hw8ex0WiUTaceKaH+yYR4JsQzIZ4J8UyIZ0I8E+KZEM+EeCbEMyGeCfFMiGdCPBPimRDPhHgmxDMhngnxTIhnQjwT4pkQz4R4JsQzIZ4J8UyIZ0I8E+KZEM+EeCbEMyGeCfFMiGdCPBPimRDPhHgmxDMhngnxTIhnQjwT4pkQz4R4JsQzIZ4J8UyIZ0I8E+KZEM+EeCbEixIKKksosFzuNxvKPeCj8WR+AAAAAElFTkSuQmCC</bitmap>
+>>>>>>> 82632e3904ced87a6ea24120467e2c6bc9c1168f
         </item>
       </items>
     </chunk>
