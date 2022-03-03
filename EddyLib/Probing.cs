@@ -23,10 +23,7 @@ namespace EddyLib
     }
 
     public class OFFieldNew
-
     {
-        public string InterpolationScheme { get; set; }
-
         public string FieldName { get; set; }
 
         public string ProbeName { get; set; }
@@ -35,7 +32,7 @@ namespace EddyLib
 
         public fieldType FieldType { get; set; }
 
-        public OFFieldNew(string probeName, field field, int interpolationScheme)
+        public OFFieldNew(string probeName, field field)
         {
             Field = field;
 
@@ -47,8 +44,6 @@ namespace EddyLib
             {
                 this.FieldType = fieldType.scalar;
             }
-
-            InterpolationScheme = Probing.ReformatIS(interpolationScheme);
 
             // User given name
             ProbeName = probeName;
@@ -222,22 +217,19 @@ namespace EddyLib
     }
 
     public class OFField
-
     {
-        public string InterpolationScheme { get; set; }
-
         public string FieldName { get; set; }
 
         public string ProbeName { get; set; }
 
         public fieldType FieldType { get; set; }
 
-        public OFField(string fieldName, string probeName, int InterpolationScheme)
+        public OFField(string fieldName, string probeName)
         {
-            Setup(fieldName, probeName, InterpolationScheme);
+            Setup(fieldName, probeName);
         }
 
-        private void Setup(string fieldName, string probeName, int InterpolationScheme)
+        private void Setup(string fieldName, string probeName)
         {
             //param.AddNamedValue("U", 0);
             //param.AddNamedValue("total(p)_coeff", 1);
@@ -247,8 +239,6 @@ namespace EddyLib
             //param.AddNamedValue("k", 5);
             //param.AddNamedValue("nut", 6);
             //param.AddNamedValue("phi", 7);
-
-            this.InterpolationScheme = Probing.ReformatIS(InterpolationScheme);
 
             FieldName = fieldName;
             ProbeName = probeName;
@@ -558,35 +548,6 @@ namespace EddyLib
             }
 
             return outputList.ToArray();
-        }
-
-        public static String ReformatIS(int IS)
-        {
-            //interpolationScheme.AddNamedValue("cell", 0);
-            //interpolationScheme.AddNamedValue("cellPoint", 1);
-            //interpolationScheme.AddNamedValue("cellPointFace", 2);
-            //interpolationScheme.AddNamedValue("pointMVC", 3);
-            //interpolationScheme.AddNamedValue("cellPatchConstrained", 4);
-
-            switch (IS)
-            {
-                case 1:
-                    return "cell";
-
-                case 2:
-                    return "cellPoint";
-
-                case 3:
-                    return "cellPointFace";
-
-                case 4:
-                    return "pointMVC";
-
-                case 5:
-                    return "cellPatchConstrained";
-
-                default: return "cell";
-            }
         }
     }
 }

@@ -78,16 +78,8 @@ namespace Eddy
             pManager.AddPointParameter("Probing points", "Points", "List of probing points", GH_ParamAccess.list);
             pManager.AddTextParameter("Name of instance", "Name", "Name of instance to be probed", GH_ParamAccess.item);
 
-            pManager.AddIntegerParameter("Interpolation Scheme", "IS", "Interpolation Scheme", GH_ParamAccess.item, 0);
-            Param_Integer interpolationScheme = pManager[3] as Param_Integer;
-            interpolationScheme.AddNamedValue("cell", 0);
-            interpolationScheme.AddNamedValue("cellPoint", 1);
-            interpolationScheme.AddNamedValue("cellPointFace", 2);
-            interpolationScheme.AddNamedValue("pointMVC", 3);
-            interpolationScheme.AddNamedValue("cellPatchConstrained", 4);
-
             pManager.AddIntegerParameter("Name of field", "Field", "Name of field to be probed", GH_ParamAccess.item, 0);
-            Param_Integer param = pManager[4] as Param_Integer;
+            Param_Integer param = pManager[3] as Param_Integer;
             param.AddNamedValue("Velocity (U) [m/s]", 0);
             param.AddNamedValue("Pressure coefficient (total(p)_coeff) [-]", 1);
             param.AddNamedValue("Pressure (p) [m^2/s^2]", 2);
@@ -151,17 +143,14 @@ namespace Eddy
             bool run = false;
             int OFFieldInt = 0;
             string probeNameByUser = "";
-            int InterpolationScheme = 0;
 
             DA.GetDataList(1, listOfPoints);
 
             DA.GetData(2, ref probeNameByUser);
-
-            DA.GetData(3, ref InterpolationScheme);
-            DA.GetData(4, ref OFFieldInt);
+            DA.GetData(3, ref OFFieldInt);
 
             //DA.GetData(4, ref fieldType);
-            DA.GetData(5, ref run);
+            DA.GetData(4, ref run);
 
             if (probeNameByUser == "")
             {
@@ -183,7 +172,7 @@ namespace Eddy
             GH_Structure<GH_Vector> treeVector = new GH_Structure<GH_Vector>();
 
             string OFField = EddyLib.OFField.ReformatOFFields(OFFieldInt);
-            OFField currField = new OFField(OFField, probeNameByUser, InterpolationScheme);
+            OFField currField = new OFField(OFField, probeNameByUser);
 
             #region Error handling
 
@@ -241,7 +230,7 @@ namespace Eddy
                 }
             }
 
-            int threshold = 10000;
+            int threshold = 5000;
             if (listOfPoints.Count > threshold)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Probing more than " + threshold + " points may slow Grasshopper down considerably.");

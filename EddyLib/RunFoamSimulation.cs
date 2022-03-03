@@ -112,7 +112,7 @@ namespace EddyLib
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "k"), EddyLib.Strings.BCDicts.K(DOM));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "epsilon"), EddyLib.Strings.BCDicts.Epsilon(DOM));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "nut"), EddyLib.Strings.BCDicts.Nut(DOM));
-                        File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "aoa"), EddyLib.Strings.BCDicts.AOA());
+                        File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "aoa"), EddyLib.Strings.BCDicts.AOA());
 
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "initialConditions"), EddyLib.Strings.BCDicts.InitialConditions(DOM, i));
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "initialConditions"), EddyLib.Strings.BCDicts.InitialConditions(DOM, i));
