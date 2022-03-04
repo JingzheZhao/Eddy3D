@@ -117,6 +117,7 @@ namespace EddyLib.Indoor
             var u = new IndoorBCDict.U(Inlets, Outlets, RoomGeometry);
             var alphat = new IndoorBCDict.alphat(Inlets, Outlets, RoomGeometry);
             var AoA = new IndoorBCDict.AoA(Inlets, Outlets, RoomGeometry);
+            var Covid = new IndoorBCDict.Covid(Inlets, Outlets, RoomGeometry);
             var nut = new IndoorBCDict.nut(Inlets, Outlets, RoomGeometry);
             var omega = new IndoorBCDict.omega(Inlets, Outlets, RoomGeometry);
             var k = new IndoorBCDict.k(Inlets, Outlets, RoomGeometry);
@@ -127,6 +128,7 @@ namespace EddyLib.Indoor
             AllDictsWrite2File.Add(u);
             AllDictsWrite2File.Add(alphat);
             AllDictsWrite2File.Add(AoA);
+            AllDictsWrite2File.Add(Covid);
             AllDictsWrite2File.Add(nut);
             AllDictsWrite2File.Add(omega);
             AllDictsWrite2File.Add(k);

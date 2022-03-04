@@ -151,7 +151,43 @@ namespace EddyLib.Indoor.Dicts
                     }
                 }
             }
+                
+
         }");
+            sb.AppendLine(
+                @"covid19
+    {
+                type scalarTransport;
+                libs (""libfieldFunctionObjects.so"");
+
+                writeControl outputTime;
+                D               16e-5;
+                field covid19;
+                resetOnStartUp  false;
+                schemesField covid19;
+                bounded01       true;
+                write           true;
+
+                fvOptions
+        {
+                    covid19_00
+            {
+                        type scalarSemiImplicitSource;
+                        active          true;
+
+                        scalarSemiImplicitSourceCoeffs
+                {
+                            volumeMode absolute;
+                            selectionMode cellZone;
+                            cellZone ViralEmitter_0; //Todo: Add Emitter Name
+                            injectionRateSuSp
+                    {
+                                covid19 (1.076e-4 0); 
+                            }
+                        }
+                    }
+                }
+            }");
 
             //if (IndDom.FOs.OfType<VolumetricHeatSource>().Any())
             //{ sb.AppendLine("#includeFunc volumetricHeatSources");}
