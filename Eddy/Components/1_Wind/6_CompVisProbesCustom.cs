@@ -89,6 +89,8 @@ namespace Eddy
             param.AddNamedValue("Turbulent viscosity (nut) [m^2/s]", 6);
             param.AddNamedValue("Mass flow (phi) [m^3/s]", 7);
             param.AddNamedValue("Age of air (aoa) [s]", 8);
+            param.AddNamedValue("Particle Concentration (covid19) []", 9);
+            // Todo Zoe
 
             //pManager.AddIntegerParameter("FieldType", "FieldType", "FieldType", GH_ParamAccess.item, 1);
             //Param_Integer param2 = pManager[4] as Param_Integer;

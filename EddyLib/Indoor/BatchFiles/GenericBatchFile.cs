@@ -31,10 +31,21 @@ namespace EddyLib.Indoor.BatchFiles
 
         public string GetHeader()
         {
-            return
-                   @"call ""C:\Program Files\blueCFD-Core-2017\\setvars.bat""
-set PATH=%HOME%msys64\usr\bin;%PATH%
-cd " + "\"" + BatchLocation.ToString() + "\"";
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine(@"call ""C:\Program Files\blueCFD-Core-2017\\setvars.bat");
+            sb.AppendLine(@"set PATH=%HOME%msys64\usr\bin;%PATH%");
+            sb.AppendLine(ReturnWindowsDrive(BatchLocation.ToString()));
+            sb.AppendLine("cd " + "\"" + BatchLocation.ToString() + "\"");
+
+            return sb.ToString();   
+
+        }
+
+        public string ReturnWindowsDrive(string path)
+        {
+            var result = path[0];
+            return result + ":";
         }
 
         public void RemoveBatch(string baseWorkingDir)

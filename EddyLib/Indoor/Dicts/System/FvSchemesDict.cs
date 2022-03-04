@@ -81,6 +81,7 @@ namespace EddyLib.Indoor.Dicts
             InternalDict.Add("div(phi,k)", "bounded Gauss upwind");
             InternalDict.Add("div(phi,omega)", "bounded Gauss upwind");
             InternalDict.Add("div(phi,aoa)", "bounded Gauss upwind");
+            InternalDict.Add("div(phi,covid19)", "bounded Gauss upwind");
 
             return Dict;
         }
