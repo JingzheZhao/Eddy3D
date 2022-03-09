@@ -280,6 +280,10 @@ namespace EddyLib
             {
                 FieldType = fieldType.scalar;
             }
+            else if (fieldName == "covid19")
+            {
+                FieldType = fieldType.scalar;
+            }
         }
 
         public static string ReformatOFFields(int OFFieldInt)

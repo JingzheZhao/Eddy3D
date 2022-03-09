@@ -203,7 +203,7 @@ namespace EddyLib.Indoor.Dicts
 
             Dict3.Add("p_rgh", "0.3");
             Dict3.Add("aoa", "0.5");
-            Dict3.Add("Covid19", "0.5");
+            Dict3.Add("covid19", "0.5");
 
             return Dict3;
         }
