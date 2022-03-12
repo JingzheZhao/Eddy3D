@@ -98,6 +98,7 @@ namespace EddyLib.Indoor.Dicts
             InternalDict.Add("laplacian(DkEff,k)", "Gauss linear uncorrected");
             InternalDict.Add("laplacian(DomegaEff,omega)", "Gauss linear uncorrected");
             InternalDict.Add("laplacian(Daoa,aoa)", "Gauss linear limited 0.333");
+            InternalDict.Add("laplacian(Dcovid19,covid19)", "Gauss linear limited 0.333");
 
             return Dict;
         }
