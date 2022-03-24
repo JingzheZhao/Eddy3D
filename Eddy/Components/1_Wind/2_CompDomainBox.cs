@@ -221,7 +221,7 @@ namespace Eddy
 
             if (buildingGeometry.GetBoundingBox(true).Min.Z < 0 && bCond is ABL)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "If your simulation domain extends below z = 0, you cannot use an ABL Boundary Condition. Please use the Constant U Boundary Condition."); return;
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "If your simulation domain extends below z = 0, please make sure to adjust ABL zGround accordingly.");
             }
 
             if (Utilities.CheckLicence() == true)
