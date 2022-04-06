@@ -19,7 +19,8 @@ namespace EddyLib
 
     public enum field
     {
-        U, p, cp_coeff, epsilon, omega, k, nut, phi, AoA
+        U, p, cp_coeff, epsilon, omega, k, nut, phi, aoa, covid19
+            // Todo Zoe
     }
 
     public class OFFieldNew
@@ -279,6 +280,10 @@ namespace EddyLib
             {
                 FieldType = fieldType.scalar;
             }
+            else if (fieldName == "covid19")
+            {
+                FieldType = fieldType.scalar;
+            }
         }
 
         public static string ReformatOFFields(int OFFieldInt)
@@ -333,11 +338,18 @@ namespace EddyLib
 
                 //fieldType = 1;
             }
-            else
+            else if (OFFieldInt == 8)
             {
                 ofField = "aoa";
             }
+            else {
+
+                ofField = "covid19";
+            }
+
             return ofField;
+
+            // Todo Zoe
         }
     }
 

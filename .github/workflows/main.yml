@@ -3,20 +3,8 @@ name: Build Eddy3D
 # Controls when the action will run. 
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
-  push:
-    branches: 
-      - master
-      - dev
-      - timur
-      - patrick
-      - zoe
-  pull_request:
-    branches: 
-      - master
-      - dev
-      - timur
-      - patrick
-      - zoe
+  push: 
+  pull_request: 
  
 jobs:
   build:

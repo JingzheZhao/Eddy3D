@@ -1,11 +1,12 @@
 ﻿using EddyLib.BCs;
+using EddyLib.FunctionObjects;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 
 namespace EddyLib
 {
-    public class PressureCoeff
+    public class PressureCoeff : FunctionObject
     {
         public double UatBuildingHeight;
 
@@ -66,15 +67,3 @@ namespace EddyLib
         }
     }
 }
-
-//   if (bc is ABL)
-//            {
-//                ABL casted_bc = (ABL)bc;
-
-//             }
-//            else
-//            {
-//                ConstU casted_bc = (ConstU)bc;
-
-//             }
-//}

@@ -205,8 +205,6 @@ void plastic Generic_20
                 string pathvar = System.Environment.GetEnvironmentVariable("PATH");
                 System.Environment.SetEnvironmentVariable("PATH", pathvar + @";" + DaysimInstallation);
 
-                // System.Environment.SetEnvironmentVariable("RAYPATH", @"C:\UD\bin\DAYSIM\lib\;C:\UD\bin\Radiance\lib\");
-
                 //run the daysim radiance executables
                 ProcessStartInfo startInfo = new ProcessStartInfo
                 {
@@ -214,10 +212,8 @@ void plastic Generic_20
                 };
 
                 string pathvar2 = startInfo.EnvironmentVariables["PATH"];
-                startInfo.EnvironmentVariables["PATH"] = pathvar2 + @";" + DaysimInstallation; //@";C:\UD\bin\DAYSIM\bin_windows\;C:\UD\bin\Radiance\bin\;C:\UD\bin\DAYSIM;";
+                startInfo.EnvironmentVariables["PATH"] = pathvar2 + @";" + DaysimInstallation; 
 
-                // startInfo.EnvironmentVariables["RAYPATH"]
-                // = @"C:\UD\bin\DAYSIM\lib\;C:\UD\bin\Radiance\lib\";
 
                 startInfo.UseShellExecute = false;
                 startInfo.RedirectStandardError = true;

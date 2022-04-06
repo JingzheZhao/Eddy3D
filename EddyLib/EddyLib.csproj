@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Obfuscar.2.2.32\build\obfuscar.props" Condition="Exists('..\packages\Obfuscar.2.2.32\build\obfuscar.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -108,6 +109,7 @@
     <Compile Include="Geometry\EddyVector.cs" />
     <Compile Include="GlobalSettings\DefaultDirectoriesAndPaths.cs" />
     <Compile Include="Indoor\BatchFiles\GenericBatchFile.cs" />
+    <Compile Include="Indoor\BatchFiles\RunAllBatch.cs" />
     <Compile Include="Indoor\BatchFiles\RunMeshBatch.cs" />
     <Compile Include="Indoor\BatchFiles\RunSimBatch.cs" />
     <Compile Include="Indoor\BatchFiles\RunTopoBatch.cs" />
@@ -117,9 +119,7 @@
     <Compile Include="Indoor\Dicts\Constant\TurbulencePropertiesDict.cs" />
     <Compile Include="Indoor\Dicts\CppMapSerializer.cs" />
     <Compile Include="Indoor\Dicts\FunctionObjects\CO2EmitterInternalDict.cs" />
-    <Compile Include="Indoor\Dicts\FunctionObjects\MomentumSinkIndoorInternalDict.cs" />
     <Compile Include="Indoor\Dicts\FunctionObjects\MomentumSourceInternalDict.cs" />
-    <Compile Include="Indoor\Dicts\FunctionObjects\ViralEmitterInternalDict.cs" />
     <Compile Include="Indoor\Dicts\FunctionObjects\VolumetricHeatSourceInternalDict.cs" />
     <Compile Include="Indoor\Dicts\GenericDict.cs" />
     <Compile Include="Indoor\Dicts\System\BlockMeshDict.cs" />
@@ -135,9 +135,6 @@
     <Compile Include="Indoor\FunctionObjects\CO2Emitter.cs" />
     <Compile Include="Indoor\FunctionObjects\FunctionObject.cs" />
     <Compile Include="Indoor\FunctionObjects\MomentumSinkIndoor.cs" />
-    <Compile Include="Indoor\FunctionObjects\MomentumSource.cs" />
-    <Compile Include="Indoor\FunctionObjects\ViralEmitter.cs" />
-    <Compile Include="Indoor\FunctionObjects\VolumetricHeatSource.cs" />
     <Compile Include="Indoor\IndoorBC.cs" />
     <Compile Include="Indoor\IndoorDomain.cs" />
     <Compile Include="Indoor\IndoorSimulation.cs" />
@@ -168,6 +165,11 @@
     <Compile Include="UI\Attributes\Eddy_ComponentAttributes.cs" />
     <Compile Include="UI\Attributes\Eddy_ComponentButtonAttributes.cs" />
     <Compile Include="FunctionObjects.cs" />
+    <Compile Include="Indoor\Dicts\FunctionObjects\MomentumSinkIndoorInternalDict.cs" />
+    <Compile Include="Indoor\Dicts\FunctionObjects\ViralEmitterInternalDict.cs" />
+    <Compile Include="Indoor\FunctionObjects\ViralEmitter.cs" />
+    <Compile Include="Indoor\FunctionObjects\VolumetricHeatSource.cs" />
+    <Compile Include="Indoor\FunctionObjects\MomentumSource.cs" />
     <Compile Include="FunctionObjects\PressureCoeff.cs" />
     <Compile Include="BoundaryConditions\BoundaryConditionsBase.cs" />
     <Compile Include="FunctionObjects\Tree.cs" />
@@ -250,6 +252,7 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\RhinoCommon.7.3.21053.23031\build\RhinoCommon.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\RhinoCommon.7.3.21053.23031\build\RhinoCommon.targets'))" />
     <Error Condition="!Exists('..\packages\Grasshopper.7.3.21053.23031\build\Grasshopper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Grasshopper.7.3.21053.23031\build\Grasshopper.targets'))" />
+    <Error Condition="!Exists('..\packages\Obfuscar.2.2.32\build\obfuscar.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Obfuscar.2.2.32\build\obfuscar.props'))" />
   </Target>
   <PropertyGroup>
     <PostBuildEvent>

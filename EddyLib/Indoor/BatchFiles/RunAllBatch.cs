@@ -1,0 +1,52 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.IO;
+using System.Runtime.CompilerServices;
+
+
+namespace EddyLib.Indoor.BatchFiles
+{
+    public class RunAllBatch : GenericBatchFile
+    {
+
+        public RunAllBatch(IndoorDomain IndoorDom)
+        {
+            this.BatchLocation = IndoorDom.WorkingDir;
+            this.BatchName = "run_all.bat";
+            this.Header = GetHeader();
+            //this.RemoveDict();
+            //this.Export();
+
+            string[] parts = {
+               this.Header, "\n",
+               String.Join("\n", BatchBody()
+#if (DEBUG == true)
+               ,"\nPAUSE"
+#endif
+
+               )
+            };
+
+            this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
+
+        }
+
+        private static string BatchBody()
+        {
+            return @"blockMesh.exe
+surfaceFeatureExtract
+decomposePar -force
+mpiexec -np 8 snappyHexMesh -overwrite -parallel
+reconstructParMesh -constant
+renumberMesh -overwrite 
+
+topoSet
+
+renumberMesh -overwrite
+decomposePar -force
+mpiexec -np 8 buoyantSimpleFoam -parallel
+reconstructPar";
+        }
+    }
+}

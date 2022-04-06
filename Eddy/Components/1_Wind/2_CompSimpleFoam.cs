@@ -175,6 +175,14 @@ namespace Eddy
             DA.GetData("Working directory", ref baseWorkingDirectory);
             if (!Directory.Exists(baseWorkingDirectory)) { Directory.CreateDirectory(baseWorkingDirectory); }
 
+            DirectoryInfo parentDir = Directory.GetParent(baseWorkingDirectory.EndsWith("\\") ? baseWorkingDirectory : string.Concat(baseWorkingDirectory, "\\"));
+            var myParentDir = parentDir.Parent.FullName;
+
+            if (myParentDir == @"C:\")
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"Please use an additional subfolder for Eddy3D simulations e.g. ""C:\Eddy3D\3_SimpleWindAnalysis"""); return;
+            }
+
             string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             if (RunSettings.ostype == OSType.Windows7 && (RunSettings.simEngine == SimEngine.Docker))
             {

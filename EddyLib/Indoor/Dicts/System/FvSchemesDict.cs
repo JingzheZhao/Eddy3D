@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using EddyLib.Indoor.Dicts;
 
 namespace EddyLib.Indoor.Dicts
 {
@@ -77,7 +80,8 @@ namespace EddyLib.Indoor.Dicts
             InternalDict.Add("div(((rho*nuEff)*dev2(T(grad(U)))))", "Gauss linear");
             InternalDict.Add("div(phi,k)", "bounded Gauss upwind");
             InternalDict.Add("div(phi,omega)", "bounded Gauss upwind");
-            InternalDict.Add("div(phi,AoA)", "bounded Gauss upwind");
+            InternalDict.Add("div(phi,aoa)", "bounded Gauss upwind");
+            InternalDict.Add("div(phi,covid19)", "bounded Gauss upwind");
 
             return Dict;
         }
@@ -93,7 +97,8 @@ namespace EddyLib.Indoor.Dicts
             InternalDict.Add("default", "Gauss linear corrected");
             InternalDict.Add("laplacian(DkEff,k)", "Gauss linear uncorrected");
             InternalDict.Add("laplacian(DomegaEff,omega)", "Gauss linear uncorrected");
-            InternalDict.Add("laplacian(DAoA,AoA)", "Gauss linear limited 0.333");
+            InternalDict.Add("laplacian(Daoa,aoa)", "Gauss linear limited 0.333");
+            InternalDict.Add("laplacian(Dcovid19,covid19)", "Gauss linear limited 0.333");
 
             return Dict;
         }

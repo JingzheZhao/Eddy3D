@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 
 namespace EddyLib.Indoor.Dicts
 {
@@ -79,6 +80,8 @@ namespace EddyLib.Indoor.Dicts
 }";
         }
 
+
+
         private static string PrintLocation(DictLocation dl)
         {
             string s = "";
@@ -106,6 +109,8 @@ namespace EddyLib.Indoor.Dicts
 
         public static string InParenthesis(string input)
         {
+
+
             return "(" + input + ")";
         }
     }

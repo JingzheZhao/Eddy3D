@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Eddy3D Lib")]
-[assembly: AssemblyCopyright("Copyright © Timur Dogan, Patrick Kastner 2019")]
+[assembly: AssemblyCopyright("Copyright © Patrick Kastner, Zoe De Simone, Timur Dogan - 2021")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

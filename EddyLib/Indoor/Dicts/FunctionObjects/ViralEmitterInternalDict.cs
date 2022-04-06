@@ -1,12 +1,15 @@
-﻿using Rhino.Geometry;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Rhino.Geometry;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace EddyLib.Indoor.Dicts
 {
-    internal class ViralEmitterInternalDict : GenericDict
+    class ViralEmitterInternalDict : GenericDict
     {
+
         public List<String> InternalDict = new List<string>();
 
         //public ViralEmitterInternalDict(ViralEmitter viralEm, Point3d PointInsideDomain)
@@ -45,7 +48,7 @@ namespace EddyLib.Indoor.Dicts
             Dict3.Add("volumeMode", "specific");
             Dict3.Add("injectionRateSuSp", Dict4);
 
-            Dict4.Add("Covid19", "(1.076e-4 0)");
+            Dict4.Add("covid19", "(1.076e-4 0)");
 
             return Dict1;
         }

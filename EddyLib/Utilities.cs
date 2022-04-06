@@ -97,6 +97,8 @@ namespace EddyLib
 
             public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, string executable = @"C:\Windows\System32\cmd.exe", EventHandler eh = null)
             {
+                if (!File.Exists(executable)) { return; }
+
                 System.Diagnostics.Process p = new System.Diagnostics.Process();
 
                 // if(eh!=null) p.Exited += eh;
@@ -128,6 +130,8 @@ exit
                     if (close) { p.Close(); }
                     if (eh != null) { eh.Invoke(p, new EventArgs()); }
                 });
+
+
 
                 Thread th = new Thread(ths);
                 th.Start();
@@ -1317,11 +1321,11 @@ renderView1.CameraParallelProjection = 1
             }
             else if (version == 1 && RS.BlueCFDIsInstalled)
             {
-                gnuplotpath = @"C:\Program Files\blueCFD-Core-2017\msys64\mingw64\bin\gnuplot.exe";
+                gnuplotpath = @"C:\Program Files\blueCFD-Core-2020\msys64\mingw64\bin\gnuplot.exe";
             }
             else if (version == 0 && !RS.WindowsGnuplotInstalled && RS.BlueCFDIsInstalled)
             {
-                gnuplotpath = @"C:\Program Files\blueCFD-Core-2017\msys64\mingw64\bin\gnuplot.exe";
+                gnuplotpath = @"C:\Program Files\blueCFD-Core-2020\msys64\mingw64\bin\gnuplot.exe";
             }
             else if (version == 1 && !RS.BlueCFDIsInstalled && RS.WindowsGnuplotInstalled)
             {
@@ -1371,7 +1375,7 @@ renderView1.CameraParallelProjection = 1
             }
             else
             {
-                paraviewPath = @"C:\Program Files\blueCFD-Core-2017\AddOns\ParaView\bin\paraview.exe";
+                paraviewPath = @"C:\Program Files\blueCFD-Core-2020\AddOns\ParaView\bin\paraview.exe";
             }
 
             return paraviewPath;
@@ -1820,6 +1824,11 @@ renderView1.CameraParallelProjection = 1
             return (val2 / (double)num7);
 
             //  }
+        }
+
+        public static IEnumerable<(T item, int index)> WithIndex<T>(this IEnumerable<T> source)
+        {
+            return source.Select((item, index) => (item, index));
         }
     }
 }

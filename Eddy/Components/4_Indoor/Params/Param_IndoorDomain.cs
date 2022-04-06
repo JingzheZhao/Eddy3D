@@ -8,6 +8,10 @@ using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Eddy.Components.Indoor.Params
 {
@@ -36,6 +40,8 @@ namespace Eddy.Components.Indoor.Params
         {
             return new IndoorDomaingGoo(Value == null ? new IndoorDomain() : Value.Duplicate());
         }
+
+
 
         #endregion constructors
 

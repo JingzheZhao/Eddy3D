@@ -1,4 +1,8 @@
-﻿using Eddy.Components.Indoor.Params;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Windows.Forms;
+using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
 using EddyLib;
 using EddyLib.Indoor;
@@ -7,11 +11,15 @@ using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using Medallion.Shell;
 using Rhino.Geometry;
-using System;
-using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using EddyLib.UI;
+using System.Globalization;
 
 namespace Eddy.Components.Indoor
 {
+
+    [Obsolete]
     public class IndoorDomain_Component : GH_Component
     {
         /// <summary>
@@ -19,6 +27,11 @@ namespace Eddy.Components.Indoor
         /// </summary>
         public IndoorDomain_Component() : base("IndoorDomain", "IDom", "IndoorDomain" + EddyVersion.toString(), EddyVersion.Name, "9 | Indoor")
         {
+        }
+
+        public override GH_Exposure Exposure
+        {
+            get { return GH_Exposure.hidden; }
         }
 
         /// <summary>
@@ -56,6 +69,9 @@ namespace Eddy.Components.Indoor
 
             //10
             pManager.AddBooleanParameter("Run Simulation", "RunSim", "Run Simulation", GH_ParamAccess.item, false);
+
+            //11
+            pManager.AddBooleanParameter("Run All Batch", "RunAll", "Run All Batch", GH_ParamAccess.item, false);
         }
 
         /// <summary>
@@ -146,6 +162,7 @@ namespace Eddy.Components.Indoor
                 {
                     FOs.Add((CO2Emitter)gobj.Value);
                 }
+
                 else
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid function object"); return;
@@ -156,9 +173,54 @@ namespace Eddy.Components.Indoor
             var domGoo = new IndoorDomaingGoo(dom);
 
             //bool toggle
-
             #region START PROCESSES
 
+            //ONE BUTTON -ALLBATCH FILES IN ONE
+
+            bool makeBatch = false;
+
+            DA.GetData(11, ref makeBatch);
+
+            string allBat = dom.WorkingDir + @"\run_all.bat";
+
+            try {
+                if (makeBatch == true && canRun)
+                {
+                    Console.WriteLine("Run Simulation...");
+
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, allBat, taskComplete);
+
+                    //PROGRESSBAR
+
+                    int lineCounter = 0;
+
+                    while (Console.ReadLine() != null)
+                    {
+                        lineCounter++;
+
+                        double iterations = 1;
+                        DA.GetData(7, ref iterations);
+                        
+                        double numFuncObj = 1;
+                        DA.GetData(3, ref numFuncObj);
+
+                        double steps = 1962 + 37 + (9 * numFuncObj) +1731+ (26 * iterations) ;
+
+                        Console.WriteLine(ProgressWriter.ProgressKey + (100 * lineCounter / steps).ToString(CultureInfo.InvariantCulture));
+                        
+                    }
+
+                }
+            }
+
+            catch (Exception ex)
+            {
+
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, ex.Message); return;
+
+            }
+
+            //THREE BUTTONS - THREE BATCH FILES IN SEPARATE BUTTONS
             bool makeFOs = false;
             bool runSimulation = false;
             bool runMeshing = false;
@@ -167,58 +229,54 @@ namespace Eddy.Components.Indoor
             DA.GetData(10, ref runSimulation);
             DA.GetData(8, ref runMeshing);
 
-            if (makeFOs == true)
-            {
-                var makeFOCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_topoSet.bat" },
-                  options => options.WorkingDirectory(dom.WorkingDir).StartInfo(x => x.CreateNoWindow = false).StartInfo(x => x.RedirectStandardOutput = false));
-            }
 
-            if (runMeshing == true && runSimulation == true)
+            string toposetBat = dom.WorkingDir  + @"\run_topoSet.bat";
+            string meshBat = dom.WorkingDir + @"\run_mesh.bat";
+            string simBat = dom.WorkingDir + @"\run_sim.bat";
+
+            try
             {
-                var makeMeshCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_mesh.bat" },
-                options => options.WorkingDirectory(dom.WorkingDir).StartInfo(x => x.CreateNoWindow = false));
-                makeMeshCommand.Wait();
-                if (!makeMeshCommand.Result.Success)
+
+                if (makeFOs == true && canRun)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Mesh command failed with exit code {makeMeshCommand.Result.ExitCode}: {makeMeshCommand.Result.StandardError}");
-                    return;
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, toposetBat, taskComplete);
                 }
 
-                var simulateCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_sim.bat" },
-                 options => options.WorkingDirectory(dom.WorkingDir).StartInfo(x => x.CreateNoWindow = false));
-                simulateCommand.Wait();
-                if (!simulateCommand.Result.Success)
+                if (runMeshing == true && runSimulation == true && canRun)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Simulation failed with exit code {simulateCommand.Result.ExitCode}: {simulateCommand.Result.StandardError}");
-                    return;
+
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, meshBat, taskComplete);
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, simBat, taskComplete);
+
+                }
+                else if (runMeshing == true && runSimulation == false && canRun)
+                {
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, meshBat, taskComplete);
+
+                }
+                else if (runMeshing == false && runSimulation == true && canRun)
+                {
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, simBat, taskComplete);
                 }
             }
-            else if (runMeshing == true && runSimulation == false)
-            {
-                var makeMeshCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_mesh.bat" },
-options => options.WorkingDirectory(dom.WorkingDir).StartInfo(x => x.CreateNoWindow = false));
-                //makeMeshCommand.Wait();
-                //if (!makeMeshCommand.Result.Success)
-                //{
-                //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Mesh command failed with exit code {makeMeshCommand.Result.ExitCode}: {makeMeshCommand.Result.StandardError}");
-                //    return;
-                //}
-            }
-            else if (runMeshing == false && runSimulation == true)
-            {
-                var simulateCommand = Command.Run("cmd.exe", new[] { dom.WorkingDir + @"\run_sim.bat" },
-                                options => options.WorkingDirectory(dom.WorkingDir));
-                //simulateCommand.Wait();
-                //if (!simulateCommand.Result.Success)
-                //{
-                //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Simulation failed with exit code {simulateCommand.Result.ExitCode}: {simulateCommand.Result.StandardError}");
-                //    return;
-                //}
-            }
+            catch (Exception ex) {
 
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, ex.Message); return;
+
+            }
             #endregion START PROCESSES
 
+
             DA.SetData(0, domGoo);
+            canRun = true;
+        }
+
+        private bool canRun = true;
+
+        public void taskComplete(object sender, System.EventArgs e)
+        {
+            canRun = false;
+            this.ExpireSolution(true);
         }
 
         public FunctionObject CastToFO(GH_ObjectWrapper gobj)

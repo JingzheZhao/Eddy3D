@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using EddyLib.Indoor.Dicts;
 
 namespace EddyLib.Indoor.Dicts
 {
@@ -37,7 +40,7 @@ namespace EddyLib.Indoor.Dicts
 
             InternalDict.Add("writeControl", "timeStep");
             InternalDict.Add("writeInterval", "1");
-            InternalDict.Add("fields", "(    p_rgh   U  h k omega AoA   )");
+            InternalDict.Add("fields", "(    p_rgh   U  h k omega aoa   )");
 
             return InternalDict;
         }

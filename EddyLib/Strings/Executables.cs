@@ -662,7 +662,8 @@ libs
 (
         ""libOpenFOAM.so""
         ""libutilityFunctionObjects.so""
-        ""libsolverFunctionObjects.so""");
+        ""libsolverFunctionObjects.so""
+        ""libatmosphericModels.so""");
             if (RunSettings.simEngine == SimEngine.Docker)
             {
                 sb.Append(@"""libsimpleSwakFunctionObjects.so""
@@ -724,16 +725,16 @@ libs
         {
                 aoa_00
             {
-                    type scalarSemiImplicitSource;
+                    type semiImplicitSource;
                     active          true;
-                    cellZone all;
-                    scalarSemiImplicitSourceCoeffs
+					selectionMode all;
+					volumeMode specific;
+                    sources
                 {
-                        volumeMode specific;
-                        selectionMode all;
-                        injectionRateSuSp
+                        aoa
                     {
-                            aoa (1 0);
+                            explicit 1;
+							implicit 0;
                         }
                     }
                 }
@@ -752,7 +753,7 @@ libs
     writeToFile true;
     log true;
     mode magnitude;
-    fields (U p k epsilon omega nut AoA);
+    fields (U p k epsilon omega nut aoa);
 }";
         }
 
@@ -765,7 +766,7 @@ libs
     fields (U p);
     operation       weightedVolAverage;
     regionType      all;
-    writeFields     true;
+    writeFields     false;
     log true;
 }";
         }
@@ -779,15 +780,15 @@ libs
 {
                     type pressure;
                     libs (""libfieldFunctionObjects.so"");
-                    enabled yes;
+                    enabled true;
                     writeControl timeStep;
                     writeInterval " + RunSettings.writeInterval + @";
                     UInf (" + Utilities.FormatPV(BCondCP.Uinf[d]) + @");     // the undistrubed velocity at building height
                     pInf " + Utilities.FormatDouble(Math.Round(BCondCP.pinf, 1)) + @";        // the dynamic undisturbed pressure at building height
                     pRef " + Utilities.FormatDouble(Math.Round(BCondCP.pref, 1)) + @";        // the dynamic pressure at reference height (usually 10 m)
                     rhoInf              1.2;
-                    calcTotal yes;
-                    calcCoeff yes;
+                    calcTotal true;
+                    calcCoeff true;
                 }");
 
             if (evaluationTopology != null)
@@ -901,7 +902,7 @@ FoamFile
 
                 setFormat csv;
 
-                fields (U p total(p)_coeff epsilon omega k nut phi AoA);
+                fields (U p total(p)_coeff epsilon omega k nut phi aoa);
 
                 probeLocations
                   (");
@@ -2165,110 +2166,43 @@ SIMPLE
         public static string SurfaceFeatureExtractDict()
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
-| =========                 |                                                 |
-| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.2.2                                 |
-|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
-|    \\/     M anipulation  |                                                 |
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  8
+     \\/     M anipulation  |
 \*---------------------------------------------------------------------------*/
 FoamFile
 {
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      surfaceFeatureExtractDict;
+    object      surfaceFeaturesDict;
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-building.stl
+surfaces
+(
+    ""building.stl""
+    ""ground.stl""
+);
+
+includedAngle    150;
+
+subsetFeatures
 {
-    // How to obtain raw features (extractFromFile || extractFromSurface)
-    extractionMethod    extractFromSurface;
-
-    extractFromSurfaceCoeffs
-    {
-        // Mark edges whose adjacent surface normals are at an angle less than includedAngle as features
-        // - 0 : selects no edges
-        // - 180: selects all edges
-        includedAngle   180;
-        geometricTestOnly yes;
-    }
-
-    subsetFeatures
-    {
-        // Keep nonManifold edges (edges with >2 connected faces)
-        nonManifoldEdges       no;
-
-        // Keep open edges (edges with 1 connected face)
-        openEdges       yes;
-    }
-
-    // Write options
-
-        // Write features to obj format for PostProcessing
-        writeObj                yes;
+    nonManifoldEdges yes;
+    openEdges        yes;
 }
 
-ground.stl
+trimFeatures
 {
-    // How to obtain raw features (extractFromFile || extractFromSurface)
-    extractionMethod    extractFromSurface;
-
-    extractFromSurfaceCoeffs
-    {
-        // Mark edges whose adjacent surface normals are at an angle less than includedAngle as features
-        // - 0 : selects no edges
-        // - 180: selects all edges
-        includedAngle   180;
-        geometricTestOnly yes;
-    }
-
-    subsetFeatures
-    {
-        // Keep nonManifold edges (edges with >2 connected faces)
-        nonManifoldEdges       no;
-
-        // Keep open edges (edges with 1 connected face)
-        openEdges       yes;
-    }
-
-    // Write options
-
-        // Write features to obj format for PostProcessing
-        writeObj                yes;
+    minElem          0;
+    minLen           0;
 }
 
-// ************************************************************************* //
-
-ground_perim.stl
-{
-    // How to obtain raw features (extractFromFile || extractFromSurface)
-    extractionMethod    extractFromSurface;
-
-    extractFromSurfaceCoeffs
-    {
-        // Mark edges whose adjacent surface normals are at an angle less than includedAngle as features
-        // - 0 : selects no edges
-        // - 180: selects all edges
-        includedAngle   180;
-        geometricTestOnly yes;
-    }
-
-    subsetFeatures
-    {
-        // Keep nonManifold edges (edges with >2 connected faces)
-        nonManifoldEdges       no;
-
-        // Keep open edges (edges with 1 connected face)
-        openEdges       yes;
-    }
-
-    // Write options
-
-        // Write features to obj format for PostProcessing
-        writeObj                yes;
-}
+writeObj             yes;
 
 // ************************************************************************* //
 ";

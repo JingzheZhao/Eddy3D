@@ -1,7 +1,13 @@
-﻿using System;
+﻿using EddyLib.Indoor.FunctionObjects;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
+
+#if DEBUG
+[assembly: InternalsVisibleTo("UnitTest")]
+#endif
 
 namespace EddyLib.Indoor.Dicts
 {
@@ -64,7 +70,6 @@ namespace EddyLib.Indoor.Dicts
             //Dictionary<string, dynamic> FunctionObjectlDict = new Dictionary<string, dynamic>();
 
             InternalDict.Add("application", "buoyantSimpleFoam");
-
             //InternalDict.Add("application", "extractFromSurface");
             InternalDict.Add("startFrom", "startTime");
             InternalDict.Add("startTime", "0");
@@ -98,7 +103,7 @@ namespace EddyLib.Indoor.Dicts
 {
                 type fieldMinMax;
                 libs (""libfieldFunctionObjects.so"");
-                writeToFile true;
+                writeFields false;
                 log true;
                 mode magnitude;
                 fields (U  T);
@@ -111,8 +116,77 @@ namespace EddyLib.Indoor.Dicts
                 fields (U T);
                 operation weightedVolAverage;
                 regionType all;
-                writeFields     true;
+                writeFields false;
                 log true;
+            }");
+
+            sb.AppendLine(@"aoa
+    {
+        type            scalarTransport;
+        libs (""libfieldFunctionObjects.so"");
+
+        writeControl    outputTime;
+            D               1.0;
+            field aoa;
+            resetOnStartUp  false;
+            schemesField aoa;
+            bounded01       true;
+            write           true;
+
+            fvOptions
+        {
+                aoa_00
+            {
+                    type scalarSemiImplicitSource;
+                    active          true;
+                    cellZone all;
+                    scalarSemiImplicitSourceCoeffs
+                {
+                        volumeMode specific;
+                        selectionMode all;
+                        injectionRateSuSp
+                    {
+                            aoa (1 0);
+                        }
+                    }
+                }
+            }
+                
+
+        }");
+            sb.AppendLine(
+                @"covid19
+    {
+                type scalarTransport;
+                libs (""libfieldFunctionObjects.so"");
+
+                writeControl outputTime;
+                D               16e-5;
+                field covid19;
+                resetOnStartUp  false;
+                schemesField covid19;
+                bounded01       true;
+                write           true;
+
+                fvOptions
+        {
+                    covid19_00
+            {
+                        type scalarSemiImplicitSource;
+                        active          true;
+
+                        scalarSemiImplicitSourceCoeffs
+                {
+                            volumeMode absolute;
+                            selectionMode cellZone;
+                            cellZone ViralEmitter_0; //Todo: Add Emitter Name
+                            injectionRateSuSp
+                    {
+                                covid19 (1.076e-4 0); 
+                            }
+                        }
+                    }
+                }
             }");
 
             //if (IndDom.FOs.OfType<VolumetricHeatSource>().Any())

@@ -1,16 +1,22 @@
-﻿using Rhino.Geometry;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using EddyLib.Indoor.Dicts;
+using Rhino.Geometry;
+using EddyLib.Indoor.FunctionObjects;
 
 namespace EddyLib.Indoor.Dicts
 {
     public class CO2EmitterInternalDict : GenericDict
     {
+
         public List<String> InternalDict = new List<string>();
 
         public CO2EmitterInternalDict(List<CO2Emitter> cO2Emitters, Point3d PointInsideDomain)
         {
+
             this.DictionaryName = "co2Emitters";
             this.Location = DictLocation.system;
             this.FC = FieldClass.dictionary;
@@ -25,6 +31,9 @@ namespace EddyLib.Indoor.Dicts
             };
 
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
+
+
+
 
             //this.TopoSetDictString = CppMapSerializerDyn.Serialize(GetInternalTopoSetDict((FunctionObject)co2Em, PointInsideDomain));
             //this.FunctionObjectSubDictString = CppMapSerializerDyn.Serialize(GetInternalC02Dict(co2Em));

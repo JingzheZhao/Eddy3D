@@ -1,4 +1,5 @@
 ﻿using EddyLib.BCs;
+using EddyLib.Indoor;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
@@ -7,7 +8,7 @@ using System.Drawing;
 namespace EddyLib
 {
     // class for all common domain properties, every domain type inherits this
-    public class OFBaseDomain
+    public abstract class OFBaseDomain
     {
         public Point3d CenterGround;
 

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace EddyLib.Indoor.Dicts
@@ -96,10 +98,36 @@ namespace EddyLib.Indoor.Dicts
             public AoA(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
             {
                 this.FC = FieldClass.volScalarField;
-                this.DictionaryName = "AoA";
+                this.DictionaryName = "aoa";
                 this.Location = DictLocation.zero;
                 this.Header = GetHeader0(this);
                 this.Dimensions = "dimensions      [0 0 0 1 0 0 0];";
+
+                // Todo need to pass another class to set internalFieldTemp
+                this.InternalField = "internalField   uniform 0;";
+
+                this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+
+                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetFixedValue(i, DictionaryName)); }
+                foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i, DictionaryName)); }
+                foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetZeroGradient(i, DictionaryName)); }
+
+                this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
+                BoundaryFieldDict.Add("boundaryField", InternalDict);
+
+                this.FullDictString = Serialize(this);
+            }
+        }
+
+        public class Covid : IndoorBCDict
+        {
+            public Covid(List<IndoorBC.Inlet> inlet, List<IndoorBC.Outlet> outlet, List<IndoorBC.Wall> wall)
+            {
+                this.FC = FieldClass.volScalarField;
+                this.DictionaryName = "covid19";
+                this.Location = DictLocation.zero;
+                this.Header = GetHeader0(this);
+                this.Dimensions = "dimensions      [0 0 0 0 0 0 0];";
 
                 // Todo need to pass another class to set internalFieldTemp
                 this.InternalField = "internalField   uniform 0;";
@@ -280,13 +308,21 @@ namespace EddyLib.Indoor.Dicts
                 InternalDict.Add("type", "fixedValue");
                 InternalDict.Add("value", "uniform " + ii.TemperatureK.ToString() + "");
             }
-            else if (DictName == "AoA")
+            else if (DictName == "aoa")
             {
                 IndoorBC.Inlet ii = (IndoorBC.Inlet)input;
 
                 InternalDict.Add("type", "fixedValue");
                 InternalDict.Add("value", "uniform 0");
-            }; ;
+            }
+            else if (DictName == "covid19")
+            {
+                IndoorBC.Inlet ii = (IndoorBC.Inlet)input;
+
+                InternalDict.Add("type", "fixedValue");
+                InternalDict.Add("value", "uniform 0");
+            }
+            ;
 
             return Dict;
         }

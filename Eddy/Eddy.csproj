@@ -1,6 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\Obfuscar.2.2.29\build\obfuscar.props" Condition="Exists('..\packages\Obfuscar.2.2.29\build\obfuscar.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -54,12 +53,12 @@
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.VisualBasic" />
-    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="Rhino.UI, Version=7.3.21053.23030, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
       <HintPath>..\packages\RhinoCommon.7.3.21053.23031\lib\net45\Rhino.UI.dll</HintPath>
       <Private>False</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="RhinoCommon, Version=7.3.21053.23030, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
       <HintPath>..\packages\RhinoCommon.7.3.21053.23031\lib\net45\RhinoCommon.dll</HintPath>
@@ -132,6 +131,7 @@
     <Compile Include="Components\4_Indoor\FunctionObjects\MomentumSource_Component.cs" />
     <Compile Include="Components\4_Indoor\FunctionObjects\ViralEmitter_Component.cs" />
     <Compile Include="Components\4_Indoor\FunctionObjects\VolumetricHeatSource_Component.cs" />
+    <Compile Include="Components\4_Indoor\IndoorDomainV2_Component.cs" />
     <Compile Include="Components\4_Indoor\IndoorDomain_Component.cs" />
     <Compile Include="Components\4_Indoor\IndoorInlet_Component.cs" />
     <Compile Include="Components\4_Indoor\IndoorOutlet_Component.cs" />
@@ -392,6 +392,54 @@
   <ItemGroup>
     <None Include="Resources\Eddy_AnalysisBins_Season.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Domain.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Emitter.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Geometry.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Inlet.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Outlet.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Domain_Param.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Emitter_Param.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Geometry_Param.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Inlet_Param.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_Outlet copy.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_VolumetricHeatSource.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor_VHS.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor__Indoor_VHS.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor__Indoor_MomentumSink.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor__Indoor_ViralEmitter.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_Indoor__Indoor_CO2Emitter.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
@@ -406,17 +454,17 @@
 Copy "$(TargetPath)" "$(TargetDir)$(ProjectName).gha"
 Erase "$(TargetPath)"
 
-SET obfuscar=$(SolutionDir)packages\Obfuscar.2.2.29\tools\Obfuscar.Console.exe
+SET obfuscar=$(SolutionDir)packages\Obfuscar.2.2.32\tools\Obfuscar.Console.exe
 SET build_eddy=$(SolutionDir)Eddy\bin
 SET build_batchrunner=$(SolutionDir)CallBatchRunner\bin
-SET installation_folder=C:\Eddy3D
-if not exist "installation_folder" mkdir installation_folder
+SET INSTALLDIR=C:\Eddy3D
+if not exist "%25INSTALLDIR%25" mkdir "%25INSTALLDIR%25"
 
 if $(ConfigurationName)==Debug (
-xcopy /e /v  /y "%25build_eddy%25" "%25installation_folder%25"
+xcopy /e /v  /y "%25build_eddy%25" "%25INSTALLDIR%25"
 )
 if $(ConfigurationName)==Release (
-xcopy /e /v  /y "%25build_eddy%25" "%25installation_folder%25"
+xcopy /e /v  /y "%25build_eddy%25" "%25INSTALLDIR%25"
 )
 
 if $(ConfigurationName)==Release (
@@ -424,7 +472,7 @@ REM --------
 REM DOTFUSCATOR
 REM --------
 REM "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\PreEmptiveSolutions\DotfuscatorCE\dotfuscatorCLI.exe" "$(SolutionDir)\Build\Dotfuscator_TD.xml"
-REM xcopy /e /v  /y "$(SolutionDir)\Build\Dotfuscated" "%25installation_folder%25"
+REM xcopy /e /v  /y "$(SolutionDir)\Build\Dotfuscated" "%25INSTALLDIR%25"
 
 REM --------
 REM OBFUSCAR
@@ -435,7 +483,7 @@ xcopy /e /v  /y "%25build_eddy%25" "$(SolutionDir)Build\Obfuscator_Input"
 xcopy /e /v  /y "$(SolutionDir)packages\Grasshopper.7.3.21053.23031\lib\net45" "$(SolutionDir)\Build\Obfuscator_Input"
 xcopy /e /v  /y "$(SolutionDir)packages\RhinoCommon.7.3.21053.23031\lib\net45" "$(SolutionDir)\Build\Obfuscator_Input"
 "%25obfuscar%25" "$(SolutionDir)Build\ObfuscarConfig.xml"
-xcopy /e /v  /y "$(SolutionDir)Build\Obfuscator_Output" "%25installation_folder%25"
+xcopy /e /v  /y "$(SolutionDir)Build\Obfuscator_Output" "%25INSTALLDIR%25"
 )
 
 
@@ -459,7 +507,6 @@ xcopy /e /v  /y "$(SolutionDir)Build\Obfuscator_Output" "%25installation_folder%
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\RhinoCommon.7.3.21053.23031\build\RhinoCommon.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\RhinoCommon.7.3.21053.23031\build\RhinoCommon.targets'))" />
     <Error Condition="!Exists('..\packages\Grasshopper.7.3.21053.23031\build\Grasshopper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Grasshopper.7.3.21053.23031\build\Grasshopper.targets'))" />
-    <Error Condition="!Exists('..\packages\Obfuscar.2.2.29\build\obfuscar.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Obfuscar.2.2.29\build\obfuscar.props'))" />
   </Target>
   <Import Project="..\packages\Grasshopper.7.3.21053.23031\build\Grasshopper.targets" Condition="Exists('..\packages\Grasshopper.7.3.21053.23031\build\Grasshopper.targets')" />
 </Project>

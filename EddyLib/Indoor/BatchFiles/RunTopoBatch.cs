@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace EddyLib.Indoor.BatchFiles
 {
-    internal class RunTopoBatch : GenericBatchFile
+    class RunTopoBatch:GenericBatchFile
     {
         public RunTopoBatch(IndoorDomain IndoorDom)
         {
@@ -15,17 +18,22 @@ namespace EddyLib.Indoor.BatchFiles
 
             string[] parts = {
                this.Header, "\n",
-               String.Join("\n", BatchBody(),"\n","PAUSE")
+               String.Join("\n", BatchBody()
+#if (DEBUG == true)
+               ,"\nPAUSE"
+#endif
+               )
             };
 
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
+
         }
 
         private static string BatchBody()
         {
             return @"
-
-        topoSet ";
+topoSet ";
         }
+        
     }
 }
