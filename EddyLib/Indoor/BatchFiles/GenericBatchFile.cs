@@ -23,7 +23,7 @@ namespace EddyLib.Indoor.BatchFiles
 
         public void Export(string baseWorkingDir)
         {
-            var path = Path.Combine(baseWorkingDir,BatchLocation);
+            var path = Path.Combine(baseWorkingDir, BatchLocation);
             Directory.CreateDirectory(path);
             //if (!path.EndsWith("\\")) path += "\\";
             File.WriteAllText(path + this.BatchName, this.FullDictString);
