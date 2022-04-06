@@ -172,7 +172,7 @@ FoamFile
         {
             building
             {
-                level (" + (MeshSettings.accBuildings - 1) + @" " + MeshSettings.accBuildings + @");
+                level (" + (MeshSettings.accBuildings) + @" " + MeshSettings.accBuildings + @");
                 patchInfo
                 {
                     type wall;
@@ -191,7 +191,7 @@ FoamFile
                 {
                     sb.Append(@"ground_perim
             {
-                level (" + (MeshSettings.accGround - 1) + @" " + (MeshSettings.accGround) + @");
+                level (" + (MeshSettings.accGround) + @" " + (MeshSettings.accGround) + @");
                 patchInfo
                 {
                     type wall;
@@ -470,7 +470,7 @@ FoamFile
         {
             building
             {
-                level (" + (MeshSettings.accBuildings - 1) + @" " + MeshSettings.accBuildings + @");
+                level (" + (MeshSettings.accBuildings) + @" " + MeshSettings.accBuildings + @");
                 patchInfo
                 {
                     type wall;
@@ -489,7 +489,7 @@ FoamFile
                 {
                     sb.Append(@"ground_perim
             {
-                level (" + (MeshSettings.accGround - 1) + @" " + (MeshSettings.accGround) + @");
+                level (" + (MeshSettings.accGround) + @" " + (MeshSettings.accGround) + @");
                 patchInfo
                 {
                     type wall;
