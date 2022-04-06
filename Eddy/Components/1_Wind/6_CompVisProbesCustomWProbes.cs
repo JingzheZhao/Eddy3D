@@ -252,7 +252,7 @@ namespace Eddy
                 }
             }
 
-            int threshold = 5000;
+            int threshold = 10000;
             if (numberOfProbes > threshold)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Probing more than " + threshold + " points may slow down Grasshopper considerably.");
