@@ -862,6 +862,7 @@ FoamFile
 
         {
             name surfaceSlaveCells;
+            name surfaceSlaveCells;
             type cellSet;
             action new;
             source faceZoneToCell;
@@ -1158,30 +1159,28 @@ ddtSchemes
 
 gradSchemes
 {
-    default                         cellLimited Gauss linear 1;
-
-    grad(U)                         $default;
-    grad(k)                         $default;
-    grad(epsilon)                   $default;
+    default                         Gauss linear;
+    grad(U)                         cellLimited Gauss linear 0.333;
+    grad(k)                         cellLimited Gauss linear 0.333;
+    grad(epsilon)                   cellLimited Gauss linear 0.333;
 }
 
 divSchemes
 {
     default                         none;
-
-    turbulenceScheme                bounded Gauss limitedLinear 0.33;
+    turbulenceScheme                bounded Gauss limitedLinear 0.333;
     div(phi,U)                      bounded Gauss linearUpwind grad(U);
     div(phi,k)                      $turbulenceScheme;
     div(phi,epsilon)                $turbulenceScheme;
     div(phi,omega)                  $turbulenceScheme;
-    div(U)                          Gauss limitedLinear 0.33;
+    div(U)                          Gauss limitedLinear 0.333;
     div((nuEff*dev2(T(grad(U)))))   Gauss linear;
-    div(phi,aoa)                    Gauss limitedLinear 0.5;
+    div(phi,aoa)                    Gauss limitedLinear 0.333;
 }
 
 laplacianSchemes
 {
-    default                         Gauss linear limited corrected 0.33;
+    default                         Gauss linear limited corrected 0.333;
 }
 
 interpolationSchemes
@@ -1191,15 +1190,13 @@ interpolationSchemes
 
 snGradSchemes
 {
-    default                         limited corrected 0.33;
+    default                         limited corrected 0.333;
 }
 
 wallDist
 {
     method                          meshWave;
 }
-
-// ************************************************************************* //
 
 ";
         }
@@ -2037,7 +2034,9 @@ solvers
         U               1e-4;
         ""(k|omega|epsilon)"" 1e-4;
     }
-nNonOrthogonalCorrectors 1;
+
+    nCorrectors     2;
+    nNonOrthogonalCorrectors 2;
     pRefCell        0;
     pRefValue       0;
 }
@@ -2045,6 +2044,11 @@ nNonOrthogonalCorrectors 1;
 potentialFlow
 {
     nNonOrthogonalCorrectors 5;
+}
+
+cache
+{
+    grad(U);
 }
 
 ");
@@ -2060,7 +2064,7 @@ potentialFlow
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Version:  6
+    \\  /    A nd           | Version:  8
      \\/     M anipulation  |
 \*---------------------------------------------------------------------------*/
 FoamFile
@@ -2120,12 +2124,12 @@ solvers
     }
     aoa
     {
-    solver              PBiCG;
-    preconditioner      DILU;
-    tolerance           1e-12;
-    relTol              0.1;
-    minIter             1;
-    maxIter             10;
+      solver              PBiCGStab;
+      preconditioner      DILU;
+      tolerance           1e-12;
+      relTol              0.1;
+      minIter             1;
+      maxIter             10;
     }
 }
 
@@ -2133,13 +2137,23 @@ SIMPLE
 {
     residualControl
     {
-		p               1e-5;
+	    p               1e-5;
         U               1e-4;
     }
 
-    nNonOrthogonalCorrectors 0;
+    nCorrectors     2;
+    nNonOrthogonalCorrectors 2;
     pRefCell            0;
     pRefValue           0;
+}
+cache
+{
+    grad(U);
+}
+
+potentialFlow
+{
+    nNonOrthogonalCorrectors 5;
 }
 
 ");
