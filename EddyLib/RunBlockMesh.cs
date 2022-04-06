@@ -93,9 +93,9 @@ namespace EddyLib
                 Directory.CreateDirectory(MeshSettings.meshBoundaryConditionsDirectory);
             }
 
-            File.WriteAllText(MeshSettings.meshSystemDir + @"\blockMeshDict", EddyLib.Strings.OFExecDicts.BlockMeshDict(DOMBOX));
+            File.WriteAllText(MeshSettings.meshSystemDir + @"\blockMeshDict", Strings.OFExecDicts.BlockMeshDict(DOMBOX));
             File.WriteAllText(MeshSettings.baseWorkingDir + @"\mesh\mesh.foam", "");
-            File.WriteAllText(MeshSettings.meshSystemDir + @"\controlDict", EddyLib.Strings.OFExecDicts.ControlDict(RunSettings, DOMBOX, null, 0));
+            File.WriteAllText(MeshSettings.meshSystemDir + @"\controlDict", Strings.OFExecDicts.ControlDict(RunSettings, DOMBOX, null, 0));
 
             if (!File.Exists(workDir + @"\mesh\log"))
             {
@@ -116,8 +116,6 @@ namespace EddyLib
                 }
             }
         }
-
-       
 
         public static void SaveFrontagePNGs(String dirToSavePNGs, int windDir, Bitmap[] bitmapArray)
         {
