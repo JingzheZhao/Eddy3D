@@ -239,7 +239,7 @@ namespace Eddy
 
                 if (DOMBOX.hasTerrain)
                 {
-                    DA.SetDataList(1, DOMBOX.DomainMeshIntersection);
+                    DA.SetDataList(1, new List<GeometryBase> { DOMBOX.TerrainMesh, DOMBOX.DomainMesh } );
                 }
                 else
                 {
