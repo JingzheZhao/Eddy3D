@@ -10,7 +10,6 @@ namespace EddyLib.Indoor.Dicts
 {
     public class VolumetricHeatSourceInternalDict : GenericDict
     {
-
         public List<String> InternalDict = new List<string>();
 
         //public VolumetricHeatSourceInternalDict(VolumetricHeatSource VH, Point3d PointInsideDomain)
@@ -40,32 +39,37 @@ namespace EddyLib.Indoor.Dicts
 
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
 
-            Dictionary<string, dynamic> scalarSemiImplicitSourceCoeffsDict = new Dictionary<string, dynamic>();
+            Dictionary<string, dynamic> semiImplicitSourceCoeffsDict = new Dictionary<string, dynamic>();
 
-            Dictionary<string, dynamic> injectionRateSuSpDict = new Dictionary<string, dynamic>();
+            Dictionary<string, dynamic> sourcesDict = new Dictionary<string, dynamic>();
+
+            Dictionary<string, dynamic> hDict = new Dictionary<string, dynamic>();
 
             Dict.Add(input.ID, InternalDict);
 
             //Dict.Add(input.Name + "_" + input.Name, InternalDict);
 
-            InternalDict.Add("type", "scalarSemiImplicitSource");
+            InternalDict.Add("type", "semiImplicitSource");
             InternalDict.Add("active", "on");
             InternalDict.Add("selectionMode", "cellZone");
             InternalDict.Add("cellZone", input.ID);
 
             //InternalDict.Add("cellZone", input.cellZone + "_" + input.Name);
 
-            InternalDict.Add("scalarSemiImplicitSourceCoeffs", scalarSemiImplicitSourceCoeffsDict);
+            InternalDict.Add("semiImplicitSourceCoeffs", semiImplicitSourceCoeffsDict);
 
-            scalarSemiImplicitSourceCoeffsDict.Add("volumeMode", "absolute");
-            scalarSemiImplicitSourceCoeffsDict.Add("selectionMode", "cellZone");
-            scalarSemiImplicitSourceCoeffsDict.Add("cellZone", input.ID);
-            //scalarSemiImplicitSourceCoeffsDict.Add("cellZone", input.cellZone + "_" + input.Name);
+            semiImplicitSourceCoeffsDict.Add("volumeMode", "absolute");
+            semiImplicitSourceCoeffsDict.Add("selectionMode", "cellZone");
+            semiImplicitSourceCoeffsDict.Add("cellZone", input.ID);
+            //semiImplicitSourceCoeffsDict.Add("cellZone", input.cellZone + "_" + input.Name);
 
-            //scalarSemiImplicitSourceCoeffsDict.Add("volumeMode", input.volumeType);
-            scalarSemiImplicitSourceCoeffsDict.Add("injectionRateSuSp", injectionRateSuSpDict);
+            //semiImplicitSourceCoeffsDict.Add("volumeMode", input.volumeType);
+            semiImplicitSourceCoeffsDict.Add("sources", sourcesDict);
 
-            injectionRateSuSpDict.Add("h", @"(" + input.Power.ToString() + " 0 )");
+            semiImplicitSourceCoeffsDict.Add("h", hDict);
+
+            hDict.Add("explicit table", @"((0 0) (" + input.Power.ToString() + " 0)");
+            hDict.Add("implicit", @"0");
 
             return Dict;
         }

@@ -1,5 +1,4 @@
-﻿using EddyLib.Indoor.FunctionObjects;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -137,22 +136,23 @@ namespace EddyLib.Indoor.Dicts
         {
                 aoa_00
             {
-                    type scalarSemiImplicitSource;
+                    type semiImplicitSource;
                     active          true;
                     cellZone all;
-                    scalarSemiImplicitSourceCoeffs
+                    semiImplicitSourceCoeffs
                 {
                         volumeMode specific;
                         selectionMode all;
-                        injectionRateSuSp
-                    {
-                            aoa (1 0);
-                        }
+                        sources
+							{
+							aoa{
+									explicit table ((0 0) (1 0));
+									implicit 0;
+									}
+							}
                     }
                 }
             }
-                
-
         }");
             sb.AppendLine(
                 @"covid19
@@ -172,17 +172,21 @@ namespace EddyLib.Indoor.Dicts
         {
                     covid19_00
             {
-                        type scalarSemiImplicitSource;
+                        type semiImplicitSource;
                         active          true;
 
-                        scalarSemiImplicitSourceCoeffs
+                        semiImplicitSourceCoeffs
                 {
                             volumeMode absolute;
                             selectionMode cellZone;
                             cellZone ViralEmitter_0; //Todo: Add Emitter Name
-                            injectionRateSuSp
-                    {
-                                covid19 (1.076e-4 0); 
+                            sources
+                            {
+							    covid19
+		                                {
+		                                explicit table ((0 0) (1.076e-4 0));
+		                                implicit 0;
+		                                }
                             }
                         }
                     }

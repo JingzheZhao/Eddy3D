@@ -7,9 +7,8 @@ using System.Threading.Tasks;
 
 namespace EddyLib.Indoor.Dicts
 {
-    class ViralEmitterInternalDict : GenericDict
+    internal class ViralEmitterInternalDict : GenericDict
     {
-
         public List<String> InternalDict = new List<string>();
 
         //public ViralEmitterInternalDict(ViralEmitter viralEm, Point3d PointInsideDomain)
@@ -32,25 +31,43 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, dynamic> GetInternalViralDict(ViralEmitter input)
         {
-            Dictionary<string, dynamic> Dict1 = new Dictionary<string, dynamic>();
-            Dictionary<string, dynamic> Dict2 = new Dictionary<string, dynamic>();
-            Dictionary<string, dynamic> Dict3 = new Dictionary<string, dynamic>();
-            Dictionary<string, dynamic> Dict4 = new Dictionary<string, dynamic>();
+            Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 
-            Dict1.Add(input.ID, Dict2);
+            Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
 
-            Dict2.Add("active", "true");
-            Dict2.Add("type", "scalarSemiImplicitSource");
-            Dict2.Add("scalarSemiImplicitSourceCoeffs", Dict3);
+            Dictionary<string, dynamic> semiImplicitSourceCoeffsDict = new Dictionary<string, dynamic>();
 
-            Dict3.Add("selectionMode", "cellZone");
-            Dict3.Add("cellZone", input.ID);
-            Dict3.Add("volumeMode", "specific");
-            Dict3.Add("injectionRateSuSp", Dict4);
+            Dictionary<string, dynamic> sourcesDict = new Dictionary<string, dynamic>();
 
-            Dict4.Add("covid19", "(1.076e-4 0)");
+            Dictionary<string, dynamic> hDict = new Dictionary<string, dynamic>();
 
-            return Dict1;
+            Dict.Add(input.ID, InternalDict);
+
+            //Dict.Add(input.Name + "_" + input.Name, InternalDict);
+
+            InternalDict.Add("type", "semiImplicitSource");
+            InternalDict.Add("active", "on");
+            InternalDict.Add("selectionMode", "cellZone");
+            InternalDict.Add("cellZone", input.ID);
+
+            //InternalDict.Add("cellZone", input.cellZone + "_" + input.Name);
+
+            InternalDict.Add("semiImplicitSourceCoeffs", semiImplicitSourceCoeffsDict);
+
+            semiImplicitSourceCoeffsDict.Add("volumeMode", "absolute");
+            semiImplicitSourceCoeffsDict.Add("selectionMode", "cellZone");
+            semiImplicitSourceCoeffsDict.Add("cellZone", input.ID);
+            //semiImplicitSourceCoeffsDict.Add("cellZone", input.cellZone + "_" + input.Name);
+
+            //semiImplicitSourceCoeffsDict.Add("volumeMode", input.volumeType);
+            semiImplicitSourceCoeffsDict.Add("sources", sourcesDict);
+
+            semiImplicitSourceCoeffsDict.Add("h", hDict);
+
+            hDict.Add("explicit table", @"((0 0) (1.076e-4 0)");
+            hDict.Add("implicit", @"0");
+
+            return Dict;
         }
     }
 }

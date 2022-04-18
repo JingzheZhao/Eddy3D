@@ -130,7 +130,7 @@
     <Compile Include="Indoor\Dicts\System\FvSolutionDict.cs" />
     <Compile Include="Indoor\Dicts\System\ResidualsDict.cs" />
     <Compile Include="Indoor\Dicts\System\SnappyHexMeshDict.cs" />
-    <Compile Include="Indoor\Dicts\System\SurfaceFeatureExtractDict.cs" />
+    <Compile Include="Indoor\Dicts\System\SurfaceFeatureDict.cs" />
     <Compile Include="Indoor\Dicts\System\TopoSetDict.cs" />
     <Compile Include="Indoor\FunctionObjects\CO2Emitter.cs" />
     <Compile Include="Indoor\FunctionObjects\FunctionObject.cs" />
