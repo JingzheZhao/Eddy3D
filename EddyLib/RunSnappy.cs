@@ -106,7 +106,7 @@ namespace EddyLib
             locationInMesh = DOM.LocationInMesh;
 
             File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "snappyHexMeshDict"), EddyLib.Strings.OFExecDicts.SnappyHexMeshDict(MeshSettings, DOM));
-            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "surfaceFeaturesDict"), EddyLib.Strings.OFExecDicts.SurfaceFeatureExtractDict());
+            File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "surfaceFeaturesDict"), EddyLib.Strings.OFExecDicts.surfaceFeaturesDict());
             File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemesDefault());
             File.WriteAllText(Path.Combine(MeshSettings.meshSystemDir + "fvSolution"), EddyLib.Strings.OFExecDicts.FvSolution(RunSettings));
 

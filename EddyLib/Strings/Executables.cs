@@ -2179,7 +2179,7 @@ potentialFlow
             return sb.ToString();
         }
 
-        public static string SurfaceFeatureExtractDict()
+        public static string surfaceFeaturesDict()
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
   =========                 |

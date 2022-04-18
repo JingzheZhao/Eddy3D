@@ -118,7 +118,7 @@ namespace EddyLib
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "initialConditions"), EddyLib.Strings.BCDicts.InitialConditions(DOM, i));
 
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\snappyHexMeshDict"), EddyLib.Strings.OFExecDicts.SnappyHexMeshDict(MeshSettings, DOM));
-                        File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\surfaceFeaturesDict"), EddyLib.Strings.OFExecDicts.SurfaceFeatureExtractDict());
+                        File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\surfaceFeaturesDict"), EddyLib.Strings.OFExecDicts.surfaceFeaturesDict());
 
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemes(RunSettings));
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSolution"), EddyLib.Strings.OFExecDicts.FvSolution(RunSettings));
@@ -173,7 +173,7 @@ namespace EddyLib
                         File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "initialConditions"), EddyLib.Strings.BCDicts.InitialConditions(DOM, i));
 
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\snappyHexMeshDict"), EddyLib.Strings.OFExecDicts.SnappyHexMeshDict(MeshSettings, DOM));
-                        File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\surfaceFeaturesDict"), EddyLib.Strings.OFExecDicts.SurfaceFeatureExtractDict());
+                        File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\surfaceFeaturesDict"), EddyLib.Strings.OFExecDicts.surfaceFeaturesDict());
 
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSchemes"), EddyLib.Strings.OFExecDicts.FvSchemes(RunSettings));
                         File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + @"\system\fvSolution"), EddyLib.Strings.OFExecDicts.FvSolution(RunSettings));
