@@ -17,3 +17,8 @@ https://github.com/kastnerp/Eddy3D-Residuals
 https://github.com/kastnerp/Eddy3D-Validation  
 https://github.com/kastnerp/Eddy3D-SimCompleted  
 https://github.com/kastnerp/Eddy3D-CaseStudies  
+
+# Issue repos
+
+https://github.com/kastnerp/Eddy3D-Issues  
+https://github.com/EnvironmentalSystemsLab/Eddy3D-Public
