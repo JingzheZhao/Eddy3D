@@ -154,44 +154,44 @@ namespace EddyLib.Indoor.Dicts
                 }
             }
         }");
-            sb.AppendLine(
-                @"covid19
-    {
-                type scalarTransport;
-                libs (""libfieldFunctionObjects.so"");
+            //        sb.AppendLine(
+            //            @"covid19
+            //{
+            //            type scalarTransport;
+            //            libs (""libfieldFunctionObjects.so"");
 
-                writeControl outputTime;
-                D               16e-5;
-                field covid19;
-                resetOnStartUp  false;
-                schemesField covid19;
-                bounded01       true;
-                write           true;
+            //            writeControl outputTime;
+            //            D               16e-5;
+            //            field covid19;
+            //            resetOnStartUp  false;
+            //            schemesField covid19;
+            //            bounded01       true;
+            //            write           true;
 
-                fvOptions
-        {
-                    covid19_00
-            {
-                        type semiImplicitSource;
-                        active          true;
+            //            fvOptions
+            //    {
+            //                covid19_00
+            //        {
+            //                    type semiImplicitSource;
+            //                    active          true;
 
-                        semiImplicitSourceCoeffs
-                {
-                            volumeMode absolute;
-                            selectionMode cellZone;
-                            cellZone ViralEmitter_0; //Todo: Add Emitter Name
-                            sources
-                            {
-							    covid19
-		                                {
-		                                explicit table ((0 0) (1.076e-4 0));
-		                                implicit 0;
-		                                }
-                            }
-                        }
-                    }
-                }
-            }");
+            //                    semiImplicitSourceCoeffs
+            //            {
+            //                        volumeMode absolute;
+            //                        selectionMode cellZone;
+            //                        cellZone ViralEmitter_0; //Todo: Add Emitter Name
+            //                        sources
+            //                        {
+            //			    covid19
+            //                              {
+            //                              explicit table ((0 0) (1.076e-4 0));
+            //                              implicit 0;
+            //                              }
+            //                        }
+            //                    }
+            //                }
+            //            }
+            //        }");
 
             //if (IndDom.FOs.OfType<VolumetricHeatSource>().Any())
             //{ sb.AppendLine("#includeFunc volumetricHeatSources");}
