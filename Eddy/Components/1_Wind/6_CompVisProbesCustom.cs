@@ -210,18 +210,29 @@ namespace Eddy
 
             RadianceFiles.writePTS(RES.WorkingDirectory + @"\Rad\sensors.pts", listOfPoints);
 
-            if (Directory.Exists(RES.MeshSettings.meshPolyMeshDir) == false)
+            string meshDir = "";
+
+            if (RES.Domain is OFCylDomain)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The mesh folder does not exist. Please create a mesh first.");
+                meshDir = RES.MeshSettings.meshPolyMeshDir;
+            }
+            else if (RES.Domain is OFBoxDomain)
+            {
+                meshDir = RES.WorkingDirectory + RES.Domain.BCond.windDirs[0] + @"\constant\polyMesh";
+            }
+
+            if (Directory.Exists(meshDir) == false)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The mesh folder " + meshDir + " does not exist. Please create a mesh first.");
 
                 //throw new System.ArgumentException("The mesh folder is does not exist. Please create a mesh first.");
                 return;
             }
             else
             {
-                if (Utilities.Directories.IsDirectoryEmpty(RES.MeshSettings.meshPolyMeshDir) == true)
+                if (Utilities.Directories.IsDirectoryEmpty(meshDir) == true)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The mesh folder is empty. Can't retrieve probes from a mesh that does not exist.");
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The mesh folder " + meshDir + @" is empty. Can't retrieve probes from a mesh that does not exist.");
 
                     // throw new System.ArgumentException("The mesh folder is empty. Can't retrieve probes from a mesh that does not exist.");
                     return;
@@ -232,7 +243,7 @@ namespace Eddy
                 }
             }
 
-            int threshold = 5000;
+            int threshold = 15000;
             if (listOfPoints.Count > threshold)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Probing more than " + threshold + " points may slow Grasshopper down considerably.");
