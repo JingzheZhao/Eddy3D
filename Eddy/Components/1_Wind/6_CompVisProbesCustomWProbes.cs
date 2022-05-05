@@ -229,6 +229,11 @@ namespace Eddy
                 probeNameByUser = "test";
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, @"Please provide a unique name for this probing instance, otherwise a new instance will overwrite the results.");
             }
+            if (Char.IsDigit((probeNameByUser).First()))
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"Please make sure name doesn't start with digit.");
+                return;
+            }
 
             // Check if U file is in last iteration
             for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)

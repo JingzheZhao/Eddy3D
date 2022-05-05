@@ -171,6 +171,12 @@ namespace Eddy
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, @"Please provide a unique name for this probing instance, otherwise a new instance will overwrite the results.");
             }
 
+            if (Char.IsDigit((probeNameByUser).First()))
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"Please make sure name doesn't start with digit.");
+                return;
+            }
+
             //Discard points outside
             //if (Culling)
             //{
