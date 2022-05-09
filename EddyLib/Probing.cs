@@ -20,7 +20,7 @@ namespace EddyLib
     public enum field
     {
         U, p, cp_coeff, epsilon, omega, k, nut, phi, aoa, covid19
-            // Todo Zoe
+        // Todo Zoe
     }
 
     public class OFFieldNew
@@ -99,17 +99,24 @@ namespace EddyLib
             //Scalar
             if (ofField.FieldType == fieldType.scalar)
             {
-                ParsingScalars(listOfPoints, probingFilePath);
+                //ParsingScalars(listOfPoints, probingFilePath);
+
+                var temp = RadianceFiles.loadBinScalars(probingFilePath);
+                ResultScalar = Array.ConvertAll(temp, new Converter<double, GH_Number>(ArrayHelper.DoubleToGH_Number));
             }
 
             //Vector
             else
             {
-                ParsingVectors(listOfPoints, probingFilePath);
+                //  ParsingVectors(listOfPoints, probingFilePath);
+
+                var temp = RadianceFiles.loadBinVectors(probingFilePath);
+                ResultVec = Array.ConvertAll(temp, new Converter<Vector3d, GH_Vector>(ArrayHelper.Vector3dToGH_Vector));
             }
             this.currWindDir = currWindDir;
 
-            WriteProbedResultToCSV(ofField);
+            //WriteProbedResultToCSV(ofField);
+            WriteProbedResultToBinary(ofField);
         }
 
         public static int GetLatestTime(string workingDirectory, OFResult RES)
@@ -156,68 +163,29 @@ namespace EddyLib
             return fullPath;
         }
 
-        private void WriteProbedResultToCSV(OFFieldNew ofField)
+        private void WriteProbedResultToBinary(OFFieldNew ofField)
         {
             // We gather the probes in both the root folder and in each individual case
             string PostProcessDirCurrCase = caseDirectory + @"\postProcessing\";
             string PostProcessDirBaseCase = baseWorkingDirectory + @"\postProcessing\";
+            string outPath = PostProcessDirBaseCase + currWindDir + "_" + ofField.ProbeName + "_" + ofField.FieldName + ".bin";
 
             if (!Directory.Exists(PostProcessDirBaseCase))
             {
                 Directory.CreateDirectory(PostProcessDirBaseCase);
             }
-            StringBuilder sb = new StringBuilder();
+
             if (ofField.FieldType == fieldType.scalar)
             {
-                foreach (GH_Number i in ResultScalar)
-                {
-                    sb.AppendLine(i.ToString());
-                }
+                double[] scalars = Array.ConvertAll(ResultScalar, new Converter<GH_Number, double>(ArrayHelper.GH_NumberToDouble));
+
+                RadianceFiles.writeBinScalars(outPath, scalars);
             }
             if (ofField.FieldType == fieldType.vector)
             {
-                foreach (GH_Vector i in ResultVec)
-                {
-                    sb.AppendLine(i.ToString());
-                }
-            }
-            File.WriteAllText(PostProcessDirBaseCase + currWindDir + "_" + ofField.ProbeName + "_" + ofField.FieldName + ".csv", sb.ToString());
-        }
+                Vector3d[] vecs = Array.ConvertAll(ResultVec, new Converter<GH_Vector, Vector3d>(ArrayHelper.GH_VectorToVector3d));
 
-        private void ParsingScalars(List<Point3d> listOfPoints, string fullPath)
-        {
-            int counterPoints = listOfPoints.Count;
-
-            StringBuilder sb = new StringBuilder();
-
-            ResultScalar = new GH_Number[counterPoints];
-            string lastLine = File.ReadLines(fullPath).Where(line => line != "").Last();
-
-            for (int i = 0; i < counterPoints; i++)
-            {
-                var temp = double.Parse(lastLine.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[i + 1]);
-                var target = new GH_Number(0);
-                var conversion = GH_Convert.ToGHNumber(temp, GH_Conversion.Both, ref target);
-                ResultScalar[i] = target;
-            }
-        }
-
-        private void ParsingVectors(List<Point3d> listOfPoints, string fullPath)
-        {
-            int counterPoints = listOfPoints.Count;
-
-            ResultVec = new GH_Vector[counterPoints];
-            string lastLine = File.ReadLines(fullPath).Last();
-            string replacedString = System.Text.RegularExpressions.Regex.Replace(lastLine, "[()]", "", RegexOptions.Compiled);
-            string[] abc = replacedString.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-            int counter = 1;
-            for (int i = 0; i < counterPoints; i++)
-            {
-                var temp = (new Vector3d(double.Parse(abc[counter]), double.Parse(abc[counter + 1]), double.Parse(abc[counter + 2])));
-                var target = new GH_Vector();
-                GH_Convert.ToGHVector(temp, GH_Conversion.Both, ref target);
-                ResultVec[i] = target;
-                counter += 3;
+                RadianceFiles.writeBinVectors(outPath, vecs);
             }
         }
     }
@@ -352,8 +320,8 @@ namespace EddyLib
             {
                 ofField = "aoa";
             }
-            else {
-
+            else
+            {
                 ofField = "covid19";
             }
 
@@ -381,65 +349,78 @@ namespace EddyLib
 
         public readonly string probingFilePath;
 
-        // Todo: Implement this
-        //public int[] IndexOfExtremeProbes;
-
-        public Probing(List<Point3d> ListOfPoints, string caseDirectory, string baseWorkingDirectory, OFField ofField, int currWindDir, OFResult RES)
+        public Probing(List<Point3d> ListOfPoints, string caseDirectory, string baseWorkingDirectory, OFField ofField, int currWindDir, OFResult RES, bool rerun)
         {
             listOfPoints = ListOfPoints;
 
             this.caseDirectory = caseDirectory;
             this.baseWorkingDirectory = baseWorkingDirectory;
-            string fullPath = GetPathToProbedResults(caseDirectory, ofField, RES);
+            this.currWindDir = currWindDir;
+            this.probingFilePath = GetPathToProbedResults(caseDirectory, ofField, RES);
 
-            if (fullPath == "") return;
+            if (probingFilePath == "") return;
 
+            ParseFromOFResult(ofField);
+
+            // We gather the probes in both the root folder and in each individual case
+            //string PostProcessDirCurrCase = caseDirectory + @"\postProcessing\";
+
+            string PostProcessDirBaseCase = baseWorkingDirectory + @"\postProcessing\";
+            if (!Directory.Exists(PostProcessDirBaseCase)) Directory.CreateDirectory(PostProcessDirBaseCase);
+            string binPath = PostProcessDirBaseCase + currWindDir + "_" + ofField.ProbeName + "_" + ofField.FieldName + ".bin";
+
+            if (File.Exists(binPath) && rerun == false)
+            {
+                LoadProbedResultFromBinary(ofField, binPath);
+            }
+            else
+            {
+                WriteProbedResultToBinary(ofField, binPath);
+            }
+        }
+
+        private void ParseFromOFResult(OFField ofField)
+        {
             //Scalar
             if (ofField.FieldType == fieldType.scalar)
             {
-                ParsingScalars(listOfPoints, fullPath);
+                ParsingScalars(listOfPoints, probingFilePath);
             }
 
             //Vector
-            if (ofField.FieldType == fieldType.vector)
+            else
             {
-                ParsingVectors(listOfPoints, fullPath);
+                ParsingVectors(listOfPoints, probingFilePath);
             }
-            this.currWindDir = currWindDir;
-            this.probingFilePath = GetPathToProbedResults(caseDirectory, ofField, RES);
-            WriteProbedResultToCSV(ofField);
         }
 
-        private void WriteProbedResultToCSV(OFField ofField)
+        private void WriteProbedResultToBinary(OFField ofField, string binPath)
         {
-            // We gather the probes in both the root folder and in each individual case
-            string PostProcessDirCurrCase = caseDirectory + @"\postProcessing\";
-            string PostProcessDirBaseCase = baseWorkingDirectory + @"\postProcessing\";
-
-            if (!Directory.Exists(PostProcessDirBaseCase))
-            {
-                Directory.CreateDirectory(PostProcessDirBaseCase);
-            }
-
             if (ofField.FieldType == fieldType.scalar)
             {
-                StringBuilder sb = new StringBuilder();
-                foreach (GH_Number i in ResultScalar)
-                {
-                    sb.AppendLine(i.ToString());
-                }
-                File.WriteAllText(PostProcessDirCurrCase + ofField.ProbeName + ".csv", sb.ToString());
-                File.WriteAllText(PostProcessDirBaseCase + currWindDir + "_" + ofField.ProbeName + ".csv", sb.ToString());
+                double[] scalars = Array.ConvertAll(ResultScalar, new Converter<GH_Number, double>(ArrayHelper.GH_NumberToDouble));
+
+                RadianceFiles.writeBinScalars(binPath, scalars);
             }
             if (ofField.FieldType == fieldType.vector)
             {
-                StringBuilder sb = new StringBuilder();
-                foreach (GH_Vector i in ResultVec)
-                {
-                    sb.AppendLine(i.ToString());
-                }
-                File.WriteAllText(PostProcessDirCurrCase + ofField.ProbeName + ".csv", sb.ToString());
-                File.WriteAllText(PostProcessDirBaseCase + currWindDir + "_" + ofField.ProbeName + ".csv", sb.ToString());
+                Vector3d[] vecs = Array.ConvertAll(ResultVec, new Converter<GH_Vector, Vector3d>(ArrayHelper.GH_VectorToVector3d));
+
+                RadianceFiles.writeBinVectors(binPath, vecs);
+            }
+        }
+
+        private void LoadProbedResultFromBinary(OFField ofField, string binPath)
+        {
+            if (ofField.FieldType == fieldType.scalar)
+            {
+                var temp = RadianceFiles.loadBinScalars(binPath);
+                this.ResultScalar = Array.ConvertAll(temp, new Converter<double, GH_Number>(ArrayHelper.DoubleToGH_Number));
+            }
+            if (ofField.FieldType == fieldType.vector)
+            {
+                var temp = RadianceFiles.loadBinVectors(binPath);
+                this.ResultVec = Array.ConvertAll(temp, new Converter<Vector3d, GH_Vector>(ArrayHelper.Vector3dToGH_Vector));
             }
         }
 
@@ -452,9 +433,11 @@ namespace EddyLib
             ResultScalar = new GH_Number[counterPoints];
             string lastLine = File.ReadLines(fullPath).Where(line => line != "").Last();
 
+            var splittedLastLine = lastLine.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+
             for (int i = 0; i < counterPoints; i++)
             {
-                var temp = double.Parse(lastLine.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[i + 1]);
+                var temp = double.Parse(splittedLastLine[i + 1]);
                 var target = new GH_Number(0);
                 var conversion = GH_Convert.ToGHNumber(temp, GH_Conversion.Both, ref target);
                 ResultScalar[i] = target;

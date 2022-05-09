@@ -131,6 +131,26 @@ namespace EddyLib
         //    }
         //}
 
+        public static double GH_NumberToDouble(GH_Number p)
+        {
+            return p.Value;
+        }
+
+        public static Vector3d GH_VectorToVector3d(GH_Vector vec)
+        {
+            return new Vector3d(vec.Value);
+        }
+
+        public static GH_Number DoubleToGH_Number(double p)
+        {
+            return new GH_Number(p);
+        }
+
+        public static GH_Vector Vector3dToGH_Vector(Vector3d vec)
+        {
+            return new GH_Vector(vec);
+        }
+
         public static class CustomArray<T>
         {
             public static T[] GetColumn(T[,] matrix, int columnNumber)

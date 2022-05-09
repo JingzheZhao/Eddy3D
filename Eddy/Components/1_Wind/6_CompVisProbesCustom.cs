@@ -78,7 +78,7 @@ namespace Eddy
             pManager.AddPointParameter("Probing points", "Points", "List of probing points", GH_ParamAccess.list);
             pManager.AddTextParameter("Name of instance", "Name", "Name of instance to be probed", GH_ParamAccess.item);
 
-            pManager.AddIntegerParameter("Interpolation Scheme", "IS", "Interpolation Scheme", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("Interpolation Scheme", "IS", "Interpolation Scheme", GH_ParamAccess.item, 3);
             Param_Integer interpolationScheme = pManager[3] as Param_Integer;
             interpolationScheme.AddNamedValue("cell", 0);
             interpolationScheme.AddNamedValue("cellPoint", 1);
@@ -260,7 +260,7 @@ namespace Eddy
                 }
             }
 
-            int threshold = 15000;
+            int threshold = 100000;
             if (listOfPoints.Count > threshold)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Probing more than " + threshold + " points may slow Grasshopper down considerably.");
@@ -332,14 +332,14 @@ namespace Eddy
                         {
                             if (currField.FieldType == fieldType.vector)
                             {
-                                Probing Vectors = new Probing(listOfPoints, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES);
+                                Probing Vectors = new Probing(listOfPoints, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES, run);
 
                                 // Create datatree
                                 treeVector.AppendRange(Vectors.ResultVec, new Grasshopper.Kernel.Data.GH_Path(i));
                             }
                             else
                             {
-                                Probing Scalars = new Probing(listOfPoints, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES);
+                                Probing Scalars = new Probing(listOfPoints, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES, run);
 
                                 // Create datatree
                                 treeDouble.AppendRange(Scalars.ResultScalar, new Grasshopper.Kernel.Data.GH_Path(i));
@@ -351,9 +351,9 @@ namespace Eddy
                         }
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, EddyLib.Strings.ReturnMsg.ParsingFailed());
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, ex.ToString());
 
                     //throw new System.ArgumentException("Parsing of the probes failed. This data does not exist yet. Please run the probing component.");
                 }
