@@ -2094,6 +2094,17 @@ solvers
         relTol          0.1;
         minIter         1;
     }
+    Phi
+    {
+        solver GAMG;
+        smoother DIC;
+        cacheAgglomeration on;
+        agglomerator faceAreaPair;
+        nCellsInCoarsestLevel 10;
+        mergeLevels 1;
+        tolerance 1e-12;
+        relTol 0.01;
+    }
     k
     {
         solver          PBiCGStab;
