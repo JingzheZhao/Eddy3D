@@ -3,6 +3,7 @@ using System;
 using System.Text;
 
 namespace EddyLib.Strings
+
 {
     public class BCDicts
     {
@@ -28,13 +29,13 @@ FoamFile
     object ABLConditions;
         }
 
-        // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-        Uref		" + bcond.URef + @";
-        Zref		" + bcond.zref + @";
-        z0 uniform " + bcond.z0 + @";
-        flowDir (" + bcond.flowDir[d].X + " " + bcond.flowDir[d].Y + " " + bcond.flowDir[d].Z + @");
-        zDir (0 0 1);
-        zGround uniform " + bcond.zGround + @";
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Uref		" + Utilities.FormatDouble(bcond.URef) + @";
+Zref		" + Utilities.FormatDouble(bcond.zref) + @";
+z0 uniform " + Utilities.FormatDouble(bcond.z0) + @";
+flowDir (" + Utilities.FormatDouble(bcond.flowDir[d].X) + " " + Utilities.FormatDouble(bcond.flowDir[d].Y) + " " + Utilities.FormatDouble(bcond.flowDir[d].Z) + @");
+zDir (0 0 1);
+zGround uniform " + Utilities.FormatDouble(bcond.zGround) + @";
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 ";
@@ -61,9 +62,9 @@ FoamFile
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 flowVelocity (0 0 0);
 pressure    0;
-turbulentKE " + Math.Round(DOM.BCond.k, 4) + @";
-turbulentEpsilon " + Math.Round(DOM.BCond.epsilon, 4) + @";
-turbulentOmega	" + Math.Round(DOM.BCond.omega, 4) + @";
+turbulentKE " + Utilities.FormatDouble(Math.Round(DOM.BCond.k, 4)) + @";
+turbulentEpsilon " + Utilities.FormatDouble(Math.Round(DOM.BCond.epsilon, 4)) + @";
+turbulentOmega	" + Utilities.FormatDouble(Math.Round(DOM.BCond.omega, 4)) + @";
 #inputMode		merge;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
