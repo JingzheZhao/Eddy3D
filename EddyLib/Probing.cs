@@ -99,24 +99,58 @@ namespace EddyLib
             //Scalar
             if (ofField.FieldType == fieldType.scalar)
             {
-                //ParsingScalars(listOfPoints, probingFilePath);
-
-                var temp = RadianceFiles.loadBinScalars(probingFilePath);
-                ResultScalar = Array.ConvertAll(temp, new Converter<double, GH_Number>(ArrayHelper.DoubleToGH_Number));
+                ParsingScalars(listOfPoints, probingFilePath);
             }
 
             //Vector
             else
             {
-                //  ParsingVectors(listOfPoints, probingFilePath);
-
-                var temp = RadianceFiles.loadBinVectors(probingFilePath);
-                ResultVec = Array.ConvertAll(temp, new Converter<Vector3d, GH_Vector>(ArrayHelper.Vector3dToGH_Vector));
+                ParsingVectors(listOfPoints, probingFilePath);
             }
+
             this.currWindDir = currWindDir;
 
             //WriteProbedResultToCSV(ofField);
             WriteProbedResultToBinary(ofField);
+        }
+
+        private void ParsingScalars(List<Point3d> listOfPoints, string fullPath)
+        {
+            int counterPoints = listOfPoints.Count;
+
+            StringBuilder sb = new StringBuilder();
+
+            ResultScalar = new GH_Number[counterPoints];
+            string lastLine = File.ReadLines(fullPath).Where(line => line != "").Last();
+
+            var splittedLastLine = lastLine.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+
+            for (int i = 0; i < counterPoints; i++)
+            {
+                var temp = double.Parse(splittedLastLine[i + 1]);
+                var target = new GH_Number(0);
+                var conversion = GH_Convert.ToGHNumber(temp, GH_Conversion.Both, ref target);
+                ResultScalar[i] = target;
+            }
+        }
+
+        private void ParsingVectors(List<Point3d> listOfPoints, string fullPath)
+        {
+            int counterPoints = listOfPoints.Count;
+
+            ResultVec = new GH_Vector[counterPoints];
+            string lastLine = File.ReadLines(fullPath).Last();
+            string replacedString = System.Text.RegularExpressions.Regex.Replace(lastLine, "[()]", "", RegexOptions.Compiled);
+            string[] abc = replacedString.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+            int counter = 1;
+            for (int i = 0; i < counterPoints; i++)
+            {
+                var temp = (new Vector3d(double.Parse(abc[counter]), double.Parse(abc[counter + 1]), double.Parse(abc[counter + 2])));
+                var target = new GH_Vector();
+                GH_Convert.ToGHVector(temp, GH_Conversion.Both, ref target);
+                ResultVec[i] = target;
+                counter += 3;
+            }
         }
 
         public static int GetLatestTime(string workingDirectory, OFResult RES)
