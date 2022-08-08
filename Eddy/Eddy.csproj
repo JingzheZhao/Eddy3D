@@ -73,6 +73,7 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\1_Wind\6_InterpolateUMag.cs" />
     <Compile Include="Components\1_Wind\7_CompTree.cs" />
     <Compile Include="Components\1_Wind\4o_CompLBAnalPeriod2Hours.cs" />
     <Compile Include="Components\2_Radiation\1_MakeSensorFromMesh_Component.cs" />
