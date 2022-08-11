@@ -146,7 +146,7 @@ namespace EddyLib.Radiation
                 }
 
                 //HIGH Poly
-                foreach (var m in Mesh.CreateFromBrep(f, mp_low))
+                foreach (var m in Mesh.CreateFromBrep(f, mp_high))
                 {
                     HighPoly.Append(m);
                 }

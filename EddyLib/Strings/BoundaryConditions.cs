@@ -579,7 +579,7 @@ frontAndBack
                     sb.AppendLine("patch" + i);
                     sb.AppendLine(@"
 {   type            fixedValue;
-    value           uniform (" + DOM.BCond.flowDir[d].X * DOM.BCond.URef + " " + DOM.BCond.flowDir[d].Y * DOM.BCond.URef + " " + DOM.BCond.flowDir[d].Z * DOM.BCond.URef + @" );
+    value           uniform (" + Utilities.FormatDouble(DOM.BCond.flowDir[d].X * DOM.BCond.URef) + " " + Utilities.FormatDouble(DOM.BCond.flowDir[d].Y * DOM.BCond.URef) + " " + Utilities.FormatDouble(DOM.BCond.flowDir[d].Z * DOM.BCond.URef) + @" );
 }");
                 }
                 else
