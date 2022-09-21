@@ -527,8 +527,12 @@ namespace EddyLib
                 Match m = Regex.Match(name, "\\d+"); // this gets the number at beginning of dirname
                 var isNumber = Int32.TryParse(m.ToString(), out number);
 
-                if (isNumber)
+                if (isNumber && !name.StartsWith("processor"))
+
+                {
                     numberList.Add(number);
+
+                }
             }
 
             var highest = numberList.OrderByDescending(x => x).FirstOrDefault();
