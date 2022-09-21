@@ -81,6 +81,7 @@ namespace EddyLib.Indoor.Dicts
             InternalDict.Add("div(phi,k)", "bounded Gauss upwind");
             InternalDict.Add("div(phi,omega)", "bounded Gauss upwind");
             InternalDict.Add("div(phi,aoa)", "bounded Gauss upwind");
+            InternalDict.Add("div(phi,covid19)", "bounded Gauss upwind");
 
             return Dict;
         }
@@ -97,6 +98,7 @@ namespace EddyLib.Indoor.Dicts
             InternalDict.Add("laplacian(DkEff,k)", "Gauss linear uncorrected");
             InternalDict.Add("laplacian(DomegaEff,omega)", "Gauss linear uncorrected");
             InternalDict.Add("laplacian(Daoa,aoa)", "Gauss linear limited 0.333");
+            InternalDict.Add("laplacian(Dcovid19,covid19)", "Gauss linear limited 0.333");
 
             return Dict;
         }

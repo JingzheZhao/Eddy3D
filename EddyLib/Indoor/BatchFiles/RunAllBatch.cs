@@ -4,12 +4,10 @@ using System.Linq;
 using System.IO;
 using System.Runtime.CompilerServices;
 
-
 namespace EddyLib.Indoor.BatchFiles
 {
     public class RunAllBatch : GenericBatchFile
     {
-
         public RunAllBatch(IndoorDomain IndoorDom)
         {
             this.BatchLocation = IndoorDom.WorkingDir;
@@ -29,23 +27,22 @@ namespace EddyLib.Indoor.BatchFiles
             };
 
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
-
         }
 
         private static string BatchBody()
         {
-            return @"blockMesh.exe
-surfaceFeatureExtract
+            return @"blockMesh
+surfaceFeatures
 decomposePar -force
-mpiexec -np 8 snappyHexMesh -overwrite -parallel
+mpiexec -np 4 snappyHexMesh -overwrite -parallel
 reconstructParMesh -constant
-renumberMesh -overwrite 
+renumberMesh -overwrite
 
 topoSet
 
 renumberMesh -overwrite
 decomposePar -force
-mpiexec -np 8 buoyantSimpleFoam -parallel
+mpiexec -np 4 buoyantSimpleFoam -parallel
 reconstructPar";
         }
     }

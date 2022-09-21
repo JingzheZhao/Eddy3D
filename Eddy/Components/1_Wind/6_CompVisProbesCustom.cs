@@ -78,8 +78,16 @@ namespace Eddy
             pManager.AddPointParameter("Probing points", "Points", "List of probing points", GH_ParamAccess.list);
             pManager.AddTextParameter("Name of instance", "Name", "Name of instance to be probed", GH_ParamAccess.item);
 
+            pManager.AddIntegerParameter("Interpolation Scheme", "IS", "Interpolation Scheme", GH_ParamAccess.item, 3);
+            Param_Integer interpolationScheme = pManager[3] as Param_Integer;
+            interpolationScheme.AddNamedValue("cell", 0);
+            interpolationScheme.AddNamedValue("cellPoint", 1);
+            interpolationScheme.AddNamedValue("cellPointFace", 2);
+            interpolationScheme.AddNamedValue("pointMVC", 3);
+            interpolationScheme.AddNamedValue("cellPatchConstrained", 4);
+
             pManager.AddIntegerParameter("Name of field", "Field", "Name of field to be probed", GH_ParamAccess.item, 0);
-            Param_Integer param = pManager[3] as Param_Integer;
+            Param_Integer param = pManager[4] as Param_Integer;
             param.AddNamedValue("Velocity (U) [m/s]", 0);
             param.AddNamedValue("Pressure coefficient (total(p)_coeff) [-]", 1);
             param.AddNamedValue("Pressure (p) [m^2/s^2]", 2);
@@ -89,6 +97,8 @@ namespace Eddy
             param.AddNamedValue("Turbulent viscosity (nut) [m^2/s]", 6);
             param.AddNamedValue("Mass flow (phi) [m^3/s]", 7);
             param.AddNamedValue("Age of air (aoa) [s]", 8);
+            param.AddNamedValue("Particle Concentration (covid19) []", 9);
+            // Todo Zoe
 
             //pManager.AddIntegerParameter("FieldType", "FieldType", "FieldType", GH_ParamAccess.item, 1);
             //Param_Integer param2 = pManager[4] as Param_Integer;
@@ -105,7 +115,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddPointParameter("Porbing points", "Probes", "List of probing points (caution: maybe culled)", GH_ParamAccess.list);
+            pManager.AddPointParameter("Probing points", "Probes", "List of probing points (caution: maybe culled)", GH_ParamAccess.list);
             pManager.AddGenericParameter("Probing result", "Res", "Probed results [DataTree] where the [branches] are the wind directions and the [items] are the values for each probing point.", GH_ParamAccess.tree);
         }
 
@@ -143,19 +153,28 @@ namespace Eddy
             bool run = false;
             int OFFieldInt = 0;
             string probeNameByUser = "";
+            int InterpolationScheme = 0;
 
             DA.GetDataList(1, listOfPoints);
 
             DA.GetData(2, ref probeNameByUser);
-            DA.GetData(3, ref OFFieldInt);
+
+            DA.GetData(3, ref InterpolationScheme);
+            DA.GetData(4, ref OFFieldInt);
 
             //DA.GetData(4, ref fieldType);
-            DA.GetData(4, ref run);
+            DA.GetData(5, ref run);
 
             if (probeNameByUser == "")
             {
                 probeNameByUser = "test";
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, @"Please provide a unique name for this probing instance, otherwise a new instance will overwrite the results.");
+            }
+
+            if (Char.IsDigit((probeNameByUser).First()))
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"Please make sure name doesn't start with digit.");
+                return;
             }
 
             //Discard points outside
@@ -172,7 +191,7 @@ namespace Eddy
             GH_Structure<GH_Vector> treeVector = new GH_Structure<GH_Vector>();
 
             string OFField = EddyLib.OFField.ReformatOFFields(OFFieldInt);
-            OFField currField = new OFField(OFField, probeNameByUser);
+            OFField currField = new OFField(OFField, probeNameByUser, InterpolationScheme);
 
             #region Error handling
 
@@ -208,18 +227,29 @@ namespace Eddy
 
             RadianceFiles.writePTS(RES.WorkingDirectory + @"\Rad\sensors.pts", listOfPoints);
 
-            if (Directory.Exists(RES.MeshSettings.meshPolyMeshDir) == false)
+            string meshDir = "";
+
+            if (RES.Domain is OFCylDomain)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The mesh folder does not exist. Please create a mesh first.");
+                meshDir = RES.MeshSettings.meshPolyMeshDir;
+            }
+            else if (RES.Domain is OFBoxDomain)
+            {
+                meshDir = RES.WorkingDirectory + RES.Domain.BCond.windDirs[0] + @"\constant\polyMesh";
+            }
+
+            if (Directory.Exists(meshDir) == false)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The mesh folder " + meshDir + " does not exist. Please create a mesh first.");
 
                 //throw new System.ArgumentException("The mesh folder is does not exist. Please create a mesh first.");
                 return;
             }
             else
             {
-                if (Utilities.Directories.IsDirectoryEmpty(RES.MeshSettings.meshPolyMeshDir) == true)
+                if (Utilities.Directories.IsDirectoryEmpty(meshDir) == true)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The mesh folder is empty. Can't retrieve probes from a mesh that does not exist.");
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The mesh folder " + meshDir + @" is empty. Can't retrieve probes from a mesh that does not exist.");
 
                     // throw new System.ArgumentException("The mesh folder is empty. Can't retrieve probes from a mesh that does not exist.");
                     return;
@@ -230,7 +260,7 @@ namespace Eddy
                 }
             }
 
-            int threshold = 5000;
+            int threshold = 100000;
             if (listOfPoints.Count > threshold)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Probing more than " + threshold + " points may slow Grasshopper down considerably.");
@@ -302,14 +332,14 @@ namespace Eddy
                         {
                             if (currField.FieldType == fieldType.vector)
                             {
-                                Probing Vectors = new Probing(listOfPoints, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES);
+                                Probing Vectors = new Probing(listOfPoints, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES, run);
 
                                 // Create datatree
                                 treeVector.AppendRange(Vectors.ResultVec, new Grasshopper.Kernel.Data.GH_Path(i));
                             }
                             else
                             {
-                                Probing Scalars = new Probing(listOfPoints, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES);
+                                Probing Scalars = new Probing(listOfPoints, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES, run);
 
                                 // Create datatree
                                 treeDouble.AppendRange(Scalars.ResultScalar, new Grasshopper.Kernel.Data.GH_Path(i));
@@ -321,9 +351,9 @@ namespace Eddy
                         }
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, EddyLib.Strings.ReturnMsg.ParsingFailed());
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, ex.ToString());
 
                     //throw new System.ArgumentException("Parsing of the probes failed. This data does not exist yet. Please run the probing component.");
                 }

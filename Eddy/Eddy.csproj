@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Eddy</RootNamespace>
     <AssemblyName>Eddy</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <TargetFrameworkProfile />
@@ -36,33 +36,28 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Eto, Version=2.5.0.0, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
-      <HintPath>..\packages\RhinoCommon.7.3.21053.23031\lib\net45\Eto.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="Eto, Version=2.7.0.0, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
+      <HintPath>..\packages\RhinoCommon.7.20.22193.9001\lib\net48\Eto.dll</HintPath>
     </Reference>
-    <Reference Include="GH_IO, Version=7.3.21053.23030, Culture=neutral, PublicKeyToken=6a29997d2e6b4f97, processorArchitecture=MSIL">
-      <HintPath>..\packages\Grasshopper.7.3.21053.23031\lib\net45\GH_IO.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="GH_IO, Version=7.20.22193.9001, Culture=neutral, PublicKeyToken=6a29997d2e6b4f97, processorArchitecture=MSIL">
+      <HintPath>..\packages\Grasshopper.7.20.22193.9001\lib\net48\GH_IO.dll</HintPath>
     </Reference>
-    <Reference Include="Grasshopper, Version=7.3.21053.23030, Culture=neutral, PublicKeyToken=dda4f5ec2cd80803, processorArchitecture=MSIL">
-      <HintPath>..\packages\Grasshopper.7.3.21053.23031\lib\net45\Grasshopper.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="Grasshopper, Version=7.20.22193.9001, Culture=neutral, PublicKeyToken=dda4f5ec2cd80803, processorArchitecture=MSIL">
+      <HintPath>..\packages\Grasshopper.7.20.22193.9001\lib\net48\Grasshopper.dll</HintPath>
     </Reference>
     <Reference Include="MedallionShell, Version=1.6.2.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MedallionShell.1.6.2\lib\net471\MedallionShell.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.VisualBasic" />
-    <Reference Include="Rhino.UI, Version=7.3.21053.23030, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
-      <HintPath>..\packages\RhinoCommon.7.3.21053.23031\lib\net45\Rhino.UI.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="RhinoCommon, Version=7.3.21053.23030, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
-      <HintPath>..\packages\RhinoCommon.7.3.21053.23031\lib\net45\RhinoCommon.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="Rhino.UI, Version=7.20.22193.9001, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
+      <HintPath>..\packages\RhinoCommon.7.20.22193.9001\lib\net48\Rhino.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="RhinoCommon, Version=7.20.22193.9001, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
+      <HintPath>..\packages\RhinoCommon.7.20.22193.9001\lib\net48\RhinoCommon.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -78,6 +73,7 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\1_Wind\6_InterpolateUMag.cs" />
     <Compile Include="Components\1_Wind\7_CompTree.cs" />
     <Compile Include="Components\1_Wind\4o_CompLBAnalPeriod2Hours.cs" />
     <Compile Include="Components\2_Radiation\1_MakeSensorFromMesh_Component.cs" />
@@ -500,13 +496,13 @@ xcopy /e /v  /y "$(SolutionDir)Build\Obfuscator_Output" "%25INSTALLDIR%25"
     <StartAction>Program</StartAction>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
-  <Import Project="..\packages\RhinoCommon.7.3.21053.23031\build\RhinoCommon.targets" Condition="Exists('..\packages\RhinoCommon.7.3.21053.23031\build\RhinoCommon.targets')" />
+  <Import Project="..\packages\RhinoCommon.7.20.22193.9001\build\net48\RhinoCommon.targets" Condition="Exists('..\packages\RhinoCommon.7.20.22193.9001\build\net48\RhinoCommon.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\RhinoCommon.7.3.21053.23031\build\RhinoCommon.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\RhinoCommon.7.3.21053.23031\build\RhinoCommon.targets'))" />
-    <Error Condition="!Exists('..\packages\Grasshopper.7.3.21053.23031\build\Grasshopper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Grasshopper.7.3.21053.23031\build\Grasshopper.targets'))" />
+    <Error Condition="!Exists('..\packages\RhinoCommon.7.20.22193.9001\build\net48\RhinoCommon.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\RhinoCommon.7.20.22193.9001\build\net48\RhinoCommon.targets'))" />
+    <Error Condition="!Exists('..\packages\Grasshopper.7.20.22193.9001\build\net48\Grasshopper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Grasshopper.7.20.22193.9001\build\net48\Grasshopper.targets'))" />
   </Target>
-  <Import Project="..\packages\Grasshopper.7.3.21053.23031\build\Grasshopper.targets" Condition="Exists('..\packages\Grasshopper.7.3.21053.23031\build\Grasshopper.targets')" />
+  <Import Project="..\packages\Grasshopper.7.20.22193.9001\build\net48\Grasshopper.targets" Condition="Exists('..\packages\Grasshopper.7.20.22193.9001\build\net48\Grasshopper.targets')" />
 </Project>

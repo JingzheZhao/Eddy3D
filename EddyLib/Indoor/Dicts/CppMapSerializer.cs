@@ -122,8 +122,6 @@ namespace EddyLib.Indoor.Dicts
                 //    DictToString(evl, ref sb);
                 //}
 
-
-               
                 //else if(evl.Key is String && evl.Value is List<string>)
                 //{
                 //    DictToStrings(evl.Key,evl.Value, ref sb);
@@ -179,9 +177,7 @@ namespace EddyLib.Indoor.Dicts
                         // 2. Dictionary<string, Dictionary<string, string>> dicts
                         else if (evl.Key is String && evl.Value is Dictionary<string, dynamic>)
                         {
-
                             DictToString(evl.Value, ref sb);
-                         
                         }
                     }
                 }
@@ -258,19 +254,16 @@ namespace EddyLib.Indoor.Dicts
             }
         }
 
-        //private static void DictToStrings(string key, List<string> value, ref StringBuilder sb) 
+        //private static void DictToStrings(string key, List<string> value, ref StringBuilder sb)
         //{
-
         //    sb.AppendLine("\t" + key);
 
         //    sb.AppendLine("\t" + "{");
 
-        //    foreach( String s in value) 
+        //    foreach( String s in value)
         //    { sb.AppendLine("\t" + "\t" + s); }
 
         //    sb.AppendLine("\t" + "\t" + "}");
         //}
-
-
     }
 }

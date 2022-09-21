@@ -5,6 +5,7 @@ using EddyLib.Radiation;
 using EddyLib.Strings;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
+using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using System;
@@ -76,8 +77,16 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Result", "Res", "Eddy Result", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Sensors", "Sen", "Radiation sensors. Provide as [Mesh] or [RProbe]", GH_ParamAccess.tree);
+            pManager.AddGenericParameter("Sensors", "Sen", "Wind sensors. Provide as [Mesh] or [RProbe]", GH_ParamAccess.tree);
             pManager.AddTextParameter("Name of instance", "Name", "Name of instance to be probed", GH_ParamAccess.item);
+
+            pManager.AddIntegerParameter("Interpolation Scheme", "IS", "Interpolation Scheme", GH_ParamAccess.item, 0);
+            Param_Integer interpolationScheme = pManager[3] as Param_Integer;
+            interpolationScheme.AddNamedValue("cell", 0);
+            interpolationScheme.AddNamedValue("cellPoint", 1);
+            interpolationScheme.AddNamedValue("cellPointFace", 2);
+            interpolationScheme.AddNamedValue("pointMVC", 3);
+            interpolationScheme.AddNamedValue("cellPatchConstrained", 4);
 
             pManager.AddBooleanParameter("Run", "Run", "Run the component.", GH_ParamAccess.item, false);
         }
@@ -122,6 +131,7 @@ namespace Eddy
             bool run = false;
 
             string probeNameByUser = "";
+            int InterpolationScheme = 0;
 
             // ----------------------
             // Get the probing points
@@ -151,6 +161,7 @@ namespace Eddy
             //
 
             DA.GetData("Name of instance", ref probeNameByUser);
+            DA.GetData("Interpolation Scheme", ref InterpolationScheme);
 
             DA.GetData("Run", ref run);
 
@@ -218,6 +229,11 @@ namespace Eddy
                 probeNameByUser = "test";
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, @"Please provide a unique name for this probing instance, otherwise a new instance will overwrite the results.");
             }
+            if (Char.IsDigit((probeNameByUser).First()))
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"Please make sure name doesn't start with digit.");
+                return;
+            }
 
             // Check if U file is in last iteration
             for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
@@ -252,7 +268,7 @@ namespace Eddy
                 }
             }
 
-            int threshold = 5000;
+            int threshold = 10000;
             if (numberOfProbes > threshold)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Probing more than " + threshold + " points may slow down Grasshopper considerably.");
@@ -286,7 +302,7 @@ namespace Eddy
 
                         // If yes, write the dicts for both Docker and BlueCFD
                         string path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + probeNameByUser;
-                        File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbesAllFields(Probes, probeNameByUser));
+                        File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbesAllFields(Probes, probeNameByUser, Probing.ReformatIS(InterpolationScheme)));
 
                         if (RES.RunSettings.simEngine == SimEngine.Docker)
                         {
@@ -320,7 +336,7 @@ namespace Eddy
 
                         foreach (field f in Enum.GetValues(typeof(field)))
                         {
-                            var currField = new OFFieldNew(probeNameByUser, f);
+                            var currField = new OFFieldNew(probeNameByUser, f, InterpolationScheme);
                             //  var currField = new OFFieldNew(probeNameByUser, field.U);
 
                             try

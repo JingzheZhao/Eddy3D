@@ -26,14 +26,13 @@ namespace EddyLib.Indoor.BatchFiles
             };
 
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
-
         }
 
         private static string BatchBody()
         {
             return @"renumberMesh -overwrite
 decomposePar -force
-mpiexec -np 8 buoyantSimpleFoam -parallel
+mpiexec -np 4 buoyantSimpleFoam -parallel
 reconstructPar ";
         }
     }

@@ -107,7 +107,7 @@ namespace EddyLib.Radiation
         {
             Name = name;
             Surface = b;
-            PatchSize = patchSize > 0 ? patchSize : 2;
+            PatchSize = patchSize > 0 ? patchSize : 3;
             Settings = settings;
 
             MaterialID = "";
@@ -126,8 +126,12 @@ namespace EddyLib.Radiation
             //}
 
             MeshingParameters mp_low = new MeshingParameters();
+            MeshingParameters mp_high = new MeshingParameters();
+            mp_high.MaximumEdgeLength = patchSize;
+            mp_high.MinimumEdgeLength = patchSize;
             LowPoly = new Mesh();
             HighPoly = new Mesh();
+
             foreach (var bf in b.Faces)
             {
                 Brep f = bf.DuplicateFace(true);
@@ -142,13 +146,18 @@ namespace EddyLib.Radiation
                 }
 
                 //HIGH Poly
-                QuadRemeshParameters qparam = new QuadRemeshParameters();
-                qparam.AdaptiveQuadCount = false;
-                qparam.AdaptiveSize = 0;
-                qparam.DetectHardEdges = true;
-                qparam.TargetQuadCount = (int)(farea / (patchSize * patchSize));
-                var qmesh = Mesh.QuadRemeshBrep(f, qparam);
-                HighPoly.Append(qmesh);
+                foreach (var m in Mesh.CreateFromBrep(f, mp_high))
+                {
+                    HighPoly.Append(m);
+                }
+
+                //QuadRemeshParameters qparam = new QuadRemeshParameters();
+                //qparam.AdaptiveQuadCount = false;
+                //qparam.AdaptiveSize = 0;
+                //qparam.DetectHardEdges = true;
+                //qparam.TargetQuadCount = (int)(farea / (patchSize * patchSize));
+                //var qmesh = Mesh.QuadRemeshBrep(f, qparam);
+                //HighPoly.Append(qmesh);
             }
 
             //// fine subdivisions for viewfactor analysis

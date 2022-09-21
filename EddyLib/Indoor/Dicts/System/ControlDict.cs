@@ -1,5 +1,4 @@
-﻿using EddyLib.Indoor.FunctionObjects;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -137,21 +136,62 @@ namespace EddyLib.Indoor.Dicts
         {
                 aoa_00
             {
-                    type scalarSemiImplicitSource;
+                    type semiImplicitSource;
                     active          true;
                     cellZone all;
-                    scalarSemiImplicitSourceCoeffs
+                    semiImplicitSourceCoeffs
                 {
                         volumeMode specific;
                         selectionMode all;
-                        injectionRateSuSp
-                    {
-                            aoa (1 0);
-                        }
+                        sources
+							{
+							aoa{
+									explicit table ((0 0) (1 0));
+									implicit 0;
+									}
+							}
                     }
                 }
             }
         }");
+            sb.AppendLine(
+                @"covid19
+    {
+                type scalarTransport;
+                libs (""libfieldFunctionObjects.so"");
+
+                writeControl outputTime;
+                D               16e-5;
+                field covid19;
+                resetOnStartUp  false;
+                schemesField covid19;
+                bounded01       true;
+                write           true;
+
+                fvOptions
+        {
+                    covid19_00
+            {
+                        type semiImplicitSource;
+                        active          true;
+
+                        semiImplicitSourceCoeffs
+                {
+                            volumeMode absolute;
+                            selectionMode cellZone;
+                            cellZone ViralEmitter_0; //Todo: Add Emitter Name
+                            sources
+                            {
+							    covid19
+		                                {
+		                                explicit table ((0 0) (1.076e-4 0));
+		                                implicit 0;
+		                                }
+                            }
+                        }
+                    }
+                }
+            }");
 
             //if (IndDom.FOs.OfType<VolumetricHeatSource>().Any())
             //{ sb.AppendLine("#includeFunc volumetricHeatSources");}

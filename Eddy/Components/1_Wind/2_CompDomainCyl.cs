@@ -231,9 +231,18 @@ namespace Eddy
 
             // Check if lowest point in Domain is z_low < 0, then we cannot use a ABL
 
-            if (buildingGeometry.GetBoundingBox(true).Min.Z < 0 && bCond is ABL)
+            var minZDomain = buildingGeometry.GetBoundingBox(true).Min.Z;
+
+            if (minZDomain < 0 && bCond is ABL)
+
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "If your simulation domain extends below z = 0, you cannot use an ABL Boundary Condition. Please use the Constant U Boundary Condition."); return;
+                var bc = (ABL)bCond;
+                double zg = bc.zGround;
+
+                if (minZDomain < zg)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "If your simulation domain extends below z = 0, you cannot use an ABL Boundary Condition. Please use the Constant U Boundary Condition or adjust zGround accordingly."); return;
+                }
             }
 
             if (Utilities.CheckLicence() == true)

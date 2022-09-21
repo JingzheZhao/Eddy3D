@@ -25,7 +25,12 @@ namespace EddyLib.Indoor.Dicts
 
             StringBuilder sb = new StringBuilder();
 
-            foreach (var dic in fv) { sb.AppendLine(dic.FullDictString); }
+            foreach (var dic in fv) {
+
+                if (dic.DictionaryName == "viralEmitters" || dic.DictionaryName == "co2Emitters") 
+                { }
+                else { sb.AppendLine(dic.FullDictString); }
+                }
 
             string[] parts = {
                this.Header, "\n",

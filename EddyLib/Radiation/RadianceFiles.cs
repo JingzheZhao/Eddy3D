@@ -788,6 +788,171 @@ namespace EddyLib
             bw.Close();
         }
 
+        public static void writeBinScalars(string fileName, double[] values)
+        {
+            BinaryWriter bw;
+
+            //create the file
+            try
+            {
+                bw = new BinaryWriter(new FileStream(fileName, FileMode.Create));
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine(e.Message + "\n Cannot create file.");
+                return;
+            }
+
+            //writing into the file
+            try
+            {
+                // Write array dimensions
+                bw.Write((Int32)values.GetLength(0));
+
+                for (int i = 0; i < values.GetLength(0); i++)
+                {
+                    float val = (float)values[i];
+
+                    bw.Write(val);
+                }
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine(e.Message + "\n Cannot write to file.");
+                return;
+            }
+            bw.Close();
+        }
+
+        public static double[] loadBinScalars(string filename) //, out int iDim, out int jDim)
+        {
+            // [i, time j] points
+
+            double[] data;
+
+            //   int numberOfWindDirs;
+
+            //reading from the file
+            // 1.
+            using (BinaryReader b = new BinaryReader(
+                File.Open(filename, FileMode.Open)))
+            {
+                // 2. Position and length variables.
+                int pos = 0;
+
+                // 2A. Use BaseStream.
+                int length = (int)b.BaseStream.Length;
+
+                int iDim = b.ReadInt32();
+
+                data = new double[iDim];
+                pos += sizeof(int);
+
+                int i = 0;
+
+                while (pos < length)
+                {
+                    float x = b.ReadSingle();
+                    data[i] = (x);
+
+                    pos += sizeof(float);
+
+                    i++;
+                }
+            }
+
+            return data;
+        }
+
+        public static void writeBinVectors(string fileName, Vector3d[] values)
+        {
+            BinaryWriter bw;
+
+            //create the file
+            try
+            {
+                bw = new BinaryWriter(new FileStream(fileName, FileMode.Create));
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine(e.Message + "\n Cannot create file.");
+                return;
+            }
+
+            //writing into the file
+            try
+            {
+                // Write array dimensions
+                bw.Write((Int32)values.GetLength(0));
+
+                for (int i = 0; i < values.GetLength(0); i++)
+                {
+                    //  for (int j = 0; j < values.GetLength(1); j++)
+                    //  {
+                    float fvalX = (float)values[i].X;
+                    float fvalY = (float)values[i].Y;
+                    float fvalZ = (float)values[i].Z;
+
+                    bw.Write(fvalX);
+                    bw.Write(fvalY);
+                    bw.Write(fvalZ);
+                    // }
+                }
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine(e.Message + "\n Cannot write to file.");
+                return;
+            }
+            bw.Close();
+        }
+
+        public static Vector3d[] loadBinVectors(string filename) //, out int iDim
+        {
+            // [i] points
+
+            Vector3d[] data;
+
+            //reading from the file
+            // 1.
+            using (BinaryReader b = new BinaryReader(
+                File.Open(filename, FileMode.Open)))
+            {
+                // 2. Position and length variables.
+                int pos = 0;
+
+                // 2A. Use BaseStream.
+                int length = (int)b.BaseStream.Length;
+
+                int iDim = b.ReadInt32();
+
+                data = new Vector3d[iDim];
+                pos += sizeof(int);
+
+                int i = 0;
+
+                while (pos < length)
+                {
+                    float x = b.ReadSingle();
+                    data[i].X = (x);
+
+                    float y = b.ReadSingle();
+                    data[i].Y = (y);
+
+                    float z = b.ReadSingle();
+                    data[i].Z = (z);
+
+                    pos += sizeof(float);
+                    pos += sizeof(float);
+                    pos += sizeof(float);
+
+                    i++;
+                }
+            }
+
+            return data;
+        }
+
         public static Vector3d[,] loadBinDVectors(string filename, out int[] windDirs)//, out int iDim, out int jDim)
         {
             // [i, time j] points
