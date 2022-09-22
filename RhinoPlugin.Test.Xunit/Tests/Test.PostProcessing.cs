@@ -10,7 +10,7 @@ using Xunit;
 namespace RhinoPlugin.Tests.Xunit
 {
     [Collection("Rhino Collection")]
-    public class PostProcessingTest
+    public class PostProcessingTests
     {
         [Fact]
         public void AnalysisBins_Annual()
