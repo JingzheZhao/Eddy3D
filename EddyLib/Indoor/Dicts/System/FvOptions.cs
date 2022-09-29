@@ -9,7 +9,6 @@ namespace EddyLib.Indoor.Dicts
 {
     public class FvOptions : GenericDict
     {
-
         //public List<String> InternalDict = new List<string>();
 
         public FvOptions(List<GenericDict> fv)
@@ -25,12 +24,12 @@ namespace EddyLib.Indoor.Dicts
 
             StringBuilder sb = new StringBuilder();
 
-            foreach (var dic in fv) {
-
-                if (dic.DictionaryName == "viralEmitters" || dic.DictionaryName == "co2Emitters") 
+            foreach (var dic in fv)
+            {
+                if (dic.DictionaryName == "co2Emitters")
                 { }
                 else { sb.AppendLine(dic.FullDictString); }
-                }
+            }
 
             string[] parts = {
                this.Header, "\n",
@@ -39,22 +38,17 @@ namespace EddyLib.Indoor.Dicts
 
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
         }
-
-
-        
     }
 }
 
-
-
-            //            this.FullDictString = @"FoamFile
-            //{
-            //    version         1912;
-            //    format          ascii;
-            //    class           dictionary;
-            //    location        ""system"";
-            //    object          fvSchemes;
-            //}
+//            this.FullDictString = @"FoamFile
+//{
+//    version         1912;
+//    format          ascii;
+//    class           dictionary;
+//    location        ""system"";
+//    object          fvSchemes;
+//}
 
 //ddtSchemes
 //{
