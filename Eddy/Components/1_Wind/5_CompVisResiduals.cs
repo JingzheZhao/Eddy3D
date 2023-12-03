@@ -2,6 +2,7 @@
 using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
+using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -36,7 +37,7 @@ namespace Eddy
         protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
         {
             base.AppendAdditionalComponentMenuItems(menu);
-            Menu_AppendItem(menu, "Write Residuals", Menu_DoClick, true, !visResiduals);
+            Menu_AppendItem(menu, "Export Residuals as PDF", Menu_DoClick, true, !visResiduals);
         }
 
         // !visResiduals == writeResiduals
@@ -75,19 +76,12 @@ namespace Eddy
         {
             pManager.AddGenericParameter("Result", "Res", "Eddy Result", GH_ParamAccess.item);
 
-            //pManager.AddIntegerParameter("Mode", "Mode", "Mode", GH_ParamAccess.item, 0);
-            //Param_Integer param = pManager[1] as Param_Integer;
-            //param.AddNamedValue("Retrieve file from domain.", 0);
-            //param.AddNamedValue("Provide custom file.", 1);
-
-            //pManager.AddTextParameter("fP", "fP", "fP", GH_ParamAccess.item, "");
-            pManager.AddIntegerParameter("Selection of wind directions", "Sel", @"List of integers for the wind directions to load, e.g. ""0,35"" .""", GH_ParamAccess.list);
             pManager.AddTextParameter("X", "X", @"Bounds for the x-axis, e.g. ""0:5000""", GH_ParamAccess.item, ":");
             pManager.AddTextParameter("Y", "Y", @"Bounds for the y-axis, e.g. ""0.00001:1""", GH_ParamAccess.item, ":");
-            pManager.AddIntegerParameter("Version", "Ver", "Version", GH_ParamAccess.item, 1);
-            Param_Integer param = pManager[4] as Param_Integer;
-            param.AddNamedValue("Windows Gnuplot", 0);
-            param.AddNamedValue("BlueCFD Gnuplot", 1);
+            pManager.AddIntegerParameter("Version", "Ver", "Version", GH_ParamAccess.item, 0);
+            Param_Integer param = pManager[3] as Param_Integer;
+            param.AddNamedValue("BlueCFD Gnuplot", 0);
+            param.AddNamedValue("Windows Gnuplot", 1);
             pManager.AddBooleanParameter("Run", "Run", "Run the component", GH_ParamAccess.item, false);
 
             pManager[1].Optional = true;
@@ -116,38 +110,18 @@ namespace Eddy
         {
             // mode to select simulation environment
             if (visResiduals) { Message = "Visualize"; }
-            else { Message = "Write"; }
+            else { Message = "Export"; }
 
             OFResult RES = null;
             DA.GetData(0, ref RES);
 
-            bool run = false;
-
             string x0x1 = ":";
             string y0y1 = ":";
-
-            string fullFilePath = "";
-
-            List<int> selectionList = new List<int>();
-
-            DA.GetDataList("Selection of wind directions", selectionList);
             DA.GetData("X", ref x0x1);
             DA.GetData("Y", ref y0y1);
-            int version = 1;
-            DA.GetData("Version", ref version);
-            DA.GetData("Run", ref run);
 
-            if (run != true) { return; }
-
-            List<int> selection = new List<int>();
-            if (selectionList.Count != 0)
-            {
-                selection = RES.Domain.BCond.windDirs.Intersect(selectionList).ToList();
-            }
-            else
-            {
-                selection.Add(RES.Domain.BCond.windDirs[0]);
-            }
+            int gnuplotVersion = 0;
+            DA.GetData("Version", ref gnuplotVersion);
 
             if (!RES.RunSettings.WindowsGnuplotInstalled && !RES.RunSettings.BlueCFDIsInstalled)
             {
@@ -155,101 +129,108 @@ namespace Eddy
                 return;
             }
 
-            if (!RES.RunSettings.WindowsGnuplotInstalled && version == 0)
+            if (!RES.RunSettings.WindowsGnuplotInstalled && gnuplotVersion == 1)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "There is no native Gnuplot version installed, please consider selecting the version that comes with BlueCFD.");
                 return;
             }
 
-            if (visResiduals)
+            bool run = false;
+            DA.GetData("Run", ref run);
+            if (run != true) { return; }
+
+            List<int> windDirections = RES.Domain.BCond.windDirs;
+
+            foreach (int dir in windDirections)
             {
-                try
-                {
-                    foreach (double dir in selection)
-                    {
-                        string p1 = RES.WorkingDirectory + dir + @"\postProcessing\residuals\";
-                        fullFilePath = p1 + Utilities.GetLastIterationFromDirectory(p1) + "\\" + @"\\residuals.dat";
-                        if (!File.Exists(fullFilePath))
-                        {
-                            AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "The residual file for wind direction " + dir + " does not exist.");
-                        }
-
-                        string fields = Utilities.FileReader(fullFilePath)[1];
-
-                        string field1 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[1];
-                        string field2 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[2];
-                        string field3 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[3];
-                        string field4 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[4];
-                        string field5 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[5];
-                        string field6 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[6];
-
-                        string arg = @"
-set title 'wind direction: " + dir + @"'
-set logscale y
-set yrange[" + y0y1 + @"]
-set xrange[" + x0x1 + @"]
-set ylabel 'Residual'
-set xlabel 'Iteration'
-set format y ""10 ^{% T}
-                        ""
-set datafile separator '\t'
-plot '" + fullFilePath + @"' u($1):2 with lines title '" + field1 + "','" + fullFilePath + @"' u($1):3 with lines title '" + field2 + "','" + fullFilePath + @"' u($1):4 with lines title '" + field3 + "','" + fullFilePath + @"' u($1):5 with lines title '" + field4 + "','" + fullFilePath + @"' u($1):6 with lines title '" + field5 + "','" + fullFilePath + @"' u($1):7 with lines title '" + field6 + @"'
-pause 360; replot
-";
-
-                        Utilities.StartProcess.StartProcessCMDNTGnuplot(arg, true, false, false, true, Utilities.GetGnuplotPath(RES.RunSettings, version));
-                    }
-                }
-                catch (Exception e)
-                {
-                    // Let the user know what went wrong.
-                    Console.WriteLine("The file(s) could not be read:");
-                    Console.WriteLine(e.Message);
-                }
+                ProcessWindDirection(dir, RES, visResiduals, x0x1, y0y1, gnuplotVersion);
             }
-            else
+        }
+
+        private void ProcessWindDirection(int dir, OFResult RES, bool visResiduals, string x0x1, string y0y1, int version)
+        {
+            try
             {
-                try
-                {
-                    // Open the file(s) to read from.
+                // Refactored to a separate method for processing each wind direction
+                string lastDir = GetLastDirectoryPath(RES, dir);
+                var mostRecentFile = GetMostRecentFile(lastDir, "*.dat");
 
-                    foreach (double dir in selection)
-                    {
-                        string p1 = RES.WorkingDirectory + dir + @"\postProcessing\residuals\";
-                        var fullDirectoryPath = p1 + Utilities.GetLastIterationFromDirectory(p1) + "\\";
-                        var fileName = Path.GetFileName(Utilities.GetFileNameWithHighestEnumerator(fullDirectoryPath));
-                        fullFilePath = fullDirectoryPath + fileName;
-
-                        if (!File.Exists(fullFilePath))
-                        {
-                            AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "The residual file for wind direction " + dir + " does not exist.");
-                        }
-
-                        string arg = @"
-set title 'wind direction: " + dir + @"'
-set logscale y
-set yrange [" + y0y1 + @"]
-set xrange [" + x0x1 + @"]
-set ylabel 'Residual'
-set xlabel 'Iteration'
-set format y ""10^{%T}""
-set datafile separator '\t'
-plot '" + fullFilePath + @"' u($1):2 with lines title 'Ux', '" + fullFilePath + @"' u($1):3 with lines title 'Uy', '" + fullFilePath + @"' u($1):4 with lines title 'Uz', '" + fullFilePath + @"' u($1):5 with lines title 'p', '" + fullFilePath + @"' u($1):6 with lines title 'omega', '" + fullFilePath + @"' u($1):7 with lines title 'k'
-set terminal pdf
-set output '" + RES.WorkingDirectory + @"residuals_" + dir + @".pdf'
-replot
-";
-
-                        Utilities.StartProcess.StartProcessCMDNTGnuplot(arg, true, false, false, true, Utilities.GetGnuplotPath(RES.RunSettings, version));
-                    }
-                }
-                catch (Exception e)
-                {
-                    // Let the user know what went wrong.
-                    Console.WriteLine("The file(s) could not be read:");
-                    Console.WriteLine(e.Message);
-                }
+                var fullFilePath = Path.Combine(lastDir, mostRecentFile.Name);
+                ProcessFile(fullFilePath, dir, RES, visResiduals, x0x1, y0y1, version);
             }
+            catch (Exception e)
+            {
+                Console.WriteLine("The file(s) could not be read:");
+                Console.WriteLine(e.Message);
+            }
+        }
+
+        private static string GetLastDirectoryPath(OFResult RES, int dir)
+        {
+            string p1 = RES.WorkingDirectory + dir + @"\postProcessing\residuals\";
+            return p1 + Utilities.GetLastIterationFromDirectory(p1);
+        }
+
+        private static FileInfo GetMostRecentFile(string directoryPath, string fileExtension)
+        {
+            var directoryInfo = new DirectoryInfo(directoryPath);
+            return directoryInfo.GetFiles(fileExtension)
+                                .OrderByDescending(f => f.LastWriteTime)
+                                .FirstOrDefault();
+        }
+
+        private static void ProcessFile(string residualsPath, int dir, OFResult RES, bool visResiduals, string x0x1, string y0y1, int version)
+        {
+            // Process the file content, prepare Gnuplot arguments, etc.
+            // The actual implementation depends on how you want to process the file
+            // and how the Gnuplot arguments are structured in your application.
+
+            string gnuplotArguments = PrepareGnuplotArguments(residualsPath, dir, RES, visResiduals, x0x1, y0y1);
+            string gnuplotExecutablePath = Utilities.GetGnuplotPath(RES.RunSettings, version);
+
+            var pdfFilePath = RES.WorkingDirectory + @"residuals_" + dir + @".pdf";
+
+            if (File.Exists(pdfFilePath))
+            {
+                File.Delete(pdfFilePath);
+            }
+
+            Utilities.StartProcess.StartGnuplot(gnuplotArguments, true, false, gnuplotExecutablePath);
+        }
+
+        private static string PrepareGnuplotArguments(string fullFilePath, int dir, OFResult RES, bool visResiduals, string x0x1, string y0y1)
+        {
+            // Prepare the Gnuplot arguments based on the fields and other parameters
+            // This needs to be implemented based on how you're using Gnuplot
+
+            string fields = Utilities.FileReader(fullFilePath)[1];
+            string field1 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[1];
+            string field2 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[2];
+            string field3 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[3];
+            string field4 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[4];
+            string field5 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[5];
+            string field6 = System.Text.RegularExpressions.Regex.Split(fields, @"\s{2,}")[6];
+
+            string template = @"
+                set title 'wind direction: " + dir + @"'
+                set logscale y
+                set yrange[" + y0y1 + @"]
+                set xrange[" + x0x1 + @"]
+                set ylabel 'Residual'
+                set xlabel 'Iteration'
+                set format y ""10 ^{% T}""
+                set datafile separator '\t'
+                plot '" + fullFilePath + @"' u($1):2 with lines title '" + field1 + "','" + fullFilePath + @"' u($1):3 with lines title '" + field2 + "','" + fullFilePath + @"' u($1):4 with lines title '" + field3 + "','" + fullFilePath + @"' u($1):5 with lines title '" + field4 + "','" + fullFilePath + @"' u($1):6 with lines title '" + field5 + "','" + fullFilePath + @"' u($1):7 with lines title '" + field6 + @"'";
+
+            var argVis = template; // + "\npause 60; replot";
+
+            var argWrite = @"set terminal pdf
+                set output '" + RES.WorkingDirectory + @"residuals_" + dir + @".pdf'
+                " + template;
+
+            var arg = (visResiduals) ? argVis : argWrite;
+
+            return arg;
         }
 
         /// <summary>

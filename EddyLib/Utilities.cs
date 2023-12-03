@@ -50,39 +50,23 @@ namespace EddyLib
                 if (close) { p.Close(); }
             }
 
-            public static void StartProcessCMDNTGnuplot(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, string executable = @"C:\Windows\System32\cmd.exe")
+            public static void StartGnuplot(string argument, bool createnowindow, bool waitforexit = false, string executable = @"C:\Windows\System32\cmd.exe")
             {
                 System.Diagnostics.Process p = new System.Diagnostics.Process();
                 p.StartInfo.FileName = executable;
                 p.StartInfo.UseShellExecute = false;
                 p.StartInfo.RedirectStandardInput = true;
-
-                //p.StartInfo.RedirectStandardOutput = true;
                 p.StartInfo.CreateNoWindow = createnowindow;
+                p.Start();
+                StreamWriter sw = p.StandardInput;
+                string strInputText = argument;
+                sw.WriteLine(strInputText);
 
-                //p.Start();
-
-                ThreadStart ths = new ThreadStart(() =>
-                {
-                    p.Start();
-
-                    StreamWriter sw = p.StandardInput;
-                    String strInputText = argument;
-                    sw.WriteLine(strInputText);
-
-                    // Window doesn't close withwindin
-                    //sw.Flush();
-                });
-
-                Thread th = new Thread(ths);
-                th.Start();
-
+                sw.Flush();
                 if (waitforexit)
                 {
-                    //Console.ReadLine();
-                    p.WaitForExit();
+                    p.WaitForExit(); // Wait for the process to exit if required.
                 }
-                if (close) { p.Close(); }
             }
 
             public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false)
@@ -130,8 +114,6 @@ exit
                     if (close) { p.Close(); }
                     if (eh != null) { eh.Invoke(p, new EventArgs()); }
                 });
-
-
 
                 Thread th = new Thread(ths);
                 th.Start();
