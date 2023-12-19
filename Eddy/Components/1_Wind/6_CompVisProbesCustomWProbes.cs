@@ -172,28 +172,32 @@ namespace Eddy
             // ----------------------
             // New approach
             // ----------------------
+            List<WProbe> WProbes = new List<WProbe>();
 
-            float zref = 0;
-            if (RES.Domain.BCond is ABL)
+            if (RES.Domain.BCond.BCs.All(item => item is ABL))
             {
-                ABL casted_bc = (ABL)RES.Domain.BCond;
-                zref = (float)casted_bc.zref;
+                foreach (var p in probes)
+                {
+                    WProbes.Add(new WProbe(p.Point, RES.Domain.BCond.WindDirections.Count)
+                    {
+                        WindDirections = RES.Domain.BCond.WindDirections.ToArray(),
+                        Uref = RES.Domain.BCond.BCs.Select(val => (float)val.URef).ToArray(),
+                        Z0 = RES.Domain.BCond.BCs.Select(val => (float)val.z0).ToArray(),
+                        Zref = RES.Domain.BCond.BCs.Where(val => val is ABL).Select(val => (float)(val as ABL).zref).ToArray()
+                    });
+                }
             }
             else
             {
-                zref = 10;
-            }
-
-            List<WProbe> WProbes = new List<WProbe>();
-            foreach (var p in probes)
-            {
-                WProbes.Add(new WProbe(p.Point, RES.Domain.BCond.windDirs.Count)
+                foreach (var p in probes)
                 {
-                    WindDirections = RES.Domain.BCond.windDirs.ToArray(),
-                    Uref = (float)RES.Domain.BCond.URef,
-                    Z0 = (float)RES.Domain.BCond.z0,
-                    Zref = zref
-                });
+                    WProbes.Add(new WProbe(p.Point, RES.Domain.BCond.WindDirections.Count)
+                    {
+                        WindDirections = RES.Domain.BCond.WindDirections.ToArray(),
+                        Uref = RES.Domain.BCond.BCs.Select(val => (float)val.URef).ToArray(),
+                        Z0 = RES.Domain.BCond.BCs.Select(val => (float)val.z0).ToArray(),
+                    });
+                }
             }
 
             // ----------------------
@@ -236,15 +240,15 @@ namespace Eddy
             }
 
             // Check if U file is in last iteration
-            for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
+            for (int i = 0; i < RES.Domain.BCond.WindDirections.Count; i++)
             {
-                string path = RES.WorkingDirectory + @"\" + RES.Domain.BCond.windDirs[i];
+                string path = RES.WorkingDirectory + @"\" + RES.Domain.BCond.WindDirections[i];
                 string iter = Utilities.GetLastIterationFromDirectory(path).ToString();
-                string fp = RES.WorkingDirectory + @"\" + RES.Domain.BCond.windDirs[i] + @"\" + iter + @"\U";
+                string fp = RES.WorkingDirectory + @"\" + RES.Domain.BCond.WindDirections[i] + @"\" + iter + @"\U";
 
                 if (!File.Exists(fp))
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The last iteration """ + iter + @""" of the wind direction """ + RES.Domain.BCond.windDirs[i] + @""" misses the velocity (U) result file. Please make sure that U is calculated for this particular timestep (change WriteInterval) and recompute the solution.");
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The last iteration """ + iter + @""" of the wind direction """ + RES.Domain.BCond.WindDirections[i] + @""" misses the velocity (U) result file. Please make sure that U is calculated for this particular timestep (change WriteInterval) and recompute the solution.");
                 }
             }
 
@@ -287,12 +291,12 @@ namespace Eddy
                 {
                     StringBuilder command = new StringBuilder();
 
-                    for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
+                    for (int i = 0; i < RES.Domain.BCond.WindDirections.Count; i++)
                     {
                         // Check if mesh exists
 
-                        string pathToPointFile = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\constant\polyMesh\points";
-                        string currCase = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i];
+                        string pathToPointFile = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i] + @"\constant\polyMesh\points";
+                        string currCase = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i];
 
                         if (!File.Exists(pathToPointFile))
                         {
@@ -301,18 +305,18 @@ namespace Eddy
                         }
 
                         // If yes, write the dicts for both Docker and BlueCFD
-                        string path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + probeNameByUser;
+                        string path = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i] + @"\system\" + probeNameByUser;
                         File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbesAllFields(Probes, probeNameByUser, Probing.ReformatIS(InterpolationScheme)));
 
                         if (RES.RunSettings.simEngine == SimEngine.Docker)
                         {
-                            command.Append(@"postProcess -func " + probeNameByUser + @" -time " + ProbingNew.GetLatestTime(currCase, RES) + @"| tee  " + RES.Domain.BCond.windDirs[i] + @"/log_probes;");
+                            command.Append(@"postProcess -func " + probeNameByUser + @" -time " + ProbingNew.GetLatestTime(currCase, RES) + @"| tee  " + RES.Domain.BCond.WindDirections[i] + @"/log_probes;");
                         }
                         else
                         {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
                             // Todo: check here if we need a semicolon to sepaate the command
                             // from the suffix
-                            command.AppendLine(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + probeNameByUser + @" -time " + ProbingNew.GetLatestTime(currCase, RES));
+                            command.AppendLine(@"postProcess -case " + RES.Domain.BCond.WindDirections[i] + " -func " + probeNameByUser + @" -time " + ProbingNew.GetLatestTime(currCase, RES));
                         }
                     }
 
@@ -330,9 +334,9 @@ namespace Eddy
                         }
                     }
 
-                    for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
+                    for (int i = 0; i < RES.Domain.BCond.WindDirections.Count; i++)
                     {
-                        string currentCaseDir = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i];
+                        string currentCaseDir = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i];
 
                         foreach (field f in Enum.GetValues(typeof(field)))
                         {
@@ -346,7 +350,7 @@ namespace Eddy
                                 {
                                     if (currField.FieldType == fieldType.vector)
                                     {
-                                        ProbingNew Vectors = new ProbingNew(Probes, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES);
+                                        ProbingNew Vectors = new ProbingNew(Probes, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.WindDirections[i], RES);
 
                                         for (int p = 0; p < numberOfProbes; p++)
                                         {
@@ -356,7 +360,7 @@ namespace Eddy
                                     }
                                     else
                                     {
-                                        ProbingNew Scalars = new ProbingNew(Probes, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES);
+                                        ProbingNew Scalars = new ProbingNew(Probes, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.WindDirections[i], RES);
 
                                         for (int p = 0; p < numberOfProbes; p++)
                                         {

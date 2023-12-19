@@ -5,6 +5,7 @@ using Grasshopper.Kernel;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -43,7 +44,7 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddIntegerParameter("Wind Directions", "wDir", "Wind directions to be simulated", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Reference velocity [m/s]", "Uref", "Reference velocity [m/s]", GH_ParamAccess.item, 5);
+            pManager.AddNumberParameter("Reference velocity [m/s]", "Uref", "Reference velocity [m/s]", GH_ParamAccess.list);
 
             pManager.AddNumberParameter("Surface roughness height [m]", "z0", "Surface roughness height [m]", GH_ParamAccess.item, 1);
 
@@ -69,56 +70,74 @@ namespace Eddy
         /// </param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            //windDir.Add(0);
+            bool repeatedInputs = false;
+
             List<int> windDir = new List<int>();
-            List<Vector3d> flowDir = new List<Vector3d>();
-            double Uref = 0;
+            List<double> Uref = Enumerable.Repeat(5.0, windDir.Count).ToList();
+            List<double> z0 = Enumerable.Repeat(1.0, windDir.Count).ToList();
 
-            //double zref = 0;
-            double z0 = 0;
-
-            //double zGround = 0;
+            string epwFilePath = "";
 
             DA.GetDataList(0, windDir);
-            DA.GetData(1, ref Uref);
-
-            //DA.GetData(2, ref zref);
-            DA.GetData(2, ref z0);
-
-            //DA.GetData(4, ref zGround);
-            string epwFilePath = "";
+            DA.GetDataList(1, Uref);
+            DA.GetDataList(2, z0);
             DA.GetData(3, ref epwFilePath);
 
-            if (epwFilePath == "")
+            int numberOfWindDirections = windDir.Count();
+
+            if (numberOfWindDirections > 0)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Without a weather file (.epw) connected you will not be able to perform outdoor comfort calculations.");
+                if (Uref.Count == 1)
+                {
+                    Uref = Enumerable.Repeat(Uref[0], windDir.Count).ToList();
+                }
+
+                if (z0.Count == 1)
+                {
+                    z0 = Enumerable.Repeat(z0[0], windDir.Count).ToList();
+                }
             }
 
             // Translate dirs > 359 into correct format
             windDir = Utilities.NormalizeWindDirs(windDir);
 
-            BoundaryCondition BCInflow = new ConstU(windDir, Uref, z0, epwFilePath);
+            BCCollection BCC = new BCCollection(windDir, epwFilePath);
+
+            for (int w = 0; w < windDir.Count; w++)
+            {
+                BCC.BCs.Add(new ConstU(windDir[w], Uref[w], z0[w], epwFilePath));
+            }
+
+            if (repeatedInputs)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "We assumed missing input values for at least one input based on the number of wind directions provided.");
+            }
+
+            if (epwFilePath == "")
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Without a weather file (.epw) connected to your BC you will not be able to perform outdoor comfort calculations.");
+            }
 
             // Check if anything causes a 0 BC
 
-            if (BCInflow.epsilon == 0 || BCInflow.k == 0 || BCInflow.omega == 0)
+            if (BCC.BCs.Where(v => v.epsilon == 0).Any() || BCC.BCs.Where(v => v.k == 0).Any() || BCC.BCs.Where(v => v.omega == 0).Any())
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Something is causing a turbulence boundary condition to be 0, please change the setup of the simulation domain.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Something is causing a turbulence boundary condition to be 0, please change the setup of the simulation domain."); return;
             }
 
             if (epwFilePath != "" && windDir.Count > 0)
             {
-                if (BCInflow.WindDirOffSetAverage >= 13)
+                if (BCC.WindDirOffSetAverage >= 13)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The average angle offset between simulated wind directions and the weather file is " + Math.Round(BCInflow.WindDirOffSetAverage, 2) + "°. You might want to consider changing the input wind directions to better fit the weather file.");
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The average angle offset between simulated wind directions and the weather file is " + Math.Round(BCC.WindDirOffSetAverage, 2) + "°.\n You might want to consider changing the input wind directions to better fit the weather file.");
                 }
                 else
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The average angle offset between simulated wind directions and the weather file is " + Math.Round(BCInflow.WindDirOffSetAverage, 2) + "°.");
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The average angle offset between simulated wind directions and the weather file is " + Math.Round(BCC.WindDirOffSetAverage, 2) + "°.");
                 }
             }
 
-            DA.SetData(0, BCInflow);
+            DA.SetData(0, BCC);
         }
 
         /// <summary>

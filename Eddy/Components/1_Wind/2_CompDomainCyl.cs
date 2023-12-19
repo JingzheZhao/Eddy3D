@@ -6,6 +6,7 @@ using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using EddyLib.Indoor;
+using System.Linq;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -135,18 +136,13 @@ namespace Eddy
 
             #endregion Trees
 
-            BoundaryCondition bCond;
+            BCCollection bCond;
 
             GH_ObjectWrapper gobj = null;
             if (!DA.GetData("Boundary Condition", ref gobj)) { }
-
-            if ((gobj != null && gobj.Value is ABL))
+            if ((gobj != null && gobj.Value is BCCollection))
             {
-                bCond = (ABL)gobj.Value;
-            }
-            else if ((gobj != null && gobj.Value is ConstU))
-            {
-                bCond = (ConstU)gobj.Value;
+                bCond = (BCCollection)gobj.Value;
             }
             else
             {
@@ -233,15 +229,18 @@ namespace Eddy
 
             var minZDomain = buildingGeometry.GetBoundingBox(true).Min.Z;
 
-            if (minZDomain < 0 && bCond is ABL)
+            if (minZDomain < 0 && bCond.BCs.All(item => item is ABL))
 
             {
-                var bc = (ABL)bCond;
-                double zg = bc.zGround;
-
-                if (minZDomain < zg)
+                foreach (BC bcond in bCond.BCs)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "If your simulation domain extends below z = 0, you cannot use an ABL Boundary Condition. Please use the Constant U Boundary Condition or adjust zGround accordingly."); return;
+                    var bc = (ABL)bcond;
+                    double zg = bc.zGround;
+
+                    if (minZDomain < zg)
+                    {
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "If your simulation domain extends below z = 0, you cannot use an ABL Boundary Condition. Please use the Constant U Boundary Condition or adjust zGround accordingly."); return;
+                    }
                 }
             }
 
@@ -292,7 +291,7 @@ namespace Eddy
 
         private List<Circle> _outerCircles;
 
-        private void FillWindDirRenderList(BoundaryCondition bCond, OFCylDomain DOM)
+        private void FillWindDirRenderList(BCCollection bCond, OFCylDomain DOM)
         {
             //clear
             _pointWindDirRender = new List<Point3d>();
@@ -306,10 +305,13 @@ namespace Eddy
 
             //Fill render lists for arrow preview
 
-            foreach (Vector3d vec in bCond.flowDir)
+            foreach (var item in bCond.BCs.Select(obj => (obj.flowDir, obj.URef)))
             {
-                _vecsWindDirRender.Add(vec * bCond.URef);
-                _pointWindDirRender.Add(pt + (-vec * length) + 2 * (-vec * bCond.URef));
+                Vector3d vec = item.flowDir;
+                double uRef = item.URef;
+
+                _vecsWindDirRender.Add(vec * uRef);
+                _pointWindDirRender.Add(pt + (-vec * length) + 2 * (-vec * uRef));
             }
 
             foreach (var p in DOM.concentricDivisions)

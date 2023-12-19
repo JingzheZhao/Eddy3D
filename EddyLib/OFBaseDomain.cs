@@ -34,7 +34,7 @@ namespace EddyLib
 
         public Mesh BuildingGeometry;
 
-        public BoundaryCondition BCond;
+        public BCCollection BCond;
 
         public List<Tree> Trees;
 

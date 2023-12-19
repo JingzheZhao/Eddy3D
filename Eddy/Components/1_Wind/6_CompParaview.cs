@@ -110,7 +110,7 @@ namespace Eddy
 
             if (dirs.Count == 0)
             {
-                dirs.Add(RES.Domain.BCond.windDirs[0]);
+                dirs.Add(RES.Domain.BCond.WindDirections[0]);
             }
 
             int version = 0;

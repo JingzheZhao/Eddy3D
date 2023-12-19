@@ -37,9 +37,12 @@ namespace RhinoPlugin.Tests.Xunit
             }
 
             var windDirList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
-            BoundaryCondition bcond = new ABL(windDirList, 5, 10, 1, 0, "");
+            BC bcond = new ABL(0, 5, 10, 1, 0, "");
 
-            OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcond, 5, 50, 300, 80);
+            BCCollection bcColl = new BCCollection(windDirList, "");
+            bcColl.BCs.Add(bcond);
+
+            OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcColl, 5, 50, 300, 80);
 
             Assert.True(DOMCYL.DomainMesh.Faces.Count == 1040 && DOMCYL.DomainMesh.Vertices.Count == 1042);
         }
@@ -68,10 +71,13 @@ namespace RhinoPlugin.Tests.Xunit
                 mm.Append(im);
             }
 
-            var windDirList = new List<int>() { 330 };
-            BoundaryCondition bcond = new ABL(windDirList, 5, 10, 1, 0, "");
+            var windDirList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
+            BC bcond = new ABL(0, 5, 10, 1, 0, "");
 
-            OFBoxDomain DOM = new OFBoxDomain(mm, new Mesh(), bcond, 5, 50, 300, 80);
+            BCCollection bcColl = new BCCollection(windDirList, "");
+            bcColl.BCs.Add(bcond);
+
+            OFBoxDomain DOM = new OFBoxDomain(mm, new Mesh(), bcColl, 5, 50, 300, 80);
 
             var v = Math.Round(DOM.DomainMesh.Volume(), 1);
 

@@ -22,16 +22,15 @@ namespace Eddy.Components.Indoor
 {
     public class IndoorDomainV2_Component : GH_Component
     {
-        int iterations = 1;
-        double numFuncObj = 1;
-        string BaseWorkingDir = "";
-
+        private int iterations = 1;
+        private double numFuncObj = 1;
+        private string BaseWorkingDir = "";
 
         /// <summary>
         /// Initializes a new instance of the IndoorDomain class.
         /// </summary>
-        /// 
-        
+        ///
+
         public IndoorDomainV2_Component() : base("IndoorDomain", "IDom", "IndoorDomain" + EddyVersion.toString(), EddyVersion.Name, "9 | Indoor")
         {
         }
@@ -73,7 +72,6 @@ namespace Eddy.Components.Indoor
         {
             pManager.AddParameter(new Param_IndoorDomain(), "Domain", "Dom", "Indoor CFD Domain", GH_ParamAccess.list);
             pManager.AddGenericParameter("Result", "Res", "Indoor Eddy Result", GH_ParamAccess.item);
-
         }
 
         /// <summary>
@@ -118,7 +116,6 @@ namespace Eddy.Components.Indoor
             DA.GetData(4, ref dir);
             BaseWorkingDir = dir;
 
-
             Point3d pointInsideDomain = new Point3d();
             DA.GetData(5, ref pointInsideDomain);
             double cellSize = 1;
@@ -159,7 +156,6 @@ namespace Eddy.Components.Indoor
                 {
                     FOs.Add((CO2Emitter)gobj.Value);
                 }
-
                 else
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid function object"); return;
@@ -169,13 +165,11 @@ namespace Eddy.Components.Indoor
             var dom = new IndoorDomain(endTime, dir, cellSize, pointInsideDomain, Walls, Inlets, Outlets, FOs);
             var domGoo = new IndoorDomaingGoo(dom);
 
-
             bool RUN = false;
             DA.GetData(8, ref RUN);
 
-             #region START PROCESSES
-          
-           
+            #region START PROCESSES
+
             iterations = endTime;
 
             bool HidePopUp = true;
@@ -224,18 +218,15 @@ namespace Eddy.Components.Indoor
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Error, ex.Message); return;
                 }
             }
- 
-            #endregion START PROCESSES
 
+            #endregion START PROCESSES
 
             DA.SetData(0, domGoo);
 
             DA.SetData(1, IndoorResult(dom));
 
             canRun = true;
-
         }
-
 
         public FunctionObject CastToFO(GH_ObjectWrapper gobj)
         {
@@ -268,24 +259,20 @@ namespace Eddy.Components.Indoor
                 mm.Append(im);
             }
 
-
-
             var windDirList = new List<int>() { 0 };
-            BoundaryCondition bcond = new ABL(windDirList, 5, 10, 1, 0, "");
+            BC bcond = new ABL(0, 5, 10, 1, 0, "");
 
-            OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcond, 5, 50, 300, 80);
+            BCCollection bcColl = new BCCollection(windDirList, "");
+            bcColl.BCs.Add(bcond);
 
-
-
+            OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcColl, 5, 50, 300, 80);
 
             var DOM = (EddyLib.Indoor.IndoorDomain)Dom;
 
             var RUNSETTINGS = new OFRunSettings(1000, 20, 5, fvSchemes.Optimized, 1, SimEngine.BlueCFD, OSType.Windows10, TurbModel.RNGkEpsilon, RelaxationFactors.Optimized, false, false);
             var MESHSETTINGS = new OFMeshSettings();
 
-
             var baseWorkingDirectory = DOM.WorkingDir;
-
 
             MESHSETTINGS.meshStlDir = baseWorkingDirectory + @"\\constant\triSurface\";
             MESHSETTINGS.meshPolyMeshDir = baseWorkingDirectory + @"\\constant\polyMesh\";
@@ -293,18 +280,14 @@ namespace Eddy.Components.Indoor
             MESHSETTINGS.meshConstantDir = baseWorkingDirectory + @"\\constant\";
             MESHSETTINGS.meshWorkingDir = baseWorkingDirectory + @"\\";
 
-
             // MESHSETTINGS.meshStlFilenameBuildings = baseWorkingDirectory + @"\\constant\triSurface\building.stl";
             //MESHSETTINGS.meshStlFilenameGround = baseWorkingDirectory + @"\\constant\triSurface\ground.stl";
             // MESHSETTINGS.meshStlFilenameGroundPerim = baseWorkingDirectory + @"\\constant\triSurface\ground_perim.stl";
             // MESHSETTINGS.meshBoundaryConditionsDirectory = baseWorkingDirectory + @"\\0.org\";
 
-
             var RES = new EddyLib.OFResult(DOMCYL, RUNSETTINGS, MESHSETTINGS, DOM.WorkingDir.Replace("0\\", ""));
 
             return RES;
-
-
         }
 
         /// <summary>
@@ -330,14 +313,12 @@ namespace Eddy.Components.Indoor
         }
 
         private bool canRun = true;
+
         public void taskComplete(object sender, System.EventArgs e)
         {
             canRun = false;
             this.ExpireSolution(true);
         }
-
-
-
 
         private void DoWork(CancellationTokenSource cts)
         {
@@ -358,15 +339,12 @@ namespace Eddy.Components.Indoor
             // run the simulation
             // -----------------------------
 
-            int steps = (int) (1962 + 37 + (9 * numFuncObj) + 1731 + (26 * iterations));
+            int steps = (int)(1962 + 37 + (9 * numFuncObj) + 1731 + (26 * iterations));
             int stepCnt = 0;
-
 
             string allBat = this.BaseWorkingDir + @"\run_all.bat";
 
-
             Console.WriteLine("Run Eddy Simulation...");
-
 
             var runIndoorEddy = Command.Run("cmd.exe", new[] { "" },
   options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(cts.Token));
@@ -389,8 +367,5 @@ namespace Eddy.Components.Indoor
 
             return true;
         }
-
-
-
     }
 }

@@ -5,115 +5,100 @@ using System.Linq;
 
 namespace EddyLib.BCs
 {
-    public class ABL : BoundaryCondition
+    public class ABL : BC
     {
-        protected double Ustar;
-
+        public double Ustar;
         public double zref;
-
         public double zGround;
 
-        public ABL(List<int> dirs = null, double _uref = 5, double _zref = 10.0, double _z0 = 1, double _zground = 0, string epwFilePath = "")
+        public ABL(int windDir = 0, double _uref = 5.0, double _zref = 10, double _z0 = 1, double _zground = 0, string epwFilePath = "")
         {
             this.epwFilePath = epwFilePath;
 
+            zGround = _zground;
             URef = _uref;
             zref = _zref;
             z0 = _z0;
-            zGround = _zground;
+            Ustar = Kappa * URef / Math.Log((zref + z0) / z0);
 
-            if (dirs == null)
-            {
-                dirs = new List<int> { 0 };
-            }
-
-            CalcUstar();
             CalcUPedestrianHeight();
 
             k = K(Tu, URef);
             epsilon = Epsilon(k, eddyViscosityRatio, nu);
             omega = Omega(epsilon, k);
 
-            foreach (int d in dirs)
-            {
-                windDirs.Add(d);
-                flowDir.Add(Utilities.Dir2Vec(d));
-            }
-
-            if (epwFilePath.EndsWith("epw"))
-            {
-                Weather weather = new Weather(epwFilePath);
-
-                // Wind Factors
-
-                var (SimDirIndices, ClstSimDirs, OffSet, OffSetAverage) = EddyLib.OutdoorComfort.WindSystem.GetClosestWindDirs(weather, dirs.ToArray());
-                this.WindDirOffset = OffSet.ToArray();
-                this.WindDirOffSetAverage = OffSetAverage;
-                this.ClstSimDirs = ClstSimDirs.ToArray();
-                this.ClstSimDirIndices = SimDirIndices.ToArray();
-            }
-        }
-
-        protected void CalcUstar()
-        {
-            this.Ustar = Kappa * URef / Math.Log((zref + z0) / z0);
-        }
-
-        protected void CalcUPedestrianHeight()
-        {
-            { this.UPedestrianHeight = ((this.Ustar / Kappa) * Math.Log((pedestrianHeight + z0) / z0)); }
+            flowDir = Utilities.Dir2Vec(windDir);
         }
     }
 
-    public class ConstU : BoundaryCondition
+    public class ConstU : BC
     {
         // This is the overload for the constantU BCond where zGround is missing
 
-        public ConstU(List<int> dirs, double _uref, double _z0, string epwFilePath)
+        public ConstU(int windDir, double _uref, double _z0, string epwFilePath)
         {
             this.epwFilePath = epwFilePath;
 
             URef = _uref;
             z0 = _z0;
 
-            if (dirs == null)
-            {
-                dirs = new List<int> { 0 };
-            }
-
             CalcUPedestrianHeight();
 
             k = K(Tu, URef);
             epsilon = Epsilon(k, eddyViscosityRatio, nu);
             omega = Omega(epsilon, k);
 
-            foreach (int d in dirs)
-            {
-                windDirs.Add(d);
-                flowDir.Add(Utilities.Dir2Vec(d));
-            }
+            flowDir = Utilities.Dir2Vec(windDir);
+        }
+    }
 
+    public class BCCollection
+    {
+        public List<BC> BCs = new List<BC>();
+
+        public string epwFilePath;
+        public List<int> WindDirections;
+
+        // Wind Factors
+
+        public int[] ClstSimDirs = new int[8760];
+
+        public int[] ClstSimDirIndices = new int[8760];
+
+        public int[] WindDirOffset = new int[8760];
+
+        public double WindDirOffSetAverage = 0;
+
+        public BCCollection(List<int> windDirections, string epwFilePath)
+        {
+            this.WindDirections = windDirections;
+
+            if (epwFilePath != null)
+            {
+                this.epwFilePath = epwFilePath.Trim();
+                CalcWindStatistic();
+            }
+        }
+
+        protected void CalcWindStatistic()
+
+        {
             if (epwFilePath.EndsWith("epw"))
             {
-                Weather weather = new Weather(epwFilePath);
+                Weather weather = new Weather(this.epwFilePath);
 
                 // Wind Factors
 
-                var (SimDirIndices, ClstSimDirs, OffSet, OffSetAverage) = EddyLib.OutdoorComfort.WindSystem.GetClosestWindDirs(weather, dirs.ToArray());
+                var (SimDirIndices, ClstSimDirs, OffSet, OffSetAverage) = EddyLib.OutdoorComfort.WindSystem.GetClosestWindDirs(weather, this.WindDirections.ToArray());
                 this.WindDirOffset = OffSet.ToArray();
                 this.WindDirOffSetAverage = OffSetAverage;
                 this.ClstSimDirs = ClstSimDirs.ToArray();
                 this.ClstSimDirIndices = SimDirIndices.ToArray();
             }
         }
-
-        protected void CalcUPedestrianHeight()
-        {
-            { this.UPedestrianHeight = this.URef; }
-        }
     }
 
-    public class BoundaryCondition
+    public class BC
     {
         public double URef;
 
@@ -123,15 +108,13 @@ namespace EddyLib.BCs
 
         public double z0;
 
-        public List<int> windDirs = new List<int>();
+        public int windDir;
 
-        public List<Vector3d> flowDir = new List<Vector3d>();
+        public Vector3d flowDir;
 
         protected double Cmu = 0.09;
 
         public double Kappa = 0.41;
-
-        //public static double Kappa { get; set; }
 
         //CFD Online
 
@@ -150,16 +133,6 @@ namespace EddyLib.BCs
 
         public string epwFilePath;
 
-        // Wind Factors
-
-        public int[] ClstSimDirs = new int[8760];
-
-        public int[] ClstSimDirIndices = new int[8760];
-
-        public int[] WindDirOffset = new int[8760];
-
-        public double WindDirOffSetAverage = 0;
-
         public static double ScaleABL(double URefEPW, double zref, double z0, double probingHeight)
         {
             double zGround = 0;
@@ -174,18 +147,7 @@ namespace EddyLib.BCs
         {
             // view-source:https://www.cfd-online.com/Tools/turbulence.php
 
-            //if (btype == BoundaryType.abl)
-            //{
-            //epsilon = this.Cmu * Math.Pow(k, 2) / (nu * eddy_viscosity_ratio);
             epsilon = this.Cmu * Math.Pow(k, 2) / (this.nu * this.eddyViscosityRatio);
-
-            //}
-            //else
-            //{
-            //    // from openfoam testcase
-            //    int L = 10;
-            //    epsilon = Math.Pow(this.Cmu, 0.75) * Math.Pow(k, 1.5) / L;
-            //}
 
             return epsilon;
         }
@@ -200,6 +162,20 @@ namespace EddyLib.BCs
         {
             double k = 1.5 * Math.Pow(Tu / 100, 2) * Math.Pow(URef, 2);
             return k;
+        }
+
+        protected void CalcUPedestrianHeight()
+        {
+            if (this is ABL)
+            {
+                var BCNew = (ABL)this;
+
+                { this.UPedestrianHeight = BCNew.Ustar / Kappa * Math.Log((pedestrianHeight + z0) / z0); }
+            }
+            else
+            {
+                { this.UPedestrianHeight = this.URef; }
+            }
         }
     }
 }

@@ -204,15 +204,15 @@ namespace Eddy
             }
 
             // Check if U file is in last iteration
-            for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
+            for (int i = 0; i < RES.Domain.BCond.WindDirections.Count; i++)
             {
-                string path = RES.WorkingDirectory + @"\" + RES.Domain.BCond.windDirs[i];
+                string path = RES.WorkingDirectory + @"\" + RES.Domain.BCond.WindDirections[i];
                 string iter = Utilities.GetLastIterationFromDirectory(path).ToString();
-                string fp = RES.WorkingDirectory + @"\" + RES.Domain.BCond.windDirs[i] + @"\" + iter + @"\U";
+                string fp = RES.WorkingDirectory + @"\" + RES.Domain.BCond.WindDirections[i] + @"\" + iter + @"\U";
 
                 if (!File.Exists(fp))
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The last iteration """ + iter + @""" of the wind direction """ + RES.Domain.BCond.windDirs[i] + @""" misses the velocity (U) result file. Please make sure that U is calculated for this particular timestep (change WriteInterval) and recompute the solution.");
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The last iteration """ + iter + @""" of the wind direction """ + RES.Domain.BCond.WindDirections[i] + @""" misses the velocity (U) result file. Please make sure that U is calculated for this particular timestep (change WriteInterval) and recompute the solution.");
                 }
             }
 
@@ -235,7 +235,7 @@ namespace Eddy
             }
             else if (RES.Domain is OFBoxDomain)
             {
-                meshDir = RES.WorkingDirectory + RES.Domain.BCond.windDirs[0] + @"\constant\polyMesh";
+                meshDir = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[0] + @"\constant\polyMesh";
             }
 
             if (Directory.Exists(meshDir) == false)
@@ -279,12 +279,12 @@ namespace Eddy
                 {
                     StringBuilder command = new StringBuilder();
 
-                    for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
+                    for (int i = 0; i < RES.Domain.BCond.WindDirections.Count; i++)
                     {
                         // Check if mesh exists
 
-                        string pathToPointFile = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\constant\polyMesh\points";
-                        string currCase = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i];
+                        string pathToPointFile = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i] + @"\constant\polyMesh\points";
+                        string currCase = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i];
 
                         if (!File.Exists(pathToPointFile))
                         {
@@ -293,18 +293,18 @@ namespace Eddy
                         }
 
                         // If yes, write the dicts for both Docker and BlueCFD
-                        string path = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i] + @"\system\" + probeNameByUser;
+                        string path = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i] + @"\system\" + probeNameByUser;
                         File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbes(listOfPoints, currField));
 
                         if (RES.RunSettings.simEngine == SimEngine.Docker)
                         {
-                            command.Append(@"postProcess -func " + currField.ProbeName + @" -time " + Probing.GetLatestTime(currCase, RES, currField) + @"| tee  " + RES.Domain.BCond.windDirs[i] + @"/log_probes;");
+                            command.Append(@"postProcess -func " + currField.ProbeName + @" -time " + Probing.GetLatestTime(currCase, RES, currField) + @"| tee  " + RES.Domain.BCond.WindDirections[i] + @"/log_probes;");
                         }
                         else
                         {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
                             // Todo: check here if we need a semicolon to sepaate the command
                             // from the suffix
-                            command.AppendLine(@"postProcess -case " + RES.Domain.BCond.windDirs[i] + " -func " + probeNameByUser + @" -time " + Probing.GetLatestTime(currCase, RES, currField));
+                            command.AppendLine(@"postProcess -case " + RES.Domain.BCond.WindDirections[i] + " -func " + probeNameByUser + @" -time " + Probing.GetLatestTime(currCase, RES, currField));
                         }
                     }
 
@@ -322,9 +322,9 @@ namespace Eddy
                         }
                     }
 
-                    for (int i = 0; i < RES.Domain.BCond.windDirs.Count; i++)
+                    for (int i = 0; i < RES.Domain.BCond.WindDirections.Count; i++)
                     {
-                        string currentCaseDir = RES.WorkingDirectory + RES.Domain.BCond.windDirs[i];
+                        string currentCaseDir = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i];
 
                         // We must check if this exists before we construct the Probing object
                         string pathToProbeFile = Probing.GetPathToProbedResults(currentCaseDir, currField, RES);
@@ -332,14 +332,14 @@ namespace Eddy
                         {
                             if (currField.FieldType == fieldType.vector)
                             {
-                                Probing Vectors = new Probing(listOfPoints, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES, run);
+                                Probing Vectors = new Probing(listOfPoints, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.WindDirections[i], RES, run);
 
                                 // Create datatree
                                 treeVector.AppendRange(Vectors.ResultVec, new Grasshopper.Kernel.Data.GH_Path(i));
                             }
                             else
                             {
-                                Probing Scalars = new Probing(listOfPoints, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.windDirs[i], RES, run);
+                                Probing Scalars = new Probing(listOfPoints, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.WindDirections[i], RES, run);
 
                                 // Create datatree
                                 treeDouble.AppendRange(Scalars.ResultScalar, new Grasshopper.Kernel.Data.GH_Path(i));

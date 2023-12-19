@@ -139,7 +139,7 @@ namespace Eddy
             DA.GetData("Run", ref run);
             if (run != true) { return; }
 
-            List<int> windDirections = RES.Domain.BCond.windDirs;
+            List<int> windDirections = RES.Domain.BCond.WindDirections;
 
             foreach (int dir in windDirections)
             {

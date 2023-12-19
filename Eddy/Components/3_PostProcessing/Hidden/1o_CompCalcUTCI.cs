@@ -101,7 +101,7 @@ namespace Eddy
 
             Console.WriteLine("Loading: Wind data");
 
-            var windDirList = RES.Domain.BCond.windDirs;
+            var windDirList = RES.Domain.BCond.WindDirections;
 
             var probes = new List<Point3d>();
             DA.GetDataList("Probing points", probes);

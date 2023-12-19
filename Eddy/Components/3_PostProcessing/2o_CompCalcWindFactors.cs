@@ -145,7 +145,7 @@ This yields a datatree of the size [8760 h x number of sensor points].", GH_Para
 
             #region Annual Velocities
 
-            MultiDirectionalVelocities mdv = new MultiDirectionalVelocities(RES.WorkingDirectory, RES.Domain.BCond.windDirs.ToArray(), ArrayHelper.To2DArrayVec3d(U), true, run);
+            MultiDirectionalVelocities mdv = new MultiDirectionalVelocities(RES.WorkingDirectory, RES.Domain.BCond.WindDirections.ToArray(), ArrayHelper.To2DArrayVec3d(U), true, run);
 
             if (GH_Document.IsEscapeKeyDown())
             {

@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using EddyLib.Indoor;
+using EddyLib.BCs;
 
 namespace EddyLib
 {
@@ -58,7 +59,7 @@ namespace EddyLib
 
         public Point3d[] pointsOnRect;
 
-        public OFCylDomain(Mesh BuildingGeometry, Mesh terrainMesh, BCs.BoundaryCondition BCond, double coreBlockSize, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0, List<Tree> Trees = null)
+        public OFCylDomain(Mesh BuildingGeometry, Mesh terrainMesh, BCCollection BCond, double coreBlockSize, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0, List<Tree> Trees = null)
         {
             gradingPerim = 1.0;
             cellSizeInner = coreBlockSize;

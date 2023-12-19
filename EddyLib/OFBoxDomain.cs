@@ -49,15 +49,15 @@ namespace EddyLib
 
         public double test;
 
-        public OFBoxDomain(Mesh BuildingGeometry, Mesh terrainMesh, BoundaryCondition BCond, double blockDimension, double length = 0, double width = 0, double height = 0, List<Tree> Trees = null)
+        public OFBoxDomain(Mesh BuildingGeometry, Mesh terrainMesh, BCCollection BCCollection, double blockDimension, double length = 0, double width = 0, double height = 0, List<Tree> Trees = null)
         {
-            this.BCond = BCond;
+            this.BCond = BCCollection;
             this.BuildingGeometry = BuildingGeometry;
             this.blockDimension = blockDimension;
 
             // Box-shaped tunnel can only have 1 windDir which is the 1st windDir
 
-            Vector3d windDirVector = BCond.flowDir[0];
+            Vector3d windDirVector = BCCollection.BCs[0].flowDir;
             windDirVector.Unitize();
 
             // Rotate the Plane based on wind vector area
@@ -89,8 +89,8 @@ namespace EddyLib
             Height_BBox = corners[0].DistanceTo(corners[4]);
 
             Bitmap FrontageImage;
-            this.MaxFrontageBuildingArea = OFBaseDomain.GetProjectedBuildingArea(BCond.windDirs[0], BuildingGeometry, out FrontageImage);
-            this.FrontagePNGs[BCond.windDirs[0]] = FrontageImage;
+            this.MaxFrontageBuildingArea = OFBaseDomain.GetProjectedBuildingArea(BCCollection.BCs[0].windDir, BuildingGeometry, out FrontageImage);
+            this.FrontagePNGs[BCCollection.BCs[0].windDir] = FrontageImage;
 
             // Order important Z --> Y --> X
 
@@ -278,10 +278,10 @@ namespace EddyLib
             IEnumerable<Mesh> second = new List<Mesh>() { TerrainMesh };
             this.DomainMeshIntersection = Mesh.CreateBooleanIntersection(first, second);
 
-            base.BCond = BCond;
+            base.BCond = BCCollection;
 
-            PressureCoeff BCondCP = new PressureCoeff(MaxHeightBuilding, BCond);
-            BCondCP.SetUatBuildingHeight(MaxHeightBuilding, BCond);
+            PressureCoeff BCondCP = new PressureCoeff(MaxHeightBuilding, BCCollection);
+            BCondCP.SetUatBuildingHeight(MaxHeightBuilding, BCCollection);
 
             #region Trees
 
@@ -305,7 +305,7 @@ namespace EddyLib
         private double RequiredInletArea(double FrontageFacadeArea)
         {
             // Required area for 3 % blocking ratio
-           var  blockingRatio = 2; // twice the size for now
+            var blockingRatio = 2; // twice the size for now
             return 100 / blockingRatio * (FrontageFacadeArea);
         }
 

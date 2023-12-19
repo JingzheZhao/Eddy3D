@@ -8,61 +8,65 @@ namespace EddyLib
 {
     public class PressureCoeff : FunctionObject
     {
-        public double UatBuildingHeight;
-
-        public double pinf;
-
-        public double pref;
-
+        public List<double> UatBuildingHeight;
+        public List<double> pinf;
+        public List<double> pref;
         public List<Vector3d> Uinf = new List<Vector3d>();
 
-        public PressureCoeff(double buildingHeight, BoundaryCondition bc)
+        private int NumberOfWindDirections { get; set; }
+
+        public PressureCoeff(double buildingHeight, BCCollection bc)
         {
+            this.NumberOfWindDirections = bc.BCs.Count;
             CalculateCPPressures(buildingHeight, bc);
         }
 
-        public void SetUatBuildingHeight(double maxBuildingHeight, BoundaryCondition bc)
+        public void SetUatBuildingHeight(double maxBuildingHeight, BCCollection BCC)
         {
-            if (bc is ABL)
+            for (int i = 0; i < NumberOfWindDirections; i++)
             {
-                ABL casted_bc = (ABL)bc;
-                UatBuildingHeight = BoundaryCondition.ScaleABL(casted_bc.URef, casted_bc.zref, casted_bc.z0, maxBuildingHeight);
-            }
-            else
-            {
-                ConstU casted_bc = (ConstU)bc;
-                UatBuildingHeight = casted_bc.URef;
+                var currBC = BCC.BCs[i];
+
+                if (currBC is ABL)
+                {
+                    ABL casted_bc = (ABL)currBC;
+                    UatBuildingHeight[i] = BC.ScaleABL(casted_bc.URef, casted_bc.zref, casted_bc.z0, maxBuildingHeight);
+                }
+                else
+                {
+                    ConstU casted_bc = (ConstU)currBC;
+                    UatBuildingHeight[i] = casted_bc.URef;
+                }
             }
         }
 
-        public void CalculateCPPressures(double buildingHeight, BoundaryCondition bc)
+        public void CalculateCPPressures(double buildingHeight, BCCollection BCC)
         {
             //height < 0 gives Nan
             if (buildingHeight < 0) { buildingHeight = 0; };
 
-            if (bc is ABL)
+            for (int i = 0; i < NumberOfWindDirections; i++)
             {
-                ABL casted_bc = (ABL)bc;
+                var currBC = BCC.BCs[i];
 
-                foreach (Vector3d d in casted_bc.flowDir)
+                if (currBC is ABL)
                 {
-                    this.Uinf.Add(d * (casted_bc.Kappa * casted_bc.URef / Math.Log((casted_bc.zref + casted_bc.z0) / casted_bc.z0) / casted_bc.Kappa * Math.Log((buildingHeight + casted_bc.z0) / casted_bc.z0)));
+                    ABL casted_bc = (ABL)currBC;
+
+                    Uinf[i] = (casted_bc.flowDir * (casted_bc.Kappa * casted_bc.URef / Math.Log((casted_bc.zref + casted_bc.z0) / casted_bc.z0) / casted_bc.Kappa * Math.Log((buildingHeight + casted_bc.z0) / casted_bc.z0)));
+
+                    pinf[i] = 1.2 * 0.5 * Math.Pow(casted_bc.Kappa * casted_bc.URef / Math.Log((casted_bc.zref + casted_bc.z0) / casted_bc.z0) / casted_bc.Kappa * Math.Log((buildingHeight + casted_bc.z0) / casted_bc.z0), 2);
+                    pref[i] = 1.2 * 0.5 * Math.Pow(casted_bc.Kappa * casted_bc.URef / Math.Log((casted_bc.zref + casted_bc.z0) / casted_bc.z0) / casted_bc.Kappa * Math.Log((buildingHeight + casted_bc.z0) / casted_bc.z0), 2);
                 }
-
-                this.pinf = 1.2 * 0.5 * Math.Pow(casted_bc.Kappa * casted_bc.URef / Math.Log((casted_bc.zref + casted_bc.z0) / casted_bc.z0) / casted_bc.Kappa * Math.Log((buildingHeight + casted_bc.z0) / casted_bc.z0), 2);
-                this.pref = 1.2 * 0.5 * Math.Pow(casted_bc.Kappa * casted_bc.URef / Math.Log((casted_bc.zref + casted_bc.z0) / casted_bc.z0) / casted_bc.Kappa * Math.Log((buildingHeight + casted_bc.z0) / casted_bc.z0), 2);
-            }
-            else
-            {
-                ConstU casted_bc = (ConstU)bc;
-
-                foreach (Vector3d d in casted_bc.flowDir)
+                else
                 {
-                    this.Uinf.Add(d * casted_bc.URef);
-                }
+                    ConstU casted_bc = (ConstU)currBC;
 
-                this.pinf = 1.2 * 0.5 * Math.Pow(casted_bc.URef, 2);
-                this.pref = 1.2 * 0.5 * Math.Pow(casted_bc.URef, 2);
+                    Uinf[i] = (casted_bc.flowDir * casted_bc.URef);
+
+                    pinf[i] = 1.2 * 0.5 * Math.Pow(casted_bc.URef, 2);
+                    pref[i] = 1.2 * 0.5 * Math.Pow(casted_bc.URef, 2);
+                }
             }
         }
     }

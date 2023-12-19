@@ -210,7 +210,7 @@ namespace EddyLib.Strings
             StringBuilder sb = new StringBuilder();
             if (mode == OFExecutionMode.Simulation && RunSettings.ostype == OSType.Windows7)
             {
-                sb.Append(@"docker run -v """ + MeshSettings.DockerbaseWorkingDir + DOM.BCond.windDirs[0] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+                sb.Append(@"docker run -v """ + MeshSettings.DockerbaseWorkingDir + DOM.BCond.WindDirections[0] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
             }
             else if (mode == OFExecutionMode.Meshing && RunSettings.ostype == OSType.Windows7)
             {
@@ -218,7 +218,7 @@ namespace EddyLib.Strings
             }
             else if (mode == OFExecutionMode.Simulation)
             {
-                sb.Append(@"docker run -v """ + MeshSettings.baseWorkingDir + DOM.BCond.windDirs[0] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+                sb.Append(@"docker run -v """ + MeshSettings.baseWorkingDir + DOM.BCond.WindDirections[0] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
             }
             else if (mode == OFExecutionMode.Meshing)
             {
@@ -234,7 +234,7 @@ namespace EddyLib.Strings
 
             if (mode == OFExecutionMode.Simulation && RunSettings.ostype == OSType.Windows7)
             {
-                sb.Append(@"docker run -v """ + MeshSettings.DockerbaseWorkingDir + +DOM.BCond.windDirs[d] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+                sb.Append(@"docker run -v """ + MeshSettings.DockerbaseWorkingDir + +DOM.BCond.WindDirections[d] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
             }
             else if (mode == OFExecutionMode.Meshing && RunSettings.ostype == OSType.Windows7)
             {
@@ -242,7 +242,7 @@ namespace EddyLib.Strings
             }
             else if (mode == OFExecutionMode.Simulation)
             {
-                sb.Append(@"docker run -v """ + MeshSettings.baseWorkingDir + +DOM.BCond.windDirs[d] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+                sb.Append(@"docker run -v """ + MeshSettings.baseWorkingDir + +DOM.BCond.WindDirections[d] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
             }
             else if (mode == OFExecutionMode.Meshing)
             {
@@ -352,7 +352,7 @@ namespace EddyLib.Strings
         {
             StringBuilder sb = new StringBuilder();
 
-            string caseWorkingDir = MeshSettings.baseWorkingDir + "\\" + DOM.BCond.windDirs[d];
+            string caseWorkingDir = MeshSettings.baseWorkingDir + "\\" + DOM.BCond.WindDirections[d];
 
             if (RunSettings.simEngine == SimEngine.Docker)//Docker
             {
@@ -402,7 +402,7 @@ namespace EddyLib.Strings
         {
             StringBuilder sb = new StringBuilder();
 
-            string caseWorkingDir = MeshSettings.baseWorkingDir + "\\" + DOM.BCond.windDirs[d];
+            string caseWorkingDir = MeshSettings.baseWorkingDir + "\\" + DOM.BCond.WindDirections[d];
 
             if (RunSettings.simEngine == SimEngine.Docker)//Docker
             {
@@ -452,7 +452,7 @@ namespace EddyLib.Strings
         {
             StringBuilder sb = new StringBuilder();
 
-            string caseWorkingDir = MeshSettings.baseWorkingDir + "\\" + DOM.BCond.windDirs[d];
+            string caseWorkingDir = MeshSettings.baseWorkingDir + "\\" + DOM.BCond.WindDirections[d];
 
             if (RunSettings.simEngine == SimEngine.Docker)//Docker
             {
@@ -620,7 +620,7 @@ namespace EddyLib.Strings
         {
             StringBuilder sb = new StringBuilder();
 
-            string caseWorkingDir = MeshSettings.baseWorkingDir + "\\" + DOM.BCond.windDirs[d];
+            string caseWorkingDir = MeshSettings.baseWorkingDir + "\\" + DOM.BCond.WindDirections[d];
 
             if (RunSettings.simEngine == SimEngine.Docker)//Docker
             {
@@ -674,7 +674,7 @@ namespace EddyLib.Strings
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(@"call """ + MeshSettings.baseWorkingDir + @"run_mesh.bat""");
-            foreach (int i in DOM.BCond.windDirs)
+            foreach (int i in DOM.BCond.WindDirections)
             {
                 sb.AppendLine(@"call """ + MeshSettings.baseWorkingDir + i + @"_run_sim.bat""");
             }
@@ -691,7 +691,7 @@ namespace EddyLib.Strings
         public static string RunSimOnly(OFBaseDomain DOM, OFMeshSettings MeshSettings)
         {
             StringBuilder sb = new StringBuilder();
-            foreach (int i in DOM.BCond.windDirs)
+            foreach (int i in DOM.BCond.WindDirections)
             {
                 //sb.AppendLine("start " + MeshSettings.baseWorkingDirectory +i + "_run_sim.bat");
                 sb.AppendLine("call \"" + MeshSettings.baseWorkingDir + i + "_run_sim.bat\"");
