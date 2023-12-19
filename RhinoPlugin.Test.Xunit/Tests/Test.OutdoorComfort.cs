@@ -23,6 +23,7 @@ using System.Linq;
 
 using System.Threading.Tasks;
 using static RhinoPlugin.Tests.Xunit.WeatherDownload;
+using Eto.Drawing;
 
 namespace RhinoPlugin.Tests.Xunit
 {
@@ -637,6 +638,29 @@ namespace RhinoPlugin.Tests.Xunit
             // Here, we would expect 44 % of 2.29 m/s which is the ABl velocity at 5 m height.
 
             Assert.Equal(1.01, Math.Round(wft.ValuesTemporalAtProbingHeight[0, 0], 2));
+        }
+
+        private readonly string RadiancePath = @"C:\Program Files\Radiance\bin"; // Replace with your folder path
+
+        private readonly string[] RadianceExecutables = new string[]
+        {
+            "rfluxmtx.exe",
+            "epw2wea.exe",
+            "gendaymtx.exe",
+            "dctimestep.exe",
+            "oconv.exe",
+            "rcontrib.exe",
+            "rmtxop.exe"
+        };
+
+        [Fact]
+        public void IsRadianceInstalled()
+        {
+            foreach (var exe in RadianceExecutables)
+            {
+                string filePath = Path.Combine(RadiancePath, exe);
+                Assert.True(File.Exists(filePath), $"Executable not found: {filePath}");
+            }
         }
 
         [Fact]
