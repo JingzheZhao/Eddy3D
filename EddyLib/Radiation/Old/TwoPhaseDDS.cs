@@ -198,7 +198,7 @@ namespace EddyLib.Radiation
             // this.dcill[h, p] = Ldcill[h][p];
             // this.dcdill[h, p] = Ldcdill[h][p];
             // this.dirill[h, p] = Ldirill[h][p];
-            //  this.totalIll[h, p] = LtotalIll[h][p];
+            // this.totalIll[h, p] = LtotalIll[h][p];
             }
             });
 
