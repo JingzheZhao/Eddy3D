@@ -70,8 +70,7 @@ namespace RhinoPlugin.Tests.Xunit
                 mm.Append(im);
             }
 
-            var windDirList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
-            BC bcond = new ABL(0, 5, 10, 1, 0, "");
+            BC bcond = new ABL(330, 5, 10, 1, 0, "");
 
             BCCollection bcColl = new BCCollection(bcond);
 
