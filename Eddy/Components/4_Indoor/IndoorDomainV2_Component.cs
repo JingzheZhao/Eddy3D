@@ -259,10 +259,10 @@ namespace Eddy.Components.Indoor
                 mm.Append(im);
             }
 
-            var windDirList = new List<int>() { 0 };
+            //var windDirList = new List<int>() { 0 };
             BC bcond = new ABL(0, 5, 10, 1, 0, "");
 
-            BCCollection bcColl = new BCCollection(windDirList, "");
+            BCCollection bcColl = new BCCollection();
             bcColl.BCs.Add(bcond);
 
             OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcColl, 5, 50, 300, 80);
@@ -281,7 +281,7 @@ namespace Eddy.Components.Indoor
             MESHSETTINGS.meshWorkingDir = baseWorkingDirectory + @"\\";
 
             // MESHSETTINGS.meshStlFilenameBuildings = baseWorkingDirectory + @"\\constant\triSurface\building.stl";
-            //MESHSETTINGS.meshStlFilenameGround = baseWorkingDirectory + @"\\constant\triSurface\ground.stl";
+            // MESHSETTINGS.meshStlFilenameGround = baseWorkingDirectory + @"\\constant\triSurface\ground.stl";
             // MESHSETTINGS.meshStlFilenameGroundPerim = baseWorkingDirectory + @"\\constant\triSurface\ground_perim.stl";
             // MESHSETTINGS.meshBoundaryConditionsDirectory = baseWorkingDirectory + @"\\0.org\";
 

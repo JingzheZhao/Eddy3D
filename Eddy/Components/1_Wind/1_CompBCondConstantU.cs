@@ -72,40 +72,40 @@ namespace Eddy
         {
             bool repeatedInputs = false;
 
-            List<int> windDir = new List<int>();
-            List<double> Uref = Enumerable.Repeat(5.0, windDir.Count).ToList();
-            List<double> z0 = Enumerable.Repeat(1.0, windDir.Count).ToList();
+            List<int> windDirs = new List<int>();
+            List<double> Uref = Enumerable.Repeat(5.0, windDirs.Count).ToList();
+            List<double> z0 = Enumerable.Repeat(1.0, windDirs.Count).ToList();
 
             string epwFilePath = "";
 
-            DA.GetDataList(0, windDir);
+            DA.GetDataList(0, windDirs);
             DA.GetDataList(1, Uref);
             DA.GetDataList(2, z0);
             DA.GetData(3, ref epwFilePath);
 
-            int numberOfWindDirections = windDir.Count();
+            int numberOfWindDirections = windDirs.Count();
 
             if (numberOfWindDirections > 0)
             {
                 if (Uref.Count == 1)
                 {
-                    Uref = Enumerable.Repeat(Uref[0], windDir.Count).ToList();
+                    Uref = Enumerable.Repeat(Uref[0], windDirs.Count).ToList();
                 }
 
                 if (z0.Count == 1)
                 {
-                    z0 = Enumerable.Repeat(z0[0], windDir.Count).ToList();
+                    z0 = Enumerable.Repeat(z0[0], windDirs.Count).ToList();
                 }
             }
 
             // Translate dirs > 359 into correct format
-            windDir = Utilities.NormalizeWindDirs(windDir);
+            windDirs = Utilities.NormalizeWindDirs(windDirs);
 
-            BCCollection BCC = new BCCollection(windDir, epwFilePath);
+            BCCollection BCC = new BCCollection();
 
-            for (int w = 0; w < windDir.Count; w++)
+            for (int w = 0; w < windDirs.Count; w++)
             {
-                BCC.BCs.Add(new ConstU(windDir[w], Uref[w], z0[w], epwFilePath));
+                BCC.BCs.Add(new ConstU(windDirs[w], Uref[w], z0[w], epwFilePath));
             }
 
             if (repeatedInputs)
@@ -125,7 +125,7 @@ namespace Eddy
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Something is causing a turbulence boundary condition to be 0, please change the setup of the simulation domain."); return;
             }
 
-            if (epwFilePath != "" && windDir.Count > 0)
+            if (epwFilePath != "" && windDirs.Count > 0)
             {
                 if (BCC.WindDirOffSetAverage >= 13)
                 {

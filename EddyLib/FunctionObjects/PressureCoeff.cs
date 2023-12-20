@@ -18,6 +18,11 @@ namespace EddyLib
         public PressureCoeff(double buildingHeight, BCCollection bc)
         {
             this.NumberOfWindDirections = bc.BCs.Count;
+            this.Uinf = new List<Vector3d>();
+            this.UatBuildingHeight = new List<double>();
+            this.pinf = new List<double>();
+            this.pref = new List<double>();
+
             CalculateCPPressures(buildingHeight, bc);
         }
 
@@ -30,12 +35,12 @@ namespace EddyLib
                 if (currBC is ABL)
                 {
                     ABL casted_bc = (ABL)currBC;
-                    UatBuildingHeight[i] = BC.ScaleABL(casted_bc.URef, casted_bc.zref, casted_bc.z0, maxBuildingHeight);
+                    UatBuildingHeight.Add(BC.ScaleABL(casted_bc.URef, casted_bc.zref, casted_bc.z0, maxBuildingHeight));
                 }
                 else
                 {
                     ConstU casted_bc = (ConstU)currBC;
-                    UatBuildingHeight[i] = casted_bc.URef;
+                    UatBuildingHeight.Add(casted_bc.URef);
                 }
             }
         }
@@ -53,19 +58,19 @@ namespace EddyLib
                 {
                     ABL casted_bc = (ABL)currBC;
 
-                    Uinf[i] = (casted_bc.flowDir * (casted_bc.Kappa * casted_bc.URef / Math.Log((casted_bc.zref + casted_bc.z0) / casted_bc.z0) / casted_bc.Kappa * Math.Log((buildingHeight + casted_bc.z0) / casted_bc.z0)));
+                    Uinf.Add(casted_bc.flowDir * (casted_bc.Kappa * casted_bc.URef / Math.Log((casted_bc.zref + casted_bc.z0) / casted_bc.z0) / casted_bc.Kappa * Math.Log((buildingHeight + casted_bc.z0) / casted_bc.z0)));
 
-                    pinf[i] = 1.2 * 0.5 * Math.Pow(casted_bc.Kappa * casted_bc.URef / Math.Log((casted_bc.zref + casted_bc.z0) / casted_bc.z0) / casted_bc.Kappa * Math.Log((buildingHeight + casted_bc.z0) / casted_bc.z0), 2);
-                    pref[i] = 1.2 * 0.5 * Math.Pow(casted_bc.Kappa * casted_bc.URef / Math.Log((casted_bc.zref + casted_bc.z0) / casted_bc.z0) / casted_bc.Kappa * Math.Log((buildingHeight + casted_bc.z0) / casted_bc.z0), 2);
+                    pinf.Add(1.2 * 0.5 * Math.Pow(casted_bc.Kappa * casted_bc.URef / Math.Log((casted_bc.zref + casted_bc.z0) / casted_bc.z0) / casted_bc.Kappa * Math.Log((buildingHeight + casted_bc.z0) / casted_bc.z0), 2));
+                    pref.Add(1.2 * 0.5 * Math.Pow(casted_bc.Kappa * casted_bc.URef / Math.Log((casted_bc.zref + casted_bc.z0) / casted_bc.z0) / casted_bc.Kappa * Math.Log((buildingHeight + casted_bc.z0) / casted_bc.z0), 2));
                 }
                 else
                 {
                     ConstU casted_bc = (ConstU)currBC;
 
-                    Uinf[i] = (casted_bc.flowDir * casted_bc.URef);
+                    Uinf.Add((casted_bc.flowDir * casted_bc.URef));
 
-                    pinf[i] = 1.2 * 0.5 * Math.Pow(casted_bc.URef, 2);
-                    pref[i] = 1.2 * 0.5 * Math.Pow(casted_bc.URef, 2);
+                    pinf.Add(1.2 * 0.5 * Math.Pow(casted_bc.URef, 2));
+                    pref.Add(1.2 * 0.5 * Math.Pow(casted_bc.URef, 2));
                 }
             }
         }

@@ -369,8 +369,7 @@ namespace RhinoPlugin.Tests.Xunit
 
             //// Act
             ///
-            var bcColl = new BCCollection(new List<int>() { 0 }, "");
-            bcColl.BCs.Add(bcond);
+            var bcColl = new BCCollection(bcond);
 
             var wfs = new WindFactorsSpatial(workingdir, bcColl, mdv, points.ToList(), false, true);
 

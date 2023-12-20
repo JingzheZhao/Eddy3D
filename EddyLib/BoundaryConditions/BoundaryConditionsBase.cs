@@ -52,6 +52,12 @@ namespace EddyLib.BCs
         }
     }
 
+    public enum BCType
+    {
+        ABL,
+        ConstU
+    }
+
     public class BCCollection
     {
         public List<BC> BCs = new List<BC>();
@@ -69,31 +75,93 @@ namespace EddyLib.BCs
 
         public double WindDirOffSetAverage = 0;
 
-        public BCCollection(List<int> windDirections, string epwFilePath)
+        public BCCollection()
         {
-            this.WindDirections = windDirections;
+        }
 
-            if (epwFilePath != null)
+        public BCCollection(BC BoundaryCondition)
+        {
+            this.BCs.Add(BoundaryCondition);
+            this.WindDirections = new List<int>() { BoundaryCondition.windDir };
+        }
+
+        public BCCollection(BC BoundaryCondition, string epwFilePath)
+        {
+            this.BCs.Add(BoundaryCondition);
+            this.WindDirections = new List<int>() { BoundaryCondition.windDir };
+
+            CalcWindStatistic(epwFilePath);
+        }
+
+        public BCCollection(List<BC> BoundaryConditions)
+        {
+            this.BCs.AddRange(BoundaryConditions);
+
+            foreach (var bcond in BoundaryConditions)
             {
-                this.epwFilePath = epwFilePath.Trim();
-                CalcWindStatistic();
+                this.WindDirections.Add(bcond.windDir);
             }
         }
 
-        protected void CalcWindStatistic()
+        public BCCollection(List<BC> BoundaryConditions, string epwFilePath)
+        {
+            this.BCs.AddRange(BoundaryConditions);
+
+            foreach (var bcond in BoundaryConditions)
+            {
+                this.WindDirections.Add(bcond.windDir);
+            }
+
+            CalcWindStatistic(epwFilePath);
+        }
+
+        public BCCollection(List<int> windDirections, BCType Type)
+        {
+            this.WindDirections = windDirections;
+
+            SetUpWindDirections(windDirections, Type);
+        }
+
+        public BCCollection(List<int> windDirections, BCType Type, string epwFilePath)
+        {
+            this.WindDirections = windDirections;
+
+            SetUpWindDirections(windDirections, Type, epwFilePath);
+            CalcWindStatistic(epwFilePath);
+        }
+
+        protected void SetUpWindDirections(List<int> windDirections, BCType Type, string EPW = "")
+        {
+            this.WindDirections = windDirections;
+
+            foreach (int dir in windDirections)
+            {
+                if (Type == BCType.ConstU)
+                {
+                    this.BCs.Add(new ConstU(dir, 5, 1, EPW));
+                }
+                else if (Type == BCType.ABL)
+                {
+                    this.BCs.Add(new ABL(dir, 5, 10, 1, 0, EPW));
+                }
+            }
+        }
+
+        protected void CalcWindStatistic(string epwFilePath)
 
         {
             if (epwFilePath.EndsWith("epw"))
             {
+                this.epwFilePath = epwFilePath.Trim();
                 Weather weather = new Weather(this.epwFilePath);
 
                 // Wind Factors
 
                 var (SimDirIndices, ClstSimDirs, OffSet, OffSetAverage) = EddyLib.OutdoorComfort.WindSystem.GetClosestWindDirs(weather, this.WindDirections.ToArray());
-                this.WindDirOffset = OffSet.ToArray();
-                this.WindDirOffSetAverage = OffSetAverage;
-                this.ClstSimDirs = ClstSimDirs.ToArray();
-                this.ClstSimDirIndices = SimDirIndices.ToArray();
+                WindDirOffset = OffSet.ToArray();
+                WindDirOffSetAverage = OffSetAverage;
+                ClstSimDirs = ClstSimDirs.ToArray();
+                ClstSimDirIndices = SimDirIndices.ToArray();
             }
         }
     }

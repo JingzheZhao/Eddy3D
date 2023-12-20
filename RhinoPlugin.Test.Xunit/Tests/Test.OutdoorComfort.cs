@@ -129,7 +129,7 @@ namespace RhinoPlugin.Tests.Xunit
 
             BC bcond = new ABL(0, 5, 10, 1, 0, "");
 
-            BCCollection bcColl = new BCCollection(windDirList, "");
+            BCCollection bcColl = new BCCollection();
             bcColl.BCs.Add(bcond);
 
             Weather weather = new Weather(epw);
@@ -227,8 +227,7 @@ namespace RhinoPlugin.Tests.Xunit
 
             BC bcond = new ABL(0, 5, 10, 1, 0, "");
 
-            BCCollection bcColl = new BCCollection(windDirList, "");
-            bcColl.BCs.Add(bcond);
+            BCCollection bcColl = new BCCollection(bcond);
 
             Weather weather = new Weather(epw);
 
@@ -322,8 +321,7 @@ namespace RhinoPlugin.Tests.Xunit
             var windDirList = new List<int>() { 0 };
             var bcond = new ABL(0, uref, zref, z0, 0, epw);
 
-            BCCollection bcColl = new BCCollection(windDirList, epw);
-            bcColl.BCs.Add(bcond);
+            BCCollection bcColl = new BCCollection(bcond, epw);
 
             Weather weather = new Weather(epw);
 
@@ -462,8 +460,7 @@ namespace RhinoPlugin.Tests.Xunit
             var windDirList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
             BC bcond = new ABL(0, 5, 10, 1, 0, "");
 
-            BCCollection bcColl = new BCCollection(windDirList, "");
-            bcColl.BCs.Add(bcond);
+            BCCollection bcColl = new BCCollection(bcond);
 
             OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcColl, 5, 50, 300, 80);
 
@@ -616,8 +613,7 @@ namespace RhinoPlugin.Tests.Xunit
 
             var bcond = new ABL(0, uref, zref, z0, 0, "");
 
-            BCCollection bcColl = new BCCollection(windDirList, "");
-            bcColl.BCs.Add(bcond);
+            BCCollection bcColl = new BCCollection(bcond);
 
             string epw = DownloadEPW();
             Weather weather = new Weather(epw);
@@ -750,8 +746,7 @@ namespace RhinoPlugin.Tests.Xunit
 
             var bcond = new ABL(0, uref, zref, z0, 0, "");
 
-            BCCollection bcColl = new BCCollection(windDirList, "");
-            bcColl.BCs.Add(bcond);
+            BCCollection bcColl = new BCCollection(bcond);
 
             Weather weather = new Weather(epw);
             weather.WindSpeed = Enumerable.Repeat(5.0, 8760).ToArray();

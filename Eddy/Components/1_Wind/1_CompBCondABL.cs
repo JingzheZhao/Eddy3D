@@ -72,53 +72,53 @@ namespace Eddy
         {
             bool repeatedInputs = false;
 
-            List<int> windDir = new List<int>();
-            List<double> Uref = Enumerable.Repeat(5.0, windDir.Count).ToList();
-            List<double> zref = Enumerable.Repeat(10.0, windDir.Count).ToList();
-            List<double> z0 = Enumerable.Repeat(1.0, windDir.Count).ToList();
-            List<double> zGround = Enumerable.Repeat(0.0, windDir.Count).ToList();
+            List<int> windDirs = new List<int>();
+            List<double> Uref = Enumerable.Repeat(5.0, windDirs.Count).ToList();
+            List<double> zref = Enumerable.Repeat(10.0, windDirs.Count).ToList();
+            List<double> z0 = Enumerable.Repeat(1.0, windDirs.Count).ToList();
+            List<double> zGround = Enumerable.Repeat(0.0, windDirs.Count).ToList();
             string epwFilePath = "";
 
-            DA.GetDataList(0, windDir);
+            DA.GetDataList(0, windDirs);
             DA.GetDataList(1, Uref);
             DA.GetDataList(2, zref);
             DA.GetDataList(3, z0);
             DA.GetDataList(4, zGround);
             DA.GetData(5, ref epwFilePath);
 
-            int numberOfWindDirections = windDir.Count();
+            int numberOfWindDirections = windDirs.Count();
 
             if (numberOfWindDirections > 0)
             {
                 if (Uref.Count == 1)
                 {
-                    Uref = Enumerable.Repeat(Uref[0], windDir.Count).ToList();
+                    Uref = Enumerable.Repeat(Uref[0], windDirs.Count).ToList();
                 }
 
                 if (zref.Count == 1)
                 {
-                    zref = Enumerable.Repeat(zref[0], windDir.Count).ToList();
+                    zref = Enumerable.Repeat(zref[0], windDirs.Count).ToList();
                 }
 
                 if (z0.Count == 1)
                 {
-                    z0 = Enumerable.Repeat(z0[0], windDir.Count).ToList();
+                    z0 = Enumerable.Repeat(z0[0], windDirs.Count).ToList();
                 }
 
                 if (zGround.Count == 1)
                 {
-                    zGround = Enumerable.Repeat(zGround[0], windDir.Count).ToList();
+                    zGround = Enumerable.Repeat(zGround[0], windDirs.Count).ToList();
                 }
             }
 
             // Translate dirs > 359 into correct format
-            windDir = Utilities.NormalizeWindDirs(windDir);
+            windDirs = Utilities.NormalizeWindDirs(windDirs);
 
-            BCCollection BCC = new BCCollection(windDir, epwFilePath);
+            BCCollection BCC = new BCCollection();
 
-            for (int w = 0; w < windDir.Count; w++)
+            for (int w = 0; w < windDirs.Count; w++)
             {
-                BCC.BCs.Add(new ABL(windDir[w], Uref[w], zref[w], z0[w], zGround[w], epwFilePath));
+                BCC.BCs.Add(new ABL(windDirs[w], Uref[w], zref[w], z0[w], zGround[w], epwFilePath));
             }
 
             if (repeatedInputs)
@@ -138,7 +138,7 @@ namespace Eddy
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Something is causing a turbulence boundary condition to be 0, please change the setup of the simulation domain."); return;
             }
 
-            if (epwFilePath != "" && windDir.Count > 0)
+            if (epwFilePath != "" && windDirs.Count > 0)
             {
                 if (BCC.WindDirOffSetAverage >= 13)
                 {

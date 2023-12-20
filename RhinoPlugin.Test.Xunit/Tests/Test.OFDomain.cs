@@ -36,11 +36,10 @@ namespace RhinoPlugin.Tests.Xunit
                 mm.Append(im);
             }
 
-            var windDirList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
+            // var windDirList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
             BC bcond = new ABL(0, 5, 10, 1, 0, "");
 
-            BCCollection bcColl = new BCCollection(windDirList, "");
-            bcColl.BCs.Add(bcond);
+            BCCollection bcColl = new BCCollection(bcond);
 
             OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcColl, 5, 50, 300, 80);
 
@@ -74,8 +73,7 @@ namespace RhinoPlugin.Tests.Xunit
             var windDirList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
             BC bcond = new ABL(0, 5, 10, 1, 0, "");
 
-            BCCollection bcColl = new BCCollection(windDirList, "");
-            bcColl.BCs.Add(bcond);
+            BCCollection bcColl = new BCCollection(bcond);
 
             OFBoxDomain DOM = new OFBoxDomain(mm, new Mesh(), bcColl, 5, 50, 300, 80);
 
