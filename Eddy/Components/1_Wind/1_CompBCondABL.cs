@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -51,6 +52,11 @@ namespace Eddy
             pManager.AddNumberParameter("Minimum z-coordinate [m]", "zGround", "Minimum z - coordinate[m]", GH_ParamAccess.list);
             pManager.AddTextParameter("Epw", "Epw", "Weather data file path", GH_ParamAccess.item, "");
             pManager[0].Optional = true;
+            pManager[1].Optional = true;
+            pManager[2].Optional = true;
+            pManager[3].Optional = true;
+            pManager[4].Optional = true;
+            pManager[5].Optional = true;
         }
 
         /// <summary>
@@ -72,47 +78,30 @@ namespace Eddy
         {
             bool repeatedInputs = false;
 
+            // Retrieve wind directions or set default
             List<int> windDirs = new List<int>();
-            List<double> Uref = Enumerable.Repeat(5.0, windDirs.Count).ToList();
-            List<double> zref = Enumerable.Repeat(10.0, windDirs.Count).ToList();
-            List<double> z0 = Enumerable.Repeat(1.0, windDirs.Count).ToList();
-            List<double> zGround = Enumerable.Repeat(0.0, windDirs.Count).ToList();
-            string epwFilePath = "";
-
-            DA.GetDataList(0, windDirs);
-            DA.GetDataList(1, Uref);
-            DA.GetDataList(2, zref);
-            DA.GetDataList(3, z0);
-            DA.GetDataList(4, zGround);
-            DA.GetData(5, ref epwFilePath);
-
-            int numberOfWindDirections = windDirs.Count();
-
-            if (numberOfWindDirections > 0)
+            if (!DA.GetDataList(0, windDirs) || !windDirs.Any())
             {
-                if (Uref.Count == 1)
-                {
-                    Uref = Enumerable.Repeat(Uref[0], windDirs.Count).ToList();
-                }
-
-                if (zref.Count == 1)
-                {
-                    zref = Enumerable.Repeat(zref[0], windDirs.Count).ToList();
-                }
-
-                if (z0.Count == 1)
-                {
-                    z0 = Enumerable.Repeat(z0[0], windDirs.Count).ToList();
-                }
-
-                if (zGround.Count == 1)
-                {
-                    zGround = Enumerable.Repeat(zGround[0], windDirs.Count).ToList();
-                }
+                windDirs.Add(0); // Default wind direction
+                repeatedInputs = true;
             }
-
             // Translate dirs > 359 into correct format
             windDirs = Utilities.NormalizeWindDirs(windDirs);
+
+            // Initialize other parameters with defaults
+            List<double> Uref = new List<double>(Enumerable.Repeat(5.0, windDirs.Count));
+            List<double> zref = new List<double>(Enumerable.Repeat(10.0, windDirs.Count));
+            List<double> z0 = new List<double>(Enumerable.Repeat(1.0, windDirs.Count));
+            List<double> zGround = new List<double>(Enumerable.Repeat(0.0, windDirs.Count));
+            string epwFilePath = "";
+
+            // Retrieve other inputs and adjust if necessary
+            AdjustInputList(DA, 1, Uref, windDirs.Count, 5.0, ref repeatedInputs);
+            AdjustInputList(DA, 2, zref, windDirs.Count, 10, ref repeatedInputs);
+            AdjustInputList(DA, 3, z0, windDirs.Count, 1, ref repeatedInputs);
+            AdjustInputList(DA, 4, zGround, windDirs.Count, 0, ref repeatedInputs);
+
+            DA.GetData(5, ref epwFilePath);
 
             BCCollection BCC = new BCCollection();
 
@@ -150,7 +139,54 @@ namespace Eddy
                 }
             }
 
+            // Create a dataframe-like structure
+            var formattedSummary = new StringBuilder();
+            formattedSummary.AppendLine("Boundary Conditions Summary:");
+            formattedSummary.AppendLine("Wind Dir   Uref   zref   z0   zGround");
+
+            foreach (var i in Enumerable.Range(0, windDirs.Count))
+            {
+                formattedSummary.AppendLine($"{PadRight(windDirs[i].ToString(), 18)}{PadRight(Uref[i].ToString(), 5)}{PadRight(zref[i].ToString(), 10)}{PadRight(z0[i].ToString(), 9)}{PadRight(zGround[i].ToString(), 10)}");
+            }
+
+            // Set the description of the output parameter
+            Params.Output[0].Description = formattedSummary.ToString();
+
             DA.SetData(0, BCC);
+        }
+
+        // Helper method to pad a string to a fixed width
+        private string PadRight(string str, int totalWidth)
+        {
+            return str.PadRight(totalWidth - str.Length);
+        }
+
+        private void AdjustInputList<T>(IGH_DataAccess DA, int index, List<T> list, int targetCount, T defaultValue, ref bool flag)
+        {
+            List<T> tempList = new List<T>();
+            if (DA.GetDataList(index, tempList))
+            {
+                if (tempList.Count == 1)
+                {
+                    // Repeat the single provided value for all wind directions
+                    list = new List<T>(Enumerable.Repeat(tempList[0], targetCount));
+                }
+                else
+                {
+                    // Use provided values and fill the rest with default value
+                    list.Clear();
+                    for (int i = 0; i < targetCount; i++)
+                    {
+                        list.Add(i < tempList.Count ? tempList[i] : defaultValue);
+                    }
+                }
+            }
+            else
+            {
+                // No values provided, use the default list
+                list = new List<T>(Enumerable.Repeat(defaultValue, targetCount));
+                flag = true;
+            }
         }
 
         // hidden parameter
