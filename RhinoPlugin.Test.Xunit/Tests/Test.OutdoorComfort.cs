@@ -128,7 +128,10 @@ namespace RhinoPlugin.Tests.Xunit
 
             var windDirList = new List<int>() { 0 };
 
-            var bcond = new ABL(windDirList, uref, zref, z0, 0, epw);
+            BC bcond = new ABL(0, 5, 10, 1, 0, "");
+
+            BCCollection bcColl = new BCCollection();
+            bcColl.BCs.Add(bcond);
 
             Weather weather = new Weather(epw);
 
@@ -154,7 +157,7 @@ namespace RhinoPlugin.Tests.Xunit
             }
        ;
 
-            OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcond, 5, 50, 300, 80);
+            OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcColl, 5, 50, 300, 80);
 
             var points = Enumerable.Repeat(new Point3d(60, 60, 2), 100);
 
@@ -223,7 +226,9 @@ namespace RhinoPlugin.Tests.Xunit
 
             var windDirList = new List<int>() { 0 };
 
-            var bcond = new ABL(windDirList, uref, zref, z0, 0, epw);
+            BC bcond = new ABL(0, 5, 10, 1, 0, "");
+
+            BCCollection bcColl = new BCCollection(bcond);
 
             Weather weather = new Weather(epw);
 
@@ -244,7 +249,7 @@ namespace RhinoPlugin.Tests.Xunit
             }
                ;
 
-            OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcond, 5, 50, 300, 80);
+            OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcColl, 5, 50, 300, 80);
 
             var points = Enumerable.Repeat(new Point3d(60, 60, 2), 100);
 
@@ -313,8 +318,11 @@ namespace RhinoPlugin.Tests.Xunit
             var zref = 10;
 
             string epw = DownloadEPW();
+
             var windDirList = new List<int>() { 0 };
-            var bcond = new ABL(windDirList, uref, zref, z0, 0, epw);
+            var bcond = new ABL(0, uref, zref, z0, 0, epw);
+
+            BCCollection bcColl = new BCCollection(bcond, epw);
 
             Weather weather = new Weather(epw);
 
@@ -335,7 +343,7 @@ namespace RhinoPlugin.Tests.Xunit
             }
         ;
 
-            OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcond, 5, 50, 300, 80);
+            OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcColl, 5, 50, 300, 80);
 
             var points = Enumerable.Repeat(new Point3d(60, 60, 2), 100);
 
@@ -451,9 +459,11 @@ namespace RhinoPlugin.Tests.Xunit
             mm.Append(s);
 
             var windDirList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
-            BoundaryCondition bcond = new ABL(windDirList, 5, 10, 1, 0, "");
+            BC bcond = new ABL(0, 5, 10, 1, 0, "");
 
-            OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcond, 5, 50, 300, 80);
+            BCCollection bcColl = new BCCollection(bcond);
+
+            OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcColl, 5, 50, 300, 80);
 
             var points = Enumerable.Repeat(new Point3d(40, 40, 2), 100);
 
@@ -568,7 +578,7 @@ namespace RhinoPlugin.Tests.Xunit
             var zref = 10;
 
             // Act
-            var res = EddyLib.BCs.BoundaryCondition.ScaleABL(uref, zref, z0, 3);
+            var res = EddyLib.BCs.BC.ScaleABL(uref, zref, z0, 3);
 
             // Assert
 
@@ -585,7 +595,7 @@ namespace RhinoPlugin.Tests.Xunit
             var zref = 3;
 
             // Act
-            var res = EddyLib.BCs.BoundaryCondition.ScaleABL(uref, zref, z0, 10);
+            var res = EddyLib.BCs.BC.ScaleABL(uref, zref, z0, 10);
 
             // Assert
 
@@ -602,7 +612,9 @@ namespace RhinoPlugin.Tests.Xunit
             var uref = 10;
             var zref = 10;
 
-            var bcond = new ABL(new List<int> { 0 }, uref, zref, z0, 0, "");
+            var bcond = new ABL(0, uref, zref, z0, 0, "");
+
+            BCCollection bcColl = new BCCollection(bcond);
 
             string epw = DownloadEPW();
             Weather weather = new Weather(epw);
@@ -626,14 +638,14 @@ namespace RhinoPlugin.Tests.Xunit
 
             //// Act
 
-            var wfs = new WindFactorsSpatial(workingdir, bcond, mdv, points.ToList(), false, true);
+            var wfs = new WindFactorsSpatial(workingdir, bcColl, mdv, points.ToList(), false, true);
 
             //// Assert
             /// We would expect a Uref of 4.58 m/s at 2 m height --> this leads to a WFS of 44 % for an assumption of 2 m/s probes
 
             Assert.Equal(0.44, Math.Round(wfs.ValuesSpatial[0, 0], 2));
 
-            var wft = new WindFactorsTemporal(workingdir, bcond, weather, wfs, points.ToList(), false, true);
+            var wft = new WindFactorsTemporal(workingdir, bcColl, weather, wfs, points.ToList(), false, true);
 
             // Here, we would expect 44 % of 2.29 m/s which is the ABl velocity at 5 m height.
 
@@ -756,7 +768,9 @@ namespace RhinoPlugin.Tests.Xunit
             var uref = 10;
             var zref = 10;
 
-            var bcond = new ABL(windDirList, uref, zref, z0, 0, "");
+            var bcond = new ABL(0, uref, zref, z0, 0, "");
+
+            BCCollection bcColl = new BCCollection(bcond);
 
             Weather weather = new Weather(epw);
             weather.WindSpeed = Enumerable.Repeat(5.0, 8760).ToArray();
@@ -778,8 +792,8 @@ namespace RhinoPlugin.Tests.Xunit
             if (!Directory.Exists(workingdir)) { Directory.CreateDirectory(workingdir); };
             var points = Enumerable.Repeat(new Point3d(0, 0, 2), 100);
             var mdv = new MultiDirectionalVelocities(workingdir, windDirList.ToArray(), vecs, true, true);
-            var wfs = new WindFactorsSpatial(workingdir, bcond, mdv, points.ToList(), false, true);
-            var wft = new WindFactorsTemporal(workingdir, bcond, weather, wfs, points.ToList(), false, true);
+            var wfs = new WindFactorsSpatial(workingdir, bcColl, mdv, points.ToList(), false, true);
+            var wft = new WindFactorsTemporal(workingdir, bcColl, weather, wfs, points.ToList(), false, true);
 
             //// Act
 

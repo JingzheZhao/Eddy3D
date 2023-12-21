@@ -40,18 +40,18 @@ namespace EddyLib.OutdoorComfort
         // This is just the ratio
         public double[,] ValuesSpatial;
 
-        public BoundaryCondition BCond;
+        public BCCollection BCond;
 
         private readonly string fileName = @"WF_S";
 
         public List<int> SimulatedWindDirections;
 
-        public WindFactorsSpatial(string baseWorkingDir, BoundaryCondition bcond, MultiDirectionalVelocities velocityProbes, List<Point3d> probes, bool interpolate, bool recalc)
+        public WindFactorsSpatial(string baseWorkingDir, BCCollection bcond, MultiDirectionalVelocities velocityProbes, List<Point3d> probes, bool interpolate, bool recalc)
         {
             this.BCond = bcond;
             string binWFSpatial = interpolate == false ? Path.Combine(baseWorkingDir + fileName + fileNameBinExtension) : Path.Combine(baseWorkingDir + fileName + fileNameBinExtension);
 
-            this.SimulatedWindDirections = bcond.windDirs;
+            this.SimulatedWindDirections = bcond.WindDirections;
 
             if (File.Exists(binWFSpatial) && !recalc)
             {
@@ -100,10 +100,10 @@ namespace EddyLib.OutdoorComfort
 
             // Independent of hour
 
-            var velSimAtProbingHeight = BoundaryCondition.ScaleABL(Probe.Uref, Probe.Zref, Probe.Z0, Probe.Point.Value.Z);
-
             for (int w = 0; w < numberOfWindDirs; w++)
             {
+                var velSimAtProbingHeight = BC.ScaleABL(Probe.Uref[w], Probe.Zref[w], Probe.Z0[w], Probe.Point.Value.Z);
+
                 var velSimProbingPoint = Probe.U[w].Value.Length;
 
                 // Avoid Infinity
@@ -117,9 +117,9 @@ namespace EddyLib.OutdoorComfort
             return WFSpatial;
         }
 
-        private static double[,] CalcWindFactorsSpatial(Vector3d[,] MultiDirectionalVelocities, BoundaryCondition bcond, List<Point3d> probes)
+        private static double[,] CalcWindFactorsSpatial(Vector3d[,] MultiDirectionalVelocities, BCCollection bcond, List<Point3d> probes)
         {
-            var windDirsSim = bcond.windDirs;
+            var windDirsSim = bcond.WindDirections;
 
             int numberOfWindDirs = windDirsSim.Count();
             int numberOfSensors = MultiDirectionalVelocities.GetLength(0);
@@ -145,24 +145,29 @@ namespace EddyLib.OutdoorComfort
                 Parallel.For(
                   0, numberOfSensors, p =>
                   {
-                      // Independent of hour
-                      var velSimAtProbingHeight = 0.0;
-                      if (bcond is ABL)
-                      {
-                          // We assume a probing height of z = 2m
-                          ABL casted_bc = (ABL)bcond;
-                          velSimAtProbingHeight = BoundaryCondition.ScaleABL(casted_bc.URef, casted_bc.zref, casted_bc.z0, 2);
-                      }
-                      else
-                      {
-                          ConstU casted_bc = (ConstU)bcond;
-                          // We assume a probing height of z = 2m
-                          // assume a zref of 10;
-                          velSimAtProbingHeight = BoundaryCondition.ScaleABL(casted_bc.URef, 10, bcond.z0, 2);
-                      }
-
                       for (int w = 0; w < numberOfWindDirs; w++)
                       {
+                          // Independent of hour
+                          var velSimAtProbingHeight = 0.0;
+
+                          // Need to find the corresponding BCond for each hour.
+
+                          bool allABL = bcond.BCs.All(item => item is ABL); // Checks if all items are of type ABL
+
+                          if (allABL)
+                          {
+                              // We assume a probing height of z = 2m
+                              ABL casted_bc = (ABL)bcond.BCs[w];
+                              velSimAtProbingHeight = BC.ScaleABL(casted_bc.URef, casted_bc.zref, casted_bc.z0, 2);
+                          }
+                          else
+                          {
+                              ConstU casted_bc = (ConstU)bcond.BCs[w];
+                              // We assume a probing height of z = 2m
+                              // assume a zref of 10;
+                              velSimAtProbingHeight = BC.ScaleABL(casted_bc.URef, 10, casted_bc.z0, 2);
+                          }
+
                           var velSimProbingPoint = MultiDirectionalVelMags[p, w];
 
                           // Avoid Infinity
@@ -199,7 +204,7 @@ namespace EddyLib.OutdoorComfort
 
         public Weather weather;
 
-        public WindFactorsTemporal(string baseWorkingDir, BoundaryCondition bcond, Weather weather, WindFactorsSpatial wfspatial, List<Point3d> probes, bool interpolate, bool recalc)
+        public WindFactorsTemporal(string baseWorkingDir, BCCollection bcond, Weather weather, WindFactorsSpatial wfspatial, List<Point3d> probes, bool interpolate, bool recalc)
         {
             this.weather = weather;
             string binWFTemporal = interpolate == false ? Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + fileNameBinExtension) : Path.Combine(baseWorkingDir + fileName + del + weather.Location + del + interpolationPref + fileNameBinExtension);
@@ -237,9 +242,9 @@ namespace EddyLib.OutdoorComfort
 
         // This returns the plain annual array
 
-        private void CalcWindFactorsTemporal(double[,] WFSpatial, BoundaryCondition bcond, Weather weather, List<Point3d> probes, bool interpolate)
+        private void CalcWindFactorsTemporal(double[,] WFSpatial, BCCollection bcond, Weather weather, List<Point3d> probes, bool interpolate)
         {
-            var windDirsSim = bcond.windDirs.ToArray();
+            var windDirsSim = bcond.WindDirections.ToArray();
             var windDirsEPW = weather.WindDirection;
 
             int numberOfWindDirs = windDirsSim.Count();
@@ -269,20 +274,26 @@ namespace EddyLib.OutdoorComfort
                   {
                       // We assume a probing height of z = 2m
                       var velEPWAtProbingHeight = 0.0;
-                      if (bcond is ABL)
+
+                      // Need to find the corresponding BCond for each hour.
+
+                      bool allABL = bcond.BCs.All(item => item is ABL); // Checks if all items are of type ABL
+                      var clstIdx = bcond.ClstSimDirIndices[h];
+
+                      if (allABL)
                       {
-                          ABL casted_bc = (ABL)bcond;
-                          velEPWAtProbingHeight = BoundaryCondition.ScaleABL(weather.WindSpeed[h], casted_bc.zref, casted_bc.z0, 2);
+                          ABL casted_bc = (ABL)bcond.BCs[clstIdx];
+                          velEPWAtProbingHeight = BC.ScaleABL(weather.WindSpeed[h], casted_bc.zref, casted_bc.z0, 2);
                       }
                       else
                       {
-                          ConstU casted_bc = (ConstU)bcond;
+                          ConstU casted_bc = (ConstU)bcond.BCs[clstIdx];
 
                           // assume a zref of 10;
-                          velEPWAtProbingHeight = BoundaryCondition.ScaleABL(weather.WindSpeed[h], 10, bcond.z0, 2);
+                          velEPWAtProbingHeight = BC.ScaleABL(weather.WindSpeed[h], 10, casted_bc.z0, 2);
                       }
 
-                      var ratioSimProbingPoint = WFSpatial[p, bcond.ClstSimDirIndices[h]];
+                      var ratioSimProbingPoint = WFSpatial[p, clstIdx];
 
                       // We need to multiply the normalized velocity with respect to the approaching flow
                       // for every probing point and multiply that with the scaled-down, measured airport velocity.
@@ -340,12 +351,14 @@ namespace EddyLib.OutdoorComfort
 
             for (int h = 0; h < numberOfHours; h++)
             {
+                var clstIdx = WS.ClstSimDirIndices[h];
+
                 var velEPWAtProbingHeight = 0.0;
 
                 // We assume a probing height of z = 2m
-                velEPWAtProbingHeight = WindSystem.ScaleABL(weather.WindSpeed[h], Probe.Zref, Probe.Z0, 2);
+                velEPWAtProbingHeight = WindSystem.ScaleABL(weather.WindSpeed[h], Probe.Zref[clstIdx], Probe.Z0[clstIdx], 2);
 
-                var ratioSimProbingPoint = Probe.WindFactorsSpatial[WS.ClstSimDirIndices[h]];
+                var ratioSimProbingPoint = Probe.WindFactorsSpatial[clstIdx];
 
                 // We need to multiply the normalized velocity with respect to the approaching flow
                 // for every probing point and multiply that with the scaled-down, measured airport velocity.

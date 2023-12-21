@@ -65,9 +65,9 @@ namespace EddyLib
 
                     for (int i = 0; i < RunSettings.CPUs; i++)
                     {
-                        for (int l = 0; l < DOM.BCond.windDirs.Count; l++)
+                        for (int l = 0; l < DOM.BCond.WindDirections.Count; l++)
                         {
-                            var cpuPath = MeshSettings.baseWorkingDir + DOM.BCond.windDirs[l] + @"\processor" + i;
+                            var cpuPath = MeshSettings.baseWorkingDir + DOM.BCond.WindDirections[l] + @"\processor" + i;
 
                             if (Directory.Exists(cpuPath))
                             {

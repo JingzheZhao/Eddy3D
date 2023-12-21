@@ -33,7 +33,7 @@ FoamFile
 Uref		" + Utilities.FormatDouble(bcond.URef) + @";
 Zref		" + Utilities.FormatDouble(bcond.zref) + @";
 z0 uniform " + Utilities.FormatDouble(bcond.z0) + @";
-flowDir (" + Utilities.FormatDouble(bcond.flowDir[d].X) + " " + Utilities.FormatDouble(bcond.flowDir[d].Y) + " " + Utilities.FormatDouble(bcond.flowDir[d].Z) + @");
+flowDir (" + Utilities.FormatDouble(bcond.flowDir.X) + " " + Utilities.FormatDouble(bcond.flowDir.Y) + " " + Utilities.FormatDouble(bcond.flowDir.Z) + @");
 zDir (0 0 1);
 zGround uniform " + Utilities.FormatDouble(bcond.zGround) + @";
 
@@ -62,9 +62,9 @@ FoamFile
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 flowVelocity (0 0 0);
 pressure    0;
-turbulentKE " + Utilities.FormatDouble(Math.Round(DOM.BCond.k, 4)) + @";
-turbulentEpsilon " + Utilities.FormatDouble(Math.Round(DOM.BCond.epsilon, 4)) + @";
-turbulentOmega	" + Utilities.FormatDouble(Math.Round(DOM.BCond.omega, 4)) + @";
+turbulentKE " + Utilities.FormatDouble(Math.Round(DOM.BCond.BCs[d].k, 4)) + @";
+turbulentEpsilon " + Utilities.FormatDouble(Math.Round(DOM.BCond.BCs[d].epsilon, 4)) + @";
+turbulentOmega	" + Utilities.FormatDouble(Math.Round(DOM.BCond.BCs[d].omega, 4)) + @";
 #inputMode		merge;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -137,7 +137,7 @@ value		$internalField;
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
-                double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i]; //check
+                double dot = DOM.BCond.BCs[d].flowDir * DOM.sides.FaceNormals[i]; //check
                 if (dot < dotCutoff && !DOM.hasTerrain)
                 {
                     sb.AppendLine("patch" + i);
@@ -161,7 +161,7 @@ inletValue $internalField;
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
-                double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i]; //check
+                double dot = DOM.BCond.BCs[d].flowDir * DOM.sides.FaceNormals[i]; //check
                 if (dot < dotCutoff && DOM.hasTerrain)
                 {
                     sb.AppendLine("patch" + i);
@@ -228,7 +228,7 @@ internalField uniform $turbulentKE;
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
-                double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i]; //check
+                double dot = DOM.BCond.BCs[d].flowDir * DOM.sides.FaceNormals[i]; //check
                 if (dot < dotCutoff && !DOM.hasTerrain)
                 {
                     sb.AppendLine("patch" + i);
@@ -252,7 +252,7 @@ inletValue $internalField;
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
-                double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i]; //check
+                double dot = DOM.BCond.BCs[d].flowDir * DOM.sides.FaceNormals[i]; //check
                 if (dot < dotCutoff && DOM.hasTerrain)
                 {
                     sb.AppendLine("patch" + i);
@@ -357,7 +357,7 @@ value		$internalField;
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
-                double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i];
+                double dot = DOM.BCond.BCs[d].flowDir * DOM.sides.FaceNormals[i];
                 if (dot < dotCutoff)
                 {
                     sb.AppendLine("patch" + i);
@@ -433,7 +433,7 @@ building
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
-                double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i];
+                double dot = DOM.BCond.BCs[d].flowDir * DOM.sides.FaceNormals[i];
                 if (dot < dotCutoff)
                 {
                     sb.AppendLine("patch" + i);
@@ -501,7 +501,7 @@ internalField uniform $pressure;
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
-                double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i]; //check
+                double dot = DOM.BCond.BCs[d].flowDir * DOM.sides.FaceNormals[i]; //check
                 if (dot < dotCutoff)
                 {
                     sb.AppendLine("patch" + i);
@@ -573,13 +573,13 @@ frontAndBack
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
-                double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i]; //check
+                double dot = DOM.BCond.BCs[d].flowDir * DOM.sides.FaceNormals[i]; //check
                 if (dot < dotCutoff)
                 {
                     sb.AppendLine("patch" + i);
                     sb.AppendLine(@"
 {   type            fixedValue;
-    value           uniform (" + Utilities.FormatDouble(DOM.BCond.flowDir[d].X * DOM.BCond.URef) + " " + Utilities.FormatDouble(DOM.BCond.flowDir[d].Y * DOM.BCond.URef) + " " + Utilities.FormatDouble(DOM.BCond.flowDir[d].Z * DOM.BCond.URef) + @" );
+    value           uniform (" + Utilities.FormatDouble(DOM.BCond.BCs[d].flowDir.X * DOM.BCond.BCs[d].URef) + " " + Utilities.FormatDouble(DOM.BCond.BCs[d].flowDir.Y * DOM.BCond.BCs[d].URef) + " " + Utilities.FormatDouble(DOM.BCond.BCs[d].flowDir.Z * DOM.BCond.BCs[d].URef) + @" );
 }");
                 }
                 else
@@ -657,7 +657,7 @@ frontAndBack
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
-                double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i]; //check
+                double dot = DOM.BCond.BCs[d].flowDir * DOM.sides.FaceNormals[i]; //check
                 if (dot < dotCutoff)
                 {
                     sb.AppendLine("patch" + i);
@@ -748,7 +748,7 @@ boundaryField
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
-                double dot = DOM.BCond.flowDir[d] * DOM.sides.FaceNormals[i]; //check
+                double dot = DOM.BCond.BCs[d].flowDir * DOM.sides.FaceNormals[i]; //check
                 if (dot < dotCutoff)
                 {
                     sb.AppendLine("patch" + i);
@@ -1129,7 +1129,7 @@ building
             return sb.ToString();
         }
 
-        public static string UBoxConstU(OFBaseDomain DOM, int i)
+        public static string UBoxConstU(OFBaseDomain DOM, int d)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -1163,7 +1163,7 @@ inlet
 ");
 
             sb.Append(@"type fixedValue;
-        value uniform (" + DOM.BCond.flowDir[i].X * DOM.BCond.URef + " " + DOM.BCond.flowDir[i].Y * DOM.BCond.URef + " " + DOM.BCond.flowDir[i].Z * DOM.BCond.URef + @");
+        value uniform (" + DOM.BCond.BCs[d].flowDir.X * DOM.BCond.BCs[d].URef + " " + DOM.BCond.BCs[d].flowDir.Y * DOM.BCond.BCs[d].URef + " " + DOM.BCond.BCs[d].flowDir.Z * DOM.BCond.BCs[d].URef + @");
 }");
 
             sb.Append(@"

@@ -270,9 +270,9 @@ namespace Eddy
 
                 // Check for killed processes
 
-                for (int i = 0; i < DOM.BCond.windDirs.Count; i++)
+                for (int i = 0; i < DOM.BCond.WindDirections.Count; i++)
                 {
-                    if (Utilities.DidProcessGetKilled(baseWorkingDirectory + "\\" + DOM.BCond.windDirs[i]) == true)
+                    if (Utilities.DidProcessGetKilled(baseWorkingDirectory + "\\" + DOM.BCond.WindDirections[i]) == true)
                     {
                         AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Some processes got killed probably because to little RAM was available. Try to increase the RAM acclocated for the Docker virtual machine.");
                     }

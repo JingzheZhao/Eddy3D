@@ -375,7 +375,7 @@ exit
 
         public static void DeletePhi(OFMeshSettings MeshSettings, OFBaseDomain DOM)
         {
-            foreach (int dir in DOM.BCond.windDirs)
+            foreach (int dir in DOM.BCond.WindDirections)
             {
                 string phiPath = MeshSettings.baseWorkingDir + dir + @"\0\phi";
                 if (File.Exists(phiPath)) { File.Delete(phiPath); }

@@ -36,9 +36,9 @@ namespace EddyLib
 
         public static void RemoveDicts(OFBaseDomain DOM, OFMeshSettings MeshSettings)
         {
-            for (int i = 0; i < DOM.BCond.windDirs.Count; i++)
+            for (int i = 0; i < DOM.BCond.WindDirections.Count; i++)
             {
-                string simSystemDir = MeshSettings.baseWorkingDir + "\\" + DOM.BCond.windDirs[i] + @"\system\";
+                string simSystemDir = MeshSettings.baseWorkingDir + "\\" + DOM.BCond.WindDirections[i] + @"\system\";
                 var path = simSystemDir + @"\fvOptions";
 
                 if (File.Exists(path))
@@ -59,9 +59,9 @@ namespace EddyLib
 
         public void ExportfvOptionsDict(List<Tree> trees, OFBaseDomain DOM, OFMeshSettings Meshsettings)
         {
-            for (int i = 0; i < DOM.BCond.windDirs.Count; i++)
+            for (int i = 0; i < DOM.BCond.WindDirections.Count; i++)
             {
-                string simSystemDir = Meshsettings.baseWorkingDir + "\\" + DOM.BCond.windDirs[i] + @"\system\";
+                string simSystemDir = Meshsettings.baseWorkingDir + "\\" + DOM.BCond.WindDirections[i] + @"\system\";
 
                 StringBuilder sb = new StringBuilder();
                 sb.AppendLine(TreeStringHeader());

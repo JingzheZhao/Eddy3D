@@ -4,7 +4,10 @@ using EddyLib.BCs;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -43,12 +46,17 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddIntegerParameter("Wind Directions", "wDir", "Wind directions to be simulated", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Reference velocity at Zref [m/s]", "Uref", "Reference velocity at Zref [m/s]", GH_ParamAccess.item, 5);
-            pManager.AddNumberParameter("Reference height [m]", "zref", "Reference height[m]", GH_ParamAccess.item, 10);
-            pManager.AddNumberParameter("Surface roughness height [m]", "z0", "Surface roughness height [m]", GH_ParamAccess.item, 1);
-            pManager.AddNumberParameter("Minimum z-coordinate [m]", "zGround", "Minimum z - coordinate[m]", GH_ParamAccess.item, 0);
+            pManager.AddNumberParameter("Reference velocity at Zref [m/s]", "Uref", "Reference velocity at Zref [m/s]", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Reference height [m]", "zref", "Reference height[m]", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Surface roughness height [m]", "z0", "Surface roughness height [m]", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Minimum z-coordinate [m]", "zGround", "Minimum z - coordinate[m]", GH_ParamAccess.list);
             pManager.AddTextParameter("Epw", "Epw", "Weather data file path", GH_ParamAccess.item, "");
             pManager[0].Optional = true;
+            pManager[1].Optional = true;
+            pManager[2].Optional = true;
+            pManager[3].Optional = true;
+            pManager[4].Optional = true;
+            pManager[5].Optional = true;
         }
 
         /// <summary>
@@ -68,53 +76,118 @@ namespace Eddy
         /// </param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            //windDir.Add(0);
+            bool repeatedInputs = false;
 
-            List<int> windDir = new List<int>();
-            List<Vector3d> flowDir = new List<Vector3d>();
-            double Uref = 0;
-            double zref = 0;
-            double z0 = 0;
-            double zGround = 0;
+            // Retrieve wind directions or set default
+            List<int> windDirs = new List<int>();
+            if (!DA.GetDataList(0, windDirs) || !windDirs.Any())
+            {
+                windDirs.Add(0); // Default wind direction
+                repeatedInputs = true;
+            }
+            // Translate dirs > 359 into correct format
+            windDirs = Utilities.NormalizeWindDirs(windDirs);
 
-            DA.GetDataList(0, windDir);
-            DA.GetData(1, ref Uref);
-            DA.GetData(2, ref zref);
-            DA.GetData(3, ref z0);
-            DA.GetData(4, ref zGround);
+            // Initialize other parameters with defaults
+            List<double> Uref = new List<double>(Enumerable.Repeat(5.0, windDirs.Count));
+            List<double> zref = new List<double>(Enumerable.Repeat(10.0, windDirs.Count));
+            List<double> z0 = new List<double>(Enumerable.Repeat(1.0, windDirs.Count));
+            List<double> zGround = new List<double>(Enumerable.Repeat(0.0, windDirs.Count));
             string epwFilePath = "";
+
+            // Retrieve other inputs and adjust if necessary
+            AdjustInputList(DA, 1, Uref, windDirs.Count, 5.0, ref repeatedInputs);
+            AdjustInputList(DA, 2, zref, windDirs.Count, 10, ref repeatedInputs);
+            AdjustInputList(DA, 3, z0, windDirs.Count, 1, ref repeatedInputs);
+            AdjustInputList(DA, 4, zGround, windDirs.Count, 0, ref repeatedInputs);
+
             DA.GetData(5, ref epwFilePath);
+
+            BCCollection BCC = new BCCollection();
+
+            for (int w = 0; w < windDirs.Count; w++)
+            {
+                ABL newABL = new ABL(windDirs[w], Uref[w], zref[w], z0[w], zGround[w], epwFilePath);
+                BCC.AddBoundaryCondition(newABL);
+            }
+
+            if (repeatedInputs)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "We assumed missing input values for at least one input based on the number of wind directions provided.");
+            }
 
             if (epwFilePath == "")
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Without a weather file (.epw) connected to your BC you will not be able to perform outdoor comfort calculations.");
             }
 
-            // Translate dirs > 359 into correct format
-            windDir = Utilities.NormalizeWindDirs(windDir);
-
-            BoundaryCondition BCInflow = new ABL(windDir, Uref, zref, z0, zGround, epwFilePath);
-
             // Check if anything causes a 0 BC
 
-            if (BCInflow.epsilon == 0 || BCInflow.k == 0 || BCInflow.omega == 0)
+            if (BCC.BCs.Where(v => v.epsilon == 0).Any() || BCC.BCs.Where(v => v.k == 0).Any() || BCC.BCs.Where(v => v.omega == 0).Any())
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Something is causing a turbulence boundary condition to be 0, please change the setup of the simulation domain."); return;
             }
 
-            if (epwFilePath != "" && windDir.Count > 0)
+            if (epwFilePath != "" && windDirs.Count > 0)
             {
-                if (BCInflow.WindDirOffSetAverage >= 13)
+                if (BCC.WindDirOffSetAverage >= 13)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The average angle offset between simulated wind directions and the weather file is " + Math.Round(BCInflow.WindDirOffSetAverage, 2) + "°.\n You might want to consider changing the input wind directions to better fit the weather file.");
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The average angle offset between simulated wind directions and the weather file is " + Math.Round(BCC.WindDirOffSetAverage, 2) + "°.\n You might want to consider changing the input wind directions to better fit the weather file.");
                 }
                 else
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The average angle offset between simulated wind directions and the weather file is " + Math.Round(BCInflow.WindDirOffSetAverage, 2) + "°.");
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The average angle offset between simulated wind directions and the weather file is " + Math.Round(BCC.WindDirOffSetAverage, 2) + "°.");
                 }
             }
 
-            DA.SetData(0, BCInflow);
+            // Create a dataframe-like structure
+            var formattedSummary = new StringBuilder();
+            formattedSummary.AppendLine("Boundary Conditions Summary:");
+            formattedSummary.AppendLine("Wind Dir   Uref   zref   z0   zGround");
+
+            foreach (var i in Enumerable.Range(0, windDirs.Count))
+            {
+                formattedSummary.AppendLine($"{PadRight(windDirs[i].ToString(), 18)}{PadRight(Uref[i].ToString(), 5)}{PadRight(zref[i].ToString(), 10)}{PadRight(z0[i].ToString(), 9)}{PadRight(zGround[i].ToString(), 10)}");
+            }
+
+            // Set the description of the output parameter
+            Params.Output[0].Description = formattedSummary.ToString();
+
+            DA.SetData(0, BCC);
+        }
+
+        // Helper method to pad a string to a fixed width
+        private string PadRight(string str, int totalWidth)
+        {
+            return str.PadRight(totalWidth - str.Length);
+        }
+
+        private void AdjustInputList<T>(IGH_DataAccess DA, int index, List<T> list, int targetCount, T defaultValue, ref bool flag)
+        {
+            List<T> tempList = new List<T>();
+            if (DA.GetDataList(index, tempList))
+            {
+                if (tempList.Count == 1)
+                {
+                    // Repeat the single provided value for all wind directions
+                    list = new List<T>(Enumerable.Repeat(tempList[0], targetCount));
+                }
+                else
+                {
+                    // Use provided values and fill the rest with default value
+                    list.Clear();
+                    for (int i = 0; i < targetCount; i++)
+                    {
+                        list.Add(i < tempList.Count ? tempList[i] : defaultValue);
+                    }
+                }
+            }
+            else
+            {
+                // No values provided, use the default list
+                list = new List<T>(Enumerable.Repeat(defaultValue, targetCount));
+                flag = true;
+            }
         }
 
         // hidden parameter

@@ -52,13 +52,13 @@ namespace EddyLib.Radiation
         public int[] WindDirections { get; set; }
 
         [ProtoMember(101)]
-        public float Z0 { get; set; }
+        public float[] Z0 { get; set; }
 
         [ProtoMember(102)]
-        public float Zref { get; set; }
+        public float[] Zref { get; set; }
 
         [ProtoMember(103)]
-        public float Uref { get; set; }
+        public float[] Uref { get; set; }
 
         // FieldData
 
