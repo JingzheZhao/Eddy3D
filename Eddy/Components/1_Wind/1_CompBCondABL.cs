@@ -107,7 +107,8 @@ namespace Eddy
 
             for (int w = 0; w < windDirs.Count; w++)
             {
-                BCC.BCs.Add(new ABL(windDirs[w], Uref[w], zref[w], z0[w], zGround[w], epwFilePath));
+                ABL newABL = new ABL(windDirs[w], Uref[w], zref[w], z0[w], zGround[w], epwFilePath);
+                BCC.AddBoundaryCondition(newABL);
             }
 
             if (repeatedInputs)

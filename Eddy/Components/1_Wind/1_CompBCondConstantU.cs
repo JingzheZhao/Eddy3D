@@ -99,7 +99,8 @@ namespace Eddy
 
             for (int w = 0; w < windDirs.Count; w++)
             {
-                BCC.BCs.Add(new ConstU(windDirs[w], Uref[w], z0[w], epwFilePath));
+                ConstU newConstU = new ConstU(windDirs[w], Uref[w], z0[w], epwFilePath);
+                BCC.AddBoundaryCondition(newConstU);
             }
 
             if (repeatedInputs)
