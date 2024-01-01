@@ -161,6 +161,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="EddyInfo.cs" />
+    <Compile Include="Components\9_Compute\1o_Comp_SLURM_Runner.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -435,6 +436,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Eddy_Indoor__Indoor_CO2Emitter.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Eddy_misc.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
