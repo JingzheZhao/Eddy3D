@@ -56,6 +56,7 @@ namespace EddyLib.Compute
 
                 List<string> runRelativePaths = new List<string>(); // List to store relative paths of run*.sh files
                 List<string> simRelativePaths = new List<string>(); // List to store relative paths of sim*.sh files
+                List<string> reconstructRelativePaths = new List<string>(); // List to store relative paths of sim*.sh files
 
                 foreach (int number in WindDirs)
                 {
@@ -70,20 +71,26 @@ namespace EddyLib.Compute
                     string decompFileName = string.Format("{0}_{1}_{2}.sh", "decompose", number, lastFolderName);
                     string runFileName = string.Format("{0}_{1}_{2}.sh", "run", number, lastFolderName);
                     string simFileName = string.Format("{0}_{1}_{2}.sh", "sim", number, lastFolderName);
+                    string reconstructFileName = string.Format("{0}_{1}_{2}.sh", "reconstruct", number, lastFolderName);
 
                     string decompContent = GetDecomposeContent();
                     string runContent = GetRunContent(decompFileName, simFileName, runFileName);
                     string simContent = GetSimContent();
+                    string reconstructContent = GetReconstructContent();
 
                     CreateFile(dirPath, decompFileName, decompContent);
                     CreateFile(dirPath, runFileName, runContent);
                     CreateFile(dirPath, simFileName, simContent);
+                    CreateFile(dirPath, reconstructFileName, reconstructContent);
 
                     // Store the relative path of the run file for global run file creation
                     string runRelativePath = System.IO.Path.Combine(number.ToString(), runFileName);
                     string simRelativePath = System.IO.Path.Combine(number.ToString(), simFileName);
+                    string reconstrúctRelativePath = System.IO.Path.Combine(number.ToString(), reconstructFileName);
+
                     runRelativePaths.Add(runRelativePath);
                     simRelativePaths.Add(simRelativePath);
+                    reconstructRelativePaths.Add(reconstrúctRelativePath);
                 }
 
                 // Create the global run file
@@ -97,6 +104,12 @@ namespace EddyLib.Compute
                 string globalSimFilePath = System.IO.Path.Combine(CaseFolder, globalSimFilename);
                 string globalSimContent = GetGlobalSimContent(simRelativePaths);
                 CreateFile(CaseFolder, globalSimFilePath, globalSimContent.ToString());
+
+                // Create the global reconstruct file
+                string globalReconFilename = "global_reconstruct_all.sh";
+                string globalReconFilePath = System.IO.Path.Combine(CaseFolder, globalReconFilename);
+                string globalReconContent = GetGlobalSimContent(reconstructRelativePaths);
+                CreateFile(CaseFolder, globalReconFilePath, globalReconContent.ToString());
 
                 // Set a success message on the component
                 Result = "SLURM files created";
@@ -125,6 +138,26 @@ namespace EddyLib.Compute
 
                   {2}
                   decomposePar -force | tee -a log.decompose
+      ", this.ChargeAccount, this.NotificationEmail, this.OFloadCommand);
+
+            // Remove leading spaces from each line
+            return RemoveLeadingSpaces(rawContent);
+        }
+
+        private string GetReconstructContent()
+        {
+            string rawContent = string.Format(@"#!/bin/bash
+                  #SBATCH --account={0}                       # charge account
+                  #SBATCH -N1 --ntasks-per-node=1                 # Number of nodes and cores per node required
+                  #SBATCH --mem-per-cpu=50G                       # Memory per core
+                  #SBATCH -t00:05:00                               # Duration of the job (Ex: 1 hour)
+                  #SBATCH -qinferno                               # QOS Name
+                  #SBATCH -oReport-decompose-%j.out               # Combined output and error messages file
+                  #SBATCH --mail-type=FAIL                        # Mail preferences
+                  #SBATCH --mail-user={1}             # E-mail address for notifications
+
+                  {2}
+                  reconstructPar -latestTime | tee -a log.reconstruct
       ", this.ChargeAccount, this.NotificationEmail, this.OFloadCommand);
 
             // Remove leading spaces from each line
