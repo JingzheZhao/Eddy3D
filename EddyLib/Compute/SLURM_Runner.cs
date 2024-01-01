@@ -108,7 +108,7 @@ namespace EddyLib.Compute
                 // Create the global reconstruct file
                 string globalReconFilename = "global_reconstruct_all.sh";
                 string globalReconFilePath = System.IO.Path.Combine(CaseFolder, globalReconFilename);
-                string globalReconContent = GetGlobalSimContent(reconstructRelativePaths);
+                string globalReconContent = GetGlobalReconstructContent(reconstructRelativePaths);
                 CreateFile(CaseFolder, globalReconFilePath, globalReconContent.ToString());
 
                 // Set a success message on the component
@@ -162,6 +162,32 @@ namespace EddyLib.Compute
 
             // Remove leading spaces from each line
             return RemoveLeadingSpaces(rawContent);
+        }
+
+        private string GetGlobalReconstructContent(List<string> relativePaths)
+        {
+            StringBuilder content = new StringBuilder();
+
+            content.AppendLine("#!/bin/bash");
+            content.AppendLine("# Global script to reconstruct all simulations");
+
+            // Add commands to change permissions of .sh files in subfolders to executable
+
+            content.AppendLine("# Change permissions of all .sh files in subfolders to executable");
+            content.AppendLine("find . -type f -name \"*.sh\" -exec chmod +x {} \\;");
+
+            foreach (string relPath in relativePaths)
+            {
+                string directoryPath = System.IO.Path.GetDirectoryName(relPath);
+                string filePath = System.IO.Path.GetFileName(relPath);
+
+                content.AppendLine(string.Format("cd \"{0}\"", directoryPath));  // Change to the directory of the script
+                content.AppendLine(string.Format("sbatch ./{0}", filePath));   // Execute the sbatch command
+                content.AppendLine("cd ..");                                     // Go back to the parent directory
+            }
+
+            // Remove leading spaces from each line
+            return RemoveLeadingSpaces(content.ToString());
         }
 
         private string GetGlobalRunContent(List<string> runRelativePaths)
