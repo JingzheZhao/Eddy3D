@@ -37,8 +37,11 @@ namespace Eddy
         {
             pManager.AddMeshParameter("Building Mesh", "BM", "Joined Building Mesh.", GH_ParamAccess.item);
             pManager.AddMeshParameter("Ground Mesh", "GM", "Ground Mesh.", GH_ParamAccess.item);
-            pManager.AddBooleanParameter("Convert Quads to Triangles", "QT", "Convert quads to triangles in the resulting mesh.", GH_ParamAccess.item, false);
+            pManager.AddIntegerParameter("Target Count", "TC", "TC.", GH_ParamAccess.item, 50000);
+            pManager.AddBooleanParameter("Convert Quads to Triangles", "QT", "Convert quads to triangles in the resulting mesh.", GH_ParamAccess.item, true);
+
             pManager[2].Optional = true;
+            pManager[3].Optional = true;
         }
 
         /// <summary>
@@ -62,12 +65,15 @@ namespace Eddy
         {
             Mesh BuildingMesh = null;
             Mesh GroundMesh = null;
-            bool QT = false;
+            bool QT = true;
+            int TargetCount = 50000;
+
             DA.GetData(0, ref BuildingMesh);
             DA.GetData(1, ref GroundMesh);
-            DA.GetData(2, ref QT);
+            DA.GetData(2, ref TargetCount);
+            DA.GetData(3, ref QT);
 
-            var outsidePoints = Utilities.GetOutsidePoints(GroundMesh, BuildingMesh, 0.5);
+            var outsidePoints = Utilities.GetOutsidePoints(GroundMesh, BuildingMesh, TargetCount);
             GroundMesh.Vertices.Remove(outsidePoints, QT);
 
             DA.SetData(0, GroundMesh);
