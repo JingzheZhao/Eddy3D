@@ -133,7 +133,7 @@ NEN8100 Safety
             pManager.AddIntegerParameter("Wind Comfort Metric", "WCmftMetr", "Select a Wind Comfort Metric with a right click.", GH_ParamAccess.item, 0);
 
             //Using an enum to generate the dropdown items
-            var types = Enum.GetNames(typeof(WindComfortHelper.PCMetric));
+            var types = Enum.GetNames(typeof(WindComfortHelper.PedCmftMetric));
             Param_Integer param = pManager[2] as Param_Integer;
 
             for (int i = 0; i < types.Length; i++)
@@ -173,37 +173,44 @@ NEN8100 Safety
 
             int cmftMetricGH = 0;
             DA.GetData("Wind Comfort Metric", ref cmftMetricGH);
-            WindComfortHelper.PCMetric cmftMetric = (WindComfortHelper.PCMetric)cmftMetricGH;
+            WindComfortHelper.PedCmftMetric cmftMetric = (WindComfortHelper.PedCmftMetric)cmftMetricGH;
 
             #region Wind Comfort
 
-            if (WeibullFit == true)
+            try
             {
-                var wc = new WindComfortWeibull(WFS, WFA, cmftMetric);
-
-                if (GH_Document.IsEscapeKeyDown())
+                if (WeibullFit == true)
                 {
-                    GH_Document GHDocument = OnPingDocument();
-                    GHDocument.RequestAbortSolution();
-                }
+                    var wcw = new WindComfortWeibull(WFA, cmftMetric);
 
-                DA.SetDataList(0, wc.ValuesPedestrianWindComfortCat);
-                DA.SetDataList(1, wc.ValuesPedestrianWindComfortClassLetter);
-                DA.SetDataList(2, wc.ValuesPedestrianWindComfortClass);
+                    if (GH_Document.IsEscapeKeyDown())
+                    {
+                        GH_Document GHDocument = OnPingDocument();
+                        GHDocument.RequestAbortSolution();
+                    }
+
+                    DA.SetDataList(0, wcw.ValsPedWindCmftCat);
+                    DA.SetDataList(1, wcw.ValsPedWindCmftClassLetter);
+                    DA.SetDataList(2, wcw.ValsPedWindCmftClassStringified);
+                }
+                else
+                {
+                    var wc = new WindComfort(WFA, cmftMetric);
+
+                    if (GH_Document.IsEscapeKeyDown())
+                    {
+                        GH_Document GHDocument = OnPingDocument();
+                        GHDocument.RequestAbortSolution();
+                    }
+
+                    DA.SetDataList(0, wc.ValsPedWindCmftCat);
+                    DA.SetDataList(1, wc.ValsPedWindCmftClassLetter);
+                    DA.SetDataList(2, wc.ValsPedWindCmftClassStringified);
+                }
             }
-            else
+            catch (Exception e)
             {
-                var wc = new WindComfort(WFS, WFA, cmftMetric);
-
-                if (GH_Document.IsEscapeKeyDown())
-                {
-                    GH_Document GHDocument = OnPingDocument();
-                    GHDocument.RequestAbortSolution();
-                }
-
-                DA.SetDataList(0, wc.ValuesPedestrianWindComfortCat);
-                DA.SetDataList(1, wc.ValuesPedestrianWindComfortClassLetter);
-                DA.SetDataList(2, wc.ValuesPedestrianWindComfortClass);
+                throw new InvalidOperationException("Cannot compute pedestrian comfort given the EPW supplied.", e);
             }
 
             #endregion Wind Comfort

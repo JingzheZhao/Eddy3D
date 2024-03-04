@@ -353,10 +353,8 @@ namespace EddyLib.OutdoorComfort
             {
                 var clstIdx = WS.ClstSimDirIndices[h];
 
-                var velEPWAtProbingHeight = 0.0;
-
                 // We assume a probing height of z = 2m
-                velEPWAtProbingHeight = WindSystem.ScaleABL(weather.WindSpeed[h], Probe.Zref[clstIdx], Probe.Z0[clstIdx], 2);
+                var velEPWAtProbingHeight = WindSystem.ScaleABL(weather.WindSpeed[h], Probe.Zref[clstIdx], Probe.Z0[clstIdx], 2);
 
                 var ratioSimProbingPoint = Probe.WindFactorsSpatial[clstIdx];
 

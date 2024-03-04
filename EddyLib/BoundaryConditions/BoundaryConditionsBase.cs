@@ -11,10 +11,8 @@ namespace EddyLib.BCs
         public double zref;
         public double zGround;
 
-        public ABL(int _windDir = 0, double _uref = 5.0, double _zref = 10, double _z0 = 1, double _zground = 0, string epwFilePath = "")
+        public ABL(int _windDir = 0, double _uref = 5.0, double _zref = 10, double _z0 = 1, double _zground = 0)
         {
-            this.epwFilePath = epwFilePath;
-
             windDir = _windDir;
             zGround = _zground;
             URef = _uref;
@@ -36,10 +34,8 @@ namespace EddyLib.BCs
     {
         // This is the overload for the constantU BCond where zGround is missing
 
-        public ConstU(int _windDir, double _uref, double _z0, string epwFilePath)
+        public ConstU(int _windDir, double _uref, double _z0)
         {
-            this.epwFilePath = epwFilePath;
-
             windDir = _windDir;
             URef = _uref;
             z0 = _z0;
@@ -80,6 +76,13 @@ namespace EddyLib.BCs
             BCs = new List<BC>();
         }
 
+        public BCCollection(string epwFilePath)
+        {
+            WindDirections = new List<int>(); // Ensure WindDirections is initialized
+            BCs = new List<BC>();
+            this.epwFilePath = epwFilePath;
+        }
+
         public BCCollection(BC BoundaryCondition) : this() // Call the base constructor to ensure initialization
         {
             AddBoundaryCondition(BoundaryCondition); // Use the method to ensure consistency
@@ -95,20 +98,9 @@ namespace EddyLib.BCs
 
         public BCCollection(BC BoundaryCondition, string epwFilePath) : this()
         {
+            this.epwFilePath = epwFilePath;
             this.BCs.Add(BoundaryCondition);
             this.WindDirections.Add(BoundaryCondition.windDir);
-
-            CalcWindStatistic(epwFilePath);
-        }
-
-        public BCCollection(List<BC> BoundaryConditions, string epwFilePath) : this()
-        {
-            this.BCs.AddRange(BoundaryConditions);
-
-            foreach (var bcond in BoundaryConditions)
-            {
-                this.WindDirections.Add(bcond.windDir);
-            }
 
             CalcWindStatistic(epwFilePath);
         }
@@ -120,15 +112,7 @@ namespace EddyLib.BCs
             SetUpWindDirections(windDirections, Type);
         }
 
-        public BCCollection(List<int> windDirections, BCType Type, string epwFilePath) : this()
-        {
-            this.WindDirections = windDirections;
-
-            SetUpWindDirections(windDirections, Type, epwFilePath);
-            CalcWindStatistic(epwFilePath);
-        }
-
-        protected void SetUpWindDirections(List<int> windDirections, BCType Type, string EPW = "")
+        protected void SetUpWindDirections(List<int> windDirections, BCType Type)
         {
             this.WindDirections = windDirections;
 
@@ -136,11 +120,11 @@ namespace EddyLib.BCs
             {
                 if (Type == BCType.ConstU)
                 {
-                    this.BCs.Add(new ConstU(dir, 5, 1, EPW));
+                    this.BCs.Add(new ConstU(dir, 5, 1));
                 }
                 else if (Type == BCType.ABL)
                 {
-                    this.BCs.Add(new ABL(dir, 5, 10, 1, 0, EPW));
+                    this.BCs.Add(new ABL(dir, 5, 10, 1, 0));
                 }
             }
         }
@@ -202,8 +186,6 @@ namespace EddyLib.BCs
         public double epsilon;
 
         public double omega;
-
-        public string epwFilePath;
 
         public static double ScaleABL(double URefEPW, double zref, double z0, double probingHeight)
         {

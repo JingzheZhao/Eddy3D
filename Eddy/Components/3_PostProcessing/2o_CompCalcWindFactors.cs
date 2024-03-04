@@ -182,9 +182,10 @@ This yields a datatree of the size [8760 h x number of sensor points].", GH_Para
 
             DA.SetData(0, wfspatial);
 
-            if (RES.Domain.BCond.epwFilePath == "")
+            if (RES.Domain.BCond.epwFilePath == "" || RES.Domain.BCond.epwFilePath == null)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Without a weather file (.epw) connected you will not be able to perform the annual wind comfort calculations.");
+                return;
             }
 
             if ((RES.Domain.BCond.epwFilePath.EndsWith(".epw")))

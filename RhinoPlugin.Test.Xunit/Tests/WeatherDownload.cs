@@ -16,6 +16,19 @@ namespace RhinoPlugin.Tests.Xunit
     public class WeatherDownload
 
     {
+        public static string DownloadAhmedabadEPW()
+        {
+            string epw = @"C:\Eddy3D\Common\Weather\IND_Ahmedabad.426470_IWEC.epw";
+
+            var epwURL = @"  https://energyplus-weather.s3.amazonaws.com/asia_wmo_region_2/IND/IND_Ahmedabad.426470_IWEC/IND_Ahmedabad.426470_IWEC.epw";
+
+            var folder = @"C:\Eddy3D\Common\Weather\";
+            if (!Directory.Exists(folder)) { Directory.CreateDirectory(folder); }
+            if (!File.Exists(epw)) { DownLoadFile(epwURL, epw); }
+
+            return epw;
+        }
+
         public static string DownloadEPW()
         {
             //string epw = @"C:\Eddy3D\Common\Weather\USA_NY_New.York-LaGuardia.AP.725030_TMY3.epw";

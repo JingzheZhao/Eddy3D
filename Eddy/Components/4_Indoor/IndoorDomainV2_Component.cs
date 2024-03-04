@@ -260,7 +260,7 @@ namespace Eddy.Components.Indoor
             }
 
             //var windDirList = new List<int>() { 0 };
-            BC bcond = new ABL(0, 5, 10, 1, 0, "");
+            BC bcond = new ABL(0, 5, 10, 1, 0);
 
             BCCollection bcColl = new BCCollection();
             bcColl.BCs.Add(bcond);

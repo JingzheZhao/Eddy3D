@@ -9,44 +9,43 @@ namespace EddyLib.OutdoorComfort
     // This is a post-processing class
     public class WindComfort
     {
-        public double[] ValuesPedestrianWindComfortCat { get; set; }
+        public double[] ValsPedWindCmftCat { get; set; }
 
-        public string[] ValuesPedestrianWindComfortClass { get; set; }
+        public string[] ValsPedWindCmftClassStringified { get; set; }
 
-        public string[] ValuesPedestrianWindComfortClassLetter { get; set; }
+        public string[] ValsPedWindCmftClassLetter { get; set; }
 
-        public UThresholdInfo[] ThresholdInfo { get; set; }
+        public CmftThresholdInfo[] ThresholdInfo { get; set; }
 
-        public WindComfort(WindFactorsSpatial ws, WindFactorsTemporal wa, WindComfortHelper.PCMetric pcidxx)
+        public WindComfort(WindFactorsTemporal wft, WindComfortHelper.PedCmftMetric pcidxx)
         {
-            CalcPedestrianComfort(ws, wa, pcidxx);
+            CalcPedestrianComfort(wft, pcidxx);
         }
 
-        private void CalcPedestrianComfort(WindFactorsSpatial ws, WindFactorsTemporal wa, WindComfortHelper.PCMetric cmftidx)
+        private void CalcPedestrianComfort(WindFactorsTemporal wft, WindComfortHelper.PedCmftMetric cmftidx)
         {
-            int sensorPointCount = wa.ValuesTemporalAtProbingHeight.GetLength(1);
+            int sensorCount = wft.ValuesTemporalAtProbingHeight.GetLength(1);
 
-            this.ValuesPedestrianWindComfortCat = new double[sensorPointCount];
-            this.ValuesPedestrianWindComfortClass = new string[sensorPointCount];
-            this.ValuesPedestrianWindComfortClassLetter = new string[sensorPointCount];
-            this.ThresholdInfo = new UThresholdInfo[sensorPointCount];
+            this.ValsPedWindCmftCat = new double[sensorCount];
+            this.ValsPedWindCmftClassStringified = new string[sensorCount];
+            this.ValsPedWindCmftClassLetter = new string[sensorCount];
+            this.ThresholdInfo = new CmftThresholdInfo[sensorCount];
 
-            Dictionary<int, UThresholdInfo> LTI = WindComfortMetricsWeibull.ThresholdInfo(cmftidx);
+            Dictionary<int, CmftThresholdInfo> TID = WindComfortMetricsWeibull.ThresholdInfo(cmftidx);
 
-            for (int probe = 0; probe < sensorPointCount; probe++)
+            for (int probe = 0; probe < sensorCount; probe++)
             {
                 // column is all hours of the year
-                var column = ArrayHelper.CustomArray<double>.GetColumn(wa.ValuesTemporalAtProbingHeight, probe);
+                double[] column = ArrayHelper.CustomArray<double>.GetColumn(wft.ValuesTemporalAtProbingHeight, probe);
 
                 // Move to 10m according to Blocken
 
                 // column = column.Select(x => EddyLib.BCs.BoundaryCondition.ScaleABL(x, 1.75, ws.BCond.z0, 10)).ToArray();
 
-                this.ThresholdInfo[probe] = WindComfortMetricsCounting.CalcComfortCountBins(column, LTI);
-
-                this.ValuesPedestrianWindComfortCat[probe] = ThresholdInfo[probe].Cat;
-                this.ValuesPedestrianWindComfortClass[probe] = ThresholdInfo[probe].Class;
-                this.ValuesPedestrianWindComfortClassLetter[probe] = ThresholdInfo[probe].ClassLetter;
+                this.ThresholdInfo[probe] = WindComfortMetricsCounting.CalcComfortCountBins(column, TID);
+                this.ValsPedWindCmftCat[probe] = ThresholdInfo[probe].Cat;
+                this.ValsPedWindCmftClassStringified[probe] = ThresholdInfo[probe].Class;
+                this.ValsPedWindCmftClassLetter[probe] = ThresholdInfo[probe].ClassLetter;
             }
         }
     }
