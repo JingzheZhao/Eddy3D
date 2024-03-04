@@ -70,7 +70,7 @@ namespace EddyLib.OutdoorComfort
 
         public double[] SkyTemp;
 
-        public MRT(string baseWorkingDir, Mesh BuildingGeometry, SkyTemperatureModel sky, SkyViewFactor vf, Weather weather, MRTType type, Point3d[] probes, bool recalc)
+        public MRT(string baseWorkingDir, Mesh BuildingGeometry, SkyTemperatureModel sky, SkyViewFactor vf, Weather weather, MRTType type, Point3d[] probes, bool recalc, string RadianceDir = "C:\\Program Files\\Radiance\\")
         {
             var binMRT = baseWorkingDir + @"MRT.bin";
 
@@ -110,7 +110,7 @@ namespace EddyLib.OutdoorComfort
                 //Utilities.CleanDirectory(baseWorkingDir + @"Rad\");
                 //Utilities.CleanDirectory(baseWorkingDir + @"Output\");
 
-                EddyLib.Radiation.TwoPhaseDDS dds = new EddyLib.Radiation.TwoPhaseDDS(baseWorkingDir, BuildingGeometry, probes.ToList(), weather, recalc);
+                EddyLib.Radiation.TwoPhaseDDS dds = new EddyLib.Radiation.TwoPhaseDDS(baseWorkingDir, BuildingGeometry, probes.ToList(), weather, recalc, RadianceDir);
 
                 this.SkyTemp = sky.Temp;
 

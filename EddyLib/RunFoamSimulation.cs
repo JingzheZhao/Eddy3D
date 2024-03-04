@@ -81,7 +81,7 @@ namespace EddyLib
                         if (DOM.BCond.BCs[i] is ConstU)
                         {
                             // We need the ABL file regardless
-                            ABL bcond = new ABL(DOM.BCond.WindDirections[i], DOM.BCond.BCs[i].URef, 10, DOM.BCond.BCs[i].z0, 0, DOM.BCond.epwFilePath);
+                            ABL bcond = new ABL(DOM.BCond.WindDirections[i], DOM.BCond.BCs[i].URef, 10, DOM.BCond.BCs[i].z0, 0);
 
                             File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), EddyLib.Strings.BCDicts.UBoxConstU(DOM, i));
                             File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "ABLConditions"), EddyLib.Strings.BCDicts.ABL(bcond, i));
@@ -129,7 +129,7 @@ namespace EddyLib
                         if (DOM.BCond.BCs[i] is ConstU)
                         {
                             // We need the ABL file regardless
-                            ABL bcond = new ABL(DOM.BCond.WindDirections[i], DOM.BCond.BCs[i].URef, 10, DOM.BCond.BCs[i].z0, 0, DOM.BCond.epwFilePath);
+                            ABL bcond = new ABL(DOM.BCond.WindDirections[i], DOM.BCond.BCs[i].URef, 10, DOM.BCond.BCs[i].z0, 0);
 
                             File.WriteAllText(Path.Combine(simBoundaryConditionsDir + "U"), EddyLib.Strings.BCDicts.UCylConstU((OFCylDomain)DOM, i));
                             File.WriteAllText(Path.Combine(simBoundaryConditionsDirTemp + "U"), EddyLib.Strings.BCDicts.UCylConstU((OFCylDomain)DOM, i));

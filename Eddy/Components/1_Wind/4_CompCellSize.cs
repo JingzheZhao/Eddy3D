@@ -47,6 +47,7 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddIntegerParameter("Accuracy", "Acc", "Level of accuracy needed", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Accuracy+1", "Acc+1", "Level+1 of accuracy needed", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -93,6 +94,7 @@ namespace Eddy
             acc = (int)(Math.Round(((Math.Log(blockMeshCellSize) - Math.Log(desiredCellSize)) / Math.Log(2))));
 
             DA.SetData(0, acc);
+            DA.SetData(0, acc + 1);
         }
 
         /// <summary>

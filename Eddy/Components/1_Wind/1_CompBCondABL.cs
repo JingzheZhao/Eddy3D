@@ -50,7 +50,7 @@ namespace Eddy
             pManager.AddNumberParameter("Reference height [m]", "zref", "Reference height[m]", GH_ParamAccess.list);
             pManager.AddNumberParameter("Surface roughness height [m]", "z0", "Surface roughness height [m]", GH_ParamAccess.list);
             pManager.AddNumberParameter("Minimum z-coordinate [m]", "zGround", "Minimum z - coordinate[m]", GH_ParamAccess.list);
-            pManager.AddTextParameter("Epw", "Epw", "Weather data file path", GH_ParamAccess.item, "");
+            pManager.AddTextParameter("EPW", "EPW", "Weather data file path", GH_ParamAccess.item, "");
             pManager[0].Optional = true;
             pManager[1].Optional = true;
             pManager[2].Optional = true;
@@ -103,11 +103,11 @@ namespace Eddy
 
             DA.GetData(5, ref epwFilePath);
 
-            BCCollection BCC = new BCCollection();
+            BCCollection BCC = new BCCollection(epwFilePath);
 
             for (int w = 0; w < windDirs.Count; w++)
             {
-                ABL newABL = new ABL(windDirs[w], Uref[w], zref[w], z0[w], zGround[w], epwFilePath);
+                ABL newABL = new ABL(windDirs[w], Uref[w], zref[w], z0[w], zGround[w]);
                 BCC.AddBoundaryCondition(newABL);
             }
 
@@ -149,6 +149,7 @@ namespace Eddy
             {
                 formattedSummary.AppendLine($"{PadRight(windDirs[i].ToString(), 18)}{PadRight(Uref[i].ToString(), 5)}{PadRight(zref[i].ToString(), 10)}{PadRight(z0[i].ToString(), 9)}{PadRight(zGround[i].ToString(), 10)}");
             }
+            formattedSummary.AppendLine(epwFilePath);
 
             // Set the description of the output parameter
             Params.Output[0].Description = formattedSummary.ToString();

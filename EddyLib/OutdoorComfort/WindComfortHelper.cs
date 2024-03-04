@@ -3,7 +3,7 @@
     // This is a post-processing class
     public class WindComfortHelper
     {
-        public enum PCMetric
+        public enum PedCmftMetric
         {
             LawsonGeneral,
 
@@ -27,7 +27,7 @@
             S // Smaller
         }
 
-        public struct UThresholdInfo
+        public struct CmftThresholdInfo
         {
             public int Cat; // integer catefory
 
@@ -35,9 +35,9 @@
 
             public double TimeThres; // in decimals
 
-            public string Class; // Words
+            public string Class; // Stringyfied Class
 
-            public string ClassLetter; // Letter: e.g. A
+            public string ClassLetter; // Letter Class: e.g. A
 
             public CompOperator Operator; // ComparisonOperator
         }

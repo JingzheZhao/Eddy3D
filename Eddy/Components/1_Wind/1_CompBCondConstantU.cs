@@ -47,7 +47,7 @@ namespace Eddy
             pManager.AddIntegerParameter("Wind Directions", "wDir", "Wind directions to be simulated", GH_ParamAccess.list);
             pManager.AddNumberParameter("Reference velocity [m/s]", "Uref", "Reference velocity [m/s]", GH_ParamAccess.list);
             pManager.AddNumberParameter("Surface roughness height [m]", "z0", "Surface roughness height [m]", GH_ParamAccess.list);
-            pManager.AddTextParameter("Epw", "Epw", "Weather data file path", GH_ParamAccess.item, "");
+            pManager.AddTextParameter("EPW", "EPW", "Weather data file path", GH_ParamAccess.item, "");
 
             pManager[0].Optional = true;
             pManager[1].Optional = true;
@@ -95,11 +95,11 @@ namespace Eddy
 
             DA.GetData(3, ref epwFilePath);
 
-            BCCollection BCC = new BCCollection();
+            BCCollection BCC = new BCCollection(epwFilePath);
 
             for (int w = 0; w < windDirs.Count; w++)
             {
-                ConstU newConstU = new ConstU(windDirs[w], Uref[w], z0[w], epwFilePath);
+                ConstU newConstU = new ConstU(windDirs[w], Uref[w], z0[w]);
                 BCC.AddBoundaryCondition(newConstU);
             }
 
@@ -139,8 +139,9 @@ namespace Eddy
 
             foreach (var i in Enumerable.Range(0, windDirs.Count))
             {
-                formattedSummary.AppendLine($"{PadRight(windDirs[i].ToString(), 18)}{PadRight(Uref[i].ToString(), 5)}{PadRight(z0[i].ToString(), 9)}");
+                formattedSummary.AppendLine($"{PadRight(windDirs[i].ToString(), 18)}{PadRight(Uref[i].ToString(), 7)}{PadRight(z0[i].ToString(), 9)}");
             }
+            formattedSummary.AppendLine(epwFilePath);
 
             // Set the description of the output parameter
             Params.Output[0].Description = formattedSummary.ToString();

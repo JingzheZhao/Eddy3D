@@ -6,7 +6,7 @@ namespace EddyLib.OutdoorComfort
 {
     internal class WindComfortMetricsCounting
     {
-        private static bool CheckExceedance(double[] annualVelocity, UThresholdInfo THI)
+        private static bool CheckExceedance(double[] annualVelocity, CmftThresholdInfo THI)
         {
             if (THI.Operator == CompOperator.G)
             {
@@ -22,17 +22,18 @@ namespace EddyLib.OutdoorComfort
             }
         }
 
-        public static UThresholdInfo CalcComfortCountBins(double[] annualVelocity, Dictionary<int, UThresholdInfo> THI)
+        public static CmftThresholdInfo CalcComfortCountBins(double[] annualVelocity, Dictionary<int, CmftThresholdInfo> CTID)
 
         {
-            UThresholdInfo pedestrianComfort = THI[1];
+            // If we can't make an estimate, let's return the best case scenario --> no wind, sitting is possible
+            CmftThresholdInfo pedestrianComfort = CTID[1];
 
-            foreach (var Entry in THI.Values)
+            foreach (CmftThresholdInfo TH in CTID.Values)
             {
-                bool Exceedance = CheckExceedance(annualVelocity, Entry);
+                bool Exceedance = CheckExceedance(annualVelocity, TH);
                 if (Exceedance)
                 {
-                    pedestrianComfort = Entry;
+                    pedestrianComfort = TH;
                 }
             }
             return pedestrianComfort;

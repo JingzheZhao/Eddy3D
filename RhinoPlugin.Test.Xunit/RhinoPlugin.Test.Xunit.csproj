@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Grasshopper" Version="7.20.22193.9001" />
+    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
     <PackageReference Include="RhinoCommon" Version="7.20.22193.9001" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">

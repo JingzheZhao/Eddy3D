@@ -128,7 +128,7 @@ namespace RhinoPlugin.Tests.Xunit
 
             var windDirList = new List<int>() { 0 };
 
-            BC bcond = new ABL(0, 5, 10, 1, 0, "");
+            BC bcond = new ABL(0, 5, 10, 1, 0);
 
             BCCollection bcColl = new BCCollection();
             bcColl.BCs.Add(bcond);
@@ -173,7 +173,7 @@ namespace RhinoPlugin.Tests.Xunit
             // Set the Skytemp to 10°C
             sky.Temp = Enumerable.Repeat(10.0, 8760).ToArray();
 
-            var mrt = new MRT(workingdir, DOMCYL.BuildingGeometry, sky, vf, weather, MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true);
+            var mrt = new MRT(workingdir, DOMCYL.BuildingGeometry, sky, vf, weather, MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true, GetRadianceDir());
 
             // Assert
 
@@ -226,7 +226,7 @@ namespace RhinoPlugin.Tests.Xunit
 
             var windDirList = new List<int>() { 0 };
 
-            BC bcond = new ABL(0, 5, 10, 1, 0, "");
+            BC bcond = new ABL(0, 5, 10, 1, 0);
 
             BCCollection bcColl = new BCCollection(bcond);
 
@@ -267,7 +267,7 @@ namespace RhinoPlugin.Tests.Xunit
                 Temp = Enumerable.Repeat(10.0, 8760).ToArray()
             };
 
-            var mrt = new MRT(workingdir, DOMCYL.BuildingGeometry, sky, vf, weather, MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true);
+            var mrt = new MRT(workingdir, DOMCYL.BuildingGeometry, sky, vf, weather, MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true, GetRadianceDir());
 
             // Assert
 
@@ -320,7 +320,7 @@ namespace RhinoPlugin.Tests.Xunit
             string epw = DownloadEPW();
 
             var windDirList = new List<int>() { 0 };
-            var bcond = new ABL(0, uref, zref, z0, 0, epw);
+            var bcond = new ABL(0, uref, zref, z0, 0);
 
             BCCollection bcColl = new BCCollection(bcond, epw);
 
@@ -359,7 +359,7 @@ namespace RhinoPlugin.Tests.Xunit
             // Set the Skytemp to 10°C
             sky.Temp = Enumerable.Repeat(10.0, 8760).ToArray();
 
-            var mrt = new MRT(workingdir, DOMCYL.BuildingGeometry, sky, vf, weather, MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true);
+            var mrt = new MRT(workingdir, DOMCYL.BuildingGeometry, sky, vf, weather, MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true, GetRadianceDir());
 
             // Assert
 
@@ -459,7 +459,7 @@ namespace RhinoPlugin.Tests.Xunit
             mm.Append(s);
 
             var windDirList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
-            BC bcond = new ABL(0, 5, 10, 1, 0, "");
+            BC bcond = new ABL(0, 5, 10, 1, 0);
 
             BCCollection bcColl = new BCCollection(bcond);
 
@@ -612,7 +612,7 @@ namespace RhinoPlugin.Tests.Xunit
             var uref = 10;
             var zref = 10;
 
-            var bcond = new ABL(0, uref, zref, z0, 0, "");
+            var bcond = new ABL(0, uref, zref, z0, 0);
 
             BCCollection bcColl = new BCCollection(bcond);
 
@@ -653,6 +653,7 @@ namespace RhinoPlugin.Tests.Xunit
         }
 
         private readonly string RadiancePath = @"C:\Program Files\Radiance\bin"; // Replace with your folder path
+        private readonly string EddyRadiancePath = @"C:\Eddy3D\Common\Radiance\bin";
 
         private readonly string[] RadianceExecutables = new string[]
         {
@@ -670,8 +671,9 @@ namespace RhinoPlugin.Tests.Xunit
         {
             foreach (var exe in RadianceExecutables)
             {
-                string filePath = Path.Combine(RadiancePath, exe);
-                Assert.True(File.Exists(filePath), $"Executable not found: {filePath}");
+                string defaultFilePath = Path.Combine(RadiancePath, exe);
+                string Eddy3DFilePath = Path.Combine(EddyRadiancePath, exe);
+                Assert.True(File.Exists(defaultFilePath) || File.Exists(Eddy3DFilePath), $"Executable not found: {defaultFilePath}");
             }
         }
 
@@ -755,6 +757,52 @@ namespace RhinoPlugin.Tests.Xunit
             Assert.Equal(Math.Round(19.105775, 3), Math.Round(utci[9], 3));
         }
 
+        private string GetRadianceDir()
+        {
+            string foundPath = string.Empty;
+
+            // Check if all executables exist in the default Radiance path
+            if (AllExecutablesExist(RadiancePath))
+            {
+                foundPath = RadiancePath;
+            }
+            // Check if all executables exist in the Eddy3D Radiance path
+            else if (AllExecutablesExist(EddyRadiancePath))
+            {
+                foundPath = EddyRadiancePath;
+            }
+
+            if (!string.IsNullOrEmpty(foundPath))
+            {
+                // Use DirectoryInfo to navigate to the parent directory
+                DirectoryInfo directoryInfo = new DirectoryInfo(foundPath);
+                DirectoryInfo parentDir = directoryInfo.Parent;
+                if (parentDir != null)
+                {
+                    return parentDir.FullName;
+                }
+                else
+                {
+                    throw new InvalidOperationException("No parent directory exists for the found path.");
+                }
+            }
+
+            // If no directory contains all executables, throw an exception
+            throw new InvalidOperationException("Radiance executables not found in the specified directories.");
+        }
+
+        private bool AllExecutablesExist(string directoryPath)
+        {
+            foreach (var exe in RadianceExecutables)
+            {
+                if (!File.Exists(Path.Combine(directoryPath, exe)))
+                {
+                    return false; // If any executable is missing, return false
+                }
+            }
+            return true; // All executables were found
+        }
+
         [Fact]
         public void UTCI()
         {
@@ -768,7 +816,7 @@ namespace RhinoPlugin.Tests.Xunit
             var uref = 10;
             var zref = 10;
 
-            var bcond = new ABL(0, uref, zref, z0, 0, "");
+            var bcond = new ABL(0, uref, zref, z0, 0);
 
             BCCollection bcColl = new BCCollection(bcond);
 

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using MathNet.Numerics.Distributions;
+using System.Collections.Generic;
+using System.Linq;
 using static EddyLib.OutdoorComfort.WindComfortHelper;
 
 namespace EddyLib.OutdoorComfort
@@ -6,26 +8,25 @@ namespace EddyLib.OutdoorComfort
     // This is a post-processing class
     public class WindComfortWeibull
     {
-        public double[] ValuesPedestrianWindComfortCat { get; set; }
-        public string[] ValuesPedestrianWindComfortClass { get; set; }
+        public double[] ValsPedWindCmftCat { get; set; }
+        public string[] ValsPedWindCmftClassStringified { get; set; }
+        public string[] ValsPedWindCmftClassLetter { get; set; }
 
-        public string[] ValuesPedestrianWindComfortClassLetter { get; set; }
+        public CmftThresholdInfo[] ThresholdInfo { get; set; }
 
-        public UThresholdInfo[] ThresholdInfo { get; set; }
-
-        public WindComfortWeibull(WindFactorsSpatial ws, WindFactorsTemporal wa, PCMetric cmftMetric)
+        public WindComfortWeibull(WindFactorsTemporal wft, PedCmftMetric cmftMetric)
         {
-            CalcPedestrianComfort(ws, wa, cmftMetric);
+            CalcPedestrianComfort(wft, cmftMetric);
         }
 
-        private void CalcPedestrianComfort(WindFactorsSpatial ws, WindFactorsTemporal wa, PCMetric cmftMetric)
+        private void CalcPedestrianComfort(WindFactorsTemporal wft, PedCmftMetric cmftMetric)
         {
-            int sensorPointCount = wa.ValuesTemporalAtProbingHeight.GetLength(1);
+            int sensorCount = wft.ValuesTemporalAtProbingHeight.GetLength(1);
 
-            this.ValuesPedestrianWindComfortCat = new double[sensorPointCount];
-            this.ValuesPedestrianWindComfortClass = new string[sensorPointCount];
-            this.ValuesPedestrianWindComfortClassLetter = new string[sensorPointCount];
-            this.ThresholdInfo = new UThresholdInfo[sensorPointCount];
+            this.ValsPedWindCmftCat = new double[sensorCount];
+            this.ValsPedWindCmftClassStringified = new string[sensorCount];
+            this.ValsPedWindCmftClassLetter = new string[sensorCount];
+            this.ThresholdInfo = new CmftThresholdInfo[sensorCount];
 
             // WindFactorsAnnual
             // [ProbingPoints , 8760]
@@ -33,21 +34,28 @@ namespace EddyLib.OutdoorComfort
             // WindFactorsSpatial
             // [SimulatedWindDirs , 8760]
 
-            Dictionary<int, UThresholdInfo> LTI = WindComfortMetricsWeibull.ThresholdInfo(cmftMetric);
+            Dictionary<int, CmftThresholdInfo> TID = WindComfortMetricsWeibull.ThresholdInfo(cmftMetric);
 
-            for (int probe = 0; probe < sensorPointCount; probe++)
+            for (int probe = 0; probe < sensorCount; probe++)
             {
                 // column is all hours from one wind direction
-                var column = ArrayHelper.CustomArray<double>.GetColumn(wa.ValuesTemporalAtProbingHeight, probe);
+                double[] ColumnWFA = ArrayHelper.CustomArray<double>.GetColumn(wft.ValuesTemporalAtProbingHeight, probe);
 
                 // Move to 10m according to Blocken
 
                 //  column = column.Select(x => EddyLib.BCs.BoundaryCondition.ScaleABL(x, 1.75, ws.BCond.z0, 10)).ToArray();
 
-                this.ThresholdInfo[probe] = WindComfortMetricsWeibull.CalcExceedance(column, LTI);
-                this.ValuesPedestrianWindComfortCat[probe] = ThresholdInfo[probe].Cat;
-                this.ValuesPedestrianWindComfortClass[probe] = ThresholdInfo[probe].Class;
-                this.ValuesPedestrianWindComfortClassLetter[probe] = ThresholdInfo[probe].ClassLetter;
+                // Make sure Weibull estimator doesn't run forever.
+                // Use LINQ to check if all values are not identical
+                if (ColumnWFA.Distinct().Count() == 0)
+                {
+                    continue;
+                };
+
+                this.ThresholdInfo[probe] = WindComfortMetricsWeibull.CalcExceedance(ColumnWFA, TID);
+                this.ValsPedWindCmftCat[probe] = ThresholdInfo[probe].Cat;
+                this.ValsPedWindCmftClassStringified[probe] = ThresholdInfo[probe].Class;
+                this.ValsPedWindCmftClassLetter[probe] = ThresholdInfo[probe].ClassLetter;
             }
         }
     }
