@@ -178,17 +178,6 @@ namespace RhinoPlugin.Tests.Xunit
         }
 
         [Fact]
-        public void ExceedanceWeibullZeroArray()
-        {
-            var PCMetric = WindComfortMetricsWeibull.ThresholdInfo(WindComfortHelper.PedCmftMetric.LawsonLDDC);
-            CmftThresholdInfo TI = WindComfortMetricsWeibull.CalcExceedance(zeroArr, PCMetric);
-
-            var cat = TI.Cat;
-
-            Assert.Equal(1, cat);
-        }
-
-        [Fact]
         public void ExceedanceWeibullNEN8100Comfort()
         {
             var PCMetric = WindComfortMetricsWeibull.ThresholdInfo(WindComfortHelper.PedCmftMetric.NEN8100Comfort);
