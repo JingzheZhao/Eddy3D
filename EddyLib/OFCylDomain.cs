@@ -17,8 +17,6 @@ namespace EddyLib
 
         public double height;
 
-        public List<Point3d> ListOfAllPointsInMagicOrder;
-
         public int divisionsX = 1;
 
         public int divsRadial;
