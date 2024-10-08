@@ -403,29 +403,28 @@ namespace EddyLib
             Point3d newCenter = new Point3d(center.X, center.Y, 0);
             Circle c = new Circle(newCenter, circleRadius);
 
-            // -1 would avoid duplicates but other methods (PerimeterRing) depend on having one
-            // duplicate point
-
-            for (int i = 0; i < poly.Count; i++)
+            // Generate points in counter-clockwise order
+            for (int i = poly.Count - 1; i >= 0; i--)
             {
                 Vector3d vec = newCenter - poly[i];
                 vec.Unitize();
                 vec *= (circleRadius + 1);
 
-                double t1;
-                Point3d p1;
-                double t2;
-                Point3d p2;
+                Rhino.Geometry.Intersect.LineCircleIntersection inter = Rhino.Geometry.Intersect.Intersection.LineCircle(new Line(newCenter, vec), c, out double t1, out Point3d p1, out double t2, out Point3d p2);
 
-                Rhino.Geometry.Intersect.LineCircleIntersection inter = Rhino.Geometry.Intersect.Intersection.LineCircle(new Line(newCenter, vec), c, out t1, out p1, out t2, out p2);
-
-                //Move all points in one plane
+                // Move all points to the same plane as the center
                 pointsOnCircle.Add(new Point3d(p1.X, p1.Y, center.Z));
             }
 
-            var pointsOnCircleArr = pointsOnCircle.ToArray();
-            Array.Reverse(pointsOnCircleArr);
-            this.pointsOnCircle = pointsOnCircleArr;
+            // Rotate the list by 1 member to the right
+            if (pointsOnCircle.Count > 0)
+            {
+                Point3d lastPoint = pointsOnCircle[pointsOnCircle.Count - 2];
+                pointsOnCircle.Insert(0, lastPoint);
+                pointsOnCircle.RemoveAt(pointsOnCircle.Count - 1);
+            }
+
+            this.pointsOnCircle = pointsOnCircle.ToArray();
         }
 
         private void SetPointsOnRect(int divisions, Mesh m)
