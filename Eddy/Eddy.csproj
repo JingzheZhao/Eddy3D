@@ -468,12 +468,10 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>
-
-Copy "$(TargetPath)" "$(TargetDir)$(ProjectName).gha"
+    <PostBuildEvent>Copy "$(TargetPath)" "$(TargetDir)$(ProjectName).gha"
 Erase "$(TargetPath)"
 
-SET obfuscar=$(SolutionDir)packages\Obfuscar.2.2.32\tools\Obfuscar.Console.exe
+SET obfuscar=$(SolutionDir)packages\Obfuscar.2.2.39\tools\Obfuscar.Console.exe
 SET build_eddy=$(SolutionDir)Eddy\bin
 SET build_batchrunner=$(SolutionDir)CallBatchRunner\bin
 SET INSTALLDIR=C:\Eddy3D
@@ -499,8 +497,8 @@ REM --------
 if not exist "$(SolutionDir)Build\Obfuscator_Input" mkdir "$(SolutionDir)Build\Obfuscator_Input"
 if not exist "$(SolutionDir)Build\Obfuscator_Output" mkdir "$(SolutionDir)Build\Obfuscator_Output"
 xcopy /e /v  /y "%25build_eddy%25" "$(SolutionDir)Build\Obfuscator_Input"
-xcopy /e /v  /y "$(SolutionDir)packages\Grasshopper.7.3.21053.23031\lib\net45" "$(SolutionDir)\Build\Obfuscator_Input"
-xcopy /e /v  /y "$(SolutionDir)packages\RhinoCommon.7.3.21053.23031\lib\net45" "$(SolutionDir)\Build\Obfuscator_Input"
+xcopy /e /v  /y "$(SolutionDir)packages\Grasshopper.8.8.24170.13001\lib\net48" "$(SolutionDir)\Build\Obfuscator_Input"
+xcopy /e /v  /y "$(SolutionDir)packages\RhinoCommon.8.8.24170.13001\lib\net48" "$(SolutionDir)\Build\Obfuscator_Input"
 "%25obfuscar%25" "$(SolutionDir)Build\ObfuscarConfig.xml"
 xcopy /e /v  /y "$(SolutionDir)Build\Obfuscator_Output" "%25INSTALLDIR%25"
 )
