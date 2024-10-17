@@ -534,24 +534,6 @@ xcopy /e /v  /y "$(SolutionDir)Build\Obfuscator_Output" "%25INSTALLDIR%25"
   <PropertyGroup>
     <FallbackCulture>en-US</FallbackCulture>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <StartProgram>C:\Program Files\Rhinoceros 5.0 (64-bit)\System\Rhino.exe</StartProgram>
-    <StartArguments>
-    </StartArguments>
-    <StartAction>Program</StartAction>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <Import Project="..\packages\RhinoCommon.8.2.23346.13001\build\net48\RhinoCommon.targets" Condition="Exists('..\packages\RhinoCommon.8.2.23346.13001\build\net48\RhinoCommon.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\RhinoCommon.8.2.23346.13001\build\net48\RhinoCommon.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\RhinoCommon.8.2.23346.13001\build\net48\RhinoCommon.targets'))" />
-    <Error Condition="!Exists('..\packages\Grasshopper.8.2.23346.13001\build\net48\Grasshopper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Grasshopper.8.2.23346.13001\build\net48\Grasshopper.targets'))" />
-    <Error Condition="!Exists('..\packages\RhinoCommon.8.8.24170.13001\build\net48\RhinoCommon.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\RhinoCommon.8.8.24170.13001\build\net48\RhinoCommon.targets'))" />
-    <Error Condition="!Exists('..\packages\Grasshopper.8.8.24170.13001\build\net48\Grasshopper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Grasshopper.8.8.24170.13001\build\net48\Grasshopper.targets'))" />
-  </Target>
-  <Import Project="..\packages\Grasshopper.8.2.23346.13001\build\net48\Grasshopper.targets" Condition="Exists('..\packages\Grasshopper.8.2.23346.13001\build\net48\Grasshopper.targets')" />
   <Import Project="..\packages\RhinoCommon.8.8.24170.13001\build\net48\RhinoCommon.targets" Condition="Exists('..\packages\RhinoCommon.8.8.24170.13001\build\net48\RhinoCommon.targets')" />
   <Import Project="..\packages\Grasshopper.8.8.24170.13001\build\net48\Grasshopper.targets" Condition="Exists('..\packages\Grasshopper.8.8.24170.13001\build\net48\Grasshopper.targets')" />
 </Project>
