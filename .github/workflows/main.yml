@@ -1,37 +1,46 @@
 name: Build Eddy3D
- 
-# Controls when the action will run. 
+
+# Controls when the action will run.
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
-  push: 
-  pull_request: 
- 
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
 jobs:
   build:
- 
+
     runs-on: windows-latest
- 
+
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v3
 
     - name: Setup MSBuild.exe
       uses: warrenbuckley/Setup-MSBuild@v1
       env:
-          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
-       
+        ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
+
     - name: Setup NuGet
       uses: NuGet/setup-nuget@v1.0.2
       env:
-          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
-     
+        ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
+
     - name: Restore NuGet Packages
-      run: echo "#1 Restore nuget\n" & nuget restore Eddy.sln
- 
+      run: |
+        echo "#1 Restore nuget\n"
+        nuget restore Eddy.sln
+
     - name: Build
-      run: echo "#2 Build Eddy3D\n" & msbuild Eddy.sln  /p:PreBuildEvent= /p:PostBuildEvent=
-      
+      run: |
+        echo "#2 Build Eddy3D\n"
+        msbuild Eddy.sln /p:PreBuildEvent= /p:PostBuildEvent=
+
       # Tests currently don't work because of "Rhino system dir not found: C:\Program Files\Rhino 7\System"
-      
+
 #    - name: Setup VSTest and add to PATH
 #      uses: darenm/Setup-VSTest@v1
 #      id: setup_vstest
@@ -40,5 +49,3 @@ jobs:
 #      id: run_vstest
 #      #working-directory: $\x64\Debug\
 #      run: vstest.console.exe /Platform:x64 "RhinoPlugin.Test.Xunit\bin\x64\Debug\net472\RhinoPlugin.Test.Xunit.dll"
-
-    
