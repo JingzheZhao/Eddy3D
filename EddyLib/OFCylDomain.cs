@@ -214,8 +214,8 @@ namespace EddyLib
 
             Polyline poly = coreBottom.GetNakedEdges()[0]; //returns a polygon with line segments for each mesh cell
 
-            Point3d[] pointsOnRect = GetPointsOnRect(divsRadial, coreBottom);
-            Point3d[] pointsOnCircle = GetPointsOnCircle(center, circRad, poly);
+            SetPointsOnRect(divsRadial, coreBottom);
+            SetPointsOnCircle(center, circRad, poly);
 
             double blockDimensionCore = BlockDimensionCore(pointsOnRect);
             divPerim = DivisionsPerim(pointsOnRect, pointsOnCircle, blockDimensionCore);
@@ -397,7 +397,7 @@ namespace EddyLib
             return list;
         }
 
-        private Point3d[] GetPointsOnCircle(Point3d center, double circleRadius, Polyline poly)
+        private void SetPointsOnCircle(Point3d center, double circleRadius, Polyline poly)
         {
             List<Point3d> pointsOnCircle = new List<Point3d>();
             Point3d newCenter = new Point3d(center.X, center.Y, 0);
@@ -423,15 +423,13 @@ namespace EddyLib
                 pointsOnCircle.Add(new Point3d(p1.X, p1.Y, center.Z));
             }
             this.pointsOnCircle = pointsOnCircle.ToArray();
-            return pointsOnCircle.ToArray();
         }
 
-        private Point3d[] GetPointsOnRect(int divisions, Mesh m)
+        private void SetPointsOnRect(int divisions, Mesh m)
         {
             Point3d[] pointsOnRect;
             m.GetNakedEdges()[0].ToNurbsCurve().DivideByCount(divisions * 4, true, out pointsOnRect);
             this.pointsOnRect = pointsOnRect;
-            return pointsOnRect;
         }
 
         private Mesh PerimeterRing(Polyline poly, Point3d[] pointsOnCircle)

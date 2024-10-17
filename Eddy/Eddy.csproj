@@ -39,17 +39,20 @@
     <Reference Include="ConsoleAppLauncher, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\ConsoleAppLauncher.2.0.0\lib\net45\ConsoleAppLauncher.dll</HintPath>
     </Reference>
+    <Reference Include="CsvHelper, Version=33.0.0.0, Culture=neutral, PublicKeyToken=8c4959082be5c823, processorArchitecture=MSIL">
+      <HintPath>..\packages\CsvHelper.33.0.1\lib\net48\CsvHelper.dll</HintPath>
+    </Reference>
     <Reference Include="Ed.Eto, Version=1.0.0.0, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
-      <HintPath>..\packages\RhinoCommon.8.9.24194.18121\lib\net48\Ed.Eto.dll</HintPath>
+      <HintPath>..\packages\RhinoCommon.8.8.24170.13001\lib\net48\Ed.Eto.dll</HintPath>
     </Reference>
     <Reference Include="Eto, Version=2.8.0.0, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
-      <HintPath>..\packages\RhinoCommon.8.9.24194.18121\lib\net48\Eto.dll</HintPath>
+      <HintPath>..\packages\RhinoCommon.8.8.24170.13001\lib\net48\Eto.dll</HintPath>
     </Reference>
-    <Reference Include="GH_IO, Version=8.9.24194.18121, Culture=neutral, PublicKeyToken=6a29997d2e6b4f97, processorArchitecture=MSIL">
-      <HintPath>..\packages\Grasshopper.8.9.24194.18121\lib\net48\GH_IO.dll</HintPath>
+    <Reference Include="GH_IO, Version=8.8.24170.13001, Culture=neutral, PublicKeyToken=6a29997d2e6b4f97, processorArchitecture=MSIL">
+      <HintPath>..\packages\Grasshopper.8.8.24170.13001\lib\net48\GH_IO.dll</HintPath>
     </Reference>
-    <Reference Include="Grasshopper, Version=8.9.24194.18121, Culture=neutral, PublicKeyToken=dda4f5ec2cd80803, processorArchitecture=MSIL">
-      <HintPath>..\packages\Grasshopper.8.9.24194.18121\lib\net48\Grasshopper.dll</HintPath>
+    <Reference Include="Grasshopper, Version=8.8.24170.13001, Culture=neutral, PublicKeyToken=dda4f5ec2cd80803, processorArchitecture=MSIL">
+      <HintPath>..\packages\Grasshopper.8.8.24170.13001\lib\net48\Grasshopper.dll</HintPath>
     </Reference>
     <Reference Include="MathNet.Numerics, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MathNet.Numerics.5.0.0\lib\net48\MathNet.Numerics.dll</HintPath>
@@ -63,28 +66,49 @@
     <Reference Include="MedallionShell, Version=1.6.2.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MedallionShell.1.6.2\lib\net471\MedallionShell.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.8.0.0\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Bcl.HashCode, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Bcl.HashCode.1.1.1\lib\net461\Microsoft.Bcl.HashCode.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.VisualBasic" />
-    <Reference Include="MoreLinq, Version=4.1.0.0, Culture=neutral, PublicKeyToken=384d532d7e88985d, processorArchitecture=MSIL">
-      <HintPath>..\packages\morelinq.4.1.0\lib\netstandard2.0\MoreLinq.dll</HintPath>
+    <Reference Include="MoreLinq, Version=4.3.0.0, Culture=neutral, PublicKeyToken=384d532d7e88985d, processorArchitecture=MSIL">
+      <HintPath>..\packages\morelinq.4.3.0\lib\netstandard2.0\MoreLinq.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="Rhino.UI, Version=8.9.24194.18121, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
-      <HintPath>..\packages\RhinoCommon.8.9.24194.18121\lib\net48\Rhino.UI.dll</HintPath>
+    <Reference Include="Rhino.UI, Version=8.8.24170.13001, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
+      <HintPath>..\packages\RhinoCommon.8.8.24170.13001\lib\net48\Rhino.UI.dll</HintPath>
     </Reference>
-    <Reference Include="RhinoCommon, Version=8.9.24194.18121, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
-      <HintPath>..\packages\RhinoCommon.8.9.24194.18121\lib\net48\RhinoCommon.dll</HintPath>
+    <Reference Include="RhinoCommon, Version=8.8.24170.13001, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
+      <HintPath>..\packages\RhinoCommon.8.8.24170.13001\lib\net48\RhinoCommon.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    </Reference>
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Management" />
+    <Reference Include="System.Memory, Version=4.0.1.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</HintPath>
+    </Reference>
     <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.6.0.0\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
+    </Reference>
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
@@ -468,12 +492,10 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>
-
-Copy "$(TargetPath)" "$(TargetDir)$(ProjectName).gha"
+    <PostBuildEvent>Copy "$(TargetPath)" "$(TargetDir)$(ProjectName).gha"
 Erase "$(TargetPath)"
 
-SET obfuscar=$(SolutionDir)packages\Obfuscar.2.2.32\tools\Obfuscar.Console.exe
+SET obfuscar=$(SolutionDir)packages\Obfuscar.2.2.39\tools\Obfuscar.Console.exe
 SET build_eddy=$(SolutionDir)Eddy\bin
 SET build_batchrunner=$(SolutionDir)CallBatchRunner\bin
 SET INSTALLDIR=C:\Eddy3D
@@ -499,8 +521,8 @@ REM --------
 if not exist "$(SolutionDir)Build\Obfuscator_Input" mkdir "$(SolutionDir)Build\Obfuscator_Input"
 if not exist "$(SolutionDir)Build\Obfuscator_Output" mkdir "$(SolutionDir)Build\Obfuscator_Output"
 xcopy /e /v  /y "%25build_eddy%25" "$(SolutionDir)Build\Obfuscator_Input"
-xcopy /e /v  /y "$(SolutionDir)packages\Grasshopper.7.3.21053.23031\lib\net45" "$(SolutionDir)\Build\Obfuscator_Input"
-xcopy /e /v  /y "$(SolutionDir)packages\RhinoCommon.7.3.21053.23031\lib\net45" "$(SolutionDir)\Build\Obfuscator_Input"
+xcopy /e /v  /y "$(SolutionDir)packages\Grasshopper.8.8.24170.13001\lib\net48" "$(SolutionDir)\Build\Obfuscator_Input"
+xcopy /e /v  /y "$(SolutionDir)packages\RhinoCommon.8.8.24170.13001\lib\net48" "$(SolutionDir)\Build\Obfuscator_Input"
 "%25obfuscar%25" "$(SolutionDir)Build\ObfuscarConfig.xml"
 xcopy /e /v  /y "$(SolutionDir)Build\Obfuscator_Output" "%25INSTALLDIR%25"
 )
@@ -526,10 +548,10 @@ xcopy /e /v  /y "$(SolutionDir)Build\Obfuscator_Output" "%25INSTALLDIR%25"
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\RhinoCommon.8.2.23346.13001\build\net48\RhinoCommon.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\RhinoCommon.8.2.23346.13001\build\net48\RhinoCommon.targets'))" />
     <Error Condition="!Exists('..\packages\Grasshopper.8.2.23346.13001\build\net48\Grasshopper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Grasshopper.8.2.23346.13001\build\net48\Grasshopper.targets'))" />
-    <Error Condition="!Exists('..\packages\RhinoCommon.8.9.24194.18121\build\net48\RhinoCommon.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\RhinoCommon.8.9.24194.18121\build\net48\RhinoCommon.targets'))" />
-    <Error Condition="!Exists('..\packages\Grasshopper.8.9.24194.18121\build\net48\Grasshopper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Grasshopper.8.9.24194.18121\build\net48\Grasshopper.targets'))" />
+    <Error Condition="!Exists('..\packages\RhinoCommon.8.8.24170.13001\build\net48\RhinoCommon.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\RhinoCommon.8.8.24170.13001\build\net48\RhinoCommon.targets'))" />
+    <Error Condition="!Exists('..\packages\Grasshopper.8.8.24170.13001\build\net48\Grasshopper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Grasshopper.8.8.24170.13001\build\net48\Grasshopper.targets'))" />
   </Target>
   <Import Project="..\packages\Grasshopper.8.2.23346.13001\build\net48\Grasshopper.targets" Condition="Exists('..\packages\Grasshopper.8.2.23346.13001\build\net48\Grasshopper.targets')" />
-  <Import Project="..\packages\RhinoCommon.8.9.24194.18121\build\net48\RhinoCommon.targets" Condition="Exists('..\packages\RhinoCommon.8.9.24194.18121\build\net48\RhinoCommon.targets')" />
-  <Import Project="..\packages\Grasshopper.8.9.24194.18121\build\net48\Grasshopper.targets" Condition="Exists('..\packages\Grasshopper.8.9.24194.18121\build\net48\Grasshopper.targets')" />
+  <Import Project="..\packages\RhinoCommon.8.8.24170.13001\build\net48\RhinoCommon.targets" Condition="Exists('..\packages\RhinoCommon.8.8.24170.13001\build\net48\RhinoCommon.targets')" />
+  <Import Project="..\packages\Grasshopper.8.8.24170.13001\build\net48\Grasshopper.targets" Condition="Exists('..\packages\Grasshopper.8.8.24170.13001\build\net48\Grasshopper.targets')" />
 </Project>

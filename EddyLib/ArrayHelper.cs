@@ -561,5 +561,26 @@ namespace EddyLib
                 }
             }
         }
+
+        // Efficient way of rotating array by a certain distance
+        // https://outcompute.com/2019/02/23/algorithm-cyclic-rotation-in-csharp/
+        public static T[] RotateBySpanCopy<T>(T[] input, int distance)
+        {
+            // validate
+            if (input == null) throw new ArgumentNullException(nameof(input));
+            if (distance < 0) throw new ArgumentOutOfRangeException(nameof(distance));
+            if (input.Length == 0) return new T[0];
+
+            // rotate
+            var result = new T[input.Length];
+            var target = new Span<T>(result);
+            var diff = distance % input.Length;
+            var source1 = new Span<T>(input, 0, input.Length - diff);
+            source1.CopyTo(target.Slice(diff, input.Length - diff));
+            var source2 = new Span<T>(input, input.Length - diff, diff);
+            source2.CopyTo(target.Slice(0, diff));
+
+            return result;
+        }
     }
 }
