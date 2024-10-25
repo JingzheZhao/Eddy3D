@@ -3,6 +3,9 @@ using EddyLib;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Runtime.CompilerServices;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -35,8 +38,9 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddMeshParameter("Building Mesh", "BM", "Joined Building Mesh.", GH_ParamAccess.item);
-            pManager.AddMeshParameter("Ground Mesh", "GM", "Ground Mesh.", GH_ParamAccess.item);
+            pManager.AddMeshParameter("Building Mesh", "BM", "Joined Building Mesh.", GH_ParamAccess.list);
+            pManager.AddMeshParameter("Ground Mesh", "GM", "Ground Mesh.", GH_ParamAccess.list);
+
             pManager.AddIntegerParameter("Target Count", "TC", "TC.", GH_ParamAccess.item, 50000);
             pManager.AddBooleanParameter("Convert Quads to Triangles", "QT", "Convert quads to triangles in the resulting mesh.", GH_ParamAccess.item, true);
 
@@ -63,20 +67,48 @@ namespace Eddy
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            Mesh BuildingMesh = null;
-            Mesh GroundMesh = null;
+            List<Mesh> BuildingMesh = new List<Mesh>();
+            List<Mesh> GroundMesh = new List<Mesh>();
+
             bool QT = true;
             int TargetCount = 50000;
 
-            DA.GetData(0, ref BuildingMesh);
-            DA.GetData(1, ref GroundMesh);
+            DA.GetDataList(0, BuildingMesh);
+            DA.GetDataList(1, GroundMesh);
+
             DA.GetData(2, ref TargetCount);
             DA.GetData(3, ref QT);
 
-            var outsidePoints = Utilities.GetOutsidePoints(GroundMesh, BuildingMesh, TargetCount);
-            GroundMesh.Vertices.Remove(outsidePoints, QT);
+            Mesh JoinedGroundMesh = JoinMeshes(GroundMesh);
+            Mesh JoinedBuildingMesh = JoinMeshes(BuildingMesh);
 
-            DA.SetData(0, GroundMesh);
+            var outsidePoints = Utilities.GetOutsidePoints(JoinedGroundMesh, JoinedBuildingMesh, TargetCount);
+            JoinedGroundMesh.Vertices.Remove(outsidePoints, QT);
+
+            DA.SetData(0, JoinedGroundMesh);
+        }
+
+        private Mesh JoinMeshes(List<Mesh> list)
+        {
+            // Remove all null meshes from the list
+            list.RemoveAll(mesh => mesh == null);
+
+            // Create a new mesh to store the combined result
+            Mesh resultMesh = new Mesh();
+
+            // If there are any remaining meshes in the list, append them to the resultMesh
+            if (list.Count > 0)
+            {
+                resultMesh.Append((IEnumerable<Mesh>)list);
+            }
+
+            // If the resultMesh has vertices, return it; otherwise, return null (or handle as needed)
+            if (resultMesh.Vertices.Count > 0)
+            {
+                return resultMesh;
+            }
+
+            return null; // Handle no valid meshes case
         }
 
         /// <summary>
