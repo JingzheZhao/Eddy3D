@@ -531,7 +531,6 @@ namespace EddyLib
 
                 {
                     numberList.Add(number);
-
                 }
             }
 

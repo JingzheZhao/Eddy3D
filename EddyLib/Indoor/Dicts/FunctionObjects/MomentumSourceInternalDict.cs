@@ -1,16 +1,12 @@
-﻿using System;
+﻿using Rhino.Geometry;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using EddyLib.Indoor.Dicts;
-using Rhino.Geometry;
 
 namespace EddyLib.Indoor.Dicts
 {
     public class MomentumSourceInternalDict : GenericDict
     {
-
         public List<String> InternalDict = new List<string>();
 
         //public MomentumSourceInternalDict(MomentumSource momSource, Point3d PointInsideDomain)

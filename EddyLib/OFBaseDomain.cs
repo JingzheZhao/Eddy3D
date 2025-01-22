@@ -1,5 +1,4 @@
 ﻿using EddyLib.BCs;
-using EddyLib.Indoor;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;

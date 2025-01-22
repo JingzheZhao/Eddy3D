@@ -1,5 +1,4 @@
-﻿using EddyLib.Indoor;
-using Rhino.Geometry;
+﻿using Rhino.Geometry;
 using System;
 using System.Drawing;
 using System.IO;

@@ -2,7 +2,6 @@
 using EddyLib;
 using EddyLib.BCs;
 using Grasshopper.Kernel;
-using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Linq;

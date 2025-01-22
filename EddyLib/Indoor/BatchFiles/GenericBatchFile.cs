@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace EddyLib.Indoor.BatchFiles
 {
@@ -31,7 +27,6 @@ namespace EddyLib.Indoor.BatchFiles
 
         public string GetHeader()
         {
-
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(@"call ""C:\Program Files\blueCFD-Core-2020\setvars_OF8.bat");
             sb.AppendLine(@"set PATH=%HOME%msys64\usr\bin;%PATH%");

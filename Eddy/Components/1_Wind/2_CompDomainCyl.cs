@@ -5,7 +5,6 @@ using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
-using EddyLib.Indoor;
 using System.Linq;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of

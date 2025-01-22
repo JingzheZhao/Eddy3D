@@ -273,90 +273,99 @@ namespace Eddy
 
             #endregion Error handling
 
-            if (numberOfProbes > 0 && meshExists)
+            if (!(numberOfProbes > 0) || !meshExists)
             {
-                try
+                if (!(numberOfProbes > 0))
                 {
-                    StringBuilder command = new StringBuilder();
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The number of probes must be greater than 0.");
+                }
+                if (!meshExists)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Mesh does not exist. Please provide a valid mesh.");
+                }
+                return;
+            }
+            try
+            {
+                StringBuilder command = new StringBuilder();
 
-                    for (int i = 0; i < RES.Domain.BCond.WindDirections.Count; i++)
+                for (int i = 0; i < RES.Domain.BCond.WindDirections.Count; i++)
+                {
+                    // Check if mesh exists
+
+                    string pathToPointFile = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i] + @"\constant\polyMesh\points";
+                    string currCase = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i];
+
+                    if (!File.Exists(pathToPointFile))
                     {
-                        // Check if mesh exists
-
-                        string pathToPointFile = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i] + @"\constant\polyMesh\points";
-                        string currCase = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i];
-
-                        if (!File.Exists(pathToPointFile))
-                        {
-                            base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.MeshDoesntExist(pathToPointFile));
-                            return;
-                        }
-
-                        // If yes, write the dicts for both Docker and BlueCFD
-                        string path = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i] + @"\system\" + probeNameByUser;
-                        File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbes(listOfPoints, currField));
-
-                        if (RES.RunSettings.simEngine == SimEngine.Docker)
-                        {
-                            command.Append(@"postProcess -func " + currField.ProbeName + @" -time " + Probing.GetLatestTime(currCase, RES, currField) + @"| tee  " + RES.Domain.BCond.WindDirections[i] + @"/log_probes;");
-                        }
-                        else
-                        {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
-                            // Todo: check here if we need a semicolon to sepaate the command
-                            // from the suffix
-                            command.AppendLine(@"postProcess -case " + RES.Domain.BCond.WindDirections[i] + " -func " + probeNameByUser + @" -time " + Probing.GetLatestTime(currCase, RES, currField));
-                        }
+                        base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.MeshDoesntExist(pathToPointFile));
+                        return;
                     }
 
-                    if (run == true && canRun == true)
+                    // If yes, write the dicts for both Docker and BlueCFD
+                    string path = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i] + @"\system\" + probeNameByUser;
+                    File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbes(listOfPoints, currField));
+
+                    if (RES.RunSettings.simEngine == SimEngine.Docker)
                     {
-                        if (RES.RunSettings.simEngine == SimEngine.Docker)
-                        {
-                            var arg = BatFiles.DockerPrefixPath(RES.Domain, RES.MeshSettings, RES.RunSettings, OFExecutionMode.Simulation) + command;
-                            Utilities.StartProcess.StartProcessCMDNT(arg, false, true, false, true, probingComplete);
-                        }
-                        else
-                        {
-                            var cmdArg = BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory, RunMode.Canvas);
-                            Utilities.StartProcess.StartProcessCMDNT(cmdArg, false, true, true, true, probingComplete);
-                        }
+                        command.Append(@"postProcess -func " + currField.ProbeName + @" -time " + Probing.GetLatestTime(currCase, RES, currField) + @"| tee  " + RES.Domain.BCond.WindDirections[i] + @"/log_probes;");
                     }
-
-                    for (int i = 0; i < RES.Domain.BCond.WindDirections.Count; i++)
-                    {
-                        string currentCaseDir = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i];
-
-                        // We must check if this exists before we construct the Probing object
-                        string pathToProbeFile = Probing.GetPathToProbedResults(currentCaseDir, currField, RES);
-                        if (File.Exists(pathToProbeFile))
-                        {
-                            if (currField.FieldType == fieldType.vector)
-                            {
-                                Probing Vectors = new Probing(listOfPoints, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.WindDirections[i], RES, run);
-
-                                // Create datatree
-                                treeVector.AppendRange(Vectors.ResultVec, new Grasshopper.Kernel.Data.GH_Path(i));
-                            }
-                            else
-                            {
-                                Probing Scalars = new Probing(listOfPoints, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.WindDirections[i], RES, run);
-
-                                // Create datatree
-                                treeDouble.AppendRange(Scalars.ResultScalar, new Grasshopper.Kernel.Data.GH_Path(i));
-                            }
-                        }
-                        else
-                        {
-                            base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.FieldDoesntExist(currentCaseDir, currField));
-                        }
+                    else
+                    {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
+                     // Todo: check here if we need a semicolon to sepaate the command
+                     // from the suffix
+                        command.AppendLine(@"postProcess -case " + RES.Domain.BCond.WindDirections[i] + " -func " + probeNameByUser + @" -time " + Probing.GetLatestTime(currCase, RES, currField));
                     }
                 }
-                catch (Exception ex)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, ex.ToString());
 
-                    //throw new System.ArgumentException("Parsing of the probes failed. This data does not exist yet. Please run the probing component.");
+                if (run == true && canRun == true)
+                {
+                    if (RES.RunSettings.simEngine == SimEngine.Docker)
+                    {
+                        var arg = BatFiles.DockerPrefixPath(RES.Domain, RES.MeshSettings, RES.RunSettings, OFExecutionMode.Simulation) + command;
+                        Utilities.StartProcess.StartProcessCMDNT(arg, false, true, false, true, probingComplete);
+                    }
+                    else
+                    {
+                        var cmdArg = BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory, RunMode.Canvas);
+                        Utilities.StartProcess.StartProcessCMDNT(cmdArg, false, true, true, true, probingComplete);
+                    }
                 }
+
+                for (int i = 0; i < RES.Domain.BCond.WindDirections.Count; i++)
+                {
+                    string currentCaseDir = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i];
+
+                    // We must check if this exists before we construct the Probing object
+                    string pathToProbeFile = Probing.GetPathToProbedResults(currentCaseDir, currField, RES);
+                    if (File.Exists(pathToProbeFile))
+                    {
+                        if (currField.FieldType == fieldType.vector)
+                        {
+                            Probing Vectors = new Probing(listOfPoints, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.WindDirections[i], RES, run);
+
+                            // Create datatree
+                            treeVector.AppendRange(Vectors.ResultVec, new Grasshopper.Kernel.Data.GH_Path(i));
+                        }
+                        else
+                        {
+                            Probing Scalars = new Probing(listOfPoints, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.WindDirections[i], RES, run);
+
+                            // Create datatree
+                            treeDouble.AppendRange(Scalars.ResultScalar, new Grasshopper.Kernel.Data.GH_Path(i));
+                        }
+                    }
+                    else
+                    {
+                        base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.FieldDoesntExist(currentCaseDir, currField));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, ex.ToString());
+
+                //throw new System.ArgumentException("Parsing of the probes failed. This data does not exist yet. Please run the probing component.");
             }
 
             // Todo: Move this into class object once its properly architected

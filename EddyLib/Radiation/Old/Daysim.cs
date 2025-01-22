@@ -212,8 +212,7 @@ void plastic Generic_20
                 };
 
                 string pathvar2 = startInfo.EnvironmentVariables["PATH"];
-                startInfo.EnvironmentVariables["PATH"] = pathvar2 + @";" + DaysimInstallation; 
-
+                startInfo.EnvironmentVariables["PATH"] = pathvar2 + @";" + DaysimInstallation;
 
                 startInfo.UseShellExecute = false;
                 startInfo.RedirectStandardError = true;

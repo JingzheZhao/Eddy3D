@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using Xunit;
 using static EddyLib.OutdoorComfort.WindComfortHelper;
 using static RhinoPlugin.Tests.Xunit.WeatherDownload;

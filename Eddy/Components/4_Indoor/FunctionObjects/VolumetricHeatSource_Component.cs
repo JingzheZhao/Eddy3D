@@ -1,13 +1,11 @@
 ﻿using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
 using EddyLib;
-using EddyLib.Indoor;
+using EddyLib.Indoor.FunctionObjects;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Parameters;
 using Rhino.Geometry;
 using System;
-using EddyLib.Indoor.Dicts;
-using Grasshopper.Kernel.Parameters;
-using EddyLib.Indoor.FunctionObjects;
 
 namespace Eddy.Components.Indoor
 {

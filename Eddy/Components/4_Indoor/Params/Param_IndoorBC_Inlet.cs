@@ -3,12 +3,11 @@ using EddyLib;
 using EddyLib.Indoor;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
+using Newtonsoft.Json;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using Newtonsoft.Json;
-
 
 namespace Eddy.Components.Indoor.Params
 {

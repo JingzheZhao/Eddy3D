@@ -2,7 +2,6 @@
 using Rhino.Geometry.Intersect;
 using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -13,7 +12,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace EddyLib
 {
@@ -605,16 +603,10 @@ exit
             return operatingSystem;
         }
 
-        public static int[] GetOutsidePoints(Mesh Ground, Mesh BuildingMesh, int TargetCount)
+        public static int[] GetOutsidePoints(Mesh FineGround, Mesh BuildingMesh, int TargetCount)
         {
-            var para = new QuadRemeshParameters();
-            para.TargetQuadCount = TargetCount;
-            para.SymmetryAxis = QuadRemeshSymmetryAxis.Y;
-
-            Ground.QuadRemesh(para);
-
             // Using PLINQ for parallel processing
-            var outsidePointIdx = Ground.Vertices.AsParallel().AsOrdered().Select((p, i) =>
+            var outsidePointIdx = FineGround.Vertices.AsParallel().AsOrdered().Select((p, i) =>
             {
                 // Create a new Ray3d object each time with the desired origin and direction
                 var ray = new Ray3d(new Point3d(p.X, p.Y, 9999), new Vector3d(0, 0, -1));

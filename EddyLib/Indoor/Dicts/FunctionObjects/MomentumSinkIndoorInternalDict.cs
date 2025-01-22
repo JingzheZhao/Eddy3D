@@ -1,18 +1,13 @@
-﻿using System;
+﻿using Rhino.Geometry;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using EddyLib.Indoor.Dicts;
-using Rhino.Geometry;
 
 namespace EddyLib.Indoor.Dicts
 {
     public class MomentumSinkIndoorInternalDict : GenericDict
     {
-
         public List<String> InternalDict = new List<string>();
-
 
         //public MomentumSinkIndoorInternalDict(MomentumSinkIndoor momSink, Point3d PointInsideDomain)
         public MomentumSinkIndoorInternalDict(List<MomentumSinkIndoor> momentumSinks, Point3d PointInsideDomain)
@@ -31,11 +26,8 @@ namespace EddyLib.Indoor.Dicts
 
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
 
-
             //this.TopoSetDictString = CppMapSerializerDyn.Serialize(GetInternalTopoSetDict((FunctionObject)MomSink, PointInsideDomain));
             // this.FunctionObjectSubDictString = CppMapSerializerDyn.Serialize(GetInternalFvOptionsDict(MomSink));
-
-
         }
 
         public static Dictionary<string, dynamic> GetInternalFvOptionsDict(MomentumSinkIndoor input)
