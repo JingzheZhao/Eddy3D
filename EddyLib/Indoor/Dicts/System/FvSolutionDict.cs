@@ -2,10 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 
-#if DEBUG
-[assembly: InternalsVisibleTo("UnitTest")]
-#endif
-
 namespace EddyLib.Indoor.Dicts
 {
     public class FvSolutionDict : GenericDict
