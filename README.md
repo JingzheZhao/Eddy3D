@@ -20,5 +20,4 @@ https://github.com/Eddy3D-Dev/Eddy3D-CaseStudies
 
 # Issue repos
 
-https://github.com/Eddy3D-Dev/Eddy3D-Issues  
-https://github.com/EnvironmentalSystemsLab/Eddy3D-Public
+https://github.com/Eddy3D-Dev/Eddy3D-Issues
