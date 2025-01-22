@@ -265,23 +265,30 @@ namespace EddyLib.Radiation
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum MoistureDiffusionCalculationMethod { Advanced, Empty, Simple };
+    public enum MoistureDiffusionCalculationMethod
+    { Advanced, Empty, Simple };
 
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum FenestrationSurfaceDetailedSurfaceType { Door, GlassDoor, TubularDaylightDiffuser, TubularDaylightDome, Window };
+    public enum FenestrationSurfaceDetailedSurfaceType
+    { Door, GlassDoor, TubularDaylightDiffuser, TubularDaylightDome, Window };
 
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum BuildingSurfaceDetailedOutsideBoundaryCondition { Adiabatic, Foundation, Ground, GroundBasementPreprocessorAverageFloor, GroundBasementPreprocessorAverageWall, GroundBasementPreprocessorLowerWall, GroundBasementPreprocessorUpperWall, GroundFCfactorMethod, GroundSlabPreprocessorAverage, GroundSlabPreprocessorCore, GroundSlabPreprocessorPerimeter, OtherSideCoefficients, OtherSideConditionsModel, Outdoors, Surface, Zone };
+    public enum BuildingSurfaceDetailedOutsideBoundaryCondition
+    { Adiabatic, Foundation, Ground, GroundBasementPreprocessorAverageFloor, GroundBasementPreprocessorAverageWall, GroundBasementPreprocessorLowerWall, GroundBasementPreprocessorUpperWall, GroundFCfactorMethod, GroundSlabPreprocessorAverage, GroundSlabPreprocessorCore, GroundSlabPreprocessorPerimeter, OtherSideCoefficients, OtherSideConditionsModel, Outdoors, Surface, Zone };
 
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum BuildingSurfaceDetailedSunExposure { Empty, NoSun, SunExposed };
+    public enum BuildingSurfaceDetailedSunExposure
+    { Empty, NoSun, SunExposed };
 
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum BuildingSurfaceDetailedSurfaceType { Ceiling, Floor, Roof, Wall };
+    public enum BuildingSurfaceDetailedSurfaceType
+    { Ceiling, Floor, Roof, Wall };
 
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum WindExposure { Empty, NoWind, WindExposed };
+    public enum WindExposure
+    { Empty, NoWind, WindExposed };
 
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum RoughnessOfCollectorEnum { MediumRough, MediumSmooth, Rough, Smooth, VeryRough, VerySmooth };
+    public enum RoughnessOfCollectorEnum
+    { MediumRough, MediumSmooth, Rough, Smooth, VeryRough, VerySmooth };
 }

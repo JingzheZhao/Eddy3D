@@ -1,11 +1,7 @@
-﻿using System;
+﻿using Rhino.Geometry;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using EddyLib.Indoor.Dicts;
-using Rhino.Geometry;
-using EddyLib.Indoor.FunctionObjects;
 
 namespace EddyLib.Indoor.Dicts
 {

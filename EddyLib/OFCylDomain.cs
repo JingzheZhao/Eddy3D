@@ -1,11 +1,10 @@
-﻿using Rhino.Geometry;
+﻿using EddyLib.BCs;
+using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using EddyLib.Indoor;
-using EddyLib.BCs;
 
 namespace EddyLib
 {
@@ -212,10 +211,11 @@ namespace EddyLib
                 divisionsZ = (int)(height / cellSizeCore);
             }
 
-            Polyline poly = coreBottom.GetNakedEdges()[0]; //returns a polygon with line segments for each mesh cell
+            Polyline nakedEdges = coreBottom.GetNakedEdges()[0]; //returns a polygon with line segments for each mesh cell // BREAKS Rhino 8.9
+            Polyline adjustedPolyline = AdjustPolylineSeamAndOrientation(nakedEdges, true); // Fix for Rhino 8.9 and newer
 
-            SetPointsOnRect(divsRadial, coreBottom);
-            SetPointsOnCircle(center, circRad, poly);
+            SetPointsOnRect(divsRadial, adjustedPolyline);
+            SetPointsOnCircle(center, circRad, adjustedPolyline);
 
             double blockDimensionCore = BlockDimensionCore(pointsOnRect);
             divPerim = DivisionsPerim(pointsOnRect, pointsOnCircle, blockDimensionCore);
@@ -230,7 +230,7 @@ namespace EddyLib
 
             coreTop.Append(coreBottom);
             coreTop.Translate(Vector3d.ZAxis * height);
-            perimBottom = PerimeterRing(poly, pointsOnCircle);
+            perimBottom = PerimeterRing(adjustedPolyline, pointsOnCircle);
             perimTop.Append(perimBottom);
             perimTop.Translate(Vector3d.ZAxis * height);
 
@@ -257,6 +257,38 @@ namespace EddyLib
             IEnumerable<Mesh> first = new Mesh[] { DomainMesh };
             IEnumerable<Mesh> second = new Mesh[] { TerrainMesh };
             this.DomainMeshIntersection = Mesh.CreateBooleanIntersection(first, second);
+        }
+
+        private Polyline AdjustPolylineSeamAndOrientation(Polyline nakedEdge, bool reverseOrientation = true)
+        {
+            // Convert the polyline to a NurbsCurve
+            NurbsCurve curve = nakedEdge.ToNurbsCurve();
+
+            // Get the curve's domain
+            double tStart = curve.Domain.Min;
+            double tEnd = curve.Domain.Max;
+
+            // Find the first discontinuity
+            double discontinuityParam;
+            curve.GetNextDiscontinuity(Continuity.G1_continuous, tStart, tEnd, out discontinuityParam);
+
+            // Move the seam to the discontinuity
+            curve.ChangeClosedCurveSeam(discontinuityParam);
+
+            // Reverse the curve orientation if required
+            if (reverseOrientation)
+            {
+                curve.Reverse();
+            }
+
+            // Convert the adjusted NurbsCurve back to a Polyline
+            Polyline newPolyline;
+            if (!curve.TryGetPolyline(out newPolyline))
+            {
+                throw new Exception("Failed to convert curve back to polyline.");
+            }
+
+            return newPolyline;
         }
 
         private void WeldAllIndividualMeshes()
@@ -397,7 +429,7 @@ namespace EddyLib
             return list;
         }
 
-        private void SetPointsOnCircle(Point3d center, double circleRadius, Polyline poly)
+        private void SetPointsOnCircle(Point3d center, double circleRadius, Polyline nakedEdges)
         {
             List<Point3d> pointsOnCircle = new List<Point3d>();
             Point3d newCenter = new Point3d(center.X, center.Y, 0);
@@ -406,9 +438,9 @@ namespace EddyLib
             // -1 would avoid duplicates but other methods (PerimeterRing) depend on having one
             // duplicate point
 
-            for (int i = 0; i < poly.Count; i++)
+            for (int i = 0; i < nakedEdges.Count; i++)
             {
-                Vector3d vec = newCenter - poly[i];
+                Vector3d vec = newCenter - nakedEdges[i];
                 vec.Unitize();
                 vec *= (circleRadius + 1);
 
@@ -425,10 +457,10 @@ namespace EddyLib
             this.pointsOnCircle = pointsOnCircle.ToArray();
         }
 
-        private void SetPointsOnRect(int divisions, Mesh m)
+        private void SetPointsOnRect(int divisions, Polyline nakedEdges)
         {
             Point3d[] pointsOnRect;
-            m.GetNakedEdges()[0].ToNurbsCurve().DivideByCount(divisions * 4, true, out pointsOnRect);
+            nakedEdges.ToNurbsCurve().DivideByCount(divisions * 4, true, out pointsOnRect);
             this.pointsOnRect = pointsOnRect;
         }
 

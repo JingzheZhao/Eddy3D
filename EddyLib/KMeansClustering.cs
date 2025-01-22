@@ -57,7 +57,8 @@ namespace EddyLib
     /// Defines a property or field as an attribute to use for the k-means clustering
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
-    public sealed class KMeansValueAttribute : Attribute { }
+    public sealed class KMeansValueAttribute : Attribute
+    { }
 
     /// <summary>
     /// Delegate that can be passed in to the <see cref="KMeans.Cluster{T}"/> function that allows

@@ -1,8 +1,5 @@
 ﻿//using Rhino.Compute;
 
-using EddyLib;
-using EddyLib.BCs;
-using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using Xunit;

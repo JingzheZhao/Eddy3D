@@ -1,14 +1,6 @@
-﻿using EddyLib;
-using EddyLib.BCs;
-using EddyLib.OutdoorComfort;
-using Rhino.Geometry;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Net;
 using Xunit;
-using static EddyLib.OutdoorComfort.WindComfortHelper;
 
 namespace RhinoPlugin.Tests.Xunit
 {

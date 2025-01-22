@@ -3,11 +3,8 @@ using Eddy.Properties;
 using EddyLib;
 using EddyLib.Indoor;
 using Grasshopper.Kernel;
-using Grasshopper.Kernel.Parameters;
 using Rhino.Geometry;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Eddy.Components.Indoor
 {
@@ -26,9 +23,6 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-
-
-
             //0
             pManager.AddGeometryParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
             //1
@@ -59,14 +53,11 @@ namespace Eddy.Components.Indoor
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-
             Mesh geo = null;
             if (!DA.GetData("Geo", ref geo)) { };
 
-
             string Name = "";
             DA.GetData("Name", ref Name);
-
 
             //double IR = 0;
             //DA.GetData("Injection Rate", ref IR);
@@ -74,13 +65,11 @@ namespace Eddy.Components.Indoor
             //int Type = 0;
             //DA.GetData("Type", ref Type);
 
-
             var m = new MomentumSinkIndoor(geo, Name);
 
             var goo = new FunctionObjectGoo(m);
 
             DA.SetData(0, goo);
-
         }
 
         /// <summary>
@@ -103,6 +92,7 @@ namespace Eddy.Components.Indoor
             get { return new Guid("0163E2D4-01F4-4535-8255-461483A28ACF"); }
         }
     }
+
     //public class MomentumSink_Component : GH_Component
     //{
     //    /// <summary>
@@ -140,7 +130,6 @@ namespace Eddy.Components.Indoor
     //    /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
     //    protected override void SolveInstance(IGH_DataAccess DA)
     //    {
-
     //        Mesh geo = null;
     //        if (!DA.GetData("Geo", ref geo)) { };
 
@@ -149,7 +138,6 @@ namespace Eddy.Components.Indoor
 
     //        int Type = 0;
     //        DA.GetData("Type", ref Type);
-
 
     //        var momsink = new EddyLib.Indoor.MomentumSink(geo, Name);
 

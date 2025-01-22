@@ -7,23 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using Xunit;
-
-using EddyLib.OutdoorComfort;
-using Rhino.Geometry;
-using System;
-using System.Collections.Generic;
-
-using System.Diagnostics;
-using System.Drawing;
-
-using System.IO;
-using System.Linq;
-
-using System.Threading.Tasks;
 using static RhinoPlugin.Tests.Xunit.WeatherDownload;
-using Eto.Drawing;
 
 namespace RhinoPlugin.Tests.Xunit
 {

@@ -9,7 +9,8 @@ namespace EddyLib
         {
         }
 
-        public static PrepareProtoBufSingleton Instance { get { return Nested.instance; } }
+        public static PrepareProtoBufSingleton Instance
+        { get { return Nested.instance; } }
 
         private class Nested
         {

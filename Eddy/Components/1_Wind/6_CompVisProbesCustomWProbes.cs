@@ -283,107 +283,117 @@ namespace Eddy
             //    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.ProbingFuncObjects(RES, currField));
             //}
 
+            if (!(numberOfProbes > 0) || !meshExists)
+            {
+                if (!(numberOfProbes > 0))
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The number of probes must be greater than 0.");
+                }
+                if (!meshExists)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Mesh does not exist. Please provide a valid mesh.");
+                }
+                return;
+            }
+
             #endregion Error handling
 
-            if (numberOfProbes > 0 && meshExists)
+            try
             {
-                try
+                StringBuilder command = new StringBuilder();
+
+                for (int i = 0; i < RES.Domain.BCond.WindDirections.Count; i++)
                 {
-                    StringBuilder command = new StringBuilder();
+                    // Check if mesh exists
 
-                    for (int i = 0; i < RES.Domain.BCond.WindDirections.Count; i++)
+                    string pathToPointFile = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i] + @"\constant\polyMesh\points";
+                    string currCase = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i];
+
+                    if (!File.Exists(pathToPointFile))
                     {
-                        // Check if mesh exists
-
-                        string pathToPointFile = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i] + @"\constant\polyMesh\points";
-                        string currCase = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i];
-
-                        if (!File.Exists(pathToPointFile))
-                        {
-                            base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.MeshDoesntExist(pathToPointFile));
-                            return;
-                        }
-
-                        // If yes, write the dicts for both Docker and BlueCFD
-                        string path = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i] + @"\system\" + probeNameByUser;
-                        File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbesAllFields(Probes, probeNameByUser, Probing.ReformatIS(InterpolationScheme)));
-
-                        if (RES.RunSettings.simEngine == SimEngine.Docker)
-                        {
-                            command.Append(@"postProcess -func " + probeNameByUser + @" -time " + ProbingNew.GetLatestTime(currCase, RES) + @"| tee  " + RES.Domain.BCond.WindDirections[i] + @"/log_probes;");
-                        }
-                        else
-                        {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
-                            // Todo: check here if we need a semicolon to sepaate the command
-                            // from the suffix
-                            command.AppendLine(@"postProcess -case " + RES.Domain.BCond.WindDirections[i] + " -func " + probeNameByUser + @" -time " + ProbingNew.GetLatestTime(currCase, RES));
-                        }
+                        base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.MeshDoesntExist(pathToPointFile));
+                        return;
                     }
 
-                    if (run == true && canRun == true)
+                    // If yes, write the dicts for both Docker and BlueCFD
+                    string path = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i] + @"\system\" + probeNameByUser;
+                    File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbesAllFields(Probes, probeNameByUser, Probing.ReformatIS(InterpolationScheme)));
+
+                    if (RES.RunSettings.simEngine == SimEngine.Docker)
                     {
-                        if (RES.RunSettings.simEngine == SimEngine.Docker)
-                        {
-                            var arg = BatFiles.DockerPrefixPath(RES.Domain, RES.MeshSettings, RES.RunSettings, OFExecutionMode.Simulation) + command;
-                            Utilities.StartProcess.StartProcessCMDNT(arg, false, true, false, true, probingComplete);
-                        }
-                        else
-                        {
-                            var cmdArg = BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory, RunMode.Canvas);
-                            Utilities.StartProcess.StartProcessCMDNT(cmdArg, false, true, true, true, probingComplete);
-                        }
+                        command.Append(@"postProcess -func " + probeNameByUser + @" -time " + ProbingNew.GetLatestTime(currCase, RES) + @"| tee  " + RES.Domain.BCond.WindDirections[i] + @"/log_probes;");
                     }
+                    else
+                    {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
+                     // Todo: check here if we need a semicolon to sepaate the command
+                     // from the suffix
+                        command.AppendLine(@"postProcess -case " + RES.Domain.BCond.WindDirections[i] + " -func " + probeNameByUser + @" -time " + ProbingNew.GetLatestTime(currCase, RES));
+                    }
+                }
 
-                    for (int i = 0; i < RES.Domain.BCond.WindDirections.Count; i++)
+                if (run == true && canRun == true)
+                {
+                    if (RES.RunSettings.simEngine == SimEngine.Docker)
                     {
-                        string currentCaseDir = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i];
+                        var arg = BatFiles.DockerPrefixPath(RES.Domain, RES.MeshSettings, RES.RunSettings, OFExecutionMode.Simulation) + command;
+                        Utilities.StartProcess.StartProcessCMDNT(arg, false, true, false, true, probingComplete);
+                    }
+                    else
+                    {
+                        var cmdArg = BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory, RunMode.Canvas);
+                        Utilities.StartProcess.StartProcessCMDNT(cmdArg, false, true, true, true, probingComplete);
+                    }
+                }
 
-                        foreach (field f in Enum.GetValues(typeof(field)))
+                for (int i = 0; i < RES.Domain.BCond.WindDirections.Count; i++)
+                {
+                    string currentCaseDir = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i];
+
+                    foreach (field f in Enum.GetValues(typeof(field)))
+                    {
+                        var currField = new OFFieldNew(probeNameByUser, f, InterpolationScheme);
+                        //  var currField = new OFFieldNew(probeNameByUser, field.U);
+
+                        try
                         {
-                            var currField = new OFFieldNew(probeNameByUser, f, InterpolationScheme);
-                            //  var currField = new OFFieldNew(probeNameByUser, field.U);
-
-                            try
+                            string pathToProbeFile = ProbingNew.GetPathToProbedResults(currentCaseDir, currField, RES);
+                            if (File.Exists(pathToProbeFile))
                             {
-                                string pathToProbeFile = ProbingNew.GetPathToProbedResults(currentCaseDir, currField, RES);
-                                if (File.Exists(pathToProbeFile))
+                                if (currField.FieldType == fieldType.vector)
                                 {
-                                    if (currField.FieldType == fieldType.vector)
-                                    {
-                                        ProbingNew Vectors = new ProbingNew(Probes, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.WindDirections[i], RES);
+                                    ProbingNew Vectors = new ProbingNew(Probes, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.WindDirections[i], RES);
 
-                                        for (int p = 0; p < numberOfProbes; p++)
-                                        {
-                                            //  WProbes[p].U[i] = new EddyVector(Vectors.ResultVec[p].Value);
-                                            WProbes[p].SetOFFields(f, Vectors.ResultVec[p].Value, i);
-                                        }
+                                    for (int p = 0; p < numberOfProbes; p++)
+                                    {
+                                        //  WProbes[p].U[i] = new EddyVector(Vectors.ResultVec[p].Value);
+                                        WProbes[p].SetOFFields(f, Vectors.ResultVec[p].Value, i);
                                     }
-                                    else
-                                    {
-                                        ProbingNew Scalars = new ProbingNew(Probes, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.WindDirections[i], RES);
+                                }
+                                else
+                                {
+                                    ProbingNew Scalars = new ProbingNew(Probes, currentCaseDir, RES.WorkingDirectory, currField, RES.Domain.BCond.WindDirections[i], RES);
 
-                                        for (int p = 0; p < numberOfProbes; p++)
-                                        {
-                                            WProbes[p].SetOFFields(f, (float)Scalars.ResultScalar[p].Value, i);
-                                        }
+                                    for (int p = 0; p < numberOfProbes; p++)
+                                    {
+                                        WProbes[p].SetOFFields(f, (float)Scalars.ResultScalar[p].Value, i);
                                     }
                                 }
                             }
-                            catch (Exception)
-                            {
-                                base.AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.FieldDoesntExist(currentCaseDir, currField));
-                            }
-
-                            // We must check if this exists before we construct the Probing object
                         }
+                        catch (Exception)
+                        {
+                            base.AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.FieldDoesntExist(currentCaseDir, currField));
+                        }
+
+                        // We must check if this exists before we construct the Probing object
                     }
                 }
-                catch (Exception)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, EddyLib.Strings.ReturnMsg.ParsingFailed());
+            }
+            catch (Exception)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, EddyLib.Strings.ReturnMsg.ParsingFailed());
 
-                    //throw new System.ArgumentException("Parsing of the probes failed. This data does not exist yet. Please run the probing component.");
-                }
+                //throw new System.ArgumentException("Parsing of the probes failed. This data does not exist yet. Please run the probing component.");
             }
 
             var respath = Path.GetFullPath(RES.WorkingDirectory);

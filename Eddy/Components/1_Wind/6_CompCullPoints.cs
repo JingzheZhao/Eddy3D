@@ -4,8 +4,6 @@ using Grasshopper.Kernel;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Runtime.CompilerServices;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -39,7 +37,7 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddMeshParameter("Building Mesh", "BM", "Joined Building Mesh.", GH_ParamAccess.list);
-            pManager.AddMeshParameter("Ground Mesh", "GM", "Ground Mesh.", GH_ParamAccess.list);
+            pManager.AddMeshParameter("Ground Mesh", "GM", "Ground Mesh. Make sure this mesh has enough vertices relativ to your visualization goals. Consider using \"QuadRemesh\" if adjustments are needed.", GH_ParamAccess.list);
 
             pManager.AddIntegerParameter("Target Count", "TC", "TC.", GH_ParamAccess.item, 50000);
             pManager.AddBooleanParameter("Convert Quads to Triangles", "QT", "Convert quads to triangles in the resulting mesh.", GH_ParamAccess.item, true);
@@ -82,10 +80,15 @@ namespace Eddy
             Mesh JoinedGroundMesh = JoinMeshes(GroundMesh);
             Mesh JoinedBuildingMesh = JoinMeshes(BuildingMesh);
 
-            var outsidePoints = Utilities.GetOutsidePoints(JoinedGroundMesh, JoinedBuildingMesh, TargetCount);
-            JoinedGroundMesh.Vertices.Remove(outsidePoints, QT);
+            var para = new QuadRemeshParameters();
+            para.TargetQuadCount = TargetCount;
+            //para.SymmetryAxis = QuadRemeshSymmetryAxis.Y;
+            var FineGround = JoinedGroundMesh.QuadRemesh(para);
 
-            DA.SetData(0, JoinedGroundMesh);
+            var outsidePoints = Utilities.GetOutsidePoints(FineGround, JoinedBuildingMesh, TargetCount);
+            FineGround.Vertices.Remove(outsidePoints, QT);
+
+            DA.SetData(0, FineGround);
         }
 
         private Mesh JoinMeshes(List<Mesh> list)

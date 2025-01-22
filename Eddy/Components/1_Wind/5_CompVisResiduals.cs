@@ -2,7 +2,6 @@
 using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
-using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.IO;

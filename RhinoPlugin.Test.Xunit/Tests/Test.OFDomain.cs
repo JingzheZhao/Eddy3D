@@ -1106,6 +1106,8 @@ new double[] { 121.4941, 110.3447, 80 }
 
             var tolerance = 1e-9; // Adjust this value as needed for your precision requirements
 
+            Assert.Equal(DOMCYL.pointsOnCircle.First(), DOMCYL.pointsOnCircle.Last(), new Point3dComparer(tolerance));
+
             Assert.Equal(DOMCYL.pointsOnCircle[0], new Point3d(116.066017177982, 116.066017177982, 0), new Point3dComparer(tolerance));
             Assert.Equal(DOMCYL.pointsOnCircle[1], new Point3d(110.344709743367, 121.494121937075, 0), new Point3dComparer(tolerance));
             Assert.Equal(DOMCYL.pointsOnCircle[2], new Point3d(103.704257133164, 127.130321416455, 0), new Point3dComparer(tolerance));
