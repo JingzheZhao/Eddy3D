@@ -13,7 +13,6 @@ on:
 
 jobs:
   build:
-
     runs-on: windows-latest
 
     steps:
@@ -21,23 +20,16 @@ jobs:
 
     - name: Setup MSBuild.exe
       uses: warrenbuckley/Setup-MSBuild@v1
-      env:
-        ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
 
     - name: Setup NuGet
       uses: NuGet/setup-nuget@v1.0.2
-      env:
-        ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
 
     - name: Restore NuGet Packages
-      run: |
-        echo "#1 Restore nuget\n"
-        nuget restore Eddy.sln
+      run: nuget restore Eddy.sln
 
     - name: Build
-      run: |
-        echo "#2 Build Eddy3D\n"
-        msbuild Eddy.sln /p:PreBuildEvent= /p:PostBuildEvent=
+      run: msbuild Eddy.sln /p:Configuration=Release /p:PreBuildEvent= /p:PostBuildEvent=
+
 
       # Tests currently don't work because of "Rhino system dir not found: C:\Program Files\Rhino 7\System"
 
