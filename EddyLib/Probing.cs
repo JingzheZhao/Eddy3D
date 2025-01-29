@@ -379,17 +379,15 @@ namespace EddyLib
 
         private readonly string baseWorkingDirectory;
 
-        private readonly int currWindDir;
-
         public readonly string probingFilePath;
 
-        public Probing(List<Point3d> ListOfPoints, string caseDirectory, string baseWorkingDirectory, OFField ofField, int currWindDir, OFResult RES, bool rerun)
+        public Probing(List<Point3d> ListOfPoints, string caseDirectory, string baseWorkingDirectory, OFField ofField, OFResult RES, bool rerun, string currWindDir = "")
         {
             listOfPoints = ListOfPoints;
 
             this.caseDirectory = caseDirectory;
             this.baseWorkingDirectory = baseWorkingDirectory;
-            this.currWindDir = currWindDir;
+
             this.probingFilePath = GetPathToProbedResults(caseDirectory, ofField, RES);
 
             if (probingFilePath == "") return;

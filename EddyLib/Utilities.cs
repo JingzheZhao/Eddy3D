@@ -619,6 +619,14 @@ exit
             return outsidePointIdx;
         }
 
+        public static string EnsureTrailingBackslash(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+                throw new ArgumentException("Path cannot be null or empty.", nameof(path));
+
+            return path.EndsWith("\\") ? path : path + "\\";
+        }
+
         public static List<int> GetOutsidePointsWindingNumber(Mesh Ground, Mesh BuildingMesh, double tol)
         {
             //double[] wns = new double[Ground.Vertices.Count];

@@ -49,7 +49,7 @@ namespace Eddy.Components.Indoor
             pManager.AddParameter(new Param_FunctionObject(), "Function Objects", "FOs", "Indoor CFD Function Objects", GH_ParamAccess.list);
             pManager[3].Optional = true;
             //4
-            pManager.AddTextParameter("Directory", "Dir", "Working Directory", GH_ParamAccess.item, @"C:\Eddy3D-Cases\IndoorProject");
+            pManager.AddTextParameter("Directory", "Dir", "Working Directory", GH_ParamAccess.item, @"C:\Eddy3D-Cases\IndoorProject\");
             pManager[4].Optional = true;
             //5
             pManager.AddPointParameter("Point Inside", "PInside", "Point inside domain.", GH_ParamAccess.item);
@@ -68,8 +68,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddParameter(new Param_IndoorDomain(), "Domain", "Dom", "Indoor CFD Domain", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Result", "Res", "Indoor Eddy Result", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Result", "Res", "Indoor CFD Domain Result", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -112,7 +111,7 @@ namespace Eddy.Components.Indoor
 
             string dir = "";
             DA.GetData(4, ref dir);
-            BaseWorkingDir = dir;
+            BaseWorkingDir = Utilities.EnsureTrailingBackslash(dir);
 
             Point3d pointInsideDomain = new Point3d();
             DA.GetData(5, ref pointInsideDomain);
@@ -129,39 +128,52 @@ namespace Eddy.Components.Indoor
 
             DA.GetDataList(3, FO_GHWrappers);
 
-            for (int i = 0; i < FO_GHWrappers.Count; i++)
-            {
-                FunctionObjectGoo gobj = null;
-                gobj = FO_GHWrappers[i];
+            bool hasError = false;
 
-                if ((gobj.Value is VolumetricHeatSource))
+            foreach (var gobj in FO_GHWrappers)
+            {
+                switch (gobj.Value)
                 {
-                    FOs.Add((VolumetricHeatSource)gobj.Value);
-                }
-                else if ((gobj.Value is MomentumSinkIndoor))
-                {
-                    FOs.Add((MomentumSinkIndoor)gobj.Value);
-                }
-                else if ((gobj.Value is MomentumSource))
-                {
-                    FOs.Add((MomentumSource)gobj.Value);
-                }
-                else if ((gobj.Value is ViralEmitter))
-                {
-                    FOs.Add((ViralEmitter)gobj.Value);
-                }
-                else if ((gobj.Value is CO2Emitter))
-                {
-                    FOs.Add((CO2Emitter)gobj.Value);
-                }
-                else
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid function object"); return;
+                    case VolumetricHeatSource vhs:
+                        FOs.Add(vhs);
+                        break;
+
+                    case MomentumSinkIndoor msi:
+                        FOs.Add(msi);
+                        break;
+
+                    case MomentumSource ms:
+                        FOs.Add(ms);
+                        break;
+
+                    case ViralEmitter ve:
+                        FOs.Add(ve);
+                        break;
+
+                    case CO2Emitter ce:
+                        FOs.Add(ce);
+                        break;
+
+                    default:
+                        hasError = true;
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "One or more function objects are invalid.");
+                        break;
                 }
             }
 
+            if (hasError)
+            {
+                // Handle the error accordingly, e.g., return or throw an exception
+                return;
+            }
+
             var dom = new IndoorDomain(endTime, dir, cellSize, pointInsideDomain, Walls, Inlets, Outlets, FOs);
-            var domGoo = new IndoorDomaingGoo(dom);
+            //var domGoo = new IndoorDomaingGoo(dom);
+
+            var runSettings = new OFRunSettings(endTime);
+            var meshSettings = new OFMeshSettings();
+
+            var RES = new OFResult(dom, runSettings, meshSettings, dir);
 
             bool RUN = false;
             DA.GetData(8, ref RUN);
@@ -219,9 +231,7 @@ namespace Eddy.Components.Indoor
 
             #endregion START PROCESSES
 
-            DA.SetData(0, domGoo);
-
-            DA.SetData(1, IndoorResult(dom));
+            DA.SetData(0, RES);
 
             canRun = true;
         }
@@ -236,58 +246,6 @@ namespace Eddy.Components.Indoor
         /// </summary>
         /// <param name="IndoorDOM"></param>
         /// <param name="Res"></param>
-        public OFResult IndoorResult(IndoorDomain IndoorDOM)
-        {
-            var point0 = new Rhino.Geometry.Point3d(0, 0, 0);
-            var point1 = new Rhino.Geometry.Point3d(20, 0, 0);
-            var point2 = new Rhino.Geometry.Point3d(0, 20, 0);
-            var point3 = new Rhino.Geometry.Point3d(20, 20, 0);
-            var point4 = new Rhino.Geometry.Point3d(0, 0, 40);
-            var point5 = new Rhino.Geometry.Point3d(20, 0, 40);
-            var point6 = new Rhino.Geometry.Point3d(0, 20, 40);
-            var point7 = new Rhino.Geometry.Point3d(20, 20, 40);
-            Rhino.Geometry.Box box1 = new Rhino.Geometry.Box(Rhino.Geometry.Plane.WorldXY, new List<Rhino.Geometry.Point3d>() { point0, point1, point2, point3, point4, point5, point6, point7 });
-            Rhino.Geometry.MeshingParameters mp = new Rhino.Geometry.MeshingParameters();
-            var m = Mesh.CreateFromBrep(box1.ToBrep(), mp);
-
-            Rhino.Geometry.Mesh mm = new Rhino.Geometry.Mesh();
-
-            foreach (Rhino.Geometry.Mesh im in m)
-            {
-                mm.Append(im);
-            }
-
-            //var windDirList = new List<int>() { 0 };
-            BC bcond = new ABL(0, 5, 10, 1, 0);
-
-            BCCollection bcColl = new BCCollection();
-            bcColl.BCs.Add(bcond);
-            //bcColl.WindDirections.Add(0); commenting this out avoids checks in the probing component throwing errors
-
-            OFCylDomain DOMCYL = new OFCylDomain(mm, new Mesh(), bcColl, 5, 50, 300, 80);
-
-            var DOM = (EddyLib.Indoor.IndoorDomain)IndoorDOM;
-
-            var RUNSETTINGS = new OFRunSettings(1000, 20, 5, fvSchemes.Optimized, 1, SimEngine.BlueCFD, OSType.Windows10, TurbModel.RNGkEpsilon, RelaxationFactors.Optimized, false, false);
-            var MESHSETTINGS = new OFMeshSettings();
-
-            var baseWorkingDirectory = DOM.WorkingDir;
-
-            MESHSETTINGS.meshStlDir = baseWorkingDirectory + @"\\constant\triSurface\";
-            MESHSETTINGS.meshPolyMeshDir = baseWorkingDirectory + @"\\constant\polyMesh\";
-            MESHSETTINGS.meshSystemDir = baseWorkingDirectory + @"\\system\";
-            MESHSETTINGS.meshConstantDir = baseWorkingDirectory + @"\\constant\";
-            MESHSETTINGS.meshWorkingDir = baseWorkingDirectory + @"\\";
-
-            // MESHSETTINGS.meshStlFilenameBuildings = baseWorkingDirectory + @"\\constant\triSurface\building.stl";
-            // MESHSETTINGS.meshStlFilenameGround = baseWorkingDirectory + @"\\constant\triSurface\ground.stl";
-            // MESHSETTINGS.meshStlFilenameGroundPerim = baseWorkingDirectory + @"\\constant\triSurface\ground_perim.stl";
-            // MESHSETTINGS.meshBoundaryConditionsDirectory = baseWorkingDirectory + @"\\0.org\";
-
-            var RES = new EddyLib.OFResult(DOMCYL, RUNSETTINGS, MESHSETTINGS, DOM.WorkingDir);
-
-            return RES;
-        }
 
         /// <summary>
         /// Provides an Icon for the component.

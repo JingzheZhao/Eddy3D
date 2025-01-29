@@ -8,7 +8,7 @@ using System.IO;
 
 namespace EddyLib.Indoor
 {
-    public class IndoorDomain
+    public class IndoorDomain : OFBaseDomain
     {
         public BoundingBox BoundingBox;
 
