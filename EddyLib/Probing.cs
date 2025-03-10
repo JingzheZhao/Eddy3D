@@ -509,37 +509,21 @@ namespace EddyLib
 
         public static int GetLatestTime(string workingDirectory, OFResult RES, OFField ofField)
         {
-            var DirNames = Directory.GetDirectories(workingDirectory);
+            var dirs = Directory.GetDirectories(workingDirectory);
 
-            var dirlist = new List<string>();
-            foreach (string s in DirNames)
-            {
-                dirlist.Add(new DirectoryInfo(s).Name);
-            }
+            var iterationNumbers = dirs
+                .Select(Path.GetFileName)
+                .Where(name => Regex.IsMatch(name, @"^\d+$"))
+                .Select(int.Parse)
+                .OrderByDescending(n => n)
+                .ToList();
 
-            var numberList = new List<int>();
-            int number;
+            if (!iterationNumbers.Any())
+                return 0;
 
-            foreach (var name in dirlist)
-            {
-                Match m = Regex.Match(name, "\\d+"); // this gets the number at beginning of dirname
-                var isNumber = Int32.TryParse(m.ToString(), out number);
+            int latestIteration = iterationNumbers.First();
 
-                if (isNumber && !name.StartsWith("processor"))
-
-                {
-                    numberList.Add(number);
-                }
-            }
-
-            var highest = numberList.OrderByDescending(x => x).FirstOrDefault();
-
-            // When we are probing cps, we need to make sure that the field has been written into the direction even if the case just recently converged and the writeTime wasn't hit yet. In those cases, we probe from the second-to-last directory.
-
-            if (highest % RES.RunSettings.iter != 0 && ofField.FieldName == "total(p)_coeff")
-                highest = numberList.OrderByDescending(x => x).ElementAtOrDefault(1);
-
-            return highest;
+            return latestIteration;
         }
 
         public static int[] ReturnProbeIndicesOutsideDomain(List<GH_Vector> x)
