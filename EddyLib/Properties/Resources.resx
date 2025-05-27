@@ -121,4 +121,7 @@
   <data name="Box" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Box.epJSON;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="BuildingGeo" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BuildingGeo.stl;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>
