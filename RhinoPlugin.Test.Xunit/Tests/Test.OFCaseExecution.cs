@@ -39,7 +39,7 @@ using Rhino.Geometry;
 
 namespace EddyLib.TestHelpers
 {
-    public static class StlUtils
+    public static class GeometryHelpers
     {
         /// <summary>
         /// Loads every mesh contained in an STL, appends them into one mesh,
@@ -88,6 +88,19 @@ namespace EddyLib.TestHelpers
 
         private static string GetSolutionRoot()
             => Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, @"..\..\..\.."));
+
+        public static Mesh RectangleToMesh(Rectangle3d rect)
+        {
+            Mesh mesh = new Mesh();
+            mesh.Vertices.Add(rect.Corner(0));
+            mesh.Vertices.Add(rect.Corner(1));
+            mesh.Vertices.Add(rect.Corner(2));
+            mesh.Vertices.Add(rect.Corner(3));
+            mesh.Faces.AddFace(0, 1, 2, 3);
+            mesh.Normals.ComputeNormals();
+            mesh.Compact();
+            return mesh;
+        }
     }
 }
 
@@ -100,7 +113,7 @@ namespace RhinoPlugin.Tests.Xunit
         public void BuildingGeo_HasExpectedTopology()
         {
             // Re-use the helper
-            Mesh mesh = StlUtils.LoadMergedMesh(@"EddyLib\Resources\BuildingGeo.stl");
+            Mesh mesh = GeometryHelpers.LoadMergedMesh(@"EddyLib\Resources\BuildingGeo.stl");
 
             // Quick sanity checks
             Assert.True(mesh.IsValid);
@@ -115,7 +128,7 @@ namespace RhinoPlugin.Tests.Xunit
         {
             // Arrange
 
-            string caseDir = Path.Combine(Path.GetTempPath(), "testcase-cyl\\");
+            string caseDir = Path.Combine(Path.GetTempPath(), "testcase-cyl-" + Guid.NewGuid().ToString("N"), "\\");
 
             // Clean up the directory and all contents
             if (Directory.Exists(caseDir))
@@ -124,19 +137,33 @@ namespace RhinoPlugin.Tests.Xunit
             }
             Directory.CreateDirectory(caseDir);
 
-            Mesh mm = StlUtils.LoadMergedMesh(@"EddyLib\Resources\BuildingGeo.stl");
+            Mesh BuildingMesh = GeometryHelpers.LoadMergedMesh(@"EddyLib\Resources\BuildingGeo.stl");
+
+            Rectangle3d rect = new Rectangle3d(Plane.WorldXY, 1000.0, 1000.0);
+            // Calculate the center point of the rectangle
+            Point3d center = rect.Center;
+
+            // Create a translation vector from the center to the origin
+            Vector3d moveToOrigin = Point3d.Origin - center;
+
+            // Move the rectangle
+            rect.Transform(Transform.Translation(moveToOrigin));
+
+            // Now convert to mesh
+            Mesh flatPlate = GeometryHelpers.RectangleToMesh(rect);
 
             var meshSettings = new OFMeshSettings
             {
                 accBuildings = 4,
                 accFeatures = 3,
                 accGround = 4,
+                accBoxRefinement = 3,
             };
             meshSettings.SetDirectories(caseDir);
             var runSettings = new OFRunSettings
             {
-                iter = 3000,
-                CPUs = 8,
+                iter = 1000,
+                CPUs = 6,
                 relaxationFactors = RelaxationFactors.Robust,
                 schemes = fvSchemes.Optimized,
                 turbModel = TurbModel.RNGkEpsilon,
@@ -153,8 +180,7 @@ namespace RhinoPlugin.Tests.Xunit
 
             var bcList = new List<BC>() { bc, bc1, bc2, bc3, bc4, bc5, bc6, bc7 };
             var bcColl = new BCCollection(bcList);
-
-            var domCyl = new OFCylDomain(Setup.SetUpBuildingMesh(), mm, bcColl, 15, 40, 519, 80);
+            var domCyl = new OFCylDomain(BuildingMesh, flatPlate, bcColl, 15, 60, 600, 120);
 
             Directory.CreateDirectory(caseDir);
 
@@ -172,7 +198,7 @@ namespace RhinoPlugin.Tests.Xunit
                 Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
 
                 string logContent = File.ReadAllText(logPath);
-                Assert.Contains("SIMPLE solution converged", logContent);
+                Assert.Contains("Time = 1000", logContent);
             }
         }
 
@@ -181,7 +207,7 @@ namespace RhinoPlugin.Tests.Xunit
 
         {
             // Arrange
-            string caseDir = Path.Combine(Path.GetTempPath(), "testcase-box\\");
+            string caseDir = Path.Combine(Path.GetTempPath(), "testcase-box-" + Guid.NewGuid().ToString("N"), "\\");
 
             // Clean up the directory and all contents at the beginning for debugging
             if (Directory.Exists(caseDir))

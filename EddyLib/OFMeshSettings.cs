@@ -23,7 +23,7 @@
 
         public int accFeatures = 2;
 
-        public int accRefinement = 2;
+        public int accBoxRefinement = 2;
 
         public int accGround = 2;
 
@@ -101,7 +101,7 @@ accRefinement = {2}
 accGround = {3}
 accGround = {4}
 nLayers = {5}
-Snap Settings = {6}", accBuildings, accFeatures, accRefinement, accGround, miscSettings, nLayers, snappySetting);
+Snap Settings = {6}", accBuildings, accFeatures, accBoxRefinement, accGround, miscSettings, nLayers, snappySetting);
         }
     }
 }

@@ -75,7 +75,7 @@ namespace Eddy
         {
             int _accBuilding = 3;
             int _accFeatures = 3;
-            int _accRefinement = 3;
+            int _accBoxRefinement = 3;
             int _accGround = 3;
 
             int _miscSettings = 1;
@@ -85,7 +85,7 @@ namespace Eddy
 
             DA.GetData(0, ref _accBuilding);
             DA.GetData(1, ref _accFeatures);
-            DA.GetData(2, ref _accRefinement);
+            DA.GetData(2, ref _accBoxRefinement);
             DA.GetData(3, ref _accGround);
 
             DA.GetData(4, ref _miscSettings);
@@ -93,7 +93,7 @@ namespace Eddy
             DA.GetData(5, ref _nLayers);
             DA.GetData(6, ref _mode);
 
-            if (_accBuilding >= 5 || _accFeatures >= 5 || _accRefinement >= 5 || _accGround >= 5 || _nLayers >= 5)
+            if (_accBuilding >= 5 || _accFeatures >= 5 || _accBoxRefinement >= 5 || _accGround >= 5 || _nLayers >= 5)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "A high number of refinment levels might significantly slow down mesh creation. Try to create a reasonable fine mesh with the Domain component and/or make sure to use more than one CPU.");
             }
@@ -102,7 +102,7 @@ namespace Eddy
             {
                 accBuildings = _accBuilding,
                 accFeatures = _accFeatures,
-                accRefinement = _accRefinement,
+                accBoxRefinement = _accBoxRefinement,
                 accGround = _accGround,
                 miscSettings = (SnappyMiscSettings)_miscSettings,
                 nLayers = _nLayers,

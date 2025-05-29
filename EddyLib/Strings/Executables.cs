@@ -201,7 +201,7 @@ FoamFile
                 sb.Append(@"}
 refinementRegions
         {
-refinementBox {mode inside; levels ((" + MeshSettings.accRefinement + @" " + MeshSettings.accRefinement + @"));}
+refinementBox {mode inside; levels ((" + MeshSettings.accBoxRefinement + @" " + MeshSettings.accBoxRefinement + @"));}
         }
 
         locationInMesh ( " + Utilities.FormatPV(dom.LocationInMesh) + @" );
@@ -499,7 +499,7 @@ FoamFile
                 sb.Append(@"}
 refinementRegions
         {
-refinementBox {mode inside; levels ((" + MeshSettings.accRefinement + @" " + MeshSettings.accRefinement + @"));}
+refinementBox {mode inside; levels ((" + MeshSettings.accBoxRefinement + @" " + MeshSettings.accBoxRefinement + @"));}
         }
 
         locationInMesh ( " + Utilities.FormatPV(dom.LocationInMesh) + @" );
