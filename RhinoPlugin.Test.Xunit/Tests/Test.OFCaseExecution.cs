@@ -131,10 +131,10 @@ namespace RhinoPlugin.Tests.Xunit
             string caseDir = Path.Combine(Path.GetTempPath(), "testcase-cyl-" + Guid.NewGuid().ToString("N"), "\\");
 
             // Clean up the directory and all contents
-            if (Directory.Exists(caseDir))
-            {
-                Directory.Delete(caseDir, true);
-            }
+            //if (Directory.Exists(caseDir))
+            //{
+            //    Directory.Delete(caseDir, true);
+            //}
             Directory.CreateDirectory(caseDir);
 
             Mesh BuildingMesh = GeometryHelpers.LoadMergedMesh(@"EddyLib\Resources\BuildingGeo.stl");
@@ -210,10 +210,10 @@ namespace RhinoPlugin.Tests.Xunit
             string caseDir = Path.Combine(Path.GetTempPath(), "testcase-box-" + Guid.NewGuid().ToString("N"), "\\");
 
             // Clean up the directory and all contents at the beginning for debugging
-            if (Directory.Exists(caseDir))
-            {
-                Directory.Delete(caseDir, true);
-            }
+            //if (Directory.Exists(caseDir))
+            //{
+            //    Directory.Delete(caseDir, true);
+            //}
             Directory.CreateDirectory(caseDir);
 
             var meshSettings = new OFMeshSettings
