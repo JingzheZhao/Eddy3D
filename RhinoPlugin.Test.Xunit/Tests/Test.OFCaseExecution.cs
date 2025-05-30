@@ -113,7 +113,7 @@ namespace RhinoPlugin.Tests.Xunit
         public void BuildingGeo_HasExpectedTopology()
         {
             // Re-use the helper
-            Mesh mesh = GeometryHelpers.LoadMergedMesh(@"EddyLib\Resources\BuildingGeo.stl");
+            Mesh mesh = GeometryHelpers.LoadMergedMesh(@"Resources\BuildingGeo.stl");
 
             // Quick sanity checks
             Assert.True(mesh.IsValid);
@@ -126,9 +126,8 @@ namespace RhinoPlugin.Tests.Xunit
         [Fact]
         public void CylDomainCase_GeneratesAndExecutesSuccessfully()
         {
-            // Arrange
-
-            string caseDir = Path.Combine(Path.GetTempPath(), "testcase-cyl-" + Guid.NewGuid().ToString("N"), "\\");
+            // Arrange         
+            string caseDir = Path.Combine(Path.GetTempPath(), $"testcase-cyl-{Guid.NewGuid():N}\\");
 
             // Clean up the directory and all contents
             //if (Directory.Exists(caseDir))
@@ -207,7 +206,7 @@ namespace RhinoPlugin.Tests.Xunit
 
         {
             // Arrange
-            string caseDir = Path.Combine(Path.GetTempPath(), "testcase-box-" + Guid.NewGuid().ToString("N"), "\\");
+            string caseDir = Path.Combine(Path.GetTempPath(), $"testcase-box-{Guid.NewGuid():N}\\");
 
             // Clean up the directory and all contents at the beginning for debugging
             //if (Directory.Exists(caseDir))

@@ -1,0 +1,444 @@
+{
+
+  "@@SURFS@@": null,
+
+
+  "Building": {
+    "Building": {
+      "loads_convergence_tolerance_value": 0.04,
+      "maximum_number_of_warmup_days": 25,
+      "minimum_number_of_warmup_days": 6,
+      "north_axis": 0,
+      "solar_distribution": "FullExterior",
+      "temperature_convergence_tolerance_value": 0.4,
+      "terrain": "Suburbs"
+    }
+  },
+  "Construction": {
+    "@@CONSTRUCTIONS@@": null,
+
+    "DoublePaneClr": {
+      "outside_layer": "DoublePaneClrWindow"
+    },
+    "GreenRoofConstruction": {
+      "layer_2": "DefaultConcrete",
+      "outside_layer": "MyGreenRoof"
+    },
+    "DefaultConstruction": {
+      "outside_layer": "DefaultConcrete"
+    }
+  },
+  "ConvergenceLimits": {
+    "ConvergenceLimits 1": {
+      "maximum_hvac_iterations": 50,
+      "maximum_plant_iterations": 9,
+      "minimum_plant_iterations": 3,
+      "minimum_system_timestep": 0
+    }
+  },
+
+  "GlobalGeometryRules": {
+    "GlobalGeometryRules 1": {
+      "coordinate_system": "World",
+      "starting_vertex_position": "LowerLeftCorner",
+      "vertex_entry_direction": "Counterclockwise"
+    }
+  },
+  "HeatBalanceAlgorithm": {
+    "HeatBalanceAlgorithm 1": {
+      "algorithm": "ConductionTransferFunction",
+      "maximum_surface_convection_heat_transfer_coefficient_value": 1000,
+      "minimum_surface_convection_heat_transfer_coefficient_value": 0.1,
+      "surface_temperature_upper_limit": 200
+    }
+  },
+
+  "Material": {
+    "@@MATERIALS@@": null,
+     
+    "DefaultAsphalt": {
+      "conductivity": 0.75,
+      "density": 2350,
+      "roughness": "Rough",
+      "solar_absorptance": 0.32,
+      "specific_heat": 920,
+      "thermal_absorptance": 0.9,
+      "thickness": 0.05,
+      "visible_absorptance": 0.32
+    },
+    "DefaultXPS": {
+      "conductivity": 0.034,
+      "density": 35,
+      "roughness": "Rough",
+      "solar_absorptance": 0.7,
+      "specific_heat": 1400,
+      "thermal_absorptance": 0.9,
+      "thickness": 0.2,
+      "visible_absorptance": 0.7
+    },
+    "DefaultConcrete": {
+      "conductivity": 2.3,
+      "density": 2400,
+      "roughness": "Rough",
+      "solar_absorptance": 0.7,
+      "specific_heat": 840,
+      "thermal_absorptance": 0.9,
+      "thickness": 0.25,
+      "visible_absorptance": 0.7
+    }
+  },
+  "Material:RoofVegetation": {
+    "@@VEGETATION@@": null,
+    "MyGreenRoof": {
+      "conductivity_of_dry_soil": 0.4,
+      "density_of_dry_soil": 641,
+      "height_of_plants": 0.5,
+      "initial_volumetric_moisture_content_of_the_soil_layer": 0.2,
+      "leaf_area_index": 5,
+      "leaf_emissivity": 0.95,
+      "leaf_reflectivity": 0.2,
+      "minimum_stomatal_resistance": 180,
+      "moisture_diffusion_calculation_method": "Simple",
+      "residual_volumetric_moisture_content_of_the_soil_layer": 0.01,
+      "roughness": "Rough",
+      "saturation_volumetric_moisture_content_of_the_soil_layer": 0.4,
+      "soil_layer_name": "GreenRoofSoil",
+      "solar_absorptance": 0.8,
+      "specific_heat_of_dry_soil": 1100,
+      "thermal_absorptance": 0.95,
+      "thickness": 0.2,
+      "visible_absorptance": 0.7
+    }
+  },
+  "NodeList": {
+    "UNZ_0 Inlets": {
+      "nodes": [
+        {
+          "node_name": "Node UNZ_0 In"
+        }
+      ]
+    }
+  },
+
+  "Output:Surfaces:Drawing": {
+    "Output:Surfaces:Drawing 1": {
+      "report_specifications_1": "Triangulate3DFace",
+      "report_type": "DXF"
+    }
+  },
+
+  "Output:Variable": {
+
+    "Output:Variable 1": {
+      "key_value": "*",
+      "reporting_frequency": "Hourly",
+      "variable_name": "Surface Outside Face Temperature"
+    },
+    "Output:Variable 2": {
+      "key_value": "*",
+      "reporting_frequency": "Hourly",
+      "variable_name": "Site Sky Temperature"
+    },
+    "Output:Variable 3": {
+      "key_value": "*",
+      "reporting_frequency": "Hourly",
+      "variable_name": "Green Roof Soil Temperature"
+    },
+    "Output:Variable 4": {
+      "key_value": "*",
+      "reporting_frequency": "Hourly",
+      "variable_name": "Green Roof Vegetation Temperature"
+    }
+  },
+  "Output:VariableDictionary": {
+    "Output:VariableDictionary 1": {
+      "key_field": "IDF"
+    }
+  },
+
+  "RunPeriod": {
+    "Eddy3D": {
+      "apply_weekend_holiday_rule": "No",
+      "begin_day_of_month": 1,
+      "begin_month": 1,
+      "day_of_week_for_start_day": "Sunday",
+      "end_day_of_month": 31,
+      "end_month": 12,
+      "treat_weather_as_actual": "No",
+      "use_weather_file_daylight_saving_period": "No",
+      "use_weather_file_holidays_and_special_days": "No",
+      "use_weather_file_rain_indicators": "Yes",
+      "use_weather_file_snow_indicators": "Yes"
+    }
+  },
+  "RunPeriodControl:DaylightSavingTime": {
+    "RunPeriodControl:DaylightSavingTime 1": {
+      "end_date": "1st Sunday in November",
+      "start_date": "2nd Sunday in March"
+    }
+  },
+  "Schedule:Constant": {
+    "AirSpeed 0": {
+      "hourly_value": 0,
+      "schedule_type_limits_name": "AnyNumber"
+    },
+    "AllOn": {
+      "hourly_value": 1,
+      "schedule_type_limits_name": "Fraction"
+    },
+    "Off": {
+      "hourly_value": 0,
+      "schedule_type_limits_name": "On/Off"
+    },
+    "On": {
+      "hourly_value": 1,
+      "schedule_type_limits_name": "On/Off"
+    },
+    "UNZ_0Cooling_SP_Sch": {
+      "hourly_value": 26,
+      "schedule_type_limits_name": "Temperature"
+    },
+    "UNZ_0Heating_SP_Sch": {
+      "hourly_value": 20,
+      "schedule_type_limits_name": "Temperature"
+    },
+    "UNZ_0HumidMax": {
+      "hourly_value": 80,
+      "schedule_type_limits_name": "Any Number"
+    },
+    "UNZ_0HumidMin": {
+      "hourly_value": 20,
+      "schedule_type_limits_name": "Any Number"
+    },
+    "UNZ_0PeopleActivity": {
+      "hourly_value": 125.28,
+      "schedule_type_limits_name": "Any Number"
+    },
+    "UNZ_0WorkEfficiency": {
+      "hourly_value": 0,
+      "schedule_type_limits_name": "Any Number"
+    },
+    "UNZ_0ZoneControlTypeSched": {
+      "hourly_value": 4,
+      "schedule_type_limits_name": "Any Number"
+    }
+  },
+  "ScheduleTypeLimits": {
+    "Any Number": {},
+    "AnyNumber": {
+      "lower_limit_value": -100000000000.0,
+      "numeric_type": "Continuous",
+      "upper_limit_value": 100000000000.0
+    },
+    "Control Type": {
+      "lower_limit_value": 0,
+      "numeric_type": "Discrete",
+      "upper_limit_value": 4
+    },
+    "Fraction": {
+      "lower_limit_value": 0.0,
+      "numeric_type": "Continuous",
+      "upper_limit_value": 1.0
+    },
+    "On/Off": {
+      "lower_limit_value": 0,
+      "numeric_type": "Discrete",
+      "upper_limit_value": 1
+    },
+    "Temperature": {
+      "lower_limit_value": -60,
+      "numeric_type": "Continuous",
+      "upper_limit_value": 200
+    }
+  },
+
+
+  "ShadowCalculation": {
+    "ShadowCalculation 1": {
+      "disable_self_shading_from_shading_zone_groups_to_other_zones": "No",
+      "disable_self_shading_within_shading_zone_groups": "No",
+      "maximum_figures_in_shadow_overlap_calculations": 15000,
+      "output_external_shading_calculation_results": "Yes",
+      "pixel_counting_resolution": 512,
+      "shading_calculation_method": "PixelCounting",
+      "shading_calculation_update_frequency": 20,
+      "shading_calculation_update_frequency_method": "Periodic",
+      "sky_diffuse_modeling_algorithm": "SimpleSkyDiffuseModeling"
+    }
+  },
+  "SimulationControl": {
+    "SimulationControl 1": {
+      "do_hvac_sizing_simulation_for_sizing_periods": "No",
+      "do_plant_sizing_calculation": "No",
+      "do_system_sizing_calculation": "No",
+      "do_zone_sizing_calculation": "No",
+      "maximum_number_of_hvac_sizing_simulation_passes": 2,
+      "run_simulation_for_sizing_periods": "No",
+      "run_simulation_for_weather_file_run_periods": "Yes"
+    }
+  },
+  "Site:GroundReflectance": {
+    "Site:GroundReflectance 1": {
+      "april_ground_reflectance": 0.2,
+      "august_ground_reflectance": 0.2,
+      "december_ground_reflectance": 0.2,
+      "february_ground_reflectance": 0.2,
+      "january_ground_reflectance": 0.2,
+      "july_ground_reflectance": 0.2,
+      "june_ground_reflectance": 0.2,
+      "march_ground_reflectance": 0.2,
+      "may_ground_reflectance": 0.2,
+      "november_ground_reflectance": 0.2,
+      "october_ground_reflectance": 0.2,
+      "september_ground_reflectance": 0.2
+    }
+  },
+  "Site:GroundReflectance:SnowModifier": {
+    "Site:GroundReflectance:SnowModifier 1": {
+      "daylighting_ground_reflected_solar_modifier": 1.0,
+      "ground_reflected_solar_modifier": 1.0
+    }
+  },
+  "Site:GroundTemperature:BuildingSurface": {
+    "Site:GroundTemperature:BuildingSurface 1": {
+      "april_ground_temperature": 18,
+      "august_ground_temperature": 18,
+      "december_ground_temperature": 18,
+      "february_ground_temperature": 18,
+      "january_ground_temperature": 18,
+      "july_ground_temperature": 18,
+      "june_ground_temperature": 18,
+      "march_ground_temperature": 18,
+      "may_ground_temperature": 18,
+      "november_ground_temperature": 18,
+      "october_ground_temperature": 18,
+      "september_ground_temperature": 18
+    }
+  },
+  "Site:WeatherStation": {
+    "Site:WeatherStation 1": {
+      "air_temperature_sensor_height_above_ground": 1.5,
+      "wind_sensor_height_above_ground": 10,
+      "wind_speed_profile_boundary_layer_thickness": 370,
+      "wind_speed_profile_exponent": 0.22
+    }
+  },
+
+  "SurfaceConvectionAlgorithm:Inside": {
+    "SurfaceConvectionAlgorithm:Inside 1": {
+      "algorithm": "TARP"
+    }
+  },
+  "SurfaceConvectionAlgorithm:Outside": {
+    "SurfaceConvectionAlgorithm:Outside 1": {
+      "algorithm": "DOE-2"
+    }
+  },
+  "ThermostatSetpoint:DualSetpoint": {
+    "Dual Setpoint - Zone UNZ_0": {
+      "cooling_setpoint_temperature_schedule_name": "UNZ_0Cooling_SP_Sch",
+      "heating_setpoint_temperature_schedule_name": "UNZ_0Heating_SP_Sch"
+    }
+  },
+  "Timestep": {
+    "Timestep 1": {
+      "number_of_timesteps_per_hour": 4
+    }
+  },
+  "Version": {
+    "Version 1": {
+      "version_identifier": "9.4"
+    }
+  },
+  "WindowMaterial:SimpleGlazingSystem": {
+    "DoublePaneClrWindow": {
+      "solar_heat_gain_coefficient": 0.764,
+      "u_factor": 2.72,
+      "visible_transmittance": 0.812
+    }
+  },
+  "Zone": {
+    "UNZ_0": {
+      "direction_of_relative_north": 0,
+      "floor_area": 9,
+      "multiplier": 1.0,
+      "type": 1,
+      "volume": 27,
+      "x_origin": 0,
+      "y_origin": 0,
+      "z_origin": 0,
+      "zone_inside_convection_algorithm": "TARP",
+      "zone_outside_convection_algorithm": "DOE-2"
+    }
+  },
+  "ZoneControl:Humidistat": {
+    "UNZ_0Humidistat": {
+      "dehumidifying_relative_humidity_setpoint_schedule_name": "UNZ_0HumidMax",
+      "humidifying_relative_humidity_setpoint_schedule_name": "UNZ_0HumidMin",
+      "zone_name": "UNZ_0"
+    }
+  },
+  "ZoneControl:Thermostat": {
+    "UNZ_0 Thermostat": {
+      "control_1_name": "Dual Setpoint - Zone UNZ_0",
+      "control_1_object_type": "ThermostatSetpoint:DualSetpoint",
+      "control_type_schedule_name": "UNZ_0ZoneControlTypeSched",
+      "zone_or_zonelist_name": "UNZ_0"
+    }
+  },
+  "ZoneHVAC:EquipmentConnections": {
+    "ZoneHVAC:EquipmentConnections 1": {
+      "zone_air_inlet_node_or_nodelist_name": "UNZ_0 Inlets",
+      "zone_air_node_name": "Node UNZ_0 Zone",
+      "zone_conditioning_equipment_list_name": "UNZ_0 Equipment",
+      "zone_name": "UNZ_0",
+      "zone_return_air_node_or_nodelist_name": "Node UNZ_0 Out"
+    }
+  },
+  "ZoneHVAC:EquipmentList": {
+    "UNZ_0 Equipment": {
+      "equipment": [
+        {
+          "zone_equipment_cooling_sequence": 1,
+          "zone_equipment_heating_or_no_load_sequence": 1,
+          "zone_equipment_name": "UNZ_0 Ideal Loads Air",
+          "zone_equipment_object_type": "ZoneHVAC:IdealLoadsAirSystem"
+        }
+      ],
+      "load_distribution_scheme": "UniformLoad"
+    }
+  },
+  "ZoneHVAC:IdealLoadsAirSystem": {
+    "UNZ_0 Ideal Loads Air": {
+      "cooling_availability_schedule_name": "AllOn",
+      "cooling_limit": "NoLimit",
+      "dehumidification_control_type": "None",
+      "heat_recovery_type": "None",
+      "heating_availability_schedule_name": "AllOn",
+      "heating_limit": "NoLimit",
+      "humidification_control_type": "None",
+      "latent_heat_recovery_effectiveness": 0.65,
+      "maximum_cooling_air_flow_rate": 100,
+      "maximum_heating_air_flow_rate": 100,
+      "maximum_heating_supply_air_humidity_ratio": 0.01,
+      "maximum_heating_supply_air_temperature": 30,
+      "minimum_cooling_supply_air_humidity_ratio": 0.008,
+      "minimum_cooling_supply_air_temperature": 18,
+      "outdoor_air_economizer_type": "NoEconomizer",
+      "sensible_heat_recovery_effectiveness": 0.7,
+      "zone_supply_air_node_name": "Node UNZ_0 In"
+    }
+  },
+  "ZoneInfiltration:DesignFlowRate": {
+    "UNZ_0Infiltration": {
+      "air_changes_per_hour": 0.5,
+      "constant_term_coefficient": 1,
+      "design_flow_rate_calculation_method": "AirChanges/Hour",
+      "schedule_name": "On",
+      "temperature_term_coefficient": 0,
+      "velocity_squared_term_coefficient": 0,
+      "velocity_term_coefficient": 0,
+      "zone_or_zonelist_name": "UNZ_0"
+    }
+  }
+}
