@@ -2,7 +2,7 @@
 using System;
 using Xunit;
 
-namespace RhinoPlugin.Tests.Xunit
+namespace RhinoPlugin.Test.Xunit
 {
     [Collection("Rhino Collection")]
     public class XunitExampleTests

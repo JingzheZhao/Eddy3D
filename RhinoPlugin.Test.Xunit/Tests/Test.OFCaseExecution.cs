@@ -9,9 +9,9 @@ using System.IO;
 using Xunit;
 using Rhino;
 using Rhino.DocObjects;
-using EddyLib.TestHelpers;
+using RhinoPlugin.Test.Xunit.Tests;
 
-namespace EddyLib.TestHelpers
+namespace RhinoPlugin.Test.Xunit.Tests
 {
     public static class GeometryHelpers
     {
@@ -80,7 +80,7 @@ namespace EddyLib.TestHelpers
     }
 }
 
-namespace RhinoPlugin.Tests.Xunit
+namespace RhinoPlugin.Test.Xunit
 {
     [Collection("Rhino Collection")]
     public class OFExecutionTests
@@ -89,7 +89,13 @@ namespace RhinoPlugin.Tests.Xunit
         public void BuildingGeo_HasExpectedTopology()
         {
             // Re-use the helper
-            Mesh mesh = GeometryHelpers.LoadMergedMesh(@"Resources\BuildingGeo.stl");
+            // Replace this line:
+            // Mesh mesh = GeometryHelpers.LoadMergedMesh(@"RhinoPlugin.Tests.Xunit\Resources\BuildingGeo.stl");
+
+            // With this:
+            var ns = typeof(OFExecutionTests).Namespace;
+            var resourcePath = $@"{ns}\Resources\BuildingGeo.stl";
+            Mesh mesh = GeometryHelpers.LoadMergedMesh(resourcePath);
 
             // Quick sanity checks
             Assert.True(mesh.IsValid);

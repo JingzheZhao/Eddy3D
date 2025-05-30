@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace RhinoPlugin.Tests.Xunit
+namespace RhinoPlugin.Test.Xunit
 {
     [Collection("Rhino Collection")]
     public class OFDomainTests

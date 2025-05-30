@@ -8,9 +8,9 @@ using System.IO;
 using System.Linq;
 using Xunit;
 using static EddyLib.OutdoorComfort.WindComfortHelper;
-using static RhinoPlugin.Tests.Xunit.WeatherDownload;
+using static RhinoPlugin.Test.Xunit.WeatherDownload;
 
-namespace RhinoPlugin.Tests.Xunit
+namespace RhinoPlugin.Test.Xunit
 {
     [Collection("Rhino Collection")]
     public class WindComfortTests

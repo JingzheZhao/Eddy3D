@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 using Xunit;
 
-namespace RhinoPlugin.Tests.Xunit
+namespace RhinoPlugin.Test.Xunit
 {
     /// <summary>
     /// Initialization process for Rhino and  shared Test Context adapted to xunit from here https://github.com/tmakin/RhinoCommonUnitTesting
