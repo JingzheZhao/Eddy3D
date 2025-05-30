@@ -1,53 +1,27 @@
 ﻿using EddyLib;
 using EddyLib.BCs;
-using EddyLib.Indoor.Dicts;
 using Rhino.FileIO;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using Xunit;
-
-using System.IO;
-using System.Reflection;
-
-using System.Linq;
-
-using System;
-using System.IO;
-using System.Linq;
-
 using Rhino;
-
-using Rhino.FileIO;
-using Rhino.Geometry;
-using Xunit;
-
 using Rhino.DocObjects;
 using EddyLib.TestHelpers;
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Rhino;
-using Rhino.DocObjects;
-using Rhino.FileIO;
-using Rhino.Geometry;
 
 namespace EddyLib.TestHelpers
 {
     public static class GeometryHelpers
     {
         /// <summary>
-        /// Loads every mesh contained in an STL, appends them into one mesh,
-        /// cleans it (weld, unify normals, merge coplanar faces) and returns it.
+        ///     Loads every mesh contained in an STL, appends them into one mesh,
+        ///     cleans it (weld, unify normals, merge coplanar faces) and returns it.
         /// </summary>
         public static Mesh LoadMergedMesh(string solutionRelativePath,
-                                          double weldAngleRadians = Math.PI,
-                                          double coplanarTol = 1e-6)
+            double weldAngleRadians = Math.PI,
+            double coplanarTol = 1e-6)
         {
             var stlAbs = Path.Combine(GetSolutionRoot(), solutionRelativePath);
             if (!File.Exists(stlAbs))
@@ -70,7 +44,7 @@ namespace EddyLib.TestHelpers
                 // ---- append all pieces into one mesh (Rhino-common pattern) ----
                 var merged = new Mesh();
                 foreach (var part in pieces)
-                    merged.Append(part);                      // :contentReference[oaicite:4]{index=4}
+                    merged.Append(part); // :contentReference[oaicite:4]{index=4}
 
                 // ---- clean up ----
                 merged.Vertices.CombineIdentical(true, true);
@@ -80,14 +54,16 @@ namespace EddyLib.TestHelpers
                 merged.Compact();
 
                 // Rhino 7: use MergeAllCoplanarFaces to shrink planar quads
-                merged.MergeAllCoplanarFaces(coplanarTol);   // :contentReference[oaicite:5]{index=5}
+                merged.MergeAllCoplanarFaces(coplanarTol); // :contentReference[oaicite:5]{index=5}
 
                 return merged;
             }
         }
 
         private static string GetSolutionRoot()
-            => Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, @"..\..\..\.."));
+        {
+            return Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, @"..\..\..\.."));
+        }
 
         public static Mesh RectangleToMesh(Rectangle3d rect)
         {
@@ -127,7 +103,7 @@ namespace RhinoPlugin.Tests.Xunit
         public void CylDomainCase_GeneratesAndExecutesSuccessfully()
         {
             // Arrange         
-            string caseDir = Path.Combine(Path.GetTempPath(), $"testcase-cyl-{Guid.NewGuid():N}\\");
+            var caseDir = Path.Combine(Path.GetTempPath(), $"testcase-cyl-{Guid.NewGuid():N}\\");
 
             // Clean up the directory and all contents
             //if (Directory.Exists(caseDir))
@@ -156,7 +132,7 @@ namespace RhinoPlugin.Tests.Xunit
                 accBuildings = 4,
                 accFeatures = 3,
                 accGround = 4,
-                accBoxRefinement = 3,
+                accBoxRefinement = 3
             };
             meshSettings.SetDirectories(caseDir);
             var runSettings = new OFRunSettings
@@ -165,19 +141,19 @@ namespace RhinoPlugin.Tests.Xunit
                 CPUs = 6,
                 relaxationFactors = RelaxationFactors.Robust,
                 schemes = fvSchemes.Optimized,
-                turbModel = TurbModel.RNGkEpsilon,
+                turbModel = TurbModel.RNGkEpsilon
             };
 
-            var bc = new ABL(0, 5, 10, 1, 0);
-            var bc1 = new ABL(45, 5, 10, 1, 0);
-            var bc2 = new ABL(90, 5, 10, 1, 0);
-            var bc3 = new ABL(135, 5, 10, 1, 0);
-            var bc4 = new ABL(180, 5, 10, 1, 0);
-            var bc5 = new ABL(225, 5, 10, 1, 0);
-            var bc6 = new ABL(270, 5, 10, 1, 0);
-            var bc7 = new ABL(315, 5, 10, 1, 0);
+            var bc = new ABL();
+            var bc1 = new ABL(45);
+            var bc2 = new ABL(90);
+            var bc3 = new ABL(135);
+            var bc4 = new ABL(180);
+            var bc5 = new ABL(225);
+            var bc6 = new ABL(270);
+            var bc7 = new ABL(315);
 
-            var bcList = new List<BC>() { bc, bc1, bc2, bc3, bc4, bc5, bc6, bc7 };
+            var bcList = new List<BC> { bc, bc1, bc2, bc3, bc4, bc5, bc6, bc7 };
             var bcColl = new BCCollection(bcList);
             var domCyl = new OFCylDomain(BuildingMesh, flatPlate, bcColl, 15, 60, 600, 120);
 
@@ -185,18 +161,18 @@ namespace RhinoPlugin.Tests.Xunit
 
             // Act: Generate the OpenFOAM case and batch files
             RunBlockMesh.RunCyl(domCyl, meshSettings, runSettings, caseDir);
-            RunSnappy.Run(domCyl, meshSettings, runSettings, out string logfileOutput);
+            RunSnappy.Run(domCyl, meshSettings, runSettings, out var logfileOutput);
             RunFoamSimulation.Run(domCyl, meshSettings, runSettings, caseDir);
             var result = RunBatchFileInteractive(caseDir, "run.bat");
 
             foreach (var boundarycond in bcList)
             {
                 // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
-                string logPath = Path.Combine(caseDir, boundarycond.windDir.ToString(), "log");
+                var logPath = Path.Combine(caseDir, boundarycond.windDir.ToString(), "log");
 
                 Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
 
-                string logContent = File.ReadAllText(logPath);
+                var logContent = File.ReadAllText(logPath);
                 Assert.Contains("Time = 1000", logContent);
             }
         }
@@ -206,7 +182,7 @@ namespace RhinoPlugin.Tests.Xunit
 
         {
             // Arrange
-            string caseDir = Path.Combine(Path.GetTempPath(), $"testcase-box-{Guid.NewGuid():N}\\");
+            var caseDir = Path.Combine(Path.GetTempPath(), $"testcase-box-{Guid.NewGuid():N}\\");
 
             // Clean up the directory and all contents at the beginning for debugging
             //if (Directory.Exists(caseDir))
@@ -219,7 +195,7 @@ namespace RhinoPlugin.Tests.Xunit
             {
                 accBuildings = 3,
                 accFeatures = 4,
-                accGround = 3,
+                accGround = 3
             };
             meshSettings.SetDirectories(caseDir);
 
@@ -228,33 +204,33 @@ namespace RhinoPlugin.Tests.Xunit
                 iter = 3000,
                 CPUs = 6,
                 relaxationFactors = RelaxationFactors.Robust,
-                schemes = fvSchemes.Optimized,
+                schemes = fvSchemes.Optimized
             };
 
             var windDir = 0;
-            var boundaryCondition = new ABL(windDir, 5, 10, 1, 0);
+            var boundaryCondition = new ABL(windDir);
 
             var bcColl = new BCCollection(boundaryCondition);
             var domBox = new OFBoxDomain(Setup.SetUpBuildingMesh(), new Mesh(), bcColl, 20);
 
             // Act: Generate the OpenFOAM case and batch files
             RunBlockMesh.RunBox(domBox, meshSettings, runSettings, caseDir);
-            RunSnappy.Run(domBox, meshSettings, runSettings, out string logfileOutput);
+            RunSnappy.Run(domBox, meshSettings, runSettings, out var logfileOutput);
             RunFoamSimulation.Run(domBox, meshSettings, runSettings, caseDir);
 
             var result = RunBatchFileInteractive(caseDir, "run.bat");
 
             // Assert: check log file contains the expected string
-            string logFile = Path.Combine(caseDir, windDir.ToString(), "log");
+            var logFile = Path.Combine(caseDir, windDir.ToString(), "log");
             Assert.True(File.Exists(logFile), $"Log file not found: {logFile}");
-            string logContent = File.ReadAllText(logFile);
+            var logContent = File.ReadAllText(logFile);
             Assert.Contains("SIMPLE solution converged", logContent);
         }
 
         // This version opens a terminal and shows the progress
         private (bool Success, string Log) RunBatchFileInteractive(string workingDir, string batchFileName)
         {
-            string batchFilePath = Path.Combine(workingDir, batchFileName);
+            var batchFilePath = Path.Combine(workingDir, batchFileName);
 
             var startInfo = new ProcessStartInfo
             {
@@ -263,16 +239,16 @@ namespace RhinoPlugin.Tests.Xunit
                 WorkingDirectory = workingDir,
                 UseShellExecute = true,
                 CreateNoWindow = false // Show the window
-                                       // Do NOT redirect standard output or error!
+                // Do NOT redirect standard output or error!
             };
 
-            Process process = Process.Start(startInfo);
+            var process = Process.Start(startInfo);
             process.WaitForExit();
 
             // You cannot capture output when UseShellExecute = true and redirection is off
             // But you can still check the result file
-            bool success = process.ExitCode == 0
-                && File.Exists(Path.Combine(workingDir, "postProcessing", "residuals", "0", "residuals.dat"));
+            var success = process.ExitCode == 0
+                          && File.Exists(Path.Combine(workingDir, "postProcessing", "residuals", "0", "residuals.dat"));
 
             process.Dispose();
             return (success, "See terminal window for output.");
