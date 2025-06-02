@@ -108,7 +108,7 @@ namespace RhinoPlugin.Test.Xunit
         [Fact]
         public void CylDomainCase_GeneratesAndExecutesSuccessfully()
         {
-            // Arrange         
+            // Arrange
             var caseDir = Path.Combine(Path.GetTempPath(), $"testcase-cyl-{Guid.NewGuid():N}\\");
 
             // Clean up the directory and all contents
@@ -118,7 +118,9 @@ namespace RhinoPlugin.Test.Xunit
             //}
             Directory.CreateDirectory(caseDir);
 
-            Mesh BuildingMesh = GeometryHelpers.LoadMergedMesh(@"EddyLib\Resources\BuildingGeo.stl");
+            var ns = typeof(OFExecutionTests).Namespace;
+            var resourcePath = $@"{ns}\Resources\BuildingGeo.stl";
+            Mesh BuildingMesh = GeometryHelpers.LoadMergedMesh(resourcePath);
 
             Rectangle3d rect = new Rectangle3d(Plane.WorldXY, 1000.0, 1000.0);
             // Calculate the center point of the rectangle
