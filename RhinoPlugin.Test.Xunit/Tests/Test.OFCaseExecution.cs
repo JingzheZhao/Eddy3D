@@ -163,7 +163,7 @@ namespace RhinoPlugin.Test.Xunit
 
             var bcList = new List<BC> { bc, bc1, bc2, bc3, bc4, bc5, bc6, bc7 };
             var bcColl = new BCCollection(bcList);
-            var domCyl = new OFCylDomain(BuildingMesh, flatPlate, bcColl, 15, 60, 600, 120);
+            var domCyl = new OFCylDomain(BuildingMesh, flatPlate, bcColl, 15, 40, 519, 80);
 
             Directory.CreateDirectory(caseDir);
 
