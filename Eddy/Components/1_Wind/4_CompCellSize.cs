@@ -61,7 +61,6 @@ namespace Eddy
         {
             double desiredCellSize = 1;
             double blockMeshCellSize = 1;
-            int acc = 1;
 
             OFCylDomain CylDom;
             OFBoxDomain BoxDom;
@@ -91,10 +90,10 @@ namespace Eddy
             DA.GetData(1, ref blockMeshCellSize);
             DA.GetData(2, ref desiredCellSize);
 
-            acc = (int)(Math.Round(((Math.Log(blockMeshCellSize) - Math.Log(desiredCellSize)) / Math.Log(2))));
-
+            int acc = 1;
+            int accPlus1 = 2;
             DA.SetData(0, acc);
-            DA.SetData(0, acc + 1);
+            DA.SetData(1, accPlus1);
         }
 
         /// <summary>
