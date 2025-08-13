@@ -146,7 +146,7 @@ namespace RhinoPlugin.Test.Xunit
             var runSettings = new OFRunSettings
             {
                 iter = 1000,
-                CPUs = 6,
+                CPUs = 8,
                 relaxationFactors = RelaxationFactors.Robust,
                 schemes = fvSchemes.Optimized,
                 turbModel = TurbModel.RNGkEpsilon

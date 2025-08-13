@@ -96,43 +96,57 @@ namespace EddyLib.OutdoorComfort
             return UTI;
         }
 
-        public static CmftThresholdInfo CalcExceedance(double[] TemporalVelocityArray, Dictionary<int, CmftThresholdInfo> CTID)
-
+        public static CmftThresholdInfo CalcExceedance(
+       double[] temporalVelocityArray,
+       Dictionary<int, CmftThresholdInfo> CTID)
         {
-            // If we can't make an estimate, let's return the best case scenario --> no wind, sitting is possible
-            CmftThresholdInfo pedestrianComfort = CTID[1];
+            if (CTID == null || CTID.Count == 0)
+                throw new ArgumentException("CTID must contain at least one threshold.", nameof(CTID));
 
-            // Weibull estimate
-            // Make sure we are filtering 0's, otherwise the estimator won't converge
+            // Best-case scenario: "no wind, sitting is possible"
+            // Heuristic: sitting has the lowest threshold (smallest UThres).
+            var bestCase = CTID.Values.OrderBy(t => t.UThres).First();
 
-            var Estimate = Weibull.Estimate(TemporalVelocityArray.Where(i => i != 0).ToArray());
+            if (temporalVelocityArray == null || temporalVelocityArray.Length == 0)
+                return bestCase;
 
-            var Kappa = Estimate.Shape;
-            var Lambda = Estimate.Scale;
+            // Filter invalid values; Weibull needs strictly positive samples
+            var arrToProcess = temporalVelocityArray
+                .Where(v => !double.IsNaN(v) && !double.IsInfinity(v) && v > 0.0)
+                .ToArray();
 
-            // start from the highest and start binning
-            //        Parallel.ForEach(LTI.Values.Reverse(),
-            //Entry =>
-            //{
-            foreach (CmftThresholdInfo TI in CTID.Values)
+            if (arrToProcess.Length == 0)
+                return bestCase;
+
+            double kappa, lambda;
+            try
             {
-                // Treat all wind directions with equal weight, like suggested in https://www.sciencedirect.com/science/article/pii/S0360132316300415#fig22, eq. 14
+                var estimate = Weibull.Estimate(arrToProcess);
+                kappa = estimate.Shape;
+                lambda = estimate.Scale;
 
-                //double PercentagePerYear = (double)1 / simulatedWindDirections.Count();
-                double ExceedanceProbability = Prob_Exceedance(1, TI.UThres, Kappa, Lambda); // P_Upot_Utr10m
-                bool Exceedance = CheckExceedance(ExceedanceProbability, TI);
-
-                if (Exceedance)
-                {
-                    pedestrianComfort = TI;
-                    return pedestrianComfort;
-                }
-
-                // return pedestrianComfort;
+                if (!(kappa > 0.0) || !(lambda > 0.0) || double.IsNaN(kappa) || double.IsNaN(lambda))
+                    return bestCase;
+            }
+            catch
+            {
+                // Estimator failed: return best-case
+                return bestCase;
             }
 
-            //});
-            return pedestrianComfort;
+            // Start from highest threshold and bin down
+            foreach (var TI in CTID.Values.OrderByDescending(t => t.UThres))
+            {
+                // Treat all wind directions with equal weight (per your ref).
+                double exceedanceProbability = Prob_Exceedance(1.0, TI.UThres, kappa, lambda); // P( U > U_thres )
+                bool exceedance = CheckExceedance(exceedanceProbability, TI);
+
+                if (exceedance)
+                    return TI;
+            }
+
+            // Nothing exceeded → best comfort class (sitting)
+            return bestCase;
         }
 
         private static bool CheckExceedance(double ExceedanceProbability, CmftThresholdInfo TI)

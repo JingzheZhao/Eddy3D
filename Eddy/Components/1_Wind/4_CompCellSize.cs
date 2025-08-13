@@ -4,115 +4,111 @@ using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using System;
 
-// In order to load the result of this wizard, you will also need to add the output bin/ folder of
-// this project to the list of loaded folder in Grasshopper. You can use the
-// _GrasshopperDeveloperSettings Rhino command for that.
-
 namespace Eddy
 {
     public class CellSize : GH_Component
     {
         public override GH_Exposure Exposure
         {
-            get { return GH_Exposure.quarternary; }
+            get { return GH_Exposure.quarternary; } // keep your original exposure
         }
 
-        /// <summary>
-        /// Each implementation of GH_Component must provide a public constructor without any
-        /// arguments. Category represents the Tab in which the component will appear, Subcategory
-        /// the panel. If you use non-existing tab or panel names, new tabs/panels will automatically
-        /// be created.
-        /// </summary>
         public CellSize()
-          : base("Cell Size", "Cell Size", "Calculate the mesh accuracy (levels) needes for a desired cell size." + EddyVersion.toString(),
-              EddyVersion.Name, "1 | Wind")
+          : base(
+                "Cell Size",
+                "Cell Size",
+                "Calculate the mesh accuracy (levels) needed for a desired cell size. " + EddyVersion.Name.ToString(),
+                EddyVersion.ProductVersion.ToString(),
+                "1 | Wind")
         {
         }
 
-        /// <summary>
-        /// Registers all the input parameters for this component.
-        /// </summary>
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Simulation Domain", "Dom", "Simulation Domain", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Block Size", "BS", "Cell size in meters", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Desired CellSize", "DC", "Desired cell size in meters", GH_ParamAccess.item);
-
-            //pManager.AddBooleanParameter("", "Run", "Clean the directory", GH_ParamAccess.item, false);
+            pManager.AddGenericParameter("Simulation Domain", "Dom", "Simulation domain (OFCylDomain or OFBoxDomain).", GH_ParamAccess.item);
+            pManager.AddNumberParameter("BlockMesh Cell Size", "BS", "Base cell size in meters (blockMesh).", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Desired Cell Size", "DC", "Desired cell size in meters.", GH_ParamAccess.item);
         }
 
-        /// <summary>
-        /// Registers all the output parameters for this component.
-        /// </summary>
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddIntegerParameter("Accuracy", "Acc", "Level of accuracy needed", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("Accuracy+1", "Acc+1", "Level+1 of accuracy needed", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Accuracy", "Acc", "Level of accuracy (refinement levels) needed.", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Accuracy+1", "Acc+1", "One higher refinement level.", GH_ParamAccess.item);
         }
 
-        /// <summary>
-        /// This is the method that actually does the work.
-        /// </summary>
-        /// <param name="DA">
-        /// The DA object can be used to retrieve data from input parameters and to store data in
-        /// output parameters.
-        /// </param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            double desiredCellSize = 1;
-            double blockMeshCellSize = 1;
-
-            OFCylDomain CylDom;
-            OFBoxDomain BoxDom;
-            OFBaseDomain DOM;
-
+            // --- 1) Read and validate inputs
             GH_ObjectWrapper gobj = null;
-            if (!DA.GetData(0, ref gobj)) { }
-
-            if ((gobj.Value is OFCylDomain))
+            if (!DA.GetData(0, ref gobj) || gobj == null || gobj.Value == null)
             {
-                CylDom = (OFCylDomain)gobj.Value;
-                DOM = (OFBaseDomain)gobj.Value;
-
-                //blockMeshCellSize = Math.Abs(CylDom.ListOfAllPointsInMagicOrder[145].X - CylDom.ListOfAllPointsInMagicOrder[136].X);
-            }
-            else if ((gobj.Value is OFBoxDomain))
-            {
-                BoxDom = (OFBoxDomain)gobj.Value;
-                DOM = (OFBaseDomain)gobj.Value;
-            }
-            else
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid domain object");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No domain provided.");
                 return;
             }
 
-            DA.GetData(1, ref blockMeshCellSize);
-            DA.GetData(2, ref desiredCellSize);
+            double blockMeshCellSize = 0.0;
+            if (!DA.GetData(1, ref blockMeshCellSize))
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Failed to read BlockMesh Cell Size.");
+                return;
+            }
 
-            int acc = 1;
-            int accPlus1 = 2;
+            double desiredCellSize = 0.0;
+            if (!DA.GetData(2, ref desiredCellSize))
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Failed to read Desired Cell Size.");
+                return;
+            }
+
+            if (blockMeshCellSize <= 0.0)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "BlockMesh Cell Size must be > 0.");
+                return;
+            }
+
+            if (desiredCellSize <= 0.0)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Desired Cell Size must be > 0.");
+                return;
+            }
+
+            // --- 2) Ensure domain type is valid (and cast if needed)
+            // We don't actually use the domain below, but we validate type to match your original intent.
+            if (gobj.Value is OFCylDomain _)
+            {
+                // OK (cylindrical domain)
+            }
+            else if (gobj.Value is OFBoxDomain _)
+            {
+                // OK (box domain)
+            }
+            else
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid domain object (OFCylDomain or OFBoxDomain).");
+                return;
+            }
+
+            // --- 3) Compute refinement levels
+            // Each level halves the cell size: size(level L) = blockMeshCellSize / 2^L
+            // Find smallest integer L with size(L) <= desiredCellSize:
+            //   blockMeshCellSize / 2^L <= desiredCellSize  =>  2^L >= blockMeshCellSize / desiredCellSize
+            //   L >= log2(blockMeshCellSize / desiredCellSize)
+            double ratio = blockMeshCellSize / desiredCellSize;
+            int acc = (int)Math.Ceiling(Math.Log(ratio, 2.0));
+            if (acc < 0) acc = 0; // if desired >= blockMesh size, zero refinement is enough
+
+            int accPlus1 = acc + 1;
+
+            // --- 4) Output
             DA.SetData(0, acc);
             DA.SetData(1, accPlus1);
         }
 
-        /// <summary>
-        /// Provides an Icon for every component that will be visible in the User Interface. Icons
-        /// need to be 24x24 pixels.
-        /// </summary>
         protected override System.Drawing.Bitmap Icon
         {
-            get
-            {
-                // You can add image files to your project resources and access them like this:
-                return Resources.Eddy_resizeMesh;
-            }
+            get { return Resources.Eddy_resizeMesh; }
         }
 
-        /// <summary>
-        /// Each component must have a unique Guid to identify it. It is vital this Guid doesn't
-        /// change otherwise old ghx files that use the old ID will partially fail during loading.
-        /// </summary>
         public override Guid ComponentGuid
         {
             get { return new Guid("{BFAD64ED-FACE-4D30-8A3A-64877F1609F2}"); }
