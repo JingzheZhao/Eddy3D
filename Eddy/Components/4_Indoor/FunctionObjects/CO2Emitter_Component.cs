@@ -32,7 +32,7 @@ namespace Eddy.Components.Indoor
             pManager.AddNumberParameter("Injection Rate", "IR", "Injection Rate imposed on object", GH_ParamAccess.item);
 
             //3
-            pManager.AddIntegerParameter("Type", "Typ", "Type: Absolute [W] or specific [W/m³]", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("Type", "Typ", "Type: Absolute [-] or specific [1/m³]", GH_ParamAccess.item, 0);
             Param_Integer param = pManager[3] as Param_Integer;
             param.AddNamedValue("Absolute", 0);
             param.AddNamedValue("Specific", 1);
@@ -54,15 +54,20 @@ namespace Eddy.Components.Indoor
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            //0
             Mesh geo = null;
-            if (!DA.GetData("Geo", ref geo)) { };
+            if (!DA.GetData("Geo", ref geo)) { }
+            ;
 
+            //1
             string Name = "";
             DA.GetData("Name", ref Name);
 
+            //2
             double IR = 0;
             DA.GetData("Injection Rate", ref IR);
 
+            //3
             int Type = 0;
             DA.GetData("Type", ref Type);
 

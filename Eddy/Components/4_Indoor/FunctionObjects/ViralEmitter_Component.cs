@@ -32,7 +32,7 @@ namespace Eddy.Components.Indoor
             pManager.AddNumberParameter("Injection Rate", "IR", "Injection Rate imposed on object", GH_ParamAccess.item);
 
             //3
-            pManager.AddIntegerParameter("Type", "Typ", "Type: Absolute [W] or specific [W/m³]", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("Type", "Typ", "Type: Absolute [-] or specific [1/m³]", GH_ParamAccess.item, 0);
             Param_Integer param = pManager[3] as Param_Integer;
             param.AddNamedValue("Absolute", 0);
             param.AddNamedValue("Specific", 1);
@@ -55,7 +55,8 @@ namespace Eddy.Components.Indoor
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh geo = null;
-            if (!DA.GetData("Geo", ref geo)) { };
+            if (!DA.GetData("Geo", ref geo)) { }
+            ;
 
             string Name = "";
             DA.GetData("Name", ref Name);

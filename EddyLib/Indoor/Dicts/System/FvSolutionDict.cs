@@ -96,42 +96,32 @@ namespace EddyLib.Indoor.Dicts
             return Dict3;
         }
 
-        private static Dictionary<string, dynamic> MakeDict_AoA()
+        private static Dictionary<string, dynamic> MakeDict_AoA_Dict()
         {
-            Dictionary<string, dynamic> Dict3 = new Dictionary<string, dynamic>();
+            var d = new Dictionary<string, dynamic>();
 
-            Dict3.Add("solver", "GAMG");
-            Dict3.Add("tolerance", "1e-7");
-            Dict3.Add("relTol", "1e-8");
-            Dict3.Add("nPreSweeps", "0");
-            Dict3.Add("nPostSweeps", "2");
-            Dict3.Add("cacheAgglomeration", "true");
-            Dict3.Add("smoother", "GaussSeidel");
-            Dict3.Add("agglomerator", "faceAreaPair");
-            Dict3.Add("nCellsInCoarsestLevel", "10");
-            Dict3.Add("mergeLevels", "1");
-            Dict3.Add("maxIter", "100");
+            d.Add("solver", "smoothSolver");
+            d.Add("smoother", "symGaussSeidel");
+            d.Add("nSweeps", "1");          // 1–2 is typical for transport
+            d.Add("tolerance", "1e-8");
+            d.Add("relTol", "0.1");         // use 0 for strictly transient solves
+            d.Add("maxIter", "100");        // optional safety cap
 
-            return Dict3;
+            return d;
         }
 
-        private static Dictionary<string, dynamic> MakeDict_Covid19()
+        private static Dictionary<string, dynamic> MakeDict_Covid19_Dict()
         {
-            Dictionary<string, dynamic> Dict3 = new Dictionary<string, dynamic>();
+            var d = new Dictionary<string, dynamic>();
 
-            Dict3.Add("solver", "GAMG");
-            Dict3.Add("tolerance", "1e-7");
-            Dict3.Add("relTol", "1e-8");
-            Dict3.Add("nPreSweeps", "0");
-            Dict3.Add("nPostSweeps", "2");
-            Dict3.Add("cacheAgglomeration", "true");
-            Dict3.Add("smoother", "GaussSeidel");
-            Dict3.Add("agglomerator", "faceAreaPair");
-            Dict3.Add("nCellsInCoarsestLevel", "10");
-            Dict3.Add("mergeLevels", "1");
-            Dict3.Add("maxIter", "100");
+            d.Add("solver", "smoothSolver");
+            d.Add("smoother", "symGaussSeidel");
+            d.Add("nSweeps", "1");          // 1–2 is typical for transport
+            d.Add("tolerance", "1e-8");
+            d.Add("relTol", "0.1");         // use 0 for strictly transient solves
+            d.Add("maxIter", "100");        // optional safety cap
 
-            return Dict3;
+            return d;
         }
 
         //Solvers - 3 Nested Dict
@@ -148,8 +138,8 @@ namespace EddyLib.Indoor.Dicts
             Dict2.Add("h", MakeDict_h());
             Dict2.Add("k", MakeDict_k());
             Dict2.Add("omega", MakeDict_omega());
-            Dict2.Add("aoa", MakeDict_AoA());
-            Dict2.Add("covid19", MakeDict_Covid19());
+            Dict2.Add("aoa", MakeDict_AoA_Dict());
+            Dict2.Add("covid19", MakeDict_Covid19_Dict());
 
             return Dict1;
         }

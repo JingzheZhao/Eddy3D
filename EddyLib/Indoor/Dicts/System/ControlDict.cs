@@ -1,6 +1,9 @@
-﻿using System;
+﻿using EddyLib.Indoor.FunctionObjects;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace EddyLib.Indoor.Dicts
@@ -114,164 +117,102 @@ namespace EddyLib.Indoor.Dicts
                 log true;
             }");
 
-            sb.AppendLine(@"aoa
-    {
-        type            scalarTransport;
-        libs (""libfieldFunctionObjects.so"");
+            sb.Append(GenerateScalarTransportConfig(userChosenName: "aoa", diffusivity: 2e-5, resetOnStart: false, explicitSource: 1.0, implicitSource: 0.0));
 
-        writeControl    outputTime;
-            D               1.0;
-            field aoa;
-            resetOnStartUp  false;
-            schemesField aoa;
-            bounded01       true;
-            write           true;
+            if (IndDom.FOs.OfType<VolumetricHeatSource>().Any())
+            { sb.AppendLine("#includeFunc volumetricHeatSources"); }
 
-            fvOptions
-        {
-                aoa_00
-            {
-                    type semiImplicitSource;
-                    active          true;
-                    cellZone all;
-                    semiImplicitSourceCoeffs
-                {
-                        volumeMode specific;
-                        selectionMode all;
-                        sources
-							{
-							aoa{
-									explicit table ((0 0) (1 0));
-									implicit 0;
-									}
-							}
-                    }
-                }
-            }
-        }");
-            //        sb.AppendLine(
-            //            @"covid19
-            //{
-            //            type scalarTransport;
-            //            libs (""libfieldFunctionObjects.so"");
+            if (IndDom.FOs.OfType<MomentumSinkIndoor>().Any())
+            { sb.AppendLine("#includeFunc momentumSinks"); }
 
-            //            writeControl outputTime;
-            //            D               16e-5;
-            //            field covid19;
-            //            resetOnStartUp  false;
-            //            schemesField covid19;
-            //            bounded01       true;
-            //            write           true;
+            if (IndDom.FOs.OfType<MomentumSource>().Any())
+            { sb.AppendLine("#includeFunc momentumSources"); }
 
-            //            fvOptions
-            //    {
-            //                covid19_00
-            //        {
-            //                    type semiImplicitSource;
-            //                    active          true;
+            if (IndDom.FOs.OfType<CO2Emitter>().Any())
+            { sb.AppendLine("#includeFunc co2Emitters"); }
 
-            //                    semiImplicitSourceCoeffs
-            //            {
-            //                        volumeMode absolute;
-            //                        selectionMode cellZone;
-            //                        cellZone ViralEmitter_0; //Todo: Add Emitter Name
-            //                        sources
-            //                        {
-            //			    covid19
-            //                              {
-            //                              explicit table ((0 0) (1.076e-4 0));
-            //                              implicit 0;
-            //                              }
-            //                        }
-            //                    }
-            //                }
-            //            }
-            //        }");
-
-            //if (IndDom.FOs.OfType<VolumetricHeatSource>().Any())
-            //{ sb.AppendLine("#includeFunc volumetricHeatSources");}
-
-            //if (IndDom.FOs.OfType<MomentumSinkIndoor>().Any())
-            //{ sb.AppendLine("#includeFunc momentumSinks"); }
-
-            //if (IndDom.FOs.OfType<MomentumSource>().Any())
-            //{ sb.AppendLine("#includeFunc momentumSources"); }
-
-            //if (IndDom.FOs.OfType<CO2Emitter>().Any())
-            //{ sb.AppendLine("#includeFunc co2Emitters"); }
-
-            //if (IndDom.FOs.OfType<ViralEmitter>().Any())
-            //{ sb.AppendLine("#includeFunc viralEmitters"); }
+            if (IndDom.FOs.OfType<ViralEmitter>().Any())
+            { sb.AppendLine("#includeFunc viralEmitters"); }
 
             sb.Append(@"}");
 
             return sb.ToString();
         }
 
-        //List<String> fos = new List<String>();
+        private static string GenerateScalarTransportConfig(
+            string userChosenName,
+            double diffusivity,
+            bool resetOnStart,
+            double explicitSource,
+            double implicitSource
+        )
+        {
+            var sb = new StringBuilder();
 
-        //if (IndoorDom.FOs.OfType<VolumetricHeatSource>().Any())
+            //#########################################################################
+            //### Scalar Transport Function Object Settings                         ###
+            //#########################################################################
 
-        //{ fos.Add("volumetricHeatSources"); }
+            // The function-object block name:
+            sb.AppendLine(userChosenName);
+            sb.AppendLine("{");
 
-        //if (IndoorDom.FOs.OfType<MomentumSink>().Any())
-        //{ fos.Add("momentumSink"); }
+            // Type of function object
+            sb.AppendLine("    type            scalarTransport;");
 
-        //FunctionObjectlDict.Add("#includeFunc", fos);
+            // Library (Windows uses .dll, Linux uses .so)
+            var lib = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? "libsolverFunctionObjects.dll"
+                : "libsolverFunctionObjects.so";
+            sb.AppendLine($"    libs            (\"{lib}\");");
+            sb.AppendLine();
 
-        //SNAPPYHEX
+            // --- Field and Physical Properties ---
+            // Name of the scalar field to be transported
+            sb.AppendLine($"    field           {userChosenName};");
 
-        //OLD IMPLEMENTAION
+            // Diffusivity 'D' (use general format so 1e-12 stays 1e-12, not 0.0)
+            // In OF8, D may be a constant or built from alphaD/alphaDt; D=0 is allowed but can yield a weak diagonal.
+            sb.AppendLine($"    D               {diffusivity.ToString("G9", CultureInfo.InvariantCulture)};");
+            sb.AppendLine();
 
-        //Add include statements to the dictionary if the respective FuntionObjects are added to IndoorDomai
+            // --- Controls ---
+            // Note: 'resetOnStartUp' is recognized in OpenCFD releases; OpenFOAM-8 (Foundation) ignores it.
+            sb.AppendLine($"    resetOnStartUp  {(resetOnStart ? "true" : "false")};");
 
-        //if (IndoorDom.FOs.OfType<VolumetricHeatSource>().Any())
+            // Use discretization schemes named for this field (div(phi,{name}), laplacian(D{name},{name}))
+            sb.AppendLine($"    schemesField    {userChosenName};");
+            sb.AppendLine();
 
-        //{
-        //    FunctionObjectlDict.Add("#includeFunc1", "volumetricHeatSources");
-        //}
+            // Write the transported field at output times (the field itself is AUTO_WRITE in OF8)
+            sb.AppendLine("    writeControl    outputTime;");
+            sb.AppendLine();
 
-        //if (IndoorDom.FOs.OfType<MomentumSink>().Any())
+            //#########################################################################
+            //### Finite Volume Options (fvOptions) for Source Terms                ###
+            //#########################################################################
+            sb.AppendLine("    fvOptions");
+            sb.AppendLine("    {");
+            sb.AppendLine($"        {userChosenName}_source");
+            sb.AppendLine("        {");
+            sb.AppendLine("            type            semiImplicitSource;");
+            sb.AppendLine("            active          true;");
+            sb.AppendLine("            selectionMode   all;");
+            sb.AppendLine("            volumeMode      specific;");
+            sb.AppendLine("            sources");
+            sb.AppendLine("            {");
+            sb.AppendLine($"                {userChosenName}");
+            sb.AppendLine("                {");
+            // Su (explicit) and Sp (implicit) as separate entries (v8 supports this form)
+            sb.AppendLine($"                    explicit    {explicitSource.ToString("G9", CultureInfo.InvariantCulture)};");
+            sb.AppendLine($"                    implicit    {implicitSource.ToString("G9", CultureInfo.InvariantCulture)};");
+            sb.AppendLine("                }");
+            sb.AppendLine("            }");
+            sb.AppendLine("        }");
+            sb.AppendLine("    }");
+            sb.AppendLine("}");
 
-        //{
-        //    FunctionObjectlDict.Add("#includeFunc2", "momentumSink");
-        //}
-
-        //if (IndoorDom.FOs.OfType<MomentumSource>().Any())
-
-        //{
-        //    FunctionObjectlDict.Add("#includeFunc3", "momentumSource");
-        //}
-
-        //if (IndoorDom.FOs.OfType<CO2Emitter>().Any())
-
-        //{
-        //    FunctionObjectlDict.Add("#includeFunc4", "co2Emitter");
-        //}
-
-        //if (IndoorDom.FOs.OfType<ViralEmitter>().Any())
-
-        //{
-        //    FunctionObjectlDict.Add("#includeFunc5", "viralEmitter");
-        //}
-
-        //class IncludeStatements
-        //{
-        //    public IncludeStatements(IndoorDomain IndoorDom)
-
-        //    { }
-
-        //    public override string ToString(object IndoorDom)
-        //    {
-        //        StringBuilder sb = new StringBuilder();
-        //        sb.Append(@"{");
-
-        //        if (IndoorDom.FOs.OfType<VolumetricHeatSource>().Any()) { sb.AppendLine(""; }
-
-        //        return GenericDict.InParenthesis(sb.ToString());
-
-        //    }
-
-        //}
+            return sb.ToString();
+        }
     }
 }
