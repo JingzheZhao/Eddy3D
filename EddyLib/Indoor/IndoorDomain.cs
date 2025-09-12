@@ -65,7 +65,7 @@ namespace EddyLib.Indoor
         {
         }
 
-        public IndoorDomain(int endTime, string WorkingDir, double CellSize, Point3d PointInsideDomain, List<IndoorBC.Wall> RoomGeometry, List<IndoorBC.Inlet> Inlets, List<IndoorBC.Outlet> Outlets, List<FunctionObject> FOs)
+        public IndoorDomain(int endTime, string WorkingDir, double CellSize, Point3d PointInsideDomain, List<IndoorBC.Wall> RoomGeometry, List<IndoorBC.Inlet> Inlets, List<IndoorBC.Outlet> Outlets, List<FunctionObject> FOs, int CPUs)
         {
             // Give unique index to every object
 
@@ -250,7 +250,7 @@ namespace EddyLib.Indoor
             var surfaceFeaturesDict = new SurfaceFeatureDict(Inlets, Outlets, RoomGeometry);
             surfaceFeaturesDict.Export(WorkingDir);
 
-            var decomposeParDict = new DecomposeParDict();
+            var decomposeParDict = new DecomposeParDict(CPUs);
             decomposeParDict.Export(WorkingDir);
 
             // Function Objects
@@ -259,16 +259,16 @@ namespace EddyLib.Indoor
 
             // Export Batch Files
 
-            var runMeshBatch = new RunMeshBatch(this);
+            var runMeshBatch = new RunMeshBatch(this, CPUs);
             runMeshBatch.Export(WorkingDir);
 
-            var runSimBatch = new RunSimBatch(this);
+            var runSimBatch = new RunSimBatch(this, CPUs);
             runSimBatch.Export(WorkingDir);
 
             var runTopoBatch = new RunTopoBatch(this);
             runTopoBatch.Export(WorkingDir);
 
-            var runAllBatch = new RunAllBatch(this);
+            var runAllBatch = new RunAllBatch(this, CPUs);
             runAllBatch.Export(WorkingDir);
         }
 

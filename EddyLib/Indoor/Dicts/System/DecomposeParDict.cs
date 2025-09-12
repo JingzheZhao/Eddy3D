@@ -8,7 +8,7 @@ namespace EddyLib.Indoor.Dicts
     {
         public List<String> InternalDict = new List<string>();
 
-        public DecomposeParDict()
+        public DecomposeParDict(int CPUs)
         {
             this.DictionaryName = "decomposeParDict";
 
@@ -17,7 +17,7 @@ namespace EddyLib.Indoor.Dicts
 
             this.Header = GetHeader2(this);
 
-            this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetBodyDict()));
+            this.InternalDict.Add(CppMapSerializerDyn.Serialize(GetBodyDict(CPUs)));
 
             string[] parts = {
                this.Header, "\n",
@@ -27,7 +27,7 @@ namespace EddyLib.Indoor.Dicts
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
         }
 
-        private static Dictionary<string, dynamic> GetBodyDict()
+        private static Dictionary<string, dynamic> GetBodyDict(int CPUs)
         {
             Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
 
@@ -36,7 +36,7 @@ namespace EddyLib.Indoor.Dicts
             //Dictionary<string, dynamic> FunctionObjectlDict = new Dictionary<string, dynamic>();
 
             Dict.Add("method", "scotch");
-            Dict.Add("numberOfSubdomains", "4");
+            Dict.Add("numberOfSubdomains", CPUs);
             Dict.Add("scotchCoeffs", "{" + "\n" + "}");
 
             return Dict;

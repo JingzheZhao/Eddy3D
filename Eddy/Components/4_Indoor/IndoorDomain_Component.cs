@@ -60,6 +60,9 @@ namespace Eddy.Components.Indoor
             pManager.AddIntegerParameter("Iterations", "Iter", "Iterations for Simulation.", GH_ParamAccess.item, 1);
             pManager[7].Optional = true;
             //8
+            pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs to decompose the simulation with.", GH_ParamAccess.item, 2);
+            pManager[8].Optional = true;
+            //9
             pManager.AddBooleanParameter("Run", "Run", "Run case setup routines and simulation", GH_ParamAccess.item, false);
         }
 
@@ -121,6 +124,8 @@ namespace Eddy.Components.Indoor
             int endTime = 2000;
             DA.GetData(7, ref endTime);
 
+         
+
             // Function Objects
 
             var FOs = new List<FunctionObject>();
@@ -167,16 +172,22 @@ namespace Eddy.Components.Indoor
                 return;
             }
 
-            var dom = new IndoorDomain(endTime, dir, cellSize, pointInsideDomain, Walls, Inlets, Outlets, FOs);
+            int CPUs = 2;
+            DA.GetData(8, ref CPUs);
+            if (CPUs < 2) { CPUs = 2; }; // Indor is not setup up for single CPU currently
+
+            var dom = new IndoorDomain(endTime, dir, cellSize, pointInsideDomain, Walls, Inlets, Outlets, FOs, CPUs  );
             //var domGoo = new IndoorDomaingGoo(dom);
 
-            var runSettings = new OFRunSettings(endTime);
+         
+
+            var runSettings = new OFRunSettings(iter: endTime );
             var meshSettings = new OFMeshSettings();
 
             var RES = new OFResult(dom, runSettings, meshSettings, dir);
 
             bool RUN = false;
-            DA.GetData(8, ref RUN);
+            DA.GetData(9, ref RUN);
 
             #region START PROCESSES
 

@@ -173,7 +173,6 @@
     <Compile Include="Components\4_Indoor\IndoorDomain_Component.cs" />
     <Compile Include="Components\4_Indoor\IndoorInlet_Component.cs" />
     <Compile Include="Components\4_Indoor\IndoorOutlet_Component.cs" />
-    <Compile Include="Components\4_Indoor\IndoorSimulation_Component.cs" />
     <Compile Include="Components\4_Indoor\IndoorWall_Component.cs" />
     <Compile Include="Components\4_Indoor\Params\Param_FObj.cs" />
     <Compile Include="Components\4_Indoor\Params\Param_FObj_MomentumSink.cs" />

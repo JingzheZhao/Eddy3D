@@ -5,7 +5,7 @@ namespace EddyLib.Indoor.BatchFiles
 {
     public class RunAllBatch : GenericBatchFile
     {
-        public RunAllBatch(IndoorDomain IndoorDom)
+        public RunAllBatch(IndoorDomain IndoorDom, int CPUs)
         {
             this.BatchLocation = IndoorDom.WorkingDir;
             this.BatchName = "run_all.bat";
@@ -15,7 +15,7 @@ namespace EddyLib.Indoor.BatchFiles
 
             string[] parts = {
                this.Header, "\n",
-               String.Join("\n", BatchBody()
+               String.Join("\n", BatchBody(CPUs)
 #if (DEBUG == true)
                ,"\nPAUSE"
 #endif
@@ -26,12 +26,12 @@ namespace EddyLib.Indoor.BatchFiles
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
         }
 
-        private static string BatchBody()
+        private static string BatchBody(int cpus)
         {
-            return @"blockMesh
+            return $@"blockMesh
 surfaceFeatures
 decomposePar -force
-mpiexec -np 4 snappyHexMesh -overwrite -parallel
+mpiexec -np {cpus} snappyHexMesh -overwrite -parallel
 reconstructParMesh -constant
 renumberMesh -overwrite
 
@@ -39,7 +39,7 @@ topoSet
 
 renumberMesh -overwrite
 decomposePar -force
-mpiexec -np 4 buoyantSimpleFoam -parallel
+mpiexec -np {cpus} buoyantSimpleFoam -parallel
 reconstructPar";
         }
     }

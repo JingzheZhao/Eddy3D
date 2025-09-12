@@ -5,7 +5,7 @@ namespace EddyLib.Indoor.BatchFiles
 {
     public class RunMeshBatch : GenericBatchFile
     {
-        public RunMeshBatch(IndoorDomain IndoorDom)
+        public RunMeshBatch(IndoorDomain IndoorDom, int CPUs)
         {
             this.BatchLocation = IndoorDom.WorkingDir;
             this.BatchName = "run_mesh.bat";
@@ -16,7 +16,7 @@ namespace EddyLib.Indoor.BatchFiles
 
             string[] parts = {
                this.Header, "\n",
-               String.Join("\n", BatchBody()
+               String.Join("\n", BatchBody(CPUs)
 #if (DEBUG == true)
                ,"\nPAUSE"
 #endif
@@ -28,14 +28,15 @@ namespace EddyLib.Indoor.BatchFiles
         }
 
         //**Changed numer of CPUs to 1 instead of 8   (mpiexec -np 8 snappyHexMesh -overwrite -parallel )
-        private static string BatchBody()
+        private static string BatchBody(int cpus)
         {
-            return @"blockMesh
+            return $@"blockMesh
 surfaceFeatures
 decomposePar -force
-mpiexec -np 4 snappyHexMesh -overwrite -parallel
+mpiexec -np {cpus} snappyHexMesh -overwrite -parallel
 reconstructParMesh -constant
 renumberMesh -overwrite";
         }
+
     }
 }

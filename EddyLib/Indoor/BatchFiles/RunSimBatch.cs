@@ -5,7 +5,7 @@ namespace EddyLib.Indoor.BatchFiles
 {
     public class RunSimBatch : GenericBatchFile
     {
-        public RunSimBatch(IndoorDomain IndoorDom)
+        public RunSimBatch(IndoorDomain IndoorDom, int CPUs)
         {
             this.BatchLocation = IndoorDom.WorkingDir;
             this.BatchName = "run_sim.bat";
@@ -15,7 +15,7 @@ namespace EddyLib.Indoor.BatchFiles
 
             string[] parts = {
                this.Header, "\n",
-               String.Join("\n", BatchBody()
+               String.Join("\n", BatchBody(CPUs)
 #if (DEBUG == true)
                ,"\nPAUSE"
 #endif
@@ -25,11 +25,11 @@ namespace EddyLib.Indoor.BatchFiles
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
         }
 
-        private static string BatchBody()
+        private static string BatchBody(int cpus)
         {
-            return @"renumberMesh -overwrite
+            return $@"renumberMesh -overwrite
 decomposePar -force
-mpiexec -np 4 buoyantSimpleFoam -parallel
+mpiexec -np {cpus} buoyantSimpleFoam -parallel
 reconstructPar ";
         }
     }

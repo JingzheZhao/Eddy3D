@@ -17,8 +17,8 @@ namespace Eddy
           : base(
                 "Cell Size",
                 "Cell Size",
-                "Calculate the mesh accuracy (levels) needed for a desired cell size. " + EddyVersion.Name.ToString(),
-                EddyVersion.ProductVersion.ToString(),
+                "Calculate the mesh accuracy (levels) needed for a desired cell size. ",
+                EddyVersion.Name,
                 "1 | Wind")
         {
         }
