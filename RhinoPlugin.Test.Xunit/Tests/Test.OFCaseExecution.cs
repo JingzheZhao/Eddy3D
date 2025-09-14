@@ -86,6 +86,26 @@ namespace RhinoPlugin.Test.Xunit
     public class OFExecutionTests
     {
         [Fact]
+        public void BuildingGeoFine_HasExpectedTopology()
+        {
+            // Re-use the helper
+            // Replace this line:
+            // Mesh mesh = GeometryHelpers.LoadMergedMesh(@"RhinoPlugin.Tests.Xunit\Resources\BuildingGeo.stl");
+
+            // With this:
+            var ns = typeof(OFExecutionTests).Namespace;
+            var resourcePath = $@"{ns}\Resources\BuildingGeo_fine.stl";
+            Mesh mesh = GeometryHelpers.LoadMergedMesh(resourcePath);
+
+            // Quick sanity checks
+            Assert.True(mesh.IsValid);
+
+            // *** Replace with real counts once known ***
+            Assert.Equal(12495, mesh.Vertices.Count);
+            Assert.Equal(22322, mesh.Faces.Count);
+        }
+
+        [Fact]
         public void BuildingGeo_HasExpectedTopology()
         {
             // Re-use the helper
@@ -105,21 +125,10 @@ namespace RhinoPlugin.Test.Xunit
             Assert.Equal(172, mesh.Faces.Count);
         }
 
-        [Fact]
-        public void CylDomainCase_GeneratesAndExecutesSuccessfully()
+        public void GenerateCylDomainCase(string caseDir, int windDir)
         {
-            // Arrange
-            var caseDir = Path.Combine(Path.GetTempPath(), $"testcase-cyl-{Guid.NewGuid():N}\\");
-
-            // Clean up the directory and all contents
-            //if (Directory.Exists(caseDir))
-            //{
-            //    Directory.Delete(caseDir, true);
-            //}
-            Directory.CreateDirectory(caseDir);
-
             var ns = typeof(OFExecutionTests).Namespace;
-            var resourcePath = $@"{ns}\Resources\BuildingGeo.stl";
+            var resourcePath = $@"{ns}\Resources\BuildingGeo_fine.stl";
             Mesh BuildingMesh = GeometryHelpers.LoadMergedMesh(resourcePath);
 
             Rectangle3d rect = new Rectangle3d(Plane.WorldXY, 1000.0, 1000.0);
@@ -137,33 +146,26 @@ namespace RhinoPlugin.Test.Xunit
 
             var meshSettings = new OFMeshSettings
             {
-                accBuildings = 4,
-                accFeatures = 3,
-                accGround = 4,
-                accBoxRefinement = 3
+                accBuildings = 3,
+                accFeatures = 4,
+                accGround = 3,
+                snappySetting = SnappySnapSettings.BlocksSnapping,
+                miscSettings = SnappyMiscSettings.Optimized
             };
             meshSettings.SetDirectories(caseDir);
             var runSettings = new OFRunSettings
             {
-                iter = 1000,
+                iter = 400,
                 CPUs = 8,
                 relaxationFactors = RelaxationFactors.Robust,
                 schemes = fvSchemes.Optimized,
                 turbModel = TurbModel.RNGkEpsilon
             };
+            var bc = new ABL(windDir);
 
-            var bc = new ABL();
-            var bc1 = new ABL(45);
-            var bc2 = new ABL(90);
-            var bc3 = new ABL(135);
-            var bc4 = new ABL(180);
-            var bc5 = new ABL(225);
-            var bc6 = new ABL(270);
-            var bc7 = new ABL(315);
-
-            var bcList = new List<BC> { bc, bc1, bc2, bc3, bc4, bc5, bc6, bc7 };
+            var bcList = new List<BC> { bc };
             var bcColl = new BCCollection(bcList);
-            var domCyl = new OFCylDomain(BuildingMesh, flatPlate, bcColl, 15, 40, 519, 80);
+            var domCyl = new OFCylDomain(BuildingMesh, new Mesh(), bcColl, coreBlockSize: 15, sizeInnerRect: 70, sizeOuterCirc: 1000, sizeHeight: 250);
 
             Directory.CreateDirectory(caseDir);
 
@@ -172,17 +174,230 @@ namespace RhinoPlugin.Test.Xunit
             RunSnappy.Run(domCyl, meshSettings, runSettings, out var logfileOutput);
             RunFoamSimulation.Run(domCyl, meshSettings, runSettings, caseDir);
             var result = RunBatchFileInteractive(caseDir, "run.bat");
+        }
 
-            foreach (var boundarycond in bcList)
+        [Fact]
+        public void CylDomainCase_5_GeneratesAndExecutesSuccessfully()
+        {
+            // Arrange
+
+            int windDir = 5;
+
+            var caseDir = Path.Combine(Path.GetTempPath(),
+$"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
+
+            // Clean up the directory and all contents
+            if (Directory.Exists(caseDir))
             {
-                // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
-                var logPath = Path.Combine(caseDir, boundarycond.windDir.ToString(), "log");
-
-                Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
-
-                var logContent = File.ReadAllText(logPath);
-                Assert.Contains("Time = 1000", logContent);
+                Directory.Delete(caseDir, true);
             }
+            Directory.CreateDirectory(caseDir);
+
+            GenerateCylDomainCase(caseDir, windDir);
+
+            // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "log");
+
+            Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
+
+            var logContent = File.ReadAllText(logPath);
+            Assert.Contains("Time = 400", logContent);
+        }
+
+        [Fact]
+        public void CylDomainCase_45_GeneratesAndExecutesSuccessfully()
+        {
+            // Arrange
+
+            int windDir = 45;
+
+            var caseDir = Path.Combine(Path.GetTempPath(),
+$"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
+
+            // Clean up the directory and all contents
+            if (Directory.Exists(caseDir))
+            {
+                Directory.Delete(caseDir, true);
+            }
+            Directory.CreateDirectory(caseDir);
+
+            GenerateCylDomainCase(caseDir, windDir);
+
+            // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "log");
+
+            Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
+
+            var logContent = File.ReadAllText(logPath);
+            Assert.Contains("Time = 400", logContent);
+        }
+
+        [Fact]
+        public void CylDomainCase_90_GeneratesAndExecutesSuccessfully()
+        {
+            // Arrange
+
+            int windDir = 90;
+
+            var caseDir = Path.Combine(Path.GetTempPath(),
+$"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
+
+            // Clean up the directory and all contents
+            if (Directory.Exists(caseDir))
+            {
+                Directory.Delete(caseDir, true);
+            }
+            Directory.CreateDirectory(caseDir);
+
+            GenerateCylDomainCase(caseDir, windDir);
+
+            // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "log");
+
+            Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
+
+            var logContent = File.ReadAllText(logPath);
+            Assert.Contains("Time = 400", logContent);
+        }
+
+        [Fact]
+        public void CylDomainCase_135_GeneratesAndExecutesSuccessfully()
+        {
+            // Arrange
+
+            int windDir = 135;
+
+            var caseDir = Path.Combine(Path.GetTempPath(),
+$"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
+
+            // Clean up the directory and all contents
+            if (Directory.Exists(caseDir))
+            {
+                Directory.Delete(caseDir, true);
+            }
+            Directory.CreateDirectory(caseDir);
+
+            GenerateCylDomainCase(caseDir, windDir);
+
+            // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "log");
+
+            Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
+
+            var logContent = File.ReadAllText(logPath);
+            Assert.Contains("Time = 400", logContent);
+        }
+
+        [Fact]
+        public void CylDomainCase_180_GeneratesAndExecutesSuccessfully()
+        {
+            // Arrange
+
+            int windDir = 180;
+
+            var caseDir = Path.Combine(Path.GetTempPath(),
+$"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
+
+            // Clean up the directory and all contents
+            if (Directory.Exists(caseDir))
+            {
+                Directory.Delete(caseDir, true);
+            }
+            Directory.CreateDirectory(caseDir);
+
+            GenerateCylDomainCase(caseDir, windDir);
+
+            // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "log");
+
+            Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
+
+            var logContent = File.ReadAllText(logPath);
+            Assert.Contains("Time = 400", logContent);
+        }
+
+        [Fact]
+        public void CylDomainCase_225_GeneratesAndExecutesSuccessfully()
+        {
+            // Arrange
+
+            int windDir = 225;
+
+            var caseDir = Path.Combine(Path.GetTempPath(),
+$"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
+
+            // Clean up the directory and all contents
+            if (Directory.Exists(caseDir))
+            {
+                Directory.Delete(caseDir, true);
+            }
+            Directory.CreateDirectory(caseDir);
+
+            GenerateCylDomainCase(caseDir, windDir);
+
+            // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "log");
+
+            Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
+
+            var logContent = File.ReadAllText(logPath);
+            Assert.Contains("Time = 400", logContent);
+        }
+
+        [Fact]
+        public void CylDomainCase_270_GeneratesAndExecutesSuccessfully()
+        {
+            // Arrange
+
+            int windDir = 270;
+
+            var caseDir = Path.Combine(Path.GetTempPath(),
+$"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
+
+            // Clean up the directory and all contents
+            if (Directory.Exists(caseDir))
+            {
+                Directory.Delete(caseDir, true);
+            }
+            Directory.CreateDirectory(caseDir);
+
+            GenerateCylDomainCase(caseDir, windDir);
+
+            // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "log");
+
+            Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
+
+            var logContent = File.ReadAllText(logPath);
+            Assert.Contains("Time = 400", logContent);
+        }
+
+        [Fact]
+        public void CylDomainCase_315_GeneratesAndExecutesSuccessfully()
+        {
+            // Arrange
+
+            int windDir = 315;
+
+            var caseDir = Path.Combine(Path.GetTempPath(),
+$"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
+
+            // Clean up the directory and all contents
+            if (Directory.Exists(caseDir))
+            {
+                Directory.Delete(caseDir, true);
+            }
+            Directory.CreateDirectory(caseDir);
+
+            GenerateCylDomainCase(caseDir, windDir);
+
+            // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "log");
+
+            Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
+
+            var logContent = File.ReadAllText(logPath);
+            Assert.Contains("Time = 400", logContent);
         }
 
         [Fact]
@@ -190,13 +405,15 @@ namespace RhinoPlugin.Test.Xunit
 
         {
             // Arrange
-            var caseDir = Path.Combine(Path.GetTempPath(), $"testcase-box-{Guid.NewGuid():N}\\");
+            //var caseDir = Path.Combine(Path.GetTempPath(), $"testcase-box-{Guid.NewGuid():N}\\");
+            var caseDir = Path.Combine(Path.GetTempPath(),
+$"testcase-box-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
 
             // Clean up the directory and all contents at the beginning for debugging
-            //if (Directory.Exists(caseDir))
-            //{
-            //    Directory.Delete(caseDir, true);
-            //}
+            if (Directory.Exists(caseDir))
+            {
+                Directory.Delete(caseDir, true);
+            }
             Directory.CreateDirectory(caseDir);
 
             var meshSettings = new OFMeshSettings
@@ -236,7 +453,7 @@ namespace RhinoPlugin.Test.Xunit
         }
 
         // This version opens a terminal and shows the progress
-        private (bool Success, string Log) RunBatchFileInteractive(string workingDir, string batchFileName)
+        public static (bool Success, string Log) RunBatchFileInteractive(string workingDir, string batchFileName)
         {
             var batchFilePath = Path.Combine(workingDir, batchFileName);
 

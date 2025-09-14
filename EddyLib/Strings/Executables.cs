@@ -123,9 +123,10 @@ FoamFile
     object snappyHexMeshDict;
 }
 
-    castellatedMesh true;");
-                sb.AppendLine("snap "); if (MeshSettings.snappySetting == SnappySnapSettings.BlocksSnapping || MeshSettings.snappySetting == SnappySnapSettings.BlocksSnappingLayers) { sb.Append("true;"); } else { sb.Append("false;"); }
-                sb.AppendLine("addLayers "); if (MeshSettings.snappySetting == SnappySnapSettings.BlocksSnappingLayers) { sb.Append("true;"); } else { sb.Append("false;"); }
+    castellatedMesh on;");
+                sb.AppendLine("");
+                sb.AppendLine("snap "); if (MeshSettings.snappySetting == SnappySnapSettings.BlocksSnapping || MeshSettings.snappySetting == SnappySnapSettings.BlocksSnappingLayers) { sb.Append("on;"); } else { sb.Append("off;"); }
+                sb.AppendLine("addLayers "); if (MeshSettings.snappySetting == SnappySnapSettings.BlocksSnappingLayers) { sb.Append("on;"); } else { sb.Append("off;"); }
                 sb.AppendLine(@"geometry
     {
         building.stl

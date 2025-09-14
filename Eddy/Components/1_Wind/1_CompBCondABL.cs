@@ -94,10 +94,11 @@ namespace Eddy
             string epwFilePath = "";
 
             // Retrieve other inputs and adjust if necessary
-            AdjustInputList(DA, 1, Uref, windDirs.Count, 5.0, ref repeatedInputs);
-            AdjustInputList(DA, 2, zref, windDirs.Count, 10, ref repeatedInputs);
-            AdjustInputList(DA, 3, z0, windDirs.Count, 1, ref repeatedInputs);
-            AdjustInputList(DA, 4, zGround, windDirs.Count, 0, ref repeatedInputs);
+
+            EddyLib.BCs.BCHelpers.AdjustInputList(DA, 1, Uref, windDirs.Count, 5.0, ref repeatedInputs);
+            EddyLib.BCs.BCHelpers.AdjustInputList(DA, 2, zref, windDirs.Count, 10, ref repeatedInputs);
+            EddyLib.BCs.BCHelpers.AdjustInputList(DA, 3, z0, windDirs.Count, 1, ref repeatedInputs);
+            EddyLib.BCs.BCHelpers.AdjustInputList(DA, 4, zGround, windDirs.Count, 0, ref repeatedInputs);
 
             DA.GetData(5, ref epwFilePath);
 
@@ -139,54 +140,12 @@ namespace Eddy
             }
 
             // Create a dataframe-like structure
-            var formattedSummary = new StringBuilder();
-            formattedSummary.AppendLine("Boundary Conditions Summary:");
-            formattedSummary.AppendLine("Wind Dir   Uref   zref   z0   zGround");
-
-            foreach (var i in Enumerable.Range(0, windDirs.Count))
-            {
-                formattedSummary.AppendLine($"{PadRight(windDirs[i].ToString(), 18)}{PadRight(Uref[i].ToString(), 5)}{PadRight(zref[i].ToString(), 10)}{PadRight(z0[i].ToString(), 9)}{PadRight(zGround[i].ToString(), 10)}");
-            }
-            formattedSummary.AppendLine(epwFilePath);
+            var formattedSummary = BCHelpers.BuildTable(windDirs, Uref, zref, z0, zGround, epwFilePath);
 
             // Set the description of the output parameter
             Params.Output[0].Description = formattedSummary.ToString();
 
             DA.SetData(0, BCC);
-        }
-
-        // Helper method to pad a string to a fixed width
-        private string PadRight(string str, int totalWidth)
-        {
-            return str.PadRight(totalWidth - str.Length);
-        }
-
-        private void AdjustInputList<T>(IGH_DataAccess DA, int index, List<T> list, int targetCount, T defaultValue, ref bool flag)
-        {
-            List<T> tempList = new List<T>();
-            if (DA.GetDataList(index, tempList))
-            {
-                if (tempList.Count == 1)
-                {
-                    // Repeat the single provided value for all wind directions
-                    list = new List<T>(Enumerable.Repeat(tempList[0], targetCount));
-                }
-                else
-                {
-                    // Use provided values and fill the rest with default value
-                    list.Clear();
-                    for (int i = 0; i < targetCount; i++)
-                    {
-                        list.Add(i < tempList.Count ? tempList[i] : defaultValue);
-                    }
-                }
-            }
-            else
-            {
-                // No values provided, use the default list
-                list = new List<T>(Enumerable.Repeat(defaultValue, targetCount));
-                flag = true;
-            }
         }
 
         // hidden parameter

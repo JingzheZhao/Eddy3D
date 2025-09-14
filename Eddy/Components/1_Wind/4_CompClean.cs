@@ -9,6 +9,8 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
+using EddyLib;
+
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
 // _GrasshopperDeveloperSettings Rhino command for that.
@@ -102,39 +104,39 @@ namespace Eddy
 
             if (Run)
             {
-                List<string> windDirDirectories = Directory.GetDirectories(workingDirectory, "*",
-        SearchOption.TopDirectoryOnly)
-        .Where(f => Regex.IsMatch(f, @"[\\/]\d+$")).ToList();
+                List<string> windDirDirectories =
+                    Directory.GetDirectories(workingDirectory, "*", SearchOption.TopDirectoryOnly)
+                             .Where(f => Regex.IsMatch(f, @"[\\/]\d+$"))
+                             .ToList();
 
-                string meshDirectory = workingDirectory + @"\mesh";
+                string meshDirectory = Path.Combine(workingDirectory, "mesh");
 
                 if (Mode == 0)
                 {
-                    Utilities.Directories.processDirectory(meshDirectory, false);
+                    // Mesh-only clean
+                    EddyLib.Utilities.FoamCleaner.CleanCase(meshDirectory);
                 }
                 else if (Mode == 1)
                 {
+                    // Clean OpenFOAM cases (preserve system/constant/0)
                     foreach (string directory in windDirDirectories)
                     {
-                        Utilities.Directories.processDirectory(directory, true);
+                        EddyLib.Utilities.FoamCleaner.CleanCase(directory);
                     }
                 }
                 else
                 {
-                    Utilities.Directories.processDirectory(meshDirectory, false);
+                    // Clean mesh and cases
 
                     foreach (string directory in windDirDirectories)
                     {
-                        Utilities.Directories.processDirectory(directory, true);
+                        EddyLib.Utilities.FoamCleaner.CleanCase(directory);
                     }
                 }
 
                 foreach (IGH_DocumentObject obj in Grasshopper.Instances.ActiveCanvas.Document.ActiveObjects())
                 {
-                    //var slider = obj as Grasshopper.Kernel.Special.GH_NumberSlider;
                     if (obj == null) continue;
-
-                    //slider.Attributes.Selected = true;
                     obj.ExpireSolution(true);
                 }
             }

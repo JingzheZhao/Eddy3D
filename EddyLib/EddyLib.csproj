@@ -112,6 +112,7 @@
   <ItemGroup>
     <Compile Include="ArrayHelper.cs" />
     <Compile Include="ASCIProgressBar.cs" />
+    <Compile Include="BoundaryConditions\BCHelpers.cs" />
     <Compile Include="FunctionObjects\FunctionObject.cs" />
     <Compile Include="Geometry\EddyBrep.cs" />
     <Compile Include="Geometry\EddyMesh.cs" />

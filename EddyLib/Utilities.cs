@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -241,60 +242,85 @@ exit
                 output = output.Replace(@"\\\\", @"\\");
                 return output;
             }
+        }
 
-            public static bool processDirectory(string startLocation, bool simDir)
-            {
-                bool result = true;
-                foreach (string directory in Directory.GetDirectories(startLocation))
+        public static class FoamCleaner
+        {
+            private static readonly Regex TimeDirRegex =
+                new Regex(@"^\d+(\.\d+)?$", RegexOptions.Compiled);
+
+            private static readonly Regex ProcessorDirRegex =
+                new Regex(@"^processor\d+$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+            private static readonly HashSet<string> PreserveTopLevel =
+                new HashSet<string>(StringComparer.OrdinalIgnoreCase)
                 {
-                    if (simDir)
-                    {
-                        if (directory.EndsWith("polyMesh"))
-                        {
-                            result = false;
-                            continue;
-                        }
-                    }
+            "system", "constant", "0", "0.org", "0.orig"
+                };
 
-                    bool directoryResult = processDirectory(directory, simDir);
-                    result &= directoryResult;
+            private static readonly string[] TransientRootFileGlobs = new string[]
+            {
+        "*.log", "log.*", "*.OpenFOAM", "*.foam", "core", "backtrace.*"
+            };
 
-                    //if (Directory.GetFiles(directory, "*.dvr").Any())
-                    //{
-                    //    result = false;
-                    //    continue;
-                    //}
+            /// <summary>
+            /// Cleans an OpenFOAM case directory in-place, preserving setup.
+            /// Returns true if everything scheduled for deletion was removed.
+            /// </summary>
+            public static bool CleanCase(string caseRoot)
+            {
+                bool ok = true;
 
-                    foreach (string file in Directory.GetFiles(directory))
+                // 1) Remove transient root files
+                foreach (var pattern in TransientRootFileGlobs)
+                {
+                    foreach (var file in Directory.GetFiles(caseRoot, pattern, SearchOption.TopDirectoryOnly))
                     {
-                        try
-                        {
-                            File.Delete(file);
-                        }
-                        catch (IOException)
-                        {
-                            // error handling
-                            result = directoryResult = false;
-                        }
-                    }
-
-                    if (!directoryResult)
-                    {
-                        continue;
-                    }
-
-                    try
-                    {
-                        Directory.Delete(directory, false);
-                    }
-                    catch (IOException)
-                    {
-                        // error handling
-                        result = false;
+                        try { File.Delete(file); }
+                        catch (Exception) { ok = false; }
                     }
                 }
 
-                return result;
+                // 2) Remove transient directories
+                foreach (var dir in Directory.GetDirectories(caseRoot, "*", SearchOption.TopDirectoryOnly))
+                {
+                    var name = Path.GetFileName(dir);
+
+                    // Always preserve these
+                    if (PreserveTopLevel.Contains(name))
+                        continue;
+
+                    // Delete numeric time dirs, processor dirs, and known transient dirs
+                    if (TimeDirRegex.IsMatch(name)
+                        || ProcessorDirRegex.IsMatch(name)
+                        || name.Equals("postProcessing", StringComparison.OrdinalIgnoreCase)
+                        || name.Equals("dynamicCode", StringComparison.OrdinalIgnoreCase)
+                        || name.Equals("logs", StringComparison.OrdinalIgnoreCase))
+                    {
+                        try { Directory.Delete(dir, true); }
+                        catch (Exception) { ok = false; }
+                        continue;
+                    }
+
+                    // Anything else at the top level — leave it alone by default.
+                }
+
+                // 3) (Optional) Prune inside constant/ but keep polyMesh/ — safest is to leave constant/ intact.
+                // Uncomment only if you really want to prune constant/.
+                /*
+                var constantDir = Path.Combine(caseRoot, "constant");
+                if (Directory.Exists(constantDir))
+                {
+                    foreach (var sub in Directory.GetDirectories(constantDir))
+                    {
+                        if (string.Equals(Path.GetFileName(sub), "polyMesh", StringComparison.OrdinalIgnoreCase))
+                            continue;
+                        try { Directory.Delete(sub, true); } catch (Exception) { ok = false; }
+                    }
+                }
+                */
+
+                return ok;
             }
         }
 
@@ -380,9 +406,6 @@ exit
             {
                 string phiPath = MeshSettings.baseWorkingDir + dir + @"\0\phi";
                 if (File.Exists(phiPath)) { File.Delete(phiPath); }
-
-                //string logPath = MeshSettings.baseWorkingDir + dir + @"\log";
-                //if (File.Exists(logPath)) { File.Delete(logPath); }
             }
         }
 
@@ -416,49 +439,6 @@ exit
             }
             return transposed;
         }
-
-        // This doesnt work atm because tee.exe puts write lock on log file
-        //public static double CalculateRunTimeFromLog(string simulationDirectory, int iter)
-        //{
-        //    string logFilePath = simulationDirectory + @"\log";
-
-        // double timeEnd = 0;
-
-        // if (File.Exists(logFilePath)) { try { string line; List<string> lines = new List<string>();
-
-        // //var time1 = "0"; string time2 = "0";
-
-        // // This causes issues if the logfile isn't there
-
-        // using (FileStream fs = new FileStream(logFilePath, FileMode.Open, FileAccess.Read,
-        // FileShare.ReadWrite)) using (StreamReader sr = new StreamReader(fs,
-        // System.Text.Encoding.Default)) { while ((line = sr.ReadLine()) != null) { lines.Add(line);
-        // } }
-
-        // foreach (var lline in lines.Select((value, index) => new { value, index })) { // Use
-        // x.value and x.index in here
-
-        // if (lline.value.StartsWith("SIMPLE solution converged")) { time2 = lines[lline.index -
-        // 3].Split("ClockTime".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[3].Replace("=",
-        // "").Replace("s", "").Trim();//.Replace("s", "")
-
-        // //timeElapsed = TimeSpan.FromSeconds(double.Parse(time2)); }
-
-        // if (lline.value.EndsWith(iter.ToString())) { time2 = lines[lline.index +
-        // 10].Split("ClockTime".ToCharArray(),
-        // StringSplitOptions.RemoveEmptyEntries)[3].Replace("=", "").Replace("s",
-        // "").Trim();//.Replace("s", "") break;
-
-        // //timeElapsed = TimeSpan.FromSeconds(double.Parse(time2)); }
-
-        // else { timeEnd = 0; }
-
-        // timeEnd = double.Parse(time2) / 60; }
-
-        // } catch (Exception e) { throw new System.ArgumentException(e.Message); } }
-
-        //    return timeEnd;
-        //}
 
         public static IEnumerable<List<T>> SplitListGen<T>(List<T> locations, int nSize)
         {
@@ -947,47 +927,6 @@ exit
 
             return elapsedTime;
         }
-
-        //private static int GetNumberOfHours(Interval inter)
-        //{
-        //    //Interval inter = new Interval(1000, 2000);
-        //    int numberOfHours = (int)(inter.T1 - inter.T0);
-        //    return numberOfHours;
-        //}
-
-        //public static List<int> ConcatAllLists(List<List<int>> inputList)
-        //{
-        //    var finalList = new List<int>();
-
-        //    for (int i = 0; i < inputList.Count; i++)
-        //    {
-        //        for (int j = 0; j < inputList[i].Count; i++)
-        //        {
-        //            finalList.Add(j);
-        //        }
-        //    }
-        //    return finalList;
-        //}
-
-        //public static List<List<int>> GetFullHoursListFromLB(List<List<string>> LBanalysisList)
-        //{
-        //    var fullHoursList = new List<List<int>>();
-        //    foreach (List<string> LBobj in LBanalysisList)
-        //    {
-        //        fullHoursList.Add(GetEvalHoursFromLB(LBobj));
-        //    }
-        //    return fullHoursList;
-        //}
-
-        //public static List<List<int>> GetFullHoursListFromInt(List<Interval> list)
-        //{
-        //    var fullHoursList = new List<List<int>>();
-        //    foreach (Interval inter in list)
-        //    {
-        //        fullHoursList.Add(GetEvalHoursFromInterval(inter));
-        //    }
-        //    return fullHoursList;
-        //}
 
         public static List<int> GetFullHoursListFromLB(List<string> LBanalysisList)
         {

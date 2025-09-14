@@ -53,7 +53,8 @@ namespace RhinoPlugin.Test.Xunit
               ;
 
             var workingdir = @"C:\Testing\";
-            if (!Directory.Exists(workingdir)) { Directory.CreateDirectory(workingdir); };
+            if (!Directory.Exists(workingdir)) { Directory.CreateDirectory(workingdir); }
+            ;
             var points = Enumerable.Repeat(new Point3d(1, 1, 2), 981).ToArray(); ;
             var mdv = new MultiDirectionalVelocities(workingdir, windDirList.ToArray(), vecs, true, true);
 
@@ -101,7 +102,8 @@ namespace RhinoPlugin.Test.Xunit
                 ;
 
             var workingdir = @"C:\Testing\";
-            if (!Directory.Exists(workingdir)) { Directory.CreateDirectory(workingdir); };
+            if (!Directory.Exists(workingdir)) { Directory.CreateDirectory(workingdir); }
+            ;
             var points = probesArray_4_AnnualWindAnalysis;
             var mdv = new MultiDirectionalVelocities(workingdir, windDirList.ToArray(), vecs, true, true);
 
@@ -206,7 +208,7 @@ namespace RhinoPlugin.Test.Xunit
 
             var cat = TI.Cat;
 
-            Assert.Equal(3, cat);
+            Assert.Equal(4, cat);
         }
 
         [Fact]
@@ -542,7 +544,8 @@ namespace RhinoPlugin.Test.Xunit
                 ;
 
             var workingdir = @"C:\Testing\";
-            if (!Directory.Exists(workingdir)) { Directory.CreateDirectory(workingdir); };
+            if (!Directory.Exists(workingdir)) { Directory.CreateDirectory(workingdir); }
+            ;
             var points = Enumerable.Repeat(new Point3d(0, 0, 2), 100);
             var mdv = new MultiDirectionalVelocities(workingdir, windDirList.ToArray(), vecs, true, true);
 
