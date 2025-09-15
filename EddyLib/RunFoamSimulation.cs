@@ -165,7 +165,7 @@ namespace EddyLib
                     }
                 }
 
-                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_mesh.bat"), EddyLib.Strings.BatFiles.Run_Mesh_Cyl(RunSettings, MeshSettings, DOM, Strings.OFExecutionMode.Meshing));
+                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_mesh.bat"), EddyLib.Strings.BatFiles.Run_Mesh(RunSettings, MeshSettings, DOM, Strings.OFExecutionMode.Meshing));
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run.bat"), EddyLib.Strings.BatFiles.Run(DOM, MeshSettings));
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_sim_all.bat"), EddyLib.Strings.BatFiles.RunSimOnly(DOM, MeshSettings));
 
@@ -188,14 +188,6 @@ namespace EddyLib
 
                     //File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "run_reconstructSim.bat"), EddyLib.StrTemp.BatFiles.Run_reconstructSim(RunSettings, MeshSettings, DOM, StrTemp.Mode.Simulation, i));
                 }
-
-                // This doesnt work atm because tee.exe puts write lock on log file
-
-                // Calculate runtimes of all simulation based on log file
-                //for (int i = 0; i < DOM.BCond.windDirs.Count; i++)
-                //{
-                //    DOM.Runtimes.Add(Utilities.CalculateRunTimeFromLog(WorkDir + "\\" + DOM.BCond.windDirs[i], RunSettings.iter));
-                //}
             }
         }
     }

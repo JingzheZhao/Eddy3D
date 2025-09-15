@@ -242,13 +242,6 @@ namespace Eddy
 
             #region RUN SNAPPY HEX
 
-            // Check for killed processes
-            if (Utilities.DidProcessGetKilled(MeshSettings.meshWorkingDir) == true)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Some processes got killed probably because to little RAM was available. Try to increase the RAM acclocated for the Docker virtual machine.");
-                return;
-            }
-
             //TODO: output the logs somewhere!
 
             RunSnappy.Run(DOM, MeshSettings, RunSettings, out string logfileOutput);
@@ -266,16 +259,6 @@ namespace Eddy
                 if (!Utilities.Docker.IsDockerRunning(baseWorkingDirectory, RunSettings.ostype))
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Blank, @"It seems that Docker is not running. Please start the application ""Docker for Windows"".");
-                }
-
-                // Check for killed processes
-
-                for (int i = 0; i < DOM.BCond.WindDirections.Count; i++)
-                {
-                    if (Utilities.DidProcessGetKilled(baseWorkingDirectory + "\\" + DOM.BCond.WindDirections[i]) == true)
-                    {
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Some processes got killed probably because to little RAM was available. Try to increase the RAM acclocated for the Docker virtual machine.");
-                    }
                 }
             }
 

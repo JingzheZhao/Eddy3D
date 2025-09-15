@@ -843,40 +843,6 @@ exit
             throw new NotImplementedException();
         }
 
-        public static bool DidProcessGetKilled(string workingDirectory)
-        {
-            bool processGotKilled = false;
-            string logFilePath = workingDirectory + @"\log";
-
-            if (File.Exists(logFilePath))
-            {
-                try
-                {
-                    string line;
-                    List<string> lines = new List<string>();
-
-                    using (FileStream fs = new FileStream(logFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                    using (StreamReader sr = new StreamReader(fs, System.Text.Encoding.Default))
-                    {
-                        while ((line = sr.ReadLine()) != null)
-                        {
-                            lines.Add(line);
-                        }
-                    }
-
-                    foreach (string lline in lines)
-                    {
-                        if (lline.EndsWith("(Killed).")) { processGotKilled = true; }
-                    }
-                }
-                catch (Exception e)
-                {
-                    throw new System.ArgumentException(e.Message);
-                }
-            }
-            return processGotKilled;
-        }
-
         public static List<string> FileReader(string filePath)
         {
             string line;

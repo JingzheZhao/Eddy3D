@@ -196,7 +196,7 @@ $"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
             GenerateCylDomainCase(caseDir, windDir);
 
             // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
-            var logPath = Path.Combine(caseDir, windDir.ToString(), "log");
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
 
             Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
 
@@ -224,7 +224,7 @@ $"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
             GenerateCylDomainCase(caseDir, windDir);
 
             // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
-            var logPath = Path.Combine(caseDir, windDir.ToString(), "log");
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
 
             Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
 
@@ -252,7 +252,7 @@ $"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
             GenerateCylDomainCase(caseDir, windDir);
 
             // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
-            var logPath = Path.Combine(caseDir, windDir.ToString(), "log");
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
 
             Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
 
@@ -280,7 +280,7 @@ $"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
             GenerateCylDomainCase(caseDir, windDir);
 
             // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
-            var logPath = Path.Combine(caseDir, windDir.ToString(), "log");
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
 
             Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
 
@@ -308,7 +308,7 @@ $"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
             GenerateCylDomainCase(caseDir, windDir);
 
             // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
-            var logPath = Path.Combine(caseDir, windDir.ToString(), "log");
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
 
             Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
 
@@ -336,7 +336,7 @@ $"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
             GenerateCylDomainCase(caseDir, windDir);
 
             // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
-            var logPath = Path.Combine(caseDir, windDir.ToString(), "log");
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
 
             Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
 
@@ -364,7 +364,7 @@ $"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
             GenerateCylDomainCase(caseDir, windDir);
 
             // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
-            var logPath = Path.Combine(caseDir, windDir.ToString(), "log");
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
 
             Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
 
@@ -392,7 +392,7 @@ $"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
             GenerateCylDomainCase(caseDir, windDir);
 
             // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
-            var logPath = Path.Combine(caseDir, windDir.ToString(), "log");
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
 
             Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
 
@@ -446,7 +446,7 @@ $"testcase-box-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
             var result = RunBatchFileInteractive(caseDir, "run.bat");
 
             // Assert: check log file contains the expected string
-            var logFile = Path.Combine(caseDir, windDir.ToString(), "log");
+            var logFile = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
             Assert.True(File.Exists(logFile), $"Log file not found: {logFile}");
             var logContent = File.ReadAllText(logFile);
             Assert.Contains("SIMPLE solution converged", logContent);

@@ -350,7 +350,7 @@ namespace Eddy
                         }
                         else
                         {
-                            var cmdArg = BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory, RunMode.Canvas);
+                            var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(new List<string> { command.ToString() }, RES.WorkingDirectory, RunMode.Canvas);
                             Utilities.StartProcess.StartProcessCMDNT(cmdArg, false, true, true, true, probingComplete);
                         }
                     }
@@ -432,7 +432,7 @@ namespace Eddy
                         }
                         else
                         {
-                            var cmdArg = BatFiles.TempBlueCFD(new List<string> { command.ToString() }, RES.WorkingDirectory, RunMode.Canvas);
+                            var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(new List<string> { command.ToString() }, RES.WorkingDirectory, RunMode.Canvas);
                             Utilities.StartProcess.StartProcessCMDNT(cmdArg, false, true, true, true, probingComplete);
                         }
                     }

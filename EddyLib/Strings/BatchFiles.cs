@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace EddyLib.Strings
 {
@@ -36,21 +38,10 @@ namespace EddyLib.Strings
 
             if (RunSettings.simEngine == SimEngine.Docker)//Docker
             {
-                //                if (RunSettings.CPUs > 1)
-                //                {
-                //                    foreach (string str in TopoSet)
-                //                    {
-                //                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str + AppendSuffixDocker());
-                //                    }
-                //#if DEBUG
-                //                    sb.AppendLine("PAUSE");
-                //#endif
-                //                }
-                //else
                 {
                     foreach (string str in TopoSet)
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str + AppendSuffixDocker());
+                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str);
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -59,16 +50,8 @@ namespace EddyLib.Strings
             }
             else
             {
-                //                if (RunSettings.CPUs > 1)
-                //                {
-                //                    sb.Append(TempBlueCFD(TopoSet, MeshSettings.meshWorkingDir));
-                //#if DEBUG
-                //                    sb.AppendLine("PAUSE");
-                //#endif
-                //                }
-                //                else
                 {
-                    sb.Append(TempBlueCFD(TopoSet, MeshSettings.meshWorkingDir));
+                    sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(TopoSet, MeshSettings.meshWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
@@ -100,7 +83,6 @@ namespace EddyLib.Strings
                 lst = new List<string>{
      "decomposePar -force",
 
-     //"mpiexec -np " + RunSettings.CPUs + @" renumberMesh -overwrite",
      "mpiexec -np " + RunSettings.CPUs + @" potentialFoam -parallel",
      "mpiexec -np " + RunSettings.CPUs + @" simpleFoam -parallel",
      "reconstructPar -latestTime"};
@@ -109,8 +91,6 @@ namespace EddyLib.Strings
             {
                 lst = new List<string>{
                 "decomposePar -force",
-
-                //"mpiexec -np " + RunSettings.CPUs + @" renumberMesh -overwrite",
                 "mpiexec -np " + RunSettings.CPUs + @" simpleFoam -parallel",
                 "reconstructPar -latestTime"            };
             }
@@ -139,15 +119,6 @@ namespace EddyLib.Strings
 
         private static readonly List<string> RCSimContinueSingleCPU = new List<string> {
         "simpleFoam"};
-
-        private static List<string> reconstructSim()
-        {
-            List<string> lst = new List<string>
-            {
-                "reconstructPar"
-            };
-            return lst;
-        }
 
         private static List<string> reconstructMesh()
         {
@@ -252,24 +223,7 @@ namespace EddyLib.Strings
             return sb.ToString();
         }
 
-        private static string AppendSuffixDocker()
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.Append(" | tee -a log\"");
-            sb.AppendLine("");
-            return sb.ToString();
-        }
-
-        private static string AppendSuffixWin()
-        {
-            return "| tee -a log";
-
-            //StringBuilder sb = new StringBuilder();
-            //sb.Append("| tee -a log");
-            //return sb.ToString();
-        }
-
-        public static string Run_Mesh_Cyl(OFRunSettings RunSettings, OFMeshSettings MeshSettings, OFBaseDomain DOM, OFExecutionMode mode)
+        public static string Run_Mesh(OFRunSettings RunSettings, OFMeshSettings MeshSettings, OFBaseDomain DOM, OFExecutionMode mode)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -279,7 +233,7 @@ namespace EddyLib.Strings
                 {
                     foreach (string str in RCMeshMultiCPU(RunSettings, MeshSettings))
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str + AppendSuffixDocker());
+                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str);
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -289,7 +243,7 @@ namespace EddyLib.Strings
                 {
                     foreach (string str in RCMeshSingleCPU)
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str + AppendSuffixDocker());
+                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str);
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -300,14 +254,14 @@ namespace EddyLib.Strings
             {
                 if (RunSettings.CPUs > 1)
                 {
-                    sb.Append(TempBlueCFD(RCMeshMultiCPU(RunSettings, MeshSettings), MeshSettings.meshWorkingDir));
+                    sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(RCMeshMultiCPU(RunSettings, MeshSettings), MeshSettings.meshWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
                 }
                 else
                 {
-                    sb.Append(TempBlueCFD(RCMeshSingleCPU, MeshSettings.meshWorkingDir));
+                    sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(RCMeshSingleCPU, MeshSettings.meshWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
@@ -315,38 +269,6 @@ namespace EddyLib.Strings
             }
             return sb.ToString();
         }
-
-        //        public static string Run_Mesh_Box(OFBaseDomain DOM, int windDir)
-        //        {
-        //            StringBuilder sb = new StringBuilder();
-        //            sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; blockMesh " + AppendSuffix());
-        //            if (DOM.CPUs > 1)
-        //            {
-        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatures " + AppendSuffix());
-        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; pyFoamDecompose.py --clear . " + DOM.CPUs + @" " + AppendSuffix());
-        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; foamJob -parallel -screen snappyHexMesh -overwrite " + AppendSuffix());
-        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; reconstructParMesh -constant " + AppendSuffix());
-        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite " + AppendSuffix());
-        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh " + AppendSuffix());
-        //#if DEBUG
-
-        // sb.AppendLine("PAUSE");
-
-        //#endif
-        //            }
-        //            else
-        //            {
-        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; surfaceFeatures | tee  -a log; snappyHexMesh -overwrite  | tee  -a log; checkMesh | tee -a log""");
-        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; renumberMesh -overwrite " + AppendSuffix());
-        //                sb.AppendLine(@"docker run -v """ + MeshSettings.OFbaseWorkingDir + "\\" + DOM.BCInflow.windDirs[windDir] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam; checkMesh " + AppendSuffix());
-        //#if DEBUG
-
-        ////                sb.AppendLine("PAUSE");
-
-        ////#endif
-        ////            }
-
-        // return sb.ToString(); }
 
         public static string Run_sim(OFMeshSettings MeshSettings, OFRunSettings RunSettings, OFBaseDomain DOM, OFExecutionMode mode, int d)
         {
@@ -360,7 +282,7 @@ namespace EddyLib.Strings
                 {
                     foreach (string str in RCSimMultiCPU(RunSettings))
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str + AppendSuffixDocker());
+                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str);
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -370,7 +292,7 @@ namespace EddyLib.Strings
                 {
                     foreach (string str in RCSimSingleCPU(RunSettings))
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str + AppendSuffixDocker());
+                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str);
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -381,14 +303,14 @@ namespace EddyLib.Strings
             {
                 if (RunSettings.CPUs > 1)
                 {
-                    sb.Append(TempBlueCFD(RCSimMultiCPU(RunSettings), caseWorkingDir));
+                    sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(RCSimMultiCPU(RunSettings), caseWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
                 }
                 else
                 {
-                    sb.Append(TempBlueCFD(RCSimSingleCPU(RunSettings), caseWorkingDir));
+                    sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(RCSimSingleCPU(RunSettings), caseWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
@@ -410,7 +332,7 @@ namespace EddyLib.Strings
                 {
                     foreach (string str in RCSimContinueMultiCPU(RunSettings))
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str + AppendSuffixDocker());
+                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str);
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -420,7 +342,7 @@ namespace EddyLib.Strings
                 {
                     foreach (string str in RCSimContinueSingleCPU)
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str + AppendSuffixDocker());
+                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str);
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -431,14 +353,14 @@ namespace EddyLib.Strings
             {
                 if (RunSettings.CPUs > 1)
                 {
-                    sb.Append(TempBlueCFD(RCSimContinueMultiCPU(RunSettings), caseWorkingDir));
+                    sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(RCSimContinueMultiCPU(RunSettings), caseWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
                 }
                 else
                 {
-                    sb.Append(TempBlueCFD(RCSimContinueSingleCPU, caseWorkingDir));
+                    sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(RCSimContinueSingleCPU, caseWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
@@ -460,7 +382,7 @@ namespace EddyLib.Strings
                 {
                     foreach (string str in divU)
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str + AppendSuffixDocker());
+                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str);
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -470,7 +392,7 @@ namespace EddyLib.Strings
                 {
                     foreach (string str in divU)
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str + AppendSuffixDocker());
+                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str);
                     }
 #if DEBUG
                     sb.AppendLine("PAUSE");
@@ -481,111 +403,20 @@ namespace EddyLib.Strings
             {
                 if (RunSettings.CPUs > 1)
                 {
-                    sb.Append(TempBlueCFD(divU, caseWorkingDir));
+                    sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(divU, caseWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
                 }
                 else
                 {
-                    sb.Append(TempBlueCFD(divU, caseWorkingDir));
+                    sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(divU, caseWorkingDir));
 #if DEBUG
                     sb.AppendLine("PAUSE");
 #endif
                 }
             }
 
-            return sb.ToString();
-        }
-
-        //        public static string Run_mesh_docker(OFBaseDomain DOM)
-        //        {
-        //            StringBuilder sb = new StringBuilder();
-        //            sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""blockMesh | tee -a log"" -f """ + DOM.OFmeshWorkingDir + " \"");
-        //            if (DOM.CPUs > 1)
-        //            {
-        //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""surfaceFeatures | tee -a  log "" -f """ + DOM.OFmeshWorkingDir + " \"");
-        //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""pyFoamDecompose.py --clear . " + DOM.CPUs + @" | tee -a  log"" -f """ + DOM.OFmeshWorkingDir + " \"");
-        //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""foamJob -parallel -screen snappyHexMesh -overwrite | tee -a  log "" -f """ + DOM.OFmeshWorkingDir + " \"");
-        //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""reconstructParMesh -constant | tee -a  log "" -f """ + DOM.OFmeshWorkingDir + " \"");
-        //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""renumberMesh -overwrite | tee -a  log "" -f """ + DOM.OFmeshWorkingDir + " \"");
-        //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a log "" -f """ + DOM.OFmeshWorkingDir + " \"");
-        //#if DEBUG
-
-        // sb.AppendLine("PAUSE");
-
-        //#endif
-        //            }
-        //            else
-        //            {
-        //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""surfaceFeatures | tee -a log "" -f """ + DOM.OFmeshWorkingDir + " \"");
-        //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""snappyHexMesh -overwrite  | tee -a  log "" -f """ + DOM.OFmeshWorkingDir + " \"");
-        //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a  log "" -f """ + DOM.OFmeshWorkingDir + " \"");
-        //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""renumberMesh -overwrite | tee -a  log "" -f """ + DOM.OFmeshWorkingDir + " \"");
-        //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a log "" -f """ + DOM.OFmeshWorkingDir + " \"");
-        //#if DEBUG
-
-        // sb.AppendLine("PAUSE");
-
-        //#endif
-        //            }
-
-        // return sb.ToString(); } public static string Run_sim_docker(OFBaseDomain DOM, int d) {
-        // StringBuilder sb = new StringBuilder();
-
-        //            sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""pyFoamPrepareCase.py . --no-mesh-create | tee -a log"" -f """ + MeshSettings.OFbaseWorkingDir + DOM.BCInflow.windDirs[d] + " \"");
-        //            if (DOM.CPUs > 1)
-        //            {
-        //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""pyFoamDecompose.py --clear . " + DOM.CPUs + @"| tee -a  log "" -f """ + MeshSettings.OFbaseWorkingDir + DOM.BCInflow.windDirs[d] + " \"");
-        //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""foamJob -s -p renumberMesh -overwrite | tee -a  log "" -f """ + MeshSettings.OFbaseWorkingDir + DOM.BCInflow.windDirs[d] + " \"");
-        //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""foamJob -s -p potentialFoam | tee -a  log "" -f """ + MeshSettings.OFbaseWorkingDir + DOM.BCInflow.windDirs[d] + " \"");
-        //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""mpiexec -np " + DOM.CPUs + @" simpleFoam -parallel | tee -a  log "" -f """ + MeshSettings.OFbaseWorkingDir + DOM.BCInflow.windDirs[d] + " \"");
-        //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""reconstructPar -latestTime | tee -a  log; "" -f """ + MeshSettings.OFbaseWorkingDir + DOM.BCInflow.windDirs[d] + " \"");
-        //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a  log "" -f """ + MeshSettings.OFbaseWorkingDir + DOM.BCInflow.windDirs[d] + " \"");
-        //#if DEBUG
-
-        // sb.AppendLine("PAUSE");
-
-        //#endif
-        //            }
-
-        //            else
-        //            {
-        //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""potentialFoam | tee -a log "" -f """ + MeshSettings.OFbaseWorkingDir + DOM.BCInflow.windDirs[d] + " \"");
-        //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""simpleFoam | tee -a  log "" -f """ + MeshSettings.OFbaseWorkingDir + DOM.BCInflow.windDirs[d] + " \"");
-        //                sb.AppendLine("\"" + Utilities.AssemblyDirectory + @"\CallOF.exe""  -e ""checkMesh | tee -a  log "" -f """ + MeshSettings.OFbaseWorkingDir + DOM.BCInflow.windDirs[d] + " \"");
-        //#if DEBUG
-
-        // sb.AppendLine("PAUSE");
-
-        //#endif
-        //            }
-        //            return sb.ToString();
-        //        }
-
-        public static string Run_blockMesh(OFRunSettings RunSettings, OFBaseDomain DOM, OFMeshSettings MeshSettings, OFExecutionMode mode)
-        {
-            StringBuilder sb = new StringBuilder();
-            if (RunSettings.simEngine == SimEngine.Docker)//Docker
-            {
-                foreach (string str in RCBlockMeshSingleCPU)
-                {
-                    sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str + AppendSuffixDocker());
-                }
-#if DEBUG
-                sb.AppendLine("PAUSE");
-#endif
-            }
-            else
-            {
-                foreach (string str in RCBlockMeshSingleCPU)
-                {
-                    sb.Append(TempBlueCFD(RCBlockMeshSingleCPU, MeshSettings.meshWorkingDir));
-                }
-#if DEBUG
-                sb.AppendLine("PAUSE");
-#endif
-            }
             return sb.ToString();
         }
 
@@ -596,7 +427,7 @@ namespace EddyLib.Strings
             {
                 foreach (string str in RCCheckMeshSingleCPU)
                 {
-                    sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str + AppendSuffixDocker());
+                    sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str);
                 }
 #if DEBUG
                 sb.AppendLine("PAUSE");
@@ -604,42 +435,12 @@ namespace EddyLib.Strings
             }
             else
             {
-                //foreach (string str in RCCheckMeshSingleCPU)
-                //{
-                sb.Append(TempBlueCFD(RCCheckMeshSingleCPU, MeshSettings.meshWorkingDir));
+                sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(RCCheckMeshSingleCPU, MeshSettings.meshWorkingDir));
 
-                //}
 #if DEBUG
                 sb.AppendLine("PAUSE");
 #endif
             }
-            return sb.ToString();
-        }
-
-        public static string Run_reconstructSim(OFMeshSettings MeshSettings, OFRunSettings RunSettings, OFBaseDomain DOM, OFExecutionMode mode, int d)
-        {
-            StringBuilder sb = new StringBuilder();
-
-            string caseWorkingDir = MeshSettings.baseWorkingDir + "\\" + DOM.BCond.WindDirections[d];
-
-            if (RunSettings.simEngine == SimEngine.Docker)//Docker
-            {
-                foreach (string str in reconstructSim())
-                {
-                    sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str + AppendSuffixDocker());
-                }
-#if DEBUG
-                sb.AppendLine("PAUSE");
-#endif
-            }
-            else
-            {
-                sb.Append(TempBlueCFD(reconstructSim(), caseWorkingDir));
-#if DEBUG
-                sb.AppendLine("PAUSE");
-#endif
-            }
-
             return sb.ToString();
         }
 
@@ -650,7 +451,7 @@ namespace EddyLib.Strings
             {
                 foreach (string str in reconstructMesh())
                 {
-                    sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str + AppendSuffixDocker());
+                    sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str);
                 }
 #if DEBUG
                 sb.AppendLine("PAUSE");
@@ -658,11 +459,8 @@ namespace EddyLib.Strings
             }
             else
             {
-                //foreach (string str in RCCheckMeshSingleCPU)
-                //{
-                sb.Append(TempBlueCFD(reconstructMesh(), MeshSettings.meshWorkingDir));
+                sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(reconstructMesh(), MeshSettings.meshWorkingDir));
 
-                //}
 #if DEBUG
                 sb.AppendLine("PAUSE");
 #endif
@@ -679,9 +477,6 @@ namespace EddyLib.Strings
                 sb.AppendLine(@"call """ + MeshSettings.baseWorkingDir + i + @"_run_sim.bat""");
             }
 
-            //sb.AppendLine(@"call """ + MeshSettings.baseWorkingDir + @"run_ray.bat""");
-            //sb.AppendLine(@"call """ + MeshSettings.baseWorkingDir + @"run_probes.bat""");
-            //sb.AppendLine(@"call """ + MeshSettings.baseWorkingDir + @"run_utci.bat""");
 #if DEBUG
             sb.AppendLine("PAUSE");
 #endif
@@ -693,7 +488,6 @@ namespace EddyLib.Strings
             StringBuilder sb = new StringBuilder();
             foreach (int i in DOM.BCond.WindDirections)
             {
-                //sb.AppendLine("start " + MeshSettings.baseWorkingDirectory +i + "_run_sim.bat");
                 sb.AppendLine("call \"" + MeshSettings.baseWorkingDir + i + "_run_sim.bat\"");
             }
 #if DEBUG
@@ -702,80 +496,167 @@ namespace EddyLib.Strings
             return sb.ToString();
         }
 
-        public static string Run_RayTrace(OFBaseDomain DOM, OFMeshSettings MeshSettings)
+        public static class BlueCfdScriptBuilder
         {
-            string workDir = MeshSettings.baseWorkingDir.Trim('\\');
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine(@"REM CallRay.exe
-REM CallRay 1.0.0.0
-REM Copyright c  2018
-REM
-REM ERROR(S):
-REM   -d / --workingDir required option is missing.
-REM   - w / --weather required option is missing.
-REM
-REM   - d, --workingDir    Required.Working directory.
-REM
-REM   - w, --weather       Required.EPW weather file path.
-REM
-REM   - l, --loud(Default: True) Prints all messages to standard output.
-REM
-REM   --help              Display this help screen.");
-            sb.AppendLine("\"" + Utilities.AssemblyDirectory + "\\CallRay.exe\" " + "-d " + "\"" + workDir + "\" " + "-w " + "\"" + DOM.BCond.epwFilePath + "\"");
-#if DEBUG
+            /// <summary>
+            /// Builds a Windows batch script for running blueCFD/OpenFOAM commands.
+            /// </summary>
+            /// <param name="commands">Commands to run (one per line, e.g., "blockMesh").</param>
+            /// <param name="caseDir">Absolute path to the case directory.</param>
+            /// <param name="runMode">
+            /// Batchfile: assume the .bat file will sit next to the case folder; cd using %~dp0.
+            /// Direct: cd directly into caseDir.
+            /// </param>
+            /// <param name="installationPath">Path to blueCFD installation (trailing backslash optional).</param>
+            /// <param name="logFile">Name of the log file to tee into.</param>
+            public static string BuildBlueCfdBatch(
+                IEnumerable<string> commands,
+                string caseDir,
+                RunMode runMode = RunMode.Batchfile,
+                string installationPath = @"C:\Program Files\blueCFD-Core-2020\",
+                string logFile = "log.txt")
+            {
+                if (commands is null) throw new ArgumentNullException(nameof(commands));
+                if (string.IsNullOrWhiteSpace(caseDir)) throw new ArgumentException("caseDir is required.", nameof(caseDir));
 
-            sb.AppendLine("PAUSE");
+                // Normalize paths
+                installationPath = EnsureTrailingBackslash(installationPath);
+                var caseDirTrimmed = caseDir.Trim().Trim('"');
+                var caseDirQuoted = $"\"{caseDirTrimmed}\"";
 
-#endif
-            return sb.ToString();
+                // Determine drive switch (avoid assuming just "C")
+                var root = Path.GetPathRoot(caseDirTrimmed);
+                var driveLetter = string.IsNullOrEmpty(root) ? 'C' : char.ToUpperInvariant(root[0]);
+                var needsDriveSwitch = driveLetter != 'C';
+
+                // Folder name for Batchfile mode (cd from %~dp0)
+
+                var caseLeaf = new DirectoryInfo(caseDirTrimmed).Name;
+
+                var sb = new StringBuilder();
+
+                sb.AppendLine("@echo off");
+                sb.AppendLine("setlocal enableextensions");
+                sb.AppendLine($@"call ""{installationPath}setvars_OF8.bat""");
+                sb.AppendLine(@"set PATH=%HOME%\msys64\usr\bin;%PATH%");
+
+                if (needsDriveSwitch)
+                    sb.AppendLine($"{driveLetter}:");
+
+                if (runMode == RunMode.Batchfile)
+                {
+                    sb.AppendLine($@"REM cd {caseDirQuoted}");
+                    sb.AppendLine($@"cd /d ""%~dp0{caseLeaf}""");
+                }
+                else
+                {
+                    sb.AppendLine($@"cd /d {caseDirQuoted}");
+                }
+
+                foreach (var line in commands.Select(c => (c ?? string.Empty).Trim())
+                             .Where(c => !string.IsNullOrEmpty(c)))
+                {
+                    var logForThisCommand = InferLogFileName(line, "log.txt");
+                    sb.AppendLine($"{line}{AppendToLog(logForThisCommand)}");
+                }
+
+                return sb.ToString();
+            }
+
+            private static string EnsureTrailingBackslash(string path) =>
+                string.IsNullOrEmpty(path) ? path : (path.EndsWith("\\") ? path : path + "\\");
+
+            private static string InferLogFileName(string command, string fallback = "log.txt")
+            {
+                if (string.IsNullOrWhiteSpace(command)) return fallback;
+
+                var tokens = Tokenize(command);
+                if (tokens.Count == 0) return fallback;
+
+                var wrappers = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        "mpirun","mpiexec","srun","wsl","bash","sh","cmd","cmd.exe",
+        "powershell","powershell.exe","python","python.exe","py","py.exe",
+    };
+
+                // Options (for wrappers) that take a value in the *next* token
+                var wrapperOptsTakeValue = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        "-np","-n","--np",
+        "--map-by","--bind-to","--rank-by",
+        "--host","-H","--hostfile","-host","-machinefile",
+        "--mca","-mca",
+        "--wdir","-wdir","--wd","-wd",
+        "--app", "--path"
+        // (expand as needed)
+    };
+
+                // Walk tokens with index awareness so we can skip option values
+                for (int i = 0; i < tokens.Count; i++)
+                {
+                    var t = tokens[i].Trim();
+                    if (t.Length == 0) continue;
+
+                    // Skip global wrappers themselves
+                    if (wrappers.Contains(t)) continue;
+
+                    // Skip options (e.g., -np, --map-by)
+                    if (t.StartsWith("-"))
+                    {
+                        // Also skip the immediate value token if this option expects one
+                        if (wrapperOptsTakeValue.Contains(t) && i + 1 < tokens.Count)
+                            i++; // consume the value (like the "8" after -np)
+                        continue;
+                    }
+
+                    // If this token is the value of the *preceding* option, skip it
+                    if (i > 0 && wrapperOptsTakeValue.Contains(tokens[i - 1]))
+                        continue;
+
+                    // We have a candidate executable/script now.
+                    var baseName = Path.GetFileName(t);
+                    if (string.IsNullOrEmpty(baseName)) continue;
+
+                    var noExt = StripKnownExt(baseName);
+                    if (string.IsNullOrEmpty(noExt)) continue;
+
+                    return $"{noExt}.log";
+                }
+
+                return fallback;
+            }
+
+            private static string StripKnownExt(string file)
+            {
+                // Remove one of these extensions if present
+                var exts = new[] { ".exe", ".bat", ".cmd", ".sh", ".py" };
+                foreach (var ext in exts)
+                {
+                    if (file.EndsWith(ext, StringComparison.OrdinalIgnoreCase))
+                        return Path.GetFileNameWithoutExtension(file);
+                }
+                // Also strip trailing path separators accidentally captured
+                var name = file.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                return Path.GetFileNameWithoutExtension(name);
+            }
+
+            // Minimal tokenizer that respects single/double quotes
+            private static List<string> Tokenize(string command)
+            {
+                var list = new List<string>();
+                // matches either "double quoted", 'single quoted', or bare non-space
+                var rx = new Regex("\"([^\"]*)\"|'([^']*)'|([^\\s]+)", RegexOptions.Compiled);
+                foreach (Match m in rx.Matches(command))
+                {
+                    if (m.Groups[1].Success) list.Add(m.Groups[1].Value);
+                    else if (m.Groups[2].Success) list.Add(m.Groups[2].Value);
+                    else list.Add(m.Groups[3].Value);
+                }
+                return list;
+            }
         }
 
-        public static string TempBlueCFD
-            (List<string> commands, string caseDir, RunMode runmode = RunMode.Batchfile, bool logging = true, string installationPath = @"C:\Program Files\blueCFD-Core-2020\")
-
-        {
-            bool notOnC = false;
-
-            if (!caseDir.StartsWith("C"))
-            {
-                notOnC = true;
-            }
-
-            StringBuilder sb = new StringBuilder();
-
-            sb.AppendLine(string.Format(@"setlocal"));
-            sb.AppendLine(string.Format(@"call """ + installationPath + @"\setvars_OF8.bat"""));
-            sb.AppendLine(@"set PATH=%HOME%\msys64\usr\bin;%PATH%");
-            if (notOnC)
-            {
-                sb.AppendLine(caseDir[0] + ":");
-            }
-            if (runmode == RunMode.Batchfile)
-            {
-                sb.AppendLine("REM cd " + "\"" + caseDir + "\"");
-                sb.AppendLine(@"cd /d %~dp0" + "\\" + caseDir.Split(new string[] { "\\" }, StringSplitOptions.RemoveEmptyEntries).ToList().Last());
-            }
-            else
-            {
-                sb.AppendLine("cd " + "\"" + caseDir + "\"");
-            }
-
-            if (logging)
-            {
-                foreach (string str in commands)
-                {
-                    sb.AppendLine(str.Trim() + " " + AppendSuffixWin());
-                }
-            }
-            else
-            {
-                foreach (string str in commands)
-                {
-                    sb.AppendLine(str.Trim() + " ");
-                }
-            }
-
-            return sb.ToString();
-        }
+        public static string AppendToLog(string logFile) =>
+    $" 2>&1 | tee -a \"{logFile}\"";
     }
 }
