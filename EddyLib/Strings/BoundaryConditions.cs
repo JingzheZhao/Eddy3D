@@ -9,7 +9,7 @@ namespace EddyLib.Strings
     {
         #region Generic
 
-        private static double dotCutoff = -0.1;
+        private static double dotCutoff = 0.0;
 
         public static string ABL(ABL bcond, int d)
         {
@@ -137,7 +137,7 @@ value		$internalField;
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
-                double dot = DOM.BCond.BCs[d].flowDir * DOM.sides.FaceNormals[i]; //check
+                double dot = DOM.BCond.BCs[d].flowDir.X * DOM.sides.FaceNormals[i].X + DOM.BCond.BCs[d].flowDir.Y * DOM.sides.FaceNormals[i].Y; //check
                 if (dot < dotCutoff && !DOM.hasTerrain)
                 {
                     sb.AppendLine("patch" + i);
@@ -161,7 +161,7 @@ inletValue $internalField;
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
-                double dot = DOM.BCond.BCs[d].flowDir * DOM.sides.FaceNormals[i]; //check
+                double dot = DOM.BCond.BCs[d].flowDir.X * DOM.sides.FaceNormals[i].X + DOM.BCond.BCs[d].flowDir.Y * DOM.sides.FaceNormals[i].Y; //check
                 if (dot < dotCutoff && DOM.hasTerrain)
                 {
                     sb.AppendLine("patch" + i);
@@ -228,7 +228,7 @@ internalField uniform $turbulentKE;
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
-                double dot = DOM.BCond.BCs[d].flowDir * DOM.sides.FaceNormals[i]; //check
+                double dot = DOM.BCond.BCs[d].flowDir.X * DOM.sides.FaceNormals[i].X + DOM.BCond.BCs[d].flowDir.Y * DOM.sides.FaceNormals[i].Y; //check
                 if (dot < dotCutoff && !DOM.hasTerrain)
                 {
                     sb.AppendLine("patch" + i);
@@ -252,7 +252,7 @@ inletValue $internalField;
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
-                double dot = DOM.BCond.BCs[d].flowDir * DOM.sides.FaceNormals[i]; //check
+                double dot = DOM.BCond.BCs[d].flowDir.X * DOM.sides.FaceNormals[i].X + DOM.BCond.BCs[d].flowDir.Y * DOM.sides.FaceNormals[i].Y; //check
                 if (dot < dotCutoff && DOM.hasTerrain)
                 {
                     sb.AppendLine("patch" + i);
@@ -357,7 +357,7 @@ value		$internalField;
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
-                double dot = DOM.BCond.BCs[d].flowDir * DOM.sides.FaceNormals[i];
+                double dot = DOM.BCond.BCs[d].flowDir.X * DOM.sides.FaceNormals[i].X + DOM.BCond.BCs[d].flowDir.Y * DOM.sides.FaceNormals[i].Y;
                 if (dot < dotCutoff)
                 {
                     sb.AppendLine("patch" + i);
@@ -433,7 +433,7 @@ building
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
-                double dot = DOM.BCond.BCs[d].flowDir * DOM.sides.FaceNormals[i];
+                double dot = DOM.BCond.BCs[d].flowDir.X * DOM.sides.FaceNormals[i].X + DOM.BCond.BCs[d].flowDir.Y * DOM.sides.FaceNormals[i].Y;
                 if (dot < dotCutoff)
                 {
                     sb.AppendLine("patch" + i);
@@ -501,7 +501,7 @@ internalField uniform $pressure;
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
-                double dot = DOM.BCond.BCs[d].flowDir * DOM.sides.FaceNormals[i]; //check
+                double dot = DOM.BCond.BCs[d].flowDir.X * DOM.sides.FaceNormals[i].X + DOM.BCond.BCs[d].flowDir.Y * DOM.sides.FaceNormals[i].Y; //check
                 if (dot < dotCutoff)
                 {
                     sb.AppendLine("patch" + i);
@@ -573,7 +573,7 @@ frontAndBack
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
-                double dot = DOM.BCond.BCs[d].flowDir * DOM.sides.FaceNormals[i]; //check
+                double dot = DOM.BCond.BCs[d].flowDir.X * DOM.sides.FaceNormals[i].X + DOM.BCond.BCs[d].flowDir.Y * DOM.sides.FaceNormals[i].Y; //check
                 if (dot < dotCutoff)
                 {
                     sb.AppendLine("patch" + i);
@@ -657,7 +657,7 @@ frontAndBack
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
-                double dot = DOM.BCond.BCs[d].flowDir * DOM.sides.FaceNormals[i]; //check
+                double dot = DOM.BCond.BCs[d].flowDir.X * DOM.sides.FaceNormals[i].X + DOM.BCond.BCs[d].flowDir.Y * DOM.sides.FaceNormals[i].Y; //check
                 if (dot < dotCutoff)
                 {
                     sb.AppendLine("patch" + i);
@@ -748,7 +748,7 @@ boundaryField
 
             for (int i = 0; i < DOM.sides.Faces.Count; i++)
             {
-                double dot = DOM.BCond.BCs[d].flowDir * DOM.sides.FaceNormals[i]; //check
+                double dot = DOM.BCond.BCs[d].flowDir.X * DOM.sides.FaceNormals[i].X + DOM.BCond.BCs[d].flowDir.Y * DOM.sides.FaceNormals[i].Y; //check
                 if (dot < dotCutoff)
                 {
                     sb.AppendLine("patch" + i);
