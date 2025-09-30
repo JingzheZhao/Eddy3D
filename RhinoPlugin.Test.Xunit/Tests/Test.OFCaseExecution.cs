@@ -1,4 +1,4 @@
-﻿using EddyLib;
+using EddyLib;
 using EddyLib.BCs;
 using Rhino.FileIO;
 using Rhino.Geometry;
@@ -11,6 +11,14 @@ using Xunit;
 using Rhino;
 using Rhino.DocObjects;
 using RhinoPlugin.Test.Xunit.Tests;
+using Microsoft.Win32;
+using System.Runtime.InteropServices;
+using System;
+using System.Runtime.InteropServices;
+using Microsoft.Win32;
+using Xunit;
+
+
 
 namespace RhinoPlugin.Test.Xunit.Tests
 {
@@ -23,8 +31,11 @@ namespace RhinoPlugin.Test.Xunit.Tests
         public static Mesh LoadMergedMesh(string solutionRelativePath,
             double weldAngleRadians = Math.PI,
             double coplanarTol = 1e-6)
+
         {
-            var stlAbs = Path.Combine(GetSolutionRoot(), solutionRelativePath);
+
+            var solutionRoot = GetSolutionRoot();
+            var stlAbs = Path.Combine(solutionRoot, solutionRelativePath);
             if (!File.Exists(stlAbs))
                 throw new FileNotFoundException($"STL not found: {stlAbs}");
 
@@ -33,6 +44,7 @@ namespace RhinoPlugin.Test.Xunit.Tests
                 var opts = new FileStlReadOptions()
                 {
                     STLModelUnits=UnitSystem.Meters
+
                 };
                 if (!doc.Import(stlAbs, opts.ToDictionary()))
                     throw new InvalidOperationException("STL import failed.");
@@ -66,7 +78,15 @@ namespace RhinoPlugin.Test.Xunit.Tests
 
         private static string GetSolutionRoot()
         {
+
+#if DEBUG
+            return Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, @"..\..\.."));
+
+#elif RELEASE
             return Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, @"..\..\..\.."));
+#endif
+
+
         }
 
         public static Mesh RectangleToMesh(Rectangle3d rect)
@@ -89,7 +109,7 @@ namespace RhinoPlugin.Test.Xunit
     [Collection("Rhino Collection")]
     public class OFExecutionTests
     {
-        [Fact]
+        [NotWindowsServerFact]
         public void BuildingGeoFine_HasExpectedTopology()
         {
             // Re-use the helper
@@ -109,7 +129,7 @@ namespace RhinoPlugin.Test.Xunit
             Assert.Equal(22322, mesh.Faces.Count);
         }
 
-        [Fact]
+        [NotWindowsServerFact]
         public void BuildingGeo_HasExpectedTopology()
         {
             // Re-use the helper
@@ -180,7 +200,7 @@ namespace RhinoPlugin.Test.Xunit
             var result = RunBatchFileInteractive(caseDir, "run.bat");
         }
 
-        [Fact]
+        [NotWindowsServerFact]
         public void CylDomainCase_5_GeneratesAndExecutesSuccessfully()
         {
             // Arrange
@@ -208,7 +228,7 @@ $"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
             Assert.Contains("Time = 400", logContent);
         }
 
-        [Fact]
+        [NotWindowsServerFact]
         public void CylDomainCase_45_GeneratesAndExecutesSuccessfully()
         {
             // Arrange
@@ -236,7 +256,7 @@ $"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
             Assert.Contains("Time = 400", logContent);
         }
 
-        [Fact]
+        [NotWindowsServerFact]
         public void CylDomainCase_90_GeneratesAndExecutesSuccessfully()
         {
             // Arrange
@@ -264,7 +284,7 @@ $"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
             Assert.Contains("Time = 400", logContent);
         }
 
-        [Fact]
+        [NotWindowsServerFact]
         public void CylDomainCase_135_GeneratesAndExecutesSuccessfully()
         {
             // Arrange
@@ -292,7 +312,7 @@ $"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
             Assert.Contains("Time = 400", logContent);
         }
 
-        [Fact]
+        [NotWindowsServerFact]
         public void CylDomainCase_180_GeneratesAndExecutesSuccessfully()
         {
             // Arrange
@@ -320,7 +340,7 @@ $"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
             Assert.Contains("Time = 400", logContent);
         }
 
-        [Fact]
+        [NotWindowsServerFact]
         public void CylDomainCase_225_GeneratesAndExecutesSuccessfully()
         {
             // Arrange
@@ -348,7 +368,7 @@ $"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
             Assert.Contains("Time = 400", logContent);
         }
 
-        [Fact]
+        [NotWindowsServerFact]
         public void CylDomainCase_270_GeneratesAndExecutesSuccessfully()
         {
             // Arrange
@@ -376,7 +396,7 @@ $"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
             Assert.Contains("Time = 400", logContent);
         }
 
-        [Fact]
+        [NotWindowsServerFact]
         public void CylDomainCase_315_GeneratesAndExecutesSuccessfully()
         {
             // Arrange
@@ -404,7 +424,7 @@ $"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
             Assert.Contains("Time = 400", logContent);
         }
 
-        [Fact]
+        [NotWindowsServerFact]
         public void BoxDomainCase_GeneratesAndExecutesSuccessfully()
 
         {
@@ -481,95 +501,6 @@ $"testcase-box-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
 
             process.Dispose();
             return (success, "See terminal window for output.");
-        }
-
-        // Non-interactive version that handles PAUSE commands automatically
-        public static (bool Success, string Log) RunBatchFileNonInteractive(string workingDir, string batchFileName)
-        {
-            var batchFilePath = Path.Combine(workingDir, batchFileName);
-
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = "cmd.exe",
-                Arguments = "/C \"echo off && " + batchFilePath + " && echo on\"",
-                WorkingDirectory = workingDir,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                RedirectStandardInput = true
-            };
-
-            var process = Process.Start(startInfo);
-            
-            // Send input to handle any PAUSE commands
-            process.StandardInput.WriteLine();
-            process.StandardInput.WriteLine();
-            process.StandardInput.WriteLine();
-            process.StandardInput.Close();
-            
-            process.WaitForExit();
-
-            var success = process.ExitCode == 0
-                          && File.Exists(Path.Combine(workingDir, "postProcessing", "residuals", "0", "residuals.dat"));
-
-            process.Dispose();
-            return (success, "Non-interactive execution completed.");
-        }
-
-        // Run batch file with timeout and automatic input for PAUSE commands
-        public static (bool Success, string Log) RunBatchFileWithTimeout(string workingDir, string batchFileName, int timeoutMs)
-        {
-            var batchFilePath = Path.Combine(workingDir, batchFileName);
-
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = "cmd.exe",
-                Arguments = "/C \"" + batchFilePath + "\"",
-                WorkingDirectory = workingDir,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                RedirectStandardInput = true
-            };
-
-            var process = Process.Start(startInfo);
-            
-            // Create a task to send input periodically to handle PAUSE commands
-            var inputTask = Task.Run(async () =>
-            {
-                while (!process.HasExited)
-                {
-                    try
-                    {
-                        await process.StandardInput.WriteLineAsync();
-                        await Task.Delay(1000); // Send input every second
-                    }
-                    catch
-                    {
-                        break; // Process exited or error occurred
-                    }
-                }
-            });
-
-            // Wait for process to complete or timeout
-            bool completed = process.WaitForExit(timeoutMs);
-            
-            if (!completed)
-            {
-                process.Kill();
-                process.Dispose();
-                return (false, "Process timed out");
-            }
-
-            inputTask.Dispose();
-            process.Dispose();
-
-            var success = process.ExitCode == 0
-                          && File.Exists(Path.Combine(workingDir, "postProcessing", "residuals", "0", "residuals.dat"));
-
-            return (success, "Batch file execution completed.");
         }
 
         [Fact]
@@ -751,5 +682,46 @@ $"testcase-box-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
             
             return mesh;
         }
+      
+        /// Helpers
+        /// 
+
+        public static class WindowsServerDetector
+        {
+            public static bool IsWindowsServer()
+            {
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    return false;
+
+                // Prefer 64-bit view to avoid WOW64 redirection; fallback to Default if needed.
+                using (var baseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64))
+                using (var key = baseKey.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion"))
+                {
+                    var installType = key == null ? null : key.GetValue("InstallationType") as string;
+                    if (!string.IsNullOrEmpty(installType) &&
+                        installType.StartsWith("Server", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+
+                    var productName = key == null ? null : key.GetValue("ProductName") as string;
+                    return !string.IsNullOrEmpty(productName) &&
+                           productName.IndexOf("Server", StringComparison.OrdinalIgnoreCase) >= 0;
+                }
+            }
+        }
+
+        [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
+        public sealed class NotWindowsServerFactAttribute : FactAttribute
+        {
+            public NotWindowsServerFactAttribute()
+            {
+                if (WindowsServerDetector.IsWindowsServer())
+                {
+                    Skip = "Skipped on Windows Server.";
+                }
+            }
+        }
+
     }
 }

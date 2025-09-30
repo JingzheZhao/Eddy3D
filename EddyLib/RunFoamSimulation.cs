@@ -1,4 +1,4 @@
-﻿using EddyLib.BCs;
+using EddyLib.BCs;
 using System.IO;
 
 namespace EddyLib
@@ -175,7 +175,6 @@ namespace EddyLib
 
                 //File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_probes.bat"), EddyLib.Strings.BatFiles.Run_Probes(DOM, MeshSettings));
                 //File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_utci.bat"), EddyLib.Strings.BatFiles.Run_UTCI(DOM, MeshSettings));
-
 
                 for (int i = 0; i < DOM.BCond.WindDirections.Count; i++)
                 {
