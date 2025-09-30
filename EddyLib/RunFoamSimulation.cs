@@ -176,9 +176,6 @@ namespace EddyLib
                 //File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_probes.bat"), EddyLib.Strings.BatFiles.Run_Probes(DOM, MeshSettings));
                 //File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_utci.bat"), EddyLib.Strings.BatFiles.Run_UTCI(DOM, MeshSettings));
 
-#if DEBUG
-                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_blockMesh.bat"), EddyLib.Strings.BatFiles.Run_blockMesh(RunSettings, DOM, MeshSettings, Strings.OFExecutionMode.Meshing));
-#endif
 
                 for (int i = 0; i < DOM.BCond.WindDirections.Count; i++)
                 {

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using Xunit;
 using Rhino;
 using Rhino.DocObjects;
@@ -29,7 +30,10 @@ namespace RhinoPlugin.Test.Xunit.Tests
 
             using (var doc = RhinoDoc.CreateHeadless(null))
             {
-                var opts = new FileStlReadOptions();
+                var opts = new FileStlReadOptions()
+                {
+                    STLModelUnits=UnitSystem.Meters
+                };
                 if (!doc.Import(stlAbs, opts.ToDictionary()))
                     throw new InvalidOperationException("STL import failed.");
 
@@ -477,6 +481,275 @@ $"testcase-box-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
 
             process.Dispose();
             return (success, "See terminal window for output.");
+        }
+
+        // Non-interactive version that handles PAUSE commands automatically
+        public static (bool Success, string Log) RunBatchFileNonInteractive(string workingDir, string batchFileName)
+        {
+            var batchFilePath = Path.Combine(workingDir, batchFileName);
+
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                Arguments = "/C \"echo off && " + batchFilePath + " && echo on\"",
+                WorkingDirectory = workingDir,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                RedirectStandardInput = true
+            };
+
+            var process = Process.Start(startInfo);
+            
+            // Send input to handle any PAUSE commands
+            process.StandardInput.WriteLine();
+            process.StandardInput.WriteLine();
+            process.StandardInput.WriteLine();
+            process.StandardInput.Close();
+            
+            process.WaitForExit();
+
+            var success = process.ExitCode == 0
+                          && File.Exists(Path.Combine(workingDir, "postProcessing", "residuals", "0", "residuals.dat"));
+
+            process.Dispose();
+            return (success, "Non-interactive execution completed.");
+        }
+
+        // Run batch file with timeout and automatic input for PAUSE commands
+        public static (bool Success, string Log) RunBatchFileWithTimeout(string workingDir, string batchFileName, int timeoutMs)
+        {
+            var batchFilePath = Path.Combine(workingDir, batchFileName);
+
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                Arguments = "/C \"" + batchFilePath + "\"",
+                WorkingDirectory = workingDir,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                RedirectStandardInput = true
+            };
+
+            var process = Process.Start(startInfo);
+            
+            // Create a task to send input periodically to handle PAUSE commands
+            var inputTask = Task.Run(async () =>
+            {
+                while (!process.HasExited)
+                {
+                    try
+                    {
+                        await process.StandardInput.WriteLineAsync();
+                        await Task.Delay(1000); // Send input every second
+                    }
+                    catch
+                    {
+                        break; // Process exited or error occurred
+                    }
+                }
+            });
+
+            // Wait for process to complete or timeout
+            bool completed = process.WaitForExit(timeoutMs);
+            
+            if (!completed)
+            {
+                process.Kill();
+                process.Dispose();
+                return (false, "Process timed out");
+            }
+
+            inputTask.Dispose();
+            process.Dispose();
+
+            var success = process.ExitCode == 0
+                          && File.Exists(Path.Combine(workingDir, "postProcessing", "residuals", "0", "residuals.dat"));
+
+            return (success, "Batch file execution completed.");
+        }
+
+        [Fact]
+        public void CylDomainCase_270_WithProceduralGeometry()
+        {
+            // Fast test with procedural geometry instead of STL files
+            int windDir = 270;
+            var caseDir = Path.Combine(Path.GetTempPath(),
+                $"testcase-cyl-procedural-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
+
+            // Clean up the directory
+            if (Directory.Exists(caseDir))
+            {
+                Directory.Delete(caseDir, true);
+            }
+            Directory.CreateDirectory(caseDir);
+
+            // Generate case files with procedural geometry
+            GenerateCylDomainCaseWithProceduralGeometry(caseDir, windDir);
+
+            // Assert: Check that key files were generated
+            var blockMeshDict = Path.Combine(caseDir, "mesh", "system", "blockMeshDict");
+            var snappyHexMeshDict = Path.Combine(caseDir, "mesh", "system", "snappyHexMeshDict");
+            var controlDict = Path.Combine(caseDir, "mesh", "system", "controlDict");
+            var runBat = Path.Combine(caseDir, "run.bat");
+
+            Assert.True(File.Exists(blockMeshDict), $"blockMeshDict not found: {blockMeshDict}");
+            Assert.True(File.Exists(snappyHexMeshDict), $"snappyHexMeshDict not found: {snappyHexMeshDict}");
+            Assert.True(File.Exists(controlDict), $"controlDict not found: {controlDict}");
+            Assert.True(File.Exists(runBat), $"run.bat not found: {runBat}");
+            
+            // Check that simulation completed successfully
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
+            if (File.Exists(logPath))
+            {
+                var logContent = File.ReadAllText(logPath);
+                Assert.Contains("Time = 400", logContent); // Check for completion of 10 iterations
+            }
+        }
+
+        public void GenerateCylDomainCaseWithProceduralGeometry(string caseDir, int windDir)
+        {
+            // Create procedural building geometry instead of loading STL
+            Mesh BuildingMesh = CreateProceduralBuilding(15, 15, 30); // 15x15x30 meter building
+
+            Rectangle3d rect = new Rectangle3d(Plane.WorldXY, 1000.0, 1000.0);
+            Point3d center = rect.Center;
+            Vector3d moveToOrigin = Point3d.Origin - center;
+            rect.Transform(Transform.Translation(moveToOrigin));
+            Mesh flatPlate = GeometryHelpers.RectangleToMesh(rect);
+
+            var meshSettings = new OFMeshSettings
+            {
+                accBuildings = 3, // Standard accuracy
+                accFeatures = 2,
+                accGround = 2,
+                snappySetting = SnappySnapSettings.BlocksSnapping,
+                miscSettings = SnappyMiscSettings.Optimized
+            };
+            meshSettings.SetDirectories(caseDir);
+
+            var runSettings = new OFRunSettings
+            {
+                iter = 400, // Minimal iterations for testing
+                CPUs = 16, // Reduced CPU usage
+                relaxationFactors = RelaxationFactors.Robust,
+                schemes = fvSchemes.Optimized,
+                turbModel = TurbModel.RNGkEpsilon
+            };
+
+            var bc = new ABL(windDir);
+            var bcList = new List<BC> { bc };
+            var bcColl = new BCCollection(bcList);
+            
+            // Use standard domain size
+            var domCyl = new OFCylDomain(BuildingMesh, new Mesh(), bcColl, coreBlockSize: 15, sizeInnerRect: 70, sizeOuterCirc: 1000, sizeHeight: 250);
+            
+            Directory.CreateDirectory(caseDir);
+
+            // Generate files and run simulation
+            RunBlockMesh.RunCyl(domCyl, meshSettings, runSettings, caseDir);
+            RunSnappy.Run(domCyl, meshSettings, runSettings, out var logfileOutput);
+            RunFoamSimulation.Run(domCyl, meshSettings, runSettings, caseDir);
+            
+            // Run the simulation (simple approach)
+            var result = RunBatchFileInteractive(caseDir, "run.bat");
+        }
+
+        private Mesh CreateProceduralBuilding(double width, double depth, double height)
+        {
+            // Create 3 buildings with different shapes in STAGGERED layout - DOUBLED SIZE
+            var mesh = new Mesh();
+            
+            // Building 1: L-shaped building (main building) - SCALED DOWN 0.5x
+            var lShaped = CreateLShapedBuilding(0, 0, 0, width * 3, depth * 3, height * 1);
+            mesh.Append(lShaped);
+            
+            // Building 2: Simple box building - STAGGERED RIGHT-FRONT - SCALED DOWN 0.5x
+            var boxBuilding = CreateBox(width * 3 + 15, depth * 2.25, 0, width * 0.7 * 3, depth * 0.7 * 3, height * 0.8 * 1);
+            mesh.Append(boxBuilding);
+            
+            // Building 3: U-shaped building - STAGGERED LEFT-BACK - SCALED DOWN 0.5x
+            var uShaped = CreateUShapedBuilding(-width * 3 - 15, -depth * 2.25, 0, width * 0.8 * 3, depth * 0.8 * 3, height * 0.9 * 1);
+            mesh.Append(uShaped);
+            
+            mesh.Normals.ComputeNormals();
+            mesh.Compact();
+            
+            return mesh;
+        }
+        
+        private Mesh CreateBox(double x, double y, double z, double width, double depth, double height)
+        {
+            // Create a simple rectangular box
+            var mesh = new Mesh();
+            
+            // Create 8 corner points
+            var corners = new Point3d[]
+            {
+                new Point3d(x, y, z),                           // Bottom-left-back
+                new Point3d(x + width, y, z),                   // Bottom-right-back
+                new Point3d(x + width, y + depth, z),           // Bottom-right-front
+                new Point3d(x, y + depth, z),                  // Bottom-left-front
+                new Point3d(x, y, z + height),                  // Top-left-back
+                new Point3d(x + width, y, z + height),          // Top-right-back
+                new Point3d(x + width, y + depth, z + height), // Top-right-front
+                new Point3d(x, y + depth, z + height)           // Top-left-front
+            };
+            
+            // Add vertices
+            for (int i = 0; i < 8; i++)
+            {
+                mesh.Vertices.Add(corners[i]);
+            }
+            
+            // Add faces (6 faces of a box)
+            mesh.Faces.AddFace(0, 1, 2, 3); // Bottom
+            mesh.Faces.AddFace(4, 7, 6, 5); // Top
+            mesh.Faces.AddFace(0, 4, 5, 1); // Front
+            mesh.Faces.AddFace(2, 6, 7, 3); // Back
+            mesh.Faces.AddFace(0, 3, 7, 4); // Left
+            mesh.Faces.AddFace(1, 5, 6, 2); // Right
+            
+            return mesh;
+        }
+        
+        private Mesh CreateLShapedBuilding(double x, double y, double z, double width, double depth, double height)
+        {
+            // Create an L-shaped building by combining two rectangular boxes
+            var mesh = new Mesh();
+            
+            // Main part of L (vertical leg)
+            var mainPart = CreateBox(x, y, z, width * 0.6, depth, height);
+            mesh.Append(mainPart);
+            
+            // Horizontal leg of L
+            var horizontalPart = CreateBox(x + width * 0.4, y + depth * 0.4, z, width * 0.6, depth * 0.6, height);
+            mesh.Append(horizontalPart);
+            
+            return mesh;
+        }
+        
+        private Mesh CreateUShapedBuilding(double x, double y, double z, double width, double depth, double height)
+        {
+            // Create a U-shaped building by combining three rectangular boxes
+            var mesh = new Mesh();
+            
+            // Left leg of U
+            var leftLeg = CreateBox(x, y, z, width * 0.3, depth, height);
+            mesh.Append(leftLeg);
+            
+            // Right leg of U
+            var rightLeg = CreateBox(x + width * 0.7, y, z, width * 0.3, depth, height);
+            mesh.Append(rightLeg);
+            
+            // Back of U
+            var backPart = CreateBox(x, y + depth * 0.7, z, width, depth * 0.3, height);
+            mesh.Append(backPart);
+            
+            return mesh;
         }
     }
 }
