@@ -539,17 +539,11 @@ $"testcase-box-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
             // Create procedural building geometry instead of loading STL
             Mesh BuildingMesh = CreateProceduralBuilding(15, 15, 30); // 15x15x30 meter building
 
-            Rectangle3d rect = new Rectangle3d(Plane.WorldXY, 1000.0, 1000.0);
-            Point3d center = rect.Center;
-            Vector3d moveToOrigin = Point3d.Origin - center;
-            rect.Transform(Transform.Translation(moveToOrigin));
-            Mesh flatPlate = GeometryHelpers.RectangleToMesh(rect);
-
             var meshSettings = new OFMeshSettings
             {
-                accBuildings = 2, // Standard accuracy
+                accBuildings = 4, // Good balance for COST-compliant domain
                 accFeatures = 2,
-                accGround = 3,
+                accGround = 2, // Ground mesh accuracy
                 snappySetting = SnappySnapSettings.BlocksSnapping,
                 miscSettings = SnappyMiscSettings.Optimized
             };
@@ -557,19 +551,21 @@ $"testcase-box-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
 
             var runSettings = new OFRunSettings
             {
-                iter = 400, // Minimal iterations for testing
-                CPUs = 16, // Reduced CPU usage
+                iter = 800, // Reduced iterations for stability
+                CPUs = 8, // Reduced CPU usage for stability
                 relaxationFactors = RelaxationFactors.Robust,
-                schemes = fvSchemes.Optimized,
-                turbModel = TurbModel.RNGkEpsilon
+                schemes = fvSchemes.Default,
+                turbModel = TurbModel.kEpsilon
             };
 
             var bc = new ABL(windDir);
             var bcList = new List<BC> { bc };
             var bcColl = new BCCollection(bcList);
             
-            // Use standard domain size
-            var domCyl = new OFCylDomain(BuildingMesh, new Mesh(), bcColl, coreBlockSize: 15, sizeInnerRect: 70, sizeOuterCirc: 1000, sizeHeight: 250);
+            // Use automatic domain sizing based on building dimensions
+            // Building: 15x15x30m, so H=30m
+            // Automatic calculation will determine optimal domain size
+            var domCyl = new OFCylDomain(BuildingMesh, new Mesh(), bcColl, coreBlockSize: 8, sizeInnerRect: 0, sizeOuterCirc: 0, sizeHeight: 0);
             
             Directory.CreateDirectory(caseDir);
 

@@ -501,9 +501,11 @@ if not exist "%25INSTALLDIR%25" mkdir "%25INSTALLDIR%25"
 
 if $(ConfigurationName)==Debug (
 xcopy /e /v  /y "%25build_eddy%25" "%25INSTALLDIR%25"
+xcopy /e /v  /y "$(SolutionDir)Templates\*" "%25INSTALLDIR%25\Templates\"
 )
 if $(ConfigurationName)==Release (
 xcopy /e /v  /y "%25build_eddy%25" "%25INSTALLDIR%25"
+xcopy /e /v  /y "$(SolutionDir)Templates\*" "%25INSTALLDIR%25\Templates\"
 )
 
 if $(ConfigurationName)==Release (
@@ -519,6 +521,7 @@ REM --------
 if not exist "$(SolutionDir)Build\Obfuscator_Input" mkdir "$(SolutionDir)Build\Obfuscator_Input"
 if not exist "$(SolutionDir)Build\Obfuscator_Output" mkdir "$(SolutionDir)Build\Obfuscator_Output"
 xcopy /e /v  /y "%25build_eddy%25" "$(SolutionDir)Build\Obfuscator_Input"
+xcopy /e /v  /y "$(SolutionDir)Templates\*" "$(SolutionDir)Build\Obfuscator_Input\Templates\"
 xcopy /e /v  /y "$(SolutionDir)packages\Grasshopper.8.8.24170.13001\lib\net48" "$(SolutionDir)\Build\Obfuscator_Input"
 xcopy /e /v  /y "$(SolutionDir)packages\RhinoCommon.8.8.24170.13001\lib\net48" "$(SolutionDir)\Build\Obfuscator_Input"
 "%25obfuscar%25" "$(SolutionDir)Build\ObfuscarConfig.xml"
