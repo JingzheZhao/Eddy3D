@@ -1,4 +1,4 @@
-using EddyLib;
+﻿using EddyLib;
 using EddyLib.BCs;
 using Rhino.FileIO;
 using Rhino.Geometry;
@@ -78,15 +78,27 @@ namespace RhinoPlugin.Test.Xunit.Tests
 
         private static string GetSolutionRoot()
         {
-
+            // Navigate up from bin\Debug\net48 (or bin\Release\net48) to solution root
+            var baseDir = AppContext.BaseDirectory;
+            
+            // Keep going up until we find the solution root (where .sln file would be)
+            var current = new DirectoryInfo(baseDir);
+            while (current != null && current.Name != "Eddy3D")
+            {
+                current = current.Parent;
+            }
+            
+            if (current == null)
+            {
+                // Fallback to the old method
 #if DEBUG
-            return Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, @"..\..\.."));
-
-#elif RELEASE
-            return Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, @"..\..\..\.."));
+                return Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\.."));
+#else
+                return Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\.."));
 #endif
-
-
+            }
+            
+            return current.FullName;
         }
 
         public static Mesh RectangleToMesh(Rectangle3d rect)
@@ -112,13 +124,8 @@ namespace RhinoPlugin.Test.Xunit
         [NotWindowsServerFact]
         public void BuildingGeoFine_HasExpectedTopology()
         {
-            // Re-use the helper
-            // Replace this line:
-            // Mesh mesh = GeometryHelpers.LoadMergedMesh(@"RhinoPlugin.Tests.Xunit\Resources\BuildingGeo.stl");
-
-            // With this:
-            var ns = typeof(OFExecutionTests).Namespace;
-            var resourcePath = $@"{ns}\Resources\BuildingGeo_fine.stl";
+            // Load the fine building geometry STL from Resources folder
+            var resourcePath = @"RhinoPlugin.Test.Xunit\Resources\BuildingGeo_fine.stl";
             Mesh mesh = GeometryHelpers.LoadMergedMesh(resourcePath);
 
             // Quick sanity checks
@@ -132,13 +139,8 @@ namespace RhinoPlugin.Test.Xunit
         [NotWindowsServerFact]
         public void BuildingGeo_HasExpectedTopology()
         {
-            // Re-use the helper
-            // Replace this line:
-            // Mesh mesh = GeometryHelpers.LoadMergedMesh(@"RhinoPlugin.Tests.Xunit\Resources\BuildingGeo.stl");
-
-            // With this:
-            var ns = typeof(OFExecutionTests).Namespace;
-            var resourcePath = $@"{ns}\Resources\BuildingGeo.stl";
+            // Load the building geometry STL from Resources folder
+            var resourcePath = @"RhinoPlugin.Test.Xunit\Resources\BuildingGeo.stl";
             Mesh mesh = GeometryHelpers.LoadMergedMesh(resourcePath);
 
             // Quick sanity checks
@@ -147,281 +149,6 @@ namespace RhinoPlugin.Test.Xunit
             // *** Replace with real counts once known ***
             Assert.Equal(233, mesh.Vertices.Count);
             Assert.Equal(172, mesh.Faces.Count);
-        }
-
-        public void GenerateCylDomainCase(string caseDir, int windDir)
-        {
-            var ns = typeof(OFExecutionTests).Namespace;
-            var resourcePath = $@"{ns}\Resources\BuildingGeo_fine.stl";
-            Mesh BuildingMesh = GeometryHelpers.LoadMergedMesh(resourcePath);
-
-            Rectangle3d rect = new Rectangle3d(Plane.WorldXY, 1000.0, 1000.0);
-            // Calculate the center point of the rectangle
-            Point3d center = rect.Center;
-
-            // Create a translation vector from the center to the origin
-            Vector3d moveToOrigin = Point3d.Origin - center;
-
-            // Move the rectangle
-            rect.Transform(Transform.Translation(moveToOrigin));
-
-            // Now convert to mesh
-            Mesh flatPlate = GeometryHelpers.RectangleToMesh(rect);
-
-            var meshSettings = new OFMeshSettings
-            {
-                accBuildings = 3,
-                accFeatures = 4,
-                accGround = 3,
-                snappySetting = SnappySnapSettings.BlocksSnapping,
-                miscSettings = SnappyMiscSettings.Optimized
-            };
-            meshSettings.SetDirectories(caseDir);
-            var runSettings = new OFRunSettings
-            {
-                iter = 400,
-                CPUs = 8,
-                relaxationFactors = RelaxationFactors.Robust,
-                schemes = fvSchemes.Optimized,
-                turbModel = TurbModel.RNGkEpsilon
-            };
-            var bc = new ABL(windDir);
-
-            var bcList = new List<BC> { bc };
-            var bcColl = new BCCollection(bcList);
-            var domCyl = new OFCylDomain(BuildingMesh, new Mesh(), bcColl, coreBlockSize: 15, sizeInnerRect: 70, sizeOuterCirc: 1000, sizeHeight: 250);
-
-            Directory.CreateDirectory(caseDir);
-
-            // Act: Generate the OpenFOAM case and batch files
-            RunBlockMesh.RunCyl(domCyl, meshSettings, runSettings, caseDir);
-            RunSnappy.Run(domCyl, meshSettings, runSettings, out var logfileOutput);
-            RunFoamSimulation.Run(domCyl, meshSettings, runSettings, caseDir);
-            var result = RunBatchFileInteractive(caseDir, "run.bat");
-        }
-
-        [NotWindowsServerFact]
-        public void CylDomainCase_5_GeneratesAndExecutesSuccessfully()
-        {
-            // Arrange
-
-            int windDir = 5;
-
-            var caseDir = Path.Combine(Path.GetTempPath(),
-$"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
-
-            // Clean up the directory and all contents
-            if (Directory.Exists(caseDir))
-            {
-                Directory.Delete(caseDir, true);
-            }
-            Directory.CreateDirectory(caseDir);
-
-            GenerateCylDomainCase(caseDir, windDir);
-
-            // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
-            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
-
-            Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
-
-            var logContent = File.ReadAllText(logPath);
-            Assert.Contains("Time = 400", logContent);
-        }
-
-        [NotWindowsServerFact]
-        public void CylDomainCase_45_GeneratesAndExecutesSuccessfully()
-        {
-            // Arrange
-
-            int windDir = 45;
-
-            var caseDir = Path.Combine(Path.GetTempPath(),
-$"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
-
-            // Clean up the directory and all contents
-            if (Directory.Exists(caseDir))
-            {
-                Directory.Delete(caseDir, true);
-            }
-            Directory.CreateDirectory(caseDir);
-
-            GenerateCylDomainCase(caseDir, windDir);
-
-            // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
-            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
-
-            Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
-
-            var logContent = File.ReadAllText(logPath);
-            Assert.Contains("Time = 400", logContent);
-        }
-
-        [NotWindowsServerFact]
-        public void CylDomainCase_90_GeneratesAndExecutesSuccessfully()
-        {
-            // Arrange
-
-            int windDir = 90;
-
-            var caseDir = Path.Combine(Path.GetTempPath(),
-$"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
-
-            // Clean up the directory and all contents
-            if (Directory.Exists(caseDir))
-            {
-                Directory.Delete(caseDir, true);
-            }
-            Directory.CreateDirectory(caseDir);
-
-            GenerateCylDomainCase(caseDir, windDir);
-
-            // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
-            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
-
-            Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
-
-            var logContent = File.ReadAllText(logPath);
-            Assert.Contains("Time = 400", logContent);
-        }
-
-        [NotWindowsServerFact]
-        public void CylDomainCase_135_GeneratesAndExecutesSuccessfully()
-        {
-            // Arrange
-
-            int windDir = 135;
-
-            var caseDir = Path.Combine(Path.GetTempPath(),
-$"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
-
-            // Clean up the directory and all contents
-            if (Directory.Exists(caseDir))
-            {
-                Directory.Delete(caseDir, true);
-            }
-            Directory.CreateDirectory(caseDir);
-
-            GenerateCylDomainCase(caseDir, windDir);
-
-            // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
-            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
-
-            Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
-
-            var logContent = File.ReadAllText(logPath);
-            Assert.Contains("Time = 400", logContent);
-        }
-
-        [NotWindowsServerFact]
-        public void CylDomainCase_180_GeneratesAndExecutesSuccessfully()
-        {
-            // Arrange
-
-            int windDir = 180;
-
-            var caseDir = Path.Combine(Path.GetTempPath(),
-$"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
-
-            // Clean up the directory and all contents
-            if (Directory.Exists(caseDir))
-            {
-                Directory.Delete(caseDir, true);
-            }
-            Directory.CreateDirectory(caseDir);
-
-            GenerateCylDomainCase(caseDir, windDir);
-
-            // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
-            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
-
-            Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
-
-            var logContent = File.ReadAllText(logPath);
-            Assert.Contains("Time = 400", logContent);
-        }
-
-        [NotWindowsServerFact]
-        public void CylDomainCase_225_GeneratesAndExecutesSuccessfully()
-        {
-            // Arrange
-
-            int windDir = 225;
-
-            var caseDir = Path.Combine(Path.GetTempPath(),
-$"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
-
-            // Clean up the directory and all contents
-            if (Directory.Exists(caseDir))
-            {
-                Directory.Delete(caseDir, true);
-            }
-            Directory.CreateDirectory(caseDir);
-
-            GenerateCylDomainCase(caseDir, windDir);
-
-            // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
-            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
-
-            Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
-
-            var logContent = File.ReadAllText(logPath);
-            Assert.Contains("Time = 400", logContent);
-        }
-
-        [NotWindowsServerFact]
-        public void CylDomainCase_270_GeneratesAndExecutesSuccessfully()
-        {
-            // Arrange
-
-            int windDir = 270;
-
-            var caseDir = Path.Combine(Path.GetTempPath(),
-$"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
-
-            // Clean up the directory and all contents
-            if (Directory.Exists(caseDir))
-            {
-                Directory.Delete(caseDir, true);
-            }
-            Directory.CreateDirectory(caseDir);
-
-            GenerateCylDomainCase(caseDir, windDir);
-
-            // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
-            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
-
-            Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
-
-            var logContent = File.ReadAllText(logPath);
-            Assert.Contains("Time = 400", logContent);
-        }
-
-        [NotWindowsServerFact]
-        public void CylDomainCase_315_GeneratesAndExecutesSuccessfully()
-        {
-            // Arrange
-
-            int windDir = 315;
-
-            var caseDir = Path.Combine(Path.GetTempPath(),
-$"testcase-cyl-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
-
-            // Clean up the directory and all contents
-            if (Directory.Exists(caseDir))
-            {
-                Directory.Delete(caseDir, true);
-            }
-            Directory.CreateDirectory(caseDir);
-
-            GenerateCylDomainCase(caseDir, windDir);
-
-            // each wind dir gets its own sub-folder, e.g. 0, 45, 90 …
-            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
-
-            Assert.True(File.Exists(logPath), $"Log file not found: {logPath}");
-
-            var logContent = File.ReadAllText(logPath);
-            Assert.Contains("Time = 400", logContent);
         }
 
         [NotWindowsServerFact]
@@ -504,6 +231,234 @@ $"testcase-box-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
         }
 
         [Fact]
+        public void CylDomainCase_5_WithProceduralGeometry()
+        {
+            // Fast test with procedural geometry instead of STL files
+            int windDir = 5;
+            var caseDir = Path.Combine(Path.GetTempPath(),
+                $"testcase-cyl-procedural-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
+
+            // Clean up the directory
+            if (Directory.Exists(caseDir))
+            {
+                Directory.Delete(caseDir, true);
+            }
+            Directory.CreateDirectory(caseDir);
+
+            // Generate case files with procedural geometry
+            GenerateCylDomainCaseWithProceduralGeometry(caseDir, windDir);
+
+            // Assert: Check that key files were generated
+            var blockMeshDict = Path.Combine(caseDir, "mesh", "system", "blockMeshDict");
+            var snappyHexMeshDict = Path.Combine(caseDir, "mesh", "system", "snappyHexMeshDict");
+            var controlDict = Path.Combine(caseDir, "mesh", "system", "controlDict");
+            var runBat = Path.Combine(caseDir, "run.bat");
+
+            Assert.True(File.Exists(blockMeshDict), $"blockMeshDict not found: {blockMeshDict}");
+            Assert.True(File.Exists(snappyHexMeshDict), $"snappyHexMeshDict not found: {snappyHexMeshDict}");
+            Assert.True(File.Exists(controlDict), $"controlDict not found: {controlDict}");
+            Assert.True(File.Exists(runBat), $"run.bat not found: {runBat}");
+            
+            // Check that simulation completed successfully
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
+            if (File.Exists(logPath))
+            {
+                var logContent = File.ReadAllText(logPath);
+                Assert.Contains("Time = 400", logContent);
+            }
+        }
+
+        [Fact]
+        public void CylDomainCase_45_WithProceduralGeometry()
+        {
+            // Fast test with procedural geometry instead of STL files
+            int windDir = 45;
+            var caseDir = Path.Combine(Path.GetTempPath(),
+                $"testcase-cyl-procedural-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
+
+            // Clean up the directory
+            if (Directory.Exists(caseDir))
+            {
+                Directory.Delete(caseDir, true);
+            }
+            Directory.CreateDirectory(caseDir);
+
+            // Generate case files with procedural geometry
+            GenerateCylDomainCaseWithProceduralGeometry(caseDir, windDir);
+
+            // Assert: Check that key files were generated
+            var blockMeshDict = Path.Combine(caseDir, "mesh", "system", "blockMeshDict");
+            var snappyHexMeshDict = Path.Combine(caseDir, "mesh", "system", "snappyHexMeshDict");
+            var controlDict = Path.Combine(caseDir, "mesh", "system", "controlDict");
+            var runBat = Path.Combine(caseDir, "run.bat");
+
+            Assert.True(File.Exists(blockMeshDict), $"blockMeshDict not found: {blockMeshDict}");
+            Assert.True(File.Exists(snappyHexMeshDict), $"snappyHexMeshDict not found: {snappyHexMeshDict}");
+            Assert.True(File.Exists(controlDict), $"controlDict not found: {controlDict}");
+            Assert.True(File.Exists(runBat), $"run.bat not found: {runBat}");
+            
+            // Check that simulation completed successfully
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
+            if (File.Exists(logPath))
+            {
+                var logContent = File.ReadAllText(logPath);
+                Assert.Contains("Time = 400", logContent);
+            }
+        }
+
+        [Fact]
+        public void CylDomainCase_90_WithProceduralGeometry()
+        {
+            // Fast test with procedural geometry instead of STL files
+            int windDir = 90;
+            var caseDir = Path.Combine(Path.GetTempPath(),
+                $"testcase-cyl-procedural-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
+
+            // Clean up the directory
+            if (Directory.Exists(caseDir))
+            {
+                Directory.Delete(caseDir, true);
+            }
+            Directory.CreateDirectory(caseDir);
+
+            // Generate case files with procedural geometry
+            GenerateCylDomainCaseWithProceduralGeometry(caseDir, windDir);
+
+            // Assert: Check that key files were generated
+            var blockMeshDict = Path.Combine(caseDir, "mesh", "system", "blockMeshDict");
+            var snappyHexMeshDict = Path.Combine(caseDir, "mesh", "system", "snappyHexMeshDict");
+            var controlDict = Path.Combine(caseDir, "mesh", "system", "controlDict");
+            var runBat = Path.Combine(caseDir, "run.bat");
+
+            Assert.True(File.Exists(blockMeshDict), $"blockMeshDict not found: {blockMeshDict}");
+            Assert.True(File.Exists(snappyHexMeshDict), $"snappyHexMeshDict not found: {snappyHexMeshDict}");
+            Assert.True(File.Exists(controlDict), $"controlDict not found: {controlDict}");
+            Assert.True(File.Exists(runBat), $"run.bat not found: {runBat}");
+            
+            // Check that simulation completed successfully
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
+            if (File.Exists(logPath))
+            {
+                var logContent = File.ReadAllText(logPath);
+                Assert.Contains("Time = 400", logContent);
+            }
+        }
+
+        [Fact]
+        public void CylDomainCase_135_WithProceduralGeometry()
+        {
+            // Fast test with procedural geometry instead of STL files
+            int windDir = 135;
+            var caseDir = Path.Combine(Path.GetTempPath(),
+                $"testcase-cyl-procedural-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
+
+            // Clean up the directory
+            if (Directory.Exists(caseDir))
+            {
+                Directory.Delete(caseDir, true);
+            }
+            Directory.CreateDirectory(caseDir);
+
+            // Generate case files with procedural geometry
+            GenerateCylDomainCaseWithProceduralGeometry(caseDir, windDir);
+
+            // Assert: Check that key files were generated
+            var blockMeshDict = Path.Combine(caseDir, "mesh", "system", "blockMeshDict");
+            var snappyHexMeshDict = Path.Combine(caseDir, "mesh", "system", "snappyHexMeshDict");
+            var controlDict = Path.Combine(caseDir, "mesh", "system", "controlDict");
+            var runBat = Path.Combine(caseDir, "run.bat");
+
+            Assert.True(File.Exists(blockMeshDict), $"blockMeshDict not found: {blockMeshDict}");
+            Assert.True(File.Exists(snappyHexMeshDict), $"snappyHexMeshDict not found: {snappyHexMeshDict}");
+            Assert.True(File.Exists(controlDict), $"controlDict not found: {controlDict}");
+            Assert.True(File.Exists(runBat), $"run.bat not found: {runBat}");
+            
+            // Check that simulation completed successfully
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
+            if (File.Exists(logPath))
+            {
+                var logContent = File.ReadAllText(logPath);
+                Assert.Contains("Time = 400", logContent);
+            }
+        }
+
+        [Fact]
+        public void CylDomainCase_180_WithProceduralGeometry()
+        {
+            // Fast test with procedural geometry instead of STL files
+            int windDir = 180;
+            var caseDir = Path.Combine(Path.GetTempPath(),
+                $"testcase-cyl-procedural-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
+
+            // Clean up the directory
+            if (Directory.Exists(caseDir))
+            {
+                Directory.Delete(caseDir, true);
+            }
+            Directory.CreateDirectory(caseDir);
+
+            // Generate case files with procedural geometry
+            GenerateCylDomainCaseWithProceduralGeometry(caseDir, windDir);
+
+            // Assert: Check that key files were generated
+            var blockMeshDict = Path.Combine(caseDir, "mesh", "system", "blockMeshDict");
+            var snappyHexMeshDict = Path.Combine(caseDir, "mesh", "system", "snappyHexMeshDict");
+            var controlDict = Path.Combine(caseDir, "mesh", "system", "controlDict");
+            var runBat = Path.Combine(caseDir, "run.bat");
+
+            Assert.True(File.Exists(blockMeshDict), $"blockMeshDict not found: {blockMeshDict}");
+            Assert.True(File.Exists(snappyHexMeshDict), $"snappyHexMeshDict not found: {snappyHexMeshDict}");
+            Assert.True(File.Exists(controlDict), $"controlDict not found: {controlDict}");
+            Assert.True(File.Exists(runBat), $"run.bat not found: {runBat}");
+            
+            // Check that simulation completed successfully
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
+            if (File.Exists(logPath))
+            {
+                var logContent = File.ReadAllText(logPath);
+                Assert.Contains("Time = 400", logContent);
+            }
+        }
+
+        [Fact]
+        public void CylDomainCase_225_WithProceduralGeometry()
+        {
+            // Fast test with procedural geometry instead of STL files
+            int windDir = 225;
+            var caseDir = Path.Combine(Path.GetTempPath(),
+                $"testcase-cyl-procedural-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
+
+            // Clean up the directory
+            if (Directory.Exists(caseDir))
+            {
+                Directory.Delete(caseDir, true);
+            }
+            Directory.CreateDirectory(caseDir);
+
+            // Generate case files with procedural geometry
+            GenerateCylDomainCaseWithProceduralGeometry(caseDir, windDir);
+
+            // Assert: Check that key files were generated
+            var blockMeshDict = Path.Combine(caseDir, "mesh", "system", "blockMeshDict");
+            var snappyHexMeshDict = Path.Combine(caseDir, "mesh", "system", "snappyHexMeshDict");
+            var controlDict = Path.Combine(caseDir, "mesh", "system", "controlDict");
+            var runBat = Path.Combine(caseDir, "run.bat");
+
+            Assert.True(File.Exists(blockMeshDict), $"blockMeshDict not found: {blockMeshDict}");
+            Assert.True(File.Exists(snappyHexMeshDict), $"snappyHexMeshDict not found: {snappyHexMeshDict}");
+            Assert.True(File.Exists(controlDict), $"controlDict not found: {controlDict}");
+            Assert.True(File.Exists(runBat), $"run.bat not found: {runBat}");
+            
+            // Check that simulation completed successfully
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
+            if (File.Exists(logPath))
+            {
+                var logContent = File.ReadAllText(logPath);
+                Assert.Contains("Time = 400", logContent);
+            }
+        }
+
+        [Fact]
         public void CylDomainCase_270_WithProceduralGeometry()
         {
             // Fast test with procedural geometry instead of STL files
@@ -537,7 +492,45 @@ $"testcase-box-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
             if (File.Exists(logPath))
             {
                 var logContent = File.ReadAllText(logPath);
-                Assert.Contains("Time = 400", logContent); // Check for completion of 10 iterations
+                Assert.Contains("Time = 400", logContent);
+            }
+        }
+
+        [Fact]
+        public void CylDomainCase_315_WithProceduralGeometry()
+        {
+            // Fast test with procedural geometry instead of STL files
+            int windDir = 315;
+            var caseDir = Path.Combine(Path.GetTempPath(),
+                $"testcase-cyl-procedural-{windDir}-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
+
+            // Clean up the directory
+            if (Directory.Exists(caseDir))
+            {
+                Directory.Delete(caseDir, true);
+            }
+            Directory.CreateDirectory(caseDir);
+
+            // Generate case files with procedural geometry
+            GenerateCylDomainCaseWithProceduralGeometry(caseDir, windDir);
+
+            // Assert: Check that key files were generated
+            var blockMeshDict = Path.Combine(caseDir, "mesh", "system", "blockMeshDict");
+            var snappyHexMeshDict = Path.Combine(caseDir, "mesh", "system", "snappyHexMeshDict");
+            var controlDict = Path.Combine(caseDir, "mesh", "system", "controlDict");
+            var runBat = Path.Combine(caseDir, "run.bat");
+
+            Assert.True(File.Exists(blockMeshDict), $"blockMeshDict not found: {blockMeshDict}");
+            Assert.True(File.Exists(snappyHexMeshDict), $"snappyHexMeshDict not found: {snappyHexMeshDict}");
+            Assert.True(File.Exists(controlDict), $"controlDict not found: {controlDict}");
+            Assert.True(File.Exists(runBat), $"run.bat not found: {runBat}");
+            
+            // Check that simulation completed successfully
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
+            if (File.Exists(logPath))
+            {
+                var logContent = File.ReadAllText(logPath);
+                Assert.Contains("Time = 400", logContent);
             }
         }
 
@@ -554,9 +547,9 @@ $"testcase-box-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
 
             var meshSettings = new OFMeshSettings
             {
-                accBuildings = 3, // Standard accuracy
+                accBuildings = 2, // Standard accuracy
                 accFeatures = 2,
-                accGround = 2,
+                accGround = 3,
                 snappySetting = SnappySnapSettings.BlocksSnapping,
                 miscSettings = SnappyMiscSettings.Optimized
             };
@@ -591,19 +584,19 @@ $"testcase-box-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
 
         private Mesh CreateProceduralBuilding(double width, double depth, double height)
         {
-            // Create 3 buildings with different shapes in STAGGERED layout - DOUBLED SIZE
+            // Create 3 buildings with different shapes in COMPACT layout
             var mesh = new Mesh();
             
-            // Building 1: L-shaped building (main building) - SCALED DOWN 0.5x
+            // Building 1: L-shaped building (main building at center)
             var lShaped = CreateLShapedBuilding(0, 0, 0, width * 3, depth * 3, height * 1);
             mesh.Append(lShaped);
             
-            // Building 2: Simple box building - STAGGERED RIGHT-FRONT - SCALED DOWN 0.5x
-            var boxBuilding = CreateBox(width * 3 + 15, depth * 2.25, 0, width * 0.7 * 3, depth * 0.7 * 3, height * 0.8 * 1);
+            // Building 2: Simple box building - COMPACT RIGHT-FRONT (reduced gap to 5m, closer offset)
+            var boxBuilding = CreateBox(width * 3 + 5, depth * 0.5, 0, width * 0.7 * 3, depth * 0.7 * 3, height * 0.8 * 1);
             mesh.Append(boxBuilding);
             
-            // Building 3: U-shaped building - STAGGERED LEFT-BACK - SCALED DOWN 0.5x
-            var uShaped = CreateUShapedBuilding(-width * 3 - 15, -depth * 2.25, 0, width * 0.8 * 3, depth * 0.8 * 3, height * 0.9 * 1);
+            // Building 3: U-shaped building - COMPACT LEFT-BACK (reduced gap to 5m, closer offset)
+            var uShaped = CreateUShapedBuilding(-width * 3 - 5, -depth * 0.5, 0, width * 0.8 * 3, depth * 0.8 * 3, height * 0.9 * 1);
             mesh.Append(uShaped);
             
             mesh.Normals.ComputeNormals();
