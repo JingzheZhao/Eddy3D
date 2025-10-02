@@ -216,6 +216,7 @@
     <Compile Include="Streamwriter.cs" />
     <Compile Include="Strings\BatchFiles.cs" />
     <Compile Include="Strings\BoundaryConditions.cs" />
+    <Compile Include="Strings\PlotResiduals.cs" />
     <Compile Include="SymbolicLink.cs" />
     <Compile Include="Radiation\Old\Daysim.cs" />
     <Compile Include="JenksFisherNaturalBreaks.cs" />

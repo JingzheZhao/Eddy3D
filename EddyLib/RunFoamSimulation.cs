@@ -1,4 +1,4 @@
-﻿using EddyLib.BCs;
+using EddyLib.BCs;
 using System.IO;
 
 namespace EddyLib
@@ -176,8 +176,6 @@ namespace EddyLib
                 //File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_probes.bat"), EddyLib.Strings.BatFiles.Run_Probes(DOM, MeshSettings));
                 //File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_utci.bat"), EddyLib.Strings.BatFiles.Run_UTCI(DOM, MeshSettings));
 
-
-
                 for (int i = 0; i < DOM.BCond.WindDirections.Count; i++)
                 {
                     File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.WindDirections[i] + "_run_sim.bat"), EddyLib.Strings.BatFiles.Run_sim(MeshSettings, RunSettings, DOM, Strings.OFExecutionMode.Simulation, i));
@@ -185,6 +183,12 @@ namespace EddyLib
                     File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.WindDirections[i] + "_run_divU.bat"), EddyLib.Strings.BatFiles.Run_divU(MeshSettings, RunSettings, DOM, Strings.OFExecutionMode.Simulation, i));
 
                     //File.WriteAllText(Path.Combine(WorkDir + "\\" + DOM.BCond.windDirs[i] + "run_reconstructSim.bat"), EddyLib.StrTemp.BatFiles.Run_reconstructSim(RunSettings, MeshSettings, DOM, StrTemp.Mode.Simulation, i));
+                    
+                    // Generate gnuplot script for residuals plotting
+                    string residualsPath = Path.Combine(WorkDir, DOM.BCond.WindDirections[i].ToString(), "postProcessing", "residuals", "0", "residuals.dat");
+                    string outputPng = Path.Combine(WorkDir, DOM.BCond.WindDirections[i].ToString(), "residuals.png");
+                    string gnuplotScript = Path.Combine(WorkDir, DOM.BCond.WindDirections[i].ToString(), "plot_residuals.plt");
+                    File.WriteAllText(gnuplotScript, EddyLib.Strings.PlotResiduals.GenerateGnuplotScript(residualsPath, outputPng));
                 }
             }
         }

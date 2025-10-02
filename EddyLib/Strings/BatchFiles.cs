@@ -236,7 +236,7 @@ namespace EddyLib.Strings
                         sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str);
                     }
 #if DEBUG
-                    sb.AppendLine("PAUSE");
+                    //sb.AppendLine("PAUSE");
 #endif
                 }
                 else
@@ -246,7 +246,7 @@ namespace EddyLib.Strings
                         sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str);
                     }
 #if DEBUG
-                    sb.AppendLine("PAUSE");
+                    //sb.AppendLine("PAUSE");
 #endif
                 }
             }
@@ -256,14 +256,14 @@ namespace EddyLib.Strings
                 {
                     sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(RCMeshMultiCPU(RunSettings, MeshSettings), MeshSettings.meshWorkingDir));
 #if DEBUG
-                    sb.AppendLine("PAUSE");
+                    //sb.AppendLine("PAUSE");
 #endif
                 }
                 else
                 {
                     sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(RCMeshSingleCPU, MeshSettings.meshWorkingDir));
 #if DEBUG
-                    sb.AppendLine("PAUSE");
+                    //sb.AppendLine("PAUSE");
 #endif
                 }
             }
@@ -285,7 +285,7 @@ namespace EddyLib.Strings
                         sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str);
                     }
 #if DEBUG
-                    sb.AppendLine("PAUSE");
+                    //sb.AppendLine("PAUSE");
 #endif
                 }
                 else
@@ -295,7 +295,7 @@ namespace EddyLib.Strings
                         sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str);
                     }
 #if DEBUG
-                    sb.AppendLine("PAUSE");
+                    //sb.AppendLine("PAUSE");
 #endif
                 }
             }
@@ -305,17 +305,32 @@ namespace EddyLib.Strings
                 {
                     sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(RCSimMultiCPU(RunSettings), caseWorkingDir));
 #if DEBUG
-                    sb.AppendLine("PAUSE");
+                    //sb.AppendLine("PAUSE");
 #endif
                 }
                 else
                 {
                     sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(RCSimSingleCPU(RunSettings), caseWorkingDir));
 #if DEBUG
-                    sb.AppendLine("PAUSE");
+                    //sb.AppendLine("PAUSE");
 #endif
                 }
             }
+
+            // Add gnuplot command to plot residuals at the end
+            sb.AppendLine();
+            sb.AppendLine("REM Generate residuals plot");
+            sb.AppendLine($"if exist \"{caseWorkingDir}\\postProcessing\\residuals\\0\\residuals.dat\" (");
+            sb.AppendLine($"    echo Generating residuals plot...");
+            sb.AppendLine($"    gnuplot \"{caseWorkingDir}\\plot_residuals.plt\"");
+            sb.AppendLine($"    if exist \"{caseWorkingDir}\\residuals.png\" (");
+            sb.AppendLine($"        echo Residuals plot saved to: {caseWorkingDir}\\residuals.png");
+            sb.AppendLine($"    ) else (");
+            sb.AppendLine($"        echo Warning: gnuplot failed or not installed");
+            sb.AppendLine($"    )");
+            sb.AppendLine($") else (");
+            sb.AppendLine($"    echo Warning: residuals.dat not found");
+            sb.AppendLine($")");
 
             return sb.ToString();
         }
@@ -335,7 +350,7 @@ namespace EddyLib.Strings
                         sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str);
                     }
 #if DEBUG
-                    sb.AppendLine("PAUSE");
+                    //sb.AppendLine("PAUSE");
 #endif
                 }
                 else
@@ -345,7 +360,7 @@ namespace EddyLib.Strings
                         sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str);
                     }
 #if DEBUG
-                    sb.AppendLine("PAUSE");
+                    //sb.AppendLine("PAUSE");
 #endif
                 }
             }
@@ -355,14 +370,14 @@ namespace EddyLib.Strings
                 {
                     sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(RCSimContinueMultiCPU(RunSettings), caseWorkingDir));
 #if DEBUG
-                    sb.AppendLine("PAUSE");
+                    //sb.AppendLine("PAUSE");
 #endif
                 }
                 else
                 {
                     sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(RCSimContinueSingleCPU, caseWorkingDir));
 #if DEBUG
-                    sb.AppendLine("PAUSE");
+                    //sb.AppendLine("PAUSE");
 #endif
                 }
             }
@@ -430,7 +445,7 @@ namespace EddyLib.Strings
                     sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str);
                 }
 #if DEBUG
-                sb.AppendLine("PAUSE");
+                //sb.AppendLine("PAUSE");
 #endif
             }
             else
@@ -438,7 +453,7 @@ namespace EddyLib.Strings
                 sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(RCCheckMeshSingleCPU, MeshSettings.meshWorkingDir));
 
 #if DEBUG
-                sb.AppendLine("PAUSE");
+                //sb.AppendLine("PAUSE");
 #endif
             }
             return sb.ToString();
@@ -472,13 +487,14 @@ namespace EddyLib.Strings
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(@"call """ + MeshSettings.baseWorkingDir + @"run_mesh.bat""");
+            sb.AppendLine(@"call """ + MeshSettings.baseWorkingDir + @"run_checkMesh.bat""");
             foreach (int i in DOM.BCond.WindDirections)
             {
                 sb.AppendLine(@"call """ + MeshSettings.baseWorkingDir + i + @"_run_sim.bat""");
             }
 
 #if DEBUG
-            sb.AppendLine("PAUSE");
+            //sb.AppendLine("PAUSE");
 #endif
             return sb.ToString();
         }
@@ -491,7 +507,7 @@ namespace EddyLib.Strings
                 sb.AppendLine("call \"" + MeshSettings.baseWorkingDir + i + "_run_sim.bat\"");
             }
 #if DEBUG
-            sb.AppendLine("PAUSE");
+            //sb.AppendLine("PAUSE");
 #endif
             return sb.ToString();
         }

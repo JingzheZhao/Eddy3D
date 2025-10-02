@@ -194,7 +194,8 @@ namespace EddyLib
                 circRad = minRad;
             }
 
-            double cellSizeCore = 2 * (sizeInnerRect / divsRadial);
+            //double cellSizeCore = 2 * (sizeInnerRect / divsRadial);
+            double cellSizeCore = 4 * (sizeInnerRect / divsRadial); //test by ilker
 
             //Math.Abs was just a workaround fix
 
@@ -392,7 +393,8 @@ namespace EddyLib
 
         private static int RadialDivsFromBlockSize(double blockSize, double sizeInnerRect)
         {
-            return (int)(sizeInnerRect / blockSize) * 2;
+            //return (int)(sizeInnerRect / blockSize) * 2;
+            return (int)(sizeInnerRect / blockSize); //testing by ilker
         }
 
         private Mesh SideWalls(Point3d[] pt, double h)
