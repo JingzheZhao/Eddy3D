@@ -28,7 +28,19 @@ namespace Eddy
         /// </summary>
 
         public BlockMesh()
-          : base("Cylindrical Domain", "DomainCyl", "Cylindrical Domain" + EddyVersion.toString(),
+          : base("Cylindrical Domain", "DomainCyl", @"Cylindrical Domain.
+
+        Property     | Description
+        Geo          | Building Geometry.
+        Terrain      | Terrain Geometry.
+        Trees        | Tree objects.
+        BCond        | Boundary Condition.
+        BS           | Block size.
+        InnerR       | Size of inner rectangle.
+        OuterR       | Size of outer radius.
+        Height       | Height.
+
+" + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")
         {
         }

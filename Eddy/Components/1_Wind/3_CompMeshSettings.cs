@@ -24,8 +24,18 @@ namespace Eddy
         /// be created.
         /// </summary>
         public MeshSettings()
-          : base("Mesh Settings", "MSet",
-              "Mesh Settings" + EddyVersion.toString(),
+          : base("Mesh Settings", "MSet", @"Mesh Settings.
+
+        Property     | Description
+        AccBuilding  | Level accuracy of building mesh.
+        AccFeatures  | Level accuracy of building features (corners) mesh.
+        AccBBox      | Level accuracy of building bounding box.
+        AccGround    | Level accuracy of ground mesh.
+        MiscS        | MiscSettings.
+        nLay         | Number of mesh layers.
+        Mode         | Snapping and layer settings.
+
+" + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")
         {
         }

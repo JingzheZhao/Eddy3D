@@ -24,8 +24,21 @@ namespace Eddy
         /// be created.
         /// </summary>
         public RunSettings()
-          : base("Run Settings", "RSet",
-              "Run Settings" + EddyVersion.toString(),
+          : base("Run Settings", "RSet", @"Run Settings.
+
+        Property     | Description
+        Iter         | Specify the number of iterations to be simulated.
+        WriteInt     | Simulation write interval.
+        TSteps       | Number of time steps to keep in simulation folder.
+        Turb         | Turbulence model.
+        Relax        | Relaxation factors.
+        SolCtrl      | Solution and algorithm control.
+        potFoam      | Initialization with potentialFoam.
+        AoA          | Evaluate age of air.
+        CPUs         | Number of CPUs.
+        OS           | Operating System.
+
+" + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")
         {
         }

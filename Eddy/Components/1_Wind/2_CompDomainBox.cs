@@ -27,7 +27,19 @@ namespace Eddy
         /// be created.
         /// </summary>
         public BlockMeshBox()
-          : base("Box-shaped Domain", "DomainBox", "Box-shaped Domain" + EddyVersion.toString(),
+          : base("Box-shaped Domain", "DomainBox", @"Box-shaped Domain.
+
+        Property     | Description
+        Geo          | Building Geometry.
+        Terrain      | Terrain Geometry.
+        Trees        | Tree objects.
+        BCond        | Boundary Condition.
+        BS           | Block size.
+        L            | Length of wind tunnel.
+        W            | Width of wind tunnel.
+        H            | Height of wind tunnel.
+
+" + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")
         {
         }

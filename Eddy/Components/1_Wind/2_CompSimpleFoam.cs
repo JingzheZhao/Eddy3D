@@ -26,8 +26,18 @@ namespace Eddy
         /// be created.
         /// </summary>
         public SimpleFoam()
-          : base("Simulation", "Simulation",
-              "Simulation" + EddyVersion.toString(),
+          : base("Simulation", "Simulation", @"Simulation.
+
+        Property     | Description
+        Dom          | Eddy simulation domain.
+        Dir          | Working directory.
+        MSet         | Mesh Settings.
+        RSet         | Run Settings.
+        RunMsh       | Run Meshing.
+        MakeTrees    | Create Tree Topologies.
+        RunSim       | Run Simulation.
+
+" + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")
         {
         }
