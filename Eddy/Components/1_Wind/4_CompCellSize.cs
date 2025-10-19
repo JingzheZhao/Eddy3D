@@ -17,7 +17,14 @@ namespace Eddy
           : base(
                 "Cell Size",
                 "Cell Size",
-                "Calculate the mesh accuracy (levels) needed for a desired cell size. ",
+                @"Calculate the mesh accuracy (levels) needed for a desired cell size.
+
+        Property     | Description
+        Dom          | Simulation domain (OFCylDomain or OFBoxDomain).
+        BS           | Base cell size in meters (blockMesh).
+        DC           | Desired cell size in meters.
+
+" + EddyVersion.toString(),
                 EddyVersion.Name,
                 "1 | Wind")
         {

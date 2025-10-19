@@ -24,12 +24,13 @@ namespace Eddy
         /// be created.
         /// </summary>
         public BCondConstU()
-          : base("Uniform Flow", "Uniform Flow", @"Uniform Flow Boundary Condition
+          : base("Uniform Flow", "Uniform Flow", @"Uniform Flow Boundary Condition.
 
         Property     | Description
+        wDir         | Wind directions to be simulated
         Uref         | Reference velocity [m/s]
-        Zref         | Reference height [m]
         z0           | Surface roughness height [m]
+        EPW          | Weather data file path
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")

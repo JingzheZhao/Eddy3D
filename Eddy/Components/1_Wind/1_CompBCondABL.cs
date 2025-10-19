@@ -23,13 +23,15 @@ namespace Eddy
         /// be created.
         /// </summary>
         public BCondABLComp()
-          : base("ABL Flow", "ABL Flow", @"Atmospheric Boundary Layer Flow Boundary Condition
+          : base("ABL Flow", "ABL Flow", @"Atmospheric Boundary Layer Flow Boundary Condition.
 
         Property     | Description
-        Uref         | Reference velocity [m/s]
-        Zref         | Reference height [m]
+        wDir         | Wind directions to be simulated
+        Uref         | Reference velocity at Zref [m/s]
+        zref         | Reference height [m]
         z0           | Surface roughness height [m]
         zGround      | Minimum z-coordinate [m]
+        EPW          | Weather data file path
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")
