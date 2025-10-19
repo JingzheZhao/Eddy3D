@@ -5,6 +5,7 @@ using EddyLib.BCs;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Xunit;
 
@@ -104,6 +105,7 @@ namespace RhinoPlugin.Test.Xunit
 
             Assert.True(DOMCYL.BCond.WindDirections.SequenceEqual(new List<int>() { 0, 22, 45, 90, 135, 180, 225, 270, 315 }));
         }
+
 
         [Fact]
         public void CreateBoxDomain_PredefinedGeometry_ReturnCorrectMesh()
