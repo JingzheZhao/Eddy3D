@@ -1,19 +1,3 @@
 [![Build Eddy3D](https://github.com/Eddy3D-Dev/Eddy3D/actions/workflows/build.yml/badge.svg)](https://github.com/Eddy3D-Dev/Eddy3D/actions/workflows/build.yml)
 
 
-
-# Icons & Illustrations
-
-https://drive.google.com/open?id=1j9BhRqOfTzyD-dVEXMs_V4mWRfYXnoZL
-
-# Additional Repos
-
-https://github.com/Eddy3D-Dev/Eddy3D-Plots  
-https://github.com/Eddy3D-Dev/Eddy3D-Residuals  
-https://github.com/Eddy3D-Dev/Eddy3D-Validation  
-https://github.com/Eddy3D-Dev/Eddy3D-SimCompleted  
-https://github.com/Eddy3D-Dev/Eddy3D-CaseStudies  
-
-# Issue repos
-
-https://github.com/Eddy3D-Dev/Eddy3D-Issues
