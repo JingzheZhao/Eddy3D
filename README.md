@@ -1,9 +1,5 @@
 [![Build Eddy3D](https://github.com/Eddy3D-Dev/Eddy3D/actions/workflows/build.yml/badge.svg)](https://github.com/Eddy3D-Dev/Eddy3D/actions/workflows/build.yml)
 
-# Installer Links
-
-<https://drive.google.com/open?id=1p7Up5pFsk3QNfCH34_GctI0uhCeL2k8K&authuser=pk373%40cornell.edu&usp=drive_fs>
-
 
 
 # Icons & Illustrations
