@@ -56,10 +56,11 @@ namespace EddyLib
 
         public Point3d[] pointsOnRect;
 
-        public OFCylDomain(Mesh BuildingGeometry, Mesh terrainMesh, BCCollection BCond, double coreBlockSize, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0, List<Tree> Trees = null)
+        public OFCylDomain(Mesh BuildingGeometry, Mesh terrainMesh, BCCollection BCond, double coreBlockSize, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0, List<Tree> Trees = null, double radialMultiplier = 2.0, int divisionsX = 1)
         {
             gradingPerim = 1.0;
             cellSizeInner = coreBlockSize;
+            this.divisionsX = divisionsX;
 
             this.BCond = BCond;
             this.BuildingGeometry = BuildingGeometry;
@@ -153,7 +154,7 @@ namespace EddyLib
                 sizeInnerR = sizeInnerRect;
             }
 
-            divsRadial = RadialDivsFromBlockSize(coreBlockSize, sizeInnerR);
+            divsRadial = RadialDivsFromBlockSize(coreBlockSize, sizeInnerR, radialMultiplier);
 
             MakeCircMeshPlane(CenterGround, sizeInnerR, divsRadial, radius, height, (int)coreBlockSize);
 
@@ -194,8 +195,8 @@ namespace EddyLib
                 circRad = minRad;
             }
 
-            //double cellSizeCore = 2 * (sizeInnerRect / divsRadial);
-            double cellSizeCore = 4 * (sizeInnerRect / divsRadial); //test by ilker
+            double cellSizeCore = 2 * (sizeInnerRect / divsRadial);
+            //double cellSizeCore = 4 * (sizeInnerRect / divsRadial); //test by ilker
 
             //Math.Abs was just a workaround fix
 
@@ -391,10 +392,10 @@ namespace EddyLib
             return blockDimensionCore.Length;
         }
 
-        private static int RadialDivsFromBlockSize(double blockSize, double sizeInnerRect)
+        private static int RadialDivsFromBlockSize(double blockSize, double sizeInnerRect, double radialMultiplier)
         {
-            //return (int)(sizeInnerRect / blockSize) * 2;
-            return (int)(sizeInnerRect / blockSize); //testing by ilker
+            return (int)((sizeInnerRect / blockSize) * radialMultiplier);
+            //return (int)(sizeInnerRect / blockSize); //testing by ilker
         }
 
         private Mesh SideWalls(Point3d[] pt, double h)

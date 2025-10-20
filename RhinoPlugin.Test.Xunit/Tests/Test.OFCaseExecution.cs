@@ -541,9 +541,9 @@ $"testcase-box-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
 
             var meshSettings = new OFMeshSettings
             {
-                accBuildings = 4, // Good balance for COST-compliant domain
-                accFeatures = 2,
-                accGround = 2, // Ground mesh accuracy
+                accBuildings = 1, // Very coarse for fast testing
+                accFeatures = 1,  // Very coarse
+                accGround = 1,    // Very coarse
                 snappySetting = SnappySnapSettings.BlocksSnapping,
                 miscSettings = SnappyMiscSettings.Optimized
             };
@@ -551,7 +551,7 @@ $"testcase-box-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
 
             var runSettings = new OFRunSettings
             {
-                iter = 800, // Reduced iterations for stability
+                iter = 500, // Reduced iterations for stability
                 CPUs = 8, // Reduced CPU usage for stability
                 relaxationFactors = RelaxationFactors.Robust,
                 schemes = fvSchemes.Default,

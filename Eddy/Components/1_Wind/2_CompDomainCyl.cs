@@ -69,9 +69,13 @@ namespace Eddy
             pManager.AddNumberParameter("Size of inner rectangle", "InnerR", "Size of inner rectangle", GH_ParamAccess.item);
             pManager.AddNumberParameter("Size of outer radius", "OuterR", "Size of outer radius", GH_ParamAccess.item);
             pManager.AddNumberParameter("Height", "Height", "Height", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Radial Multiplier", "RadMult", "Radial Multiplier for divisions calculation, the change is visible on the Grasshopper side, immediately. Default is 2.", GH_ParamAccess.item, 2.0);
+            pManager.AddIntegerParameter("Divisions X", "DivX", "This refines the cells in the x direction. The change is only visible after the meshing is completed. Default is 1.", GH_ParamAccess.item, 1);
             pManager[5].Optional = true;
             pManager[6].Optional = true;
             pManager[7].Optional = true;
+            pManager[8].Optional = true;
+            pManager[9].Optional = true;
 
             // pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the
             // number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
@@ -168,11 +172,15 @@ namespace Eddy
             double sizeInnerRect = 0;
             double sizeOuterCirc = 0;
             double sizeHeight = 0;
+            double radialMultiplier = 2.0;
+            int divisionsX = 1;
 
             DA.GetData("Block size", ref coreBlockSize);
             DA.GetData("Size of inner rectangle", ref sizeInnerRect);
             DA.GetData("Size of outer radius", ref sizeOuterCirc);
             DA.GetData("Height", ref sizeHeight);
+            DA.GetData("Radial Multiplier", ref radialMultiplier);
+            DA.GetData("Divisions X", ref divisionsX);
 
             // Check Domain dimensions
 
@@ -257,7 +265,7 @@ namespace Eddy
 
             if (Utilities.CheckLicence() == true)
             {
-                OFCylDomain DOMCYL = new OFCylDomain(buildingGeometry, terrainMeshes, bCond, coreBlockSize, sizeInnerRect, sizeOuterCirc, sizeHeight, trees);
+                OFCylDomain DOMCYL = new OFCylDomain(buildingGeometry, terrainMeshes, bCond, coreBlockSize, sizeInnerRect, sizeOuterCirc, sizeHeight, trees, radialMultiplier, divisionsX);
 
                 FillWindDirRenderList(bCond, DOMCYL);
 
