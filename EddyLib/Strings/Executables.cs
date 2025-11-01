@@ -173,7 +173,7 @@ FoamFile
         {
             building
             {
-                level (" + (MeshSettings.accBuildings) + @" " + MeshSettings.accBuildings + @");
+                level (" + (MeshSettings.accBuildings) + @" " + MeshSettings.accBuildingsMax + @");
                 patchInfo
                 {
                     type wall;
@@ -471,7 +471,7 @@ FoamFile
         {
             building
             {
-                level (" + (MeshSettings.accBuildings) + @" " + MeshSettings.accBuildings + @");
+                level (" + (MeshSettings.accBuildings) + @" " + MeshSettings.accBuildingsMax + @");
                 patchInfo
                 {
                     type wall;

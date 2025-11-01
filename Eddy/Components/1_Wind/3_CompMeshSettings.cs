@@ -35,13 +35,14 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddIntegerParameter("AccBuilding", "AccBuilding", "Level accuracy of building mesh.", GH_ParamAccess.item, 2);
+            pManager.AddIntegerParameter("AccBuilding", "AccBuilding", "Min Level accuracy of building mesh.", GH_ParamAccess.item, 2);
+            pManager.AddIntegerParameter("AccBuildingMax", "AccBuildingMax", "Max Level accuracy of building mesh.", GH_ParamAccess.item, 2);
             pManager.AddIntegerParameter("AccFeatures", "AccFeatures", "Level accuracy accuracy of building features (corners) mesh.", GH_ParamAccess.item, 2);
             pManager.AddIntegerParameter("AccBBox", "AccBBox", "Level accuracy of building bounding box.", GH_ParamAccess.item, 0);
             pManager.AddIntegerParameter("AccGround", "AccGround", "Level accuracy of ground mesh.", GH_ParamAccess.item, 2);
 
             pManager.AddIntegerParameter("MiscSettings.", "MiscS", "MiscSettings.", GH_ParamAccess.item, 1);
-            Param_Integer param0 = pManager[4] as Param_Integer;
+            Param_Integer param0 = pManager[5] as Param_Integer;
             param0.AddNamedValue("Default", 0);
             param0.AddNamedValue("Optimized", 1);
 
@@ -50,7 +51,7 @@ namespace Eddy
 0: No snapping, no layers
 1: With Snapping, no layers
 2: With Snapping, with layers", GH_ParamAccess.item, 1);
-            Param_Integer param1 = pManager[6] as Param_Integer;
+            Param_Integer param1 = pManager[7] as Param_Integer;
             param1.AddNamedValue("No snapping, no layers", 0);
             param1.AddNamedValue("With Snapping, no layers", 1);
             param1.AddNamedValue("With Snapping, with layers (not always robust, >> RAM)", 2);
@@ -74,6 +75,7 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             int _accBuilding = 3;
+            int _accBuildingMax = 3;
             int _accFeatures = 3;
             int _accBoxRefinement = 3;
             int _accGround = 3;
@@ -84,16 +86,17 @@ namespace Eddy
             int _mode = 1;
 
             DA.GetData(0, ref _accBuilding);
-            DA.GetData(1, ref _accFeatures);
-            DA.GetData(2, ref _accBoxRefinement);
-            DA.GetData(3, ref _accGround);
+            DA.GetData(1, ref _accBuildingMax);
+            DA.GetData(2, ref _accFeatures);
+            DA.GetData(3, ref _accBoxRefinement);
+            DA.GetData(4, ref _accGround);
 
-            DA.GetData(4, ref _miscSettings);
+            DA.GetData(5, ref _miscSettings);
 
-            DA.GetData(5, ref _nLayers);
-            DA.GetData(6, ref _mode);
+            DA.GetData(6, ref _nLayers);
+            DA.GetData(7, ref _mode);
 
-            if (_accBuilding >= 5 || _accFeatures >= 5 || _accBoxRefinement >= 5 || _accGround >= 5 || _nLayers >= 5)
+            if (_accBuildingMax >= 5 || _accBuilding >= 5 || _accFeatures >= 5 || _accBoxRefinement >= 5 || _accGround >= 5 || _nLayers >= 5)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "A high number of refinment levels might significantly slow down mesh creation. Try to create a reasonable fine mesh with the Domain component and/or make sure to use more than one CPU.");
             }
@@ -101,6 +104,7 @@ namespace Eddy
             DA.SetData(0, new OFMeshSettings()
             {
                 accBuildings = _accBuilding,
+                accBuildingsMax = _accBuildingMax,
                 accFeatures = _accFeatures,
                 accBoxRefinement = _accBoxRefinement,
                 accGround = _accGround,

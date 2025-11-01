@@ -21,6 +21,8 @@
     {
         public int accBuildings = 2;
 
+        public int accBuildingsMax = 4;
+
         public int accFeatures = 2;
 
         public int accBoxRefinement = 2;
@@ -96,12 +98,13 @@
         public override string ToString()
         {
             return string.Format(@"accBuilding = {0}
-accFeatures = {1}
-accRefinement = {2}
-accGround = {3}
+accBuildingMax = {1}
+accFeatures = {2}
+accRefinement = {3}
 accGround = {4}
-nLayers = {5}
-Snap Settings = {6}", accBuildings, accFeatures, accBoxRefinement, accGround, miscSettings, nLayers, snappySetting);
+accGround = {5}
+nLayers = {6}
+Snap Settings = {7}", accBuildings, accBuildingsMax, accFeatures, accBoxRefinement, accGround, miscSettings, nLayers, snappySetting);
         }
     }
 }
