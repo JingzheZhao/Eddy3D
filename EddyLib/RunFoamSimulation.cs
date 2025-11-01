@@ -174,6 +174,9 @@ namespace EddyLib
 
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_make_trees.bat"), EddyLib.Strings.BatFiles.Run_Make_Trees(RunSettings, MeshSettings, DOM, Strings.OFExecutionMode.Meshing));
 
+                // Write mklink_creator.bat to help link shared mesh polyMesh into numeric case folders
+                File.WriteAllText(Path.Combine(WorkDir + "\\" + "symbolic_link_creator.bat"), EddyLib.Strings.BatFiles.SymbolicLinkCreatorBatch());
+
                 //File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_probes.bat"), EddyLib.Strings.BatFiles.Run_Probes(DOM, MeshSettings));
                 //File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_utci.bat"), EddyLib.Strings.BatFiles.Run_UTCI(DOM, MeshSettings));
 

@@ -687,5 +687,32 @@ namespace EddyLib.Strings
 
         public static string AppendToLog(string logFile) =>
     $" 2>&1 | tee -a \"{logFile}\"";
+
+        /// <summary>
+        public static string SymbolicLinkCreatorBatch()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("@echo off");
+            sb.AppendLine("setlocal EnableExtensions EnableDelayedExpansion");
+            sb.AppendLine("set \"SOURCE=%~dp0mesh\\constant\\polyMesh\"");
+            sb.AppendLine("set \"CREATED=0\"");
+            sb.AppendLine("set \"SKIPPED=0\"");
+            sb.AppendLine("if not exist \"%SOURCE%\" (");
+            sb.AppendLine("    echo ERROR: Source not found: %SOURCE%");
+            sb.AppendLine("    pause");
+            sb.AppendLine("    exit /b 1");
+            sb.AppendLine(")");
+            sb.AppendLine("for /D %%F in (*) do (");
+            sb.AppendLine("    set \"N=%%~nxF\"");
+            sb.AppendLine("    echo.!N!| findstr /R /C:\"^[0-9][0-9]*$\" >nul && (");
+            sb.AppendLine("        if not exist \"%%~fF\\constant\" mkdir \"%%~fF\\constant\"");
+            sb.AppendLine("        if exist \"%%~fF\\constant\\polyMesh\" rmdir /S /Q \"%%~fF\\constant\\polyMesh\"");
+            sb.AppendLine("        mklink /J \"%%~fF\\constant\\polyMesh\" \"%SOURCE%\" >nul && (set /a CREATED+=1) || (set /a SKIPPED+=1)");
+            sb.AppendLine("    )");
+            sb.AppendLine(")");
+            sb.AppendLine("echo Created: %CREATED%   Skipped/Failed: %SKIPPED%");
+            sb.AppendLine("pause");
+            return sb.ToString();
+        }
     }
 }
