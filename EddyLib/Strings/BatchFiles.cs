@@ -174,7 +174,7 @@ namespace EddyLib.Strings
         "snappyHexMesh -overwrite",
         "renumberMesh -overwrite"};
 
-        private static readonly List<string> divU = new List<string> { "postProcess -func div(U)" };
+        private static readonly List<string> divU = new List<string> { "postProcess -func ttt -latestTime" };
 
         public static string DockerPrefixPath(OFBaseDomain DOM, OFMeshSettings MeshSettings, OFRunSettings RunSettings, OFExecutionMode mode)
         {
@@ -505,6 +505,19 @@ namespace EddyLib.Strings
             foreach (int i in DOM.BCond.WindDirections)
             {
                 sb.AppendLine("call \"" + MeshSettings.baseWorkingDir + i + "_run_sim.bat\"");
+            }
+#if DEBUG
+            //sb.AppendLine("PAUSE");
+#endif
+            return sb.ToString();
+        }
+
+        public static string RunDivU_Only(OFBaseDomain DOM, OFMeshSettings MeshSettings)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (int i in DOM.BCond.WindDirections)
+            {
+                sb.AppendLine("call \"" + MeshSettings.baseWorkingDir + i + "_run_divU.bat\"");
             }
 #if DEBUG
             //sb.AppendLine("PAUSE");

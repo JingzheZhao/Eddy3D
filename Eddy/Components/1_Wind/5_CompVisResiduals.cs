@@ -122,7 +122,7 @@ namespace Eddy
             int gnuplotVersion = 0;
             DA.GetData("Version", ref gnuplotVersion);
 
-            if (!RES.RunSettings.WindowsGnuplotInstalled && !RES.RunSettings.BlueCFDIsInstalled)
+            if (!RES.RunSettings.WindowsGnuplotInstalled && !RES.RunSettings.BlueCFD_GNU_Plot)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "There was no Gnuplot version found on your system.");
                 return;

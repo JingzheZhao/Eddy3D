@@ -57,6 +57,8 @@ namespace EddyLib
     {
         public bool BlueCFDIsInstalled;
 
+        public bool BlueCFD_GNU_Plot;
+
         public bool WindowsGnuplotInstalled;
 
         public int CPUs;
@@ -116,6 +118,7 @@ namespace EddyLib
             this.relaxationFactors = relaxationFactors;
             this.Is64BitOS = Environment.Is64BitOperatingSystem;
             this.BlueCFDIsInstalled = CheckIfBlueCFDIsInstalled();
+            this.BlueCFD_GNU_Plot = CheckIfBlueCFD_GNU_Plot_IsInstalled();
             this.WindowsGnuplotInstalled = CheckIfWinGnuplotISInstalled();
             this.IdenticalMPI = CheckForProperMPIVersions(BlueCFDIsInstalled, Is64BitOS);
             this.potentialFoamInit = potentialFoamInit;
@@ -191,7 +194,18 @@ age of air = {10}"
             }
             return IsBlueCFDInstalled;
         }
+        private bool CheckIfBlueCFD_GNU_Plot_IsInstalled()
+        {
+            bool IsBlueCFD_GNU_Plot = false;
 
+            var pathGnuplotBlueCFD = @"C:\Program Files\blueCFD-Core-2020\msys64\mingw64\bin\gnuplot.exe";
+
+            if (File.Exists(pathGnuplotBlueCFD))
+            {
+                IsBlueCFD_GNU_Plot = true;
+            }
+            return IsBlueCFD_GNU_Plot;
+        }
         private bool CheckIfWinGnuplotISInstalled()
         {
             bool installed = false;

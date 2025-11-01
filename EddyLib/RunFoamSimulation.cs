@@ -168,6 +168,7 @@ namespace EddyLib
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_mesh.bat"), EddyLib.Strings.BatFiles.Run_Mesh(RunSettings, MeshSettings, DOM, Strings.OFExecutionMode.Meshing));
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run.bat"), EddyLib.Strings.BatFiles.Run(DOM, MeshSettings));
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_sim_all.bat"), EddyLib.Strings.BatFiles.RunSimOnly(DOM, MeshSettings));
+                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_divU_all.bat"), EddyLib.Strings.BatFiles.RunDivU_Only(DOM, MeshSettings));
 
                 //File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_ray.bat"), EddyLib.Strings.BatFiles.Run_RayTrace(DOM, MeshSettings));
 
