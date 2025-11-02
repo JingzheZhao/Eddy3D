@@ -517,7 +517,7 @@ namespace EddyLib.Strings
             StringBuilder sb = new StringBuilder();
             foreach (int i in DOM.BCond.WindDirections)
             {
-                sb.AppendLine("call \"" + MeshSettings.baseWorkingDir + i + "_run_divU.bat\"");
+                sb.AppendLine("call \"" + MeshSettings.baseWorkingDir + i + "_run_divU.bat\"" + " <nul");
             }
 #if DEBUG
             //sb.AppendLine("PAUSE");
