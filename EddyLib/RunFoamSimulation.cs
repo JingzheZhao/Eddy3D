@@ -168,10 +168,14 @@ namespace EddyLib
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_mesh.bat"), EddyLib.Strings.BatFiles.Run_Mesh(RunSettings, MeshSettings, DOM, Strings.OFExecutionMode.Meshing));
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run.bat"), EddyLib.Strings.BatFiles.Run(DOM, MeshSettings));
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_sim_all.bat"), EddyLib.Strings.BatFiles.RunSimOnly(DOM, MeshSettings));
+                File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_divU_all.bat"), EddyLib.Strings.BatFiles.RunDivU_Only(DOM, MeshSettings));
 
                 //File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_ray.bat"), EddyLib.Strings.BatFiles.Run_RayTrace(DOM, MeshSettings));
 
                 File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_make_trees.bat"), EddyLib.Strings.BatFiles.Run_Make_Trees(RunSettings, MeshSettings, DOM, Strings.OFExecutionMode.Meshing));
+
+                // Write mklink_creator.bat to help link shared mesh polyMesh into numeric case folders
+                File.WriteAllText(Path.Combine(WorkDir + "\\" + "symbolic_link_creator.bat"), EddyLib.Strings.BatFiles.SymbolicLinkCreatorBatch());
 
                 //File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_probes.bat"), EddyLib.Strings.BatFiles.Run_Probes(DOM, MeshSettings));
                 //File.WriteAllText(Path.Combine(WorkDir + "\\" + "run_utci.bat"), EddyLib.Strings.BatFiles.Run_UTCI(DOM, MeshSettings));

@@ -174,7 +174,7 @@ namespace EddyLib.Strings
         "snappyHexMesh -overwrite",
         "renumberMesh -overwrite"};
 
-        private static readonly List<string> divU = new List<string> { "postProcess -func div(U)" };
+        private static readonly List<string> divU = new List<string> { "postProcess -func ttt -latestTime" };
 
         public static string DockerPrefixPath(OFBaseDomain DOM, OFMeshSettings MeshSettings, OFRunSettings RunSettings, OFExecutionMode mode)
         {
@@ -512,6 +512,19 @@ namespace EddyLib.Strings
             return sb.ToString();
         }
 
+        public static string RunDivU_Only(OFBaseDomain DOM, OFMeshSettings MeshSettings)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (int i in DOM.BCond.WindDirections)
+            {
+                sb.AppendLine("call \"" + MeshSettings.baseWorkingDir + i + "_run_divU.bat\"" + " <nul");
+            }
+#if DEBUG
+            //sb.AppendLine("PAUSE");
+#endif
+            return sb.ToString();
+        }
+
         public static class BlueCfdScriptBuilder
         {
             /// <summary>
@@ -674,5 +687,32 @@ namespace EddyLib.Strings
 
         public static string AppendToLog(string logFile) =>
     $" 2>&1 | tee -a \"{logFile}\"";
+
+        /// <summary>
+        public static string SymbolicLinkCreatorBatch()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("@echo off");
+            sb.AppendLine("setlocal EnableExtensions EnableDelayedExpansion");
+            sb.AppendLine("set \"SOURCE=%~dp0mesh\\constant\\polyMesh\"");
+            sb.AppendLine("set \"CREATED=0\"");
+            sb.AppendLine("set \"SKIPPED=0\"");
+            sb.AppendLine("if not exist \"%SOURCE%\" (");
+            sb.AppendLine("    echo ERROR: Source not found: %SOURCE%");
+            sb.AppendLine("    pause");
+            sb.AppendLine("    exit /b 1");
+            sb.AppendLine(")");
+            sb.AppendLine("for /D %%F in (*) do (");
+            sb.AppendLine("    set \"N=%%~nxF\"");
+            sb.AppendLine("    echo.!N!| findstr /R /C:\"^[0-9][0-9]*$\" >nul && (");
+            sb.AppendLine("        if not exist \"%%~fF\\constant\" mkdir \"%%~fF\\constant\"");
+            sb.AppendLine("        if exist \"%%~fF\\constant\\polyMesh\" rmdir /S /Q \"%%~fF\\constant\\polyMesh\"");
+            sb.AppendLine("        mklink /J \"%%~fF\\constant\\polyMesh\" \"%SOURCE%\" >nul && (set /a CREATED+=1) || (set /a SKIPPED+=1)");
+            sb.AppendLine("    )");
+            sb.AppendLine(")");
+            sb.AppendLine("echo Created: %CREATED%   Skipped/Failed: %SKIPPED%");
+            sb.AppendLine("pause");
+            return sb.ToString();
+        }
     }
 }

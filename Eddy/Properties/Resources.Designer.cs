@@ -183,6 +183,16 @@ namespace Eddy.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Eddy_brep2points {
+            get {
+                object obj = ResourceManager.GetObject("Eddy_brep2points", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Eddy_calcMRT {
             get {
                 object obj = ResourceManager.GetObject("Eddy_calcMRT", resourceCulture);
