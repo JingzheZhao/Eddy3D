@@ -572,6 +572,7 @@ namespace EddyLib.Strings
                 if (needsDriveSwitch)
                     sb.AppendLine($"{driveLetter}:");
 
+
                 if (runMode == RunMode.Batchfile)
                 {
                     sb.AppendLine($@"REM cd {caseDirQuoted}");
@@ -586,7 +587,14 @@ namespace EddyLib.Strings
                              .Where(c => !string.IsNullOrEmpty(c)))
                 {
                     var logForThisCommand = InferLogFileName(line, "log.txt");
-                    sb.AppendLine($"{line}{AppendToLog(logForThisCommand)}");
+                    if (line.StartsWith("reconstructParMesh", StringComparison.OrdinalIgnoreCase))
+                    {
+                        sb.AppendLine($"{line} >> \"reconstructParMesh.log\" 2>&1");
+                    }
+                    else
+                    {
+                        sb.AppendLine($"{line}{AppendToLog(logForThisCommand)}");
+                    }
                 }
 
                 return sb.ToString();

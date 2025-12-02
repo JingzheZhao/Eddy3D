@@ -140,8 +140,8 @@ namespace EddyLib
             }
             else
             {
-                // Radius, not diameter
-                radius = sizeOuterCirc / 2;
+                // Radius, not diameter!
+                radius = sizeOuterCirc;
             }
 
             if (sizeInnerRect == 0)
