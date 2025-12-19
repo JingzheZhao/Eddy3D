@@ -211,7 +211,7 @@ refinementBox {mode inside; levels ((" + MeshSettings.accBoxRefinement + @" " + 
     maxGlobalCells      100000000;
     minRefinementCells  1;
     maxLoadUnbalance    0.20;
-    nCellsBetweenLevels 4;
+    nCellsBetweenLevels " + MeshSettings.nCellsBetweenLevels + @";
     resolveFeatureAngle 30;
     allowFreeStandingZoneFaces false;
     }
@@ -509,7 +509,7 @@ refinementBox {mode inside; levels ((" + MeshSettings.accBoxRefinement + @" " + 
     maxGlobalCells      60000000;
     minRefinementCells  50;
     maxLoadUnbalance    1;
-    nCellsBetweenLevels 4;
+    nCellsBetweenLevels " + MeshSettings.nCellsBetweenLevels + @";
     resolveFeatureAngle 60;
     allowFreeStandingZoneFaces false;
     }

@@ -280,12 +280,19 @@ namespace Eddy.Properties {
             }
         }
         
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
         internal static System.Drawing.Bitmap Eddy_dataset {
             get {
                 object obj = ResourceManager.GetObject("Eddy_dataset", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Eddy_dataset_reader {
+            get {
+                object obj = ResourceManager.GetObject("Eddy_dataset_reader", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

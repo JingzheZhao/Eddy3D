@@ -57,11 +57,12 @@ namespace Eddy
             param0.AddNamedValue("Optimized", 1);
 
             pManager.AddIntegerParameter("Number of layers", "nLay", "Number of mesh layers.", GH_ParamAccess.item, 4);
+            pManager.AddIntegerParameter("nCellsBetweenLevels", "nCells", "Number of cells between refinement levels.", GH_ParamAccess.item, 4);
             pManager.AddIntegerParameter("Mode", "Mode", @"Mode:
 0: No snapping, no layers
 1: With Snapping, no layers
 2: With Snapping, with layers", GH_ParamAccess.item, 1);
-            Param_Integer param1 = pManager[7] as Param_Integer;
+            Param_Integer param1 = pManager[8] as Param_Integer;
             param1.AddNamedValue("No snapping, no layers", 0);
             param1.AddNamedValue("With Snapping, no layers", 1);
             param1.AddNamedValue("With Snapping, with layers (not always robust, >> RAM)", 2);
@@ -93,6 +94,7 @@ namespace Eddy
             int _miscSettings = 1;
 
             int _nLayers = 3;
+            int _nCellsBetweenLevels = 4;
             int _mode = 1;
 
             DA.GetData(0, ref _accBuilding);
@@ -104,7 +106,8 @@ namespace Eddy
             DA.GetData(5, ref _miscSettings);
 
             DA.GetData(6, ref _nLayers);
-            DA.GetData(7, ref _mode);
+            DA.GetData(7, ref _nCellsBetweenLevels);
+            DA.GetData(8, ref _mode);
 
             if (_accBuildingMax >= 5 || _accBuilding >= 5 || _accFeatures >= 5 || _accBoxRefinement >= 5 || _accGround >= 5 || _nLayers >= 5)
             {
@@ -120,6 +123,7 @@ namespace Eddy
                 accGround = _accGround,
                 miscSettings = (SnappyMiscSettings)_miscSettings,
                 nLayers = _nLayers,
+                nCellsBetweenLevels = _nCellsBetweenLevels,
                 snappySetting = (SnappySnapSettings)_mode
             });
         }
