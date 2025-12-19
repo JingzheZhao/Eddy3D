@@ -35,6 +35,8 @@
 
         public SnappySnapSettings snappySetting;
 
+        public int nCellsBetweenLevels = 4;
+
         public string baseWorkingDir;
 
         public string meshStlDir;

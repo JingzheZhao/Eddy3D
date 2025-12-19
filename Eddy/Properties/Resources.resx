@@ -190,6 +190,9 @@
   <data name="Eddy_dataset" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_dataset.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="Eddy_dataset_reader" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Eddy_dataset_reader.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="Eddy_decomposeData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_decomposeData.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
