@@ -43,8 +43,10 @@ namespace Eddy
         {
             pManager.AddGeometryParameter("Breps", "B", "Brep surfaces, surfaces, or meshes to create grid on", GH_ParamAccess.list);
             pManager.AddNumberParameter("Spacing", "S", "Grid spacing in meters", GH_ParamAccess.item, 10.0);
+            pManager.AddBooleanParameter("Run", "Run", "Run the component", GH_ParamAccess.item, true);
             pManager[0].Optional = false;
             pManager[1].Optional = true;
+            pManager[2].Optional = true;
         }
 
         /// <summary>
@@ -213,6 +215,7 @@ namespace Eddy
         {
             var geometryList = new List<GeometryBase>();
             var spacing = 10.0;
+            bool run = true;
 
             if (!DA.GetDataList(0, geometryList))
             {
@@ -221,6 +224,14 @@ namespace Eddy
             }
 
             DA.GetData(1, ref spacing);
+            DA.GetData(2, ref run);
+
+            if (!run)
+            {
+                DA.SetDataList(0, new List<Point3d>());
+                DA.SetData(1, "Idle");
+                return;
+            }
 
             if (spacing <= 0)
             {

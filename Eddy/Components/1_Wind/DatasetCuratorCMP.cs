@@ -124,7 +124,7 @@ namespace Eddy
             double minDist = double.MaxValue;
             double heightHere = 0.0;
             bool inside = false;
-            Point3d xy = new Point3d(point.X, point.Y, 0.0);
+
 
             foreach (var geomTuple in geometryList)
             {
@@ -146,7 +146,9 @@ namespace Eddy
                         minDist = dist;
 
                     BoundingBox bbox = brep.GetBoundingBox(true);
-                    if (bbox.Contains(xy))
+                    // Check XY bounds only (ignore Z) to handle stacked geometries
+                    if (point.X >= bbox.Min.X && point.X <= bbox.Max.X &&
+                        point.Y >= bbox.Min.Y && point.Y <= bbox.Max.Y)
                     {
                         double h = bbox.Max.Z;
                         if (h > heightHere)
@@ -168,7 +170,9 @@ namespace Eddy
                         minDist = dist;
 
                     BoundingBox bbox = mesh.GetBoundingBox(true);
-                    if (bbox.Contains(xy))
+                    // Check XY bounds only (ignore Z) to handle stacked geometries
+                    if (point.X >= bbox.Min.X && point.X <= bbox.Max.X &&
+                        point.Y >= bbox.Min.Y && point.Y <= bbox.Max.Y)
                     {
                         double h = bbox.Max.Z;
                         if (h > heightHere)
