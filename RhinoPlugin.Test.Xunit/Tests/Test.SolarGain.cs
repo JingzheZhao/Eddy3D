@@ -8,6 +8,11 @@ namespace RhinoPlugin.Test.Xunit
     [Collection("Rhino Collection")]
     public class SolarGainTests
     {
+        private static void AssertRoundedEqual(double expected, double actual, int decimals = 2)
+        {
+            Assert.Equal(Math.Round(expected, decimals), Math.Round(actual, decimals));
+        }
+
         //[Fact]
         //public void AngleProjectionFactor_90_returns_0_282()
         //{
@@ -91,7 +96,6 @@ namespace RhinoPlugin.Test.Xunit
             double fsvv = 1;
             double fbes = 0.5;
             double asa = 0.7;
-            double tsol_factor = 0.5;
 
             //Act
 
@@ -102,8 +106,8 @@ namespace RhinoPlugin.Test.Xunit
 
             //Assert
 
-            Assert.Equal(Math.Round(188.16, 2), Math.Round(ERF, 2));
-            Assert.Equal(Math.Round(43.25, 2), Math.Round(dMRT, 2));
+            AssertRoundedEqual(188.16, ERF);
+            AssertRoundedEqual(43.25, dMRT);
         }
 
         [Fact]
@@ -132,9 +136,6 @@ namespace RhinoPlugin.Test.Xunit
 
             //double tsol = 1;
             // double fsvv = 1;
-            double fbes = 0.5;
-            double asa = 0.7;
-            double tsol_factor = 0.5;
 
             double Idiff = 150;
 
@@ -145,7 +146,7 @@ namespace RhinoPlugin.Test.Xunit
             //Assert
 
             // Assert.Equal(Math.Round(188.16, 2), Math.Round(ERF, 2));
-            Assert.Equal(Math.Round(47.34, 2), Math.Round(dMRT, 2));
+            AssertRoundedEqual(47.34, dMRT);
         }
 
         [Fact]
@@ -161,7 +162,7 @@ namespace RhinoPlugin.Test.Xunit
 
             //Assert
 
-            Assert.Equal(Math.Round(Math.PI / 2, 2), Math.Round(rad, 2));
+            AssertRoundedEqual(Math.PI / 2, rad);
         }
     }
 }

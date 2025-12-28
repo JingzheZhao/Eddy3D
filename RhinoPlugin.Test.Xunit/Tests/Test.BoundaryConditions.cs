@@ -1,7 +1,6 @@
 ﻿using EddyLib;
 using EddyLib.BCs;
 using Rhino.Geometry;
-using RhinoPlugin.Test.Xunit.Tests;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -14,123 +13,92 @@ namespace RhinoPlugin.Test.Xunit
 {
     [Collection("Rhino Collection")]
     public class OFBoundaryConditionTests
-
     {
-        [Fact]
-        public void SetUpBCWithBox_ReturnCorrectBC()
+        public enum DomainKind
         {
-            // Arrange (your existing values)
-
-            // Expected values from your setup
-            const double expectedUref = 13.0;
-            const double expectedZref = 6.2;
-            const double expectedZ0 = 7.9;
-            const int expectedWDir = 23;
-
-            var bc1 = new ABL(expectedWDir, expectedUref, expectedZref, expectedZ0);
-
-            var bcColl = new BCCollection(bc1);
-
-            var caseDir = Path.Combine(Path.GetTempPath(), $"testcase-box-{Guid.NewGuid():N}\\");
-
-            Directory.CreateDirectory(caseDir);
-
-            var meshSettings = new OFMeshSettings
-            {
-                accBuildings = 3,
-                accFeatures = 4,
-                accGround = 3
-            };
-            meshSettings.SetDirectories(caseDir);
-
-            var runSettings = new OFRunSettings
-            {
-                iter = 3000,
-                CPUs = 6,
-                relaxationFactors = RelaxationFactors.Robust,
-                schemes = fvSchemes.Optimized
-            };
-
-            var domBox = new OFBoxDomain(Setup.SetUpBuildingMesh(), new Mesh(), bcColl, 20);
-
-            // Act: Generate the OpenFOAM case and batch files
-            RunBlockMesh.RunBox(domBox, meshSettings, runSettings, caseDir);
-            RunSnappy.Run(domBox, meshSettings, runSettings, out var logfileOutput);
-            RunFoamSimulation.Run(domBox, meshSettings, runSettings, caseDir);
-
-            // var result = OFExecutionTests.RunBatchFileInteractive(caseDir, "run.bat");
-
-            // Point to the file your plugin wrote (absolute path you gave)
-            var ablPath = caseDir + $@"{expectedWDir}\0\ABLConditions";
-            Assert.True(File.Exists(ablPath), "Expected ABLConditions file not found at: " + ablPath);
-
-            // Read without touching the file
-            var kv = ABLConditionsReader.Read(ablPath);
-
-            // Check required numeric entries with tolerance (xUnit: precision = # of decimal places)
-            Assert.Equal(expectedUref, ABLConditionsReader.GetDouble(kv, "Uref"), 2);
-            Assert.Equal(expectedZref, ABLConditionsReader.GetDouble(kv, "Zref"), 2);
-            Assert.Equal(expectedZ0, ABLConditionsReader.GetDouble(kv, "Z0"), 2);
+            Box,
+            Cyl
         }
 
-        [Fact]
-        public void SetUpBCWithCyl_ReturnCorrectBC()
+        [Theory]
+        [InlineData(DomainKind.Box, 13.0, 6.2, 7.9, 23)]
+        [InlineData(DomainKind.Cyl, 13.9, 6.82, 7.1, 28)]
+        public void SetUpBC_ReturnCorrectBC(
+            DomainKind domainKind,
+            double expectedUref,
+            double expectedZref,
+            double expectedZ0,
+            int expectedWDir)
         {
-            // Arrange (your existing values)
+            var bc = new ABL(expectedWDir, expectedUref, expectedZref, expectedZ0);
+            var bcColl = new BCCollection(bc);
 
-            // Expected values from your setup
-            const double expectedUref = 13.9;
-            const double expectedZref = 6.82;
-            const double expectedZ0 = 7.1;
-            const int expectedWDir = 28;
+            var caseDir = TestFixtures.CreateTestDirectory(domainKind == DomainKind.Box ? "testcase-box" : "testcase-cyl");
+            var (meshSettings, runSettings) = CreateSettings(caseDir);
 
-            var bc1 = new ABL(expectedWDir, expectedUref, expectedZref, expectedZ0);
+            RunCase(domainKind, bcColl, meshSettings, runSettings, caseDir);
 
-            var bcList = new List<BC> { bc1 };
-            var bcColl = new BCCollection(bcList);
+            AssertAblConditions(caseDir, expectedWDir, expectedUref, expectedZref, expectedZ0);
+        }
 
-            var caseDir = Path.Combine(Path.GetTempPath(), $"testcase-cyl-{Guid.NewGuid():N}\\");
+        private static (OFMeshSettings MeshSettings, OFRunSettings RunSettings) CreateSettings(string caseDir)
+        {
+            var meshSettings = TestFixtures.CreateDefaultMeshSettings(caseDir);
+            var runSettings = TestFixtures.CreateDefaultRunSettings();
 
-            // Clean up the directory and all contents at the beginning for debugging
-            //if (Directory.Exists(caseDir))
-            //{
-            //    Directory.Delete(caseDir, true);
-            //}
-            Directory.CreateDirectory(caseDir);
+            return (meshSettings, runSettings);
+        }
 
-            var meshSettings = new OFMeshSettings
+        private static void RunCase(
+            DomainKind domainKind,
+            BCCollection bcColl,
+            OFMeshSettings meshSettings,
+            OFRunSettings runSettings,
+            string caseDir)
+        {
+            switch (domainKind)
             {
-                accBuildings = 3,
-                accFeatures = 4,
-                accGround = 3
-            };
-            meshSettings.SetDirectories(caseDir);
+                case DomainKind.Box:
+                {
+                    var domBox = new OFBoxDomain(Setup.SetUpBuildingMesh(), new Mesh(), bcColl, 20);
+                    RunBlockMesh.RunBox(domBox, meshSettings, runSettings, caseDir);
+                    RunSnappyAndFoam(domBox, meshSettings, runSettings, caseDir);
+                    break;
+                }
+                case DomainKind.Cyl:
+                {
+                    var domCyl = new OFCylDomain(Setup.SetUpBuildingMesh(), new Mesh(), bcColl, 20);
+                    RunBlockMesh.RunCyl(domCyl, meshSettings, runSettings, caseDir);
+                    RunSnappyAndFoam(domCyl, meshSettings, runSettings, caseDir);
+                    break;
+                }
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(domainKind), domainKind, "Unknown domain kind.");
+            }
+        }
 
-            var runSettings = new OFRunSettings
-            {
-                iter = 3000,
-                CPUs = 6,
-                relaxationFactors = RelaxationFactors.Robust,
-                schemes = fvSchemes.Optimized
-            };
+        private static void RunSnappyAndFoam(
+            OFBaseDomain domain,
+            OFMeshSettings meshSettings,
+            OFRunSettings runSettings,
+            string caseDir)
+        {
+            RunSnappy.Run(domain, meshSettings, runSettings, out _);
+            RunFoamSimulation.Run(domain, meshSettings, runSettings, caseDir);
+        }
 
-            var domCyl = new OFCylDomain(Setup.SetUpBuildingMesh(), new Mesh(), bcColl, 20);
-
-            // Act: Generate the OpenFOAM case and batch files
-            RunBlockMesh.RunCyl(domCyl, meshSettings, runSettings, caseDir);
-            RunSnappy.Run(domCyl, meshSettings, runSettings, out var logfileOutput);
-            RunFoamSimulation.Run(domCyl, meshSettings, runSettings, caseDir);
-
-            // var result = OFExecutionTests.RunBatchFileInteractive(caseDir, "run.bat");
-
-            // Point to the file your plugin wrote (absolute path you gave)
-            var ablPath = caseDir + $@"{expectedWDir}\0\ABLConditions";
+        private static void AssertAblConditions(
+            string caseDir,
+            int expectedWDir,
+            double expectedUref,
+            double expectedZref,
+            double expectedZ0)
+        {
+            var ablPath = Path.Combine(caseDir, expectedWDir.ToString(), "0", "ABLConditions");
             Assert.True(File.Exists(ablPath), "Expected ABLConditions file not found at: " + ablPath);
 
-            // Read without touching the file
             var kv = ABLConditionsReader.Read(ablPath);
 
-            // Check required numeric entries with tolerance (xUnit: precision = # of decimal places)
             Assert.Equal(expectedUref, ABLConditionsReader.GetDouble(kv, "Uref"), 2);
             Assert.Equal(expectedZref, ABLConditionsReader.GetDouble(kv, "Zref"), 2);
             Assert.Equal(expectedZ0, ABLConditionsReader.GetDouble(kv, "Z0"), 2);
@@ -190,10 +158,8 @@ namespace RhinoPlugin.Test.Xunit
 
             public static double GetDouble(IDictionary<string, string> kv, string key)
             {
-                if (!kv.ContainsKey(key))
+                if (!kv.TryGetValue(key, out var s))
                     throw new KeyNotFoundException("Missing key '" + key + "' in ABLConditions.");
-
-                var s = kv[key];
                 var num = FirstNumber.Match(s);
                 if (!num.Success)
                     throw new FormatException("No numeric value found for key '" + key + "': '" + s + "'");
@@ -203,11 +169,10 @@ namespace RhinoPlugin.Test.Xunit
 
             public static int[] GetDirectionsIfPresent(IDictionary<string, string> kv)
             {
-                if (!kv.ContainsKey("Directions")) return null;
+                if (!kv.TryGetValue("Directions", out var raw)) return null;
 
-                // Directions can be "0,45,..." OR "(0 45 ...)" — handle both
-                var raw = kv["Directions"].Trim();
-
+                // Directions can be "0,45,..." OR "(0 45 ...)" - handle both
+                raw = raw.Trim();
                 // If parenthesized vector, replace whitespace with commas
                 if (raw.StartsWith("(") && raw.EndsWith(")"))
                     raw = raw.Substring(1, raw.Length - 2).Trim().Replace("\t", " ");

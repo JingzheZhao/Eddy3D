@@ -9,41 +9,32 @@ namespace RhinoPlugin.Test.Xunit
     [Collection("Rhino Collection")]
     public class PostProcessingTests
     {
+        private static AnalysisBins CreateSeasonBins(Season.SeasonE seasonType)
+        {
+            var season = new Season(seasonType);
+            var start = new DateTime(season.YearBegin, season.MonthBegin, season.DayBegin);
+            var end = new DateTime(season.YearEnd, season.MonthEnd, season.DayEnd);
+            return new AnalysisBins(end, start);
+        }
+
         [Fact]
         public void AnalysisBins_Annual()
         {
             // Arrange
+            var bins = new List<AnalysisBins>
+            {
+                CreateSeasonBins(Season.SeasonE.Winter),
+                CreateSeasonBins(Season.SeasonE.Spring),
+                CreateSeasonBins(Season.SeasonE.Summer),
+                CreateSeasonBins(Season.SeasonE.Fall)
+            };
 
-            var Winter = new Season((Season.SeasonE.Winter));
-
-            DateTime w1 = new DateTime(Winter.YearBegin, Winter.MonthBegin, Winter.DayBegin);
-            DateTime w2 = new DateTime(Winter.YearEnd, Winter.MonthEnd, Winter.DayEnd);
-
-            AnalysisBins Wi = new AnalysisBins(w2, w1);
-
-            var Spring = new Season((Season.SeasonE.Spring));
-
-            DateTime sp1 = new DateTime(Spring.YearBegin, Spring.MonthBegin, Spring.DayBegin);
-            DateTime sp2 = new DateTime(Spring.YearEnd, Spring.MonthEnd, Spring.DayEnd);
-
-            AnalysisBins Sp = new AnalysisBins(sp2, sp1);
-
-            var Summer = new Season((Season.SeasonE.Summer));
-
-            DateTime su1 = new DateTime(Summer.YearBegin, Summer.MonthBegin, Summer.DayBegin);
-            DateTime su2 = new DateTime(Summer.YearEnd, Summer.MonthEnd, Summer.DayEnd);
-
-            AnalysisBins Su = new AnalysisBins(su2, su1);
-
-            var Fall = new Season((Season.SeasonE.Fall));
-
-            DateTime fa1 = new DateTime(Fall.YearBegin, Fall.MonthBegin, Fall.DayBegin);
-            DateTime fa2 = new DateTime(Fall.YearEnd, Fall.MonthEnd, Fall.DayEnd);
-
-            AnalysisBins Fa = new AnalysisBins(fa2, fa1);
-
-            var a = new AnalysisSystem(new List<AnalysisBins> { Wi, Sp, Su, Fa });
-            var allHours = a.AnalysisHourBins[0].Length + a.AnalysisHourBins[1].Length + a.AnalysisHourBins[2].Length + a.AnalysisHourBins[3].Length;
+            var a = new AnalysisSystem(bins);
+            var allHours = 0;
+            foreach (var hourBin in a.AnalysisHourBins)
+            {
+                allHours += hourBin.Length;
+            }
             Assert.Equal(8760, allHours);
         }
     }
