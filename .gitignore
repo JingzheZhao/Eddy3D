@@ -314,3 +314,8 @@ Build/Installer/Strings/User.txt
 *.bak
 .DS_Store
 Templates/IND_Ahmedabad.426470_IWEC.epw
+test_output.txt
+temp_git_file.cs
+detailed_test_output.txt
+temp_ofdomain.txt
+build_log.txt

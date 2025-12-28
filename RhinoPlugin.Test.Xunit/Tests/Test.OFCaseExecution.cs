@@ -10,108 +10,8 @@ using System.Threading.Tasks;
 using Xunit;
 using Rhino;
 using Rhino.DocObjects;
-using RhinoPlugin.Test.Xunit.Tests;
 using Microsoft.Win32;
 using System.Runtime.InteropServices;
-
-using System;
-using System.Runtime.InteropServices;
-using Microsoft.Win32;
-using Xunit;
-
-namespace RhinoPlugin.Test.Xunit.Tests
-{
-    public static class GeometryHelpers
-    {
-        /// <summary>
-        ///     Loads every mesh contained in an STL, appends them into one mesh,
-        ///     cleans it (weld, unify normals, merge coplanar faces) and returns it.
-        /// </summary>
-        public static Mesh LoadMergedMesh(string solutionRelativePath,
-            double weldAngleRadians = Math.PI,
-            double coplanarTol = 1e-6)
-
-        {
-            var solutionRoot = GetSolutionRoot();
-            var stlAbs = Path.Combine(solutionRoot, solutionRelativePath);
-            if (!File.Exists(stlAbs))
-                throw new FileNotFoundException($"STL not found: {stlAbs}");
-
-            using (var doc = RhinoDoc.CreateHeadless(null))
-            {
-                var opts = new FileStlReadOptions()
-                {
-                    STLModelUnits = UnitSystem.Meters
-                };
-                if (!doc.Import(stlAbs, opts.ToDictionary()))
-                    throw new InvalidOperationException("STL import failed.");
-
-                // ---- duplicate every MeshObject (so they survive after Dispose) ----
-                var pieces = new List<Mesh>();
-                foreach (MeshObject mo in doc.Objects.GetObjectList(ObjectType.Mesh))
-                    pieces.Add(((Mesh)mo.Geometry).DuplicateMesh());
-
-                if (pieces.Count == 0)
-                    throw new InvalidOperationException("No mesh objects in STL.");
-
-                // ---- append all pieces into one mesh (Rhino-common pattern) ----
-                var merged = new Mesh();
-                foreach (var part in pieces)
-                    merged.Append(part); // :contentReference[oaicite:4]{index=4}
-
-                // ---- clean up ----
-                merged.Vertices.CombineIdentical(true, true);
-                merged.Weld(weldAngleRadians);
-                merged.UnifyNormals();
-                merged.Normals.ComputeNormals();
-                merged.Compact();
-
-                // Rhino 7: use MergeAllCoplanarFaces to shrink planar quads
-                merged.MergeAllCoplanarFaces(coplanarTol); // :contentReference[oaicite:5]{index=5}
-
-                return merged;
-            }
-        }
-
-        private static string GetSolutionRoot()
-        {
-            // Navigate up from bin\Debug\net48 (or bin\Release\net48) to solution root
-            var baseDir = AppContext.BaseDirectory;
-
-            // Keep going up until we find the solution root (where .sln file would be)
-            var current = new DirectoryInfo(baseDir);
-            while (current != null && current.Name != "Eddy3D")
-            {
-                current = current.Parent;
-            }
-
-            if (current == null)
-            {
-                // Fallback to the old method
-#if DEBUG
-                return Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\.."));
-#else
-                return Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\.."));
-#endif
-            }
-
-            return current.FullName;
-        }
-
-        public static Mesh RectangleToMesh(Rectangle3d rect)
-        {
-            Mesh mesh = new Mesh();
-            mesh.Vertices.Add(rect.Corner(0));
-            mesh.Vertices.Add(rect.Corner(1));
-            mesh.Vertices.Add(rect.Corner(2));
-            mesh.Vertices.Add(rect.Corner(3));
-            mesh.Faces.AddFace(0, 1, 2, 3);
-            mesh.Normals.ComputeNormals();
-            mesh.Compact();
-            return mesh;
-        }
-    }
-}
 
 namespace RhinoPlugin.Test.Xunit
 {
@@ -540,7 +440,7 @@ $"testcase-box-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
         public void GenerateCylDomainCaseWithProceduralGeometry(string caseDir, int windDir)
         {
             // Create procedural building geometry instead of loading STL
-            Mesh BuildingMesh = CreateProceduralBuilding(15, 15, 30); // 15x15x30 meter building
+            Mesh BuildingMesh = ProceduralGeometry.CreateProceduralBuilding(15, 15, 30); // 15x15x30 meter building
 
             var meshSettings = new OFMeshSettings
             {
@@ -554,8 +454,8 @@ $"testcase-box-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
 
             var runSettings = new OFRunSettings
             {
-                iter = 500, // Reduced iterations for stability
-                CPUs = 8, // Reduced CPU usage for stability
+                iter = 500, // reduced iterations
+                CPUs = 8, 
                 relaxationFactors = RelaxationFactors.Robust,
                 schemes = fvSchemes.Default,
                 turbModel = TurbModel.kEpsilon
@@ -566,8 +466,6 @@ $"testcase-box-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
             var bcColl = new BCCollection(bcList);
 
             // Use automatic domain sizing based on building dimensions
-            // Building: 15x15x30m, so H=30m
-            // Automatic calculation will determine optimal domain size
             var domCyl = new OFCylDomain(BuildingMesh, new Mesh(), bcColl, coreBlockSize: 8, sizeInnerRect: 0, sizeOuterCirc: 0, sizeHeight: 0);
 
             Directory.CreateDirectory(caseDir);
@@ -581,138 +479,5 @@ $"testcase-box-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}\\");
             var result = RunBatchFileInteractive(caseDir, "run.bat");
         }
 
-        private Mesh CreateProceduralBuilding(double width, double depth, double height)
-        {
-            // Create 3 buildings with different shapes in COMPACT layout
-            var mesh = new Mesh();
-
-            // Building 1: L-shaped building (main building at center)
-            var lShaped = CreateLShapedBuilding(0, 0, 0, width * 3, depth * 3, height * 1);
-            mesh.Append(lShaped);
-
-            // Building 2: Simple box building - COMPACT RIGHT-FRONT (reduced gap to 5m, closer offset)
-            var boxBuilding = CreateBox(width * 3 + 5, depth * 0.5, 0, width * 0.7 * 3, depth * 0.7 * 3, height * 0.8 * 1);
-            mesh.Append(boxBuilding);
-
-            // Building 3: U-shaped building - COMPACT LEFT-BACK (reduced gap to 5m, closer offset)
-            var uShaped = CreateUShapedBuilding(-width * 3 - 5, -depth * 0.5, 0, width * 0.8 * 3, depth * 0.8 * 3, height * 0.9 * 1);
-            mesh.Append(uShaped);
-
-            mesh.Normals.ComputeNormals();
-            mesh.Compact();
-
-            return mesh;
-        }
-
-        private Mesh CreateBox(double x, double y, double z, double width, double depth, double height)
-        {
-            // Create a simple rectangular box
-            var mesh = new Mesh();
-
-            // Create 8 corner points
-            var corners = new Point3d[]
-            {
-                new Point3d(x, y, z),                           // Bottom-left-back
-                new Point3d(x + width, y, z),                   // Bottom-right-back
-                new Point3d(x + width, y + depth, z),           // Bottom-right-front
-                new Point3d(x, y + depth, z),                  // Bottom-left-front
-                new Point3d(x, y, z + height),                  // Top-left-back
-                new Point3d(x + width, y, z + height),          // Top-right-back
-                new Point3d(x + width, y + depth, z + height), // Top-right-front
-                new Point3d(x, y + depth, z + height)           // Top-left-front
-            };
-
-            // Add vertices
-            for (int i = 0; i < 8; i++)
-            {
-                mesh.Vertices.Add(corners[i]);
-            }
-
-            // Add faces (6 faces of a box)
-            mesh.Faces.AddFace(0, 1, 2, 3); // Bottom
-            mesh.Faces.AddFace(4, 7, 6, 5); // Top
-            mesh.Faces.AddFace(0, 4, 5, 1); // Front
-            mesh.Faces.AddFace(2, 6, 7, 3); // Back
-            mesh.Faces.AddFace(0, 3, 7, 4); // Left
-            mesh.Faces.AddFace(1, 5, 6, 2); // Right
-
-            return mesh;
-        }
-
-        private Mesh CreateLShapedBuilding(double x, double y, double z, double width, double depth, double height)
-        {
-            // Create an L-shaped building by combining two rectangular boxes
-            var mesh = new Mesh();
-
-            // Main part of L (vertical leg)
-            var mainPart = CreateBox(x, y, z, width * 0.6, depth, height);
-            mesh.Append(mainPart);
-
-            // Horizontal leg of L
-            var horizontalPart = CreateBox(x + width * 0.4, y + depth * 0.4, z, width * 0.6, depth * 0.6, height);
-            mesh.Append(horizontalPart);
-
-            return mesh;
-        }
-
-        private Mesh CreateUShapedBuilding(double x, double y, double z, double width, double depth, double height)
-        {
-            // Create a U-shaped building by combining three rectangular boxes
-            var mesh = new Mesh();
-
-            // Left leg of U
-            var leftLeg = CreateBox(x, y, z, width * 0.3, depth, height);
-            mesh.Append(leftLeg);
-
-            // Right leg of U
-            var rightLeg = CreateBox(x + width * 0.7, y, z, width * 0.3, depth, height);
-            mesh.Append(rightLeg);
-
-            // Back of U
-            var backPart = CreateBox(x, y + depth * 0.7, z, width, depth * 0.3, height);
-            mesh.Append(backPart);
-
-            return mesh;
-        }
-
-        /// Helpers
-        ///
-
-        public static class WindowsServerDetector
-        {
-            public static bool IsWindowsServer()
-            {
-                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    return false;
-
-                // Prefer 64-bit view to avoid WOW64 redirection; fallback to Default if needed.
-                using (var baseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64))
-                using (var key = baseKey.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion"))
-                {
-                    var installType = key == null ? null : key.GetValue("InstallationType") as string;
-                    if (!string.IsNullOrEmpty(installType) &&
-                        installType.StartsWith("Server", StringComparison.OrdinalIgnoreCase))
-                    {
-                        return true;
-                    }
-
-                    var productName = key == null ? null : key.GetValue("ProductName") as string;
-                    return !string.IsNullOrEmpty(productName) &&
-                           productName.IndexOf("Server", StringComparison.OrdinalIgnoreCase) >= 0;
-                }
-            }
-        }
-
-        [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
-        public sealed class NotWindowsServerFactAttribute : FactAttribute
-        {
-            public NotWindowsServerFactAttribute()
-            {
-                if (WindowsServerDetector.IsWindowsServer())
-                {
-                    Skip = "Skipped on Windows Server.";
-                }
-            }
-        }
     }
 }
