@@ -5,64 +5,55 @@ using System.Text.RegularExpressions;
 
 namespace EddyLib
 {
+    /// <summary>
+    /// System settings and resource detection utilities.
+    /// </summary>
     internal class Settings
     {
-        public static int getCurrentRAM()
+        /// <summary>
+        /// Path to Windows PowerShell executable.
+        /// </summary>
+        private const string PowerShellPath = @"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe";
+
+        /// <summary>
+        /// Gets the current CPU count allocated to the Docker VM.
+        /// </summary>
+        public static int getCurrentCPUs(OFBoxDomain DOM)
         {
-            string currentRAM = @"Get-VMMemory MobyLinuxVM";
-
-            ProcessStartInfo psiCurrentRAM = new ProcessStartInfo(@"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe");
-            psiCurrentRAM.Verb = "runas";
-
-            //psiCurrentRAM.CreateNoWindow = true;
-            psiCurrentRAM.Arguments = currentRAM;
-            psiCurrentRAM.RedirectStandardError = true;
-            psiCurrentRAM.RedirectStandardOutput = true;
-            psiCurrentRAM.UseShellExecute = false;
-
-            Process pCurrentRAM = new Process();
-
-            pCurrentRAM.StartInfo = psiCurrentRAM;
-            pCurrentRAM.Start();
-            string vms = pCurrentRAM.StandardOutput.ReadToEnd();
-            string vms1 = pCurrentRAM.StandardOutput.ReadToEnd();
-
-            //File.WriteAllText(@"C:\OF2\RAM", vms);
-            pCurrentRAM.WaitForExit();
+            string output = ExecutePowerShellCommand("Get-VMProcessor MobyLinuxVM");
 
             int result = 0;
-
-            //int[] numbers = (from Match m in Regex.Matches(vms, @"\d+") select int.Parse(m.Value)).ToArray();
-            //result = numbers[1];
+            int[] numbers = (from Match m in Regex.Matches(output, @"\d+") select int.Parse(m.Value)).ToArray();
+            if (numbers.Length > 0)
+            {
+                result = numbers[0];
+            }
 
             return result;
         }
 
-        public static int getCurrentCPUs(OFBoxDomain DOM)
+        /// <summary>
+        /// Executes a PowerShell command and returns the standard output.
+        /// </summary>
+        private static string ExecutePowerShellCommand(string command)
         {
-            string currentRAM = @"Get-VMProcessor MobyLinuxVM";
+            var psi = new ProcessStartInfo(PowerShellPath)
+            {
+                Verb = "runas",
+                CreateNoWindow = true,
+                Arguments = command,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false
+            };
 
-            ProcessStartInfo psiCurrentRAM = new ProcessStartInfo(@"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe");
-            psiCurrentRAM.Verb = "runas";
-            psiCurrentRAM.CreateNoWindow = true;
-            psiCurrentRAM.Arguments = currentRAM;
-            psiCurrentRAM.RedirectStandardError = true;
-            psiCurrentRAM.RedirectStandardOutput = true;
-            psiCurrentRAM.UseShellExecute = false;
-
-            Process pCurrentRAM = new Process();
-
-            pCurrentRAM.StartInfo = psiCurrentRAM;
-            pCurrentRAM.Start();
-            string vms = pCurrentRAM.StandardOutput.ReadToEnd();
-            File.WriteAllText(@"C:\OF2\RAM", vms);
-            pCurrentRAM.WaitForExit();
-
-            int result = 0;
-            int[] numbers = (from Match m in Regex.Matches(vms, @"\d+") select int.Parse(m.Value)).ToArray();
-            result = numbers[0];
-
-            return result;
+            using (var process = new Process { StartInfo = psi })
+            {
+                process.Start();
+                string output = process.StandardOutput.ReadToEnd();
+                process.WaitForExit();
+                return output;
+            }
         }
     }
 }

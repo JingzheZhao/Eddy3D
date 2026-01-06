@@ -1,4 +1,4 @@
-ï»¿using EddyLib.Radiation;
+using EddyLib.Radiation;
 using Rhino.Geometry;
 using System;
 using System.IO;
@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace EddyLib.OutdoorComfort
 {
-    public class MRTSimulation
+    public partial class MRTSimulation
     {
         // Outputs
 
@@ -42,7 +42,7 @@ namespace EddyLib.OutdoorComfort
         }
     }
 
-    public class MRT
+    public partial class MRT
 
     {
         // public static object Options { get; private set; }
@@ -70,84 +70,6 @@ namespace EddyLib.OutdoorComfort
 
         public double[] SkyTemp;
 
-        public MRT(string baseWorkingDir, Mesh BuildingGeometry, SkyTemperatureModel sky, SkyViewFactor vf, Weather weather, MRTType type, Point3d[] probes, bool recalc, string RadianceDir = "C:\\Program Files\\Radiance\\")
-        {
-            var binMRT = baseWorkingDir + @"MRT.bin";
-
-            var numberOfProbes = probes.Length;
-
-            #region TwoPhaseDDS
-
-            var difillFile = baseWorkingDir + @"\Output\annual_total.ill";
-            var dirillFile = baseWorkingDir + @"\Output\annual_dir.ill";
-
-            // Add other files here
-            if (recalc == false && File.Exists(binMRT))
-            {
-                // Load radiation datasets [x][] time [][x] points
-
-                var tempValues = RadianceFiles.loadBinD(binMRT);
-
-                int sensorPointCountExisting = tempValues.GetLength(1);
-
-                if (sensorPointCountExisting != numberOfProbes)
-                {
-                    this.wrongNumberOfProbes = true;
-                    return;
-                }
-                else
-                {
-                    this.Values = tempValues;
-                }
-            }
-            else if (recalc == true)
-            {
-                if (File.Exists(binMRT))
-                {
-                    File.Delete(binMRT);
-                }
-
-                //Utilities.CleanDirectory(baseWorkingDir + @"Rad\");
-                //Utilities.CleanDirectory(baseWorkingDir + @"Output\");
-
-                EddyLib.Radiation.TwoPhaseDDS dds = new EddyLib.Radiation.TwoPhaseDDS(baseWorkingDir, BuildingGeometry, probes.ToList(), weather, recalc, RadianceDir);
-
-                this.SkyTemp = sky.Temp;
-
-                this.ViewFactors = vf.Values;
-
-                int numberOfHours = 8760;
-                int numberOfSensors = probes.Length;
-
-                var DDSTOTAL = dds.totalIll;
-
-                this.Values = new double[numberOfHours, numberOfSensors];
-
-                double sol_trans = 1;
-                double f_bes = 0.5;
-
-                System.Threading.Tasks.Parallel.For(0, 8760, h =>
-                 {
-                     for (int p = 0; p < probes.Length; p++)
-                     {
-                         double dMRT;
-                         double ERF;
-
-                         SolarGain.ERF(weather.SolarElevation[h], weather.SolarAzi[h], SolarGain.Posture.standing, DDSTOTAL[h][p], sol_trans, ViewFactors[p], f_bes, 0.6, out ERF, out dMRT);
-
-                         var surfaceTempBuilding = weather.DryBulbTemp[h] * (1 - ViewFactors[p]);
-                         var skyTemp = sky.Temp[h] * ViewFactors[p];
-
-                         this.Values[h, p] = surfaceTempBuilding + dMRT + skyTemp;
-                     }
-                 });
-
-                RadianceFiles.writeBin(baseWorkingDir + @"\MRT.bin", this.Values);
-            }
-
-            #endregion TwoPhaseDDS
-        }
-
         public static double[] GetMRTForPointViaKessling(Weather weather, int hour, double DiffRad, double DirRad)
         {
             // Deconstruct Weather
@@ -172,12 +94,12 @@ namespace EddyLib.OutdoorComfort
             MRT[1] = Tair;
 
             //Reference: [1] http://www.academia.edu/13838171/The_Human_Bio-Meteorological_Chart_A_design_tool_for_outdoor_thermal_comfort
-            //Reference: [2] The calculation of the mean radiant temperature of a subject exposed to the solar radiationâ€”a generalised algorithm
+            //Reference: [2] The calculation of the mean radiant temperature of a subject exposed to the solar radiation—a generalised algorithm
             //Reference: [3] The Computation of Equivalent Potential Temperature - David Bolton
 
             double SBConst = 5.67E-8;
 
-            double es = Math.Log(RelHum / 100) + 17.67 * Tair / (243.5 + Tair); // [3] for -30 -- 35Â°C
+            double es = Math.Log(RelHum / 100) + 17.67 * Tair / (243.5 + Tair); // [3] for -30 -- 35°C
             double T_dewP = 243.5 * es / (17.67 - es); // [3]
             double e = 0.7122 + 0.0056 * T_dewP + 0.000073 * Math.Pow(T_dewP, 2) + 0.00884; // polinomial for curve fit [1]
             double TSkyKelvin = (Tair + 273) * Math.Pow(e, 0.25);  // [1]

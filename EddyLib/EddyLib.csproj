@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\Obfuscar.2.2.40\build\obfuscar.props" Condition="Exists('..\packages\Obfuscar.2.2.40\build\obfuscar.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
@@ -110,9 +110,34 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ArrayHelper.cs" />
-    <Compile Include="ASCIProgressBar.cs" />
-    <Compile Include="BoundaryConditions\BCHelpers.cs" />
+      <Compile Include="Utilities\ArrayExtensions.cs" />
+      <Compile Include="Utilities\ArrayHelper.cs" />
+      <Compile Include="Utilities\ASCIIProgressBar.cs" />
+      <Compile Include="Utilities\CsvHelpers.cs" />
+      <Compile Include="Utilities\PrepareProtoBufSingleton.cs" />
+      <Compile Include="Utilities\SymbolicLink.cs" />
+      <Compile Include="Utilities\GrasshopperConversions.cs" />
+      <Compile Include="Domain\IDomain.cs" />
+      <Compile Include="Domain\DomainConstants.cs" />
+      <Compile Include="Domain\DomainConstants.BlockingRatio.cs" />
+      <Compile Include="Domain\DomainConstants.Box.cs" />
+      <Compile Include="Domain\DomainConstants.Cylindrical.cs" />
+      <Compile Include="Domain\DomainConstants.GeometryTolerances.cs" />
+      <Compile Include="Domain\DomainConstants.Height.cs" />
+      <Compile Include="Domain\DomainConstants.Refinement.cs" />
+      <Compile Include="Domain\CylindricalDomainConfig.cs" />
+    <Compile Include="Domain\CylindricalMeshBuilder.cs" />
+    <Compile Include="OpenFOAM\BlockMeshDictSerializer.cs" />
+    <Compile Include="OpenFOAM\OpenFOAMPaths.cs" />
+    <Compile Include="OpenFOAM\OpenFOAMPaths.Case.cs" />
+    <Compile Include="OpenFOAM\OpenFOAMPaths.Mesh.cs" />
+    <Compile Include="OpenFOAM\OpenFOAMPaths.WorkDir.cs" />
+    <Compile Include="OpenFOAM\DictFileWriter.cs" />
+    <Compile Include="OpenFOAM\OpenFOAMHelpers.cs" />
+    <Compile Include="Helpers\ProcessRunner.cs" />
+    <Compile Include="Helpers\DirectoryHelpers.cs" />
+    <Compile Include="Enums\SimulationEnums.cs" />
+      <Compile Include="BoundaryConditions\BCHelpers.cs" />
     <Compile Include="FunctionObjects\FunctionObject.cs" />
     <Compile Include="Geometry\EddyBrep.cs" />
     <Compile Include="Geometry\EddyMesh.cs" />
@@ -151,14 +176,14 @@
     <Compile Include="Indoor\IndoorSimulation.cs" />
     <Compile Include="OutdoorComfort\WindSystem.cs" />
     <Compile Include="OutdoorComfort\WProbe.cs" />
-    <Compile Include="PrepareProtobuff.cs" />
-    <Compile Include="Radiation\AnalysisSystem.cs" />
+      <Compile Include="Radiation\AnalysisSystem.cs" />
     <Compile Include="Radiation\ComfortSystem.cs" />
     <Compile Include="OutdoorComfort\WProbeResultProto.cs" />
-    <Compile Include="Radiation\Tree_Settings.cs" />
-    <Compile Include="Radiation\RSurface_Settings.cs" />
-    <Compile Include="Radiation\MRT_Simulation_System.cs" />
-    <Compile Include="Radiation\MRT_Simulation_Settings.cs" />
+      <Compile Include="Radiation\Tree_Settings.cs" />
+      <Compile Include="Radiation\RSurface_Settings.cs" />
+      <Compile Include="Radiation\MRT_Simulation_System.cs" />
+      <Compile Include="Radiation\MRT_Simulation_System.ViewFactors.cs" />
+      <Compile Include="Radiation\MRT_Simulation_Settings.cs" />
     <Compile Include="Radiation\Old\DaylightSimulationHelpers.cs" />
     <Compile Include="Radiation\Old\RadianceHelpers.cs" />
     <Compile Include="Radiation\RadianceMaterials.cs" />
@@ -175,7 +200,6 @@
     <Compile Include="Radiation\VegetationSurface_Settings.cs" />
     <Compile Include="UI\Attributes\Eddy_ComponentAttributes.cs" />
     <Compile Include="UI\Attributes\Eddy_ComponentButtonAttributes.cs" />
-    <Compile Include="FunctionObjects.cs" />
     <Compile Include="Indoor\Dicts\FunctionObjects\MomentumSinkIndoorInternalDict.cs" />
     <Compile Include="Indoor\Dicts\FunctionObjects\ViralEmitterInternalDict.cs" />
     <Compile Include="Indoor\FunctionObjects\ViralEmitter.cs" />
@@ -186,57 +210,114 @@
     <Compile Include="FunctionObjects\Tree.cs" />
     <Compile Include="OutdoorComfort\WindComfortHelper.cs" />
     <Compile Include="OutdoorComfort\WindComfortWeibull.cs" />
-    <Compile Include="OutdoorComfort\WindComfort.cs" />
-    <Compile Include="OutdoorComfort\WindComfortMetricsWeibull.cs" />
-    <Compile Include="OutdoorComfort\WindFactors.cs" />
-    <Compile Include="OutdoorComfort\WindComfortMetrics.cs" />
+      <Compile Include="OutdoorComfort\WindComfort.cs" />
+      <Compile Include="OutdoorComfort\WindComfortMetricsWeibull.cs" />
+      <Compile Include="OutdoorComfort\WindFactors.cs" />
+      <Compile Include="OutdoorComfort\WindFactorsSpatial.cs" />
+      <Compile Include="OutdoorComfort\WindFactorsTemporal.cs" />
+      <Compile Include="OutdoorComfort\WindComfortMetrics.cs" />
     <Compile Include="OutdoorComfort\PET.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Radiation\SkyTemperatureModel.cs" />
-    <Compile Include="Radiation\SkyViewFactor.cs" />
-    <Compile Include="Radiation\SolarGain.cs" />
+      <Compile Include="Radiation\SkyTemperatureModel.cs" />
+      <Compile Include="Radiation\SkyViewFactor.cs" />
+      <Compile Include="Radiation\SkyViewFactor.FourPi.cs" />
+      <Compile Include="Radiation\SkyViewFactor.LoadResultFile.cs" />
+      <Compile Include="Radiation\SkyViewFactor.Materials.cs" />
+      <Compile Include="Radiation\SkyViewFactor.Octree.cs" />
+      <Compile Include="Radiation\SkyViewFactor.RadFile.cs" />
+      <Compile Include="Radiation\SkyViewFactor.RayCast.cs" />
+      <Compile Include="Radiation\SkyViewFactor.RaysFile.cs" />
+      <Compile Include="Radiation\SolarGain.cs" />
     <Compile Include="Radiation\RadiationSystem.cs" />
     <Compile Include="Strings\ReturnMsg.cs" />
     <Compile Include="GlobalSettings\EddyVersion.cs" />
-    <Compile Include="OFResult.cs" />
-    <Compile Include="OFRunSettings.cs" />
-    <Compile Include="OFMeshSettings.cs" />
-    <Compile Include="OutdoorComfort\MRT.cs" />
-    <Compile Include="OutdoorComfort\MultiDirectionalVelocities.cs" />
+      <Compile Include="OpenFOAM\OFResult.cs" />
+      <Compile Include="OpenFOAM\OFRunSettings.cs" />
+      <Compile Include="OpenFOAM\OFRunSettings.Environment.cs" />
+      <Compile Include="OpenFOAM\OFRunSettings.Installation.cs" />
+      <Compile Include="OpenFOAM\OFRunSettings.Simulation.cs" />
+      <Compile Include="OpenFOAM\OFMeshSettings.cs" />
+      <Compile Include="OutdoorComfort\MRT.cs" />
+      <Compile Include="OutdoorComfort\MRT.TwoPhaseDDS.cs" />
+      <Compile Include="OutdoorComfort\MultiDirectionalVelocities.cs" />
     <Compile Include="Radiation\Old\TwoPhaseDDS.cs" />
     <Compile Include="Radiation\RadianceSkies.cs" />
-    <Compile Include="Residuals.cs" />
-    <Compile Include="RunBlockMesh.cs" />
-    <Compile Include="RunFoamSimulation.cs" />
-    <Compile Include="RunSnappy.cs" />
-    <Compile Include="Streamwriter.cs" />
-    <Compile Include="Strings\BatchFiles.cs" />
-    <Compile Include="Strings\BoundaryConditions.cs" />
-    <Compile Include="Strings\PlotResiduals.cs" />
-    <Compile Include="SymbolicLink.cs" />
-    <Compile Include="Radiation\Old\Daysim.cs" />
-    <Compile Include="JenksFisherNaturalBreaks.cs" />
-    <Compile Include="KMeansClustering.cs" />
-    <Compile Include="OFBaseDomain.cs" />
-    <Compile Include="OFBoxDomain.cs" />
-    <Compile Include="OFCylDomain.cs" />
-    <Compile Include="OFLaunch.cs" />
-    <Compile Include="Probing.cs" />
+    <Compile Include="OpenFOAM\Residuals.cs" />
+      <Compile Include="OpenFOAM\RunBlockMesh.cs" />
+      <Compile Include="OpenFOAM\RunFoamSimulation.cs" />
+      <Compile Include="OpenFOAM\RunFoamSimulation.Batch.cs" />
+      <Compile Include="OpenFOAM\RunFoamSimulation.Boundary.cs" />
+      <Compile Include="OpenFOAM\RunFoamSimulation.Constants.cs" />
+      <Compile Include="OpenFOAM\RunFoamSimulation.Control.cs" />
+      <Compile Include="OpenFOAM\RunFoamSimulation.MeshLinking.cs" />
+      <Compile Include="OpenFOAM\RunFoamSimulation.System.cs" />
+      <Compile Include="OpenFOAM\RunSnappy.cs" />
+      <Compile Include="Strings\BatchFiles.cs" />
+      <Compile Include="Strings\BoundaryConditions.cs" />
+      <Compile Include="Strings\BoundaryConditions.Box.cs" />
+      <Compile Include="Strings\BoundaryConditions.Cyl.cs" />
+      <Compile Include="Strings\BoundaryConditions.Generic.cs" />
+      <Compile Include="Strings\PlotResiduals.cs" />
+      <Compile Include="Radiation\Old\Daysim.cs" />
+    <Compile Include="Clustering\JenksFisherNaturalBreaks.cs" />
+      <Compile Include="Clustering\KMpt.cs" />
+      <Compile Include="Clustering\KMeansValueAttribute.cs" />
+      <Compile Include="Clustering\KMeansCalculateDistanceDelegate.cs" />
+      <Compile Include="Clustering\KMeans.cs" />
+      <Compile Include="Clustering\KMeansResults.cs" />
+      <Compile Include="OpenFOAM\OFBaseDomain.cs" />
+      <Compile Include="OpenFOAM\OFBaseDomain.DomainProperties.cs" />
+      <Compile Include="OpenFOAM\OFBaseDomain.FrontageAnalysis.cs" />
+      <Compile Include="OpenFOAM\OFBaseDomain.FrontageCalculations.cs" />
+      <Compile Include="OpenFOAM\OFBaseDomain.IDomainImplementation.cs" />
+      <Compile Include="OpenFOAM\OFBaseDomain.MeshIntersection.cs" />
+      <Compile Include="OpenFOAM\OFBaseDomain.ProtectedMethods.cs" />
+      <Compile Include="OpenFOAM\OFBaseDomain.Refinement.cs" />
+      <Compile Include="OpenFOAM\OFBaseDomain.StaticHelpers.cs" />
+      <Compile Include="OpenFOAM\OFBoxDomain.cs" />
+    <Compile Include="OpenFOAM\OFCylDomain.cs" />
+    <Compile Include="Probing\ProbeEnums.cs" />
+    <Compile Include="Probing\OFFieldNew.cs" />
+    <Compile Include="Probing\ProbingNew.cs" />
+    <Compile Include="Probing\OFField.cs" />
+    <Compile Include="Probing\Probing.cs" />
+    <Compile Include="Probing\ProbeParsing.cs" />
+    <Compile Include="Probing\ProbeFieldHelpers.cs" />
+    <Compile Include="Probing\ProbeTimeHelper.cs" />
+    <Compile Include="Probing\ProbeBinaryIO.cs" />
+    <Compile Include="Probing\ProbePathHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Radiation\RadianceFiles.cs" />
     <Compile Include="GlobalSettings\Settings.cs" />
     <Compile Include="Radiation\SolarGeometry.cs" />
-    <Compile Include="STLExport.cs" />
+    <Compile Include="Utilities\STLExport.cs" />
     <Compile Include="Strings\Executables.cs" />
-    <Compile Include="OutdoorComfort\UTCI.cs" />
-    <Compile Include="NV.cs" />
+      <Compile Include="Strings\Executables.Mesh.cs" />
+      <Compile Include="OutdoorComfort\UTCI.cs" />
+      <Compile Include="OutdoorComfort\UTCI.Equation.cs" />
+      <Compile Include="Environment\NaturalVentilation.cs" />
     <Compile Include="UI\ProgressBarUI.cs" />
-    <Compile Include="Weather.cs" />
-    <Compile Include="Utilities.cs" />
+    <Compile Include="Environment\Weather.cs" />
+    <Compile Include="Utilities\Utilities.cs" />
+    <Compile Include="Utilities\Utilities.Assembly.cs" />
+    <Compile Include="Utilities\Utilities.Collections.cs" />
+    <Compile Include="Utilities\Utilities.Comparers.cs" />
+    <Compile Include="Utilities\Utilities.Directories.cs" />
+    <Compile Include="Utilities\Utilities.Formatting.cs" />
+    <Compile Include="Utilities\Utilities.Geometry.cs" />
+    <Compile Include="Utilities\Utilities.IO.cs" />
+    <Compile Include="Utilities\Utilities.License.cs" />
+    <Compile Include="Utilities\Utilities.Math.cs" />
+    <Compile Include="Utilities\Utilities.OpenFoam.cs" />
+    <Compile Include="Utilities\Utilities.Processes.cs" />
+    <Compile Include="Utilities\Utilities.Runtime.cs" />
+    <Compile Include="Utilities\Utilities.Strings.cs" />
+    <Compile Include="Utilities\Utilities.System.cs" />
+    <Compile Include="Utilities\Utilities.Time.cs" />
     <Compile Include="Compute\SLURM_Runner.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -280,3 +361,5 @@
   <Import Project="..\packages\RhinoCommon.8.15.25013.13001\build\net48\RhinoCommon.targets" Condition="Exists('..\packages\RhinoCommon.8.15.25013.13001\build\net48\RhinoCommon.targets')" />
   <Import Project="..\packages\Grasshopper.8.15.25013.13001\build\net48\Grasshopper.targets" Condition="Exists('..\packages\Grasshopper.8.15.25013.13001\build\net48\Grasshopper.targets')" />
 </Project>
+
+

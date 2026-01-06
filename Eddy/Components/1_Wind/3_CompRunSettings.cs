@@ -233,7 +233,7 @@ namespace Eddy
             }
             else
             {
-                os = OSType.MaxOS;
+                os = OSType.MacOS;
             }
 
             TurbModel turbmodel;

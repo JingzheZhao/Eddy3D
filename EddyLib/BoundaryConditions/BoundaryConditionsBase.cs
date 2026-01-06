@@ -20,13 +20,7 @@ namespace EddyLib.BCs
             z0 = _z0;
             Ustar = Kappa * URef / Math.Log((zref + z0) / z0);
 
-            CalcUPedestrianHeight();
-
-            k = K(Tu, URef);
-            epsilon = Epsilon(k, eddyViscosityRatio, nu);
-            omega = Omega(epsilon, k);
-
-            flowDir = Utilities.Dir2Vec(_windDir);
+            FinalizeSetup();
         }
     }
 
@@ -40,13 +34,7 @@ namespace EddyLib.BCs
             URef = _uref;
             z0 = _z0;
 
-            CalcUPedestrianHeight();
-
-            k = K(Tu, URef);
-            epsilon = Epsilon(k, eddyViscosityRatio, nu);
-            omega = Omega(epsilon, k);
-
-            flowDir = Utilities.Dir2Vec(_windDir);
+            FinalizeSetup();
         }
     }
 
@@ -58,10 +46,10 @@ namespace EddyLib.BCs
 
     public class BCCollection
     {
-        public List<BC> BCs;
-        public List<int> WindDirections;
+        public List<BC> BCs { get; }
+        public List<int> WindDirections { get; }
 
-        public string epwFilePath;
+        public string epwFilePath { get; private set; }
 
         // Wind Factors
 
@@ -72,14 +60,12 @@ namespace EddyLib.BCs
 
         public BCCollection()
         {
-            WindDirections = new List<int>(); // Ensure WindDirections is initialized
             BCs = new List<BC>();
+            WindDirections = new List<int>();
         }
 
-        public BCCollection(string epwFilePath)
+        public BCCollection(string epwFilePath) : this()
         {
-            WindDirections = new List<int>(); // Ensure WindDirections is initialized
-            BCs = new List<BC>();
             this.epwFilePath = epwFilePath;
         }
 
@@ -88,43 +74,38 @@ namespace EddyLib.BCs
             AddBoundaryCondition(BoundaryCondition); // Use the method to ensure consistency
         }
 
-        public BCCollection(List<BC> BoundaryConditions) : this() // Call the base constructor to ensure initialization
+        public BCCollection(List<BC> BoundaryConditions) : this()
         {
-            foreach (var bcond in BoundaryConditions)
-            {
-                AddBoundaryCondition(bcond); // Use the method to ensure consistency
-            }
+            AddBoundaryConditions(BoundaryConditions);
         }
 
         public BCCollection(BC BoundaryCondition, string epwFilePath) : this()
         {
             this.epwFilePath = epwFilePath;
-            this.BCs.Add(BoundaryCondition);
-            this.WindDirections.Add(BoundaryCondition.windDir);
+            AddBoundaryCondition(BoundaryCondition);
 
             CalcWindStatistic(epwFilePath);
         }
 
         public BCCollection(List<int> windDirections, BCType Type) : this()
         {
-            this.WindDirections = windDirections;
-
             SetUpWindDirections(windDirections, Type);
         }
 
         protected void SetUpWindDirections(List<int> windDirections, BCType Type)
         {
-            this.WindDirections = windDirections;
+            WindDirections.Clear();
+            BCs.Clear();
 
             foreach (int dir in windDirections)
             {
                 if (Type == BCType.ConstU)
                 {
-                    this.BCs.Add(new ConstU(dir, 5, 1));
+                    AddBoundaryCondition(new ConstU(dir, 5, 1));
                 }
                 else if (Type == BCType.ABL)
                 {
-                    this.BCs.Add(new ABL(dir, 5, 10, 1, 0));
+                    AddBoundaryCondition(new ABL(dir, 5, 10, 1, 0));
                 }
             }
         }
@@ -149,16 +130,44 @@ namespace EddyLib.BCs
 
         public void AddBoundaryCondition(BC boundaryCondition)
         {
+            if (boundaryCondition == null)
+            {
+                return;
+            }
+
             BCs.Add(boundaryCondition);
             WindDirections.Add(boundaryCondition.windDir);
+        }
+
+        public void AddBoundaryConditions(IEnumerable<BC> boundaryConditions)
+        {
+            if (boundaryConditions == null)
+            {
+                return;
+            }
+
+            foreach (var boundaryCondition in boundaryConditions)
+            {
+                AddBoundaryCondition(boundaryCondition);
+            }
         }
     }
 
     public class BC
     {
-        public double URef;
+        protected const double DefaultPedestrianHeight = 1.75;
 
-        protected readonly double pedestrianHeight = 1.75;
+        protected const double DefaultCmu = 0.09;
+
+        protected const double DefaultKappa = 0.41;
+
+        protected const double DefaultEddyViscosityRatio = 10;
+
+        protected const double DefaultTu = 2;
+
+        protected const double DefaultNu = 1.5e-05;
+
+        public double URef;
 
         public double UPedestrianHeight;
 
@@ -168,17 +177,17 @@ namespace EddyLib.BCs
 
         public Vector3d flowDir;
 
-        protected double Cmu = 0.09;
+        protected double Cmu = DefaultCmu;
 
-        public double Kappa = 0.41;
+        public double Kappa = DefaultKappa;
 
         //CFD Online
 
-        protected readonly double eddyViscosityRatio = 10;
+        protected readonly double eddyViscosityRatio = DefaultEddyViscosityRatio;
 
-        protected readonly double Tu = 2; // % https://www.cfd-online.com/Tools/turbulence.php Medium turbulence case
+        protected readonly double Tu = DefaultTu; // % https://www.cfd-online.com/Tools/turbulence.php Medium turbulence case
 
-        protected readonly double nu = 1.5e-05;
+        protected readonly double nu = DefaultNu;
 
         //turbulence
         public double k;
@@ -190,11 +199,9 @@ namespace EddyLib.BCs
         public static double ScaleABL(double URefEPW, double zref, double z0, double probingHeight)
         {
             double zGround = 0;
-            var Kappa = 0.41;
+            var uStar = DefaultKappa * URefEPW / Math.Log((zref + z0) / z0);
 
-            var U_star = Kappa * URefEPW / (Math.Log((zref + z0) / z0));
-
-            return U_star / Kappa * Math.Log((probingHeight - zGround + z0) / z0);
+            return uStar / DefaultKappa * Math.Log((probingHeight - zGround + z0) / z0);
         }
 
         protected double Epsilon(double k, double eddy_viscosity_ratio, double nu)
@@ -224,12 +231,23 @@ namespace EddyLib.BCs
             {
                 var BCNew = (ABL)this;
 
-                { this.UPedestrianHeight = BCNew.Ustar / Kappa * Math.Log((pedestrianHeight + z0) / z0); }
+                { this.UPedestrianHeight = BCNew.Ustar / Kappa * Math.Log((DefaultPedestrianHeight + z0) / z0); }
             }
             else
             {
                 { this.UPedestrianHeight = this.URef; }
             }
+        }
+
+        protected void FinalizeSetup()
+        {
+            CalcUPedestrianHeight();
+
+            k = K(Tu, URef);
+            epsilon = Epsilon(k, eddyViscosityRatio, nu);
+            omega = Omega(epsilon, k);
+
+            flowDir = Utilities.Dir2Vec(windDir);
         }
     }
 }

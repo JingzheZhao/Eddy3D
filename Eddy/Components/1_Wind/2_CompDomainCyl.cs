@@ -271,7 +271,7 @@ namespace Eddy
 
                 DA.SetData(0, DOMCYL);
 
-                if (DOMCYL.hasTerrain)
+                if (DOMCYL.HasTerrain)
                 {
                     DA.SetDataList(1, DOMCYL.DomainMeshIntersection);
                 }

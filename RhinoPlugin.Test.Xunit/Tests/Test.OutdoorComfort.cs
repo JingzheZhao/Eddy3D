@@ -230,7 +230,7 @@ namespace RhinoPlugin.Test.Xunit
             var viewFactorsDir = EnsureViewFactorsDir(workingdir);
             var csvSVF = Path.Combine(viewFactorsDir, "SkyViewFactors.csv");
 
-            ArrayHelper._1DArray2CSV(file, csvSVF);
+            CsvHelpers.Array1DToCSV(file, csvSVF);
         }
 
         [Fact]

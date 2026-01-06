@@ -257,7 +257,7 @@ namespace Eddy
 
                 DA.SetData(0, DOMBOX);
 
-                if (DOMBOX.hasTerrain)
+                if (DOMBOX.HasTerrain)
                 {
                     DA.SetDataList(1, new List<GeometryBase> { DOMBOX.TerrainMesh, DOMBOX.DomainMesh });
                 }

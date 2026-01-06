@@ -18,8 +18,8 @@ namespace RhinoPlugin.Test.Xunit
         /// cleans it (weld, unify normals, merge coplanar faces) and returns it.
         /// </summary>
         public static Mesh LoadMergedMesh(string solutionRelativePath,
-            double weldAngleRadians = Math.PI,
-            double coplanarTol = 1e-6)
+            double weldAngleRadians = TestConstants.DefaultWeldAngleRadians,
+            double coplanarTol = TestConstants.DefaultCoplanarTolerance)
         {
             var solutionRoot = GetSolutionRoot();
             var stlAbs = Path.Combine(solutionRoot, solutionRelativePath);
@@ -67,9 +67,9 @@ namespace RhinoPlugin.Test.Xunit
         {
             var baseDir = AppContext.BaseDirectory;
 
-            // Keep going up until we find the solution root (Eddy3D folder)
+            // Keep going up until we find the solution root
             var current = new DirectoryInfo(baseDir);
-            while (current != null && current.Name != "Eddy3D")
+            while (current != null && current.Name != TestConstants.SolutionFolderName)
             {
                 current = current.Parent;
             }
@@ -78,9 +78,9 @@ namespace RhinoPlugin.Test.Xunit
             {
                 // Fallback to relative path from bin directory
 #if DEBUG
-                return Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\.."));
+                return Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\"));
 #else
-                return Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\.."));
+                return Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\..\"));
 #endif
             }
 

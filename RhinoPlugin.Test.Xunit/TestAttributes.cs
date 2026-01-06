@@ -1,4 +1,7 @@
 using Xunit;
+using System.IO;
+using System.Reflection;
+using System;
 
 namespace RhinoPlugin.Test.Xunit
 {
@@ -25,6 +28,66 @@ namespace RhinoPlugin.Test.Xunit
         public NotWindowsServerTheoryAttribute()
         {
             Skip = WindowsServerSkip.GetReason();
+        }
+    }
+
+    internal static class GrasshopperSkip
+    {
+        internal const string Reason = "Skipping test because Grasshopper is not available.";
+
+        internal static string GetReason()
+        {
+            if (HasGrasshopperInstall())
+            {
+                return null;
+            }
+
+            try
+            {
+                Assembly.Load("Grasshopper");
+                return null;
+            }
+            catch
+            {
+                return Reason;
+            }
+        }
+
+        private static bool HasGrasshopperInstall()
+        {
+            var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+
+            foreach (var rhinoVersion in TestConstants.RhinoVersions)
+            {
+                var dllPath = Path.Combine(
+                    programFiles,
+                    rhinoVersion,
+                    TestConstants.GrasshopperPluginPath,
+                    TestConstants.GrasshopperDllName);
+
+                if (File.Exists(dllPath))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    public class RequiresGrasshopperFactAttribute : FactAttribute
+    {
+        public RequiresGrasshopperFactAttribute()
+        {
+            Skip = GrasshopperSkip.GetReason();
+        }
+    }
+
+    public class RequiresGrasshopperTheoryAttribute : TheoryAttribute
+    {
+        public RequiresGrasshopperTheoryAttribute()
+        {
+            Skip = GrasshopperSkip.GetReason();
         }
     }
 }

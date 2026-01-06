@@ -83,7 +83,7 @@ namespace RhinoPlugin.Test.Xunit
             GenerateCylDomainCaseWithProceduralGeometry(caseDir, windDir);
 
             AssertCaseFilesGenerated(caseDir);
-            AssertLogContainsTimeIfPresent(caseDir, windDir, expectedTime: 400);
+            AssertLogContainsTimeIfPresent(caseDir, windDir, expectedTime: 500);
         }
 
         private static void GenerateCylDomainCaseWithProceduralGeometry(string caseDir, int windDir)
@@ -143,10 +143,7 @@ namespace RhinoPlugin.Test.Xunit
         private static void AssertLogContainsTimeIfPresent(string caseDir, int windDir, int expectedTime)
         {
             var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
-            if (!File.Exists(logPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(logPath), $"Log file not found: {logPath}. Simulation may have been cancelled or failed to start.");
 
             var logContent = File.ReadAllText(logPath);
             Assert.Contains($"Time = {expectedTime}", logContent);

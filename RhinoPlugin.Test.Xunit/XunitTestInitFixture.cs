@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -14,6 +15,7 @@ namespace RhinoPlugin.Test.Xunit
         private static bool initialized = false;
         private static string systemDir = null;
         private static string systemDirOld = null;
+        private static string grasshopperPath = null;
 
         public XunitTestInitFixture()
         {
@@ -37,6 +39,26 @@ namespace RhinoPlugin.Test.Xunit
                 systemDir = systemDirOld;
             }
 
+            var rhinoBaseDir = Path.GetDirectoryName(systemDir);
+            if (!string.IsNullOrEmpty(rhinoBaseDir))
+            {
+                grasshopperPath = Path.Combine(rhinoBaseDir, "Plug-ins", "Grasshopper", "Grasshopper.dll");
+                if (!File.Exists(grasshopperPath))
+                {
+                    grasshopperPath = null;
+                }
+            }
+
+            if (string.IsNullOrEmpty(grasshopperPath))
+            {
+                var rhino8Base = Path.Combine(programFiles, "Rhino 8");
+                var rhino8Grasshopper = Path.Combine(rhino8Base, "Plug-ins", "Grasshopper", "Grasshopper.dll");
+                if (File.Exists(rhino8Grasshopper))
+                {
+                    grasshopperPath = rhino8Grasshopper;
+                }
+            }
+
             Assert.True(System.IO.Directory.Exists(systemDir), string.Format("Rhino system dir not found: {0}", systemDir));
             // Add rhino system directory to path (for RhinoLibrary.dll)
             Environment.SetEnvironmentVariable("path", envPath + ";" + systemDir);
@@ -54,6 +76,11 @@ namespace RhinoPlugin.Test.Xunit
 
             if (!name.StartsWith("RhinoCommon"))
             {
+                if (name.StartsWith("Grasshopper") && !string.IsNullOrEmpty(grasshopperPath) && File.Exists(grasshopperPath))
+                {
+                    return Assembly.LoadFrom(grasshopperPath);
+                }
+
                 return null;
             }
 

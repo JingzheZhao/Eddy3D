@@ -12,11 +12,11 @@ namespace RhinoPlugin.Test.Xunit
 
             // Prefer 64-bit view to avoid WOW64 redirection; fallback to Default if needed.
             using (var baseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64))
-            using (var key = baseKey.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion"))
+            using (var key = baseKey.OpenSubKey(TestConstants.WindowsVersionRegistryPath))
             {
                 if (key != null)
                 {
-                    var installationType = key.GetValue("InstallationType") as string;
+                    var installationType = key.GetValue(TestConstants.InstallationTypeValueName) as string;
                     if (!string.IsNullOrEmpty(installationType) &&
                         installationType.IndexOf("Server", System.StringComparison.OrdinalIgnoreCase) >= 0)
                     {
