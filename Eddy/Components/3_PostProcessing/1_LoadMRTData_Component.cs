@@ -19,8 +19,14 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
         public LoadMRTData_Component()
-          : base("Load MRT", "LoadMRT", "Load radiation and MRT data" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
+          : base("Load MRT Results", "LoadMRT", 
+@"Load MRT simulation results from .mrt.eddy file.
 
+Contains Mean Radiant Temperature, solar radiation, and 
+surface temperature data for thermal comfort analysis.
+
+" + EddyVersion.toString(), 
+              EddyVersion.Name, "3 | PostProcessing")
         {
         }
 
@@ -29,9 +35,15 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Path", "P", "Result path", GH_ParamAccess.item);
-            //pManager.AddIntegerParameter("Hour", "H", "Hour", GH_ParamAccess.item, 12);
-            pManager.AddBooleanParameter("Load", "L", "Load data from disk", GH_ParamAccess.item, false);
+            pManager.AddTextParameter(
+                "File Path", "Path", 
+                "Path to .mrt.eddy result file from MRT Simulation.", 
+                GH_ParamAccess.item);
+
+            pManager.AddBooleanParameter(
+                "Load", "Load!", 
+                "Set True to load data from disk into memory.", 
+                GH_ParamAccess.item, false);
         }
 
         /// <summary>
@@ -39,13 +51,9 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Result", "Res", "Result object containing probes, polygons and result data", GH_ParamAccess.item);
-
-            pManager.AddGenericParameter("Probes", "Prb", "Analysis probes", GH_ParamAccess.list);
-
-            pManager.AddGenericParameter("Polys", "Ply", "Polygons", GH_ParamAccess.list);
-
-            //pManager.AddMeshParameter("Meshes", "M", "Analysis meshes", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Result", "Res", "MRT result object for Inspect components", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Probes", "Prb", "Analysis probe locations with data", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Polygons", "Poly", "Analysis polygons with spatial data", GH_ParamAccess.list);
         }
 
         /// <summary>

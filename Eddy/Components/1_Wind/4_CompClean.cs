@@ -31,8 +31,13 @@ namespace Eddy
         /// be created.
         /// </summary>
         public Clean()
-          : base("Clean", "Clean",
-              "Clean the directories." + EddyVersion.toString(),
+          : base("Clean Directories", "Clean",
+@"Delete simulation directories to free disk space.
+
+Removes mesh and/or simulation output folders. Use after 
+exporting results or to restart a simulation from scratch.
+
+" + EddyVersion.toString(),
               EddyVersion.Name, "3 | Pre-Processing")
         {
         }
@@ -50,13 +55,24 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Result/Directory", "Res/Dir", "Provide a result or working directory", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("Mode", "Mode", "Which directories to delete", GH_ParamAccess.item, 1);
+            pManager.AddGenericParameter(
+                "Result/Directory", "Res", 
+                "Simulation result or working directory path.", 
+                GH_ParamAccess.item);
+
+            pManager.AddIntegerParameter(
+                "Mode", "Mode", 
+                "What to delete: 0=Mesh, 1=Simulation, 2=Both", 
+                GH_ParamAccess.item, 1);
             Param_Integer param = pManager[1] as Param_Integer;
             param.AddNamedValue("Mesh Directory", 0);
             param.AddNamedValue("Simulation Directories", 1);
             param.AddNamedValue("Both", 2);
-            pManager.AddBooleanParameter("Run", "Run", "Clean the directory", GH_ParamAccess.item, false);
+
+            pManager.AddBooleanParameter(
+                "Run", "Run!", 
+                "Set True to delete directories. CAUTION: Cannot be undone.", 
+                GH_ParamAccess.item, false);
         }
 
         /// <summary>

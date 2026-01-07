@@ -13,23 +13,25 @@ using System.IO;
 
 namespace Eddy
 {
-    public class GeometryExportComponent : GH_Component
+    public class STLExporter_Component : GH_Component
     {
-        public override GH_Exposure Exposure
-        {
-            get { return GH_Exposure.quarternary | GH_Exposure.obscure; }
-        }
+        public override GH_Exposure Exposure => GH_Exposure.quarternary | GH_Exposure.obscure;
 
         /// <summary>
-        /// Each implementation of GH_Component must provide a public constructor without any
-        /// arguments. Category represents the Tab in which the component will appear, Subcategory
-        /// the panel. If you use non-existing tab or panel names, new tabs/panels will automatically
-        /// be created.
+        /// Initializes a new instance of the STLExporter_Component class.
         /// </summary>
-        public GeometryExportComponent()
-          : base("STL Exporter", "STL Exporter",
-              "STL Exporter" + EddyVersion.toString(),
-              EddyVersion.Name, "3 | Pre-Processing")
+        public STLExporter_Component()
+          : base(
+              "STL Exporter", 
+              "STLExport",
+              @"Export geometry to STL format for OpenFOAM or other CFD tools.
+
+Supports meshes and Breps (auto-meshed). Select between binary or ASCII 
+output and single or multiple file export.
+
+" + EddyVersion.toString(),
+              EddyVersion.Name, 
+              "1 | Wind")
         {
         }
 
@@ -38,18 +40,33 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGeometryParameter("Geometry", "Geo", "Breps and Meshes supported", GH_ParamAccess.list);
-            pManager.AddTextParameter("File", "F", "Provide a file path", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("Mode", "Mode", "Output mode: Binary = 0, ASCI = 1", GH_ParamAccess.item, 0);
+            pManager.AddGeometryParameter(
+                "Geometry", "Geo", 
+                "Meshes or Breps to export.", 
+                GH_ParamAccess.list);
 
-            Param_Integer param = pManager[2] as Param_Integer;
+            pManager.AddTextParameter(
+                "File Path", "File", 
+                "Destination file path (.stl).", 
+                GH_ParamAccess.item);
 
-            param.AddNamedValue("Binary", 0);
-            param.AddNamedValue("ASCI", 1);
-            param.AddNamedValue("BinaryList", 2);
-            param.AddNamedValue("ASCIList", 3);
+            pManager.AddIntegerParameter(
+                "Mode", "Mode", 
+                "Export mode: 0=Binary, 1=ASCII, 2=Binary (Multi-file), 3=ASCII (Multi-file)", 
+                GH_ParamAccess.item, 0);
 
-            pManager.AddNumberParameter("Edge Length", "EL", "Max. and min. edge Length", GH_ParamAccess.item, 0);
+            if (pManager[2] is Param_Integer param)
+            {
+                param.AddNamedValue("Binary", 0);
+                param.AddNamedValue("ASCII", 1);
+                param.AddNamedValue("Binary List", 2);
+                param.AddNamedValue("ASCII List", 3);
+            }
+
+            pManager.AddNumberParameter(
+                "Edge Length", "Edge", 
+                "Optional: Maximum edge length for auto-meshing Breps. Units: meters.", 
+                GH_ParamAccess.item, 0);
             pManager[3].Optional = true;
         }
 
@@ -58,7 +75,6 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            // pManager.AddGenericParameter("DateTime", "Dt", "System Date Time Object", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -70,73 +86,67 @@ namespace Eddy
         /// </param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            var geo = new List<GeometryBase>();
+            if (!DA.GetDataList("Geometry", geo)) return;
+
             string filePath = "";
-            int MODE = 0;
+            if (!DA.GetData("File Path", ref filePath) || string.IsNullOrEmpty(filePath)) return;
+
+            int mode = 0;
+            DA.GetData("Mode", ref mode);
+
             double edgeLength = 0;
+            DA.GetData("Edge Length", ref edgeLength);
 
-            List<GeometryBase> geo = new List<GeometryBase>();
+            var dir = Path.GetDirectoryName(filePath);
+            var fileName = Path.GetFileNameWithoutExtension(filePath);
+            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
-            DA.GetDataList(0, geo);
-            DA.GetData(1, ref filePath);
-            DA.GetData(2, ref MODE);
-            DA.GetData(3, ref edgeLength);
-
-            var Dir = Path.GetDirectoryName(filePath);
-            var FileName = Path.GetFileNameWithoutExtension(filePath);
-            if (!Directory.Exists(Dir)) { Directory.CreateDirectory(Dir); }
-
-            MeshingParameters mp = new MeshingParameters();
+            var mp = new MeshingParameters();
             if (edgeLength != 0)
             {
                 mp.MaximumEdgeLength = edgeLength;
                 mp.MinimumEdgeLength = edgeLength;
             }
 
-            Mesh allTogether = new Mesh();
-            List<Mesh> allSeparate = new List<Mesh>();
+            var allTogether = new Mesh();
+            var allSeparate = new List<Mesh>();
 
             foreach (GeometryBase b in geo)
             {
+                if (b == null) continue;
+
                 if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
                 {
                     Mesh obj = (Mesh)b;
                     allTogether.Append(obj);
                     allSeparate.Add(obj);
                 }
-                else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
+                else if (b is Brep brep)
                 {
-                    Brep obj = (Brep)b;
-                    var m = Mesh.CreateFromBrep(obj, mp);
-                    foreach (Mesh mm in m) allTogether.Append(mm);
-
-                    Mesh meshForMeshList = new Mesh();
-                    foreach (Mesh mm in m) meshForMeshList.Append(mm);
-                    allSeparate.Add(meshForMeshList);
+                    var meshes = Mesh.CreateFromBrep(brep, mp);
+                    if (meshes != null)
+                    {
+                        var meshForList = new Mesh();
+                        foreach (Mesh m in meshes)
+                        {
+                            allTogether.Append(m);
+                            meshForList.Append(m);
+                        }
+                        allSeparate.Add(meshForList);
+                    }
                 }
             }
 
-            if (MODE == 0)
-            {
-                STLExport.ExportBinary(filePath, allTogether);
-            }
-            else if (MODE == 1)
-            {
-                STLExport.ExportASCI(filePath, allTogether);
-            }
-            else if (MODE == 2)
+            if (mode == 0) STLExport.ExportBinary(filePath, allTogether);
+            else if (mode == 1) STLExport.ExportASCI(filePath, allTogether);
+            else if (mode == 2 || mode == 3)
             {
                 for (int i = 0; i < allSeparate.Count; i++)
                 {
-                    string filePath2 = Dir + @"\" + FileName + i + ".stl";
-                    STLExport.ExportBinary(filePath2, allSeparate[i]);
-                }
-            }
-            else if (MODE == 3)
-            {
-                for (int i = 0; i < allSeparate.Count; i++)
-                {
-                    string filePath2 = Dir + @"\" + FileName + i + ".stl";
-                    STLExport.ExportASCI(filePath2, allSeparate[i]);
+                    string path = Path.Combine(dir, $"{fileName}_{i}.stl");
+                    if (mode == 2) STLExport.ExportBinary(path, allSeparate[i]);
+                    else STLExport.ExportASCI(path, allSeparate[i]);
                 }
             }
         }

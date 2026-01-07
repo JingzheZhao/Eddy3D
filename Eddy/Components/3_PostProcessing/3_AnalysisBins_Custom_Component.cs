@@ -16,8 +16,13 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
         public AnalysisBinsCustom_Component()
-          : base("Analysis Bins Custom", "ABC", "ABC" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
+          : base("Custom Time Filter", "CustomTime", 
+@"Filter analysis results by custom date/time range.
 
+Specify start and end DateTime objects for precise temporal filtering.
+
+" + EddyVersion.toString(), 
+              EddyVersion.Name, "3 | PostProcessing")
         {
         }
 
@@ -26,10 +31,8 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("From", "F", "From DateTime Object", GH_ParamAccess.item);
-
-            //pManager.AddIntegerParameter("Hour", "H", "Hour", GH_ParamAccess.item, 12);
-            pManager.AddGenericParameter("To", "T", "To DateTime Object", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Start", "From", "Start DateTime for filtering.", GH_ParamAccess.item);
+            pManager.AddGenericParameter("End", "To", "End DateTime for filtering.", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -37,9 +40,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("AB", "AB", "AB", GH_ParamAccess.item);
-
-            //pManager.AddMeshParameter("Meshes", "M", "Analysis meshes", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Time Filter", "Filter", "Custom time filter for Inspect components", GH_ParamAccess.item);
         }
 
         /// <summary>

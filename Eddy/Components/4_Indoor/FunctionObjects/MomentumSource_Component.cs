@@ -14,7 +14,14 @@ namespace Eddy.Components.Indoor
         /// Initializes a new instance of the Emitter class.
         /// </summary>
         public MomentumSource_Component()
-          : base("Momentum Source", "MSource", "Momentum Source" + EddyVersion.toString(), EddyVersion.Name, "9 | Indoor")
+          : base("Momentum Source", "MomSrc", 
+@"Create a directional air flow source for indoor CFD simulation.
+
+Models fans, blowers, or HVAC jets that add momentum to the airflow.
+Specify target velocity direction and magnitude.
+
+" + EddyVersion.toString(), 
+              EddyVersion.Name, "9 | Indoor")
         {
         }
 
@@ -23,12 +30,9 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGeometryParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
-            pManager.AddVectorParameter("Ubar", "Ubar", @"Ubar.
-
-Desired mean velocity.", GH_ParamAccess.item);
-
-            pManager.AddTextParameter("Name", "N", "Name", GH_ParamAccess.item, "");
+            pManager.AddGeometryParameter("Geometry", "Geo", "Fan/source volume (Mesh).", GH_ParamAccess.item);
+            pManager.AddVectorParameter("Mean Velocity", "Ubar", "Target mean velocity vector. Direction and magnitude of airflow.", GH_ParamAccess.item);
+            pManager.AddTextParameter("Name", "Name", "Identifier for this source.", GH_ParamAccess.item, "");
 
             pManager[1].Optional = true;
             pManager[2].Optional = true;
@@ -39,7 +43,7 @@ Desired mean velocity.", GH_ParamAccess.item);
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Function Object", "FO", "Momentum Source Function Object", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Function Object", "FObj", "Momentum source for Indoor Simulation component", GH_ParamAccess.item);
         }
 
         /// <summary>

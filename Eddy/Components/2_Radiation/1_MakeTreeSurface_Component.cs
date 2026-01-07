@@ -21,7 +21,14 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the MakeRadiationMesh_Component class.
         /// </summary>
         public MakeTreeSurface_Component()
-          : base("Tree", "Tree", "Tree for Radiation Simulation" + EddyVersion.toString(), EddyVersion.Name, "2 | Radiation")
+          : base("Tree Surface", "TreeSrf", 
+@"Create tree/vegetation surfaces for MRT simulation.
+
+Trees provide shading and have distinct thermal properties.
+Includes evapotranspiration cooling effects on surface temperature.
+
+" + EddyVersion.toString(), 
+              EddyVersion.Name, "2 | Radiation")
         {
         }
 
@@ -30,20 +37,19 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddBrepParameter("Brep", "B", "Radiation surface", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Patch", "Ps", "Patch size", GH_ParamAccess.item, 3);
-            //pManager.AddTextParameter("Material", "M", "Optional Radiance Material", GH_ParamAccess.item, "");
-            pManager.AddGenericParameter("Settings", "Set", "Optional material and surface property settings", GH_ParamAccess.item);
+            pManager.AddBrepParameter("Geometry", "Brep", "Tree canopy geometry as Brep(s).", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Patch Size", "Patch", "Mesh subdivision size. Units: m. Default: 3", GH_ParamAccess.item, 3);
+            pManager.AddGenericParameter("Settings", "Set", "Optional: Material settings from Tree Settings component.", GH_ParamAccess.item);
             pManager[2].Optional = true;
 
-            pManager.AddIntegerParameter("SimType", "Sts", "Surface Temparature Simulation Type", GH_ParamAccess.item, 1);
+            pManager.AddIntegerParameter("Temperature Type", "Type", "Surface temperature calculation method.", GH_ParamAccess.item, 1);
             var types = Enum.GetNames(typeof(SimulationType));
             Param_Integer param = pManager[3] as Param_Integer;
             for (int i = 0; i < types.Length; i++)
             {
                 param.AddNamedValue(types[i], i);
             }
-            pManager.AddNumberParameter("Temp", "Temp", "Surface Temparature Input", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Temperature", "Temp", "Override surface temperature. Units: °C", GH_ParamAccess.list);
             pManager[4].Optional = true;
         }
 
@@ -52,7 +58,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("RSurf", "RS", "Radiation Model Surfaces", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Surfaces", "Srf", "Tree surfaces for MRT Simulation component", GH_ParamAccess.list);
         }
 
         /// <summary>

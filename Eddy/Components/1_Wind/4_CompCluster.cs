@@ -13,28 +13,25 @@ using System.Linq;
 
 namespace Eddy
 {
-    public class Cluster : GH_Component
+    public class WindRoseCluster_Component : GH_Component
     {
-        public override GH_Exposure Exposure
-        {
-            get { return GH_Exposure.quarternary; }
-        }
-
-        // exposure
-        //public override GH_Exposure Exposure
-        //{
-        //    get { return GH_Exposure.hidden; }
-        //}
+        public override GH_Exposure Exposure => GH_Exposure.quarternary;
 
         /// <summary>
-        /// Each implementation of GH_Component must provide a public constructor without any
-        /// arguments. Category represents the Tab in which the component will appear, Subcategory
-        /// the panel. If you use non-existing tab or panel names, new tabs/panels will automatically
-        /// be created.
+        /// Initializes a new instance of the WindRoseCluster_Component class.
         /// </summary>
-        public Cluster()
-          : base("Wind Rose Cluster", "Cluster", "Create a Wind Rose Cluster from the weather " + EddyVersion.toString(),
-              EddyVersion.Name, "3 | Pre-Processing")
+        public WindRoseCluster_Component()
+          : base(
+              "Wind Rose Cluster", 
+              "Cluster", 
+              @"Group wind directions into clusters based on statistical occurrence.
+
+Reduces a full wind rose (e.g. 36 directions) into a smaller budget (e.g. 8)
+for faster simulation while maintaining representative wind patterns.
+
+" + EddyVersion.toString(),
+              EddyVersion.Name, 
+              "1 | Wind")
         {
         }
 
@@ -43,8 +40,15 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddNumberParameter("Dir", "Dir", "Wind directions (deg)", GH_ParamAccess.list);
-            pManager.AddIntegerParameter("Budget", "B", "Budget of wind directions", GH_ParamAccess.item, 8);
+            pManager.AddNumberParameter(
+                "Directions", "Dir", 
+                "Wind directions (0-360°) from weather data.", 
+                GH_ParamAccess.list);
+
+            pManager.AddIntegerParameter(
+                "Budget", "N", 
+                "Target number of wind directions to simulate. Default: 8", 
+                GH_ParamAccess.item, 8);
         }
 
         /// <summary>
@@ -52,86 +56,53 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Centroids", "Ce", "Centroids", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Distinct Centroids", "DCe", "Distinct Centroids", GH_ParamAccess.item);
-
-            pManager.AddGenericParameter("Clusters", "Cl", "Clusters", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Breaks", "B", "Natural Breaks", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Total Distance", "TD", "Total Distance", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Centroids", "Cent", "Cluster centroid directions.", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Distinct Centroids", "Dcent", "Sorted list of unique cluster centroids.", GH_ParamAccess.list);
+            pManager.AddPointParameter("Clusters", "Clus", "Data tree of points in each cluster.", GH_ParamAccess.tree);
+            pManager.AddNumberParameter("Breaks", "Brk", "Jenks-Fisher natural breaks.", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Total Distance", "Dist", "Total clustering distance (error).", GH_ParamAccess.item);
         }
 
-        /// <summary>
-        /// This is the method that actually does the work.
-        /// </summary>
-        /// <param name="DA">
-        /// The DA object can be used to retrieve data from input parameters and to store data in
-        /// output parameters.
-        /// </param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             var dirsDeg = new List<double>();
-            DA.GetDataList(0, dirsDeg);
+            if (!DA.GetDataList("Directions", dirsDeg)) return;
 
-            int bins = 8;
-            DA.GetData(1, ref bins);
+            int budget = 8;
+            DA.GetData("Budget", ref budget);
 
-            var dirsRad = new List<double>();
-            foreach (double d in dirsDeg)
+            var kmd = new KMpt[dirsDeg.Count];
+            for (int i = 0; i < dirsDeg.Count; i++)
             {
-                dirsRad.Add(d * Math.PI / 180.0);
-            }
-
-            var dirsVec = new List<Vector3d>();
-
-            foreach (double d in dirsRad)
-            {
+                double rad = dirsDeg[i] * Math.PI / 180.0;
                 var v = Vector3d.YAxis;
-                v.Rotate(d, Vector3d.ZAxis);
-                dirsVec.Add(v);
+                v.Rotate(rad, Vector3d.ZAxis);
+                kmd[i] = new KMpt(i, v.X, v.Y, v.Z);
             }
 
-            KMpt[] kmd = new KMpt[dirsVec.Count];
-            for (int i = 0; i < dirsVec.Count; i++)
-            {
-                kmd[i] = new KMpt(i, dirsVec[i].X, dirsVec[i].Y, dirsVec[i].Z);
-            }
+            var results = KMeans.Cluster<KMpt>(kmd, budget, 5000, null, 1);
+            
+            var centroids = results.Centroids.Select(i => dirsDeg[i]).ToList();
+            var distinctCentroids = results.Centroids.Distinct().Select(i => dirsDeg[i]).OrderBy(d => d).ToList();
 
-            var results = KMeans.Cluster<KMpt>(kmd, bins, 5000, null, 1);
-            var Centroids = new List<double>();
-            var DistinctCentroids = new List<double>();
-
-            foreach (int i in results.Centroids)
-            {
-                Centroids.Add(dirsDeg[i]);
-            }
-
-            foreach (int i in results.Centroids.Distinct())
-            {
-                DistinctCentroids.Add(dirsDeg[i]);
-            }
-
-            var Clusters = new DataTree<Point3d>();
-
+            var clusters = new DataTree<Point3d>();
             for (int i = 0; i < results.Clusters.Length; i++)
             {
                 var c = results.Clusters[i];
+                var path = new Grasshopper.Kernel.Data.GH_Path(i);
                 foreach (var pt in c)
                 {
-                    //Clusters.Add(dirsDeg[pt.Id], new Grasshopper.Kernel.Data.GH_Path(i));
-                    Clusters.Add(new Point3d(pt.X, pt.Y, pt.Z), new Grasshopper.Kernel.Data.GH_Path(i));
+                    clusters.Add(new Point3d(pt.X, pt.Y, pt.Z), path);
                 }
             }
 
-            DistinctCentroids.Sort();
-            var DistinctCentroidsClean = DistinctCentroids.Distinct();
+            DA.SetDataList("Centroids", centroids);
+            DA.SetDataList("Distinct Centroids", distinctCentroids);
+            DA.SetDataTree(2, clusters);
 
-            DA.SetDataList(0, Centroids);
-            DA.SetDataList(1, DistinctCentroidsClean);
-            DA.SetDataTree(2, Clusters);
-
-            var breaks = JenksFisher.CreateJenksFisherBreaksArray(dirsDeg, bins);
-            DA.SetDataList(3, breaks);
-            DA.SetData(4, results.TotalDistance);
+            var breaks = JenksFisher.CreateJenksFisherBreaksArray(dirsDeg, budget);
+            DA.SetDataList("Breaks", breaks);
+            DA.SetData("Total Distance", results.TotalDistance);
         }
 
         /// <summary>

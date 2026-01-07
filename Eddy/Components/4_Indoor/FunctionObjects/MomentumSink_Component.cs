@@ -14,7 +14,14 @@ namespace Eddy.Components.Indoor
         /// Initializes a new instance of the Emitter class.
         /// </summary>
         public MomentumSink_Component()
-          : base("Momentum Sink", "MSink", "Momentum Sink" + EddyVersion.toString(), EddyVersion.Name, "9 | Indoor")
+          : base("Momentum Sink", "MomSink", 
+@"Create a flow resistance zone for indoor CFD simulation.
+
+Models furniture, equipment, or obstacles that obstruct airflow.
+Reduces velocity within the defined volume.
+
+" + EddyVersion.toString(), 
+              EddyVersion.Name, "9 | Indoor")
         {
         }
 
@@ -23,20 +30,8 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            //0
-            pManager.AddGeometryParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
-            //1
-            pManager.AddTextParameter("Name", "N", "Name", GH_ParamAccess.item, "");
-            //2
-            //pManager.AddNumberParameter("Injection Rate", "IR", "Injection Rate imposed on object", GH_ParamAccess.item);
-
-            //3
-            //pManager.AddIntegerParameter("Type", "Typ", "Type: Absolute [W] or specific [W/m³]", GH_ParamAccess.item, 0);
-            //Param_Integer param = pManager[3] as Param_Integer;
-            //param.AddNamedValue("Absolute", 0);
-            //param.AddNamedValue("Specific", 1);
-
-            //pManager[3].Optional = true;
+            pManager.AddGeometryParameter("Geometry", "Geo", "Obstacle volume (Mesh).", GH_ParamAccess.item);
+            pManager.AddTextParameter("Name", "Name", "Identifier for this obstacle.", GH_ParamAccess.item, "");
         }
 
         /// <summary>
@@ -44,7 +39,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Function Object", "FO", "Momentum Source Function Object", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Function Object", "FObj", "Momentum sink for Indoor Simulation component", GH_ParamAccess.item);
         }
 
         /// <summary>

@@ -27,7 +27,16 @@ namespace Eddy
         /// Initializes a new instance of the WorkerWithProgBarComponent class.
         /// </summary>
         public MRT_Simulation_Component()
-          : base("MRT System", "MRT", "MRT and Radiation simulation system " + EddyVersion.toString(), EddyVersion.Name, "2 | Radiation")
+          : base("MRT Simulation", "MRT", 
+@"Run Mean Radiant Temperature simulation for outdoor thermal comfort.
+
+Combines Radiance for shortwave (solar) radiation and EnergyPlus for 
+surface temperatures. Results feed into UTCI comfort calculations.
+
+Workflow: Create surfaces → Add sensors → Run simulation.
+
+" + EddyVersion.toString(), 
+              EddyVersion.Name, "2 | Radiation")
         {
         }
 
@@ -36,21 +45,42 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            //pManager.AddTextParameter("Name", "N", "Project name", GH_ParamAccess.item, "MyStudy");
-            pManager.AddTextParameter("Dir", "D", "Working directory name", GH_ParamAccess.item, @"C:\Temp\Eddy3d");
-            pManager.AddTextParameter("Weather", "W", "Weather filepath", GH_ParamAccess.item, DefaultDirectoriesAndPaths.DefaultWeather);
+            pManager.AddTextParameter(
+                "Working Directory", "Dir", 
+                "Folder for simulation files. Default: C:\\Temp\\Eddy3d", 
+                GH_ParamAccess.item, @"C:\Temp\Eddy3d");
 
-            pManager.AddGenericParameter("RSurf", "RS", "Radiation Model Surfaces", GH_ParamAccess.tree);
+            pManager.AddTextParameter(
+                "Weather File", "EPW", 
+                "Path to EnergyPlus weather file (.epw) for climate data.", 
+                GH_ParamAccess.item, DefaultDirectoriesAndPaths.DefaultWeather);
 
-            pManager.AddGenericParameter("Sensors", "Sen", "Radiation sensors. Provide as [Mesh] or [RProbe]", GH_ParamAccess.tree);
+            pManager.AddGenericParameter(
+                "Surfaces", "Srf", 
+                "Radiation surfaces from Building/Ground/Tree Surface components.", 
+                GH_ParamAccess.tree);
 
-            pManager.AddTextParameter("Settings", "Set", "MRT System Settings", GH_ParamAccess.item, "");
+            pManager.AddGenericParameter(
+                "Sensors", "Sen", 
+                "Analysis locations as Mesh or RProbe objects.", 
+                GH_ParamAccess.tree);
+
+            pManager.AddTextParameter(
+                "Settings", "Set", 
+                "Optional: Simulation settings (Radiance parameters, timestep).", 
+                GH_ParamAccess.item, "");
             pManager[4].Optional = true;
 
-            pManager.AddTextParameter("CFD result", "CFD", "File path to *.wind.eddy file. If provided wind velocities are loaded from CFD result.", GH_ParamAccess.item, "");
+            pManager.AddTextParameter(
+                "CFD Result", "CFD", 
+                "Optional: Path to .wind.eddy file for wind-coupled MRT analysis.", 
+                GH_ParamAccess.item, "");
             pManager[5].Optional = true;
 
-            pManager.AddBooleanParameter("Run", "R", "Run simulation", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter(
+                "Run", "Run!", 
+                "Set True to execute MRT simulation.", 
+                GH_ParamAccess.item, false);
         }
 
         /// <summary>
@@ -58,11 +88,9 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("System", "SYS", "MRT Simulation System", GH_ParamAccess.item);
-
-            pManager.AddTextParameter("Result", "RES", "MRT Result file path", GH_ParamAccess.item);
-
-            pManager.AddTextParameter("Settings", "SET", "MRT System Settings", GH_ParamAccess.item);
+            pManager.AddGenericParameter("System", "Sys", "MRT simulation system object", GH_ParamAccess.item);
+            pManager.AddTextParameter("Result", "Res", "Path to .mrt.eddy result file for post-processing", GH_ParamAccess.item);
+            pManager.AddTextParameter("Settings", "Set", "Current simulation settings (for reference)", GH_ParamAccess.item);
         }
 
         /// <summary>

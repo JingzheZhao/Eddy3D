@@ -21,7 +21,15 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the MakeRadiationMesh_Component class.
         /// </summary>
         public MakeGroundSurface_Component()
-          : base("Ground Surface", "Ground", "Ground Radiation Simulation Surface" + EddyVersion.toString(), EddyVersion.Name, "2 | Radiation")
+          : base("Ground Surface", "GndSrf", 
+@"Create a ground surface for MRT simulation.
+
+Ground surfaces commonly have higher temperatures than air due to 
+solar absorption. Use Surface Settings to specify material (asphalt, 
+grass, etc.) and albedo values.
+
+" + EddyVersion.toString(), 
+              EddyVersion.Name, "2 | Radiation")
         {
         }
 
@@ -30,19 +38,37 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddBrepParameter("Brep", "B", "Radiation surface", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Patch", "Ps", "Patch size", GH_ParamAccess.item, 3);
-            pManager.AddGenericParameter("Settings", "Set", "Optional material and surface property settings", GH_ParamAccess.item);
+            pManager.AddBrepParameter(
+                "Geometry", "Geo", 
+                "Ground surface geometry (Breps). Will be meshed into analysis patches.", 
+                GH_ParamAccess.list);
+
+            pManager.AddNumberParameter(
+                "Patch Size", "Patch", 
+                "Size of analysis mesh patches. Units: meters. Default: 3m", 
+                GH_ParamAccess.item, 3);
+
+            pManager.AddGenericParameter(
+                "Settings", "Set", 
+                "Optional: Material settings (albedo, emissivity) from Surface Settings component.", 
+                GH_ParamAccess.item);
             pManager[2].Optional = true;
 
-            pManager.AddIntegerParameter("SimType", "Sts", "Surface Temparature Simulation Type", GH_ParamAccess.item, 1);
+            pManager.AddIntegerParameter(
+                "Temp Source", "Src", 
+                "Surface temperature data source (EnergyPlus, measured, or user-defined).", 
+                GH_ParamAccess.item, 1);
             var types = Enum.GetNames(typeof(SimulationType));
             Param_Integer param = pManager[3] as Param_Integer;
             for (int i = 0; i < types.Length; i++)
             {
                 param.AddNamedValue(types[i], i);
             }
-            pManager.AddNumberParameter("Temp", "Temp", "Surface Temparature Input", GH_ParamAccess.list);
+
+            pManager.AddNumberParameter(
+                "Temperature", "Temp", 
+                "Optional: User-defined surface temperatures. Units: °C", 
+                GH_ParamAccess.list);
             pManager[4].Optional = true;
         }
 
@@ -51,7 +77,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("RSurf", "RS", "Radiation Model Surfaces", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Surface", "Srf", "Ground surface for MRT Simulation component", GH_ParamAccess.list);
         }
 
         /// <summary>

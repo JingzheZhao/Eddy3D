@@ -27,17 +27,16 @@ namespace Eddy
         /// be created.
         /// </summary>
         public BlockMeshBox()
-          : base("Box-shaped Domain", "DomainBox", @"Box-shaped Domain.
+          : base("Box Domain", "DomBox", 
+@"Create a rectangular CFD domain for single wind direction simulations.
 
-        Property     | Description
-        Geo          | Building Geometry.
-        Terrain      | Terrain Geometry.
-        Trees        | Tree objects.
-        BCond        | Boundary Condition.
-        BS           | Block size.
-        L            | Length of wind tunnel.
-        W            | Width of wind tunnel.
-        H            | Height of wind tunnel.
+Best for analyzing wind from one direction. For multi-directional annual 
+studies, use Cylindrical Domain instead. Domain should extend:
+• 5H upstream of buildings (inlet)
+• 10-15H downstream (outlet)  
+• 5H to sides and above (lateral/top)
+
+Where H = tallest building height.
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")
@@ -49,23 +48,49 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGeometryParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
+            pManager.AddGeometryParameter(
+                "Buildings", "Bldg", 
+                "Building geometry (Breps or Meshes). These create wall boundary conditions in the CFD mesh.", 
+                GH_ParamAccess.list);
 
-            pManager.AddGeometryParameter("Terrain", "Terrain", "Terrain Geometry. Make sure the terrain geometry is bigger than the ground plane of the wind tunnel.", GH_ParamAccess.list);
+            pManager.AddGeometryParameter(
+                "Terrain", "Terr", 
+                "Optional: Ground surface geometry. Must extend beyond domain bounds. If omitted, a flat ground is assumed.", 
+                GH_ParamAccess.list);
             pManager[1].Optional = true;
 
-            pManager.AddGenericParameter("Trees", "Trees", "Tree objects.", GH_ParamAccess.list);
+            pManager.AddGenericParameter(
+                "Trees", "Tree", 
+                "Optional: Tree/vegetation objects from Tree component. Creates porous zones for wind resistance.", 
+                GH_ParamAccess.list);
             pManager[2].Optional = true;
 
-            pManager.AddGenericParameter("Boundary Condition", "BCond", "Boundary Condition", GH_ParamAccess.item);
+            pManager.AddGenericParameter(
+                "Boundary Condition", "BC", 
+                "Wind inlet conditions from ABL Flow or Uniform Flow component. Defines wind speed, direction, and turbulence.", 
+                GH_ParamAccess.item);
             pManager[3].Optional = true;
 
-            pManager.AddNumberParameter("Block size", "BS", "Block size", GH_ParamAccess.item, 20);
+            pManager.AddNumberParameter(
+                "Cell Size", "Cell", 
+                "Base mesh cell size. Units: meters. Smaller = more accurate but slower. Typical: 5-20m. Default: 20m", 
+                GH_ParamAccess.item, 20);
             pManager[4].Optional = true;
 
-            pManager.AddNumberParameter("Length", "L", "Length of wind tunnel", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Width", "W", "Width of wind tunnel", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Height", "H", "Height of wind tunnel", GH_ParamAccess.item);
+            pManager.AddNumberParameter(
+                "Length", "Len", 
+                "Domain length (wind direction). Units: meters. Recommend: 15-20x building height.", 
+                GH_ParamAccess.item);
+
+            pManager.AddNumberParameter(
+                "Width", "Wid", 
+                "Domain width (cross-wind). Units: meters. Recommend: 10x building width.", 
+                GH_ParamAccess.item);
+
+            pManager.AddNumberParameter(
+                "Height", "Hgt", 
+                "Domain height. Units: meters. Recommend: 5-6x tallest building height.", 
+                GH_ParamAccess.item);
             pManager[5].Optional = true;
             pManager[6].Optional = true;
             pManager[7].Optional = true;
@@ -76,8 +101,8 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Domain", "Dom", "Simulation Domain", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Mesh", "Msh", "Mesh", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Domain", "Dom", "CFD domain object for Wind Simulation component", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Preview Mesh", "Prev", "Domain boundary mesh for visualization", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -92,7 +117,7 @@ namespace Eddy
         {
             //DOMAIN GEOMETRY
             List<IGH_GeometricGoo> geoGooDomain = new List<IGH_GeometricGoo>();
-            DA.GetDataList("Geometry", geoGooDomain);
+            DA.GetDataList("Buildings", geoGooDomain);
             List<GeometryBase> buildings = new List<GeometryBase>();
 
             foreach (IGH_GeometricGoo g in geoGooDomain)
@@ -159,7 +184,7 @@ namespace Eddy
             }
 
             double blockDimension = 20;
-            DA.GetData("Block size", ref blockDimension);
+            DA.GetData("Cell Size", ref blockDimension);
 
             Mesh buildingGeometry = new Mesh();
             MeshingParameters mp = new MeshingParameters();

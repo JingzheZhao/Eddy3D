@@ -29,7 +29,15 @@ namespace Eddy.Components.Indoor
         /// </summary>
         ///
 
-        public IndoorDomain_Component() : base("IndoorDomain", "IDom", "IndoorDomain" + EddyVersion.toString(), EddyVersion.Name, "9 | Indoor")
+        public IndoorDomain_Component() 
+          : base("Indoor Simulation", "IndoorSim", 
+@"Run indoor CFD simulation using OpenFOAM's buoyantSimpleFoam.
+
+Simulates buoyancy-driven airflow and temperature distribution.
+Connect walls, inlets, outlets, and optional heat sources.
+
+" + EddyVersion.toString(), 
+              EddyVersion.Name, "9 | Indoor")
         {
         }
 
@@ -38,32 +46,60 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            //0
-            pManager.AddParameter(new Param_IndoorBC_Wall(), "Geo", "Geo", "Indoor CFD Walls", GH_ParamAccess.list);
-            //1
-            pManager.AddParameter(new Param_IndoorBC_Inlet(), "Inlet", "In", "Indoor CFD Inlets", GH_ParamAccess.list);
-            //2
-            pManager.AddParameter(new Param_IndoorBC_Outlet(), "Outlet", "Out", "Indoor CFD Outlets", GH_ParamAccess.list);
-            //3
-            //pManager.AddParameter(new Param_VolumetricHeatSource(), "Volumetric Heat Source", "VHS", "Indoor CFD Objects", GH_ParamAccess.list);
-            pManager.AddParameter(new Param_FunctionObject(), "Function Objects", "FOs", "Indoor CFD Function Objects", GH_ParamAccess.list);
+            pManager.AddParameter(new Param_IndoorBC_Wall(), 
+                "Walls", "Wall", 
+                "Room walls/surfaces from Indoor Wall component.", 
+                GH_ParamAccess.list);
+
+            pManager.AddParameter(new Param_IndoorBC_Inlet(), 
+                "Inlets", "In", 
+                "Air supply inlets from Indoor Inlet component.", 
+                GH_ParamAccess.list);
+
+            pManager.AddParameter(new Param_IndoorBC_Outlet(), 
+                "Outlets", "Out", 
+                "Air exhaust outlets from Indoor Outlet component.", 
+                GH_ParamAccess.list);
+
+            pManager.AddParameter(new Param_FunctionObject(), 
+                "Function Objects", "FObj", 
+                "Optional: Heat sources, momentum sources, contaminant emitters.", 
+                GH_ParamAccess.list);
             pManager[3].Optional = true;
-            //4
-            pManager.AddTextParameter("Directory", "Dir", "Working Directory", GH_ParamAccess.item, @"C:\Eddy3D-Cases\IndoorProject\");
+
+            pManager.AddTextParameter(
+                "Working Directory", "Dir", 
+                "Folder for simulation files.", 
+                GH_ParamAccess.item, @"C:\Eddy3D-Cases\IndoorProject\");
             pManager[4].Optional = true;
-            //5
-            pManager.AddPointParameter("Point Inside", "PInside", "Point inside domain.", GH_ParamAccess.item);
-            //6
-            pManager.AddNumberParameter("CellSize", "Cs", "Cell Size", GH_ParamAccess.item, 1);
+
+            pManager.AddPointParameter(
+                "Inside Point", "InsidePt", 
+                "A point inside the air volume (for mesh generation).", 
+                GH_ParamAccess.item);
+
+            pManager.AddNumberParameter(
+                "Cell Size", "Cell", 
+                "Base mesh cell size. Units: m. Smaller = more accurate. Default: 1m", 
+                GH_ParamAccess.item, 1);
             pManager[6].Optional = true;
-            //7
-            pManager.AddIntegerParameter("Iterations", "Iter", "Iterations for Simulation.", GH_ParamAccess.item, 1);
+
+            pManager.AddIntegerParameter(
+                "Iterations", "Iter", 
+                "Solver iterations. Typical: 500-2000. Default: 1", 
+                GH_ParamAccess.item, 1);
             pManager[7].Optional = true;
-            //8
-            pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs to decompose the simulation with.", GH_ParamAccess.item, 2);
+
+            pManager.AddIntegerParameter(
+                "CPU Cores", "CPUs", 
+                "Parallel cores for simulation. Default: 2", 
+                GH_ParamAccess.item, 2);
             pManager[8].Optional = true;
-            //9
-            pManager.AddBooleanParameter("Run", "Run", "Run case setup routines and simulation", GH_ParamAccess.item, false);
+
+            pManager.AddBooleanParameter(
+                "Run", "Run!", 
+                "Set True to setup and run simulation.", 
+                GH_ParamAccess.item, false);
         }
 
         /// <summary>
@@ -71,7 +107,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Result", "Res", "Indoor CFD Domain Result", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Result", "Res", "Indoor simulation result for post-processing", GH_ParamAccess.item);
         }
 
         /// <summary>

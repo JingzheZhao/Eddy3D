@@ -18,8 +18,14 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
         public LoadWProbeData_Component()
-          : base("Load Wind", "LoadWind", "Load CFD data such as windspeed, pressure" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
+          : base("Load Wind Results", "LoadWind", 
+@"Load CFD simulation results from .wind.eddy file.
 
+Contains velocity magnitude, direction, and pressure data 
+at probe locations and analysis polygons for visualization.
+
+" + EddyVersion.toString(), 
+              EddyVersion.Name, "3 | PostProcessing")
         {
         }
 
@@ -28,9 +34,15 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Path", "P", "Result path", GH_ParamAccess.item);
-            //pManager.AddIntegerParameter("Hour", "H", "Hour", GH_ParamAccess.item, 12);
-            pManager.AddBooleanParameter("Load", "L", "Load data from disk", GH_ParamAccess.item, false);
+            pManager.AddTextParameter(
+                "File Path", "Path", 
+                "Path to .wind.eddy result file from Wind Simulation.", 
+                GH_ParamAccess.item);
+
+            pManager.AddBooleanParameter(
+                "Load", "Load!", 
+                "Set True to load data from disk into memory.", 
+                GH_ParamAccess.item, false);
         }
 
         /// <summary>
@@ -38,9 +50,8 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Result", "Res", "Result object containing probes, polygons and result data", GH_ParamAccess.item);
-
-            pManager.AddGenericParameter("Probes", "Prb", "Analysis probes", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Result", "Res", "Wind result object for Inspect components", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Probes", "Prb", "Analysis probe locations with data", GH_ParamAccess.list);
         }
 
         /// <summary>

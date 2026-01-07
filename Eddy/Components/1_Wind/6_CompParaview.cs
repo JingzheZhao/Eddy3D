@@ -26,48 +26,31 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompParaview()
-          : base("Open Paraview", "Paraview", "Open Paraview" + EddyVersion.toString(),
+          : base("Open ParaView", "ParaView", 
+@"Launch ParaView for 3D CFD result visualization.
+
+Opens simulation results in ParaView for visualizing velocity fields, 
+pressure distributions, and streamlines. ParaView must be installed.
+
+" + EddyVersion.toString(),
               EddyVersion.Name, "5 | Post-Processing")
         {
         }
-
-        //protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
-        //{
-        //    base.AppendAdditionalComponentMenuItems(menu);
-        //    Menu_AppendItem(menu, "ParaView 4", Menu_DoClick, true, !paraViewVersion5);
-        //}
-
-        //private void Menu_DoClick(object sender, EventArgs e)
-        //{
-        //    paraViewVersion5 = !paraViewVersion5;
-        //    ExpireSolution(true);
-        //}
-
-        //public bool paraViewVersion5 = true;
-
-        //public override bool Write(GH_IO.Serialization.GH_IWriter writer)
-        //{
-        //    // First add our own field.
-        //    writer.SetBoolean("ParaView", paraViewVersion5);
-        //    // Then call the base class implementation.
-        //    return base.Write(writer);
-        //}
-
-        //public override bool Read(GH_IO.Serialization.GH_IReader reader)
-        //{
-        //    // First read our own field.
-        //    paraViewVersion5 = reader.GetBoolean("ParaView");
-        //    // Then call the base class implementation.
-        //    return base.Read(reader);
-        //}
 
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Result", "Res", "Eddy Result", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("Wind directions", "wDir", "Wind directions to load the residuals from", GH_ParamAccess.list);
+            pManager.AddGenericParameter(
+                "Result", "Res", 
+                "Simulation result from Wind Simulation component.", 
+                GH_ParamAccess.item);
+
+            pManager.AddIntegerParameter(
+                "Wind Directions", "Dir", 
+                "Wind directions to visualize (subset or all).", 
+                GH_ParamAccess.list);
             pManager.AddIntegerParameter("Paraview version", "Ver", "Paraview version", GH_ParamAccess.item, 2);
             Param_Integer param = pManager[2] as Param_Integer;
             param.AddNamedValue("Windows V4", 0);

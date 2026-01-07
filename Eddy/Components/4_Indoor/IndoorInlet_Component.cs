@@ -11,12 +11,19 @@ namespace Eddy.Components.Indoor
     public class IndoorInlet_Component : GH_Component
     {
         /// <summary>
-        /// Initializes a new instance of the Inlet class.
+        /// Initializes a new instance of the IndoorInlet_Component class.
         /// </summary>
         public IndoorInlet_Component()
-          : base("Inlet", "Il",
-              "Inlet" + EddyVersion.toString(),
-              EddyVersion.Name, "9 | Indoor")
+          : base(
+              "Indoor Inlet", 
+              "Inlet",
+              @"Define an air supply inlet for indoor CFD simulation.
+
+Specify inlet geometry, velocity vector, and air temperature.
+
+" + EddyVersion.toString(),
+              EddyVersion.Name, 
+              "9 | Indoor")
         {
         }
 
@@ -25,9 +32,20 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddMeshParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
-            pManager.AddVectorParameter("Vel", "V", "Velocity [m/s]", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Temp", "T", "Temperature [C]", GH_ParamAccess.item);
+            pManager.AddMeshParameter(
+                "Geometry", "Geo", 
+                "Inlet surface mesh.", 
+                GH_ParamAccess.item);
+
+            pManager.AddVectorParameter(
+                "Velocity", "Vel", 
+                "Inlet air velocity vector. Units: m/s", 
+                GH_ParamAccess.item);
+
+            pManager.AddNumberParameter(
+                "Temperature", "Temp", 
+                "Supply air temperature. Units: °C", 
+                GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -35,7 +53,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddParameter(new Param_IndoorBC_Inlet(), "Inlet", "In", "Inlet", GH_ParamAccess.item);
+            pManager.AddParameter(new Param_IndoorBC_Inlet(), "Inlet", "In", "Inlet boundary condition for Indoor Domain", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -45,19 +63,18 @@ namespace Eddy.Components.Indoor
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh m = null;
-            DA.GetData(0, ref m);
+            DA.GetData("Geometry", ref m);
+
             Vector3d vec = Vector3d.ZAxis;
-            DA.GetData(1, ref vec);
-            double T = 1;
-            DA.GetData(2, ref T);
+            DA.GetData("Velocity", ref vec);
+
+            double T = 20;
+            DA.GetData("Temperature", ref T);
 
             int refinement = 3;
-
             var inlet = new IndoorBC.Inlet(m, T, refinement, vec);
 
-            var goo = new IndoorInletGoo(inlet);
-
-            DA.SetData(0, goo);
+            DA.SetData("Inlet", new IndoorInletGoo(inlet));
         }
 
         /// <summary>

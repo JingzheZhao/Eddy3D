@@ -26,16 +26,13 @@ namespace Eddy
         /// be created.
         /// </summary>
         public SimpleFoam()
-          : base("Simulation", "Simulation", @"Simulation.
+          : base("Wind Simulation", "WindSim", 
+@"Run CFD simulation using OpenFOAM's simpleFoam solver.
 
-        Property     | Description
-        Dom          | Eddy simulation domain.
-        Dir          | Working directory.
-        MSet         | Mesh Settings.
-        RSet         | Run Settings.
-        RunMsh       | Run Meshing.
-        MakeTrees    | Create Tree Topologies.
-        RunSim       | Run Simulation.
+Workflow: 1) Connect domain and settings, 2) Run Meshing (snappyHexMesh),  
+3) Optionally create tree porous zones, 4) Run Simulation (simpleFoam).
+
+Uses steady-state RANS turbulence modeling for urban wind analysis.
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")
@@ -81,20 +78,43 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Simulation domain", "Dom", "Eddy simulation domain", GH_ParamAccess.item);
-            pManager.AddTextParameter("Working directory", "Dir", "Working directory", GH_ParamAccess.item, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Eddy"));
+            pManager.AddGenericParameter(
+                "Domain", "Dom", 
+                "CFD domain from Box Domain or Cylindrical Domain component.", 
+                GH_ParamAccess.item);
+
+            pManager.AddTextParameter(
+                "Working Directory", "Dir", 
+                "Folder for simulation files. Default: User\\Eddy. Requires ~1GB per wind direction.", 
+                GH_ParamAccess.item, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Eddy"));
             pManager[1].Optional = true;
-            pManager.AddGenericParameter("Mesh Settings", "MSet", "Mesh Settings", GH_ParamAccess.item);
+
+            pManager.AddGenericParameter(
+                "Mesh Settings", "Mesh", 
+                "Optional: snappyHexMesh refinement settings from Mesh Settings component.", 
+                GH_ParamAccess.item);
             pManager[2].Optional = true;
 
-            pManager.AddGenericParameter("Run Settings", "RSet", "Run Settings", GH_ParamAccess.item);
+            pManager.AddGenericParameter(
+                "Run Settings", "Run", 
+                "Optional: Solver settings (iterations, turbulence model) from Run Settings component.", 
+                GH_ParamAccess.item);
             pManager[3].Optional = true;
 
-            pManager.AddBooleanParameter("Run Meshing", "RunMsh", "Run Meshing", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter(
+                "Run Meshing", "Mesh!", 
+                "Set True to generate CFD mesh using snappyHexMesh. Check residuals before running simulation.", 
+                GH_ParamAccess.item, false);
 
-            pManager.AddBooleanParameter("Make Trees", "MakeTrees", "Create Tree Topologies", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter(
+                "Create Trees", "Tree!", 
+                "Set True to create porous zone definitions for vegetation. Run after meshing.", 
+                GH_ParamAccess.item, false);
 
-            pManager.AddBooleanParameter("Run Simulation", "RunSim", "Run Simulation", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter(
+                "Run Simulation", "Sim!", 
+                "Set True to run CFD simulation using simpleFoam. Monitor residuals for convergence.", 
+                GH_ParamAccess.item, false);
         }
 
         /// <summary>
@@ -102,7 +122,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Simulation result", "Res", "Eddy simulation result", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Result", "Res", "Simulation result for post-processing. Contains velocity and pressure fields.", GH_ParamAccess.item);
         }
 
         private bool canRun = true;

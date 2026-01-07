@@ -24,13 +24,12 @@ namespace Eddy
         /// be created.
         /// </summary>
         public BCondConstU()
-          : base("Uniform Flow", "Uniform Flow", @"Uniform Flow Boundary Condition.
+          : base("Uniform Flow", "UniFlow", 
+@"Define uniform (constant) wind inlet conditions.
 
-        Property     | Description
-        wDir         | Wind directions to be simulated
-        Uref         | Reference velocity [m/s]
-        z0           | Surface roughness height [m]
-        EPW          | Weather data file path
+Simpler than ABL Flow - wind speed is constant with height.
+Use for parametric studies or when vertical profile is not important.
+For realistic urban wind, use ABL Flow instead.
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")
@@ -44,10 +43,25 @@ namespace Eddy
 
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddIntegerParameter("Wind Directions", "wDir", "Wind directions to be simulated", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Reference velocity [m/s]", "Uref", "Reference velocity [m/s]", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Surface roughness height [m]", "z0", "Surface roughness height [m]", GH_ParamAccess.list);
-            pManager.AddTextParameter("EPW", "EPW", "Weather data file path", GH_ParamAccess.item, "");
+            pManager.AddIntegerParameter(
+                "Wind Directions", "Dir", 
+                "Wind directions to simulate. Units: degrees (0-359). 0° = North, 90° = East.", 
+                GH_ParamAccess.list);
+
+            pManager.AddNumberParameter(
+                "Velocity", "Vel", 
+                "Uniform wind speed (constant at all heights). Units: m/s. Default: 5 m/s", 
+                GH_ParamAccess.list);
+
+            pManager.AddNumberParameter(
+                "Surface Roughness", "Z0", 
+                "Aerodynamic roughness for turbulence calculation. Units: m. Default: 1m", 
+                GH_ParamAccess.list);
+
+            pManager.AddTextParameter(
+                "Weather File", "EPW", 
+                "Optional: Path to EnergyPlus weather file (.epw) for climate data.", 
+                GH_ParamAccess.item, "");
 
             pManager[0].Optional = true;
             pManager[1].Optional = true;
@@ -60,7 +74,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Bcond", "Bcond", "Bcond", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Boundary Condition", "BC", "Wind inlet boundary condition for Domain component", GH_ParamAccess.item);
         }
 
         /// <summary>

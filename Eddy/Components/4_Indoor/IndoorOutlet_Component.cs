@@ -11,12 +11,19 @@ namespace Eddy.Components.Indoor
     public class IndoorOutlet_Component : GH_Component
     {
         /// <summary>
-        /// Initializes a new instance of the Outlet class.
+        /// Initializes a new instance of the IndoorOutlet_Component class.
         /// </summary>
         public IndoorOutlet_Component()
-          : base("Outlet", "Ol",
-              "Outlet" + EddyVersion.toString(),
-              EddyVersion.Name, "9 | Indoor")
+          : base(
+              "Indoor Outlet", 
+              "Outlet",
+              @"Define an air exhaust outlet for indoor CFD simulation.
+
+Specify outlet geometry and optional extraction velocity.
+
+" + EddyVersion.toString(),
+              EddyVersion.Name, 
+              "9 | Indoor")
         {
         }
 
@@ -25,8 +32,15 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddMeshParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
-            pManager.AddVectorParameter("Vel", "V", "Velocity [m/s]. The default is a zero length vector indicating that there is no force removing air from the space", GH_ParamAccess.item, new Vector3d(0, 0, 0));
+            pManager.AddMeshParameter(
+                "Geometry", "Geo", 
+                "Outlet surface mesh.", 
+                GH_ParamAccess.item);
+
+            pManager.AddVectorParameter(
+                "Velocity", "Vel", 
+                "Optional extraction velocity. (0,0,0) = passive outlet. Units: m/s", 
+                GH_ParamAccess.item, new Vector3d(0, 0, 0));
         }
 
         /// <summary>
@@ -34,7 +48,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddParameter(new Param_IndoorBC_Outlet(), "Outlet", "Ol", "Outlet", GH_ParamAccess.item);
+            pManager.AddParameter(new Param_IndoorBC_Outlet(), "Outlet", "Out", "Outlet boundary condition for Indoor Domain", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -44,17 +58,15 @@ namespace Eddy.Components.Indoor
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh m = null;
-            DA.GetData(0, ref m);
-            Vector3d vec = new Vector3d(0, 0, 0);
-            DA.GetData(1, ref vec);
+            DA.GetData("Geometry", ref m);
+
+            Vector3d vec = Vector3d.Zero;
+            DA.GetData("Velocity", ref vec);
 
             int refinementLevel = 3;
+            var outlet = new IndoorBC.Outlet(m, refinementLevel);
 
-            var inlet = new IndoorBC.Outlet(m, refinementLevel);
-
-            var goo = new IndoorOutletGoo(inlet);
-
-            DA.SetData(0, goo);
+            DA.SetData("Outlet", new IndoorOutletGoo(outlet));
         }
 
         /// <summary>

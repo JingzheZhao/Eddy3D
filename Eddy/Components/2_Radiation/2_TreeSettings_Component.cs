@@ -17,7 +17,14 @@ namespace Eddy.Components._2_Radiation
         /// Initializes a new instance of the _2_SurfaceMaterialSettings_Component class.
         /// </summary>
         public TreeSettings_Component()
-          : base("Tree Settings", "TreeSet", "Tree settings " + EddyVersion.toString(), EddyVersion.Name, "2 | Radiation")
+          : base("Tree Settings", "TreeSet", 
+@"Define material properties for tree surfaces.
+
+Customize Radiance material for tree canopy ray-tracing.
+Default uses standard deciduous tree reflectance.
+
+" + EddyVersion.toString(), 
+              EddyVersion.Name, "2 | Radiation")
         {
         }
 
@@ -26,7 +33,7 @@ namespace Eddy.Components._2_Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Surface", "SMat", "Optional Radiance Surface Material", GH_ParamAccess.item, "");
+            pManager.AddTextParameter("Radiance Material", "RadMat", "Custom Radiance material string for tree canopy.", GH_ParamAccess.item, "");
         }
 
         /// <summary>
@@ -34,7 +41,7 @@ namespace Eddy.Components._2_Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.Register_GenericParam("SurfSet", "Set", "Surface settings");
+            pManager.Register_GenericParam("Settings", "Set", "Tree settings for Tree Surface component");
         }
 
         /// <summary>

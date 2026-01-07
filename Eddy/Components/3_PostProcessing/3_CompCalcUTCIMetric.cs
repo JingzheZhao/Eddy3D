@@ -23,9 +23,14 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompUTCI()
-          : base("UTCI", "UTCI", @"UTCI.
+          : base("UTCI", "UTCI", 
+@"Calculate Universal Thermal Climate Index for outdoor comfort.
 
-Calculate the UTCI
+UTCI is a validated thermal comfort metric accounting for:
+- Air temperature and Mean Radiant Temperature (MRT)
+- Wind speed (pedestrian level) and relative humidity
+
+Valid ranges: Air temp -50°C to +50°C, Wind 0.5-17 m/s.
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "3 | PostProcessing")
@@ -37,15 +42,25 @@ Calculate the UTCI
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            //pManager.AddGenericParameter("Simulation Result", "Res", "Simulation Result", GH_ParamAccess.item);
+            pManager.AddNumberParameter(
+                "Air Temperature", "Tair", 
+                "Ambient air temperature. Units: °C. Valid: -50 to +50°C", 
+                GH_ParamAccess.item, 0);
 
-            //pManager.AddIntegerParameter("windDirs", "windDirs", "windDirs", GH_ParamAccess.list);
-            //pManager.AddTextParameter("pointName", "pointName", "pointName", GH_ParamAccess.item);
-            // pManager.AddIntegerParameter("Hours", "H", "Hours", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Ambient temperature", "AmbTemp", "Ambient temperature", GH_ParamAccess.item, 0);
-            pManager.AddNumberParameter("Mean Radiant Temperature", "MRT", "Mean Radiant Temperature", GH_ParamAccess.item, 0);
-            pManager.AddNumberParameter("Wind velocity", "Wind", "Wind velocity", GH_ParamAccess.item, 0);
-            pManager.AddNumberParameter("Relative humidity", "RH", "Relative Humidity", GH_ParamAccess.item, 0);
+            pManager.AddNumberParameter(
+                "Mean Radiant Temp", "MRT", 
+                "Mean radiant temperature from MRT simulation or sensors. Units: °C", 
+                GH_ParamAccess.item, 0);
+
+            pManager.AddNumberParameter(
+                "Wind Speed", "Wind", 
+                "Wind velocity at pedestrian height (1.5m). Units: m/s. Valid: 0.5-17 m/s", 
+                GH_ParamAccess.item, 0);
+
+            pManager.AddNumberParameter(
+                "Relative Humidity", "RH", 
+                "Relative humidity. Units: % (0-100)", 
+                GH_ParamAccess.item, 0);
         }
 
         /// <summary>
@@ -53,10 +68,7 @@ Calculate the UTCI
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            //pManager.AddGenericParameter("UTCI", "UTCI", "UTCI", GH_ParamAccess.list);
-            pManager.AddNumberParameter("UTCI [°C]", "UTCI", "UTCI [°C]", GH_ParamAccess.item);
-
-            // pManager.AddGenericParameter("MRT_T", "MRT_T", "MRT_T", GH_ParamAccess.tree);
+            pManager.AddNumberParameter("UTCI", "UTCI", "Universal Thermal Climate Index. Units: °C equivalent temperature", GH_ParamAccess.item);
         }
 
         /// <summary>

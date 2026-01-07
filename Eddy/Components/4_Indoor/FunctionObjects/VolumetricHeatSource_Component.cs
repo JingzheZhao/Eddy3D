@@ -15,7 +15,14 @@ namespace Eddy.Components.Indoor
         /// Initializes a new instance of the Emitter class.
         /// </summary>
         public VolumetricHeatSource_Component()
-          : base("VolumetricHeatSource", "VHS", "VolumetricHeatSource" + EddyVersion.toString(), EddyVersion.Name, "9 | Indoor")
+          : base("Heat Source", "HeatSrc", 
+@"Create a volumetric heat source for indoor CFD simulation.
+
+Models equipment, occupants, or other heat-generating objects.
+Specify power as absolute (W) or specific (W/m³).
+
+" + EddyVersion.toString(), 
+              EddyVersion.Name, "9 | Indoor")
         {
         }
 
@@ -24,11 +31,11 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGeometryParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Power", "P", "Power", GH_ParamAccess.item);
-            pManager.AddTextParameter("Name", "N", "Name", GH_ParamAccess.item, "");
+            pManager.AddGeometryParameter("Geometry", "Geo", "Heat source volume (Mesh).", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Power", "P", "Heat output. Units: W (absolute) or W/m³ (specific).", GH_ParamAccess.item);
+            pManager.AddTextParameter("Name", "Name", "Identifier for this heat source.", GH_ParamAccess.item, "");
 
-            pManager.AddIntegerParameter("Type", "Typ", "Type: Absolute [W] or specific [W/m³]", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Power Type", "Type", "0: Absolute [W], 1: Specific [W/m³]", GH_ParamAccess.item);
             Param_Integer param = pManager[3] as Param_Integer;
             param.AddNamedValue("Absolute", 0);
             param.AddNamedValue("Specific", 1);
@@ -41,7 +48,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Function Object", "FO", "Momentum Source Function Object", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Function Object", "FObj", "Heat source for Indoor Simulation component", GH_ParamAccess.item);
         }
 
         /// <summary>

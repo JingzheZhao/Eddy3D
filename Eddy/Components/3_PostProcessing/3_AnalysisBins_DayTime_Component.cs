@@ -17,17 +17,14 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
         public AnalysisBins_DayTime_Component()
-         : base("Analysis Bins Day Time", "ABDayTime", @"Analysis Bins Day Time
+         : base("Time of Day Filter", "TimeDay", 
+@"Filter analysis results by time of day.
 
-Morning,    // 12pm - 6am
-Breakfast,  // 7am - 11am
-Lunch,      // 12am - 3pm
-Afternoon,  // 4pm - 5pm
-Dinner,     // 6pm - 9pm
-Nightlife   // 10pm - 12pm
+Periods: Morning (12am-6am), Breakfast (7-11am), Lunch (12-3pm),
+Afternoon (4-5pm), Dinner (6-9pm), Nightlife (10pm-12am).
 
-" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
-
+" + EddyVersion.toString(), 
+             EddyVersion.Name, "3 | PostProcessing")
         {
         }
 
@@ -36,11 +33,10 @@ Nightlife   // 10pm - 12pm
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("ABSeason", "AB", "ABSeason", GH_ParamAccess.item);
-
+            pManager.AddGenericParameter("Season Filter", "Season", "Optional: Season filter from Season Filter component.", GH_ParamAccess.item);
             pManager[0].Optional = true;
 
-            pManager.AddIntegerParameter("DayTime", "DT", "DayTime", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("Time Period", "Time", "Period of day to filter.", GH_ParamAccess.item, 0);
 
             //Using an enum to generate the dropdown items
             var types = Enum.GetNames(typeof(DayTime.DayTimeE));
@@ -57,7 +53,7 @@ Nightlife   // 10pm - 12pm
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Analysis Bins", "AB", "Analysis Bins", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Time Filter", "Filter", "Combined time filter for Inspect components", GH_ParamAccess.item);
         }
 
         /// <summary>

@@ -18,8 +18,13 @@ namespace Eddy
         ///     Initializes a new instance of the BrepGridPointsCMP class.
         /// </summary>
         public BrepGridPointsCMP()
-            : base("Brep to Grid Points", "Brep2Grid",
-                "Create regular grid points on Brep surfaces",
+            : base("Brep to Grid Points", "Brep2Pts",
+@"Generate regular grid points on surfaces for CFD probing.
+
+Creates evenly-spaced probe locations for velocity sampling.
+Works with Breps, surfaces, or meshes.
+
+" + EddyVersion.toString(),
                 "Eddy3d", "1 | Wind")
         {
         }
@@ -41,9 +46,9 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddGeometryParameter("Breps", "B", "Brep surfaces, surfaces, or meshes to create grid on", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Spacing", "S", "Grid spacing in meters", GH_ParamAccess.item, 10.0);
-            pManager.AddBooleanParameter("Run", "Run", "Run the component", GH_ParamAccess.item, true);
+            pManager.AddGeometryParameter("Geometry", "Geo", "Breps, surfaces, or meshes to sample.", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Spacing", "Space", "Grid spacing. Units: m. Default: 10", GH_ParamAccess.item, 10.0);
+            pManager.AddBooleanParameter("Run", "Run!", "Generate grid points.", GH_ParamAccess.item, true);
             pManager[0].Optional = false;
             pManager[1].Optional = true;
             pManager[2].Optional = true;
@@ -54,8 +59,8 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddPointParameter("Points", "P", "Grid points on surfaces", GH_ParamAccess.list);
-            pManager.AddTextParameter("Status", "S", "Status message", GH_ParamAccess.item);
+            pManager.AddPointParameter("Points", "Pts", "Grid sampling points for Probe component.", GH_ParamAccess.list);
+            pManager.AddTextParameter("Status", "Msg", "Processing status message.", GH_ParamAccess.item);
         }
 
         /// <summary>

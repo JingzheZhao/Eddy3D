@@ -28,17 +28,12 @@ namespace Eddy
         /// </summary>
 
         public BlockMesh()
-          : base("Cylindrical Domain", "DomainCyl", @"Cylindrical Domain.
+          : base("Cylindrical Domain", "DomCyl", 
+@"Create a cylindrical CFD domain for multi-directional wind studies.
 
-        Property     | Description
-        Geo          | Building Geometry.
-        Terrain      | Terrain Geometry.
-        Trees        | Tree objects.
-        BCond        | Boundary Condition.
-        BS           | Block size.
-        InnerR       | Size of inner rectangle.
-        OuterR       | Size of outer radius.
-        Height       | Height.
+Ideal for annual wind comfort analysis where wind comes from many directions.
+The domain rotates to align with each wind direction, so buildings stay centered.
+Outer radius should be at least 5x the height of the tallest building.
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")
@@ -50,35 +45,65 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGeometryParameter("Geometry", "Geo", "Building Geometry.", GH_ParamAccess.list);
-            pManager.AddGeometryParameter("Terrain", "Terrain", "Terrain Geometry. Make sure the terrain geometry is bigger than the ground plane of the wind tunnel.", GH_ParamAccess.list);
+            pManager.AddGeometryParameter(
+                "Buildings", "Bldg", 
+                "Building geometry (Breps or Meshes). These create wall boundary conditions in the CFD mesh.", 
+                GH_ParamAccess.list);
+
+            pManager.AddGeometryParameter(
+                "Terrain", "Terr", 
+                "Optional: Ground surface geometry. Must extend beyond domain bounds. If omitted, a flat ground is assumed.", 
+                GH_ParamAccess.list);
             pManager[1].Optional = true;
 
-            pManager.AddGenericParameter("Trees", "Trees", "Tree objects.", GH_ParamAccess.list);
+            pManager.AddGenericParameter(
+                "Trees", "Tree", 
+                "Optional: Tree/vegetation objects from Tree component. Creates porous zones for wind resistance.", 
+                GH_ParamAccess.list);
             pManager[2].Optional = true;
 
-            pManager.AddGenericParameter("Boundary Condition", "BCond", "Boundary Condition", GH_ParamAccess.item);
+            pManager.AddGenericParameter(
+                "Boundary Condition", "BC", 
+                "Wind inlet conditions from ABL Flow or Uniform Flow component. Can include multiple wind directions.", 
+                GH_ParamAccess.item);
             pManager[3].Optional = true;
 
-            pManager.AddNumberParameter("Block size", "BS", "Block size", GH_ParamAccess.item, 20);
+            pManager.AddNumberParameter(
+                "Cell Size", "Cell", 
+                "Base mesh cell size. Units: meters. Smaller = more accurate but slower. Typical: 5-20m. Default: 20m", 
+                GH_ParamAccess.item, 20);
             pManager[4].Optional = true;
 
-            //pManager.AddIntegerParameter("Concentric grading", "ConcGrad", "Concentric grading", GH_ParamAccess.item, 1);
-            //pManager.AddIntegerParameter("Concentric divisions", "ConcDiv", "Concentric Divisions", GH_ParamAccess.item, 1);
+            pManager.AddNumberParameter(
+                "Inner Size", "Inner", 
+                "Size of the inner rectangular region. Units: meters. Should contain all buildings.", 
+                GH_ParamAccess.item);
 
-            pManager.AddNumberParameter("Size of inner rectangle", "InnerR", "Size of inner rectangle", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Size of outer radius", "OuterR", "Size of outer radius", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Height", "Height", "Height", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Radial Multiplier", "RadMult", "Radial Multiplier for divisions calculation, the change is visible on the Grasshopper side, immediately. Default is 2.", GH_ParamAccess.item, 2.0);
-            pManager.AddIntegerParameter("Divisions X", "DivX", "This refines the cells in the x direction. The change is only visible after the meshing is completed. Default is 1.", GH_ParamAccess.item, 1);
+            pManager.AddNumberParameter(
+                "Outer Radius", "Outer", 
+                "Radius of the outer cylindrical boundary. Units: meters. Recommend: 5-6x tallest building height.", 
+                GH_ParamAccess.item);
+
+            pManager.AddNumberParameter(
+                "Height", "Hgt", 
+                "Domain height. Units: meters. Recommend: 5-6x tallest building height.", 
+                GH_ParamAccess.item);
+
+            pManager.AddNumberParameter(
+                "Radial Multiplier", "RadMult", 
+                "Controls radial mesh grading. Higher = more cells near center. Default: 2", 
+                GH_ParamAccess.item, 2.0);
+
+            pManager.AddIntegerParameter(
+                "X Divisions", "DivX", 
+                "Additional mesh refinement in X direction. Only visible after meshing. Default: 1", 
+                GH_ParamAccess.item, 1);
+
             pManager[5].Optional = true;
             pManager[6].Optional = true;
             pManager[7].Optional = true;
             pManager[8].Optional = true;
             pManager[9].Optional = true;
-
-            // pManager.AddIntegerParameter("CPUs", "CPUs", "Number of CPUs. Set to -1 to set the
-            // number of CPUs for the simulation automatically.", GH_ParamAccess.item, 1);
         }
 
         /// <summary>
@@ -86,8 +111,8 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Domain", "Dom", "Domain", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Mesh", "Msh", "Mesh", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Domain", "Dom", "CFD domain object for Wind Simulation component", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Preview Mesh", "Prev", "Domain boundary mesh for visualization", GH_ParamAccess.list);
 
             //  pManager.AddGenericParameter("Div", "Div", "Div", GH_ParamAccess.list);
         }
@@ -103,7 +128,7 @@ namespace Eddy
         {
             //DOMAIN GEOMETRY
             List<IGH_GeometricGoo> geoGooDomain = new List<IGH_GeometricGoo>();
-            DA.GetDataList("Geometry", geoGooDomain);
+            DA.GetDataList("Buildings", geoGooDomain);
             List<GeometryBase> buildings = new List<GeometryBase>();
 
             foreach (IGH_GeometricGoo g in geoGooDomain)
@@ -175,12 +200,12 @@ namespace Eddy
             double radialMultiplier = 2.0;
             int divisionsX = 1;
 
-            DA.GetData("Block size", ref coreBlockSize);
-            DA.GetData("Size of inner rectangle", ref sizeInnerRect);
-            DA.GetData("Size of outer radius", ref sizeOuterCirc);
+            DA.GetData("Cell Size", ref coreBlockSize);
+            DA.GetData("Inner Size", ref sizeInnerRect);
+            DA.GetData("Outer Radius", ref sizeOuterCirc);
             DA.GetData("Height", ref sizeHeight);
             DA.GetData("Radial Multiplier", ref radialMultiplier);
-            DA.GetData("Divisions X", ref divisionsX);
+            DA.GetData("X Divisions", ref divisionsX);
 
             // Check Domain dimensions
 

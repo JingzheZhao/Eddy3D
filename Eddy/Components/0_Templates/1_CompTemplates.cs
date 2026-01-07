@@ -18,7 +18,13 @@ namespace Eddy
 
         public Eddy_Templates()
 
-              : base("Templates", "Templates", "Templates" + EddyVersion.toString(),
+              : base("Templates", "TempL", 
+@"Load example Grasshopper definitions for common workflows.
+
+Templates include wind comfort studies, MRT analysis, and 
+indoor airflow simulations. Found in C:\Eddy3D\Templates.
+
+" + EddyVersion.toString(),
               EddyVersion.Name, "0 | Load Templates")
         {
         }
@@ -27,13 +33,16 @@ namespace Eddy
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Directory", "Dir", "Additional folder path to import Eddy3D templates.", GH_ParamAccess.list);
+            pManager.AddTextParameter(
+                "Additional Folders", "Dirs", 
+                "Optional: Additional folder paths to search for .ghx templates.", 
+                GH_ParamAccess.list);
             pManager[0].Optional = true;
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddTextParameter("Templates", "T", "Eddy3D templates found in folders.", GH_ParamAccess.list);
+            pManager.AddTextParameter("Template Paths", "Paths", "Full paths to discovered template files (.ghx)", GH_ParamAccess.list);
         }
 
         protected override void SolveInstance(IGH_DataAccess DA)

@@ -29,9 +29,13 @@ namespace Eddy
 
         public TreeComp()
           : base("Tree", "Tree",
-              @"Create a tree in the domain that acts as a momentum sink. Its recommended to pass the tree geometries as single geometries as Eddy needs to compute the dimension of every tree for a proper setup.
+@"Create vegetation as a porous momentum sink for CFD.
 
-Pass either a type (coarse, medium, dense) or a LAI to set up a tree.
+Trees reduce wind speed through aerodynamic drag. Porosity is set via:
+- Type: 'coarse', 'medium', or 'dense' (preset Darcy-Forchheimer coefficients)
+- LAI: Leaf Area Index (alternative, typically 2-6 for trees)
+
+Pass each tree as separate geometry for correct dimension calculation.
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")
@@ -51,40 +55,20 @@ Pass either a type (coarse, medium, dense) or a LAI to set up a tree.
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGeometryParameter("Geo", "Geo", "Tree geometry", GH_ParamAccess.item);
-            pManager.AddTextParameter("Type", "Type", @"Tree type.
+            pManager.AddGeometryParameter(
+                "Geometry", "Geo", 
+                "Tree/vegetation geometry (one per tree for correct sizing).", 
+                GH_ParamAccess.item);
 
-Either pass tree type as ""coarse"", ""medium"", or ""dense"",  or pass a multiline string that references the ""A"" and ""B"" coefficients from a pressure drop polynomial fit for dp = A*u + B*u^2 for the Darcy-Forchheimer Model. E.g.
+            pManager.AddTextParameter(
+                "Type", "Type", 
+                "Tree density type: 'coarse', 'medium', or 'dense'. Or custom Darcy-Forchheimer A,B coefficients.", 
+                GH_ParamAccess.list);
 
-such as:
-
-1.7, 1.7, 1.7
-4.5, 4.5, 4.5
-
-meaning:
-
-A = (1.7, 1.7, 1.7)
-B = (4.5, 4.5, 4.5)
-
-Eddy will transform those into the appropriate Darcy and Forchheimer coefficients along with the dimensions of the tree, e.g:
-
-D = (93922, 93922, 93922)
-F = (7.5, 7.5, 7.5)
-
-for a dense tree with a 1 m diameter.
-
-", GH_ParamAccess.list);
-
-            pManager.AddNumberParameter("LAI", "LAI", "Leaf area index", GH_ParamAccess.item);
-
-            //Param_Integer param = pManager[1] as Param_Integer;
-
-            ////Using an enum to generate the dropdown items
-            //var types = Enum.GetNames(typeof(EddyLib.TreeType));
-            //for (int i = 0; i < types.Length; i++)
-            //{
-            //    param.AddNamedValue(types[i], i);
-            //}
+            pManager.AddNumberParameter(
+                "LAI", "LAI", 
+                "Leaf Area Index. Typical: 2 (sparse) to 6 (dense). Alternative to Type.", 
+                GH_ParamAccess.item);
 
             pManager[1].Optional = true;
             pManager[2].Optional = true;
@@ -95,7 +79,7 @@ for a dense tree with a 1 m diameter.
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Tree", "Tree", "Tree Object", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Tree", "Tree", "Tree object for Domain component", GH_ParamAccess.item);
         }
 
         /// <summary>

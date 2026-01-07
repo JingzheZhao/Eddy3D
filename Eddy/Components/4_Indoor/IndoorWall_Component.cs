@@ -11,12 +11,19 @@ namespace Eddy.Components.Indoor
     public class IndoorWall_Component : GH_Component
     {
         /// <summary>
-        /// Initializes a new instance of the Geometry class.
+        /// Initializes a new instance of the IndoorWall_Component class.
         /// </summary>
         public IndoorWall_Component()
-          : base("Geometry", "Geo",
-              "Geometry" + EddyVersion.toString(),
-              EddyVersion.Name, "9 | Indoor")
+          : base(
+              "Indoor Wall", 
+              "Wall",
+              @"Define a wall or surface boundary for indoor CFD simulation.
+
+Specify surface geometry and temperature boundary condition.
+
+" + EddyVersion.toString(),
+              EddyVersion.Name, 
+              "9 | Indoor")
         {
         }
 
@@ -25,8 +32,15 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddMeshParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Temp", "T", "Temperature [C]", GH_ParamAccess.item);
+            pManager.AddMeshParameter(
+                "Geometry", "Geo", 
+                "Wall surface mesh.", 
+                GH_ParamAccess.item);
+
+            pManager.AddNumberParameter(
+                "Temperature", "Temp", 
+                "Wall surface temperature. Units: °C", 
+                GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -34,7 +48,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddParameter(new Param_IndoorBC_Wall(), "Geo", "Geo", "Geometry", GH_ParamAccess.item);
+            pManager.AddParameter(new Param_IndoorBC_Wall(), "Wall", "Wall", "Wall boundary condition for Indoor Domain", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -44,16 +58,15 @@ namespace Eddy.Components.Indoor
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh m = null;
-            DA.GetData(0, ref m);
+            DA.GetData("Geometry", ref m);
 
-            double temp = 0;
-            DA.GetData(1, ref temp);
+            double temp = 20;
+            DA.GetData("Temperature", ref temp);
 
             int refinementLevel = 3;
-
             var wall = new IndoorBC.Wall(m, refinementLevel, temp);
-            var goo = new IndoorWallGoo(wall);
-            DA.SetData(0, goo);
+
+            DA.SetData("Wall", new IndoorWallGoo(wall));
         }
 
         /// <summary>

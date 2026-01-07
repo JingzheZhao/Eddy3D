@@ -10,33 +10,25 @@ using System;
 
 namespace Eddy
 {
-    public class MeshSettings : GH_Component
+    public class MeshSettings_Component : GH_Component
     {
-        public override GH_Exposure Exposure
-        {
-            get { return GH_Exposure.tertiary; }
-        }
+        public override GH_Exposure Exposure => GH_Exposure.tertiary;
 
         /// <summary>
-        /// Each implementation of GH_Component must provide a public constructor without any
-        /// arguments. Category represents the Tab in which the component will appear, Subcategory
-        /// the panel. If you use non-existing tab or panel names, new tabs/panels will automatically
-        /// be created.
+        /// Initializes a new instance of the MeshSettings_Component class.
         /// </summary>
-        public MeshSettings()
-          : base("Mesh Settings", "MSet", @"Mesh Settings.
+        public MeshSettings_Component()
+          : base(
+              "Mesh Settings", 
+              "MSet", 
+              @"Configure snappyHexMesh refinement levels for CFD simulation.
 
-        Property     | Description
-        AccBuilding  | Level accuracy of building mesh.
-        AccFeatures  | Level accuracy of building features (corners) mesh.
-        AccBBox      | Level accuracy of building bounding box.
-        AccGround    | Level accuracy of ground mesh.
-        MiscS        | MiscSettings.
-        nLay         | Number of mesh layers.
-        Mode         | Snapping and layer settings.
+Higher refinement levels = finer mesh = more accurate but slower.
+Levels 2-3 are typical for buildings. Level 4+ requires significant RAM.
 
 " + EddyVersion.toString(),
-              EddyVersion.Name, "1 | Wind")
+              EddyVersion.Name, 
+              "1 | Wind")
         {
         }
 
@@ -45,27 +37,61 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddIntegerParameter("AccBuilding", "AccBuilding", "Min Level accuracy of building mesh.", GH_ParamAccess.item, 2);
-            pManager.AddIntegerParameter("AccBuildingMax", "AccBuildingMax", "Max Level accuracy of building mesh.", GH_ParamAccess.item, 2);
-            pManager.AddIntegerParameter("AccFeatures", "AccFeatures", "Level accuracy accuracy of building features (corners) mesh.", GH_ParamAccess.item, 2);
-            pManager.AddIntegerParameter("AccBBox", "AccBBox", "Level accuracy of building bounding box.", GH_ParamAccess.item, 0);
-            pManager.AddIntegerParameter("AccGround", "AccGround", "Level accuracy of ground mesh.", GH_ParamAccess.item, 2);
+            pManager.AddIntegerParameter(
+                "Building Min Level", "BldMin", 
+                "Minimum refinement level for building surfaces. Higher = finer. Typical: 2-3. Default: 2", 
+                GH_ParamAccess.item, 2);
 
-            pManager.AddIntegerParameter("MiscSettings.", "MiscS", "MiscSettings.", GH_ParamAccess.item, 1);
-            Param_Integer param0 = pManager[5] as Param_Integer;
-            param0.AddNamedValue("Default", 0);
-            param0.AddNamedValue("Optimized", 1);
+            pManager.AddIntegerParameter(
+                "Building Max Level", "BldMax", 
+                "Maximum refinement level for building surfaces. Must be >= min. Default: 2", 
+                GH_ParamAccess.item, 2);
 
-            pManager.AddIntegerParameter("Number of layers", "nLay", "Number of mesh layers.", GH_ParamAccess.item, 4);
-            pManager.AddIntegerParameter("nCellsBetweenLevels", "nCells", "Number of cells between refinement levels.", GH_ParamAccess.item, 4);
-            pManager.AddIntegerParameter("Mode", "Mode", @"Mode:
-0: No snapping, no layers
-1: With Snapping, no layers
-2: With Snapping, with layers", GH_ParamAccess.item, 1);
-            Param_Integer param1 = pManager[8] as Param_Integer;
-            param1.AddNamedValue("No snapping, no layers", 0);
-            param1.AddNamedValue("With Snapping, no layers", 1);
-            param1.AddNamedValue("With Snapping, with layers (not always robust, >> RAM)", 2);
+            pManager.AddIntegerParameter(
+                "Feature Level", "Feat", 
+                "Refinement level for building corners and features. Default: 2", 
+                GH_ParamAccess.item, 2);
+
+            pManager.AddIntegerParameter(
+                "Bounding Box Level", "BBox", 
+                "Refinement level for region around buildings. 0 = no extra refinement. Default: 0", 
+                GH_ParamAccess.item, 0);
+
+            pManager.AddIntegerParameter(
+                "Ground Level", "Gnd", 
+                "Refinement level for ground surface. Default: 2", 
+                GH_ParamAccess.item, 2);
+
+            pManager.AddIntegerParameter(
+                "Misc Settings", "Misc", 
+                "0: Default, 1: Optimized quality settings", 
+                GH_ParamAccess.item, 1);
+            if (pManager[5] is Param_Integer param0)
+            {
+                param0.AddNamedValue("Default", 0);
+                param0.AddNamedValue("Optimized", 1);
+            }
+
+            pManager.AddIntegerParameter(
+                "Boundary Layers", "nLay", 
+                "Number of mesh layers near walls. More = better boundary layer resolution. Default: 4", 
+                GH_ParamAccess.item, 4);
+
+            pManager.AddIntegerParameter(
+                "Cells Between Levels", "nCells", 
+                "Number of cells between refinement levels. More = smoother transition. Default: 4", 
+                GH_ParamAccess.item, 4);
+
+            pManager.AddIntegerParameter(
+                "Mesh Mode", "Mode", 
+                "0: No snapping (fast debug), 1: With snapping (production), 2: With layers (accurate but slow)", 
+                GH_ParamAccess.item, 1);
+            if (pManager[8] is Param_Integer param1)
+            {
+                param1.AddNamedValue("No snapping, no layers", 0);
+                param1.AddNamedValue("With Snapping, no layers", 1);
+                param1.AddNamedValue("With Snapping, with layers (not always robust, >> RAM)", 2);
+            }
         }
 
         /// <summary>
@@ -73,58 +99,47 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Mesh Settings", "MSet", "Mesh Settings", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Mesh Settings", "MSet", "Mesh settings object to connect to Simulation component", GH_ParamAccess.item);
         }
 
-        /// <summary>
-        /// This is the method that actually does the work.
-        /// </summary>
-        /// <param name="DA">
-        /// The DA object can be used to retrieve data from input parameters and to store data in
-        /// output parameters.
-        /// </param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            int _accBuilding = 3;
-            int _accBuildingMax = 3;
-            int _accFeatures = 3;
-            int _accBoxRefinement = 3;
-            int _accGround = 3;
+            int bldMin = 2;
+            int bldMax = 2;
+            int feat = 2;
+            int bbox = 0;
+            int ground = 2;
+            int misc = 1;
+            int layers = 4;
+            int cells = 4;
+            int mode = 1;
 
-            int _miscSettings = 1;
+            DA.GetData("Building Min Level", ref bldMin);
+            DA.GetData("Building Max Level", ref bldMax);
+            DA.GetData("Feature Level", ref feat);
+            DA.GetData("Bounding Box Level", ref bbox);
+            DA.GetData("Ground Level", ref ground);
+            DA.GetData("Misc Settings", ref misc);
+            DA.GetData("Boundary Layers", ref layers);
+            DA.GetData("Cells Between Levels", ref cells);
+            DA.GetData("Mesh Mode", ref mode);
 
-            int _nLayers = 3;
-            int _nCellsBetweenLevels = 4;
-            int _mode = 1;
-
-            DA.GetData(0, ref _accBuilding);
-            DA.GetData(1, ref _accBuildingMax);
-            DA.GetData(2, ref _accFeatures);
-            DA.GetData(3, ref _accBoxRefinement);
-            DA.GetData(4, ref _accGround);
-
-            DA.GetData(5, ref _miscSettings);
-
-            DA.GetData(6, ref _nLayers);
-            DA.GetData(7, ref _nCellsBetweenLevels);
-            DA.GetData(8, ref _mode);
-
-            if (_accBuildingMax >= 5 || _accBuilding >= 5 || _accFeatures >= 5 || _accBoxRefinement >= 5 || _accGround >= 5 || _nLayers >= 5)
+            if (bldMax >= 5 || bldMin >= 5 || feat >= 5 || bbox >= 5 || ground >= 5 || layers >= 5)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "A high number of refinment levels might significantly slow down mesh creation. Try to create a reasonable fine mesh with the Domain component and/or make sure to use more than one CPU.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "A high number of refinement levels might significantly slow down mesh creation. Try to create a reasonably fine mesh with the Domain component and/or make sure to use more than one CPU.");
             }
 
-            DA.SetData(0, new OFMeshSettings()
+            DA.SetData("Mesh Settings", new OFMeshSettings()
             {
-                accBuildings = _accBuilding,
-                accBuildingsMax = _accBuildingMax,
-                accFeatures = _accFeatures,
-                accBoxRefinement = _accBoxRefinement,
-                accGround = _accGround,
-                miscSettings = (SnappyMiscSettings)_miscSettings,
-                nLayers = _nLayers,
-                nCellsBetweenLevels = _nCellsBetweenLevels,
-                snappySetting = (SnappySnapSettings)_mode
+                accBuildings = bldMin,
+                accBuildingsMax = bldMax,
+                accFeatures = feat,
+                accBoxRefinement = bbox,
+                accGround = ground,
+                miscSettings = (SnappyMiscSettings)misc,
+                nLayers = layers,
+                nCellsBetweenLevels = cells,
+                snappySetting = (SnappySnapSettings)mode
             });
         }
 

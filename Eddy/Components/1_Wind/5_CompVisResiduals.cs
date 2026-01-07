@@ -28,7 +28,13 @@ namespace Eddy
         /// be created.
         /// </summary>
         public Residuals()
-        : base("Visualize Residuals", "Residuals", "Visualize residuals with Gnuplot." + EddyVersion.toString(),
+        : base("Plot Residuals", "Residuals", 
+@"Visualize CFD residuals to monitor simulation convergence.
+
+Uses Gnuplot to display residual history. Convergence is indicated 
+when residuals drop below ~1e-4 and stabilize. Right-click to export PDF.
+
+" + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")
         {
         }
@@ -73,15 +79,33 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Result", "Res", "Eddy Result", GH_ParamAccess.item);
+            pManager.AddGenericParameter(
+                "Result", "Res", 
+                "Simulation result from Wind Simulation component.", 
+                GH_ParamAccess.item);
 
-            pManager.AddTextParameter("X", "X", @"Bounds for the x-axis, e.g. ""0:5000""", GH_ParamAccess.item, ":");
-            pManager.AddTextParameter("Y", "Y", @"Bounds for the y-axis, e.g. ""0.00001:1""", GH_ParamAccess.item, ":");
-            pManager.AddIntegerParameter("Version", "Ver", "Version", GH_ParamAccess.item, 0);
+            pManager.AddTextParameter(
+                "X Range", "X", 
+                "Iteration axis range. Format: 'min:max'. Example: '0:5000'", 
+                GH_ParamAccess.item, ":");
+
+            pManager.AddTextParameter(
+                "Y Range", "Y", 
+                "Residual axis range (log scale). Format: 'min:max'. Example: '0.00001:1'", 
+                GH_ParamAccess.item, ":");
+
+            pManager.AddIntegerParameter(
+                "Gnuplot Version", "Ver", 
+                "0: BlueCFD Gnuplot, 1: Windows Gnuplot", 
+                GH_ParamAccess.item, 0);
             Param_Integer param = pManager[3] as Param_Integer;
             param.AddNamedValue("BlueCFD Gnuplot", 0);
             param.AddNamedValue("Windows Gnuplot", 1);
-            pManager.AddBooleanParameter("Run", "Run", "Run the component", GH_ParamAccess.item, false);
+
+            pManager.AddBooleanParameter(
+                "Run", "Run!", 
+                "Set True to display residual plot.", 
+                GH_ParamAccess.item, false);
 
             pManager[1].Optional = true;
             pManager[2].Optional = true;

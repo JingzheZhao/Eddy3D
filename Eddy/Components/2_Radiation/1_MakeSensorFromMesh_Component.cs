@@ -14,7 +14,14 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the MakeRadiationSensor_Component class.
         /// </summary>
         public MakeRadiationSensorFromMesh_Component()
-          : base("Sensor", "Sen", "Simulation Sensor" + EddyVersion.toString(), EddyVersion.Name, "2 | Radiation")
+          : base("Mesh Sensor", "MeshSen", 
+@"Create analysis sensors from mesh faces for MRT simulation.
+
+Each mesh face becomes a sensor point. Use Ladybug's analysis grid 
+or custom meshes. Sensor normals point upward for pedestrian analysis.
+
+" + EddyVersion.toString(), 
+              EddyVersion.Name, "2 | Radiation")
         {
         }
 
@@ -23,7 +30,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddMeshParameter("Mesh", "M", "Grid mesh. Each face is turned into a sensor.", GH_ParamAccess.item);
+            pManager.AddMeshParameter("Grid Mesh", "Mesh", "Analysis grid mesh. Each face center becomes a sensor point.", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -31,7 +38,7 @@ namespace Eddy.Components.Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Sensors", "Sen", "Radiation Simulation Sensors", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Sensors", "Sen", "Sensor points for MRT Simulation component", GH_ParamAccess.list);
         }
 
         /// <summary>

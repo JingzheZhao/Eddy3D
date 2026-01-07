@@ -17,7 +17,14 @@ namespace Eddy.Components._2_Radiation
         /// Initializes a new instance of the _2_SurfaceMaterialSettings_Component class.
         /// </summary>
         public SurfaceSettings_Component()
-          : base("Surface Settings", "SurfSet", "Surface settings " + EddyVersion.toString(), EddyVersion.Name, "2 | Radiation")
+          : base("Surface Settings", "SrfSet", 
+@"Define material properties for thermal simulation.
+
+Properties are used by EnergyPlus for surface temperature calculation.
+Defaults represent typical concrete. Adjust for different materials.
+
+" + EddyVersion.toString(), 
+              EddyVersion.Name, "2 | Radiation")
         {
         }
 
@@ -26,26 +33,15 @@ namespace Eddy.Components._2_Radiation
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Name", "Name", "Material Name", GH_ParamAccess.item, "MySurface");
-            pManager.AddNumberParameter("Thickness", "Thick", "Material Thickness [m]", GH_ParamAccess.item, 0.1);
-
-            //pManager.AddIntegerParameter("Roughness", "Rhn", "Roughness [0 VeryRough,1 Rough,2 MediumRough,3 MediumSmooth,4 Smooth,5 VerySmooth]", GH_ParamAccess.item, 1);
-            pManager.AddNumberParameter("Conductivity", "Con", "Material Conductivity [W/(m-K)]", GH_ParamAccess.item, 2.3);
-            pManager.AddNumberParameter("Density", "Den", "Material Density [kg/m3]", GH_ParamAccess.item, 2400);
-            pManager.AddNumberParameter("SpecificHeat", "Sph", "Material SpecificHeat [J/(kg-K)]", GH_ParamAccess.item, 840);
-            pManager.AddNumberParameter("Thermal absorptance", "Tabs", "Material thermal absorptance", GH_ParamAccess.item, 0.9);
-            pManager.AddNumberParameter("Solar absorptance", "Sabs", "Material solar absorptance", GH_ParamAccess.item, 0.7);
-            pManager.AddNumberParameter("Visible absorptance", "Vabs", "Material visible absorptance", GH_ParamAccess.item, 0.7);
-
-            pManager.AddTextParameter("Surface", "SMat", "Optional Radiance Surface Material", GH_ParamAccess.item, "");
-
-            //Param_Integer param = pManager[1] as Param_Integer;
-            //param.AddNamedValue("VeryRough", 0);
-            //param.AddNamedValue("Rough", 1);
-            //param.AddNamedValue("MediumRough", 2);
-            //param.AddNamedValue("MediumSmooth", 3);
-            //param.AddNamedValue("Smooth", 4);
-            //param.AddNamedValue("VerySmooth", 5);
+            pManager.AddTextParameter("Name", "Name", "Material identifier (for reference).", GH_ParamAccess.item, "MySurface");
+            pManager.AddNumberParameter("Thickness", "Thick", "Material thickness. Units: m. Default: 0.1", GH_ParamAccess.item, 0.1);
+            pManager.AddNumberParameter("Conductivity", "k", "Thermal conductivity. Units: W/(m·K). Concrete: 2.3. Default: 2.3", GH_ParamAccess.item, 2.3);
+            pManager.AddNumberParameter("Density", "ρ", "Material density. Units: kg/m³. Concrete: 2400. Default: 2400", GH_ParamAccess.item, 2400);
+            pManager.AddNumberParameter("Specific Heat", "Cp", "Specific heat capacity. Units: J/(kg·K). Default: 840", GH_ParamAccess.item, 840);
+            pManager.AddNumberParameter("Thermal Absorptance", "εT", "Longwave emissivity (0-1). High for most materials. Default: 0.9", GH_ParamAccess.item, 0.9);
+            pManager.AddNumberParameter("Solar Absorptance", "αS", "Solar absorptance (0-1). Light surfaces ~0.3, dark ~0.9. Default: 0.7", GH_ParamAccess.item, 0.7);
+            pManager.AddNumberParameter("Visible Absorptance", "αV", "Visible absorptance (0-1). Default: 0.7", GH_ParamAccess.item, 0.7);
+            pManager.AddTextParameter("Radiance Material", "RadMat", "Optional: Custom Radiance material string", GH_ParamAccess.item, "");
         }
 
         /// <summary>
@@ -53,7 +49,7 @@ namespace Eddy.Components._2_Radiation
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.Register_GenericParam("SurfSet", "Set", "Surface settings");
+            pManager.Register_GenericParam("Settings", "Set", "Surface settings for Building/Ground Surface component");
         }
 
         /// <summary>

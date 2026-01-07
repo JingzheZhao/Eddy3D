@@ -66,7 +66,13 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompVisProbesCustom()
-          : base("Probing", "Probing", "Probe the simulation." + EddyVersion.toString(),
+          : base("Probe Simulation", "Probe", 
+@"Extract velocity and pressure data at custom locations.
+
+Use with Brep to Grid Points or custom point lists. Creates 
+analysis probes that can be post-processed after simulation.
+
+" + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")
         {
         }

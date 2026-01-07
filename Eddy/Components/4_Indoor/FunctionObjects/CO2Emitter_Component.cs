@@ -15,7 +15,14 @@ namespace Eddy.Components.Indoor
         /// Initializes a new instance of the Emitter class.
         /// </summary>
         public CO2Emitter_Component()
-          : base("CO2 Emitter", "CO2Em", "CO2 Emitter" + EddyVersion.toString(), EddyVersion.Name, "9 | Indoor")
+          : base("CO2 Emitter", "CO2", 
+@"Create a CO2 emission source for indoor air quality simulation.
+
+Models occupants or combustion sources emitting CO2.
+Use to evaluate ventilation effectiveness and IAQ.
+
+" + EddyVersion.toString(), 
+              EddyVersion.Name, "9 | Indoor")
         {
         }
 
@@ -24,15 +31,11 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            //0
-            pManager.AddGeometryParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
-            //1
-            pManager.AddTextParameter("Name", "N", "Name", GH_ParamAccess.item, "");
-            //2
-            pManager.AddNumberParameter("Injection Rate", "IR", "Injection Rate imposed on object", GH_ParamAccess.item);
+            pManager.AddGeometryParameter("Geometry", "Geo", "Source volume (Mesh).", GH_ParamAccess.item);
+            pManager.AddTextParameter("Name", "Name", "Identifier for this emitter.", GH_ParamAccess.item, "");
+            pManager.AddNumberParameter("Injection Rate", "Rate", "CO2 injection rate.", GH_ParamAccess.item);
 
-            //3
-            pManager.AddIntegerParameter("Type", "Typ", "Type: Absolute [-] or specific [1/m³]", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("Rate Type", "Type", "0: Absolute [-], 1: Specific [1/m³]", GH_ParamAccess.item, 0);
             Param_Integer param = pManager[3] as Param_Integer;
             param.AddNamedValue("Absolute", 0);
             param.AddNamedValue("Specific", 1);
@@ -45,7 +48,7 @@ namespace Eddy.Components.Indoor
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Function Object", "FO", "Momentum Source Function Object", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Function Object", "FObj", "CO2 emitter for Indoor Simulation component", GH_ParamAccess.item);
         }
 
         /// <summary>

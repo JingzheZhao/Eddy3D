@@ -25,7 +25,12 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompCullPoints()
-          : base("Probing", "Probing", @"Solve Building/Ground Mesh intersection (can be slow for a large number of points and/or a large building mesh).
+          : base("Cull Ground Mesh", "CullMesh", 
+@"Remove ground mesh faces that intersect buildings.
+
+Creates analysis ground mesh with building footprints cut out.
+Can be slow for large meshes - consider using QuadRemesh first.
+
 " + EddyVersion.toString(),
               EddyVersion.Name, "5 | Post-Processing")
         {
@@ -36,11 +41,11 @@ namespace Eddy
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddMeshParameter("Building Mesh", "BM", "Joined Building Mesh.", GH_ParamAccess.list);
-            pManager.AddMeshParameter("Ground Mesh", "GM", "Ground Mesh. Make sure this mesh has enough vertices relativ to your visualization goals. Consider using \"QuadRemesh\" if adjustments are needed.", GH_ParamAccess.list);
+            pManager.AddMeshParameter("Building Mesh", "Bldg", "Joined building mesh for intersection.", GH_ParamAccess.list);
+            pManager.AddMeshParameter("Ground Mesh", "Ground", "Ground mesh to cull. Consider QuadRemesh for control.", GH_ParamAccess.list);
 
-            pManager.AddIntegerParameter("Target Count", "TC", "TC.", GH_ParamAccess.item, 50000);
-            pManager.AddBooleanParameter("Convert Quads to Triangles", "QT", "Convert quads to triangles in the resulting mesh.", GH_ParamAccess.item, true);
+            pManager.AddIntegerParameter("Target Face Count", "Target", "Target number of faces in output mesh. Default: 50000", GH_ParamAccess.item, 50000);
+            pManager.AddBooleanParameter("Triangulate", "Tri", "Convert quads to triangles in output. Default: True", GH_ParamAccess.item, true);
 
             pManager[2].Optional = true;
             pManager[3].Optional = true;
@@ -51,7 +56,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddMeshParameter("Culled Ground Mesh", "CGM", "Culled ground mesh", GH_ParamAccess.item);
+            pManager.AddMeshParameter("Culled Mesh", "Mesh", "Ground mesh with building footprints removed", GH_ParamAccess.item);
         }
 
         /// <summary>

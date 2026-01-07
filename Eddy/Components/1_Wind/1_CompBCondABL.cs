@@ -23,15 +23,13 @@ namespace Eddy
         /// be created.
         /// </summary>
         public BCondABLComp()
-          : base("ABL Flow", "ABL Flow", @"Atmospheric Boundary Layer Flow Boundary Condition.
+          : base("ABL Flow", "ABL", 
+@"Define Atmospheric Boundary Layer (log-law) wind inlet conditions.
 
-        Property     | Description
-        wDir         | Wind directions to be simulated
-        Uref         | Reference velocity at Zref [m/s]
-        zref         | Reference height [m]
-        z0           | Surface roughness height [m]
-        zGround      | Minimum z-coordinate [m]
-        EPW          | Weather data file path
+Creates realistic urban wind profiles with velocity increasing logarithmically  
+with height. Uses OpenFOAM's atmBoundaryLayer functions based on EN 1991-1-4.
+
+For simple parametric studies, use Uniform Flow instead.
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")
@@ -45,12 +43,36 @@ namespace Eddy
 
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddIntegerParameter("Wind Directions", "wDir", "Wind directions to be simulated", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Reference velocity at Zref [m/s]", "Uref", "Reference velocity at Zref [m/s]", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Reference height [m]", "zref", "Reference height[m]", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Surface roughness height [m]", "z0", "Surface roughness height [m]", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Minimum z-coordinate [m]", "zGround", "Minimum z - coordinate[m]", GH_ParamAccess.list);
-            pManager.AddTextParameter("EPW", "EPW", "Weather data file path", GH_ParamAccess.item, "");
+            pManager.AddIntegerParameter(
+                "Wind Directions", "Dir", 
+                "Wind directions to simulate. Units: degrees (0-359). 0° = North, 90° = East. Use multiple for annual studies.", 
+                GH_ParamAccess.list);
+
+            pManager.AddNumberParameter(
+                "Reference Velocity", "Uref", 
+                "Wind speed at reference height. Units: m/s. Typical urban: 3-8 m/s. Default: 5 m/s", 
+                GH_ParamAccess.list);
+
+            pManager.AddNumberParameter(
+                "Reference Height", "Zref", 
+                "Height where velocity is measured (weather station height). Units: m. Standard: 10m. Default: 10m", 
+                GH_ParamAccess.list);
+
+            pManager.AddNumberParameter(
+                "Surface Roughness", "Z0", 
+                "Aerodynamic roughness length. Units: m. Examples: 0.01 (open terrain), 0.3 (suburban), 1.0 (urban). Default: 1m", 
+                GH_ParamAccess.list);
+
+            pManager.AddNumberParameter(
+                "Ground Level", "Zgnd", 
+                "Minimum z-coordinate of terrain. Units: m. Usually 0 for flat terrain. Default: 0m", 
+                GH_ParamAccess.list);
+
+            pManager.AddTextParameter(
+                "Weather File", "EPW", 
+                "Optional: Path to EnergyPlus weather file (.epw) for climate-based wind data.", 
+                GH_ParamAccess.item, "");
+
             pManager[0].Optional = true;
             pManager[1].Optional = true;
             pManager[2].Optional = true;
@@ -64,7 +86,7 @@ namespace Eddy
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Bcond", "Bcond", "Bcond", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Boundary Condition", "BC", "Wind inlet boundary condition for Domain component", GH_ParamAccess.item);
         }
 
         /// <summary>

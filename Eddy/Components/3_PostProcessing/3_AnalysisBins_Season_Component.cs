@@ -17,15 +17,14 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
         public AnalysisBins_Season_Component()
-         : base("Analysis Bins Season", "ABSeason", @"Analysis Bins Season
+         : base("Season Filter", "Season", 
+@"Filter analysis results by meteorological season.
 
-Winter, // 12,1,2
-Spring, // 3,4,5
-Summer, // 6,7,8
-Fall //  9,10,11
+Winter: Dec-Feb, Spring: Mar-May, Summer: Jun-Aug, Fall: Sep-Nov.
+Use to calculate seasonal comfort or radiation metrics.
 
-" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
-
+" + EddyVersion.toString(), 
+             EddyVersion.Name, "3 | PostProcessing")
         {
         }
 
@@ -34,7 +33,7 @@ Fall //  9,10,11
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddIntegerParameter("Season", "S", "Season", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("Season", "Season", "Season to filter. 0=Winter, 1=Spring, 2=Summer, 3=Fall", GH_ParamAccess.item, 0);
 
             //Using an enum to generate the dropdown items
             var types = Enum.GetNames(typeof(Season.SeasonE));
@@ -51,7 +50,7 @@ Fall //  9,10,11
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Analysis Bins", "AB", "Analysis Bins", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Time Filter", "Filter", "Time filter for Inspect components", GH_ParamAccess.item);
         }
 
         /// <summary>
