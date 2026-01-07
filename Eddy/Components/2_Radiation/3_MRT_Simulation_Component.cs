@@ -77,6 +77,18 @@ Workflow: Create surfaces → Add sensors → Run simulation.
                 GH_ParamAccess.item, "");
             pManager[5].Optional = true;
 
+            pManager.AddTextParameter(
+                "Radiance Path", "RadPath", 
+                @"Optional: Custom Radiance bin folder. Default: C:\Eddy3D\Common\Radiance\bin", 
+                GH_ParamAccess.item, "");
+            pManager[6].Optional = true;
+
+            pManager.AddTextParameter(
+                "EnergyPlus Path", "EPPath", 
+                @"Optional: Custom EnergyPlus folder. Default: C:\Eddy3D\Common\EnergyPlusV9-4-0", 
+                GH_ParamAccess.item, "");
+            pManager[7].Optional = true;
+
             pManager.AddBooleanParameter(
                 "Run", "Run!", 
                 "Set True to execute MRT simulation.", 
@@ -115,6 +127,21 @@ Workflow: Create surfaces → Add sensors → Run simulation.
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Weather file could not be found");
                 return;
+            }
+
+            // Set custom engine paths if provided
+            string radiancePath = "";
+            string energyPlusPath = "";
+            DA.GetData(6, ref radiancePath);
+            DA.GetData(7, ref energyPlusPath);
+            if (!string.IsNullOrWhiteSpace(radiancePath))
+            {
+                DefaultDirectoriesAndPaths.RadianceDir = radiancePath;
+                DefaultDirectoriesAndPaths.RadianceLibDir = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(radiancePath), "lib");
+            }
+            if (!string.IsNullOrWhiteSpace(energyPlusPath))
+            {
+                DefaultDirectoriesAndPaths.EnergyPlusDir = energyPlusPath;
             }
             Weather weather = new Weather(weatherPath);
 
@@ -200,7 +227,7 @@ Workflow: Create surfaces → Add sensors → Run simulation.
 
             bool RUN = false;
             bool HidePopUp = false;
-            DA.GetData(6, ref RUN);
+            DA.GetData(8, ref RUN);
 
             // ---------------------
             // Setup probes

@@ -125,7 +125,11 @@ Use higher iterations for complex geometries. Enable parallel for faster runs.
                 os.AddNamedValue("Windows 10/11", 2);
             }
 
-            for (int i = 0; i < 10; i++) pManager[i].Optional = true;
+            pManager[9].Optional = true;
+
+            //10
+            pManager.AddTextParameter("BlueCFD Path", "CFD", "Custom BlueCFD installation path. Default: C:\\Program Files\\blueCFD-Core-2020", GH_ParamAccess.item, "");
+            pManager[10].Optional = true;
         }
 
         /// <summary>
@@ -158,17 +162,24 @@ Use higher iterations for complex geometries. Enable parallel for faster runs.
             int relaxIdx = 1;
             bool potentialFoamInit = false;
             bool aoa = false;
+            string blueCfdPath = "";
 
-            DA.GetData("Iterations", ref iterations);
-            DA.GetData("Write Interval", ref writeInterval);
-            DA.GetData("Timesteps to Keep", ref keepTimeSteps);
-            DA.GetData("Turbulence Model", ref turb);
-            DA.GetData("Relaxation Factors", ref relaxIdx);
-            DA.GetData("Numerical Schemes", ref schemesIdx);
-            DA.GetData("Potential Flow Init", ref potentialFoamInit);
-            DA.GetData("Age of Air", ref aoa);
-            DA.GetData("CPU Cores", ref cpus);
-            DA.GetData("Operating System", ref osIdx);
+            DA.GetData(0, ref iterations);
+            DA.GetData(1, ref writeInterval);
+            DA.GetData(2, ref keepTimeSteps);
+            DA.GetData(3, ref turb);
+            DA.GetData(4, ref relaxIdx);
+            DA.GetData(5, ref schemesIdx);
+            DA.GetData(6, ref potentialFoamInit);
+            DA.GetData(7, ref aoa);
+            DA.GetData(8, ref cpus);
+            DA.GetData(9, ref osIdx);
+            DA.GetData(10, ref blueCfdPath);
+
+            if (!string.IsNullOrWhiteSpace(blueCfdPath))
+            {
+                DefaultDirectoriesAndPaths.BlueCfdDir = blueCfdPath;
+            }
 
             if (iterations < writeInterval) writeInterval = iterations;
 
