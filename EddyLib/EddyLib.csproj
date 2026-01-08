@@ -262,6 +262,14 @@
       <Compile Include="Strings\BoundaryConditions.Cyl.cs" />
       <Compile Include="Strings\BoundaryConditions.Generic.cs" />
       <Compile Include="Strings\PlotResiduals.cs" />
+      <Compile Include="Strings\Executables.cs" />
+      <Compile Include="Strings\Executables.Mesh.cs" />
+      <Compile Include="Strings\Executables.Control.cs" />
+      <Compile Include="Strings\Executables.FunctionObjects.cs" />
+      <Compile Include="Strings\Executables.Probes.cs" />
+      <Compile Include="Strings\Executables.Schemes.cs" />
+      <Compile Include="Strings\Executables.Solvers.cs" />
+      <Compile Include="Strings\Executables.Properties.cs" />
       <Compile Include="Radiation\Old\Daysim.cs" />
     <Compile Include="Clustering\JenksFisherNaturalBreaks.cs" />
       <Compile Include="Clustering\KMpt.cs" />
