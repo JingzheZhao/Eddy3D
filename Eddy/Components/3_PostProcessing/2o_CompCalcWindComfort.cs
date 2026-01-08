@@ -27,11 +27,11 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompCalcWindComfort()
-          : base("Pedestrian Wind Comfort", "Pedestrian Wind Comfort", @"Pedestrian Wind Comfort
+          : base("Pedestrian Wind Comfort", "Pedestrian Wind Comfort", @"Pedestrian Wind Comfort Analysis
 
-Evaluation of annual wind velocites according to specific comfort metrics.
-Binning is done by calculating maximum allowable exceedance probability given the wind statistic.
-This component assumes probing at 1.75 m above ground.
+Evaluates annual wind velocities to determine suitability for sitting, standing, or walking.
+Calculates maximum allowable exceedance probability based on wind statistics.
+Assumes probing height at 1.75m above ground.
 
 General Lawson
 

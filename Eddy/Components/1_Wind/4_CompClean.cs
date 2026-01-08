@@ -32,10 +32,9 @@ namespace Eddy
         /// </summary>
         public Clean()
           : base("Clean Directories", "Clean",
-@"Delete simulation directories to free disk space.
+@"Project Cleaner
 
-Removes mesh and/or simulation output folders. Use after 
-exporting results or to restart a simulation from scratch.
+Utility to remove generated simulation files and free up disk space. Use with caution as it deletes results.
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "3 | Pre-Processing")

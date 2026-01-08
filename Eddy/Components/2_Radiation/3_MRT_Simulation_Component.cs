@@ -28,12 +28,13 @@ namespace Eddy
         /// </summary>
         public MRT_Simulation_Component()
           : base("MRT Simulation", "MRT", 
-@"Run Mean Radiant Temperature simulation for outdoor thermal comfort.
+@"Mean Radiant Temperature (MRT) Solver
 
-Combines Radiance for shortwave (solar) radiation and EnergyPlus for 
-surface temperatures. Results feed into UTCI comfort calculations.
-
-Workflow: Create surfaces → Add sensors → Run simulation.
+Calculates MRT, a key metric for thermal comfort, using ray-tracing and view factors.
+Combines:
+- Direct Solar Radiation
+- Diffuse Sky Radiation
+- Longwave Surface Emissions
 
 " + EddyVersion.toString(), 
               EddyVersion.Name, "2 | Radiation")

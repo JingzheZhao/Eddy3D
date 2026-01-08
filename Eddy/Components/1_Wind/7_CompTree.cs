@@ -29,13 +29,9 @@ namespace Eddy
 
         public TreeComp()
           : base("Tree", "Tree",
-@"Create vegetation as a porous momentum sink for CFD.
+@"Tree Modeler
 
-Trees reduce wind speed through aerodynamic drag. Porosity is set via:
-- Type: 'coarse', 'medium', or 'dense' (preset Darcy-Forchheimer coefficients)
-- LAI: Leaf Area Index (alternative, typically 2-6 for trees)
-
-Pass each tree as separate geometry for correct dimension calculation.
+Represents trees as porous media for wind blocking. Essential for simulating the wind-sheltering effects of vegetation.
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")

@@ -36,11 +36,13 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompCalcWindFactors()
-          : base("Wind Factors", "Wind Factors", @"Wind Factors
+          : base("Wind Factors", "Wind Factors", @"Wind Amplification Factors
 
-Based on the probed simulation and the weather data, this component calculates wind velocities, wind factors for each probing point [8760 hourly branches x number of probing points].
-The wind factors are calculated based on the wind velocity and direction for each hour which is scaled up/down accordingly given probing height from ground.
-For this, we support either a look-up for the closest simulated wind direction or an interpolation between the closest two wind directions.
+Calculates the ratio between local wind speed and reference meteorological wind speed to identify areas of acceleration or shelter.
+
+Based on collected data, this component calculates wind factors for each probing point [8760 hourly branches x number of probing points].
+Factors are derived from wind velocity and direction for each hour, scaled by probing height. Supports either a look-up for the closest simulated wind direction or an interpolation between directions.
+
 " + EddyVersion.toString(),
               EddyVersion.Name, "3 | PostProcessing")
         {

@@ -133,7 +133,12 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the ThermalSystem_Component class.
         /// </summary>
         public InspectProbe_Component()
-          : base("InspectSensor", "InSen", "Inspect sensor " + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
+          : base("Point Probe Inspector", "InSen", 
+@"Point Probe Inspector
+
+Visualizes simulation data at specific sensor points. Displays metrics like Wind Speed, UTCI, or MRT for individual locations or hours.
+
+" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
         {
         }
 

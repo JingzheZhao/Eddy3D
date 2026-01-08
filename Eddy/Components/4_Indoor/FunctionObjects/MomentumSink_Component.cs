@@ -15,10 +15,9 @@ namespace Eddy.Components.Indoor
         /// </summary>
         public MomentumSink_Component()
           : base("Momentum Sink", "MomSink", 
-@"Create a flow resistance zone for indoor CFD simulation.
+@"Flow Resistance Zone
 
-Models furniture, equipment, or obstacles that obstruct airflow.
-Reduces velocity within the defined volume.
+Creates a volume that resists airflow, simulating obstacles like furniture, equipment, or dense vegetation in indoor or outdoor models. Reduces air velocity passing through it.
 
 " + EddyVersion.toString(), 
               EddyVersion.Name, "9 | Indoor")

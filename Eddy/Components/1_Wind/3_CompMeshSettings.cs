@@ -21,10 +21,9 @@ namespace Eddy
           : base(
               "Mesh Settings", 
               "MSet", 
-              @"Configure snappyHexMesh refinement levels for CFD simulation.
+              @"Meshing Parameters
 
-Higher refinement levels = finer mesh = more accurate but slower.
-Levels 2-3 are typical for buildings. Level 4+ requires significant RAM.
+Controls the resolution and quality of the simulation grid (mesh). Adjust cell sizes to balance between simulation accuracy and computation time.
 
 " + EddyVersion.toString(),
               EddyVersion.Name, 

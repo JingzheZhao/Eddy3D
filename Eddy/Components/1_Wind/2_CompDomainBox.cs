@@ -28,15 +28,9 @@ namespace Eddy
         /// </summary>
         public BlockMeshBox()
           : base("Box Domain", "DomBox", 
-@"Create a rectangular CFD domain for single wind direction simulations.
+@"Rectangular Simulation Domain
 
-Best for analyzing wind from one direction. For multi-directional annual 
-studies, use Cylindrical Domain instead. Domain should extend:
-• 5H upstream of buildings (inlet)
-• 10-15H downstream (outlet)  
-• 5H to sides and above (lateral/top)
-
-Where H = tallest building height.
+Defines a box-shaped computational domain for the wind simulation. Best suited for single-direction wind analysis or wind tunnel comparisons.
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")

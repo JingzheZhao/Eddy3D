@@ -21,10 +21,9 @@ namespace Eddy
           : base(
               "Run Settings", 
               "RSet", 
-              @"Configure CFD solver settings including iterations, turbulence model, and parallelization.
+              @"Solver Control
 
-These settings control the OpenFOAM simpleFoam solver behavior.
-Use higher iterations for complex geometries. Enable parallel for faster runs.
+Configures the simulation engine, including calculation iterations, convergence criteria, and parallel processing options (CPUs).
 
 " + EddyVersion.toString(),
               EddyVersion.Name, 

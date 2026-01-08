@@ -31,10 +31,12 @@ namespace Eddy.Components.Indoor
 
         public IndoorDomain_Component() 
           : base("Indoor Simulation", "IndoorSim", 
-@"Run indoor CFD simulation using OpenFOAM's buoyantSimpleFoam.
+@"Indoor Airflow Solver
 
-Simulates buoyancy-driven airflow and temperature distribution.
-Connect walls, inlets, outlets, and optional heat sources.
+Simulates buoyancy-driven airflow, temperature distribution, and contaminant transport within an indoor space.
+
+Uses OpenFOAM's 'buoyantSimpleFoam' solver.
+Requires connected walls, inlets, outlets, and optional heat sources.
 
 " + EddyVersion.toString(), 
               EddyVersion.Name, "9 | Indoor")

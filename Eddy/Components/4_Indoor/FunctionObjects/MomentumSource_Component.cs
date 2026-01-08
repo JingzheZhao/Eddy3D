@@ -15,10 +15,9 @@ namespace Eddy.Components.Indoor
         /// </summary>
         public MomentumSource_Component()
           : base("Momentum Source", "MomSrc", 
-@"Create a directional air flow source for indoor CFD simulation.
+@"Fan / Jet Source
 
-Models fans, blowers, or HVAC jets that add momentum to the airflow.
-Specify target velocity direction and magnitude.
+Creates a volume that actively pushes air in a specific direction. Use this to model fans, blowers, HVAC supply jets, or other active airflow devices.
 
 " + EddyVersion.toString(), 
               EddyVersion.Name, "9 | Indoor")

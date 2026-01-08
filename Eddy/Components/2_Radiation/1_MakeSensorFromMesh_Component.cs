@@ -15,10 +15,9 @@ namespace Eddy.Components.Radiation
         /// </summary>
         public MakeRadiationSensorFromMesh_Component()
           : base("Mesh Sensor", "MeshSen", 
-@"Create analysis sensors from mesh faces for MRT simulation.
+@"Mesh Sensor Grid
 
-Each mesh face becomes a sensor point. Use Ladybug's analysis grid 
-or custom meshes. Sensor normals point upward for pedestrian analysis.
+Converts a mesh surface into a grid of sensors for MRT analysis. Each mesh face serves as a measurement point for radiation and thermal comfort.
 
 " + EddyVersion.toString(), 
               EddyVersion.Name, "2 | Radiation")

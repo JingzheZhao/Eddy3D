@@ -17,7 +17,12 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
         public UTCI_ConditionOfPerson_Component()
-          : base("UTCI Rating", "UTCI", "UTCI condition of person " + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
+          : base("UTCI Rating", "UTCI", 
+@"Comfort Categories
+
+Classifies UTCI values into readable categories ranging from ""Extreme Cold Stress"" to ""Extreme Heat Stress"".
+
+" + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
         {
         }
 

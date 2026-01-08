@@ -29,11 +29,9 @@ namespace Eddy
 
         public BlockMesh()
           : base("Cylindrical Domain", "DomCyl", 
-@"Create a cylindrical CFD domain for multi-directional wind studies.
+@"Cylindrical Simulation Domain
 
-Ideal for annual wind comfort analysis where wind comes from many directions.
-The domain rotates to align with each wind direction, so buildings stay centered.
-Outer radius should be at least 5x the height of the tallest building.
+Defines a cylindrical computational domain. Recommended for multi-directional wind analysis as it allows for changing wind directions without re-meshing.
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")

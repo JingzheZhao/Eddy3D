@@ -22,11 +22,9 @@ namespace Eddy.Components.Radiation
         /// </summary>
         public MakeGroundSurface_Component()
           : base("Ground Surface", "GndSrf", 
-@"Create a ground surface for MRT simulation.
+@"Ground Material
 
-Ground surfaces commonly have higher temperatures than air due to 
-solar absorption. Use Surface Settings to specify material (asphalt, 
-grass, etc.) and albedo values.
+Defines properties for ground surfaces like asphalt, concrete, or soil. Critical for analyzing the Urban Heat Island effect.
 
 " + EddyVersion.toString(), 
               EddyVersion.Name, "2 | Radiation")

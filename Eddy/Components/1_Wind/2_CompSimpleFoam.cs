@@ -27,12 +27,14 @@ namespace Eddy
         /// </summary>
         public SimpleFoam()
           : base("Wind Simulation", "WindSim", 
-@"Run CFD simulation using OpenFOAM's simpleFoam solver.
+@"Steady-State Wind Solver (SimpleFoam)
 
-Workflow: 1) Connect domain and settings, 2) Run Meshing (snappyHexMesh),  
-3) Optionally create tree porous zones, 4) Run Simulation (simpleFoam).
+Executes the OpenFOAM 'simpleFoam' solver (Steady-state RANS) to calculate mean wind flow patterns.
 
-Uses steady-state RANS turbulence modeling for urban wind analysis.
+Workflow:
+1. Connect Domain and Settings
+2. Run Meshing (snappyHexMesh)
+3. Run Simulation (simpleFoam)
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")

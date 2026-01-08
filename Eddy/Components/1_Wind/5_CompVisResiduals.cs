@@ -29,10 +29,9 @@ namespace Eddy
         /// </summary>
         public Residuals()
         : base("Plot Residuals", "Residuals", 
-@"Visualize CFD residuals to monitor simulation convergence.
+@"Convergence Monitor
 
-Uses Gnuplot to display residual history. Convergence is indicated 
-when residuals drop below ~1e-4 and stabilize. Right-click to export PDF.
+Visualizes the definition of simulation convergence (residuals) in real-time. Helps verify if the simulation has reached a stable solution.
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")

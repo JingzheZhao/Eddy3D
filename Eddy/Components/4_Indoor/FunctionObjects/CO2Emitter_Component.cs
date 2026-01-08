@@ -16,10 +16,9 @@ namespace Eddy.Components.Indoor
         /// </summary>
         public CO2Emitter_Component()
           : base("CO2 Emitter", "CO2", 
-@"Create a CO2 emission source for indoor air quality simulation.
+@"CO2 Source
 
-Models occupants or combustion sources emitting CO2.
-Use to evaluate ventilation effectiveness and IAQ.
+Simulates carbon dioxide generation, typically from occupants. Use this to assess ventilation effectiveness and air quality.
 
 " + EddyVersion.toString(), 
               EddyVersion.Name, "9 | Indoor")

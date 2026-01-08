@@ -25,11 +25,9 @@ namespace Eddy
         /// </summary>
         public BCondConstU()
           : base("Uniform Flow", "UniFlow", 
-@"Define uniform (constant) wind inlet conditions.
+@"Uniform Wind Inlet
 
-Simpler than ABL Flow - wind speed is constant with height.
-Use for parametric studies or when vertical profile is not important.
-For realistic urban wind, use ABL Flow instead.
+Sets a constant wind speed across the entire inlet. Useful for wind tunnel calibration or simplified flow studies.
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")

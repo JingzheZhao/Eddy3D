@@ -22,10 +22,9 @@ namespace Eddy.Components.Radiation
         /// </summary>
         public MakeTreeSurface_Component()
           : base("Tree Surface", "TreeSrf", 
-@"Create tree/vegetation surfaces for MRT simulation.
+@"Tree Canopies
 
-Trees provide shading and have distinct thermal properties.
-Includes evapotranspiration cooling effects on surface temperature.
+Converts tree geometries for radiation analysis. Simulates shading and evapotranspiration cooling effects.
 
 " + EddyVersion.toString(), 
               EddyVersion.Name, "2 | Radiation")

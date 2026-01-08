@@ -19,10 +19,9 @@ namespace Eddy.Components.Radiation
         /// </summary>
         public LoadWProbeData_Component()
           : base("Load Wind Results", "LoadWind", 
-@"Load CFD simulation results from .wind.eddy file.
+@"Wind Results Loader
 
-Contains velocity magnitude, direction, and pressure data 
-at probe locations and analysis polygons for visualization.
+Import raw results from a completed wind simulation for further analysis and visualization.
 
 " + EddyVersion.toString(), 
               EddyVersion.Name, "3 | PostProcessing")

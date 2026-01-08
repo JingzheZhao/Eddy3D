@@ -67,10 +67,9 @@ namespace Eddy
         /// </summary>
         public CompVisProbesCustom()
           : base("Probe Simulation", "Probe", 
-@"Extract velocity and pressure data at custom locations.
+@"Point Probe Inspector
 
-Use with Brep to Grid Points or custom point lists. Creates 
-analysis probes that can be post-processed after simulation.
+Samples the wind field at specific locations. Use this to query wind speed and pressure at points of interest like building entrances or balconies.
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")

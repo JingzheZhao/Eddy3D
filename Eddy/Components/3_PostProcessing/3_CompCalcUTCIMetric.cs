@@ -24,13 +24,15 @@ namespace Eddy
         /// </summary>
         public CompUTCI()
           : base("UTCI", "UTCI", 
-@"Calculate Universal Thermal Climate Index for outdoor comfort.
+@"UTCI Calculation
 
-UTCI is a validated thermal comfort metric accounting for:
-- Air temperature and Mean Radiant Temperature (MRT)
-- Wind speed (pedestrian level) and relative humidity
+Computes the Universal Thermal Climate Index (UTCI), a measure of how the weather ""feels"" to the human body.
 
-Valid ranges: Air temp -50°C to +50°C, Wind 0.5-17 m/s.
+Combines:
+- Air Temperature (-50°C to +50°C)
+- Mean Radiant Temperature (MRT)
+- Wind Speed (0.5-17 m/s)
+- Relative Humidity
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "3 | PostProcessing")

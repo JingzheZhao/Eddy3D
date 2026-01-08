@@ -20,10 +20,9 @@ namespace Eddy.Components.Radiation
         /// </summary>
         public LoadMRTData_Component()
           : base("Load MRT Results", "LoadMRT", 
-@"Load MRT simulation results from .mrt.eddy file.
+@"MRT Results Loader
 
-Contains Mean Radiant Temperature, solar radiation, and 
-surface temperature data for thermal comfort analysis.
+Import calculated Mean Radiant Temperature (MRT) data for thermal comfort analysis.
 
 " + EddyVersion.toString(), 
               EddyVersion.Name, "3 | PostProcessing")

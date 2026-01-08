@@ -17,9 +17,9 @@ namespace Eddy.Components.Indoor
           : base(
               "Indoor Outlet", 
               "Outlet",
-              @"Define an air exhaust outlet for indoor CFD simulation.
+              @"Ventilation Outlet
 
-Specify outlet geometry and optional extraction velocity.
+Defines where air exhausts from the room, such as return grilles or open windows.
 
 " + EddyVersion.toString(),
               EddyVersion.Name, 

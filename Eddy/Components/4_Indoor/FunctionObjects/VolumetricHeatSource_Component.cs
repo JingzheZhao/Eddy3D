@@ -16,10 +16,9 @@ namespace Eddy.Components.Indoor
         /// </summary>
         public VolumetricHeatSource_Component()
           : base("Heat Source", "HeatSrc", 
-@"Create a volumetric heat source for indoor CFD simulation.
+@"Heat Source
 
-Models equipment, occupants, or other heat-generating objects.
-Specify power as absolute (W) or specific (W/m³).
+Models a heat-generating object within the indoor space, such as equipment, electronics, or a cluster of people. Can be defined by total power (W) or power density (W/m³).
 
 " + EddyVersion.toString(), 
               EddyVersion.Name, "9 | Indoor")

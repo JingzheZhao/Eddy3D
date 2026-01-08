@@ -18,10 +18,9 @@ namespace Eddy.Components._2_Radiation
         /// </summary>
         public SurfaceSettings_Component()
           : base("Surface Settings", "SrfSet", 
-@"Define material properties for thermal simulation.
+@"Material Properties
 
-Properties are used by EnergyPlus for surface temperature calculation.
-Defaults represent typical concrete. Adjust for different materials.
+Defines thermal and optical properties for building or ground surfaces (e.g., concrete, asphalt). Controls heat calculation parameters like conductivity, density, and emissivity.
 
 " + EddyVersion.toString(), 
               EddyVersion.Name, "2 | Radiation")

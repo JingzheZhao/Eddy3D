@@ -22,11 +22,9 @@ namespace Eddy.Components.Radiation
         /// </summary>
         public MakeBuildingSurface_Component()
           : base("Building Surface", "BldgSrf", 
-@"Create a building facade surface for MRT simulation.
+@"Building Material
 
-Surfaces are meshed into patches for Radiance ray-tracing and 
-EnergyPlus surface temperature calculation. Default material 
-assumes typical facade reflectance (~0.3).
+Assigns thermal and optical properties to building geometries. Affects how buildings reflect sunlight and emit heat.
 
 " + EddyVersion.toString(), 
               EddyVersion.Name, "2 | Radiation")

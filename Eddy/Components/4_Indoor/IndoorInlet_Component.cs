@@ -17,9 +17,9 @@ namespace Eddy.Components.Indoor
           : base(
               "Indoor Inlet", 
               "Inlet",
-              @"Define an air supply inlet for indoor CFD simulation.
+              @"Ventilation Inlet
 
-Specify inlet geometry, velocity vector, and air temperature.
+Defines where air enters the room, such as diffusers, windows, or doors.
 
 " + EddyVersion.toString(),
               EddyVersion.Name, 

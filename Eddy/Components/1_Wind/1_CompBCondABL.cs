@@ -24,12 +24,9 @@ namespace Eddy
         /// </summary>
         public BCondABLComp()
           : base("ABL Flow", "ABL", 
-@"Define Atmospheric Boundary Layer (log-law) wind inlet conditions.
+@"Atmospheric Boundary Layer (ABL) Inlet
 
-Creates realistic urban wind profiles with velocity increasing logarithmically  
-with height. Uses OpenFOAM's atmBoundaryLayer functions based on EN 1991-1-4.
-
-For simple parametric studies, use Uniform Flow instead.
+Sets up a logarithmic wind profile based on aerodynamic roughness length (z0). Essential for accurate urban wind flow simulation, representing the friction of the upwind terrain.
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")

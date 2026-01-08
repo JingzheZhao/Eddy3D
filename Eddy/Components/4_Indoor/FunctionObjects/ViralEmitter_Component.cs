@@ -16,10 +16,9 @@ namespace Eddy.Components.Indoor
         /// </summary>
         public ViralEmitter_Component()
           : base("Viral Emitter", "Viral", 
-@"Create a pathogen emission source for airborne transmission simulation.
+@"Pathogen Source
 
-Models infected occupants exhaling viral particles (e.g., COVID-19).
-Use to evaluate infection risk and ventilation strategies.
+Simulates the release of airborne pathogens (e.g., viruses) from a specific location to analyze infection risk and dispersion patterns.
 
 " + EddyVersion.toString(), 
               EddyVersion.Name, "9 | Indoor")

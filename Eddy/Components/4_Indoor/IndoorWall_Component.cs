@@ -17,9 +17,9 @@ namespace Eddy.Components.Indoor
           : base(
               "Indoor Wall", 
               "Wall",
-              @"Define a wall or surface boundary for indoor CFD simulation.
+              @"Indoor Wall/Boundary
 
-Specify surface geometry and temperature boundary condition.
+Defines a solid boundary for indoor simulations, such as walls, floors, or ceilings. Allows specification of surface temperature for thermal analysis.
 
 " + EddyVersion.toString(),
               EddyVersion.Name, 

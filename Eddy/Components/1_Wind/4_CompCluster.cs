@@ -24,10 +24,9 @@ namespace Eddy
           : base(
               "Wind Rose Cluster", 
               "Cluster", 
-              @"Group wind directions into clusters based on statistical occurrence.
+              @"Wind Rose Clustering
 
-Reduces a full wind rose (e.g. 36 directions) into a smaller budget (e.g. 8)
-for faster simulation while maintaining representative wind patterns.
+Groups wind directions into representative clusters to reduce simulation time. Essential for performing annual wind comfort analysis efficiently without simulating every single direction.
 
 " + EddyVersion.toString(),
               EddyVersion.Name, 
