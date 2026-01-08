@@ -1,148 +1,158 @@
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace EddyLib
 {
+    /// <summary>
+    /// Mathematical utility methods.
+    /// </summary>
     public static partial class Utilities
     {
         private static readonly string[] SizeSuffixes =
-                  { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
+            { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
 
-        public static string SizeSuffix(Int64 value)
+        /// <summary>
+        /// Formats a byte count with appropriate size suffix (KB, MB, GB, etc.)
+        /// </summary>
+        public static string SizeSuffix(long value)
         {
-            if (value < 0) { return "-" + SizeSuffix(-value); }
+            if (value < 0) return "-" + SizeSuffix(-value);
+            if (value == 0) return "0 bytes";
 
             int i = 0;
-            decimal dValue = (decimal)value;
-            while (Math.Round(dValue / 1024) >= 1)
+            decimal dValue = value;
+            while (Math.Round(dValue / 1024) >= 1 && i < SizeSuffixes.Length - 1)
             {
                 dValue /= 1024;
                 i++;
             }
 
-            return string.Format("{0:n1} {1}", dValue, SizeSuffixes[i]);
+            return $"{dValue:n1} {SizeSuffixes[i]}";
         }
 
-        public static Vector3d AverageVectors(List<Vector3d> list)
+        /// <summary>
+        /// Computes the average of a list of vectors.
+        /// </summary>
+        public static Vector3d AverageVectors(List<Vector3d> vectors)
         {
-            Vector3d val3 = Vector3d.Zero;
-            int num9 = 0;
-            int num10 = list.Count - 1;
-            for (int m = 0; m <= num10; m++)
+            if (vectors == null || vectors.Count == 0)
+                return Vector3d.Zero;
+
+            Vector3d sum = Vector3d.Zero;
+            int count = 0;
+
+            foreach (var vec in vectors)
             {
-                if (list[m] != null)
-                {
-                    val3 += list[m];
-                    num9++;
-                }
+                // Vector3d is a struct, can't be null, but check for zero-length validity
+                sum += vec;
+                count++;
             }
 
-            // if (num9 != 0)
-            // {
-            return (val3 / (double)num9);
-
-            //}
+            return count > 0 ? sum / count : Vector3d.Zero;
         }
 
-        public static Point3d AveragePoints(List<Point3d> list)
+        /// <summary>
+        /// Computes the average (centroid) of a list of points.
+        /// </summary>
+        public static Point3d AveragePoints(List<Point3d> points)
         {
-            Point3d val2 = Point3d.Origin;
-            int num7 = 0;
-            int num8 = list.Count - 1;
-            for (int l = 0; l <= num8; l++)
+            if (points == null || points.Count == 0)
+                return Point3d.Origin;
+
+            double x = 0, y = 0, z = 0;
+            foreach (var pt in points)
             {
-                if (list[l] != null)
-                {
-                    val2 += list[l];
-                    num7++;
-                }
+                x += pt.X;
+                y += pt.Y;
+                z += pt.Z;
             }
 
-            //if (num7 != 0)
-            // {
-            return (val2 / (double)num7);
-
-            //  }
+            int count = points.Count;
+            return new Point3d(x / count, y / count, z / count);
         }
 
+        /// <summary>
+        /// Converts degrees to radians.
+        /// </summary>
         public static double Deg2Rad(double angleDeg)
         {
-            return Math.PI * angleDeg / 180.0;
+            return angleDeg * Math.PI / 180.0;
         }
 
+        /// <summary>
+        /// Calculates angle in degrees between a vector and North (Y-axis).
+        /// </summary>
         public static double Rad2Deg(Vector3d windVec)
         {
-            Vector3d vec1 = new Vector3d(0, 1, 0);
-            Vector3d vec2 = windVec;
-
-            double rad = Math.Acos(vec1 * vec2 / vec1.Length * vec2.Length);
-            double ang = rad * 180 / Math.PI;
-            return ang;
+            Vector3d north = Vector3d.YAxis;
+            windVec.Unitize();
+            
+            double dotProduct = north * windVec;
+            // Clamp to handle floating point errors
+            dotProduct = Math.Max(-1.0, Math.Min(1.0, dotProduct));
+            
+            return Math.Acos(dotProduct) * 180.0 / Math.PI;
         }
 
+        /// <summary>
+        /// Converts a vector to compass direction in degrees (0-360).
+        /// </summary>
         public static double Vec2Dir(Vector3d vec)
         {
-            var res = Math.Atan2(vec.Y, vec.X) * 180 / Math.PI;
-            return res;
+            return Math.Atan2(vec.Y, vec.X) * 180.0 / Math.PI;
         }
 
+        /// <summary>
+        /// Converts a vector to OpenFOAM wind direction (meteorological convention).
+        /// 0° = North, 90° = East, 180° = South, 270° = West.
+        /// </summary>
         public static int Vec2DirOFCoord(Vector3d vec)
         {
-            // Standard 0 deg is plus X
-
-            var transform = (Math.Atan2(vec.Y, vec.X) * 180 / Math.PI) + 90;
-
-            var deg = 0.0;
-
-            if (transform < 0)
-
-            {
-                deg = -1 * transform;
-            }
-            else if (transform <= 270 && transform > 0)
-            {
-                deg = 360 - transform;
-            }
-            else
-            { deg = transform; }
-
-            return (int)Math.Round(deg);
+            // Convert from math convention (0° = East, CCW) to meteorological (0° = North, CW)
+            double mathDeg = Math.Atan2(vec.Y, vec.X) * 180.0 / Math.PI;
+            double meteoDeg = 90.0 - mathDeg;
+            
+            // Normalize to 0-360 range
+            meteoDeg = ((meteoDeg % 360.0) + 360.0) % 360.0;
+            
+            return (int)Math.Round(meteoDeg);
         }
 
-        public static List<int> NormalizeWindDirs(List<int> windDir)
+        /// <summary>
+        /// Normalizes wind directions to 0-359 range.
+        /// </summary>
+        public static List<int> NormalizeWindDirs(List<int> windDirs)
         {
-            if (windDir.Count == 0)
+            if (windDirs == null || windDirs.Count == 0)
             {
-                windDir.Add(0);
+                return new List<int> { 0 };
             }
 
-            // Translate dirs > 359 into correct format
-
-            for (int i = 0; i < windDir.Count; i++)
-            {
-                if (windDir[i] > 359)
-                {
-                    int j = windDir[i] / 360;
-                    windDir[i] = windDir[i] - (360 * j);
-                }
-                else { windDir[i] = windDir[i]; }
-            }
-
-            return windDir;
+            return windDirs.Select(dir => ((dir % 360) + 360) % 360).ToList();
         }
 
-        public static Vector3d Dir2Vec(double d)
+        /// <summary>
+        /// Converts a wind direction (degrees) to a unit vector.
+        /// Uses meteorological convention: 0° = North wind (blowing from North to South).
+        /// </summary>
+        public static Vector3d Dir2Vec(double degrees)
         {
-            return new Vector3d(-1 * Math.Sin(d * Math.PI / 180), -1 * Math.Cos(d * Math.PI / 180), 0);
+            double radians = degrees * Math.PI / 180.0;
+            // Wind FROM direction, so negative
+            return new Vector3d(-Math.Sin(radians), -Math.Cos(radians), 0);
         }
 
+        /// <summary>
+        /// Calculates the signed angle between two 2D vectors in degrees.
+        /// Positive = CCW rotation from vector1 to vector2.
+        /// </summary>
         public static double AngleBetweenVectors(Vector3d vector1, Vector3d vector2)
         {
-            double sin = vector1.X * vector2.Y - vector2.X * vector1.Y;
-            double cos = vector1.X * vector2.X + vector1.Y * vector2.Y;
-
-            return Math.Atan2(sin, cos) * (180 / Math.PI);
+            double cross = vector1.X * vector2.Y - vector2.X * vector1.Y;
+            double dot = vector1.X * vector2.X + vector1.Y * vector2.Y;
+            return Math.Atan2(cross, dot) * 180.0 / Math.PI;
         }
     }
 }

@@ -1,414 +1,304 @@
-﻿using Newtonsoft.Json;
-using Rhino.Geometry;
+﻿using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 
 namespace EddyLib
 {
-    //foamToVTK -cellSet Tree_0 -latestTime
-
+    /// <summary>
+    /// Manages tree objects for OpenFOAM porous zone simulations.
+    /// </summary>
     public class TreeObject
     {
-        public List<Tree> trees;
+        /// <summary>List of trees in the domain.</summary>
+        public List<Tree> Trees { get; set; }
 
-        public List<Mesh> treeGeometries;
+        /// <summary>Combined geometries of all trees.</summary>
+        public List<Mesh> TreeGeometries { get; set; }
 
-        public String fullExportString;
+        /// <summary>Full fvOptions export string.</summary>
+        public string FullExportString { get; private set; }
 
-        private string topoSetDictPath;
+        private readonly string topoSetDictPath;
 
-        public TreeObject(OFBaseDomain DOM, OFMeshSettings MeshSettings)
+        /// <summary>
+        /// Creates a TreeObject and exports all necessary OpenFOAM files.
+        /// </summary>
+        public TreeObject(OFBaseDomain dom, OFMeshSettings meshSettings)
         {
-            //this.fvObjectPath = MeshSettings.meshSystemDir + @"\fvOptions";
-            this.topoSetDictPath = MeshSettings.meshSystemDir + @"\topoSetDict";
-            this.trees = DOM.Trees;
+            topoSetDictPath = Path.Combine(meshSettings.meshSystemDir, "topoSetDict");
+            Trees = dom.Trees;
 
-            ExportfvOptionsDict(trees, DOM, MeshSettings);
-
-            ExportTopoSetDict(trees, DOM.LocationInMesh);
-
-            ExportTreeGeometry(trees, MeshSettings);
+            ExportFvOptionsDict(Trees, dom, meshSettings);
+            ExportTopoSetDict(Trees, dom.LocationInMesh);
+            ExportTreeGeometry(Trees, meshSettings);
         }
 
-        public static void RemoveDicts(OFBaseDomain DOM, OFMeshSettings MeshSettings)
+        /// <summary>
+        /// Removes fvOptions files from all wind direction folders.
+        /// </summary>
+        public static void RemoveDicts(OFBaseDomain dom, OFMeshSettings meshSettings)
         {
-            for (int i = 0; i < DOM.BCond.WindDirections.Count; i++)
+            foreach (var windDir in dom.BCond.WindDirections)
             {
-                string simSystemDir = MeshSettings.baseWorkingDir + "\\" + DOM.BCond.WindDirections[i] + @"\system\";
-                var path = simSystemDir + @"\fvOptions";
+                string fvOptionsPath = Path.Combine(
+                    meshSettings.baseWorkingDir, 
+                    windDir.ToString(), 
+                    "system", 
+                    "fvOptions");
 
-                if (File.Exists(path))
+                if (File.Exists(fvOptionsPath))
                 {
-                    File.Delete(path);
+                    File.Delete(fvOptionsPath);
                 }
             }
         }
 
-        public void ExportTreeGeometry(List<Tree> trees, OFMeshSettings MeshSettings)
-
+        /// <summary>
+        /// Exports tree geometries as STL files.
+        /// </summary>
+        public void ExportTreeGeometry(List<Tree> trees, OFMeshSettings meshSettings)
         {
             for (int i = 0; i < trees.Count; i++)
             {
-                STLExport.ExportBinary(MeshSettings.meshStlDir + "Tree_" + i + ".stl", trees[i].treeGeometries);
+                string stlPath = Path.Combine(meshSettings.meshStlDir, $"Tree_{i}.stl");
+                STLExport.ExportBinary(stlPath, trees[i].Geometry);
             }
         }
 
-        public void ExportfvOptionsDict(List<Tree> trees, OFBaseDomain DOM, OFMeshSettings Meshsettings)
+        /// <summary>
+        /// Exports fvOptions dictionary for all wind directions.
+        /// </summary>
+        public void ExportFvOptionsDict(List<Tree> trees, OFBaseDomain dom, OFMeshSettings meshSettings)
         {
-            for (int i = 0; i < DOM.BCond.WindDirections.Count; i++)
+            foreach (var windDir in dom.BCond.WindDirections)
             {
-                string simSystemDir = Meshsettings.baseWorkingDir + "\\" + DOM.BCond.WindDirections[i] + @"\system\";
+                string systemDir = Path.Combine(meshSettings.baseWorkingDir, windDir.ToString(), "system");
 
-                StringBuilder sb = new StringBuilder();
-                sb.AppendLine(TreeStringHeader());
-                for (int j = 0; j < trees.Count; j++)
+                var sb = new StringBuilder();
+                sb.AppendLine(FvOptionsHeader());
+                
+                for (int i = 0; i < trees.Count; i++)
                 {
-                    sb.AppendLine(TreeStringBody(j, trees[j].F, trees[j].D));
+                    sb.AppendLine(FvOptionsBody(i, trees[i].F, trees[i].D));
                 }
-                this.fullExportString = sb.ToString();
+                
+                FullExportString = sb.ToString();
 
-                if (Directory.Exists(simSystemDir))
+                if (Directory.Exists(systemDir))
                 {
-                    File.WriteAllText(simSystemDir + @"\fvOptions", fullExportString);
+                    File.WriteAllText(Path.Combine(systemDir, "fvOptions"), FullExportString);
                 }
             }
         }
 
+        /// <summary>
+        /// Exports topoSetDict for tree cell zones.
+        /// </summary>
         public void ExportTopoSetDict(List<Tree> trees, Point3d locationInMesh)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine(TopoSetDictStringHeader());
-            sb.AppendLine(@"actions
-  (");
+            var sb = new StringBuilder();
+            sb.AppendLine(TopoSetHeader());
+            sb.AppendLine("actions\n(");
+            
             for (int i = 0; i < trees.Count; i++)
             {
-                sb.AppendLine(TopoSetDictStringBody(i, trees[i].treeGeometries, locationInMesh));
+                sb.AppendLine(TopoSetBody(i, locationInMesh));
             }
+            
             sb.AppendLine(");");
-            File.WriteAllText(this.topoSetDictPath, sb.ToString());
+            File.WriteAllText(topoSetDictPath, sb.ToString());
         }
 
-        public static string TopoSetDictStringHeader()
+        #region OpenFOAM Dictionary Templates
 
-        {
-            return @"/*--------------------------------*- C++ -*----------------------------------*\
+        private static string TopoSetHeader() => @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
 |  \\    /   O peration     | Version:  3.0.x                                 |
 |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
-            FoamFile
+FoamFile
 {
-                version     2.0;
-                format ascii;
-    class dictionary;
-        object topoSetDict;
-    }
-
-    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 ";
+
+        private static string TopoSetBody(int id, Point3d locationInMesh)
+        {
+            string outsidePoint = Utilities.FormatPV(locationInMesh);
+            return $@"{{
+    name Tree_{id};
+    type cellZoneSet;
+    action new;
+    source surfaceToCell;
+    sourceInfo
+    {{
+        surface triSurfaceMesh;
+        file ""./constant/triSurface/Tree_{id}.stl"";
+        outsidePoints (({outsidePoint}));
+        includeCut yes;
+        includeInside yes;
+        includeOutside no;
+        nearDistance 0.08;
+        curvature -100;
+    }}
+}}";
         }
 
-        public static string TopoSetDictStringBody(int id, Mesh tree, Point3d locationInMesh)
-
-        {
-            var pointOutside = locationInMesh;
-
-            StringBuilder sb = new StringBuilder();
-
-            string content = string.Format(@"{{
-        name Tree_{0};
-        type cellZoneSet;
-        action new;
-        source surfaceToCell;
-        sourceInfo
-        {{
-                surface triSurfaceMesh;
-                file ""./constant/triSurface/Tree_{0}.stl"";
-            outsidePoints (({1}));
-            includeCut yes;
-            includeInside yes;
-            includeOutside no;
-            nearDistance 0.08;
-            curvature -100;
-        }}
-}}
-", id, String.Join(" ", EddyLib.Utilities.FormatPV(pointOutside)));
-
-            string content2 = string.Format(@"{{
-                name Tree_{0};
-                type faceZoneSet;
-                action new;
-                source surfaceToCell;
-                sourceInfo
-        {{
-                    surface triSurfaceMesh;
-                    file ""./constant/triSurface/Tree_0.stl"";
-                    outsidePoints (({1}));
-                    includeCut yes;
-                    includeInside yes;
-                    includeOutside no;
-                    nearDistance 0.08;
-                    curvature -100;
-                }}
-            }}", id, String.Join(" ", EddyLib.Utilities.FormatPV(pointOutside)));
-
-            sb.AppendLine(content);
-
-            //sb.AppendLine(content2);
-
-            return sb.ToString();
-        }
-
-        // public static string TreeStringBody(int id, TreeType treeType)
-        public static string TreeStringBody(int id, double[] f, double[] d)
-
-        {
-            var PorosityCoeffs_D = d;
-            var PorosityCoeffs_F = f;
-
-            //var PorosityCoeffs_D = new double[] { 00.0, 00.0, 00.0 };
-            //var PorosityCoeffs_F = new double[] { 0.0, 0.0, 0.0 };
-
-            //if (treeType == TreeType.coarse)
-            //{
-            //    PorosityCoeffs_D = new double[] { 20.0, 20.0, 20.0 };
-            //    PorosityCoeffs_F = new double[] { 20.0, 20.0, 20.0 };
-            //}
-            //else if (treeType == TreeType.medium)
-            //{
-            //    PorosityCoeffs_D = new double[] { 40.0, 40.0, 40.0 };
-            //    PorosityCoeffs_F = new double[] { 40.0, 40.0, 40.0 };
-            //}
-            //else
-            //{
-            //    PorosityCoeffs_D = new double[] { 60.0, 60.0, 60.0 };
-            //    PorosityCoeffs_F = new double[] { 60.0, 60.0, 60.0 };
-            //}
-
-            // https://www.cfd-online.com/Forums/openfoam-solving/78705-darcy-forchheimer-law-specifying-porous-zones.html
-            // e1 and e2 are the vectors that are used to specify the porosity.In the porousZones file, you have to specify three components of f and d.The first component is in the direction of e1, the second in the direction of e2 and the third in the direction perpendicular to e1 and e2.An example can be found in tutorials / incompressible / porousSimpleFoam / angledDuctImplicit.
-
-            //Furthermore,
-            //d = beta / viscocity[1 / m ^ 2]
-            //f = 2 * alpha / density[1 / m]
-
-            StringBuilder sb = new StringBuilder();
-
-            string content = string.Format(@"
-    porosity_{0}
-    {{
-    type explicitPorositySource;
-
-    explicitPorositySourceCoeffs
-    {{
-    selectionMode cellZone;
-    cellZone Tree_{0};
-
-    type DarcyForchheimer;
-
-    f ({1});
-    d ({2});
-
-    coordinateSystem
-    {{
-    type cartesian;
-    origin (0 0 0);
-    coordinateRotation
-    {{
-    type axesRotation;
-    e1 (1 0 0);
-    e2 (0 1 0);
-    }}
-    }}
-    }}
-    }}
-    ", id, String.Join(" ", PorosityCoeffs_F.Select(p => p.ToString())), String.Join(" ", PorosityCoeffs_D.Select(p => p.ToString())));
-
-            sb.AppendLine(content);
-            return sb.ToString();
-        }
-
-        public static string TreeStringHeader()
-
-        {
-            StringBuilder sb = new StringBuilder();
-
-            string content = @"
-/*--------------------------------*- C++ -*----------------------------------*\
+        private static string FvOptionsHeader() => @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
-| \\      / F ield | OpenFOAM: The Open Source CFD Toolbox |
-|  \\    / O peration | Version:  dev |
-|   \\  / A nd | Web:      www.OpenFOAM.org |
-|    \\/ M anipulation |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
 FoamFile
 {
     version     2.0;
-    format ascii;
-    class dictionary;
+    format      ascii;
+    class       dictionary;
     location    ""constant"";
-    object fvOptions;
-    }
-
+    object      fvOptions;
+}
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 ";
 
-            sb.AppendLine(content);
+        private static string FvOptionsBody(int id, double[] f, double[] d)
+        {
+            string fStr = string.Join(" ", f.Select(v => v.ToString()));
+            string dStr = string.Join(" ", d.Select(v => v.ToString()));
 
-            return sb.ToString();
+            return $@"porosity_{id}
+{{
+    type explicitPorositySource;
+    explicitPorositySourceCoeffs
+    {{
+        selectionMode cellZone;
+        cellZone Tree_{id};
+        type DarcyForchheimer;
+        f ({fStr});
+        d ({dStr});
+        coordinateSystem
+        {{
+            type cartesian;
+            origin (0 0 0);
+            coordinateRotation
+            {{
+                type axesRotation;
+                e1 (1 0 0);
+                e2 (0 1 0);
+            }}
+        }}
+    }}
+}}";
         }
+
+        #endregion
     }
 
+    /// <summary>
+    /// Tree density type for predefined LAI values.
+    /// </summary>
     public enum TreeType
     {
         coarse,
-
         medium,
-
         dense
     }
 
+    /// <summary>
+    /// Represents a tree as a porous zone for CFD simulations.
+    /// Uses Darcy-Forchheimer model with LAI/LAD parameters.
+    /// </summary>
     public class Tree
-
     {
-        // https://www.simscale.com/docs/analysis-types/pedestrian-wind-comfort-analysis/advanced-modelling/;
+        #region Constants
 
-        // https://openfoamwiki.net/index.php/DarcyForchheimer
+        private const double Cd = 0.2;  // Drag coefficient for vegetation
 
-        public Mesh treeGeometries;
+        #endregion
 
-        public TreeType treeType;
+        #region Properties
 
-        // dp = A *u + B*u^2
+        /// <summary>Mesh representation of tree geometry.</summary>
+        public Mesh Geometry { get; private set; }
 
-        private double[] A = new double[3]; // U
+        /// <summary>Tree density type.</summary>
+        public TreeType TreeType { get; set; }
 
-        private double[] B = new double[3]; // U^2
+        /// <summary>Viscous resistance coefficients (d) [1/m²].</summary>
+        public double[] D { get; private set; } = new double[3];
 
-        public double[] D = new double[3]; // u
+        /// <summary>Inertial resistance coefficients (f) [1/m].</summary>
+        public double[] F { get; private set; } = new double[3];
 
-        public double[] F = new double[3]; // u^2
+        /// <summary>Bounding box dimensions [X, Y, Z].</summary>
+        public double[] Dimensions { get; private set; } = new double[3];
 
-        public double DimX;
+        /// <summary>Leaf Area Index (total leaf area / ground area).</summary>
+        public double LAI { get; private set; }
 
-        public double DimY;
+        /// <summary>Leaf Area Density (leaf area / volume) [1/m].</summary>
+        public double LAD { get; private set; }
 
-        public double DimZ;
+        /// <summary>JSON serialization of properties.</summary>
+        public string AllProperties { get; private set; }
 
-        public double[] DimXYZ = new double[3];
+        #endregion
 
-        //private double nu = 1.5e-05; // kinematic viscosity
-
-        private double rho = 1.2041;  //At 20 °C and 101.325 kPa, dry air has a density of 1.2041 kg/m³
-
-        private double mu = 0.0000181; // dynamic viscosity
-
-        private double Cd = 0.2;
-
-        public double LAI;
-
-        public double LAD;
-
-        public string AllProperties;
-
-        //public Tree(List<GeometryBase> treeGeometries, TreeType treeType)
-        public Tree(GeometryBase treeGeometries, double[] B, double[] A)
+        /// <summary>
+        /// Creates a tree from explicit pressure drop coefficients.
+        /// </summary>
+        public Tree(GeometryBase geometry, double[] B, double[] A)
         {
-            MeshGeo(treeGeometries);
-            GetDims();
+            Geometry = GeometryHelpers.ToMesh(geometry);
+            Dimensions = GeometryHelpers.GetDimensionsArray(Geometry);
 
-            for (int unitVec = 0; unitVec < 3; unitVec++)
-            {
-                this.D[unitVec] = A[unitVec] / DimXYZ[unitVec] / this.mu;
-                this.F[unitVec] = B[unitVec] / DimXYZ[unitVec] * 2 / this.rho;
-            }
+            CalculateCoefficients(A, B);
+            
+            LAD = B.Average() / (AirProperties.Rho * Cd);
+            LAI = LAD * Dimensions[2];  // Z dimension
 
-            this.LAD = this.B.Average() / (this.rho * this.Cd);
-            this.LAI = this.LAD * DimZ;
-
-            ExportSettings();
+            AllProperties = SerializationHelpers.ToJson(this);
         }
 
-        public Tree(GeometryBase treeGeometries, double LAI)
+        /// <summary>
+        /// Creates a tree from LAI (Leaf Area Index).
+        /// </summary>
+        public Tree(GeometryBase geometry, double lai)
         {
-            MeshGeo(treeGeometries);
-            GetDims();
+            Geometry = GeometryHelpers.ToMesh(geometry);
+            Dimensions = GeometryHelpers.GetDimensionsArray(Geometry);
 
-            //this.treeType = treeType;
-            this.LAD = LAI / DimZ;
-            this.A = new double[] { 0, 0, 0 };
-            this.B = new double[] { this.rho * this.LAD * this.Cd, this.rho * this.LAD * this.Cd, this.rho * this.LAD * this.Cd };
+            LAI = lai;
+            LAD = lai / Dimensions[2];  // Z dimension
 
-            this.D = new double[] { 0, 0, 0 };
-            this.F = this.B.Select(x => x * 2 / this.rho).ToArray();
+            // Calculate B from LAI: B = rho * LAD * Cd
+            double b = AirProperties.Rho * LAD * Cd;
+            
+            // No viscous term for vegetation (D = 0)
+            D = new double[] { 0, 0, 0 };
+            // f = B * 2 / rho
+            F = new double[] { b * 2 / AirProperties.Rho, b * 2 / AirProperties.Rho, b * 2 / AirProperties.Rho };
 
-            ExportSettings();
+            AllProperties = SerializationHelpers.ToJson(this);
         }
 
-        private void GetDims()
+        private void CalculateCoefficients(double[] A, double[] B)
         {
-            BoundingBox BBox = treeGeometries.GetBoundingBox(true);
-
-            this.DimX = BBox.Max.X - BBox.Min.X;
-            this.DimY = BBox.Max.Y - BBox.Min.Y;
-            this.DimZ = BBox.Max.Z - BBox.Min.Z;
-            this.DimXYZ = new double[3] { DimX, DimY, DimZ };
-        }
-
-        private void MeshGeo(GeometryBase b)
-        {
-            MeshingParameters mp = new MeshingParameters();
-
-            Mesh allTogether = new Mesh();
-
-            if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
+            for (int i = 0; i < 3; i++)
             {
-                Mesh obj = (Mesh)b;
-                allTogether.Append(obj);
-                this.treeGeometries = allTogether;
-            }
-            else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
-            {
-                Brep obj = (Brep)b;
-                var m = Mesh.CreateFromBrep(obj, mp);
-                foreach (Mesh mm in m) allTogether.Append(mm);
-
-                this.treeGeometries = allTogether;
+                D[i] = A[i] / Dimensions[i] / AirProperties.Mu;
+                F[i] = B[i] / Dimensions[i] * 2 / AirProperties.Rho;
             }
         }
-
-        private static Dictionary<string, object> DictionaryFromType(object atype)
-        {
-            if (atype == null) return new Dictionary<string, object>();
-            Type t = atype.GetType();
-            PropertyInfo[] props = t.GetProperties();
-            Dictionary<string, object> dict = new Dictionary<string, object>();
-            foreach (PropertyInfo prp in props)
-            {
-                object value = prp.GetValue(atype, new object[] { });
-                dict.Add(prp.Name, value);
-            }
-            return dict;
-        }
-
-        private void ExportSettings()
-        {
-            this.AllProperties = JsonConvert.SerializeObject(DictionaryFromType(this));
-        }
-
-        //public override string ToString()
-        //{
-        //    StringBuilder sb = new StringBuilder();
-
-        //    sb.AppendLine(AllProperties);
-
-        //    return sb.ToString();
-        //}
     }
 }

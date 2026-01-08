@@ -1,10 +1,58 @@
 ﻿using System;
+using Rhino.Geometry;
 
 namespace EddyLib
 {
     public class SolarGeometry
     {
         public static int[] DaysInMonth = new int[] { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+
+        /// <summary>
+        /// Generates 288 (12 months * 24 hours) representative sun vectors based on the 1st day of each month.
+        /// </summary>
+        /// <param name="solarElevation">Array of 8760 solar elevation values from Weather data.</param>
+        /// <param name="solarAzimuth">Array of 8760 solar azimuth values from Weather data.</param>
+        /// <param name="elevationCutoff">Minimum elevation angle to consider (default 3.0 degrees).</param>
+        /// <returns>Array of 288 Vector3d sun positions.</returns>
+        public Vector3d[] GetMonthlyRepresentativeSunVectors(double[] solarElevation, double[] solarAzimuth, double elevationCutoff = 3.0)
+        {
+            var sunPositions = new Vector3d[12 * 24];
+            int vcnt = 0;
+
+            for (int m = 0; m < 12; m++)
+            {
+                for (int h = 0; h < 24; h++)
+                {
+                    int hourOfYear = HourInYear(m, 0, h);
+                    
+                    if (hourOfYear >= solarElevation.Length) 
+                    {
+                         sunPositions[vcnt++] = Vector3d.Zero;
+                         continue;
+                    }
+
+                    double el = solarElevation[hourOfYear];
+                    double az = solarAzimuth[hourOfYear];
+
+                    if (el > elevationCutoff)
+                    {
+                        double elRad = deg2rad(el);
+                        double azRad = deg2rad(90 - az); // Convert cardinal azimuth to trig angle
+
+                        double x = Math.Cos(azRad) * Math.Cos(elRad);
+                        double y = Math.Sin(azRad) * Math.Cos(elRad);
+                        double z = Math.Sin(elRad);
+                        sunPositions[vcnt] = new Vector3d(x, y, z);
+                    }
+                    else
+                    {
+                        sunPositions[vcnt] = Vector3d.Zero;
+                    }
+                    vcnt++;
+                }
+            }
+            return sunPositions;
+        }
 
         public int HourInYear(int monthIndex, int dayIndex, int hourIndex)
         {

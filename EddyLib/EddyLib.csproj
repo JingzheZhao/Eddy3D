@@ -135,7 +135,10 @@
     <Compile Include="OpenFOAM\DictFileWriter.cs" />
     <Compile Include="OpenFOAM\OpenFOAMHelpers.cs" />
     <Compile Include="Helpers\ProcessRunner.cs" />
+    <Compile Include="Helpers\JsonHelper.cs" />
     <Compile Include="Helpers\DirectoryHelpers.cs" />
+    <Compile Include="Helpers\GeometryHelpers.cs" />
+    <Compile Include="Constants\AirProperties.cs" />
     <Compile Include="Enums\SimulationEnums.cs" />
       <Compile Include="BoundaryConditions\BCHelpers.cs" />
     <Compile Include="FunctionObjects\FunctionObject.cs" />
@@ -303,8 +306,7 @@
     <Compile Include="GlobalSettings\Settings.cs" />
     <Compile Include="Radiation\SolarGeometry.cs" />
     <Compile Include="Utilities\STLExport.cs" />
-    <Compile Include="Strings\Executables.cs" />
-      <Compile Include="Strings\Executables.Mesh.cs" />
+
       <Compile Include="OutdoorComfort\UTCI.cs" />
       <Compile Include="OutdoorComfort\UTCI.Equation.cs" />
       <Compile Include="Environment\NaturalVentilation.cs" />

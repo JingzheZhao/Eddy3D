@@ -3,141 +3,210 @@ using System.Linq;
 
 namespace EddyLib.OutdoorComfort
 {
+    /// <summary>
+    /// Wind direction mapping between EPW weather data and CFD simulation directions.
+    /// </summary>
     public class WindSystem
     {
-        public int[] ClstSimDirs = new int[8760];
+        #region Constants
 
-        public int[] ClstSimDirIndices = new int[8760];
+        /// <summary>Hours in a year.</summary>
+        private const int HoursPerYear = 8760;
 
-        public int[] WindDirOffset = new int[8760];
+        /// <summary>Von Karman constant for ABL calculations.</summary>
+        private const double VonKarmanConstant = 0.41;
 
-        public double WindDirOffSetAverage = 0;
+        #endregion
 
-        public WindSystem(Weather w, int[] SimulatedWindDirections)
+        #region Properties
+
+        /// <summary>Closest simulated wind direction for each hour.</summary>
+        public int[] ClosestSimulatedDirections { get; }
+
+        /// <summary>Index into simulated directions array for each hour.</summary>
+        public int[] ClosestSimulatedDirectionIndices { get; }
+
+        /// <summary>Angular offset between EPW direction and closest simulated direction.</summary>
+        public int[] WindDirectionOffset { get; }
+
+        /// <summary>Average angular offset across all hours.</summary>
+        public double WindDirectionOffsetAverage { get; }
+
+        #endregion
+
+        #region Backward Compatibility
+
+        /// <summary>Legacy property - use ClosestSimulatedDirections.</summary>
+        public int[] ClstSimDirs => ClosestSimulatedDirections;
+
+        /// <summary>Legacy property - use ClosestSimulatedDirectionIndices.</summary>
+        public int[] ClstSimDirIndices => ClosestSimulatedDirectionIndices;
+
+        /// <summary>Legacy property - use WindDirectionOffset.</summary>
+        public int[] WindDirOffset => WindDirectionOffset;
+
+        /// <summary>Legacy property - use WindDirectionOffsetAverage.</summary>
+        public double WindDirOffSetAverage => WindDirectionOffsetAverage;
+
+        #endregion
+
+        /// <summary>
+        /// Creates a wind system mapping between EPW and simulation directions.
+        /// </summary>
+        public WindSystem(Weather weather, int[] simulatedWindDirections)
         {
-            var (SimDirIndices, ClstSimDirs, OffSet, OffSetAverage) = GetClosestWindDirs(w, SimulatedWindDirections);
-            this.WindDirOffset = OffSet.ToArray();
-            this.WindDirOffSetAverage = OffSetAverage;
-            this.ClstSimDirs = ClstSimDirs.ToArray();
-            this.ClstSimDirIndices = SimDirIndices.ToArray();
+            var result = MapWindDirections(weather, simulatedWindDirections);
+            ClosestSimulatedDirectionIndices = result.Indices;
+            ClosestSimulatedDirections = result.Directions;
+            WindDirectionOffset = result.Offsets;
+            WindDirectionOffsetAverage = result.AverageOffset;
         }
 
-        public static double ScaleABL(double URefEPW, double zref, double z0, double probingHeight)
+        #region ABL Scaling
+
+        /// <summary>
+        /// Scales wind speed using atmospheric boundary layer log-law profile.
+        /// </summary>
+        /// <param name="refVelocity">Reference velocity at reference height.</param>
+        /// <param name="refHeight">Reference measurement height (m).</param>
+        /// <param name="roughnessLength">Surface roughness length z0 (m).</param>
+        /// <param name="targetHeight">Target height for velocity calculation (m).</param>
+        public static double ScaleABL(double refVelocity, double refHeight, double roughnessLength, double targetHeight)
         {
-            double zGround = 0;
-            var Kappa = 0.41;
-
-            var U_star = Kappa * URefEPW / (Math.Log((zref + z0) / z0));
-
-            return U_star / Kappa * Math.Log((probingHeight - zGround + z0) / z0);
+            double uStar = VonKarmanConstant * refVelocity / Math.Log((refHeight + roughnessLength) / roughnessLength);
+            return uStar / VonKarmanConstant * Math.Log((targetHeight + roughnessLength) / roughnessLength);
         }
 
-        public static Tuple<int[], int[], int[], double> GetClosestWindDirs(Weather weather, int[] SimulatedWindDirections)
+        #endregion
+
+        #region Wind Direction Mapping
+
+        /// <summary>
+        /// Maps EPW wind directions to closest simulated directions.
+        /// </summary>
+        private static (int[] Indices, int[] Directions, int[] Offsets, double AverageOffset) MapWindDirections(
+            Weather weather, int[] simulatedDirections)
         {
-            var offSet = new int[8760];
-            var clstSimIndices = new int[8760];
-            var clstSimDirs = new int[8760];
+            var offsets = new int[HoursPerYear];
+            var indices = new int[HoursPerYear];
+            var directions = new int[HoursPerYear];
 
-            var windDirsEPW = weather.WindDirection;
-
-            for (int h = 0; h < 8760; h++)
+            for (int h = 0; h < HoursPerYear; h++)
             {
                 int weatherDir = (int)weather.WindDirection[h];
-                int closestIndex;
-                int distance;
 
-                // Treat 360 as 0 and add that right away if it exists
-                if (weatherDir == 360 && SimulatedWindDirections.Contains(0))
-                {
-                    closestIndex = 0;
-                    distance = 0;
-                    offSet[h] = 0;
-                    clstSimIndices[h] = closestIndex;
-                    clstSimDirs[h] = (SimulatedWindDirections[closestIndex]);
-                }
+                // Normalize 360 to 0
+                if (weatherDir == 360) weatherDir = 0;
 
-                // Check what is closest for all other cases
-                else if (SimulatedWindDirections.Contains(weatherDir))
-                {
-                    closestIndex = Array.IndexOf(SimulatedWindDirections, weather.WindDirection[h]);
-                    distance = 0;
-                }
-                else
-                {
-                    var nextIndexDown = ReturnNextLowerIndex(SimulatedWindDirections, (int)windDirsEPW[h]);
-                    var nextIndexUp = ReturnNextHigherIndex(SimulatedWindDirections, (int)windDirsEPW[h]);
+                var (closestIndex, offset) = FindClosestDirection(weatherDir, simulatedDirections);
 
-                    var nextDirDown = SimulatedWindDirections[nextIndexDown];
-                    var nextDirUp = SimulatedWindDirections[nextIndexUp];
-
-                    double distanceToLower = DistanceBetweenWindDirs(windDirsEPW[h], nextDirDown);
-                    double distanceToUpper = DistanceBetweenWindDirs(windDirsEPW[h], nextDirUp);
-
-                    closestIndex = distanceToLower < distanceToUpper ? nextIndexDown : nextIndexUp;
-
-                    distance = DistanceBetweenWindDirs(SimulatedWindDirections[closestIndex], weatherDir);
-                }
-
-                offSet[h] = (distance);
-                clstSimIndices[h] = closestIndex;
-                clstSimDirs[h] = SimulatedWindDirections[closestIndex];
+                offsets[h] = offset;
+                indices[h] = closestIndex;
+                directions[h] = simulatedDirections[closestIndex];
             }
 
-            return new Tuple<int[], int[], int[], double>(clstSimIndices, clstSimDirs, offSet, offSet.Average());
+            return (indices, directions, offsets, offsets.Average());
         }
 
+        /// <summary>
+        /// Finds the closest simulated direction to a target direction.
+        /// </summary>
+        private static (int Index, int Offset) FindClosestDirection(int targetDirection, int[] simulatedDirections)
+        {
+            // Exact match
+            int exactIndex = Array.IndexOf(simulatedDirections, targetDirection);
+            if (exactIndex >= 0)
+            {
+                return (exactIndex, 0);
+            }
+
+            // Find bracketing directions
+            int lowerIndex = FindNextLowerIndex(simulatedDirections, targetDirection);
+            int upperIndex = FindNextHigherIndex(simulatedDirections, targetDirection);
+
+            int lowerDir = simulatedDirections[lowerIndex];
+            int upperDir = simulatedDirections[upperIndex];
+
+            int distToLower = AngularDistance(targetDirection, lowerDir);
+            int distToUpper = AngularDistance(targetDirection, upperDir);
+
+            int closestIndex = distToLower <= distToUpper ? lowerIndex : upperIndex;
+            int offset = AngularDistance(targetDirection, simulatedDirections[closestIndex]);
+
+            return (closestIndex, offset);
+        }
+
+        /// <summary>
+        /// Calculates the angular distance between two wind directions.
+        /// </summary>
         public static int DistanceBetweenWindDirs(int dir1, int dir2)
         {
-            var vec2 = Utilities.Dir2Vec(dir1);
-            var vec1 = Utilities.Dir2Vec(dir2);
-
-            double dist = Math.Abs(Math.Round(Utilities.AngleBetweenVectors(vec1, vec2)));
-
-            int distInt = (int)dist;
-
-            return distInt;
+            return AngularDistance(dir1, dir2);
         }
 
+        /// <summary>
+        /// Calculates the angular distance between two directions (0-180°).
+        /// </summary>
+        private static int AngularDistance(int dir1, int dir2)
+        {
+            var vec1 = Utilities.Dir2Vec(dir1);
+            var vec2 = Utilities.Dir2Vec(dir2);
+            return (int)Math.Abs(Math.Round(Utilities.AngleBetweenVectors(vec1, vec2)));
+        }
+
+        /// <summary>
+        /// Returns the index of the next lower direction in a circular sense.
+        /// </summary>
         public static int ReturnNextLowerIndex(int[] list, int compareTo)
         {
-            int lowerIndex;
+            return FindNextLowerIndex(list, compareTo);
+        }
 
+        private static int FindNextLowerIndex(int[] list, int compareTo)
+        {
             if (compareTo <= list.Min())
             {
-                lowerIndex = Array.IndexOf(list, list.Max());
-            }
-            else
-            {
-                // Take everything smaller than compare
-                var smaller = list.Where(x => x < compareTo).ToArray();
-
-                // Take the max from that selection and then take the index
-                lowerIndex = Array.IndexOf(list, smaller.Max(y => y));
+                // Wrap around to highest direction
+                return Array.IndexOf(list, list.Max());
             }
 
-            return lowerIndex;
+            var smaller = list.Where(x => x < compareTo).ToArray();
+            return Array.IndexOf(list, smaller.Max());
         }
 
+        /// <summary>
+        /// Returns the index of the next higher direction in a circular sense.
+        /// </summary>
         public static int ReturnNextHigherIndex(int[] list, int compareTo)
         {
-            // Radial approach
+            return FindNextHigherIndex(list, compareTo);
+        }
 
-            int upperIndex;
-
-            // If compareTo is larger than max of array, take the smallest wind direction: 320 --> 0
+        private static int FindNextHigherIndex(int[] list, int compareTo)
+        {
             if (compareTo >= list.Max())
             {
-                upperIndex = Array.IndexOf(list, list.Min());
+                // Wrap around to lowest direction
+                return Array.IndexOf(list, list.Min());
             }
-            else // 180 --> 225
-            {
-                // Take everything larger than compareTo
-                var larger = list.Where(x => x > compareTo).ToArray();
 
-                // Take the min from that selection and then take the index
-                upperIndex = Array.IndexOf(list, larger.Min(y => y));
-            }
-            return upperIndex;
+            var larger = list.Where(x => x > compareTo).ToArray();
+            return Array.IndexOf(list, larger.Min());
         }
+
+        #endregion
+
+        #region Legacy Method
+
+        /// <summary>
+        /// Legacy method - use constructor instead.
+        /// </summary>
+        public static Tuple<int[], int[], int[], double> GetClosestWindDirs(Weather weather, int[] simulatedDirections)
+        {
+            var result = MapWindDirections(weather, simulatedDirections);
+            return new Tuple<int[], int[], int[], double>(result.Indices, result.Directions, result.Offsets, result.AverageOffset);
+        }
+
+        #endregion
     }
 }

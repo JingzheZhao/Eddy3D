@@ -1,175 +1,142 @@
-﻿using EddyLib.Indoor.Dicts;
-using Newtonsoft.Json;
+﻿using EddyLib.FunctionObjects;
 using Rhino.Geometry;
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using EddyLib.FunctionObjects;
 
 namespace EddyLib.Indoor
 {
+    /// <summary>
+    /// Represents a porous zone for momentum sink calculations (Darcy-Forchheimer).
+    /// </summary>
     public class MomentumSink : FunctionObject
-
     {
-        // dp = A *u + B*u^2
+        #region Darcy-Forchheimer Coefficients
+        
+        /// <summary>Viscous resistance coefficients (d) [1/m²].</summary>
+        public double[] D { get; set; } = new double[3];
 
-        private double[] A = new double[3]; // U
+        /// <summary>Inertial resistance coefficients (f) [1/m].</summary>
+        public double[] F { get; set; } = new double[3];
 
-        private double[] B = new double[3]; // U^2
+        #endregion
 
-        public double[] D = new double[3]; // u
-
-        public double[] F = new double[3]; // u^2
-
+        #region Dimensions
+        
+        /// <summary>Bounding box dimension in X.</summary>
         public double DimX { get; set; }
 
+        /// <summary>Bounding box dimension in Y.</summary>
         public double DimY { get; set; }
 
+        /// <summary>Bounding box dimension in Z.</summary>
         public double DimZ { get; set; }
 
-        public double[] DimXYZ = new double[3];
+        /// <summary>Dimensions as array [X, Y, Z].</summary>
+        public double[] DimXYZ { get; set; } = new double[3];
 
-        //private double nu = 1.5e-05; // kinematic viscosity
+        #endregion
 
-        private double rho = 1.2041;  //At 20 °C and 101.325 kPa, dry air has a density of 1.2041 kg/m³
-
-        private double mu = 0.0000181; // dynamic viscosity
-
+        /// <summary>JSON serialization of all properties.</summary>
         public string AllProperties { get; set; }
 
-        public MomentumSink(GeometryBase Geometries, double[] B, double[] A, string Name)
+        /// <summary>
+        /// Creates a momentum sink from pressure drop coefficients.
+        /// </summary>
+        /// <param name="geometry">Geometry defining the porous zone.</param>
+        /// <param name="B">Inertial pressure drop coefficients (u²).</param>
+        /// <param name="A">Viscous pressure drop coefficients (u).</param>
+        /// <param name="name">Zone name.</param>
+        public MomentumSink(GeometryBase geometry, double[] B, double[] A, string name)
         {
-            MeshGeo(Geometries);
-            GetDims();
+            Name = name;
+            Geometry = GeometryHelpers.ToMesh(geometry);
+            CalculateDimensions();
+            CalculateCoefficients(A, B);
+            AllProperties = SerializationHelpers.ToJson(this);
+        }
 
-            for (int unitVec = 0; unitVec < 3; unitVec++)
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
+        public MomentumSink() { }
+
+        /// <summary>
+        /// Calculates bounding box dimensions.
+        /// </summary>
+        protected void CalculateDimensions()
+        {
+            if (Geometry == null) return;
+
+            var dims = GeometryHelpers.GetDimensions(Geometry);
+            DimX = dims.X;
+            DimY = dims.Y;
+            DimZ = dims.Z;
+            DimXYZ = new double[] { DimX, DimY, DimZ };
+        }
+
+        /// <summary>
+        /// Calculates Darcy-Forchheimer coefficients from pressure drop data.
+        /// </summary>
+        protected void CalculateCoefficients(double[] A, double[] B)
+        {
+            for (int i = 0; i < 3; i++)
             {
-                this.D[unitVec] = A[unitVec] / DimXYZ[unitVec] / this.mu;
-                this.F[unitVec] = B[unitVec] / DimXYZ[unitVec] * 2 / this.rho;
+                // d = A / L / mu (viscous term)
+                D[i] = A[i] / DimXYZ[i] / AirProperties.Mu;
+                // f = B / L * 2 / rho (inertial term)
+                F[i] = B[i] / DimXYZ[i] * 2 / AirProperties.Rho;
             }
-
-            ExportSettings();
         }
 
-        public MomentumSink()
-        {
-        }
+        #region Nested Tree Class
 
-        //public MomentumSink Duplicate()
-        //{
-        //    MomentumSink dup = new MomentumSink(Geometry, B, A, Name);
-        //    return dup;
-        //}
-
+        /// <summary>
+        /// Tree as a porous zone using LAI (Leaf Area Index).
+        /// </summary>
         public class Tree : MomentumSink
-
         {
-            public enum TreeType
+            /// <summary>Drag coefficient for vegetation.</summary>
+            private const double Cd = 0.2;
+
+            /// <summary>Leaf Area Index (total leaf area / ground area).</summary>
+            public double LAI { get; set; }
+
+            /// <summary>Leaf Area Density (leaf area / volume).</summary>
+            public double LAD { get; set; }
+
+            /// <summary>
+            /// Creates a tree from pressure drop coefficients.
+            /// </summary>
+            public Tree(GeometryBase geometry, double[] B, double[] A, string name) 
+                : base(geometry, B, A, name)
             {
-                coarse,
-
-                medium,
-
-                dense
+                LAD = B.Average() / (AirProperties.Rho * Cd);
+                LAI = LAD * DimZ;
             }
 
-            // https://www.simscale.com/docs/analysis-types/pedestrian-wind-comfort-analysis/advanced-modelling/;
-            // https://openfoamwiki.net/index.php/DarcyForchheimer
-
-            public TreeType treeType;
-
-            private double Cd = 0.2;
-
-            public double LAI;
-
-            public double LAD;
-
-            public Tree(GeometryBase Geometries, double[] B, double[] A, string Name) : base(Geometries, B, A, Name)
+            /// <summary>
+            /// Creates a tree from LAI value.
+            /// </summary>
+            public Tree(GeometryBase geometry, double lai, string name)
             {
-                MeshGeo(Geometries);
-                GetDims();
+                Name = name;
+                Geometry = GeometryHelpers.ToMesh(geometry);
+                CalculateDimensions();
 
-                for (int unitVec = 0; unitVec < 3; unitVec++)
-                {
-                    this.D[unitVec] = A[unitVec] / DimXYZ[unitVec] / this.mu;
-                    this.F[unitVec] = B[unitVec] / DimXYZ[unitVec] * 2 / this.rho;
-                }
+                LAI = lai;
+                LAD = lai / DimZ;
 
-                this.LAD = this.B.Average() / (this.rho * this.Cd);
-                this.LAI = this.LAD * DimZ;
+                // Calculate B from LAI: B = rho * LAD * Cd
+                double b = AirProperties.Rho * LAD * Cd;
+                double[] B = { b, b, b };
 
-                ExportSettings();
-            }
+                // f = B * 2 / rho, d = 0 (no viscous term for vegetation)
+                D = new double[] { 0, 0, 0 };
+                F = B.Select(x => x * 2 / AirProperties.Rho).ToArray();
 
-            public Tree(GeometryBase Geometries, double LAI, string Name)
-            {
-                MeshGeo(Geometries);
-                GetDims();
-
-                //this.treeType = treeType;
-                this.LAD = LAI / DimZ;
-                this.A = new double[] { 0, 0, 0 };
-                this.B = new double[] { this.rho * this.LAD * this.Cd, this.rho * this.LAD * this.Cd, this.rho * this.LAD * this.Cd };
-
-                this.D = new double[] { 0, 0, 0 };
-                this.F = this.B.Select(x => x * 2 / this.rho).ToArray();
-
-                ExportSettings();
+                AllProperties = SerializationHelpers.ToJson(this);
             }
         }
 
-        private void GetDims()
-        {
-            BoundingBox BBox = Geometry.GetBoundingBox(true);
-
-            this.DimX = BBox.Max.X - BBox.Min.X;
-            this.DimY = BBox.Max.Y - BBox.Min.Y;
-            this.DimZ = BBox.Max.Z - BBox.Min.Z;
-            this.DimXYZ = new double[3] { DimX, DimY, DimZ };
-        }
-
-        private void MeshGeo(GeometryBase b)
-        {
-            MeshingParameters mp = new MeshingParameters();
-
-            Mesh allTogether = new Mesh();
-
-            if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
-            {
-                Mesh obj = (Mesh)b;
-                allTogether.Append(obj);
-                this.Geometry = allTogether;
-            }
-            else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
-            {
-                Brep obj = (Brep)b;
-                var m = Mesh.CreateFromBrep(obj, mp);
-                foreach (Mesh mm in m) allTogether.Append(mm);
-
-                this.Geometry = allTogether;
-            }
-        }
-
-        private static Dictionary<string, object> DictionaryFromType(object atype)
-        {
-            if (atype == null) return new Dictionary<string, object>();
-            Type t = atype.GetType();
-            PropertyInfo[] props = t.GetProperties();
-            Dictionary<string, object> dict = new Dictionary<string, object>();
-            foreach (PropertyInfo prp in props)
-            {
-                object value = prp.GetValue(atype, new object[] { });
-                dict.Add(prp.Name, value);
-            }
-            return dict;
-        }
-
-        private void ExportSettings()
-        {
-            this.AllProperties = JsonConvert.SerializeObject(DictionaryFromType(this));
-        }
+        #endregion
     }
 }

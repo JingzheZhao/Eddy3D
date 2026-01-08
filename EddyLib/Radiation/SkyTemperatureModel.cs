@@ -2,161 +2,233 @@
 
 namespace EddyLib.Radiation
 {
+    /// <summary>
+    /// Calculates sky temperature and emissivity using various models.
+    /// Based on EnergyPlus WeatherManager implementation.
+    /// </summary>
     public class SkyTemperatureModel
-
     {
-        //Real64 const Sigma(5.6697e-8); // Stefan-Boltzmann constant; Taken from E+
-        private readonly double Sigma = 5.6697e-8;
+        #region Physical Constants
 
-        public double[] Emissivity;
+        /// <summary>Stefan-Boltzmann constant (W/m²·K⁴).</summary>
+        private const double StefanBoltzmann = 5.6697e-8;
 
-        public double[] Temp;
+        /// <summary>Kelvin offset for Celsius conversion.</summary>
+        private const double KelvinOffset = 273.15;
 
-        public double[] HZ_IR;
+        /// <summary>Missing data indicator in EPW files.</summary>
+        private const double MissingDataValue = 9999.0;
 
-        private readonly double Kelvin = 273.15;
+        #endregion
 
+        #region Results
+
+        /// <summary>Hourly sky emissivity values.</summary>
+        public double[] Emissivity { get; private set; }
+
+        /// <summary>Hourly sky temperature values (°C).</summary>
+        public double[] Temperature { get; private set; }
+
+        /// <summary>Hourly horizontal infrared radiation (W/m²).</summary>
+        public double[] HorizontalIR { get; private set; }
+
+        #endregion
+
+        /// <summary>
+        /// Sky temperature calculation method.
+        /// </summary>
         public enum CalculationType
         {
+            /// <summary>Clark and Allen (1978) - default in EnergyPlus.</summary>
             DefaultClarkAllen,
 
+            /// <summary>Martin and Berdahl model - uses dew point.</summary>
             MartinBerdahl,
 
+            /// <summary>Brunt model - uses partial pressure.</summary>
             Brunt,
 
+            /// <summary>Idso model - uses partial pressure.</summary>
             Idso,
         }
 
-        public SkyTemperatureModel(double[] T_dew, double[] T_DryBulb, double[] OpaqueSkyCover, double[] RelHum, bool run, CalculationType type, double[] HZ_IR_EPW = null)
+        /// <summary>
+        /// Creates sky temperature model from weather data.
+        /// </summary>
+        public SkyTemperatureModel(
+            double[] dewPointTemp, 
+            double[] dryBulbTemp, 
+            double[] opaqueSkyCover, 
+            double[] relativeHumidity, 
+            bool run, 
+            CalculationType calculationType, 
+            double[] horizontalIR_EPW = null)
         {
-            if (run)
+            if (!run) return;
+
+            int hourCount = dryBulbTemp.Length;
+            Emissivity = new double[hourCount];
+            Temperature = new double[hourCount];
+            HorizontalIR = new double[hourCount];
+
+            // If valid IR data exists in EPW, use it directly
+            if (horizontalIR_EPW != null && horizontalIR_EPW[0] <= MissingDataValue)
             {
-                var numberOfHours = T_DryBulb.Length;
-
-                this.Emissivity = new double[numberOfHours];
-                this.Temp = new double[numberOfHours];
-                this.HZ_IR = new double[numberOfHours];
-
-                if (HZ_IR_EPW != null && HZ_IR_EPW[0] <= 9999.0)
+                HorizontalIR = horizontalIR_EPW;
+                for (int h = 0; h < hourCount; h++)
                 {
-                    this.HZ_IR = HZ_IR_EPW;
-
-                    for (int h = 0; h < numberOfHours; h++)
-                    {
-                        this.Temp[h] = CalcTempValidIR(HZ_IR[h]);
-                    }
+                    Temperature[h] = CalculateTempFromIR(HorizontalIR[h]);
                 }
-                else
+            }
+            else
+            {
+                for (int h = 0; h < hourCount; h++)
                 {
-                    for (int h = 0; h < numberOfHours; h++)
-                    {
-                        // Fix if Opaque Sky Cover is missing (99999) --> rely on simpler model
-                        if (OpaqueSkyCover[h] <= 0 || OpaqueSkyCover[h] > 10)
-                        {
-                            type = CalculationType.MartinBerdahl;
-                        }
+                    // Fall back to simpler model if sky cover data is missing
+                    var effectiveType = (opaqueSkyCover[h] <= 0 || opaqueSkyCover[h] > 10)
+                        ? CalculationType.MartinBerdahl
+                        : calculationType;
 
-                        this.Emissivity[h] = CalcEmissivityEnergyPlus(OpaqueSkyCover[h], T_DryBulb[h], T_dew[h], RelHum[h], type);
+                    Emissivity[h] = CalculateEmissivity(
+                        opaqueSkyCover[h], 
+                        dryBulbTemp[h], 
+                        dewPointTemp[h], 
+                        relativeHumidity[h], 
+                        effectiveType);
 
-                        this.Temp[h] = CalcTemp(T_DryBulb[h], this.Emissivity[h]);
-                    }
+                    Temperature[h] = CalculateSkyTemp(dryBulbTemp[h], Emissivity[h]);
                 }
             }
         }
 
-        private double CalcHZ_IR(double Emissivity, double Sigma, double T_drybulb)
+        #region Private Calculation Methods
+
+        /// <summary>
+        /// Calculates horizontal IR radiation from emissivity and temperature.
+        /// </summary>
+        private double CalculateHorizontalIR(double emissivity, double dryBulbC)
         {
-            return Emissivity * Sigma * Math.Pow((T_drybulb + Kelvin), 4);
+            double tempK = dryBulbC + KelvinOffset;
+            return emissivity * StefanBoltzmann * Math.Pow(tempK, 4);
         }
 
-        private double CalcEs(double T_celcius)
+        /// <summary>
+        /// Calculates saturation vapor pressure using Hardy (1998) formula.
+        /// </summary>
+        /// <remarks>
+        /// Reference: Hardy, R.; ITS-90 Formulations for Vapor Pressure
+        /// http://www.thunderscientific.com/tech_info/reflibrary/its90formulas.pdf
+        /// </remarks>
+        private static double CalculateSaturationVaporPressure(double tempC)
         {
-            //!~ **********************************************
-            //!~calculates saturation vapour pressure over water in hPa for input air temperature(ta) in celsius according to:
-            //!~Hardy, R.; ITS-90 Formulations for Vapor Pressure, Frostpoint Temperature, Dewpoint Temperature and Enhancement Factors in the Range -100 to 100 °C;
-            //!~Proceedings of Third International Symposium on Humidity and Moisture; edited by National Physical Laboratory(NPL), London, 1998, pp. 214-221
-            //!~http://www.thunderscientific.com/tech_info/reflibrary/its90formulas.pdf (retrieved 2008-10-01)
-
-            // es = saturation vapour pressure in Pa // T is temperature in K // g is list of
-            // coefficients for curve fit
-
-            double T_kelvin; //int I;
+            // Coefficients for ITS-90 curve fit
             double[] g = {
-        -2.8365744E3,
-        -6.028076559E3, 1.954263612E1,
-        -2.737830188E-2, 1.6261698E-5, 7.0229056E-10,
-        -1.8680009E-13, 2.7150305 };
+                -2.8365744E3,
+                -6.028076559E3,
+                1.954263612E1,
+                -2.737830188E-2,
+                1.6261698E-5,
+                7.0229056E-10,
+                -1.8680009E-13,
+                2.7150305
+            };
 
-            T_kelvin = T_celcius + Kelvin; //! air temp in K double
-            var es = g[7] * Math.Log(T_kelvin);
+            double tempK = tempC + KelvinOffset;
+            double es = g[7] * Math.Log(tempK);
 
-            // do i=0,6
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i <= 6; i++)
             {
-                es = es + g[i] * Math.Pow(T_kelvin, (i - 2));
+                es += g[i] * Math.Pow(tempK, i - 2);
             }
 
-            //end do
-
-            es = Math.Exp(es) * 0.01; //! *0.01: convert Pa to hPa
-
-            return es;
+            // Convert Pa to hPa
+            return Math.Exp(es) * 0.01;
         }
 
-        private double CalcEmissivityEnergyPlus(double OSky, double DryBulb, double DewPoint, double RelHum, CalculationType type)
+        /// <summary>
+        /// Calculates sky emissivity using selected model.
+        /// Based on EnergyPlus WeatherManager.cc Line 3353.
+        /// </summary>
+        private double CalculateEmissivity(
+            double skyCover, 
+            double dryBulbC, 
+            double dewPointC, 
+            double relHumidity, 
+            CalculationType type)
         {
-            // https://bigladdersoftware.com/epx/docs/9-3/engineering-reference/climate-calculations.html
-            // "EnergyPlus\WeatherManager.cc" Line 3353
-
-            // Calculate Sky Emissivity
-            // References:
-            // M. Li, Y. Jiang and C. F. M. Coimbra,
-            // "On the determination of atmospheric longwave irradiance under all-sky conditions,"
-            // Solar Energy 144, 2017, pp. 40–48,
-            // G. Clark and C. Allen, "The Estimation of Atmospheric Radiation for Clear and
-            // Cloudy Skies," Proc. 2nd National Passive Solar Conference (AS/ISES), 1978, pp. 675-678.
-
-            // var Pvsk = 6.105 * Math.Exp((17.27 * ((double)DryBulb + 273.15) - 4717.03) / (237.7 + (double)DryBulb));
-
-            var TKelvin = Kelvin;
-
-            var ESky = 0.0;
-            if (type == CalculationType.Brunt)
+            double emissivity = type switch
             {
-                double PartialPress = RelHum * CalcEs(DryBulb) * 0.01;
-                ESky = 0.618 + 0.056 * Math.Pow(PartialPress, 0.5);
-            }
-            else if (type == CalculationType.Idso)
-            {
-                double PartialPress = RelHum * CalcEs(DryBulb) * 0.01;
-                ESky = 0.685 + 0.000032 * PartialPress * Math.Exp(1699 / (DryBulb + TKelvin));
-            }
-            else if (type == CalculationType.MartinBerdahl)
-            {
-                double TDewC = Math.Min(DryBulb, DewPoint);
-                ESky = 0.758 + 0.521 * (TDewC / 100) + 0.625 * Math.Pow((TDewC / 100), 2);
-            }
+                CalculationType.Brunt => CalculateBruntEmissivity(dryBulbC, relHumidity),
+                CalculationType.Idso => CalculateIdsoEmissivity(dryBulbC, relHumidity),
+                CalculationType.MartinBerdahl => CalculateMartinBerdahlEmissivity(dryBulbC, dewPointC),
+                _ => CalculateClarkAllenEmissivity(dryBulbC, dewPointC) // DefaultClarkAllen
+            };
 
-            // default
-            else if (type == CalculationType.DefaultClarkAllen)
-            {
-                ESky = 0.787 + 0.764 * Math.Log((Math.Min(DryBulb, DewPoint) + TKelvin) / TKelvin);
-            }
-            ESky = ESky * (1 + (0.0224 * OSky) - (0.0035 * Math.Pow(OSky, 2)) + (0.00028 * Math.Pow(OSky, 3)));
-
-            return ESky;
+            // Apply cloud correction factor
+            return emissivity * (1 + 0.0224 * skyCover - 0.0035 * Math.Pow(skyCover, 2) + 0.00028 * Math.Pow(skyCover, 3));
         }
 
-        private double CalcTempValidIR(double HZ_IR)
+        private double CalculateBruntEmissivity(double dryBulbC, double relHumidity)
         {
-            // "EnergyPlus\WeatherManager.cc" Line 3353
-            return Math.Pow((HZ_IR / this.Sigma), 0.25) - Kelvin;
+            double partialPressure = relHumidity * CalculateSaturationVaporPressure(dryBulbC) * 0.01;
+            return 0.618 + 0.056 * Math.Sqrt(partialPressure);
         }
 
-        private double CalcTemp(double DryBulb, double ESky)
+        private double CalculateIdsoEmissivity(double dryBulbC, double relHumidity)
         {
-            // "EnergyPlus\WeatherManager.cc" Line 3353
-            return (DryBulb + Kelvin) * Math.Pow(ESky, 0.25) - Kelvin;
+            double partialPressure = relHumidity * CalculateSaturationVaporPressure(dryBulbC) * 0.01;
+            double tempK = dryBulbC + KelvinOffset;
+            return 0.685 + 0.000032 * partialPressure * Math.Exp(1699.0 / tempK);
         }
+
+        private double CalculateMartinBerdahlEmissivity(double dryBulbC, double dewPointC)
+        {
+            double dewC = Math.Min(dryBulbC, dewPointC);
+            double ratio = dewC / 100.0;
+            return 0.758 + 0.521 * ratio + 0.625 * ratio * ratio;
+        }
+
+        private double CalculateClarkAllenEmissivity(double dryBulbC, double dewPointC)
+        {
+            double dewK = Math.Min(dryBulbC, dewPointC) + KelvinOffset;
+            return 0.787 + 0.764 * Math.Log(dewK / KelvinOffset);
+        }
+
+        /// <summary>
+        /// Calculates sky temperature from horizontal IR radiation.
+        /// </summary>
+        private double CalculateTempFromIR(double horizontalIR)
+        {
+            return Math.Pow(horizontalIR / StefanBoltzmann, 0.25) - KelvinOffset;
+        }
+
+        /// <summary>
+        /// Calculates effective sky temperature from dry bulb and emissivity.
+        /// </summary>
+        private static double CalculateSkyTemp(double dryBulbC, double emissivity)
+        {
+            double tempK = dryBulbC + KelvinOffset;
+            return tempK * Math.Pow(emissivity, 0.25) - KelvinOffset;
+        }
+
+        #endregion
+
+        #region Backward Compatibility
+
+        /// <summary>Legacy property - use Temperature instead.</summary>
+        public double[] Temp
+        {
+            get => Temperature;
+            set => Temperature = value;
+        }
+
+        /// <summary>Legacy property - use HorizontalIR instead.</summary>
+        public double[] HZ_IR
+        {
+            get => HorizontalIR;
+            set => HorizontalIR = value;
+        }
+
+        #endregion
     }
 }

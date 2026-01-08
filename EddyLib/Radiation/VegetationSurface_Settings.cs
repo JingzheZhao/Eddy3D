@@ -1,14 +1,17 @@
-﻿using Newtonsoft.Json;
+﻿using EddyLib.Helpers;
 using System.Runtime.Serialization;
 
 namespace EddyLib.Radiation
 {
+    /// <summary>
+    /// Settings for vegetation/green roof surfaces in radiation simulations.
+    /// </summary>
     [DataContract]
     public class VegetationSurface_Settings
     {
-        public VegetationSurface_Settings()
-        {
-        }
+        public VegetationSurface_Settings() { }
+
+        #region Vegetation Properties
 
         [DataMember]
         public string Name { get; set; } = "Vegetation";
@@ -27,6 +30,10 @@ namespace EddyLib.Radiation
 
         [DataMember]
         public double MinimumStomatalResistance { get; set; } = 180;
+
+        #endregion
+
+        #region Soil Properties
 
         [DataMember]
         public string SoilLayerName { get; set; } = "GreenRoofSoil";
@@ -52,6 +59,10 @@ namespace EddyLib.Radiation
         [DataMember]
         public double VisibleAbsorptance { get; set; } = 0.7;
 
+        #endregion
+
+        #region Moisture Properties
+
         [DataMember]
         public double SaturationVolumetricMoistureContentOfTheSoilLayer { get; set; } = 0.4;
 
@@ -61,81 +72,66 @@ namespace EddyLib.Radiation
         [DataMember]
         public double InitialVolumetricMoistureContentOfTheSoilLayer { get; set; } = 0.2;
 
+        #endregion
+
+        #region Radiance
+
         [DataMember]
         public string RadianceMaterial { get; set; } = RadianceMaterials.DefaultGrass;
 
+        #endregion
+
+        #region EnergyPlus Objects
+
+        /// <summary>
+        /// Creates an EnergyPlus MaterialRoofVegetation object from these settings.
+        /// </summary>
         public MaterialRoofVegetation GetMaterial()
         {
-            MaterialRoofVegetation mat = new MaterialRoofVegetation();
-
-            mat.HeightOfPlants = HeightOfPlants;
-            mat.LeafAreaIndex = LeafAreaIndex;
-            mat.LeafReflectivity = LeafReflectivity;
-            mat.LeafEmissivity = LeafEmissivity;
-            mat.MinimumStomatalResistance = MinimumStomatalResistance;
-            mat.SoilLayerName = "GreenRoofSoil";
-            mat.Roughness = RoughnessOfCollectorEnum.Rough;
-            mat.ConductivityOfDrySoil = ConductivityOfDrySoil;
-            mat.DensityOfDrySoil = DensityOfDrySoil;
-            mat.SpecificHeatOfDrySoil = SpecificHeatOfDrySoil;
-            mat.ThermalAbsorptance = ThermalAbsorptance;
-            mat.SolarAbsorptance = SolarAbsorptance;
-            mat.VisibleAbsorptance = VisibleAbsorptance;
-            mat.SaturationVolumetricMoistureContentOfTheSoilLayer = SaturationVolumetricMoistureContentOfTheSoilLayer;
-            mat.ResidualVolumetricMoistureContentOfTheSoilLayer = ResidualVolumetricMoistureContentOfTheSoilLayer;
-            mat.InitialVolumetricMoistureContentOfTheSoilLayer = InitialVolumetricMoistureContentOfTheSoilLayer;
-
-            return mat;
+            return new MaterialRoofVegetation
+            {
+                HeightOfPlants = HeightOfPlants,
+                LeafAreaIndex = LeafAreaIndex,
+                LeafReflectivity = LeafReflectivity,
+                LeafEmissivity = LeafEmissivity,
+                MinimumStomatalResistance = MinimumStomatalResistance,
+                SoilLayerName = SoilLayerName,
+                Roughness = Roughness,
+                ConductivityOfDrySoil = ConductivityOfDrySoil,
+                DensityOfDrySoil = DensityOfDrySoil,
+                SpecificHeatOfDrySoil = SpecificHeatOfDrySoil,
+                ThermalAbsorptance = ThermalAbsorptance,
+                SolarAbsorptance = SolarAbsorptance,
+                VisibleAbsorptance = VisibleAbsorptance,
+                SaturationVolumetricMoistureContentOfTheSoilLayer = SaturationVolumetricMoistureContentOfTheSoilLayer,
+                ResidualVolumetricMoistureContentOfTheSoilLayer = ResidualVolumetricMoistureContentOfTheSoilLayer,
+                InitialVolumetricMoistureContentOfTheSoilLayer = InitialVolumetricMoistureContentOfTheSoilLayer
+            };
         }
 
+        /// <summary>
+        /// Creates an EnergyPlus Construction object from these settings.
+        /// </summary>
         public Construction GetConstruction()
         {
-            Construction con = new Construction();
-            con.Layer3 = "DefaultXPS";
-            con.Layer2 = "DefaultConcrete";
-            con.OutsideLayer = Name;
-            return con;
-        }
-
-        public override string ToString()
-        {
-            return this.toJSON();
-        }
-
-        public static VegetationSurface_Settings fromJSON(string json)
-        {
-            return DeserializeJSON<VegetationSurface_Settings>(json);
-        }
-
-        public string toJSON()
-        {
-            return SerializeJSON<VegetationSurface_Settings>(this);
-        }
-
-        private static T DeserializeJSON<T>(string json)
-        {
-            json = json.Trim();
-            if ((json.StartsWith("{") && json.EndsWith("}")) || //For object
-                (json.StartsWith("[") && json.EndsWith("]"))) //For array
+            return new Construction
             {
-                var set = new JsonSerializerSettings
-                {
-                    Formatting = Formatting.Indented,
-                    TypeNameHandling = TypeNameHandling.Auto
-                };
-                return JsonConvert.DeserializeObject<T>(json, set);
-            }
-            else { return default(T); }
-        }
-
-        private static string SerializeJSON<T>(T component)
-        {
-            var set = new JsonSerializerSettings
-            {
-                Formatting = Formatting.Indented,
-                TypeNameHandling = TypeNameHandling.Auto
+                Layer3 = "DefaultXPS",
+                Layer2 = "DefaultConcrete",
+                OutsideLayer = Name
             };
-            return JsonConvert.SerializeObject(component, set);
         }
+
+        #endregion
+
+        #region Serialization
+
+        public override string ToString() => toJSON();
+
+        public static VegetationSurface_Settings fromJSON(string json) => JsonHelper.Deserialize<VegetationSurface_Settings>(json);
+
+        public string toJSON() => JsonHelper.Serialize(this);
+
+        #endregion
     }
 }

@@ -5,76 +5,69 @@ using System.IO;
 
 namespace EddyLib
 {
+    /// <summary>
+    /// Handles probing OpenFOAM simulation results using the new field enum.
+    /// </summary>
     public class ProbingNew
     {
-        public GH_Number[] ResultScalar;
+        #region Properties
 
-        public GH_Vector[] ResultVec;
+        /// <summary>Probed scalar results.</summary>
+        public GH_Number[] ResultScalar { get; private set; }
 
-        public int correspondingWindDir;
+        /// <summary>Probed vector results.</summary>
+        public GH_Vector[] ResultVec { get; private set; }
 
-        private readonly List<Point3d> listOfPoints;
+        /// <summary>Corresponding wind direction index.</summary>
+        public int CorrespondingWindDir { get; set; }
 
+        /// <summary>Path to the probing result file.</summary>
+        public string ProbingFilePath { get; }
+
+        /// <summary>Indices of probes with extreme values.</summary>
+        public int[] IndicesOfExtremeProbes { get; set; }
+
+        #endregion
+
+        private readonly List<Point3d> probePoints;
         private readonly string caseDirectory;
-
         private readonly string baseWorkingDirectory;
-
         private readonly int currWindDir;
 
-        public readonly string probingFilePath;
-
-        public int[] IndecesOfExtremeProbes { get; set; }
-
-        public ProbingNew(List<Point3d> ListOfPoints, string caseDirectory, string baseWorkingDirectory, OFFieldNew ofField, int currWindDir, OFResult RES)
+        /// <summary>
+        /// Creates a probing session and loads results.
+        /// </summary>
+        public ProbingNew(List<Point3d> probePoints, string caseDirectory, string baseWorkingDirectory, 
+                          OFFieldNew ofField, int currWindDir, OFResult result)
         {
-            listOfPoints = ListOfPoints;
-
+            this.probePoints = probePoints;
             this.caseDirectory = caseDirectory;
             this.baseWorkingDirectory = baseWorkingDirectory;
             this.currWindDir = currWindDir;
-            probingFilePath = GetPathToProbedResults(caseDirectory, ofField, RES);
 
-            if (string.IsNullOrEmpty(probingFilePath)) return;
+            ProbingFilePath = GetPathToProbedResults(caseDirectory, ofField, result);
+            if (string.IsNullOrEmpty(ProbingFilePath)) return;
 
-            ParseFromOFResult(ofField);
-
-            //WriteProbedResultToCSV(ofField);
-            WriteProbedResultToBinary(ofField);
+            ParseFromOpenFOAMResult(ofField);
+            SaveToBinaryCache(ofField);
         }
 
-        private void ParseFromOFResult(OFFieldNew ofField)
+        #region Private Methods
+
+        private void ParseFromOpenFOAMResult(OFFieldNew ofField)
         {
             if (ofField.FieldType == fieldType.scalar)
             {
-                ResultScalar = ProbeParsing.ParseScalars(probingFilePath, listOfPoints.Count);
+                ResultScalar = ProbeParsing.ParseScalars(ProbingFilePath, probePoints.Count);
             }
             else
             {
-                ResultVec = ProbeParsing.ParseVectors(probingFilePath, listOfPoints.Count);
+                ResultVec = ProbeParsing.ParseVectors(ProbingFilePath, probePoints.Count);
             }
         }
 
-        public static int GetLatestTime(string workingDirectory, OFResult RES)
+        private void SaveToBinaryCache(OFFieldNew ofField)
         {
-            int? writeInterval = RES?.RunSettings?.iter > 0 ? RES.RunSettings.iter : (int?)null;
-            return ProbeTimeHelper.GetLatestIteration(workingDirectory, writeInterval);
-        }
-
-        public static string GetPathToProbedResults(string workingDirectory, OFFieldNew ofField, OFResult RES)
-        {
-            int lastIter = GetLatestTime(workingDirectory, RES);
-            string fullPath = ProbePathHelper.BuildProbeFilePath(workingDirectory, ofField.ProbeName, ofField.FieldName, lastIter);
-
-            if (!File.Exists(fullPath)) return string.Empty;
-
-            //"C:\test\0\postProcessing\test3\303\p"
-
-            return fullPath;
-        }
-
-        private void WriteProbedResultToBinary(OFFieldNew ofField)
-        {
-            // We gather the probes in both the root folder and in each individual case
             string postProcessDir = ProbePathHelper.EnsurePostProcessingDir(baseWorkingDirectory);
             string outPath = ProbePathHelper.BuildProbeBinaryPath(postProcessDir, currWindDir.ToString(), ofField.ProbeName, ofField.FieldName);
 
@@ -82,10 +75,61 @@ namespace EddyLib
             {
                 ProbeBinaryIO.WriteScalars(outPath, ResultScalar);
             }
-            if (ofField.FieldType == fieldType.vector)
+            else if (ofField.FieldType == fieldType.vector)
             {
                 ProbeBinaryIO.WriteVectors(outPath, ResultVec);
             }
         }
+
+        #endregion
+
+        #region Static Methods
+
+        /// <summary>
+        /// Gets the latest time step iteration number.
+        /// </summary>
+        public static int GetLatestTime(string workingDirectory, OFResult result)
+        {
+            int? writeInterval = null;
+            if (result?.RunSettings?.iter > 0)
+            {
+                writeInterval = result.RunSettings.iter;
+            }
+            return ProbeTimeHelper.GetLatestIteration(workingDirectory, writeInterval);
+        }
+
+        /// <summary>
+        /// Gets the path to probed results for the latest time step.
+        /// </summary>
+        public static string GetPathToProbedResults(string workingDirectory, OFFieldNew ofField, OFResult result)
+        {
+            int lastIter = GetLatestTime(workingDirectory, result);
+            string fullPath = ProbePathHelper.BuildProbeFilePath(workingDirectory, ofField.ProbeName, ofField.FieldName, lastIter);
+
+            return File.Exists(fullPath) ? fullPath : string.Empty;
+        }
+
+        #endregion
+
+        #region Backward Compatibility
+
+        /// <summary>Legacy property - use IndicesOfExtremeProbes instead.</summary>
+        public int[] IndecesOfExtremeProbes
+        {
+            get => IndicesOfExtremeProbes;
+            set => IndicesOfExtremeProbes = value;
+        }
+
+        /// <summary>Legacy field - use CorrespondingWindDir instead.</summary>
+        public int correspondingWindDir
+        {
+            get => CorrespondingWindDir;
+            set => CorrespondingWindDir = value;
+        }
+
+        /// <summary>Legacy property - use ProbingFilePath instead.</summary>
+        public string probingFilePath => ProbingFilePath;
+
+        #endregion
     }
 }

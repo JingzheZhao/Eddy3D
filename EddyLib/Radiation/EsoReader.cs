@@ -1,11 +1,17 @@
 ﻿using ProtoBuf;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Text.RegularExpressions;
 
 namespace EddyLib.Radiation
 {
+    /// <summary>
+    /// Type of EnergyPlus ESO result.
+    /// </summary>
     public enum esoType
     {
         Zone,
@@ -14,201 +20,245 @@ namespace EddyLib.Radiation
         Environment
     }
 
+    /// <summary>
+    /// EnergyPlus ESO file result entry.
+    /// </summary>
     [DataContract]
     [ProtoContract]
     public class EsoResult
     {
-        [DataMember]
-        [ProtoMember(1)]
+        #region Properties
+
+        [DataMember, ProtoMember(1)]
         public string tag { get; set; }
 
-        [DataMember]
-        [ProtoMember(2, OverwriteList = true)]
+        [DataMember, ProtoMember(2, OverwriteList = true)]
         public List<double> values { get; set; }
 
-        [DataMember]
-        [ProtoMember(3)]
+        [DataMember, ProtoMember(3)]
         public string unit { get; set; }
 
-        [DataMember]
-        [ProtoMember(4)]
+        [DataMember, ProtoMember(4)]
         public string res { get; set; }
 
-        [DataMember]
-        [ProtoMember(5)]
+        [DataMember, ProtoMember(5)]
         public string zone { get; set; }
 
-        [DataMember]
-        [ProtoMember(6)]
+        [DataMember, ProtoMember(6)]
         public esoType typ { get; set; }
 
-        [DataMember]
-        [ProtoMember(7)]
+        [DataMember, ProtoMember(7)]
         public string faceId { get; set; }
 
-        public EsoResult()
-        { }
+        #endregion
 
-        public EsoResult(string _zone, string _tag, string _unit, string _res)
+        // Zone name prefixes to strip
+        private static readonly string[] ZonePrefixes = 
         {
-            string zo = "";
-            if (_zone.Contains("IDEAL LOADS AIR SYSTEM")) // templates spit out variable with SYSTEM in the end ???
-            {
-                zo = _zone.Replace("IDEAL LOADS AIR SYSTEM", "").Trim();
-                typ = esoType.Zone;
-            }
-            else if (_zone.Contains("IDEAL LOADS AIR"))
-            {
-                zo = _zone.Replace("IDEAL LOADS AIR", "").Trim();
-                typ = esoType.Zone;
-            }
-            else if (_zone.Contains("DHW "))
-            {
-                zo = _zone.Replace("DHW ", "").Trim();
-                typ = esoType.Zone;
-            }
-            else if (_zone.Contains("EQUIPMENT 1"))
-            {
-                zo = _zone.Replace("EQUIPMENT 1", "").Trim();
-                typ = esoType.Zone;
-            }
-            else if (_zone.Contains(":"))
-            {
-                var sArr = _zone.Split(':');
-                zo = sArr[0].Trim();
-                typ = esoType.Face;
-                faceId = "";
-                for (int i = 1; i < sArr.Length; i++)
-                {
-                    faceId += ":" + sArr[i];
-                }
-            }
-            else if (_zone.Contains("Environment"))
-            {
-                zo = _zone;
-                typ = esoType.Environment;
-            }
-            else
-            {
-                zo = _zone;
-                typ = esoType.Zone;
-            }
+            "IDEAL LOADS AIR SYSTEM",
+            "IDEAL LOADS AIR",
+            "DHW ",
+            "EQUIPMENT 1"
+        };
 
+        public EsoResult() { }
+
+        public EsoResult(string zoneInput, string _tag, string _unit, string _res)
+        {
             values = new List<double>();
-            zone = zo;
             tag = _tag;
             unit = _unit;
             res = _res;
+
+            ParseZone(zoneInput);
+        }
+
+        /// <summary>
+        /// Parses zone string and sets zone name, type, and face ID.
+        /// </summary>
+        private void ParseZone(string zoneInput)
+        {
+            // Check for known prefixes
+            foreach (var prefix in ZonePrefixes)
+            {
+                if (zoneInput.Contains(prefix))
+                {
+                    zone = zoneInput.Replace(prefix, "").Trim();
+                    typ = esoType.Zone;
+                    return;
+                }
+            }
+
+            // Check for face reference (contains colon)
+            if (zoneInput.Contains(":"))
+            {
+                var parts = zoneInput.Split(':');
+                zone = parts[0].Trim();
+                typ = esoType.Face;
+                faceId = string.Join(":", parts.Skip(1));
+                return;
+            }
+
+            // Check for environment
+            if (zoneInput.Contains("Environment"))
+            {
+                zone = zoneInput;
+                typ = esoType.Environment;
+                return;
+            }
+
+            // Default to zone type
+            zone = zoneInput;
+            typ = esoType.Zone;
         }
 
         public override string ToString()
         {
-            return string.Format("EsoResult: {0},{1},{2},{3},{4}", zone, tag, unit, res, values.Count);
+            return $"EsoResult: {zone},{tag},{unit},{res},{values.Count}";
         }
     }
 
+    /// <summary>
+    /// Reads EnergyPlus ESO (raw output) files.
+    /// </summary>
     public class EsoReader
     {
+        // IDs 1-6 are reserved for timestamp/environment data
+        private static readonly HashSet<string> ReservedIds = 
+            new HashSet<string> { "1", "2", "3", "4", "5", "6" };
+
+        private static readonly NumberStyles NumberStyle = 
+            NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent | NumberStyles.AllowLeadingSign;
+
+        // Patterns to remove from zone names
+        private static readonly string[] ZoneCleanupPatterns = 
+        {
+            "THERMALCHIMNEYSYSTEM",
+            "PEOPLE "
+        };
+
+        /// <summary>
+        /// Loads and parses an ESO file.
+        /// </summary>
         public static List<EsoResult> LoadEsoFile(string path)
         {
-            var style = System.Globalization.NumberStyles.AllowDecimalPoint | System.Globalization.NumberStyles.AllowExponent | System.Globalization.NumberStyles.AllowLeadingSign;
-            var culture = System.Globalization.CultureInfo.InvariantCulture;
-
             if (!File.Exists(path)) return null;
 
             var dictVars = new List<string>();
+            var dataLines = new List<string>();
 
-            //
-            // Read in a file line-by-line, and store it all in a List.
-            //
-            bool pastHeader = false;
-            bool pastEnd = false;
-            List<string> list = new List<string>();
+            // Read file in two passes: dictionary section and data section
+            ReadEsoFileSections(path, dictVars, dataLines);
 
-            using (FileStream fs = File.Open(path, FileMode.Open))
-            using (BufferedStream bs = new BufferedStream(fs))
-            using (StreamReader sr = new StreamReader(bs))
+            // Build result containers from dictionary
+            var results = BuildResultContainers(dictVars);
+
+            // Populate values from data lines
+            PopulateValues(dataLines, results);
+
+            return results.Values.ToList();
+        }
+
+        /// <summary>
+        /// Reads ESO file and separates dictionary and data sections.
+        /// </summary>
+        private static void ReadEsoFileSections(string path, List<string> dictVars, List<string> dataLines)
+        {
+            using (var fs = File.Open(path, FileMode.Open))
+            using (var bs = new BufferedStream(fs))
+            using (var sr = new StreamReader(bs))
             {
+                sr.ReadLine(); // Skip first line
+
+                bool pastHeader = false;
+                bool pastEnd = false;
                 string line;
-                sr.ReadLine(); // skip first line
+
                 while ((line = sr.ReadLine()) != null)
-                //while ((line = (reader.ReadLine().Trim())) == "End of Data")
                 {
-                    line.Trim();
+                    line = line.Trim();
 
                     if (!pastHeader)
                     {
-                        if (line == "End of Data Dictionary") { pastHeader = true; }
+                        if (line == "End of Data Dictionary")
+                        {
+                            pastHeader = true;
+                        }
                         else
                         {
-                            dictVars.Add(line); // Add to list.
+                            dictVars.Add(line);
                         }
                     }
                     else if (!pastEnd)
                     {
-                        if (line == "End of Data") { pastEnd = true; }
+                        if (line == "End of Data")
+                        {
+                            pastEnd = true;
+                        }
                         else
                         {
-                            list.Add(line); // Add to list.
+                            dataLines.Add(line);
                         }
                     }
                 }
             }
+        }
 
-            Dictionary<string, EsoResult> res = new Dictionary<string, EsoResult>();
+        /// <summary>
+        /// Builds EsoResult containers from dictionary entries.
+        /// </summary>
+        private static Dictionary<string, EsoResult> BuildResultContainers(List<string> dictVars)
+        {
+            var results = new Dictionary<string, EsoResult>();
 
-            // build EsoResult containers
             foreach (string s in dictVars)
             {
-                var ss = s.Split(',');
+                var parts = s.Split(',');
+                string id = parts[0];
 
-                string id = ss[0];
-                // int following = int.Parse(ss[1]);
-                if (id == "1") continue;
-                if (id == "2") continue;
-                if (id == "3") continue;
-                if (id == "4") continue;
-                if (id == "5") continue;
-                if (id == "6") continue;
+                if (ReservedIds.Contains(id)) continue;
+                if (parts.Length < 4) continue;
 
-                string zone = ss[2];
-                if (zone.Contains("THERMALCHIMNEYSYSTEM")) zone = zone.Replace("THERMALCHIMNEYSYSTEM", "");
-                if (zone.Contains("PEOPLE ")) zone = zone.Replace("PEOPLE ", "");
-                //Print("zone: " + zone);
+                // Clean up zone name
+                string zone = parts[2];
+                foreach (var pattern in ZoneCleanupPatterns)
+                {
+                    zone = zone.Replace(pattern, "");
+                }
 
-                var sss = ss[3].Split('!');
-                string reso = sss[1].Split(' ')[0];
-                //Print("reso: " + reso);
+                // Parse variable info: "Variable Name [unit] !Resolution"
+                var varParts = parts[3].Split('!');
+                if (varParts.Length < 2) continue;
 
-                string unit = System.Text.RegularExpressions.Regex.Match(sss[0], @"\[([^)]*)\]").Groups[1].Value;
-                //Print("unit: " + unit);
+                string resolution = varParts[1].Split(' ')[0];
+                string unit = Regex.Match(varParts[0], @"\[([^\]]*)\]").Groups[1].Value;
+                string variable = varParts[0].Split('[')[0].Trim();
 
-                string vari = sss[0].Split('[')[0].Trim();
-                //Print("vari: " + vari);
-
-                res.Add(id, new EsoResult(zone, vari, unit, reso));
+                results.Add(id, new EsoResult(zone, variable, unit, resolution));
             }
 
-            foreach (string s in list)
+            return results;
+        }
+
+        /// <summary>
+        /// Populates result values from data lines.
+        /// </summary>
+        private static void PopulateValues(List<string> dataLines, Dictionary<string, EsoResult> results)
+        {
+            foreach (string line in dataLines)
             {
-                var ss = s.Split(',');
-                string id = ss[0];
+                var parts = line.Split(',');
+                if (parts.Length < 2) continue;
 
-                if (id == "1") continue;
-                if (id == "2") continue;
-                if (id == "3") continue;
-                if (id == "4") continue;
-                if (id == "5") continue;
-                if (id == "6") continue;
+                string id = parts[0];
+                if (ReservedIds.Contains(id)) continue;
+                if (!results.ContainsKey(id)) continue;
 
-                double val = double.Parse(ss[1], style, culture);
-
-                if (!res.Keys.Contains(id)) continue;
-
-                res[id].values.Add(val);
+                if (double.TryParse(parts[1], NumberStyle, CultureInfo.InvariantCulture, out double val))
+                {
+                    results[id].values.Add(val);
+                }
             }
-
-            return res.Values.ToList();
         }
     }
 }

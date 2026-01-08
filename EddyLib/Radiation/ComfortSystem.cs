@@ -4,229 +4,243 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace EddyLib.Radiation
 {
+    /// <summary>
+    /// Computes outdoor thermal comfort using UTCI methodology.
+    /// </summary>
     public class ComfortSystem
     {
-        public int methodsteps = 4; // energyplus prints 52 lines
+        #region Constants
 
-        //private DateTime winter_start = new DateTime(2004, 1, 1);
-        //private DateTime winter_spring = new DateTime(2004, 2, 7);
-        //private DateTime spring_summer = new DateTime(2004, 5, 7);
-        //private DateTime summer_fall = new DateTime(2004, 8, 6);
-        //private DateTime fall_winter = new DateTime(2004, 11, 6);
+        /// <summary>Hours in a year.</summary>
+        private const int HoursPerYear = 8760;
 
-        private double pct = 0;
-        private double steps = 52 + 2;
-        private double stepCnt = 0;
+        /// <summary>Default pedestrian height for wind speed calculations.</summary>
+        private const double PedestrianHeight = 1.8;
 
-        public string BaseWorkingDir = "";
-        public Weather Weather;
+        #endregion
 
-        public List<RProbe> Probes;
-        public List<RPolygon> Polys;
+        #region Properties
 
-        public string CFDDataPath = "";
+        public string BaseWorkingDir { get; set; } = "";
+        public Weather Weather { get; set; }
+        public List<RProbe> Probes { get; set; }
+        public List<RPolygon> Polys { get; set; }
+        public string CFDDataPath { get; set; } = "";
+        public double WindScalingFactor { get; set; } = 1;
 
-        public double WindScalingFactor = 1;
+        /// <summary>Number of method steps for progress reporting.</summary>
+        public int methodsteps { get; set; } = 4;
 
-        public ComfortSystem(string baseWorkingDir, Weather weather, List<RProbe> probes, List<RPolygon> polys, string cfdpath, double wsf)
+        #endregion
+
+        /// <summary>
+        /// Creates a comfort analysis system.
+        /// </summary>
+        public ComfortSystem(string baseWorkingDir, Weather weather, List<RProbe> probes, 
+                            List<RPolygon> polys, string cfdPath, double windScalingFactor)
         {
             BaseWorkingDir = baseWorkingDir;
             Weather = weather;
             Probes = probes;
             Polys = polys;
-            CFDDataPath = cfdpath;
-            WindScalingFactor = wsf;
+            CFDDataPath = cfdPath;
+            WindScalingFactor = windScalingFactor;
         }
 
+        /// <summary>
+        /// Loads CFD results and computes wind factors.
+        /// </summary>
         public void LoadCFD_ComputeWindfactors(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
-            // ---------------------
-            // 1  Load CFD Result
-            // ---------------------
+            if (string.IsNullOrWhiteSpace(CFDDataPath)) return;
 
-            WProbeResultProto resultProto_CFD = null;
-
-            if (!String.IsNullOrWhiteSpace(CFDDataPath))
+            WProbeResultProto resultProto_CFD;
+            try
             {
-                try
-                {
-                    Stopwatch sp = new Stopwatch();
-                    sp.Restart();
-                    resultProto_CFD = WProbeResultProto.ReadFromFile(CFDDataPath);
-                    sp.Stop();
-                    Console.WriteLine("Loading WProbeResultProto: " + sp.ElapsedMilliseconds);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("CFD Result file could not be deserialized. Are you loading a wrong file type? " + Environment.NewLine + e.Message);
-                    return;
-                }
-
-                Console.WriteLine("Probe Count: " + this.Probes.Count);
-                Console.WriteLine("CFD Probe Count: " + resultProto_CFD.Probes.Count);
-
-                if (this.Probes.Count != resultProto_CFD.Probes.Count)
-                {
-                    Console.WriteLine("CFD and MRT worflows have different probe count... using weather data for prove air velocity");
-                    return;
-                }
-
-                Interlocked.Increment(ref stepCnt);
-                Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
-
-                // ---------------------
-                // 2  Compute Wind Factors
-                // ---------------------
-
-                // WindFactorSpatial
-                Console.WriteLine("Computing Spatial Wind Factors...");
-
-                foreach (var p in resultProto_CFD.Probes)
-                {
-                    p.WindFactorsSpatial = EddyLib.OutdoorComfort.WindFactorsSpatial.CalcWindFactorsSpatialSP(p);
-                }
-                Console.WriteLine("Computing Spatial Wind Factors...");
-
-                WindSystem WS = new WindSystem(this.Weather, resultProto_CFD.Probes[0].WindDirections);
-                Console.WriteLine("Computing Temporal Wind Factors...");
-
-                int pcnt = 0;
-                foreach (var p in resultProto_CFD.Probes)
-                {
-                    p.WindFactorsTemporal = WindFactorsTemporal.CalcWindFactorsTemporalSP(this.Weather, p, WS, true);
-                }
-
-                for (int i = 0; i < this.Probes.Count; i++)
-                {
-                    if (i < resultProto_CFD.Probes.Count)
-                    {
-                        this.Probes[i].WindSpeed = resultProto_CFD.Probes[i].WindFactorsTemporal;
-                    }
-                }
-
-                Interlocked.Increment(ref stepCnt);
-                Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+                var sw = Stopwatch.StartNew();
+                resultProto_CFD = WProbeResultProto.ReadFromFile(CFDDataPath);
+                Console.WriteLine($"Loading WProbeResultProto: {sw.ElapsedMilliseconds}ms");
             }
+            catch (Exception e)
+            {
+                Console.WriteLine($"CFD Result file could not be deserialized: {e.Message}");
+                return;
+            }
+
+            Console.WriteLine($"Probe Count: {Probes.Count}, CFD Probe Count: {resultProto_CFD.Probes.Count}");
+
+            if (Probes.Count != resultProto_CFD.Probes.Count)
+            {
+                Console.WriteLine("CFD and MRT workflows have different probe count. Using weather data for air velocity.");
+                return;
+            }
+
+            ReportProgress(ref stepCnt, steps);
+
+            // Compute spatial wind factors
+            Console.WriteLine("Computing Spatial Wind Factors...");
+            foreach (var p in resultProto_CFD.Probes)
+            {
+                p.WindFactorsSpatial = WindFactorsSpatial.CalcWindFactorsSpatialSP(p);
+            }
+
+            // Compute temporal wind factors
+            var windSystem = new WindSystem(Weather, resultProto_CFD.Probes[0].WindDirections);
+            Console.WriteLine("Computing Temporal Wind Factors...");
+            
+            foreach (var p in resultProto_CFD.Probes)
+            {
+                p.WindFactorsTemporal = WindFactorsTemporal.CalcWindFactorsTemporalSP(Weather, p, windSystem, true);
+            }
+
+            // Transfer wind speeds to probes
+            for (int i = 0; i < Math.Min(Probes.Count, resultProto_CFD.Probes.Count); i++)
+            {
+                Probes[i].WindSpeed = resultProto_CFD.Probes[i].WindFactorsTemporal;
+            }
+
+            ReportProgress(ref stepCnt, steps);
         }
 
+        /// <summary>
+        /// Computes UTCI thermal comfort for all probes.
+        /// </summary>
         public void ComputeUTCI(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
-            steps = this.Probes.Count;
-
-            // ---------------------
-            // 3 Compute UTCI
-            // ---------------------
+            int probeCount = Probes.Count;
             Console.WriteLine("Computing UTCI...");
 
-            System.Threading.Tasks.Parallel.For(0, this.Probes.Count, i =>
+            Parallel.For(0, probeCount, i =>
             {
-                var probe = this.Probes[i];
-                probe.UTCI = new float[8760];
+                var probe = Probes[i];
+                probe.UTCI = new float[HoursPerYear];
                 probe.ComfortHours = 0;
 
-                // get wind speed data -- init array with wind speed data from weather
-                float[] windspeed = new float[this.Weather.WindSpeed.Length];
-                for (int h = 0; h < this.Weather.WindSpeed.Length; h++)
-                {
-                    windspeed[h] = (float)(this.Weather.WindSpeed[h] * WindScalingFactor);
-                }
+                // Initialize wind speed from weather data
+                float[] windSpeed = GetProbeWindSpeed(probe);
 
-                // if CFD wind speed data exsists - then override
-                if (probe.WindSpeed != null)
+                // Initialize MRT from weather or probe data
+                double[] mrt = GetProbeMRT(probe);
+
+                // Calculate UTCI for each hour
+                for (int h = 0; h < HoursPerYear; h++)
                 {
-                    for (int h = 0; h < windspeed.Length; h++)
+                    double utci = UTCI.CalcUTCICorrectBounds(
+                        Weather.DryBulbTemp[h],
+                        Weather.RelativeHumidity[h],
+                        windSpeed[h],
+                        mrt[h],
+                        out bool outOfBounds);
+
+                    if (UTCI.CalcConditionOfPerson(utci) == 0)
                     {
-                        // lift to 10 m height as required
-
-                        // scale up to 10 m
-                        //var z0 = 1;
-                        //var uref = 2.89;
-                        //var zref = 3;
-
-                        //// Act
-                        //var res = EddyLib.BCs.BoundaryCondition.ScaleABL(uref, zref, z0, 10);
-
-                        var resultingWindSpeedforUTCI_At10 = UTCI.At10Meters((double)probe.WindSpeed[h], 1.8);
-                        //  var resultingWindSpeedforUTCI_At10 = UTCI.At10Meters(resultingWindSpeedforUTCI, probe.Point.Value.Z);
-
-                        windspeed[h] = (float)resultingWindSpeedforUTCI_At10;
+                        probe.ComfortHours++;
                     }
-                }
-                else
-                {
-                    probe.WindSpeed = windspeed;
-                }
-
-                // init mrt with dry bulb temperature from weather
-                double[] mrt = new double[this.Weather.DryBulbTemp.Length];
-                Array.Copy(this.Weather.DryBulbTemp, mrt, this.Weather.DryBulbTemp.Length);
-
-                // if longwave mrt data exsists - then override
-                if (probe.LongWave_MRT != null)
-                {
-                    for (int h = 0; h < mrt.Length; h++)
-                    {
-                        mrt[h] = (double)probe.LongWave_MRT[h];
-                    }
-                }
-                // if radiation data exsists - add dMRT to mrt
-                if (probe.SolarGain_dMRT != null)
-                {
-                    for (int h = 0; h < mrt.Length; h++)
-                    {
-                        mrt[h] = mrt[h] + (double)probe.SolarGain_dMRT[h];
-                    }
-                }
-
-                for (int h = 0; h < 8760; h++)
-
-                {
-                    var mrt_t = mrt[h];
-                    var wsp_t = (double)windspeed[h];
-                    var tamb_t = this.Weather.DryBulbTemp[h];
-                    var rh_t = this.Weather.RelativeHumidity[h];
-
-                    double utci = UTCI.CalcUTCICorrectBounds(tamb_t, rh_t, wsp_t, mrt_t, out bool outOfBounds);
-
-                    var condition = UTCI.CalcConditionOfPerson(utci);
-
-                    if (condition == 0) probe.ComfortHours++;
 
                     probe.UTCI[h] = (float)utci;
                 }
-
-                //stepCnt++;
-                //pct = 100 * stepCnt / steps;
-                //Console.WriteLine(ProgressWriter.ProgressKey + pct.ToString(CultureInfo.InvariantCulture));
             });
 
-            Interlocked.Increment(ref stepCnt);
-            Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+            ReportProgress(ref stepCnt, steps);
         }
 
+        /// <summary>
+        /// Saves comfort results to file.
+        /// </summary>
         public MRT_Simulation_ResultProto SaveResults(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
-            // -----------------------------
-            // 4 Write results
-            // -----------------------------
-
             Console.WriteLine("Saving results...");
 
             var prep = PrepareProtoBufSingleton.Instance;
-
-            var protoResult = new MRT_Simulation_ResultProto(this.BaseWorkingDir, this.Weather, this.Probes, this.Polys);
-
-            protoResult.WriteToFile(this.BaseWorkingDir + @"\UTCI.eddy");
+            var protoResult = new MRT_Simulation_ResultProto(BaseWorkingDir, Weather, Probes, Polys);
+            protoResult.WriteToFile(System.IO.Path.Combine(BaseWorkingDir, "UTCI.eddy"));
 
             Console.WriteLine("Results written");
-            Interlocked.Increment(ref stepCnt);
-            Console.WriteLine(ProgressWriter.ProgressKey + (100 * stepCnt / steps).ToString(CultureInfo.InvariantCulture));
+            ReportProgress(ref stepCnt, steps);
 
             return protoResult;
         }
+
+        #region Private Methods
+
+        /// <summary>
+        /// Gets wind speed array for a probe, using CFD data if available.
+        /// </summary>
+        private float[] GetProbeWindSpeed(RProbe probe)
+        {
+            int hours = Weather.WindSpeed.Length;
+            var windSpeed = new float[hours];
+
+            if (probe.WindSpeed != null)
+            {
+                // Use CFD data, scaled to 10m height for UTCI
+                for (int h = 0; h < hours; h++)
+                {
+                    windSpeed[h] = (float)UTCI.At10Meters(probe.WindSpeed[h], PedestrianHeight);
+                }
+            }
+            else
+            {
+                // Use weather data with scaling factor
+                for (int h = 0; h < hours; h++)
+                {
+                    windSpeed[h] = (float)(Weather.WindSpeed[h] * WindScalingFactor);
+                }
+                probe.WindSpeed = windSpeed;
+            }
+
+            return windSpeed;
+        }
+
+        /// <summary>
+        /// Gets MRT array for a probe, combining longwave and solar components.
+        /// </summary>
+        private double[] GetProbeMRT(RProbe probe)
+        {
+            int hours = Weather.DryBulbTemp.Length;
+            var mrt = new double[hours];
+
+            // Start with longwave MRT or dry bulb temperature
+            if (probe.LongWave_MRT != null)
+            {
+                for (int h = 0; h < hours; h++)
+                {
+                    mrt[h] = probe.LongWave_MRT[h];
+                }
+            }
+            else
+            {
+                Array.Copy(Weather.DryBulbTemp, mrt, hours);
+            }
+
+            // Add solar radiation component (delta MRT)
+            if (probe.SolarGain_dMRT != null)
+            {
+                for (int h = 0; h < hours; h++)
+                {
+                    mrt[h] += probe.SolarGain_dMRT[h];
+                }
+            }
+
+            return mrt;
+        }
+
+        /// <summary>
+        /// Reports progress to console.
+        /// </summary>
+        private static void ReportProgress(ref int stepCnt, int steps)
+        {
+            Interlocked.Increment(ref stepCnt);
+            int percent = 100 * stepCnt / steps;
+            Console.WriteLine(ProgressWriter.ProgressKey + percent.ToString(CultureInfo.InvariantCulture));
+        }
+
+        #endregion
     }
 }

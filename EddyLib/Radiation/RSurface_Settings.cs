@@ -1,14 +1,20 @@
-﻿using Newtonsoft.Json;
+﻿using EddyLib.Helpers;
 using System.Runtime.Serialization;
 
 namespace EddyLib.Radiation
 {
+    /// <summary>
+    /// Settings for building/ground surface materials in radiation simulations.
+    /// </summary>
     [DataContract]
     public class RSurface_Settings
     {
-        public RSurface_Settings()
-        {
-        }
+        public RSurface_Settings() { }
+
+        #region Material Properties
+
+        [DataMember]
+        public string Name { get; set; }
 
         [DataMember]
         public double Conductivity { get; set; }
@@ -35,107 +41,94 @@ namespace EddyLib.Radiation
         public double VisibleAbsorptance { get; set; }
 
         [DataMember]
-        public string Name { get; set; }
-
-        [DataMember]
         public string RadianceMaterial { get; set; }
 
-        public override string ToString()
-        {
-            return this.toJSON();
-        }
+        #endregion
 
+        #region EnergyPlus Objects
+
+        /// <summary>
+        /// Creates an EnergyPlus Material object from these settings.
+        /// </summary>
         public Material GetMaterial()
         {
-            Material mat = new Material();
-            mat.Conductivity = Conductivity;
-            mat.Density = Density;
-            mat.Roughness = Roughness;
-            mat.SolarAbsorptance = SolarAbsorptance;
-            mat.SpecificHeat = SpecificHeat;
-            mat.ThermalAbsorptance = ThermalAbsorptance;
-            mat.Thickness = Thickness;
-            mat.VisibleAbsorptance = VisibleAbsorptance;
-
-            return mat;
+            return new Material
+            {
+                Conductivity = Conductivity,
+                Density = Density,
+                Roughness = Roughness,
+                SolarAbsorptance = SolarAbsorptance,
+                SpecificHeat = SpecificHeat,
+                ThermalAbsorptance = ThermalAbsorptance,
+                Thickness = Thickness,
+                VisibleAbsorptance = VisibleAbsorptance
+            };
         }
 
+        /// <summary>
+        /// Creates an EnergyPlus Construction object from these settings.
+        /// </summary>
         public Construction GetConstruction()
         {
-            Construction con = new Construction();
-            con.Layer2 = "DefaultXPS";
-            con.OutsideLayer = Name;
-            return con;
+            return new Construction
+            {
+                Layer2 = "DefaultXPS",
+                OutsideLayer = Name
+            };
         }
 
+        #endregion
+
+        #region Factory Methods
+
+        /// <summary>
+        /// Creates default ground/asphalt surface settings.
+        /// </summary>
         public static RSurface_Settings GenerateGround()
         {
-            var o = new RSurface_Settings();
-            o.RadianceMaterial = RadianceMaterials.DefaultGround;
-            o.Name = "Asphalt";
-            o.Conductivity = 0.75;
-            o.SpecificHeat = 920;
-            o.ThermalAbsorptance = .9;
-            o.Density = 2350;
-            o.SolarAbsorptance = 0.32;
-            o.VisibleAbsorptance = 0.32;
-            o.Thickness = 0.1;
-
-            return o;
+            return new RSurface_Settings
+            {
+                RadianceMaterial = RadianceMaterials.DefaultGround,
+                Name = "Asphalt",
+                Conductivity = 0.75,
+                SpecificHeat = 920,
+                ThermalAbsorptance = 0.9,
+                Density = 2350,
+                SolarAbsorptance = 0.32,
+                VisibleAbsorptance = 0.32,
+                Thickness = 0.1
+            };
         }
 
+        /// <summary>
+        /// Creates default facade/brick surface settings.
+        /// </summary>
         public static RSurface_Settings GenerateFacade()
         {
-            var o = new RSurface_Settings();
-            o.RadianceMaterial = RadianceMaterials.DefaultFacade;
-            o.Name = "RedBrick";
-            o.Conductivity = 0.89;
-            o.SpecificHeat = 920;
-            o.ThermalAbsorptance = .9;
-            o.Density = 1920;
-            o.SolarAbsorptance = 0.6;
-            o.VisibleAbsorptance = 0.6;
-            o.Thickness = 0.2;
-
-            return o;
-        }
-
-        public static RSurface_Settings fromJSON(string json)
-        {
-            return DeserializeJSON<RSurface_Settings>(json);
-        }
-
-        public string toJSON()
-        {
-            return SerializeJSON<RSurface_Settings>(this);
-        }
-
-        private static T DeserializeJSON<T>(string json)
-        {
-            json = json.Trim();
-            if ((json.StartsWith("{") && json.EndsWith("}")) || //For object
-                (json.StartsWith("[") && json.EndsWith("]"))) //For array
+            return new RSurface_Settings
             {
-                var set = new JsonSerializerSettings
-                {
-                    Formatting = Formatting.Indented,
-                    TypeNameHandling = TypeNameHandling.Auto,
-                    NullValueHandling = NullValueHandling.Ignore
-                };
-                return JsonConvert.DeserializeObject<T>(json, set);
-            }
-            else { return default(T); }
-        }
-
-        private static string SerializeJSON<T>(T component)
-        {
-            var set = new JsonSerializerSettings
-            {
-                Formatting = Formatting.Indented,
-                TypeNameHandling = TypeNameHandling.Auto,
-                NullValueHandling = NullValueHandling.Ignore
+                RadianceMaterial = RadianceMaterials.DefaultFacade,
+                Name = "RedBrick",
+                Conductivity = 0.89,
+                SpecificHeat = 920,
+                ThermalAbsorptance = 0.9,
+                Density = 1920,
+                SolarAbsorptance = 0.6,
+                VisibleAbsorptance = 0.6,
+                Thickness = 0.2
             };
-            return JsonConvert.SerializeObject(component, set);
         }
+
+        #endregion
+
+        #region Serialization
+
+        public override string ToString() => toJSON();
+
+        public static RSurface_Settings fromJSON(string json) => JsonHelper.Deserialize<RSurface_Settings>(json);
+
+        public string toJSON() => JsonHelper.Serialize(this);
+
+        #endregion
     }
 }

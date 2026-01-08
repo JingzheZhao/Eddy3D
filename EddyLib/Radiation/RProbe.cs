@@ -5,6 +5,9 @@ using System.Collections.Generic;
 
 namespace EddyLib.Radiation
 {
+    /// <summary>
+    /// Metrics available for radiation probes.
+    /// </summary>
     public enum RProbeMetric
     {
         UTCI,
@@ -16,12 +19,15 @@ namespace EddyLib.Radiation
         WindVelMag
     }
 
+    /// <summary>
+    /// Radiation probe for MRT and thermal comfort calculations.
+    /// </summary>
     [ProtoContract]
     public class RProbe
     {
-        public RProbe()
-        {
-        }
+        #region Constructors
+
+        public RProbe() { }
 
         public RProbe(Point3d pt, Vector3d vec)
         {
@@ -36,6 +42,10 @@ namespace EddyLib.Radiation
             PreviewGeo = new EddyMesh(geo);
         }
 
+        #endregion
+
+        #region Core Properties
+
         [ProtoMember(1)]
         public EddyPoint Point { get; set; }
 
@@ -48,14 +58,19 @@ namespace EddyLib.Radiation
         [ProtoMember(4)]
         public float Area { get; set; } = 1;
 
-        //View factor data
+        #endregion
+
+        #region View Factor Data
+
         [ProtoMember(100)]
         public double[] VFtoPolys { get; set; }
 
         [ProtoMember(101)]
         public Dictionary<string, double> VFtoMaterial { get; set; }
 
-        //Radiation Data
+        #endregion
+
+        #region Radiation Data
 
         [ProtoMember(110)]
         public float[] TotalRad { get; set; }
@@ -71,6 +86,10 @@ namespace EddyLib.Radiation
 
         [ProtoMember(130)]
         public float[] WindSpeed { get; set; }
+
+        #endregion
+
+        #region Comfort Results
 
         [ProtoMember(200)]
         public float[] UTCI { get; set; }
@@ -90,59 +109,67 @@ namespace EddyLib.Radiation
         [ProtoMember(205)]
         public float ComfortAutonomy_Winter { get; set; }
 
-        public static List<RProbe> Mesh2Probes(Mesh _ms)
+        #endregion
+
+        #region Static Methods
+
+        /// <summary>
+        /// Converts mesh faces to radiation probes at face centers.
+        /// </summary>
+        public static List<RProbe> Mesh2Probes(Mesh mesh)
         {
-            List<RProbe> probes = new List<RProbe>();
-            if (_ms == null) return probes;
+            var probes = new List<RProbe>();
+            if (mesh == null) return probes;
 
-            _ms.FaceNormals.ComputeFaceNormals();
+            mesh.FaceNormals.ComputeFaceNormals();
 
-            for (int i = 0; i < _ms.Faces.Count; ++i)
+            for (int i = 0; i < mesh.Faces.Count; i++)
             {
-                RProbe pg = new RProbe();
-                pg.Point = new EddyPoint(_ms.Faces.GetFaceCenter(i));
-                pg.Normal = new EddyVector(_ms.FaceNormals[i]);
-                pg.Normal.Value.Unitize();
-
-                probes.Add(pg);
-
-                if (_ms.Faces[i].IsQuad)
+                var face = mesh.Faces[i];
+                var probe = new RProbe
                 {
-                    Point3d v0 = new Point3d(_ms.Vertices[_ms.Faces[i].A]);
-                    Point3d v1 = new Point3d(_ms.Vertices[_ms.Faces[i].B]);
-                    Point3d v2 = new Point3d(_ms.Vertices[_ms.Faces[i].C]);
-                    Point3d v3 = new Point3d(_ms.Vertices[_ms.Faces[i].D]);
+                    Point = new EddyPoint(mesh.Faces.GetFaceCenter(i)),
+                    Normal = new EddyVector(mesh.FaceNormals[i])
+                };
+                probe.Normal.Value.Unitize();
 
-                    Vector3d n1 = Vector3d.CrossProduct(v1 - v0, v2 - v0);
-                    Vector3d n2 = Vector3d.CrossProduct(v2 - v0, v3 - v0);
+                // Get face vertices
+                Point3d v0 = mesh.Vertices[face.A];
+                Point3d v1 = mesh.Vertices[face.B];
+                Point3d v2 = mesh.Vertices[face.C];
 
-                    pg.Area = (float)(n1.Length * 0.5 + n2.Length * 0.5);
+                // Calculate area using cross product
+                Vector3d cross1 = Vector3d.CrossProduct(v1 - v0, v2 - v0);
+                double area = cross1.Length * 0.5;
 
-                    pg.PreviewGeo = new EddyMesh(new Mesh());
-                    pg.PreviewGeo.Value.Vertices.Add(v0);
-                    pg.PreviewGeo.Value.Vertices.Add(v1);
-                    pg.PreviewGeo.Value.Vertices.Add(v2);
-                    pg.PreviewGeo.Value.Vertices.Add(v3);
-                    pg.PreviewGeo.Value.Faces.AddFace(0, 1, 2, 3);
+                // Create preview mesh
+                var previewMesh = new Mesh();
+                previewMesh.Vertices.Add(v0);
+                previewMesh.Vertices.Add(v1);
+                previewMesh.Vertices.Add(v2);
+
+                if (face.IsQuad)
+                {
+                    Point3d v3 = mesh.Vertices[face.D];
+                    Vector3d cross2 = Vector3d.CrossProduct(v2 - v0, v3 - v0);
+                    area += cross2.Length * 0.5;
+
+                    previewMesh.Vertices.Add(v3);
+                    previewMesh.Faces.AddFace(0, 1, 2, 3);
                 }
                 else
                 {
-                    Point3d v0 = new Point3d(_ms.Vertices[_ms.Faces[i].A]);
-                    Point3d v1 = new Point3d(_ms.Vertices[_ms.Faces[i].B]);
-                    Point3d v2 = new Point3d(_ms.Vertices[_ms.Faces[i].C]);
-
-                    Vector3d n1 = Vector3d.CrossProduct(v1 - v0, v2 - v0);
-
-                    pg.Area = (float)(n1.Length * 0.5);
-
-                    pg.PreviewGeo = new EddyMesh(new Mesh());
-                    pg.PreviewGeo.Value.Vertices.Add(v0);
-                    pg.PreviewGeo.Value.Vertices.Add(v1);
-                    pg.PreviewGeo.Value.Vertices.Add(v2);
-                    pg.PreviewGeo.Value.Faces.AddFace(0, 1, 2);
+                    previewMesh.Faces.AddFace(0, 1, 2);
                 }
+
+                probe.Area = (float)area;
+                probe.PreviewGeo = new EddyMesh(previewMesh);
+                probes.Add(probe);
             }
+
             return probes;
         }
+
+        #endregion
     }
 }

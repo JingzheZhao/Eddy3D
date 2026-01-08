@@ -6,73 +6,106 @@ using System.Collections.Generic;
 
 namespace EddyLib
 {
+    /// <summary>
+    /// Calculates pressure coefficients for wind simulations.
+    /// </summary>
     public class PressureCoeff : FunctionObject
     {
-        public List<double> UatBuildingHeight;
-        public List<double> pinf;
-        public List<double> pref;
-        public List<Vector3d> Uinf = new List<Vector3d>();
+        /// <summary>Velocity magnitude at building height for each wind direction.</summary>
+        public List<double> UatBuildingHeight { get; } = new List<double>();
 
-        private int NumberOfWindDirections { get; set; }
+        /// <summary>Dynamic pressure at infinity for each wind direction.</summary>
+        public List<double> Pinf { get; } = new List<double>();
+        
+        /// <summary>Dynamic pressure at infinity (lowercase alias for backward compatibility).</summary>
+        public List<double> pinf => Pinf;
 
-        public PressureCoeff(double buildingHeight, BCCollection bc)
+        /// <summary>Reference dynamic pressure for each wind direction.</summary>
+        public List<double> Pref { get; } = new List<double>();
+        
+        /// <summary>Reference dynamic pressure (lowercase alias for backward compatibility).</summary>
+        public List<double> pref => Pref;
+
+        /// <summary>Velocity vector at infinity for each wind direction.</summary>
+        public List<Vector3d> Uinf { get; } = new List<Vector3d>();
+
+        private int WindDirectionCount { get; }
+
+        /// <summary>
+        /// Creates pressure coefficient calculator for given building height and boundary conditions.
+        /// </summary>
+        /// <param name="buildingHeight">Maximum building height (m).</param>
+        /// <param name="boundaryConditions">Collection of boundary conditions for each wind direction.</param>
+        public PressureCoeff(double buildingHeight, BCCollection boundaryConditions)
         {
-            this.NumberOfWindDirections = bc.BCs.Count;
-            this.Uinf = new List<Vector3d>();
-            this.UatBuildingHeight = new List<double>();
-            this.pinf = new List<double>();
-            this.pref = new List<double>();
-
-            CalculateCPPressures(buildingHeight, bc);
+            WindDirectionCount = boundaryConditions.BCs.Count;
+            CalculatePressures(Math.Max(0, buildingHeight), boundaryConditions);
         }
 
-        public void SetUatBuildingHeight(double maxBuildingHeight, BCCollection BCC)
+        /// <summary>
+        /// Sets velocity at building height for each wind direction.
+        /// </summary>
+        public void SetUatBuildingHeight(double maxBuildingHeight, BCCollection boundaryConditions)
         {
-            for (int i = 0; i < NumberOfWindDirections; i++)
+            foreach (var bc in boundaryConditions.BCs)
             {
-                var currBC = BCC.BCs[i];
-
-                if (currBC is ABL)
+                if (bc is ABL abl)
                 {
-                    ABL casted_bc = (ABL)currBC;
-                    UatBuildingHeight.Add(BC.ScaleABL(casted_bc.URef, casted_bc.zref, casted_bc.z0, maxBuildingHeight));
+                    UatBuildingHeight.Add(BC.ScaleABL(abl.URef, abl.zref, abl.z0, maxBuildingHeight));
                 }
-                else
+                else if (bc is ConstU constU)
                 {
-                    ConstU casted_bc = (ConstU)currBC;
-                    UatBuildingHeight.Add(casted_bc.URef);
+                    UatBuildingHeight.Add(constU.URef);
                 }
             }
         }
 
-        public void CalculateCPPressures(double buildingHeight, BCCollection BCC)
+        /// <summary>
+        /// Calculates velocity and pressure values for all wind directions.
+        /// </summary>
+        private void CalculatePressures(double buildingHeight, BCCollection boundaryConditions)
         {
-            //height < 0 gives Nan
-            if (buildingHeight < 0) { buildingHeight = 0; };
-
-            for (int i = 0; i < NumberOfWindDirections; i++)
+            foreach (var bc in boundaryConditions.BCs)
             {
-                var currBC = BCC.BCs[i];
-
-                if (currBC is ABL)
+                if (bc is ABL abl)
                 {
-                    ABL casted_bc = (ABL)currBC;
+                    double velocity = CalculateABLVelocity(abl, buildingHeight);
+                    double dynamicPressure = CalculateDynamicPressure(velocity);
 
-                    Uinf.Add(casted_bc.flowDir * (casted_bc.Kappa * casted_bc.URef / Math.Log((casted_bc.zref + casted_bc.z0) / casted_bc.z0) / casted_bc.Kappa * Math.Log((buildingHeight + casted_bc.z0) / casted_bc.z0)));
-
-                    pinf.Add(1.2 * 0.5 * Math.Pow(casted_bc.Kappa * casted_bc.URef / Math.Log((casted_bc.zref + casted_bc.z0) / casted_bc.z0) / casted_bc.Kappa * Math.Log((buildingHeight + casted_bc.z0) / casted_bc.z0), 2));
-                    pref.Add(1.2 * 0.5 * Math.Pow(casted_bc.Kappa * casted_bc.URef / Math.Log((casted_bc.zref + casted_bc.z0) / casted_bc.z0) / casted_bc.Kappa * Math.Log((buildingHeight + casted_bc.z0) / casted_bc.z0), 2));
+                    Uinf.Add(abl.flowDir * velocity);
+                    Pinf.Add(dynamicPressure);
+                    Pref.Add(dynamicPressure);
                 }
-                else
+                else if (bc is ConstU constU)
                 {
-                    ConstU casted_bc = (ConstU)currBC;
+                    double dynamicPressure = CalculateDynamicPressure(constU.URef);
 
-                    Uinf.Add((casted_bc.flowDir * casted_bc.URef));
-
-                    pinf.Add(1.2 * 0.5 * Math.Pow(casted_bc.URef, 2));
-                    pref.Add(1.2 * 0.5 * Math.Pow(casted_bc.URef, 2));
+                    Uinf.Add(constU.flowDir * constU.URef);
+                    Pinf.Add(dynamicPressure);
+                    Pref.Add(dynamicPressure);
                 }
             }
+        }
+
+        /// <summary>
+        /// Calculates velocity at a given height using the atmospheric boundary layer log-law profile.
+        /// U(z) = (u* / kappa) * ln((z + z0) / z0)
+        /// </summary>
+        private static double CalculateABLVelocity(ABL abl, double height)
+        {
+            // u* (friction velocity) from reference: u* = kappa * Uref / ln((zref + z0) / z0)
+            double frictionVelocity = abl.Kappa * abl.URef / Math.Log((abl.zref + abl.z0) / abl.z0);
+            
+            // U(z) = (u* / kappa) * ln((z + z0) / z0)
+            return (frictionVelocity / abl.Kappa) * Math.Log((height + abl.z0) / abl.z0);
+        }
+
+        /// <summary>
+        /// Calculates dynamic pressure: p = 0.5 * rho * U^2
+        /// </summary>
+        private static double CalculateDynamicPressure(double velocity)
+        {
+            return 0.5 * AirProperties.Rho * velocity * velocity;
         }
     }
 }
