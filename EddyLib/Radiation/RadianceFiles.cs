@@ -95,6 +95,46 @@ namespace EddyLib
         private static string FormatPoint(Point3d p) =>
         String.Format(radianceCulture, "{0:0.###} {1:0.###} {2:0.###}", p.X, p.Y, p.Z);
 
+        #region MeshProc Helpers
+
+        /// <summary>
+        /// Gets model tolerance for face filtering.
+        /// </summary>
+        private static double GetModelTolerance() => RhinoDoc.ActiveDoc?.ModelAbsoluteTolerance ?? 0.01;
+
+        /// <summary>
+        /// Gets model angle tolerance for quad conversion.
+        /// </summary>
+        private static double GetModelAngleTolerance() => RhinoDoc.ActiveDoc?.ModelAngleToleranceRadians ?? 0.01;
+
+        /// <summary>
+        /// Prepares mesh for Radiance export.
+        /// </summary>
+        private static void PrepareMesh(Mesh mesh)
+        {
+            mesh.Faces.ConvertNonPlanarQuadsToTriangles(GetModelTolerance(), GetModelAngleTolerance(), 0);
+            mesh.Faces.CullDegenerateFaces();
+        }
+
+        /// <summary>
+        /// Checks if a mesh face should be skipped due to small area.
+        /// </summary>
+        private static bool ShouldSkipFace(Mesh mesh, int faceIndex) => 
+            Utilities.MeshFaceArea(faceIndex, mesh) < GetModelTolerance();
+
+        /// <summary>
+        /// Writes a Radiance file header.
+        /// </summary>
+        private static void WriteRadianceHeader(StreamWriter sw, string materialLib = null)
+        {
+            sw.WriteLine($"# Grasshopper Eddy3D {EddyLib.EddyVersion.ProductVersion}");
+            sw.WriteLine("");
+            if (materialLib != null) sw.WriteLine(materialLib);
+            sw.WriteLine("");
+        }
+
+        #endregion MeshProc Helpers
+
         public static void MeshProc(Mesh _m, string _fname, string _mat)
         {
             System.IO.StreamWriter sw = new System.IO.StreamWriter(_fname);

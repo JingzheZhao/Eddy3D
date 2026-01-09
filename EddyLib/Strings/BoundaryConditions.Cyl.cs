@@ -7,6 +7,56 @@ namespace EddyLib.Strings
 {
     public partial class BCDicts
     {
+        #region Helpers
+
+        /// <summary>
+        /// Generates standard OpenFOAM file header.
+        /// </summary>
+        private static string GetOpenFOAMHeader(string fieldClass, string objectName, string dimensions, string location = "0")
+        {
+            return $@"/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.2                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{{
+    version     2.0;
+    format      ascii;
+    class       {fieldClass};
+    location    ""{location}"";
+    object      {objectName};
+}}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      {dimensions};
+
+";
+        }
+
+        /// <summary>
+        /// Calculates dot product of flow direction with face normal.
+        /// </summary>
+        private static double CalcFlowDot(OFCylDomain dom, int directionIndex, int faceIndex)
+        {
+            var flowDir = dom.BCond.BCs[directionIndex].flowDir;
+            var normal = dom.sides.FaceNormals[faceIndex];
+            return flowDir.X * normal.X + flowDir.Y * normal.Y;
+        }
+
+        /// <summary>
+        /// Determines if a face is an inlet (facing the flow).
+        /// </summary>
+        private static bool IsInlet(OFCylDomain dom, int directionIndex, int faceIndex)
+        {
+            return CalcFlowDot(dom, directionIndex, faceIndex) < dotCutoff;
+        }
+
+        #endregion Helpers
+
         #region Cyl
 
         public static string Epsilon_Cyl(OFCylDomain DOM, int d)

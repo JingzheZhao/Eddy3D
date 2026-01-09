@@ -56,52 +56,75 @@ namespace EddyLib
 
         public Point3d[] pointsOnRect;
 
+        /// <summary>
+        /// Creates a cylindrical domain for CFD simulation.
+        /// </summary>
         public OFCylDomain(Mesh BuildingGeometry, Mesh terrainMesh, BCCollection BCond, double coreBlockSize, double sizeInnerRect = 0, double sizeOuterCirc = 0, double sizeHeight = 0, List<Tree> Trees = null, double radialMultiplier = 2.0, int divisionsX = 1)
         {
             gradingPerim = 1.0;
             cellSizeInner = coreBlockSize;
             this.divisionsX = divisionsX;
-
             this.BuildingGeometry = BuildingGeometry;
 
-            // Create BBox with respect to new plane (new coordinates)
+            // Step 1: Initialize bounding box and dimensions
+            InitializeBoundingBox(BuildingGeometry);
 
-            this.BBox = BuildBoundingBox(BuildingGeometry, Plane.WorldXY);
+            // Step 2: Set up terrain if present
+            InitializeTerrain(terrainMesh);
 
-            var xMin = BBox.X.Min;
-            var xMax = BBox.X.Max;
-            var yMin = BBox.Y.Min;
-            var yMax = BBox.Y.Max;
-            var zMin = BBox.Z.Min;
-            var zMax = BBox.Z.Max;
-            this.MaxHeightBuilding = zMax;
-            this.radius = sizeOuterCirc;
+            // Step 3: Compute domain dimensions
+            ComputeDomainDimensions(sizeHeight, sizeOuterCirc, sizeInnerRect, coreBlockSize, radialMultiplier);
 
-            var dimY = yMax - yMin;
-            var dimZ = zMax - zMin;
+            // Step 4: Calculate frontage areas for all wind directions
+            ComputeFrontageAreas(BuildingGeometry);
 
-            this.height = dimZ;
+            // Step 5: Create mesh and initialize boundary conditions
+            MakeCircMeshPlane(CenterGround, sizeInnerR, divsRadial, radius, height, (int)coreBlockSize);
+            InitializeBoundaryConditions(BCond, MaxHeightBuilding);
 
-            // If terrain is used, scale down Z to make sure all points are inside the domain Zinter
-            // is call divisionsZ for CylDomain which is an int instead of an Interval
+            // Step 6: Store trees
+            this.Trees = Trees;
 
-            if (terrainMesh.Faces.Count > 0)
+            ToString();
+        }
+
+        /// <summary>
+        /// Initializes the bounding box from building geometry.
+        /// </summary>
+        private void InitializeBoundingBox(Mesh buildingGeometry)
+        {
+            this.BBox = BuildBoundingBox(buildingGeometry, Plane.WorldXY);
+            this.MaxHeightBuilding = BBox.Z.Max;
+            this.height = BBox.Z.Max - BBox.Z.Min;
+        }
+
+        /// <summary>
+        /// Sets up terrain mesh and ground center point.
+        /// </summary>
+        private void InitializeTerrain(Mesh terrainMesh)
+        {
+            if (terrainMesh != null && terrainMesh.Faces.Count > 0)
             {
                 this.HasTerrain = true;
-            }
-            if (HasTerrain)
-            {
                 this.TerrainMesh = terrainMesh;
                 double zMinTerrain = OFBaseDomain.GetZMinTerrain(terrainMesh, BBox, Plane.WorldXY);
                 this.CenterGround = new Point3d(BBox.Center.X, BBox.Center.Y, zMinTerrain);
             }
             else
             {
-                this.CenterGround = new Point3d(BBox.Center.X, BBox.Center.Y, zMin);
+                this.CenterGround = new Point3d(BBox.Center.X, BBox.Center.Y, BBox.Z.Min);
             }
+        }
 
-            // Check standard inputs for height
+        /// <summary>
+        /// Computes domain dimensions: height, radius, inner rectangle size, and radial divisions.
+        /// </summary>
+        private void ComputeDomainDimensions(double sizeHeight, double sizeOuterCirc, double sizeInnerRect, double coreBlockSize, double radialMultiplier)
+        {
+            double dimY = BBox.Y.Max - BBox.Y.Min;
+            double dimZ = BBox.Z.Max - BBox.Z.Min;
 
+            // Calculate height
             if (sizeHeight == 0)
             {
                 height = 6 * dimZ + (BBox.Z.Min - CenterGround.Z);
@@ -111,39 +134,23 @@ namespace EddyLib
                 height = sizeHeight;
             }
 
+            // Calculate radius
             double scaleDomByHeight = (15.5 * dimZ) + dimY;
-
-            // Changed this to 9 (was 72) for now...takes too long
-            for (int i = 0; i < 9; i++)
-            {
-                Vector3d localCopy = Vector3d.YAxis;
-                localCopy.Rotate(40 * i * Math.PI / 180, Vector3d.ZAxis);
-
-                Bitmap FI;
-                this.FrontageBuildingAreas[i * 40] = OFBaseDomain.GetProjectedBuildingArea(i * 40, BuildingGeometry, out FI);
-                this.FrontagePNGs[i * 40] = FI;
-            }
-
-            MaxFrontageBuildingArea = FrontageBuildingAreas.Max();
-
-            // New Dimensions in X; take blocking ratio into account
             double scaleCylDomainFromBlockingRatio = MaxFrontageBuildingArea * 100 / 3 / height / 2;
-
-            // Check standard inputs for radius
 
             if (sizeOuterCirc == 0)
             {
-                radius = scaleCylDomainFromBlockingRatio > scaleDomByHeight ? scaleCylDomainFromBlockingRatio : scaleDomByHeight;
+                radius = Math.Max(scaleCylDomainFromBlockingRatio, scaleDomByHeight);
             }
             else
             {
-                // Radius, not diameter!
                 radius = sizeOuterCirc;
             }
+            this.radius = radius; // Ensure field is set
 
+            // Calculate inner rectangle size
             if (sizeInnerRect == 0)
             {
-                //sizeInnerR = BBox.Diagonal.Length / Math.Sqrt(2);
                 sizeInnerR = radius * 0.35;
             }
             else
@@ -152,18 +159,22 @@ namespace EddyLib
             }
 
             divsRadial = RadialDivsFromBlockSize(coreBlockSize, sizeInnerR, radialMultiplier);
+        }
 
-            MakeCircMeshPlane(CenterGround, sizeInnerR, divsRadial, radius, height, (int)coreBlockSize);
-
-            InitializeBoundaryConditions(BCond, MaxHeightBuilding);
-
-            #region Trees
-
-            this.Trees = Trees;
-
-            #endregion Trees
-
-            ToString();
+        /// <summary>
+        /// Computes projected building frontage areas for 9 wind directions.
+        /// </summary>
+        private void ComputeFrontageAreas(Mesh buildingGeometry)
+        {
+            // Sample 9 wind directions (0, 40, 80, 120, ... 320 degrees)
+            for (int i = 0; i < 9; i++)
+            {
+                int angle = i * 40;
+                Bitmap frontagePNG;
+                this.FrontageBuildingAreas[angle] = OFBaseDomain.GetProjectedBuildingArea(angle, buildingGeometry, out frontagePNG);
+                this.FrontagePNGs[angle] = frontagePNG;
+            }
+            MaxFrontageBuildingArea = FrontageBuildingAreas.Max();
         }
 
         private void MakeCircMeshPlane(Point3d center, double sizeInnerRect, int divsRadial, double circleRadius, double height, int coreBlockSize)

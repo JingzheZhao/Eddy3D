@@ -381,30 +381,7 @@ namespace EddyLib.Radiation
         private Vector3d[] PrecomputeSunPositions()
         {
             var sg = new SolarGeometry();
-            var sunPositions = new Vector3d[12 * 24];
-
-            for (int m = 0; m < 12; m++)
-            {
-                for (int h = 0; h < 24; h++)
-                {
-                    int hourOfYear = sg.HourInYear(m, 0, h);
-                    double el = Weather.SolarElevation[hourOfYear];
-                    double az = Weather.SolarAzi[hourOfYear];
-
-                    if (el > 3.0)
-                    {
-                        double x = Math.Cos(sg.deg2rad(90 - az)) * Math.Cos(sg.deg2rad(el));
-                        double y = Math.Sin(sg.deg2rad(90 - az)) * Math.Cos(sg.deg2rad(el));
-                        double z = Math.Sin(sg.deg2rad(el));
-                        sunPositions[(m * 24) + h] = new Vector3d(x, y, z);
-                    }
-                    else
-                    {
-                        sunPositions[(m * 24) + h] = Vector3d.Zero;
-                    }
-                }
-            }
-            return sunPositions;
+            return sg.GetMonthlyRepresentativeSunVectors(Weather.SolarElevation, Weather.SolarAzi);
         }
 
         private bool[] RayTraceSunlight(RPolygon p, Vector3d[] sunPositions)

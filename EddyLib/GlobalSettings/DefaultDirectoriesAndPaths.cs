@@ -23,6 +23,11 @@
         }
 
         /// <summary>
+        /// Alias for RadianceDir (bin).
+        /// </summary>
+        public static string RadianceBinDir => RadianceDir;
+
+        /// <summary>
         /// Path to Radiance library directory.
         /// Default: C:\Eddy3D\Common\Radiance\lib
         /// </summary>

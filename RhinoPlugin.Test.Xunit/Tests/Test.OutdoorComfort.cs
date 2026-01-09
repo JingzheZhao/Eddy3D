@@ -567,5 +567,66 @@ namespace RhinoPlugin.Test.Xunit
 
             Assert.Equal(20.6, utci.ValuesUTCI[0, 0]);
         }
+
+        #region UTCI Subroutine Tests
+
+        /// <summary>
+        /// Tests the At10Meters wind speed conversion formula.
+        /// Formula: va_10m = va_h * log(10/0.01) / log(h/0.01)
+        /// </summary>
+        [Theory]
+        [InlineData(2.0, 2.0, 2.61)]   // 2 m/s at 2m height -> ~2.61 m/s at 10m  
+        [InlineData(5.0, 10.0, 5.0)]   // 5 m/s at 10m height -> 5 m/s at 10m (identity)
+        [InlineData(3.0, 1.5, 4.14)]   // 3 m/s at 1.5m height -> ~4.14 m/s at 10m
+        [InlineData(10.0, 5.0, 11.12)] // 10 m/s at 5m height -> ~11.12 m/s at 10m
+        public void UTCI_At10Meters(double windSpeedAtHeight, double height, double expectedAt10m)
+        {
+            double result = EddyLib.UTCI.At10Meters(windSpeedAtHeight, height);
+            Assert.Equal(expectedAt10m, Math.Round(result, 2));
+        }
+
+        /// <summary>
+        /// Tests the UTCI calculation for known reference conditions.
+        /// TODO: These expected values need to be verified against reference implementation.
+        /// </summary>
+        //[Theory]
+        //[InlineData(20.0, 50.0, 0.5, 20.0, 19.1)]  // Neutral conditions
+        //[InlineData(30.0, 50.0, 0.5, 30.0, 29.4)]  // Warm conditions
+        //[InlineData(10.0, 50.0, 0.5, 10.0, 7.7)]   // Cool conditions
+        //[InlineData(35.0, 80.0, 1.0, 40.0, 40.6)]  // Hot humid with higher MRT
+        //public void UTCI_CalcUTCI_SingleValue(double ta, double rh, double windSpeed10m, double mrt, double expectedUTCI)
+        //{
+        //    double result = EddyLib.UTCI.CalcUTCI(ta, rh, windSpeed10m, mrt);
+        //    Assert.Equal(expectedUTCI, Math.Round(result, 1));
+        //}
+
+        /// <summary>
+        /// Tests the Binning method that categorizes UTCI values into stress categories.
+        /// Categories: -5(extreme cold) to +5(extreme heat), 0 = no stress
+        /// </summary>
+        [Fact]
+        public void UTCI_Binning_Categories()
+        {
+            // Create a list with known categories
+            var vals = new List<double>
+            {
+                0, 0, 0, 0, 0,  // 5x no stress (category 0)
+                1, 1,           // 2x slight heat (category 1)
+                -1, -1, -1      // 3x slight cold (category -1)
+            };
+
+            double extrCold = 0, vryStrngCold = 0, strngCold = 0, mdrtCold = 0, slgtCold = 0;
+            double noStress = 0, slgtHeat = 0, mdrtHeat = 0, strngHeat = 0, vryStrngHeat = 0, extrHeat = 0;
+
+            EddyLib.UTCI.Binning(vals, 
+                ref extrCold, ref vryStrngCold, ref strngCold, ref mdrtCold, ref slgtCold,
+                ref noStress, ref slgtHeat, ref mdrtHeat, ref strngHeat, ref vryStrngHeat, ref extrHeat);
+
+            Assert.Equal(0.5, noStress);    // 5/10 = 50%
+            Assert.Equal(0.2, slgtHeat);    // 2/10 = 20%
+            Assert.Equal(0.3, slgtCold);    // 3/10 = 30%
+        }
+
+        #endregion
     }
 }

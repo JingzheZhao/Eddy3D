@@ -7,6 +7,103 @@ namespace EddyLib.Strings
 {
     public partial class OFExecDicts
     {
+        #region SnappyHexMesh Helpers
+
+        /// <summary>
+        /// Gets the OpenFOAM file header for snappyHexMeshDict.
+        /// </summary>
+        private static string GetSnappyHeader() => @"/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version 2.0;
+    format ascii;
+    class dictionary;
+    location system;
+    object snappyHexMeshDict;
+}
+
+";
+
+        /// <summary>
+        /// Builds the refinement box geometry string.
+        /// </summary>
+        private static string GetRefinementBox(OFBaseDomain dom) => $@"refinementBox{{
+          type searchableBox;
+          min ({Utilities.FormatDouble(dom.BBox.X.Min)} {Utilities.FormatDouble(dom.BBox.Y.Min)} {Utilities.FormatDouble(dom.BBox.Z.Min)});
+          max ({Utilities.FormatDouble(dom.BBox.X.Max)} {Utilities.FormatDouble(dom.BBox.Y.Max)} {Utilities.FormatDouble(dom.BBox.Z.Max)});
+}}";
+
+        /// <summary>
+        /// Builds the geometry section.
+        /// </summary>
+        private static void AppendGeometrySection(StringBuilder sb, OFBaseDomain dom, string refinementGeometry)
+        {
+            sb.AppendLine(@"geometry
+    {
+        building.stl
+        {
+            type triSurfaceMesh;
+            name building;
+        }
+
+        ground.stl
+        {
+            type triSurfaceMesh;
+            name ground;
+        }");
+
+            if (!dom.HasTerrain)
+            {
+                sb.Append(@"
+        ground_perim.stl
+        {
+            type triSurfaceMesh;
+            name ground_perim;
+        }");
+            }
+
+            sb.Append($@"
+        {refinementGeometry}
+    }}
+");
+        }
+
+        /// <summary>
+        /// Appends ground_perim section if no terrain.
+        /// </summary>
+        private static void AppendGroundPerimIfNeeded(StringBuilder sb, OFBaseDomain dom, OFMeshSettings settings, string sectionType)
+        {
+            if (!dom.HasTerrain)
+            {
+                if (sectionType == "surface")
+                {
+                    sb.Append($@"ground_perim
+            {{
+                level ({settings.accGround} {settings.accGround});
+                patchInfo
+                {{
+                    type wall;
+                }}
+            }}");
+                }
+                else if (sectionType == "layer")
+                {
+                    sb.Append($@"ground_perim
+            {{
+                nSurfaceLayers {settings.nLayers};
+            }}");
+                }
+            }
+        }
+
+        #endregion SnappyHexMesh Helpers
+
         public static string BlockMeshDict(OFBoxDomain DOM)
         {
             var corners = DOM.SBox.GetCorners();

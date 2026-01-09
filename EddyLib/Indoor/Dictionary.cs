@@ -4,231 +4,317 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace EddyLib.Indoor
 {
+    /// <summary>
+    /// Represents OpenFOAM field dictionaries for indoor simulations.
+    /// </summary>
     public class Dicts
     {
-        private enum fieldClass
+        public enum FieldClass
         {
             volVectorField,
-
             volScalarField
         }
 
-        private fieldClass fc;
+        /// <summary>
+        /// Defines how boundary conditions are applied to inlet/outlet/wall boundaries.
+        /// </summary>
+        public enum BCStrategy
+        {
+            FixedValue,
+            ZeroGradient,
+            InletOutlet
+        }
+
+        /// <summary>
+        /// Configuration for a field dictionary.
+        /// </summary>
+        public class FieldConfig
+        {
+            public string Name { get; set; }
+            public string Dimensions { get; set; }
+            public string InternalField { get; set; }
+            public FieldClass FieldClass { get; set; }
+            public BCStrategy InletBC { get; set; }
+            public BCStrategy OutletBC { get; set; }
+            public BCStrategy WallBC { get; set; }
+        }
+
+        #region Predefined Field Configurations
+
+        public static readonly FieldConfig UConfig = new FieldConfig
+        {
+            Name = "U",
+            Dimensions = "dimensions      [0 1 -1 0 0 0 0];",
+            InternalField = "internalField   uniform (0 0 0);",
+            FieldClass = FieldClass.volVectorField,
+            InletBC = BCStrategy.FixedValue,
+            OutletBC = BCStrategy.FixedValue,
+            WallBC = BCStrategy.FixedValue
+        };
+
+        public static readonly FieldConfig TConfig = new FieldConfig
+        {
+            Name = "T",
+            Dimensions = "dimensions      [0 0 0 1 0 0 0];",
+            InternalField = "internalField   uniform 300;",
+            FieldClass = FieldClass.volScalarField,
+            InletBC = BCStrategy.FixedValue,
+            OutletBC = BCStrategy.ZeroGradient,
+            WallBC = BCStrategy.ZeroGradient
+        };
+
+        public static readonly FieldConfig alphatConfig = new FieldConfig
+        {
+            Name = "alphat",
+            Dimensions = "dimensions      [0 0 1 0 0 0 0]",
+            InternalField = "internalField   uniform 0;",
+            FieldClass = FieldClass.volScalarField,
+            InletBC = BCStrategy.FixedValue,
+            OutletBC = BCStrategy.ZeroGradient,
+            WallBC = BCStrategy.ZeroGradient
+        };
+
+        public static readonly FieldConfig AoAConfig = new FieldConfig
+        {
+            Name = "AoA",
+            Dimensions = "dimensions      [0 0 0 1 0 0 0];",
+            InternalField = "internalField   uniform 0;",
+            FieldClass = FieldClass.volScalarField,
+            InletBC = BCStrategy.FixedValue,
+            OutletBC = BCStrategy.ZeroGradient,
+            WallBC = BCStrategy.ZeroGradient
+        };
+
+        public static readonly FieldConfig kConfig = new FieldConfig
+        {
+            Name = "k",
+            Dimensions = "dimensions      [0 2 -2 0 0 0 0];",
+            InternalField = "internalField   uniform 0;",
+            FieldClass = FieldClass.volScalarField,
+            InletBC = BCStrategy.FixedValue,
+            OutletBC = BCStrategy.ZeroGradient,
+            WallBC = BCStrategy.ZeroGradient
+        };
+
+        public static readonly FieldConfig nutConfig = new FieldConfig
+        {
+            Name = "nut",
+            Dimensions = "dimensions      [0 2 -1 0 0 0 0];",
+            InternalField = "internalField   uniform 0;",
+            FieldClass = FieldClass.volScalarField,
+            InletBC = BCStrategy.FixedValue,
+            OutletBC = BCStrategy.ZeroGradient,
+            WallBC = BCStrategy.ZeroGradient
+        };
+
+        public static readonly FieldConfig p_rghConfig = new FieldConfig
+        {
+            Name = "p_rgh",
+            Dimensions = "dimensions      [1 -1 -2 0 0 0 0];",
+            InternalField = "internalField   uniform 101325;",
+            FieldClass = FieldClass.volScalarField,
+            InletBC = BCStrategy.FixedValue,
+            OutletBC = BCStrategy.ZeroGradient,
+            WallBC = BCStrategy.ZeroGradient
+        };
+
+        public static readonly FieldConfig omegaConfig = new FieldConfig
+        {
+            Name = "omega",
+            Dimensions = "dimensions      [0 0 -1 0 0 0 0];",
+            InternalField = "internalField   uniform 0;",
+            FieldClass = FieldClass.volScalarField,
+            InletBC = BCStrategy.FixedValue,
+            OutletBC = BCStrategy.ZeroGradient,
+            WallBC = BCStrategy.ZeroGradient
+        };
+
+        public static readonly FieldConfig pConfig = new FieldConfig
+        {
+            Name = "p",
+            Dimensions = "dimensions [1 -1 -2 0 0 0 0];",
+            InternalField = "internalField uniform 101325;",
+            FieldClass = FieldClass.volScalarField,
+            InletBC = BCStrategy.FixedValue,
+            OutletBC = BCStrategy.ZeroGradient,
+            WallBC = BCStrategy.ZeroGradient
+        };
+
+        #endregion
+
+        #region Instance Properties
 
         public string header { get; set; }
-
         public string dimensions { get; set; }
-
         public string internalField { get; set; }
-
         public string location { get; set; }
-
         public string Name { get; set; }
-
         public Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>> boundaryFieldDict { get; set; }
-
         public List<Dictionary<string, Dictionary<string, string>>> internalDict { get; set; }
-
         public List<IndoorBCs.Inlet> inlet { get; set; }
-
         public List<IndoorBCs.Outlet> outlet { get; set; }
-
         public List<IndoorBCs.Wall> wall { get; set; }
 
+        private FieldClass fc;
+
+        #endregion
+
+        #region Factory Method
+
+        /// <summary>
+        /// Creates a field dictionary from the given configuration and boundary conditions.
+        /// </summary>
+        public static Dicts CreateField(FieldConfig config, List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
+        {
+            var dict = new Dicts
+            {
+                internalDict = new List<Dictionary<string, Dictionary<string, string>>>(),
+                inlet = inlet,
+                outlet = outlet,
+                wall = wall,
+                fc = config.FieldClass,
+                Name = config.Name,
+                dimensions = config.Dimensions,
+                internalField = config.InternalField
+            };
+
+            dict.location = @"\0\" + dict.Name;
+            dict.header = GetHeader(dict);
+
+            // Apply BC strategies
+            foreach (var i in inlet) { dict.internalDict.Add(ApplyBC(i, config.InletBC)); }
+            foreach (var o in outlet) { dict.internalDict.Add(ApplyBC(o, config.OutletBC)); }
+            foreach (var w in wall) { dict.internalDict.Add(ApplyBC(w, config.WallBC)); }
+
+            return dict;
+        }
+
+        private static Dictionary<string, Dictionary<string, string>> ApplyBC(IndoorBCs bc, BCStrategy strategy)
+        {
+            return strategy switch
+            {
+                BCStrategy.FixedValue => GetFixedValue(bc),
+                BCStrategy.ZeroGradient => GetZeroGradient(bc),
+                BCStrategy.InletOutlet => GetInletOutlet(bc),
+                _ => GetZeroGradient(bc)
+            };
+        }
+
+        #endregion
+
+        #region Deprecated Nested Classes (For Backward Compatibility)
+
+        [Obsolete("Use Dicts.CreateField(Dicts.UConfig, ...) instead.")]
         public class U : Dicts
         {
             public U(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
-                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
-
-                this.inlet = inlet;
-                this.outlet = outlet;
-                this.wall = wall;
-
-                this.fc = fieldClass.volVectorField;
-                this.Name = "U";
-                this.location = @"\0\" + this.Name;
-                this.header = GetHeader(this);
-                this.dimensions = "dimensions      [0 1 -1 0 0 0 0];";
-
-                // Todo need to pass another class to set internalFieldTemp
-                this.internalField = "internalField   uniform (0 0 0);";
-
-                foreach (IndoorBCs.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBCs.Outlet i in outlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBCs.Wall i in wall) { this.internalDict.Add(GetFixedValue(i)); }
+                var temp = CreateField(UConfig, inlet, outlet, wall);
+                CopyFrom(temp);
             }
         }
 
+        [Obsolete("Use Dicts.CreateField(Dicts.TConfig, ...) instead.")]
         public class T : Dicts
         {
             public T(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
-                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
-
-                this.fc = fieldClass.volScalarField;
-                this.Name = "T";
-                this.location = @"\0\" + this.Name;
-                this.header = GetHeader(this);
-                this.dimensions = "dimensions      [0 0 0 1 0 0 0];";
-
-                // Todo need to pass another class to set internalFieldTemp
-                this.internalField = "internalField   uniform 300;";
-
-                foreach (IndoorBCs.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBCs.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
-                foreach (IndoorBCs.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+                var temp = CreateField(TConfig, inlet, outlet, wall);
+                CopyFrom(temp);
             }
         }
 
+        [Obsolete("Use Dicts.CreateField(Dicts.alphatConfig, ...) instead.")]
         public class alphat : Dicts
         {
             public alphat(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
-                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
-
-                this.fc = fieldClass.volScalarField;
-                this.Name = "alphat";
-                this.location = @"\0\" + this.Name;
-                this.header = GetHeader(this);
-                this.dimensions = "dimensions      [0 0 1 0 0 0 0]";
-
-                // Todo need to pass another class to set internalFieldTemp
-                this.internalField = "internalField   uniform 0;";
-
-                foreach (IndoorBCs.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBCs.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
-                foreach (IndoorBCs.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+                var temp = CreateField(alphatConfig, inlet, outlet, wall);
+                CopyFrom(temp);
             }
         }
 
+        [Obsolete("Use Dicts.CreateField(Dicts.AoAConfig, ...) instead.")]
         public class AoA : Dicts
         {
             public AoA(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
-                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
-
-                this.fc = fieldClass.volScalarField;
-                this.Name = "AoA";
-                this.location = @"\0\" + this.Name;
-                this.header = GetHeader(this);
-                this.dimensions = "dimensions      [0 0 0 1 0 0 0];";
-
-                // Todo need to pass another class to set internalFieldTemp
-                this.internalField = "internalField   uniform 0;";
-
-                foreach (IndoorBCs.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBCs.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
-                foreach (IndoorBCs.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+                var temp = CreateField(AoAConfig, inlet, outlet, wall);
+                CopyFrom(temp);
             }
         }
 
+        [Obsolete("Use Dicts.CreateField(Dicts.kConfig, ...) instead.")]
         public class k : Dicts
         {
             public k(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
-                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
-
-                this.fc = fieldClass.volScalarField;
-                this.Name = "k";
-                this.location = @"\0\" + this.Name;
-                this.header = GetHeader(this);
-                this.dimensions = "dimensions      [0 2 -2 0 0 0 0];";
-
-                // Todo need to pass another class to set internalFieldTemp
-                this.internalField = "internalField   uniform 0;";
-
-                foreach (IndoorBCs.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBCs.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
-                foreach (IndoorBCs.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+                var temp = CreateField(kConfig, inlet, outlet, wall);
+                CopyFrom(temp);
             }
         }
 
+        [Obsolete("Use Dicts.CreateField(Dicts.nutConfig, ...) instead.")]
         public class nut : Dicts
         {
             public nut(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
-                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
-
-                this.fc = fieldClass.volScalarField;
-                this.Name = "nut";
-                this.location = @"\0\" + this.Name;
-                this.header = GetHeader(this);
-                this.dimensions = "dimensions      [0 2 -1 0 0 0 0];";
-
-                // Todo need to pass another class to set internalFieldTemp
-                this.internalField = "internalField   uniform 0;";
-
-                foreach (IndoorBCs.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBCs.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
-                foreach (IndoorBCs.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+                var temp = CreateField(nutConfig, inlet, outlet, wall);
+                CopyFrom(temp);
             }
         }
 
+        [Obsolete("Use Dicts.CreateField(Dicts.p_rghConfig, ...) instead.")]
         public class p_rgh : Dicts
         {
             public p_rgh(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
-                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
-
-                this.fc = fieldClass.volScalarField;
-                this.Name = "p_rgh";
-                this.location = @"\0\" + this.Name;
-                this.header = GetHeader(this);
-                this.dimensions = "dimensions      [1 -1 -2 0 0 0 0];";
-
-                // Todo need to pass another class to set internalFieldTemp
-                this.internalField = "internalField   uniform 101325;";
-
-                foreach (IndoorBCs.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBCs.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
-                foreach (IndoorBCs.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+                var temp = CreateField(p_rghConfig, inlet, outlet, wall);
+                CopyFrom(temp);
             }
         }
 
+        [Obsolete("Use Dicts.CreateField(Dicts.omegaConfig, ...) instead.")]
         public class omega : Dicts
         {
             public omega(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
-                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
-
-                this.fc = fieldClass.volScalarField;
-                this.Name = "omega";
-                this.location = @"\0\" + this.Name;
-                this.header = GetHeader(this);
-                this.dimensions = "dimensions      [0 0 -1 0 0 0 0];";
-
-                // Todo need to pass another class to set internalFieldTemp
-                this.internalField = "internalField   uniform 0;";
-                foreach (IndoorBCs.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBCs.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
-                foreach (IndoorBCs.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+                var temp = CreateField(omegaConfig, inlet, outlet, wall);
+                CopyFrom(temp);
             }
         }
 
+        [Obsolete("Use Dicts.CreateField(Dicts.pConfig, ...) instead.")]
         public class p : Dicts
         {
             public p(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
-                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
-
-                this.fc = fieldClass.volScalarField;
-                this.Name = "p";
-                this.location = @"\0\" + this.Name;
-                this.header = GetHeader(this);
-                this.dimensions = "dimensions [1 -1 -2 0 0 0 0];";
-
-                // Todo need to pass another class to set internalFieldTemp
-                this.internalField = "internalField uniform 101325;";
-                foreach (IndoorBCs.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBCs.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
-                foreach (IndoorBCs.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+                var temp = CreateField(pConfig, inlet, outlet, wall);
+                CopyFrom(temp);
             }
         }
+
+        private void CopyFrom(Dicts source)
+        {
+            this.internalDict = source.internalDict;
+            this.inlet = source.inlet;
+            this.outlet = source.outlet;
+            this.wall = source.wall;
+            this.fc = source.fc;
+            this.Name = source.Name;
+            this.location = source.location;
+            this.header = source.header;
+            this.dimensions = source.dimensions;
+            this.internalField = source.internalField;
+            this.boundaryFieldDict = source.boundaryFieldDict;
+        }
+
+        #endregion
+
+        #region Helper Methods
 
         public static string GetHeader(Dicts dict)
         {
@@ -244,28 +330,24 @@ namespace EddyLib.Indoor
 
         private static Dictionary<string, Dictionary<string, string>> GetFixedValue(IndoorBCs input)
         {
-            Dictionary<string, Dictionary<string, string>> Dict = new Dictionary<string, Dictionary<string, string>>();
-
-            Dictionary<string, string> InternalDict = new Dictionary<string, string>();
+            var Dict = new Dictionary<string, Dictionary<string, string>>();
+            var InternalDict = new Dictionary<string, string>();
 
             Dict.Add(input.Name, InternalDict);
 
-            if (input is IndoorBCs.Inlet)
+            if (input is IndoorBCs.Inlet ii)
             {
-                var ii = (IndoorBCs.Inlet)input;
-
                 InternalDict.Add("type", "fixedValue");
                 InternalDict.Add("value", "uniform (" + ii.Velocity.ToString().Trim(',') + ")");
-            };
+            }
 
             return Dict;
         }
 
         private static Dictionary<string, Dictionary<string, string>> GetInletOutlet(IndoorBCs input)
         {
-            Dictionary<string, Dictionary<string, string>> Dict = new Dictionary<string, Dictionary<string, string>>();
-
-            Dictionary<string, string> InternalDict = new Dictionary<string, string>();
+            var Dict = new Dictionary<string, Dictionary<string, string>>();
+            var InternalDict = new Dictionary<string, string>();
 
             Dict.Add(input.Name, InternalDict);
 
@@ -278,12 +360,10 @@ namespace EddyLib.Indoor
 
         private static Dictionary<string, Dictionary<string, string>> GetZeroGradient(IndoorBCs input)
         {
-            Dictionary<string, Dictionary<string, string>> Dict = new Dictionary<string, Dictionary<string, string>>();
-
-            Dictionary<string, string> InternalDict = new Dictionary<string, string>();
+            var Dict = new Dictionary<string, Dictionary<string, string>>();
+            var InternalDict = new Dictionary<string, string>();
 
             Dict.Add(input.Name, InternalDict);
-
             InternalDict.Add("type", "zeroGradient");
 
             return Dict;
@@ -291,31 +371,29 @@ namespace EddyLib.Indoor
 
         private string Serialize(Dicts dict)
         {
-            StringBuilder sb = new StringBuilder();
-
+            var sb = new StringBuilder();
             sb.Append(dict.header);
             sb.Append(dict.dimensions);
             sb.Append(dict.internalField);
-
             sb.Append(ToCPPDict(dict.boundaryFieldDict));
-
             return sb.ToString();
         }
 
         public void Export(string baseWorkingDir)
         {
-            if (!Directory.Exists(baseWorkingDir + this.location)) {
-                Directory.CreateDirectory(baseWorkingDir + this.location);
+            var path = baseWorkingDir + this.location;
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
             }
-            File.WriteAllText(baseWorkingDir + this.location, this.Serialize(this));
+            File.WriteAllText(path, this.Serialize(this));
         }
 
         private string ToCPPDict(Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>> boundaryFieldDict)
         {
-
-            string sb = JsonConvert.SerializeObject(boundaryFieldDict);
-            return sb;
+            return JsonConvert.SerializeObject(boundaryFieldDict);
         }
 
+        #endregion
     }
 }
