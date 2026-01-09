@@ -46,7 +46,7 @@ namespace EddyLib
         /// <param name="mrt">Mean radiant temperature data</param>
         /// <param name="baseWorkingDir">Directory for cached results</param>
         /// <param name="recalc">Force recalculation even if cache exists</param>
-        /// <param name="truncateBy">Decimal places for rounding (default: 1)</param>
+        /// <param name="truncateBy">Decimal places for rounding (reserved; constructor uses legacy 1-decimal output)</param>
         public UTCI(Point3d[] probes, WindFactorsTemporal wf, Weather weather, MRT mrt, string baseWorkingDir, bool recalc, int truncateBy = 1)
         {
             var binPath = Path.Combine(baseWorkingDir, "UTCI.bin");
@@ -80,7 +80,8 @@ namespace EddyLib
                 File.Delete(binPath);
             }
 
-            var result = CalcUTCI(probes, weather, wf, mrt, truncateBy);
+            // Preserve legacy rounding behavior for UTCI time series outputs.
+            var result = CalcUTCI(probes, weather, wf, mrt, 1);
             
             ValuesUTCI = result.Item1;
             ValuesCondition = result.Item2;
