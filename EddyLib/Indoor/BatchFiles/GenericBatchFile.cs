@@ -22,7 +22,7 @@ namespace EddyLib.Indoor.BatchFiles
             var path = Path.Combine(baseWorkingDir, BatchLocation);
             Directory.CreateDirectory(path);
             //if (!path.EndsWith("\\")) path += "\\";
-            File.WriteAllText(path + this.BatchName, this.FullDictString);
+            File.WriteAllText(Path.Combine(path, this.BatchName), this.FullDictString);
         }
 
         public string GetHeader()
