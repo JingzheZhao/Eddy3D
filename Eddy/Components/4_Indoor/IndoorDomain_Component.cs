@@ -49,58 +49,58 @@ Requires connected walls, inlets, outlets, and optional heat sources.
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddParameter(new Param_IndoorBC_Wall(), 
-                "Walls", "Wall", 
-                "Room walls/surfaces from Indoor Wall component.", 
+                "Geo", "Geo", 
+                "Indoor CFD Walls", 
                 GH_ParamAccess.list);
 
             pManager.AddParameter(new Param_IndoorBC_Inlet(), 
-                "Inlets", "In", 
-                "Air supply inlets from Indoor Inlet component.", 
+                "Inlet", "In", 
+                "Indoor CFD Inlets", 
                 GH_ParamAccess.list);
 
             pManager.AddParameter(new Param_IndoorBC_Outlet(), 
-                "Outlets", "Out", 
-                "Air exhaust outlets from Indoor Outlet component.", 
+                "Outlet", "Out", 
+                "Indoor CFD Outlets", 
                 GH_ParamAccess.list);
 
             pManager.AddParameter(new Param_FunctionObject(), 
-                "Function Objects", "FObj", 
-                "Optional: Heat sources, momentum sources, contaminant emitters.", 
+                "Function Objects", "FOs", 
+                "Indoor CFD Function Objects", 
                 GH_ParamAccess.list);
             pManager[3].Optional = true;
 
             pManager.AddTextParameter(
-                "Working Directory", "Dir", 
-                "Folder for simulation files.", 
+                "Directory", "Dir", 
+                "Working Directory", 
                 GH_ParamAccess.item, @"C:\Eddy3D-Cases\IndoorProject\");
             pManager[4].Optional = true;
 
             pManager.AddPointParameter(
-                "Inside Point", "InsidePt", 
-                "A point inside the air volume (for mesh generation).", 
+                "Point Inside", "PInside", 
+                "Point inside domain.", 
                 GH_ParamAccess.item);
 
             pManager.AddNumberParameter(
-                "Cell Size", "Cell", 
-                "Base mesh cell size. Units: m. Smaller = more accurate. Default: 1m", 
+                "CellSize", "Cs", 
+                "Cell Size", 
                 GH_ParamAccess.item, 1);
             pManager[6].Optional = true;
 
             pManager.AddIntegerParameter(
                 "Iterations", "Iter", 
-                "Solver iterations. Typical: 500-2000. Default: 1", 
+                "Iterations for Simulation.", 
                 GH_ParamAccess.item, 1);
             pManager[7].Optional = true;
 
             pManager.AddIntegerParameter(
-                "CPU Cores", "CPUs", 
-                "Parallel cores for simulation. Default: 2", 
+                "CPUs", "CPUs", 
+                "Number of CPUs to decompose the simulation with.", 
                 GH_ParamAccess.item, 2);
             pManager[8].Optional = true;
 
             pManager.AddBooleanParameter(
-                "Run", "Run!", 
-                "Set True to setup and run simulation.", 
+                "Run", "Run", 
+                "Run case setup routines and simulation", 
                 GH_ParamAccess.item, false);
         }
 
@@ -135,23 +135,20 @@ Requires connected walls, inlets, outlets, and optional heat sources.
 
             foreach (var o in WallGoos)
             {
-                Walls.Add(o.Value);
+                if (o != null && o.Value != null && o.Value.Geometry != null) Walls.Add(o.Value);
             }
             foreach (var o in InletGoos)
             {
-                Inlets.Add(o.Value);
+                if (o != null && o.Value != null && o.Value.Geometry != null) Inlets.Add(o.Value);
             }
             foreach (var o in OutletGoos)
             {
-                Outlets.Add(o.Value);
-            }
-            foreach (var o in FunctionObjectGoos)
-            {
-                FunctionObjects.Add(o.Value);
+                if (o != null && o.Value != null && o.Value.Geometry != null) Outlets.Add(o.Value);
             }
 
             string dir = "";
             DA.GetData(4, ref dir);
+            if (dir == null) dir = "";
             BaseWorkingDir = Utilities.EnsureTrailingBackslash(dir);
 
             Point3d pointInsideDomain = new Point3d();
@@ -175,6 +172,7 @@ Requires connected walls, inlets, outlets, and optional heat sources.
 
             foreach (var gobj in FO_GHWrappers)
             {
+                if (gobj == null || gobj.Value == null || gobj.Value.Geometry == null) continue;
                 switch (gobj.Value)
                 {
                     case VolumetricHeatSource vhs:

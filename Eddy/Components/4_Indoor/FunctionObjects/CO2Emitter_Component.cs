@@ -30,11 +30,15 @@ Simulates carbon dioxide generation, typically from occupants. Use this to asses
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGeometryParameter("Geometry", "Geo", "Source volume (Mesh).", GH_ParamAccess.item);
-            pManager.AddTextParameter("Name", "Name", "Identifier for this emitter.", GH_ParamAccess.item, "");
-            pManager.AddNumberParameter("Injection Rate", "Rate", "CO2 injection rate.", GH_ParamAccess.item);
+            //0
+            pManager.AddGeometryParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
+            //1
+            pManager.AddTextParameter("Name", "N", "Name", GH_ParamAccess.item, "");
+            //2
+            pManager.AddNumberParameter("Injection Rate", "IR", "Injection Rate imposed on object", GH_ParamAccess.item);
 
-            pManager.AddIntegerParameter("Rate Type", "Type", "0: Absolute [-], 1: Specific [1/m³]", GH_ParamAccess.item, 0);
+            //3
+            pManager.AddIntegerParameter("Type", "Typ", "Type: Absolute [-] or specific [1/m³]", GH_ParamAccess.item, 0);
             Param_Integer param = pManager[3] as Param_Integer;
             param.AddNamedValue("Absolute", 0);
             param.AddNamedValue("Specific", 1);
@@ -47,7 +51,7 @@ Simulates carbon dioxide generation, typically from occupants. Use this to asses
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Function Object", "FObj", "CO2 emitter for Indoor Simulation component", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Function Object", "FO", "Function Object", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -58,20 +62,20 @@ Simulates carbon dioxide generation, typically from occupants. Use this to asses
         {
             //0
             Mesh geo = null;
-            if (!DA.GetData("Geometry", ref geo)) { }
-            ;
+            if (!DA.GetData(0, ref geo)) return;
+            if (geo == null) return;
 
             //1
             string Name = "";
-            DA.GetData("Name", ref Name);
+            DA.GetData(1, ref Name);
 
             //2
             double IR = 0;
-            DA.GetData("Injection Rate", ref IR);
+            DA.GetData(2, ref IR);
 
             //3
             int Type = 0;
-            DA.GetData("Rate Type", ref Type);
+            DA.GetData(3, ref Type);
 
             var em = new CO2Emitter(geo, Type, IR, Name);
 

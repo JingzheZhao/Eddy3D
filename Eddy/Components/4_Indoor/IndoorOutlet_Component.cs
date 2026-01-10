@@ -32,15 +32,8 @@ Defines where air exhausts from the room, such as return grilles or open windows
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddMeshParameter(
-                "Geometry", "Geo", 
-                "Outlet surface mesh.", 
-                GH_ParamAccess.item);
-
-            pManager.AddVectorParameter(
-                "Velocity", "Vel", 
-                "Optional extraction velocity. (0,0,0) = passive outlet. Units: m/s", 
-                GH_ParamAccess.item, new Vector3d(0, 0, 0));
+            pManager.AddMeshParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
+            pManager.AddVectorParameter("Vel", "V", "Velocity [m/s]. The default is a zero length vector indicating that there is no force removing air from the space", GH_ParamAccess.item, new Vector3d(0, 0, 0));
         }
 
         /// <summary>
@@ -48,7 +41,7 @@ Defines where air exhausts from the room, such as return grilles or open windows
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddParameter(new Param_IndoorBC_Outlet(), "Outlet", "Out", "Outlet boundary condition for Indoor Domain", GH_ParamAccess.item);
+            pManager.AddParameter(new Param_IndoorBC_Outlet(), "Outlet", "Ol", "Outlet", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -58,15 +51,16 @@ Defines where air exhausts from the room, such as return grilles or open windows
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh m = null;
-            DA.GetData("Geometry", ref m);
+            if (!DA.GetData(0, ref m)) return;
+            if (m == null) return;
 
             Vector3d vec = Vector3d.Zero;
-            DA.GetData("Velocity", ref vec);
+            DA.GetData(1, ref vec);
 
             int refinementLevel = 3;
             var outlet = new IndoorBC.Outlet(m, refinementLevel);
 
-            DA.SetData("Outlet", new IndoorOutletGoo(outlet));
+            DA.SetData(0, new IndoorOutletGoo(outlet));
         }
 
         /// <summary>

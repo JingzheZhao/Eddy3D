@@ -32,15 +32,8 @@ Defines a solid boundary for indoor simulations, such as walls, floors, or ceili
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddMeshParameter(
-                "Geometry", "Geo", 
-                "Wall surface mesh.", 
-                GH_ParamAccess.item);
-
-            pManager.AddNumberParameter(
-                "Temperature", "Temp", 
-                "Wall surface temperature. Units: °C", 
-                GH_ParamAccess.item);
+            pManager.AddMeshParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Temp", "T", "Temperature [C]", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -48,7 +41,7 @@ Defines a solid boundary for indoor simulations, such as walls, floors, or ceili
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddParameter(new Param_IndoorBC_Wall(), "Wall", "Wall", "Wall boundary condition for Indoor Domain", GH_ParamAccess.item);
+            pManager.AddParameter(new Param_IndoorBC_Wall(), "Geo", "Geo", "Geometry", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -58,15 +51,16 @@ Defines a solid boundary for indoor simulations, such as walls, floors, or ceili
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh m = null;
-            DA.GetData("Geometry", ref m);
+            if (!DA.GetData(0, ref m)) return;
+            if (m == null) return;
 
             double temp = 20;
-            DA.GetData("Temperature", ref temp);
+            DA.GetData(1, ref temp);
 
             int refinementLevel = 3;
             var wall = new IndoorBC.Wall(m, refinementLevel, temp);
 
-            DA.SetData("Wall", new IndoorWallGoo(wall));
+            DA.SetData(0, new IndoorWallGoo(wall));
         }
 
         /// <summary>

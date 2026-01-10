@@ -32,20 +32,9 @@ Defines where air enters the room, such as diffusers, windows, or doors.
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddMeshParameter(
-                "Geometry", "Geo", 
-                "Inlet surface mesh.", 
-                GH_ParamAccess.item);
-
-            pManager.AddVectorParameter(
-                "Velocity", "Vel", 
-                "Inlet air velocity vector. Units: m/s", 
-                GH_ParamAccess.item);
-
-            pManager.AddNumberParameter(
-                "Temperature", "Temp", 
-                "Supply air temperature. Units: °C", 
-                GH_ParamAccess.item);
+            pManager.AddMeshParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
+            pManager.AddVectorParameter("Vel", "V", "Velocity [m/s]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Temp", "T", "Temperature [C]", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -53,7 +42,7 @@ Defines where air enters the room, such as diffusers, windows, or doors.
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddParameter(new Param_IndoorBC_Inlet(), "Inlet", "In", "Inlet boundary condition for Indoor Domain", GH_ParamAccess.item);
+            pManager.AddParameter(new Param_IndoorBC_Inlet(), "Inlet", "In", "Inlet", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -63,18 +52,19 @@ Defines where air enters the room, such as diffusers, windows, or doors.
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh m = null;
-            DA.GetData("Geometry", ref m);
+            if (!DA.GetData(0, ref m)) return;
+            if (m == null) return;
 
             Vector3d vec = Vector3d.ZAxis;
-            DA.GetData("Velocity", ref vec);
+            DA.GetData(1, ref vec);
 
             double T = 20;
-            DA.GetData("Temperature", ref T);
+            DA.GetData(2, ref T);
 
             int refinement = 3;
             var inlet = new IndoorBC.Inlet(m, T, refinement, vec);
 
-            DA.SetData("Inlet", new IndoorInletGoo(inlet));
+            DA.SetData(0, new IndoorInletGoo(inlet));
         }
 
         /// <summary>

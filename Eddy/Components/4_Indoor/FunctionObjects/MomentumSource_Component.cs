@@ -29,9 +29,12 @@ Creates a volume that actively pushes air in a specific direction. Use this to m
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGeometryParameter("Geometry", "Geo", "Fan/source volume (Mesh).", GH_ParamAccess.item);
-            pManager.AddVectorParameter("Mean Velocity", "Ubar", "Target mean velocity vector. Direction and magnitude of airflow.", GH_ParamAccess.item);
-            pManager.AddTextParameter("Name", "Name", "Identifier for this source.", GH_ParamAccess.item, "");
+            pManager.AddGeometryParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
+            pManager.AddVectorParameter("Ubar", "Ubar", @"Ubar.
+
+Desired mean velocity.", GH_ParamAccess.item);
+
+            pManager.AddTextParameter("Name", "N", "Name", GH_ParamAccess.item, "");
 
             pManager[1].Optional = true;
             pManager[2].Optional = true;
@@ -42,7 +45,7 @@ Creates a volume that actively pushes air in a specific direction. Use this to m
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Function Object", "FObj", "Momentum source for Indoor Simulation component", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Function Object", "FO", "Momentum Source Function Object", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -52,7 +55,8 @@ Creates a volume that actively pushes air in a specific direction. Use this to m
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh geo = null;
-            if (!DA.GetData("Geometry", ref geo)) { };
+            if (!DA.GetData(0, ref geo)) return;
+            if (geo == null) return;
 
             Vector3d Ubar = new Vector3d(0, 0, 0);
             DA.GetData(1, ref Ubar);

@@ -29,8 +29,8 @@ Creates a volume that resists airflow, simulating obstacles like furniture, equi
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGeometryParameter("Geometry", "Geo", "Obstacle volume (Mesh).", GH_ParamAccess.item);
-            pManager.AddTextParameter("Name", "Name", "Identifier for this obstacle.", GH_ParamAccess.item, "");
+            pManager.AddGeometryParameter("Geo", "Geo", "Geometry", GH_ParamAccess.item);
+            pManager.AddTextParameter("Name", "N", "Name", GH_ParamAccess.item, "");
         }
 
         /// <summary>
@@ -38,7 +38,7 @@ Creates a volume that resists airflow, simulating obstacles like furniture, equi
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Function Object", "FObj", "Momentum sink for Indoor Simulation component", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Function Object", "FO", "Momentum Sink Function Object", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -48,10 +48,11 @@ Creates a volume that resists airflow, simulating obstacles like furniture, equi
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh geo = null;
-            if (!DA.GetData("Geometry", ref geo)) { };
+            if (!DA.GetData(0, ref geo)) return;
+            if (geo == null) return;
 
             string Name = "";
-            DA.GetData("Name", ref Name);
+            DA.GetData(1, ref Name);
 
             //double IR = 0;
             //DA.GetData("Injection Rate", ref IR);
