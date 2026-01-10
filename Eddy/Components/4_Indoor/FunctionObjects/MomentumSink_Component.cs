@@ -48,7 +48,7 @@ Creates a volume that resists airflow, simulating obstacles like furniture, equi
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh geo = null;
-            if (!DA.GetData("Geo", ref geo)) { };
+            if (!DA.GetData("Geometry", ref geo)) { };
 
             string Name = "";
             DA.GetData("Name", ref Name);

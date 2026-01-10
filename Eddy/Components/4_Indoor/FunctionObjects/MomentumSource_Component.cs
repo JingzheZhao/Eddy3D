@@ -52,7 +52,7 @@ Creates a volume that actively pushes air in a specific direction. Use this to m
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh geo = null;
-            if (!DA.GetData("Geo", ref geo)) { };
+            if (!DA.GetData("Geometry", ref geo)) { };
 
             Vector3d Ubar = new Vector3d(0, 0, 0);
             DA.GetData(1, ref Ubar);

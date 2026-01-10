@@ -93,7 +93,7 @@ Represents trees as porous media for wind blocking. Essential for simulating the
 
             double LAI = 0;
 
-            if (!DA.GetData("Geo", ref geo)) { };
+            if (!DA.GetData("Geometry", ref geo)) { };
             DA.GetDataList("Type", type);
             DA.GetData("LAI", ref LAI);
 

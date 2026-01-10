@@ -66,7 +66,7 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompVisProbesCustom()
-          : base("Probe Simulation", "Probe", 
+          : base("Probe Simulation", "Probe",
 @"Point Probe Inspector
 
 Samples the wind field at specific locations. Use this to query wind speed and pressure at points of interest like building entrances or balconies.
@@ -258,7 +258,7 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The mesh folder " + meshDir + " does not exist. Please create a mesh first.");
 
                 //throw new System.ArgumentException("The mesh folder is does not exist. Please create a mesh first.");
-                return;
+                //return;
             }
             else
             {
@@ -267,7 +267,7 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The mesh folder " + meshDir + @" is empty. Can't retrieve probes from a mesh that does not exist.");
 
                     // throw new System.ArgumentException("The mesh folder is empty. Can't retrieve probes from a mesh that does not exist.");
-                    return;
+                    //return;
                 }
                 else
                 {
@@ -288,17 +288,14 @@ Samples the wind field at specific locations. Use this to query wind speed and p
 
             #endregion Error handling
 
-            if (!(numberOfProbes > 0) || !meshExists)
+            if (!(numberOfProbes > 0))
             {
-                if (!(numberOfProbes > 0))
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The number of probes must be greater than 0.");
-                }
-                if (!meshExists)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Mesh does not exist. Please provide a valid mesh.");
-                }
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The number of probes must be greater than 0.");
                 return;
+            }
+            if (!meshExists)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Mesh does not exist. Please provide a valid mesh.");
             }
             if (RES.Domain is OFCylDomain || RES.Domain is OFBoxDomain)
             {
@@ -324,15 +321,17 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                         string pathToPointFile = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i] + @"\constant\polyMesh\points";
                         string currCase = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i];
 
-                        if (!File.Exists(pathToPointFile))
-                        {
-                            base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.MeshDoesntExist(pathToPointFile));
-                            return;
-                        }
-
                         // If yes, write the dicts for both Docker and BlueCFD
                         string path = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i] + @"\system\" + probeNameByUser;
                         File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbes(listOfPoints, currField));
+
+                        if (!File.Exists(pathToPointFile))
+                        {
+                            base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.MeshDoesntExist(pathToPointFile));
+
+                            if (run) return;
+                            else continue;
+                        }
 
                         if (RES.RunSettings.simEngine == SimEngine.Docker)
                         {
@@ -407,15 +406,20 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                     string pathToPointFile = RES.WorkingDirectory + @"\constant\polyMesh\points";
                     string currCase = RES.WorkingDirectory;
 
-                    if (!File.Exists(pathToPointFile))
-                    {
-                        base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.MeshDoesntExist(pathToPointFile));
-                        return;
-                    }
-
                     // If yes, write the dicts for both Docker and BlueCFD
                     string path = RES.WorkingDirectory + @"\system\" + probeNameByUser;
                     File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbes(listOfPoints, currField));
+
+                    if (!File.Exists(pathToPointFile))
+                    {
+                        base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.MeshDoesntExist(pathToPointFile));
+                        if (run) return;
+                        else
+                        {
+                            canRun = true;
+                            return; // Stop processing further for this case but don't error hard if we just wanted the file
+                        }
+                    }
 
                     if (RES.RunSettings.simEngine == SimEngine.Docker)
                     {

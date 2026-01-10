@@ -57,7 +57,7 @@ Simulates the release of airborne pathogens (e.g., viruses) from a specific loca
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh geo = null;
-            if (!DA.GetData("Geo", ref geo)) { }
+            if (!DA.GetData("Geometry", ref geo)) { }
             ;
 
             string Name = "";
@@ -67,7 +67,7 @@ Simulates the release of airborne pathogens (e.g., viruses) from a specific loca
             DA.GetData("Injection Rate", ref IR);
 
             int Type = 0;
-            DA.GetData("Type", ref Type);
+            DA.GetData("Rate Type", ref Type);
 
             var em = new ViralEmitter(geo, Type, IR, Name);
 

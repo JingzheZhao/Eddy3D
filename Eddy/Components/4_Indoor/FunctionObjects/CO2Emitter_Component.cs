@@ -58,7 +58,7 @@ Simulates carbon dioxide generation, typically from occupants. Use this to asses
         {
             //0
             Mesh geo = null;
-            if (!DA.GetData("Geo", ref geo)) { }
+            if (!DA.GetData("Geometry", ref geo)) { }
             ;
 
             //1
@@ -71,7 +71,7 @@ Simulates carbon dioxide generation, typically from occupants. Use this to asses
 
             //3
             int Type = 0;
-            DA.GetData("Type", ref Type);
+            DA.GetData("Rate Type", ref Type);
 
             var em = new CO2Emitter(geo, Type, IR, Name);
 

@@ -57,7 +57,7 @@ Pass a multiline string that references the ""A"" and ""B"" coefficients from a 
             string Name = "";
             DA.GetData(2, ref Name);
 
-            DA.GetDataList("Type", type);
+            DA.GetDataList("Darcy-Forchheimer Coefficients", type);
 
             if (type.Count != 0)
             {
