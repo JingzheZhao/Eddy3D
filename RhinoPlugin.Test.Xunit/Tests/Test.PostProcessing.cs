@@ -35,7 +35,7 @@ namespace RhinoPlugin.Test.Xunit
             {
                 allHours += hourBin.Length;
             }
-            Assert.Equal(8760, allHours);
+            Assert.Equal(TestConstants.HoursPerYear, allHours);
         }
     }
 }

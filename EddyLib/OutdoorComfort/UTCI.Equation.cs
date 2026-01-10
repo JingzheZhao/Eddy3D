@@ -1,10 +1,4 @@
-using EddyLib.OutdoorComfort;
-using Rhino.Geometry;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -121,11 +115,11 @@ namespace EddyLib
         {
             int numberOfProbes = UTCI.GetLength(1);
 
-            var Condition = new int[8760, numberOfProbes];
+            var Condition = new int[HoursPerYear, numberOfProbes];
 
             Parallel.For(0, numberOfProbes, probe =>
             {
-                for (int hour = 0; hour < 8760; hour++)
+                for (int hour = 0; hour < HoursPerYear; hour++)
                 {
                     Condition[hour, probe] = CalcConditionOfPerson(UTCI[hour, probe]);
                 }
@@ -187,12 +181,12 @@ namespace EddyLib
         private static double[] CalcAnnualComfortableHours(int[,] ValuesCondition)
         {
             int numberOfProbes = ValuesCondition.GetLength(1);
-            var ValuesAnnualPercentageTemp = new double[8760, numberOfProbes];
+            var ValuesAnnualPercentageTemp = new double[HoursPerYear, numberOfProbes];
             var ValuesAnnualPercentage = new double[numberOfProbes];
 
             Parallel.For(0, numberOfProbes, probe =>
             {
-                for (int hour = 0; hour < 8760; hour++)
+                for (int hour = 0; hour < HoursPerYear; hour++)
                 {
                     if (ValuesCondition[hour, probe] == 0)
                     {
@@ -206,7 +200,7 @@ namespace EddyLib
                 // Returns column of matrix aka all annual values per point
                 var column = ArrayHelper.CustomArray<double>.GetColumn(ValuesAnnualPercentageTemp, probe);
 
-                ValuesAnnualPercentage[probe] = column.Sum() / 8760;
+                ValuesAnnualPercentage[probe] = column.Sum() / HoursPerYear;
             }
 
             return ValuesAnnualPercentage;

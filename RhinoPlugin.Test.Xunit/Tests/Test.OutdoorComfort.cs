@@ -45,6 +45,7 @@ namespace RhinoPlugin.Test.Xunit
         }
 
         [Theory]
+        [Trait("Category", "Execution")]
         [InlineData(0.5, 20.0, 5.0, MrtBcCollectionMode.AddBc)]
         [InlineData(0.6, 18.0, 5.0, MrtBcCollectionMode.Single)]
         [InlineData(0.4, 22.0, 10.0, MrtBcCollectionMode.WithWeather)]
@@ -61,9 +62,7 @@ namespace RhinoPlugin.Test.Xunit
 
         private MRT RunMrtCase(double skyFactor, double uref, MrtBcCollectionMode bcMode)
         {
-            var workingdir = @"C:\Testing\";
-            if (Directory.Exists(workingdir)) { EddyLib.Utilities.Directories.RecursiveDelete(new DirectoryInfo(workingdir)); }
-            else { Directory.CreateDirectory(workingdir); }
+            var workingdir = TestFixtures.CreateTestDirectory("outdoorcomfort-mrt");
 
             var mm = Setup.SetUpBuildingMeshAppendSurface();
             var epw = DownloadEPW();
@@ -87,7 +86,7 @@ namespace RhinoPlugin.Test.Xunit
                 false,
                 SkyTemperatureModel.CalculationType.DefaultClarkAllen)
             {
-                Temp = Enumerable.Repeat(10.0, 8760).ToArray()
+                Temp = Enumerable.Repeat(10.0, TestConstants.HoursPerYear).ToArray()
             };
 
             return new MRT(
@@ -127,12 +126,12 @@ namespace RhinoPlugin.Test.Xunit
         {
             var weather = new Weather(epw)
             {
-                WindSpeed = Enumerable.Repeat(5.0, 8760).ToArray(),
-                WindDirection = Enumerable.Repeat(0, 8760).ToArray(),
-                DryBulbTemp = Enumerable.Repeat(30.0, 8760).ToArray(),
-                RelativeHumidity = Enumerable.Repeat(50.0, 8760).ToArray(),
-                DiffuseHorizontalRadiation = Enumerable.Repeat(0.0, 8760).ToArray(),
-                DirectNormalRadiation = Enumerable.Repeat(0.0, 8760).ToArray()
+                WindSpeed = Enumerable.Repeat(5.0, TestConstants.HoursPerYear).ToArray(),
+                WindDirection = Enumerable.Repeat(0, TestConstants.HoursPerYear).ToArray(),
+                DryBulbTemp = Enumerable.Repeat(30.0, TestConstants.HoursPerYear).ToArray(),
+                RelativeHumidity = Enumerable.Repeat(50.0, TestConstants.HoursPerYear).ToArray(),
+                DiffuseHorizontalRadiation = Enumerable.Repeat(0.0, TestConstants.HoursPerYear).ToArray(),
+                DirectNormalRadiation = Enumerable.Repeat(0.0, TestConstants.HoursPerYear).ToArray()
             };
 
             return weather;
@@ -140,11 +139,7 @@ namespace RhinoPlugin.Test.Xunit
 
         private static string CreateCleanWorkingDir()
         {
-            var workingdir = @"C:\Testing\";
-            if (Directory.Exists(workingdir)) { EddyLib.Utilities.Directories.RecursiveDelete(new DirectoryInfo(workingdir)); }
-            else { Directory.CreateDirectory(workingdir); }
-
-            return workingdir;
+            return TestFixtures.CreateTestDirectory("outdoorcomfort");
         }
 
         private static string EnsureViewFactorsDir(string workingdir)
@@ -195,6 +190,7 @@ namespace RhinoPlugin.Test.Xunit
         }
 
         [Fact]
+        [Trait("Category", "Execution")]
         public void ViewFactors()
         {
             // Arrange
@@ -219,6 +215,7 @@ namespace RhinoPlugin.Test.Xunit
         }
 
         [Fact]
+        [Trait("Category", "Execution")]
         public void ViewFactors_Export()
         {
             // Arrange
@@ -234,6 +231,7 @@ namespace RhinoPlugin.Test.Xunit
         }
 
         [Fact]
+        [Trait("Category", "Execution")]
         public void ViewFactors_Load()
         {
             // Arrange
@@ -306,8 +304,8 @@ namespace RhinoPlugin.Test.Xunit
 
             string epw = DownloadEPW();
             Weather weather = new Weather(epw);
-            weather.WindSpeed = Enumerable.Repeat(5.0, 8760).ToArray();
-            weather.WindDirection = Enumerable.Repeat(0, 8760).ToArray();
+            weather.WindSpeed = Enumerable.Repeat(5.0, TestConstants.HoursPerYear).ToArray();
+            weather.WindDirection = Enumerable.Repeat(0, TestConstants.HoursPerYear).ToArray();
 
             Vector3d[,] vecs = new Vector3d[100, 8];
             for (int j = 0; j < 100; j++)
@@ -319,9 +317,7 @@ namespace RhinoPlugin.Test.Xunit
             }
                 ;
 
-            var workingdir = @"C:\Testing\";
-            if (!Directory.Exists(workingdir)) { Directory.CreateDirectory(workingdir); }
-            ;
+            var workingdir = TestFixtures.CreateTestDirectory("outdoorcomfort-windfactors");
             var points = Enumerable.Repeat(new Point3d(0, 0, 2), 100);
             var mdv = new MultiDirectionalVelocities(workingdir, windDirList.ToArray(), vecs, true, true);
 
@@ -493,6 +489,7 @@ namespace RhinoPlugin.Test.Xunit
         }
 
         [Fact]
+        [Trait("Category", "Execution")]
         public void UTCI()
         {
             //// Arrange
@@ -510,10 +507,10 @@ namespace RhinoPlugin.Test.Xunit
             BCCollection bcColl = new BCCollection(bcond);
 
             Weather weather = new Weather(epw);
-            weather.WindSpeed = Enumerable.Repeat(5.0, 8760).ToArray();
-            weather.WindDirection = Enumerable.Repeat(0, 8760).ToArray();
-            weather.DryBulbTemp = Enumerable.Repeat(20.0, 8760).ToArray();
-            weather.RelativeHumidity = Enumerable.Repeat(50.0, 8760).ToArray();
+            weather.WindSpeed = Enumerable.Repeat(5.0, TestConstants.HoursPerYear).ToArray();
+            weather.WindDirection = Enumerable.Repeat(0, TestConstants.HoursPerYear).ToArray();
+            weather.DryBulbTemp = Enumerable.Repeat(20.0, TestConstants.HoursPerYear).ToArray();
+            weather.RelativeHumidity = Enumerable.Repeat(50.0, TestConstants.HoursPerYear).ToArray();
 
             Vector3d[,] vecs = new Vector3d[100, 8];
             for (int j = 0; j < 100; j++)
@@ -525,9 +522,7 @@ namespace RhinoPlugin.Test.Xunit
             }
         ;
 
-            var workingdir = @"C:\Testing\";
-            if (!Directory.Exists(workingdir)) { Directory.CreateDirectory(workingdir); }
-            ;
+            var workingdir = TestFixtures.CreateTestDirectory("outdoorcomfort-utci");
             var points = Enumerable.Repeat(new Point3d(0, 0, 2), 100);
             var mdv = new MultiDirectionalVelocities(workingdir, windDirList.ToArray(), vecs, true, true);
             var wfs = new WindFactorsSpatial(workingdir, bcColl, mdv, points.ToList(), false, true);
@@ -535,8 +530,8 @@ namespace RhinoPlugin.Test.Xunit
 
             //// Act
 
-            var mrtdir = @"C:\Testing\Rad\";
-            var outputdir = @"C:\Testing\Output\";
+            var mrtdir = Path.Combine(workingdir, "Rad");
+            var outputdir = Path.Combine(workingdir, "Output");
             if (!Directory.Exists(outputdir)) { Directory.CreateDirectory(outputdir); }
             ;
             if (!Directory.Exists(mrtdir)) { Directory.CreateDirectory(mrtdir); }
@@ -551,10 +546,10 @@ namespace RhinoPlugin.Test.Xunit
 
             var mrt = new MRT(workingdir, Mesh.CreateFromBox(box2, 100, 100, 100), sky, vf, weather, MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true)
             {
-                Values = new double[8760, 100]
+                Values = new double[TestConstants.HoursPerYear, 100]
             };
 
-            for (int j = 0; j < 8760; j++)
+            for (int j = 0; j < TestConstants.HoursPerYear; j++)
             {
                 for (int i = 0; i < points.Count(); i++)
                 {

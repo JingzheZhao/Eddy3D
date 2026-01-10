@@ -6,24 +6,28 @@ namespace EddyLib.OutdoorComfort
 {
     internal class WindComfortMetricsCounting
     {
+        private const int HoursPerYear = 8760;
+
         private static bool CheckExceedance(double[] annualVelocity, CmftThresholdInfo THI)
         {
+            int exceedanceCount = annualVelocity.Count(num => num > THI.UThres);
+            double threshold = THI.TimeThres * HoursPerYear;
+
             if (THI.Operator == CompOperator.G)
             {
-                return annualVelocity.Where(num => num > THI.UThres).Count() > THI.TimeThres * 8760;
+                return exceedanceCount > threshold;
             }
             else if (THI.Operator == CompOperator.GOE)
             {
-                return annualVelocity.Where(num => num > THI.UThres).Count() >= THI.TimeThres * 8760;
+                return exceedanceCount >= threshold;
             }
             else
             {
-                return annualVelocity.Where(num => num > THI.UThres).Count() < THI.TimeThres * 8760;
+                return exceedanceCount < threshold;
             }
         }
 
         public static CmftThresholdInfo CalcComfortCountBins(double[] annualVelocity, Dictionary<int, CmftThresholdInfo> CTID)
-
         {
             // If we can't make an estimate, let's return the best case scenario --> no wind, sitting is possible
             CmftThresholdInfo pedestrianComfort = CTID[1];

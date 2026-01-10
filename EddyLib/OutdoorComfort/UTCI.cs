@@ -13,6 +13,8 @@ namespace EddyLib
     public partial class UTCI
 
     {
+        private const int HoursPerYear = 8760;
+
         // public static object Options { get; private set; }
 
         //Outputs
@@ -96,12 +98,12 @@ namespace EddyLib
         //Tuple items: utci, humcondition, valuesAnnualPercentage, uncertaintyMRTArray, uncertaintyWindArray
         public static Tuple<double[,], int[,], double[], bool[,], bool[,]> CalcUTCI(Point3d[] Probes, Weather weather, WindFactorsTemporal wf, MRT mrt, int truncateBy)
         {
-            int numberOfHours = 8760;
+            int numberOfHours = HoursPerYear;
             int numberOfProbes = Probes.Length;
 
             var sw = new Stopwatch();
             sw.Start();
-            int cnt = 0;
+            int processedProbes = 0;
 
             var uncertaintyMRTArray = new bool[numberOfHours, numberOfProbes];
             var uncertaintyWindArray = new bool[numberOfHours, numberOfProbes];
@@ -114,8 +116,8 @@ namespace EddyLib
             {
                 Parallel.For(0, numberOfProbes, probe =>
                 {
-                    cnt++;
-                    progress.Report((double)cnt / numberOfProbes);
+                    var processed = System.Threading.Interlocked.Increment(ref processedProbes);
+                    progress.Report((double)processed / numberOfProbes);
 
                     for (int hour = 0; hour < numberOfHours; hour++)
                     {

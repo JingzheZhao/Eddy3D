@@ -20,12 +20,7 @@ namespace RhinoPlugin.Test.Xunit
 
         private static string EnsureTestingDirectory()
         {
-            var workingdir = @"C:\Testing\";
-            if (!Directory.Exists(workingdir))
-            {
-                Directory.CreateDirectory(workingdir);
-            }
-            return workingdir;
+            return TestFixtures.CreateTestDirectory("windcomfort");
         }
 
         private static Vector3d[,] CreateRepeatedVectors(Vector3d[] source, int windDirCount)
@@ -263,8 +258,8 @@ namespace RhinoPlugin.Test.Xunit
 
             string epw = DownloadEPW();
             Weather weather = new Weather(epw);
-            weather.WindSpeed = Enumerable.Repeat(5.0, 8760).ToArray();
-            weather.WindDirection = Enumerable.Repeat(windDir, 8760).ToArray();
+            weather.WindSpeed = Enumerable.Repeat(5.0, TestConstants.HoursPerYear).ToArray();
+            weather.WindDirection = Enumerable.Repeat(windDir, TestConstants.HoursPerYear).ToArray();
 
             var res = EddyLib.OutdoorComfort.WindSystem.GetClosestWindDirs(weather, windDirList);
 
@@ -288,8 +283,8 @@ namespace RhinoPlugin.Test.Xunit
 
             string epw = DownloadEPW();
             Weather weather = new Weather(epw);
-            weather.WindSpeed = Enumerable.Repeat(5.0, 8760).ToArray();
-            weather.WindDirection = Enumerable.Repeat(0, 8760).ToArray();
+            weather.WindSpeed = Enumerable.Repeat(5.0, TestConstants.HoursPerYear).ToArray();
+            weather.WindDirection = Enumerable.Repeat(0, TestConstants.HoursPerYear).ToArray();
 
             Vector3d[,] vecs = new Vector3d[100, windDirList.Length];
             for (int j = 0; j < 100; j++)

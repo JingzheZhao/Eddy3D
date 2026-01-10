@@ -8,6 +8,7 @@ using Xunit;
 namespace RhinoPlugin.Test.Xunit
 {
     [Collection("Rhino Collection")]
+    [Trait("Category", "Execution")]
     public class OFExecutionTests
     {
         [NotWindowsServerFact]

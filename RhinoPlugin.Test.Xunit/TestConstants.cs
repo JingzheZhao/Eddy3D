@@ -48,5 +48,7 @@ namespace RhinoPlugin.Test.Xunit
         // Test Output Directories
         // ─────────────────────────────────────────────────────────────────────
         public static string TestingDirectory => System.IO.Path.Combine(System.IO.Path.GetTempPath(), "Eddy3D_Tests");
+
+        public const int HoursPerYear = 8760;
     }
 }

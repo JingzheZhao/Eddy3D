@@ -29,7 +29,7 @@ namespace EddyLib.Radiation
 
         private string workingDir;
 
-        private string subDir;
+        private readonly string subDir = Path.Combine("Rad", "ViewFactors");
 
         public bool wrongNumberOfProbes;
 
@@ -47,9 +47,8 @@ namespace EddyLib.Radiation
 
             this.sensors = sensors;
             this.workingDir = workingDir;
-            this.subDir = @"\Rad\ViewFactors\";
-
-            var binSVF = subDir + @"SkyViewFactors.bin";
+            var subDirPath = Path.Combine(workingDir, subDir);
+            var binSVF = Path.Combine(subDirPath, fileNameExport);
 
             var numberOfProbes = sensors.Length;
 
@@ -60,7 +59,7 @@ namespace EddyLib.Radiation
 
                 var tempValues = RadianceFiles.loadBin1D(binSVF);
 
-                int sensorPointCountExisting = tempValues.GetLength(1);
+                int sensorPointCountExisting = tempValues.Length;
 
                 if (sensorPointCountExisting != numberOfProbes)
                 {
@@ -81,16 +80,17 @@ namespace EddyLib.Radiation
 
                 Run();
 
-                RadianceFiles.writeBin1D(workingDir + subDir + @"\" + fileNameExport, this.Values);
+                RadianceFiles.writeBin1D(binSVF, this.Values);
             }
         }
 
         private void Run()
         {
-            string sunRaysResPath = workingDir + subDir + this.sunRaysRes;
-            string sunRaysFilePath = workingDir + subDir + this.sunRaysFile;
-            string radFilePath = workingDir + subDir + this.radFile;
-            string octreeFilePath = workingDir + subDir + this.octreeFile;
+            var subDirPath = Path.Combine(workingDir, subDir);
+            string sunRaysResPath = Path.Combine(subDirPath, this.sunRaysRes);
+            string sunRaysFilePath = Path.Combine(subDirPath, this.sunRaysFile);
+            string radFilePath = Path.Combine(subDirPath, this.radFile);
+            string octreeFilePath = Path.Combine(subDirPath, this.octreeFile);
 
             // 0. Number of rays
 
@@ -139,7 +139,7 @@ namespace EddyLib.Radiation
             radFile.AppendLine("");
             radFile.AppendLine(radFileString.ToString());
 
-            Directory.CreateDirectory(Path.GetDirectoryName(radFilePath));
+            Directory.CreateDirectory(subDirPath);
             File.WriteAllText(radFilePath, radFile.ToString());
 
             //A = "Final File Length: " + finalFile.Length;

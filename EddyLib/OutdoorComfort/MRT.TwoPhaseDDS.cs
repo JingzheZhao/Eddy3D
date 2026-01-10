@@ -8,19 +8,18 @@ namespace EddyLib.OutdoorComfort
 {
     public partial class MRT
     {
+        private const int HoursPerYear = 8760;
+
         public MRT(string baseWorkingDir, Mesh BuildingGeometry, SkyTemperatureModel sky, SkyViewFactor vf, Weather weather, MRTType type, Point3d[] probes, bool recalc, string RadianceDir = "C:\\Program Files\\Radiance\\")
         {
-            var binMRT = baseWorkingDir + @"MRT.bin";
+            var binMRT = Path.Combine(baseWorkingDir, "MRT.bin");
 
             var numberOfProbes = probes.Length;
 
             #region TwoPhaseDDS
 
-            var difillFile = baseWorkingDir + @"\Output\annual_total.ill";
-            var dirillFile = baseWorkingDir + @"\Output\annual_dir.ill";
-
             // Add other files here
-            if (recalc == false && File.Exists(binMRT))
+            if (!recalc && File.Exists(binMRT))
             {
                 // Load radiation datasets [x][] time [][x] points
 
@@ -38,7 +37,7 @@ namespace EddyLib.OutdoorComfort
                     this.Values = tempValues;
                 }
             }
-            else if (recalc == true)
+            else if (recalc)
             {
                 if (File.Exists(binMRT))
                 {
@@ -54,7 +53,7 @@ namespace EddyLib.OutdoorComfort
 
                 this.ViewFactors = vf.Values;
 
-                int numberOfHours = 8760;
+                int numberOfHours = HoursPerYear;
                 int numberOfSensors = probes.Length;
 
                 var DDSTOTAL = dds.totalIll;
@@ -64,7 +63,7 @@ namespace EddyLib.OutdoorComfort
                 double sol_trans = 1;
                 double f_bes = 0.5;
 
-                System.Threading.Tasks.Parallel.For(0, 8760, h =>
+                System.Threading.Tasks.Parallel.For(0, HoursPerYear, h =>
                  {
                      for (int p = 0; p < probes.Length; p++)
                      {
@@ -80,7 +79,7 @@ namespace EddyLib.OutdoorComfort
                      }
                  });
 
-                RadianceFiles.writeBin(baseWorkingDir + @"\MRT.bin", this.Values);
+                RadianceFiles.writeBin(binMRT, this.Values);
             }
 
             #endregion TwoPhaseDDS
