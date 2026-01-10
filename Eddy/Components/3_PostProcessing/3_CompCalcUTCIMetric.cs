@@ -83,16 +83,16 @@ Combines:
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             var tamb = 0.0;
-            DA.GetData("Ambient temperature", ref tamb);
+            DA.GetData("Air Temperature", ref tamb);
 
             var wind = 0.0;
-            DA.GetData("Wind velocity", ref wind);
+            DA.GetData("Wind Speed", ref wind);
 
             var mrt = 0.0;
-            DA.GetData("Mean Radiant Temperature", ref mrt);
+            DA.GetData("Mean Radiant Temp", ref mrt);
 
             var rh = 0.0;
-            DA.GetData("Relative humidity", ref rh);
+            DA.GetData("Relative Humidity", ref rh);
 
             var utci = EddyLib.UTCI.CalcUTCICorrectBounds(tamb, rh, wind, mrt, out bool outOfBounds);
 
