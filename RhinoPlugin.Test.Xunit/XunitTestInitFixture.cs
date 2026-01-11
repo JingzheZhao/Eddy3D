@@ -59,7 +59,18 @@ namespace RhinoPlugin.Test.Xunit
                 }
             }
 
+            if (!string.IsNullOrEmpty(grasshopperPath))
+            {
+                Console.WriteLine($"Grasshopper found: {grasshopperPath}");
+            }
+            else
+            {
+                Console.WriteLine("WARNING: Grasshopper.dll not found");
+            }
+
             Assert.True(System.IO.Directory.Exists(systemDir), string.Format("Rhino system dir not found: {0}", systemDir));
+            Console.WriteLine($"Rhino system directory found: {systemDir}");
+
             // Add rhino system directory to path (for RhinoLibrary.dll)
             Environment.SetEnvironmentVariable("path", envPath + ";" + systemDir);
 
@@ -67,7 +78,14 @@ namespace RhinoPlugin.Test.Xunit
             AppDomain.CurrentDomain.AssemblyResolve += ResolveRhinoCommon;
 
             // Start headless Rhino process
-            LaunchInProcess(0, 0);
+            Console.WriteLine("Launching Rhino in headless mode...");
+            int result = LaunchInProcess(0, 0);
+            Console.WriteLine($"LaunchInProcess returned: {result}");
+
+            if (result != 1)
+            {
+                Console.WriteLine($"WARNING: LaunchInProcess returned {result} instead of 1. Rhino may not have initialized properly.");
+            }
         }
 
         private static Assembly ResolveRhinoCommon(object sender, ResolveEventArgs args)
