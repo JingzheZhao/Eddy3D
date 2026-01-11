@@ -16,12 +16,10 @@ namespace EddyLib.Indoor.BatchFiles
 
             string[] parts = {
                this.Header, "\n",
-               String.Join("\n", BatchBody(CPUs)
+               BatchBody(CPUs)
 #if (DEBUG == true)
                ,"\nPAUSE"
 #endif
-
-               )
             };
 
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");

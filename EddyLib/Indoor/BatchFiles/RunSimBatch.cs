@@ -15,11 +15,10 @@ namespace EddyLib.Indoor.BatchFiles
 
             string[] parts = {
                this.Header, "\n",
-               String.Join("\n", BatchBody(CPUs)
+               BatchBody(CPUs)
 #if (DEBUG == true)
                ,"\nPAUSE"
 #endif
-               )
             };
 
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
@@ -27,10 +26,10 @@ namespace EddyLib.Indoor.BatchFiles
 
         private static string BatchBody(int cpus)
         {
-            return $@"renumberMesh -overwrite
-decomposePar -force
-mpiexec -np {cpus} buoyantSimpleFoam -parallel
-reconstructPar ";
+            return $@"renumberMesh -overwrite 2>&1 | tee -a ""renumberMesh.log""
+decomposePar -force 2>&1 | tee -a ""decomposePar.log""
+mpiexec -np {cpus} buoyantSimpleFoam -parallel 2>&1 | tee -a ""buoyantSimpleFoam.log""
+reconstructPar 2>&1 | tee -a ""reconstructPar.log""";
         }
     }
 }
