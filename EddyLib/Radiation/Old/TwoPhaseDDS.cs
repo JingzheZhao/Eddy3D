@@ -39,7 +39,7 @@ namespace EddyLib.Radiation
             string csvDDS = Path.Combine(baseWorkingDir + fileName + del + fileNameCSVExtension);
             string binDDS = Path.Combine(baseWorkingDir + fileName + del + fileNameBinExtension);
 
-            var dirs = new List<String>() { baseWorkingDir + TwoPhaseDDSFolder, baseWorkingDir, baseWorkingDir + @"Rad\" };
+            var dirs = new List<String>() { baseWorkingDir + TwoPhaseDDSFolder, baseWorkingDir, baseWorkingDir + @"\Rad\" };
 
             foreach (string d in dirs)
             {
@@ -131,8 +131,8 @@ namespace EddyLib.Radiation
 
             // Sky
             //Skies.Write(baseWorkingDir + @"Rad\skyglow.rad", skySubDivDiff);
-            RadianceSkies.Write(baseWorkingDir + @"Rad\skyglow" + (skySubDivDir - 1) + ".rad", (skySubDivDir - 1));
-            RadianceSkies.Write(baseWorkingDir + @"Rad\skyglow" + (skySubDivDiff - 1) + ".rad", (skySubDivDiff - 1));
+            RadianceSkies.Write(baseWorkingDir + @"\Rad\skyglow" + (skySubDivDir - 1) + ".rad", (skySubDivDir - 1));
+            RadianceSkies.Write(baseWorkingDir + @"\Rad\skyglow" + (skySubDivDiff - 1) + ".rad", (skySubDivDiff - 1));
 
             this.command = CommandLineArgsNew(RadianceDir, baseWorkingDir, probes.Count, weaname, weather.epwFilePath, 3, 5000, skySubDivDiff, skySubDivDir, Environment.ProcessorCount - 1);
 
@@ -176,7 +176,7 @@ namespace EddyLib.Radiation
 
             //if (load)
             //{
-            this.totalIll = LoadDDSIll(baseWorkingDir + @"Rad\Output\annual_total.ill");
+            this.totalIll = LoadDDSIll(baseWorkingDir + @"\Rad\Output\annual_total.ill");
 
             //}
 
