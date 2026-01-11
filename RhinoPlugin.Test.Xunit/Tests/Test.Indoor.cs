@@ -83,9 +83,9 @@ namespace RhinoPlugin.Test.Xunit
             string workingDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "IndoorTest");
             if (!System.IO.Directory.Exists(workingDir)) System.IO.Directory.CreateDirectory(workingDir);
             
-            double cellSize = 0.5;
+            double cellSize = 0.2;
             Point3d pointInside = new Point3d(5, 5, 1.5);
-            int cpus = 2;
+            int cpus = 8;
 
             // 4. Instantiate IndoorDomain
             var domain = new IndoorDomain(endTime, workingDir, cellSize, pointInside, walls, inlets, outlets, fos, cpus);
@@ -169,9 +169,9 @@ namespace RhinoPlugin.Test.Xunit
             string workingDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "IndoorTest_CO2");
             if (!System.IO.Directory.Exists(workingDir)) System.IO.Directory.CreateDirectory(workingDir);
             
-            double cellSize = 0.5;
+            double cellSize = 0.2;
             Point3d pointInside = new Point3d(2, 2, 1.5); // Adjusted to ensure it's not inside the emitter
-            int cpus = 2;
+            int cpus = 8;
 
             // 4. Instantiate IndoorDomain
             var domain = new IndoorDomain(endTime, workingDir, cellSize, pointInside, walls, inlets, outlets, fos, cpus);
@@ -255,9 +255,9 @@ namespace RhinoPlugin.Test.Xunit
             if (System.IO.Directory.Exists(workingDir)) System.IO.Directory.Delete(workingDir, true); // Clean up first
             System.IO.Directory.CreateDirectory(workingDir);
             
-            double cellSize = 0.5;
+            double cellSize = 0.2;
             Point3d pointInside = new Point3d(5, 5, 1.5);
-            int cpus = 2;
+            int cpus = 8;
 
             // 4. Instantiate IndoorDomain - this triggers file export
             var domain = new IndoorDomain(endTime, workingDir, cellSize, pointInside, walls, inlets, outlets, fos, cpus);
@@ -306,7 +306,7 @@ namespace RhinoPlugin.Test.Xunit
             // Inlet: 20C, 1 m/s (Assuming X direction for now), Refinement 2
             var inlets = new List<IndoorBC.Inlet>
             {
-                new IndoorBC.Inlet(inletMesh, 20.0, 2, new Vector3d(1, 0, 0)) { Name = "Inlet" }
+                new IndoorBC.Inlet(inletMesh, 20.0, 2, new Vector3d(0, 1, 0)) { Name = "Inlet" }
             };
 
             // Outlet: Refinement 2
@@ -316,7 +316,7 @@ namespace RhinoPlugin.Test.Xunit
             };
 
             // Setup Simulation Parameters
-            double cellSize = 0.5; // Meters - Updated as per user request
+            double cellSize = 0.2; // Meters - Updated as per user request
             int endTime = 500;
             int cpus = 24;
             
