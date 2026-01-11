@@ -35,8 +35,8 @@ SolidCompression=yes
 [ISPP]
 #define GrasshopperLib "{userappdata}\Grasshopper\Libraries"
 ;#define OFInstallDir   "C:\OpenFOAM"
-#define TemplatesDir "C:\Eddy3D\Templates\"
-#define Eddy3DDir "C:\Eddy3D"
+#define TemplatesDir "{userprofile}\Eddy3D\Templates\"
+#define Eddy3DDir "{userprofile}\Eddy3D"
 
 
 
@@ -47,9 +47,9 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 ; Source: "..\Ilmerge\*"; DestDir: "{#Eddy3DDir}"; Flags: ignoreversion
 
-Source: "C:\Eddy3D\*"; DestDir: "{#Eddy3DDir}"; Flags: ignoreversion recursesubdirs
+Source: "{%USERPROFILE%}\Eddy3D\*"; DestDir: "{#Eddy3DDir}"; Flags: ignoreversion recursesubdirs
 
-Source: "GHLink\*"; DestDir: "{#GrasshopperLib}"; Flags: ignoreversion 
+; GHLink file will be created dynamically in [Code] section
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 Source: "..\..\Templates\*"; DestDir: "{#TemplatesDir}"; Flags: ignoreversion
@@ -60,6 +60,19 @@ Source: "..\..\Templates\*"; DestDir: "{#TemplatesDir}"; Flags: ignoreversion
 Source: "{#GDrive}\*"; DestDir: "{#Eddy3DDir}\"; Flags: ignoreversion recursesubdirs
 
 
-   
+
 [Code]
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  GHLinkPath: String;
+  Eddy3DPath: String;
+begin
+  if CurStep = ssPostInstall then
+  begin
+    // Create the .ghlink file dynamically with the user's Eddy3D path
+    GHLinkPath := ExpandConstant('{userappdata}\Grasshopper\Libraries\Eddy3D.ghlink');
+    Eddy3DPath := ExpandConstant('{userprofile}\Eddy3D');
+    SaveStringToFile(GHLinkPath, Eddy3DPath, False);
+  end;
+end;
 

@@ -503,7 +503,7 @@ Erase "$(TargetPath)"
 SET obfuscar=$(SolutionDir)packages\Obfuscar.2.2.39\tools\Obfuscar.Console.exe
 SET build_eddy=$(SolutionDir)Eddy\bin
 SET build_batchrunner=$(SolutionDir)CallBatchRunner\bin
-SET INSTALLDIR=C:\Eddy3D
+SET INSTALLDIR=%25USERPROFILE%25\Eddy3D
 if not exist "%25INSTALLDIR%25" mkdir "%25INSTALLDIR%25"
 
 if $(ConfigurationName)==Debug (
