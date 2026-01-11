@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(dotnet build:*)",
-      "Bash(dotnet test:*)"
+      "Bash(dotnet test:*)",
+      "Bash(where /R \"C:\\\\Program Files\\\\Rhino 8\" RhinoLibrary.dll)",
+      "Bash(powershell:*)"
     ]
   }
 }
