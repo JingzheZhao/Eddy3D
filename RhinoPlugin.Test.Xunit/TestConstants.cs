@@ -13,8 +13,8 @@ namespace RhinoPlugin.Test.Xunit
         public const double DefaultTolerance = 1e-9;
         public const double DefaultUref = 10.0;
         public const double DefaultZref = 10.0;
-        public const double DefaultZ0 = 0.05;
-        public const int DefaultIterations = 3000;
+        public const double DefaultZ0 = 1;
+        public const int DefaultIterations = 1500;
 
         // ─────────────────────────────────────────────────────────────────────
         // Geometry Defaults

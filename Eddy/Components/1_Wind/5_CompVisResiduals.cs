@@ -139,11 +139,11 @@ Visualizes the definition of simulation convergence (residuals) in real-time. He
 
             string x0x1 = ":";
             string y0y1 = ":";
-            DA.GetData("X", ref x0x1);
-            DA.GetData("Y", ref y0y1);
+            DA.GetData(1, ref x0x1);
+            DA.GetData(2, ref y0y1);
 
             int gnuplotVersion = 0;
-            DA.GetData("Version", ref gnuplotVersion);
+            DA.GetData(3, ref gnuplotVersion);
 
             if (!RES.RunSettings.WindowsGnuplotInstalled && !RES.RunSettings.BlueCFD_GNU_Plot)
             {
@@ -158,7 +158,7 @@ Visualizes the definition of simulation convergence (residuals) in real-time. He
             }
 
             bool run = false;
-            DA.GetData("Run", ref run);
+            DA.GetData(4, ref run);
             if (run != true) { return; }
 
             List<int> windDirections = RES.Domain.BCond.WindDirections;

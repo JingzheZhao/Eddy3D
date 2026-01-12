@@ -500,7 +500,17 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>Copy "$(TargetPath)" "$(TargetDir)$(ProjectName).gha" &amp; Erase "$(TargetPath)" &amp; SET build_eddy=$(ProjectDir)bin &amp; SET INSTALLDIR=%25APPDATA%25\Eddy3D &amp; if not exist "%25INSTALLDIR%25" mkdir "%25INSTALLDIR%25" &amp; if "$(Configuration)"=="Debug" ( xcopy /e /v /y "%25build_eddy%25" "%25INSTALLDIR%25" &amp; xcopy /e /v /y "$(ProjectDir)..\Templates\*" "%25INSTALLDIR%25\Templates\" ) &amp; if "$(Configuration)"=="Release" ( xcopy /e /v /y "%25build_eddy%25" "%25INSTALLDIR%25" &amp; xcopy /e /v /y "$(ProjectDir)..\Templates\*" "%25INSTALLDIR%25\Templates\" ) &amp; for /f "delims=" %25%25i in ("$(ProjectDir)bin") do echo %25%25~fi &gt; "%25APPDATA%25\Grasshopper\Libraries\Eddy3D-Dev.ghlink" &amp; if exist "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /Qp "$(ProjectDir)..\Build\BuildInstaller.iss"</PostBuildEvent>
+    <PostBuildEvent>
+      Copy "$(TargetPath)" "$(TargetDir)$(ProjectName).gha"
+      Erase "$(TargetPath)"
+      SET build_eddy=$(ProjectDir)bin
+      SET INSTALLDIR=%25APPDATA%25\Eddy3D
+      if not exist "%25INSTALLDIR%25" mkdir "%25INSTALLDIR%25"
+      if "$(Configuration)"=="Debug" ( xcopy /e /v /y "%25build_eddy%25" "%25INSTALLDIR%25" &amp; xcopy /e /v /y "$(ProjectDir)..\Templates\*" "%25INSTALLDIR%25\Templates\" )
+      if "$(Configuration)"=="Release" ( xcopy /e /v /y "%25build_eddy%25" "%25INSTALLDIR%25" &amp; xcopy /e /v /y "$(ProjectDir)..\Templates\*" "%25INSTALLDIR%25\Templates\" )
+      for /f "delims=" %25%25i in ("$(ProjectDir)bin") do echo %25%25~fi &gt; "%25APPDATA%25\Grasshopper\Libraries\Eddy3D-Dev.ghlink"
+      if exist "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /Qp "$(ProjectDir)..\Build\BuildInstaller.iss"
+    </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <FallbackCulture>en-US</FallbackCulture>
