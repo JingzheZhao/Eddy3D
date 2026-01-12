@@ -138,7 +138,7 @@ Combines:
             if (!string.IsNullOrWhiteSpace(radiancePath))
             {
                 DefaultDirectoriesAndPaths.RadianceDir = radiancePath;
-                DefaultDirectoriesAndPaths.RadianceLibDir = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(radiancePath), "lib");
+
             }
             if (!string.IsNullOrWhiteSpace(energyPlusPath))
             {
