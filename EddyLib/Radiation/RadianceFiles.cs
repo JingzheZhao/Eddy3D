@@ -43,8 +43,8 @@ namespace EddyLib
                     ProcessStartInfo processInfo = new ProcessStartInfo
                     {
                         Arguments = arguments,
-                        FileName = DefaultDirectoriesAndPaths.RadianceDir + @"\epw2wea",
-                        WorkingDirectory = DefaultDirectoriesAndPaths.RadianceDir,
+                        FileName = DefaultDirectoriesAndPaths.RadianceBinDir + @"\epw2wea",
+                        WorkingDirectory = DefaultDirectoriesAndPaths.RadianceBinDir,
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
@@ -731,6 +731,11 @@ namespace EddyLib
             //writing into the file
             try
             {
+                if (values == null || values.Length == 0 || values[0].Length == 0)
+                {
+                    throw new ArgumentException("Cannot write empty or null data to Radiance binary file. This often happens if the Radiance simulation failed to produce results.");
+                }
+
                 bw.Write((int)values.Length);
                 bw.Write((int)values[0].Length);
 

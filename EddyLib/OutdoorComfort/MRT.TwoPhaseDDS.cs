@@ -10,8 +10,14 @@ namespace EddyLib.OutdoorComfort
     {
         private const int HoursPerYear = 8760;
 
-        public MRT(string baseWorkingDir, Mesh BuildingGeometry, SkyTemperatureModel sky, SkyViewFactor vf, Weather weather, MRTType type, Point3d[] probes, bool recalc, string RadianceDir = "C:\\Program Files\\Radiance\\")
+        public MRT(string baseWorkingDir, Mesh BuildingGeometry, SkyTemperatureModel sky, SkyViewFactor vf, Weather weather, MRTType type, Point3d[] probes, bool recalc, string RadianceDir = null)
         {
+            // Use provided dir or default
+            RadianceDir = string.IsNullOrWhiteSpace(RadianceDir) ? DefaultDirectoriesAndPaths.RadianceDir : RadianceDir;
+
+            // Verify Radiance
+            DefaultDirectoriesAndPaths.CheckRadiance(RadianceDir);
+
             var binMRT = Path.Combine(baseWorkingDir, "MRT.bin");
 
             var numberOfProbes = probes.Length;

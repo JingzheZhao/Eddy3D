@@ -337,8 +337,8 @@ namespace RhinoPlugin.Test.Xunit
             Assert.Equal(1.01, Math.Round(wft.ValuesTemporalAtProbingHeight[0, 0], 2));
         }
 
-        private readonly string RadiancePath = @"C:\Program Files\Radiance\bin"; // Replace with your folder path
-        private readonly string EddyRadiancePath = DefaultDirectoriesAndPaths.RadianceBinDir;
+        private readonly string RadianceBinPath = DefaultDirectoriesAndPaths.RadianceBinDir;
+        private readonly string RadianceLibPath = DefaultDirectoriesAndPaths.RadianceLibDir;
 
         private readonly string[] RadianceExecutables = new string[]
         {
@@ -354,11 +354,13 @@ namespace RhinoPlugin.Test.Xunit
         [Fact]
         public void IsRadianceInstalled()
         {
+            // Use the new centralized validation
+            DefaultDirectoriesAndPaths.CheckRadiance();
+
             foreach (var exe in RadianceExecutables)
             {
-                string defaultFilePath = Path.Combine(RadiancePath, exe);
-                string Eddy3DFilePath = Path.Combine(EddyRadiancePath, exe);
-                Assert.True(File.Exists(defaultFilePath) || File.Exists(Eddy3DFilePath), $"Executable not found: {defaultFilePath}");
+                string filePath = Path.Combine(RadianceBinPath, exe);
+                Assert.True(File.Exists(filePath), $"Executable not found: {filePath}");
             }
         }
 
@@ -444,49 +446,12 @@ namespace RhinoPlugin.Test.Xunit
 
         private string GetRadianceDir()
         {
-            string foundPath = string.Empty;
-
-            // Check if all executables exist in the default Radiance path
-            if (AllExecutablesExist(RadiancePath))
-            {
-                foundPath = RadiancePath;
-            }
-            // Check if all executables exist in the Eddy3D Radiance path
-            else if (AllExecutablesExist(EddyRadiancePath))
-            {
-                foundPath = EddyRadiancePath;
-            }
-
-            if (!string.IsNullOrEmpty(foundPath))
-            {
-                // Use DirectoryInfo to navigate to the parent directory
-                DirectoryInfo directoryInfo = new DirectoryInfo(foundPath);
-                DirectoryInfo parentDir = directoryInfo.Parent;
-                if (parentDir != null)
-                {
-                    return parentDir.FullName;
-                }
-                else
-                {
-                    throw new InvalidOperationException("No parent directory exists for the found path.");
-                }
-            }
-
-            // If no directory contains all executables, throw an exception
-            throw new InvalidOperationException("Radiance executables not found in the specified directories.");
+            // Verify and return the base directory (parent of bin)
+            DefaultDirectoriesAndPaths.CheckRadiance();
+            return Path.GetDirectoryName(DefaultDirectoriesAndPaths.RadianceBinDir);
         }
 
-        private bool AllExecutablesExist(string directoryPath)
-        {
-            foreach (var exe in RadianceExecutables)
-            {
-                if (!File.Exists(Path.Combine(directoryPath, exe)))
-                {
-                    return false; // If any executable is missing, return false
-                }
-            }
-            return true; // All executables were found
-        }
+        
 
         [NotWindowsServerFact]
         [Trait("Category", "Execution")]
@@ -544,7 +509,7 @@ namespace RhinoPlugin.Test.Xunit
 
             var sky = new SkyTemperatureModel(weather.DewPointTemp, weather.DryBulbTemp, weather.TotalSkyCover, weather.RelativeHumidity, true, SkyTemperatureModel.CalculationType.DefaultClarkAllen);
 
-            var mrt = new MRT(workingdir, Mesh.CreateFromBox(box2, 100, 100, 100), sky, vf, weather, MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true)
+            var mrt = new MRT(workingdir, Mesh.CreateFromBox(box2, 100, 100, 100), sky, vf, weather, MRT.MRTType.RadianceTwoPhaseDDS, points.ToArray(), true, GetRadianceDir())
             {
                 Values = new double[TestConstants.HoursPerYear, 100]
             };

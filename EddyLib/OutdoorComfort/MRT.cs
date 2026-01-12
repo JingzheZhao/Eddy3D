@@ -94,12 +94,12 @@ namespace EddyLib.OutdoorComfort
             MRT[1] = Tair;
 
             //Reference: [1] http://www.academia.edu/13838171/The_Human_Bio-Meteorological_Chart_A_design_tool_for_outdoor_thermal_comfort
-            //Reference: [2] The calculation of the mean radiant temperature of a subject exposed to the solar radiation—a generalised algorithm
+            //Reference: [2] The calculation of the mean radiant temperature of a subject exposed to the solar radiationâ€”a generalised algorithm
             //Reference: [3] The Computation of Equivalent Potential Temperature - David Bolton
 
             double SBConst = 5.67E-8;
 
-            double es = Math.Log(RelHum / 100) + 17.67 * Tair / (243.5 + Tair); // [3] for -30 -- 35°C
+            double es = Math.Log(RelHum / 100) + 17.67 * Tair / (243.5 + Tair); // [3] for -30 -- 35Â°C
             double T_dewP = 243.5 * es / (17.67 - es); // [3]
             double e = 0.7122 + 0.0056 * T_dewP + 0.000073 * Math.Pow(T_dewP, 2) + 0.00884; // polinomial for curve fit [1]
             double TSkyKelvin = (Tair + 273) * Math.Pow(e, 0.25);  // [1]
@@ -107,32 +107,7 @@ namespace EddyLib.OutdoorComfort
 
             double Fs = (Math.Atan(0.5 * Wst / (Hst - 1))) * 180 / Math.PI * 0.0056; // where does this come from?
 
-            // where FiS is
-            // the angle
-            // factor
-            // between the
-            // ith internal
-            // surface of
-            // the envelope
-            // and the
-            // subject, ei
-            // is its
-            // emissivity,
-            // Ai is the
-            // area of the
-            // interested
-            // surface, Ti
-            // the
-            // temperature,
-            // ri the
-            // reflection
-            // coefficient
-            // of the ith
-            // surface and
-            // Gi the
-            // radiation
-            // reaching the
-            // ith internal surface.
+            // where FiS is the angle factor between the ith internal surface factor of the envelope and the subject
             double Fc = 1 - Fs;  // remaining angle factor
 
             double Es = 0.95;  // Emissivities? Why 0.95?

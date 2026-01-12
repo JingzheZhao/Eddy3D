@@ -33,9 +33,15 @@ namespace EddyLib.Radiation
 
         private string TwoPhaseDDSFolder = @"\TwoPhaseDDS\";
 
-        public TwoPhaseDDS(string baseWorkingDir, Mesh BuildingGeometry, List<Point3d> probes, Weather weather, bool recalc, string RadianceDir = @"C:\Program Files\Radiance")
+        public TwoPhaseDDS(string baseWorkingDir, Mesh BuildingGeometry, List<Point3d> probes, Weather weather, bool recalc, string RadianceDir = null)
 
         {
+            // Use provided dir or default
+            RadianceDir = string.IsNullOrWhiteSpace(RadianceDir) ? DefaultDirectoriesAndPaths.RadianceDir : RadianceDir;
+
+            // Verify Radiance
+            DefaultDirectoriesAndPaths.CheckRadiance(RadianceDir);
+
             string csvDDS = Path.Combine(baseWorkingDir + fileName + del + fileNameCSVExtension);
             string binDDS = Path.Combine(baseWorkingDir + fileName + del + fileNameBinExtension);
 
@@ -89,7 +95,7 @@ namespace EddyLib.Radiation
             }
         }
 
-        protected void RunDDS(string baseWorkingDir, string subfolder, Mesh BuildingGeometry, List<Point3d> probes, Weather weather, bool run, string RadianceDir = @"C:\Program Files\Radiance")
+        protected void RunDDS(string baseWorkingDir, string subfolder, Mesh BuildingGeometry, List<Point3d> probes, Weather weather, bool run, string RadianceDir = null)
         {
             var numberOfProbes = probes.Count;
 
@@ -221,6 +227,8 @@ namespace EddyLib.Radiation
             string command = @"
 
         cd " + baseWorkingDir + @"
+        SET RAYPATH=.;" + DefaultDirectoriesAndPaths.RadianceLibDir + @"
+        SET PATH=" + DefaultDirectoriesAndPaths.RadianceBinDir + @";%PATH%
 
         REM ###################################
         REM Pre

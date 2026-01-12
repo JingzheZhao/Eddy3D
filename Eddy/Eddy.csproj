@@ -115,11 +115,14 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Resources.Extensions, Version=9.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Resources.Extensions.9.0.0\lib\net462\System.Resources.Extensions.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\0_Utilities\0_InstallEngines_Component.cs" />
     <Compile Include="Components\1_Wind\6_InterpolateUMag.cs" />
     <Compile Include="Components\1_Wind\7_CompTree.cs" />
     <Compile Include="Components\1_Wind\4o_CompLBAnalPeriod2Hours.cs" />
@@ -160,7 +163,7 @@
     <Compile Include="Components\2_Radiation\3_MRT_Simulation_Component.cs" />
     <Compile Include="Components\3_PostProcessing\Hidden\2_ComfortSystem_Component.cs" />
     <Compile Include="Components\1_Wind\3_CompRunSettings.cs" />
-    <Compile Include="Components\0_Templates\1_CompTemplates.cs" />
+    <Compile Include="Components\0_Utilities\1_CompTemplates.cs" />
     <Compile Include="Components\1_Wind\1_CompBCondABL.cs" />
     <Compile Include="Components\1_Wind\1_CompBCondConstantU.cs" />
     <Compile Include="Components\1_Wind\4_CompCellSize.cs" />
@@ -497,25 +500,7 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>Copy "$(TargetPath)" "$(TargetDir)$(ProjectName).gha"
-Erase "$(TargetPath)"
-
-SET build_eddy=$(SolutionDir)Eddy\bin
-SET INSTALLDIR=%25APPDATA%25\Eddy3D
-if not exist "%25INSTALLDIR%25" mkdir "%25INSTALLDIR%25"
-
-if $(ConfigurationName)==Debug (
-xcopy /e /v  /y "%25build_eddy%25" "%25INSTALLDIR%25"
-xcopy /e /v  /y "$(SolutionDir)Templates\*" "%25INSTALLDIR%25\Templates\"
-)
-if $(ConfigurationName)==Release (
-xcopy /e /v  /y "%25build_eddy%25" "%25INSTALLDIR%25"
-xcopy /e /v  /y "$(SolutionDir)Templates\*" "%25INSTALLDIR%25\Templates\"
-)
-
-for /f "delims=" %25%25i in ("$(ProjectDir)bin") do echo %25%25~fi &gt; "%25APPDATA%25\Grasshopper\Libraries\Eddy3D-Dev.ghlink"
-"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /Qp "$(SolutionDir)Build\BuildInstaller.iss"
-</PostBuildEvent>
+    <PostBuildEvent>Copy "$(TargetPath)" "$(TargetDir)$(ProjectName).gha" &amp; Erase "$(TargetPath)" &amp; SET build_eddy=$(ProjectDir)bin &amp; SET INSTALLDIR=%25APPDATA%25\Eddy3D &amp; if not exist "%25INSTALLDIR%25" mkdir "%25INSTALLDIR%25" &amp; if "$(Configuration)"=="Debug" ( xcopy /e /v /y "%25build_eddy%25" "%25INSTALLDIR%25" &amp; xcopy /e /v /y "$(ProjectDir)..\Templates\*" "%25INSTALLDIR%25\Templates\" ) &amp; if "$(Configuration)"=="Release" ( xcopy /e /v /y "%25build_eddy%25" "%25INSTALLDIR%25" &amp; xcopy /e /v /y "$(ProjectDir)..\Templates\*" "%25INSTALLDIR%25\Templates\" ) &amp; for /f "delims=" %25%25i in ("$(ProjectDir)bin") do echo %25%25~fi &gt; "%25APPDATA%25\Grasshopper\Libraries\Eddy3D-Dev.ghlink" &amp; if exist "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /Qp "$(ProjectDir)..\Build\BuildInstaller.iss"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <FallbackCulture>en-US</FallbackCulture>

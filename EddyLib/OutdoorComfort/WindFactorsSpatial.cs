@@ -23,7 +23,7 @@ namespace EddyLib.OutdoorComfort
         public WindFactorsSpatial(string baseWorkingDir, BCCollection bcond, MultiDirectionalVelocities velocityProbes, List<Point3d> probes, bool interpolate, bool recalc)
         {
             this.BCond = bcond;
-            string binWFSpatial = interpolate == false ? Path.Combine(baseWorkingDir + fileName + fileNameBinExtension) : Path.Combine(baseWorkingDir + fileName + fileNameBinExtension);
+            string binWFSpatial = interpolate == false ? Path.Combine(Utilities.Directories.FixDirectories(baseWorkingDir) + fileName + fileNameBinExtension) : Path.Combine(baseWorkingDir + fileName + fileNameBinExtension);
 
             this.SimulatedWindDirections = bcond.WindDirections;
 

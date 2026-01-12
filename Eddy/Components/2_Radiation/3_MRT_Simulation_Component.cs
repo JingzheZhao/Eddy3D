@@ -145,21 +145,15 @@ Combines:
                 DefaultDirectoriesAndPaths.EnergyPlusDir = energyPlusPath;
             }
 
-            // Check EnergyPlus
-            string epExe = Path.Combine(DefaultDirectoriesAndPaths.EnergyPlusDir, "energyplus.exe");
-            if (!File.Exists(epExe))
+            try
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
-                    "EnergyPlus v9.4.0 not found. Please install from: https://github.com/NREL/EnergyPlus/releases/tag/v9.4.0");
-                return;
+                // Check Engines
+                DefaultDirectoriesAndPaths.CheckEnergyPlus();
+                DefaultDirectoriesAndPaths.CheckRadiance();
             }
-
-            // Check Radiance
-            string radExe = Path.Combine(DefaultDirectoriesAndPaths.RadianceDir, "rad.exe");
-            if (!File.Exists(radExe))
+            catch (FileNotFoundException ex)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
-                   "Radiance not found. Please install from: https://github.com/LBNL-ETA/Radiance/releases");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, ex.Message);
                 return;
             }
             Weather weather = new Weather(weatherPath);

@@ -172,8 +172,8 @@ namespace EddyLib.Radiation
             // cnt | rcalc
             using (var stream = new FileStream(sunsOut, FileMode.Append, FileAccess.Write))
             {
-                var cmdCnt = Command.Run(Path.Combine(DefaultDirectoriesAndPaths.RadianceDir, "cnt"), new[] { cntNum.ToString() }, options => options.WorkingDirectory(BaseWorkingDir));
-                var cmdRcalc = Command.Run(Path.Combine(DefaultDirectoriesAndPaths.RadianceDir, "rcalc"), 
+                var cmdCnt = Command.Run(Path.Combine(DefaultDirectoriesAndPaths.RadianceBinDir, "cnt"), new[] { cntNum.ToString() }, options => options.WorkingDirectory(BaseWorkingDir));
+                var cmdRcalc = Command.Run(Path.Combine(DefaultDirectoriesAndPaths.RadianceBinDir, "rcalc"), 
                     new[] { "-e", "MF:4", "-f", reinsrc, "-e", "Rbin=recno", "-o", "solar source sun 0 0 4 ${Dx} ${Dy} ${Dz} 0.533" }, 
                     options => options.WorkingDirectory(BaseWorkingDir));
 
