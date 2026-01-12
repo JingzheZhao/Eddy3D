@@ -20,7 +20,7 @@ namespace RhinoPlugin.Test.Xunit
             Cyl
         }
 
-        [Theory]
+        [NotWindowsServerTheory]
         [InlineData(DomainKind.Box, 13.0, 6.2, 7.9, 23)]
         [InlineData(DomainKind.Cyl, 13.9, 6.82, 7.1, 28)]
         public void SetUpBC_ReturnCorrectBC(

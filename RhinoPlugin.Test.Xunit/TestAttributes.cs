@@ -7,7 +7,7 @@ namespace RhinoPlugin.Test.Xunit
 {
     internal static class WindowsServerSkip
     {
-        internal const string Reason = "Skipping test on Windows Server (CI/CD environment).";
+        internal const string Reason = "Skipping test on Windows Server (CI/CD environment) due to special Rhino license necessary.";
 
         internal static string GetReason()
         {

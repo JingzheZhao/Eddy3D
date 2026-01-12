@@ -18,7 +18,7 @@ namespace RhinoPlugin.Test.Xunit
             _output = output;
         }
 
-        [RhinoRequiredFact]
+        [NotWindowsServerFact]
         public void CreateIndoorDomain_SimpleRoom_ReturnsValidDomain()
         {
             // 1. Create Geometry
@@ -107,7 +107,7 @@ namespace RhinoPlugin.Test.Xunit
             _output.WriteLine("Indoor Domain created successfully.");
         }
 
-        [RhinoRequiredFact]
+        [NotWindowsServerFact]
         public void CreateIndoorDomain_WithCO2Emitter_ReturnsValidDomain()
         {
             // 1. Create Geometry (Same as simple room)
@@ -186,7 +186,7 @@ namespace RhinoPlugin.Test.Xunit
             _output.WriteLine("Indoor Domain with CO2 Emitter created successfully.");
         }
 
-        [RhinoRequiredFact]
+        [NotWindowsServerFact]
         public void CreateIndoorDomain_FullSetup_GeneratesCaseFiles()
         {
             // 1. Create Geometry

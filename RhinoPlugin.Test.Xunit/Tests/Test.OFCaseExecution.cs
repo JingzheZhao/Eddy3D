@@ -103,7 +103,7 @@ namespace RhinoPlugin.Test.Xunit
             return (success, "See terminal window for output.");
         }
 
-        [Theory]
+        [NotWindowsServerTheory]
         [InlineData(5)]
         [InlineData(45)]
         [InlineData(90)]

@@ -10,7 +10,7 @@ namespace RhinoPlugin.Test.Xunit
     [Collection("Rhino Collection")]
     public class SlurmRunnerTests
     {
-        [Fact]
+        [NotWindowsServerFact]
         public void SlurmRunner_WritesScriptsPerWindDir()
         {
             var root = TestFixtures.CreateTestDirectory("testcase-slurm");

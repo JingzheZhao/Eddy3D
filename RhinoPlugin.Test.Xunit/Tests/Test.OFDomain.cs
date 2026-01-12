@@ -44,7 +44,7 @@ namespace RhinoPlugin.Test.Xunit
             }
         }
 
-        [Fact]
+        [NotWindowsServerFact]
         public void CreateCylDomain_PredefinedGeometry_ReturnCorrectMesh()
         {
             // Arrange
@@ -81,7 +81,7 @@ namespace RhinoPlugin.Test.Xunit
             Assert.Equal(1042, DOMCYL.DomainMesh.Vertices.Count);
         }
 
-        [Theory]
+        [NotWindowsServerTheory]
         [InlineData(true)]
         [InlineData(false)]
         public void PassProperBoundaryConditions_Returns9DifferentWindDirs(bool useListConstructor)
@@ -110,7 +110,7 @@ namespace RhinoPlugin.Test.Xunit
             return bcColl;
         }
 
-        [Fact]
+        [NotWindowsServerFact]
         public void CreateBoxDomain_PredefinedGeometry_ReturnCorrectMesh()
         {
             // Arrange
