@@ -41,39 +41,7 @@ Workflow:
         {
         }
 
-        protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
-        {
-            base.AppendAdditionalComponentMenuItems(menu);
-            Menu_AppendItem(menu, "Docker to call OpenFOAM", Menu_DoClick, true, !runWithBlueCFD);
-        }
 
-        private void Menu_DoClick(object sender, EventArgs e)
-        {
-            runWithBlueCFD = !runWithBlueCFD;
-            ExpireSolution(true);
-        }
-
-        public bool runWithBlueCFD = true;
-
-        //public bool runWithBlueCFD;
-
-        public override bool Write(GH_IO.Serialization.GH_IWriter writer)
-        {
-            // First add our own field.
-            writer.SetBoolean("runWithBlueCFD", runWithBlueCFD);
-
-            // Then call the base class implementation.
-            return base.Write(writer);
-        }
-
-        public override bool Read(GH_IO.Serialization.GH_IReader reader)
-        {
-            // First read our own field.
-            runWithBlueCFD = reader.GetBoolean("runWithBlueCFD");
-
-            // Then call the base class implementation.
-            return base.Read(reader);
-        }
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -146,8 +114,8 @@ Workflow:
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             // mode to select simulation environment
-            if (runWithBlueCFD) { Message = "BlueCFD"; }
-            else { Message = "Docker"; }
+            // mode to select simulation environment
+            Message = "BlueCFD";
 
             // read inputs
             //------------
@@ -194,11 +162,7 @@ Workflow:
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "To use multiple CPUs, you need to ensure to use the same msmpi.dll for both Windows and BlueCFD. This is a BlueCFD issue and will hopefully be fixed in a future version."); return;
             }
 
-            //crashes rhino
-            if (!runWithBlueCFD)
-            {
-                RunSettings.simEngine = SimEngine.Docker;
-            }
+
 
             // working directory
             //------------------
@@ -284,15 +248,7 @@ Workflow:
 
             // Check if Docker is running if Docker is the sim engine
 
-            if (RunSettings.simEngine == SimEngine.Docker)
-            {
-                Utilities.Docker.WriteDockerInfo(baseWorkingDirectory);
 
-                if (!Utilities.Docker.IsDockerRunning(baseWorkingDirectory, RunSettings.ostype))
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Blank, @"It seems that Docker is not running. Please start the application ""Docker for Windows"".");
-                }
-            }
 
             if (RunSettings.iter == 0 || RunSettings.keepTimeSteps == 0 || RunSettings.writeInterval == 0)
             {

@@ -33,7 +33,7 @@ namespace EddyLib.Radiation
 
             public string DaysimBinDir;
 
-            private const string windows_root = @"C:\Eddy3D\Common\";
+            private string windows_root =  DefaultDirectoriesAndPaths.Eddy3DInstallDir;
 
             private const string linux_root = "/opt/diva";
 

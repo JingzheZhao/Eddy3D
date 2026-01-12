@@ -54,7 +54,7 @@ Combines:
             pManager.AddTextParameter(
                 "Weather File", "EPW", 
                 "Path to EnergyPlus weather file (.epw) for climate data.", 
-                GH_ParamAccess.item, DefaultDirectoriesAndPaths.DefaultWeather);
+                GH_ParamAccess.item);
 
             pManager.AddGenericParameter(
                 "Surfaces", "Srf", 
@@ -80,13 +80,13 @@ Combines:
 
             pManager.AddTextParameter(
                 "Radiance Path", "RadPath", 
-                @"Optional: Custom Radiance bin folder. Default: C:\Eddy3D\Common\Radiance\bin", 
+                @"Optional: Custom Radiance bin folder. Default: " + DefaultDirectoriesAndPaths.RadianceBinDir, 
                 GH_ParamAccess.item, "");
             pManager[6].Optional = true;
 
             pManager.AddTextParameter(
                 "EnergyPlus Path", "EPPath", 
-                @"Optional: Custom EnergyPlus folder. Default: C:\Eddy3D\Common\EnergyPlusV9-4-0", 
+                @"Optional: Custom EnergyPlus folder. Default: " + DefaultDirectoriesAndPaths.EnergyPlusDir , 
                 GH_ParamAccess.item, "");
             pManager[7].Optional = true;
 
@@ -143,6 +143,24 @@ Combines:
             if (!string.IsNullOrWhiteSpace(energyPlusPath))
             {
                 DefaultDirectoriesAndPaths.EnergyPlusDir = energyPlusPath;
+            }
+
+            // Check EnergyPlus
+            string epExe = Path.Combine(DefaultDirectoriesAndPaths.EnergyPlusDir, "energyplus.exe");
+            if (!File.Exists(epExe))
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
+                    "EnergyPlus v9.4.0 not found. Please install from: https://github.com/NREL/EnergyPlus/releases/tag/v9.4.0");
+                return;
+            }
+
+            // Check Radiance
+            string radExe = Path.Combine(DefaultDirectoriesAndPaths.RadianceDir, "rad.exe");
+            if (!File.Exists(radExe))
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
+                   "Radiance not found. Please install from: https://github.com/LBNL-ETA/Radiance/releases");
+                return;
             }
             Weather weather = new Weather(weatherPath);
 

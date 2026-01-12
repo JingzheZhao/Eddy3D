@@ -189,7 +189,7 @@ namespace RhinoPlugin.Test.Xunit
             ////             {'erf': 42.9, 'delta_mrt': 10.3}
         }
 
-        [NotWindowsServerTheory]
+        [NotWindowsServerFact]
         [Trait("Category", "Execution")]
         public void ViewFactors()
         {
@@ -338,7 +338,7 @@ namespace RhinoPlugin.Test.Xunit
         }
 
         private readonly string RadiancePath = @"C:\Program Files\Radiance\bin"; // Replace with your folder path
-        private readonly string EddyRadiancePath = @"C:\Eddy3D\Common\Radiance\bin";
+        private readonly string EddyRadiancePath = DefaultDirectoriesAndPaths.RadianceBinDir;
 
         private readonly string[] RadianceExecutables = new string[]
         {
@@ -488,7 +488,7 @@ namespace RhinoPlugin.Test.Xunit
             return true; // All executables were found
         }
 
-        [NotWindowsServerTheory]
+        [NotWindowsServerFact]
         [Trait("Category", "Execution")]
         public void UTCI()
         {

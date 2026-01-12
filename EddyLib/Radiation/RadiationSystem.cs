@@ -239,8 +239,7 @@ namespace EddyLib.Radiation
 
         private Dictionary<string, string> GetRadianceEnvironment()
         {
-             // string radbin = @"C:\Eddy3D\Common\Radiance\bin";
-             // string radlib = @"C:\Eddy3D\Common\Radiance\lib";
+             
              // Using DefaultDirectoriesAndPaths
              string radbin = DefaultDirectoriesAndPaths.RadianceBinDir; 
              string radlib = DefaultDirectoriesAndPaths.RadianceLibDir;

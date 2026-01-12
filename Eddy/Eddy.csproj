@@ -500,10 +500,8 @@
     <PostBuildEvent>Copy "$(TargetPath)" "$(TargetDir)$(ProjectName).gha"
 Erase "$(TargetPath)"
 
-SET obfuscar=$(SolutionDir)packages\Obfuscar.2.2.39\tools\Obfuscar.Console.exe
 SET build_eddy=$(SolutionDir)Eddy\bin
-SET build_batchrunner=$(SolutionDir)CallBatchRunner\bin
-SET INSTALLDIR=%25USERPROFILE%25\Eddy3D
+SET INSTALLDIR=%25APPDATA%25\Eddy3D
 if not exist "%25INSTALLDIR%25" mkdir "%25INSTALLDIR%25"
 
 if $(ConfigurationName)==Debug (
@@ -515,28 +513,8 @@ xcopy /e /v  /y "%25build_eddy%25" "%25INSTALLDIR%25"
 xcopy /e /v  /y "$(SolutionDir)Templates\*" "%25INSTALLDIR%25\Templates\"
 )
 
-if $(ConfigurationName)==Release (
-REM --------
-REM DOTFUSCATOR
-REM --------
-REM "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\PreEmptiveSolutions\DotfuscatorCE\dotfuscatorCLI.exe" "$(SolutionDir)\Build\Dotfuscator_TD.xml"
-REM xcopy /e /v  /y "$(SolutionDir)\Build\Dotfuscated" "%25INSTALLDIR%25"
-
-REM --------
-REM OBFUSCAR
-REM --------
-if not exist "$(SolutionDir)Build\Obfuscator_Input" mkdir "$(SolutionDir)Build\Obfuscator_Input"
-if not exist "$(SolutionDir)Build\Obfuscator_Output" mkdir "$(SolutionDir)Build\Obfuscator_Output"
-xcopy /e /v  /y "%25build_eddy%25" "$(SolutionDir)Build\Obfuscator_Input"
-xcopy /e /v  /y "$(SolutionDir)Templates\*" "$(SolutionDir)Build\Obfuscator_Input\Templates\"
-xcopy /e /v  /y "$(SolutionDir)packages\Grasshopper.8.8.24170.13001\lib\net48" "$(SolutionDir)\Build\Obfuscator_Input"
-xcopy /e /v  /y "$(SolutionDir)packages\RhinoCommon.8.8.24170.13001\lib\net48" "$(SolutionDir)\Build\Obfuscator_Input"
-"%25obfuscar%25" "$(SolutionDir)Build\ObfuscarConfig.xml"
-xcopy /e /v  /y "$(SolutionDir)Build\Obfuscator_Output" "%25INSTALLDIR%25"
-)
-
-
-
+for /f "delims=" %25%25i in ("$(ProjectDir)bin") do echo %25%25~fi &gt; "%25APPDATA%25\Grasshopper\Libraries\Eddy3D-Dev.ghlink"
+"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /Qp "$(SolutionDir)Build\BuildInstaller.iss"
 </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>

@@ -1,1 +1,0 @@
-#define GDrive "X:\Patrick\Eddy\Installer\AdditionalComponents"
