@@ -127,7 +127,7 @@ namespace Eddy
         {
             get
             {
-                return null; // Todo: Add icon
+                return Resources.Eddy3D_install;
             }
         }
 
