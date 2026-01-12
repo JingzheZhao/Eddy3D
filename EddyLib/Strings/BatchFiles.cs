@@ -575,7 +575,7 @@ namespace EddyLib.Strings
 
                 if (runMode == RunMode.Batchfile)
                 {
-                    sb.AppendLine($@"REM cd {caseDirQuoted}");
+                    //sb.AppendLine($@"REM cd {caseDirQuoted}");
                     sb.AppendLine($@"cd /d ""%~dp0{caseLeaf}""");
                 }
                 else
