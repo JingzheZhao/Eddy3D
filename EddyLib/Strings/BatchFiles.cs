@@ -719,7 +719,7 @@ namespace EddyLib.Strings
             sb.AppendLine("    )");
             sb.AppendLine(")");
             sb.AppendLine("echo Created: %CREATED%   Skipped/Failed: %SKIPPED%");
-            sb.AppendLine("pause");
+            sb.AppendLine("timeout /t 5 /nobreak >nul");
             return sb.ToString();
         }
     }
