@@ -78,22 +78,19 @@ Combines:
                 GH_ParamAccess.item, "");
             pManager[5].Optional = true;
 
-            pManager.AddTextParameter(
-                "Radiance Path", "RadPath", 
-                @"Optional: Custom Radiance bin folder. Default: " + DefaultDirectoriesAndPaths.RadianceBinDir, 
-                GH_ParamAccess.item, "");
-            pManager[6].Optional = true;
+            pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item, false);
 
             pManager.AddTextParameter(
-                "EnergyPlus Path", "EPPath", 
-                @"Optional: Custom EnergyPlus folder. Default: " + DefaultDirectoriesAndPaths.EnergyPlusDir , 
+                "Radiance Folder", "RadFolder", 
+                @"Optional: Custom Radiance installation folder. Default: " + DefaultDirectoriesAndPaths.RadianceDir, 
                 GH_ParamAccess.item, "");
             pManager[7].Optional = true;
 
-            pManager.AddBooleanParameter(
-                "Run", "Run!", 
-                "Set True to execute MRT simulation.", 
-                GH_ParamAccess.item, false);
+            pManager.AddTextParameter(
+                "EnergyPlus Folder", "EPFolder", 
+                @"Optional: Custom EnergyPlus installation folder. Default: " + DefaultDirectoriesAndPaths.EnergyPlusDir, 
+                GH_ParamAccess.item, "");
+            pManager[8].Optional = true;
         }
 
         /// <summary>
@@ -133,8 +130,8 @@ Combines:
             // Set custom engine paths if provided
             string radiancePath = "";
             string energyPlusPath = "";
-            DA.GetData(6, ref radiancePath);
-            DA.GetData(7, ref energyPlusPath);
+            DA.GetData(7, ref radiancePath);
+            DA.GetData(8, ref energyPlusPath);
             if (!string.IsNullOrWhiteSpace(radiancePath))
             {
                 DefaultDirectoriesAndPaths.RadianceDir = radiancePath;
@@ -240,7 +237,7 @@ Combines:
 
             bool RUN = false;
             bool HidePopUp = false;
-            DA.GetData(8, ref RUN);
+            if (!DA.GetData(6, ref RUN)) return;
 
             // ---------------------
             // Setup probes

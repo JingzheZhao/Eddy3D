@@ -127,7 +127,7 @@ Configures the simulation engine, including calculation iterations, convergence 
             pManager[9].Optional = true;
 
             //10
-            pManager.AddTextParameter("BlueCFD Path", "CFD", "Custom BlueCFD installation path. Default: C:\\Program Files\\blueCFD-Core-2020", GH_ParamAccess.item, "");
+            pManager.AddTextParameter("BlueCFD Folder", "CFDFolder", "Optional: Custom BlueCFD installation folder. Default: " + DefaultDirectoriesAndPaths.BlueCfdDir, GH_ParamAccess.item, "");
             pManager[10].Optional = true;
         }
 

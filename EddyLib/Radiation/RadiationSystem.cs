@@ -315,6 +315,7 @@ namespace EddyLib.Radiation
         public void LoadDDSData(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
             Console.WriteLine("Compute dMRT");
+            
             // Load paths using helper fields
             var totalIll = LoadDDSIll(Path.Combine(BaseWorkingDir, annualR_total_ill_out));
             var dirIll = LoadDDSIll(Path.Combine(BaseWorkingDir, annualR_dir_ill_out));
@@ -330,8 +331,6 @@ namespace EddyLib.Radiation
                 Probes[i].DirRad = new float[dirIll.Length];
                 Probes[i].SolarGain_dMRT = new float[dMRT.Length];
 
-                 // Parallel copy if large data? Inner loop is 8760. Outer is probe count.
-                 // Manual copy is fast enough usually.
                 for (int h = 0; h < totalIll.Length; h++)
                 {
                     Probes[i].TotalRad[h] = totalIll[h][i];
@@ -435,7 +434,7 @@ namespace EddyLib.Radiation
             var data = new float[illLines.Length - skip][];
             Parallel.For(skip, illLines.Length, i => {
                 var parts = illLines[i].Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-                data[i - skip] = parts.Skip(1).Select(float.Parse).ToArray();
+                data[i - skip] = parts.Select(s => float.Parse(s, CultureInfo.InvariantCulture)).ToArray();
             });
             
             return data;

@@ -542,11 +542,14 @@ namespace EddyLib.Strings
                 IEnumerable<string> commands,
                 string caseDir,
                 RunMode runMode = RunMode.Batchfile,
-                string installationPath = @"C:\Program Files\blueCFD-Core-2020\",
+                string installationPath = null,
                 string logFile = "log.txt")
             {
                 if (commands is null) throw new ArgumentNullException(nameof(commands));
                 if (string.IsNullOrWhiteSpace(caseDir)) throw new ArgumentException("caseDir is required.", nameof(caseDir));
+
+                // Use default if null
+                installationPath = installationPath ?? DefaultDirectoriesAndPaths.BlueCfdDir;
 
                 // Normalize paths
                 installationPath = EnsureTrailingBackslash(installationPath);

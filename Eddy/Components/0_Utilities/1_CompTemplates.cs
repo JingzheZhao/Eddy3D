@@ -25,7 +25,7 @@ Templates include wind comfort studies, MRT analysis, and
 indoor airflow simulations. Found in C:\Eddy3D\Templates.
 
 " + EddyVersion.toString(),
-              EddyVersion.Name, "0 | Load Templates")
+              EddyVersion.Name, "0 | Utilities")
         {
         }
 
