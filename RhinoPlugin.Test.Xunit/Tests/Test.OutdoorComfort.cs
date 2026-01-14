@@ -588,5 +588,54 @@ namespace RhinoPlugin.Test.Xunit
         }
 
         #endregion
+
+        #region DDS File Parsing Tests
+
+        /// <summary>
+        /// Tests that LoadDDSIll correctly parses illumination files with leading whitespace
+        /// and tab-separated values. This test verifies the fix for a regression where
+        /// Skip(1) incorrectly skipped the first data value after RemoveEmptyEntries.
+        /// </summary>
+        [Fact]
+        public void LoadDDSIll_ParsesCorrectNumberOfColumns()
+        {
+            // Arrange - Create a test .ill file with the Radiance format
+            var workingDir = TestFixtures.CreateTestDirectory("dds-parsing-test");
+            var radDir = Path.Combine(workingDir, "Rad", "output");
+            Directory.CreateDirectory(radDir);
+
+            var illFilePath = Path.Combine(radDir, "test.ill");
+            var illContent = @"#?RADIANCE
+NROWS=3
+NCOLS=5
+FORMAT=ascii
+
+ 1.0	2.0	3.0	4.0	5.0	
+ 6.0	7.0	8.0	9.0	10.0	
+ 11.0	12.0	13.0	14.0	15.0	
+";
+            File.WriteAllText(illFilePath, illContent);
+
+            // Act - Parse using reflection since LoadDDSIll is private
+            var radiationSystemType = typeof(EddyLib.Radiation.RadiationSystem);
+            var loadDDSIllMethod = radiationSystemType.GetMethod("LoadDDSIll", 
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+
+            Assert.NotNull(loadDDSIllMethod);
+
+            var result = (float[][])loadDDSIllMethod.Invoke(null, new object[] { illFilePath });
+
+            // Assert
+            Assert.Equal(3, result.Length); // 3 rows
+            Assert.Equal(5, result[0].Length); // 5 columns per row
+            Assert.Equal(1.0f, result[0][0]);
+            Assert.Equal(5.0f, result[0][4]);
+            Assert.Equal(15.0f, result[2][4]);
+
+            // Cleanup
+            Directory.Delete(workingDir, true);
+        }
+
+        #endregion
     }
 }

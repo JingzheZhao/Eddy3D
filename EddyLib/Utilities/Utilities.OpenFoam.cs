@@ -216,7 +216,7 @@ umsLUTColorBar.RangeLabelFormat = '%-#6.1f'
         public static string GetGnuplotPath(OFRunSettings runSettings, int version)
         {
             const string windowsPath = @"C:\Program Files\gnuplot\bin\gnuplot.exe";
-            const string blueCfdPath = @"C:\Program Files\blueCFD-Core-2020\msys64\mingw64\bin\gnuplot.exe";
+            string blueCfdPath = Path.Combine(DefaultDirectoriesAndPaths.BlueCfdDir, @"msys64\mingw64\bin\gnuplot.exe");
 
             if (version == 0 && runSettings.WindowsGnuplotInstalled)
                 return windowsPath;
@@ -237,7 +237,7 @@ umsLUTColorBar.RangeLabelFormat = '%-#6.1f'
         {
             const string programFilesX86 = @"C:\Program Files (x86)\";
             const string programFiles = @"C:\Program Files\";
-            const string blueCfdPath = @"C:\Program Files\blueCFD-Core-2020\AddOns\ParaView\bin\paraview.exe";
+            string blueCfdPath = Path.Combine(DefaultDirectoriesAndPaths.BlueCfdDir, @"AddOns\ParaView\bin\paraview.exe");
 
             if (version == 2)
                 return blueCfdPath;

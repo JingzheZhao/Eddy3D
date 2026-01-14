@@ -26,7 +26,7 @@ namespace EddyLib
         public static string RadianceDir
         {
             get => _radianceDir;
-            set => _radianceDir = string.IsNullOrWhiteSpace(value) ? Path.Combine(_baseDir, @"Radiance_012cb178_Windows\") : value;
+            set => _radianceDir = NormalizeEnginePath(value, Path.Combine(_baseDir, @"Radiance_012cb178_Windows"));
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace EddyLib
         public static string EnergyPlusDir
         {
             get => _energyPlusDir;
-            set => _energyPlusDir = string.IsNullOrWhiteSpace(value) ? @"C:\EnergyPlusV9-4-0" : value;
+            set => _energyPlusDir = NormalizeEnginePath(value, @"C:\EnergyPlusV9-4-0");
         }
 
         /// <summary>
@@ -55,7 +55,40 @@ namespace EddyLib
         public static string BlueCfdDir
         {
             get => _blueCfdDir;
-            set => _blueCfdDir = string.IsNullOrWhiteSpace(value) ? @"C:\Program Files\blueCFD-Core-2020" : value;
+            set => _blueCfdDir = NormalizeEnginePath(value, @"C:\Program Files\blueCFD-Core-2020");
+        }
+
+        private static string NormalizeEnginePath(string path, string defaultPath)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return defaultPath;
+            
+            // Clean up basic formatting
+            string normalized = path.Trim().TrimEnd('\\', '/');
+
+            // Handle Grasshopper boolean strings ("True"/"False") from legacy template wire crossings
+            if (normalized.Equals("true", StringComparison.OrdinalIgnoreCase) || 
+                normalized.Equals("false", StringComparison.OrdinalIgnoreCase))
+            {
+                return defaultPath;
+            }
+
+            // If user accidentally pointed to the bin folder, go up one level
+            if (normalized.EndsWith(@"\bin", StringComparison.OrdinalIgnoreCase) || 
+                normalized.EndsWith(@"/bin", StringComparison.OrdinalIgnoreCase) ||
+                normalized.Equals("bin", StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    string parent = Path.GetDirectoryName(normalized);
+                    if (!string.IsNullOrEmpty(parent))
+                    {
+                        normalized = parent;
+                    }
+                }
+                catch { /* Ignore invalid paths, let CheckRadiance catch them */ }
+            }
+
+            return normalized;
         }
 
         /// <summary>
@@ -102,6 +135,26 @@ namespace EddyLib
             if (!File.Exists(epExe))
             {
                 throw new FileNotFoundException($"EnergyPlus executable (energyplus.exe) not found in: {EnergyPlusDir}. Please ensure EnergyPlus v9.4.0 is correctly installed.");
+            }
+        }
+
+        /// <summary>
+        /// Verifies blueCFD installation and throws if missing.
+        /// </summary>
+        public static void CheckBlueCfd()
+        {
+            if (string.IsNullOrWhiteSpace(BlueCfdDir) || !Directory.Exists(BlueCfdDir))
+            {
+                throw new FileNotFoundException($"blueCFD directory not found at: {BlueCfdDir ?? "null"}. Please install blueCFD-Core 2020-1 to {BlueCfdDir}.");
+            }
+
+            // Based on user feedback for blueCFD-Core 2020
+            string setvars = Path.Combine(BlueCfdDir, "setvars_OF8.bat");
+            string readme = Path.Combine(BlueCfdDir, "README.TXT");
+
+            if (!File.Exists(setvars) && !File.Exists(readme))
+            {
+                throw new FileNotFoundException($"blueCFD core files not found in: {BlueCfdDir}. Checked for setvars_OF8.bat and README.TXT. Please ensure blueCFD-Core 2020-1 is correctly installed.");
             }
         }
     }
