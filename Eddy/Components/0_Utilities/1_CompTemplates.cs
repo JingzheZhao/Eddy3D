@@ -22,7 +22,7 @@ namespace Eddy
 @"Load example Grasshopper definitions for common workflows.
 
 Templates include wind comfort studies, MRT analysis, and 
-indoor airflow simulations. Found in C:\Eddy3D\Templates.
+indoor airflow simulations.
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "0 | Utilities")
@@ -52,8 +52,7 @@ indoor airflow simulations. Found in C:\Eddy3D\Templates.
 
             var dirs = new List<string>()
             {
-                            //Utilities.GetPathToUserHome() +   @"\Eddy3D\Templates\"
-                            @"C:\Eddy3D\Templates"
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Eddy3D\Templates")
             };
             DA.GetDataList(0, dirs);
 

@@ -508,7 +508,7 @@
       if not exist "%25INSTALLDIR%25" mkdir "%25INSTALLDIR%25"
       if "$(Configuration)"=="Debug" ( xcopy /e /v /y "%25build_eddy%25" "%25INSTALLDIR%25" &amp; xcopy /e /v /y "$(ProjectDir)..\Templates\*" "%25INSTALLDIR%25\Templates\" )
       if "$(Configuration)"=="Release" ( xcopy /e /v /y "%25build_eddy%25" "%25INSTALLDIR%25" &amp; xcopy /e /v /y "$(ProjectDir)..\Templates\*" "%25INSTALLDIR%25\Templates\" )
-      for /f "delims=" %25%25i in ("$(ProjectDir)bin") do echo %25%25~fi &gt; "%25APPDATA%25\Grasshopper\Libraries\Eddy3D-Dev.ghlink"
+      echo %25INSTALLDIR%25 &gt; "%25APPDATA%25\Grasshopper\Libraries\Eddy3D-Dev.ghlink"
       call "$(ProjectDir)..\Build\BuildInstaller.bat"
     </PostBuildEvent>
   </PropertyGroup>

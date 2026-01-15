@@ -17,7 +17,7 @@ namespace EddyLib.Strings
             // Gnuplot script for PNG output
             sb.AppendLine("# Gnuplot script for OpenFOAM residuals");
             sb.AppendLine("set terminal pngcairo size 1920,1080 enhanced font 'Arial,14'");
-            sb.AppendLine($"set output '{outputPngPath.Replace("\\", "/")}'");
+            sb.AppendLine($"set output 'residuals.png'");
             sb.AppendLine();
             sb.AppendLine("# Styling");
             sb.AppendLine("set logscale y");
@@ -61,7 +61,7 @@ namespace EddyLib.Strings
             }
             
             sb.AppendLine("# Plot the data");
-            sb.Append($"plot '{residualsPath.Replace("\\", "/")}' using 1:2 with linespoints title '{fieldNames[0]}' lw 2 pt 7 ps 0.5");
+            sb.Append($"plot 'postProcessing/residuals/0/residuals.dat' using 1:2 with linespoints title '{fieldNames[0]}' lw 2 pt 7 ps 0.5");
             
             for (int i = 1; i < Math.Min(fieldNames.Length, 6); i++)
             {

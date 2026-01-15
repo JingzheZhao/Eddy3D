@@ -268,23 +268,23 @@ namespace Eddy
 
             if (makeTrees == true && canRun)
             {
-                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_make_trees.bat", taskComplete);
+                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\Scripts\run_make_trees.bat", taskComplete);
             }
 
             if (runMeshing == true && runSimulation == true && canRun)
             {
                 Utilities.DeletePhi(MeshSettings, DOM);
-                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run.bat", taskComplete);
+                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\Scripts\run.bat", taskComplete);
             }
             else if (runMeshing == true && runSimulation == false && canRun)
             {
                 Utilities.DeletePhi(MeshSettings, DOM);
-                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_mesh.bat", taskComplete);
+                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\Scripts\run_mesh.bat", taskComplete);
             }
             else if (runMeshing == false && runSimulation == true && canRun)
             {
                 Utilities.DeletePhi(MeshSettings, DOM);
-                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\run_sim_all.bat", taskComplete);
+                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\Scripts\run_sim_all.bat", taskComplete);
             }
 
             #endregion START PROCESSES

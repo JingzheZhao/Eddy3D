@@ -451,7 +451,7 @@ namespace Eddy
                 if (!Directory.Exists(baseDirectory)) return;
                 var utf8NoBom = new UTF8Encoding(false);
 
-                string batchPath = Path.Combine(baseDirectory, "save_results_to_dataset.bat");
+                string batchPath = Path.Combine(baseDirectory, "Scripts", "save_results_to_dataset.bat");
                 if (!File.Exists(batchPath))
                 {
                     File.WriteAllText(batchPath, BatchFileContent, utf8NoBom);
@@ -466,7 +466,7 @@ namespace Eddy
 
         private const string BatchFileContent = @"@echo off
 setlocal enabledelayedexpansion
-cd /d ""%~dp0""
+cd /d ""%~dp0..""
 
 set ""LOG=save_results.log""
 echo ================================================== > ""!LOG!""

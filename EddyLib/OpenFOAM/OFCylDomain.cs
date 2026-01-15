@@ -108,7 +108,9 @@ namespace EddyLib
                 this.HasTerrain = true;
                 this.TerrainMesh = terrainMesh;
                 double zMinTerrain = OFBaseDomain.GetZMinTerrain(terrainMesh, BBox, Plane.WorldXY);
-                this.CenterGround = new Point3d(BBox.Center.X, BBox.Center.Y, zMinTerrain);
+                // Use terrain center for X/Y if available (Fix requested by user)
+                var terrainBBox = BuildBoundingBox(terrainMesh, Plane.WorldXY);
+                this.CenterGround = new Point3d(terrainBBox.Center.X, terrainBBox.Center.Y, zMinTerrain);
             }
             else
             {

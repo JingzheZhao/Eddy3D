@@ -38,11 +38,6 @@ namespace EddyLib.OpenFOAM
             {
                 Directory.CreateDirectory(logDir);
             }
-
-            if (!File.Exists(logPath))
-            {
-                File.WriteAllText(logPath, string.Empty);
-            }
         }
 
         #endregion

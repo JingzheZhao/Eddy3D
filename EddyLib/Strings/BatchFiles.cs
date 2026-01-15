@@ -320,11 +320,13 @@ namespace EddyLib.Strings
             // Add gnuplot command to plot residuals at the end
             sb.AppendLine();
             sb.AppendLine("REM Generate residuals plot");
-            sb.AppendLine($"if exist \"{caseWorkingDir}\\postProcessing\\residuals\\0\\residuals.dat\" (");
+            sb.AppendLine();
+            sb.AppendLine("REM Generate residuals plot");
+            sb.AppendLine($"if exist \"%~dp0..\\{DOM.BCond.WindDirections[d]}\\postProcessing\\residuals\\0\\residuals.dat\" (");
             sb.AppendLine($"    echo Generating residuals plot...");
-            sb.AppendLine($"    gnuplot \"{caseWorkingDir}\\plot_residuals.plt\"");
-            sb.AppendLine($"    if exist \"{caseWorkingDir}\\residuals.png\" (");
-            sb.AppendLine($"        echo Residuals plot saved to: {caseWorkingDir}\\residuals.png");
+            sb.AppendLine($"    gnuplot \"%~dp0..\\{DOM.BCond.WindDirections[d]}\\plot_residuals.plt\"");
+            sb.AppendLine($"    if exist \"%~dp0..\\{DOM.BCond.WindDirections[d]}\\residuals.png\" (");
+            sb.AppendLine($"        echo Residuals plot saved to: %~dp0..\\{DOM.BCond.WindDirections[d]}\\residuals.png");
             sb.AppendLine($"    ) else (");
             sb.AppendLine($"        echo Warning: gnuplot failed or not installed");
             sb.AppendLine($"    )");
@@ -486,11 +488,11 @@ namespace EddyLib.Strings
         public static string Run(OFBaseDomain DOM, OFMeshSettings MeshSettings)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine(@"call """ + MeshSettings.baseWorkingDir + @"run_mesh.bat""");
-            sb.AppendLine(@"call """ + MeshSettings.baseWorkingDir + @"run_checkMesh.bat""");
+            sb.AppendLine(@"call ""%~dp0run_mesh.bat""");
+            sb.AppendLine(@"call ""%~dp0run_checkMesh.bat""");
             foreach (int i in DOM.BCond.WindDirections)
             {
-                sb.AppendLine(@"call """ + MeshSettings.baseWorkingDir + i + @"_run_sim.bat""");
+                sb.AppendLine(@"call ""%~dp0" + i + @"_run_sim.bat""");
             }
 
 #if DEBUG
@@ -504,7 +506,7 @@ namespace EddyLib.Strings
             StringBuilder sb = new StringBuilder();
             foreach (int i in DOM.BCond.WindDirections)
             {
-                sb.AppendLine("call \"" + MeshSettings.baseWorkingDir + i + "_run_sim.bat\"");
+                sb.AppendLine("call \"%~dp0" + i + "_run_sim.bat\"");
             }
 #if DEBUG
             //sb.AppendLine("PAUSE");
@@ -517,7 +519,7 @@ namespace EddyLib.Strings
             StringBuilder sb = new StringBuilder();
             foreach (int i in DOM.BCond.WindDirections)
             {
-                sb.AppendLine("call \"" + MeshSettings.baseWorkingDir + i + "_run_divU.bat\"" + " <nul");
+                sb.AppendLine("call \"%~dp0" + i + "_run_divU.bat\"" + " <nul");
             }
 #if DEBUG
             //sb.AppendLine("PAUSE");
@@ -579,7 +581,7 @@ namespace EddyLib.Strings
                 if (runMode == RunMode.Batchfile)
                 {
                     //sb.AppendLine($@"REM cd {caseDirQuoted}");
-                    sb.AppendLine($@"cd /d ""%~dp0{caseLeaf}""");
+                    sb.AppendLine($@"cd /d ""%~dp0..\{caseLeaf}""");
                 }
                 else
                 {
@@ -705,7 +707,8 @@ namespace EddyLib.Strings
             var sb = new StringBuilder();
             sb.AppendLine("@echo off");
             sb.AppendLine("setlocal EnableExtensions EnableDelayedExpansion");
-            sb.AppendLine("set \"SOURCE=%~dp0mesh\\constant\\polyMesh\"");
+            sb.AppendLine("cd /d \"%~dp0..\"");
+            sb.AppendLine("set \"SOURCE=%~dp0..\\mesh\\constant\\polyMesh\"");
             sb.AppendLine("set \"CREATED=0\"");
             sb.AppendLine("set \"SKIPPED=0\"");
             sb.AppendLine("if not exist \"%SOURCE%\" (");
@@ -722,6 +725,33 @@ namespace EddyLib.Strings
             sb.AppendLine("    )");
             sb.AppendLine(")");
             sb.AppendLine("echo Created: %CREATED%   Skipped/Failed: %SKIPPED%");
+            sb.AppendLine("timeout /t 5 /nobreak >nul");
+            return sb.ToString();
+        }
+
+        public static string UpdateCoresBatch()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("@echo off");
+            sb.AppendLine("setlocal");
+            sb.AppendLine("echo Updating decomposeParDict files to use %NUMBER_OF_PROCESSORS% cores...");
+            sb.AppendLine("powershell -Command \"$cores = $env:NUMBER_OF_PROCESSORS; Get-ChildItem -Path '%~dp0..' -Recurse -Filter 'decomposeParDict' | ForEach-Object { (Get-Content $_.FullName) -replace 'numberOfSubdomains\\s+\\d+;', ('numberOfSubdomains ' + $cores + ';') | Set-Content $_.FullName }\"");
+            sb.AppendLine("echo Done.");
+            sb.AppendLine("timeout /t 5 /nobreak >nul");
+            return sb.ToString();
+        }
+
+        public static string UpdateCoresInteractiveBatch()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("@echo off");
+            sb.AppendLine("setlocal");
+            sb.AppendLine(":ask");
+            sb.AppendLine("set /p \"cores=Enter number of cores: \"");
+            sb.AppendLine("if \"%cores%\"==\"\" goto ask");
+            sb.AppendLine("echo Updating decomposeParDict files to use %cores% cores...");
+            sb.AppendLine("powershell -Command \"$cores = $env:cores; Get-ChildItem -Path '%~dp0..' -Recurse -Filter 'decomposeParDict' | ForEach-Object { (Get-Content $_.FullName) -replace 'numberOfSubdomains\\s+\\d+;', ('numberOfSubdomains ' + $cores + ';') | Set-Content $_.FullName }\"");
+            sb.AppendLine("echo Done.");
             sb.AppendLine("timeout /t 5 /nobreak >nul");
             return sb.ToString();
         }

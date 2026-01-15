@@ -43,13 +43,16 @@ namespace EddyLib
 
         private static void WriteBatchFiles(string baseWorkingDir, OFMeshSettings meshSettings, OFRunSettings runSettings, OFBaseDomain domain)
         {
+            var scriptsDir = Path.Combine(baseWorkingDir, "Scripts");
+            if (!Directory.Exists(scriptsDir)) Directory.CreateDirectory(scriptsDir);
+
             DictFileWriter.WriteBatchFile(
-                baseWorkingDir,
+                scriptsDir,
                 "run_checkMesh.bat",
                 Strings.BatFiles.Run_checkMesh(runSettings, meshSettings, domain, Strings.OFExecutionMode.Meshing));
 
             DictFileWriter.WriteBatchFile(
-                baseWorkingDir,
+                scriptsDir,
                 "run_reconstructMesh.bat",
                 Strings.BatFiles.Run_reconstructMesh(runSettings, meshSettings, domain, Strings.OFExecutionMode.Meshing));
         }

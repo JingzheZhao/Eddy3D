@@ -13,32 +13,42 @@ namespace EddyLib
 
         private static void WriteBatchFiles(string workDir, OFBaseDomain domain, OFMeshSettings meshSettings, OFRunSettings runSettings)
         {
-            DictFileWriter.WriteBatchFile(workDir, "run_mesh.bat",
+            var scriptsDir = Path.Combine(workDir, "Scripts");
+            if (!Directory.Exists(scriptsDir)) Directory.CreateDirectory(scriptsDir);
+
+            DictFileWriter.WriteBatchFile(scriptsDir, "run_mesh.bat",
                 Strings.BatFiles.Run_Mesh(runSettings, meshSettings, domain, Strings.OFExecutionMode.Meshing));
-            DictFileWriter.WriteBatchFile(workDir, "run.bat",
+            DictFileWriter.WriteBatchFile(scriptsDir, "run.bat",
                 Strings.BatFiles.Run(domain, meshSettings));
-            DictFileWriter.WriteBatchFile(workDir, "run_sim_all.bat",
+            DictFileWriter.WriteBatchFile(scriptsDir, "run_sim_all.bat",
                 Strings.BatFiles.RunSimOnly(domain, meshSettings));
-            DictFileWriter.WriteBatchFile(workDir, "run_divU_all.bat",
+            DictFileWriter.WriteBatchFile(scriptsDir, "run_divU_all.bat",
                 Strings.BatFiles.RunDivU_Only(domain, meshSettings));
-            DictFileWriter.WriteBatchFile(workDir, "run_make_trees.bat",
+            DictFileWriter.WriteBatchFile(scriptsDir, "run_make_trees.bat",
                 Strings.BatFiles.Run_Make_Trees(runSettings, meshSettings, domain, Strings.OFExecutionMode.Meshing));
-            DictFileWriter.WriteBatchFile(workDir, "symbolic_link_creator.bat",
+            DictFileWriter.WriteBatchFile(scriptsDir, "symbolic_link_creator.bat",
                 Strings.BatFiles.SymbolicLinkCreatorBatch());
+            DictFileWriter.WriteBatchFile(scriptsDir, "use_all_cores.bat",
+                Strings.BatFiles.UpdateCoresBatch());
+            DictFileWriter.WriteBatchFile(scriptsDir, "update_cores.bat",
+                Strings.BatFiles.UpdateCoresInteractiveBatch());
         }
 
         private static void WritePerDirectionBatchFiles(string workDir, OFBaseDomain domain, OFMeshSettings meshSettings, OFRunSettings runSettings)
         {
+            var scriptsDir = Path.Combine(workDir, "Scripts");
+            if (!Directory.Exists(scriptsDir)) Directory.CreateDirectory(scriptsDir);
+
             for (int i = 0; i < domain.BCond.WindDirections.Count; i++)
             {
                 int windDir = domain.BCond.WindDirections[i];
                 var caseDir = Path.Combine(workDir, windDir.ToString());
 
-                DictFileWriter.WriteBatchFile(workDir, $"{windDir}_run_sim.bat",
+                DictFileWriter.WriteBatchFile(scriptsDir, $"{windDir}_run_sim.bat",
                     Strings.BatFiles.Run_sim(meshSettings, runSettings, domain, Strings.OFExecutionMode.Simulation, i));
-                DictFileWriter.WriteBatchFile(workDir, $"{windDir}_run_sim_continue.bat",
+                DictFileWriter.WriteBatchFile(scriptsDir, $"{windDir}_run_sim_continue.bat",
                     Strings.BatFiles.Run_sim_continue(meshSettings, runSettings, domain, Strings.OFExecutionMode.Simulation, i));
-                DictFileWriter.WriteBatchFile(workDir, $"{windDir}_run_divU.bat",
+                DictFileWriter.WriteBatchFile(scriptsDir, $"{windDir}_run_divU.bat",
                     Strings.BatFiles.Run_divU(meshSettings, runSettings, domain, Strings.OFExecutionMode.Simulation, i));
 
                 WriteGnuplotScript(caseDir, windDir);
