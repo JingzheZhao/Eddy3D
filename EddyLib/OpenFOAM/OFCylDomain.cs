@@ -148,7 +148,6 @@ namespace EddyLib
             {
                 radius = sizeOuterCirc;
             }
-            this.radius = radius; // Ensure field is set
 
             // Calculate inner rectangle size
             if (sizeInnerRect == 0)
