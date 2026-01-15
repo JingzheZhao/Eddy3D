@@ -22,8 +22,8 @@ namespace EddyLib
                 Strings.BatFiles.Run(domain, meshSettings));
             DictFileWriter.WriteBatchFile(scriptsDir, "run_sim_all.bat",
                 Strings.BatFiles.RunSimOnly(domain, meshSettings));
-            DictFileWriter.WriteBatchFile(scriptsDir, "run_divU_all.bat",
-                Strings.BatFiles.RunDivU_Only(domain, meshSettings));
+            DictFileWriter.WriteBatchFile(scriptsDir, "run_postprocess_U_all.bat",
+                Strings.BatFiles.RunPostProcessU_Only(domain, meshSettings));
             DictFileWriter.WriteBatchFile(scriptsDir, "run_make_trees.bat",
                 Strings.BatFiles.Run_Make_Trees(runSettings, meshSettings, domain, Strings.OFExecutionMode.Meshing));
             DictFileWriter.WriteBatchFile(scriptsDir, "symbolic_link_creator.bat",
@@ -48,8 +48,8 @@ namespace EddyLib
                     Strings.BatFiles.Run_sim(meshSettings, runSettings, domain, Strings.OFExecutionMode.Simulation, i));
                 DictFileWriter.WriteBatchFile(scriptsDir, $"{windDir}_run_sim_continue.bat",
                     Strings.BatFiles.Run_sim_continue(meshSettings, runSettings, domain, Strings.OFExecutionMode.Simulation, i));
-                DictFileWriter.WriteBatchFile(scriptsDir, $"{windDir}_run_divU.bat",
-                    Strings.BatFiles.Run_divU(meshSettings, runSettings, domain, Strings.OFExecutionMode.Simulation, i));
+                DictFileWriter.WriteBatchFile(scriptsDir, $"{windDir}_run_postprocess_U.bat",
+                    Strings.BatFiles.Run_postprocess_U(meshSettings, runSettings, domain, Strings.OFExecutionMode.Simulation, i));
 
                 WriteGnuplotScript(caseDir, windDir);
             }

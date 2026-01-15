@@ -387,7 +387,7 @@ namespace EddyLib.Strings
             return sb.ToString();
         }
 
-        public static string Run_divU(OFMeshSettings MeshSettings, OFRunSettings RunSettings, OFBaseDomain DOM, OFExecutionMode mode, int d)
+        public static string Run_postprocess_U(OFMeshSettings MeshSettings, OFRunSettings RunSettings, OFBaseDomain DOM, OFExecutionMode mode, int d)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -514,12 +514,12 @@ namespace EddyLib.Strings
             return sb.ToString();
         }
 
-        public static string RunDivU_Only(OFBaseDomain DOM, OFMeshSettings MeshSettings)
+        public static string RunPostProcessU_Only(OFBaseDomain DOM, OFMeshSettings MeshSettings)
         {
             StringBuilder sb = new StringBuilder();
             foreach (int i in DOM.BCond.WindDirections)
             {
-                sb.AppendLine("call \"%~dp0" + i + "_run_divU.bat\"" + " <nul");
+                sb.AppendLine("call \"%~dp0" + i + "_run_postprocess_U.bat\"" + " <nul");
             }
 #if DEBUG
             //sb.AppendLine("PAUSE");
