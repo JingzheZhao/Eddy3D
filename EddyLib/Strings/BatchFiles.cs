@@ -734,8 +734,8 @@ namespace EddyLib.Strings
             var sb = new StringBuilder();
             sb.AppendLine("@echo off");
             sb.AppendLine("setlocal");
-            sb.AppendLine("echo Updating decomposeParDict files to use %NUMBER_OF_PROCESSORS% cores...");
-            sb.AppendLine("powershell -Command \"$cores = $env:NUMBER_OF_PROCESSORS; Get-ChildItem -Path '%~dp0..' -Recurse -Filter 'decomposeParDict' | ForEach-Object { (Get-Content $_.FullName) -replace 'numberOfSubdomains\\s+\\d+;', ('numberOfSubdomains ' + $cores + ';') | Set-Content $_.FullName }\"");
+            sb.AppendLine("echo Updating decomposeParDict and batch files to use %NUMBER_OF_PROCESSORS% cores...");
+            sb.AppendLine("powershell -Command \"$cores = $env:NUMBER_OF_PROCESSORS; Get-ChildItem -Path '%~dp0..' -Recurse | Where-Object { $_.Name -eq 'decomposeParDict' -or $_.Extension -eq '.bat' } | ForEach-Object { (Get-Content $_.FullName) -replace 'numberOfSubdomains\\s+\\d+;', ('numberOfSubdomains ' + $cores + ';') -replace '-np\\s+\\d+', ('-np ' + $cores) | Set-Content $_.FullName }\"");
             sb.AppendLine("echo Done.");
             sb.AppendLine("timeout /t 5 /nobreak >nul");
             return sb.ToString();
@@ -749,8 +749,8 @@ namespace EddyLib.Strings
             sb.AppendLine(":ask");
             sb.AppendLine("set /p \"cores=Enter number of cores: \"");
             sb.AppendLine("if \"%cores%\"==\"\" goto ask");
-            sb.AppendLine("echo Updating decomposeParDict files to use %cores% cores...");
-            sb.AppendLine("powershell -Command \"$cores = $env:cores; Get-ChildItem -Path '%~dp0..' -Recurse -Filter 'decomposeParDict' | ForEach-Object { (Get-Content $_.FullName) -replace 'numberOfSubdomains\\s+\\d+;', ('numberOfSubdomains ' + $cores + ';') | Set-Content $_.FullName }\"");
+            sb.AppendLine("echo Updating decomposeParDict and batch files to use %cores% cores...");
+            sb.AppendLine("powershell -Command \"$cores = $env:cores; Get-ChildItem -Path '%~dp0..' -Recurse | Where-Object { $_.Name -eq 'decomposeParDict' -or $_.Extension -eq '.bat' } | ForEach-Object { (Get-Content $_.FullName) -replace 'numberOfSubdomains\\s+\\d+;', ('numberOfSubdomains ' + $cores + ';') -replace '-np\\s+\\d+', ('-np ' + $cores) | Set-Content $_.FullName }\"");
             sb.AppendLine("echo Done.");
             sb.AppendLine("timeout /t 5 /nobreak >nul");
             return sb.ToString();
