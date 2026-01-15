@@ -17,7 +17,6 @@ namespace EddyLib.Compute
             NotificationEmail = notificationEmail;
             RAMperCPU = memPerCPU;
             DurationOfJob = durationOfJob;
-            OFloadCommand = OFloadCommand;
             Result = string.Empty;
 
             Export_SLURM_Files();

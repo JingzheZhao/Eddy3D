@@ -92,7 +92,6 @@ namespace RhinoPlugin.Test.Xunit
 
             // 5. Assertions
             Assert.NotNull(domain);
-            Assert.NotNull(domain.BoundingBox);
             Assert.Equal(100, domain.endTime);
             Assert.Equal(workingDir, domain.WorkingDir);
             

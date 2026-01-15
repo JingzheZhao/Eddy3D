@@ -130,7 +130,7 @@ namespace EddyLib.Radiation
             var hr = 6;
 
             //var Idiff = 0.2 * Idir;
-            double fsvv = 1;
+            //double fsvv = 1; never used
 
             // Floor reflectance
             // var Rfloor = 0.6;
