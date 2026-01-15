@@ -67,7 +67,7 @@ namespace RhinoPlugin.Test.Xunit
             RunSnappy.Run(domBox, meshSettings, runSettings, out _);
             RunFoamSimulation.Run(domBox, meshSettings, runSettings, caseDir);
 
-            _ = RunBatchFileInteractive(caseDir, "run.bat");
+            _ = RunBatchFileInteractive(caseDir, Path.Combine("Scripts", "run.bat"));
 
             // Assert: check log file contains the expected string
             var logFile = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
@@ -141,7 +141,7 @@ namespace RhinoPlugin.Test.Xunit
             RunFoamSimulation.Run(domCyl, meshSettings, runSettings, caseDir);
 
             // Run the simulation (simple approach)
-            _ = RunBatchFileInteractive(caseDir, "run.bat");
+            _ = RunBatchFileInteractive(caseDir, Path.Combine("Scripts", "run.bat"));
         }
 
         [NotWindowsServerFact]
@@ -215,7 +215,7 @@ namespace RhinoPlugin.Test.Xunit
 
             // Execute the batch file
             _output.WriteLine("Running simulation batch file...");
-            var (success, log) = RunBatchFileInteractive(caseDir, "run_all.bat");
+            var (success, log) = RunBatchFileInteractive(caseDir, Path.Combine("Scripts", "run_all.bat"));
 
             _output.WriteLine($"Batch execution completed. Success: {success}");
             _output.WriteLine($"Log info: {log}");
@@ -254,7 +254,7 @@ namespace RhinoPlugin.Test.Xunit
             var blockMeshDict = Path.Combine(caseDir, "mesh", "system", "blockMeshDict");
             var snappyHexMeshDict = Path.Combine(caseDir, "mesh", "system", "snappyHexMeshDict");
             var controlDict = Path.Combine(caseDir, "mesh", "system", "controlDict");
-            var runBat = Path.Combine(caseDir, "run.bat");
+            var runBat = Path.Combine(caseDir, "Scripts", "run.bat");
 
             Assert.True(File.Exists(blockMeshDict), $"blockMeshDict not found: {blockMeshDict}");
             Assert.True(File.Exists(snappyHexMeshDict), $"snappyHexMeshDict not found: {snappyHexMeshDict}");
@@ -278,7 +278,7 @@ namespace RhinoPlugin.Test.Xunit
             Assert.True(File.Exists(Path.Combine(systemDir, "blockMeshDict")), "blockMeshDict not found");
             Assert.True(File.Exists(Path.Combine(systemDir, "snappyHexMeshDict")), "snappyHexMeshDict not found");
             Assert.True(File.Exists(Path.Combine(systemDir, "controlDict")), "controlDict not found");
-            Assert.True(File.Exists(Path.Combine(caseDir, "run_all.bat")), "run_all.bat not found");
+            Assert.True(File.Exists(Path.Combine(caseDir, "Scripts", "run_all.bat")), "run_all.bat not found");
         }
 
         private static void AssertIndoorSimulationCompleted(string caseDir, int expectedEndTime)
