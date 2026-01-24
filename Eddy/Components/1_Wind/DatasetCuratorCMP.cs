@@ -7,6 +7,8 @@ using Eddy.Properties;
 using EddyLib;
 using System.IO;
 using System.Text;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Eddy
 {
@@ -145,14 +147,25 @@ namespace Eddy
                     if (dist < minDist)
                         minDist = dist;
 
+                    // Optimization: Check XY Bounding Box first
                     BoundingBox bbox = brep.GetBoundingBox(true);
-                    // Check XY bounds only (ignore Z) to handle stacked geometries
                     if (point.X >= bbox.Min.X && point.X <= bbox.Max.X &&
                         point.Y >= bbox.Min.Y && point.Y <= bbox.Max.Y)
                     {
-                        double h = bbox.Max.Z;
-                        if (h > heightHere)
-                            heightHere = h;
+                        // Ray intersection for accurate height (handles courtyards)
+                        var verticalLine = new Line(new Point3d(point.X, point.Y, -1000), new Point3d(point.X, point.Y, 1000));
+                        Curve[] overlaps;
+                        Point3d[] intersectionPts;
+                        bool hit = Rhino.Geometry.Intersect.Intersection.CurveBrep(verticalLine.ToNurbsCurve(), brep, 1e-6, out overlaps, out intersectionPts);
+                        
+                        if (hit && intersectionPts != null)
+                        {
+                            foreach (var pt in intersectionPts)
+                            {
+                                if (pt.Z > heightHere)
+                                    heightHere = pt.Z;
+                            }
+                        }
                     }
                 }
                 else if (kind == "mesh")
@@ -169,14 +182,24 @@ namespace Eddy
                     if (dist < minDist)
                         minDist = dist;
 
+                    // Optimization: Check XY Bounding Box first
                     BoundingBox bbox = mesh.GetBoundingBox(true);
-                    // Check XY bounds only (ignore Z) to handle stacked geometries
                     if (point.X >= bbox.Min.X && point.X <= bbox.Max.X &&
                         point.Y >= bbox.Min.Y && point.Y <= bbox.Max.Y)
                     {
-                        double h = bbox.Max.Z;
-                        if (h > heightHere)
-                            heightHere = h;
+                        // Ray intersection for Mesh - Shoot from sky down to find roof
+                        var verticalRay = new Ray3d(new Point3d(point.X, point.Y, 1000), -Vector3d.ZAxis);
+                        double t = Rhino.Geometry.Intersect.Intersection.MeshRay(mesh, verticalRay);
+                        
+                        if (t >= 0.0)
+                        {
+                             // Ray start is 1000. Direction is down (-1). 
+                             // Point = Start + t * Dir
+                             // Z = 1000 + t * (-1) = 1000 - t
+                             double hitZ = 1000.0 - t;
+                             if (hitZ > heightHere)
+                                 heightHere = hitZ;
+                        }
                     }
                 }
             }
@@ -253,6 +276,13 @@ namespace Eddy
                 return;
             }
 
+            var rtree = new RTree();
+            for (int i = 0; i < resolvedGeometry.Count; i++)
+            {
+                GeometryBase g = (GeometryBase)resolvedGeometry[i].Item2;
+                rtree.Insert(g.GetBoundingBox(true), i);
+            }
+
             double minZ = double.MaxValue;
             foreach (var pt in points)
             {
@@ -260,68 +290,150 @@ namespace Eddy
                     minZ = pt.Z;
             }
 
-            var sdfList = new List<double>();
-            var bldgHeightList = new List<double>();
-            var zRelativeList = new List<double>();
-            var uAtZList = new List<double>();
-            var xCoordsList = new List<double>();
-            var yCoordsList = new List<double>();
-            var dirSinList = new List<double>(); // For output, will store values for the first wind direction
-            var dirCosList = new List<double>(); // For output, will store values for the first wind direction
+            int count = points.Count;
+            var sdfArr = new double[count];
+            var bldgHeightArr = new double[count];
+            var zRelativeArr = new double[count];
+            var uAtZArr = new double[count];
+            var xCoordsArr = new double[count];
+            var yCoordsArr = new double[count];
 
-            foreach (var pt in points)
+            // Local copies for thread safety
+            double loc_pedestrianLevel = pedestrianLevel;
+            double loc_minZ = minZ;
+            double loc_zRef = zRef;
+            double loc_uRef = uRef;
+            bool loc_uRefProvided = uRefProvided;
+            var loc_resolvedGeometry = resolvedGeometry;
+            var loc_rtree = rtree;
+
+            System.Threading.Tasks.Parallel.For(0, count, i =>
             {
-                xCoordsList.Add(SafeRound(pt.X, 2));
-                yCoordsList.Add(SafeRound(pt.Y, 2));
+                Point3d pt = points[i];
+                xCoordsArr[i] = SafeRound(pt.X, 2);
+                yCoordsArr[i] = SafeRound(pt.Y, 2);
 
-                var result = ComputeSDFAndHeight(pt, resolvedGeometry);
-                double minDist = result.Item1;
-                double heightHere = result.Item2;
-                bool inside = result.Item3;
+                double minDist = double.MaxValue;
+                double heightHere = 0.0;
+                bool inside = false;
 
-                sdfList.Add(SafeRound(inside ? -minDist : minDist, 2));
-                bldgHeightList.Add(SafeRound(heightHere, 2));
+                // 1. RTree Height Search
+                var searchBox = new BoundingBox(pt.X - 1e-6, pt.Y - 1e-6, -1e10, pt.X + 1e-6, pt.Y + 1e-6, 1e10);
+                
+                loc_rtree.Search(searchBox, (sender, args) =>
+                {
+                    int geomIndex = args.Id;
+                    var geomTuple = loc_resolvedGeometry[geomIndex];
+                    string kind = geomTuple.Item1;
+                    
+                    if (kind == "brep")
+                    {
+                        Brep brep = (Brep)geomTuple.Item2;
+                        BoundingBox bbox = brep.GetBoundingBox(true); 
+                        if (pt.X >= bbox.Min.X && pt.X <= bbox.Max.X && pt.Y >= bbox.Min.Y && pt.Y <= bbox.Max.Y)
+                        {
+                            var verticalLine = new Line(new Point3d(pt.X, pt.Y, -1000), new Point3d(pt.X, pt.Y, 1000));
+                            Curve[] overlaps;
+                            Point3d[] intersectionPts;
+                            bool hit = Rhino.Geometry.Intersect.Intersection.CurveBrep(verticalLine.ToNurbsCurve(), brep, 1e-6, out overlaps, out intersectionPts);
+                            
+                            if (hit && intersectionPts != null)
+                            {
+                                foreach (var p in intersectionPts)
+                                {
+                                    if (p.Z > heightHere) heightHere = p.Z;
+                                }
+                            }
+                        }
+                    }
+                    else if (kind == "mesh")
+                    {
+                        Mesh mesh = (Mesh)geomTuple.Item2;
+                        BoundingBox bbox = mesh.GetBoundingBox(true);
+                         if (pt.X >= bbox.Min.X && pt.X <= bbox.Max.X && pt.Y >= bbox.Min.Y && pt.Y <= bbox.Max.Y)
+                        {
+                            var verticalRay = new Ray3d(new Point3d(pt.X, pt.Y, 1000), -Vector3d.ZAxis);
+                            double tVal = Rhino.Geometry.Intersect.Intersection.MeshRay(mesh, verticalRay);
+                            if (tVal >= 0.0)
+                            {
+                                double hitZ = 1000.0 - tVal;
+                                if (hitZ > heightHere) heightHere = hitZ;
+                            }
+                        }
+                    }
+                });
+
+                // 2. SDF Calculation
+                foreach (var geomTuple in loc_resolvedGeometry)
+                {
+                     string kind = geomTuple.Item1;
+                     GeometryBase geom = (GeometryBase)geomTuple.Item2;
+                     
+                     if (kind == "brep")
+                     {
+                         Brep brep = (Brep)geom;
+                         if (minDist > 0 && brep.IsPointInside(pt, 1e-6, true)) inside = true;
+                         
+                         BoundingBox bbox = brep.GetBoundingBox(true);
+                         double boxDist = bbox.ClosestPoint(pt).DistanceTo(pt);
+                         if (boxDist < minDist)
+                         {
+                             Point3d cp = brep.ClosestPoint(pt);
+                             double d = cp.DistanceTo(pt);
+                             if (d < minDist) minDist = d;
+                         }
+                     }
+                     else if (kind == "mesh")
+                     {
+                         Mesh mesh = (Mesh)geom;
+                         if (minDist > 0 && mesh.IsPointInside(pt, 1e-6, true)) inside = true;
+                         
+                         BoundingBox bbox = mesh.GetBoundingBox(true);
+                         double boxDist = bbox.ClosestPoint(pt).DistanceTo(pt);
+                         if (boxDist < minDist)
+                         {
+                             Point3d cp = mesh.ClosestPoint(pt);
+                             double d = cp.DistanceTo(pt);
+                             if (d < minDist) minDist = d;
+                         }
+                     }
+                }
+
+                if (minDist == double.MaxValue) minDist = 0.0;
+                sdfArr[i] = SafeRound(inside ? -minDist : minDist, 2);
+                bldgHeightArr[i] = SafeRound(heightHere, 2);
 
                 double sensorAbs = pt.Z;
-                double mount = sensorAbs - minZ + pedestrianLevel;
-                zRelativeList.Add(SafeRound(mount, 2));
+                double mount = sensorAbs - loc_minZ + loc_pedestrianLevel;
+                zRelativeArr[i] = SafeRound(mount, 2);
 
-                double uAtZ;
-                try
+                double uAtZ = double.NaN;
+                if (mount > 0 && loc_zRef > 0)
                 {
-                    if (mount <= 0 || zRef <= 0)
-                    {
-                        uAtZ = double.NaN;
-                    }
-                    else
-                    {
-                        double denom = Math.Log(zRef);
-                        double ratio = Math.Log(mount) / denom;
-                        uAtZ = uRef * ratio;
-                    }
+                    double denom = Math.Log(loc_zRef);
+                    double ratio = Math.Log(mount) / denom;
+                    uAtZ = loc_uRef * ratio;
                 }
-                catch
-                {
-                    uAtZ = double.NaN;
-                }
-
+                
                 double uAtZRounded = SafeRound(uAtZ, 2);
-                if (uRefProvided && uRef != 0.0 && !double.IsNaN(uAtZRounded))
-                {
-                    uAtZList.Add(SafeRound(uAtZRounded / uRef, 2));
-                }
+                if (loc_uRefProvided && loc_uRef != 0.0 && !double.IsNaN(uAtZRounded))
+                    uAtZArr[i] = SafeRound(uAtZRounded / loc_uRef, 2);
                 else
-                {
-                    uAtZList.Add(uAtZRounded);
-                }
-            }
+                    uAtZArr[i] = uAtZRounded;
+            });
 
-            DA.SetDataList(0, sdfList);
-            DA.SetDataList(1, bldgHeightList);
-            DA.SetDataList(2, zRelativeList);
-            DA.SetDataList(3, uAtZList);
-            DA.SetDataList(4, xCoordsList);
-            DA.SetDataList(5, yCoordsList);
+            // Populate Output Lists
+            DA.SetDataList(0, sdfArr);
+            DA.SetDataList(1, bldgHeightArr);
+            DA.SetDataList(2, zRelativeArr);
+            DA.SetDataList(3, uAtZArr);
+            DA.SetDataList(4, xCoordsArr);
+            DA.SetDataList(5, yCoordsArr);
+
+            // Compute DirSin/Cos for first direction
+            var dirSinList = new List<double>();
+            var dirCosList = new List<double>();
+            // ... (rest is same)
 
             if (!uRefProvided)
             {
@@ -348,8 +460,6 @@ namespace Eddy
             {
                 double currentDir = windDirs[d];
                 double rad = currentDir * Math.PI / 180.0;
-                // Consistent with previous duplication sheets logic:
-                // dir_sin = -sin(rad), dir_cos = -cos(rad) for 0 deg => (0, -1)
                 double currentDirSin = Math.Round(Clamp(-Math.Sin(rad), -1.0, 1.0), 6);
                 double currentDirCos = Math.Round(Clamp(-Math.Cos(rad), -1.0, 1.0), 6);
 
@@ -359,7 +469,7 @@ namespace Eddy
                 sb.AppendLine("X,Y,Z_relative,SDF,Bldg_height,U_at_z,dir_sin,dir_cos");
                 for (int i = 0; i < points.Count; i++)
                 {
-                    sb.AppendLine($"{xCoordsList[i]},{yCoordsList[i]},{zRelativeList[i]},{sdfList[i]},{bldgHeightList[i]},{uAtZList[i]},{currentDirSin},{currentDirCos}");
+                    sb.AppendLine($"{xCoordsArr[i]},{yCoordsArr[i]},{zRelativeArr[i]},{sdfArr[i]},{bldgHeightArr[i]},{uAtZArr[i]},{currentDirSin},{currentDirCos}");
                 }
 
                 try
@@ -372,7 +482,6 @@ namespace Eddy
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Failed to save CSV for {currentDir}°: {ex.Message}");
                 }
 
-                // For the very first direction, we populate the dir_sin/dir_cos outputs for visualization
                 if (d == 0)
                 {
                     for (int i = 0; i < points.Count; i++)

@@ -40,6 +40,7 @@ namespace Eddy
             pManager.AddNumberParameter("Y", "Y", "Y coordinate.", GH_ParamAccess.list);
             pManager.AddNumberParameter("dir_sin", "dir_sin", "Direction Sin component.", GH_ParamAccess.list);
             pManager.AddNumberParameter("dir_cos", "dir_cos", "Direction Cos component.", GH_ParamAccess.list);
+            pManager.AddGeometryParameter("brep", "brep", "Reconstructed building geometry (Boxes) from CSV data.", GH_ParamAccess.list);
         }
 
         protected override void SolveInstance(IGH_DataAccess DA)
@@ -138,6 +139,56 @@ namespace Eddy
                 DA.SetDataList(6, outputs["Y"]);
                 DA.SetDataList(7, outputs["dir_sin"]);
                 DA.SetDataList(8, outputs["dir_cos"]);
+
+                // --- Geometry Reconstruction ---
+                var brepList = new List<Brep>();
+                var xList = outputs["X"];
+                var yList = outputs["Y"];
+                var hList = outputs["Bldg_height"];
+
+                if (xList.Count > 0 && xList.Count == yList.Count && xList.Count == hList.Count)
+                {
+                    // 1. Infer Grid Size
+                    double cellSize = 1.0; // Fallback
+                    var uniqueX = xList.Distinct().OrderBy(v => v).ToList();
+                    var uniqueY = yList.Distinct().OrderBy(v => v).ToList();
+
+                    double minDx = double.MaxValue;
+                    for (int i = 0; i < uniqueX.Count - 1; i++)
+                    {
+                        double diff = uniqueX[i + 1] - uniqueX[i];
+                        if (diff < minDx && diff > 1e-4) minDx = diff;
+                    }
+
+                    double minDy = double.MaxValue;
+                    for (int i = 0; i < uniqueY.Count - 1; i++)
+                    {
+                        double diff = uniqueY[i + 1] - uniqueY[i];
+                        if (diff < minDy && diff > 1e-4) minDy = diff;
+                    }
+
+                    if (minDx < double.MaxValue && minDy < double.MaxValue)
+                        cellSize = Math.Min(minDx, minDy);
+                    else if (minDx < double.MaxValue) cellSize = minDx;
+                    else if (minDy < double.MaxValue) cellSize = minDy;
+                    
+                    // 2. Generate Boxes
+                    for (int i = 0; i < xList.Count; i++)
+                    {
+                        double h = hList[i];
+                        if (h > 0.01)
+                        {
+                            // Assume X/Y is center
+                            double x = xList[i];
+                            double y = yList[i];
+                            var plane = new Plane(new Point3d(x, y, 0), Vector3d.ZAxis);
+                            // Centered base: X and Y interval is [-size/2, size/2]
+                            var box = new Box(plane, new Interval(-cellSize / 2, cellSize / 2), new Interval(-cellSize / 2, cellSize / 2), new Interval(0, h));
+                            brepList.Add(box.ToBrep());
+                        }
+                    }
+                }
+                DA.SetDataList(9, brepList);
 
                 Message = $"Rows: {outputs["SDF"].Count}";
             }
