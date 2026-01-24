@@ -43,18 +43,14 @@ namespace EddyLib.Strings
                     {
                         sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str);
                     }
-#if DEBUG
-                    sb.AppendLine("PAUSE");
-#endif
+                    sb.AppendLine("timeout /t 5");
                 }
             }
             else
             {
                 {
                     sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(TopoSet, MeshSettings.meshWorkingDir));
-#if DEBUG
-                    sb.AppendLine("PAUSE");
-#endif
+                    sb.AppendLine("timeout /t 5");
                 }
             }
             return sb.ToString();
@@ -401,9 +397,7 @@ namespace EddyLib.Strings
                     {
                         sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str);
                     }
-#if DEBUG
-                    sb.AppendLine("PAUSE");
-#endif
+                    sb.AppendLine("timeout /t 5");
                 }
                 else
                 {
@@ -411,9 +405,7 @@ namespace EddyLib.Strings
                     {
                         sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str);
                     }
-#if DEBUG
-                    sb.AppendLine("PAUSE");
-#endif
+                    sb.AppendLine("timeout /t 5");
                 }
             }
             else
@@ -421,16 +413,12 @@ namespace EddyLib.Strings
                 if (RunSettings.CPUs > 1)
                 {
                     sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(divU, caseWorkingDir));
-#if DEBUG
-                    sb.AppendLine("PAUSE");
-#endif
+                    sb.AppendLine("timeout /t 5");
                 }
                 else
                 {
                     sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(divU, caseWorkingDir));
-#if DEBUG
-                    sb.AppendLine("PAUSE");
-#endif
+                    sb.AppendLine("timeout /t 5");
                 }
             }
 
@@ -470,17 +458,12 @@ namespace EddyLib.Strings
                 {
                     sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str);
                 }
-#if DEBUG
-                sb.AppendLine("PAUSE");
-#endif
+                sb.AppendLine("timeout /t 5");
             }
             else
             {
                 sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(reconstructMesh(), MeshSettings.meshWorkingDir));
-
-#if DEBUG
-                sb.AppendLine("PAUSE");
-#endif
+                sb.AppendLine("timeout /t 5");
             }
             return sb.ToString();
         }
@@ -713,7 +696,7 @@ namespace EddyLib.Strings
             sb.AppendLine("set \"SKIPPED=0\"");
             sb.AppendLine("if not exist \"%SOURCE%\" (");
             sb.AppendLine("    echo ERROR: Source not found: %SOURCE%");
-            sb.AppendLine("    pause");
+            sb.AppendLine("    timeout /t 5");
             sb.AppendLine("    exit /b 1");
             sb.AppendLine(")");
             sb.AppendLine("for /D %%F in (*) do (");
@@ -753,6 +736,28 @@ namespace EddyLib.Strings
             sb.AppendLine("powershell -Command \"$cores = $env:cores; Get-ChildItem -Path '%~dp0..' -Recurse | Where-Object { $_.Name -eq 'decomposeParDict' -or $_.Extension -eq '.bat' } | ForEach-Object { (Get-Content $_.FullName) -replace 'numberOfSubdomains\\s+\\d+;', ('numberOfSubdomains ' + $cores + ';') -replace '-np\\s+\\d+', ('-np ' + $cores) | Set-Content $_.FullName }\"");
             sb.AppendLine("echo Done.");
             sb.AppendLine("timeout /t 5 /nobreak >nul");
+            return sb.ToString();
+        }
+            public static string DeleteProcessorFolders()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("@echo off");
+            sb.AppendLine("cd /d \"%~dp0..\"");
+            sb.AppendLine("setlocal EnableDelayedExpansion");
+            sb.AppendLine("");
+            sb.AppendLine("echo =====================================");
+            sb.AppendLine("echo Recursive OpenFOAM processor cleanup");
+            sb.AppendLine("echo Root: %cd%");
+            sb.AppendLine("echo =====================================");
+            sb.AppendLine("");
+            sb.AppendLine("for /d /r %%D in (processor*) do (");
+            sb.AppendLine("    echo Deleting: %%D");
+            sb.AppendLine("    rmdir /s /q \"%%D\"");
+            sb.AppendLine(")");
+            sb.AppendLine("");
+            sb.AppendLine("echo -------------------------------------");
+            sb.AppendLine("echo Done.");
+            sb.AppendLine("timeout /t 5");
             return sb.ToString();
         }
     }

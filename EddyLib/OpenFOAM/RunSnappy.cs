@@ -55,6 +55,11 @@ namespace EddyLib
                 scriptsDir,
                 "run_reconstructMesh.bat",
                 Strings.BatFiles.Run_reconstructMesh(runSettings, meshSettings, domain, Strings.OFExecutionMode.Meshing));
+
+            DictFileWriter.WriteBatchFile(
+                scriptsDir, 
+                "delete_processor_folders.bat", 
+                Strings.BatFiles.DeleteProcessorFolders());
         }
     }
 }

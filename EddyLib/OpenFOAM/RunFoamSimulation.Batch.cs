@@ -16,6 +16,9 @@ namespace EddyLib
             var scriptsDir = Path.Combine(workDir, "Scripts");
             if (!Directory.Exists(scriptsDir)) Directory.CreateDirectory(scriptsDir);
 
+            DictFileWriter.WriteBatchFile(scriptsDir, "delete_processor_folders.bat",
+                Strings.BatFiles.DeleteProcessorFolders());
+
             DictFileWriter.WriteBatchFile(scriptsDir, "run_mesh.bat",
                 Strings.BatFiles.Run_Mesh(runSettings, meshSettings, domain, Strings.OFExecutionMode.Meshing));
             DictFileWriter.WriteBatchFile(scriptsDir, "run.bat",

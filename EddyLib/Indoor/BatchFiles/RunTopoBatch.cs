@@ -16,9 +16,7 @@ namespace EddyLib.Indoor.BatchFiles
             string[] parts = {
                this.Header, "\n",
                BatchBody()
-#if (DEBUG == true)
-               ,"\nPAUSE"
-#endif
+               ,"\ntimeout /t 5"
             };
 
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");

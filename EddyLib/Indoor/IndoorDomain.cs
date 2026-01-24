@@ -213,6 +213,7 @@ namespace EddyLib.Indoor
             new RunSimBatch(this, CPUs).Export(workingDir);
             new RunTopoBatch(this).Export(workingDir);
             new RunAllBatch(this, CPUs).Export(workingDir);
+            new DeleteProcessorBatch(this).Export(workingDir);
         }
 
         #endregion
