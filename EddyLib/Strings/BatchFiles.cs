@@ -43,14 +43,14 @@ namespace EddyLib.Strings
                     {
                         sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str);
                     }
-                    sb.AppendLine("timeout /t 5");
+                    sb.AppendLine("ping -n 6 127.0.0.1 >nul");
                 }
             }
             else
             {
                 {
                     sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(TopoSet, MeshSettings.meshWorkingDir));
-                    sb.AppendLine("timeout /t 5");
+                    sb.AppendLine("ping -n 6 127.0.0.1 >nul");
                 }
             }
             return sb.ToString();
@@ -397,7 +397,7 @@ namespace EddyLib.Strings
                     {
                         sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str);
                     }
-                    sb.AppendLine("timeout /t 5");
+                    sb.AppendLine("ping -n 6 127.0.0.1 >nul");
                 }
                 else
                 {
@@ -405,7 +405,7 @@ namespace EddyLib.Strings
                     {
                         sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str);
                     }
-                    sb.AppendLine("timeout /t 5");
+                    sb.AppendLine("ping -n 6 127.0.0.1 >nul");
                 }
             }
             else
@@ -413,12 +413,12 @@ namespace EddyLib.Strings
                 if (RunSettings.CPUs > 1)
                 {
                     sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(divU, caseWorkingDir));
-                    sb.AppendLine("timeout /t 5");
+                    sb.AppendLine("ping -n 6 127.0.0.1 >nul");
                 }
                 else
                 {
                     sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(divU, caseWorkingDir));
-                    sb.AppendLine("timeout /t 5");
+                    sb.AppendLine("ping -n 6 127.0.0.1 >nul");
                 }
             }
 
@@ -458,12 +458,12 @@ namespace EddyLib.Strings
                 {
                     sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str);
                 }
-                sb.AppendLine("timeout /t 5");
+                sb.AppendLine("ping -n 6 127.0.0.1 >nul");
             }
             else
             {
                 sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(reconstructMesh(), MeshSettings.meshWorkingDir));
-                sb.AppendLine("timeout /t 5");
+                sb.AppendLine("ping -n 6 127.0.0.1 >nul");
             }
             return sb.ToString();
         }
@@ -694,9 +694,7 @@ namespace EddyLib.Strings
             sb.AppendLine("set \"SOURCE=%~dp0..\\mesh\\constant\\polyMesh\"");
             sb.AppendLine("set \"CREATED=0\"");
             sb.AppendLine("set \"SKIPPED=0\"");
-            sb.AppendLine("if not exist \"%SOURCE%\" (");
-            sb.AppendLine("    echo ERROR: Source not found: %SOURCE%");
-            sb.AppendLine("    timeout /t 5");
+            sb.AppendLine("    ping -n 6 127.0.0.1 >nul");
             sb.AppendLine("    exit /b 1");
             sb.AppendLine(")");
             sb.AppendLine("for /D %%F in (*) do (");
@@ -708,7 +706,7 @@ namespace EddyLib.Strings
             sb.AppendLine("    )");
             sb.AppendLine(")");
             sb.AppendLine("echo Created: %CREATED%   Skipped/Failed: %SKIPPED%");
-            sb.AppendLine("timeout /t 5 /nobreak >nul");
+            sb.AppendLine("ping -n 6 127.0.0.1 >nul");
             return sb.ToString();
         }
 
@@ -720,7 +718,7 @@ namespace EddyLib.Strings
             sb.AppendLine("echo Updating decomposeParDict and batch files to use %NUMBER_OF_PROCESSORS% cores...");
             sb.AppendLine("powershell -Command \"$cores = $env:NUMBER_OF_PROCESSORS; Get-ChildItem -Path '%~dp0..' -Recurse | Where-Object { $_.Name -eq 'decomposeParDict' -or $_.Extension -eq '.bat' } | ForEach-Object { (Get-Content $_.FullName) -replace 'numberOfSubdomains\\s+\\d+;', ('numberOfSubdomains ' + $cores + ';') -replace '-np\\s+\\d+', ('-np ' + $cores) | Set-Content $_.FullName }\"");
             sb.AppendLine("echo Done.");
-            sb.AppendLine("timeout /t 5 /nobreak >nul");
+            sb.AppendLine("ping -n 6 127.0.0.1 >nul");
             return sb.ToString();
         }
 
@@ -735,7 +733,7 @@ namespace EddyLib.Strings
             sb.AppendLine("echo Updating decomposeParDict and batch files to use %cores% cores...");
             sb.AppendLine("powershell -Command \"$cores = $env:cores; Get-ChildItem -Path '%~dp0..' -Recurse | Where-Object { $_.Name -eq 'decomposeParDict' -or $_.Extension -eq '.bat' } | ForEach-Object { (Get-Content $_.FullName) -replace 'numberOfSubdomains\\s+\\d+;', ('numberOfSubdomains ' + $cores + ';') -replace '-np\\s+\\d+', ('-np ' + $cores) | Set-Content $_.FullName }\"");
             sb.AppendLine("echo Done.");
-            sb.AppendLine("timeout /t 5 /nobreak >nul");
+            sb.AppendLine("ping -n 6 127.0.0.1 >nul");
             return sb.ToString();
         }
             public static string DeleteProcessorFolders()
@@ -757,7 +755,7 @@ namespace EddyLib.Strings
             sb.AppendLine("");
             sb.AppendLine("echo -------------------------------------");
             sb.AppendLine("echo Done.");
-            sb.AppendLine("timeout /t 5");
+            sb.AppendLine("ping -n 6 127.0.0.1 >nul");
             return sb.ToString();
         }
     }

@@ -27,7 +27,7 @@ for /d /r %%D in (processor*) do (
 
 echo -------------------------------------
 echo Done.
-timeout /t 5";
+ping -n 6 127.0.0.1 >nul";
 
             this.FullDictString = this.Header + "\n" + body;
         }

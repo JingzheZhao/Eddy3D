@@ -17,7 +17,7 @@ namespace EddyLib.Indoor.BatchFiles
             string[] parts = {
                this.Header, "\n",
                BatchBody(CPUs)
-               ,"\ntimeout /t 5"
+               ,"\nping -n 6 127.0.0.1 >nul"
             };
 
             this.FullDictString = parts.Aggregate((partialPhrase, word) => $"{partialPhrase} {word}");
