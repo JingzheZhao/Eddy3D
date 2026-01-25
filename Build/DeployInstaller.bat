@@ -64,6 +64,11 @@ if %ERRORLEVEL% equ 0 (
     echo.
     echo Deployment successful!
     echo Uploaded folder: %APP_VER%
+
+    echo.
+    echo Setting permissions on remote files...
+    ssh -i "%SSH_KEY_PATH%" %REMOTE_USER%@%REMOTE_HOST% "chmod 755 %REMOTE_DIR%/*"
+
 ) else (
     echo.
     echo Deployment failed!
@@ -73,3 +78,4 @@ if %ERRORLEVEL% equ 0 (
 echo.
 echo Press any key to close...
 pause
+
