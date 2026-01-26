@@ -321,3 +321,4 @@ temp_ofdomain.txt
 build_log.txt
 /EddyTest_ToPatrick
 nul
+.env
