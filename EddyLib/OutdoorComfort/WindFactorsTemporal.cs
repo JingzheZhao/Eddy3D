@@ -66,6 +66,14 @@ namespace EddyLib.OutdoorComfort
             var windDirsEPW = weather.WindDirection;
             bool allABL = bcond.BCs.All(item => item is ABL);
 
+            // Ensure ClstSimDirIndices is initialized for "No interpolation" mode
+            // This handles cases where BCCollection was created without an EPW file path
+            if (!interpolate && bcond.ClstSimDirIndices.All(idx => idx == 0) && windDirsSim.Length > 1)
+            {
+                var (indices, _, _, _) = WindSystem.GetClosestWindDirs(weather, windDirsSim);
+                Array.Copy(indices, bcond.ClstSimDirIndices, HoursPerYear);
+            }
+
             int numberOfSensors = WFSpatial.GetLength(0);
 
             int numberOfHours = HoursPerYear;
