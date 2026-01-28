@@ -317,6 +317,66 @@ namespace RhinoPlugin.Test.Xunit
 
             Assert.Equal(1.01, Math.Round(wft.ValuesTemporalAtProbingHeight[0, 0], 2));
         }
+
+        [Fact]
+        public void WindFactors_NoInterpolation_UninitializedIndices_ReturnsExpected()
+        {
+            // Arrange
+            // Create standard wind directions: 0, 45, 90, 135, 180, 225, 270, 315
+            var windDirList = StandardWindDirs;
+
+            // Setup BCs
+            var bcond = new ABL(0, 5, 10, 1, 0); // Index 0: North
+
+            // Create BCCollection using constructor that DOES NOT call CalcWindStatistic
+            // This leaves ClstSimDirIndices as all zeros (uninitialized)
+            var bcColl = new BCCollection(bcond);
+
+            // Add other directions manually to match StandardWindDirs
+            for (int i = 1; i < windDirList.Length; i++)
+            {
+                bcColl.AddBoundaryCondition(new ABL(windDirList[i], 5, 10, 1, 0));
+            }
+
+            string epw = DownloadEPW();
+            Weather weather = new Weather(epw);
+
+            // Set wind direction to 180 (South, Index 4) for all hours
+            // If the bug exists, it will use index 0 (North, 0 degrees) instead of index 4 (South, 180 degrees)
+            weather.WindDirection = Enumerable.Repeat(180, TestConstants.HoursPerYear).ToArray();
+            weather.WindSpeed = Enumerable.Repeat(5.0, TestConstants.HoursPerYear).ToArray();
+
+            // Create dummy MDV results
+            var workingdir = EnsureTestingDirectory();
+            var points = new List<Point3d> { new Point3d(0, 0, 2) };
+
+            Vector3d[,] vecs = new Vector3d[1, windDirList.Length];
+
+            // Direction 0 (North) -> 0 velocity
+            // If the bug uses this direction, the factor will be 0
+            vecs[0, 0] = new Vector3d(0, 0, 0);
+
+            // Direction 4 (South, 180) -> Significant velocity
+            // If the fix works, it will use this direction
+            vecs[0, 4] = new Vector3d(0, 10, 0);
+
+            var mdv = new MultiDirectionalVelocities(workingdir, windDirList, vecs, true, true);
+
+            // Calculate spatial factors
+            var wfs = new WindFactorsSpatial(workingdir, bcColl, mdv, points, false, true);
+
+            // Act
+            // Calculate temporal factors with NO INTERPOLATION
+            // This triggers the code path where ClstSimDirIndices is used
+            var wft = new WindFactorsTemporal(workingdir, bcColl, weather, wfs, points, false, true);
+
+            // Assert
+            // If bug is present (using index 0), result should be 0 (from vecs[0,0])
+            // If fix is working (using index 4), result should be > 0 (from vecs[0,4])
+            // The result is: [WindFactor] * [EPW Wind Speed at Height]
+            Assert.True(wft.ValuesTemporalAtProbingHeight[0, 0] > 0.0,
+                $"Result should be non-zero ({wft.ValuesTemporalAtProbingHeight[0, 0]}), indicating correct wind direction (180) was used instead of default (0)");
+        }
     }
 }
 
