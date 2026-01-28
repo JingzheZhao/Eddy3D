@@ -34,7 +34,7 @@ namespace Eddy
             pManager.AddNumberParameter("SDF", "SDF", "Signed distance from building.", GH_ParamAccess.list);
             pManager.AddNumberParameter("Bldg_height", "Bldg_height", "Building height.", GH_ParamAccess.list);
             pManager.AddNumberParameter("Z_relative", "Z_relative", "Relative height.", GH_ParamAccess.list);
-            pManager.AddNumberParameter("U_at_z", "U_at_z", "Wind speed at height.", GH_ParamAccess.list);
+            pManager.AddNumberParameter("U_over_Uref", "U_over_Uref", "Wind speed at height.", GH_ParamAccess.list);
             pManager.AddNumberParameter("mag_U", "mag_U", "Simulated wind speed magnitude.", GH_ParamAccess.list);
             pManager.AddNumberParameter("X", "X", "X coordinate.", GH_ParamAccess.list);
             pManager.AddNumberParameter("Y", "Y", "Y coordinate.", GH_ParamAccess.list);
@@ -70,7 +70,7 @@ namespace Eddy
                     { "SDF", new List<double>() },
                     { "Bldg_height", new List<double>() },
                     { "Z_relative", new List<double>() },
-                    { "U_at_z", new List<double>() },
+                    { "U_over_Uref", new List<double>() },
                     { "mag_U", new List<double>() },
                     { "X", new List<double>() },
                     { "Y", new List<double>() },
@@ -133,7 +133,7 @@ namespace Eddy
                 DA.SetDataList(0, outputs["SDF"]);
                 DA.SetDataList(1, outputs["Bldg_height"]);
                 DA.SetDataList(2, outputs["Z_relative"]);
-                DA.SetDataList(3, outputs["U_at_z"]);
+                DA.SetDataList(3, outputs["U_over_Uref"]);
                 DA.SetDataList(4, outputs["mag_U"]);
                 DA.SetDataList(5, outputs["X"]);
                 DA.SetDataList(6, outputs["Y"]);

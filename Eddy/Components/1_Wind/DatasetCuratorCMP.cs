@@ -71,7 +71,7 @@ namespace Eddy
             pManager.AddNumberParameter("Z_relative", "Z_relative",
                 "Relative sampling height (m): point_Z - domain_min_Z + pedestrian_level.",
                 GH_ParamAccess.list);
-            pManager.AddNumberParameter("U_at_z", "U_at_z",
+            pManager.AddNumberParameter("U_over_Uref", "U_over_Uref",
                 "Local inlet speed at Z_relative (m/s) computed as U_ref * ln(Z_relative)/ln(z_ref). NaN if invalid.",
                 GH_ParamAccess.list);
             pManager.AddNumberParameter("X_coords", "X_coords",
@@ -437,12 +437,12 @@ namespace Eddy
 
             if (!uRefProvided)
             {
-                Message = $"Points processed: {points.Count}\nU_ref not provided - U_at_z left un-normalized";
+                Message = $"Points processed: {points.Count}\nU_ref not provided - U_over_Uref left un-normalized";
             }
             else if (uRef == 0.0)
             {
                 Message = $"Points processed: {points.Count}";
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "U_ref == 0.0 – cannot normalize U_at_z");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "U_ref == 0.0 – cannot normalize U_over_Uref");
             }
             else
             {
@@ -466,7 +466,7 @@ namespace Eddy
                 string datasetFile = Path.Combine(datasetFolder, $"{caseName}_{currentDir}.csv");
 
                 var sb = new StringBuilder();
-                sb.AppendLine("X,Y,Z_relative,SDF,Bldg_height,U_at_z,dir_sin,dir_cos");
+                sb.AppendLine("X,Y,Z_relative,SDF,Bldg_height,U_over_Uref,dir_sin,dir_cos");
                 for (int i = 0; i < points.Count; i++)
                 {
                     sb.AppendLine($"{xCoordsArr[i]},{yCoordsArr[i]},{zRelativeArr[i]},{sdfArr[i]},{bldgHeightArr[i]},{uAtZArr[i]},{currentDirSin},{currentDirCos}");
