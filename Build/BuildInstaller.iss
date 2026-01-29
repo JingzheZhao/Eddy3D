@@ -39,7 +39,7 @@ SolidCompression=yes
 #define GrasshopperLib "{userappdata}\Grasshopper\Libraries"
 #define UserRoot GetEnv("USERPROFILE")
 ;#define OFInstallDir   "C:\OpenFOAM"
-#define TemplatesDir "{userappdata}\Eddy3D\Templates\"
+;#define TemplatesDir "{userappdata}\Eddy3D\Templates\"
 #define Eddy3DDir "{userappdata}\Eddy3D"
 
 
@@ -56,7 +56,7 @@ Source: "..\Eddy\bin\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 ; GHLink file will be created dynamically in [Code] section
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
-Source: "..\Templates\*"; DestDir: "{app}\Templates"; Flags: ignoreversion
+; Source: "..\Templates\*"; DestDir: "{app}\Templates"; Flags: ignoreversion
 
 
 

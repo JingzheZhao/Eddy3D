@@ -17,7 +17,7 @@ namespace Eddy
         public DatasetCuratorCMP()
             : base("Dataset Curator", "DataCurator",
                 "Compute wind dataset features: SDF, building height, relative Z, normalized wind speed, coordinates, and direction components",
-                "Eddy3d", "4 | ML")
+                "Eddy3D", "4 | ML")
         {
         }
 

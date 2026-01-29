@@ -15,7 +15,7 @@ namespace Eddy
         public DatasetReaderCMP()
             : base("Dataset Reader", "DataReader",
                 "Read processed CSV datasets back into Grasshopper. Supports mag_U and all spatial features.",
-                "Eddy3d", "4 | ML")
+                "Eddy3D", "4 | ML")
         {
         }
 

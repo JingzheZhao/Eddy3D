@@ -25,7 +25,7 @@ Creates evenly-spaced probe locations for velocity sampling.
 Works with Breps, surfaces, or meshes.
 
 " + EddyVersion.toString(),
-                "Eddy3d", "1 | Wind")
+                "Eddy3D", "1 | Wind")
         {
         }
 

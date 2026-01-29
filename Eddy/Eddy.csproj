@@ -503,12 +503,7 @@
     <PostBuildEvent>
       Copy "$(TargetPath)" "$(TargetDir)$(ProjectName).gha"
       Erase "$(TargetPath)"
-      SET build_eddy=$(ProjectDir)bin
-      SET INSTALLDIR=%25APPDATA%25\Eddy3D
-      if not exist "%25INSTALLDIR%25" mkdir "%25INSTALLDIR%25"
-      if "$(Configuration)"=="Debug" ( xcopy /e /v /y "%25build_eddy%25" "%25INSTALLDIR%25" &amp; xcopy /e /v /y "$(ProjectDir)..\Templates\*" "%25INSTALLDIR%25\Templates\" )
-      if "$(Configuration)"=="Release" ( xcopy /e /v /y "%25build_eddy%25" "%25INSTALLDIR%25" &amp; xcopy /e /v /y "$(ProjectDir)..\Templates\*" "%25INSTALLDIR%25\Templates\" )
-      echo %25INSTALLDIR%25 &gt; "%25APPDATA%25\Grasshopper\Libraries\Eddy3D-Dev.ghlink"
+      echo $(TargetDir) &gt; "%25APPDATA%25\Grasshopper\Libraries\Eddy3D-Dev.ghlink"
       call "$(ProjectDir)..\Build\BuildInstaller.bat"
     </PostBuildEvent>
   </PropertyGroup>

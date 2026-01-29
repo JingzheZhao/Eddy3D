@@ -1,6 +1,8 @@
-﻿using Grasshopper.GUI.Canvas;
+﻿using Grasshopper.GUI;
+using Grasshopper.GUI.Canvas;
 using Grasshopper.Kernel;
 using System.Drawing;
+using System.Windows.Forms;
 
 namespace EddyLib.UI
 {
@@ -33,10 +35,34 @@ namespace EddyLib.UI
 
             if (channel == GH_CanvasChannel.Objects)
             {
-                GH_Capsule button = GH_Capsule.CreateTextCapsule(ButtonBounds, ButtonBounds, GH_Palette.Black, "Right click", 2, 0);
+                GH_Capsule button = GH_Capsule.CreateTextCapsule(ButtonBounds, ButtonBounds, GH_Palette.Black, "Select Template", 2, 0);
                 button.Render(graphics, Selected, false, false);
                 button.Dispose();
             }
+        }
+
+        public override GH_ObjectResponse RespondToMouseDown(GH_Canvas sender, GH_CanvasMouseEvent e)
+        {
+            if (ButtonBounds.Contains(System.Drawing.Point.Round(e.CanvasLocation)))
+            {
+                if (e.Button == MouseButtons.Left)
+                {
+                    // Manually build and show the component's context menu
+                    ContextMenuStrip menu = new ContextMenuStrip();
+                    
+                    // Call the component's AppendAdditionalComponentMenuItems to populate the menu
+                    if (Owner is GH_Component comp)
+                    {
+                        comp.AppendMenuItems(menu);
+                    }
+                    
+                    // Show at screen coordinates (e.ControlLocation is already in screen coords relative to sender)
+                    menu.Show(sender, e.ControlLocation);
+                    
+                    return GH_ObjectResponse.Handled;
+                }
+            }
+            return base.RespondToMouseDown(sender, e);
         }
     }
 }

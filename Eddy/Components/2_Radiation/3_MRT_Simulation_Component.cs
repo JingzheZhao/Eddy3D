@@ -48,8 +48,8 @@ Combines:
         {
             pManager.AddTextParameter(
                 "Working Directory", "Dir", 
-                "Folder for simulation files. Default: C:\\Temp\\Eddy3d", 
-                GH_ParamAccess.item, @"C:\Temp\Eddy3d");
+                "Folder for simulation files. Default: C:\\Temp\\Eddy3D", 
+                GH_ParamAccess.item, @"C:\Temp\Eddy3D");
 
             pManager.AddTextParameter(
                 "Weather File", "EPW", 

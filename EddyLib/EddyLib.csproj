@@ -115,6 +115,7 @@
       <Compile Include="Utilities\ASCIIProgressBar.cs" />
       <Compile Include="Utilities\CsvHelpers.cs" />
       <Compile Include="Utilities\PrepareProtoBufSingleton.cs" />
+      <Compile Include="Utilities\GitHubFileLister.cs" />
       <Compile Include="Utilities\SymbolicLink.cs" />
       <Compile Include="Utilities\GrasshopperConversions.cs" />
       <Compile Include="Domain\IDomain.cs" />
