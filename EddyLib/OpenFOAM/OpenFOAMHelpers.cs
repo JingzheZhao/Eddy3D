@@ -118,6 +118,11 @@ namespace EddyLib.OpenFOAM
         {
             bool success = true;
 
+            if (!Directory.Exists(caseRoot))
+            {
+                return true;
+            }
+
             // Remove transient root files
             foreach (var pattern in TransientFilePatterns)
             {
@@ -128,7 +133,7 @@ namespace EddyLib.OpenFOAM
                 }
             }
 
-            // Remove transient directories
+            // Remove transient directories at top level
             foreach (var dir in Directory.GetDirectories(caseRoot, "*", SearchOption.TopDirectoryOnly))
             {
                 var name = Path.GetFileName(dir);
@@ -143,6 +148,46 @@ namespace EddyLib.OpenFOAM
                     try { Directory.Delete(dir, true); }
                     catch { success = false; }
                 }
+            }
+
+            // Recursively find and delete ALL processor* directories (including nested ones in mesh folder)
+            success &= DeleteProcessorDirectoriesRecursive(caseRoot);
+
+            // Delete reconstructed polyMesh in constant folder (the result of reconstructParMesh)
+            var polyMeshPath = Path.Combine(caseRoot, "constant", "polyMesh");
+            if (Directory.Exists(polyMeshPath))
+            {
+                try { Directory.Delete(polyMeshPath, true); }
+                catch { success = false; }
+            }
+
+            return success;
+        }
+
+        /// <summary>
+        /// Recursively finds and deletes all processor* directories.
+        /// </summary>
+        private static bool DeleteProcessorDirectoriesRecursive(string rootPath)
+        {
+            bool success = true;
+
+            try
+            {
+                // Find all processor directories recursively
+                var processorDirs = Directory.GetDirectories(rootPath, "processor*", SearchOption.AllDirectories)
+                    .Where(d => ProcessorDirRegex.IsMatch(Path.GetFileName(d)))
+                    .OrderByDescending(d => d.Length) // Delete deepest first to avoid parent-first issues
+                    .ToList();
+
+                foreach (var dir in processorDirs)
+                {
+                    try { Directory.Delete(dir, true); }
+                    catch { success = false; }
+                }
+            }
+            catch
+            {
+                success = false;
             }
 
             return success;

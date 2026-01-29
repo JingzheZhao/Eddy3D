@@ -135,6 +135,11 @@
     <Compile Include="OpenFOAM\OpenFOAMPaths.WorkDir.cs" />
     <Compile Include="OpenFOAM\DictFileWriter.cs" />
     <Compile Include="OpenFOAM\OpenFOAMHelpers.cs" />
+    <Compile Include="OpenFOAM\OpenFOAMLogLocator.cs" />
+    <Compile Include="OpenFOAM\OpenFOAMLogParseOptions.cs" />
+    <Compile Include="OpenFOAM\OpenFOAMLogParser.cs" />
+    <Compile Include="OpenFOAM\OpenFOAMLogStatus.cs" />
+    <Compile Include="OpenFOAM\OpenFOAMStatusFormatter.cs" />
     <Compile Include="Helpers\ProcessRunner.cs" />
     <Compile Include="Helpers\JsonHelper.cs" />
     <Compile Include="Helpers\DirectoryHelpers.cs" />

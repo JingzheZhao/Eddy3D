@@ -43,7 +43,7 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Simulation domain", "Dom", "Eddy simulation domain", GH_ParamAccess.item);
-            pManager.AddTextParameter("Working directory", "Dir", "Working directory", GH_ParamAccess.item, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Eddy"));
+            pManager.AddTextParameter("Working directory", "Dir", "Folder for simulation files. Use a simple name (e.g., 'MyProject') to create under %AppData%\\Eddy3D\\Cases, or provide a full path.", GH_ParamAccess.item, "DefaultCase");
             pManager[1].Optional = true;
             pManager.AddGenericParameter("Mesh Settings", "MSet", "Mesh Settings", GH_ParamAccess.item);
             pManager[2].Optional = true;
@@ -140,6 +140,10 @@ namespace Eddy
 
             string baseWorkingDirectory = "";
             DA.GetData("Working directory", ref baseWorkingDirectory);
+            
+            // Resolve simple case names to full paths under AppData\Eddy3D\Cases
+            baseWorkingDirectory = DefaultDirectoriesAndPaths.ResolveWorkingDirectory(baseWorkingDirectory);
+            
             if (!Directory.Exists(baseWorkingDirectory)) { Directory.CreateDirectory(baseWorkingDirectory); }
 
             string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);

@@ -1,5 +1,6 @@
-﻿using Eddy.Properties;
+using Eddy.Properties;
 using EddyLib;
+using EddyLib.OpenFOAM;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using System;
@@ -93,6 +94,10 @@ Workflow:
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("Result", "Res", "Simulation result for post-processing. Contains velocity and pressure fields.", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("Mesh Done", "MeshDone", "Meshing finished status.", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("Sim Done", "SimDone", "Simulation finished status per wind direction.", GH_ParamAccess.list);
+            pManager.AddTextParameter("Mesh ETA", "MeshETA", "Estimated remaining meshing time (HH:MM:SS). 'unknown' outside morphing phase.", GH_ParamAccess.item);
+            pManager.AddTextParameter("Sim ETA", "SimETA", "Estimated remaining simulation time (HH:MM:SS) per wind direction.", GH_ParamAccess.list);
         }
 
         private bool canRun = true;
@@ -169,6 +174,10 @@ Workflow:
 
             string baseWorkingDirectory = "";
             DA.GetData("Working directory", ref baseWorkingDirectory);
+            
+            // Resolve simple case names to full paths under AppData\Eddy3D\Cases
+            baseWorkingDirectory = DefaultDirectoriesAndPaths.ResolveWorkingDirectory(baseWorkingDirectory);
+            
             if (!Directory.Exists(baseWorkingDirectory)) { Directory.CreateDirectory(baseWorkingDirectory); }
 
             DirectoryInfo parentDir = Directory.GetParent(baseWorkingDirectory.EndsWith("\\") ? baseWorkingDirectory : string.Concat(baseWorkingDirectory, "\\"));
@@ -308,6 +317,32 @@ Workflow:
 
             OFResult RES = new OFResult(DOM, RunSettings, MeshSettings, baseWorkingDirectory);
             DA.SetData(0, RES);
+
+            var windDirs = DOM?.BCond?.WindDirections ?? new System.Collections.Generic.List<int>();
+
+            var parseOptions = new OpenFOAMLogParseOptions { RollingWindow = 5 };
+
+            var meshLog = OpenFOAMLogLocator.FindLatestMeshingLog(MeshSettings.meshWorkingDir);
+            var meshStatus = OpenFOAMLogParser.ParseMeshingLog(meshLog, parseOptions);
+
+            var simDone = new System.Collections.Generic.List<bool>(windDirs.Count);
+            var simEta = new System.Collections.Generic.List<string>(windDirs.Count);
+
+            foreach (var dir in windDirs)
+            {
+                var caseDir = Path.Combine(baseWorkingDirectory, dir.ToString());
+                var simLog = OpenFOAMLogLocator.FindLatestSimulationLog(caseDir);
+                var simStatus = OpenFOAMLogParser.ParseSimulationLog(simLog,
+                    new OpenFOAMLogParseOptions { RollingWindow = 5, TotalIterations = RunSettings.iter });
+
+                simDone.Add(simStatus.IsFinished);
+                simEta.Add(OpenFOAMStatusFormatter.FormatEta(simStatus));
+            }
+
+            DA.SetData(1, meshStatus.IsFinished);
+            DA.SetDataList(2, simDone);
+            DA.SetData(3, OpenFOAMStatusFormatter.FormatEta(meshStatus));
+            DA.SetDataList(4, simEta);
 
             canRun = true;
         }

@@ -21,6 +21,42 @@ namespace EddyLib
         public static string Eddy3DInstallDir => _baseDir;
 
         /// <summary>
+        /// Default directory for simulation cases (%AppData%\Eddy3D\Cases).
+        /// </summary>
+        public static string CasesDir => Path.Combine(_baseDir, "Cases");
+
+        /// <summary>
+        /// Resolves a working directory path. If the input is a simple name (no path separators),
+        /// it will be placed under the default CasesDir. Otherwise, the path is returned as-is.
+        /// </summary>
+        /// <param name="dirInput">User-provided directory or case name.</param>
+        /// <returns>Full resolved path to the case directory.</returns>
+        public static string ResolveWorkingDirectory(string dirInput)
+        {
+            if (string.IsNullOrWhiteSpace(dirInput))
+            {
+                // Default case name if nothing provided
+                return Path.Combine(CasesDir, "DefaultCase");
+            }
+
+            string trimmed = dirInput.Trim();
+
+            // Check if this is a simple name (no path separators, no drive letter)
+            bool isSimpleName = !trimmed.Contains(Path.DirectorySeparatorChar.ToString())
+                             && !trimmed.Contains(Path.AltDirectorySeparatorChar.ToString())
+                             && !Path.IsPathRooted(trimmed);
+
+            if (isSimpleName)
+            {
+                // Simple case name - place under CasesDir
+                return Path.Combine(CasesDir, trimmed);
+            }
+
+            // Full path provided - use as-is
+            return trimmed;
+        }
+
+        /// <summary>
         /// Path to Radiance base directory.
         /// </summary>
         public static string RadianceDir

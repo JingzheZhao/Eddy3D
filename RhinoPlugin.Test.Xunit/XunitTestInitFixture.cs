@@ -91,19 +91,42 @@ namespace RhinoPlugin.Test.Xunit
         private static Assembly ResolveRhinoCommon(object sender, ResolveEventArgs args)
         {
             var name = args.Name;
+            var assemblyName = new AssemblyName(name).Name;
 
-            if (!name.StartsWith("RhinoCommon"))
+            // Primary assemblies with known locations
+            if (name.StartsWith("RhinoCommon"))
             {
-                if (name.StartsWith("Grasshopper") && !string.IsNullOrEmpty(grasshopperPath) && File.Exists(grasshopperPath))
-                {
-                    return Assembly.LoadFrom(grasshopperPath);
-                }
-
-                return null;
+                var path = Path.Combine(systemDir, "RhinoCommon.dll");
+                if (File.Exists(path)) return Assembly.LoadFrom(path);
             }
 
-            var path = System.IO.Path.Combine(systemDir, "RhinoCommon.dll");
-            return Assembly.LoadFrom(path);
+            if (name.StartsWith("Grasshopper") && !string.IsNullOrEmpty(grasshopperPath) && File.Exists(grasshopperPath))
+            {
+                return Assembly.LoadFrom(grasshopperPath);
+            }
+
+            // Try to find assemblies in Grasshopper folder (GH_IO, etc.)
+            if (!string.IsNullOrEmpty(grasshopperPath))
+            {
+                var ghDir = Path.GetDirectoryName(grasshopperPath);
+                var assemblyPath = Path.Combine(ghDir, assemblyName + ".dll");
+                if (File.Exists(assemblyPath))
+                {
+                    return Assembly.LoadFrom(assemblyPath);
+                }
+            }
+
+            // Try to find assemblies in Rhino System folder (Eto, Rhino.UI, etc.)
+            if (!string.IsNullOrEmpty(systemDir))
+            {
+                var assemblyPath = Path.Combine(systemDir, assemblyName + ".dll");
+                if (File.Exists(assemblyPath))
+                {
+                    return Assembly.LoadFrom(assemblyPath);
+                }
+            }
+
+            return null;
         }
 
         public void Dispose()

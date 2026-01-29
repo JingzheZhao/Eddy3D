@@ -140,6 +140,7 @@ Utility to remove generated simulation files and free up disk space. Use with ca
                 else
                 {
                     // Clean mesh and cases
+                    EddyLib.Utilities.FoamCleaner.CleanCase(meshDirectory);
 
                     foreach (string directory in windDirDirectories)
                     {
