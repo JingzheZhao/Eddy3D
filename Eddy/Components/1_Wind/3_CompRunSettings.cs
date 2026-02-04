@@ -19,13 +19,9 @@ namespace Eddy
         /// </summary>
         public RunSettings_Component()
           : base(
-              "Run Settings", 
-              "RSet", 
-              @"Solver Control
-
-Configures the simulation engine, including calculation iterations, convergence criteria, and parallel processing options (CPUs).
-
-" + EddyVersion.toString(),
+              GH_Strings.RunSettings.Name, 
+              GH_Strings.RunSettings.Nick, 
+              GH_Strings.RunSettings.Desc + EddyVersion.toString(),
               EddyVersion.Name, 
               "1 | Wind")
         {
@@ -49,23 +45,23 @@ Configures the simulation engine, including calculation iterations, convergence 
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddIntegerParameter(
-                "Iterations", "Iter", 
-                "Maximum solver iterations. Higher = more accurate but slower. Typical: 500-2000. Default: 1000", 
+                GH_Strings.RunSettings.Iterations, GH_Strings.RunSettings.IterationsNick, 
+                GH_Strings.RunSettings.IterationsDesc, 
                 GH_ParamAccess.item, 1000);
 
             pManager.AddIntegerParameter(
-                "Write Interval", "Write", 
-                "Save results every N iterations. Lower = more disk space. Typical: 10-50. Default: 20", 
+                GH_Strings.RunSettings.WriteInterval, GH_Strings.RunSettings.WriteIntervalNick, 
+                GH_Strings.RunSettings.WriteIntervalDesc, 
                 GH_ParamAccess.item, 20);
 
             pManager.AddIntegerParameter(
-                "Timesteps to Keep", "Keep", 
-                "Number of saved timesteps to retain on disk. Older saves are deleted. Default: 3", 
+                GH_Strings.RunSettings.Keep, GH_Strings.RunSettings.KeepNick, 
+                GH_Strings.RunSettings.KeepDesc, 
                 GH_ParamAccess.item, 3);
 
             pManager.AddIntegerParameter(
-                "Turbulence Model", "Turb", 
-                "RANS turbulence model. k-epsilon is fast and robust for urban flows. k-omega SST is more accurate near walls.", 
+                GH_Strings.RunSettings.Turb, GH_Strings.RunSettings.TurbNick, 
+                GH_Strings.RunSettings.TurbDesc, 
                 GH_ParamAccess.item, 1);
             if (pManager[3] is Param_Integer turb)
             {
@@ -77,8 +73,8 @@ Configures the simulation engine, including calculation iterations, convergence 
             }
 
             pManager.AddIntegerParameter(
-                "Relaxation Factors", "Relax", 
-                "Under-relaxation for solver stability. Robust is safer for complex geometry. Default: Optimized", 
+                GH_Strings.RunSettings.Relax, GH_Strings.RunSettings.RelaxNick, 
+                GH_Strings.RunSettings.RelaxDesc, 
                 GH_ParamAccess.item, 3);
             if (pManager[4] is Param_Integer relaxationFactors)
             {
@@ -89,8 +85,8 @@ Configures the simulation engine, including calculation iterations, convergence 
             }
 
             pManager.AddIntegerParameter(
-                "Numerical Schemes", "Schemes", 
-                "Discretization schemes for equations. Optimized balances accuracy and stability.", 
+                GH_Strings.RunSettings.Schemes, GH_Strings.RunSettings.SchemesNick, 
+                GH_Strings.RunSettings.SchemesDesc, 
                 GH_ParamAccess.item, 1);
             if (pManager[5] is Param_Integer simulationMode)
             {
@@ -99,23 +95,23 @@ Configures the simulation engine, including calculation iterations, convergence 
             }
 
             pManager.AddBooleanParameter(
-                "Potential Flow Init", "PotInit", 
-                "Initialize with potentialFoam for faster convergence. Recommended for new simulations. Default: false", 
+                GH_Strings.RunSettings.PotInit, GH_Strings.RunSettings.PotInitNick, 
+                GH_Strings.RunSettings.PotInitDesc, 
                 GH_ParamAccess.item, false);
 
             pManager.AddBooleanParameter(
-                "Age of Air", "AoA", 
-                "Calculate mean age of air (ventilation effectiveness). Must be enabled before running simulation.", 
+                GH_Strings.RunSettings.AoA, GH_Strings.RunSettings.AoANick, 
+                GH_Strings.RunSettings.AoADesc, 
                 GH_ParamAccess.item, false);
 
             pManager.AddIntegerParameter(
-                "CPU Cores", "CPUs", 
-                "Parallel processing cores. -1 = auto-detect. More cores = faster but needs more RAM. Default: 1", 
+                GH_Strings.RunSettings.CPUs, GH_Strings.RunSettings.CPUsNick, 
+                GH_Strings.RunSettings.CPUsDesc, 
                 GH_ParamAccess.item, 1);
 
             pManager.AddIntegerParameter(
-                "Operating System", "OS", 
-                "Target OS for simulation scripts. Auto-detect works in most cases.", 
+                GH_Strings.RunSettings.OS, GH_Strings.RunSettings.OSNick, 
+                GH_Strings.RunSettings.OSDesc, 
                 GH_ParamAccess.item, 0);
             if (pManager[9] is Param_Integer os)
             {
@@ -127,7 +123,7 @@ Configures the simulation engine, including calculation iterations, convergence 
             pManager[9].Optional = true;
 
             //10
-            pManager.AddTextParameter("BlueCFD Folder", "CFDFolder", "Optional: Custom BlueCFD installation folder. Default: " + DefaultDirectoriesAndPaths.BlueCfdDir, GH_ParamAccess.item, "");
+            pManager.AddTextParameter(GH_Strings.RunSettings.BlueCFD, GH_Strings.RunSettings.BlueCFDNick, GH_Strings.RunSettings.BlueCFDDesc, GH_ParamAccess.item, "");
             pManager[10].Optional = true;
         }
 
@@ -137,8 +133,8 @@ Configures the simulation engine, including calculation iterations, convergence 
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter(
-                "Run Settings", "RSet", 
-                "Solver configuration object to connect to Wind Simulation component", 
+                GH_Strings.Common.RunSettings, GH_Strings.Common.RunSettingsNick, 
+                GH_Strings.Common.RunSettingsDesc, 
                 GH_ParamAccess.item);
         }
 
@@ -163,17 +159,17 @@ Configures the simulation engine, including calculation iterations, convergence 
             bool aoa = false;
             string blueCfdPath = "";
 
-            DA.GetData(0, ref iterations);
-            DA.GetData(1, ref writeInterval);
-            DA.GetData(2, ref keepTimeSteps);
-            DA.GetData(3, ref turb);
-            DA.GetData(4, ref relaxIdx);
-            DA.GetData(5, ref schemesIdx);
-            DA.GetData(6, ref potentialFoamInit);
-            DA.GetData(7, ref aoa);
-            DA.GetData(8, ref cpus);
-            DA.GetData(9, ref osIdx);
-            DA.GetData(10, ref blueCfdPath);
+            DA.GetData(GH_Strings.RunSettings.Iterations, ref iterations);
+            DA.GetData(GH_Strings.RunSettings.WriteInterval, ref writeInterval);
+            DA.GetData(GH_Strings.RunSettings.Keep, ref keepTimeSteps);
+            DA.GetData(GH_Strings.RunSettings.Turb, ref turb);
+            DA.GetData(GH_Strings.RunSettings.Relax, ref relaxIdx);
+            DA.GetData(GH_Strings.RunSettings.Schemes, ref schemesIdx);
+            DA.GetData(GH_Strings.RunSettings.PotInit, ref potentialFoamInit);
+            DA.GetData(GH_Strings.RunSettings.AoA, ref aoa);
+            DA.GetData(GH_Strings.RunSettings.CPUs, ref cpus);
+            DA.GetData(GH_Strings.RunSettings.OS, ref osIdx);
+            DA.GetData(GH_Strings.RunSettings.BlueCFD, ref blueCfdPath);
 
             if (!string.IsNullOrWhiteSpace(blueCfdPath))
             {
@@ -233,7 +229,7 @@ Configures the simulation engine, including calculation iterations, convergence 
                 aoa_domain = aoa
             };
 
-            DA.SetData("Run Settings", runSet);
+            DA.SetData(GH_Strings.Common.RunSettings, runSet);
         }
     }
 }

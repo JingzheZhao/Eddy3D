@@ -19,13 +19,9 @@ namespace Eddy
         /// </summary>
         public MeshSettings_Component()
           : base(
-              "Mesh Settings", 
-              "MSet", 
-              @"Meshing Parameters
-
-Controls the resolution and quality of the simulation grid (mesh). Adjust cell sizes to balance between simulation accuracy and computation time.
-
-" + EddyVersion.toString(),
+              GH_Strings.MeshSettings.Name, 
+              GH_Strings.MeshSettings.Nick, 
+              GH_Strings.MeshSettings.Desc + EddyVersion.toString(),
               EddyVersion.Name, 
               "1 | Wind")
         {
@@ -37,33 +33,33 @@ Controls the resolution and quality of the simulation grid (mesh). Adjust cell s
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddIntegerParameter(
-                "Building Min Level", "BldMin", 
-                "Minimum refinement level for building surfaces. Higher = finer. Typical: 2-3. Default: 2", 
+                GH_Strings.MeshSettings.BldMin, GH_Strings.MeshSettings.BldMinNick, 
+                GH_Strings.MeshSettings.BldMinDesc, 
                 GH_ParamAccess.item, 2);
 
             pManager.AddIntegerParameter(
-                "Building Max Level", "BldMax", 
-                "Maximum refinement level for building surfaces. Must be >= min. Default: 2", 
+                GH_Strings.MeshSettings.BldMax, GH_Strings.MeshSettings.BldMaxNick, 
+                GH_Strings.MeshSettings.BldMaxDesc, 
                 GH_ParamAccess.item, 2);
 
             pManager.AddIntegerParameter(
-                "Feature Level", "Feat", 
-                "Refinement level for building corners and features. Default: 2", 
+                GH_Strings.MeshSettings.Feature, GH_Strings.MeshSettings.FeatureNick, 
+                GH_Strings.MeshSettings.FeatureDesc, 
                 GH_ParamAccess.item, 2);
 
             pManager.AddIntegerParameter(
-                "Bounding Box Level", "BBox", 
-                "Refinement level for region around buildings. 0 = no extra refinement. Default: 0", 
+                GH_Strings.MeshSettings.BBox, GH_Strings.MeshSettings.BBoxNick, 
+                GH_Strings.MeshSettings.BBoxDesc, 
                 GH_ParamAccess.item, 0);
 
             pManager.AddIntegerParameter(
-                "Ground Level", "Gnd", 
-                "Refinement level for ground surface. Default: 2", 
+                GH_Strings.MeshSettings.Ground, GH_Strings.MeshSettings.GroundNick, 
+                GH_Strings.MeshSettings.GroundDesc, 
                 GH_ParamAccess.item, 2);
 
             pManager.AddIntegerParameter(
-                "Misc Settings", "Misc", 
-                "0: Default, 1: Optimized quality settings", 
+                GH_Strings.MeshSettings.Misc, GH_Strings.MeshSettings.MiscNick, 
+                GH_Strings.MeshSettings.MiscDesc, 
                 GH_ParamAccess.item, 1);
             if (pManager[5] is Param_Integer param0)
             {
@@ -72,18 +68,18 @@ Controls the resolution and quality of the simulation grid (mesh). Adjust cell s
             }
 
             pManager.AddIntegerParameter(
-                "Boundary Layers", "nLay", 
-                "Number of mesh layers near walls. More = better boundary layer resolution. Default: 4", 
+                GH_Strings.MeshSettings.Layers, GH_Strings.MeshSettings.LayersNick, 
+                GH_Strings.MeshSettings.LayersDesc, 
                 GH_ParamAccess.item, 4);
 
             pManager.AddIntegerParameter(
-                "Cells Between Levels", "nCells", 
-                "Number of cells between refinement levels. More = smoother transition. Default: 4", 
+                GH_Strings.MeshSettings.Cells, GH_Strings.MeshSettings.CellsNick, 
+                GH_Strings.MeshSettings.CellsDesc, 
                 GH_ParamAccess.item, 4);
 
             pManager.AddIntegerParameter(
-                "Mesh Mode", "Mode", 
-                "0: No snapping (fast debug), 1: With snapping (production), 2: With layers (accurate but slow)", 
+                GH_Strings.MeshSettings.Mode, GH_Strings.MeshSettings.ModeNick, 
+                GH_Strings.MeshSettings.ModeDesc, 
                 GH_ParamAccess.item, 1);
             if (pManager[8] is Param_Integer param1)
             {
@@ -98,7 +94,7 @@ Controls the resolution and quality of the simulation grid (mesh). Adjust cell s
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Mesh Settings", "MSet", "Mesh settings object to connect to Simulation component", GH_ParamAccess.item);
+            pManager.AddGenericParameter(GH_Strings.Common.MeshSettings, GH_Strings.Common.MeshSettingsNick, GH_Strings.Common.MeshSettingsDesc, GH_ParamAccess.item);
         }
 
         protected override void SolveInstance(IGH_DataAccess DA)
@@ -113,22 +109,22 @@ Controls the resolution and quality of the simulation grid (mesh). Adjust cell s
             int cells = 4;
             int mode = 1;
 
-            DA.GetData("Building Min Level", ref bldMin);
-            DA.GetData("Building Max Level", ref bldMax);
-            DA.GetData("Feature Level", ref feat);
-            DA.GetData("Bounding Box Level", ref bbox);
-            DA.GetData("Ground Level", ref ground);
-            DA.GetData("Misc Settings", ref misc);
-            DA.GetData("Boundary Layers", ref layers);
-            DA.GetData("Cells Between Levels", ref cells);
-            DA.GetData("Mesh Mode", ref mode);
+            DA.GetData(GH_Strings.MeshSettings.BldMin, ref bldMin);
+            DA.GetData(GH_Strings.MeshSettings.BldMax, ref bldMax);
+            DA.GetData(GH_Strings.MeshSettings.Feature, ref feat);
+            DA.GetData(GH_Strings.MeshSettings.BBox, ref bbox);
+            DA.GetData(GH_Strings.MeshSettings.Ground, ref ground);
+            DA.GetData(GH_Strings.MeshSettings.Misc, ref misc);
+            DA.GetData(GH_Strings.MeshSettings.Layers, ref layers);
+            DA.GetData(GH_Strings.MeshSettings.Cells, ref cells);
+            DA.GetData(GH_Strings.MeshSettings.Mode, ref mode);
 
             if (bldMax >= 5 || bldMin >= 5 || feat >= 5 || bbox >= 5 || ground >= 5 || layers >= 5)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "A high number of refinement levels might significantly slow down mesh creation. Try to create a reasonably fine mesh with the Domain component and/or make sure to use more than one CPU.");
             }
 
-            DA.SetData("Mesh Settings", new OFMeshSettings()
+            DA.SetData(GH_Strings.Common.MeshSettings, new OFMeshSettings()
             {
                 accBuildings = bldMin,
                 accBuildingsMax = bldMax,

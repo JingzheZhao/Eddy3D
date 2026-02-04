@@ -29,12 +29,8 @@ namespace Eddy
         /// be created.
         /// </summary>
         public Clean()
-          : base("Clean Directories", "Clean",
-@"Project Cleaner
-
-Utility to remove generated simulation files and free up disk space. Use with caution as it deletes results.
-
-" + EddyVersion.toString(),
+          : base(GH_Strings.Clean.Name, GH_Strings.Clean.Nick,
+GH_Strings.Clean.Desc + EddyVersion.toString(),
               EddyVersion.Name, "3 | Pre-Processing")
         {
         }
@@ -53,21 +49,21 @@ Utility to remove generated simulation files and free up disk space. Use with ca
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter(
-                "Result/Directory", "Res", 
-                "Simulation result or working directory path.", 
+                GH_Strings.Clean.ResDir, GH_Strings.Clean.ResDirNick, 
+                GH_Strings.Clean.ResDirDesc, 
                 GH_ParamAccess.item);
 
             pManager.AddIntegerParameter(
-                "Mode", "Mode", 
-                "What to delete: 0=Mesh, 1=Simulation, 2=Both", 
-                GH_ParamAccess.item, 1);
+                GH_Strings.Clean.Mode, GH_Strings.Clean.ModeNick, 
+                GH_Strings.Clean.ModeDesc, 
+                GH_ParamAccess.item, 0);
             Param_Integer param = pManager[1] as Param_Integer;
             param.AddNamedValue("Mesh Directory", 0);
             param.AddNamedValue("Simulation Directories", 1);
             param.AddNamedValue("Both", 2);
 
             pManager.AddBooleanParameter(
-                "Run", "Run!", 
+                GH_Strings.Clean.Run, GH_Strings.Clean.RunNick, 
                 "Set True to delete directories. CAUTION: Cannot be undone.", 
                 GH_ParamAccess.item, false);
         }
@@ -96,7 +92,7 @@ Utility to remove generated simulation files and free up disk space. Use with ca
             String workingDirectory = null;
 
             GH_ObjectWrapper gobj = null;
-            if (!DA.GetData(0, ref gobj)) { return; }
+            if (!DA.GetData(GH_Strings.Clean.ResDir, ref gobj)) { return; }
 
             if ((gobj.Value is OFResult))
             {
@@ -112,8 +108,8 @@ Utility to remove generated simulation files and free up disk space. Use with ca
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide either a result object of path to a simulation folder"); return;
             }
 
-            DA.GetData(1, ref Mode);
-            DA.GetData(2, ref Run);
+            DA.GetData(GH_Strings.Clean.Mode, ref Mode);
+            DA.GetData(GH_Strings.Clean.Run, ref Run);
 
             if (Run)
             {

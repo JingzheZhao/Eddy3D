@@ -27,22 +27,11 @@ namespace Eddy
         /// be created.
         /// </summary>
         public SimpleFoam()
-          : base("Wind Simulation", "WindSim", 
-@"Steady-State Wind Solver (SimpleFoam)
-
-Executes the OpenFOAM 'simpleFoam' solver (Steady-state RANS) to calculate mean wind flow patterns.
-
-Workflow:
-1. Connect Domain and Settings
-2. Run Meshing (snappyHexMesh)
-3. Run Simulation (simpleFoam)
-
-" + EddyVersion.toString(),
+          : base(GH_Strings.SimpleFoam.Name, GH_Strings.SimpleFoam.Nick, 
+GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")
         {
         }
-
-
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -50,41 +39,41 @@ Workflow:
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter(
-                "Domain", "Dom", 
-                "CFD domain from Box Domain or Cylindrical Domain component.", 
+                GH_Strings.Common.Domain, GH_Strings.Common.DomainNick, 
+                GH_Strings.Common.DomainDesc, 
                 GH_ParamAccess.item);
 
             pManager.AddTextParameter(
-                "Working Directory", "Dir", 
-                "Folder for simulation files. Default: User\\Eddy. Requires ~1GB per wind direction.", 
+                GH_Strings.Common.WorkingDir, GH_Strings.Common.WorkingDirNick, 
+                GH_Strings.Common.WorkingDirDesc, 
                 GH_ParamAccess.item, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Eddy"));
             pManager[1].Optional = true;
 
             pManager.AddGenericParameter(
-                "Mesh Settings", "Mesh", 
-                "Optional: snappyHexMesh refinement settings from Mesh Settings component.", 
+                GH_Strings.Common.MeshSettings, GH_Strings.Common.MeshSettingsNick, 
+                GH_Strings.Common.MeshSettingsDesc, 
                 GH_ParamAccess.item);
             pManager[2].Optional = true;
 
             pManager.AddGenericParameter(
-                "Run Settings", "Run", 
-                "Optional: Solver settings (iterations, turbulence model) from Run Settings component.", 
+                GH_Strings.Common.RunSettings, GH_Strings.Common.RunSettingsNick, 
+                GH_Strings.Common.RunSettingsDesc, 
                 GH_ParamAccess.item);
             pManager[3].Optional = true;
 
             pManager.AddBooleanParameter(
-                "Run Meshing", "Mesh!", 
-                "Set True to generate CFD mesh using snappyHexMesh. Check residuals before running simulation.", 
+                GH_Strings.Common.RunMeshing, GH_Strings.Common.RunMeshingNick, 
+                GH_Strings.Common.RunMeshingDesc, 
                 GH_ParamAccess.item, false);
 
             pManager.AddBooleanParameter(
-                "Create Trees", "Tree!", 
-                "Set True to create porous zone definitions for vegetation. Run after meshing.", 
+                GH_Strings.Common.MakeTrees, GH_Strings.Common.MakeTreesNick, 
+                GH_Strings.Common.MakeTreesDesc, 
                 GH_ParamAccess.item, false);
 
             pManager.AddBooleanParameter(
-                "Run Simulation", "Sim!", 
-                "Set True to run CFD simulation using simpleFoam. Monitor residuals for convergence.", 
+                GH_Strings.Common.RunSimulation, GH_Strings.Common.RunSimulationNick, 
+                GH_Strings.Common.RunSimulationDesc, 
                 GH_ParamAccess.item, false);
         }
 
@@ -93,11 +82,11 @@ Workflow:
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Result", "Res", "Simulation result for post-processing. Contains velocity and pressure fields.", GH_ParamAccess.item);
-            pManager.AddBooleanParameter("Mesh Done", "MeshDone", "Meshing finished status.", GH_ParamAccess.item);
-            pManager.AddBooleanParameter("Sim Done", "SimDone", "Simulation finished status per wind direction.", GH_ParamAccess.list);
-            pManager.AddTextParameter("Mesh ETA", "MeshETA", "Estimated remaining meshing time (HH:MM:SS). 'unknown' outside morphing phase.", GH_ParamAccess.item);
-            pManager.AddTextParameter("Sim ETA", "SimETA", "Estimated remaining simulation time (HH:MM:SS) per wind direction.", GH_ParamAccess.list);
+            pManager.AddGenericParameter(GH_Strings.Common.Result, GH_Strings.Common.ResultNick, GH_Strings.Common.ResultDesc, GH_ParamAccess.item);
+            pManager.AddBooleanParameter(GH_Strings.SimpleFoam.MeshDone, GH_Strings.SimpleFoam.MeshDoneNick, GH_Strings.SimpleFoam.MeshDone, GH_ParamAccess.item);
+            pManager.AddBooleanParameter(GH_Strings.SimpleFoam.SimDone, GH_Strings.SimpleFoam.SimDoneNick, GH_Strings.SimpleFoam.SimDone, GH_ParamAccess.list);
+            pManager.AddTextParameter(GH_Strings.SimpleFoam.MeshEta, GH_Strings.SimpleFoam.MeshEtaNick, GH_Strings.SimpleFoam.MeshEta, GH_ParamAccess.item);
+            pManager.AddTextParameter(GH_Strings.SimpleFoam.SimEta, GH_Strings.SimpleFoam.SimEtaNick, GH_Strings.SimpleFoam.SimEta, GH_ParamAccess.list);
         }
 
         private bool canRun = true;
@@ -119,7 +108,6 @@ Workflow:
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             // mode to select simulation environment
-            // mode to select simulation environment
             Message = "BlueCFD";
 
             // read inputs
@@ -131,7 +119,7 @@ Workflow:
             OFBaseDomain DOM;
 
             GH_ObjectWrapper gobj = null;
-            if (!DA.GetData("Simulation domain", ref gobj)) { }
+            if (!DA.GetData(GH_Strings.Common.Domain, ref gobj)) { }
 
             if ((gobj.Value is OFCylDomain))
             {
@@ -152,7 +140,7 @@ Workflow:
             OFRunSettings RunSettings = new OFRunSettings();
 
             GH_ObjectWrapper gobjRunSet = null;
-            if (DA.GetData("Run Settings", ref gobjRunSet))
+            if (DA.GetData(GH_Strings.Common.RunSettings, ref gobjRunSet))
             {
                 if (gobjRunSet.Value is OFRunSettings)
                 {
@@ -167,13 +155,11 @@ Workflow:
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "To use multiple CPUs, you need to ensure to use the same msmpi.dll for both Windows and BlueCFD. This is a BlueCFD issue and will hopefully be fixed in a future version."); return;
             }
 
-
-
             // working directory
             //------------------
 
             string baseWorkingDirectory = "";
-            DA.GetData("Working directory", ref baseWorkingDirectory);
+            DA.GetData(GH_Strings.Common.WorkingDir, ref baseWorkingDirectory);
             
             // Resolve simple case names to full paths under AppData\Eddy3D\Cases
             baseWorkingDirectory = DefaultDirectoriesAndPaths.ResolveWorkingDirectory(baseWorkingDirectory);
@@ -188,14 +174,6 @@ Workflow:
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"Please use an additional subfolder for Eddy3D simulations e.g. ""C:\Eddy3D\3_SimpleWindAnalysis"""); return;
             }
 
-            string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            if (RunSettings.ostype == OSType.Windows7 && (RunSettings.simEngine == SimEngine.Docker))
-            {
-                //if (!baseWorkingDirectory.StartsWith(userFolder, StringComparison.InvariantCultureIgnoreCase))
-                //{
-                //    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "For Windows 7 and 8, the working directory must be in the user folder because of constraint with a deprecated Docker version.."); return;
-                //}
-            }
             baseWorkingDirectory = Utilities.Directories.FixDirectories(baseWorkingDirectory);
 
             // meshing settings
@@ -204,7 +182,7 @@ Workflow:
             OFMeshSettings MeshSettings = new OFMeshSettings(); // sets default mesh settings
 
             GH_ObjectWrapper gobjMeshSet = null;
-            if (DA.GetData("Mesh Settings", ref gobjMeshSet))
+            if (DA.GetData(GH_Strings.Common.MeshSettings, ref gobjMeshSet))
             {
                 if (gobjMeshSet.Value is OFMeshSettings)
                 {
@@ -224,40 +202,15 @@ Workflow:
                 RunBlockMesh.RunCyl((OFCylDomain)DOM, MeshSettings, RunSettings, baseWorkingDirectory);
             }
 
-            // Export Frontage PNGs
-
-            //var directory = baseWorkingDirectory + @"FrontageImages\";
-            //foreach (int dir in DOM.BCond.windDirs)
-            //{
-            //    RunBlockMesh.SaveFrontagePNGs(directory, dir, DOM.FrontagePNGs);
-            //}
-
-            //string logFile = "";
-
-            //using (FileStream stream = File.Open(baseWorkingDirectory + @"\mesh\log", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            //{
-            //    using (StreamReader reader = new StreamReader(stream))
-            //    {
-            //        logFile = reader.ReadToEnd();
-
-            //    }
-            //}
-
             #endregion RUN BLOCKMESH
 
             #region RUN SNAPPY HEX
-
-            //TODO: output the logs somewhere!
 
             RunSnappy.Run(DOM, MeshSettings, RunSettings, out string logfileOutput);
 
             #endregion RUN SNAPPY HEX
 
             #region RUN SIMULATION
-
-            // Check if Docker is running if Docker is the sim engine
-
-
 
             if (RunSettings.iter == 0 || RunSettings.keepTimeSteps == 0 || RunSettings.writeInterval == 0)
             {
@@ -288,9 +241,9 @@ Workflow:
             bool runSimulation = false;
             bool runMeshing = false;
 
-            DA.GetData("Make Trees", ref makeTrees);
-            DA.GetData("Run Simulation", ref runSimulation);
-            DA.GetData("Run Meshing", ref runMeshing);
+            DA.GetData(GH_Strings.Common.MakeTrees, ref makeTrees);
+            DA.GetData(GH_Strings.Common.RunSimulation, ref runSimulation);
+            DA.GetData(GH_Strings.Common.RunMeshing, ref runMeshing);
 
             if (makeTrees == true && canRun)
             {
@@ -316,7 +269,7 @@ Workflow:
             #endregion START PROCESSES
 
             OFResult RES = new OFResult(DOM, RunSettings, MeshSettings, baseWorkingDirectory);
-            DA.SetData(0, RES);
+            DA.SetData(GH_Strings.Common.Result, RES);
 
             var windDirs = DOM?.BCond?.WindDirections ?? new System.Collections.Generic.List<int>();
 
@@ -327,7 +280,6 @@ Workflow:
 
             var simDone = new System.Collections.Generic.List<bool>(windDirs.Count);
             var simEta = new System.Collections.Generic.List<string>(windDirs.Count);
-
             foreach (var dir in windDirs)
             {
                 var caseDir = Path.Combine(baseWorkingDirectory, dir.ToString());
@@ -339,22 +291,18 @@ Workflow:
                 simEta.Add(OpenFOAMStatusFormatter.FormatEta(simStatus));
             }
 
-            DA.SetData(1, meshStatus.IsFinished);
-            DA.SetDataList(2, simDone);
-            DA.SetData(3, OpenFOAMStatusFormatter.FormatEta(meshStatus));
-            DA.SetDataList(4, simEta);
+            DA.SetData(GH_Strings.SimpleFoam.MeshDone, meshStatus.IsFinished);
+            DA.SetDataList(GH_Strings.SimpleFoam.SimDone, simDone);
+            DA.SetData(GH_Strings.SimpleFoam.MeshEta, OpenFOAMStatusFormatter.FormatEta(meshStatus));
+            DA.SetDataList(GH_Strings.SimpleFoam.SimEta, simEta);
 
             canRun = true;
         }
 
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface. Icons
-        /// need to be 24x24 pixels.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon =>
-
-                // You can add image files to your project resources and access them like this:
-                Resources.Eddy_simulation;//return null;
+        protected override System.Drawing.Bitmap Icon => Resources.Eddy_simulation;
 
         /// <summary>
         /// Each component must have a unique Guid to identify it. It is vital this Guid doesn't

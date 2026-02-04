@@ -158,9 +158,21 @@ indoor airflow simulations.
                     cache.Files = files.Where(f => f.EndsWith(".ghx", StringComparison.OrdinalIgnoreCase)).ToList();
                     cache.LastSyncedSha = latestSha;
 
-                    // Update Cache Disk
+                    // Clear old cached files to avoid stale templates
                     var targetDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Eddy3D\Templates\GitHub");
-                    if (!Directory.Exists(targetDir)) Directory.CreateDirectory(targetDir);
+                    if (Directory.Exists(targetDir))
+                    {
+                        foreach (var file in Directory.GetFiles(targetDir, "*.ghx", SearchOption.AllDirectories))
+                        {
+                            try { File.Delete(file); } catch { /* ignore deletion errors */ }
+                        }
+                    }
+                    else
+                    {
+                        Directory.CreateDirectory(targetDir);
+                    }
+
+                    // Update Cache Disk
                     var cachePath = Path.Combine(targetDir, "template_list.json");
                     File.WriteAllText(cachePath, JsonConvert.SerializeObject(cache));
                 }
@@ -243,30 +255,71 @@ indoor airflow simulations.
                     menu.Items.Add(new ToolStripSeparator());
                 }
 
+                // Build nested menu structure from folder paths
+                var folderMenus = new Dictionary<string, ToolStripMenuItem>(StringComparer.OrdinalIgnoreCase);
+                var rootFiles = new List<string>();
+
                 foreach (var file in cache.Files)
                 {
-                    var fileName = Path.GetFileNameWithoutExtension(file);
-                    var localPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Eddy3D\Templates\GitHub", file);
-                    var isCached = File.Exists(localPath);
-                    var label = isCached ? fileName : fileName + " (Download)";
-
-                    EventHandler ev = async (sender, e) =>
+                    var dirName = Path.GetDirectoryName(file)?.Replace("\\", "/");
+                    if (string.IsNullOrEmpty(dirName))
                     {
-                        var success = await EnsureTemplateDownloadedAsync(file);
-                        if (success)
+                        // Root-level file
+                        rootFiles.Add(file);
+                    }
+                    else
+                    {
+                        // File inside a folder
+                        if (!folderMenus.ContainsKey(dirName))
                         {
-                            var r = true;
-                            CreateTemplateFromXMLString(localPath, ref r);
-                            this.ExpireSolution(true);
+                            folderMenus[dirName] = new ToolStripMenuItem(dirName);
                         }
-                    };
+                        folderMenus[dirName].DropDownItems.Add(CreateTemplateMenuItem(file));
+                    }
+                }
 
-                    menu.Items.Add(new ToolStripMenuItem(label, null, ev));
+                // Add folder submenus first
+                foreach (var kvp in folderMenus.OrderBy(k => k.Key))
+                {
+                    menu.Items.Add(kvp.Value);
+                }
+
+                // Add separator if we have both folders and root files
+                if (folderMenus.Count > 0 && rootFiles.Count > 0)
+                {
+                    menu.Items.Add(new ToolStripSeparator());
+                }
+
+                // Add root-level files
+                foreach (var file in rootFiles)
+                {
+                    menu.Items.Add(CreateTemplateMenuItem(file));
                 }
             }
 
             menu.Items.Add(new ToolStripSeparator());
             Menu_AppendItem(menu, "Force Refresh List", (sender, e) => { FetchGithubFilesAsync(); });
+        }
+
+        private ToolStripMenuItem CreateTemplateMenuItem(string file)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(file);
+            var localPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Eddy3D\Templates\GitHub", file);
+            var isCached = File.Exists(localPath);
+            var label = isCached ? fileName : fileName + " (Download)";
+
+            EventHandler ev = async (sender, e) =>
+            {
+                var success = await EnsureTemplateDownloadedAsync(file);
+                if (success)
+                {
+                    var r = true;
+                    CreateTemplateFromXMLString(localPath, ref r);
+                    this.ExpireSolution(true);
+                }
+            };
+
+            return new ToolStripMenuItem(label, null, ev);
         }
 
         private async Task<bool> EnsureTemplateDownloadedAsync(string relPath)

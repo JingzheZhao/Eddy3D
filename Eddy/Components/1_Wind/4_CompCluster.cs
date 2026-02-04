@@ -22,13 +22,9 @@ namespace Eddy
         /// </summary>
         public WindRoseCluster_Component()
           : base(
-              "Wind Rose Cluster", 
-              "Cluster", 
-              @"Wind Rose Clustering
-
-Groups wind directions into representative clusters to reduce simulation time. Essential for performing annual wind comfort analysis efficiently without simulating every single direction.
-
-" + EddyVersion.toString(),
+              GH_Strings.Cluster.Name, 
+              GH_Strings.Cluster.Nick, 
+              GH_Strings.Cluster.Desc + EddyVersion.toString(),
               EddyVersion.Name, 
               "1 | Wind")
         {
@@ -40,13 +36,13 @@ Groups wind directions into representative clusters to reduce simulation time. E
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddNumberParameter(
-                "Directions", "Dir", 
-                "Wind directions (0-360°) from weather data.", 
+                GH_Strings.Cluster.Directions, GH_Strings.Cluster.DirectionsNick, 
+                GH_Strings.Cluster.DirectionsDesc, 
                 GH_ParamAccess.list);
 
             pManager.AddIntegerParameter(
-                "Budget", "N", 
-                "Target number of wind directions to simulate. Default: 8", 
+                GH_Strings.Cluster.Budget, GH_Strings.Cluster.BudgetNick, 
+                GH_Strings.Cluster.BudgetDesc, 
                 GH_ParamAccess.item, 8);
         }
 
@@ -55,20 +51,20 @@ Groups wind directions into representative clusters to reduce simulation time. E
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddNumberParameter("Centroids", "Cent", "Cluster centroid directions.", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Distinct Centroids", "Dcent", "Sorted list of unique cluster centroids.", GH_ParamAccess.list);
-            pManager.AddPointParameter("Clusters", "Clus", "Data tree of points in each cluster.", GH_ParamAccess.tree);
-            pManager.AddNumberParameter("Breaks", "Brk", "Jenks-Fisher natural breaks.", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Total Distance", "Dist", "Total clustering distance (error).", GH_ParamAccess.item);
+            pManager.AddNumberParameter(GH_Strings.Cluster.Centroids, GH_Strings.Cluster.CentroidsNick, GH_Strings.Cluster.CentroidsDesc, GH_ParamAccess.list);
+            pManager.AddNumberParameter(GH_Strings.Cluster.DistinctCentroids, GH_Strings.Cluster.DistinctCentroidsNick, GH_Strings.Cluster.DistinctCentroidsDesc, GH_ParamAccess.list);
+            pManager.AddPointParameter(GH_Strings.Cluster.Clusters, GH_Strings.Cluster.ClustersNick, GH_Strings.Cluster.ClustersDesc, GH_ParamAccess.tree);
+            pManager.AddNumberParameter(GH_Strings.Cluster.Breaks, GH_Strings.Cluster.BreaksNick, "Jenks-Fisher natural breaks.", GH_ParamAccess.list);
+            pManager.AddNumberParameter(GH_Strings.Cluster.Distance, GH_Strings.Cluster.DistanceNick, "Total clustering distance (error).", GH_ParamAccess.item);
         }
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             var dirsDeg = new List<double>();
-            if (!DA.GetDataList("Directions", dirsDeg)) return;
+            if (!DA.GetDataList(GH_Strings.Cluster.Directions, dirsDeg)) return;
 
             int budget = 8;
-            DA.GetData("Budget", ref budget);
+            DA.GetData(GH_Strings.Cluster.Budget, ref budget);
 
             var kmd = new KMpt[dirsDeg.Count];
             for (int i = 0; i < dirsDeg.Count; i++)
@@ -95,13 +91,13 @@ Groups wind directions into representative clusters to reduce simulation time. E
                 }
             }
 
-            DA.SetDataList("Centroids", centroids);
-            DA.SetDataList("Distinct Centroids", distinctCentroids);
-            DA.SetDataTree(2, clusters);
+            DA.SetDataList(GH_Strings.Cluster.Centroids, centroids);
+            DA.SetDataList(GH_Strings.Cluster.DistinctCentroids, distinctCentroids);
+            DA.SetDataTree(Params.IndexOfOutputParam(GH_Strings.Cluster.Clusters), clusters);
 
             var breaks = JenksFisher.CreateJenksFisherBreaksArray(dirsDeg, budget);
-            DA.SetDataList("Breaks", breaks);
-            DA.SetData("Total Distance", results.TotalDistance);
+            DA.SetDataList(GH_Strings.Cluster.Breaks, breaks);
+            DA.SetData(GH_Strings.Cluster.Distance, results.TotalDistance);
         }
 
         /// <summary>

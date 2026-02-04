@@ -123,12 +123,54 @@ namespace EddyLib.BCs
         }
 
         public static void AdjustInputList<T>(
-IGH_DataAccess DA,
-int index,
-List<T> list,
-int targetCount,
-T defaultValue,
-ref bool flag)
+            IGH_DataAccess DA,
+            string name,
+            List<T> list,
+            int targetCount,
+            T defaultValue,
+            ref bool flag)
+        {
+            var tempList = new List<T>();
+            bool hasData = DA.GetDataList(name, tempList) && tempList.Count > 0;
+
+            // Always mutate 'list' in-place so the caller sees the changes.
+            list.Clear();
+
+            if (hasData)
+            {
+                if (tempList.Count == 1)
+                {
+                    // Repeat single item across all wind directions
+                    for (int i = 0; i < targetCount; i++)
+                        list.Add(tempList[0]);
+                    // This is intended behavior (not "missing"), so no need to set 'flag' here.
+                }
+                else
+                {
+                    // Copy provided values; pad to targetCount with defaults if needed
+                    for (int i = 0; i < targetCount; i++)
+                    {
+                        if (i < tempList.Count) list.Add(tempList[i]);
+                        else { list.Add(defaultValue); flag = true; } // we had to assume/pad
+                    }
+                }
+            }
+            else
+            {
+                // No values provided: use defaults
+                for (int i = 0; i < targetCount; i++)
+                    list.Add(defaultValue);
+                flag = true; // truly missing input
+            }
+        }
+
+        public static void AdjustInputList<T>(
+            IGH_DataAccess DA,
+            int index,
+            List<T> list,
+            int targetCount,
+            T defaultValue,
+            ref bool flag)
         {
             var tempList = new List<T>();
             bool hasData = DA.GetDataList(index, tempList) && tempList.Count > 0;

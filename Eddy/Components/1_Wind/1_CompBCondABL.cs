@@ -10,6 +10,9 @@ using System.Text;
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
 // _GrasshopperDeveloperSettings Rhino command for that.
+using System.IO;
+using System.Threading.Tasks;
+using EddyLib.Web;
 
 namespace Eddy
 {
@@ -23,12 +26,8 @@ namespace Eddy
         /// be created.
         /// </summary>
         public BCondABLComp()
-          : base("ABL Flow", "ABL", 
-@"Atmospheric Boundary Layer (ABL) Inlet
-
-Sets up a logarithmic wind profile based on aerodynamic roughness length (z0). Essential for accurate urban wind flow simulation, representing the friction of the upwind terrain.
-
-" + EddyVersion.toString(),
+          : base(GH_Strings.ABL.Name, GH_Strings.ABL.Nick, 
+GH_Strings.ABL.Desc + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")
         {
             //dirs.Add(0);
@@ -41,33 +40,33 @@ Sets up a logarithmic wind profile based on aerodynamic roughness length (z0). E
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddIntegerParameter(
-                "Wind Directions", "Dir", 
-                "Wind directions to simulate. Units: degrees (0-359). 0° = North, 90° = East. Use multiple for annual studies.", 
+                GH_Strings.ABL.WindDirs, GH_Strings.ABL.WindDirsNick, 
+                GH_Strings.ABL.WindDirsDesc, 
                 GH_ParamAccess.list);
 
             pManager.AddNumberParameter(
-                "Reference Velocity", "Uref", 
-                "Wind speed at reference height. Units: m/s. Typical urban: 3-8 m/s. Default: 5 m/s", 
+                GH_Strings.ABL.Uref, GH_Strings.ABL.UrefNick, 
+                GH_Strings.ABL.UrefDesc, 
                 GH_ParamAccess.list);
 
             pManager.AddNumberParameter(
-                "Reference Height", "Zref", 
-                "Height where velocity is measured (weather station height). Units: m. Standard: 10m. Default: 10m", 
+                GH_Strings.ABL.Zref, GH_Strings.ABL.ZrefNick, 
+                GH_Strings.ABL.ZrefDesc, 
                 GH_ParamAccess.list);
 
             pManager.AddNumberParameter(
-                "Surface Roughness", "Z0", 
-                "Aerodynamic roughness length. Units: m. Examples: 0.01 (open terrain), 0.3 (suburban), 1.0 (urban). Default: 1m", 
+                GH_Strings.ABL.Z0, GH_Strings.ABL.Z0Nick, 
+                GH_Strings.ABL.Z0Desc, 
                 GH_ParamAccess.list);
 
             pManager.AddNumberParameter(
-                "Ground Level", "Zgnd", 
-                "Minimum z-coordinate of terrain. Units: m. Usually 0 for flat terrain. Default: 0m", 
+                GH_Strings.ABL.Zgnd, GH_Strings.ABL.ZgndNick, 
+                GH_Strings.ABL.ZgndDesc, 
                 GH_ParamAccess.list);
 
             pManager.AddTextParameter(
-                "Weather File", "EPW", 
-                "Optional: Path to EnergyPlus weather file (.epw) for climate-based wind data.", 
+                GH_Strings.ABL.EPW, GH_Strings.ABL.EPWNick, 
+                GH_Strings.ABL.EPWDesc, 
                 GH_ParamAccess.item, "");
 
             pManager[0].Optional = true;
@@ -83,7 +82,7 @@ Sets up a logarithmic wind profile based on aerodynamic roughness length (z0). E
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Boundary Condition", "BC", "Wind inlet boundary condition for Domain component", GH_ParamAccess.item);
+            pManager.AddGenericParameter(GH_Strings.ABL.BC, GH_Strings.ABL.BCNick, GH_Strings.ABL.BCDesc, GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -99,7 +98,7 @@ Sets up a logarithmic wind profile based on aerodynamic roughness length (z0). E
 
             // Retrieve wind directions or set default
             List<int> windDirs = new List<int>();
-            if (!DA.GetDataList(0, windDirs) || !windDirs.Any())
+            if (!DA.GetDataList(GH_Strings.ABL.WindDirs, windDirs) || !windDirs.Any())
             {
                 windDirs.Add(0); // Default wind direction
                 repeatedInputs = true;
@@ -116,12 +115,39 @@ Sets up a logarithmic wind profile based on aerodynamic roughness length (z0). E
 
             // Retrieve other inputs and adjust if necessary
 
-            EddyLib.BCs.BCHelpers.AdjustInputList(DA, 1, Uref, windDirs.Count, 5.0, ref repeatedInputs);
-            EddyLib.BCs.BCHelpers.AdjustInputList(DA, 2, zref, windDirs.Count, 10, ref repeatedInputs);
-            EddyLib.BCs.BCHelpers.AdjustInputList(DA, 3, z0, windDirs.Count, 1, ref repeatedInputs);
-            EddyLib.BCs.BCHelpers.AdjustInputList(DA, 4, zGround, windDirs.Count, 0, ref repeatedInputs);
+            EddyLib.BCs.BCHelpers.AdjustInputList(DA, GH_Strings.ABL.Uref, Uref, windDirs.Count, 5.0, ref repeatedInputs);
+            EddyLib.BCs.BCHelpers.AdjustInputList(DA, GH_Strings.ABL.Zref, zref, windDirs.Count, 10, ref repeatedInputs);
+            EddyLib.BCs.BCHelpers.AdjustInputList(DA, GH_Strings.ABL.Z0, z0, windDirs.Count, 1, ref repeatedInputs);
+            EddyLib.BCs.BCHelpers.AdjustInputList(DA, GH_Strings.ABL.Zgnd, zGround, windDirs.Count, 0, ref repeatedInputs);
 
-            DA.GetData(5, ref epwFilePath);
+            DA.GetData(GH_Strings.ABL.EPW, ref epwFilePath);
+
+            // Auto-download EPW if URL provided
+            if (epwFilePath.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    string fileName = Path.GetFileName(new Uri(epwFilePath).AbsolutePath);
+                    string localDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Eddy3D\Weather");
+                    string localPath = Path.Combine(localDir, fileName);
+
+                    if (!File.Exists(localPath))
+                    {
+                        Task.Run(async () => await FileDownloader.DownloadFileAsync(epwFilePath, localPath)).Wait();
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, $"Downloaded weather file to: {localPath}");
+                    }
+                    else
+                    {
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, $"Using existing cached weather file: {localPath}");
+                    }
+                    epwFilePath = localPath;
+                }
+                catch (Exception ex)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Failed to download weather file: {ex.Message}");
+                    return;
+                }
+            }
 
             BCCollection BCC = new BCCollection(epwFilePath);
 
@@ -164,9 +190,7 @@ Sets up a logarithmic wind profile based on aerodynamic roughness length (z0). E
             var formattedSummary = BCHelpers.BuildTable(windDirs, Uref, zref, z0, zGround, epwFilePath);
 
             // Set the description of the output parameter
-            Params.Output[0].Description = formattedSummary.ToString();
-
-            DA.SetData(0, BCC);
+            DA.SetData(GH_Strings.ABL.BC, BCC);
         }
 
         // hidden parameter
