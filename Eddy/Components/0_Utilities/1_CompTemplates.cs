@@ -52,51 +52,177 @@ indoor airflow simulations.
         {
             pManager.AddTextParameter(
                 "Additional Folders", "Dirs", 
-                "Optional: Additional folder paths to search for .ghx templates.", 
+                "Optional: Additional folder paths or GitHub URLs to search for .gh/.ghx templates.\nExample URL: https://github.com/Startraders/Eddy3D-Templates/tree/main/Indoor", 
                 GH_ParamAccess.list);
             pManager[0].Optional = true;
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddTextParameter("Template Paths", "Paths", "Full paths to discovered template files (.ghx)", GH_ParamAccess.list);
+            pManager.AddTextParameter("Template Paths", "Paths", "Full paths to discovered template files (.gh/.ghx)", GH_ParamAccess.list);
         }
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            var additionalInputs = new List<string>();
+            DA.GetDataList(0, additionalInputs);
+
+            // 1. Manage Main Repo Cache
             if (cache.Files.Count == 0 && !isFetching && errorMessage == null)
             {
                 LoadTemplateCache();
+                if (cache.Files.Count == 0 && !isFetching) FetchGithubFilesAsync();
             }
 
+            // 2. Check Updates
             if (cache.Files.Count > 0 && !isFetching && !isCheckingForUpdate && !updateAvailable)
             {
                 CheckForUpdatesAsync();
             }
 
-            if (updateAvailable)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Template update available. Right-click to sync.");
-            }
-            else if (cache.Files.Count == 0 && errorMessage == null && !isFetching)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Right-click to sync templates from GitHub.");
-            }
+            // Output Messages
+            if (updateAvailable) AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Template update available. Right-click to sync.");
+            else if (cache.Files.Count == 0 && errorMessage == null && !isFetching) AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Syncing templates from GitHub...");
 
-            if (errorMessage != null)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, errorMessage);
-            }
+            if (errorMessage != null) AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, errorMessage);
 
+            // 3. Collect All Files
+            var allFiles = new List<string>();
+
+            // Add Main Repo Files
             var localTemplatesDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Eddy3D\Templates\GitHub");
-            var displayedFiles = new List<string>();
-
             foreach (var file in cache.Files)
             {
-                displayedFiles.Add(Path.Combine(localTemplatesDir, file));
+                allFiles.Add(Path.Combine(localTemplatesDir, file));
             }
 
-            DA.SetDataList(0, displayedFiles);
+            // Process Additional Inputs (Local Folders or GitHub URLs)
+            foreach (var input in additionalInputs)
+            {
+                if (string.IsNullOrWhiteSpace(input)) continue;
+
+                if (IsGitHubUrl(input, out var ghInfo))
+                {
+                    // It's a GitHub URL
+                    var externalDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Eddy3D\Templates\External", ghInfo.Owner, ghInfo.Repo, ghInfo.Branch ?? "HEAD");
+                    
+                    if (!Directory.Exists(externalDir) || Directory.GetFiles(externalDir, "*.gh*", SearchOption.AllDirectories).Length == 0)
+                    {
+                        if (!externalFetchStates.ContainsKey(input) || !externalFetchStates[input])
+                        {
+                             FetchExternalGithubFilesAsync(input, ghInfo);
+                        }
+                    }
+
+                    if (Directory.Exists(externalDir))
+                    {
+                         // Filter files based on path if provided in URL (e.g. /tree/main/SubDir)
+                         var files = Directory.GetFiles(externalDir, "*.gh*", SearchOption.AllDirectories);
+                         foreach(var f in files)
+                         {
+                             // If URL has a subpath, filter by it
+                             if (!string.IsNullOrEmpty(ghInfo.Path) && !f.Replace("\\", "/").Contains(ghInfo.Path)) continue;
+                             allFiles.Add(f);
+                         }
+                    }
+                }
+                else if (Directory.Exists(input))
+                {
+                    try
+                    {
+                        var files = Directory.GetFiles(input, "*.gh*", SearchOption.AllDirectories)
+                                             .Where(f => f.EndsWith(".gh", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".ghx", StringComparison.OrdinalIgnoreCase));
+                        allFiles.AddRange(files);
+                    }
+                    catch { /* Ignore access errors */ }
+                }
+            }
+
+            DA.SetDataList(0, allFiles);
+        }
+
+    // --- Helper Structures & Methods ---
+    
+        private Dictionary<string, bool> externalFetchStates = new Dictionary<string, bool>();
+
+        private struct GitHubInfo
+        {
+            public string Owner;
+            public string Repo;
+            public string Branch;
+            public string Path;
+        }
+
+        private bool IsGitHubUrl(string url, out GitHubInfo info)
+        {
+            info = new GitHubInfo();
+            if (string.IsNullOrEmpty(url) || !url.StartsWith("https://github.com/", StringComparison.OrdinalIgnoreCase)) 
+                return false;
+
+            var parts = url.Substring("https://github.com/".Length).Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length < 2) return false;
+
+            info.Owner = parts[0];
+            info.Repo = parts[1];
+            
+            if (parts.Length >= 4 && parts[2] == "tree")
+            {
+                info.Branch = parts[3];
+                if (parts.Length > 4)
+                {
+                    info.Path = string.Join("/", parts.Skip(4));
+                }
+            }
+            else
+            {
+                 info.Branch = "HEAD"; 
+            }
+
+            return true;
+        }
+
+        private async void FetchExternalGithubFilesAsync(string inputUrl, GitHubInfo info)
+        {
+            if (externalFetchStates.ContainsKey(inputUrl) && externalFetchStates[inputUrl]) return;
+            externalFetchStates[inputUrl] = true;
+
+            try
+            {
+                using (var lister = new GitHubFileLister())
+                {
+                    var files = await lister.ListFilesAsync(info.Owner, info.Repo, info.Branch);
+                    var validFiles = files.Where(f => f.EndsWith(".ghx", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".gh", StringComparison.OrdinalIgnoreCase));
+                    
+                    var targetDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Eddy3D\Templates\External", info.Owner, info.Repo, info.Branch);
+                    if (!Directory.Exists(targetDir)) Directory.CreateDirectory(targetDir);
+
+                    foreach (var relPath in validFiles)
+                    {
+                        if (!string.IsNullOrEmpty(info.Path) && !relPath.Replace("\\", "/").StartsWith(info.Path)) continue;
+
+                        var localPath = Path.Combine(targetDir, relPath);
+                        var localSub = Path.GetDirectoryName(localPath);
+                        if (!Directory.Exists(localSub)) Directory.CreateDirectory(localSub);
+
+                        var rawUrl = $"https://raw.githubusercontent.com/{info.Owner}/{info.Repo}/{info.Branch}/{relPath}";
+                        using (var client = new System.Net.Http.HttpClient())
+                        {
+                            client.DefaultRequestHeaders.UserAgent.ParseAdd("Eddy3D");
+                            var data = await client.GetByteArrayAsync(rawUrl);
+                            File.WriteAllBytes(localPath, data);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, $"Failed to fetch external templates from {inputUrl}: {ex.Message}");
+            }
+            finally
+            {
+                externalFetchStates[inputUrl] = false;
+                Rhino.RhinoApp.InvokeOnUiThread((Action)delegate { this.ExpireSolution(true); });
+            }
         }
 
         private void LoadTemplateCache()
