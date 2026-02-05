@@ -247,5 +247,20 @@ namespace EddyLib
             public const string DistanceNick = "Dist";
             public const string DistanceDesc = "Total distance between points and centroids.";
         }
+
+        public static class Templates
+        {
+            public const string Name = "Select Template";
+            public const string Nick = "Select";
+            public const string Desc = "Load example Grasshopper definitions for common workflows.\n\nTemplates include wind comfort studies, MRT analysis, and \nindoor airflow simulations.";
+            
+            public const string InputName = "Additional Folders";
+            public const string InputNick = "Dirs";
+            public const string InputDesc = "Optional: Additional folder paths or GitHub URLs to search for .gh/.ghx templates.\nExample URL: https://github.com/Startraders/Eddy3D-Templates/tree/main/Indoor";
+            
+            public const string OutputName = "Template Paths";
+            public const string OutputNick = "Paths";
+            public const string OutputDesc = "Full paths to discovered template files (.gh/.ghx)";
+        }
     }
 }

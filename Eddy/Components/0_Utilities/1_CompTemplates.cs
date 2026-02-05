@@ -35,13 +35,8 @@ namespace Eddy
         }
 
         public SelectTemplate_Component()
-              : base("Select Template", "Select", 
-@"Load example Grasshopper definitions for common workflows.
-
-Templates include wind comfort studies, MRT analysis, and 
-indoor airflow simulations.
-
-" + EddyVersion.toString(),
+              : base(EddyLib.GH_Strings.Templates.Name, EddyLib.GH_Strings.Templates.Nick, 
+              EddyLib.GH_Strings.Templates.Desc + "\n\n" + EddyVersion.toString(),
               EddyVersion.Name, "0 | Utilities")
         {
         }
@@ -51,15 +46,20 @@ indoor airflow simulations.
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddTextParameter(
-                "Additional Folders", "Dirs", 
-                "Optional: Additional folder paths or GitHub URLs to search for .gh/.ghx templates.\nExample URL: https://github.com/Startraders/Eddy3D-Templates/tree/main/Indoor", 
+                EddyLib.GH_Strings.Templates.InputName, 
+                EddyLib.GH_Strings.Templates.InputNick, 
+                EddyLib.GH_Strings.Templates.InputDesc, 
                 GH_ParamAccess.list);
             pManager[0].Optional = true;
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddTextParameter("Template Paths", "Paths", "Full paths to discovered template files (.gh/.ghx)", GH_ParamAccess.list);
+            pManager.AddTextParameter(
+                EddyLib.GH_Strings.Templates.OutputName, 
+                EddyLib.GH_Strings.Templates.OutputNick, 
+                EddyLib.GH_Strings.Templates.OutputDesc, 
+                GH_ParamAccess.list);
         }
 
         protected override void SolveInstance(IGH_DataAccess DA)
