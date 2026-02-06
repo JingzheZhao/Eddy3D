@@ -1,4 +1,5 @@
 ﻿using Eddy.Properties;
+using Eddy.Analytics;
 using Grasshopper.Kernel;
 using System;
 using System.Drawing;
@@ -7,6 +8,12 @@ namespace Eddy
 {
     public class EddyInfo : GH_AssemblyInfo
     {
+        public EddyInfo()
+        {
+            // Track plugin launch on startup
+            Analytics.Analytics.TrackLaunch();
+        }
+
         public override string Name
         {
             get

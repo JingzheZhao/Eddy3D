@@ -1,4 +1,5 @@
-﻿using Eddy.Components.Indoor.Params;
+﻿using Eddy.Analytics;
+using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
 using EddyLib;
 using EddyLib.Indoor;
@@ -74,6 +75,7 @@ Samples the wind field at specific locations. Use this to query wind speed and p
 " + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")
         {
+            Analytics.Analytics.TrackComponentView("ProbeSimulation");
         }
 
         /// <summary>
@@ -347,6 +349,7 @@ Samples the wind field at specific locations. Use this to query wind speed and p
 
                     if (run == true && canRun == true)
                     {
+                        Analytics.Analytics.TrackProbeCase(listOfPoints.Count);
                         if (RES.RunSettings.simEngine == SimEngine.Docker)
                         {
                             var arg = BatFiles.DockerPrefixPath(RES.Domain, RES.MeshSettings, RES.RunSettings, OFExecutionMode.Simulation) + command;
@@ -434,6 +437,7 @@ Samples the wind field at specific locations. Use this to query wind speed and p
 
                     if (run == true && canRun == true)
                     {
+                        Analytics.Analytics.TrackProbeCase(listOfPoints.Count);
                         if (RES.RunSettings.simEngine == SimEngine.Docker)
                         {
                             var arg = BatFiles.DockerPrefixPath(RES.Domain, RES.MeshSettings, RES.RunSettings, OFExecutionMode.Simulation) + command;
