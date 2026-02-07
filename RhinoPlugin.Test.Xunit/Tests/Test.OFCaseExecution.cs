@@ -150,17 +150,9 @@ namespace RhinoPlugin.Test.Xunit
             // Arrange
             var caseDir = TestFixtures.CreateTestDirectory("testcase-indoor-simple");
 
-            // Load STLs
-            // Note: Paths are relative to the solution root as per GeometryHelpers.LoadMergedMesh
-            var envelopeMesh = GeometryHelpers.LoadMergedMesh(@"RhinoPlugin.Test.Xunit\Resources\Wall0.stl");
-            var inletMesh = GeometryHelpers.LoadMergedMesh(@"RhinoPlugin.Test.Xunit\Resources\Inlet1.stl");
-            var outletMesh = GeometryHelpers.LoadMergedMesh(@"RhinoPlugin.Test.Xunit\Resources\Outlet2.stl");
-
-            // Scale to meters (STL is in mm)
-            var scale = Transform.Scale(Point3d.Origin, 0.001);
-            envelopeMesh.Transform(scale);
-            inletMesh.Transform(scale);
-            outletMesh.Transform(scale);
+            // Use procedural geometry to keep the indoor execution test independent
+            // from STL import plugins in headless Rhino test hosts.
+            var (envelopeMesh, inletMesh, outletMesh) = CreateIndoorSimpleRoomGeometry();
 
             // Boundary Conditions
             // Envelope: 20C, Refinement 2
@@ -215,7 +207,7 @@ namespace RhinoPlugin.Test.Xunit
 
             // Execute the batch file
             _output.WriteLine("Running simulation batch file...");
-            var (success, log) = RunBatchFileInteractive(caseDir, Path.Combine("Scripts", "run_all.bat"));
+            var (success, log) = RunBatchFileInteractive(caseDir, "run_all.bat");
 
             _output.WriteLine($"Batch execution completed. Success: {success}");
             _output.WriteLine($"Log info: {log}");
@@ -227,6 +219,35 @@ namespace RhinoPlugin.Test.Xunit
             File.Create(Path.Combine(caseDir, "case.foam")).Dispose();
 
             _output.WriteLine($"Indoor Simulation Case completed successfully at: {caseDir}");
+        }
+
+        private static (Mesh envelope, Mesh inlet, Mesh outlet) CreateIndoorSimpleRoomGeometry()
+        {
+            // Room: 10m x 10m x 3m, with inlet at X=0 and outlet at X=10.
+            var p0 = new Point3d(0, 0, 0);
+            var p1 = new Point3d(10, 0, 0);
+            var p2 = new Point3d(10, 10, 0);
+            var p3 = new Point3d(0, 10, 0);
+            var p4 = new Point3d(0, 0, 3);
+            var p5 = new Point3d(10, 0, 3);
+            var p6 = new Point3d(10, 10, 3);
+            var p7 = new Point3d(0, 10, 3);
+
+            var mp = new MeshingParameters();
+
+            var inletSrf = NurbsSurface.CreateFromCorners(p0, p3, p7, p4);
+            var inletMesh = Mesh.CreateFromBrep(inletSrf.ToBrep(), mp)[0];
+
+            var outletSrf = NurbsSurface.CreateFromCorners(p1, p2, p6, p5);
+            var outletMesh = Mesh.CreateFromBrep(outletSrf.ToBrep(), mp)[0];
+
+            var envelopeMesh = new Mesh();
+            envelopeMesh.Append(Mesh.CreateFromBrep(NurbsSurface.CreateFromCorners(p0, p1, p2, p3).ToBrep(), mp)[0]); // floor
+            envelopeMesh.Append(Mesh.CreateFromBrep(NurbsSurface.CreateFromCorners(p4, p5, p6, p7).ToBrep(), mp)[0]); // ceiling
+            envelopeMesh.Append(Mesh.CreateFromBrep(NurbsSurface.CreateFromCorners(p0, p1, p5, p4).ToBrep(), mp)[0]); // wall y=0
+            envelopeMesh.Append(Mesh.CreateFromBrep(NurbsSurface.CreateFromCorners(p3, p2, p6, p7).ToBrep(), mp)[0]); // wall y=10
+
+            return (envelopeMesh, inletMesh, outletMesh);
         }
 
         private static OFMeshSettings CreateProceduralMeshSettings(string caseDir)
@@ -278,7 +299,7 @@ namespace RhinoPlugin.Test.Xunit
             Assert.True(File.Exists(Path.Combine(systemDir, "blockMeshDict")), "blockMeshDict not found");
             Assert.True(File.Exists(Path.Combine(systemDir, "snappyHexMeshDict")), "snappyHexMeshDict not found");
             Assert.True(File.Exists(Path.Combine(systemDir, "controlDict")), "controlDict not found");
-            Assert.True(File.Exists(Path.Combine(caseDir, "Scripts", "run_all.bat")), "run_all.bat not found");
+            Assert.True(File.Exists(Path.Combine(caseDir, "run_all.bat")), "run_all.bat not found");
         }
 
         private static void AssertIndoorSimulationCompleted(string caseDir, int expectedEndTime)

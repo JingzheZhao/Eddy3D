@@ -74,7 +74,8 @@ namespace RhinoPlugin.Test.Xunit
 
             Assert.Contains(DockerConfig.OpenFoamBashrc, preamble);
             Assert.Contains(DockerConfig.MpiPath, preamble);
-            Assert.StartsWith("source ", preamble);
+            Assert.StartsWith("export PATH=", preamble);
+            Assert.Contains("&& source ", preamble);
             Assert.Contains("export PATH=", preamble);
         }
 
@@ -97,9 +98,11 @@ namespace RhinoPlugin.Test.Xunit
             // Should be joined with &&
             Assert.Contains(" && ", chain);
 
-            // Count the number of && separators (cd + preamble + 2 commands = 3 separators)
+            // Count the number of && separators.
+            // BuildPreamble expands to "export PATH=... && source ...",
+            // so chain parts are: cd, export PATH, source, blockMesh, snappyHexMesh.
             var parts = chain.Split(new[] { " && " }, StringSplitOptions.None);
-            Assert.Equal(4, parts.Length);
+            Assert.Equal(5, parts.Length);
         }
 
         [Fact]
@@ -112,7 +115,7 @@ namespace RhinoPlugin.Test.Xunit
             Assert.Contains(DockerConfig.OpenFoamBashrc, chain);
 
             var parts = chain.Split(new[] { " && " }, StringSplitOptions.None);
-            Assert.Equal(2, parts.Length); // cd + preamble only
+            Assert.Equal(3, parts.Length); // cd + export PATH + source
         }
 
         [Fact]

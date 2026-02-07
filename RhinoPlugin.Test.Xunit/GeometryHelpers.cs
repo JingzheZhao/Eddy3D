@@ -32,8 +32,19 @@ namespace RhinoPlugin.Test.Xunit
                 {
                     STLModelUnits = UnitSystem.Meters
                 };
-                if (!doc.Import(stlAbs, opts.ToDictionary()))
-                    throw new InvalidOperationException("STL import failed.");
+                // Try direct STL reader first, then fall back to RhinoDoc.Import
+                // for environments where one path is available but the other is not.
+                bool imported = FileStl.Read(stlAbs, doc, opts);
+                if (!imported)
+                {
+                    imported = doc.Import(stlAbs, opts.ToDictionary());
+                }
+
+                if (!imported)
+                {
+                    throw new InvalidOperationException(
+                        $"STL import failed for '{stlAbs}' (both FileStl.Read and RhinoDoc.Import returned false).");
+                }
 
                 // Duplicate every MeshObject (so they survive after Dispose)
                 var pieces = new List<Mesh>();
