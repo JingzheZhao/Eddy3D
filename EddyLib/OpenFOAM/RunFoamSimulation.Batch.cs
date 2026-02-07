@@ -1,6 +1,9 @@
 using EddyLib.BCs;
+using EddyLib.Docker;
 using EddyLib.OpenFOAM;
+using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace EddyLib
 {
@@ -16,6 +19,22 @@ namespace EddyLib
             var scriptsDir = Path.Combine(workDir, "Scripts");
             if (!Directory.Exists(scriptsDir)) Directory.CreateDirectory(scriptsDir);
 
+            // On macOS: always generate .command files, never .bat
+            bool useDocker = runSettings.simEngine == SimEngine.Docker
+                          || !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+            if (useDocker)
+            {
+                WriteDockerCommandFiles(scriptsDir, workDir, domain, meshSettings, runSettings);
+            }
+            else
+            {
+                WriteBlueCfdBatchFiles(scriptsDir, domain, meshSettings, runSettings);
+            }
+        }
+
+        private static void WriteBlueCfdBatchFiles(string scriptsDir, OFBaseDomain domain, OFMeshSettings meshSettings, OFRunSettings runSettings)
+        {
             DictFileWriter.WriteBatchFile(scriptsDir, "delete_processor_folders.bat",
                 Strings.BatFiles.DeleteProcessorFolders());
 
@@ -37,24 +56,109 @@ namespace EddyLib
                 Strings.BatFiles.UpdateCoresInteractiveBatch());
         }
 
+        private static void WriteDockerCommandFiles(string scriptsDir, string workDir, OFBaseDomain domain, OFMeshSettings meshSettings, OFRunSettings runSettings)
+        {
+            // Meshing
+            var meshCmds = new List<string> { "cd mesh" };
+            if (runSettings.CPUs > 1)
+            {
+                meshCmds.Add("blockMesh");
+                meshCmds.Add("surfaceFeatures");
+                meshCmds.Add("decomposePar -force");
+                meshCmds.Add(string.Format("mpiexec -np {0} snappyHexMesh -overwrite -parallel", runSettings.CPUs));
+                meshCmds.Add("reconstructParMesh -constant");
+                meshCmds.Add("renumberMesh -overwrite");
+            }
+            else
+            {
+                meshCmds.Add("blockMesh");
+                meshCmds.Add("surfaceFeatures");
+                meshCmds.Add("snappyHexMesh -overwrite");
+                meshCmds.Add("renumberMesh -overwrite");
+            }
+            DictFileWriter.WriteCommandFile(scriptsDir, "run_mesh.command",
+                DockerRunner.BuildCommandFileContent(meshCmds, workDir, "Meshing"));
+
+            // Trees
+            var treeCmds = new List<string> { "cd mesh", "topoSet", "setsToZones -noFlipMap" };
+            DictFileWriter.WriteCommandFile(scriptsDir, "run_make_trees.command",
+                DockerRunner.BuildCommandFileContent(treeCmds, workDir, "Make Trees"));
+
+            // Simulation for all wind directions (sequential)
+            var simAllCmds = new List<string>();
+            for (int i = 0; i < domain.BCond.WindDirections.Count; i++)
+            {
+                int windDir = domain.BCond.WindDirections[i];
+                if (i > 0) simAllCmds.Add("cd " + DockerConfig.CaseMountPoint);
+                // Link mesh into wind direction case (symlinks work inside the container)
+                simAllCmds.Add(string.Format("ln -sfn {0}/mesh/constant/polyMesh {0}/{1}/constant/polyMesh", DockerConfig.CaseMountPoint, windDir));
+                simAllCmds.Add(string.Format("cd {0}", windDir));
+                AddSimulationCommands(simAllCmds, runSettings);
+            }
+            DictFileWriter.WriteCommandFile(scriptsDir, "run_sim_all.command",
+                DockerRunner.BuildCommandFileContent(simAllCmds, workDir, "Simulation (all directions)"));
+
+            // Mesh + Sim combined
+            var runAllCmds = new List<string>();
+            runAllCmds.AddRange(meshCmds);
+            runAllCmds.Add("cd " + DockerConfig.CaseMountPoint);
+            runAllCmds.AddRange(simAllCmds);
+            DictFileWriter.WriteCommandFile(scriptsDir, "run.command",
+                DockerRunner.BuildCommandFileContent(runAllCmds, workDir, "Mesh + Simulation"));
+        }
+
         private static void WritePerDirectionBatchFiles(string workDir, OFBaseDomain domain, OFMeshSettings meshSettings, OFRunSettings runSettings)
         {
             var scriptsDir = Path.Combine(workDir, "Scripts");
             if (!Directory.Exists(scriptsDir)) Directory.CreateDirectory(scriptsDir);
+
+            bool useDocker = runSettings.simEngine == SimEngine.Docker
+                          || !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
             for (int i = 0; i < domain.BCond.WindDirections.Count; i++)
             {
                 int windDir = domain.BCond.WindDirections[i];
                 var caseDir = Path.Combine(workDir, windDir.ToString());
 
-                DictFileWriter.WriteBatchFile(scriptsDir, $"{windDir}_run_sim.bat",
-                    Strings.BatFiles.Run_sim(meshSettings, runSettings, domain, Strings.OFExecutionMode.Simulation, i));
-                DictFileWriter.WriteBatchFile(scriptsDir, $"{windDir}_run_sim_continue.bat",
-                    Strings.BatFiles.Run_sim_continue(meshSettings, runSettings, domain, Strings.OFExecutionMode.Simulation, i));
-                DictFileWriter.WriteBatchFile(scriptsDir, $"{windDir}_run_postprocess_U.bat",
-                    Strings.BatFiles.Run_postprocess_U(meshSettings, runSettings, domain, Strings.OFExecutionMode.Simulation, i));
+                if (useDocker)
+                {
+                    var cmds = new List<string>();
+                    // Link mesh into wind direction case (symlinks work inside the container)
+                    cmds.Add(string.Format("ln -sfn {0}/mesh/constant/polyMesh {0}/{1}/constant/polyMesh", DockerConfig.CaseMountPoint, windDir));
+                    cmds.Add(string.Format("cd {0}", windDir));
+                    AddSimulationCommands(cmds, runSettings);
+                    DictFileWriter.WriteCommandFile(scriptsDir, string.Format("{0}_run_sim.command", windDir),
+                        DockerRunner.BuildCommandFileContent(cmds, workDir, string.Format("Simulation (dir {0})", windDir)));
+                }
+                else
+                {
+                    DictFileWriter.WriteBatchFile(scriptsDir, string.Format("{0}_run_sim.bat", windDir),
+                        Strings.BatFiles.Run_sim(meshSettings, runSettings, domain, Strings.OFExecutionMode.Simulation, i));
+                    DictFileWriter.WriteBatchFile(scriptsDir, string.Format("{0}_run_sim_continue.bat", windDir),
+                        Strings.BatFiles.Run_sim_continue(meshSettings, runSettings, domain, Strings.OFExecutionMode.Simulation, i));
+                    DictFileWriter.WriteBatchFile(scriptsDir, string.Format("{0}_run_postprocess_U.bat", windDir),
+                        Strings.BatFiles.Run_postprocess_U(meshSettings, runSettings, domain, Strings.OFExecutionMode.Simulation, i));
+                }
 
                 WriteGnuplotScript(caseDir, windDir);
+            }
+        }
+
+        private static void AddSimulationCommands(List<string> cmds, OFRunSettings runSettings)
+        {
+            if (runSettings.CPUs > 1)
+            {
+                cmds.Add("decomposePar -force");
+                if (runSettings.potentialFoamInit)
+                    cmds.Add(string.Format("mpiexec -np {0} potentialFoam -parallel", runSettings.CPUs));
+                cmds.Add(string.Format("mpiexec -np {0} simpleFoam -parallel", runSettings.CPUs));
+                cmds.Add("reconstructPar -latestTime");
+            }
+            else
+            {
+                if (runSettings.potentialFoamInit)
+                    cmds.Add("potentialFoam");
+                cmds.Add("simpleFoam");
             }
         }
 

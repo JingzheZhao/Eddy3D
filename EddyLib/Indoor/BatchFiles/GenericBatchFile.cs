@@ -44,7 +44,7 @@ namespace EddyLib.Indoor.BatchFiles
 
         public void RemoveBatch(string baseWorkingDir)
         {
-            string path = baseWorkingDir + @"\" + this.BatchName;
+            string path = Path.Combine(baseWorkingDir, this.BatchName);
 
             if (File.Exists(path))
             {

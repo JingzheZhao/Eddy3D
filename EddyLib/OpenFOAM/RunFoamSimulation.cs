@@ -36,7 +36,7 @@ namespace EddyLib
                 var paths = OpenFOAMPaths.CreateCasePaths(workDir, windDir);
 
                 WriteControlAndFoam(runSettings, domain, i, paths);
-                EnsurePolyMeshLink(paths, meshSettings);
+                EnsurePolyMeshLink(paths, meshSettings, runSettings);
                 WriteConstantFiles(paths, runSettings);
 
                 Utilities.DeletePhi(meshSettings, domain);

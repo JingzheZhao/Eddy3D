@@ -197,7 +197,7 @@ namespace Eddy.Components.Radiation
 
             if (ComfortSystem == null) return;
             DA.SetData(0, ComfortSystem);
-            DA.SetData(1, ComfortSystem.BaseWorkingDir + @"\UTCI.eddy");
+            DA.SetData(1, Path.Combine(ComfortSystem.BaseWorkingDir, "UTCI.eddy"));
         }
 
         /// <summary>

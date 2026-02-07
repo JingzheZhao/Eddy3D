@@ -11,16 +11,26 @@ namespace EddyLib
     {
         #region Mesh Linking
 
-        private static void EnsurePolyMeshLink(CasePaths paths, OFMeshSettings meshSettings)
+        private static void EnsurePolyMeshLink(CasePaths paths, OFMeshSettings meshSettings, OFRunSettings runSettings)
         {
             string target = Path.Combine(meshSettings.meshConstantDir, "polyMesh");
 
-            if (Directory.Exists(paths.PolyMeshLink) && !SymlinkCreator.IsSymbolic(paths.PolyMeshLink))
+            if (runSettings.simEngine == SimEngine.Docker)
             {
-                SymlinkCreator.Delete(paths.PolyMeshLink);
+                // Docker: the .command scripts create symlinks inside the container
+                // (ln -sfn works fine within the container filesystem).
+                // Just ensure the constant directory exists on the host.
+                Directory.CreateDirectory(paths.ConstantDir);
             }
-
-            SymlinkCreator.Create(paths.PolyMeshLink, target);
+            else
+            {
+                // BlueCFD on Windows: use directory junctions (symlinks)
+                if (Directory.Exists(paths.PolyMeshLink) && !SymlinkCreator.IsSymbolic(paths.PolyMeshLink))
+                {
+                    SymlinkCreator.Delete(paths.PolyMeshLink);
+                }
+                SymlinkCreator.Create(paths.PolyMeshLink, target);
+            }
         }
 
         #endregion

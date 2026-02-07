@@ -189,7 +189,7 @@ Visualizes the definition of simulation convergence (residuals) in real-time. He
 
         private static string GetLastDirectoryPath(OFResult RES, int dir)
         {
-            string p1 = RES.WorkingDirectory + dir + @"\postProcessing\residuals\";
+            string p1 = Path.Combine(RES.WorkingDirectory, dir.ToString(), "postProcessing", "residuals") + Path.DirectorySeparatorChar;
             return p1 + Utilities.GetLastIterationFromDirectory(p1);
         }
 
@@ -210,7 +210,7 @@ Visualizes the definition of simulation convergence (residuals) in real-time. He
             string gnuplotArguments = PrepareGnuplotArguments(residualsPath, dir, RES, visResiduals, x0x1, y0y1);
             string gnuplotExecutablePath = Utilities.GetGnuplotPath(RES.RunSettings, version);
 
-            var pdfFilePath = RES.WorkingDirectory + @"residuals_" + dir + @".pdf";
+            var pdfFilePath = Path.Combine(RES.WorkingDirectory, "residuals_" + dir + ".pdf");
 
             if (File.Exists(pdfFilePath))
             {

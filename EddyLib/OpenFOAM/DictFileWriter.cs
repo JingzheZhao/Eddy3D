@@ -1,5 +1,7 @@
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace EddyLib.OpenFOAM
 {
@@ -79,6 +81,31 @@ namespace EddyLib.OpenFOAM
         public static void WriteBatchFile(string directory, string fileName, string content)
         {
             WriteDict(Path.Combine(directory, fileName), content);
+        }
+
+        /// <summary>
+        /// Writes a .command file (macOS double-clickable shell script) and makes it executable.
+        /// </summary>
+        public static void WriteCommandFile(string directory, string fileName, string content)
+        {
+            var path = Path.Combine(directory, fileName);
+            WriteDict(path, content);
+
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                try
+                {
+                    using (var p = Process.Start(new ProcessStartInfo("/bin/chmod", string.Format("+x \"{0}\"", path))
+                    {
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    }))
+                    {
+                        p?.WaitForExit();
+                    }
+                }
+                catch { }
+            }
         }
     }
 }

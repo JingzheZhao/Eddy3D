@@ -108,7 +108,7 @@ exit
             public static bool IsDockerRunning(string workingDirectory, OSType ostype)
             {
                 bool running = false;
-                string fp = workingDirectory + @"\dockerStatus";
+                string fp = Path.Combine(workingDirectory, "dockerStatus");
 
                 List<string> lines = Utilities.FileReader(fp);
 

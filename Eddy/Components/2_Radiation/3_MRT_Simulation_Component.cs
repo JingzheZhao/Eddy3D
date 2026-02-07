@@ -290,7 +290,7 @@ Combines:
 
             if (MRTSystem != null)
             {
-                string resultFilePath = MRTSystem.BaseWorkingDir + @"\UTCI.eddy";
+                string resultFilePath = Path.Combine(MRTSystem.BaseWorkingDir, "UTCI.eddy");
                 DA.SetData(1, resultFilePath);
 
                 DA.SetData(2, MRTSystem.Settings.toJSON());

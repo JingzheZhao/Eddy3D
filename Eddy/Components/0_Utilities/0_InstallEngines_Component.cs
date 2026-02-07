@@ -1,21 +1,25 @@
 using Eddy.Properties;
 using EddyLib;
+using EddyLib.Docker;
 using Grasshopper.Kernel;
 using System;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
-using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 
 namespace Eddy
 {
     public class InstallEngines_Component : GH_Component
     {
+        private static readonly bool IsMac = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
         public InstallEngines_Component()
           : base("Install Engines", "Install",
-              "Downloads and installs required simulation engines (EnergyPlus v9.4.0, Radiance, & blueCFD-Core 2020-1).",
+              IsMac
+                  ? "Downloads and installs required simulation engines (EnergyPlus v9.4.0, Radiance, & Docker)."
+                  : "Downloads and installs required simulation engines (EnergyPlus v9.4.0, Radiance, & blueCFD-Core 2020-1).",
               EddyVersion.Name, "0 | Utilities")
         {
         }
@@ -23,8 +27,13 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddBooleanParameter("Install EnergyPlus", "EP", "Set to True to download and launch EnergyPlus v9.4.0 installer.", GH_ParamAccess.item, false);
-            pManager.AddBooleanParameter("Install Radiance", "Rad", "Set to True to download and install Radiance (v2020/012cb178).", GH_ParamAccess.item, false);
-            pManager.AddBooleanParameter("Install blueCFD", "CFD", "Set to True to download and launch blueCFD-Core 2020-1 installer.", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Install Radiance", "Rad", "Set to True to download and install Radiance.", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter(
+                IsMac ? "Install Docker" : "Install blueCFD",
+                "CFD",
+                IsMac ? "Set to True to open Docker Desktop download page."
+                      : "Set to True to download and launch blueCFD-Core 2020-1 installer.",
+                GH_ParamAccess.item, false);
         }
 
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
@@ -42,11 +51,9 @@ namespace Eddy
             if (!DA.GetData(1, ref installRad)) return;
             if (!DA.GetData(2, ref installCfd)) return;
 
-            // Clear previous messages
             this.ClearRuntimeMessages();
 
-            // Check Installations
-            System.Collections.Generic.List<string> missing = new System.Collections.Generic.List<string>();
+            var missing = new System.Collections.Generic.List<string>();
 
             try { DefaultDirectoriesAndPaths.CheckRadiance(); }
             catch { missing.Add("Radiance"); }
@@ -54,8 +61,17 @@ namespace Eddy
             try { DefaultDirectoriesAndPaths.CheckEnergyPlus(); }
             catch { missing.Add("EnergyPlus"); }
 
-            try { DefaultDirectoriesAndPaths.CheckBlueCfd(); }
-            catch { missing.Add("blueCFD"); }
+            // macOS: check Docker instead of BlueCFD (BlueCFD is Windows-only)
+            if (IsMac)
+            {
+                try { DefaultDirectoriesAndPaths.CheckDocker(); }
+                catch { missing.Add("Docker"); }
+            }
+            else
+            {
+                try { DefaultDirectoriesAndPaths.CheckBlueCfd(); }
+                catch { missing.Add("blueCFD"); }
+            }
 
             string log = "";
 
@@ -84,7 +100,7 @@ namespace Eddy
 
             if (installCfd)
             {
-                log += InstallBlueCfd();
+                log += IsMac ? InstallDocker() : InstallBlueCfd();
             }
 
             DA.SetData(0, log);
@@ -92,22 +108,36 @@ namespace Eddy
 
         private string InstallEnergyPlus()
         {
-            string url = "https://github.com/NREL/EnergyPlus/releases/download/v9.4.0/EnergyPlus-9.4.0-998c4b761e-Windows-x86_64.exe";
-            string tempFile = Path.Combine(Path.GetTempPath(), "EnergyPlus-9.4.0-Installer.exe");
+            string url = IsMac
+                ? "https://github.com/NREL/EnergyPlus/releases/download/v9.4.0/EnergyPlus-9.4.0-998c4b761e-Darwin-macOS10.15-x86_64.dmg"
+                : "https://github.com/NREL/EnergyPlus/releases/download/v9.4.0/EnergyPlus-9.4.0-998c4b761e-Windows-x86_64.exe";
+            string ext = IsMac ? ".dmg" : ".exe";
+            string tempFile = Path.Combine(Path.GetTempPath(), "EnergyPlus-9.4.0-Installer" + ext);
 
             try
             {
-                using (WebClient client = new WebClient())
+                using (var client = new WebClient())
                 {
-                    // Ensure TLS 1.2 is supported (GitHub requirement)
                     ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                     client.DownloadFile(url, tempFile);
                 }
 
                 if (File.Exists(tempFile))
                 {
-                    Process.Start(tempFile);
-                    return $"EnergyPlus installer launched from {tempFile}. Please complete the installation manually.\n";
+                    if (IsMac)
+                    {
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = "open",
+                            Arguments = string.Format("\"{0}\"", tempFile),
+                            UseShellExecute = true
+                        });
+                    }
+                    else
+                    {
+                        Process.Start(tempFile);
+                    }
+                    return string.Format("EnergyPlus installer launched from {0}. Please complete the installation manually.\n", tempFile);
                 }
                 else
                 {
@@ -116,15 +146,20 @@ namespace Eddy
             }
             catch (Exception ex)
             {
-                return $"Error installing EnergyPlus: {ex.Message}\n";
+                return string.Format("Error installing EnergyPlus: {0}\n", ex.Message);
             }
         }
 
         private string InstallRadiance()
         {
+            if (IsMac)
+            {
+                return InstallRadianceMacOS();
+            }
+
             string url = "https://github.com/LBNL-ETA/Radiance/releases/download/012cb178/Radiance_012cb178_Windows.zip";
             string zipFile = Path.Combine(Path.GetTempPath(), "Radiance_012cb178_Windows.zip");
-            
+
             string baseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Eddy3D");
             string targetDir = Path.Combine(baseDir, "Radiance_012cb178_Windows");
 
@@ -132,28 +167,70 @@ namespace Eddy
             {
                 if (!Directory.Exists(baseDir)) Directory.CreateDirectory(baseDir);
 
-                // Clean up previous installs to avoid "File already exists" during unzip
                 if (Directory.Exists(targetDir))
                 {
                     Directory.Delete(targetDir, true);
                 }
                 Directory.CreateDirectory(targetDir);
-                
-                // Download
-                using (WebClient client = new WebClient())
+
+                using (var client = new WebClient())
                 {
                     ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                     client.DownloadFile(url, zipFile);
                 }
 
-                // Extract
                 ZipFile.ExtractToDirectory(zipFile, targetDir);
 
-                return $"Radiance installed successfully to {targetDir}.\n";
+                return string.Format("Radiance installed successfully to {0}.\n", targetDir);
             }
             catch (Exception ex)
             {
-                return $"Error installing Radiance: {ex.Message}\n";
+                return string.Format("Error installing Radiance: {0}\n", ex.Message);
+            }
+        }
+
+        private string InstallRadianceMacOS()
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "open",
+                    Arguments = "https://github.com/LBNL-ETA/Radiance/releases/tag/012cb178",
+                    UseShellExecute = true
+                });
+
+                return "Opened Radiance releases page. Please download the macOS version.\n"
+                     + "Alternatively, install via Homebrew: brew install radiance\n"
+                     + "Expected install location: /usr/local/radiance\n";
+            }
+            catch (Exception ex)
+            {
+                return string.Format("Error: {0}\nPlease install Radiance from https://github.com/LBNL-ETA/Radiance/releases\n", ex.Message);
+            }
+        }
+
+        private string InstallDocker()
+        {
+            try
+            {
+                if (DockerEnvironment.IsDockerAvailable())
+                {
+                    return "Docker is already installed and running.\n";
+                }
+
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "open",
+                    Arguments = "https://www.docker.com/products/docker-desktop/",
+                    UseShellExecute = true
+                });
+
+                return "Opened Docker Desktop download page. Please install Docker Desktop and start it.\n";
+            }
+            catch (Exception ex)
+            {
+                return string.Format("Error: {0}\nPlease install Docker Desktop from https://www.docker.com/products/docker-desktop/\n", ex.Message);
             }
         }
 
@@ -164,7 +241,7 @@ namespace Eddy
 
             try
             {
-                using (WebClient client = new WebClient())
+                using (var client = new WebClient())
                 {
                     ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                     client.DownloadFile(url, tempFile);
@@ -173,7 +250,7 @@ namespace Eddy
                 if (File.Exists(tempFile))
                 {
                     Process.Start(tempFile);
-                    return $"blueCFD-Core installer launched from {tempFile}. Please complete the installation manually.\n";
+                    return string.Format("blueCFD-Core installer launched from {0}. Please complete the installation manually.\n", tempFile);
                 }
                 else
                 {
@@ -182,7 +259,7 @@ namespace Eddy
             }
             catch (Exception ex)
             {
-                return $"Error installing blueCFD: {ex.Message}\n";
+                return string.Format("Error installing blueCFD: {0}\n", ex.Message);
             }
         }
 

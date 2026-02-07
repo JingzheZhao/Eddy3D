@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace EddyLib
 {
@@ -10,9 +11,14 @@ namespace EddyLib
     public static class DefaultDirectoriesAndPaths
     {
         // Backing fields with default values
+        private static readonly bool IsWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
         private static string _baseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Eddy3D");
-        private static string _radianceDir = Path.Combine(_baseDir, @"Radiance_012cb178_Windows"); // Specific Version from 2020
-        private static string _energyPlusDir = @"C:\EnergyPlusV9-4-0";
+        private static string _radianceDir = IsWindows
+            ? Path.Combine(_baseDir, "Radiance_012cb178_Windows")
+            : "/usr/local/radiance";
+        private static string _energyPlusDir = IsWindows
+            ? @"C:\EnergyPlusV9-4-0"
+            : "/Applications/EnergyPlus-9-4-0";
         private static string _blueCfdDir = @"C:\Program Files\blueCFD-Core-2020";
 
         /// <summary>
@@ -21,9 +27,13 @@ namespace EddyLib
         public static string Eddy3DInstallDir => _baseDir;
 
         /// <summary>
-        /// Default directory for simulation cases (%AppData%\Eddy3D\Cases).
+        /// Default directory for simulation cases.
+        /// On macOS: ~/Eddy3D/Cases (avoids spaces in path — Docker volume mounts break with spaces).
+        /// On Windows: %AppData%\Eddy3D\Cases.
         /// </summary>
-        public static string CasesDir => Path.Combine(_baseDir, "Cases");
+        public static string CasesDir => IsWindows
+            ? Path.Combine(_baseDir, "Cases")
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Eddy3D", "Cases");
 
         /// <summary>
         /// Resolves a working directory path. If the input is a simple name (no path separators),
@@ -62,7 +72,8 @@ namespace EddyLib
         public static string RadianceDir
         {
             get => _radianceDir;
-            set => _radianceDir = NormalizeEnginePath(value, Path.Combine(_baseDir, @"Radiance_012cb178_Windows"));
+            set => _radianceDir = NormalizeEnginePath(value,
+                IsWindows ? Path.Combine(_baseDir, "Radiance_012cb178_Windows") : "/usr/local/radiance");
         }
 
         /// <summary>
@@ -81,7 +92,8 @@ namespace EddyLib
         public static string EnergyPlusDir
         {
             get => _energyPlusDir;
-            set => _energyPlusDir = NormalizeEnginePath(value, @"C:\EnergyPlusV9-4-0");
+            set => _energyPlusDir = NormalizeEnginePath(value,
+                IsWindows ? @"C:\EnergyPlusV9-4-0" : "/Applications/EnergyPlus-9-4-0");
         }
 
         /// <summary>
@@ -147,13 +159,16 @@ namespace EddyLib
 
             if (!Directory.Exists(baseDir))
             {
-                throw new FileNotFoundException($"Radiance base directory not found at: {baseDir}. Please install Radiance via the 'Install Engines' component.");
+                throw new FileNotFoundException(
+                    string.Format("Radiance base directory not found at: {0}. Please install Radiance via the 'Install Engines' component.", baseDir));
             }
 
-            string radExe = Path.Combine(binDir, "rad.exe");
+            string radExeName = IsWindows ? "rad.exe" : "rad";
+            string radExe = Path.Combine(binDir, radExeName);
             if (!File.Exists(radExe))
             {
-                throw new FileNotFoundException($"Radiance executable (rad.exe) not found in: {binDir}. checked path: {radExe}. Please ensure Radiance is correctly installed.");
+                throw new FileNotFoundException(
+                    string.Format("Radiance executable ({0}) not found in: {1}. Please ensure Radiance is correctly installed.", radExeName, binDir));
             }
         }
 
@@ -164,13 +179,16 @@ namespace EddyLib
         {
             if (string.IsNullOrWhiteSpace(EnergyPlusDir) || !Directory.Exists(EnergyPlusDir))
             {
-                throw new FileNotFoundException($"EnergyPlus directory not found at: {EnergyPlusDir ?? "null"}. Please install EnergyPlus v9.4.0 to {EnergyPlusDir}.");
+                throw new FileNotFoundException(
+                    string.Format("EnergyPlus directory not found at: {0}. Please install EnergyPlus v9.4.0.", EnergyPlusDir ?? "null"));
             }
 
-            string epExe = Path.Combine(EnergyPlusDir, "energyplus.exe");
+            string epExeName = IsWindows ? "energyplus.exe" : "energyplus";
+            string epExe = Path.Combine(EnergyPlusDir, epExeName);
             if (!File.Exists(epExe))
             {
-                throw new FileNotFoundException($"EnergyPlus executable (energyplus.exe) not found in: {EnergyPlusDir}. Please ensure EnergyPlus v9.4.0 is correctly installed.");
+                throw new FileNotFoundException(
+                    string.Format("EnergyPlus executable ({0}) not found in: {1}. Please ensure EnergyPlus v9.4.0 is correctly installed.", epExeName, EnergyPlusDir));
             }
         }
 
@@ -200,7 +218,8 @@ namespace EddyLib
         {
             if (string.IsNullOrWhiteSpace(BlueCfdDir) || !Directory.Exists(BlueCfdDir))
             {
-                throw new FileNotFoundException($"blueCFD directory not found at: {BlueCfdDir ?? "null"}. Please install blueCFD-Core 2020-1 to {BlueCfdDir}.");
+                throw new FileNotFoundException(
+                    string.Format("blueCFD directory not found at: {0}. Please install blueCFD-Core 2020-1.", BlueCfdDir ?? "null"));
             }
 
             // Based on user feedback for blueCFD-Core 2020
@@ -209,7 +228,8 @@ namespace EddyLib
 
             if (!File.Exists(setvars) && !File.Exists(readme))
             {
-                throw new FileNotFoundException($"blueCFD core files not found in: {BlueCfdDir}. Checked for setvars_OF8.bat and README.TXT. Please ensure blueCFD-Core 2020-1 is correctly installed.");
+                throw new FileNotFoundException(
+                    string.Format("blueCFD core files not found in: {0}. Please ensure blueCFD-Core 2020-1 is correctly installed.", BlueCfdDir));
             }
         }
     }

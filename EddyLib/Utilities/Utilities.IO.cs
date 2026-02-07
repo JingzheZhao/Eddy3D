@@ -13,7 +13,8 @@ namespace EddyLib
             if (string.IsNullOrEmpty(path))
                 throw new ArgumentException("Path cannot be null or empty.", nameof(path));
 
-            return path.EndsWith("\\") ? path : path + "\\";
+            var sep = Path.DirectorySeparatorChar.ToString();
+            return path.EndsWith(sep) ? path : path + sep;
         }
 
         public static void CleanDirectory(string path)

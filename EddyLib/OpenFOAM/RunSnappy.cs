@@ -1,5 +1,8 @@
-﻿using EddyLib.OpenFOAM;
+﻿using EddyLib.Docker;
+using EddyLib.OpenFOAM;
+using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace EddyLib
 {
@@ -27,7 +30,7 @@ namespace EddyLib
             OpenFOAMPaths.EnsureMeshLog(paths.WorkingDir);
 
             WriteSnappyDicts(paths.SystemDir, meshSettings, runSettings, domain);
-            WriteBatchFiles(paths.BaseWorkingDir, meshSettings, runSettings, domain);
+            WriteScriptFiles(paths.BaseWorkingDir, meshSettings, runSettings, domain);
 
             logFile = string.Empty;
         }
@@ -41,25 +44,41 @@ namespace EddyLib
             DictFileWriter.WriteDictToDir(systemDir, "decomposeParDict", Strings.OFExecDicts.DecomposeParDict(runSettings));
         }
 
-        private static void WriteBatchFiles(string baseWorkingDir, OFMeshSettings meshSettings, OFRunSettings runSettings, OFBaseDomain domain)
+        private static void WriteScriptFiles(string baseWorkingDir, OFMeshSettings meshSettings, OFRunSettings runSettings, OFBaseDomain domain)
         {
             var scriptsDir = Path.Combine(baseWorkingDir, "Scripts");
             if (!Directory.Exists(scriptsDir)) Directory.CreateDirectory(scriptsDir);
 
-            DictFileWriter.WriteBatchFile(
-                scriptsDir,
-                "run_checkMesh.bat",
-                Strings.BatFiles.Run_checkMesh(runSettings, meshSettings, domain, Strings.OFExecutionMode.Meshing));
+            bool useDocker = runSettings.simEngine == SimEngine.Docker
+                          || !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
-            DictFileWriter.WriteBatchFile(
-                scriptsDir,
-                "run_reconstructMesh.bat",
-                Strings.BatFiles.Run_reconstructMesh(runSettings, meshSettings, domain, Strings.OFExecutionMode.Meshing));
+            if (useDocker)
+            {
+                // Docker .command files
+                var checkMeshCmds = new List<string> { "cd mesh", "checkMesh" };
+                DictFileWriter.WriteCommandFile(scriptsDir, "run_checkMesh.command",
+                    DockerRunner.BuildCommandFileContent(checkMeshCmds, baseWorkingDir, "Check Mesh"));
 
-            DictFileWriter.WriteBatchFile(
-                scriptsDir, 
-                "delete_processor_folders.bat", 
-                Strings.BatFiles.DeleteProcessorFolders());
+                var reconstructCmds = new List<string> { "cd mesh", "reconstructParMesh -constant" };
+                DictFileWriter.WriteCommandFile(scriptsDir, "run_reconstructMesh.command",
+                    DockerRunner.BuildCommandFileContent(reconstructCmds, baseWorkingDir, "Reconstruct Mesh"));
+
+                var deleteProcCmds = new List<string> { "cd mesh", "rm -rf processor*" };
+                DictFileWriter.WriteCommandFile(scriptsDir, "delete_processor_folders.command",
+                    DockerRunner.BuildCommandFileContent(deleteProcCmds, baseWorkingDir, "Delete Processor Folders"));
+            }
+            else
+            {
+                // BlueCFD .bat files (Windows only)
+                DictFileWriter.WriteBatchFile(scriptsDir, "run_checkMesh.bat",
+                    Strings.BatFiles.Run_checkMesh(runSettings, meshSettings, domain, Strings.OFExecutionMode.Meshing));
+
+                DictFileWriter.WriteBatchFile(scriptsDir, "run_reconstructMesh.bat",
+                    Strings.BatFiles.Run_reconstructMesh(runSettings, meshSettings, domain, Strings.OFExecutionMode.Meshing));
+
+                DictFileWriter.WriteBatchFile(scriptsDir, "delete_processor_folders.bat",
+                    Strings.BatFiles.DeleteProcessorFolders());
+            }
         }
     }
 }

@@ -4,7 +4,9 @@ using EddyLib.OpenFOAM;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
@@ -15,6 +17,8 @@ namespace Eddy
 {
     public class SimpleFoam : GH_Component
     {
+        private SimEngine _selectedEngine;
+
         public override GH_Exposure Exposure
         {
             get { return GH_Exposure.secondary; }
@@ -27,10 +31,42 @@ namespace Eddy
         /// be created.
         /// </summary>
         public SimpleFoam()
-          : base(GH_Strings.SimpleFoam.Name, GH_Strings.SimpleFoam.Nick, 
+          : base(GH_Strings.SimpleFoam.Name, GH_Strings.SimpleFoam.Nick,
 GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")
         {
+            _selectedEngine = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? SimEngine.BlueCFD
+                : SimEngine.Docker;
+        }
+
+        protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
+        {
+            base.AppendAdditionalComponentMenuItems(menu);
+            Menu_AppendSeparator(menu);
+            Menu_AppendItem(menu, "BlueCFD", (s, e) => SetEngine(SimEngine.BlueCFD),
+                RuntimeInformation.IsOSPlatform(OSPlatform.Windows), _selectedEngine == SimEngine.BlueCFD);
+            Menu_AppendItem(menu, "Docker", (s, e) => SetEngine(SimEngine.Docker),
+                true, _selectedEngine == SimEngine.Docker);
+        }
+
+        private void SetEngine(SimEngine engine)
+        {
+            _selectedEngine = engine;
+            ExpireSolution(true);
+        }
+
+        public override bool Write(GH_IO.Serialization.GH_IWriter writer)
+        {
+            writer.SetInt32("SelectedEngine", (int)_selectedEngine);
+            return base.Write(writer);
+        }
+
+        public override bool Read(GH_IO.Serialization.GH_IReader reader)
+        {
+            if (reader.ItemExists("SelectedEngine"))
+                _selectedEngine = (SimEngine)reader.GetInt32("SelectedEngine");
+            return base.Read(reader);
         }
 
         /// <summary>
@@ -108,7 +144,7 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             // mode to select simulation environment
-            Message = "BlueCFD";
+            Message = _selectedEngine.ToString();
 
             // read inputs
             //------------
@@ -148,6 +184,9 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
                 }
             }
 
+            // Apply selected engine
+            RunSettings.simEngine = _selectedEngine;
+
             // Error Handling
 
             if (!RunSettings.IdenticalMPI && RunSettings.CPUs > 1 && RunSettings.BlueCFDIsInstalled)
@@ -166,12 +205,13 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             
             if (!Directory.Exists(baseWorkingDirectory)) { Directory.CreateDirectory(baseWorkingDirectory); }
 
-            DirectoryInfo parentDir = Directory.GetParent(baseWorkingDirectory.EndsWith("\\") ? baseWorkingDirectory : string.Concat(baseWorkingDirectory, "\\"));
+            var sep = Path.DirectorySeparatorChar.ToString();
+            DirectoryInfo parentDir = Directory.GetParent(baseWorkingDirectory.EndsWith(sep) ? baseWorkingDirectory : string.Concat(baseWorkingDirectory, sep));
             var myParentDir = parentDir.Parent.FullName;
 
-            if (myParentDir == @"C:\")
+            if (myParentDir == @"C:\" || myParentDir == "/")
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"Please use an additional subfolder for Eddy3D simulations e.g. ""C:\Eddy3D\3_SimpleWindAnalysis"""); return;
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please use an additional subfolder for Eddy3D simulations."); return;
             }
 
             baseWorkingDirectory = Utilities.Directories.FixDirectories(baseWorkingDirectory);
@@ -245,25 +285,55 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             DA.GetData(GH_Strings.Common.RunSimulation, ref runSimulation);
             DA.GetData(GH_Strings.Common.RunMeshing, ref runMeshing);
 
-            if (makeTrees == true && canRun)
+            if (_selectedEngine == SimEngine.Docker)
             {
-                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\Scripts\run_make_trees.bat", taskComplete);
-            }
+                // Docker: launch .command files (double-clickable macOS shell scripts)
+                var scriptsDir = Path.Combine(baseWorkingDirectory, "Scripts");
 
-            if (runMeshing == true && runSimulation == true && canRun)
-            {
-                Utilities.DeletePhi(MeshSettings, DOM);
-                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\Scripts\run.bat", taskComplete);
+                if (makeTrees == true && canRun)
+                {
+                    OpenCommandFile(Path.Combine(scriptsDir, "run_make_trees.command"));
+                }
+
+                if (runMeshing == true && runSimulation == true && canRun)
+                {
+                    Utilities.DeletePhi(MeshSettings, DOM);
+                    OpenCommandFile(Path.Combine(scriptsDir, "run.command"));
+                }
+                else if (runMeshing == true && runSimulation == false && canRun)
+                {
+                    Utilities.DeletePhi(MeshSettings, DOM);
+                    OpenCommandFile(Path.Combine(scriptsDir, "run_mesh.command"));
+                }
+                else if (runMeshing == false && runSimulation == true && canRun)
+                {
+                    Utilities.DeletePhi(MeshSettings, DOM);
+                    OpenCommandFile(Path.Combine(scriptsDir, "run_sim_all.command"));
+                }
             }
-            else if (runMeshing == true && runSimulation == false && canRun)
+            else
             {
-                Utilities.DeletePhi(MeshSettings, DOM);
-                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\Scripts\run_mesh.bat", taskComplete);
-            }
-            else if (runMeshing == false && runSimulation == true && canRun)
-            {
-                Utilities.DeletePhi(MeshSettings, DOM);
-                Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\Scripts\run_sim_all.bat", taskComplete);
+                // BlueCFD: run via batch files (Windows only)
+                if (makeTrees == true && canRun)
+                {
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, Path.Combine(baseWorkingDirectory, "Scripts", "run_make_trees.bat"), taskComplete);
+                }
+
+                if (runMeshing == true && runSimulation == true && canRun)
+                {
+                    Utilities.DeletePhi(MeshSettings, DOM);
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, Path.Combine(baseWorkingDirectory, "Scripts", "run.bat"), taskComplete);
+                }
+                else if (runMeshing == true && runSimulation == false && canRun)
+                {
+                    Utilities.DeletePhi(MeshSettings, DOM);
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, Path.Combine(baseWorkingDirectory, "Scripts", "run_mesh.bat"), taskComplete);
+                }
+                else if (runMeshing == false && runSimulation == true && canRun)
+                {
+                    Utilities.DeletePhi(MeshSettings, DOM);
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, Path.Combine(baseWorkingDirectory, "Scripts", "run_sim_all.bat"), taskComplete);
+                }
             }
 
             #endregion START PROCESSES
@@ -297,6 +367,23 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             DA.SetDataList(GH_Strings.SimpleFoam.SimEta, simEta);
 
             canRun = true;
+        }
+
+        private static void OpenCommandFile(string path)
+        {
+            if (!System.IO.File.Exists(path)) return;
+
+            var psi = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "/usr/bin/open",
+                Arguments = string.Format("\"{0}\"", path),
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            using (var p = System.Diagnostics.Process.Start(psi))
+            {
+                p?.WaitForExit();
+            }
         }
 
         /// <summary>

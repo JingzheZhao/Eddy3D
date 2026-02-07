@@ -247,9 +247,9 @@ Generates visualizations of the wind field, including vector arrows and streamli
             // Check if U file is in last iteration
             for (int i = 0; i < RES.Domain.BCond.WindDirections.Count; i++)
             {
-                string path = RES.WorkingDirectory + @"\" + RES.Domain.BCond.WindDirections[i];
+                string path = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[i].ToString());
                 string iter = Utilities.GetLastIterationFromDirectory(path).ToString();
-                string fp = RES.WorkingDirectory + @"\" + RES.Domain.BCond.WindDirections[i] + @"\" + iter + @"\U";
+                string fp = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[i].ToString(), iter, "U");
 
                 if (!File.Exists(fp))
                 {
@@ -311,8 +311,8 @@ Generates visualizations of the wind field, including vector arrows and streamli
                 {
                     // Check if mesh exists
 
-                    string pathToPointFile = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i] + @"\constant\polyMesh\points";
-                    string currCase = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i];
+                    string pathToPointFile = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[i].ToString(), "constant", "polyMesh", "points");
+                    string currCase = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[i].ToString());
 
                     if (!File.Exists(pathToPointFile))
                     {
@@ -321,7 +321,7 @@ Generates visualizations of the wind field, including vector arrows and streamli
                     }
 
                     // If yes, write the dicts for both Docker and BlueCFD
-                    string path = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i] + @"\system\" + probeNameByUser;
+                    string path = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[i].ToString(), "system", probeNameByUser);
                     File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbesAllFields(Probes, probeNameByUser, Probing.ReformatIS(InterpolationScheme)));
 
                     if (RES.RunSettings.simEngine == SimEngine.Docker)
@@ -406,7 +406,7 @@ Generates visualizations of the wind field, including vector arrows and streamli
             //DirectoryInfo parentDir = Directory.GetParent(respath.EndsWith("\\") ? respath : string.Concat(respath, "\\"));
             DirectoryInfo parentDir = Directory.GetParent(respath);
 
-            string resultFilePath = parentDir.Parent.FullName + @"\Wind.eddy." + probeNameByUser;
+            string resultFilePath = Path.Combine(parentDir.Parent.FullName, "Wind.eddy." + probeNameByUser);
 
             WProbeResultProto res = new WProbeResultProto("probes", RES.WorkingDirectory, WProbes);
             res.WriteToFile(resultFilePath);

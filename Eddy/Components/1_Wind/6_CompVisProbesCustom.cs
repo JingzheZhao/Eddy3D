@@ -232,12 +232,13 @@ Samples the wind field at specific locations. Use this to query wind speed and p
 
             if (RES.Domain is OFCylDomain || RES.Domain is OFBoxDomain)
             {
-                if (!Directory.Exists(RES.WorkingDirectory + @"Rad\"))
+                var radDir = Path.Combine(RES.WorkingDirectory, "Rad");
+                if (!Directory.Exists(radDir))
                 {
-                    Directory.CreateDirectory(RES.WorkingDirectory + @"Rad\");
+                    Directory.CreateDirectory(radDir);
                 }
 
-                RadianceFiles.writePTS(RES.WorkingDirectory + @"\Rad\sensors.pts", listOfPoints);
+                RadianceFiles.writePTS(Path.Combine(radDir, "sensors.pts"), listOfPoints);
             }
 
             string meshDir = "";
@@ -248,11 +249,11 @@ Samples the wind field at specific locations. Use this to query wind speed and p
             }
             else if (RES.Domain is OFBoxDomain)
             {
-                meshDir = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[0] + @"\constant\polyMesh";
+                meshDir = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[0].ToString(), "constant", "polyMesh");
             }
             else if (RES.Domain is IndoorDomain)
             {
-                meshDir = RES.WorkingDirectory + @"\constant\polyMesh";
+                meshDir = Path.Combine(RES.WorkingDirectory, "constant", "polyMesh");
             }
 
             if (Directory.Exists(meshDir) == false)
@@ -309,9 +310,9 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                     {
                         // Check if U file is in last iteration
 
-                        string windDirPath = RES.WorkingDirectory + @"\" + RES.Domain.BCond.WindDirections[i];
+                        string windDirPath = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[i].ToString());
                         string iter = Utilities.GetLastIterationFromDirectory(windDirPath).ToString();
-                        string fp = RES.WorkingDirectory + @"\" + RES.Domain.BCond.WindDirections[i] + @"\" + iter + @"\U";
+                        string fp = Path.Combine(windDirPath, iter, "U");
 
                         if (!File.Exists(fp))
                         {
@@ -320,11 +321,11 @@ Samples the wind field at specific locations. Use this to query wind speed and p
 
                         // Check if mesh exists
 
-                        string pathToPointFile = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i] + @"\constant\polyMesh\points";
-                        string currCase = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i];
+                        string pathToPointFile = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[i].ToString(), "constant", "polyMesh", "points");
+                        string currCase = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[i].ToString());
 
                         // If yes, write the dicts for both Docker and BlueCFD
-                        string path = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i] + @"\system\" + probeNameByUser;
+                        string path = Path.Combine(currCase, "system", probeNameByUser);
                         File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbes(listOfPoints, currField));
 
                         if (!File.Exists(pathToPointFile))
@@ -406,11 +407,11 @@ Samples the wind field at specific locations. Use this to query wind speed and p
 
                     // Check if mesh exists
 
-                    string pathToPointFile = RES.WorkingDirectory + @"\constant\polyMesh\points";
+                    string pathToPointFile = Path.Combine(RES.WorkingDirectory, "constant", "polyMesh", "points");
                     string currCase = RES.WorkingDirectory;
 
                     // If yes, write the dicts for both Docker and BlueCFD
-                    string path = RES.WorkingDirectory + @"\system\" + probeNameByUser;
+                    string path = Path.Combine(RES.WorkingDirectory, "system", probeNameByUser);
                     File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbes(listOfPoints, currField));
 
                     if (!File.Exists(pathToPointFile))

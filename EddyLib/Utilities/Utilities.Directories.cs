@@ -50,9 +50,10 @@ namespace EddyLib
 
             public static string FixDirectories(string dir)
             {
-                if (!dir.EndsWith(@"\"))
+                var sep = Path.DirectorySeparatorChar.ToString();
+                if (!dir.EndsWith(sep))
                 {
-                    dir = dir + @"\";
+                    dir = dir + sep;
                 }
                 return dir;
             }

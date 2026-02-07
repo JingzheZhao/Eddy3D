@@ -2,6 +2,7 @@
 using Eddy.Properties;
 using EddyLib;
 using EddyLib.BCs;
+using EddyLib.Docker;
 using EddyLib.Indoor;
 using EddyLib.Indoor.FunctionObjects;
 using EddyLib.UI;
@@ -13,8 +14,10 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace Eddy.Components.Indoor
 {
@@ -23,14 +26,15 @@ namespace Eddy.Components.Indoor
         private int iterations = 1;
         private double numFuncObj = 1;
         private string BaseWorkingDir = "";
+        private SimEngine _selectedEngine;
 
         /// <summary>
         /// Initializes a new instance of the IndoorDomain class.
         /// </summary>
         ///
 
-        public IndoorDomain_Component() 
-          : base("Indoor Simulation", "IndoorSim", 
+        public IndoorDomain_Component()
+          : base("Indoor Simulation", "IndoorSim",
 @"Indoor Airflow Solver
 
 Simulates buoyancy-driven airflow, temperature distribution, and contaminant transport within an indoor space.
@@ -38,9 +42,41 @@ Simulates buoyancy-driven airflow, temperature distribution, and contaminant tra
 Uses OpenFOAM's 'buoyantSimpleFoam' solver.
 Requires connected walls, inlets, outlets, and optional heat sources.
 
-" + EddyVersion.toString(), 
+" + EddyVersion.toString(),
               EddyVersion.Name, "9 | Indoor")
         {
+            _selectedEngine = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? SimEngine.BlueCFD
+                : SimEngine.Docker;
+        }
+
+        protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
+        {
+            base.AppendAdditionalComponentMenuItems(menu);
+            Menu_AppendSeparator(menu);
+            Menu_AppendItem(menu, "BlueCFD", (s, e) => SetEngine(SimEngine.BlueCFD),
+                RuntimeInformation.IsOSPlatform(OSPlatform.Windows), _selectedEngine == SimEngine.BlueCFD);
+            Menu_AppendItem(menu, "Docker", (s, e) => SetEngine(SimEngine.Docker),
+                true, _selectedEngine == SimEngine.Docker);
+        }
+
+        private void SetEngine(SimEngine engine)
+        {
+            _selectedEngine = engine;
+            ExpireSolution(true);
+        }
+
+        public override bool Write(GH_IO.Serialization.GH_IWriter writer)
+        {
+            writer.SetInt32("SelectedEngine", (int)_selectedEngine);
+            return base.Write(writer);
+        }
+
+        public override bool Read(GH_IO.Serialization.GH_IReader reader)
+        {
+            if (reader.ItemExists("SelectedEngine"))
+                _selectedEngine = (SimEngine)reader.GetInt32("SelectedEngine");
+            return base.Read(reader);
         }
 
         /// <summary>
@@ -72,7 +108,7 @@ Requires connected walls, inlets, outlets, and optional heat sources.
             pManager.AddTextParameter(
                 "Directory", "Dir", 
                 "Working Directory", 
-                GH_ParamAccess.item, @"C:\Eddy3D-Cases\IndoorProject\");
+                GH_ParamAccess.item, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Eddy3D-Cases", "IndoorProject"));
             pManager[4].Optional = true;
 
             pManager.AddPointParameter(
@@ -227,52 +263,21 @@ Requires connected walls, inlets, outlets, and optional heat sources.
 
             #region START PROCESSES
 
+            Message = _selectedEngine.ToString();
             iterations = endTime;
 
-            bool HidePopUp = true;
-
-            bool runWithConsoleWindow = true;
-
-            if (runWithConsoleWindow)
+            if (RUN && canRun)
             {
-                if (RUN)
+                if (_selectedEngine == SimEngine.Docker)
                 {
-                    if (canRun)
-                    {
-                        string runall = this.BaseWorkingDir + @"\run_all.bat";
-                        Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, runall, taskComplete);
-                    }
+                    // Docker: run OpenFOAM commands interactively
+                    RunDockerProcesses(CPUs, dir);
                 }
-            }
-            else   // @Zoe and @Patrick --> this seems to be a dead code section since runWithConsoleWindow is always true. Did the ProgressDialog version not work for you?
-            {
-                try
+                else
                 {
-                    // redirect stderr
-                    var errors = new StringWriter();
-                    Console.SetError(errors);
-                    if (RUN)
-                    {
-                        if (HidePopUp)
-                        {
-                            DoWork(new CancellationTokenSource());
-                        }
-                        else
-                        {
-                            // show progress form
-                            var progress = new ProgressDialog(DoWorkAsync);
-                            progress.ShowModal();
-                            // if user cancellation, abort solution
-                            if (progress.Canceled)
-                            {
-                                OnPingDocument().RequestAbortSolution();
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, ex.Message); return;
+                    // BlueCFD: run via batch file
+                    string runall = Path.Combine(this.BaseWorkingDir, "run_all.bat");
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, runall, taskComplete);
                 }
             }
 
@@ -346,7 +351,7 @@ Requires connected walls, inlets, outlets, and optional heat sources.
             int steps = (int)(1962 + 37 + (9 * numFuncObj) + 1731 + (26 * iterations));
             int stepCnt = 0;
 
-            string allBat = this.BaseWorkingDir + @"\run_all.bat";
+            string allBat = Path.Combine(this.BaseWorkingDir, "run_all.bat");
 
             Console.WriteLine("Run Eddy Simulation...");
 
@@ -370,6 +375,29 @@ Requires connected walls, inlets, outlets, and optional heat sources.
             runIndoorEddy.Wait();
 
             return true;
+        }
+
+        private void RunDockerProcesses(int cpus, string caseDir)
+        {
+            var runner = new DockerRunner();
+
+            var cmds = new List<string>();
+            cmds.Add("blockMesh");
+            cmds.Add("surfaceFeatures");
+            cmds.Add("decomposePar -force");
+            cmds.Add(string.Format("mpiexec -np {0} snappyHexMesh -overwrite -parallel", cpus));
+            cmds.Add("reconstructParMesh -constant");
+            cmds.Add("renumberMesh -overwrite");
+            cmds.Add("topoSet");
+            cmds.Add("renumberMesh -overwrite");
+            cmds.Add("decomposePar -force");
+            cmds.Add(string.Format("mpiexec -np {0} buoyantSimpleFoam -parallel", cpus));
+            cmds.Add("reconstructPar");
+            cmds.Add("echo 'INDOOR SIMULATION DONE'");
+            cmds.Add("read -p 'Press Enter to close...'");
+
+            var chain = DockerRunner.BuildCommandChain(cmds);
+            runner.RunInteractive(chain, caseDir);
         }
     }
 }

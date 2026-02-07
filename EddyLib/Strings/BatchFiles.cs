@@ -188,8 +188,8 @@ namespace EddyLib.Strings
             sb.Append(@"docker run --platform " + Docker.DockerConfig.Platform
                 + @" -v """ + hostPath + @":" + Docker.DockerConfig.CaseMountPoint + @""" --entrypoint="""" -i "
                 + Docker.DockerConfig.ImageName
-                + @" bash -c ""source " + Docker.DockerConfig.OpenFoamBashrc
-                + @"; export PATH=" + Docker.DockerConfig.MpiPath + @":$PATH; cd " + Docker.DockerConfig.CaseMountPoint + @";");
+                + @" bash -c ""export PATH=" + Docker.DockerConfig.MpiPath + @":$PATH; source " + Docker.DockerConfig.OpenFoamBashrc
+                + @"; cd " + Docker.DockerConfig.CaseMountPoint + @";");
 
             return sb.ToString();
         }
@@ -210,8 +210,8 @@ namespace EddyLib.Strings
             sb.Append(@"docker run --platform " + Docker.DockerConfig.Platform
                 + @" -v """ + hostPath + @":" + Docker.DockerConfig.CaseMountPoint + @""" --entrypoint="""" -i "
                 + Docker.DockerConfig.ImageName
-                + @" bash -c ""source " + Docker.DockerConfig.OpenFoamBashrc
-                + @"; export PATH=" + Docker.DockerConfig.MpiPath + @":$PATH; cd " + Docker.DockerConfig.CaseMountPoint + @";");
+                + @" bash -c ""export PATH=" + Docker.DockerConfig.MpiPath + @":$PATH; source " + Docker.DockerConfig.OpenFoamBashrc
+                + @"; cd " + Docker.DockerConfig.CaseMountPoint + @";");
 
             return sb.ToString();
         }

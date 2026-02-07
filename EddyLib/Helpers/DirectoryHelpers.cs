@@ -68,7 +68,7 @@ namespace EddyLib.Helpers
         }
 
         /// <summary>
-        /// Ensures a path ends with a trailing backslash.
+        /// Ensures a path ends with a trailing directory separator.
         /// </summary>
         public static string EnsureTrailingBackslash(string path)
         {
@@ -77,7 +77,8 @@ namespace EddyLib.Helpers
                 throw new ArgumentException("Path cannot be null or empty.", nameof(path));
             }
 
-            return path.EndsWith("\\") ? path : path + "\\";
+            var sep = Path.DirectorySeparatorChar.ToString();
+            return path.EndsWith(sep) ? path : path + sep;
         }
 
         /// <summary>
