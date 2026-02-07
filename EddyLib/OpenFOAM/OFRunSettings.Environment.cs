@@ -25,6 +25,9 @@ namespace EddyLib
         /// <summary>Whether the OS is 64-bit.</summary>
         public bool Is64BitOS { get; set; }
 
+        /// <summary>Whether Docker is installed and the daemon is running.</summary>
+        public bool DockerIsInstalled { get; set; }
+
         #endregion
         private void InitializeEnvironmentFlags()
         {
@@ -33,6 +36,7 @@ namespace EddyLib
             BlueCFD_GNU_Plot = CheckIfBlueCFD_GNU_Plot_IsInstalled();
             WindowsGnuplotInstalled = CheckIfWinGnuplotISInstalled();
             IdenticalMPI = CheckForProperMPIVersions(BlueCFDIsInstalled);
+            DockerIsInstalled = Docker.DockerEnvironment.IsDockerAvailable();
         }
 
         private bool CheckForProperMPIVersions(bool blueCfdInstalled)

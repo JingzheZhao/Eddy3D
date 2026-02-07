@@ -1,383 +1,45 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\Obfuscar.2.2.40\build\obfuscar.props" Condition="Exists('..\packages\Obfuscar.2.2.40\build\obfuscar.props')" />
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{CD46984C-EB80-48DE-B903-CE9F1BBCA21E}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <TargetFrameworks>net8.0-windows</TargetFrameworks>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <UseWindowsForms>true</UseWindowsForms>
+    <LangVersion>12</LangVersion>
     <RootNamespace>EddyLib</RootNamespace>
     <AssemblyName>EddyLib</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <LangVersion>8.0</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <LangVersion>8.0</LangVersion>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="Ed.Eto, Version=1.0.0.0, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
-      <HintPath>..\packages\RhinoCommon.8.15.25013.13001\lib\net48\Ed.Eto.dll</HintPath>
-    </Reference>
-    <Reference Include="Eto, Version=2.8.0.0, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
-      <HintPath>..\packages\RhinoCommon.8.15.25013.13001\lib\net48\Eto.dll</HintPath>
-    </Reference>
-    <Reference Include="GH_IO, Version=8.15.25013.13001, Culture=neutral, PublicKeyToken=6a29997d2e6b4f97, processorArchitecture=MSIL">
-      <HintPath>..\packages\Grasshopper.8.15.25013.13001\lib\net48\GH_IO.dll</HintPath>
-    </Reference>
-    <Reference Include="Grasshopper, Version=8.15.25013.13001, Culture=neutral, PublicKeyToken=dda4f5ec2cd80803, processorArchitecture=MSIL">
-      <HintPath>..\packages\Grasshopper.8.15.25013.13001\lib\net48\Grasshopper.dll</HintPath>
-    </Reference>
-    <Reference Include="MathNet.Numerics, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MathNet.Numerics.5.0.0\lib\net48\MathNet.Numerics.dll</HintPath>
-    </Reference>
-    <Reference Include="MedallionShell, Version=1.6.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MedallionShell.1.6.2\lib\net471\MedallionShell.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="Numpy, Version=3.10.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Numpy.3.11.1.34\lib\netstandard2.0\Numpy.dll</HintPath>
-    </Reference>
-    <Reference Include="protobuf-net, Version=3.0.0.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
-      <HintPath>..\packages\protobuf-net.3.2.45\lib\net462\protobuf-net.dll</HintPath>
-    </Reference>
-    <Reference Include="protobuf-net.Core, Version=3.0.0.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
-      <HintPath>..\packages\protobuf-net.Core.3.2.45\lib\net462\protobuf-net.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Python.Deployment, Version=1.5.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Python.Deployment.2.0.5\lib\netstandard2.0\Python.Deployment.dll</HintPath>
-    </Reference>
-    <Reference Include="Python.Included, Version=3.10.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Python.Included.3.11.6\lib\netstandard2.0\Python.Included.dll</HintPath>
-    </Reference>
-    <Reference Include="Python.Runtime, Version=3.0.5.0, Culture=neutral, PublicKeyToken=5000fea6cba702dd, processorArchitecture=MSIL">
-      <HintPath>..\packages\pythonnet.3.0.5\lib\netstandard2.0\Python.Runtime.dll</HintPath>
-    </Reference>
-    <Reference Include="Rhino.UI, Version=8.15.25013.13001, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
-      <HintPath>..\packages\RhinoCommon.8.15.25013.13001\lib\net48\Rhino.UI.dll</HintPath>
-    </Reference>
-    <Reference Include="RhinoCommon, Version=8.15.25013.13001, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
-      <HintPath>..\packages\RhinoCommon.8.15.25013.13001\lib\net48\RhinoCommon.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Buffers, Version=4.0.4.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Buffers.4.6.0\lib\net462\System.Buffers.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Collections.Immutable, Version=9.0.0.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Collections.Immutable.9.0.1\lib\net462\System.Collections.Immutable.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Memory, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Memory.4.6.0\lib\net462\System.Memory.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Numerics.Vectors, Version=4.1.5.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Numerics.Vectors.4.6.0\lib\net462\System.Numerics.Vectors.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.6.1.0\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-      <Compile Include="Utilities\ArrayExtensions.cs" />
-      <Compile Include="Utilities\ArrayHelper.cs" />
-      <Compile Include="Utilities\ASCIIProgressBar.cs" />
-      <Compile Include="Utilities\CsvHelpers.cs" />
-      <Compile Include="Utilities\PrepareProtoBufSingleton.cs" />
-      <Compile Include="Utilities\GitHubFileLister.cs" />
-      <Compile Include="Utilities\SymbolicLink.cs" />
-      <Compile Include="Utilities\GrasshopperConversions.cs" />
-      <Compile Include="Domain\IDomain.cs" />
-      <Compile Include="Domain\DomainConstants.cs" />
-      <Compile Include="Domain\DomainConstants.BlockingRatio.cs" />
-      <Compile Include="Domain\DomainConstants.Box.cs" />
-      <Compile Include="Domain\DomainConstants.Cylindrical.cs" />
-      <Compile Include="Domain\DomainConstants.GeometryTolerances.cs" />
-      <Compile Include="Domain\DomainConstants.Height.cs" />
-      <Compile Include="Domain\DomainConstants.Refinement.cs" />
-      <Compile Include="Domain\CylindricalDomainConfig.cs" />
-    <Compile Include="Domain\CylindricalMeshBuilder.cs" />
-    <Compile Include="OpenFOAM\BlockMeshDictSerializer.cs" />
-    <Compile Include="OpenFOAM\OpenFOAMPaths.cs" />
-    <Compile Include="OpenFOAM\OpenFOAMPaths.Case.cs" />
-    <Compile Include="OpenFOAM\OpenFOAMPaths.Mesh.cs" />
-    <Compile Include="OpenFOAM\OpenFOAMPaths.WorkDir.cs" />
-    <Compile Include="OpenFOAM\DictFileWriter.cs" />
-    <Compile Include="OpenFOAM\OpenFOAMHelpers.cs" />
-    <Compile Include="OpenFOAM\OpenFOAMLogLocator.cs" />
-    <Compile Include="OpenFOAM\OpenFOAMLogParseOptions.cs" />
-    <Compile Include="OpenFOAM\OpenFOAMLogParser.cs" />
-    <Compile Include="OpenFOAM\OpenFOAMLogStatus.cs" />
-    <Compile Include="OpenFOAM\OpenFOAMStatusFormatter.cs" />
-    <Compile Include="Helpers\ProcessRunner.cs" />
-    <Compile Include="Helpers\JsonHelper.cs" />
-    <Compile Include="Helpers\DirectoryHelpers.cs" />
-    <Compile Include="Helpers\GeometryHelpers.cs" />
-    <Compile Include="Constants\AirProperties.cs" />
-    <Compile Include="Enums\SimulationEnums.cs" />
-      <Compile Include="BoundaryConditions\BCHelpers.cs" />
-    <Compile Include="FunctionObjects\FunctionObject.cs" />
-    <Compile Include="Geometry\EddyBrep.cs" />
-    <Compile Include="Geometry\EddyMesh.cs" />
-    <Compile Include="Geometry\EddyPoint.cs" />
-    <Compile Include="Geometry\EddyVector.cs" />
-    <Compile Include="GlobalSettings\DefaultDirectoriesAndPaths.cs" />
-    <Compile Include="Indoor\BatchFiles\GenericBatchFile.cs" />
-    <Compile Include="Indoor\BatchFiles\RunAllBatch.cs" />
-    <Compile Include="Indoor\BatchFiles\RunMeshBatch.cs" />
-    <Compile Include="Indoor\BatchFiles\RunSimBatch.cs" />
-    <Compile Include="Indoor\BatchFiles\DeleteProcessorBatch.cs" />
-    <Compile Include="Indoor\BatchFiles\RunTopoBatch.cs" />
-    <Compile Include="Indoor\Dicts\0\IndoorBCDict.cs" />
-    <Compile Include="Indoor\Dicts\Constant\GDict.cs" />
-    <Compile Include="Indoor\Dicts\Constant\ThermophysicalPropertiesDict.cs" />
-    <Compile Include="Indoor\Dicts\Constant\TurbulencePropertiesDict.cs" />
-    <Compile Include="Indoor\Dicts\CppMapSerializer.cs" />
-    <Compile Include="Indoor\Dicts\FunctionObjects\CO2EmitterInternalDict.cs" />
-    <Compile Include="Indoor\Dicts\FunctionObjects\MomentumSourceInternalDict.cs" />
-    <Compile Include="Indoor\Dicts\FunctionObjects\VolumetricHeatSourceInternalDict.cs" />
-    <Compile Include="Indoor\Dicts\GenericDict.cs" />
-    <Compile Include="Indoor\Dicts\System\BlockMeshDict.cs" />
-    <Compile Include="Indoor\Dicts\System\ControlDict.cs" />
-    <Compile Include="Indoor\Dicts\System\DecomposeParDict.cs" />
-    <Compile Include="Indoor\Dicts\System\FvOptions.cs" />
-    <Compile Include="Indoor\Dicts\System\FvSchemesDict.cs" />
-    <Compile Include="Indoor\Dicts\System\FvSolutionDict.cs" />
-    <Compile Include="Indoor\Dicts\System\ResidualsDict.cs" />
-    <Compile Include="Indoor\Dicts\System\SnappyHexMeshDict.cs" />
-    <Compile Include="Indoor\Dicts\System\SurfaceFeatureDict.cs" />
-    <Compile Include="Indoor\Dicts\System\TopoSetDict.cs" />
-    <Compile Include="Indoor\FunctionObjects\CO2Emitter.cs" />
-    <Compile Include="Indoor\FunctionObjects\FunctionObject.cs" />
-    <Compile Include="Indoor\FunctionObjects\MomentumSinkIndoor.cs" />
-    <Compile Include="Indoor\IndoorBC.cs" />
-    <Compile Include="Indoor\IndoorDomain.cs" />
-    <Compile Include="Indoor\IndoorSimulation.cs" />
-    <Compile Include="OutdoorComfort\WindSystem.cs" />
-    <Compile Include="OutdoorComfort\WProbe.cs" />
-      <Compile Include="Radiation\AnalysisSystem.cs" />
-    <Compile Include="Radiation\ComfortSystem.cs" />
-    <Compile Include="OutdoorComfort\WProbeResultProto.cs" />
-      <Compile Include="Radiation\Tree_Settings.cs" />
-      <Compile Include="Radiation\RSurface_Settings.cs" />
-      <Compile Include="Radiation\MRT_Simulation_System.cs" />
-      <Compile Include="Radiation\MRT_Simulation_System.ViewFactors.cs" />
-      <Compile Include="Radiation\MRT_Simulation_Settings.cs" />
-    <Compile Include="Radiation\Old\DaylightSimulationHelpers.cs" />
-    <Compile Include="Radiation\Old\RadianceHelpers.cs" />
-    <Compile Include="Radiation\RadianceMaterials.cs" />
-    <Compile Include="Radiation\MRT_Simulation_ResultProto.cs" />
-    <Compile Include="Geometry\EddyProbe.cs" />
-    <Compile Include="Radiation\RSurface.cs" />
-    <Compile Include="Radiation\Old\RadiositySystem.cs" />
-    <Compile Include="Radiation\RPolygon.cs" />
-    <Compile Include="Radiation\RProbe.cs" />
-    <Compile Include="Radiation\EpJsonFormat.cs" />
-    <Compile Include="Radiation\EsoReader.cs" />
-    <Compile Include="Radiation\LongWaveInjectedIDFCode.cs" />
-    <Compile Include="Radiation\ThermalSystem.cs" />
-    <Compile Include="Radiation\VegetationSurface_Settings.cs" />
-    <Compile Include="UI\Attributes\Eddy_ComponentAttributes.cs" />
-    <Compile Include="UI\Attributes\Eddy_ComponentButtonAttributes.cs" />
-    <Compile Include="Indoor\Dicts\FunctionObjects\MomentumSinkIndoorInternalDict.cs" />
-    <Compile Include="Indoor\Dicts\FunctionObjects\ViralEmitterInternalDict.cs" />
-    <Compile Include="Indoor\FunctionObjects\ViralEmitter.cs" />
-    <Compile Include="Indoor\FunctionObjects\VolumetricHeatSource.cs" />
-    <Compile Include="Indoor\FunctionObjects\MomentumSource.cs" />
-    <Compile Include="FunctionObjects\PressureCoeff.cs" />
-    <Compile Include="BoundaryConditions\BoundaryConditionsBase.cs" />
-    <Compile Include="FunctionObjects\Tree.cs" />
-    <Compile Include="OutdoorComfort\WindComfortHelper.cs" />
-    <Compile Include="OutdoorComfort\WindComfortWeibull.cs" />
-      <Compile Include="OutdoorComfort\WindComfort.cs" />
-      <Compile Include="OutdoorComfort\WindComfortMetricsWeibull.cs" />
-      <Compile Include="OutdoorComfort\WindFactors.cs" />
-      <Compile Include="OutdoorComfort\WindFactorsSpatial.cs" />
-      <Compile Include="OutdoorComfort\WindFactorsTemporal.cs" />
-      <Compile Include="OutdoorComfort\WindComfortMetrics.cs" />
-    <Compile Include="OutdoorComfort\PET.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-      <Compile Include="Radiation\SkyTemperatureModel.cs" />
-      <Compile Include="Radiation\SkyViewFactor.cs" />
-      <Compile Include="Radiation\SkyViewFactor.FourPi.cs" />
-      <Compile Include="Radiation\SkyViewFactor.LoadResultFile.cs" />
-      <Compile Include="Radiation\SkyViewFactor.Materials.cs" />
-      <Compile Include="Radiation\SkyViewFactor.Octree.cs" />
-      <Compile Include="Radiation\SkyViewFactor.RadFile.cs" />
-      <Compile Include="Radiation\SkyViewFactor.RayCast.cs" />
-      <Compile Include="Radiation\SkyViewFactor.RaysFile.cs" />
-      <Compile Include="Radiation\SolarGain.cs" />
-    <Compile Include="Radiation\RadiationSystem.cs" />
-    <Compile Include="Strings\GH_Strings.cs" />
-    <Compile Include="Strings\ReturnMsg.cs" />
-    <Compile Include="GlobalSettings\EddyVersion.cs" />
-      <Compile Include="OpenFOAM\OFResult.cs" />
-      <Compile Include="OpenFOAM\OFRunSettings.cs" />
-      <Compile Include="OpenFOAM\OFRunSettings.Environment.cs" />
-      <Compile Include="OpenFOAM\OFRunSettings.Installation.cs" />
-      <Compile Include="OpenFOAM\OFRunSettings.Simulation.cs" />
-      <Compile Include="OpenFOAM\OFMeshSettings.cs" />
-      <Compile Include="OutdoorComfort\MRT.cs" />
-      <Compile Include="OutdoorComfort\MRT.TwoPhaseDDS.cs" />
-      <Compile Include="OutdoorComfort\MultiDirectionalVelocities.cs" />
-    <Compile Include="Radiation\Old\TwoPhaseDDS.cs" />
-    <Compile Include="Radiation\RadianceSkies.cs" />
-    <Compile Include="OpenFOAM\Residuals.cs" />
-      <Compile Include="OpenFOAM\RunBlockMesh.cs" />
-      <Compile Include="OpenFOAM\RunFoamSimulation.cs" />
-      <Compile Include="OpenFOAM\RunFoamSimulation.Batch.cs" />
-      <Compile Include="OpenFOAM\RunFoamSimulation.Boundary.cs" />
-      <Compile Include="OpenFOAM\RunFoamSimulation.Constants.cs" />
-      <Compile Include="OpenFOAM\RunFoamSimulation.Control.cs" />
-      <Compile Include="OpenFOAM\RunFoamSimulation.MeshLinking.cs" />
-      <Compile Include="OpenFOAM\RunFoamSimulation.System.cs" />
-      <Compile Include="OpenFOAM\RunSnappy.cs" />
-      <Compile Include="Strings\BatchFiles.cs" />
-      <Compile Include="Strings\BoundaryConditions.cs" />
-      <Compile Include="Strings\BoundaryConditions.Box.cs" />
-      <Compile Include="Strings\BoundaryConditions.Cyl.cs" />
-      <Compile Include="Strings\BoundaryConditions.Generic.cs" />
-      <Compile Include="Strings\PlotResiduals.cs" />
-      <Compile Include="Strings\Executables.cs" />
-      <Compile Include="Strings\Executables.Mesh.cs" />
-      <Compile Include="Strings\Executables.Control.cs" />
-      <Compile Include="Strings\Executables.FunctionObjects.cs" />
-      <Compile Include="Strings\Executables.Probes.cs" />
-      <Compile Include="Strings\Executables.Schemes.cs" />
-      <Compile Include="Strings\Executables.Solvers.cs" />
-      <Compile Include="Strings\Executables.Properties.cs" />
-      <Compile Include="Radiation\Old\Daysim.cs" />
-    <Compile Include="Clustering\JenksFisherNaturalBreaks.cs" />
-      <Compile Include="Clustering\KMpt.cs" />
-      <Compile Include="Clustering\KMeansValueAttribute.cs" />
-      <Compile Include="Clustering\KMeansCalculateDistanceDelegate.cs" />
-      <Compile Include="Clustering\KMeans.cs" />
-      <Compile Include="Clustering\KMeansResults.cs" />
-      <Compile Include="OpenFOAM\OFBaseDomain.cs" />
-      <Compile Include="OpenFOAM\OFBaseDomain.DomainProperties.cs" />
-      <Compile Include="OpenFOAM\OFBaseDomain.FrontageAnalysis.cs" />
-      <Compile Include="OpenFOAM\OFBaseDomain.FrontageCalculations.cs" />
-      <Compile Include="OpenFOAM\OFBaseDomain.IDomainImplementation.cs" />
-      <Compile Include="OpenFOAM\OFBaseDomain.MeshIntersection.cs" />
-      <Compile Include="OpenFOAM\OFBaseDomain.ProtectedMethods.cs" />
-      <Compile Include="OpenFOAM\OFBaseDomain.Refinement.cs" />
-      <Compile Include="OpenFOAM\OFBaseDomain.StaticHelpers.cs" />
-      <Compile Include="OpenFOAM\OFBoxDomain.cs" />
-    <Compile Include="OpenFOAM\OFCylDomain.cs" />
-    <Compile Include="Probing\ProbeEnums.cs" />
-    <Compile Include="Probing\OFFieldNew.cs" />
-    <Compile Include="Probing\ProbingNew.cs" />
-    <Compile Include="Probing\OFField.cs" />
-    <Compile Include="Probing\Probing.cs" />
-    <Compile Include="Probing\ProbeParsing.cs" />
-    <Compile Include="Probing\ProbeFieldHelpers.cs" />
-    <Compile Include="Probing\ProbeTimeHelper.cs" />
-    <Compile Include="Probing\ProbeBinaryIO.cs" />
-    <Compile Include="Probing\ProbePathHelper.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Radiation\RadianceFiles.cs" />
-    <Compile Include="GlobalSettings\Settings.cs" />
-    <Compile Include="Radiation\SolarGeometry.cs" />
-    <Compile Include="Utilities\STLExport.cs" />
 
-      <Compile Include="OutdoorComfort\UTCI.cs" />
-      <Compile Include="OutdoorComfort\UTCI.Equation.cs" />
-      <Compile Include="Environment\NaturalVentilation.cs" />
-    <Compile Include="UI\ProgressBarUI.cs" />
-    <Compile Include="Environment\Weather.cs" />
-    <Compile Include="Utilities\Utilities.cs" />
-    <Compile Include="Web\FileDownloader.cs" />
-    <Compile Include="Utilities\Utilities.Assembly.cs" />
-    <Compile Include="Utilities\Utilities.Collections.cs" />
-    <Compile Include="Utilities\Utilities.Comparers.cs" />
-    <Compile Include="Utilities\Utilities.Directories.cs" />
-    <Compile Include="Utilities\Utilities.Formatting.cs" />
-    <Compile Include="Utilities\Utilities.Geometry.cs" />
-    <Compile Include="Utilities\Utilities.IO.cs" />
-    <Compile Include="Utilities\Utilities.License.cs" />
-    <Compile Include="Utilities\Utilities.Math.cs" />
-    <Compile Include="Utilities\Utilities.OpenFoam.cs" />
-    <Compile Include="Utilities\Utilities.Processes.cs" />
-    <Compile Include="Utilities\Utilities.Runtime.cs" />
-    <Compile Include="Utilities\Utilities.Strings.cs" />
-    <Compile Include="Utilities\Utilities.System.cs" />
-    <Compile Include="Utilities\Utilities.Time.cs" />
-    <Compile Include="Compute\SLURM_Runner.cs" />
-  </ItemGroup>
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
+    <NoWarn>$(NoWarn);NU1701</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
-    <WCFMetadata Include="Connected Services\" />
+    <PackageReference Include="Grasshopper" Version="8.21.25188.17001" IncludeAssets="compile;build" />
+    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
+    <PackageReference Include="MedallionShell" Version="1.6.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="protobuf-net" Version="3.2.45" />
   </ItemGroup>
+
+  <!-- Exclude files not in the original csproj (legacy/unused, would cause duplicate definitions) -->
   <ItemGroup>
-    <None Include="app.config" />
-    <None Include="packages.config" />
+    <Compile Remove="Legacy\**" />
+    <Compile Remove="FunctionObjects\MomentumSink\**" />
+    <Compile Remove="Indoor\Dictionary.cs" />
+    <Compile Remove="Indoor\IndoorBCs.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Include="Resources\Box.epJSON" />
-    <None Include="Resources\BuildingGeo.stl" />
   </ItemGroup>
+
   <ItemGroup>
-    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Properties\Resources.resx">
+    <EmbeddedResource Update="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup />
-  <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
-  </PropertyGroup>
-  <PropertyGroup>
-    <PreBuildEvent>
-    </PreBuildEvent>
-  </PropertyGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Obfuscar.2.2.40\build\obfuscar.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Obfuscar.2.2.40\build\obfuscar.props'))" />
-    <Error Condition="!Exists('..\packages\RhinoCommon.8.15.25013.13001\build\net48\RhinoCommon.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\RhinoCommon.8.15.25013.13001\build\net48\RhinoCommon.targets'))" />
-    <Error Condition="!Exists('..\packages\Grasshopper.8.15.25013.13001\build\net48\Grasshopper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Grasshopper.8.15.25013.13001\build\net48\Grasshopper.targets'))" />
-  </Target>
-  <Import Project="..\packages\RhinoCommon.8.15.25013.13001\build\net48\RhinoCommon.targets" Condition="Exists('..\packages\RhinoCommon.8.15.25013.13001\build\net48\RhinoCommon.targets')" />
-  <Import Project="..\packages\Grasshopper.8.15.25013.13001\build\net48\Grasshopper.targets" Condition="Exists('..\packages\Grasshopper.8.15.25013.13001\build\net48\Grasshopper.targets')" />
+
 </Project>

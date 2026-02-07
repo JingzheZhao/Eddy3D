@@ -175,22 +175,21 @@ namespace EddyLib.Strings
         public static string DockerPrefixPath(OFBaseDomain DOM, OFMeshSettings MeshSettings, OFRunSettings RunSettings, OFExecutionMode mode)
         {
             StringBuilder sb = new StringBuilder();
-            if (mode == OFExecutionMode.Simulation && RunSettings.ostype == OSType.Windows7)
+            string hostPath;
+            if (mode == OFExecutionMode.Simulation)
             {
-                sb.Append(@"docker run -v """ + MeshSettings.DockerbaseWorkingDir + DOM.BCond.WindDirections[0] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+                hostPath = MeshSettings.baseWorkingDir + DOM.BCond.WindDirections[0];
             }
-            else if (mode == OFExecutionMode.Meshing && RunSettings.ostype == OSType.Windows7)
+            else
             {
-                sb.Append(@"docker run -v """ + MeshSettings.DockermeshWorkingDir + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
+                hostPath = MeshSettings.meshWorkingDir;
             }
-            else if (mode == OFExecutionMode.Simulation)
-            {
-                sb.Append(@"docker run -v """ + MeshSettings.baseWorkingDir + DOM.BCond.WindDirections[0] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
-            }
-            else if (mode == OFExecutionMode.Meshing)
-            {
-                sb.Append(@"docker run -v """ + MeshSettings.meshWorkingDir + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
-            }
+
+            sb.Append(@"docker run --platform " + Docker.DockerConfig.Platform
+                + @" -v """ + hostPath + @":" + Docker.DockerConfig.CaseMountPoint + @""" --entrypoint="""" -i "
+                + Docker.DockerConfig.ImageName
+                + @" bash -c ""source " + Docker.DockerConfig.OpenFoamBashrc
+                + @"; export PATH=" + Docker.DockerConfig.MpiPath + @":$PATH; cd " + Docker.DockerConfig.CaseMountPoint + @";");
 
             return sb.ToString();
         }
@@ -198,23 +197,21 @@ namespace EddyLib.Strings
         public static string DockerPrefixPath(OFBaseDomain DOM, OFMeshSettings MeshSettings, OFRunSettings RunSettings, OFExecutionMode mode, int d)
         {
             StringBuilder sb = new StringBuilder();
+            string hostPath;
+            if (mode == OFExecutionMode.Simulation)
+            {
+                hostPath = MeshSettings.baseWorkingDir + DOM.BCond.WindDirections[d];
+            }
+            else
+            {
+                hostPath = MeshSettings.meshWorkingDir;
+            }
 
-            if (mode == OFExecutionMode.Simulation && RunSettings.ostype == OSType.Windows7)
-            {
-                sb.Append(@"docker run -v """ + MeshSettings.DockerbaseWorkingDir + +DOM.BCond.WindDirections[d] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
-            }
-            else if (mode == OFExecutionMode.Meshing && RunSettings.ostype == OSType.Windows7)
-            {
-                sb.Append(@"docker run -v """ + MeshSettings.DockermeshWorkingDir + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
-            }
-            else if (mode == OFExecutionMode.Simulation)
-            {
-                sb.Append(@"docker run -v """ + MeshSettings.baseWorkingDir + +DOM.BCond.WindDirections[d] + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
-            }
-            else if (mode == OFExecutionMode.Meshing)
-            {
-                sb.Append(@"docker run -v """ + MeshSettings.meshWorkingDir + @":/home/openfoam/"" --entrypoint="""" -i hfdresearch/swak4foamandpyfoam:latest-v4.1 bash -c ""source /opt/openfoam4/etc/bashrc; cd /home/openfoam;");
-            }
+            sb.Append(@"docker run --platform " + Docker.DockerConfig.Platform
+                + @" -v """ + hostPath + @":" + Docker.DockerConfig.CaseMountPoint + @""" --entrypoint="""" -i "
+                + Docker.DockerConfig.ImageName
+                + @" bash -c ""source " + Docker.DockerConfig.OpenFoamBashrc
+                + @"; export PATH=" + Docker.DockerConfig.MpiPath + @":$PATH; cd " + Docker.DockerConfig.CaseMountPoint + @";");
 
             return sb.ToString();
         }

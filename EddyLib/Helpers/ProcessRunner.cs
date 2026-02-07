@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using EddyLib.Docker;
 
 namespace EddyLib.Helpers
 {
@@ -10,6 +11,21 @@ namespace EddyLib.Helpers
     /// </summary>
     public static class ProcessRunner
     {
+        /// <summary>
+        /// Runs an OpenFOAM command inside Docker and returns the result.
+        /// </summary>
+        /// <param name="bashCommand">Bash command(s) to execute inside the container.</param>
+        /// <param name="hostCasePath">Host filesystem path to mount as the case directory.</param>
+        /// <param name="timeoutMs">Timeout in milliseconds (0 = no timeout).</param>
+        public static DockerCommandResult RunDockerCommand(
+            string bashCommand,
+            string hostCasePath,
+            int timeoutMs = 0)
+        {
+            var runner = new DockerRunner();
+            return runner.RunHeadless(bashCommand, hostCasePath, timeoutMs);
+        }
+
         private const string DefaultCmdPath = @"C:\Windows\System32\cmd.exe";
 
         /// <summary>

@@ -38,12 +38,6 @@ libs
         ""libutilityFunctionObjects.so""
         ""libsolverFunctionObjects.so""
         ""libatmosphericModels.so""");
-            if (RunSettings.simEngine == SimEngine.Docker)
-            {
-                sb.Append(@"""libsimpleSwakFunctionObjects.so""
-                ""libswakFunctionObjects.so""
-                ""libgroovyBC.so""");
-            }
             sb.Append(@"
 );
             application simpleFoam;

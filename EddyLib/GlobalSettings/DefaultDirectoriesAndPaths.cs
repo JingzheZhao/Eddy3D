@@ -175,6 +175,25 @@ namespace EddyLib
         }
 
         /// <summary>
+        /// Verifies Docker is available and the daemon is running.
+        /// </summary>
+        public static void CheckDocker()
+        {
+            var dockerPath = Docker.DockerEnvironment.GetDockerPath();
+            if (string.IsNullOrEmpty(dockerPath))
+            {
+                throw new FileNotFoundException(
+                    "Docker not found. Please install Docker Desktop from https://www.docker.com/products/docker-desktop/");
+            }
+
+            if (!Docker.DockerEnvironment.IsDockerAvailable())
+            {
+                throw new InvalidOperationException(
+                    "Docker is installed but not running. Please start Docker Desktop.");
+            }
+        }
+
+        /// <summary>
         /// Verifies blueCFD installation and throws if missing.
         /// </summary>
         public static void CheckBlueCfd()

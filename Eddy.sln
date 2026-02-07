@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.2.11408.102 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EddyLib", "EddyLib\EddyLib.csproj", "{CD46984C-EB80-48DE-B903-CE9F1BBCA21E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EddyLib", "EddyLib\EddyLib.csproj", "{CD46984C-EB80-48DE-B903-CE9F1BBCA21E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eddy", "Eddy\Eddy.csproj", "{6312C2AE-CDF7-4B7F-9527-A88EC673DD44}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eddy", "Eddy\Eddy.csproj", "{6312C2AE-CDF7-4B7F-9527-A88EC673DD44}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RhinoPlugin.Test.Xunit", "RhinoPlugin.Test.Xunit\RhinoPlugin.Test.Xunit.csproj", "{B47B9A4C-B0F0-41F5-8CA5-E7D499A04780}"
 EndProject

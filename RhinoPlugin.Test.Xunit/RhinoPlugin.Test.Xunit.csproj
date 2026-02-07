@@ -1,23 +1,51 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
+  <!-- Common -->
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
-    <Platforms>AnyCPU;x64</Platforms>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <!-- Windows host -->
+  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
+    <TargetFrameworks>net8.0-windows</TargetFrameworks>
+  </PropertyGroup>
+
+  <!-- Non-Windows host (macOS/Linux) -->
+  <PropertyGroup Condition="'$(OS)'!='Windows_NT'">
+    <TargetFrameworks>net8.0</TargetFrameworks>
+    <MacBuildBehavior Condition="'$(MacBuildBehavior)'==''">Skip</MacBuildBehavior>
+    <DefineConstants>$(DefineConstants);HOST_NONWINDOWS</DefineConstants>
+  </PropertyGroup>
+
+  <!-- Cross-platform test packages -->
   <ItemGroup>
-    <PackageReference Include="Grasshopper" Version="8.15.25013.13001" />
-    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
-    <PackageReference Include="RhinoCommon" Version="8.15.25013.13001" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.0.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
   </ItemGroup>
 
-  <ItemGroup>
+  <!-- Windows-only: Grasshopper, RhinoCommon, project references -->
+  <ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
+    <PackageReference Include="Grasshopper" Version="8.21.25188.17001" />
+    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
+    <PackageReference Include="RhinoCommon" Version="8.21.25188.17001" />
     <ProjectReference Include="..\EddyLib\EddyLib.csproj" />
+  </ItemGroup>
+
+  <!-- macOS/Linux guard -->
+  <Target Name="NonWindowsBuildNotice" BeforeTargets="Build" Condition="'$(OS)'!='Windows_NT'">
+    <Message Importance="high"
+      Text="Host OS: non-Windows. $(MSBuildProjectName) contains Windows-only tests. Behavior=$(MacBuildBehavior)." />
+    <Warning Condition="'$(MacBuildBehavior)'=='Warn' or '$(MacBuildBehavior)'=='Skip'"
+      Text="On macOS/Linux, Windows-only tests are disabled." />
+  </Target>
+
+  <!-- Exclude all sources on non-Windows when Skip mode -->
+  <ItemGroup Condition="'$(OS)'!='Windows_NT' and '$(MacBuildBehavior)'=='Skip'">
+    <Compile Remove="**/*.cs" />
   </ItemGroup>
 
   <ItemGroup>
