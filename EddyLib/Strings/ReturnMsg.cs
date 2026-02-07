@@ -12,12 +12,16 @@ namespace EddyLib.Strings
 
         public static string FieldDoesntExist(string currentCaseDir, OFField field)
         {
-            return @"The file """ + currentCaseDir + @"\postProcessing\" + field.ProbeName + @"\" + Utilities.GetLastIterationFromDirectory(currentCaseDir).ToString() + @"\" + field.FieldName + @""" does not exist. Please run the probing component.";
+            var path = System.IO.Path.Combine(currentCaseDir, "postProcessing", field.ProbeName,
+                Utilities.GetLastIterationFromDirectory(currentCaseDir).ToString(), field.FieldName);
+            return "The file \"" + path + "\" does not exist. Please run the probing component.";
         }
 
         public static string FieldDoesntExist(string currentCaseDir, OFFieldNew field)
         {
-            return @"The file """ + currentCaseDir + @"\postProcessing\" + field.ProbeName + @"\" + Utilities.GetLastIterationFromDirectory(currentCaseDir).ToString() + @"\" + field.FieldName + @""" does not exist.";
+            var path = System.IO.Path.Combine(currentCaseDir, "postProcessing", field.ProbeName,
+                Utilities.GetLastIterationFromDirectory(currentCaseDir).ToString(), field.FieldName);
+            return "The file \"" + path + "\" does not exist.";
         }
 
         public static string ParsingFailed()

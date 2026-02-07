@@ -205,7 +205,8 @@ echo ""----------------------------------------""
 
 echo """"
 echo ""----------------------------------------""
-echo ""Docker execution complete.""",
+echo ""Docker execution complete.""
+",
                 DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
                 _imageName,
                 hostCasePath,
@@ -371,7 +372,8 @@ echo ""----------------------------------------""
 
 echo """"
 echo ""----------------------------------------""
-echo ""Docker execution complete.""",
+echo ""Docker execution complete.""
+",
                 _imageName,
                 hostCasePath,
                 _dockerExe,

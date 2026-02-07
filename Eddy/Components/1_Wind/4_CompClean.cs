@@ -102,6 +102,7 @@ GH_Strings.Clean.Desc + EddyVersion.toString(),
             else if (gobj.Value is GH_String)
             {
                 var conversion = GH_Convert.ToString(gobj.Value, out workingDirectory, GH_Conversion.Both);
+                workingDirectory = DefaultDirectoriesAndPaths.ResolveWorkingDirectory(workingDirectory);
             }
             else
             {

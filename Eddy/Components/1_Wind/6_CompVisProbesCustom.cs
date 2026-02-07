@@ -2,6 +2,7 @@
 using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
 using EddyLib;
+using EddyLib.Docker;
 using EddyLib.Indoor;
 using EddyLib.Strings;
 using Grasshopper.Kernel;
@@ -146,6 +147,27 @@ Samples the wind field at specific locations. Use this to query wind speed and p
             this.ExpireSolution(true);
         }
 
+        private string _dockerProbingError;
+
+        private void RunDockerProbing(List<string> commands, string workDir)
+        {
+            _dockerProbingError = null;
+            try
+            {
+                var runner = new DockerRunner();
+                var bashCmd = DockerRunner.BuildCommandChain(commands);
+                var launchLog = runner.RunInteractive(bashCmd, workDir);
+                if (!string.IsNullOrWhiteSpace(launchLog) && launchLog.IndexOf("error", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    _dockerProbingError = "Docker probing launch issue: " + launchLog;
+                }
+            }
+            catch (System.Exception ex)
+            {
+                _dockerProbingError = "Docker probing launch exception: " + ex.Message;
+            }
+        }
+
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             #region Load Inputs
@@ -170,6 +192,17 @@ Samples the wind field at specific locations. Use this to query wind speed and p
 
             DA.GetData(0, ref RES);
 
+            // Show engine and report any Docker probing errors from previous run
+            if (RES != null)
+            {
+                Message = RES.RunSettings.simEngine.ToString();
+            }
+            if (_dockerProbingError != null)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, _dockerProbingError);
+                _dockerProbingError = null;
+            }
+
             List<Point3d> listOfPoints = new List<Point3d>();
 
             bool run = false;
@@ -186,6 +219,16 @@ Samples the wind field at specific locations. Use this to query wind speed and p
 
             //DA.GetData(4, ref fieldType);
             DA.GetData(5, ref run);
+
+            if (run && RES != null
+                && RES.RunSettings.simEngine == SimEngine.Docker
+                && (RES.Domain is OFCylDomain || RES.Domain is OFBoxDomain))
+            {
+                string scriptPath = Path.Combine(RES.WorkingDirectory, "Scripts", "copy_mesh_to_wind_dirs.command");
+                AddRuntimeMessage(
+                    GH_RuntimeMessageLevel.Warning,
+                    "Docker mode is active. If you switched from BlueCFD to Docker after meshing, run \"" + scriptPath + "\" once to copy meshes into all integer wind-direction folders before probing.");
+            }
 
             if (probeNameByUser == "")
             {
@@ -298,13 +341,16 @@ Samples the wind field at specific locations. Use this to query wind speed and p
             }
             if (!meshExists)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"Mesh does not exist. Please provide a valid mesh.");
+                // A specific warning was already emitted above (missing/empty meshDir).
+                // Stop here to avoid duplicate mesh-missing warnings.
+                return;
             }
             if (RES.Domain is OFCylDomain || RES.Domain is OFBoxDomain)
             {
                 try
                 {
                     StringBuilder command = new StringBuilder();
+                    var dockerProbeCmds = new List<string>();
 
                     for (int i = 0; i < RES.Domain.BCond.WindDirections.Count; i++)
                     {
@@ -338,12 +384,20 @@ Samples the wind field at specific locations. Use this to query wind speed and p
 
                         if (RES.RunSettings.simEngine == SimEngine.Docker)
                         {
-                            command.Append(@"postProcess -func " + currField.ProbeName + @" -time " + Probing.GetLatestTime(currCase, RES, currField) + @"| tee  " + RES.Domain.BCond.WindDirections[i] + @"/log_probes;");
+                            if (i > 0) dockerProbeCmds.Add("cd " + DockerConfig.CaseMountPoint);
+                            string source = string.Format("{0}/mesh/constant/polyMesh", DockerConfig.CaseMountPoint);
+                            string targetConstant = string.Format("{0}/{1}/constant", DockerConfig.CaseMountPoint, RES.Domain.BCond.WindDirections[i]);
+                            string target = string.Format("{0}/polyMesh", targetConstant);
+                            dockerProbeCmds.Add(string.Format("if [ ! -d \"{0}\" ]; then echo \"ERROR: Mesh source not found at {0}\"; exit 1; fi", source));
+                            dockerProbeCmds.Add(string.Format("mkdir -p \"{0}\"", targetConstant));
+                            dockerProbeCmds.Add(string.Format("rm -rf \"{0}\"", target));
+                            dockerProbeCmds.Add(string.Format("cp -r \"{0}\" \"{1}\"", source, target));
+                            dockerProbeCmds.Add(string.Format("cd {0}", RES.Domain.BCond.WindDirections[i]));
+                            dockerProbeCmds.Add(string.Format("postProcess -func {0} -time {1}",
+                                currField.ProbeName, Probing.GetLatestTime(currCase, RES, currField)));
                         }
                         else
-                        {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
-                         // Todo: check here if we need a semicolon to sepaate the command
-                         // from the suffix
+                        {
                             command.AppendLine(@"postProcess -case " + RES.Domain.BCond.WindDirections[i] + " -func " + probeNameByUser + @" -time " + Probing.GetLatestTime(currCase, RES, currField));
                         }
                     }
@@ -353,19 +407,22 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                         Analytics.Analytics.TrackProbeCase(listOfPoints.Count);
                         if (RES.RunSettings.simEngine == SimEngine.Docker)
                         {
-                            var arg = BatFiles.DockerPrefixPath(RES.Domain, RES.MeshSettings, RES.RunSettings, OFExecutionMode.Simulation) + command;
-                            Utilities.StartProcess.StartProcessCMDNT(arg, false, true, false, true, probingComplete);
+                            RunDockerProbing(dockerProbeCmds, RES.WorkingDirectory);
+                            AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
+                                "Docker probing launched in an interactive terminal. Wait for it to finish, then set Run=false and recompute to load results.");
+                            return;
                         }
                         else
                         {
                             var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(new List<string> { command.ToString() }, RES.WorkingDirectory, RunMode.Canvas);
                             Utilities.StartProcess.StartProcessCMDNT(cmdArg, false, true, true, true, probingComplete);
+                            return;
                         }
                     }
 
                     for (int i = 0; i < RES.Domain.BCond.WindDirections.Count; i++)
                     {
-                        string currentCaseDir = RES.WorkingDirectory + RES.Domain.BCond.WindDirections[i];
+                        string currentCaseDir = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[i].ToString());
 
                         // We must check if this exists before we construct the Probing object
                         string pathToProbeFile = Probing.GetPathToProbedResults(currentCaseDir, currField, RES);
@@ -425,14 +482,8 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                         }
                     }
 
-                    if (RES.RunSettings.simEngine == SimEngine.Docker)
+                    if (RES.RunSettings.simEngine != SimEngine.Docker)
                     {
-                        command.Append(@"postProcess -func " + currField.ProbeName + @" -time " + Probing.GetLatestTime(currCase, RES, currField) + @"| tee  " + @"/log_probes;");
-                    }
-                    else
-                    {// piping interfers with the windows executables which rely on linux syntax. Need to find a way to load environment variables of entire linux env
-                     // Todo: check here if we need a semicolon to sepaate the command
-                     // from the suffix
                         command.AppendLine(@"postProcess  -func " + probeNameByUser + @" -time " + Probing.GetLatestTime(currCase, RES, currField));
                     }
 
@@ -441,13 +492,21 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                         Analytics.Analytics.TrackProbeCase(listOfPoints.Count);
                         if (RES.RunSettings.simEngine == SimEngine.Docker)
                         {
-                            var arg = BatFiles.DockerPrefixPath(RES.Domain, RES.MeshSettings, RES.RunSettings, OFExecutionMode.Simulation) + command;
-                            Utilities.StartProcess.StartProcessCMDNT(arg, false, true, false, true, probingComplete);
+                            var dockerCmds = new List<string>
+                            {
+                                string.Format("postProcess -func {0} -time {1}",
+                                    currField.ProbeName, Probing.GetLatestTime(currCase, RES, currField))
+                            };
+                            RunDockerProbing(dockerCmds, RES.WorkingDirectory);
+                            AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
+                                "Docker probing launched in an interactive terminal. Wait for it to finish, then set Run=false and recompute to load results.");
+                            return;
                         }
                         else
                         {
                             var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(new List<string> { command.ToString() }, RES.WorkingDirectory, RunMode.Canvas);
                             Utilities.StartProcess.StartProcessCMDNT(cmdArg, false, true, true, true, probingComplete);
+                            return;
                         }
                     }
 

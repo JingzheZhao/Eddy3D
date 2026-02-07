@@ -15,22 +15,29 @@ namespace EddyLib
         {
             string target = Path.Combine(meshSettings.meshConstantDir, "polyMesh");
 
+            // Ensure the parent constant/ directory exists
+            Directory.CreateDirectory(Path.GetDirectoryName(paths.PolyMeshLink));
+
             if (runSettings.simEngine == SimEngine.Docker)
             {
-                // Docker: the .command scripts create symlinks inside the container
-                // (ln -sfn works fine within the container filesystem).
-                // Just ensure the constant directory exists on the host.
-                Directory.CreateDirectory(paths.ConstantDir);
-            }
-            else
-            {
-                // BlueCFD on Windows: use directory junctions (symlinks)
-                if (Directory.Exists(paths.PolyMeshLink) && !SymlinkCreator.IsSymbolic(paths.PolyMeshLink))
+                // Docker mode uses copied meshes in each wind directory.
+                // Remove legacy symlinks/junctions if present, but keep real directories.
+                if (Directory.Exists(paths.PolyMeshLink) && SymlinkCreator.IsSymbolic(paths.PolyMeshLink))
                 {
                     SymlinkCreator.Delete(paths.PolyMeshLink);
                 }
-                SymlinkCreator.Create(paths.PolyMeshLink, target);
+                return;
             }
+
+            // Remove existing non-symlink directory (stale polyMesh from a previous run)
+            if (Directory.Exists(paths.PolyMeshLink) && !SymlinkCreator.IsSymbolic(paths.PolyMeshLink))
+            {
+                SymlinkCreator.Delete(paths.PolyMeshLink);
+            }
+
+            // On macOS: creates a relative symlink (works on host AND inside Docker bind mounts)
+            // On Windows: creates a directory junction (works for BlueCFD)
+            SymlinkCreator.Create(paths.PolyMeshLink, target);
         }
 
         #endregion

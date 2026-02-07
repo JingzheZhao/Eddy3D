@@ -76,8 +76,20 @@ namespace EddyLib
                 meshCmds.Add("snappyHexMesh -overwrite");
                 meshCmds.Add("renumberMesh -overwrite");
             }
+
+            var meshOnlyCmds = new List<string>(meshCmds);
+            meshOnlyCmds.Add("cd " + DockerConfig.CaseMountPoint);
+            for (int i = 0; i < domain.BCond.WindDirections.Count; i++)
+            {
+                AddDockerPolyMeshCopyCommands(meshOnlyCmds, domain.BCond.WindDirections[i]);
+            }
             DictFileWriter.WriteCommandFile(scriptsDir, "run_mesh.command",
-                DockerRunner.BuildCommandFileContent(meshCmds, workDir, "Meshing"));
+                DockerRunner.BuildCommandFileContent(meshOnlyCmds, workDir, "Meshing"));
+
+            // Manual helper: copy mesh/constant/polyMesh into all wind-direction cases
+            var copyMeshCmds = BuildDynamicDockerMeshCopyCommands();
+            DictFileWriter.WriteCommandFile(scriptsDir, "copy_mesh_to_wind_dirs.command",
+                DockerRunner.BuildCommandFileContent(copyMeshCmds, workDir, "Copy Mesh To Wind Dirs"));
 
             // Trees
             var treeCmds = new List<string> { "cd mesh", "topoSet", "setsToZones -noFlipMap" };
@@ -90,8 +102,7 @@ namespace EddyLib
             {
                 int windDir = domain.BCond.WindDirections[i];
                 if (i > 0) simAllCmds.Add("cd " + DockerConfig.CaseMountPoint);
-                // Link mesh into wind direction case (symlinks work inside the container)
-                simAllCmds.Add(string.Format("ln -sfn {0}/mesh/constant/polyMesh {0}/{1}/constant/polyMesh", DockerConfig.CaseMountPoint, windDir));
+                AddDockerPolyMeshCopyCommands(simAllCmds, windDir);
                 simAllCmds.Add(string.Format("cd {0}", windDir));
                 AddSimulationCommands(simAllCmds, runSettings);
             }
@@ -123,8 +134,7 @@ namespace EddyLib
                 if (useDocker)
                 {
                     var cmds = new List<string>();
-                    // Link mesh into wind direction case (symlinks work inside the container)
-                    cmds.Add(string.Format("ln -sfn {0}/mesh/constant/polyMesh {0}/{1}/constant/polyMesh", DockerConfig.CaseMountPoint, windDir));
+                    AddDockerPolyMeshCopyCommands(cmds, windDir);
                     cmds.Add(string.Format("cd {0}", windDir));
                     AddSimulationCommands(cmds, runSettings);
                     DictFileWriter.WriteCommandFile(scriptsDir, string.Format("{0}_run_sim.command", windDir),
@@ -142,6 +152,32 @@ namespace EddyLib
 
                 WriteGnuplotScript(caseDir, windDir);
             }
+        }
+
+        private static void AddDockerPolyMeshCopyCommands(List<string> cmds, int windDir)
+        {
+            string source = string.Format("{0}/mesh/constant/polyMesh", DockerConfig.CaseMountPoint);
+            string targetConstant = string.Format("{0}/{1}/constant", DockerConfig.CaseMountPoint, windDir);
+            string target = string.Format("{0}/polyMesh", targetConstant);
+
+            cmds.Add(string.Format("if [ ! -d \"{0}\" ]; then echo \"ERROR: Mesh source not found at {0}\"; exit 1; fi", source));
+            cmds.Add(string.Format("mkdir -p \"{0}\"", targetConstant));
+            cmds.Add(string.Format("rm -rf \"{0}\"", target));
+            cmds.Add(string.Format("cp -r \"{0}\" \"{1}\"", source, target));
+        }
+
+        private static List<string> BuildDynamicDockerMeshCopyCommands()
+        {
+            string caseRoot = DockerConfig.CaseMountPoint;
+            string source = string.Format("{0}/mesh/constant/polyMesh", caseRoot);
+
+            return new List<string>
+            {
+                string.Format("if [ ! -d \"{0}\" ]; then echo \"ERROR: Mesh source not found at {0}\"; exit 1; fi", source),
+                "FOUND=0",
+                string.Format("for d in \"{0}\"/*; do n=$(basename \"$d\"); if [ -d \"$d\" ] && [[ \"$n\" =~ ^[0-9]+$ ]]; then mkdir -p \"$d/constant\"; rm -rf \"$d/constant/polyMesh\"; cp -r \"{1}\" \"$d/constant/polyMesh\"; echo \"Copied mesh to $n\"; FOUND=1; fi; done", caseRoot, source),
+                "if [ \"$FOUND\" -eq 0 ]; then echo \"No integer wind-direction folders found under /case.\"; fi"
+            };
         }
 
         private static void AddSimulationCommands(List<string> cmds, OFRunSettings runSettings)

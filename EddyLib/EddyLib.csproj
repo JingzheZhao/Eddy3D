@@ -16,7 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grasshopper" Version="8.21.25188.17001" IncludeAssets="compile;build" />
+    <PackageReference Include="Grasshopper" Version="8.15.25019.13001" IncludeAssets="compile;build" />
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
     <PackageReference Include="MedallionShell" Version="1.6.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
