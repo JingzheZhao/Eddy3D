@@ -219,8 +219,15 @@ namespace EddyLib
                 divisionsZ = (int)(height / cellSizeCore);
             }
 
-            Polyline nakedEdges = coreBottom.GetNakedEdges()[0]; //returns a polygon with line segments for each mesh cell // BREAKS Rhino 8.9
-            Polyline adjustedPolyline = AdjustPolylineSeamAndOrientation(nakedEdges, true); // Fix for Rhino 8.9 and newer
+            // Rhino versions/platforms can return naked-edge loops with different seam locations
+            // and opposite winding for the exact same geometry.
+            // That difference propagates into point ordering for:
+            // 1) pointsOnRect (inner ring),
+            // 2) pointsOnCircle (outer ring),
+            // 3) downstream block vertex ordering.
+            // We normalize seam + orientation up-front so all subsequent indexing is deterministic.
+            Polyline nakedEdges = coreBottom.GetNakedEdges()[0]; // returns a polygon with line segments for each mesh cell
+            Polyline adjustedPolyline = AdjustPolylineSeamAndOrientation(nakedEdges, false);
 
             SetPointsOnRect(divsRadial, adjustedPolyline);
             SetPointsOnCircle(center, circRad, adjustedPolyline);
@@ -269,34 +276,77 @@ namespace EddyLib
 
         private Polyline AdjustPolylineSeamAndOrientation(Polyline nakedEdge, bool reverseOrientation = true)
         {
-            // Convert the polyline to a NurbsCurve
-            NurbsCurve curve = nakedEdge.ToNurbsCurve();
+            if (nakedEdge == null || nakedEdge.Count < 4)
+            {
+                return nakedEdge;
+            }
 
-            // Get the curve's domain
-            double tStart = curve.Domain.Min;
-            double tEnd = curve.Domain.Max;
+            // Work on a de-duplicated closed loop.
+            // Rhino commonly stores closed polylines with the first point repeated at the end.
+            // Removing that duplicate makes seam reindexing and orientation checks unambiguous.
+            var points = new List<Point3d>();
+            for (int i = 0; i < nakedEdge.Count; i++)
+            {
+                points.Add(nakedEdge[i]);
+            }
+            if (points.Count > 1 && points[0].DistanceToSquared(points[points.Count - 1]) < 1e-12)
+            {
+                points.RemoveAt(points.Count - 1);
+            }
 
-            // Find the first discontinuity
-            double discontinuityParam;
-            curve.GetNextDiscontinuity(Continuity.G1_continuous, tStart, tEnd, out discontinuityParam);
+            // Deterministic seam:
+            // pick the "top-right" point (max Y, then max X as tie-breaker) as index 0.
+            // This anchors the sequence to a geometry-based reference so indexing does not
+            // depend on Rhino's internal edge traversal order.
+            int startIndex = 0;
+            for (int i = 1; i < points.Count; i++)
+            {
+                if (points[i].Y > points[startIndex].Y ||
+                    (Math.Abs(points[i].Y - points[startIndex].Y) < 1e-9 && points[i].X > points[startIndex].X))
+                {
+                    startIndex = i;
+                }
+            }
 
-            // Move the seam to the discontinuity
-            curve.ChangeClosedCurveSeam(discontinuityParam);
+            var ordered = new List<Point3d>(points.Count);
+            for (int i = 0; i < points.Count; i++)
+            {
+                ordered.Add(points[(startIndex + i) % points.Count]);
+            }
 
-            // Reverse the curve orientation if required
+            // Deterministic orientation:
+            // after seam anchoring, we expect the first step to move left along the top edge
+            // (decreasing X). If the sequence instead moves right/down first, flip it.
+            //
+            // We keep the same seam point while flipping the remainder to preserve index 0.
+            if (ordered.Count >= 3 && ordered[1].X >= ordered[0].X)
+            {
+                var flipped = new List<Point3d>(ordered.Count);
+                flipped.Add(ordered[0]);
+                for (int i = ordered.Count - 1; i >= 1; i--)
+                {
+                    flipped.Add(ordered[i]);
+                }
+                ordered = flipped;
+            }
+
+            // Preserve legacy optional reversal switch for callers, while keeping the seam fixed.
+            // This maintains backward compatibility with existing call sites that relied on
+            // reverseOrientation behavior.
             if (reverseOrientation)
             {
-                curve.Reverse();
+                var flipped = new List<Point3d>(ordered.Count);
+                flipped.Add(ordered[0]);
+                for (int i = ordered.Count - 1; i >= 1; i--)
+                {
+                    flipped.Add(ordered[i]);
+                }
+                ordered = flipped;
             }
 
-            // Convert the adjusted NurbsCurve back to a Polyline
-            Polyline newPolyline;
-            if (!curve.TryGetPolyline(out newPolyline))
-            {
-                throw new Exception("Failed to convert curve back to polyline.");
-            }
-
-            return newPolyline;
+            // Re-close polyline.
+            ordered.Add(ordered[0]);
+            return new Polyline(ordered);
         }
 
         private void WeldAllIndividualMeshes()
@@ -449,7 +499,10 @@ namespace EddyLib
 
             for (int i = 0; i < nakedEdges.Count; i++)
             {
-                Vector3d vec = newCenter - nakedEdges[i];
+                // Use the outward radial direction from center through the current inner-ring point.
+                // NOTE: this vector direction is critical. Inward vectors can still intersect
+                // the circle but would mirror ordering and invert block topology.
+                Vector3d vec = nakedEdges[i] - newCenter;
                 vec.Unitize();
                 vec *= (circleRadius + 1);
 
@@ -460,8 +513,25 @@ namespace EddyLib
 
                 Rhino.Geometry.Intersect.LineCircleIntersection inter = Rhino.Geometry.Intersect.Intersection.LineCircle(new Line(newCenter, vec), c, out t1, out p1, out t2, out p2);
 
+                if (inter == Rhino.Geometry.Intersect.LineCircleIntersection.None)
+                {
+                    throw new Exception("Could not intersect radial line with perimeter circle.");
+                }
+
+                // RhinoCommon may return p1/p2 in different orders across platforms/versions.
+                // For a line through the center and a circle, there are two opposite intersections.
+                // We explicitly pick the one aligned with the outward vector so ordering is stable
+                // on both macOS and Windows (including BlueCFD workflows).
+                var outward = vec;
+                outward.Unitize();
+                Vector3d p1Dir = p1 - newCenter;
+                Vector3d p2Dir = p2 - newCenter;
+                p1Dir.Unitize();
+                p2Dir.Unitize();
+                Point3d chosen = (p1Dir * outward >= p2Dir * outward) ? p1 : p2;
+
                 //Move all points in one plane
-                pointsOnCircle.Add(new Point3d(p1.X, p1.Y, center.Z));
+                pointsOnCircle.Add(new Point3d(chosen.X, chosen.Y, center.Z));
             }
             this.pointsOnCircle = pointsOnCircle.ToArray();
         }
@@ -508,26 +578,116 @@ namespace EddyLib
 #endif
             for (int i = 0; i < perimBottom.Faces.Count; i++)
             {
-                //perimeter blocks
-                //Changed order because we had to flip core mesh plane
-                sb.AppendLine("hex (" + DomainMesh.Faces[i].A + " " + DomainMesh.Faces[i].D + " " + DomainMesh.Faces[i].C + " " + DomainMesh.Faces[i].B + " " +
-                  ((DomainMesh.Faces[i + c3].A)) + " " + (DomainMesh.Faces[i + c3].B) + " " + (DomainMesh.Faces[i + c3].C) + " " +
-
-                  (DomainMesh.Faces[i + c3].D) + ") (" + divPerim + " " + (divisionsX) + " " + divisionsZ + ") simpleGrading (1 " + gradingPerim + " 1)");
-
-                // After coreTop and coreBottom were flipped by a code change in RhinoCommon, the (" + divisionsX + " " + (divPerim) + " " + divisionsZ + ") command changed from (" + divisionsX + " " + (divPerim) + " " + divisionsZ + ") to (" + divisionsPerim + " " + (divisionsX) + " " + divisionsZ + ");
+                AppendHexBlock(
+                    sb,
+                    DomainMesh.Faces[i],
+                    DomainMesh.Faces[i + c3],
+                    divPerim,
+                    divisionsX,
+                    divisionsZ,
+                    gradingPerim);
             }
 #if DEBUG
             sb.AppendLine("//core");
 #endif
             for (int i = 0; i < coreBottom.Faces.Count; i++)
-            {   //core blocks //Changed order because we had to flip core mesh plane
-                sb.AppendLine("hex (" + DomainMesh.Faces[i + c1].A + " " + DomainMesh.Faces[i + c1].D + " " + DomainMesh.Faces[i + c1].C + " " + DomainMesh.Faces[i + c1].B + " " +
-                  ((DomainMesh.Faces[i + c2].A)) + " " + (DomainMesh.Faces[i + c2].B) + " " + (DomainMesh.Faces[i + c2].C) + " " +
-                  (DomainMesh.Faces[i + c2].D) + ") (" + divisionsX + " " + divisionsX + " " + divisionsZ + ") simpleGrading (1 1 1)");
+            {
+                AppendHexBlock(
+                    sb,
+                    DomainMesh.Faces[i + c1],
+                    DomainMesh.Faces[i + c2],
+                    divisionsX,
+                    divisionsX,
+                    divisionsZ,
+                    1.0);
             }
 
             return sb.ToString();
+        }
+
+        private void AppendHexBlock(StringBuilder sb, MeshFace bottom, MeshFace top, int xDiv, int yDiv, int zDiv, double gradingY)
+        {
+            // Normalize the 8 vertex indices before writing each block so we avoid
+            // "inside-out" and "inward-pointing faces" errors from blockMesh.
+            int[] vertices = GetStableHexVertexOrder(bottom, top);
+            sb.Append("hex (");
+            sb.Append(string.Join(" ", vertices));
+            sb.Append(") (");
+            sb.Append(xDiv);
+            sb.Append(" ");
+            sb.Append(yDiv);
+            sb.Append(" ");
+            sb.Append(zDiv);
+            sb.Append(") simpleGrading (1 ");
+            sb.Append(Utilities.FormatDouble(gradingY));
+            sb.AppendLine(" 1)");
+        }
+
+        private int[] GetStableHexVertexOrder(MeshFace bottom, MeshFace top)
+        {
+            // Candidate winding combinations.
+            //
+            // Why multiple candidates:
+            // - Rhino mesh face winding can differ by platform/version.
+            // - The top face may also be traversed in opposite order.
+            // - OpenFOAM blockMesh is strict about block orientation.
+            //
+            // Strategy:
+            // evaluate several plausible index orderings and pick the one that matches
+            // the OpenFOAM-compatible orientation according to our signed-volume metric.
+            //
+            // IMPORTANT:
+            // For the decomposition in SignedHexVolume(), the OpenFOAM-safe ordering is the
+            // MOST NEGATIVE signed value. Picking the wrong sign triggers inside-out errors.
+            var candidates = new[]
+            {
+                new[] { bottom.A, bottom.D, bottom.C, bottom.B, top.A, top.B, top.C, top.D },
+                new[] { bottom.A, bottom.B, bottom.C, bottom.D, top.A, top.B, top.C, top.D },
+                new[] { bottom.A, bottom.D, bottom.C, bottom.B, top.A, top.D, top.C, top.B },
+                new[] { bottom.A, bottom.B, bottom.C, bottom.D, top.A, top.D, top.C, top.B }
+            };
+
+            int bestIndex = 0;
+            double bestVolume = double.PositiveInfinity;
+
+            for (int i = 0; i < candidates.Length; i++)
+            {
+                double volume = SignedHexVolume(candidates[i]);
+                if (volume < bestVolume)
+                {
+                    bestVolume = volume;
+                    bestIndex = i;
+                }
+            }
+
+            return candidates[bestIndex];
+        }
+
+        private double SignedHexVolume(int[] hex)
+        {
+            Point3d[] v = new Point3d[8];
+            for (int i = 0; i < 8; i++)
+            {
+                var p = DomainMesh.Vertices[hex[i]];
+                v[i] = new Point3d(p.X, p.Y, p.Z);
+            }
+
+            // Five-tetrahedra decomposition used as a robust orientation proxy.
+            // We rely on the sign here only for candidate comparison; absolute volume
+            // is not used for physics, only for stable block ordering.
+            return SignedTetraVolume(v[0], v[1], v[3], v[4]) +
+                   SignedTetraVolume(v[1], v[2], v[3], v[6]) +
+                   SignedTetraVolume(v[1], v[4], v[5], v[6]) +
+                   SignedTetraVolume(v[3], v[4], v[6], v[7]) +
+                   SignedTetraVolume(v[1], v[3], v[4], v[6]);
+        }
+
+        private static double SignedTetraVolume(Point3d a, Point3d b, Point3d c, Point3d d)
+        {
+            Vector3d ad = a - d;
+            Vector3d bd = b - d;
+            Vector3d cd = c - d;
+            return ad * Vector3d.CrossProduct(bd, cd) / 6.0;
         }
 
         private string StringifyPatches2()

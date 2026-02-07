@@ -1,4 +1,5 @@
 using Rhino.Geometry;
+using System.Globalization;
 using System.Text;
 
 namespace EddyLib.OpenFOAM
@@ -135,8 +136,17 @@ convertToMeters 1;
                 var f = _domainMesh.Faces[i];
                 var ft = _domainMesh.Faces[i + c3];
 
-                sb.AppendLine($"    hex ({f.A} {f.D} {f.C} {f.B} " +
-                    $"{ft.A} {ft.B} {ft.C} {ft.D}) " +
+                // Keep serializer winding aligned with OFCylDomain block winding logic.
+                // This order has been validated against blockMesh to avoid:
+                // - "inside-out" blocks
+                // - "inward-pointing faces"
+                //
+                // Ordering rationale:
+                // - bottom face: A B C D
+                // - top face:    A D C B
+                // so the hexahedron orientation matches OpenFOAM expectations.
+                sb.AppendLine($"    hex ({f.A} {f.B} {f.C} {f.D} " +
+                    $"{ft.A} {ft.D} {ft.C} {ft.B}) " +
                     $"({_divPerim} {_divisionsX} {_divisionsZ}) " +
                     $"simpleGrading (1 {_gradingPerim} 1)");
             }
@@ -149,8 +159,11 @@ convertToMeters 1;
                 var f = _domainMesh.Faces[i + c1];
                 var ft = _domainMesh.Faces[i + c2];
 
-                sb.AppendLine($"    hex ({f.A} {f.D} {f.C} {f.B} " +
-                    $"{ft.A} {ft.B} {ft.C} {ft.D}) " +
+                // Same winding convention as perimeter blocks.
+                // Do not change one without changing the other, otherwise different
+                // regions can end up with opposite orientation.
+                sb.AppendLine($"    hex ({f.A} {f.B} {f.C} {f.D} " +
+                    $"{ft.A} {ft.D} {ft.C} {ft.B}) " +
                     $"({_divisionsX} {_divisionsX} {_divisionsZ}) " +
                     $"simpleGrading (1 1 1)");
             }
@@ -239,7 +252,9 @@ convertToMeters 1;
 
         private static string FormatPoint(Point3f pt)
         {
-            return $"{pt.X:G} {pt.Y:G} {pt.Z:G}";
+            // Force '.' as decimal separator regardless of system locale.
+            // This avoids locale-dependent dictionaries (e.g., commas) that OpenFOAM cannot parse.
+            return string.Format(CultureInfo.InvariantCulture, "{0:G} {1:G} {2:G}", pt.X, pt.Y, pt.Z);
         }
     }
 }
