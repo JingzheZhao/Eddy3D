@@ -25,17 +25,17 @@ namespace EddyLib
 
         public int accBuildingsMax { get; set; } = 4;
 
-        public int accFeatures { get; set; } = 3;
+        public int accFeatures { get; set; } = 4;
 
-        public int accBoxRefinement { get; set; } = 2;
+        public int accBoxRefinement { get; set; } = 0;
 
-        public int accGround { get; set; } = 2;
+        public int accGround { get; set; } = 3;
 
-        public int nLayers { get; set; } = 2;
+        public int nLayers { get; set; } = 4;
 
-        public SnappyMiscSettings miscSettings { get; set; }
+        public SnappyMiscSettings miscSettings { get; set; } = SnappyMiscSettings.Optimized;
 
-        public SnappySnapSettings snappySetting { get; set; }
+        public SnappySnapSettings snappySetting { get; set; } = SnappySnapSettings.BlocksSnapping;
 
         public int nCellsBetweenLevels { get; set; } = 4;
 

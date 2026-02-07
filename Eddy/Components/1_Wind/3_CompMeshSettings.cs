@@ -40,12 +40,12 @@ namespace Eddy
             pManager.AddIntegerParameter(
                 GH_Strings.MeshSettings.BldMax, GH_Strings.MeshSettings.BldMaxNick, 
                 GH_Strings.MeshSettings.BldMaxDesc, 
-                GH_ParamAccess.item, 2);
+                GH_ParamAccess.item, 4);
 
             pManager.AddIntegerParameter(
                 GH_Strings.MeshSettings.Feature, GH_Strings.MeshSettings.FeatureNick, 
                 GH_Strings.MeshSettings.FeatureDesc, 
-                GH_ParamAccess.item, 2);
+                GH_ParamAccess.item, 4);
 
             pManager.AddIntegerParameter(
                 GH_Strings.MeshSettings.BBox, GH_Strings.MeshSettings.BBoxNick, 
@@ -55,7 +55,7 @@ namespace Eddy
             pManager.AddIntegerParameter(
                 GH_Strings.MeshSettings.Ground, GH_Strings.MeshSettings.GroundNick, 
                 GH_Strings.MeshSettings.GroundDesc, 
-                GH_ParamAccess.item, 2);
+                GH_ParamAccess.item, 3);
 
             pManager.AddIntegerParameter(
                 GH_Strings.MeshSettings.Misc, GH_Strings.MeshSettings.MiscNick, 
@@ -100,10 +100,10 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             int bldMin = 2;
-            int bldMax = 2;
-            int feat = 2;
+            int bldMax = 4;
+            int feat = 4;
             int bbox = 0;
-            int ground = 2;
+            int ground = 3;
             int misc = 1;
             int layers = 4;
             int cells = 4;
