@@ -432,7 +432,7 @@ namespace Eddy
             var fileName = Path.GetFileNameWithoutExtension(file);
             var localPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Eddy3D\Templates\GitHub", file);
             var isCached = File.Exists(localPath);
-            var label = isCached ? fileName : fileName + " (Download)";
+            var label = isCached ? fileName : fileName + " (Click to Download)";
 
             EventHandler ev = async (sender, e) =>
             {

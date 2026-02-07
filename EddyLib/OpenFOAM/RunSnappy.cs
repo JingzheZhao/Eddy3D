@@ -54,18 +54,28 @@ namespace EddyLib
 
             if (useDocker)
             {
-                // Docker .command files
+                var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+                // Docker scripts (.command on macOS, .bat on Windows)
                 var checkMeshCmds = new List<string> { "cd mesh", "checkMesh" };
-                DictFileWriter.WriteCommandFile(scriptsDir, "run_checkMesh.command",
-                    DockerRunner.BuildCommandFileContent(checkMeshCmds, baseWorkingDir, "Check Mesh"));
-
                 var reconstructCmds = new List<string> { "cd mesh", "reconstructParMesh -constant" };
-                DictFileWriter.WriteCommandFile(scriptsDir, "run_reconstructMesh.command",
-                    DockerRunner.BuildCommandFileContent(reconstructCmds, baseWorkingDir, "Reconstruct Mesh"));
-
                 var deleteProcCmds = new List<string> { "cd mesh", "rm -rf processor*" };
-                DictFileWriter.WriteCommandFile(scriptsDir, "delete_processor_folders.command",
-                    DockerRunner.BuildCommandFileContent(deleteProcCmds, baseWorkingDir, "Delete Processor Folders"));
+
+                if (isWindows)
+                {
+                    WriteDockerWindowsScript(scriptsDir, "run_checkMesh", checkMeshCmds, baseWorkingDir);
+                    WriteDockerWindowsScript(scriptsDir, "run_reconstructMesh", reconstructCmds, baseWorkingDir);
+                    WriteDockerWindowsScript(scriptsDir, "delete_processor_folders", deleteProcCmds, baseWorkingDir);
+                }
+                else
+                {
+                    DictFileWriter.WriteCommandFile(scriptsDir, "run_checkMesh.command",
+                        DockerRunner.BuildCommandFileContent(checkMeshCmds, baseWorkingDir, "Check Mesh"));
+                    DictFileWriter.WriteCommandFile(scriptsDir, "run_reconstructMesh.command",
+                        DockerRunner.BuildCommandFileContent(reconstructCmds, baseWorkingDir, "Reconstruct Mesh"));
+                    DictFileWriter.WriteCommandFile(scriptsDir, "delete_processor_folders.command",
+                        DockerRunner.BuildCommandFileContent(deleteProcCmds, baseWorkingDir, "Delete Processor Folders"));
+                }
             }
             else
             {
@@ -79,6 +89,18 @@ namespace EddyLib
                 DictFileWriter.WriteBatchFile(scriptsDir, "delete_processor_folders.bat",
                     Strings.BatFiles.DeleteProcessorFolders());
             }
+        }
+
+        private static void WriteDockerWindowsScript(string scriptsDir, string baseName, IReadOnlyList<string> commands, string workDir)
+        {
+            var scriptName = baseName + ".sh";
+            var scriptPath = Path.Combine(scriptsDir, scriptName);
+            DictFileWriter.WriteDict(scriptPath,
+                DockerBatchScriptBuilder.BuildDockerContainerScript(commands));
+
+            var containerScriptPath = DockerConfig.CaseMountPoint + "/Scripts/" + scriptName;
+            DictFileWriter.WriteBatchFile(scriptsDir, baseName + ".bat",
+                DockerBatchScriptBuilder.BuildDockerBatWrapperForScript(containerScriptPath, workDir));
         }
     }
 }

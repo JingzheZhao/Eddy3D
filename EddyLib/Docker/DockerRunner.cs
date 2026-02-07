@@ -153,7 +153,11 @@ namespace EddyLib.Docker
                     DateTime.Now.ToString("HH:mm:ss"), _dockerExe));
 
                 hostCasePath = SanitizeDockerPath(hostCasePath);
-                var escapedBashCmd = bashCmd.Replace("'", "'\"'\"'");
+                var escapedBashCmd = bashCmd;
+                if (DockerEnvironment.IsMacOS)
+                {
+                    escapedBashCmd = bashCmd.Replace("'", "'\"'\"'");
+                }
 
                 if (DockerEnvironment.IsMacOS)
                 {
@@ -442,12 +446,18 @@ echo ""Docker execution complete.""
 
         private void LaunchInteractiveWindows(string escapedBashCmd, string hostCasePath, StringBuilder log)
         {
+            var scriptPath = Path.Combine(hostCasePath, "run_docker.sh");
+            var scriptContent = "#!/bin/bash\n" + escapedBashCmd + "\n";
+            File.WriteAllText(scriptPath, scriptContent.Replace("\r\n", "\n"));
+
+            var containerScriptPath = DockerConfig.CaseMountPoint + "/run_docker.sh";
             var dockerArgs = string.Format(
-                "run --rm -it -v \"{0}:{1}\" -w {1} {2} /bin/bash -c '{3}'",
+                "run --rm -it --platform {4} --entrypoint /bin/bash -v \"{0}:{1}\" -w {1} {2} \"{3}\"",
                 hostCasePath,
                 DockerConfig.CaseMountPoint,
                 _imageName,
-                escapedBashCmd);
+                containerScriptPath,
+                DockerConfig.Platform);
 
             var fullDockerCmd = string.Format("{0} {1}", _dockerExe, dockerArgs);
             log.AppendLine(string.Format("{0} Launching terminal with: {1}",

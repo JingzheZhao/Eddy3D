@@ -287,28 +287,29 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
 
             if (_selectedEngine == SimEngine.Docker)
             {
-                // Docker: launch .command files (double-clickable macOS shell scripts)
+                // Docker: launch scripts (.command on macOS, .bat on Windows)
                 var scriptsDir = Path.Combine(baseWorkingDirectory, "Scripts");
+                var dockerScriptExt = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ".bat" : ".command";
 
                 if (makeTrees == true && canRun)
                 {
-                    OpenCommandFile(Path.Combine(scriptsDir, "run_make_trees.command"));
+                    OpenCommandFile(Path.Combine(scriptsDir, "run_make_trees" + dockerScriptExt));
                 }
 
                 if (runMeshing == true && runSimulation == true && canRun)
                 {
                     Utilities.DeletePhi(MeshSettings, DOM);
-                    OpenCommandFile(Path.Combine(scriptsDir, "run.command"));
+                    OpenCommandFile(Path.Combine(scriptsDir, "run" + dockerScriptExt));
                 }
                 else if (runMeshing == true && runSimulation == false && canRun)
                 {
                     Utilities.DeletePhi(MeshSettings, DOM);
-                    OpenCommandFile(Path.Combine(scriptsDir, "run_mesh.command"));
+                    OpenCommandFile(Path.Combine(scriptsDir, "run_mesh" + dockerScriptExt));
                 }
                 else if (runMeshing == false && runSimulation == true && canRun)
                 {
                     Utilities.DeletePhi(MeshSettings, DOM);
-                    OpenCommandFile(Path.Combine(scriptsDir, "run_sim_all.command"));
+                    OpenCommandFile(Path.Combine(scriptsDir, "run_sim_all" + dockerScriptExt));
                 }
             }
             else
@@ -373,16 +374,71 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
         {
             if (!System.IO.File.Exists(path)) return;
 
-            var psi = new System.Diagnostics.ProcessStartInfo
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                FileName = "/usr/bin/open",
-                Arguments = string.Format("\"{0}\"", path),
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-            using (var p = System.Diagnostics.Process.Start(psi))
+                OpenBatchFile(path);
+                return;
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                p?.WaitForExit();
+                var psi = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "/usr/bin/open",
+                    Arguments = string.Format("\"{0}\"", path),
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+                using (var p = System.Diagnostics.Process.Start(psi))
+                {
+                    p?.WaitForExit();
+                }
+                return;
+            }
+
+            try
+            {
+                var psi = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "xdg-open",
+                    Arguments = string.Format("\"{0}\"", path),
+                    UseShellExecute = true,
+                    CreateNoWindow = true
+                };
+                System.Diagnostics.Process.Start(psi);
+            }
+            catch
+            {
+                // Ignore if xdg-open isn't available.
+            }
+        }
+
+        private static void OpenBatchFile(string path)
+        {
+            var workingDir = Path.GetDirectoryName(path) ?? string.Empty;
+            var quotedPath = string.Format("\"{0}\"", path);
+
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "wt.exe",
+                    Arguments = "cmd /k " + quotedPath,
+                    WorkingDirectory = workingDir,
+                    UseShellExecute = false,
+                    CreateNoWindow = false
+                });
+            }
+            catch
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = "/k " + quotedPath,
+                    WorkingDirectory = workingDir,
+                    UseShellExecute = false,
+                    CreateNoWindow = false
+                });
             }
         }
 

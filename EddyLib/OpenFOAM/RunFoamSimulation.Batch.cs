@@ -83,18 +83,15 @@ namespace EddyLib
             {
                 AddDockerPolyMeshCopyCommands(meshOnlyCmds, domain.BCond.WindDirections[i]);
             }
-            DictFileWriter.WriteCommandFile(scriptsDir, "run_mesh.command",
-                DockerRunner.BuildCommandFileContent(meshOnlyCmds, workDir, "Meshing"));
+            WriteDockerScript(scriptsDir, "run_mesh", meshOnlyCmds, workDir, "Meshing");
 
             // Manual helper: copy mesh/constant/polyMesh into all wind-direction cases
             var copyMeshCmds = BuildDynamicDockerMeshCopyCommands();
-            DictFileWriter.WriteCommandFile(scriptsDir, "copy_mesh_to_wind_dirs.command",
-                DockerRunner.BuildCommandFileContent(copyMeshCmds, workDir, "Copy Mesh To Wind Dirs"));
+            WriteDockerScript(scriptsDir, "copy_mesh_to_wind_dirs", copyMeshCmds, workDir, "Copy Mesh To Wind Dirs");
 
             // Trees
             var treeCmds = new List<string> { "cd mesh", "topoSet", "setsToZones -noFlipMap" };
-            DictFileWriter.WriteCommandFile(scriptsDir, "run_make_trees.command",
-                DockerRunner.BuildCommandFileContent(treeCmds, workDir, "Make Trees"));
+            WriteDockerScript(scriptsDir, "run_make_trees", treeCmds, workDir, "Make Trees");
 
             // Simulation for all wind directions (sequential)
             var simAllCmds = new List<string>();
@@ -106,16 +103,14 @@ namespace EddyLib
                 simAllCmds.Add(string.Format("cd {0}", windDir));
                 AddSimulationCommands(simAllCmds, runSettings);
             }
-            DictFileWriter.WriteCommandFile(scriptsDir, "run_sim_all.command",
-                DockerRunner.BuildCommandFileContent(simAllCmds, workDir, "Simulation (all directions)"));
+            WriteDockerScript(scriptsDir, "run_sim_all", simAllCmds, workDir, "Simulation (all directions)");
 
             // Mesh + Sim combined
             var runAllCmds = new List<string>();
             runAllCmds.AddRange(meshCmds);
             runAllCmds.Add("cd " + DockerConfig.CaseMountPoint);
             runAllCmds.AddRange(simAllCmds);
-            DictFileWriter.WriteCommandFile(scriptsDir, "run.command",
-                DockerRunner.BuildCommandFileContent(runAllCmds, workDir, "Mesh + Simulation"));
+            WriteDockerScript(scriptsDir, "run", runAllCmds, workDir, "Mesh + Simulation");
         }
 
         private static void WritePerDirectionBatchFiles(string workDir, OFBaseDomain domain, OFMeshSettings meshSettings, OFRunSettings runSettings)
@@ -137,8 +132,8 @@ namespace EddyLib
                     AddDockerPolyMeshCopyCommands(cmds, windDir);
                     cmds.Add(string.Format("cd {0}", windDir));
                     AddSimulationCommands(cmds, runSettings);
-                    DictFileWriter.WriteCommandFile(scriptsDir, string.Format("{0}_run_sim.command", windDir),
-                        DockerRunner.BuildCommandFileContent(cmds, workDir, string.Format("Simulation (dir {0})", windDir)));
+                    WriteDockerScript(scriptsDir, string.Format("{0}_run_sim", windDir), cmds, workDir,
+                        string.Format("Simulation (dir {0})", windDir));
                 }
                 else
                 {
@@ -195,6 +190,26 @@ namespace EddyLib
                 if (runSettings.potentialFoamInit)
                     cmds.Add("potentialFoam");
                 cmds.Add("simpleFoam");
+            }
+        }
+
+        private static void WriteDockerScript(string scriptsDir, string baseName, IReadOnlyList<string> commands, string workDir, string title)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                var scriptName = baseName + ".sh";
+                var scriptPath = Path.Combine(scriptsDir, scriptName);
+                DictFileWriter.WriteDict(scriptPath,
+                    DockerBatchScriptBuilder.BuildDockerContainerScript(commands));
+
+                var containerScriptPath = DockerConfig.CaseMountPoint + "/Scripts/" + scriptName;
+                DictFileWriter.WriteBatchFile(scriptsDir, baseName + ".bat",
+                    DockerBatchScriptBuilder.BuildDockerBatWrapperForScript(containerScriptPath, workDir));
+            }
+            else
+            {
+                DictFileWriter.WriteCommandFile(scriptsDir, baseName + ".command",
+                    DockerRunner.BuildCommandFileContent(commands, workDir, title));
             }
         }
 

@@ -25,7 +25,7 @@ namespace EddyLib
 
         public int accBuildingsMax { get; set; } = 4;
 
-        public int accFeatures { get; set; } = 2;
+        public int accFeatures { get; set; } = 3;
 
         public int accBoxRefinement { get; set; } = 2;
 

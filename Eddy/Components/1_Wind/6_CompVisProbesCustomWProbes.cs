@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
@@ -203,7 +204,8 @@ Generates visualizations of the wind field, including vector arrows and streamli
                 && RES.RunSettings.simEngine == SimEngine.Docker
                 && (RES.Domain is OFCylDomain || RES.Domain is OFBoxDomain))
             {
-                string scriptPath = Path.Combine(RES.WorkingDirectory, "Scripts", "copy_mesh_to_wind_dirs.command");
+                var scriptExt = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ".bat" : ".command";
+                string scriptPath = Path.Combine(RES.WorkingDirectory, "Scripts", "copy_mesh_to_wind_dirs" + scriptExt);
                 AddRuntimeMessage(
                     GH_RuntimeMessageLevel.Warning,
                     "Docker mode is active. If you switched from BlueCFD to Docker after meshing, run \"" + scriptPath + "\" once to copy meshes into all integer wind-direction folders before probing.");
