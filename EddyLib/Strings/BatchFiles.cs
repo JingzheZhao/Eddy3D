@@ -114,6 +114,7 @@ namespace EddyLib.Strings
         }
 
         private static readonly List<string> RCSimContinueSingleCPU = new List<string> {
+        "foamDictionary system/controlDict -entry startFrom -set latestTime",
         "simpleFoam"};
 
         private static List<string> reconstructMesh()
@@ -129,6 +130,8 @@ namespace EddyLib.Strings
         {
             List<string> lst = new List<string>
             {
+                "foamDictionary system/controlDict -entry startFrom -set latestTime",
+                "decomposePar -force -latestTime",
                 "mpiexec -np " + RunSettings.CPUs + @" simpleFoam -parallel",
                 "reconstructPar -latestTime"
             };
@@ -147,7 +150,8 @@ namespace EddyLib.Strings
                 "decomposePar -force",
                 "mpiexec -np " + RunSettings.CPUs + @" snappyHexMesh -overwrite -parallel",
                 "reconstructParMesh -constant",
-                "renumberMesh -overwrite"
+                "renumberMesh -overwrite",
+                "checkMesh -allGeometry -allTopology -writeSets vtk"
             });
             }
             else
@@ -157,7 +161,8 @@ namespace EddyLib.Strings
                 "decomposePar -force",
                 "mpiexec -np " + RunSettings.CPUs + @" snappyHexMesh -overwrite -parallel",
                 "reconstructParMesh -constant",
-                "renumberMesh -overwrite"
+                "renumberMesh -overwrite",
+                "checkMesh -allGeometry -allTopology -writeSets vtk"
             });
             }
 
@@ -168,7 +173,8 @@ namespace EddyLib.Strings
         "blockMesh",
         "surfaceFeatures",
         "snappyHexMesh -overwrite",
-        "renumberMesh -overwrite"};
+        "renumberMesh -overwrite",
+        "checkMesh -allGeometry -allTopology -writeSets vtk"};
 
         private static readonly List<string> divU = new List<string> { "postProcess -func ttt -latestTime" };
 
@@ -469,7 +475,7 @@ namespace EddyLib.Strings
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(@"call ""%~dp0run_mesh.bat""");
-            sb.AppendLine(@"call ""%~dp0run_checkMesh.bat""");
+            sb.AppendLine(@"if errorlevel 1 exit /b %errorlevel%");
             foreach (int i in DOM.BCond.WindDirections)
             {
                 sb.AppendLine(@"call ""%~dp0" + i + @"_run_sim.bat""");

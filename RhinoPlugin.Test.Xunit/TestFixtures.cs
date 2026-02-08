@@ -62,7 +62,7 @@ namespace RhinoPlugin.Test.Xunit
         {
             return new OFRunSettings
             {
-                iter = TestConstants.DefaultIterations,
+                endTime = TestConstants.DefaultIterations,
                 CPUs = 8,
                 relaxationFactors = RelaxationFactors.Robust,
                 schemes = fvSchemes.Optimized,

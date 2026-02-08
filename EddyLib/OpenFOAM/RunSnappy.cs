@@ -20,8 +20,8 @@ namespace EddyLib
         /// <param name="logFile">Output path for log file (currently unused).</param>
         public static void Run(OFBaseDomain domain, OFMeshSettings meshSettings, OFRunSettings runSettings, out string logFile)
         {
-            // Auto-calculate CPUs if not specified
-            if (runSettings.CPUs == -1)
+            // Resolve CPUs (-1 = auto, invalid values clamp to 1)
+            if (runSettings.CPUs <= 0)
             {
                 runSettings.CPUs = Utilities.CalcOptimCPU(meshSettings.meshWorkingDir, runSettings.CPUs);
             }

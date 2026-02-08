@@ -350,8 +350,6 @@ Generates visualizations of the wind field, including vector arrows and streamli
                     // Check if mesh exists
 
                     string pathToPointFile = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[i].ToString(), "constant", "polyMesh", "points");
-                    string currCase = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[i].ToString());
-
                     if (!File.Exists(pathToPointFile))
                     {
                         base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.MeshDoesntExist(pathToPointFile));
@@ -373,12 +371,13 @@ Generates visualizations of the wind field, including vector arrows and streamli
                         dockerProbeCmds.Add(string.Format("rm -rf \"{0}\"", target));
                         dockerProbeCmds.Add(string.Format("cp -r \"{0}\" \"{1}\"", source, target));
                         dockerProbeCmds.Add(string.Format("cd {0}", RES.Domain.BCond.WindDirections[i]));
-                        dockerProbeCmds.Add(string.Format("postProcess -func {0} -time {1}",
-                            probeNameByUser, ProbingNew.GetLatestTime(currCase, RES)));
+                        dockerProbeCmds.Add(string.Format("rm -rf \"postProcessing/{0}\"", probeNameByUser));
+                        dockerProbeCmds.Add(string.Format("postProcess -func {0} -latestTime", probeNameByUser));
                     }
                     else
                     {
-                        command.AppendLine(@"postProcess -case " + RES.Domain.BCond.WindDirections[i] + " -func " + probeNameByUser + @" -time " + ProbingNew.GetLatestTime(currCase, RES));
+                        command.AppendLine(@"rm -rf """ + RES.Domain.BCond.WindDirections[i] + @"/postProcessing/" + probeNameByUser + @"""");
+                        command.AppendLine(@"postProcess -case " + RES.Domain.BCond.WindDirections[i] + " -func " + probeNameByUser + @" -latestTime");
                     }
                 }
 

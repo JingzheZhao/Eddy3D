@@ -6,6 +6,7 @@ using Grasshopper.Kernel.Types;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -82,7 +83,7 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             pManager.AddTextParameter(
                 GH_Strings.Common.WorkingDir, GH_Strings.Common.WorkingDirNick, 
                 GH_Strings.Common.WorkingDirDesc, 
-                GH_ParamAccess.item, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Eddy"));
+                GH_ParamAccess.item, DefaultDirectoriesAndPaths.CasesDir);
             pManager[1].Optional = true;
 
             pManager.AddGenericParameter(
@@ -174,13 +175,17 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             //-----------------
 
             OFRunSettings RunSettings = new OFRunSettings();
-
             GH_ObjectWrapper gobjRunSet = null;
-            if (DA.GetData(GH_Strings.Common.RunSettings, ref gobjRunSet))
+            if (DA.GetData(3, ref gobjRunSet))
             {
-                if (gobjRunSet.Value is OFRunSettings)
+                if (gobjRunSet?.Value is OFRunSettings)
                 {
                     RunSettings = (OFRunSettings)gobjRunSet.Value;
+                }
+                else
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
+                        "Run Settings input is invalid. Using defaults.");
                 }
             }
 
@@ -200,7 +205,7 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             string baseWorkingDirectory = "";
             DA.GetData(GH_Strings.Common.WorkingDir, ref baseWorkingDirectory);
             
-            // Resolve simple case names to full paths under AppData\Eddy3D\Cases
+            // Resolve simple case names to full paths under the platform-specific Eddy3D cases folder
             baseWorkingDirectory = DefaultDirectoriesAndPaths.ResolveWorkingDirectory(baseWorkingDirectory);
             
             if (!Directory.Exists(baseWorkingDirectory)) { Directory.CreateDirectory(baseWorkingDirectory); }
@@ -252,7 +257,7 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
 
             #region RUN SIMULATION
 
-            if (RunSettings.iter == 0 || RunSettings.keepTimeSteps == 0 || RunSettings.writeInterval == 0)
+            if (RunSettings.endTime == 0 || RunSettings.purgeWrite == 0 || RunSettings.writeInterval == 0)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide valid inputs.");
                 return;
@@ -351,16 +356,19 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
 
             var simDone = new System.Collections.Generic.List<bool>(windDirs.Count);
             var simEta = new System.Collections.Generic.List<string>(windDirs.Count);
+            var simStatuses = new System.Collections.Generic.List<OpenFOAMLogStatus>(windDirs.Count);
             foreach (var dir in windDirs)
             {
                 var caseDir = Path.Combine(baseWorkingDirectory, dir.ToString());
                 var simLog = OpenFOAMLogLocator.FindLatestSimulationLog(caseDir);
                 var simStatus = OpenFOAMLogParser.ParseSimulationLog(simLog,
-                    new OpenFOAMLogParseOptions { RollingWindow = 5, TotalIterations = RunSettings.iter });
+                    new OpenFOAMLogParseOptions { RollingWindow = 5, TotalIterations = RunSettings.endTime });
 
+                simStatuses.Add(simStatus);
                 simDone.Add(simStatus.IsFinished);
                 simEta.Add(OpenFOAMStatusFormatter.FormatEta(simStatus));
             }
+            ApplyQueuedSimulationEtaPredictions(simStatuses, simEta);
 
             DA.SetData(GH_Strings.SimpleFoam.MeshDone, meshStatus.IsFinished);
             DA.SetDataList(GH_Strings.SimpleFoam.SimDone, simDone);
@@ -368,6 +376,86 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             DA.SetDataList(GH_Strings.SimpleFoam.SimEta, simEta);
 
             canRun = true;
+        }
+
+        private static void ApplyQueuedSimulationEtaPredictions(
+            IList<OpenFOAMLogStatus> statuses,
+            IList<string> etaText)
+        {
+            if (statuses == null || etaText == null || statuses.Count == 0 || statuses.Count != etaText.Count)
+                return;
+
+            var observedDurations = new List<TimeSpan>();
+            for (int i = 0; i < statuses.Count; i++)
+            {
+                var estimated = EstimateCaseDuration(statuses[i]);
+                if (estimated.HasValue && estimated.Value.TotalSeconds > 0)
+                    observedDurations.Add(estimated.Value);
+            }
+
+            if (observedDurations.Count == 0)
+                return;
+
+            var avgSeconds = observedDurations.Average(x => x.TotalSeconds);
+            if (avgSeconds <= 0)
+                return;
+
+            var averageCaseDuration = TimeSpan.FromSeconds(avgSeconds);
+            var cumulativeRemaining = TimeSpan.Zero;
+
+            for (int i = 0; i < statuses.Count; i++)
+            {
+                var status = statuses[i];
+                if (status == null || status.HasError || status.IsFinished)
+                    continue;
+
+                TimeSpan remainingForCase;
+                if (status.EstimatedRemaining.HasValue)
+                {
+                    remainingForCase = status.EstimatedRemaining.Value;
+                }
+                else if (!status.HasLog)
+                {
+                    remainingForCase = averageCaseDuration;
+                }
+                else
+                {
+                    continue;
+                }
+
+                if (remainingForCase < TimeSpan.Zero)
+                    remainingForCase = TimeSpan.Zero;
+
+                cumulativeRemaining += remainingForCase;
+
+                if (!status.HasLog)
+                {
+                    etaText[i] = "~" + OpenFOAMStatusFormatter.FormatTimeSpan(cumulativeRemaining);
+                }
+            }
+        }
+
+        private static TimeSpan? EstimateCaseDuration(OpenFOAMLogStatus status)
+        {
+            if (status == null || status.HasError || !status.HasLog)
+                return null;
+
+            if (status.ExecutionTimeSeconds.HasValue && status.ExecutionTimeSeconds.Value > 0)
+            {
+                var elapsed = TimeSpan.FromSeconds(status.ExecutionTimeSeconds.Value);
+                if (status.IsFinished)
+                    return elapsed;
+
+                if (status.EstimatedRemaining.HasValue)
+                    return elapsed + status.EstimatedRemaining.Value;
+
+                return elapsed;
+            }
+
+            if (!status.IsFinished && status.EstimatedRemaining.HasValue)
+                return status.EstimatedRemaining.Value;
+
+            return null;
         }
 
         private static void OpenCommandFile(string path)

@@ -1,4 +1,4 @@
-﻿using Eddy.Analytics;
+using Eddy.Analytics;
 using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
@@ -43,7 +43,7 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter(GH_Strings.Common.Domain, GH_Strings.Common.DomainNick, GH_Strings.Common.DomainDesc, GH_ParamAccess.item);
-            pManager.AddTextParameter(GH_Strings.Common.WorkingDir, GH_Strings.Common.WorkingDirNick, GH_Strings.Common.WorkingDirDesc, GH_ParamAccess.item, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Eddy"));
+            pManager.AddTextParameter(GH_Strings.Common.WorkingDir, GH_Strings.Common.WorkingDirNick, GH_Strings.Common.WorkingDirDesc, GH_ParamAccess.item, DefaultDirectoriesAndPaths.CasesDir);
             pManager[1].Optional = true;
             
             pManager.AddGenericParameter(GH_Strings.Common.MeshSettings, GH_Strings.Common.MeshSettingsNick, GH_Strings.Common.MeshSettingsDesc, GH_ParamAccess.item);
@@ -106,11 +106,16 @@ namespace Eddy
 
             OFRunSettings RunSettings = new OFRunSettings();
             GH_ObjectWrapper gobjRunSet = null;
-            if (DA.GetData(GH_Strings.Common.RunSettings, ref gobjRunSet))
+            if (DA.GetData(3, ref gobjRunSet))
             {
-                if (gobjRunSet.Value is OFRunSettings)
+                if (gobjRunSet?.Value is OFRunSettings)
                 {
                     RunSettings = (OFRunSettings)gobjRunSet.Value;
+                }
+                else
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
+                        "Run Settings input is invalid. Using defaults.");
                 }
             }
 

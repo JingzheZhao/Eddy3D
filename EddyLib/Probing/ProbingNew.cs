@@ -90,12 +90,7 @@ namespace EddyLib
         /// </summary>
         public static int GetLatestTime(string workingDirectory, OFResult result)
         {
-            int? writeInterval = null;
-            if (result?.RunSettings?.iter > 0)
-            {
-                writeInterval = result.RunSettings.iter;
-            }
-            return ProbeTimeHelper.GetLatestIteration(workingDirectory, writeInterval);
+            return ProbeTimeHelper.GetLatestIteration(workingDirectory, null);
         }
 
         /// <summary>

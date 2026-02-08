@@ -12,29 +12,29 @@ namespace EddyLib
         /// Creates run settings with specified parameters.
         /// </summary>
         public OFRunSettings(
-            int iter = 1000,
+            int endTime = 1000,
             int writeInterval = 10,
-            int keepTimeSteps = 3,
+            int purgeWrite = 3,
             fvSchemes schemes = fvSchemes.Optimized,
-            int CPUs = 1,
+            int CPUs = -1,
             SimEngine simEngine = SimEngine.BlueCFD,
-            OSType ostype = OSType.Windows10,
-            TurbModel turbmodel = TurbModel.kEpsilon,
+            TurbModel turbmodel = TurbModel.RNGkEpsilon,
             RelaxationFactors relaxationFactors = RelaxationFactors.Optimized,
             bool potentialFoamInit = false,
-            bool aoa = false)
+            bool aoa = false,
+            bool stabilityLimiters = false)
         {
-            this.iter = iter;
+            this.endTime = endTime;
             this.writeInterval = writeInterval;
-            this.keepTimeSteps = keepTimeSteps;
+            this.purgeWrite = purgeWrite;
             this.schemes = schemes;
             this.CPUs = CPUs;
             this.simEngine = simEngine;
-            this.ostype = ostype;
             this.turbModel = turbmodel;
             this.relaxationFactors = relaxationFactors;
             this.potentialFoamInit = potentialFoamInit;
             this.aoa_domain = aoa;
+            this.stabilityLimiters = stabilityLimiters;
 
             InitializeEnvironmentFlags();
         }
@@ -51,17 +51,17 @@ namespace EddyLib
         public override string ToString()
         {
             return $@"
-iter = {iter}
+iter = {endTime}
 writeInterval = {writeInterval}
-keepTimeSteps = {keepTimeSteps}
+keepTimeSteps = {purgeWrite}
 fvScheme = {schemes}
 turb = {turbModel}
 CPUs = {CPUs}
 Engine = {simEngine}
-OS = {ostype}
 Relaxation Factors = {relaxationFactors}
 potentialFoam initialization = {potentialFoamInit}
-age of air = {aoa_domain}";
+age of air = {aoa_domain}
+stability limiters = {stabilityLimiters}";
         }
 
     }

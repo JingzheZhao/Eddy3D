@@ -103,40 +103,5 @@ exit
             }
         }
 
-        public class Docker
-        {
-            public static bool IsDockerRunning(string workingDirectory, OSType ostype)
-            {
-                bool running = false;
-                string fp = Path.Combine(workingDirectory, "dockerStatus");
-
-                List<string> lines = Utilities.FileReader(fp);
-
-                if (OSType.Windows7 != ostype)
-                {
-                    foreach (string line in lines)
-                    {
-                        if (line.StartsWith("Containers"))
-                        {
-                            running = true;
-                        }
-                    }
-                }
-                else
-                {
-                    // Assume that Docker is always running for Windows 7 for now
-                    running = true;
-                }
-
-                return running;
-            }
-
-            public static void WriteDockerInfo(string workingDirectory)
-            {
-                StartProcess.StartProcessCMD(@"docker info > """ + workingDirectory + @"\dockerStatus""", true, false, false);
-
-                //StartProcessCMD(@"docker info > """ + workingDirectory + @"\dockerStatus""", true, true, true);
-            }
-        }
     }
 }

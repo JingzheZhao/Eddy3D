@@ -73,7 +73,7 @@ namespace RhinoPlugin.Test.Xunit
             var logFile = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
             Assert.True(File.Exists(logFile), $"Log file not found: {logFile}");
 
-            AssertLogContainsTimeIfPresent(caseDir, windDir, expectedTime: runSettings.iter);
+            AssertLogContainsTimeIfPresent(caseDir, windDir, expectedTime: runSettings.endTime);
         }
 
         // This version opens a terminal and shows the progress
@@ -257,14 +257,13 @@ namespace RhinoPlugin.Test.Xunit
             meshSettings.accFeatures = 1;
             meshSettings.accGround = 1;
             meshSettings.snappySetting = SnappySnapSettings.BlocksSnapping;
-            meshSettings.miscSettings = SnappyMiscSettings.Optimized;
             return meshSettings;
         }
 
         private static OFRunSettings CreateProceduralRunSettings()
         {
             var runSettings = TestFixtures.CreateDefaultRunSettings();
-            runSettings.iter = 500; // reduced iterations
+            runSettings.endTime = 500; // reduced iterations
             runSettings.CPUs = GetTestCpuCount();
             runSettings.schemes = fvSchemes.Default;
             return runSettings;

@@ -76,6 +76,7 @@ namespace EddyLib
                 meshCmds.Add("snappyHexMesh -overwrite");
                 meshCmds.Add("renumberMesh -overwrite");
             }
+            meshCmds.Add("checkMesh -allGeometry -allTopology -writeSets vtk");
 
             var meshOnlyCmds = new List<string>(meshCmds);
             meshOnlyCmds.Add("cd " + DockerConfig.CaseMountPoint);

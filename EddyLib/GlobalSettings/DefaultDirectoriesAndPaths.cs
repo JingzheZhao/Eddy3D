@@ -13,6 +13,8 @@ namespace EddyLib
         // Backing fields with default values
         private static readonly bool IsWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
         private static string _baseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Eddy3D");
+        private static readonly string WindowsCasesRootDir =
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Eddy3D");
         private static string _radianceDir = IsWindows
             ? Path.Combine(_baseDir, "Radiance_012cb178_Windows")
             : "/usr/local/radiance";
@@ -29,10 +31,10 @@ namespace EddyLib
         /// <summary>
         /// Default directory for simulation cases.
         /// On macOS: ~/Eddy3D/Cases (avoids spaces in path — Docker volume mounts break with spaces).
-        /// On Windows: %AppData%\Eddy3D\Cases.
+        /// On Windows: %LocalAppData%\Eddy3D\Cases.
         /// </summary>
         public static string CasesDir => IsWindows
-            ? Path.Combine(_baseDir, "Cases")
+            ? Path.Combine(WindowsCasesRootDir, "Cases")
             : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Eddy3D", "Cases");
 
         /// <summary>

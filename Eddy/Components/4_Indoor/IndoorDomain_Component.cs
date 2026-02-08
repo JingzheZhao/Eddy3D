@@ -253,7 +253,7 @@ Requires connected walls, inlets, outlets, and optional heat sources.
 
          
 
-            var runSettings = new OFRunSettings(iter: endTime );
+            var runSettings = new OFRunSettings(endTime: endTime );
             var meshSettings = new OFMeshSettings();
 
             var RES = new OFResult(dom, runSettings, meshSettings, dir);

@@ -9,7 +9,7 @@ namespace EddyLib
     {
         #region Simulation Settings
 
-        /// <summary>Number of CPUs for parallel execution (-1 for auto).</summary>
+        /// <summary>Number of CPUs for parallel execution (-1 = auto: 75% of physical cores).</summary>
         public int CPUs { get; set; }
 
         /// <summary>Whether to initialize with potentialFoam.</summary>
@@ -19,13 +19,10 @@ namespace EddyLib
         public bool aoa_domain { get; set; }
 
         /// <summary>Number of iterations to run.</summary>
-        public int iter { get; set; }
+        public int endTime { get; set; }
 
         /// <summary>Number of timesteps to keep.</summary>
-        public int keepTimeSteps { get; set; }
-
-        /// <summary>Operating system type.</summary>
-        public OSType ostype { get; set; }
+        public int purgeWrite { get; set; }
 
         /// <summary>Relaxation factor preset.</summary>
         public RelaxationFactors relaxationFactors { get; set; }
@@ -41,6 +38,9 @@ namespace EddyLib
 
         /// <summary>Write interval for results.</summary>
         public int writeInterval { get; set; }
+
+        /// <summary>Whether to enable optional function-object field limiters for stability.</summary>
+        public bool stabilityLimiters { get; set; }
 
         #endregion
     }

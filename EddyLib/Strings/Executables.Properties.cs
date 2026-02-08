@@ -32,10 +32,9 @@ FoamFile
 surfaces
 (
     ""building.stl""
-    ""ground.stl""
 );
 
-includedAngle    150;
+includedAngle    120;
 
 subsetFeatures
 {
@@ -118,6 +117,23 @@ FoamFile
     turbulence on;
 
     printCoeffs on;
+");
+
+            // OF8-native stabilization minima for RAS models.
+            if (RunSettings.turbModel != TurbModel.laminar)
+            {
+                sb.AppendLine("    kMin             1e-10;");
+                if (RunSettings.turbModel == TurbModel.kOmegaSST)
+                {
+                    sb.AppendLine("    omegaMin         1e-10;");
+                }
+                else
+                {
+                    sb.AppendLine("    epsilonMin       1e-10;");
+                }
+            }
+
+            sb.AppendLine(@"
 }
 
 // ************************************************************************* //

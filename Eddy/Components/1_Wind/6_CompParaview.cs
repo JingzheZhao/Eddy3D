@@ -1,7 +1,6 @@
 ﻿using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
-using Grasshopper.Kernel.Parameters;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -30,7 +29,8 @@ namespace Eddy
 @"Launch ParaView for 3D CFD result visualization.
 
 Opens simulation results in ParaView for visualizing velocity fields, 
-pressure distributions, and streamlines. ParaView must be installed.
+pressure distributions, and streamlines. Uses newest installed standalone ParaView,
+with blueCFD fallback when no standalone install is found.
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "5 | Post-Processing")
@@ -51,15 +51,9 @@ pressure distributions, and streamlines. ParaView must be installed.
                 "Wind Directions", "Dir", 
                 "Wind directions to visualize (subset or all).", 
                 GH_ParamAccess.list);
-            pManager.AddIntegerParameter("Paraview version", "Ver", "Paraview version", GH_ParamAccess.item, 2);
-            Param_Integer param = pManager[2] as Param_Integer;
-            param.AddNamedValue("Windows V4", 0);
-            param.AddNamedValue("Windows V5", 1);
-            param.AddNamedValue("BlueCFD", 2);
-            pManager.AddBooleanParameter("Run", "Run", "Start Paraview", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("Run", "Run", "Start Paraview", GH_ParamAccess.item, false);
 
             pManager[1].Optional = true;
-            pManager[2].Optional = true;
         }
 
         /// <summary>
@@ -78,33 +72,25 @@ pressure distributions, and streamlines. ParaView must be installed.
         /// </param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            // mode to select simulation environment
-            //if (!paraViewVersion5) { Message = "ParaView 4"; version = 4; }
-            //else { Message = "ParaView 5"; version = 5; }
-
-            // read inputs
-            //------------
-
             OFResult RES = null;
-            DA.GetData(0, ref RES);
+            if (!DA.GetData(0, ref RES) || RES == null)
+            {
+                return;
+            }
 
             List<int> dirs = new List<int>();
-            DA.GetDataList("Wind directions", dirs);
+            DA.GetDataList(1, dirs);
 
             if (dirs.Count == 0)
             {
                 dirs.Add(RES.Domain.BCond.WindDirections[0]);
             }
 
-            int version = 0;
-            DA.GetData("Paraview version", ref version);
-
             bool run = false;
-            DA.GetData("Run", ref run);
+            DA.GetData(2, ref run);
 
             // Write load script
-
-            var scriptPath = RES.WorkingDirectory + "openParaview.py";
+            var scriptPath = Path.Combine(RES.WorkingDirectory, "openParaview.py");
             var scriptContent = Utilities.PrepareParaviewLoadScript(RES.WorkingDirectory, dirs);
 
             File.WriteAllText(scriptPath, scriptContent);
@@ -114,8 +100,16 @@ pressure distributions, and streamlines. ParaView must be installed.
                 return;
             }
 
-            // "C:\\Program Files\\ParaView 5.6.0-Windows-msvc2015-64bit\\bin\\paraview.exe\" \"C:\\testDomain\\259\\259.foam
-            string paraViewPath = "\"" + EddyLib.Utilities.GetParaviewPath(version) + "\" " + @"--script=" + "\"" + scriptPath + "\"";
+            string paraviewExe = EddyLib.Utilities.GetParaviewPath();
+            if (string.IsNullOrWhiteSpace(paraviewExe))
+            {
+                AddRuntimeMessage(
+                    GH_RuntimeMessageLevel.Error,
+                    "ParaView executable not found. Install standalone ParaView or use blueCFD (Windows fallback).");
+                return;
+            }
+
+            string paraViewPath = "\"" + paraviewExe + "\" " + @"--script=" + "\"" + scriptPath + "\"";
             EddyLib.Utilities.StartProcess.StartProcessCMDNT(paraViewPath, true, false, true, true);
         }
 

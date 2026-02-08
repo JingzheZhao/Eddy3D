@@ -64,6 +64,7 @@ namespace EddyLib.OpenFOAM
             bool hasError = false;
             bool finished = false;
             double? currentTime = null;
+            double? executionTime = null;
             string lastNonEmpty = null;
 
             var records = new List<(double Time, double Exec)>();
@@ -89,8 +90,12 @@ namespace EddyLib.OpenFOAM
                 if (TryParseTimeLine(line, out var timeVal))
                     currentTime = timeVal;
 
-                if (TryParseExecutionTime(line, out var execVal) && currentTime.HasValue)
-                    records.Add((currentTime.Value, execVal));
+                if (TryParseExecutionTime(line, out var execVal))
+                {
+                    executionTime = execVal;
+                    if (currentTime.HasValue)
+                        records.Add((currentTime.Value, execVal));
+                }
             }
 
             if (!hasError && currentTime.HasValue && options?.TotalIterations.HasValue == true
@@ -104,6 +109,7 @@ namespace EddyLib.OpenFOAM
             status.IsFinished = finished && !hasError;
             status.CurrentIteration = currentTime;
             status.TotalIterations = options?.TotalIterations;
+            status.ExecutionTimeSeconds = executionTime;
 
             if (!status.IsFinished && currentTime.HasValue && options?.TotalIterations.HasValue == true)
             {

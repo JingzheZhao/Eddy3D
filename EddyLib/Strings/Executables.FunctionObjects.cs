@@ -79,6 +79,13 @@ namespace EddyLib.Strings
 }";
         }
 
+        private static string FunctionObjStabilityLimiters(OFRunSettings runSettings)
+        {
+            // OpenFOAM 8 (including blueCFD 2020) does not provide "limitFields"
+            // function object. Keep this as a no-op for OF8 compatibility.
+            return string.Empty;
+        }
+
         /// <summary>
         /// Generates pressure coefficient function object.
         /// </summary>

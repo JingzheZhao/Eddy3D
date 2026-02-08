@@ -395,12 +395,13 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                             dockerProbeCmds.Add(string.Format("rm -rf \"{0}\"", target));
                             dockerProbeCmds.Add(string.Format("cp -r \"{0}\" \"{1}\"", source, target));
                             dockerProbeCmds.Add(string.Format("cd {0}", RES.Domain.BCond.WindDirections[i]));
-                            dockerProbeCmds.Add(string.Format("postProcess -func {0} -time {1}",
-                                currField.ProbeName, Probing.GetLatestTime(currCase, RES, currField)));
+                            dockerProbeCmds.Add(string.Format("rm -rf \"postProcessing/{0}\"", currField.ProbeName));
+                            dockerProbeCmds.Add(string.Format("postProcess -func {0} -latestTime", currField.ProbeName));
                         }
                         else
                         {
-                            command.AppendLine(@"postProcess -case " + RES.Domain.BCond.WindDirections[i] + " -func " + probeNameByUser + @" -time " + Probing.GetLatestTime(currCase, RES, currField));
+                            command.AppendLine(@"rm -rf """ + RES.Domain.BCond.WindDirections[i] + @"/postProcessing/" + probeNameByUser + @"""");
+                            command.AppendLine(@"postProcess -case " + RES.Domain.BCond.WindDirections[i] + " -func " + probeNameByUser + @" -latestTime");
                         }
                     }
 
@@ -467,8 +468,6 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                     // Check if mesh exists
 
                     string pathToPointFile = Path.Combine(RES.WorkingDirectory, "constant", "polyMesh", "points");
-                    string currCase = RES.WorkingDirectory;
-
                     // If yes, write the dicts for both Docker and BlueCFD
                     string path = Path.Combine(RES.WorkingDirectory, "system", probeNameByUser);
                     File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbes(listOfPoints, currField));
@@ -486,7 +485,8 @@ Samples the wind field at specific locations. Use this to query wind speed and p
 
                     if (RES.RunSettings.simEngine != SimEngine.Docker)
                     {
-                        command.AppendLine(@"postProcess  -func " + probeNameByUser + @" -time " + Probing.GetLatestTime(currCase, RES, currField));
+                        command.AppendLine(@"rm -rf ""postProcessing/" + probeNameByUser + @"""");
+                        command.AppendLine(@"postProcess  -func " + probeNameByUser + @" -latestTime");
                     }
 
                     if (run == true && canRun == true)
@@ -496,8 +496,8 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                         {
                             var dockerCmds = new List<string>
                             {
-                                string.Format("postProcess -func {0} -time {1}",
-                                    currField.ProbeName, Probing.GetLatestTime(currCase, RES, currField))
+                                string.Format("rm -rf \"postProcessing/{0}\"", currField.ProbeName),
+                                string.Format("postProcess -func {0} -latestTime", currField.ProbeName)
                             };
                             RunDockerProbing(dockerCmds, RES.WorkingDirectory);
                             AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,

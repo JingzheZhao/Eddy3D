@@ -40,12 +40,12 @@ namespace Eddy
             pManager.AddIntegerParameter(
                 GH_Strings.MeshSettings.BldMax, GH_Strings.MeshSettings.BldMaxNick, 
                 GH_Strings.MeshSettings.BldMaxDesc, 
-                GH_ParamAccess.item, 4);
+                GH_ParamAccess.item, 3);
 
             pManager.AddIntegerParameter(
                 GH_Strings.MeshSettings.Feature, GH_Strings.MeshSettings.FeatureNick, 
                 GH_Strings.MeshSettings.FeatureDesc, 
-                GH_ParamAccess.item, 4);
+                GH_ParamAccess.item, 2);
 
             pManager.AddIntegerParameter(
                 GH_Strings.MeshSettings.BBox, GH_Strings.MeshSettings.BBoxNick, 
@@ -55,17 +55,7 @@ namespace Eddy
             pManager.AddIntegerParameter(
                 GH_Strings.MeshSettings.Ground, GH_Strings.MeshSettings.GroundNick, 
                 GH_Strings.MeshSettings.GroundDesc, 
-                GH_ParamAccess.item, 3);
-
-            pManager.AddIntegerParameter(
-                GH_Strings.MeshSettings.Misc, GH_Strings.MeshSettings.MiscNick, 
-                GH_Strings.MeshSettings.MiscDesc, 
-                GH_ParamAccess.item, 1);
-            if (pManager[5] is Param_Integer param0)
-            {
-                param0.AddNamedValue("Default", 0);
-                param0.AddNamedValue("Optimized", 1);
-            }
+                GH_ParamAccess.item, 2);
 
             pManager.AddIntegerParameter(
                 GH_Strings.MeshSettings.Layers, GH_Strings.MeshSettings.LayersNick, 
@@ -75,18 +65,29 @@ namespace Eddy
             pManager.AddIntegerParameter(
                 GH_Strings.MeshSettings.Cells, GH_Strings.MeshSettings.CellsNick, 
                 GH_Strings.MeshSettings.CellsDesc, 
-                GH_ParamAccess.item, 4);
+                GH_ParamAccess.item, 5);
 
             pManager.AddIntegerParameter(
                 GH_Strings.MeshSettings.Mode, GH_Strings.MeshSettings.ModeNick, 
                 GH_Strings.MeshSettings.ModeDesc, 
                 GH_ParamAccess.item, 1);
-            if (pManager[8] is Param_Integer param1)
+            if (pManager[7] is Param_Integer param1)
             {
                 param1.AddNamedValue("No snapping, no layers", 0);
                 param1.AddNamedValue("With Snapping, no layers", 1);
                 param1.AddNamedValue("With Snapping, with layers (not always robust, >> RAM)", 2);
             }
+
+            pManager.AddIntegerParameter(
+                GH_Strings.MeshSettings.Preset, GH_Strings.MeshSettings.PresetNick,
+                GH_Strings.MeshSettings.PresetDesc,
+                GH_ParamAccess.item, 0);
+            if (pManager[8] is Param_Integer presetParam)
+            {
+                presetParam.AddNamedValue("Default", 0);
+                presetParam.AddNamedValue("GPT-53 Codex", 1);
+            }
+            pManager[8].Optional = true;
         }
 
         /// <summary>
@@ -101,41 +102,49 @@ namespace Eddy
         {
             int bldMin = 2;
             int bldMax = 4;
-            int feat = 4;
-            int bbox = 0;
-            int ground = 3;
-            int misc = 1;
+            int feat = 2;
+            int bbox = 2;
+            int ground = 2;
             int layers = 4;
-            int cells = 4;
+            int cells = 5;
             int mode = 1;
+            int preset = 0;
 
             DA.GetData(GH_Strings.MeshSettings.BldMin, ref bldMin);
             DA.GetData(GH_Strings.MeshSettings.BldMax, ref bldMax);
             DA.GetData(GH_Strings.MeshSettings.Feature, ref feat);
             DA.GetData(GH_Strings.MeshSettings.BBox, ref bbox);
             DA.GetData(GH_Strings.MeshSettings.Ground, ref ground);
-            DA.GetData(GH_Strings.MeshSettings.Misc, ref misc);
             DA.GetData(GH_Strings.MeshSettings.Layers, ref layers);
             DA.GetData(GH_Strings.MeshSettings.Cells, ref cells);
             DA.GetData(GH_Strings.MeshSettings.Mode, ref mode);
+            DA.GetData(GH_Strings.MeshSettings.Preset, ref preset);
 
             if (bldMax >= 5 || bldMin >= 5 || feat >= 5 || bbox >= 5 || ground >= 5 || layers >= 5)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "A high number of refinement levels might significantly slow down mesh creation. Try to create a reasonably fine mesh with the Domain component and/or make sure to use more than one CPU.");
             }
 
-            DA.SetData(GH_Strings.Common.MeshSettings, new OFMeshSettings()
+            var meshSettings = new OFMeshSettings()
             {
                 accBuildings = bldMin,
                 accBuildingsMax = bldMax,
                 accFeatures = feat,
                 accBoxRefinement = bbox,
                 accGround = ground,
-                miscSettings = (SnappyMiscSettings)misc,
                 nLayers = layers,
                 nCellsBetweenLevels = cells,
-                snappySetting = (SnappySnapSettings)mode
-            });
+                snappySetting = (SnappySnapSettings)mode,
+                preset = preset == (int)MeshPreset.GPT53Codex ? MeshPreset.GPT53Codex : MeshPreset.Default
+            };
+
+            if (meshSettings.preset == MeshPreset.GPT53Codex)
+            {
+                meshSettings.snappySetting = SnappySnapSettings.BlocksSnapping;
+                meshSettings.nCellsBetweenLevels = Math.Max(5, meshSettings.nCellsBetweenLevels);
+            }
+
+            DA.SetData(GH_Strings.Common.MeshSettings, meshSettings);
         }
 
         /// <summary>

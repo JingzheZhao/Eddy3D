@@ -58,17 +58,6 @@ namespace EddyLib
                 return dir;
             }
 
-            public static string ReformatWorkingDir(string workingDirectory)
-            {
-                string output = workingDirectory.Replace(@"\", @"/");
-                output = output.Replace(@":", @"/");
-
-                //output = "//c//" + output;
-                output = "//" + output;
-                output = output.Replace(@"//C//", @"//c//");
-                return output;
-            }
-
             public static bool IsDirectoryEmpty(string path)
             {
                 return !Directory.EnumerateFileSystemEntries(path).Any();

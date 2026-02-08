@@ -51,7 +51,7 @@ Opens the Streamlit residual viewer and the simulation residuals folder.
                 GH_ParamAccess.item);
 
             pManager.AddBooleanParameter(
-                "Run", "Run",
+                "Plot", "Plot",
                 "Set to true to open the residual plot viewer and residuals folder.",
                 GH_ParamAccess.item, false);
 

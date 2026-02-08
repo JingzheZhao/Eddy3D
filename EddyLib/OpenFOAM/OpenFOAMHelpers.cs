@@ -42,38 +42,19 @@ namespace EddyLib.OpenFOAM
         }
 
         /// <summary>
-        /// Calculates the optimal number of CPUs based on mesh size.
+        /// Resolves the CPU count for OpenFOAM execution.
+        /// - If requestedCpus is -1, returns 75% of physical cores.
+        /// - If requestedCpus is less than 1, returns 1.
+        /// - Otherwise returns requestedCpus.
         /// </summary>
         public static int CalculateOptimalCPUs(string meshWorkingDirectory, int requestedCpus)
         {
-            int cpuCount = requestedCpus;
-            int numberOfCellsInMesh = 0;
-            int availableCpus = Environment.ProcessorCount;
-
-            var logPath = Path.Combine(meshWorkingDirectory, "log");
-            if (File.Exists(logPath))
-            {
-                var logLines = File.ReadAllLines(logPath);
-                foreach (var line in logLines)
-                {
-                    if (line.Contains("nCells"))
-                    {
-                        var match = Regex.Match(line, @"\d+");
-                        if (match.Success)
-                        {
-                            numberOfCellsInMesh = int.Parse(match.Value);
-                        }
-                    }
-                }
-            }
-
-            // Auto-calculate if not specified or -1
             if (requestedCpus == -1)
             {
-                cpuCount = Math.Max(1, Math.Min(availableCpus, numberOfCellsInMesh / 10000));
+                return Utilities.GetAutoCpuCount();
             }
 
-            return cpuCount;
+            return requestedCpus < 1 ? 1 : requestedCpus;
         }
 
         private static string NormalizeBackslashes(string input)
@@ -161,6 +142,9 @@ namespace EddyLib.OpenFOAM
                 catch { success = false; }
             }
 
+            // Remove generated function-object fields from 0 folders while preserving setup fields.
+            success &= CleanGeneratedFilesInZeroFolder(caseRoot);
+
             return success;
         }
 
@@ -200,6 +184,98 @@ namespace EddyLib.OpenFOAM
                 || name.Equals("postProcessing", StringComparison.OrdinalIgnoreCase)
                 || name.Equals("dynamicCode", StringComparison.OrdinalIgnoreCase)
                 || name.Equals("logs", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Removes generated files from the case "0" folder.
+        /// Uses 0.org/0.orig as a baseline when available, and falls back to known function-object patterns.
+        /// </summary>
+        private static bool CleanGeneratedFilesInZeroFolder(string caseRoot)
+        {
+            bool success = true;
+            var zeroDir = Path.Combine(caseRoot, "0");
+            if (!Directory.Exists(zeroDir))
+            {
+                return true;
+            }
+
+            var referenceDir = GetZeroReferenceDirectory(caseRoot);
+            var preserve = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            if (!string.IsNullOrWhiteSpace(referenceDir) && Directory.Exists(referenceDir))
+            {
+                foreach (var file in Directory.GetFiles(referenceDir, "*", SearchOption.TopDirectoryOnly))
+                {
+                    preserve.Add(Path.GetFileName(file));
+                }
+
+                foreach (var dir in Directory.GetDirectories(referenceDir, "*", SearchOption.TopDirectoryOnly))
+                {
+                    preserve.Add(Path.GetFileName(dir));
+                }
+            }
+
+            foreach (var file in Directory.GetFiles(zeroDir, "*", SearchOption.TopDirectoryOnly))
+            {
+                var name = Path.GetFileName(file);
+                if (ShouldDeleteZeroFolderEntry(name, preserve))
+                {
+                    try { File.Delete(file); }
+                    catch { success = false; }
+                }
+            }
+
+            foreach (var dir in Directory.GetDirectories(zeroDir, "*", SearchOption.TopDirectoryOnly))
+            {
+                var name = Path.GetFileName(dir);
+                if (ShouldDeleteZeroFolderEntry(name, preserve))
+                {
+                    try { Directory.Delete(dir, true); }
+                    catch { success = false; }
+                }
+            }
+
+            return success;
+        }
+
+        private static string GetZeroReferenceDirectory(string caseRoot)
+        {
+            var zeroOrg = Path.Combine(caseRoot, "0.org");
+            if (Directory.Exists(zeroOrg))
+            {
+                return zeroOrg;
+            }
+
+            var zeroOrig = Path.Combine(caseRoot, "0.orig");
+            if (Directory.Exists(zeroOrig))
+            {
+                return zeroOrig;
+            }
+
+            return null;
+        }
+
+        private static bool ShouldDeleteZeroFolderEntry(string entryName, HashSet<string> preserve)
+        {
+            if (preserve.Count > 0)
+            {
+                return !preserve.Contains(entryName);
+            }
+
+            // Fallback when no reference folder exists.
+            return IsKnownFunctionObjectOutput(entryName);
+        }
+
+        private static bool IsKnownFunctionObjectOutput(string entryName)
+        {
+            if (string.IsNullOrWhiteSpace(entryName))
+            {
+                return false;
+            }
+
+            return entryName.IndexOf("_coeff", StringComparison.OrdinalIgnoreCase) >= 0
+                || entryName.IndexOf('(') >= 0
+                || entryName.IndexOf(')') >= 0;
         }
     }
 }

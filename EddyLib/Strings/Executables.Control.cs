@@ -41,14 +41,14 @@ libs
             sb.Append(@"
 );
             application simpleFoam;
-            startFrom latestTime;
-            startTime       1;
+            startFrom startTime;
+            startTime       0;
             stopAt endTime;
-            endTime         " + RunSettings.iter + @";
+            endTime         " + RunSettings.endTime + @";
             deltaT          1;
             writeControl timeStep;
             writeInterval   " + RunSettings.writeInterval + @";
-            purgeWrite      " + RunSettings.keepTimeSteps + @";
+            purgeWrite      " + RunSettings.purgeWrite + @";
             writeFormat binary;
             writePrecision  8;
             writeCompression uncompressed;
@@ -63,6 +63,7 @@ libs
             sb.AppendLine(FunctionObjCP(DOM, RunSettings, topologies, numberOfTopologies));
             sb.AppendLine(FunctionObjFieldMinMax());
             sb.AppendLine(FunctionObjFieldAverage());
+            sb.AppendLine(FunctionObjStabilityLimiters(RunSettings));
             if (RunSettings.aoa_domain == true)
             {
                 sb.AppendLine(EddyLib.Strings.OFExecDicts.FunctionObjAOA());

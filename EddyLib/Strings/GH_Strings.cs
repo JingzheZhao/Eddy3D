@@ -12,7 +12,7 @@ namespace EddyLib
 
             public const string WorkingDir = "Working directory";
             public const string WorkingDirNick = "Dir";
-            public const string WorkingDirDesc = "Folder for simulation files. Use a simple name (e.g., 'MyProject') to create under %AppData%\\Eddy3D\\Cases, or provide a full path.";
+            public const string WorkingDirDesc = "Folder for simulation files. Use a simple name (e.g., 'MyProject') to create under %LocalAppData%\\Eddy3D\\Cases on Windows (~/Eddy3D/Cases on macOS), or provide a full path.";
 
             public const string MeshSettings = "Mesh settings";
             public const string MeshSettingsNick = "MSet";
@@ -91,21 +91,21 @@ namespace EddyLib
             public const string GroundNick = "Gnd";
             public const string GroundDesc = "Refinement level for ground surface. Default: 2";
 
-            public const string Misc = "Misc Settings";
-            public const string MiscNick = "Misc";
-            public const string MiscDesc = "0: Default, 1: Optimized quality settings";
-
             public const string Layers = "Boundary Layers";
             public const string LayersNick = "nLay";
             public const string LayersDesc = "Number of mesh layers near walls. More = better boundary layer resolution. Default: 4";
 
             public const string Cells = "Cells Between Levels";
             public const string CellsNick = "nCells";
-            public const string CellsDesc = "Number of cells between refinement levels. More = smoother transition. Default: 4";
+            public const string CellsDesc = "Number of cells between refinement levels. More = smoother transition. Default: 5";
 
             public const string Mode = "Mesh Mode";
             public const string ModeNick = "Mode";
             public const string ModeDesc = "0: No snapping (fast debug), 1: With snapping (production), 2: With layers (accurate but slow)";
+
+            public const string Preset = "Preset";
+            public const string PresetNick = "Preset";
+            public const string PresetDesc = "Optional preset. 0: Default, 1: GPT-53 Codex (more robust snappy settings).";
         }
 
         public static class RunSettings
@@ -148,11 +148,11 @@ namespace EddyLib
 
             public const string CPUs = "CPU Cores";
             public const string CPUsNick = "CPUs";
-            public const string CPUsDesc = "Parallel processing cores. -1 = auto-detect. More cores = faster but needs more RAM. Default: 1";
+            public const string CPUsDesc = "Parallel processing cores. -1 = Auto (75% of physical cores, not logical threads). More cores = faster but needs more RAM. Default: -1";
 
-            public const string OS = "Operating System";
-            public const string OSNick = "OS";
-            public const string OSDesc = "Target OS for simulation scripts. Auto-detect works in most cases.";
+            public const string StabilityLimiter = "Stability Limiter";
+            public const string StabilityLimiterNick = "Stab";
+            public const string StabilityLimiterDesc = "Optional: add conservative OpenFOAM field limiters (k/epsilon/omega and nut) to reduce divergence on poor meshes. Pressure is intentionally not limited by default.";
 
             public const string BlueCFD = "BlueCFD Folder";
             public const string BlueCFDNick = "CFDFolder";

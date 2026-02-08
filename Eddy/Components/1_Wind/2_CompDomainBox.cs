@@ -5,6 +5,7 @@ using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
@@ -109,6 +110,8 @@ Defines a box-shaped computational domain for the wind simulation. Best suited f
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            _previewMeshes = null;
+
             //DOMAIN GEOMETRY
             List<IGH_GeometricGoo> geoGooDomain = new List<IGH_GeometricGoo>();
             DA.GetDataList("Buildings", geoGooDomain);
@@ -279,10 +282,12 @@ Defines a box-shaped computational domain for the wind simulation. Best suited f
                 if (DOMBOX.HasTerrain)
                 {
                     DA.SetDataList(1, new List<GeometryBase> { DOMBOX.TerrainMesh, DOMBOX.DomainMesh });
+                    _previewMeshes = new List<Mesh> { DOMBOX.TerrainMesh, DOMBOX.DomainMesh };
                 }
                 else
                 {
                     DA.SetData(1, DOMBOX.DomainMesh);
+                    _previewMeshes = new List<Mesh> { DOMBOX.DomainMesh };
                 }
             }
             else
@@ -310,6 +315,10 @@ Defines a box-shaped computational domain for the wind simulation. Best suited f
         private List<Point3d> _pointWindDirRender;
 
         private List<Vector3d> _vecsWindDirRender;
+
+        private List<Mesh> _previewMeshes;
+
+        private static readonly Color MeshWireColor = Color.FromArgb(64, 64, 64);
 
         private void FillWindDirRenderList(BCCollection bCond, OFBoxDomain DOM)
         {
@@ -339,7 +348,16 @@ Defines a box-shaped computational domain for the wind simulation. Best suited f
 
         public override void DrawViewportWires(IGH_PreviewArgs args)
         {
-            base.DrawViewportWires(args);
+            if (_previewMeshes != null)
+            {
+                foreach (var mesh in _previewMeshes)
+                {
+                    if (mesh != null)
+                    {
+                        args.Display.DrawMeshWires(mesh, MeshWireColor);
+                    }
+                }
+            }
 
             if (this.Locked || _pointWindDirRender == null || _pointWindDirRender.Count == 0 || _vecsWindDirRender == null || _vecsWindDirRender.Count == 0)
             {
@@ -368,6 +386,11 @@ Defines a box-shaped computational domain for the wind simulation. Best suited f
 
                 return;
             }
+        }
+
+        public override void DrawViewportMeshes(IGH_PreviewArgs args)
+        {
+            // Show domain preview as wireframe-only (no shaded mesh faces).
         }
     }
 }

@@ -11,12 +11,10 @@ namespace EddyLib
         BlocksSnappingLayers
     }
 
-    public enum SnappyMiscSettings
+    public enum MeshPreset
     {
-        Default,
-
-        //BIMHVAC
-        Optimized
+        Default = 0,
+        GPT53Codex = 1
     }
 
     public class OFMeshSettings
@@ -25,19 +23,19 @@ namespace EddyLib
 
         public int accBuildingsMax { get; set; } = 4;
 
-        public int accFeatures { get; set; } = 4;
+        public int accFeatures { get; set; } = 2;
 
-        public int accBoxRefinement { get; set; } = 0;
+        public int accBoxRefinement { get; set; } = 2;
 
-        public int accGround { get; set; } = 3;
+        public int accGround { get; set; } = 2;
 
         public int nLayers { get; set; } = 4;
 
-        public SnappyMiscSettings miscSettings { get; set; } = SnappyMiscSettings.Optimized;
-
         public SnappySnapSettings snappySetting { get; set; } = SnappySnapSettings.BlocksSnapping;
 
-        public int nCellsBetweenLevels { get; set; } = 4;
+        public int nCellsBetweenLevels { get; set; } = 5;
+
+        public MeshPreset preset { get; set; } = MeshPreset.Default;
 
         public string baseWorkingDir { get; set; }
 
@@ -50,18 +48,6 @@ namespace EddyLib
         public string meshConstantDir { get; set; }
 
         public string meshWorkingDir { get; set; }
-
-        public string DockerbaseWorkingDir { get; set; }
-
-        public string DockermeshStlDir { get; set; }
-
-        public string DockermeshPolyMeshDir { get; set; }
-
-        public string DockermeshSystemDir { get; set; }
-
-        public string DockermeshConstantDir { get; set; }
-
-        public string DockermeshWorkingDir { get; set; }
 
         public string meshStlFilenameBuildings { get; set; }
 
@@ -85,12 +71,6 @@ namespace EddyLib
                 meshStlFilenameBuildings = string.Empty;
                 meshStlFilenameGround = string.Empty;
                 meshStlFilenameGroundPerim = string.Empty;
-                DockerbaseWorkingDir = string.Empty;
-                DockermeshWorkingDir = string.Empty;
-                DockermeshStlDir = string.Empty;
-                DockermeshPolyMeshDir = string.Empty;
-                DockermeshSystemDir = string.Empty;
-                DockermeshConstantDir = string.Empty;
                 return;
             }
 
@@ -107,12 +87,6 @@ namespace EddyLib
             meshStlFilenameGround = Path.Combine(meshStlDir, "ground.stl");
             meshStlFilenameGroundPerim = Path.Combine(meshStlDir, "ground_perim.stl");
 
-            DockerbaseWorkingDir = Utilities.Directories.ReformatWorkingDir(baseWorkingDir);
-            DockermeshWorkingDir = Utilities.Directories.ReformatWorkingDir(meshWorkingDir);
-            DockermeshStlDir = Utilities.Directories.ReformatWorkingDir(meshStlDir);
-            DockermeshPolyMeshDir = Utilities.Directories.ReformatWorkingDir(meshPolyMeshDir);
-            DockermeshSystemDir = Utilities.Directories.ReformatWorkingDir(meshSystemDir);
-            DockermeshConstantDir = Utilities.Directories.ReformatWorkingDir(meshConstantDir);
         }
 
         private static string EnsureTrailingSeparator(string path)
@@ -132,10 +106,10 @@ accBuildingMax = {1}
 accFeatures = {2}
 accRefinement = {3}
 accGround = {4}
-miscSettings = {5}
-nLayers = {6}
-nCellsBetweenLevels = {7}
-Snap Settings = {8}", accBuildings, accBuildingsMax, accFeatures, accBoxRefinement, accGround, miscSettings, nLayers, nCellsBetweenLevels, snappySetting);
+nLayers = {5}
+nCellsBetweenLevels = {6}
+Snap Settings = {7}
+Preset = {8}", accBuildings, accBuildingsMax, accFeatures, accBoxRefinement, accGround, nLayers, nCellsBetweenLevels, snappySetting, preset);
         }
     }
 }

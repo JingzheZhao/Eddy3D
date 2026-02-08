@@ -1,24 +1,6 @@
 namespace EddyLib
 {
     /// <summary>
-    /// Operating system types supported by Eddy3D.
-    /// </summary>
-    public enum OSType
-    {
-        /// <summary>Windows 10 or later.</summary>
-        Windows10,
-
-        /// <summary>Windows 7.</summary>
-        Windows7,
-
-        /// <summary>Linux.</summary>
-        Linux,
-
-        /// <summary>macOS.</summary>
-        MacOS
-    }
-
-    /// <summary>
     /// Relaxation factor presets for OpenFOAM solvers.
     /// </summary>
     public enum RelaxationFactors

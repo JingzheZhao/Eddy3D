@@ -2,7 +2,10 @@ using EddyLib.OpenFOAM;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace EddyLib
 {
@@ -231,32 +234,186 @@ umsLUTColorBar.RangeLabelFormat = '%-#6.1f'
         }
 
         /// <summary>
-        /// Gets the Paraview executable path.
+        /// Gets the ParaView executable path.
+        /// Prefers the newest standalone ParaView install and falls back to blueCFD on Windows.
         /// </summary>
-        public static string GetParaviewPath(int version)
+        public static string GetParaviewPath()
         {
-            const string programFilesX86 = @"C:\Program Files (x86)\";
-            const string programFiles = @"C:\Program Files\";
-            string blueCfdPath = Path.Combine(DefaultDirectoriesAndPaths.BlueCfdDir, @"AddOns\ParaView\bin\paraview.exe");
-
-            if (version == 2)
-                return blueCfdPath;
-
-            string searchPath = version == 0 ? programFilesX86 : programFiles;
-
-            try
+            // 1) Prefer standalone ParaView (newest version found)
+            string standalone = GetStandaloneParaviewPath();
+            if (!string.IsNullOrWhiteSpace(standalone))
             {
-                var dirs = new DirectoryInfo(searchPath).GetDirectories();
-                var paraviewDir = Array.FindLast(dirs, d => d.Name.StartsWith("ParaView"));
-                if (paraviewDir != null)
-                    return Path.Combine(searchPath, paraviewDir.Name, "bin", "paraview.exe");
+                return standalone;
             }
-            catch
+
+            // 2) Windows fallback: blueCFD bundled ParaView
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                // Directory not accessible
+                string blueCfdPath = Path.Combine(DefaultDirectoriesAndPaths.BlueCfdDir, @"AddOns\ParaView\bin\paraview.exe");
+                if (File.Exists(blueCfdPath))
+                {
+                    return blueCfdPath;
+                }
             }
 
             return string.Empty;
+        }
+
+        /// <summary>
+        /// Legacy overload kept for compatibility; version selection is now automatic.
+        /// </summary>
+        public static string GetParaviewPath(int version)
+        {
+            return GetParaviewPath();
+        }
+
+        private static string GetStandaloneParaviewPath()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return GetNewestWindowsParaviewPath();
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return GetNewestMacParaviewPath();
+            }
+
+            return GetLinuxParaviewPath();
+        }
+
+        private static string GetNewestWindowsParaviewPath()
+        {
+            var candidates = new List<(string Exe, Version Ver, bool IsX86, string FolderName)>();
+
+            var roots = new[]
+            {
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)
+            }
+            .Where(p => !string.IsNullOrWhiteSpace(p) && Directory.Exists(p))
+            .Distinct(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var root in roots)
+            {
+                bool isX86Root = root.IndexOf("x86", StringComparison.OrdinalIgnoreCase) >= 0;
+                IEnumerable<string> dirs;
+                try
+                {
+                    dirs = Directory.GetDirectories(root, "ParaView*", SearchOption.TopDirectoryOnly);
+                }
+                catch
+                {
+                    continue;
+                }
+
+                foreach (var dir in dirs)
+                {
+                    string exe = Path.Combine(dir, "bin", "paraview.exe");
+                    if (!File.Exists(exe))
+                    {
+                        continue;
+                    }
+
+                    string folderName = Path.GetFileName(dir);
+                    candidates.Add((exe, ParseParaviewVersion(folderName), isX86Root, folderName));
+                }
+            }
+
+            var best = candidates
+                .OrderByDescending(c => c.Ver)
+                .ThenBy(c => c.IsX86)
+                .ThenByDescending(c => c.FolderName, StringComparer.OrdinalIgnoreCase)
+                .FirstOrDefault();
+
+            return string.IsNullOrWhiteSpace(best.Exe) ? string.Empty : best.Exe;
+        }
+
+        private static string GetNewestMacParaviewPath()
+        {
+            const string applicationsDir = "/Applications";
+            if (!Directory.Exists(applicationsDir))
+            {
+                return string.Empty;
+            }
+
+            var candidates = new List<(string Exe, Version Ver, string FolderName)>();
+            IEnumerable<string> apps;
+            try
+            {
+                apps = Directory.GetDirectories(applicationsDir, "ParaView*.app", SearchOption.TopDirectoryOnly);
+            }
+            catch
+            {
+                return string.Empty;
+            }
+
+            foreach (var app in apps)
+            {
+                string folderName = Path.GetFileName(app);
+                string exe1 = Path.Combine(app, "Contents", "bin", "paraview");
+                string exe2 = Path.Combine(app, "Contents", "MacOS", "paraview");
+
+                if (File.Exists(exe1))
+                {
+                    candidates.Add((exe1, ParseParaviewVersion(folderName), folderName));
+                }
+                else if (File.Exists(exe2))
+                {
+                    candidates.Add((exe2, ParseParaviewVersion(folderName), folderName));
+                }
+            }
+
+            var best = candidates
+                .OrderByDescending(c => c.Ver)
+                .ThenByDescending(c => c.FolderName, StringComparer.OrdinalIgnoreCase)
+                .FirstOrDefault();
+
+            return string.IsNullOrWhiteSpace(best.Exe) ? string.Empty : best.Exe;
+        }
+
+        private static string GetLinuxParaviewPath()
+        {
+            var candidates = new[]
+            {
+                "/usr/bin/paraview",
+                "/usr/local/bin/paraview",
+                "/snap/bin/paraview"
+            };
+
+            foreach (var candidate in candidates)
+            {
+                if (File.Exists(candidate))
+                {
+                    return candidate;
+                }
+            }
+
+            return string.Empty;
+        }
+
+        private static Version ParseParaviewVersion(string folderName)
+        {
+            if (string.IsNullOrWhiteSpace(folderName))
+            {
+                return new Version(0, 0);
+            }
+
+            // Handles names such as:
+            // "ParaView 6.0.1"
+            // "ParaView 5.12.0-Windows-Python3.10-msvc2017-AMD64"
+            var match = Regex.Match(folderName, @"\d+(\.\d+){1,3}");
+            if (!match.Success)
+            {
+                return new Version(0, 0);
+            }
+
+            if (Version.TryParse(match.Value, out var ver))
+            {
+                return ver;
+            }
+
+            return new Version(0, 0);
         }
 
         #endregion

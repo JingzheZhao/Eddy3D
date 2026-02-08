@@ -5,6 +5,7 @@ using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
@@ -124,6 +125,8 @@ Defines a cylindrical computational domain. Recommended for multi-directional wi
         /// </param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            _previewMeshes = null;
+
             //DOMAIN GEOMETRY
             List<IGH_GeometricGoo> geoGooDomain = new List<IGH_GeometricGoo>();
             DA.GetDataList("Buildings", geoGooDomain);
@@ -297,10 +300,14 @@ Defines a cylindrical computational domain. Recommended for multi-directional wi
                 if (DOMCYL.HasTerrain)
                 {
                     DA.SetDataList(1, DOMCYL.DomainMeshIntersection);
+                    // Keep full cylindrical envelope visible in dark-grey wireframe,
+                    // even when terrain intersection meshes are used for output data.
+                    _previewMeshes = new List<Mesh> { DOMCYL.DomainMesh };
                 }
                 else
                 {
                     DA.SetData(1, DOMCYL.DomainMesh);
+                    _previewMeshes = new List<Mesh> { DOMCYL.DomainMesh };
                 }
             }
             else
@@ -332,6 +339,10 @@ Defines a cylindrical computational domain. Recommended for multi-directional wi
         private List<Polyline> _concentricDivisions;
 
         private List<Circle> _outerCircles;
+
+        private List<Mesh> _previewMeshes;
+
+        private static readonly Color MeshWireColor = Color.FromArgb(64, 64, 64);
 
         private void FillWindDirRenderList(BCCollection bCond, OFCylDomain DOM)
         {
@@ -369,7 +380,16 @@ Defines a cylindrical computational domain. Recommended for multi-directional wi
 
         public override void DrawViewportWires(IGH_PreviewArgs args)
         {
-            base.DrawViewportWires(args);
+            if (_previewMeshes != null)
+            {
+                foreach (var mesh in _previewMeshes)
+                {
+                    if (mesh != null)
+                    {
+                        args.Display.DrawMeshWires(mesh, MeshWireColor);
+                    }
+                }
+            }
 
             if (this.Locked || _pointWindDirRender == null || _pointWindDirRender.Count == 0 || _vecsWindDirRender == null || _vecsWindDirRender.Count == 0)
             {
@@ -422,6 +442,11 @@ Defines a cylindrical computational domain. Recommended for multi-directional wi
 
                 return;
             }
+        }
+
+        public override void DrawViewportMeshes(IGH_PreviewArgs args)
+        {
+            // Show domain preview as wireframe-only (no shaded mesh faces).
         }
     }
 }

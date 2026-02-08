@@ -28,7 +28,7 @@ namespace RhinoPlugin.Test.Xunit
 
                 var points = new List<Point3d> { new Point3d(0, 0, 0), new Point3d(1, 0, 0) };
                 var ofField = new OFField(fieldName, probeName, 1);
-                var res = new OFResult(null, new OFRunSettings(iter: iter), null, root);
+                var res = new OFResult(null, new OFRunSettings(endTime: iter), null, root);
 
                 var probing = new Probing(points, root, root, ofField, res, rerun: true, currWindDir: "0");
 
@@ -63,7 +63,7 @@ namespace RhinoPlugin.Test.Xunit
 
                 var points = new List<Point3d> { new Point3d(0, 0, 0), new Point3d(1, 0, 0) };
                 var ofField = new OFFieldNew(probeName, field.U, 1);
-                var res = new OFResult(null, new OFRunSettings(iter: iter), null, root);
+                var res = new OFResult(null, new OFRunSettings(endTime: iter), null, root);
 
                 var probing = new ProbingNew(points, root, root, ofField, 0, res);
 
@@ -161,7 +161,7 @@ namespace RhinoPlugin.Test.Xunit
                     new Point3d(2, 0, 0)
                 };
                 var ofField = new OFField(fieldName, probeName, 1);
-                var res = new OFResult(null, new OFRunSettings(iter: iter), null, root);
+                var res = new OFResult(null, new OFRunSettings(endTime: iter), null, root);
 
                 var probing = new Probing(points, root, root, ofField, res, rerun: true, currWindDir: "0");
 
@@ -203,7 +203,7 @@ namespace RhinoPlugin.Test.Xunit
                     new Point3d(2, 0, 0)
                 };
                 var ofField = new OFField(fieldName, probeName, 1);
-                var res = new OFResult(null, new OFRunSettings(iter: iter), null, root);
+                var res = new OFResult(null, new OFRunSettings(endTime: iter), null, root);
 
                 var probing = new Probing(points, root, root, ofField, res, rerun: true, currWindDir: "0");
 

@@ -23,6 +23,7 @@ namespace EddyLib.OpenFOAM
         public int? MorphIterationsTotal { get; internal set; }
 
         public TimeSpan? EstimatedRemaining { get; internal set; }
+        public double? ExecutionTimeSeconds { get; internal set; }
         public string LastLogLine { get; internal set; }
     }
 }

@@ -62,7 +62,7 @@ namespace Eddy
             pManager.AddIntegerParameter(
                 GH_Strings.RunSettings.Turb, GH_Strings.RunSettings.TurbNick, 
                 GH_Strings.RunSettings.TurbDesc, 
-                GH_ParamAccess.item, 1);
+                GH_ParamAccess.item, 2);
             if (pManager[3] is Param_Integer turb)
             {
                 turb.AddNamedValue("Laminar (no turbulence)", 0);
@@ -107,23 +107,23 @@ namespace Eddy
             pManager.AddIntegerParameter(
                 GH_Strings.RunSettings.CPUs, GH_Strings.RunSettings.CPUsNick, 
                 GH_Strings.RunSettings.CPUsDesc, 
-                GH_ParamAccess.item, 1);
-
-            pManager.AddIntegerParameter(
-                GH_Strings.RunSettings.OS, GH_Strings.RunSettings.OSNick, 
-                GH_Strings.RunSettings.OSDesc, 
-                GH_ParamAccess.item, 0);
-            if (pManager[9] is Param_Integer os)
+                GH_ParamAccess.item, -1);
+            if (pManager[8] is Param_Integer cpusParam)
             {
-                os.AddNamedValue("Auto-detect", 0);
-                os.AddNamedValue("Windows 7/8 (legacy)", 1);
-                os.AddNamedValue("Windows 10/11", 2);
+                cpusParam.AddNamedValue("Auto (75% physical cores)", -1);
             }
 
+            // 9
+            pManager.AddTextParameter(GH_Strings.RunSettings.BlueCFD, GH_Strings.RunSettings.BlueCFDNick, GH_Strings.RunSettings.BlueCFDDesc, GH_ParamAccess.item, "");
             pManager[9].Optional = true;
 
-            //10
-            pManager.AddTextParameter(GH_Strings.RunSettings.BlueCFD, GH_Strings.RunSettings.BlueCFDNick, GH_Strings.RunSettings.BlueCFDDesc, GH_ParamAccess.item, "");
+            // 10
+            pManager.AddBooleanParameter(
+                GH_Strings.RunSettings.StabilityLimiter,
+                GH_Strings.RunSettings.StabilityLimiterNick,
+                GH_Strings.RunSettings.StabilityLimiterDesc,
+                GH_ParamAccess.item,
+                false);
             pManager[10].Optional = true;
         }
 
@@ -133,7 +133,7 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter(
-                GH_Strings.Common.RunSettings, GH_Strings.Common.RunSettingsNick, 
+                GH_Strings.Common.RunSettings, "RSet",
                 GH_Strings.Common.RunSettingsDesc, 
                 GH_ParamAccess.item);
         }
@@ -147,40 +147,47 @@ namespace Eddy
         /// </param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            int iterations = 1000;
+            int endTime = 1000;
             int writeInterval = 10;
-            int keepTimeSteps = 3;
-            int turb = 0;
+            int purgeWrite = 3;
+            int turb = 2;
             int schemesIdx = 0;
-            int cpus = 0;
-            int osIdx = -1;
+            int cpus = -1;
             int relaxIdx = 1;
             bool potentialFoamInit = false;
             bool aoa = false;
             string blueCfdPath = "";
+            bool stabilityLimiters = false;
 
-            DA.GetData(GH_Strings.RunSettings.Iterations, ref iterations);
-            DA.GetData(GH_Strings.RunSettings.WriteInterval, ref writeInterval);
-            DA.GetData(GH_Strings.RunSettings.Keep, ref keepTimeSteps);
-            DA.GetData(GH_Strings.RunSettings.Turb, ref turb);
-            DA.GetData(GH_Strings.RunSettings.Relax, ref relaxIdx);
-            DA.GetData(GH_Strings.RunSettings.Schemes, ref schemesIdx);
-            DA.GetData(GH_Strings.RunSettings.PotInit, ref potentialFoamInit);
-            DA.GetData(GH_Strings.RunSettings.AoA, ref aoa);
-            DA.GetData(GH_Strings.RunSettings.CPUs, ref cpus);
-            DA.GetData(GH_Strings.RunSettings.OS, ref osIdx);
-            DA.GetData(GH_Strings.RunSettings.BlueCFD, ref blueCfdPath);
+            DA.GetData(0, ref endTime);
+            DA.GetData(1, ref writeInterval);
+            DA.GetData(2, ref purgeWrite);
+            DA.GetData(3, ref turb);
+            DA.GetData(4, ref relaxIdx);
+            DA.GetData(5, ref schemesIdx);
+            DA.GetData(6, ref potentialFoamInit);
+            DA.GetData(7, ref aoa);
+            DA.GetData(8, ref cpus);
+            DA.GetData(9, ref blueCfdPath);
+            DA.GetData(10, ref stabilityLimiters);
 
             if (!string.IsNullOrWhiteSpace(blueCfdPath))
             {
                 DefaultDirectoriesAndPaths.BlueCfdDir = blueCfdPath;
             }
 
-            if (iterations < writeInterval) writeInterval = iterations;
+            if (endTime < writeInterval) writeInterval = endTime;
 
-            if (cpus > Environment.ProcessorCount)
+            if (cpus < -1)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your system has only " + Environment.ProcessorCount + " CPUs, please lower the CPU count.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "CPU cores below -1 are invalid. Using Auto (-1).");
+                cpus = -1;
+            }
+            else if (cpus > Utilities.GetPhysicalCoreCount())
+            {
+                AddRuntimeMessage(
+                    GH_RuntimeMessageLevel.Remark,
+                    "Requested CPU cores exceed detected physical cores (" + Utilities.GetPhysicalCoreCount() + "). This might not lead to optimal speedup.");
             }
 
             RelaxationFactors relaxationFactors;
@@ -194,17 +201,6 @@ namespace Eddy
 
             fvSchemes schemes = schemesIdx == 0 ? fvSchemes.Default : fvSchemes.Optimized;
 
-            string osName = Utilities.GetOSInfo();
-            OSType osType;
-            switch (osIdx)
-            {
-                case 1: osType = OSType.Windows7; break;
-                case 2: osType = OSType.Windows10; break;
-                case 3: osType = OSType.Linux; break;
-                case 4: osType = OSType.MacOS; break;
-                default: osType = (osName.Contains("Windows 7") || osName.Contains("Windows 8")) ? OSType.Windows7 : OSType.Windows10; break;
-            }
-
             TurbModel turbModel;
             switch (turb)
             {
@@ -217,19 +213,19 @@ namespace Eddy
 
             var runSet = new OFRunSettings()
             {
-                iter = iterations,
+                endTime = endTime,
                 writeInterval = writeInterval,
-                keepTimeSteps = keepTimeSteps,
+                purgeWrite = purgeWrite,
                 schemes = schemes,
                 CPUs = cpus,
-                ostype = osType,
                 turbModel = turbModel,
                 relaxationFactors = relaxationFactors,
                 potentialFoamInit = potentialFoamInit,
-                aoa_domain = aoa
+                aoa_domain = aoa,
+                stabilityLimiters = stabilityLimiters
             };
 
-            DA.SetData(GH_Strings.Common.RunSettings, runSet);
+            DA.SetData(0, runSet);
         }
     }
 }
