@@ -103,25 +103,33 @@ namespace EddyLib
         /// </summary>
         public static string PrepareParaviewLoadScript(string baseWorkingDir, List<int> windDirections)
         {
+            if (windDirections == null || windDirections.Count == 0)
+            {
+                windDirections = new List<int> { 0 };
+            }
+
             var sb = new StringBuilder();
-            string escapedPath = Directories.InsertDoubleBackslashes(baseWorkingDir);
+            string normalizedBaseDir = EscapePathForPython(Path.GetFullPath(baseWorkingDir));
             int primaryDirection = (windDirections != null && windDirections.Count > 0) ? windDirections[0] : 0;
-            string screenshotPath = Directories.InsertDoubleBackslashes(
+            string screenshotPath = EscapePathForPython(
                 Path.Combine(baseWorkingDir, $"paraview_render_{primaryDirection}.png"));
 
             sb.AppendLine("from paraview.simple import *");
             sb.AppendLine("import os");
+            sb.AppendLine();
+            sb.AppendLine($@"base_dir = ""{normalizedBaseDir}""");
+            sb.AppendLine(@"tri_surface_dir = os.path.join(base_dir, ""mesh"", ""constant"", ""triSurface"")");
             sb.AppendLine();
 
             // Load building and ground geometries
             sb.AppendLine("building = None");
             sb.AppendLine("ground = None");
             sb.AppendLine("try:");
-            sb.AppendLine($@"    building = OpenDataFile(""{escapedPath}mesh\\constant\\triSurface\\building.stl"")");
+            sb.AppendLine(@"    building = OpenDataFile(os.path.join(tri_surface_dir, ""building.stl""))");
             sb.AppendLine("except Exception:");
             sb.AppendLine("    building = None");
             sb.AppendLine("try:");
-            sb.AppendLine($@"    ground = OpenDataFile(""{escapedPath}mesh\\constant\\triSurface\\ground.stl"")");
+            sb.AppendLine(@"    ground = OpenDataFile(os.path.join(tri_surface_dir, ""ground.stl""))");
             sb.AppendLine("except Exception:");
             sb.AppendLine("    ground = None");
 
@@ -130,7 +138,7 @@ namespace EddyLib
             {
                 sb.AppendLine($"case_{dir} = None");
                 sb.AppendLine("try:");
-                sb.AppendLine($@"    case_{dir} = OpenDataFile(""{escapedPath}{dir}\\{dir}.foam"")");
+                sb.AppendLine($@"    case_{dir} = OpenDataFile(os.path.join(base_dir, ""{dir}"", ""{dir}.foam""))");
                 sb.AppendLine($"    RenameSource('Case_{dir}', case_{dir})");
                 sb.AppendLine("except Exception:");
                 sb.AppendLine($"    case_{dir} = None");
@@ -151,6 +159,17 @@ namespace EddyLib
             sb.AppendLine(GetParaviewSetupScript(screenshotPath));
 
             return sb.ToString();
+        }
+
+        private static string EscapePathForPython(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return string.Empty;
+            }
+
+            // Forward slashes work on Windows/macOS/Linux and avoid escape issues in Python strings.
+            return path.Replace("\\", "/").Replace("\"", "\\\"");
         }
 
         private static string GetParaviewSetupScript(string screenshotPath)
