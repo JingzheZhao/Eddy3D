@@ -22,7 +22,9 @@ namespace EddyLib
             RelaxationFactors relaxationFactors = RelaxationFactors.Optimized,
             bool potentialFoamInit = false,
             bool aoa = false,
-            bool stabilityLimiters = false)
+            bool stabilityLimiters = false,
+            bool debugMode = false,
+            bool simpleConsistent = false)
         {
             this.endTime = endTime;
             this.writeInterval = writeInterval;
@@ -35,6 +37,8 @@ namespace EddyLib
             this.potentialFoamInit = potentialFoamInit;
             this.aoa_domain = aoa;
             this.stabilityLimiters = stabilityLimiters;
+            this.debugMode = debugMode;
+            this.simpleConsistent = simpleConsistent;
 
             InitializeEnvironmentFlags();
         }
@@ -61,7 +65,9 @@ Engine = {simEngine}
 Relaxation Factors = {relaxationFactors}
 potentialFoam initialization = {potentialFoamInit}
 age of air = {aoa_domain}
-stability limiters = {stabilityLimiters}";
+stability limiters = {stabilityLimiters}
+debug diagnostics = {debugMode}
+SIMPLEC (consistent) = {simpleConsistent}";
         }
 
     }

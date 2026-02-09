@@ -336,35 +336,75 @@ Defines a cylindrical computational domain. Recommended for multi-directional wi
 
         private List<Vector3d> _vecsWindDirRender;
 
+        private List<Line> _inletProfileGuides;
+
         private List<Polyline> _concentricDivisions;
 
         private List<Circle> _outerCircles;
 
         private List<Mesh> _previewMeshes;
 
-        private static readonly Color MeshWireColor = Color.FromArgb(64, 64, 64);
+        private static readonly Color MeshWireColor = Color.FromArgb(104, 104, 104);
+        private static readonly Color InletAirColor = Color.FromArgb(56, 88, 249);
 
         private void FillWindDirRenderList(BCCollection bCond, OFCylDomain DOM)
         {
             //clear
             _pointWindDirRender = new List<Point3d>();
             _vecsWindDirRender = new List<Vector3d>();
+            _inletProfileGuides = new List<Line>();
             _concentricDivisions = new List<Polyline>();
             _outerCircles = new List<Circle>();
 
-            var pt = Utilities.CenterBottomBoundingBox(DOM.DomainMesh);
-
-            var length = DOM.radius;
-
-            //Fill render lists for arrow preview
-
-            foreach (var item in bCond.BCs.Select(obj => (obj.flowDir, obj.URef)))
+            if (DOM?.DomainMesh != null && bCond?.BCs != null && bCond.BCs.Count > 0)
             {
-                Vector3d vec = item.flowDir;
-                double uRef = item.URef;
+                var bbox = DOM.DomainMesh.GetBoundingBox(true);
+                double zMin = bbox.Min.Z;
+                double zMax = bbox.Max.Z;
+                if (zMax <= zMin)
+                {
+                    zMax = zMin + 1.0;
+                }
 
-                _vecsWindDirRender.Add(vec * uRef);
-                _pointWindDirRender.Add(pt + (-vec * length) + 2 * (-vec * uRef));
+                var centerBottom = Utilities.CenterBottomBoundingBox(DOM.DomainMesh);
+                var rayOrigin = centerBottom;
+                rayOrigin.Z = 0.5 * (zMin + zMax);
+                const int sampleCount = 8;
+                double maxArrowLength = Math.Max(bbox.Diagonal.Length * 0.08, 2.0);
+                const double referenceSpeed = 10.0; // m/s for viewport scaling
+                double speedToLength = maxArrowLength / referenceSpeed;
+                double maxRenderableArrowLength = maxArrowLength * 1.25;
+
+                foreach (BC bc in bCond.BCs)
+                {
+                    var boundaryPoint = GetBoundaryAnchor(DOM.DomainMesh, rayOrigin, bc.flowDir);
+                    var basePoint = new Point3d(boundaryPoint.X, boundaryPoint.Y, zMin);
+
+                    _inletProfileGuides.Add(new Line(
+                        new Point3d(basePoint.X, basePoint.Y, zMin),
+                        new Point3d(basePoint.X, basePoint.Y, zMax)));
+
+                    for (int i = 0; i < sampleCount; i++)
+                    {
+                        double t = sampleCount == 1 ? 0.0 : (double)i / (sampleCount - 1);
+                        double z = zMin + t * (zMax - zMin);
+
+                        // OpenFOAM atmosphericBoundaryLayerInletVelocity profile:
+                        // U(z) = Uref * log((z - zGround + z0)/z0) / log((Zref + z0)/z0)
+                        double speed = GetPreviewSpeedAtHeight(bc, z);
+
+                        var vec = bc.flowDir;
+                        if (vec.IsTiny())
+                        {
+                            vec = Vector3d.XAxis;
+                        }
+                        double arrowLength = Math.Min(Math.Max(speed, 0.0) * speedToLength, maxRenderableArrowLength);
+                        vec *= arrowLength;
+
+                        _pointWindDirRender.Add(new Point3d(basePoint.X, basePoint.Y, z));
+                        _vecsWindDirRender.Add(vec);
+                    }
+                }
             }
 
             foreach (var p in DOM.concentricDivisions)
@@ -376,6 +416,56 @@ Defines a cylindrical computational domain. Recommended for multi-directional wi
             {
                 _outerCircles.Add(c);
             }
+        }
+
+        private static double GetPreviewSpeedAtHeight(BC bc, double worldZ)
+        {
+            if (bc is ABL abl)
+            {
+                return ComputeOpenFoamAblVelocity(abl, worldZ);
+            }
+
+            return Math.Max(bc?.URef ?? 0.0, 0.0);
+        }
+
+        private static double ComputeOpenFoamAblVelocity(ABL abl, double worldZ)
+        {
+            if (abl == null)
+            {
+                return 0.0;
+            }
+
+            double z0 = Math.Max(abl.z0, 1e-6);
+            double zRef = Math.Max(abl.zref, z0 + 1e-6);
+            double denominator = Math.Log((zRef + z0) / z0);
+            if (Math.Abs(denominator) < 1e-12)
+            {
+                return Math.Max(abl.URef, 0.0);
+            }
+
+            double zTerm = Math.Max(worldZ - abl.zGround + z0, z0 * 1.000001);
+            double numerator = Math.Log(zTerm / z0);
+            double velocity = abl.URef * (numerator / denominator);
+
+            return Math.Max(velocity, 0.0);
+        }
+
+        private static Point3d GetBoundaryAnchor(Mesh domainMesh, Point3d rayOrigin, Vector3d flowDir)
+        {
+            var dir = -flowDir;
+            if (!dir.Unitize() || dir.IsTiny())
+            {
+                dir = Vector3d.XAxis;
+            }
+
+            var ray = new Ray3d(rayOrigin, dir);
+            double dist = Rhino.Geometry.Intersect.Intersection.MeshRay(domainMesh, ray);
+            if (dist > 0)
+            {
+                return ray.PointAt(dist);
+            }
+
+            return rayOrigin + (dir * Math.Max(domainMesh.GetBoundingBox(true).Diagonal.Length * 0.5, 1.0));
         }
 
         public override void DrawViewportWires(IGH_PreviewArgs args)
@@ -398,46 +488,68 @@ Defines a cylindrical computational domain. Recommended for multi-directional wi
 
             if (this.Attributes.Selected)
             {
+                if (_inletProfileGuides != null)
+                {
+                    foreach (var guide in _inletProfileGuides)
+                    {
+                        if (guide.IsValid)
+                        {
+                            args.Display.DrawLine(guide, InletAirColor, 1);
+                        }
+                    }
+                }
+
                 // Draw wind dir arrows
                 for (int i = 0; i < _pointWindDirRender.Count; i++)
                 {
                     var l = new Line(_pointWindDirRender[i], _vecsWindDirRender[i]);
-                    args.Display.DrawArrow(l, args.WireColour_Selected, 25, 0);
+                    args.Display.DrawArrow(l, InletAirColor, 25, 0);
                 }
 
                 // Draw concentric divisions
                 foreach (var p in _concentricDivisions)
                 {
-                    args.Display.DrawPolyline(p, args.WireColour_Selected);
+                    args.Display.DrawPolyline(p, MeshWireColor);
                 }
 
                 // Draw outer circles
                 foreach (var c in _outerCircles)
                 {
-                    args.Display.DrawCircle(c, args.WireColour_Selected);
+                    args.Display.DrawCircle(c, MeshWireColor);
                 }
 
                 return;
             }
             else
             {
+                if (_inletProfileGuides != null)
+                {
+                    foreach (var guide in _inletProfileGuides)
+                    {
+                        if (guide.IsValid)
+                        {
+                            args.Display.DrawLine(guide, InletAirColor, 1);
+                        }
+                    }
+                }
+
                 // Draw wind dir arrows
                 for (int i = 0; i < _pointWindDirRender.Count; i++)
                 {
                     var l = new Line(_pointWindDirRender[i], _vecsWindDirRender[i]);
-                    args.Display.DrawArrow(l, args.WireColour, 25, 0);
+                    args.Display.DrawArrow(l, InletAirColor, 25, 0);
                 }
 
                 // Draw concentric divisions
                 foreach (var p in _concentricDivisions)
                 {
-                    args.Display.DrawPolyline(p, args.WireColour);
+                    args.Display.DrawPolyline(p, MeshWireColor);
                 }
 
                 // Draw outer circles
                 foreach (var c in _outerCircles)
                 {
-                    args.Display.DrawCircle(c, args.WireColour);
+                    args.Display.DrawCircle(c, MeshWireColor);
                 }
 
                 return;

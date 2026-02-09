@@ -42,6 +42,12 @@ namespace EddyLib
         /// <summary>Whether to enable optional function-object field limiters for stability.</summary>
         public bool stabilityLimiters { get; set; }
 
+        /// <summary>Whether to enable additional debug diagnostics (extra function objects/logging).</summary>
+        public bool debugMode { get; set; }
+
+        /// <summary>Whether to use SIMPLEC variant (SIMPLE with consistent pressure correction).</summary>
+        public bool simpleConsistent { get; set; }
+
         #endregion
     }
 }

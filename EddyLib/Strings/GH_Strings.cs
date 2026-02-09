@@ -154,6 +154,14 @@ namespace EddyLib
             public const string StabilityLimiterNick = "Stab";
             public const string StabilityLimiterDesc = "Optional: add conservative OpenFOAM field limiters (k/epsilon/omega and nut) to reduce divergence on poor meshes. Pressure is intentionally not limited by default.";
 
+            public const string Debug = "Debug Diagnostics";
+            public const string DebugNick = "Dbg";
+            public const string DebugDesc = "Enable additional diagnostic function objects (fieldMinMax and volume averages) in solver logs. Keep off for faster runs.";
+
+            public const string SimpleC = "SIMPLEC";
+            public const string SimpleCNick = "SPLC";
+            public const string SimpleCDesc = "Use SIMPLEC pressure-velocity coupling (consistent yes). Can reduce iterations for steady runs; turn off if convergence becomes oscillatory.";
+
             public const string BlueCFD = "BlueCFD Folder";
             public const string BlueCFDNick = "CFDFolder";
             public const string BlueCFDDesc = "Optional: Custom BlueCFD installation folder.";

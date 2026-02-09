@@ -6,7 +6,11 @@ using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -74,6 +78,48 @@ namespace RhinoPlugin.Test.Xunit
             Assert.True(File.Exists(logFile), $"Log file not found: {logFile}");
 
             AssertLogContainsTimeIfPresent(caseDir, windDir, expectedTime: runSettings.endTime);
+
+            var residualPlot = CreateResidualPlotPng(caseDir, windDir);
+            Assert.True(File.Exists(residualPlot), $"Residual plot not found: {residualPlot}");
+        }
+
+        [NotWindowsServerFact]
+        public void BoxDomainCase_WithSimpleC_GeneratesAndExecutesSuccessfully()
+        {
+            // Arrange
+            var caseDir = TestFixtures.CreateTestDirectory("testcase-box-simplec");
+
+            var meshSettings = TestFixtures.CreateDefaultMeshSettings(caseDir);
+            var runSettings = TestFixtures.CreateDefaultRunSettings();
+            runSettings.CPUs = GetTestCpuCount();
+            runSettings.simpleConsistent = true;
+            _output.WriteLine($"Using {runSettings.CPUs} CPUs (75% of {Environment.ProcessorCount} available cores)");
+
+            var windDir = 0;
+            var boundaryCondition = new ABL(windDir);
+
+            var bcColl = new BCCollection(boundaryCondition);
+            var domBox = new OFBoxDomain(Setup.SetUpBuildingMesh(), new Mesh(), bcColl, 20);
+
+            // Act: Generate the OpenFOAM case and batch files
+            RunBlockMesh.RunBox(domBox, meshSettings, runSettings, caseDir);
+            RunSnappy.Run(domBox, meshSettings, runSettings, out _);
+            RunFoamSimulation.Run(domBox, meshSettings, runSettings, caseDir);
+
+            var fvSolutionPath = Path.Combine(caseDir, windDir.ToString(), "system", "fvSolution");
+            Assert.True(File.Exists(fvSolutionPath), $"fvSolution not found: {fvSolutionPath}");
+            Assert.Contains("consistent      yes;", File.ReadAllText(fvSolutionPath));
+
+            _ = RunBatchFileInteractive(caseDir, Path.Combine("Scripts", "run.bat"));
+
+            // Assert: check log file contains the expected string
+            var logFile = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
+            Assert.True(File.Exists(logFile), $"Log file not found: {logFile}");
+
+            AssertLogContainsTimeIfPresent(caseDir, windDir, expectedTime: runSettings.endTime);
+
+            var residualPlot = CreateResidualPlotPng(caseDir, windDir);
+            Assert.True(File.Exists(residualPlot), $"Residual plot not found: {residualPlot}");
         }
 
         // This version opens a terminal and shows the progress
@@ -320,6 +366,217 @@ namespace RhinoPlugin.Test.Xunit
             // Additionally check for "End" which OpenFOAM outputs when finishing successfully
             Assert.True(logContent.Contains("End"),
                 $"Simulation log does not contain 'End' statement. Simulation may have failed. Check log file: {logPath}");
+        }
+
+        private static string CreateResidualPlotPng(string caseDir, int windDir)
+        {
+            string residualsPath = Path.Combine(caseDir, windDir.ToString(), "postProcessing", "residuals", "0", "residuals.dat");
+            string outputPath = Path.Combine(caseDir, windDir.ToString(), "residuals.png");
+
+            Assert.True(File.Exists(residualsPath), $"residuals.dat not found: {residualsPath}");
+
+            string[] lines = File.ReadAllLines(residualsPath);
+            var fieldNames = new List<string>();
+            var xValues = new List<double>();
+            var series = new List<List<double>>();
+
+            foreach (string raw in lines)
+            {
+                string line = raw?.Trim();
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    continue;
+                }
+
+                if (line.StartsWith("#", StringComparison.Ordinal))
+                {
+                    string header = line.TrimStart('#').Trim();
+                    if (header.StartsWith("Time", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var tokens = SplitWhitespace(header);
+                        fieldNames = tokens.Skip(1).ToList();
+                        series = fieldNames.Select(_ => new List<double>()).ToList();
+                    }
+
+                    continue;
+                }
+
+                var cols = SplitWhitespace(line);
+                if (cols.Length < 2)
+                {
+                    continue;
+                }
+
+                if (!double.TryParse(cols[0], NumberStyles.Float, CultureInfo.InvariantCulture, out double time))
+                {
+                    continue;
+                }
+
+                xValues.Add(time);
+                int available = Math.Min(series.Count, cols.Length - 1);
+
+                for (int i = 0; i < available; i++)
+                {
+                    if (double.TryParse(cols[i + 1], NumberStyles.Float, CultureInfo.InvariantCulture, out double val) && val > 0)
+                    {
+                        series[i].Add(val);
+                    }
+                    else
+                    {
+                        series[i].Add(double.NaN);
+                    }
+                }
+
+                for (int i = available; i < series.Count; i++)
+                {
+                    series[i].Add(double.NaN);
+                }
+            }
+
+            Assert.True(xValues.Count > 1, $"Not enough residual points in: {residualsPath}");
+            Assert.True(series.Count > 0, $"No residual fields found in: {residualsPath}");
+
+            double xMin = xValues.First();
+            double xMax = xValues.Last();
+            if (Math.Abs(xMax - xMin) < 1e-12)
+            {
+                xMax = xMin + 1.0;
+            }
+
+            double yMinLog = double.PositiveInfinity;
+            double yMaxLog = double.NegativeInfinity;
+
+            foreach (var s in series)
+            {
+                foreach (double v in s)
+                {
+                    if (double.IsNaN(v) || double.IsInfinity(v) || v <= 0)
+                    {
+                        continue;
+                    }
+
+                    double yLog = Math.Log10(v);
+                    yMinLog = Math.Min(yMinLog, yLog);
+                    yMaxLog = Math.Max(yMaxLog, yLog);
+                }
+            }
+
+            Assert.False(double.IsInfinity(yMinLog) || double.IsInfinity(yMaxLog), $"Could not determine Y range from: {residualsPath}");
+            if (Math.Abs(yMaxLog - yMinLog) < 1e-12)
+            {
+                yMaxLog = yMinLog + 1.0;
+            }
+
+            const int width = 1600;
+            const int height = 900;
+            const int left = 120;
+            const int right = 260;
+            const int top = 70;
+            const int bottom = 110;
+
+            var palette = new[]
+            {
+                Color.FromArgb(56, 88, 249),
+                Color.FromArgb(245, 108, 66),
+                Color.FromArgb(46, 184, 125),
+                Color.FromArgb(160, 88, 255),
+                Color.FromArgb(209, 163, 0),
+                Color.FromArgb(240, 78, 152),
+                Color.FromArgb(0, 165, 207)
+            };
+
+            using (var bmp = new Bitmap(width, height))
+            using (var g = Graphics.FromImage(bmp))
+            using (var gridPen = new Pen(Color.FromArgb(225, 225, 225), 1f))
+            using (var axisPen = new Pen(Color.FromArgb(150, 150, 150), 1.2f))
+            using (var textBrush = new SolidBrush(Color.FromArgb(70, 70, 70)))
+            using (var titleFont = new Font("Arial", 16, FontStyle.Bold))
+            using (var axisFont = new Font("Arial", 10))
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.Clear(Color.White);
+
+                var plot = new RectangleF(left, top, width - left - right, height - top - bottom);
+
+                for (int i = 0; i <= 4; i++)
+                {
+                    float y = plot.Top + (i / 4f) * plot.Height;
+                    g.DrawLine(gridPen, plot.Left, y, plot.Right, y);
+                }
+
+                for (int i = 0; i <= 4; i++)
+                {
+                    float x = plot.Left + (i / 4f) * plot.Width;
+                    g.DrawLine(gridPen, x, plot.Top, x, plot.Bottom);
+                }
+
+                g.DrawLine(axisPen, plot.Left, plot.Top, plot.Left, plot.Bottom);
+                g.DrawLine(axisPen, plot.Left, plot.Bottom, plot.Right, plot.Bottom);
+
+                g.DrawString("OpenFOAM Residuals", titleFont, textBrush, new PointF(left, 20));
+                g.DrawString("Iteration", axisFont, textBrush, new PointF(plot.Left + plot.Width * 0.5f - 25, height - 42));
+                g.DrawString("Residual (log10)", axisFont, textBrush, new PointF(20, plot.Top + plot.Height * 0.5f - 10));
+
+                for (int i = 0; i <= 4; i++)
+                {
+                    double xv = xMin + (xMax - xMin) * (i / 4.0);
+                    float px = plot.Left + (float)((xv - xMin) / (xMax - xMin) * plot.Width);
+                    g.DrawString(((int)Math.Round(xv)).ToString(CultureInfo.InvariantCulture), axisFont, textBrush, new PointF(px - 16, plot.Bottom + 8));
+                }
+
+                for (int i = 0; i <= 4; i++)
+                {
+                    double yvLog = yMaxLog - (yMaxLog - yMinLog) * (i / 4.0);
+                    float py = plot.Top + (float)(i / 4.0 * plot.Height);
+                    g.DrawString("1e" + ((int)Math.Round(yvLog)).ToString(CultureInfo.InvariantCulture), axisFont, textBrush, new PointF(38, py - 7));
+                }
+
+                float legendX = plot.Right + 20;
+                float legendY = plot.Top;
+
+                for (int s = 0; s < series.Count; s++)
+                {
+                    var points = new List<PointF>();
+                    for (int i = 0; i < xValues.Count && i < series[s].Count; i++)
+                    {
+                        double v = series[s][i];
+                        if (double.IsNaN(v) || v <= 0)
+                        {
+                            continue;
+                        }
+
+                        double yLog = Math.Log10(v);
+                        float px = plot.Left + (float)((xValues[i] - xMin) / (xMax - xMin) * plot.Width);
+                        float py = plot.Bottom - (float)((yLog - yMinLog) / (yMaxLog - yMinLog) * plot.Height);
+                        points.Add(new PointF(px, py));
+                    }
+
+                    if (points.Count > 1)
+                    {
+                        using (var pen = new Pen(palette[s % palette.Length], s == 0 ? 2.4f : 1.8f))
+                        {
+                            g.DrawLines(pen, points.ToArray());
+                        }
+                    }
+
+                    string name = s < fieldNames.Count ? fieldNames[s] : $"f{s + 1}";
+                    using (var pen = new Pen(palette[s % palette.Length], 2f))
+                    {
+                        g.DrawLine(pen, legendX, legendY + 7, legendX + 18, legendY + 7);
+                    }
+                    g.DrawString(name, axisFont, textBrush, new PointF(legendX + 24, legendY));
+                    legendY += 20;
+                }
+
+                bmp.Save(outputPath, System.Drawing.Imaging.ImageFormat.Png);
+            }
+
+            return outputPath;
+        }
+
+        private static string[] SplitWhitespace(string input)
+        {
+            return input.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
         }
     }
 }

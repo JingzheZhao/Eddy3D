@@ -7,6 +7,13 @@ namespace EddyLib.Strings
     /// </summary>
     public partial class OFExecDicts
     {
+        private static string GetSimpleConsistentLine(OFRunSettings runSettings)
+        {
+            return runSettings != null && runSettings.simpleConsistent
+                ? "    consistent      yes;"
+                : string.Empty;
+        }
+
         /// <summary>
         /// Generates relaxation factors based on settings.
         /// </summary>
@@ -175,6 +182,9 @@ solvers
     }
 
     nCorrectors     2;
+");
+            sb.AppendLine(GetSimpleConsistentLine(RunSettings));
+            sb.Append(@"    
     nNonOrthogonalCorrectors 2;
     pRefCell        0;
     pRefValue       0;
@@ -295,6 +305,9 @@ SIMPLE
     }
 
     nCorrectors     2;
+");
+            sb.AppendLine(GetSimpleConsistentLine(RunSettings));
+            sb.Append(@"    
     nNonOrthogonalCorrectors 2;
     pRefCell            0;
     pRefValue           0;

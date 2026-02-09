@@ -32,6 +32,7 @@ FoamFile
 surfaces
 (
     ""building.stl""
+    ""ground.stl""
 );
 
 includedAngle    120;

@@ -125,6 +125,24 @@ namespace Eddy
                 GH_ParamAccess.item,
                 false);
             pManager[10].Optional = true;
+
+            // 11
+            pManager.AddBooleanParameter(
+                GH_Strings.RunSettings.Debug,
+                GH_Strings.RunSettings.DebugNick,
+                GH_Strings.RunSettings.DebugDesc,
+                GH_ParamAccess.item,
+                false);
+            pManager[11].Optional = true;
+
+            // 12
+            pManager.AddBooleanParameter(
+                GH_Strings.RunSettings.SimpleC,
+                GH_Strings.RunSettings.SimpleCNick,
+                GH_Strings.RunSettings.SimpleCDesc,
+                GH_ParamAccess.item,
+                false);
+            pManager[12].Optional = true;
         }
 
         /// <summary>
@@ -158,6 +176,8 @@ namespace Eddy
             bool aoa = false;
             string blueCfdPath = "";
             bool stabilityLimiters = false;
+            bool debugDiagnostics = false;
+            bool simpleConsistent = false;
 
             DA.GetData(0, ref endTime);
             DA.GetData(1, ref writeInterval);
@@ -170,6 +190,8 @@ namespace Eddy
             DA.GetData(8, ref cpus);
             DA.GetData(9, ref blueCfdPath);
             DA.GetData(10, ref stabilityLimiters);
+            DA.GetData(11, ref debugDiagnostics);
+            DA.GetData(12, ref simpleConsistent);
 
             if (!string.IsNullOrWhiteSpace(blueCfdPath))
             {
@@ -222,7 +244,9 @@ namespace Eddy
                 relaxationFactors = relaxationFactors,
                 potentialFoamInit = potentialFoamInit,
                 aoa_domain = aoa,
-                stabilityLimiters = stabilityLimiters
+                stabilityLimiters = stabilityLimiters,
+                debugMode = debugDiagnostics,
+                simpleConsistent = simpleConsistent
             };
 
             DA.SetData(0, runSet);

@@ -105,107 +105,249 @@ namespace EddyLib
         {
             var sb = new StringBuilder();
             string escapedPath = Directories.InsertDoubleBackslashes(baseWorkingDir);
+            int primaryDirection = (windDirections != null && windDirections.Count > 0) ? windDirections[0] : 0;
+            string screenshotPath = Directories.InsertDoubleBackslashes(
+                Path.Combine(baseWorkingDir, $"paraview_render_{primaryDirection}.png"));
 
             sb.AppendLine("from paraview.simple import *");
+            sb.AppendLine("import os");
             sb.AppendLine();
 
             // Load building and ground geometries
-            sb.AppendLine($@"building = OpenDataFile(""{escapedPath}mesh\\constant\\triSurface\\building.stl"")");
-            sb.AppendLine($@"ground = OpenDataFile(""{escapedPath}mesh\\constant\\triSurface\\ground.stl"")");
+            sb.AppendLine("building = None");
+            sb.AppendLine("ground = None");
+            sb.AppendLine("try:");
+            sb.AppendLine($@"    building = OpenDataFile(""{escapedPath}mesh\\constant\\triSurface\\building.stl"")");
+            sb.AppendLine("except Exception:");
+            sb.AppendLine("    building = None");
+            sb.AppendLine("try:");
+            sb.AppendLine($@"    ground = OpenDataFile(""{escapedPath}mesh\\constant\\triSurface\\ground.stl"")");
+            sb.AppendLine("except Exception:");
+            sb.AppendLine("    ground = None");
 
             // Load each wind direction case
             foreach (int dir in windDirections)
             {
-                sb.AppendLine($@"case_{dir} = OpenDataFile(""{escapedPath}{dir}\\{dir}.foam"")");
+                sb.AppendLine($"case_{dir} = None");
+                sb.AppendLine("try:");
+                sb.AppendLine($@"    case_{dir} = OpenDataFile(""{escapedPath}{dir}\\{dir}.foam"")");
+                sb.AppendLine($"    RenameSource('Case_{dir}', case_{dir})");
+                sb.AppendLine("except Exception:");
+                sb.AppendLine($"    case_{dir} = None");
             }
 
             sb.AppendLine();
-            sb.AppendLine("Show(building)");
-            sb.AppendLine("Show(ground)");
-
+            sb.AppendLine("all_cases = []");
             foreach (int dir in windDirections)
             {
-                sb.AppendLine($"Show(case_{dir})");
+                sb.AppendLine($"if case_{dir} is not None:");
+                sb.AppendLine($"    all_cases.append(case_{dir})");
             }
+            sb.AppendLine($"primary_case = case_{primaryDirection}");
+            sb.AppendLine("if primary_case is None and len(all_cases) > 0:");
+            sb.AppendLine("    primary_case = all_cases[0]");
 
-            // Append Paraview setup script
-            sb.AppendLine(GetParaviewSetupScript());
+            // Append ParaView setup script
+            sb.AppendLine(GetParaviewSetupScript(screenshotPath));
 
             return sb.ToString();
         }
 
-        private static string GetParaviewSetupScript()
+        private static string GetParaviewSetupScript(string screenshotPath)
         {
-            return @"
+            return $@"
 #### disable automatic camera reset on 'Show'
 paraview.simple._DisableFirstRenderCameraReset()
 
-# find sources
-sTLReader1 = FindSource('STLReader1')
-sTLReader2 = FindSource('STLReader2')
-openFOAMReader1 = GetActiveSource()
+def _safe_set(obj, prop, value):
+    try:
+        setattr(obj, prop, value)
+        return True
+    except Exception:
+        return False
 
-# Properties modified on openFOAMReader1
-openFOAMReader1.CellArrays = ['U']
+def _has_array(data_info, array_name):
+    try:
+        return data_info.GetArrayInformation(array_name) is not None
+    except Exception:
+        return False
+
+def _try_apply_preset(lut, presets):
+    if lut is None:
+        return
+    for p in presets:
+        try:
+            lut.ApplyPreset(p, True)
+            return
+        except Exception:
+            pass
 
 # get active view
 renderView1 = GetActiveViewOrCreate('RenderView')
 
-# get display properties
-openFOAMReader1Display = GetDisplayProperties(openFOAMReader1, view=renderView1)
-openFOAMReader1Display.SelectScaleArray = 'None'
+# styling for static geometry
+if building is not None:
+    bDisp = Show(building, renderView1)
+    _safe_set(bDisp, 'Representation', 'Surface')
+    _safe_set(bDisp, 'DiffuseColor', [0.24, 0.24, 0.24])
+    _safe_set(bDisp, 'AmbientColor', [0.24, 0.24, 0.24])
+    _safe_set(bDisp, 'Opacity', 1.0)
 
-# get color transfer functions
-pLUT = GetColorTransferFunction('p')
-pPWF = GetOpacityTransferFunction('p')
+if ground is not None:
+    gDisp = Show(ground, renderView1)
+    _safe_set(gDisp, 'Representation', 'Surface')
+    _safe_set(gDisp, 'DiffuseColor', [0.72, 0.72, 0.72])
+    _safe_set(gDisp, 'AmbientColor', [0.72, 0.72, 0.72])
+    _safe_set(gDisp, 'Opacity', 1.0)
 
-# update display
-openFOAMReader1Display.GlyphTableIndexArray = 'None'
-openFOAMReader1Display.SetScaleArray = ['POINTS', 'U']
-openFOAMReader1Display.OpacityArray = ['POINTS', 'U']
-openFOAMReader1Display.OSPRayScaleArray = 'U'
+# show all cases but keep only primary visible for cleaner default render
+for i, src in enumerate(all_cases):
+    d = Show(src, renderView1)
+    _safe_set(d, 'Representation', 'Surface')
+    _safe_set(d, 'Opacity', 0.98)
+    _safe_set(d, 'Specular', 0.05)
+    if i > 0 and src is not primary_case:
+        try:
+            Hide(src, renderView1)
+        except Exception:
+            pass
 
-# update animation
-animationScene1 = GetAnimationScene()
-animationScene1.UpdateAnimationUsingDataTimeSteps()
-renderView1.Update()
+if primary_case is not None:
+    SetActiveSource(primary_case)
+    openFOAMReader1 = primary_case
 
-# add dimensional units
-openFOAMReader1.Adddimensionalunitstoarraynames = 1
-renderView1.Update()
+    # load common fields when available
+    for propName in ['CellArrays', 'PointArrays']:
+        try:
+            setattr(openFOAMReader1, propName, ['U', 'p'])
+        except Exception:
+            pass
 
-# update display properties
-openFOAMReader1Display.SelectOrientationVectors = 'None'
-openFOAMReader1Display.SetScaleArray = ['POINTS', 'U [m/s]']
-openFOAMReader1Display.OpacityArray = ['POINTS', 'U [m/s]']
-openFOAMReader1Display.OSPRayScaleArray = 'U [m/s]'
+    try:
+        openFOAMReader1.Adddimensionalunitstoarraynames = 1
+    except Exception:
+        pass
 
-# set scalar coloring
-ColorBy(openFOAMReader1Display, ('POINTS', 'U [m/s]', 'Magnitude'))
-HideScalarBarIfNotNeeded(pLUT, renderView1)
-openFOAMReader1Display.RescaleTransferFunctionToDataRange(True, False)
-openFOAMReader1Display.SetScalarBarVisibility(renderView1, True)
+    # update animation from result timesteps
+    try:
+        animationScene1 = GetAnimationScene()
+        animationScene1.UpdateAnimationUsingDataTimeSteps()
+    except Exception:
+        pass
+    renderView1.Update()
 
-# color map setup
-umsLUT = GetColorTransferFunction('Ums')
-umsPWF = GetOpacityTransferFunction('Ums')
+    # display props
+    openFOAMReader1Display = GetDisplayProperties(openFOAMReader1, view=renderView1)
+    _safe_set(openFOAMReader1Display, 'SelectScaleArray', 'None')
+    _safe_set(openFOAMReader1Display, 'GlyphTableIndexArray', 'None')
+    _safe_set(openFOAMReader1Display, 'SelectOrientationVectors', 'None')
 
-# reset view
-renderView1.ResetCamera()
-renderView1.Background = [1.0, 1.0, 1.0]
+    # choose best available velocity-like array
+    point_data = openFOAMReader1.GetDataInformation().GetPointDataInformation()
+    cell_data = openFOAMReader1.GetDataInformation().GetCellDataInformation()
 
-# apply viridis colormap
-umsLUT.ApplyPreset('Viridis (matplotlib)', True)
+    assoc = None
+    arr = None
+    arr_info = None
+    for candidate in ['U [m/s]', 'U']:
+        if _has_array(point_data, candidate):
+            assoc = 'POINTS'
+            arr = candidate
+            arr_info = point_data.GetArrayInformation(candidate)
+            break
 
-# configure color bar
-umsLUTColorBar = GetScalarBar(umsLUT, renderView1)
-umsLUTColorBar.TitleColor = [0.0, 0.0, 0.0]
-umsLUTColorBar.TitleBold = 1
-umsLUTColorBar.LabelColor = [0.0, 0.0, 0.0]
-umsLUTColorBar.LabelBold = 1
-umsLUTColorBar.AutomaticLabelFormat = 0
-umsLUTColorBar.LabelFormat = '%-#6.1f'
-umsLUTColorBar.RangeLabelFormat = '%-#6.1f'
+    if arr is None:
+        for candidate in ['U [m/s]', 'U']:
+            if _has_array(cell_data, candidate):
+                assoc = 'CELLS'
+                arr = candidate
+                arr_info = cell_data.GetArrayInformation(candidate)
+                break
+
+    if arr is not None:
+        try:
+            openFOAMReader1Display.SetScaleArray = [assoc, arr]
+            openFOAMReader1Display.OpacityArray = [assoc, arr]
+            openFOAMReader1Display.OSPRayScaleArray = arr
+        except Exception:
+            pass
+
+        nComp = 1
+        try:
+            nComp = arr_info.GetNumberOfComponents()
+        except Exception:
+            pass
+
+        colored = False
+        if nComp >= 3:
+            try:
+                ColorBy(openFOAMReader1Display, (assoc, arr, 'Magnitude'))
+                colored = True
+            except Exception:
+                pass
+        if not colored:
+            try:
+                ColorBy(openFOAMReader1Display, (assoc, arr))
+                colored = True
+            except Exception:
+                pass
+
+        if colored:
+            try:
+                openFOAMReader1Display.RescaleTransferFunctionToDataRange(True, False)
+            except Exception:
+                pass
+            try:
+                openFOAMReader1Display.SetScalarBarVisibility(renderView1, True)
+            except Exception:
+                pass
+            try:
+                velLUT = GetColorTransferFunction(arr)
+                _try_apply_preset(velLUT, ['Turbo', 'Viridis (matplotlib)', 'Cool to Warm'])
+                velBar = GetScalarBar(velLUT, renderView1)
+                _safe_set(velBar, 'TitleColor', [0.0, 0.0, 0.0])
+                _safe_set(velBar, 'LabelColor', [0.0, 0.0, 0.0])
+                _safe_set(velBar, 'TitleBold', 1)
+                _safe_set(velBar, 'LabelBold', 1)
+                _safe_set(velBar, 'AutomaticLabelFormat', 0)
+                _safe_set(velBar, 'LabelFormat', '%-#6.2f')
+                _safe_set(velBar, 'RangeLabelFormat', '%-#6.2f')
+            except Exception:
+                pass
+    else:
+        # fallback to solid color if no velocity array exists
+        try:
+            ColorBy(openFOAMReader1Display, None)
+        except Exception:
+            pass
+
+# scene quality defaults (with safe fallbacks)
+_safe_set(renderView1, 'ViewSize', [2560, 1440])
+_safe_set(renderView1, 'Background', [0.972549, 0.972549, 0.972549])
+_safe_set(renderView1, 'Background2', [0.972549, 0.972549, 0.972549])
+_safe_set(renderView1, 'UseGradientBackground', 0)
+_safe_set(renderView1, 'OrientationAxesVisibility', 1)
+_safe_set(renderView1, 'UseFXAA', 1)
+_safe_set(renderView1, 'CameraParallelProjection', 1)
+
+# reset and apply an isometric-like camera
+try:
+    renderView1.ResetCamera()
+    camera = GetActiveCamera()
+    camera.SetParallelProjection(1)
+    camera.Azimuth(35)
+    camera.Elevation(22)
+    renderView1.ResetCameraClippingRange()
+except Exception:
+    pass
+
+Render()
+
+# write a high-resolution preview automatically (best effort)
+try:
+    SaveScreenshot(""{screenshotPath}"", renderView1, ImageResolution=[3840, 2160])
+except Exception:
+    pass
 ";
         }
 

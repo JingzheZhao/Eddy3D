@@ -142,9 +142,13 @@ Opens the Streamlit residual viewer and the simulation residuals folder.
             var windDirs = result.Domain?.BCond?.WindDirections ?? new List<int>();
             foreach (int dir in windDirs.Distinct())
             {
+                candidates.Add(Path.Combine(result.WorkingDirectory, dir.ToString(), "postProcessing", "residuals", "0"));
+                candidates.Add(Path.Combine(result.WorkingDirectory, dir.ToString(), "postProcessing", "residuals"));
                 candidates.Add(Path.Combine(result.WorkingDirectory, dir.ToString(), "postProcessing"));
             }
 
+            candidates.Add(Path.Combine(result.WorkingDirectory, "postProcessing", "residuals", "0"));
+            candidates.Add(Path.Combine(result.WorkingDirectory, "postProcessing", "residuals"));
             candidates.Add(Path.Combine(result.WorkingDirectory, "postProcessing"));
 
             foreach (string candidate in candidates)

@@ -61,8 +61,11 @@ libs
 ");
 
             sb.AppendLine(FunctionObjCP(DOM, RunSettings, topologies, numberOfTopologies));
-            sb.AppendLine(FunctionObjFieldMinMax());
-            sb.AppendLine(FunctionObjFieldAverage());
+            if (RunSettings.debugMode)
+            {
+                sb.AppendLine(FunctionObjFieldMinMax());
+                sb.AppendLine(FunctionObjFieldAverage());
+            }
             sb.AppendLine(FunctionObjStabilityLimiters(RunSettings));
             if (RunSettings.aoa_domain == true)
             {
