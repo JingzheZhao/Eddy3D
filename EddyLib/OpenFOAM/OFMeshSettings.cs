@@ -27,7 +27,7 @@ namespace EddyLib
 
         public int accBoxRefinement { get; set; } = 2;
 
-        public int accGround { get; set; } = 2;
+        public int accGround { get; set; } = 4;
 
         public int nLayers { get; set; } = 4;
 

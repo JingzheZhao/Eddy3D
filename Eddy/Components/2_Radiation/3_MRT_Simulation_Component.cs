@@ -48,8 +48,8 @@ Combines:
         {
             pManager.AddTextParameter(
                 "Working Directory", "Dir", 
-                "Folder for simulation files. Default: C:\\Temp\\Eddy3D", 
-                GH_ParamAccess.item, @"C:\Temp\Eddy3D");
+                "Folder for simulation files. Default: My_MRT_Project", 
+                GH_ParamAccess.item, @"My_MRT_Project");
 
             pManager.AddTextParameter(
                 "Weather File", "EPW", 
@@ -120,6 +120,18 @@ Combines:
             //DA.GetData(0, ref name);
             DA.GetData(0, ref workDir);
             DA.GetData(1, ref weatherPath);
+
+            try
+            {
+                workDir = DefaultDirectoriesAndPaths.ResolveWorkingDirectory(workDir);
+                workDir = Path.GetFullPath(workDir);
+                Directory.CreateDirectory(workDir);
+            }
+            catch (Exception ex)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Invalid working directory: {ex.Message}");
+                return;
+            }
 
             if (!File.Exists(weatherPath))
             {

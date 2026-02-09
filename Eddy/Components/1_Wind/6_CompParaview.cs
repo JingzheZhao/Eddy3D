@@ -3,6 +3,7 @@ using EddyLib;
 using Grasshopper.Kernel;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
@@ -109,8 +110,24 @@ with blueCFD fallback when no standalone install is found.
                 return;
             }
 
-            string paraViewPath = "\"" + paraviewExe + "\" " + @"--script=" + "\"" + scriptPath + "\"";
-            EddyLib.Utilities.StartProcess.StartProcessCMDNT(paraViewPath, true, false, true, true);
+            try
+            {
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = paraviewExe,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                startInfo.ArgumentList.Add($"--script={scriptPath}");
+                Process.Start(startInfo);
+            }
+            catch (Exception ex)
+            {
+                AddRuntimeMessage(
+                    GH_RuntimeMessageLevel.Error,
+                    $"Failed to launch ParaView: {ex.Message}");
+            }
         }
 
         /// <summary>

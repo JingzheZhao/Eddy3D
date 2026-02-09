@@ -51,7 +51,7 @@ namespace EddyLib.Radiation
 
         public MRT_Simulation_System(string baseWorkingDir, Weather weather, List<RSurface> rsurfaces, List<RProbe> rprobes, string cfd_data_path, MRT_Simulation_Settings _set)
         {
-            BaseWorkingDir = baseWorkingDir;
+            BaseWorkingDir = Path.GetFullPath(DefaultDirectoriesAndPaths.ResolveWorkingDirectory(baseWorkingDir));
             RSurfaces = rsurfaces;
             Weather = weather;
             Settings = _set;
@@ -137,7 +137,12 @@ namespace EddyLib.Radiation
             // Setup working dir
             // ---------------------
 
-            var dirs = new List<String>() { baseWorkingDir, baseWorkingDir + @"\Rad\", baseWorkingDir + @"\Ep\" };
+            var dirs = new List<string>
+            {
+                BaseWorkingDir,
+                Path.Combine(BaseWorkingDir, "Rad"),
+                Path.Combine(BaseWorkingDir, "Ep")
+            };
 
             foreach (string d in dirs)
             {
