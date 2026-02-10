@@ -1,9 +1,19 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Eddy3D-Dev/Eddy3D-Website/main/docs/assets/cd/LogoEddy-01_preview-crop.png" alt="Eddy3D full logo" width="280" />
+</p>
+<p align="center"><strong>Eddy3D</strong> - Airflow and Microclimate Simulations for Rhino & Grasshopper</p>
+
 [![Build Eddy3D](https://github.com/Eddy3D-Dev/Eddy3D/actions/workflows/build.yml/badge.svg)](https://github.com/Eddy3D-Dev/Eddy3D/actions/workflows/build.yml)
+[![Templates Exist](https://github.com/Eddy3D-Dev/Eddy3D/actions/workflows/template-branch-warning.yml/badge.svg)](https://github.com/Eddy3D-Dev/Eddy3D/actions/workflows/template-branch-warning.yml)
+[![Version](https://img.shields.io/github/v/release/Eddy3D-Dev/Eddy3D?sort=semver)](https://github.com/Eddy3D-Dev/Eddy3D/releases)
+[![Documentation](https://img.shields.io/badge/docs-eddy3d.com-blue)](https://docs.eddy3d.com)
 
 ## Development Setup (Windows)
 
-To check out the project for development on Windows, ensure you configure Git like this:
+<details>
+<summary>Windows checkout steps</summary>
 
+To check out the project for development on Windows, ensure you configure Git like this:
 
 ```powershell
 # Create the parent directory if it doesn't exist
@@ -15,3 +25,24 @@ cd "$env:USERPROFILE\Documents\GitHub\Eddy3D-Dev"
 git clone https://github.com/Eddy3D-Dev/Eddy3D.git
 cd Eddy3D
 ```
+
+</details>
+
+## Development Setup (macOS)
+
+<details>
+<summary>macOS checkout steps</summary>
+
+To check out the project for development on macOS, run:
+
+```bash
+# Create the parent directory if it doesn't exist
+mkdir -p "$HOME/Documents/GitHub/Eddy3D-Dev"
+cd "$HOME/Documents/GitHub/Eddy3D-Dev"
+
+# Clone the project
+git clone https://github.com/Eddy3D-Dev/Eddy3D.git
+cd Eddy3D
+```
+
+</details>
