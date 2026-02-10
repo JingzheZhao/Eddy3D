@@ -34,24 +34,44 @@ jobs:
           $branch = $match.Groups[1].Value
           "branch=$branch" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
-      - name: Setup .NET 8
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 8.0.x
-
-      - name: Run template branch unit test (warning only)
-        id: template_test
+      - name: Check template branch and root contents (warning only)
+        id: template_check
         continue-on-error: true
-        run: >-
-          dotnet test RhinoPlugin.Test.Xunit\RhinoPlugin.Test.Xunit.csproj
-          -c Debug
-          --filter "FullyQualifiedName~TemplateBranch_Exists_And_IsNotEmpty"
+        shell: pwsh
+        run: |
+          $owner = "Eddy3D-Dev"
+          $repo = "Eddy3D-OutdoorIndoorTemplates"
+          $branch = "${{ steps.expected_branch.outputs.branch }}"
+
+          $headers = @{
+            "Accept" = "application/vnd.github+json"
+            "X-GitHub-Api-Version" = "2022-11-28"
+            "User-Agent" = "eddy3d-template-branch-check"
+          }
+
+          $branchUrl = "https://api.github.com/repos/$owner/$repo/branches/$branch"
+          try {
+            Invoke-RestMethod -Uri $branchUrl -Headers $headers -Method Get | Out-Null
+          } catch {
+            throw "Template branch '$branch' does not exist in $owner/$repo."
+          }
+
+          $contentsUrl = "https://api.github.com/repos/$owner/$repo/contents?ref=$branch"
+          try {
+            $contents = Invoke-RestMethod -Uri $contentsUrl -Headers $headers -Method Get
+          } catch {
+            throw "Failed to read root contents of branch '$branch' in $owner/$repo."
+          }
+
+          if ($null -eq $contents -or (@($contents).Count -lt 1)) {
+            throw "Template branch '$branch' exists but is empty in $owner/$repo."
+          }
 
       - name: Warn when template branch check fails
-        if: steps.template_test.outcome == 'failure'
+        if: steps.template_check.outcome == 'failure'
         run: |
           echo "::warning::Template branch check failed. Expected branch '${{ steps.expected_branch.outputs.branch }}' in Eddy3D-OutdoorIndoorTemplates to exist and be non-empty."
 
       - name: Success note
-        if: steps.template_test.outcome == 'success'
+        if: steps.template_check.outcome == 'success'
         run: echo "Template branch check passed."
