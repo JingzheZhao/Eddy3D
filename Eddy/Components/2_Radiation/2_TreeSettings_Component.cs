@@ -1,5 +1,6 @@
 ﻿using Eddy.Properties;
 using EddyLib;
+using Eddy.Analytics;
 using EddyLib.Radiation;
 using Grasshopper.Kernel;
 using System;
@@ -26,6 +27,7 @@ Default uses standard deciduous tree reflectance.
 " + EddyVersion.toString(), 
               EddyVersion.Name, "2 | Radiation")
         {
+            Analytics.Analytics.TrackComponentView("MRTTreeSettings");
         }
 
         /// <summary>

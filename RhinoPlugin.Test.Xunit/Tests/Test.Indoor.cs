@@ -267,11 +267,22 @@ namespace RhinoPlugin.Test.Xunit
             Assert.True(System.IO.Directory.Exists(System.IO.Path.Combine(workingDir, "system")), "system directory not created");
 
             Assert.True(System.IO.File.Exists(System.IO.Path.Combine(workingDir, "run_all.bat")), "run_all.bat not created");
+                        Assert.True(System.IO.File.Exists(System.IO.Path.Combine(workingDir, "run_mesh.bat")), "run_mesh.bat not created");
+                        Assert.True(System.IO.File.Exists(System.IO.Path.Combine(workingDir, "run_sim.bat")), "run_sim.bat not created");
                         Assert.True(System.IO.File.Exists(System.IO.Path.Combine(workingDir, "system", "controlDict")), "controlDict not created");
+                        Assert.True(System.IO.File.Exists(System.IO.Path.Combine(workingDir, "0", "T")), "0/T not created");
                         
                         // Check specific dictionary content (e.g., endTime in controlDict)
                         string controlDictContent = System.IO.File.ReadAllText(System.IO.Path.Combine(workingDir, "system", "controlDict"));
                         Assert.Matches($"endTime\\s+{endTime};", controlDictContent);
+
+                        // Ensure base blockMesh patches are present in thermal boundary conditions.
+                        string tDictContent = System.IO.File.ReadAllText(System.IO.Path.Combine(workingDir, "0", "T"));
+                        Assert.Contains("Back", tDictContent);
+
+                        // Ensure simulation-only script includes topology step.
+                        string runSimContent = System.IO.File.ReadAllText(System.IO.Path.Combine(workingDir, "run_sim.bat"));
+                        Assert.Contains("topoSet", runSimContent);
             
                         _output.WriteLine($"Full simulation setup verified in {workingDir}");
                     }

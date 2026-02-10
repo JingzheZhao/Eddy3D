@@ -1,5 +1,6 @@
 ﻿using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
+using Eddy.Analytics;
 using EddyLib;
 using EddyLib.Indoor;
 using Grasshopper.Kernel;
@@ -25,6 +26,7 @@ Defines a solid boundary for indoor simulations, such as walls, floors, or ceili
               EddyVersion.Name, 
               "9 | Indoor")
         {
+            Analytics.Analytics.TrackComponentView("IndoorWall");
         }
 
         /// <summary>

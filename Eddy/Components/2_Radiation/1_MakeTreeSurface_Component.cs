@@ -1,5 +1,6 @@
 ﻿using Eddy.Properties;
 using EddyLib;
+using Eddy.Analytics;
 using EddyLib.Radiation;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
@@ -29,6 +30,7 @@ Converts tree geometries for radiation analysis. Simulates shading and evapotran
 " + EddyVersion.toString(), 
               EddyVersion.Name, "2 | Radiation")
         {
+            Analytics.Analytics.TrackComponentView("MRTTreeSurface");
         }
 
         /// <summary>

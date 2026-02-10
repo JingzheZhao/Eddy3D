@@ -5,6 +5,16 @@ namespace EddyLib.Indoor.Dicts
 {
     public class IndoorBCDict : GenericDict
     {
+        private static readonly string[] BoxPatches =
+        {
+            "Back",
+            "Front",
+            "Bottom",
+            "Top",
+            "Right",
+            "Left"
+        };
+
         public string Dimensions { get; set; }
 
         public string InternalField { get; set; }
@@ -28,9 +38,10 @@ namespace EddyLib.Indoor.Dicts
 
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
 
-                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetFixedValue(i, DictionaryName)); }
+                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetFixedValueInlet(i, DictionaryName)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetInletOutlet(i, DictionaryName)); }
                 foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetFixedValue(i, DictionaryName)); }
+                foreach (string patch in BoxPatches) { this.InternalDict.Add(GetFixedValue(patch, DictionaryName)); }
 
                 this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
                 BoundaryFieldDict.Add("boundaryField", InternalDict);
@@ -54,9 +65,10 @@ namespace EddyLib.Indoor.Dicts
 
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
 
-                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetFixedValue(i, DictionaryName)); }
+                foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetFixedValueInlet(i, DictionaryName)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i, DictionaryName)); }
                 foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetZeroGradient(i, DictionaryName)); }
+                foreach (string patch in BoxPatches) { this.InternalDict.Add(GetZeroGradient(patch, DictionaryName)); }
 
                 this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
                 BoundaryFieldDict.Add("boundaryField", InternalDict);
@@ -83,6 +95,7 @@ namespace EddyLib.Indoor.Dicts
                 foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetCalculated(i, DictionaryName)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetCalculated(i, DictionaryName)); }
                 foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetAlphaWallFunction(i, DictionaryName)); }
+                foreach (string patch in BoxPatches) { this.InternalDict.Add(GetAlphaWallFunction(patch, DictionaryName)); }
 
                 this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
                 BoundaryFieldDict.Add("boundaryField", InternalDict);
@@ -109,6 +122,7 @@ namespace EddyLib.Indoor.Dicts
                 foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetFixedValue(i, DictionaryName)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i, DictionaryName)); }
                 foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetZeroGradient(i, DictionaryName)); }
+                foreach (string patch in BoxPatches) { this.InternalDict.Add(GetZeroGradient(patch, DictionaryName)); }
 
                 this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
                 BoundaryFieldDict.Add("boundaryField", InternalDict);
@@ -135,6 +149,7 @@ namespace EddyLib.Indoor.Dicts
                 foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetFixedValue(i, DictionaryName)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i, DictionaryName)); }
                 foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetZeroGradient(i, DictionaryName)); }
+                foreach (string patch in BoxPatches) { this.InternalDict.Add(GetZeroGradient(patch, DictionaryName)); }
 
                 this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
                 BoundaryFieldDict.Add("boundaryField", InternalDict);
@@ -161,6 +176,7 @@ namespace EddyLib.Indoor.Dicts
                 foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetTurbulentIntensityKineticEnergyInlet(i, DictionaryName)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i, DictionaryName)); }
                 foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetKqRWallFunction(i, DictionaryName)); }
+                foreach (string patch in BoxPatches) { this.InternalDict.Add(GetKqRWallFunction(patch, DictionaryName)); }
 
                 this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
                 BoundaryFieldDict.Add("boundaryField", InternalDict);
@@ -187,6 +203,7 @@ namespace EddyLib.Indoor.Dicts
                 foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetCalculated(i, DictionaryName)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetCalculated(i, DictionaryName)); }
                 foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetNutKWallFunction(i, DictionaryName)); }
+                foreach (string patch in BoxPatches) { this.InternalDict.Add(GetNutKWallFunction(patch, DictionaryName)); }
 
                 this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
                 BoundaryFieldDict.Add("boundaryField", InternalDict);
@@ -212,6 +229,7 @@ namespace EddyLib.Indoor.Dicts
                 foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetZeroGradient(i, DictionaryName)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetFixedValue(i, DictionaryName)); }
                 foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetCalculated(i, DictionaryName)); }
+                foreach (string patch in BoxPatches) { this.InternalDict.Add(GetCalculated(patch, DictionaryName)); }
 
                 this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
                 BoundaryFieldDict.Add("boundaryField", InternalDict);
@@ -238,6 +256,7 @@ namespace EddyLib.Indoor.Dicts
                 foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetZeroGradient(i, DictionaryName)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetFixedValue(i, DictionaryName)); }
                 foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetFixFluxPressure(i, DictionaryName)); }
+                foreach (string patch in BoxPatches) { this.InternalDict.Add(GetFixFluxPressure(patch, DictionaryName)); }
 
                 this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
                 BoundaryFieldDict.Add("boundaryField", InternalDict);
@@ -263,6 +282,7 @@ namespace EddyLib.Indoor.Dicts
                 foreach (IndoorBC.Inlet i in inlet) { this.InternalDict.Add(GetTurbulentMixingLengthFrequencyInlet(i, DictionaryName)); }
                 foreach (IndoorBC.Outlet i in outlet) { this.InternalDict.Add(GetZeroGradient(i, DictionaryName)); }
                 foreach (IndoorBC.Wall i in wall) { this.InternalDict.Add(GetOmegaWallFunction(i, DictionaryName)); }
+                foreach (string patch in BoxPatches) { this.InternalDict.Add(GetOmegaWallFunction(patch, DictionaryName)); }
 
                 this.BoundaryFieldDict = new Dictionary<string, List<Dictionary<string, Dictionary<string, string>>>>();
                 BoundaryFieldDict.Add("boundaryField", InternalDict);
@@ -273,50 +293,39 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, Dictionary<string, string>> GetFixedValue(IndoorBC input, string DictName)
         {
+            return GetFixedValue(input.Id, DictName);
+        }
+
+        private static Dictionary<string, Dictionary<string, string>> GetFixedValue(string patchName, string DictName)
+        {
             Dictionary<string, Dictionary<string, string>> Dict = new Dictionary<string, Dictionary<string, string>>();
 
             Dictionary<string, string> InternalDict = new Dictionary<string, string>();
 
-            Dict.Add(input.Id, InternalDict);
+            Dict.Add(patchName, InternalDict);
 
             if (DictName == "U")
             {
-                if (input is IndoorBC.Inlet ii)
-                {
-                    InternalDict.Add("type", "fixedValue");
-                    InternalDict.Add("value", "uniform (" + ii.Velocity.ToString().Replace(',', ' ') + ")");
-                }
-                else
-                {
-                    InternalDict.Add("type", "fixedValue");
-                    InternalDict.Add("value", "uniform (0 0 0)");
-                }
+                InternalDict.Add("type", "fixedValue");
+                InternalDict.Add("value", "uniform (0 0 0)");
             }
             else if (DictName == "p" || DictName == "p_rgh")
             {
-                IndoorBC.Outlet ii = (IndoorBC.Outlet)input;
-
                 InternalDict.Add("type", "fixedValue");
                 InternalDict.Add("value", "uniform 101325");
             }
             else if (DictName == "T")
             {
-                IndoorBC.Inlet ii = (IndoorBC.Inlet)input;
-
                 InternalDict.Add("type", "fixedValue");
-                InternalDict.Add("value", "uniform " + ii.TemperatureK.ToString() + "");
+                InternalDict.Add("value", "uniform 300");
             }
             else if (DictName == "aoa")
             {
-                IndoorBC.Inlet ii = (IndoorBC.Inlet)input;
-
                 InternalDict.Add("type", "fixedValue");
                 InternalDict.Add("value", "uniform 0");
             }
             else if (DictName == "covid19")
             {
-                IndoorBC.Inlet ii = (IndoorBC.Inlet)input;
-
                 InternalDict.Add("type", "fixedValue");
                 InternalDict.Add("value", "uniform 0");
             }
@@ -325,13 +334,35 @@ namespace EddyLib.Indoor.Dicts
             return Dict;
         }
 
+        private static Dictionary<string, Dictionary<string, string>> GetFixedValueInlet(IndoorBC.Inlet input, string DictName)
+        {
+            var dict = GetFixedValue(input.Id, DictName);
+            if (DictName == "U")
+            {
+                var internalDict = dict[input.Id];
+                internalDict["value"] = "uniform (" + input.Velocity.ToString().Replace(',', ' ') + ")";
+            }
+            else if (DictName == "T")
+            {
+                var internalDict = dict[input.Id];
+                internalDict["value"] = "uniform " + input.TemperatureK.ToString();
+            }
+
+            return dict;
+        }
+
         private static Dictionary<string, Dictionary<string, string>> GetInletOutlet(IndoorBC input, string DictName)
+        {
+            return GetInletOutlet(input.Id, DictName);
+        }
+
+        private static Dictionary<string, Dictionary<string, string>> GetInletOutlet(string patchName, string DictName)
         {
             Dictionary<string, Dictionary<string, string>> Dict = new Dictionary<string, Dictionary<string, string>>();
 
             Dictionary<string, string> InternalDict = new Dictionary<string, string>();
 
-            Dict.Add(input.Id, InternalDict);
+            Dict.Add(patchName, InternalDict);
 
             InternalDict.Add("type", "inletOutlet");
             InternalDict.Add("inletValue", "uniform (0 0 0)");
@@ -342,11 +373,16 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, Dictionary<string, string>> GetZeroGradient(IndoorBC input, string DictName)
         {
+            return GetZeroGradient(input.Id, DictName);
+        }
+
+        private static Dictionary<string, Dictionary<string, string>> GetZeroGradient(string patchName, string DictName)
+        {
             Dictionary<string, Dictionary<string, string>> Dict = new Dictionary<string, Dictionary<string, string>>();
 
             Dictionary<string, string> InternalDict = new Dictionary<string, string>();
 
-            Dict.Add(input.Id, InternalDict);
+            Dict.Add(patchName, InternalDict);
 
             InternalDict.Add("type", "zeroGradient");
 
@@ -355,11 +391,16 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, Dictionary<string, string>> GetCalculated(IndoorBC input, string DictName)
         {
+            return GetCalculated(input.Id, DictName);
+        }
+
+        private static Dictionary<string, Dictionary<string, string>> GetCalculated(string patchName, string DictName)
+        {
             Dictionary<string, Dictionary<string, string>> Dict = new Dictionary<string, Dictionary<string, string>>();
 
             Dictionary<string, string> InternalDict = new Dictionary<string, string>();
 
-            Dict.Add(input.Id, InternalDict);
+            Dict.Add(patchName, InternalDict);
 
             if (DictName == "p" || DictName == "p_rgh")
             {
@@ -377,11 +418,16 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, Dictionary<string, string>> GetAlphaWallFunction(IndoorBC input, string DictName)
         {
+            return GetAlphaWallFunction(input.Id, DictName);
+        }
+
+        private static Dictionary<string, Dictionary<string, string>> GetAlphaWallFunction(string patchName, string DictName)
+        {
             Dictionary<string, Dictionary<string, string>> Dict = new Dictionary<string, Dictionary<string, string>>();
 
             Dictionary<string, string> InternalDict = new Dictionary<string, string>();
 
-            Dict.Add(input.Id, InternalDict);
+            Dict.Add(patchName, InternalDict);
 
             InternalDict.Add("type", "compressible::alphatJayatillekeWallFunction");
             InternalDict.Add("Prt", "0.85");
@@ -395,11 +441,16 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, Dictionary<string, string>> GetNutKWallFunction(IndoorBC input, string DictName)
         {
+            return GetNutKWallFunction(input.Id, DictName);
+        }
+
+        private static Dictionary<string, Dictionary<string, string>> GetNutKWallFunction(string patchName, string DictName)
+        {
             Dictionary<string, Dictionary<string, string>> Dict = new Dictionary<string, Dictionary<string, string>>();
 
             Dictionary<string, string> InternalDict = new Dictionary<string, string>();
 
-            Dict.Add(input.Id, InternalDict);
+            Dict.Add(patchName, InternalDict);
 
             InternalDict.Add("type", "nutkWallFunction");
 
@@ -427,11 +478,16 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, Dictionary<string, string>> GetKqRWallFunction(IndoorBC input, string DictName)
         {
+            return GetKqRWallFunction(input.Id, DictName);
+        }
+
+        private static Dictionary<string, Dictionary<string, string>> GetKqRWallFunction(string patchName, string DictName)
+        {
             Dictionary<string, Dictionary<string, string>> Dict = new Dictionary<string, Dictionary<string, string>>();
 
             Dictionary<string, string> InternalDict = new Dictionary<string, string>();
 
-            Dict.Add(input.Id, InternalDict);
+            Dict.Add(patchName, InternalDict);
 
             InternalDict.Add("type", "kqRWallFunction");
 
@@ -459,11 +515,16 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, Dictionary<string, string>> GetOmegaWallFunction(IndoorBC input, string DictName)
         {
+            return GetOmegaWallFunction(input.Id, DictName);
+        }
+
+        private static Dictionary<string, Dictionary<string, string>> GetOmegaWallFunction(string patchName, string DictName)
+        {
             Dictionary<string, Dictionary<string, string>> Dict = new Dictionary<string, Dictionary<string, string>>();
 
             Dictionary<string, string> InternalDict = new Dictionary<string, string>();
 
-            Dict.Add(input.Id, InternalDict);
+            Dict.Add(patchName, InternalDict);
 
             InternalDict.Add("type", "omegaWallFunction");
 
@@ -474,11 +535,16 @@ namespace EddyLib.Indoor.Dicts
 
         private static Dictionary<string, Dictionary<string, string>> GetFixFluxPressure(IndoorBC input, string DictName)
         {
+            return GetFixFluxPressure(input.Id, DictName);
+        }
+
+        private static Dictionary<string, Dictionary<string, string>> GetFixFluxPressure(string patchName, string DictName)
+        {
             Dictionary<string, Dictionary<string, string>> Dict = new Dictionary<string, Dictionary<string, string>>();
 
             Dictionary<string, string> InternalDict = new Dictionary<string, string>();
 
-            Dict.Add(input.Id, InternalDict);
+            Dict.Add(patchName, InternalDict);
 
             InternalDict.Add("type", "fixedFluxPressure");
             InternalDict.Add("gradient", "uniform 0");

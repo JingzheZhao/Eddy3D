@@ -1,5 +1,6 @@
 ﻿using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
+using Eddy.Analytics;
 using EddyLib;
 using EddyLib.BCs;
 using EddyLib.Docker;
@@ -48,6 +49,7 @@ Requires connected walls, inlets, outlets, and optional heat sources.
             _selectedEngine = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                 ? SimEngine.BlueCFD
                 : SimEngine.Docker;
+            Analytics.Analytics.TrackComponentView("IndoorSimulation");
         }
 
         protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
@@ -135,9 +137,16 @@ Requires connected walls, inlets, outlets, and optional heat sources.
             pManager[8].Optional = true;
 
             pManager.AddBooleanParameter(
-                "Run", "Run", 
-                "Run case setup routines and simulation", 
+                GH_Strings.Common.RunMeshing, GH_Strings.Common.RunMeshingNick,
+                GH_Strings.Common.RunMeshingDesc,
                 GH_ParamAccess.item, false);
+            pManager[9].Optional = true;
+
+            pManager.AddBooleanParameter(
+                GH_Strings.Common.RunSimulation, GH_Strings.Common.RunSimulationNick,
+                GH_Strings.Common.RunSimulationDesc,
+                GH_ParamAccess.item, false);
+            pManager[10].Optional = true;
         }
 
         /// <summary>
@@ -266,31 +275,62 @@ Requires connected walls, inlets, outlets, and optional heat sources.
 
          
 
-            var runSettings = new OFRunSettings(endTime: endTime );
+            var runSettings = new OFRunSettings(
+                endTime: endTime,
+                CPUs: CPUs,
+                simEngine: _selectedEngine);
             var meshSettings = new OFMeshSettings();
 
             var RES = new OFResult(dom, runSettings, meshSettings, BaseWorkingDir);
 
-            bool RUN = false;
-            DA.GetData(9, ref RUN);
+            bool runMeshing = false;
+            DA.GetData(9, ref runMeshing);
+            bool runSimulation = false;
+            DA.GetData(10, ref runSimulation);
 
             #region START PROCESSES
 
             Message = _selectedEngine.ToString();
             iterations = endTime;
 
-            if (RUN && canRun)
+            if ((runMeshing || runSimulation) && canRun)
             {
+                string analyticsMode = _selectedEngine == SimEngine.Docker ? "Docker" : "BlueCFD";
+                if (runMeshing)
+                {
+                    Analytics.Analytics.TrackIndoorMeshCase(analyticsMode);
+                }
+                if (runSimulation)
+                {
+                    Analytics.Analytics.TrackIndoorSimulateCase(analyticsMode);
+                }
+
                 if (_selectedEngine == SimEngine.Docker)
                 {
-                    // Docker: run OpenFOAM commands interactively
-                    RunDockerProcesses(CPUs, BaseWorkingDir);
+                    // Docker: run OpenFOAM commands interactively (mesh/sim/full)
+                    RunDockerProcesses(CPUs, BaseWorkingDir, runMeshing, runSimulation);
                 }
                 else
                 {
-                    // BlueCFD: run via batch file
-                    string runall = Path.Combine(this.BaseWorkingDir, "run_all.bat");
-                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, runall, taskComplete);
+                    // BlueCFD: run via batch file (mesh/sim/full)
+                    string batchToRun = null;
+                    if (runMeshing && runSimulation)
+                    {
+                        batchToRun = Path.Combine(this.BaseWorkingDir, "run_all.bat");
+                    }
+                    else if (runMeshing)
+                    {
+                        batchToRun = Path.Combine(this.BaseWorkingDir, "run_mesh.bat");
+                    }
+                    else if (runSimulation)
+                    {
+                        batchToRun = Path.Combine(this.BaseWorkingDir, "run_sim.bat");
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(batchToRun))
+                    {
+                        Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, batchToRun, taskComplete);
+                    }
                 }
             }
 
@@ -390,22 +430,31 @@ Requires connected walls, inlets, outlets, and optional heat sources.
             return true;
         }
 
-        private void RunDockerProcesses(int cpus, string caseDir)
+        private void RunDockerProcesses(int cpus, string caseDir, bool runMeshing, bool runSimulation)
         {
             var runner = new DockerRunner();
 
             var cmds = new List<string>();
-            cmds.Add("blockMesh");
-            cmds.Add("surfaceFeatures");
-            cmds.Add("decomposePar -force");
-            cmds.Add(string.Format("mpiexec -np {0} snappyHexMesh -overwrite -parallel", cpus));
-            cmds.Add("reconstructParMesh -constant");
-            cmds.Add("renumberMesh -overwrite");
-            cmds.Add("topoSet");
-            cmds.Add("renumberMesh -overwrite");
-            cmds.Add("decomposePar -force");
-            cmds.Add(string.Format("mpiexec -np {0} buoyantSimpleFoam -parallel", cpus));
-            cmds.Add("reconstructPar");
+
+            if (runMeshing)
+            {
+                cmds.Add("blockMesh");
+                cmds.Add("surfaceFeatures");
+                cmds.Add("decomposePar -force");
+                cmds.Add(string.Format("mpiexec -np {0} snappyHexMesh -overwrite -parallel", cpus));
+                cmds.Add("reconstructParMesh -constant");
+                cmds.Add("renumberMesh -overwrite");
+            }
+
+            if (runSimulation)
+            {
+                cmds.Add("topoSet");
+                cmds.Add("renumberMesh -overwrite");
+                cmds.Add("decomposePar -force");
+                cmds.Add(string.Format("mpiexec -np {0} buoyantSimpleFoam -parallel", cpus));
+                cmds.Add("reconstructPar");
+            }
+
             cmds.Add("echo 'INDOOR SIMULATION DONE'");
             cmds.Add("read -p 'Press Enter to close...'");
 

@@ -1,5 +1,6 @@
 ﻿using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
+using Eddy.Analytics;
 using EddyLib;
 using EddyLib.Indoor;
 using Grasshopper.Kernel;
@@ -23,6 +24,7 @@ Simulates carbon dioxide generation, typically from occupants. Use this to asses
 " + EddyVersion.toString(), 
               EddyVersion.Name, "9 | Indoor")
         {
+            Analytics.Analytics.TrackComponentView("IndoorCO2Emitter");
         }
 
         /// <summary>

@@ -127,51 +127,65 @@ namespace Eddy.Analytics
                 // Fetch network org once per session (cached)
                 await EnsureNetworkOrgCachedAsync();
 
-                // Build identify data with all properties
+                // Build identify (session profile) data.
+                // Keep profile keys distinct from event property keys so Umami
+                // can expose event properties cleanly for filtering.
                 var identifyData = new JObject
                 {
-                    { "id", visitorId },
-                    { "rhino_version", rhinoVersion },
-                    { "eddy_version", eddyVersion },
-                    { "device_type", deviceType }
+                    { "profile_rhino_version", rhinoVersion },
+                    { "profile_eddy_version", eddyVersion },
+                    { "profile_device_type", deviceType }
                 };
                 
                 // Add network_org if available (shows university/company)
                 if (!string.IsNullOrWhiteSpace(_cachedNetworkOrg))
                 {
-                    identifyData["network_org"] = _cachedNetworkOrg;
+                    identifyData["profile_network_org"] = _cachedNetworkOrg;
                 }
                 if (!string.IsNullOrWhiteSpace(_cachedNetworkOrgName))
                 {
-                    identifyData["network_org_name"] = _cachedNetworkOrgName;
+                    identifyData["profile_network_org_name"] = _cachedNetworkOrgName;
                 }
 
                 // 1. Send IDENTIFY request (Session Setup) - ONLY ONCE
                 if (!_isIdentified)
                 {
+                    var identifyPayloadData = new JObject
+                    {
+                        { "website", Config.WebsiteId },
+                        { "id", visitorId },
+                        { "hostname", "eddy3d-plugin" },
+                        { "language", "en-US" },
+                        { "screen", screenSize },
+                        { "url", url },
+                        { "referrer", "https://eddy3d.com" },
+                        { "title", title },
+                        { "data", identifyData }
+                    };
+
+                    // For identify requests, only include "name" when a valid value exists.
+                    // Sending explicit null can fail Umami schema validation.
+                    if (!string.IsNullOrWhiteSpace(eventName))
+                    {
+                        identifyPayloadData["name"] = eventName;
+                    }
+
                     var identifyPayload = new JObject
                     {
                         { "type", "identify" },
-                        { "payload", new JObject
-                            {
-                                { "website", Config.WebsiteId },
-                                { "hostname", "eddy3d-plugin" },
-                                { "language", "en-US" },
-                                { "screen", screenSize },
-                                { "url", url },
-                                { "referrer", "https://eddy3d.com" },
-                                { "title", title },
-                                { "name", eventName },
-                                { "data", identifyData }
-                            }
-                        }
+                        { "payload", identifyPayloadData }
                     };
                     
                     var identifyRequest = new HttpRequestMessage(HttpMethod.Post, Config.Endpoint);
                     identifyRequest.Content = new StringContent(identifyPayload.ToString(), Encoding.UTF8, "application/json");
                     identifyRequest.Headers.UserAgent.ParseAdd(GetUserAgent(deviceType, eddyVersion));
-                    await HttpClient.SendAsync(identifyRequest);
-                    _isIdentified = true;
+                    var identifyResponse = await HttpClient.SendAsync(identifyRequest);
+
+                    // Only mark identify as complete when Umami accepts it.
+                    if (identifyResponse.IsSuccessStatusCode)
+                    {
+                        _isIdentified = true;
+                    }
                 }
 
                 // 2. Send DATA request (Event or PageView)
@@ -200,6 +214,7 @@ namespace Eddy.Analytics
                 var payloadData = new JObject
                 {
                     { "website", Config.WebsiteId },
+                    { "id", visitorId },
                     { "hostname", "eddy3d-plugin" },
                     { "language", "en-US" },
                     { "screen", screenSize },
@@ -302,6 +317,15 @@ namespace Eddy.Analytics
         }
 
         /// <summary>
+        /// Tracks an indoor "Mesh Case" action.
+        /// </summary>
+        /// <param name="mode">Execution mode (e.g., "BlueCFD", "Docker", "WSL").</param>
+        public static void TrackIndoorMeshCase(string mode = "unknown")
+        {
+            TrackEvent("/indoor/mesh-case", "/indoor/workflow/mesh", new JObject { { "mode", mode } });
+        }
+
+        /// <summary>
         /// Tracks a "Simulate Case" action.
         /// </summary>
         /// <param name="mode">Execution mode (e.g., "BlueCFD", "Docker", "WSL").</param>
@@ -311,12 +335,40 @@ namespace Eddy.Analytics
         }
 
         /// <summary>
+        /// Tracks an indoor "Simulate Case" action.
+        /// </summary>
+        /// <param name="mode">Execution mode (e.g., "BlueCFD", "Docker", "WSL").</param>
+        public static void TrackIndoorSimulateCase(string mode = "unknown")
+        {
+            TrackEvent("/indoor/simulate-case", "/indoor/workflow/simulate", new JObject { { "mode", mode } });
+        }
+
+        /// <summary>
+        /// Tracks an MRT simulation run.
+        /// </summary>
+        /// <param name="mode">Execution mode identifier.</param>
+        /// <param name="windCoupled">Whether a CFD result was provided for wind coupling.</param>
+        public static void TrackMrtSimulateCase(string mode = "mrt", bool windCoupled = false)
+        {
+            TrackEvent(
+                "/mrt/simulate-case",
+                "/mrt/workflow/simulate",
+                new JObject
+                {
+                    { "mode", mode },
+                    { "wind_coupled", windCoupled }
+                });
+        }
+
+        /// <summary>
         /// Tracks a "Probe Case" action.
         /// </summary>
         /// <param name="probeCount">Number of probe points.</param>
         public static void TrackProbeCase(int probeCount = 0)
         {
-            TrackEvent("/outdoor/probe-case", "/workflow/probe", new JObject { { "probe_count", probeCount } });
+            // Use ProbeSimulation for both event name and URL so custom event
+            // properties show under the same probing bucket in Umami.
+            TrackEvent("ProbeSimulation", "/gh/probesimulation", new JObject { { "probe_count", probeCount } });
         }
 
         /// <summary>

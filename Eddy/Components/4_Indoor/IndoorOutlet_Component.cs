@@ -1,5 +1,6 @@
 ﻿using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
+using Eddy.Analytics;
 using EddyLib;
 using EddyLib.Indoor;
 using Grasshopper.Kernel;
@@ -25,6 +26,7 @@ Defines where air exhausts from the room, such as return grilles or open windows
               EddyVersion.Name, 
               "9 | Indoor")
         {
+            Analytics.Analytics.TrackComponentView("IndoorOutlet");
         }
 
         /// <summary>

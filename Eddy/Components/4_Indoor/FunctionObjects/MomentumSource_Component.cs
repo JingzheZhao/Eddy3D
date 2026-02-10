@@ -1,5 +1,6 @@
 ﻿using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
+using Eddy.Analytics;
 using EddyLib;
 using EddyLib.Indoor;
 using Grasshopper.Kernel;
@@ -22,6 +23,7 @@ Creates a volume that actively pushes air in a specific direction. Use this to m
 " + EddyVersion.toString(), 
               EddyVersion.Name, "9 | Indoor")
         {
+            Analytics.Analytics.TrackComponentView("IndoorMomentumSource");
         }
 
         /// <summary>

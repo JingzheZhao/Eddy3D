@@ -1,5 +1,6 @@
 ﻿using Eddy.Properties;
 using EddyLib;
+using Eddy.Analytics;
 using EddyLib.Radiation;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
@@ -20,6 +21,7 @@ Creates a single sensor point for detailed MRT analysis at a specific location, 
 
 " + EddyVersion.toString(), EddyVersion.Name, "2 | Radiation")
         {
+            Analytics.Analytics.TrackComponentView("MRTPointSensor");
         }
 
         /// <summary>

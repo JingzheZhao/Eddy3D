@@ -1,5 +1,6 @@
 ﻿using Eddy.Properties;
 using EddyLib;
+using Eddy.Analytics;
 using EddyLib.Radiation;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
@@ -29,6 +30,7 @@ Surface temperatures are typically lower than paved surfaces.
 " + EddyVersion.toString(), 
               EddyVersion.Name, "2 | Radiation")
         {
+            Analytics.Analytics.TrackComponentView("MRTVegetationSurface");
         }
 
         /// <summary>

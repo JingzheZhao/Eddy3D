@@ -24,7 +24,8 @@ namespace EddyLib.Indoor.BatchFiles
 
         private static string BatchBody(int cpus)
         {
-            return $@"renumberMesh -overwrite 2>&1 | tee -a ""renumberMesh.log""
+            return $@"topoSet 2>&1 | tee -a ""topoSet.log""
+renumberMesh -overwrite 2>&1 | tee -a ""renumberMesh.log""
 decomposePar -force 2>&1 | tee -a ""decomposePar.log""
 mpiexec -np {cpus} buoyantSimpleFoam -parallel 2>&1 | tee -a ""buoyantSimpleFoam.log""
 reconstructPar 2>&1 | tee -a ""reconstructPar.log""";

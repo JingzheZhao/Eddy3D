@@ -1,5 +1,6 @@
 ﻿using Eddy.Properties;
 using EddyLib;
+using Eddy.Analytics;
 using EddyLib.Radiation;
 using EddyLib.UI;
 using Grasshopper.Kernel;
@@ -39,6 +40,7 @@ Combines:
 " + EddyVersion.toString(), 
               EddyVersion.Name, "2 | Radiation")
         {
+            Analytics.Analytics.TrackComponentView("MRTSimulation");
         }
 
         /// <summary>
@@ -280,6 +282,8 @@ Combines:
 
             if (RUN)
             {
+                Analytics.Analytics.TrackMrtSimulateCase("MRT", !String.IsNullOrWhiteSpace(CFDResultPath));
+
                 if (HidePopUp)
                 {
                     DoWork(new CancellationTokenSource());

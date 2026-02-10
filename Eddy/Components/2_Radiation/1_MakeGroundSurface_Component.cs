@@ -1,5 +1,6 @@
 ﻿using Eddy.Properties;
 using EddyLib;
+using Eddy.Analytics;
 using EddyLib.Radiation;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
@@ -29,6 +30,7 @@ Defines properties for ground surfaces like asphalt, concrete, or soil. Critical
 " + EddyVersion.toString(), 
               EddyVersion.Name, "2 | Radiation")
         {
+            Analytics.Analytics.TrackComponentView("MRTGroundSurface");
         }
 
         /// <summary>

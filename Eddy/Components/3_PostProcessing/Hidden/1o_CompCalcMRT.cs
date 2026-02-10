@@ -1,5 +1,6 @@
 ﻿using Eddy.Properties;
 using EddyLib;
+using Eddy.Analytics;
 using EddyLib.OutdoorComfort;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
@@ -42,6 +43,7 @@ Please make sure Radiance is installed at: ""C:\Program Files\Radiance"".
 " + EddyVersion.toString(),
               EddyVersion.Name, "3 | PostProcessing")
         {
+            Analytics.Analytics.TrackComponentView("LegacyMRT");
         }
 
         /// <summary>
@@ -168,6 +170,8 @@ Please make sure Radiance is installed at: ""C:\Program Files\Radiance"".
 
             if (run == true && canRun == true)
             {
+                Analytics.Analytics.TrackMrtSimulateCase("LegacyMRT", false);
+
                 try
                 {
                     EventHandler eh = MRTSimComplete;
