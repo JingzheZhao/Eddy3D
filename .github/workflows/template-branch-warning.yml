@@ -1,0 +1,57 @@
+name: Template Branch Warning
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - release
+  pull_request:
+    branches:
+      - main
+      - dev
+      - release
+  workflow_dispatch:
+
+jobs:
+  template-branch-check:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read expected template branch
+        id: expected_branch
+        shell: pwsh
+        run: |
+          $content = Get-Content 'EddyLib/GlobalSettings/EddyVersion.cs' -Raw
+          $match = [regex]::Match($content, 'ProductVersion\s*=\s*"([^"]+)"')
+          if (-not $match.Success) {
+            throw 'Could not read EddyVersion.ProductVersion from EddyLib/GlobalSettings/EddyVersion.cs'
+          }
+
+          $branch = $match.Groups[1].Value
+          "branch=$branch" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Run template branch unit test (warning only)
+        id: template_test
+        continue-on-error: true
+        run: >-
+          dotnet test RhinoPlugin.Test.Xunit\RhinoPlugin.Test.Xunit.csproj
+          -c Debug
+          --filter "FullyQualifiedName~TemplateBranch_Exists_And_IsNotEmpty"
+
+      - name: Warn when template branch check fails
+        if: steps.template_test.outcome == 'failure'
+        run: |
+          echo "::warning::Template branch check failed. Expected branch '${{ steps.expected_branch.outputs.branch }}' in Eddy3D-OutdoorIndoorTemplates to exist and be non-empty."
+
+      - name: Success note
+        if: steps.template_test.outcome == 'success'
+        run: echo "Template branch check passed."

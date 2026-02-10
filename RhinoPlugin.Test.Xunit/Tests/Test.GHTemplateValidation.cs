@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Xunit;
@@ -64,6 +67,46 @@ namespace RhinoPlugin.Test.Xunit
         public GHTemplateValidationTests(ITestOutputHelper output)
         {
             _output = output;
+        }
+
+        /// <summary>
+        /// Ensures the template repo has a branch matching EddyVersion.ProductVersion
+        /// and that this branch is not empty (has at least one file/folder in root).
+        /// </summary>
+        [Fact]
+        public async Task TemplateBranch_Exists_And_IsNotEmpty()
+        {
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("eddy3d-template-test", "1.0"));
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+                client.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
+
+                var branchUrl =
+                    $"https://api.github.com/repos/{RepoOwner}/{RepoName}/branches/{Uri.EscapeDataString(RepoBranch)}";
+                var branchResp = await client.GetAsync(branchUrl);
+
+                Assert.True(
+                    branchResp.IsSuccessStatusCode,
+                    $"Branch '{RepoBranch}' does not exist in {RepoOwner}/{RepoName}. HTTP {(int)branchResp.StatusCode}.");
+
+                var contentsUrl =
+                    $"https://api.github.com/repos/{RepoOwner}/{RepoName}/contents?ref={Uri.EscapeDataString(RepoBranch)}";
+                var contentsResp = await client.GetAsync(contentsUrl);
+
+                Assert.True(
+                    contentsResp.IsSuccessStatusCode,
+                    $"Could not read branch root contents for '{RepoBranch}'. HTTP {(int)contentsResp.StatusCode}.");
+
+                var body = await contentsResp.Content.ReadAsStringAsync();
+                using (var doc = JsonDocument.Parse(body))
+                {
+                    Assert.Equal(JsonValueKind.Array, doc.RootElement.ValueKind);
+                    Assert.True(
+                        doc.RootElement.GetArrayLength() > 0,
+                        $"Branch '{RepoBranch}' is empty in {RepoOwner}/{RepoName}.");
+                }
+            }
         }
 
         /// <summary>
