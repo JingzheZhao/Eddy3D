@@ -108,7 +108,7 @@ Requires connected walls, inlets, outlets, and optional heat sources.
             pManager.AddTextParameter(
                 "Directory", "Dir", 
                 "Working Directory", 
-                GH_ParamAccess.item, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Eddy3D-Cases", "IndoorProject"));
+                GH_ParamAccess.item, Path.Combine(DefaultDirectoriesAndPaths.CasesDir, "IndoorProject"));
             pManager[4].Optional = true;
 
             pManager.AddPointParameter(
@@ -182,10 +182,23 @@ Requires connected walls, inlets, outlets, and optional heat sources.
                 if (o != null && o.Value != null && o.Value.Geometry != null) Outlets.Add(o.Value);
             }
 
-            string dir = "";
-            DA.GetData(4, ref dir);
-            if (dir == null) dir = "";
-            BaseWorkingDir = Utilities.EnsureTrailingBackslash(dir);
+            string dirInput = "";
+            DA.GetData(4, ref dirInput);
+            if (dirInput == null) dirInput = "";
+
+            string resolvedWorkingDir;
+            try
+            {
+                resolvedWorkingDir = Path.GetFullPath(DefaultDirectoriesAndPaths.ResolveWorkingDirectory(dirInput));
+                Directory.CreateDirectory(resolvedWorkingDir);
+            }
+            catch (Exception ex)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Invalid or inaccessible working directory: " + ex.Message);
+                return;
+            }
+
+            BaseWorkingDir = Utilities.EnsureTrailingBackslash(resolvedWorkingDir);
 
             Point3d pointInsideDomain = new Point3d();
             DA.GetData(5, ref pointInsideDomain);
@@ -248,7 +261,7 @@ Requires connected walls, inlets, outlets, and optional heat sources.
             DA.GetData(8, ref CPUs);
             if (CPUs < 2) { CPUs = 2; }; // Indor is not setup up for single CPU currently
 
-            var dom = new IndoorDomain(endTime, dir, cellSize, pointInsideDomain, Walls, Inlets, Outlets, FOs, CPUs  );
+            var dom = new IndoorDomain(endTime, BaseWorkingDir, cellSize, pointInsideDomain, Walls, Inlets, Outlets, FOs, CPUs);
             //var domGoo = new IndoorDomaingGoo(dom);
 
          
@@ -256,7 +269,7 @@ Requires connected walls, inlets, outlets, and optional heat sources.
             var runSettings = new OFRunSettings(endTime: endTime );
             var meshSettings = new OFMeshSettings();
 
-            var RES = new OFResult(dom, runSettings, meshSettings, dir);
+            var RES = new OFResult(dom, runSettings, meshSettings, BaseWorkingDir);
 
             bool RUN = false;
             DA.GetData(9, ref RUN);
@@ -271,7 +284,7 @@ Requires connected walls, inlets, outlets, and optional heat sources.
                 if (_selectedEngine == SimEngine.Docker)
                 {
                     // Docker: run OpenFOAM commands interactively
-                    RunDockerProcesses(CPUs, dir);
+                    RunDockerProcesses(CPUs, BaseWorkingDir);
                 }
                 else
                 {
