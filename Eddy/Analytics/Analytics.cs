@@ -1,7 +1,11 @@
 using System;
+using System.Drawing;
+using System.Management;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using EddyLib;
 using Newtonsoft.Json.Linq;
 
 namespace Eddy.Analytics
@@ -96,6 +100,7 @@ namespace Eddy.Analytics
 
         // Cache the network org so we don't hit the API for every event
         private static string _cachedNetworkOrg = null;
+        private static string _cachedNetworkOrgName = null;
         private static bool _networkOrgFetched = false;
         private static bool _isIdentified = false;
 
@@ -115,26 +120,30 @@ namespace Eddy.Analytics
             {
                 string visitorId = Identity.GetUniqueId();
                 string rhinoVersion = GetRhinoVersion();
+                string eddyVersion = GetEddyVersion();
+                string deviceType = GetDeviceType();
+                string screenSize = GetScreenSize();
                 
                 // Fetch network org once per session (cached)
-                if (!_networkOrgFetched)
-                {
-                    _cachedNetworkOrg = await GetNetworkOrgAsync();
-                    _networkOrgFetched = true;
-                }
+                await EnsureNetworkOrgCachedAsync();
 
                 // Build identify data with all properties
                 var identifyData = new JObject
                 {
                     { "id", visitorId },
                     { "rhino_version", rhinoVersion },
-                    { "plugin_version", GetPluginVersion() }
+                    { "eddy_version", eddyVersion },
+                    { "device_type", deviceType }
                 };
                 
                 // Add network_org if available (shows university/company)
                 if (!string.IsNullOrWhiteSpace(_cachedNetworkOrg))
                 {
                     identifyData["network_org"] = _cachedNetworkOrg;
+                }
+                if (!string.IsNullOrWhiteSpace(_cachedNetworkOrgName))
+                {
+                    identifyData["network_org_name"] = _cachedNetworkOrgName;
                 }
 
                 // 1. Send IDENTIFY request (Session Setup) - ONLY ONCE
@@ -148,7 +157,7 @@ namespace Eddy.Analytics
                                 { "website", Config.WebsiteId },
                                 { "hostname", "eddy3d-plugin" },
                                 { "language", "en-US" },
-                                { "screen", "1920x1080" },
+                                { "screen", screenSize },
                                 { "url", url },
                                 { "referrer", "https://eddy3d.com" },
                                 { "title", title },
@@ -160,20 +169,32 @@ namespace Eddy.Analytics
                     
                     var identifyRequest = new HttpRequestMessage(HttpMethod.Post, Config.Endpoint);
                     identifyRequest.Content = new StringContent(identifyPayload.ToString(), Encoding.UTF8, "application/json");
-                    identifyRequest.Headers.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Eddy3D/1.0");
+                    identifyRequest.Headers.UserAgent.ParseAdd(GetUserAgent(deviceType, eddyVersion));
                     await HttpClient.SendAsync(identifyRequest);
                     _isIdentified = true;
                 }
 
                 // 2. Send DATA request (Event or PageView)
-                var dataObject = new JObject();
+                var dataObject = new JObject
+                {
+                    { "visitor_id", visitorId },
+                    { "rhino_version", rhinoVersion },
+                    { "eddy_version", eddyVersion },
+                    { "device_type", deviceType }
+                };
+
+                if (!string.IsNullOrWhiteSpace(_cachedNetworkOrg))
+                {
+                    dataObject["network_org"] = _cachedNetworkOrg;
+                }
+                if (!string.IsNullOrWhiteSpace(_cachedNetworkOrgName))
+                {
+                    dataObject["network_org_name"] = _cachedNetworkOrgName;
+                }
                 if (additionalData != null)
                 {
                     foreach (var prop in additionalData.Properties()) dataObject[prop.Name] = prop.Value;
                 }
-                
-                // Add visitor_id to data just in case
-                dataObject["visitor_id"] = visitorId;
 
                 // Prepare payload
                 var payloadData = new JObject
@@ -181,7 +202,7 @@ namespace Eddy.Analytics
                     { "website", Config.WebsiteId },
                     { "hostname", "eddy3d-plugin" },
                     { "language", "en-US" },
-                    { "screen", "1920x1080" },
+                    { "screen", screenSize },
                     { "url", url },
                     { "referrer", "https://eddy3d.com" },
                     { "title", title },
@@ -204,7 +225,7 @@ namespace Eddy.Analytics
                 // Send request
                 var request = new HttpRequestMessage(HttpMethod.Post, Config.Endpoint);
                 request.Content = new StringContent(payload.ToString(), Encoding.UTF8, "application/json");
-                request.Headers.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Eddy3D/1.0");
+                request.Headers.UserAgent.ParseAdd(GetUserAgent(deviceType, eddyVersion));
 
                 var response = await HttpClient.SendAsync(request);
                 
@@ -233,7 +254,7 @@ namespace Eddy.Analytics
 
                 // 2. Resolve Network Organization (e.g. "Georgia Tech", "T-Mobile")
                 // This helps identify institutional usage for funding.
-                string networkOrg = await GetNetworkOrgAsync();
+                await EnsureNetworkOrgCachedAsync();
 
                 // Give Umami a moment to process the pageview before the event
                 await Task.Delay(500);
@@ -243,11 +264,6 @@ namespace Eddy.Analytics
                 if (!string.IsNullOrWhiteSpace(organization))
                 {
                     data["organization_input"] = CleanOrganizationName(organization);
-                }
-                
-                if (!string.IsNullOrWhiteSpace(networkOrg))
-                {
-                    data["network_org"] = networkOrg;
                 }
 
                 string result = await TrackEventAsync("/outdoor/software-launch", "/startup", data);
@@ -349,6 +365,100 @@ namespace Eddy.Analytics
         }
 
         /// <summary>
+        /// Gets the Eddy3D version from the codebase constant.
+        /// </summary>
+        private static string GetEddyVersion()
+        {
+            try
+            {
+                return EddyVersion.ProductVersion;
+            }
+            catch
+            {
+                return GetPluginVersion();
+            }
+        }
+
+        /// <summary>
+        /// Detects whether this machine is a desktop or laptop.
+        /// </summary>
+        private static string GetDeviceType()
+        {
+            try
+            {
+                using (var searcher = new ManagementObjectSearcher("SELECT PCSystemType FROM Win32_ComputerSystem"))
+                {
+                    foreach (ManagementObject item in searcher.Get())
+                    {
+                        if (item["PCSystemType"] == null) continue;
+                        int type = Convert.ToInt32(item["PCSystemType"]);
+                        if (type == 2) return "laptop";           // Mobile
+                        if (type == 1 || type == 3) return "desktop"; // Desktop or Workstation
+                    }
+                }
+            }
+            catch
+            {
+                // fall through to other heuristics
+            }
+
+            try
+            {
+                return SystemInformation.PowerStatus.BatteryChargeStatus == BatteryChargeStatus.NoSystemBattery
+                    ? "desktop"
+                    : "laptop";
+            }
+            catch
+            {
+                return "desktop";
+            }
+        }
+
+        /// <summary>
+        /// Reads the current virtual screen bounds for analytics context.
+        /// </summary>
+        private static string GetScreenSize()
+        {
+            try
+            {
+                Rectangle bounds = SystemInformation.VirtualScreen;
+                if (bounds.Width > 0 && bounds.Height > 0)
+                {
+                    return $"{bounds.Width}x{bounds.Height}";
+                }
+            }
+            catch
+            {
+                // ignore and use fallback
+            }
+
+            return "unknown";
+        }
+
+        /// <summary>
+        /// Builds the analytics user agent with explicit desktop/laptop context.
+        /// </summary>
+        private static string GetUserAgent(string deviceType, string eddyVersion)
+        {
+            string deviceToken = string.Equals(deviceType, "laptop", StringComparison.OrdinalIgnoreCase)
+                ? "Laptop"
+                : "Desktop";
+            return $"Mozilla/5.0 (Windows NT 10.0; Win64; x64; {deviceToken}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Eddy3D/{eddyVersion}";
+        }
+
+        /// <summary>
+        /// Ensures network organization data is fetched once and cached for this session.
+        /// </summary>
+        private static async Task EnsureNetworkOrgCachedAsync()
+        {
+            if (_networkOrgFetched) return;
+
+            _cachedNetworkOrg = await GetNetworkOrgAsync();
+            _cachedNetworkOrgName = StripAsnPrefix(_cachedNetworkOrg);
+            _networkOrgFetched = true;
+        }
+
+        /// <summary>
         /// Safely retrieves the Network Organization (ISP) from external API.
         /// Returns null on any failure to ensure no blocking/crashing.
         /// </summary>
@@ -356,24 +466,69 @@ namespace Eddy.Analytics
         {
             try
             {
-                // Use ip-api.com (Free, non-commercial use allowed, very reliable)
-                // fetch 'org' and 'isp' fields
+                // Primary source: ipinfo.io (Windows-friendly endpoint first)
+                string[] ipInfoEndpoints =
+                {
+                    "http://ipinfo.io/json",
+                    "https://ipinfo.io/json"
+                };
+
+                foreach (string endpoint in ipInfoEndpoints)
+                {
+                    try
+                    {
+                        var response = await HttpClient.GetStringAsync(endpoint);
+                        var json = JObject.Parse(response);
+                        string org = json["org"] != null ? json["org"].ToString().Trim() : null;
+                        if (!string.IsNullOrWhiteSpace(org))
+                        {
+                            return org;
+                        }
+                    }
+                    catch
+                    {
+                        // try next endpoint
+                    }
+                }
+            }
+            catch
+            {
+                // fall back to secondary provider
+            }
+
+            try
+            {
+                // Secondary fallback (org + isp) if ipinfo is unavailable.
                 var response = await HttpClient.GetStringAsync("http://ip-api.com/json/?fields=org,isp");
                 var json = JObject.Parse(response);
-                
-                string org = json["org"] != null ? json["org"].ToString() : "";
-                string isp = json["isp"] != null ? json["isp"].ToString() : "";
 
-                // Return the most descriptive one, or combine
-                if (!string.IsNullOrWhiteSpace(org) && org != isp)
+                string org = json["org"] != null ? json["org"].ToString().Trim() : "";
+                string isp = json["isp"] != null ? json["isp"].ToString().Trim() : "";
+
+                if (!string.IsNullOrWhiteSpace(org) && !string.Equals(org, isp, StringComparison.OrdinalIgnoreCase))
+                {
                     return $"{org} ({isp})";
-                
+                }
+
                 return !string.IsNullOrWhiteSpace(org) ? org : isp;
             }
             catch
             {
                 return null; // Fail silently, analytics shouldn't break app
             }
+        }
+
+        /// <summary>
+        /// Converts "AS21928 T-Mobile USA, Inc." to "T-Mobile USA, Inc." for cleaner grouping.
+        /// </summary>
+        private static string StripAsnPrefix(string org)
+        {
+            if (string.IsNullOrWhiteSpace(org)) return null;
+            if (!org.StartsWith("AS", StringComparison.OrdinalIgnoreCase)) return org;
+
+            int firstSpace = org.IndexOf(' ');
+            if (firstSpace < 0 || firstSpace + 1 >= org.Length) return org;
+            return org.Substring(firstSpace + 1).Trim();
         }
     }
 }

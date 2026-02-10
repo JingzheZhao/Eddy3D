@@ -6,11 +6,21 @@
 #define MyAppPublisher "Patrick Kastner, Ilker Karadag, Timur Dogan"
 #define MyAppURL "https://www.eddy3d.com"
 #define MyAppExeName "Eddy3D"
-#define SrcApp "..\Eddy\bin\Eddy.gha"
-#define FileVerStr GetVersionNumbersString(SrcApp)
-#define StripBuild(str VerStr) Copy(VerStr, 1)
-;#define StripBuild(str VerStr) Copy(VerStr, 1, RPos(".", VerStr)-1)
-#define AppVerStr StripBuild(FileVerStr)
+
+#ifndef SrcDir
+  #define SrcDir "..\Eddy\bin"
+#endif
+
+#ifndef SrcApp
+  #define SrcApp SrcDir + "\Eddy.gha"
+#endif
+
+#ifndef AppVerStr
+  #define FileVerStr GetVersionNumbersString(SrcApp)
+  #define StripBuild(str VerStr) Copy(VerStr, 1)
+  ;#define StripBuild(str VerStr) Copy(VerStr, 1, RPos(".", VerStr)-1)
+  #define AppVerStr StripBuild(FileVerStr)
+#endif
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -51,7 +61,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 ; Source: "..\Ilmerge\*"; DestDir: "{#Eddy3DDir}"; Flags: ignoreversion
 
-Source: "..\Eddy\bin\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
+Source: "{#SrcDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 
 ; GHLink file will be created dynamically in [Code] section
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files

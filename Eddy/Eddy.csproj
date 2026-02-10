@@ -14,6 +14,7 @@
   <PropertyGroup>
     <NoWarn>$(NoWarn);CA1416</NoWarn>
     <NoWarn>$(NoWarn);NU1701</NoWarn>
+    <Authors>Eddy3D</Authors>
   </PropertyGroup>
 
   <!-- Copy DLL to .gha (Grasshopper add-in) -->
@@ -37,7 +38,7 @@
 
   <!-- Run BuildInstaller.bat on Windows -->
   <Target Name="RunBuildInstaller" AfterTargets="AfterBuild" Condition="'$(OS)' == 'Windows_NT'">
-    <Exec Command="call &quot;$(ProjectDir)..\Build\BuildInstaller.bat&quot;" IgnoreExitCode="true" />
+    <Exec Command="call &quot;$(ProjectDir)..\Build\BuildInstaller.bat&quot; &quot;$(TargetDir)&quot;" IgnoreExitCode="true" />
   </Target>
 
   <!-- Exclude files not in the original csproj (unused/work-in-progress) -->

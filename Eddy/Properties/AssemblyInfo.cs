@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Eddy3D")]
-[assembly: AssemblyCopyright("Copyright © Patrick Kastner, Zoe De Simone, Timur Dogan - 2021")]
+[assembly: AssemblyCopyright("Copyright © Patrick Kastner, Ilker Karadag, Timur Dogan - 2026")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -34,6 +34,11 @@ namespace Eddy
             Color.FromArgb(0x00, 0xA5, 0xCF)
         };
 
+        private static readonly string[] PreferredResidualFieldOrder =
+        {
+            "Ux", "Uy", "Uz", "p", "k", "epsilon"
+        };
+
         private readonly ResidualStreamState _state = new ResidualStreamState();
         private ResidualPlotSnapshot _snapshot = ResidualPlotSnapshot.Empty;
 
@@ -248,10 +253,13 @@ Use this for quick convergence monitoring without external plotting windows.
 
             if (_state.Fields.Count == 0)
             {
-                for (int i = 1; i < tokens.Length; i++)
+                int fieldCount = tokens.Length - 1;
+                for (int i = 0; i < fieldCount; i++)
                 {
-                    string generated = "f" + i.ToString(CultureInfo.InvariantCulture);
-                    _state.AddField(generated);
+                    string generated = i < PreferredResidualFieldOrder.Length
+                        ? PreferredResidualFieldOrder[i]
+                        : "f" + (i + 1).ToString(CultureInfo.InvariantCulture);
+                    _state.AddField(generated, i);
                 }
             }
 
@@ -261,7 +269,7 @@ Use this for quick convergence monitoring without external plotting windows.
             {
                 string field = _state.Fields[i];
                 double value = double.NaN;
-                int tokenIndex = i + 1;
+                int tokenIndex = _state.GetTokenIndex(field, i) + 1;
                 if (tokenIndex < tokens.Length && TryParseDouble(tokens[tokenIndex], out double parsed))
                 {
                     value = parsed;
@@ -285,10 +293,71 @@ Use this for quick convergence monitoring without external plotting windows.
             }
 
             _state.ClearFields();
+            var rawFields = new List<string>();
+            var rawIndexByName = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             for (int i = 1; i < tokens.Length; i++)
             {
-                _state.AddField(tokens[i]);
+                string rawField = tokens[i]?.Trim();
+                if (string.IsNullOrWhiteSpace(rawField))
+                {
+                    continue;
+                }
+
+                rawFields.Add(rawField);
+                if (!rawIndexByName.ContainsKey(rawField))
+                {
+                    rawIndexByName[rawField] = rawFields.Count - 1;
+                }
             }
+
+            foreach (string field in ReorderFields(rawFields))
+            {
+                int tokenIndex = rawIndexByName.TryGetValue(field, out int idx) ? idx : _state.Fields.Count;
+                _state.AddField(field, tokenIndex);
+            }
+        }
+
+        private static IEnumerable<string> ReorderFields(IEnumerable<string> rawFields)
+        {
+            if (rawFields == null)
+            {
+                return Enumerable.Empty<string>();
+            }
+
+            var unique = new List<string>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string field in rawFields)
+            {
+                if (string.IsNullOrWhiteSpace(field))
+                {
+                    continue;
+                }
+
+                if (seen.Add(field))
+                {
+                    unique.Add(field);
+                }
+            }
+
+            var ordered = new List<string>(unique.Count);
+            foreach (string preferred in PreferredResidualFieldOrder)
+            {
+                string match = unique.FirstOrDefault(f => string.Equals(f, preferred, StringComparison.OrdinalIgnoreCase));
+                if (!string.IsNullOrWhiteSpace(match))
+                {
+                    ordered.Add(match);
+                }
+            }
+
+            foreach (string field in unique)
+            {
+                if (!ordered.Any(x => string.Equals(x, field, StringComparison.OrdinalIgnoreCase)))
+                {
+                    ordered.Add(field);
+                }
+            }
+
+            return ordered;
         }
 
         private static string[] SplitTokens(string line)
@@ -465,6 +534,8 @@ Use this for quick convergence monitoring without external plotting windows.
             public List<string> Fields { get; } = new List<string>();
             public Dictionary<string, List<double>> Values { get; } =
                 new Dictionary<string, List<double>>(StringComparer.OrdinalIgnoreCase);
+            public Dictionary<string, int> FieldTokenIndexes { get; } =
+                new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
             public void EnsurePath(string path)
             {
@@ -481,6 +552,7 @@ Use this for quick convergence monitoring without external plotting windows.
                 Time.Clear();
                 Fields.Clear();
                 Values.Clear();
+                FieldTokenIndexes.Clear();
             }
 
             public void Reset()
@@ -489,26 +561,40 @@ Use this for quick convergence monitoring without external plotting windows.
                 ResetForCurrentPath();
             }
 
-            public void AddField(string name)
+            public void AddField(string name, int tokenIndex = -1)
             {
                 if (string.IsNullOrWhiteSpace(name))
                 {
                     return;
                 }
 
-                if (Values.ContainsKey(name))
+                bool exists = Values.ContainsKey(name);
+                if (!exists)
                 {
-                    return;
+                    Fields.Add(name);
+                    Values[name] = new List<double>();
                 }
 
-                Fields.Add(name);
-                Values[name] = new List<double>();
+                if (tokenIndex >= 0)
+                {
+                    FieldTokenIndexes[name] = tokenIndex;
+                }
+                else if (!FieldTokenIndexes.ContainsKey(name))
+                {
+                    FieldTokenIndexes[name] = Fields.Count - 1;
+                }
             }
 
             public void ClearFields()
             {
                 Fields.Clear();
                 Values.Clear();
+                FieldTokenIndexes.Clear();
+            }
+
+            public int GetTokenIndex(string field, int fallbackIndex)
+            {
+                return FieldTokenIndexes.TryGetValue(field, out int index) ? index : fallbackIndex;
             }
 
             public void Trim(int maxPoints)
@@ -889,7 +975,7 @@ Use this for quick convergence monitoring without external plotting windows.
                 float y = rect.Top - 14;
                 const int maxLegend = 8;
                 var displaySeries = snapshot.Series
-                    .OrderBy(s => IsKSeries(s) ? 0 : 1)
+                    .OrderBy(s => GetLegendOrder(s?.Name))
                     .ThenBy(s => s.Name, StringComparer.OrdinalIgnoreCase)
                     .Take(maxLegend)
                     .ToList();
@@ -912,6 +998,24 @@ Use this for quick convergence monitoring without external plotting windows.
                 return series != null &&
                        !string.IsNullOrWhiteSpace(series.Name) &&
                        string.Equals(series.Name.Trim(), "k", StringComparison.OrdinalIgnoreCase);
+            }
+
+            private static int GetLegendOrder(string name)
+            {
+                if (string.IsNullOrWhiteSpace(name))
+                {
+                    return PreferredResidualFieldOrder.Length + 1000;
+                }
+
+                for (int i = 0; i < PreferredResidualFieldOrder.Length; i++)
+                {
+                    if (string.Equals(name.Trim(), PreferredResidualFieldOrder[i], StringComparison.OrdinalIgnoreCase))
+                    {
+                        return i;
+                    }
+                }
+
+                return PreferredResidualFieldOrder.Length + 1000;
             }
         }
     }
