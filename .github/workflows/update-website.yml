@@ -1,0 +1,94 @@
+name: Update Website on Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  update-website:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Extract release info
+        id: info
+        shell: bash
+        run: |
+          # Strip leading 'v' from tag
+          TAG="${{ github.event.release.tag_name }}"
+          VERSION="${TAG#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+          # Human-readable date (e.g. "February 11, 2026")
+          DATE_LONG="$(date -u +'%B %-d, %Y')"
+          echo "date_long=$DATE_LONG" >> "$GITHUB_OUTPUT"
+
+          # Short date for header (e.g. "Feb. 11, 2026")
+          DATE_SHORT="$(date -u +'%b. %-d, %Y')"
+          echo "date_short=$DATE_SHORT" >> "$GITHUB_OUTPUT"
+
+      - name: Clone Eddy3D-Website (dev branch)
+        run: |
+          git clone --branch dev --single-branch \
+            "https://x-access-token:${{ secrets.WEBSITE_PAT }}@github.com/Eddy3D-Dev/Eddy3D-Website.git" \
+            website
+
+      - name: Update versions.md
+        shell: bash
+        run: |
+          cd website/docs
+
+          VERSION="${{ steps.info.outputs.version }}"
+          DATE_LONG="${{ steps.info.outputs.date_long }}"
+          DATE_SHORT="${{ steps.info.outputs.date_short }}"
+
+          # --- 1. Update the page title (line 1) ---
+          sed -i "1s/.*/${VERSION} (${DATE_SHORT})/" versions.md
+
+          # --- 2. Prepare the changelog entry ---
+          RELEASE_BODY=$(cat <<'RELEASE_EOF'
+          ${{ github.event.release.body }}
+          RELEASE_EOF
+          )
+
+          # Build the new entry block
+          ENTRY_FILE=$(mktemp)
+          {
+            echo "### ${VERSION} (${DATE_LONG})"
+            echo ""
+            echo "$RELEASE_BODY"
+            echo ""
+          } > "$ENTRY_FILE"
+
+          # --- 3. Insert after "## Changelog" line ---
+          # Find the line number of "## Changelog"
+          CHANGELOG_LINE=$(grep -n '^## Changelog' versions.md | head -1 | cut -d: -f1)
+
+          if [ -z "$CHANGELOG_LINE" ]; then
+            echo "ERROR: Could not find '## Changelog' in versions.md"
+            exit 1
+          fi
+
+          # Insert the new entry after the Changelog heading + blank line
+          INSERT_AT=$((CHANGELOG_LINE + 1))
+          sed -i "${INSERT_AT}r ${ENTRY_FILE}" versions.md
+
+          rm "$ENTRY_FILE"
+
+          echo "--- Updated versions.md ---"
+          head -30 versions.md
+
+      - name: Commit and push
+        run: |
+          cd website
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          VERSION="${{ steps.info.outputs.version }}"
+          git add docs/versions.md
+          git diff --cached --quiet && echo "No changes to commit" && exit 0
+
+          git commit -m "release: update versions.md for v${VERSION}"
+          git push origin dev
