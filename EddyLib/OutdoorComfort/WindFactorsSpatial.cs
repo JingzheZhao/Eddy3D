@@ -23,7 +23,7 @@ namespace EddyLib.OutdoorComfort
         public WindFactorsSpatial(string baseWorkingDir, BCCollection bcond, MultiDirectionalVelocities velocityProbes, List<Point3d> probes, bool interpolate, bool recalc)
         {
             this.BCond = bcond;
-            string binWFSpatial = interpolate == false ? Path.Combine(Utilities.Directories.FixDirectories(baseWorkingDir) + fileName + fileNameBinExtension) : Path.Combine(baseWorkingDir + fileName + fileNameBinExtension);
+            string binWFSpatial = BuildSpatialCachePath(baseWorkingDir, interpolate);
 
             this.SimulatedWindDirections = bcond.WindDirections;
 
@@ -31,15 +31,25 @@ namespace EddyLib.OutdoorComfort
             {
                 try
                 {
-                    this.ValuesSpatial = RadianceFiles.loadBinD(binWFSpatial);
-                    this.resultPrecalculated = true;
-                    this.wrongNumberOfProbes = false;
+                    var cached = RadianceFiles.loadBinD(binWFSpatial);
+                    if (IsCacheCompatible(cached, probes?.Count ?? 0, bcond?.WindDirections?.Count ?? 0))
+                    {
+                        this.ValuesSpatial = cached;
+                        this.resultPrecalculated = true;
+                        this.wrongNumberOfProbes = false;
+                    }
+                    else
+                    {
+                        this.ValuesSpatial = null;
+                        this.resultPrecalculated = false;
+                        this.wrongNumberOfProbes = true;
+                    }
                 }
-                catch (Exception e)
+                catch
                 {
                     this.resultPrecalculated = false;
                     this.wrongNumberOfProbes = true;
-                    throw e;
+                    throw;
                 }
             }
             else
@@ -56,6 +66,28 @@ namespace EddyLib.OutdoorComfort
                 this.resultPrecalculated = false;
                 this.wrongNumberOfProbes = false;
             }
+        }
+
+        private string BuildSpatialCachePath(string baseWorkingDir, bool interpolate)
+        {
+            string cacheDir = Utilities.Directories.FixDirectories(baseWorkingDir);
+            string suffix = interpolate ? interpolationPref + fileNameBinExtension : fileNameBinExtension;
+            return Path.Combine(cacheDir, fileName + suffix);
+        }
+
+        private static bool IsCacheCompatible(double[,] values, int probeCount, int windDirCount)
+        {
+            if (values == null)
+            {
+                return false;
+            }
+
+            if (probeCount <= 0 || windDirCount <= 0)
+            {
+                return false;
+            }
+
+            return values.GetLength(0) == probeCount && values.GetLength(1) == windDirCount;
         }
 
         // This returns the plain annual array
@@ -101,8 +133,7 @@ namespace EddyLib.OutdoorComfort
             double[,] WFSpatial = new double[numberOfSensors, numberOfWindDirs];
 
             int round = 2;
-
-            int cnt = 0;
+            int processedSensors = 0;
 
             #region progressbar
 
@@ -113,6 +144,24 @@ namespace EddyLib.OutdoorComfort
                 // Create lookup table with plain vector magnitudes
 
                 var MultiDirectionalVelMags = VectorLengths(numberOfSensors, numberOfWindDirs, MultiDirectionalVelocities);
+                bool allABL = bcond.BCs.All(item => item is ABL);
+                var approachingVelocityAtProbingHeight = new double[numberOfWindDirs];
+
+                for (int w = 0; w < numberOfWindDirs; w++)
+                {
+                    if (allABL)
+                    {
+                        // We assume a probing height of z = 2m
+                        var castedBc = (ABL)bcond.BCs[w];
+                        approachingVelocityAtProbingHeight[w] = BC.ScaleABL(castedBc.URef, castedBc.zref, castedBc.z0, 2);
+                    }
+                    else
+                    {
+                        var castedBc = (ConstU)bcond.BCs[w];
+                        // We assume a probing height of z = 2m and a zref of 10m for ConstU.
+                        approachingVelocityAtProbingHeight[w] = BC.ScaleABL(castedBc.URef, 10, castedBc.z0, 2);
+                    }
+                }
 
                 Console.WriteLine("Calculating: Wind reduction factors");
 
@@ -121,27 +170,7 @@ namespace EddyLib.OutdoorComfort
                   {
                       for (int w = 0; w < numberOfWindDirs; w++)
                       {
-                          // Independent of hour
-                          var velSimAtProbingHeight = 0.0;
-
-                          // Need to find the corresponding BCond for each hour.
-
-                          bool allABL = bcond.BCs.All(item => item is ABL); // Checks if all items are of type ABL
-
-                          if (allABL)
-                          {
-                              // We assume a probing height of z = 2m
-                              ABL casted_bc = (ABL)bcond.BCs[w];
-                              velSimAtProbingHeight = BC.ScaleABL(casted_bc.URef, casted_bc.zref, casted_bc.z0, 2);
-                          }
-                          else
-                          {
-                              ConstU casted_bc = (ConstU)bcond.BCs[w];
-                              // We assume a probing height of z = 2m
-                              // assume a zref of 10;
-                              velSimAtProbingHeight = BC.ScaleABL(casted_bc.URef, 10, casted_bc.z0, 2);
-                          }
-
+                          var velSimAtProbingHeight = approachingVelocityAtProbingHeight[w];
                           var velSimProbingPoint = MultiDirectionalVelMags[p, w];
 
                           // Avoid Infinity
@@ -151,15 +180,14 @@ namespace EddyLib.OutdoorComfort
                           // for every probing point and multiply that with the scaled-down, measured airport velocity.
 
                           WFSpatial[p, w] = Math.Round(velSimRatio, round);
-
-                          cnt++;
-
-                          #region progressbar
-
-                          progress.Report((double)cnt / numberOfSensors);
-
-                          #endregion progressbar
                       }
+
+                      #region progressbar
+
+                      var processed = System.Threading.Interlocked.Increment(ref processedSensors);
+                      progress.Report((double)processed / numberOfSensors);
+
+                      #endregion progressbar
                   });
             }
 

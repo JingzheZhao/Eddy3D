@@ -123,7 +123,7 @@ namespace Eddy
                 GH_Strings.RunSettings.StabilityLimiterNick,
                 GH_Strings.RunSettings.StabilityLimiterDesc,
                 GH_ParamAccess.item,
-                false);
+                true);
             pManager[10].Optional = true;
 
             // 11
@@ -175,7 +175,7 @@ namespace Eddy
             bool potentialFoamInit = false;
             bool aoa = false;
             string blueCfdPath = "";
-            bool stabilityLimiters = false;
+            bool stabilityLimiters = true;
             bool debugDiagnostics = false;
             bool simpleConsistent = false;
 
@@ -199,6 +199,13 @@ namespace Eddy
             }
 
             if (endTime < writeInterval) writeInterval = endTime;
+
+            if (endTime <= 600)
+            {
+                AddRuntimeMessage(
+                    GH_RuntimeMessageLevel.Warning,
+                    "Iterations <= 600 are recommended for demo purposes only; the simulation will likely not converge within this iteration horizon.");
+            }
 
             if (cpus < -1)
             {

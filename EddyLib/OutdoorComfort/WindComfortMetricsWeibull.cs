@@ -110,13 +110,31 @@ namespace EddyLib.OutdoorComfort
             if (temporalVelocityArray == null || temporalVelocityArray.Length == 0)
                 return bestCase;
 
-            // Filter invalid values; Weibull needs strictly positive samples
-            var arrToProcess = temporalVelocityArray
-                .Where(v => !double.IsNaN(v) && !double.IsInfinity(v) && v > 0.0)
-                .ToArray();
+            // Filter invalid values; Weibull needs strictly positive samples.
+            int validCount = 0;
+            for (int i = 0; i < temporalVelocityArray.Length; i++)
+            {
+                double value = temporalVelocityArray[i];
+                if (!double.IsNaN(value) && !double.IsInfinity(value) && value > 0.0)
+                {
+                    validCount++;
+                }
+            }
 
-            if (arrToProcess.Length == 0)
+            if (validCount == 0)
                 return bestCase;
+
+            var arrToProcess = new double[validCount];
+            int validIndex = 0;
+            for (int i = 0; i < temporalVelocityArray.Length; i++)
+            {
+                double value = temporalVelocityArray[i];
+                if (!double.IsNaN(value) && !double.IsInfinity(value) && value > 0.0)
+                {
+                    arrToProcess[validIndex] = value;
+                    validIndex++;
+                }
+            }
 
             double kappa, lambda;
             try

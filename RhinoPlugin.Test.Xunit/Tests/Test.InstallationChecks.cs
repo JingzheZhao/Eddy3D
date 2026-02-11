@@ -199,6 +199,83 @@ namespace RhinoPlugin.Test.Xunit
         }
 
         [Fact]
+        public void FoamCleaner_RemovesExtendedFeatureEdgeMeshFolders()
+        {
+            var caseRoot = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            var constantDir = Path.Combine(caseRoot, "constant");
+            var rootFeatureDir = Path.Combine(caseRoot, "extendedFeatureEdgeMesh");
+            var constantFeatureDir = Path.Combine(constantDir, "extendedFeatureEdgeMesh");
+            var airRegionFeatureDir = Path.Combine(constantDir, "air", "extendedFeatureEdgeMesh");
+
+            Directory.CreateDirectory(Path.Combine(caseRoot, "system"));
+            Directory.CreateDirectory(constantDir);
+            Directory.CreateDirectory(Path.Combine(caseRoot, "0"));
+            Directory.CreateDirectory(rootFeatureDir);
+            Directory.CreateDirectory(constantFeatureDir);
+            Directory.CreateDirectory(airRegionFeatureDir);
+
+            File.WriteAllText(Path.Combine(rootFeatureDir, "rootFeature.eMesh"), "dummy");
+            File.WriteAllText(Path.Combine(constantFeatureDir, "mainFeature.eMesh"), "dummy");
+            File.WriteAllText(Path.Combine(airRegionFeatureDir, "airFeature.eMesh"), "dummy");
+
+            try
+            {
+                var ok = FoamCleaner.CleanCase(caseRoot);
+                Assert.True(ok);
+
+                Assert.False(Directory.Exists(rootFeatureDir));
+                Assert.False(Directory.Exists(constantFeatureDir));
+                Assert.False(Directory.Exists(airRegionFeatureDir));
+            }
+            finally
+            {
+                if (Directory.Exists(caseRoot))
+                {
+                    Directory.Delete(caseRoot, true);
+                }
+            }
+        }
+
+        [Fact]
+        public void FoamCleaner_RemovesRootProbeCacheBinaries()
+        {
+            var workingDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            var rootPostProcessing = Path.Combine(workingDir, "postProcessing");
+            var nestedPostProcessing = Path.Combine(workingDir, "90", "postProcessing");
+
+            Directory.CreateDirectory(rootPostProcessing);
+            Directory.CreateDirectory(nestedPostProcessing);
+
+            var rootCacheA = Path.Combine(rootPostProcessing, "90_probe_U.bin");
+            var rootCacheB = Path.Combine(rootPostProcessing, "180_customProbe_p.bin");
+            var rootNonCache = Path.Combine(rootPostProcessing, "keep.txt");
+            var nestedBin = Path.Combine(nestedPostProcessing, "should-stay.bin");
+
+            File.WriteAllText(rootCacheA, "cache");
+            File.WriteAllText(rootCacheB, "cache");
+            File.WriteAllText(rootNonCache, "keep");
+            File.WriteAllText(nestedBin, "nested");
+
+            try
+            {
+                var ok = FoamCleaner.CleanProbeCacheFiles(workingDir);
+                Assert.True(ok);
+
+                Assert.False(File.Exists(rootCacheA));
+                Assert.False(File.Exists(rootCacheB));
+                Assert.True(File.Exists(rootNonCache));
+                Assert.True(File.Exists(nestedBin));
+            }
+            finally
+            {
+                if (Directory.Exists(workingDir))
+                {
+                    Directory.Delete(workingDir, true);
+                }
+            }
+        }
+
+        [Fact]
         public void AutoCpuCount_Is75PercentOfPhysicalCores()
         {
             int physical = Utilities.GetPhysicalCoreCount();

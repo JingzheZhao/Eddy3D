@@ -46,6 +46,7 @@ namespace Eddy
         private bool _updateScheduled;
         private string _status = "idle";
         private string _activeFile = string.Empty;
+        private int? _activeDirection;
 
         public override GH_Exposure Exposure => GH_Exposure.quinary;
 
@@ -99,6 +100,7 @@ Use this for quick convergence monitoring without external plotting windows.
             {
                 _status = "missing result";
                 _activeFile = string.Empty;
+                _activeDirection = null;
                 _snapshot = ResidualPlotSnapshot.Empty;
                 _liveRequested = false;
                 Message = "No data";
@@ -114,8 +116,9 @@ Use this for quick convergence monitoring without external plotting windows.
 
             _liveRequested = live;
 
-            string residualPath = ResolveResidualFile(result, requestedDir);
+            string residualPath = ResolveResidualFile(result, requestedDir, out int? activeDirection);
             _activeFile = residualPath ?? string.Empty;
+            _activeDirection = activeDirection;
 
             if (string.IsNullOrWhiteSpace(residualPath))
             {
@@ -168,6 +171,7 @@ Use this for quick convergence monitoring without external plotting windows.
             _state.Reset();
             _snapshot = ResidualPlotSnapshot.Empty;
             _activeFile = string.Empty;
+            _activeDirection = null;
         }
 
         private void UpdateStateFromFile(string residualPath, int maxPoints)
@@ -248,6 +252,21 @@ Use this for quick convergence monitoring without external plotting windows.
 
             if (_state.Time.Count > 0 && time <= _state.Time[_state.Time.Count - 1])
             {
+                // OpenFOAM can append a new run to the same residuals.dat.
+                // When time restarts (for example 1000 -> 0), clear prior samples
+                // and continue plotting the latest run.
+                if (time < _state.Time[_state.Time.Count - 1])
+                {
+                    _state.ClearSamples();
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            if (_state.Time.Count > 0 && time <= _state.Time[_state.Time.Count - 1])
+            {
                 return;
             }
 
@@ -284,6 +303,13 @@ Use this for quick convergence monitoring without external plotting windows.
             if (!trimmed.StartsWith("Time", StringComparison.OrdinalIgnoreCase))
             {
                 return;
+            }
+
+            if (_state.Time.Count > 0)
+            {
+                // A repeated "Time ..." header usually indicates that a fresh run was
+                // appended to the file. Reset stream state so we track that newest run.
+                _state.ResetForCurrentPath();
             }
 
             var tokens = SplitTokens(trimmed);
@@ -411,8 +437,10 @@ Use this for quick convergence monitoring without external plotting windows.
             return new ResidualPlotSnapshot(times, series, logScale, xMaxTarget);
         }
 
-        private static string ResolveResidualFile(OFResult result, int requestedDir)
+        private static string ResolveResidualFile(OFResult result, int requestedDir, out int? activeDirection)
         {
+            activeDirection = null;
+
             if (result == null || string.IsNullOrWhiteSpace(result.WorkingDirectory))
             {
                 return null;
@@ -424,6 +452,7 @@ Use this for quick convergence monitoring without external plotting windows.
                 string explicitPath = TryGetResidualFileForDirection(result.WorkingDirectory, requestedDir);
                 if (!string.IsNullOrWhiteSpace(explicitPath))
                 {
+                    activeDirection = requestedDir;
                     return explicitPath;
                 }
             }
@@ -438,13 +467,19 @@ Use this for quick convergence monitoring without external plotting windows.
                 string activePath = TryGetResidualFileForDirection(result.WorkingDirectory, activeDir.Value);
                 if (!string.IsNullOrWhiteSpace(activePath))
                 {
+                    activeDirection = activeDir.Value;
                     return activePath;
                 }
             }
 
             foreach (int dir in dirs.Distinct())
             {
-                candidates.Add(TryGetResidualFileForDirection(result.WorkingDirectory, dir));
+                string path = TryGetResidualFileForDirection(result.WorkingDirectory, dir);
+                if (!string.IsNullOrWhiteSpace(path))
+                {
+                    activeDirection = dir;
+                    return path;
+                }
             }
 
             candidates.Add(Path.Combine(result.WorkingDirectory, "postProcessing", "residuals", "0", "residuals.dat"));
@@ -454,8 +489,52 @@ Use this for quick convergence monitoring without external plotting windows.
             {
                 if (!string.IsNullOrWhiteSpace(candidate) && File.Exists(candidate))
                 {
+                    activeDirection = TryInferDirectionFromResidualPath(result.WorkingDirectory, candidate);
                     return candidate;
                 }
+            }
+
+            return null;
+        }
+
+        private static int? TryInferDirectionFromResidualPath(string workingDir, string residualPath)
+        {
+            if (string.IsNullOrWhiteSpace(workingDir) || string.IsNullOrWhiteSpace(residualPath))
+            {
+                return null;
+            }
+
+            try
+            {
+                string baseDir = Path.GetFullPath(workingDir)
+                    .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                string fullResidualPath = Path.GetFullPath(residualPath);
+
+                if (!fullResidualPath.StartsWith(baseDir, StringComparison.OrdinalIgnoreCase))
+                {
+                    return null;
+                }
+
+                string relative = fullResidualPath.Substring(baseDir.Length)
+                    .TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+                string[] segments = relative.Split(
+                    new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar },
+                    StringSplitOptions.RemoveEmptyEntries);
+
+                if (segments.Length == 0)
+                {
+                    return null;
+                }
+
+                if (int.TryParse(segments[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int direction))
+                {
+                    return direction;
+                }
+            }
+            catch
+            {
+                return null;
             }
 
             return null;
@@ -521,6 +600,9 @@ Use this for quick convergence monitoring without external plotting windows.
 
         internal ResidualPlotSnapshot Snapshot => _snapshot;
         internal string PlotStatus => _status;
+        internal string PlotDirectionLabel => _activeDirection.HasValue
+            ? "Dir: " + _activeDirection.Value.ToString(CultureInfo.InvariantCulture) + "\u00B0"
+            : "Dir: N/A";
 
         protected override Bitmap Icon => Resources.Eddy_live_residuals;
 
@@ -559,6 +641,15 @@ Use this for quick convergence monitoring without external plotting windows.
             {
                 FilePath = string.Empty;
                 ResetForCurrentPath();
+            }
+
+            public void ClearSamples()
+            {
+                Time.Clear();
+                foreach (var values in Values.Values)
+                {
+                    values.Clear();
+                }
             }
 
             public void AddField(string name, int tokenIndex = -1)
@@ -695,7 +786,7 @@ Use this for quick convergence monitoring without external plotting windows.
                 }
 
                 DrawChartFrame(graphics);
-                DrawPlot(graphics, owner.Snapshot, owner.PlotStatus);
+                DrawPlot(graphics, owner.Snapshot, owner.PlotStatus, owner.PlotDirectionLabel);
             }
 
             private void DrawChartFrame(Graphics g)
@@ -708,8 +799,10 @@ Use this for quick convergence monitoring without external plotting windows.
                 }
             }
 
-            private void DrawPlot(Graphics g, ResidualPlotSnapshot snapshot, string status)
+            private void DrawPlot(Graphics g, ResidualPlotSnapshot snapshot, string status, string directionLabel)
             {
+                DrawDirectionLabel(g, directionLabel);
+
                 if (!snapshot.HasData)
                 {
                     var textRect = new RectangleF(_plotBounds.X + 6, _plotBounds.Y + 6, _plotBounds.Width - 12, _plotBounds.Height - 12);
@@ -726,11 +819,6 @@ Use this for quick convergence monitoring without external plotting windows.
                     return;
                 }
 
-                if (!TryGetYRange(snapshot, out double yMin, out double yMax))
-                {
-                    return;
-                }
-
                 double xMin = 0.0;
                 double xMax = snapshot.XMaxTarget.HasValue && snapshot.XMaxTarget.Value > 0
                     ? snapshot.XMaxTarget.Value
@@ -740,18 +828,41 @@ Use this for quick convergence monitoring without external plotting windows.
                     xMax = xMin + 1.0;
                 }
 
+                if (!TryGetYRange(snapshot, xMin, xMax, out double yMin, out double yMax))
+                {
+                    return;
+                }
+
                 g.SmoothingMode = SmoothingMode.AntiAlias;
                 DrawGrid(g, plotRect);
                 DrawAxes(g, plotRect);
                 DrawYAxisLabels(g, snapshot, plotRect, yMin, yMax);
                 DrawXAxisLabels(g, plotRect, xMin, xMax);
 
+                var clippedState = g.Save();
+                g.SetClip(plotRect);
                 foreach (var series in snapshot.Series)
                 {
                     DrawSeries(g, plotRect, snapshot, series, xMin, xMax, yMin, yMax);
                 }
+                g.Restore(clippedState);
 
                 DrawLegend(g, snapshot, plotRect);
+            }
+
+            private void DrawDirectionLabel(Graphics g, string directionLabel)
+            {
+                string text = string.IsNullOrWhiteSpace(directionLabel) ? "Dir: N/A" : directionLabel;
+                var labelRect = new RectangleF(_plotBounds.Right - 118, _plotBounds.Y + 4, 112, 14);
+                using (var brush = new SolidBrush(Color.FromArgb(80, 80, 80)))
+                {
+                    g.DrawString(
+                        text,
+                        GH_FontServer.Small,
+                        brush,
+                        labelRect,
+                        new StringFormat { Alignment = StringAlignment.Far, LineAlignment = StringAlignment.Near });
+                }
             }
 
             private static void DrawYAxisLabels(Graphics g, ResidualPlotSnapshot snapshot, RectangleF rect, double yMin, double yMax)
@@ -887,15 +998,28 @@ Use this for quick convergence monitoring without external plotting windows.
                 }
             }
 
-            private static bool TryGetYRange(ResidualPlotSnapshot snapshot, out double yMin, out double yMax)
+            private static bool TryGetYRange(
+                ResidualPlotSnapshot snapshot,
+                double xMin,
+                double xMax,
+                out double yMin,
+                out double yMax)
             {
                 yMin = double.PositiveInfinity;
                 yMax = double.NegativeInfinity;
 
                 foreach (var series in snapshot.Series)
                 {
-                    foreach (double v in series.Values)
+                    int count = Math.Min(snapshot.Time.Count, series.Values.Count);
+                    for (int i = 0; i < count; i++)
                     {
+                        double time = snapshot.Time[i];
+                        if (time < xMin || time > xMax)
+                        {
+                            continue;
+                        }
+
+                        double v = series.Values[i];
                         if (double.IsNaN(v) || double.IsInfinity(v))
                         {
                             continue;
@@ -939,6 +1063,21 @@ Use this for quick convergence monitoring without external plotting windows.
                 int count = Math.Min(snapshot.Time.Count, series.Values.Count);
                 for (int i = 0; i < count; i++)
                 {
+                    double time = snapshot.Time[i];
+                    if (time < xMin || time > xMax)
+                    {
+                        if (points.Count > 1)
+                        {
+                            float widthOutOfRange = IsKSeries(series) ? 2.2f : 1.6f;
+                            using (var penOutOfRange = new Pen(series.Color, widthOutOfRange))
+                            {
+                                g.DrawLines(penOutOfRange, points.ToArray());
+                            }
+                        }
+                        points.Clear();
+                        continue;
+                    }
+
                     double value = series.Values[i];
                     if (double.IsNaN(value) || double.IsInfinity(value))
                     {
@@ -954,7 +1093,7 @@ Use this for quick convergence monitoring without external plotting windows.
                     }
 
                     double yValue = snapshot.LogScale ? Math.Log10(Math.Max(value, 1e-12)) : value;
-                    float x = (float)(rect.Left + ((snapshot.Time[i] - xMin) / (xMax - xMin)) * rect.Width);
+                    float x = (float)(rect.Left + ((time - xMin) / (xMax - xMin)) * rect.Width);
                     float y = (float)(rect.Bottom - ((yValue - yMin) / (yMax - yMin)) * rect.Height);
                     points.Add(new PointF(x, y));
                 }

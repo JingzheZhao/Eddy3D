@@ -51,11 +51,17 @@ namespace EddyLib
             public const string SimDone = "Sim Done";
             public const string SimDoneNick = "SimDone";
 
-            public const string MeshEta = "Mesh ETA";
-            public const string MeshEtaNick = "MeshETA";
+            public const string MeshRemainingTime = "Mesh Remaining Time";
+            public const string MeshRemainingTimeNick = "MeshRemain";
 
-            public const string SimEta = "Sim ETA";
-            public const string SimEtaNick = "SimETA";
+            public const string SimRemainingTime = "Simulation Remaining Time";
+            public const string SimRemainingTimeNick = "SimRemain";
+
+            // Backward-compatible aliases used by older component code.
+            public const string MeshEta = MeshRemainingTime;
+            public const string MeshEtaNick = MeshRemainingTimeNick;
+            public const string SimEta = SimRemainingTime;
+            public const string SimEtaNick = SimRemainingTimeNick;
         }
 
         public static class Simulation
@@ -152,7 +158,7 @@ namespace EddyLib
 
             public const string StabilityLimiter = "Stability Limiter";
             public const string StabilityLimiterNick = "Stab";
-            public const string StabilityLimiterDesc = "Optional: add conservative OpenFOAM field limiters (k/epsilon/omega and nut) to reduce divergence on poor meshes. Pressure is intentionally not limited by default.";
+            public const string StabilityLimiterDesc = "Optional: add conservative OpenFOAM field limiters (k/epsilon/omega and nut) to reduce divergence on poor meshes. Pressure is intentionally not limited by default. Default: true";
 
             public const string Debug = "Debug Diagnostics";
             public const string DebugNick = "Dbg";

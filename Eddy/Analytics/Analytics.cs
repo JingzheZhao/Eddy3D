@@ -295,7 +295,8 @@ namespace Eddy.Analytics
         {
             Task.Run(async () =>
             {
-                await TrackPageViewAsync($"/gh/{componentName.ToLower()}", $"Component: {componentName}");
+                string slug = ToAnalyticsComponentSlug(componentName);
+                await TrackPageViewAsync($"/gh/{slug}", $"Component: {componentName}");
             });
         }
 
@@ -366,9 +367,8 @@ namespace Eddy.Analytics
         /// <param name="probeCount">Number of probe points.</param>
         public static void TrackProbeCase(int probeCount = 0)
         {
-            // Use ProbeSimulation for both event name and URL so custom event
-            // properties show under the same probing bucket in Umami.
-            TrackEvent("ProbeSimulation", "/gh/probesimulation", new JObject { { "probe_count", probeCount } });
+            const string probeSlug = "probe-simulation";
+            TrackEvent(probeSlug, $"/gh/{probeSlug}", new JObject { { "probe_count", probeCount } });
         }
 
         /// <summary>
@@ -381,6 +381,66 @@ namespace Eddy.Analytics
                 .Replace(",", "")
                 .Replace(".", "")
                 .Trim();
+        }
+
+        /// <summary>
+        /// Converts component names (including acronyms) to analytics-friendly kebab-case.
+        /// Example: "MRTSimulationSettings" -> "mrt-simulation-settings".
+        /// </summary>
+        private static string ToAnalyticsComponentSlug(string componentName)
+        {
+            if (string.IsNullOrWhiteSpace(componentName))
+            {
+                return "unknown-component";
+            }
+
+            var input = componentName.Trim();
+            var sb = new StringBuilder(input.Length + 8);
+            bool justWroteDash = false;
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                char current = input[i];
+
+                if (!char.IsLetterOrDigit(current))
+                {
+                    if (sb.Length > 0 && !justWroteDash)
+                    {
+                        sb.Append('-');
+                        justWroteDash = true;
+                    }
+                    continue;
+                }
+
+                bool shouldInsertDash = false;
+                if (i > 0 && char.IsUpper(current))
+                {
+                    char previous = input[i - 1];
+                    bool previousIsAlphaNumeric = char.IsLetterOrDigit(previous);
+                    bool previousIsLowerOrDigit = char.IsLower(previous) || char.IsDigit(previous);
+                    bool previousIsUpper = char.IsUpper(previous);
+                    bool currentStartsWordAfterAcronym = false;
+
+                    if (previousIsUpper && i + 1 < input.Length)
+                    {
+                        char next = input[i + 1];
+                        currentStartsWordAfterAcronym = char.IsLower(next);
+                    }
+
+                    shouldInsertDash = previousIsAlphaNumeric && (previousIsLowerOrDigit || currentStartsWordAfterAcronym);
+                }
+
+                if (shouldInsertDash && sb.Length > 0 && !justWroteDash)
+                {
+                    sb.Append('-');
+                }
+
+                sb.Append(char.ToLowerInvariant(current));
+                justWroteDash = false;
+            }
+
+            string slug = sb.ToString().Trim('-');
+            return string.IsNullOrEmpty(slug) ? "unknown-component" : slug;
         }
 
         /// <summary>

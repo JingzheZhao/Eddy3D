@@ -17,12 +17,15 @@ namespace EddyLib.OpenFOAM
             new[] { "snappyHexMesh.log", "log.snappyHexMesh" };
 
         public static string FindLatestSimulationLog(string caseDir) =>
-            FindLatestExisting(caseDir, SimulationCandidates);
+            FindLatestExisting(caseDir, SimulationCandidates, IsSimulationLogName);
 
         public static string FindLatestMeshingLog(string meshDir) =>
-            FindLatestExisting(meshDir, MeshingCandidates);
+            FindLatestExisting(meshDir, MeshingCandidates, IsMeshingLogName);
 
-        private static string FindLatestExisting(string dir, IEnumerable<string> candidates)
+        private static string FindLatestExisting(
+            string dir,
+            IEnumerable<string> candidates,
+            Func<string, bool> fallbackNameMatcher)
         {
             if (string.IsNullOrWhiteSpace(dir) || !Directory.Exists(dir))
                 return null;
@@ -44,7 +47,48 @@ namespace EddyLib.OpenFOAM
                 }
             }
 
+            if (fallbackNameMatcher == null)
+                return bestPath;
+
+            foreach (var path in Directory.EnumerateFiles(dir))
+            {
+                var name = Path.GetFileName(path);
+                if (!fallbackNameMatcher(name))
+                    continue;
+
+                var writeTime = File.GetLastWriteTimeUtc(path);
+                if (writeTime >= bestWriteTime)
+                {
+                    bestWriteTime = writeTime;
+                    bestPath = path;
+                }
+            }
+
             return bestPath;
+        }
+
+        private static bool IsSimulationLogName(string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+                return false;
+
+            return fileName.IndexOf("simpleFoam", StringComparison.OrdinalIgnoreCase) >= 0
+                   && IsLikelyLogFileName(fileName);
+        }
+
+        private static bool IsMeshingLogName(string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+                return false;
+
+            return fileName.IndexOf("snappyHexMesh", StringComparison.OrdinalIgnoreCase) >= 0
+                   && IsLikelyLogFileName(fileName);
+        }
+
+        private static bool IsLikelyLogFileName(string fileName)
+        {
+            return fileName.EndsWith(".log", StringComparison.OrdinalIgnoreCase)
+                   || fileName.StartsWith("log.", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using static EddyLib.OutdoorComfort.WindComfortHelper;
 
 [assembly: InternalsVisibleTo("RhinoPlugin.Tests.Xunit")]
@@ -33,20 +34,32 @@ namespace EddyLib.OutdoorComfort
 
             Dictionary<int, CmftThresholdInfo> TID = WindComfortMetricsWeibull.ThresholdInfo(cmftidx);
 
-            for (int probe = 0; probe < sensorCount; probe++)
+            Parallel.For(0, sensorCount, probe =>
             {
                 // column is all hours of the year
-                double[] column = ArrayHelper.CustomArray<double>.GetColumn(wft.ValuesTemporalAtProbingHeight, probe);
+                double[] column = ExtractColumn(wft.ValuesTemporalAtProbingHeight, probe);
 
                 // Move to 10m according to Blocken
-
                 // column = column.Select(x => EddyLib.BCs.BoundaryCondition.ScaleABL(x, 1.75, ws.BCond.z0, 10)).ToArray();
 
-                this.ThresholdInfo[probe] = WindComfortMetricsCounting.CalcComfortCountBins(column, TID);
-                this.ValsPedWindCmftCat[probe] = ThresholdInfo[probe].Cat;
-                this.ValsPedWindCmftClassStringified[probe] = ThresholdInfo[probe].Class;
-                this.ValsPedWindCmftClassLetter[probe] = ThresholdInfo[probe].ClassLetter;
+                var threshold = WindComfortMetricsCounting.CalcComfortCountBins(column, TID);
+                this.ThresholdInfo[probe] = threshold;
+                this.ValsPedWindCmftCat[probe] = threshold.Cat;
+                this.ValsPedWindCmftClassStringified[probe] = threshold.Class;
+                this.ValsPedWindCmftClassLetter[probe] = threshold.ClassLetter;
+            });
+        }
+
+        private static double[] ExtractColumn(double[,] matrix, int columnIndex)
+        {
+            int rowCount = matrix.GetLength(0);
+            var column = new double[rowCount];
+            for (int row = 0; row < rowCount; row++)
+            {
+                column[row] = matrix[row, columnIndex];
             }
+
+            return column;
         }
     }
 }

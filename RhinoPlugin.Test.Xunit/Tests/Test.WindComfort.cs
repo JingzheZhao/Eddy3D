@@ -177,6 +177,14 @@ namespace RhinoPlugin.Test.Xunit
             }
         }
 
+        private static double[] BuildAnnualSeries(int exceedanceCount, double exceedanceValue, double baseValue)
+        {
+            exceedanceCount = Math.Max(0, Math.Min(TestConstants.HoursPerYear, exceedanceCount));
+            return Enumerable.Repeat(exceedanceValue, exceedanceCount)
+                .Concat(Enumerable.Repeat(baseValue, TestConstants.HoursPerYear - exceedanceCount))
+                .ToArray();
+        }
+
         [Theory]
         [InlineData(PedCmftMetric.NEN8100Comfort, 3, false)]
         [InlineData(PedCmftMetric.NEN8100Safety, 1, false)]
@@ -191,6 +199,106 @@ namespace RhinoPlugin.Test.Xunit
 
             Assert.Equal(expectedCat, ti.Cat);
         }
+
+        [Fact]
+        public void ExceedanceCounting_BoundaryOperators_ReturnExpectedCategory()
+        {
+            const int hoursPerYear = 8760;
+            const double thresholdVelocity = 5.0;
+            const double thresholdTime = 0.5;
+
+            var thresholds = new Dictionary<int, CmftThresholdInfo>
+            {
+                { 1, new CmftThresholdInfo { Cat = 1, UThres = thresholdVelocity, TimeThres = thresholdTime, Operator = CompOperator.S } },
+                { 2, new CmftThresholdInfo { Cat = 2, UThres = thresholdVelocity, TimeThres = thresholdTime, Operator = CompOperator.GOE } },
+                { 3, new CmftThresholdInfo { Cat = 3, UThres = thresholdVelocity, TimeThres = thresholdTime, Operator = CompOperator.G } },
+            };
+
+            var exactlyAtThreshold = Enumerable.Repeat(6.0, hoursPerYear / 2)
+                .Concat(Enumerable.Repeat(4.0, hoursPerYear / 2))
+                .ToArray();
+            var oneBelowThreshold = Enumerable.Repeat(6.0, (hoursPerYear / 2) - 1)
+                .Concat(Enumerable.Repeat(4.0, (hoursPerYear / 2) + 1))
+                .ToArray();
+            var oneAboveThreshold = Enumerable.Repeat(6.0, (hoursPerYear / 2) + 1)
+                .Concat(Enumerable.Repeat(4.0, (hoursPerYear / 2) - 1))
+                .ToArray();
+
+            var atThreshold = WindComfortMetricsCounting.CalcComfortCountBins(exactlyAtThreshold, thresholds);
+            var belowThreshold = WindComfortMetricsCounting.CalcComfortCountBins(oneBelowThreshold, thresholds);
+            var aboveThreshold = WindComfortMetricsCounting.CalcComfortCountBins(oneAboveThreshold, thresholds);
+
+            Assert.Equal(2, atThreshold.Cat);
+            Assert.Equal(1, belowThreshold.Cat);
+            Assert.Equal(3, aboveThreshold.Cat);
+        }
+
+        [Theory]
+        [InlineData(PedCmftMetric.NEN8100Comfort, 4)]
+        [InlineData(PedCmftMetric.NEN8100Safety, 2)]
+        [InlineData(PedCmftMetric.Davenport, 4)]
+        [InlineData(PedCmftMetric.LawsonGeneral, 3)]
+        [InlineData(PedCmftMetric.LawsonLDDC, 4)]
+        [InlineData(PedCmftMetric.Lawson2001, 4)]
+        public void ExceedanceCounting_AllCalm_ReturnsExpectedCategory(PedCmftMetric metric, int expectedCat)
+        {
+            var thresholds = WindComfortMetricsWeibull.ThresholdInfo(metric);
+            var annualSeries = Enumerable.Repeat(0.5, TestConstants.HoursPerYear).ToArray();
+
+            var result = WindComfortMetricsCounting.CalcComfortCountBins(annualSeries, thresholds);
+
+            Assert.Equal(expectedCat, result.Cat);
+        }
+
+        [Theory]
+        [InlineData(PedCmftMetric.NEN8100Comfort, 5)]
+        [InlineData(PedCmftMetric.NEN8100Safety, 3)]
+        [InlineData(PedCmftMetric.Davenport, 6)]
+        [InlineData(PedCmftMetric.LawsonGeneral, 5)]
+        [InlineData(PedCmftMetric.LawsonLDDC, 6)]
+        [InlineData(PedCmftMetric.Lawson2001, 7)]
+        public void ExceedanceCounting_AllHighWind_ReturnsExpectedCategory(PedCmftMetric metric, int expectedCat)
+        {
+            var thresholds = WindComfortMetricsWeibull.ThresholdInfo(metric);
+            var annualSeries = Enumerable.Repeat(30.0, TestConstants.HoursPerYear).ToArray();
+
+            var result = WindComfortMetricsCounting.CalcComfortCountBins(annualSeries, thresholds);
+
+            Assert.Equal(expectedCat, result.Cat);
+        }
+
+        [Fact]
+        public void ExceedanceWeibull_InvalidInputs_ReturnBestCaseCategory()
+        {
+            var thresholds = WindComfortMetricsWeibull.ThresholdInfo(PedCmftMetric.NEN8100Comfort);
+            int bestCaseCategory = thresholds.Values.OrderBy(t => t.UThres).First().Cat;
+
+            var empty = WindComfortMetricsWeibull.CalcExceedance(Array.Empty<double>(), thresholds);
+            var invalid = WindComfortMetricsWeibull.CalcExceedance(
+                new[] { double.NaN, double.PositiveInfinity, double.NegativeInfinity, -1.0, 0.0 },
+                thresholds);
+
+            Assert.Equal(bestCaseCategory, empty.Cat);
+            Assert.Equal(bestCaseCategory, invalid.Cat);
+        }
+
+        [Fact]
+        public void ExceedanceCounting_NEN8100Comfort_ExceedanceBands_ReturnExpectedCategory()
+        {
+            var thresholds = WindComfortMetricsWeibull.ThresholdInfo(PedCmftMetric.NEN8100Comfort);
+
+            var mostlyCalm = BuildAnnualSeries((int)(0.05 * TestConstants.HoursPerYear), 6.0, 4.0);
+            var stronglyWindy = BuildAnnualSeries((int)(0.25 * TestConstants.HoursPerYear), 6.0, 4.0);
+
+            var catMostlyCalm = WindComfortMetricsCounting.CalcComfortCountBins(mostlyCalm, thresholds);
+            var catStronglyWindy = WindComfortMetricsCounting.CalcComfortCountBins(stronglyWindy, thresholds);
+
+            Assert.Equal(4, catMostlyCalm.Cat);
+            Assert.Equal(5, catStronglyWindy.Cat);
+        }
+
+  
+
 
         [Theory]
         [InlineData(0, 355, 5)]
@@ -376,6 +484,46 @@ namespace RhinoPlugin.Test.Xunit
             // The result is: [WindFactor] * [EPW Wind Speed at Height]
             Assert.True(wft.ValuesTemporalAtProbingHeight[0, 0] > 0.0,
                 $"Result should be non-zero ({wft.ValuesTemporalAtProbingHeight[0, 0]}), indicating correct wind direction (180) was used instead of default (0)");
+        }
+
+        [Fact]
+        public void WindFactors_Interpolation_MultiDirection_ProducesDeterministicValues()
+        {
+            // Arrange: two directions + midpoint EPW direction for stable interpolation.
+            var windDirList = new[] { 0, 90 };
+            var bcond = new ABL(0, 5, 10, 1, 0);
+            var bcColl = new BCCollection(bcond);
+            bcColl.AddBoundaryCondition(new ABL(90, 5, 10, 1, 0));
+
+            string epw = DownloadEPW();
+            Weather weather = new Weather(epw);
+            weather.WindDirection = Enumerable.Repeat(45, TestConstants.HoursPerYear).ToArray();
+            weather.WindSpeed = Enumerable.Repeat(5.0, TestConstants.HoursPerYear).ToArray();
+
+            var workingdir = EnsureTestingDirectory();
+            var points = new List<Point3d> { new Point3d(0, 0, 2), new Point3d(1, 0, 2) };
+
+            Vector3d[,] vecs = new Vector3d[2, 2];
+            vecs[0, 0] = new Vector3d(2, 0, 0);
+            vecs[0, 1] = new Vector3d(6, 0, 0);
+            vecs[1, 0] = new Vector3d(1, 0, 0);
+            vecs[1, 1] = new Vector3d(3, 0, 0);
+
+            var mdv = new MultiDirectionalVelocities(workingdir, windDirList, vecs, true, true);
+            var wfs = new WindFactorsSpatial(workingdir, bcColl, mdv, points, false, true);
+
+            // Act
+            var wft = new WindFactorsTemporal(workingdir, bcColl, weather, wfs, points, true, true);
+
+            // Assert: deterministic and non-identical probe values.
+            double firstProbeHour0 = wft.ValuesTemporalAtProbingHeight[0, 0];
+            double secondProbeHour0 = wft.ValuesTemporalAtProbingHeight[0, 1];
+
+            Assert.False(double.IsNaN(firstProbeHour0) || double.IsInfinity(firstProbeHour0));
+            Assert.False(double.IsNaN(secondProbeHour0) || double.IsInfinity(secondProbeHour0));
+            Assert.Equal(7.99, firstProbeHour0, 2);
+            Assert.Equal(4.01, secondProbeHour0, 2);
+            Assert.NotEqual(firstProbeHour0, secondProbeHour0);
         }
     }
 }

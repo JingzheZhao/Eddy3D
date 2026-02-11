@@ -56,6 +56,14 @@ namespace EddyLib
             {
                 return OpenFOAM.FoamCleaner.CleanCase(caseRoot);
             }
+
+            /// <summary>
+            /// Removes Eddy probe cache binaries from the root postProcessing folder.
+            /// </summary>
+            public static bool CleanProbeCacheFiles(string workingDirectory)
+            {
+                return OpenFOAM.FoamCleaner.CleanProbeCacheFiles(workingDirectory);
+            }
         }
 
         #endregion
@@ -111,8 +119,6 @@ namespace EddyLib
             var sb = new StringBuilder();
             string normalizedBaseDir = EscapePathForPython(Path.GetFullPath(baseWorkingDir));
             int primaryDirection = (windDirections != null && windDirections.Count > 0) ? windDirections[0] : 0;
-            string screenshotPath = EscapePathForPython(
-                Path.Combine(baseWorkingDir, $"paraview_render_{primaryDirection}.png"));
 
             sb.AppendLine("from paraview.simple import *");
             sb.AppendLine("import os");
@@ -156,7 +162,7 @@ namespace EddyLib
             sb.AppendLine("    primary_case = all_cases[0]");
 
             // Append ParaView setup script
-            sb.AppendLine(GetParaviewSetupScript(screenshotPath));
+            sb.AppendLine(GetParaviewSetupScript());
 
             return sb.ToString();
         }
@@ -172,7 +178,7 @@ namespace EddyLib
             return path.Replace("\\", "/").Replace("\"", "\\\"");
         }
 
-        private static string GetParaviewSetupScript(string screenshotPath)
+        private static string GetParaviewSetupScript()
         {
             return $@"
 #### disable automatic camera reset on 'Show'
@@ -211,6 +217,10 @@ if building is not None:
     _safe_set(bDisp, 'DiffuseColor', [0.24, 0.24, 0.24])
     _safe_set(bDisp, 'AmbientColor', [0.24, 0.24, 0.24])
     _safe_set(bDisp, 'Opacity', 1.0)
+    try:
+        Hide(building, renderView1)
+    except Exception:
+        pass
 
 if ground is not None:
     gDisp = Show(ground, renderView1)
@@ -218,6 +228,10 @@ if ground is not None:
     _safe_set(gDisp, 'DiffuseColor', [0.72, 0.72, 0.72])
     _safe_set(gDisp, 'AmbientColor', [0.72, 0.72, 0.72])
     _safe_set(gDisp, 'Opacity', 1.0)
+    try:
+        Hide(ground, renderView1)
+    except Exception:
+        pass
 
 # show all cases but keep only primary visible for cleaner default render
 for i, src in enumerate(all_cases):
@@ -341,19 +355,18 @@ if primary_case is not None:
             pass
 
 # scene quality defaults (with safe fallbacks)
-_safe_set(renderView1, 'ViewSize', [2560, 1440])
 _safe_set(renderView1, 'Background', [0.972549, 0.972549, 0.972549])
 _safe_set(renderView1, 'Background2', [0.972549, 0.972549, 0.972549])
 _safe_set(renderView1, 'UseGradientBackground', 0)
 _safe_set(renderView1, 'OrientationAxesVisibility', 1)
 _safe_set(renderView1, 'UseFXAA', 1)
-_safe_set(renderView1, 'CameraParallelProjection', 1)
+_safe_set(renderView1, 'CameraParallelProjection', 0)
 
 # reset and apply an isometric-like camera
 try:
     renderView1.ResetCamera()
     camera = GetActiveCamera()
-    camera.SetParallelProjection(1)
+    camera.SetParallelProjection(0)
     camera.Azimuth(35)
     camera.Elevation(22)
     renderView1.ResetCameraClippingRange()
@@ -361,12 +374,6 @@ except Exception:
     pass
 
 Render()
-
-# write a high-resolution preview automatically (best effort)
-try:
-    SaveScreenshot(""{screenshotPath}"", renderView1, ImageResolution=[3840, 2160])
-except Exception:
-    pass
 ";
         }
 

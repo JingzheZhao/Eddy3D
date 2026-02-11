@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
 using static EddyLib.OutdoorComfort.WindComfortHelper;
 
 namespace EddyLib.OutdoorComfort
@@ -35,27 +35,32 @@ namespace EddyLib.OutdoorComfort
 
             Dictionary<int, CmftThresholdInfo> TID = WindComfortMetricsWeibull.ThresholdInfo(cmftMetric);
 
-            for (int probe = 0; probe < sensorCount; probe++)
+            Parallel.For(0, sensorCount, probe =>
             {
                 // column is all hours from one wind direction
-                double[] ColumnWFA = ArrayHelper.CustomArray<double>.GetColumn(wft.ValuesTemporalAtProbingHeight, probe);
+                double[] columnWFA = ExtractColumn(wft.ValuesTemporalAtProbingHeight, probe);
 
                 // Move to 10m according to Blocken
+                // column = column.Select(x => EddyLib.BCs.BoundaryCondition.ScaleABL(x, 1.75, ws.BCond.z0, 10)).ToArray();
 
-                //  column = column.Select(x => EddyLib.BCs.BoundaryCondition.ScaleABL(x, 1.75, ws.BCond.z0, 10)).ToArray();
+                var threshold = WindComfortMetricsWeibull.CalcExceedance(columnWFA, TID);
+                this.ThresholdInfo[probe] = threshold;
+                this.ValsPedWindCmftCat[probe] = threshold.Cat;
+                this.ValsPedWindCmftClassStringified[probe] = threshold.Class;
+                this.ValsPedWindCmftClassLetter[probe] = threshold.ClassLetter;
+            });
+        }
 
-                // Make sure Weibull estimator doesn't run forever.
-                // Use LINQ to check if all values are not identical
-                if (ColumnWFA.Distinct().Count() == 0)
-                {
-                    continue;
-                };
-
-                this.ThresholdInfo[probe] = WindComfortMetricsWeibull.CalcExceedance(ColumnWFA, TID);
-                this.ValsPedWindCmftCat[probe] = ThresholdInfo[probe].Cat;
-                this.ValsPedWindCmftClassStringified[probe] = ThresholdInfo[probe].Class;
-                this.ValsPedWindCmftClassLetter[probe] = ThresholdInfo[probe].ClassLetter;
+        private static double[] ExtractColumn(double[,] matrix, int columnIndex)
+        {
+            int rowCount = matrix.GetLength(0);
+            var column = new double[rowCount];
+            for (int row = 0; row < rowCount; row++)
+            {
+                column[row] = matrix[row, columnIndex];
             }
+
+            return column;
         }
     }
 }

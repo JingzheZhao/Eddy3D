@@ -3,10 +3,10 @@ using EddyLib;
 using EddyLib.OutdoorComfort;
 using Grasshopper;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -76,122 +76,172 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             GH_ObjectWrapper gobj = null;
-            if (!DA.GetData(0, ref gobj)) { }
+            if (!DA.GetData(0, ref gobj) || gobj?.Value == null)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid Outdoor Thermal Comfort object");
+                return;
+            }
 
             var selection = new List<int>();
-            if (!DA.GetDataList(1, selection)) { }
+            DA.GetDataList(1, selection);
 
-            if (selection.Count == 1 && selection[0] == -1)
+            if (gobj.Value is MRT mrt)
             {
-                if (!(gobj.Value is WindFactorsSpatial))
+                int rowCount = mrt.Values.GetLength(0);
+                var selectedHours = ResolveSelection(selection, rowCount);
+                if (!ValidateSelection(selectedHours, rowCount, "hours"))
                 {
-                    selection = (new int[8760]).Select((o, i) => i).ToList();
+                    return;
                 }
-            }
-
-            if ((gobj.Value is MRT))
-            {
-                MRT mrt = null;
-
-                DA.GetData(0, ref mrt);
 
                 DataTree<double> tree = new DataTree<double>();
 
-                foreach (int h in selection)
+                foreach (int hour in selectedHours)
                 {
-                    var tempRow = ArrayHelper.CustomArray<double>.GetRow(mrt.Values, h);
-                    tree.AddRange(tempRow, new Grasshopper.Kernel.Data.GH_Path(h));
+                    AddRowToTree(tree, mrt.Values, hour);
                 }
 
-                double threshold = 1e6;
-                if (tree.DataCount > threshold)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.LargeDataTree(threshold));
-                }
+                WarnIfLargeTree(tree);
 
                 DA.SetDataTree(0, tree);
             }
-            else if ((gobj.Value is WindFactorsTemporal))
+            else if (gobj.Value is WindFactorsTemporal wf)
             {
-                WindFactorsTemporal wf = null;
-
-                DA.GetData(0, ref wf);
+                int rowCount = wf.ValuesTemporalAtProbingHeight.GetLength(0);
+                var selectedHours = ResolveSelection(selection, rowCount);
+                if (!ValidateSelection(selectedHours, rowCount, "hours"))
+                {
+                    return;
+                }
 
                 DataTree<double> tree = new DataTree<double>();
 
-                foreach (int h in selection)
+                foreach (int hour in selectedHours)
                 {
-                    var tempRow = ArrayHelper.CustomArray<double>.GetRow(wf.ValuesTemporalAtProbingHeight, h);
-                    tree.AddRange(tempRow, new Grasshopper.Kernel.Data.GH_Path(h));
+                    AddRowToTree(tree, wf.ValuesTemporalAtProbingHeight, hour);
                 }
 
-                double threshold = 1e6;
-                if (tree.DataCount > threshold)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.LargeDataTree(threshold));
-                }
+                WarnIfLargeTree(tree);
 
                 DA.SetDataTree(0, tree);
             }
-            else if ((gobj.Value is WindFactorsSpatial))
+            else if (gobj.Value is WindFactorsSpatial wfs)
             {
-                WindFactorsSpatial wfs = null;
-
-                DA.GetData(0, ref wfs);
-
-                int windDirs = ArrayHelper.CustomArray<double>.GetRow(wfs.ValuesSpatial, 0).Count();
+                int windDirs = wfs.ValuesSpatial.GetLength(1);
+                var selectedDirs = ResolveSelection(selection, windDirs);
+                if (!ValidateSelection(selectedDirs, windDirs, "wind direction"))
+                {
+                    return;
+                }
                 DataTree<double> tree = new DataTree<double>();
 
-                if (selection.Count == -1)
+                foreach (int dir in selectedDirs)
                 {
-                    selection = (new int[wfs.SimulatedWindDirections.Count]).Select((o, i) => i).ToList();
+                    AddColumnToTree(tree, wfs.ValuesSpatial, dir);
                 }
 
-                foreach (int dir in selection)
-                {
-                    if (selection.Max() > windDirs || selection.Min() < 0)
-                    {
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Error, EddyLib.Strings.ReturnMsg.SelectionOutsideWindDirs(selection.Max()));
-                        return;
-                    }
-
-                    var tempColumn = ArrayHelper.CustomArray<double>.GetColumn(wfs.ValuesSpatial, dir);
-                    tree.AddRange(tempColumn, new Grasshopper.Kernel.Data.GH_Path(dir));
-                }
-
-                double threshold = 1e6;
-                if (tree.DataCount > threshold)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.LargeDataTree(threshold));
-                }
+                WarnIfLargeTree(tree);
 
                 DA.SetDataTree(0, tree);
             }
-            else if ((gobj.Value is UTCI))
+            else if (gobj.Value is UTCI utci)
             {
-                UTCI utci = null;
-
-                DA.GetData(0, ref utci);
+                int rowCount = utci.ValuesUTCI.GetLength(0);
+                var selectedHours = ResolveSelection(selection, rowCount);
+                if (!ValidateSelection(selectedHours, rowCount, "hours"))
+                {
+                    return;
+                }
 
                 DataTree<double> tree = new DataTree<double>();
 
-                foreach (int h in selection)
+                foreach (int hour in selectedHours)
                 {
-                    var tempRow = ArrayHelper.CustomArray<double>.GetRow(utci.ValuesUTCI, h);
-                    tree.AddRange(tempRow, new Grasshopper.Kernel.Data.GH_Path(h));
+                    AddRowToTree(tree, utci.ValuesUTCI, hour);
                 }
 
-                double threshold = 1e6;
-                if (tree.DataCount > threshold)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.LargeDataTree(threshold));
-                }
+                WarnIfLargeTree(tree);
 
                 DA.SetDataTree(0, tree);
             }
             else
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid Outdoor Thermal Comfort object"); return;
+            }
+        }
+
+        private static List<int> ResolveSelection(List<int> selection, int maxExclusive)
+        {
+            if (selection.Count == 1 && selection[0] == -1)
+            {
+                var all = new List<int>(maxExclusive);
+                for (int i = 0; i < maxExclusive; i++)
+                {
+                    all.Add(i);
+                }
+                return all;
+            }
+
+            return selection;
+        }
+
+        private bool ValidateSelection(List<int> selection, int maxExclusive, string selectionType)
+        {
+            if (selection.Count == 0)
+            {
+                return true;
+            }
+
+            int min = selection[0];
+            int max = selection[0];
+            for (int i = 1; i < selection.Count; i++)
+            {
+                int value = selection[i];
+                if (value < min) { min = value; }
+                if (value > max) { max = value; }
+            }
+
+            if (min < 0 || max >= maxExclusive)
+            {
+                AddRuntimeMessage(
+                    GH_RuntimeMessageLevel.Error,
+                    $"Selection contains invalid {selectionType} indices. Valid range is 0 to {maxExclusive - 1}.");
+                return false;
+            }
+
+            return true;
+        }
+
+        private static void AddRowToTree(DataTree<double> tree, double[,] values, int rowIndex)
+        {
+            var path = new GH_Path(rowIndex);
+            tree.EnsurePath(path);
+            IList<double> branch = tree.Branch(path);
+            int columnCount = values.GetLength(1);
+            for (int column = 0; column < columnCount; column++)
+            {
+                branch.Add(values[rowIndex, column]);
+            }
+        }
+
+        private static void AddColumnToTree(DataTree<double> tree, double[,] values, int columnIndex)
+        {
+            var path = new GH_Path(columnIndex);
+            tree.EnsurePath(path);
+            IList<double> branch = tree.Branch(path);
+            int rowCount = values.GetLength(0);
+            for (int row = 0; row < rowCount; row++)
+            {
+                branch.Add(values[row, columnIndex]);
+            }
+        }
+
+        private void WarnIfLargeTree(DataTree<double> tree)
+        {
+            const double threshold = 1e6;
+            if (tree.DataCount > threshold)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.LargeDataTree(threshold));
             }
         }
 

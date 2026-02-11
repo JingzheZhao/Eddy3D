@@ -232,6 +232,14 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                     "Docker mode is active. If you switched from BlueCFD to Docker after meshing, run \"" + scriptPath + "\" once to copy meshes into all integer wind-direction folders before probing.");
             }
 
+            listOfPoints = Probing.DeduplicateProbePointsForOpenFoam(listOfPoints, out int removedDuplicateProbeCount);
+            if (removedDuplicateProbeCount > 0)
+            {
+                AddRuntimeMessage(
+                    GH_RuntimeMessageLevel.Remark,
+                    $"Removed {removedDuplicateProbeCount} duplicate probe points after OpenFOAM coordinate formatting.");
+            }
+
             if (probeNameByUser == "")
             {
                 probeNameByUser = "test";
@@ -400,8 +408,9 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                         }
                         else
                         {
-                            command.AppendLine(@"rm -rf """ + RES.Domain.BCond.WindDirections[i] + @"/postProcessing/" + probeNameByUser + @"""");
-                            command.AppendLine(@"postProcess -case " + RES.Domain.BCond.WindDirections[i] + " -func " + probeNameByUser + @" -latestTime");
+                            int latestTime = Probing.GetLatestTime(currCase, RES, currField);
+                            command.AppendLine(@"if exist """ + RES.Domain.BCond.WindDirections[i] + @"\postProcessing\" + probeNameByUser + @""" rmdir /S /Q """ + RES.Domain.BCond.WindDirections[i] + @"\postProcessing\" + probeNameByUser + @"""");
+                            command.AppendLine(@"postProcess -case " + RES.Domain.BCond.WindDirections[i] + " -func " + probeNameByUser + @" -time " + latestTime);
                         }
                     }
 
@@ -485,8 +494,9 @@ Samples the wind field at specific locations. Use this to query wind speed and p
 
                     if (RES.RunSettings.simEngine != SimEngine.Docker)
                     {
-                        command.AppendLine(@"rm -rf ""postProcessing/" + probeNameByUser + @"""");
-                        command.AppendLine(@"postProcess  -func " + probeNameByUser + @" -latestTime");
+                        int latestTime = Probing.GetLatestTime(RES.WorkingDirectory, RES, currField);
+                        command.AppendLine(@"if exist ""postProcessing\" + probeNameByUser + @""" rmdir /S /Q ""postProcessing\" + probeNameByUser + @"""");
+                        command.AppendLine(@"postProcess  -func " + probeNameByUser + @" -time " + latestTime);
                     }
 
                     if (run == true && canRun == true)

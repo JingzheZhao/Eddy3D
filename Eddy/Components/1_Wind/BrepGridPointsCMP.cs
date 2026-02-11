@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Eddy.Properties;
 using EddyLib;
 
@@ -134,8 +135,6 @@ Works with Breps, surfaces, or meshes.
             if (!bbox.IsValid)
                 return new List<Point3d>();
 
-            var points = new List<Point3d>();
-
             // Grid bounds
             double xMin = bbox.Min.X;
             double xMax = bbox.Max.X;
@@ -144,72 +143,162 @@ Works with Breps, surfaces, or meshes.
             double zMin = bbox.Min.Z - spacing;
             double zMax = bbox.Max.Z + spacing;
 
+            var xValues = BuildAxisValues(xMin, xMax, spacing);
+            var yValues = BuildAxisValues(yMin, yMax, spacing);
+            if (xValues.Count == 0 || yValues.Count == 0)
+                return new List<Point3d>();
+
             // Fixed tolerance like Python version
             const double tolerance = 0.1;
-
-            // Generate grid points - exact Python logic
-            for (double x = xMin; x <= xMax; x += spacing)
+            var points = new List<Point3d>();
+            var rayTargets = new Brep[brepList.Count][];
+            for (int i = 0; i < brepList.Count; i++)
             {
-                for (double y = yMin; y <= yMax; y += spacing)
-                {
-                    // Create vertical ray
-                    Point3d rayStart = new Point3d(x, y, zMin);
-                    Point3d rayEnd = new Point3d(x, y, zMax);
-                    Vector3d rayDir = rayEnd - rayStart;
-                    Ray3d ray = new Ray3d(rayStart, rayDir);
+                rayTargets[i] = new[] { brepList[i] };
+            }
 
-                    // Test intersection with each brep
-                    foreach (var brep in brepList)
+            // Parallelize by x-columns to speed up large grids.
+            if (xValues.Count > 1 && yValues.Count > 1 && Environment.ProcessorCount > 1)
+            {
+                var mergeLock = new object();
+                Parallel.For(
+                    0,
+                    xValues.Count,
+                    () => new List<Point3d>(),
+                    (xIndex, _, localPoints) =>
                     {
-                        if (brep == null)
+                        ProcessGridColumn(
+                            xIndex,
+                            xValues,
+                            yValues,
+                            zMin,
+                            zMax,
+                            brepList,
+                            rayTargets,
+                            tolerance,
+                            localPoints);
+                        return localPoints;
+                    },
+                    localPoints =>
+                    {
+                        if (localPoints.Count == 0)
+                            return;
+
+                        lock (mergeLock)
+                        {
+                            points.AddRange(localPoints);
+                        }
+                    });
+            }
+            else
+            {
+                for (int xIndex = 0; xIndex < xValues.Count; xIndex++)
+                {
+                    ProcessGridColumn(
+                        xIndex,
+                        xValues,
+                        yValues,
+                        zMin,
+                        zMax,
+                        brepList,
+                        rayTargets,
+                        tolerance,
+                        points);
+                }
+            }
+
+            points.Sort((a, b) =>
+            {
+                int cmpX = a.X.CompareTo(b.X);
+                if (cmpX != 0) return cmpX;
+                int cmpY = a.Y.CompareTo(b.Y);
+                if (cmpY != 0) return cmpY;
+                return a.Z.CompareTo(b.Z);
+            });
+            return points;
+        }
+
+        private static List<double> BuildAxisValues(double min, double max, double spacing)
+        {
+            var values = new List<double>();
+            if (spacing <= 0)
+                return values;
+
+            double epsilon = Math.Abs(spacing) * 1e-9;
+            for (double value = min; value <= max + epsilon; value += spacing)
+            {
+                values.Add(value);
+            }
+            return values;
+        }
+
+        private static void ProcessGridColumn(
+            int xIndex,
+            IReadOnlyList<double> xValues,
+            IReadOnlyList<double> yValues,
+            double zMin,
+            double zMax,
+            IReadOnlyList<Brep> brepList,
+            IReadOnlyList<Brep[]> rayTargets,
+            double tolerance,
+            List<Point3d> output)
+        {
+            double x = xValues[xIndex];
+            for (int yIndex = 0; yIndex < yValues.Count; yIndex++)
+            {
+                double y = yValues[yIndex];
+
+                Point3d rayStart = new Point3d(x, y, zMin);
+                Point3d rayEnd = new Point3d(x, y, zMax);
+                Vector3d rayDir = rayEnd - rayStart;
+                Ray3d ray = new Ray3d(rayStart, rayDir);
+
+                for (int b = 0; b < brepList.Count; b++)
+                {
+                    var brep = brepList[b];
+                    if (brep == null)
+                        continue;
+
+                    var intersections = Intersection.RayShoot(ray, rayTargets[b], 1);
+                    if (intersections == null || intersections.Length == 0)
+                        continue;
+
+                    for (int i = 0; i < intersections.Length; i++)
+                    {
+                        var pt = intersections[i];
+                        Point3d closest = brep.ClosestPoint(pt);
+
+                        if (closest == Point3d.Unset || pt.DistanceTo(closest) >= tolerance)
                             continue;
 
-                        // Shoot ray - get max 1 hit per geometry like Python
-                        var intersections = Intersection.RayShoot(ray, new[] { brep }, 1);
-
-                        if (intersections != null && intersections.Length > 0)
+                        if (IsPointOnBrepFace(brep, pt, tolerance))
                         {
-                            foreach (var pt in intersections)
-                            {
-                                // Get closest point on brep
-                                Point3d closest = brep.ClosestPoint(pt);
-
-                                if (closest != Point3d.Unset && pt.DistanceTo(closest) < tolerance)
-                                {
-                                    // Check if point is on a face
-                                    bool isOnFace = false;
-
-                                    foreach (var face in brep.Faces)
-                                    {
-                                        double u, v;
-                                        if (face.ClosestPoint(pt, out u, out v))
-                                        {
-                                            Point3d facePt = face.PointAt(u, v);
-
-                                            if (pt.DistanceTo(facePt) < tolerance)
-                                            {
-                                                var relation = face.IsPointOnFace(u, v);
-                                                if (relation != PointFaceRelation.Exterior)
-                                                {
-                                                    isOnFace = true;
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    if (isOnFace)
-                                    {
-                                        points.Add(pt);
-                                    }
-                                }
-                            }
+                            output.Add(pt);
                         }
                     }
                 }
             }
+        }
 
-            return points;
+        private static bool IsPointOnBrepFace(Brep brep, Point3d pt, double tolerance)
+        {
+            for (int i = 0; i < brep.Faces.Count; i++)
+            {
+                var face = brep.Faces[i];
+                double u, v;
+                if (!face.ClosestPoint(pt, out u, out v))
+                    continue;
+
+                Point3d facePt = face.PointAt(u, v);
+                if (pt.DistanceTo(facePt) >= tolerance)
+                    continue;
+
+                var relation = face.IsPointOnFace(u, v);
+                if (relation != PointFaceRelation.Exterior)
+                    return true;
+            }
+
+            return false;
         }
 
         /// <summary>

@@ -114,6 +114,8 @@ GH_Strings.Clean.Desc + EddyVersion.toString(),
 
             if (Run)
             {
+                bool cleanSucceeded = true;
+
                 List<string> windDirDirectories =
                     Directory.GetDirectories(workingDirectory, "*", SearchOption.TopDirectoryOnly)
                              .Where(f => Regex.IsMatch(f, @"[\\/]\d+$"))
@@ -124,25 +126,38 @@ GH_Strings.Clean.Desc + EddyVersion.toString(),
                 if (Mode == 0)
                 {
                     // Mesh-only clean
-                    EddyLib.Utilities.FoamCleaner.CleanCase(meshDirectory);
+                    cleanSucceeded &= EddyLib.Utilities.FoamCleaner.CleanCase(meshDirectory);
                 }
                 else if (Mode == 1)
                 {
                     // Clean OpenFOAM cases (preserve system/constant/0)
                     foreach (string directory in windDirDirectories)
                     {
-                        EddyLib.Utilities.FoamCleaner.CleanCase(directory);
+                        cleanSucceeded &= EddyLib.Utilities.FoamCleaner.CleanCase(directory);
                     }
+
+                    // Remove root-level probe cache binaries (<workingDir>/postProcessing/*.bin)
+                    cleanSucceeded &= EddyLib.Utilities.FoamCleaner.CleanProbeCacheFiles(workingDirectory);
                 }
                 else
                 {
                     // Clean mesh and cases
-                    EddyLib.Utilities.FoamCleaner.CleanCase(meshDirectory);
+                    cleanSucceeded &= EddyLib.Utilities.FoamCleaner.CleanCase(meshDirectory);
 
                     foreach (string directory in windDirDirectories)
                     {
-                        EddyLib.Utilities.FoamCleaner.CleanCase(directory);
+                        cleanSucceeded &= EddyLib.Utilities.FoamCleaner.CleanCase(directory);
                     }
+
+                    // Remove root-level probe cache binaries (<workingDir>/postProcessing/*.bin)
+                    cleanSucceeded &= EddyLib.Utilities.FoamCleaner.CleanProbeCacheFiles(workingDirectory);
+                }
+
+                if (!cleanSucceeded)
+                {
+                    AddRuntimeMessage(
+                        GH_RuntimeMessageLevel.Warning,
+                        "Clean completed with some deletion errors (possibly locked files).");
                 }
 
                 foreach (IGH_DocumentObject obj in Grasshopper.Instances.ActiveCanvas.Document.ActiveObjects())

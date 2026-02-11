@@ -122,8 +122,16 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             pManager.AddGenericParameter(GH_Strings.Common.Result, GH_Strings.Common.ResultNick, GH_Strings.Common.ResultDesc, GH_ParamAccess.item);
             pManager.AddBooleanParameter(GH_Strings.SimpleFoam.MeshDone, GH_Strings.SimpleFoam.MeshDoneNick, GH_Strings.SimpleFoam.MeshDone, GH_ParamAccess.item);
             pManager.AddBooleanParameter(GH_Strings.SimpleFoam.SimDone, GH_Strings.SimpleFoam.SimDoneNick, GH_Strings.SimpleFoam.SimDone, GH_ParamAccess.list);
-            pManager.AddTextParameter(GH_Strings.SimpleFoam.MeshEta, GH_Strings.SimpleFoam.MeshEtaNick, GH_Strings.SimpleFoam.MeshEta, GH_ParamAccess.item);
-            pManager.AddTextParameter(GH_Strings.SimpleFoam.SimEta, GH_Strings.SimpleFoam.SimEtaNick, GH_Strings.SimpleFoam.SimEta, GH_ParamAccess.list);
+            pManager.AddTextParameter(
+                GH_Strings.SimpleFoam.MeshRemainingTime,
+                GH_Strings.SimpleFoam.MeshRemainingTimeNick,
+                GH_Strings.SimpleFoam.MeshRemainingTime,
+                GH_ParamAccess.item);
+            pManager.AddTextParameter(
+                GH_Strings.SimpleFoam.SimRemainingTime,
+                GH_Strings.SimpleFoam.SimRemainingTimeNick,
+                GH_Strings.SimpleFoam.SimRemainingTime,
+                GH_ParamAccess.list);
         }
 
         private bool canRun = true;
@@ -191,6 +199,8 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
 
             // Apply selected engine
             RunSettings.simEngine = _selectedEngine;
+
+            WarnIfSelectedEngineIsUnavailable();
 
             // Error Handling
 
@@ -355,7 +365,7 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             var meshStatus = OpenFOAMLogParser.ParseMeshingLog(meshLog, parseOptions);
 
             var simDone = new System.Collections.Generic.List<bool>(windDirs.Count);
-            var simEta = new System.Collections.Generic.List<string>(windDirs.Count);
+            var simulationRemainingTime = new System.Collections.Generic.List<string>(windDirs.Count);
             var simStatuses = new System.Collections.Generic.List<OpenFOAMLogStatus>(windDirs.Count);
             foreach (var dir in windDirs)
             {
@@ -366,23 +376,76 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
 
                 simStatuses.Add(simStatus);
                 simDone.Add(simStatus.IsFinished);
-                simEta.Add(OpenFOAMStatusFormatter.FormatEta(simStatus));
+                simulationRemainingTime.Add(OpenFOAMStatusFormatter.FormatRemainingTime(simStatus));
             }
-            ApplyQueuedSimulationEtaPredictions(simStatuses, simEta);
+            ApplyQueuedSimulationRemainingTimePredictions(simStatuses, simulationRemainingTime);
 
             DA.SetData(GH_Strings.SimpleFoam.MeshDone, meshStatus.IsFinished);
             DA.SetDataList(GH_Strings.SimpleFoam.SimDone, simDone);
-            DA.SetData(GH_Strings.SimpleFoam.MeshEta, OpenFOAMStatusFormatter.FormatEta(meshStatus));
-            DA.SetDataList(GH_Strings.SimpleFoam.SimEta, simEta);
+            DA.SetData(
+                GH_Strings.SimpleFoam.MeshRemainingTime,
+                OpenFOAMStatusFormatter.FormatRemainingTime(meshStatus));
+            DA.SetDataList(
+                GH_Strings.SimpleFoam.SimRemainingTime,
+                simulationRemainingTime);
 
             canRun = true;
         }
 
-        private static void ApplyQueuedSimulationEtaPredictions(
-            IList<OpenFOAMLogStatus> statuses,
-            IList<string> etaText)
+        private void WarnIfSelectedEngineIsUnavailable()
         {
-            if (statuses == null || etaText == null || statuses.Count == 0 || statuses.Count != etaText.Count)
+            string engineName = _selectedEngine == SimEngine.Docker ? "Docker" : "BlueCFD";
+            bool installed = true;
+            string details = string.Empty;
+            bool foundStatus = false;
+
+            if (EngineInstallStatusCache.TryRead(EngineInstallStatusCache.EddyCachePath, out var snapshot, out _))
+            {
+                foundStatus = EngineInstallStatusCache.TryGetEngineStatus(snapshot, engineName, out installed, out details);
+            }
+
+            if (!foundStatus)
+            {
+                installed = CheckEngineLive(engineName, out details);
+            }
+
+            if (!installed)
+            {
+                AddRuntimeMessage(
+                    GH_RuntimeMessageLevel.Warning,
+                    string.Format("{0} is selected but not installed. {1}", engineName, details));
+            }
+        }
+
+        private static bool CheckEngineLive(string engineName, out string details)
+        {
+            details = string.Empty;
+
+            try
+            {
+                if (engineName == "Docker")
+                {
+                    DefaultDirectoriesAndPaths.CheckDocker();
+                    details = "Docker is installed and running.";
+                    return true;
+                }
+
+                DefaultDirectoriesAndPaths.CheckBlueCfd();
+                details = "blueCFD is installed.";
+                return true;
+            }
+            catch (Exception ex)
+            {
+                details = ex.Message;
+                return false;
+            }
+        }
+
+        private static void ApplyQueuedSimulationRemainingTimePredictions(
+            IList<OpenFOAMLogStatus> statuses,
+            IList<string> remainingTimeText)
+        {
+            if (statuses == null || remainingTimeText == null || statuses.Count == 0 || statuses.Count != remainingTimeText.Count)
                 return;
 
             var observedDurations = new List<TimeSpan>();
@@ -430,7 +493,7 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
 
                 if (!status.HasLog)
                 {
-                    etaText[i] = "~" + OpenFOAMStatusFormatter.FormatTimeSpan(cumulativeRemaining);
+                    remainingTimeText[i] = "~" + OpenFOAMStatusFormatter.FormatTimeSpan(cumulativeRemaining);
                 }
             }
         }

@@ -22,7 +22,7 @@ namespace EddyLib
             RelaxationFactors relaxationFactors = RelaxationFactors.Optimized,
             bool potentialFoamInit = false,
             bool aoa = false,
-            bool stabilityLimiters = false,
+            bool stabilityLimiters = true,
             bool debugMode = false,
             bool simpleConsistent = false)
         {

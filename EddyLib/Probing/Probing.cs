@@ -3,6 +3,7 @@ using Rhino.Geometry;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System;
 
 namespace EddyLib
 {
@@ -64,7 +65,7 @@ namespace EddyLib
             string postProcessDir = ProbePathHelper.EnsurePostProcessingDir(baseWorkingDirectory);
             string binPath = ProbePathHelper.BuildProbeBinaryPath(postProcessDir, currWindDir, ofField.ProbeName, ofField.FieldName);
 
-            if (!rerun && File.Exists(binPath))
+            if (!rerun && IsCacheFresh(binPath, ProbingFilePath))
             {
                 LoadFromBinaryCache(ofField, binPath);
             }
@@ -111,6 +112,19 @@ namespace EddyLib
             {
                 ResultVec = ProbeBinaryIO.LoadVectors(binPath);
             }
+        }
+
+        private static bool IsCacheFresh(string cachePath, string sourcePath)
+        {
+            if (string.IsNullOrWhiteSpace(cachePath) || string.IsNullOrWhiteSpace(sourcePath))
+                return false;
+
+            if (!File.Exists(cachePath) || !File.Exists(sourcePath))
+                return false;
+
+            DateTime cacheWrite = File.GetLastWriteTimeUtc(cachePath);
+            DateTime sourceWrite = File.GetLastWriteTimeUtc(sourcePath);
+            return cacheWrite >= sourceWrite;
         }
 
         #endregion
@@ -180,6 +194,36 @@ namespace EddyLib
                 5 => "cellPatchConstrained",
                 _ => "cell"
             };
+        }
+
+        /// <summary>
+        /// De-duplicates probe points using the same coordinate precision as OpenFOAM dict export.
+        /// Keeps first occurrence order stable.
+        /// </summary>
+        public static List<Point3d> DeduplicateProbePointsForOpenFoam(IEnumerable<Point3d> points, out int removedCount)
+        {
+            var unique = new List<Point3d>();
+            var seen = new HashSet<string>();
+
+            if (points == null)
+            {
+                removedCount = 0;
+                return unique;
+            }
+
+            int total = 0;
+            foreach (var point in points)
+            {
+                total++;
+                string key = Utilities.FormatPV(point);
+                if (seen.Add(key))
+                {
+                    unique.Add(point);
+                }
+            }
+
+            removedCount = total - unique.Count;
+            return unique;
         }
 
         #endregion

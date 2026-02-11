@@ -7,6 +7,7 @@ using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -125,7 +126,11 @@ This yields a datatree of the size [8760 h x number of sensor points].", GH_Para
             else { Message = "Interpolation"; }
 
             OFResult RES = null;
-            DA.GetData(0, ref RES);
+            if (!DA.GetData(0, ref RES) || RES == null)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid Eddy result object.");
+                return;
+            }
 
             List<Point3d> probes = new List<Point3d>();
             DA.GetDataList("Probing points", probes);
@@ -133,11 +138,25 @@ This yields a datatree of the size [8760 h x number of sensor points].", GH_Para
             bool run = false;
             DA.GetData("Run", ref run);
 
+            if (run)
+            {
+                int removed = ClearWindFactorCacheFiles(RES?.WorkingDirectory);
+                if (removed > 0)
+                {
+                    AddRuntimeMessage(
+                        GH_RuntimeMessageLevel.Remark,
+                        $"Run triggered: cleared {removed} cached wind-factor file(s) before recomputation.");
+                }
+            }
+
             DA.GetDataTree("Wind Velocity", out GH_Structure<GH_Vector> U);
 
             #region Error checks
 
-            if (probes.Any(val => val.Z < RES.Domain.DomainMesh.GetBoundingBox(false).Min.Z || probes.Any(val2 => val2.Z > RES.Domain.DomainMesh.GetBoundingBox(false).Max.Z)))
+            var domainBounds = RES.Domain.DomainMesh.GetBoundingBox(false);
+            double minZ = domainBounds.Min.Z;
+            double maxZ = domainBounds.Max.Z;
+            if (probes.Any(point => point.Z < minZ || point.Z > maxZ))
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "You cannot probe that set of probes outside of the simulation domain.");
                 return;
@@ -181,6 +200,17 @@ This yields a datatree of the size [8760 h x number of sensor points].", GH_Para
             #region Wind Factors
 
             var wfspatial = new WindFactorsSpatial(RES.WorkingDirectory, RES.Domain.BCond, mdv, probes, interpolate, run);
+            if (wfspatial.ValuesSpatial is null)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Wind Factors Spatial could not be loaded or recalculated.");
+                return;
+            }
+
+            if (wfspatial.wrongNumberOfProbes)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The precalculated spatial wind factors have incompatible dimensions. Press Run to recalculate.");
+                return;
+            }
 
             DA.SetData(0, wfspatial);
 
@@ -228,6 +258,58 @@ This yields a datatree of the size [8760 h x number of sensor points].", GH_Para
             }
 
             #endregion Wind Factors
+        }
+
+        private static int ClearWindFactorCacheFiles(string workingDirectory)
+        {
+            if (string.IsNullOrWhiteSpace(workingDirectory))
+            {
+                return 0;
+            }
+
+            var baseDir = Utilities.Directories.FixDirectories(workingDirectory);
+            if (!Directory.Exists(baseDir))
+            {
+                return 0;
+            }
+
+            int removed = 0;
+
+            removed += TryDeleteFile(Path.Combine(baseDir, "MultiDirectionalVelocities.bin"));
+            removed += TryDeleteFile(Path.Combine(baseDir, "WF_S.bin"));
+            removed += TryDeleteFile(Path.Combine(baseDir, "WF_Sip.bin"));
+
+            try
+            {
+                foreach (var file in Directory.EnumerateFiles(baseDir, "WF_A*.bin"))
+                {
+                    removed += TryDeleteFile(file);
+                }
+            }
+            catch
+            {
+                // ignore cache enumeration issues
+            }
+
+            return removed;
+        }
+
+        private static int TryDeleteFile(string filePath)
+        {
+            if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+            {
+                return 0;
+            }
+
+            try
+            {
+                File.Delete(filePath);
+                return 1;
+            }
+            catch
+            {
+                return 0;
+            }
         }
 
         /// <summary>

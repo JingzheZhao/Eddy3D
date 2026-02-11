@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using static EddyLib.OutdoorComfort.WindComfortHelper;
 
 namespace EddyLib.OutdoorComfort
@@ -10,19 +9,55 @@ namespace EddyLib.OutdoorComfort
 
         private static bool CheckExceedance(double[] annualVelocity, CmftThresholdInfo THI)
         {
-            int exceedanceCount = annualVelocity.Count(num => num > THI.UThres);
             double threshold = THI.TimeThres * HoursPerYear;
+            int exceedanceCount = 0;
 
             if (THI.Operator == CompOperator.G)
             {
-                return exceedanceCount > threshold;
+                for (int i = 0; i < annualVelocity.Length; i++)
+                {
+                    if (annualVelocity[i] > THI.UThres)
+                    {
+                        exceedanceCount++;
+                        if (exceedanceCount > threshold)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
             }
             else if (THI.Operator == CompOperator.GOE)
             {
-                return exceedanceCount >= threshold;
+                for (int i = 0; i < annualVelocity.Length; i++)
+                {
+                    if (annualVelocity[i] > THI.UThres)
+                    {
+                        exceedanceCount++;
+                        if (exceedanceCount >= threshold)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
             }
             else
             {
+                for (int i = 0; i < annualVelocity.Length; i++)
+                {
+                    if (annualVelocity[i] > THI.UThres)
+                    {
+                        exceedanceCount++;
+                        if (exceedanceCount >= threshold)
+                        {
+                            return false;
+                        }
+                    }
+                }
+
                 return exceedanceCount < threshold;
             }
         }

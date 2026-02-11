@@ -19,9 +19,14 @@ namespace EddyLib
             /// </summary>
             public static T[] GetColumn(T[,] matrix, int columnNumber)
             {
-                return Enumerable.Range(0, matrix.GetLength(0))
-                        .Select(x => matrix[x, columnNumber])
-                        .ToArray();
+                int rowCount = matrix.GetLength(0);
+                var column = new T[rowCount];
+                for (int row = 0; row < rowCount; row++)
+                {
+                    column[row] = matrix[row, columnNumber];
+                }
+
+                return column;
             }
 
             /// <summary>
@@ -29,9 +34,14 @@ namespace EddyLib
             /// </summary>
             public static T[] GetRow(T[,] matrix, int rowNumber)
             {
-                return Enumerable.Range(0, matrix.GetLength(1))
-                        .Select(x => matrix[rowNumber, x])
-                        .ToArray();
+                int columnCount = matrix.GetLength(1);
+                var row = new T[columnCount];
+                for (int column = 0; column < columnCount; column++)
+                {
+                    row[column] = matrix[rowNumber, column];
+                }
+
+                return row;
             }
         }
 

@@ -54,6 +54,10 @@ namespace Eddy
             this.ClearRuntimeMessages();
 
             var missing = new System.Collections.Generic.List<string>();
+            string log = "";
+
+            string platform = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "Windows" : "macOS";
+            var snapshot = EngineInstallStatusCache.CreateSnapshot("Eddy3D", platform);
 
             try { DefaultDirectoriesAndPaths.CheckRadiance(); }
             catch { missing.Add("Radiance"); }
@@ -61,19 +65,51 @@ namespace Eddy
             try { DefaultDirectoriesAndPaths.CheckEnergyPlus(); }
             catch { missing.Add("EnergyPlus"); }
 
-            // macOS: check Docker instead of BlueCFD (BlueCFD is Windows-only)
+            bool dockerInstalled = false;
+            string dockerDetails;
+            try
+            {
+                DefaultDirectoriesAndPaths.CheckDocker();
+                dockerInstalled = true;
+                dockerDetails = "Docker is installed and running.";
+            }
+            catch (Exception ex)
+            {
+                dockerDetails = ex.Message;
+                if (IsMac) missing.Add("Docker");
+            }
+
+            bool blueCfdInstalled = false;
+            string blueCfdDetails;
             if (IsMac)
             {
-                try { DefaultDirectoriesAndPaths.CheckDocker(); }
-                catch { missing.Add("Docker"); }
+                blueCfdDetails = "BlueCFD is not supported on macOS.";
             }
             else
             {
-                try { DefaultDirectoriesAndPaths.CheckBlueCfd(); }
-                catch { missing.Add("blueCFD"); }
+                try
+                {
+                    DefaultDirectoriesAndPaths.CheckBlueCfd();
+                    blueCfdInstalled = true;
+                    blueCfdDetails = "blueCFD is installed.";
+                }
+                catch (Exception ex)
+                {
+                    blueCfdDetails = ex.Message;
+                    missing.Add("blueCFD");
+                }
             }
 
-            string log = "";
+            EngineInstallStatusCache.SetEngineStatus(snapshot, "Docker", dockerInstalled, dockerDetails);
+            EngineInstallStatusCache.SetEngineStatus(snapshot, "BlueCFD", blueCfdInstalled, blueCfdDetails);
+            EngineInstallStatusCache.SetEngineStatus(snapshot, "WSL", false, "WSL is not used by Eddy3D.");
+
+            if (!EngineInstallStatusCache.TryWrite(EngineInstallStatusCache.EddyCachePath, snapshot, out string cacheWriteError))
+            {
+                string cacheWarning = "Install-check cache could not be written: " + cacheWriteError;
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, cacheWarning);
+                log += cacheWarning + "\n";
+            }
 
             if (missing.Count > 0)
             {

@@ -7,7 +7,7 @@ namespace EddyLib.OpenFOAM
     /// </summary>
     public static class OpenFOAMStatusFormatter
     {
-        public static string FormatEta(OpenFOAMLogStatus status)
+        public static string FormatRemainingTime(OpenFOAMLogStatus status)
         {
             if (status == null)
                 return "unknown";
@@ -25,6 +25,11 @@ namespace EddyLib.OpenFOAM
                 return "unknown";
 
             return FormatTimeSpan(status.EstimatedRemaining.Value);
+        }
+
+        public static string FormatEta(OpenFOAMLogStatus status)
+        {
+            return FormatRemainingTime(status);
         }
 
         public static string FormatTimeSpan(TimeSpan span)

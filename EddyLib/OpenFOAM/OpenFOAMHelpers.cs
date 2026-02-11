@@ -142,8 +142,46 @@ namespace EddyLib.OpenFOAM
                 catch { success = false; }
             }
 
+            // Delete generated feature-edge folders from surfaceFeatureExtract.
+            success &= DeleteExtendedFeatureEdgeMeshDirectories(caseRoot);
+
             // Remove generated function-object fields from 0 folders while preserving setup fields.
             success &= CleanGeneratedFilesInZeroFolder(caseRoot);
+
+            return success;
+        }
+
+        /// <summary>
+        /// Removes Eddy probe cache binaries from the root postProcessing folder.
+        /// Cache files are stored as *.bin in &lt;workingDirectory&gt;/postProcessing.
+        /// </summary>
+        /// <param name="workingDirectory">Eddy working directory that contains the root postProcessing folder.</param>
+        /// <returns>True if all matching files were removed successfully.</returns>
+        public static bool CleanProbeCacheFiles(string workingDirectory)
+        {
+            if (string.IsNullOrWhiteSpace(workingDirectory))
+            {
+                return true;
+            }
+
+            var rootPostProcessing = Path.Combine(workingDirectory, "postProcessing");
+            if (!Directory.Exists(rootPostProcessing))
+            {
+                return true;
+            }
+
+            bool success = true;
+            foreach (var cacheFile in Directory.GetFiles(rootPostProcessing, "*.bin", SearchOption.TopDirectoryOnly))
+            {
+                try
+                {
+                    File.Delete(cacheFile);
+                }
+                catch
+                {
+                    success = false;
+                }
+            }
 
             return success;
         }
@@ -183,7 +221,46 @@ namespace EddyLib.OpenFOAM
                 || ProcessorDirRegex.IsMatch(name)
                 || name.Equals("postProcessing", StringComparison.OrdinalIgnoreCase)
                 || name.Equals("dynamicCode", StringComparison.OrdinalIgnoreCase)
-                || name.Equals("logs", StringComparison.OrdinalIgnoreCase);
+                || name.Equals("logs", StringComparison.OrdinalIgnoreCase)
+                || name.Equals("extendedFeatureEdgeMesh", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool DeleteExtendedFeatureEdgeMeshDirectories(string caseRoot)
+        {
+            bool success = true;
+
+            try
+            {
+                var candidates = new List<string>();
+
+                // Sometimes generated at case root.
+                candidates.Add(Path.Combine(caseRoot, "extendedFeatureEdgeMesh"));
+
+                var constantDir = Path.Combine(caseRoot, "constant");
+                candidates.Add(Path.Combine(constantDir, "extendedFeatureEdgeMesh"));
+
+                if (Directory.Exists(constantDir))
+                {
+                    foreach (var subDir in Directory.GetDirectories(constantDir, "*", SearchOption.TopDirectoryOnly))
+                    {
+                        candidates.Add(Path.Combine(subDir, "extendedFeatureEdgeMesh"));
+                    }
+                }
+
+                foreach (var dir in candidates
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .Where(Directory.Exists))
+                {
+                    try { Directory.Delete(dir, true); }
+                    catch { success = false; }
+                }
+            }
+            catch
+            {
+                success = false;
+            }
+
+            return success;
         }
 
         /// <summary>

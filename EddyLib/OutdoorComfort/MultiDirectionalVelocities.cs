@@ -1,5 +1,6 @@
 ﻿using Rhino.Geometry;
 using System.IO;
+using System.Linq;
 
 namespace EddyLib
 {
@@ -29,12 +30,12 @@ namespace EddyLib
 
             if (File.Exists(binAnnualVelProbes) && !recalc)
             {
-                var temp = RadianceFiles.loadBinDVectors(binAnnualVelProbes, out windDirs);
+                var cachedVectors = RadianceFiles.loadBinDVectors(binAnnualVelProbes, out int[] cachedWindDirs);
 
-                if (temp.GetLength(0) == vectors.GetLength(0))
+                if (IsCacheCompatible(cachedVectors, vectors, cachedWindDirs, windDirs))
                 {
-                    this.Values = temp;
-                    this.WindDirs = windDirs;
+                    this.Values = cachedVectors;
+                    this.WindDirs = cachedWindDirs;
                     this.resultPrecalculated = true;
                     this.wrongNumberOfProbes = false;
                 }
@@ -59,6 +60,40 @@ namespace EddyLib
                 this.resultPrecalculated = false;
                 this.wrongNumberOfProbes = false;
             }
+        }
+
+        private static bool IsCacheCompatible(
+            Vector3d[,] cachedVectors,
+            Vector3d[,] currentVectors,
+            int[] cachedWindDirs,
+            int[] currentWindDirs)
+        {
+            if (cachedVectors == null || currentVectors == null)
+            {
+                return false;
+            }
+
+            if (cachedVectors.GetLength(0) != currentVectors.GetLength(0))
+            {
+                return false;
+            }
+
+            if (cachedVectors.GetLength(1) != currentVectors.GetLength(1))
+            {
+                return false;
+            }
+
+            if (cachedWindDirs == null || currentWindDirs == null)
+            {
+                return false;
+            }
+
+            if (cachedWindDirs.Length != currentWindDirs.Length)
+            {
+                return false;
+            }
+
+            return cachedWindDirs.SequenceEqual(currentWindDirs);
         }
 
         private bool CheckForInfValues(Vector3d[,] vectors)

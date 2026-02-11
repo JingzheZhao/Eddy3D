@@ -181,6 +181,96 @@ namespace RhinoPlugin.Test.Xunit
         }
 
         [RequiresGrasshopperFact]
+        public void Probing_RefreshesWhenOpenFoamProbeFileIsNewerThanCache()
+        {
+            var root = TestFixtures.CreateTestDirectory("testcase-probing-cache-refresh");
+            try
+            {
+                const int iter = 100;
+                var probeName = "probe-cache-refresh";
+                var fieldName = "U";
+
+                Directory.CreateDirectory(Path.Combine(root, iter.ToString()));
+                WriteProbeFile(root, probeName, iter, fieldName, "0 (1 2 3) (4 5 6)\n100 (7 8 9) (10 11 12)\n");
+
+                var points = new List<Point3d> { new Point3d(0, 0, 0), new Point3d(1, 0, 0) };
+                var ofField = new OFField(fieldName, probeName, 1);
+                var res = new OFResult(null, new OFRunSettings(endTime: iter), null, root);
+
+                // Initial parse writes binary cache.
+                var first = new Probing(points, root, root, ofField, res, rerun: true, currWindDir: "0");
+                Assert.Equal(7, first.ResultVec[0].Value.X, 3);
+
+                var probePath = Path.Combine(root, "postProcessing", probeName, iter.ToString(), fieldName);
+                var binPath = Path.Combine(root, "postProcessing", "0_probe-cache-refresh_U.bin");
+                Assert.True(File.Exists(binPath), "Expected vector probe binary file to be written.");
+
+                // Make cache stale and source newer with different values.
+                File.SetLastWriteTimeUtc(binPath, new DateTime(2026, 2, 10, 12, 0, 0, DateTimeKind.Utc));
+                WriteProbeFile(root, probeName, iter, fieldName, "0 (11 12 13) (14 15 16)\n100 (17 18 19) (20 21 22)\n");
+                File.SetLastWriteTimeUtc(probePath, new DateTime(2026, 2, 10, 12, 5, 0, DateTimeKind.Utc));
+
+                // rerun:false should still parse from source because source is newer than cache.
+                var second = new Probing(points, root, root, ofField, res, rerun: false, currWindDir: "0");
+                Assert.Equal(17, second.ResultVec[0].Value.X, 3);
+                Assert.Equal(18, second.ResultVec[0].Value.Y, 3);
+                Assert.Equal(19, second.ResultVec[0].Value.Z, 3);
+                Assert.Equal(20, second.ResultVec[1].Value.X, 3);
+                Assert.Equal(21, second.ResultVec[1].Value.Y, 3);
+                Assert.Equal(22, second.ResultVec[1].Value.Z, 3);
+            }
+            finally
+            {
+                TestFixtures.CleanupTestDirectory(root);
+            }
+        }
+
+        [RequiresGrasshopperFact]
+        public void Probing_UsesCacheWhenCacheIsNewerThanOpenFoamProbeFile()
+        {
+            var root = TestFixtures.CreateTestDirectory("testcase-probing-cache-prefer-cache");
+            try
+            {
+                const int iter = 100;
+                var probeName = "probe-cache-prefer-cache";
+                var fieldName = "U";
+
+                Directory.CreateDirectory(Path.Combine(root, iter.ToString()));
+                WriteProbeFile(root, probeName, iter, fieldName, "0 (1 2 3) (4 5 6)\n100 (7 8 9) (10 11 12)\n");
+
+                var points = new List<Point3d> { new Point3d(0, 0, 0), new Point3d(1, 0, 0) };
+                var ofField = new OFField(fieldName, probeName, 1);
+                var res = new OFResult(null, new OFRunSettings(endTime: iter), null, root);
+
+                // Initial parse writes binary cache with values 7..12.
+                var first = new Probing(points, root, root, ofField, res, rerun: true, currWindDir: "0");
+                Assert.Equal(7, first.ResultVec[0].Value.X, 3);
+
+                var probePath = Path.Combine(root, "postProcessing", probeName, iter.ToString(), fieldName);
+                var binPath = Path.Combine(root, "postProcessing", "0_probe-cache-prefer-cache_U.bin");
+                Assert.True(File.Exists(binPath), "Expected vector probe binary file to be written.");
+
+                // Change source content but force it to look older than cache.
+                WriteProbeFile(root, probeName, iter, fieldName, "0 (11 12 13) (14 15 16)\n100 (17 18 19) (20 21 22)\n");
+                File.SetLastWriteTimeUtc(probePath, new DateTime(2026, 2, 10, 12, 0, 0, DateTimeKind.Utc));
+                File.SetLastWriteTimeUtc(binPath, new DateTime(2026, 2, 10, 12, 5, 0, DateTimeKind.Utc));
+
+                // rerun:false should keep using cache because cache is newer than source.
+                var second = new Probing(points, root, root, ofField, res, rerun: false, currWindDir: "0");
+                Assert.Equal(7, second.ResultVec[0].Value.X, 3);
+                Assert.Equal(8, second.ResultVec[0].Value.Y, 3);
+                Assert.Equal(9, second.ResultVec[0].Value.Z, 3);
+                Assert.Equal(10, second.ResultVec[1].Value.X, 3);
+                Assert.Equal(11, second.ResultVec[1].Value.Y, 3);
+                Assert.Equal(12, second.ResultVec[1].Value.Z, 3);
+            }
+            finally
+            {
+                TestFixtures.CleanupTestDirectory(root);
+            }
+        }
+
+        [RequiresGrasshopperFact]
         public void Probing_Scalar_ParsesTypicalFileWithHeaders()
         {
             var root = TestFixtures.CreateTestDirectory("testcase-probing-scalar-headers");
@@ -231,6 +321,51 @@ namespace RhinoPlugin.Test.Xunit
             Assert.Equal("phi", OFField.ReformatOFFields(7));
             Assert.Equal("aoa", OFField.ReformatOFFields(8));
             Assert.Equal("covid19", OFField.ReformatOFFields(9));
+        }
+
+        [Fact]
+        public void Probing_DeduplicateProbePointsForOpenFoam_RemovesDuplicatesAndKeepsOrder()
+        {
+            var input = new List<Point3d>
+            {
+                new Point3d(0.0, 0.0, 0.0),
+                new Point3d(1.0, 2.0, 3.0),
+                new Point3d(1.0004, 2.0004, 3.0004), // Same as previous after OpenFOAM 0.### formatting
+                new Point3d(4.0, 5.0, 6.0),
+                new Point3d(0.0, 0.0, 0.0)
+            };
+
+            var deduplicated = Probing.DeduplicateProbePointsForOpenFoam(input, out int removed);
+
+            Assert.Equal(2, removed);
+            Assert.Equal(3, deduplicated.Count);
+            Assert.Equal(new Point3d(0.0, 0.0, 0.0), deduplicated[0]);
+            Assert.Equal(new Point3d(1.0, 2.0, 3.0), deduplicated[1]);
+            Assert.Equal(new Point3d(4.0, 5.0, 6.0), deduplicated[2]);
+        }
+
+        [Fact]
+        public void Probing_GetLatestTime_IgnoresNonNumericCaseFolders()
+        {
+            var root = TestFixtures.CreateTestDirectory("testcase-probing-latest-time");
+            try
+            {
+                Directory.CreateDirectory(Path.Combine(root, "constant"));
+                Directory.CreateDirectory(Path.Combine(root, "system"));
+                Directory.CreateDirectory(Path.Combine(root, "postProcessing"));
+                Directory.CreateDirectory(Path.Combine(root, "50"));
+                Directory.CreateDirectory(Path.Combine(root, "150"));
+
+                var field = new OFField("U", "probe-latest", 1);
+                var result = new OFResult(null, new OFRunSettings(), null, root);
+
+                int latest = Probing.GetLatestTime(root, result, field);
+                Assert.Equal(150, latest);
+            }
+            finally
+            {
+                TestFixtures.CleanupTestDirectory(root);
+            }
         }
 
         private static void WriteProbeFile(string root, string probeName, int iter, string fieldName, string content)

@@ -218,13 +218,20 @@ Generates visualizations of the wind field, including vector arrows and streamli
             // ----------------------
             // New approach
             // ----------------------
-            List<WProbe> WProbes = new List<WProbe>();
+            List<Point3d> Probes = Probing.DeduplicateProbePointsForOpenFoam(probes.Select(p => p.Point), out int removedDuplicateProbeCount);
+            if (removedDuplicateProbeCount > 0)
+            {
+                AddRuntimeMessage(
+                    GH_RuntimeMessageLevel.Remark,
+                    $"Removed {removedDuplicateProbeCount} duplicate probe points after OpenFOAM coordinate formatting.");
+            }
 
+            List<WProbe> WProbes = new List<WProbe>(Probes.Count);
             if (RES.Domain.BCond.BCs.All(item => item is ABL))
             {
-                foreach (var p in probes)
+                foreach (var point in Probes)
                 {
-                    WProbes.Add(new WProbe(p.Point, RES.Domain.BCond.WindDirections.Count)
+                    WProbes.Add(new WProbe(point, RES.Domain.BCond.WindDirections.Count)
                     {
                         WindDirections = RES.Domain.BCond.WindDirections.ToArray(),
                         Uref = RES.Domain.BCond.BCs.Select(val => (float)val.URef).ToArray(),
@@ -235,9 +242,9 @@ Generates visualizations of the wind field, including vector arrows and streamli
             }
             else
             {
-                foreach (var p in probes)
+                foreach (var point in Probes)
                 {
-                    WProbes.Add(new WProbe(p.Point, RES.Domain.BCond.WindDirections.Count)
+                    WProbes.Add(new WProbe(point, RES.Domain.BCond.WindDirections.Count)
                     {
                         WindDirections = RES.Domain.BCond.WindDirections.ToArray(),
                         Uref = RES.Domain.BCond.BCs.Select(val => (float)val.URef).ToArray(),
@@ -246,15 +253,6 @@ Generates visualizations of the wind field, including vector arrows and streamli
                 }
             }
 
-            // ----------------------
-            // New approach
-            // ----------------------
-
-            List<Point3d> Probes = new List<Point3d>();
-            foreach (var p in probes)
-            {
-                Probes.Add(p.Point);
-            }
             int numberOfProbes = Probes.Count();
 
             GH_Structure<GH_Number> treeDouble = new GH_Structure<GH_Number>();
@@ -357,7 +355,8 @@ Generates visualizations of the wind field, including vector arrows and streamli
                     }
 
                     // If yes, write the dicts for both Docker and BlueCFD
-                    string path = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[i].ToString(), "system", probeNameByUser);
+                    string currCase = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[i].ToString());
+                    string path = Path.Combine(currCase, "system", probeNameByUser);
                     File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbesAllFields(Probes, probeNameByUser, Probing.ReformatIS(InterpolationScheme)));
 
                     if (RES.RunSettings.simEngine == SimEngine.Docker)
@@ -376,8 +375,9 @@ Generates visualizations of the wind field, including vector arrows and streamli
                     }
                     else
                     {
-                        command.AppendLine(@"rm -rf """ + RES.Domain.BCond.WindDirections[i] + @"/postProcessing/" + probeNameByUser + @"""");
-                        command.AppendLine(@"postProcess -case " + RES.Domain.BCond.WindDirections[i] + " -func " + probeNameByUser + @" -latestTime");
+                        int latestTime = ProbingNew.GetLatestTime(currCase, RES);
+                        command.AppendLine(@"if exist """ + RES.Domain.BCond.WindDirections[i] + @"\postProcessing\" + probeNameByUser + @""" rmdir /S /Q """ + RES.Domain.BCond.WindDirections[i] + @"\postProcessing\" + probeNameByUser + @"""");
+                        command.AppendLine(@"postProcess -case " + RES.Domain.BCond.WindDirections[i] + " -func " + probeNameByUser + @" -time " + latestTime);
                     }
                 }
 

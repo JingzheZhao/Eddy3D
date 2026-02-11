@@ -12,6 +12,9 @@ namespace EddyLib
     /// </summary>
     public static partial class RunFoamSimulation
     {
+        private const string MeshLogFileName = "snappyHexMesh.log";
+        private const string SimulationLogFileName = "simpleFoam.log";
+
         #region Batch Files
 
         private static void WriteBatchFiles(string workDir, OFBaseDomain domain, OFMeshSettings meshSettings, OFRunSettings runSettings)
@@ -65,7 +68,9 @@ namespace EddyLib
                 meshCmds.Add("blockMesh");
                 meshCmds.Add("surfaceFeatures");
                 meshCmds.Add("decomposePar -force");
-                meshCmds.Add(string.Format("mpiexec -np {0} snappyHexMesh -overwrite -parallel", runSettings.CPUs));
+                meshCmds.Add(WithDockerLog(
+                    string.Format("mpiexec -np {0} snappyHexMesh -overwrite -parallel", runSettings.CPUs),
+                    MeshLogFileName));
                 meshCmds.Add("reconstructParMesh -constant");
                 meshCmds.Add("renumberMesh -overwrite");
             }
@@ -73,7 +78,7 @@ namespace EddyLib
             {
                 meshCmds.Add("blockMesh");
                 meshCmds.Add("surfaceFeatures");
-                meshCmds.Add("snappyHexMesh -overwrite");
+                meshCmds.Add(WithDockerLog("snappyHexMesh -overwrite", MeshLogFileName));
                 meshCmds.Add("renumberMesh -overwrite");
             }
             meshCmds.Add("checkMesh -allGeometry -allTopology -writeSets vtk");
@@ -183,15 +188,28 @@ namespace EddyLib
                 cmds.Add("decomposePar -force");
                 if (runSettings.potentialFoamInit)
                     cmds.Add(string.Format("mpiexec -np {0} potentialFoam -parallel", runSettings.CPUs));
-                cmds.Add(string.Format("mpiexec -np {0} simpleFoam -parallel", runSettings.CPUs));
+                cmds.Add(WithDockerLog(
+                    string.Format("mpiexec -np {0} simpleFoam -parallel", runSettings.CPUs),
+                    SimulationLogFileName));
                 cmds.Add("reconstructPar -latestTime");
             }
             else
             {
                 if (runSettings.potentialFoamInit)
                     cmds.Add("potentialFoam");
-                cmds.Add("simpleFoam");
+                cmds.Add(WithDockerLog("simpleFoam", SimulationLogFileName));
             }
+        }
+
+        private static string WithDockerLog(string command, string logFileName)
+        {
+            if (string.IsNullOrWhiteSpace(command))
+                return command;
+
+            if (string.IsNullOrWhiteSpace(logFileName))
+                return command;
+
+            return string.Format("{0} > >(tee -a \"{1}\") 2>&1", command, logFileName);
         }
 
         private static void WriteDockerScript(string scriptsDir, string baseName, IReadOnlyList<string> commands, string workDir, string title)
