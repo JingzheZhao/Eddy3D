@@ -1,6 +1,5 @@
 ﻿using Eddy.Properties;
 using EddyLib;
-using Eto.Forms;
 using Grasshopper.Kernel;
 using System;
 using System.Collections.Generic;
@@ -8,7 +7,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using EtoSize = Eto.Drawing.Size;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -18,7 +16,16 @@ namespace Eddy
 {
     public class Residuals : GH_Component
     {
-        private static readonly Uri ResidualViewerUri = new Uri("https://plot-openfoam-residuals.streamlit.app/");
+        private enum ResidualViewerTarget
+        {
+            GithubPages = 0,
+            Streamlit = 1
+        }
+
+        private static readonly Uri GithubPagesViewerUri = new Uri("https://eddy3d-dev.github.io/Plot-OpenFOAM-Residuals/");
+        private static readonly Uri StreamlitViewerUri = new Uri("https://plot-openfoam-residuals.streamlit.app/");
+
+        private ResidualViewerTarget _viewerTarget = ResidualViewerTarget.GithubPages;
         private bool _lastRunState;
 
         public override GH_Exposure Exposure => GH_Exposure.quinary;
@@ -33,11 +40,54 @@ namespace Eddy
             : base("Plot Residuals", "Residuals",
                 @"Convergence Monitor
 
-Opens the Streamlit residual viewer and the simulation residuals folder.
+Opens the selected residual viewer and the simulation residuals folder.
 
 " + EddyVersion.toString(),
                 EddyVersion.Name, "1 | Wind")
         {
+        }
+
+        protected override void AppendAdditionalComponentMenuItems(System.Windows.Forms.ToolStripDropDown menu)
+        {
+            base.AppendAdditionalComponentMenuItems(menu);
+
+            Menu_AppendSeparator(menu);
+            Menu_AppendItem(menu, "Open Plotter (GitHub Pages)", (s, e) => OpenViewerInBrowser(GithubPagesViewerUri));
+            Menu_AppendItem(menu, "Open Plotter (Streamlit)", (s, e) => OpenViewerInBrowser(StreamlitViewerUri));
+
+            Menu_AppendSeparator(menu);
+            Menu_AppendItem(
+                menu,
+                "Use GitHub Pages For Plot Input",
+                (s, e) => SetViewerTarget(ResidualViewerTarget.GithubPages),
+                true,
+                _viewerTarget == ResidualViewerTarget.GithubPages);
+            Menu_AppendItem(
+                menu,
+                "Use Streamlit For Plot Input",
+                (s, e) => SetViewerTarget(ResidualViewerTarget.Streamlit),
+                true,
+                _viewerTarget == ResidualViewerTarget.Streamlit);
+        }
+
+        public override bool Write(GH_IO.Serialization.GH_IWriter writer)
+        {
+            writer.SetInt32("ResidualViewerTarget", (int)_viewerTarget);
+            return base.Write(writer);
+        }
+
+        public override bool Read(GH_IO.Serialization.GH_IReader reader)
+        {
+            if (reader.ItemExists("ResidualViewerTarget"))
+            {
+                int value = reader.GetInt32("ResidualViewerTarget");
+                if (Enum.IsDefined(typeof(ResidualViewerTarget), value))
+                {
+                    _viewerTarget = (ResidualViewerTarget)value;
+                }
+            }
+
+            return base.Read(reader);
         }
 
         /// <summary>
@@ -100,8 +150,50 @@ Opens the Streamlit residual viewer and the simulation residuals folder.
             _lastRunState = true;
             Message = "Open";
 
-            ShowWebWindow();
+            try
+            {
+                OpenViewerInBrowser(GetSelectedViewerUri());
+            }
+            catch (Exception ex)
+            {
+                AddRuntimeMessage(
+                    GH_RuntimeMessageLevel.Warning,
+                    string.Format("Could not open residual viewer: {0}", ex.Message));
+            }
+
             TryOpenResidualsFolder(result);
+        }
+
+        private void SetViewerTarget(ResidualViewerTarget target)
+        {
+            _viewerTarget = target;
+            ExpireSolution(true);
+        }
+
+        private Uri GetSelectedViewerUri()
+        {
+            return _viewerTarget == ResidualViewerTarget.GithubPages
+                ? GithubPagesViewerUri
+                : StreamlitViewerUri;
+        }
+
+        private void OpenViewerInBrowser(Uri viewerUri)
+        {
+            if (viewerUri == null)
+            {
+                return;
+            }
+
+            try
+            {
+                Process.Start(new ProcessStartInfo(viewerUri.AbsoluteUri) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                AddRuntimeMessage(
+                    GH_RuntimeMessageLevel.Warning,
+                    string.Format("Could not open browser link: {0}", ex.Message));
+            }
         }
 
         /// <summary>
@@ -180,27 +272,6 @@ Opens the Streamlit residual viewer and the simulation residuals folder.
             }
 
             Process.Start(new ProcessStartInfo("xdg-open", folderPath) { UseShellExecute = true });
-        }
-
-        /// <summary>
-        /// Opens the Streamlit residual viewer in an Eto.Forms window.
-        /// </summary>
-        private static void ShowWebWindow()
-        {
-            var form = new Form
-            {
-                Title = "Plot Residuals",
-                Size = new EtoSize(900, 700),
-                Resizable = true
-            };
-
-            var webView = new WebView
-            {
-                Url = ResidualViewerUri
-            };
-
-            form.Content = webView;
-            form.Show();
         }
 
         /// <summary>
