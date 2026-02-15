@@ -23,7 +23,10 @@ namespace RhinoPlugin.Test.Xunit
         private static StlTopology LoadTopology(string resourcePath)
         {
             var solutionRoot = FindSolutionRoot();
-            var stlPath = Path.Combine(solutionRoot, resourcePath);
+            var normalizedRelativePath = resourcePath
+                .Replace('\\', Path.DirectorySeparatorChar)
+                .Replace('/', Path.DirectorySeparatorChar);
+            var stlPath = Path.Combine(solutionRoot, normalizedRelativePath);
 
             if (!File.Exists(stlPath))
                 throw new FileNotFoundException($"STL not found: {stlPath}");

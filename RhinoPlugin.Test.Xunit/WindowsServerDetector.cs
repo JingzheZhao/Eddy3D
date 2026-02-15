@@ -1,4 +1,3 @@
-using Microsoft.Win32;
 using System.Runtime.InteropServices;
 
 namespace RhinoPlugin.Test.Xunit
@@ -10,22 +9,34 @@ namespace RhinoPlugin.Test.Xunit
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return false;
 
-            // Prefer 64-bit view to avoid WOW64 redirection; fallback to Default if needed.
-            using (var baseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64))
-            using (var key = baseKey.OpenSubKey(TestConstants.WindowsVersionRegistryPath))
+#if HOST_NONWINDOWS
+            // When compiled on non-Windows with net8.0, Microsoft.Win32.Registry is not available.
+            return false;
+#else
+            try
             {
-                if (key != null)
+                // Prefer 64-bit view to avoid WOW64 redirection; fallback to Default if needed.
+                using (var baseKey = Microsoft.Win32.RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.LocalMachine, Microsoft.Win32.RegistryView.Registry64))
+                using (var key = baseKey.OpenSubKey(TestConstants.WindowsVersionRegistryPath))
                 {
-                    var installationType = key.GetValue(TestConstants.InstallationTypeValueName) as string;
-                    if (!string.IsNullOrEmpty(installationType) &&
-                        installationType.IndexOf("Server", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                    if (key != null)
                     {
-                        return true;
+                        var installationType = key.GetValue(TestConstants.InstallationTypeValueName) as string;
+                        if (!string.IsNullOrEmpty(installationType) &&
+                            installationType.IndexOf("Server", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            return true;
+                        }
                     }
                 }
             }
+            catch
+            {
+                // Registry not available — assume not a server.
+            }
 
             return false;
+#endif
         }
     }
 }

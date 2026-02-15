@@ -7,7 +7,7 @@ namespace RhinoPlugin.Test.Xunit
     [Trait("Category", "Unit")]
     public class SimpleConsistentTests
     {
-        [Fact]
+        [RhinoRequiredFact]
         public void RunSettings_DefaultSimpleConsistent_IsFalse()
         {
             var runSettings = new OFRunSettings();

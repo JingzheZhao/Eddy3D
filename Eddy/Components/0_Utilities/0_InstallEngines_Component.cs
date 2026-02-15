@@ -227,22 +227,51 @@ namespace Eddy
 
         private string InstallRadianceMacOS()
         {
+            string url = "https://github.com/LBNL-ETA/Radiance/releases/download/012cb178/Radiance_012cb178_OSX.zip";
+            string zipFile = Path.Combine(Path.GetTempPath(), "Radiance_012cb178_OSX.zip");
+
+            string baseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Eddy3D");
+            string targetDir = Path.Combine(baseDir, "Radiance_012cb178_OSX");
+
             try
             {
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = "open",
-                    Arguments = "https://github.com/LBNL-ETA/Radiance/releases/tag/012cb178",
-                    UseShellExecute = true
-                });
+                if (!Directory.Exists(baseDir)) Directory.CreateDirectory(baseDir);
 
-                return "Opened Radiance releases page. Please download the macOS version.\n"
-                     + "Alternatively, install via Homebrew: brew install radiance\n"
-                     + "Expected install location: /usr/local/radiance\n";
+                if (Directory.Exists(targetDir))
+                {
+                    Directory.Delete(targetDir, true);
+                }
+                Directory.CreateDirectory(targetDir);
+
+                using (var client = new WebClient())
+                {
+                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                    client.DownloadFile(url, zipFile);
+                }
+
+                ZipFile.ExtractToDirectory(zipFile, targetDir);
+
+                // Set executable permissions on all files in bin/
+                string binDir = Path.Combine(targetDir, "radiance", "bin");
+                if (Directory.Exists(binDir))
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "chmod",
+                        Arguments = string.Format("-R +x \"{0}\"", binDir),
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    })?.WaitForExit(10000);
+                }
+
+                // Clean up zip
+                try { File.Delete(zipFile); } catch { }
+
+                return string.Format("Radiance installed successfully to {0}.\n", Path.Combine(targetDir, "radiance"));
             }
             catch (Exception ex)
             {
-                return string.Format("Error: {0}\nPlease install Radiance from https://github.com/LBNL-ETA/Radiance/releases\n", ex.Message);
+                return string.Format("Error installing Radiance: {0}\n", ex.Message);
             }
         }
 

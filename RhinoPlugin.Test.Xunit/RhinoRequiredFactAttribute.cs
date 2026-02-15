@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using Xunit;
 
 namespace RhinoPlugin.Test.Xunit
@@ -9,11 +10,12 @@ namespace RhinoPlugin.Test.Xunit
     /// </summary>
     public class RhinoRequiredFactAttribute : FactAttribute
     {
-        private static readonly Lazy<bool> _rhinoInstalled = new Lazy<bool>(CheckRhinoInstalled);
+        private static readonly Lazy<bool> RhinoInstalled = new Lazy<bool>(CheckRhinoInstalled);
+        public static bool IsRhinoInstalled => RhinoInstalled.Value;
 
         public RhinoRequiredFactAttribute()
         {
-            if (!_rhinoInstalled.Value)
+            if (!IsRhinoInstalled)
             {
                 Skip = "Test requires Rhino to be installed";
             }
@@ -23,6 +25,26 @@ namespace RhinoPlugin.Test.Xunit
         {
             try
             {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    var macCandidates = new[]
+                    {
+                        "/Applications/RhinoWIP.app",
+                        "/Applications/Rhino 8.app",
+                        "/Applications/Rhino.app"
+                    };
+
+                    foreach (var candidate in macCandidates)
+                    {
+                        if (Directory.Exists(candidate))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
+
                 string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
 
                 // Check for Rhino WIP first
@@ -51,6 +73,17 @@ namespace RhinoPlugin.Test.Xunit
             catch
             {
                 return false;
+            }
+        }
+    }
+
+    public class RhinoRequiredTheoryAttribute : TheoryAttribute
+    {
+        public RhinoRequiredTheoryAttribute()
+        {
+            if (!RhinoRequiredFactAttribute.IsRhinoInstalled)
+            {
+                Skip = "Test requires Rhino to be installed";
             }
         }
     }

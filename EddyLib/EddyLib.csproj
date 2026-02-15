@@ -1,9 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0-windows</TargetFrameworks>
-    <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <UseWindowsForms>true</UseWindowsForms>
+    <TargetFramework>net8.0</TargetFramework>
     <LangVersion>12</LangVersion>
     <RootNamespace>EddyLib</RootNamespace>
     <AssemblyName>EddyLib</AssemblyName>
@@ -16,11 +14,22 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grasshopper" Version="8.21.25188.17001" IncludeAssets="compile;build" />
+    <PackageReference Include="RhinoCommon" Version="8.27.26019.16021" IncludeAssets="compile;build" />
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
     <PackageReference Include="MedallionShell" Version="1.6.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="protobuf-net" Version="3.2.45" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Grasshopper">
+      <HintPath>$(NuGetPackageRoot)grasshopper/8.27.26019.16021/lib/net7.0/Grasshopper.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="GH_IO">
+      <HintPath>$(NuGetPackageRoot)grasshopper/8.27.26019.16021/lib/net7.0/GH_IO.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <!-- Exclude files not in the original csproj (legacy/unused, would cause duplicate definitions) -->

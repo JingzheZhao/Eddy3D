@@ -71,8 +71,10 @@ namespace RhinoPlugin.Test.Xunit
         public void TestNormalizeEnginePath()
         {
             string originalPath = DefaultDirectoriesAndPaths.RadianceDir;
-            string baseDir = @"C:\TestRadiance";
-            string binDir = @"C:\TestRadiance\bin";
+            bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            string baseDir = isWindows ? @"C:\TestRadiance" : "/tmp/TestRadiance";
+            string binDir = isWindows ? @"C:\TestRadiance\bin" : "/tmp/TestRadiance/bin";
+            string expectedDefaultFragment = isWindows ? "Radiance_012cb178_Windows" : "Radiance_012cb178_OSX";
 
             try
             {
@@ -86,14 +88,14 @@ namespace RhinoPlugin.Test.Xunit
 
                 // Test boolean strings (should revert to default)
                 DefaultDirectoriesAndPaths.RadianceDir = "False";
-                Assert.Contains("Radiance_012cb178_Windows", DefaultDirectoriesAndPaths.RadianceDir);
+                Assert.Contains(expectedDefaultFragment, DefaultDirectoriesAndPaths.RadianceDir);
 
                 DefaultDirectoriesAndPaths.RadianceDir = "True";
-                Assert.Contains("Radiance_012cb178_Windows", DefaultDirectoriesAndPaths.RadianceDir);
+                Assert.Contains(expectedDefaultFragment, DefaultDirectoriesAndPaths.RadianceDir);
 
                 // Test whitespace/empty
                 DefaultDirectoriesAndPaths.RadianceDir = " ";
-                Assert.Contains("Radiance_012cb178_Windows", DefaultDirectoriesAndPaths.RadianceDir);
+                Assert.Contains(expectedDefaultFragment, DefaultDirectoriesAndPaths.RadianceDir);
             }
             finally
             {

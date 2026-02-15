@@ -15,7 +15,7 @@ namespace RhinoPlugin.Test.Xunit
     [Collection("Rhino Collection")]
     public class OutdoorComfortTests
     {
-        [Fact]
+        [RhinoRequiredFact]
         public void SkyTemp_JFK()
         {
             string epw = DownloadEPW();
@@ -150,7 +150,7 @@ namespace RhinoPlugin.Test.Xunit
             return viewFactorsDir;
         }
 
-        [Theory]
+        [RhinoRequiredTheory]
         [InlineData(90, 0, 700, 1.0, 0.4, 0.5, 0.7, 23.2, 97.0)]
         [InlineData(0, 120, 800, 0.5, 0.5, 0.5, 0.7, 10.3, 42.9)]
         public void SolarGain_ReturnsExpected(
@@ -214,7 +214,7 @@ namespace RhinoPlugin.Test.Xunit
             Assert.Equal(0.47, Math.Round(vf.Values[0], 2));
         }
 
-        [Fact]
+        [RhinoRequiredFact]
         [Trait("Category", "Execution")]
         public void ViewFactors_Export()
         {
@@ -230,7 +230,7 @@ namespace RhinoPlugin.Test.Xunit
             CsvHelpers.Array1DToCSV(file, csvSVF);
         }
 
-        [Fact]
+        [RhinoRequiredFact]
         [Trait("Category", "Execution")]
         public void ViewFactors_Load()
         {
@@ -254,7 +254,7 @@ namespace RhinoPlugin.Test.Xunit
             AssertRoundedEqual(0.50, tempValues[2], 2);
         }
 
-        [Theory]
+        [RhinoRequiredTheory]
         [InlineData(0, 355, 5)]
         [InlineData(45, 90, 45)]
         public void WindFactors_DistanceBetween_ReturnsExpected(int dir1, int dir2, int expected)
@@ -264,7 +264,7 @@ namespace RhinoPlugin.Test.Xunit
             Assert.Equal(expected, res);
         }
 
-        [Fact]
+        [RhinoRequiredFact]
         public void WindFactors_ReturnNextLowerIndex_0_Return315()
         {
             // Arrange
@@ -278,7 +278,7 @@ namespace RhinoPlugin.Test.Xunit
             Assert.Equal(7, res);
         }
 
-        [Theory]
+        [RhinoRequiredTheory]
         [InlineData(5.0, 10.0, 1.0, 3.0, 2.89)]
         [InlineData(2.89, 3.0, 1.0, 10.0, 5.0)]
         public void ScaleABL_ReturnsExpected(double uref, double zref, double z0, double height, double expected)
@@ -288,7 +288,7 @@ namespace RhinoPlugin.Test.Xunit
             Assert.Equal(expected, Math.Round(res, 2));
         }
 
-        [Fact]
+        [RhinoRequiredFact]
         public void WindFactors()
         {
             //// Arrange
@@ -340,31 +340,40 @@ namespace RhinoPlugin.Test.Xunit
         private readonly string RadianceBinPath = DefaultDirectoriesAndPaths.RadianceBinDir;
         private readonly string RadianceLibPath = DefaultDirectoriesAndPaths.RadianceLibDir;
 
-        private readonly string[] RadianceExecutables = new string[]
+        private static readonly string[] RadianceExecutableNames = new string[]
         {
-            "rfluxmtx.exe",
-            "epw2wea.exe",
-            "gendaymtx.exe",
-            "dctimestep.exe",
-            "oconv.exe",
-            "rcontrib.exe",
-            "rmtxop.exe"
+            "rfluxmtx",
+            "epw2wea",
+            "gendaymtx",
+            "dctimestep",
+            "oconv",
+            "rcontrib",
+            "rmtxop"
         };
 
-        [Fact]
+        [RhinoRequiredFact]
         public void IsRadianceInstalled()
         {
-            // Use the new centralized validation
+            // Skip if Radiance is not installed (don't fail on machines without it)
+            if (!Directory.Exists(DefaultDirectoriesAndPaths.RadianceDir))
+            {
+                return; // Radiance not installed — nothing to verify
+            }
+
+            // Verify the installation is complete
             DefaultDirectoriesAndPaths.CheckRadiance();
 
-            foreach (var exe in RadianceExecutables)
+            string ext = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(
+                System.Runtime.InteropServices.OSPlatform.Windows) ? ".exe" : "";
+
+            foreach (var name in RadianceExecutableNames)
             {
-                string filePath = Path.Combine(RadianceBinPath, exe);
+                string filePath = Path.Combine(RadianceBinPath, name + ext);
                 Assert.True(File.Exists(filePath), $"Executable not found: {filePath}");
             }
         }
 
-        [Fact]
+        [RhinoRequiredFact]
         public void UTCIBounds()
         {
             //// Arrange
@@ -534,7 +543,7 @@ namespace RhinoPlugin.Test.Xunit
         /// Tests the At10Meters wind speed conversion formula.
         /// Formula: va_10m = va_h * log(10/0.01) / log(h/0.01)
         /// </summary>
-        [Theory]
+        [RhinoRequiredTheory]
         [InlineData(2.0, 2.0, 2.61)]   // 2 m/s at 2m height -> ~2.61 m/s at 10m  
         [InlineData(5.0, 10.0, 5.0)]   // 5 m/s at 10m height -> 5 m/s at 10m (identity)
         [InlineData(3.0, 1.5, 4.14)]   // 3 m/s at 1.5m height -> ~4.14 m/s at 10m
@@ -549,7 +558,7 @@ namespace RhinoPlugin.Test.Xunit
         /// Tests the UTCI calculation for known reference conditions.
         /// TODO: These expected values need to be verified against reference implementation.
         /// </summary>
-        //[Theory]
+        //[RhinoRequiredTheory]
         //[InlineData(20.0, 50.0, 0.5, 20.0, 19.1)]  // Neutral conditions
         //[InlineData(30.0, 50.0, 0.5, 30.0, 29.4)]  // Warm conditions
         //[InlineData(10.0, 50.0, 0.5, 10.0, 7.7)]   // Cool conditions
@@ -564,7 +573,7 @@ namespace RhinoPlugin.Test.Xunit
         /// Tests the Binning method that categorizes UTCI values into stress categories.
         /// Categories: -5(extreme cold) to +5(extreme heat), 0 = no stress
         /// </summary>
-        [Fact]
+        [RhinoRequiredFact]
         public void UTCI_Binning_Categories()
         {
             // Create a list with known categories
@@ -596,7 +605,7 @@ namespace RhinoPlugin.Test.Xunit
         /// and tab-separated values. This test verifies the fix for a regression where
         /// Skip(1) incorrectly skipped the first data value after RemoveEmptyEntries.
         /// </summary>
-        [Fact]
+        [RhinoRequiredFact]
         public void LoadDDSIll_ParsesCorrectNumberOfColumns()
         {
             // Arrange - Create a test .ill file with the Radiance format

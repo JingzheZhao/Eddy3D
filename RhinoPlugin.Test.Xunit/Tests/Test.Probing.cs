@@ -308,7 +308,7 @@ namespace RhinoPlugin.Test.Xunit
             }
         }
 
-        [Fact]
+        [RhinoRequiredFact]
         public void OFField_ReformatOFFields_MapsExpectedNames()
         {
             Assert.Equal("U", OFField.ReformatOFFields(0));
@@ -323,7 +323,7 @@ namespace RhinoPlugin.Test.Xunit
             Assert.Equal("covid19", OFField.ReformatOFFields(9));
         }
 
-        [Fact]
+        [RhinoRequiredFact]
         public void Probing_DeduplicateProbePointsForOpenFoam_RemovesDuplicatesAndKeepsOrder()
         {
             var input = new List<Point3d>
@@ -344,7 +344,7 @@ namespace RhinoPlugin.Test.Xunit
             Assert.Equal(new Point3d(4.0, 5.0, 6.0), deduplicated[2]);
         }
 
-        [Fact]
+        [RhinoRequiredFact]
         public void Probing_GetLatestTime_IgnoresNonNumericCaseFolders()
         {
             var root = TestFixtures.CreateTestDirectory("testcase-probing-latest-time");

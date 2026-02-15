@@ -7,17 +7,33 @@
 
   <!-- Windows host -->
   <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
-    <TargetFrameworks>net8.0-windows</TargetFrameworks>
+    <TargetFramework>net8.0-windows</TargetFramework>
   </PropertyGroup>
 
   <!-- Non-Windows host (macOS/Linux) -->
   <PropertyGroup Condition="'$(OS)'!='Windows_NT'">
-    <TargetFrameworks>net8.0</TargetFrameworks>
-    <MacBuildBehavior Condition="'$(MacBuildBehavior)'==''">Skip</MacBuildBehavior>
+    <TargetFramework>net8.0</TargetFramework>
     <DefineConstants>$(DefineConstants);HOST_NONWINDOWS</DefineConstants>
   </PropertyGroup>
 
-  <!-- Cross-platform test packages -->
+  <!-- Rhino runtime probe directories used for test execution -->
+  <PropertyGroup Condition="'$(OS)'=='Windows_NT' and Exists('$(ProgramFiles)\\Rhino WIP\\System')">
+    <RhinoRuntimeDir>$(ProgramFiles)\Rhino WIP\System</RhinoRuntimeDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'=='Windows_NT' and '$(RhinoRuntimeDir)'=='' and Exists('$(ProgramFiles)\\Rhino 8\\System')">
+    <RhinoRuntimeDir>$(ProgramFiles)\Rhino 8\System</RhinoRuntimeDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'!='Windows_NT' and Exists('/Applications/RhinoWIP.app/Contents/Frameworks/RhCore.framework/Versions/A/Resources')">
+    <RhinoRuntimeDir>/Applications/RhinoWIP.app/Contents/Frameworks/RhCore.framework/Versions/A/Resources</RhinoRuntimeDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'!='Windows_NT' and '$(RhinoRuntimeDir)'=='' and Exists('/Applications/Rhino 8.app/Contents/Frameworks/RhCore.framework/Versions/A/Resources')">
+    <RhinoRuntimeDir>/Applications/Rhino 8.app/Contents/Frameworks/RhCore.framework/Versions/A/Resources</RhinoRuntimeDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'!='Windows_NT' and '$(RhinoRuntimeDir)'=='' and Exists('/Applications/Rhino.app/Contents/Frameworks/RhCore.framework/Versions/A/Resources')">
+    <RhinoRuntimeDir>/Applications/Rhino.app/Contents/Frameworks/RhCore.framework/Versions/A/Resources</RhinoRuntimeDir>
+  </PropertyGroup>
+
+  <!-- Test/runtime dependencies -->
   <ItemGroup>
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.0.1">
@@ -25,27 +41,35 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
-  </ItemGroup>
-
-  <!-- Windows-only: Grasshopper, RhinoCommon, project references -->
-  <ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
-    <PackageReference Include="Grasshopper" Version="8.21.25188.17001" />
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
-    <PackageReference Include="RhinoCommon" Version="8.21.25188.17001" />
-    <ProjectReference Include="..\EddyLib\EddyLib.csproj" />
   </ItemGroup>
 
-  <!-- macOS/Linux guard -->
-  <Target Name="NonWindowsBuildNotice" BeforeTargets="Build" Condition="'$(OS)'!='Windows_NT'">
-    <Message Importance="high"
-      Text="Host OS: non-Windows. $(MSBuildProjectName) contains Windows-only tests. Behavior=$(MacBuildBehavior)." />
-    <Warning Condition="'$(MacBuildBehavior)'=='Warn' or '$(MacBuildBehavior)'=='Skip'"
-      Text="On macOS/Linux, Windows-only tests are disabled." />
-  </Target>
-
-  <!-- Exclude all sources on non-Windows when Skip mode -->
-  <ItemGroup Condition="'$(OS)'!='Windows_NT' and '$(MacBuildBehavior)'=='Skip'">
-    <Compile Remove="**/*.cs" />
+  <ItemGroup>
+    <Reference Include="RhinoCommon">
+      <HintPath>$(NuGetPackageRoot)rhinocommon/8.27.26019.16021/lib/net7.0/RhinoCommon.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Rhino.UI">
+      <HintPath>$(NuGetPackageRoot)rhinocommon/8.27.26019.16021/lib/net7.0/Rhino.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Eto">
+      <HintPath>$(NuGetPackageRoot)rhinocommon/8.27.26019.16021/lib/net7.0/Eto.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Ed.Eto">
+      <HintPath>$(NuGetPackageRoot)rhinocommon/8.27.26019.16021/lib/net7.0/Ed.Eto.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Grasshopper">
+      <HintPath>$(NuGetPackageRoot)grasshopper/8.27.26019.16021/lib/net7.0/Grasshopper.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="GH_IO">
+      <HintPath>$(NuGetPackageRoot)grasshopper/8.27.26019.16021/lib/net7.0/GH_IO.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <ProjectReference Include="..\EddyLib\EddyLib.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -54,5 +78,19 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+
+  <ItemGroup Condition="'$(RhinoRuntimeDir)'!=''">
+    <RhinoRuntimeAssemblies Include="$(RhinoRuntimeDir)/RhinoCommon.dll" />
+    <RhinoRuntimeAssemblies Include="$(RhinoRuntimeDir)/Rhino.UI.dll" />
+    <RhinoRuntimeAssemblies Include="$(RhinoRuntimeDir)/Eto.dll" />
+    <RhinoRuntimeAssemblies Include="$(RhinoRuntimeDir)/Ed.Eto.dll" />
+  </ItemGroup>
+
+  <Target Name="CopyRhinoRuntimeAssemblies" AfterTargets="Build" Condition="'$(RhinoRuntimeDir)'!=''">
+    <Copy SourceFiles="@(RhinoRuntimeAssemblies)"
+          DestinationFolder="$(OutDir)"
+          SkipUnchangedFiles="false"
+          OverwriteReadOnlyFiles="true" />
+  </Target>
 
 </Project>

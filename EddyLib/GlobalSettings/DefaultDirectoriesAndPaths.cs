@@ -15,9 +15,10 @@ namespace EddyLib
         private static string _baseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Eddy3D");
         private static readonly string WindowsCasesRootDir =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Eddy3D");
-        private static string _radianceDir = IsWindows
+        private static readonly string _radianceDirDefault = IsWindows
             ? Path.Combine(_baseDir, "Radiance_012cb178_Windows")
-            : "/usr/local/radiance";
+            : Path.Combine(_baseDir, "Radiance_012cb178_OSX", "radiance");
+        private static string _radianceDir = _radianceDirDefault;
         private static string _energyPlusDir = IsWindows
             ? @"C:\EnergyPlusV9-4-0"
             : "/Applications/EnergyPlus-9-4-0";
@@ -74,8 +75,7 @@ namespace EddyLib
         public static string RadianceDir
         {
             get => _radianceDir;
-            set => _radianceDir = NormalizeEnginePath(value,
-                IsWindows ? Path.Combine(_baseDir, "Radiance_012cb178_Windows") : "/usr/local/radiance");
+            set => _radianceDir = NormalizeEnginePath(value, _radianceDirDefault);
         }
 
         /// <summary>

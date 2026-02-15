@@ -13,7 +13,7 @@ namespace RhinoPlugin.Test.Xunit
             Assert.Equal(Math.Round(expected, decimals), Math.Round(actual, decimals));
         }
 
-        //[Fact]
+        //[RhinoRequiredFact]
         //public void AngleProjectionFactor_90_returns_0_282()
         //{
         //    // Arrange
@@ -31,7 +31,7 @@ namespace RhinoPlugin.Test.Xunit
         //    Assert.Equal(Math.Round(fp, 2), Math.Round(1 * 0.09 * 3.14, 2));
         //}
 
-        //[Fact]
+        //[RhinoRequiredFact]
         //public void AngleProjectionFactor_0_returns_0_525()
         //{
         //    // Arrange
@@ -49,7 +49,7 @@ namespace RhinoPlugin.Test.Xunit
         //    Assert.Equal(Math.Round(fp, 2), Math.Round(2 * 0.3 * 1.75, 2));
         //}
 
-        //[Fact]
+        //[RhinoRequiredFact]
         //public void AngleProjectionFactor_CBE()
         //{
         //    // Arrange
@@ -70,7 +70,7 @@ namespace RhinoPlugin.Test.Xunit
         //    Assert.Equal(Math.Round(fp, 2), Math.Round(2 * 0.3 * 1.75, 2));
         //}
 
-        [Fact]
+        [RhinoRequiredFact]
         public void ERFOriginal()
         {
             // Arrange
@@ -110,7 +110,7 @@ namespace RhinoPlugin.Test.Xunit
             AssertRoundedEqual(43.25, dMRT);
         }
 
-        [Fact]
+        [RhinoRequiredFact]
         public void ERFModified()
         {
             // Arrange
@@ -149,7 +149,7 @@ namespace RhinoPlugin.Test.Xunit
             AssertRoundedEqual(47.34, dMRT);
         }
 
-        [Fact]
+        [RhinoRequiredFact]
         public void Deg2Rad()
         {
             // Arrange

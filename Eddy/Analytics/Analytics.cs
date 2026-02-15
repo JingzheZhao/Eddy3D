@@ -1,10 +1,11 @@
 using System;
+using System.Diagnostics;
 using System.Drawing;
-using System.Management;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using EddyLib;
 using Newtonsoft.Json.Linq;
 
@@ -496,16 +497,43 @@ namespace Eddy.Analytics
         /// </summary>
         private static string GetDeviceType()
         {
+            // macOS: check hardware model via sysctl
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                try
+                {
+                    string model = RunShellCommand("sysctl", "-n hw.model");
+                    if (!string.IsNullOrWhiteSpace(model) &&
+                        model.StartsWith("MacBook", StringComparison.OrdinalIgnoreCase))
+                        return "laptop";
+                    return "desktop";
+                }
+                catch
+                {
+                    return "desktop";
+                }
+            }
+
+            // Windows: WMI query
             try
             {
-                using (var searcher = new ManagementObjectSearcher("SELECT PCSystemType FROM Win32_ComputerSystem"))
+                var managementType = Type.GetType("System.Management.ManagementObjectSearcher, System.Management");
+                if (managementType != null)
                 {
-                    foreach (ManagementObject item in searcher.Get())
+                    using (var searcher = (IDisposable)Activator.CreateInstance(
+                        managementType, "SELECT PCSystemType FROM Win32_ComputerSystem"))
                     {
-                        if (item["PCSystemType"] == null) continue;
-                        int type = Convert.ToInt32(item["PCSystemType"]);
-                        if (type == 2) return "laptop";           // Mobile
-                        if (type == 1 || type == 3) return "desktop"; // Desktop or Workstation
+                        var getMethod = managementType.GetMethod("Get", Type.EmptyTypes);
+                        var results = (System.Collections.IEnumerable)getMethod.Invoke(searcher, null);
+                        foreach (var item in results)
+                        {
+                            var indexer = item.GetType().GetProperty("Item", new[] { typeof(string) });
+                            var val = indexer?.GetValue(item, new object[] { "PCSystemType" });
+                            if (val == null) continue;
+                            int type = Convert.ToInt32(val);
+                            if (type == 2) return "laptop";
+                            if (type == 1 || type == 3) return "desktop";
+                        }
                     }
                 }
             }
@@ -514,16 +542,31 @@ namespace Eddy.Analytics
                 // fall through to other heuristics
             }
 
+            // Windows fallback: battery status via WinForms
             try
             {
-                return SystemInformation.PowerStatus.BatteryChargeStatus == BatteryChargeStatus.NoSystemBattery
-                    ? "desktop"
-                    : "laptop";
+                var siType = Type.GetType("System.Windows.Forms.SystemInformation, System.Windows.Forms");
+                if (siType != null)
+                {
+                    var powerProp = siType.GetProperty("PowerStatus");
+                    var powerStatus = powerProp?.GetValue(null);
+                    if (powerStatus != null)
+                    {
+                        var chargeProp = powerStatus.GetType().GetProperty("BatteryChargeStatus");
+                        var chargeStatus = chargeProp?.GetValue(powerStatus);
+                        // BatteryChargeStatus.NoSystemBattery == 128
+                        if (chargeStatus != null && Convert.ToInt32(chargeStatus) == 128)
+                            return "desktop";
+                        return "laptop";
+                    }
+                }
             }
             catch
             {
-                return "desktop";
+                // ignore
             }
+
+            return "desktop";
         }
 
         /// <summary>
@@ -531,12 +574,40 @@ namespace Eddy.Analytics
         /// </summary>
         private static string GetScreenSize()
         {
+            // macOS: parse system_profiler for display resolution
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                try
+                {
+                    string output = RunShellCommand("system_profiler", "SPDisplaysDataType");
+                    if (!string.IsNullOrWhiteSpace(output))
+                    {
+                        // Matches lines like "Resolution: 3024 x 1964 Retina" or "3456 x 2234"
+                        var match = Regex.Match(output, @"Resolution:\s*(\d+)\s*x\s*(\d+)");
+                        if (match.Success)
+                            return $"{match.Groups[1].Value}x{match.Groups[2].Value}";
+                    }
+                }
+                catch
+                {
+                    // ignore
+                }
+
+                return "unknown";
+            }
+
+            // Windows: WinForms virtual screen
             try
             {
-                Rectangle bounds = SystemInformation.VirtualScreen;
-                if (bounds.Width > 0 && bounds.Height > 0)
+                var siType = Type.GetType("System.Windows.Forms.SystemInformation, System.Windows.Forms");
+                if (siType != null)
                 {
-                    return $"{bounds.Width}x{bounds.Height}";
+                    var vsProp = siType.GetProperty("VirtualScreen");
+                    var bounds = vsProp?.GetValue(null);
+                    if (bounds is Rectangle rect && rect.Width > 0 && rect.Height > 0)
+                    {
+                        return $"{rect.Width}x{rect.Height}";
+                    }
                 }
             }
             catch
@@ -555,7 +626,38 @@ namespace Eddy.Analytics
             string deviceToken = string.Equals(deviceType, "laptop", StringComparison.OrdinalIgnoreCase)
                 ? "Laptop"
                 : "Desktop";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                string osVersion = Environment.OSVersion.Version.ToString();
+                string arch = RuntimeInformation.OSArchitecture == Architecture.Arm64
+                    ? "ARM64" : "Intel";
+                return $"Mozilla/5.0 (Macintosh; {arch} Mac OS X {osVersion}; {deviceToken}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Eddy3D/{eddyVersion}";
+            }
+
             return $"Mozilla/5.0 (Windows NT 10.0; Win64; x64; {deviceToken}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Eddy3D/{eddyVersion}";
+        }
+
+        /// <summary>
+        /// Runs a shell command and returns trimmed stdout. Timeout: 3 seconds.
+        /// </summary>
+        private static string RunShellCommand(string command, string args)
+        {
+            using var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = command,
+                    Arguments = args,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }
+            };
+            process.Start();
+            string output = process.StandardOutput.ReadToEnd();
+            process.WaitForExit(3000);
+            return output?.Trim();
         }
 
         /// <summary>

@@ -17,7 +17,7 @@ namespace RhinoPlugin.Test.Xunit
             return new AnalysisBins(end, start);
         }
 
-        [Fact]
+        [RhinoRequiredFact]
         public void AnalysisBins_Annual()
         {
             // Arrange
