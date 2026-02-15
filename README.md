@@ -28,6 +28,12 @@ cd Eddy3D
 
 </details>
 
+## Testing
+
+For xUnit test execution behavior across Windows/macOS (run/skip/fail-fast rules and required attributes), see:
+
+- [`RhinoPlugin.Test.Xunit/TEST_POLICY.md`](RhinoPlugin.Test.Xunit/TEST_POLICY.md)
+
 ## Development Setup (macOS)
 
 <details>
