@@ -137,19 +137,11 @@ namespace EddyLib
 
         public static void MeshProc(Mesh _m, string _fname, string _mat)
         {
-            System.IO.StreamWriter sw = new System.IO.StreamWriter(_fname);
+            using var sw = new System.IO.StreamWriter(_fname, false, System.Text.Encoding.UTF8, 65536);
             sw.WriteLine("# Grasshopper Eddy3D " + EddyLib.EddyVersion.ProductVersion);
             sw.WriteLine("");
 
-            //_m.Faces.ConvertQuadsToTriangles();
-
-            //_m.Faces.ExtractDuplicateFaces();
             _m.Faces.ConvertNonPlanarQuadsToTriangles(RhinoDoc.ActiveDoc.ModelAbsoluteTolerance, RhinoDoc.ActiveDoc.ModelAngleToleranceRadians, 0);
-
-            // Sometimes Octrees are not written robustly
-
-            //int fixCount = 0;
-            //_m.Faces.RemoveZeroAreaFaces(ref fixCount);
             _m.Faces.CullDegenerateFaces();
 
             for (int i = 0; i < _m.Faces.Count; ++i)
@@ -195,21 +187,15 @@ namespace EddyLib
                     sw.WriteLine();
                 }
             }
-
-            sw.Close();
         }
 
         public static void MeshProc(Mesh _m, string _fname, string _mat, string _matLib)
         {
-            System.IO.StreamWriter sw = new System.IO.StreamWriter(_fname);
+            using var sw = new System.IO.StreamWriter(_fname, false, System.Text.Encoding.UTF8, 65536);
             sw.WriteLine("# Grasshopper Eddy3D " + EddyLib.EddyVersion.ProductVersion);
             sw.WriteLine("");
             sw.WriteLine(_matLib);
             sw.WriteLine("");
-
-            //_m.Faces.ConvertQuadsToTriangles();
-
-            //_m.Faces.ExtractDuplicateFaces();
 
             // Need this for unit testing
             if (RhinoDoc.ActiveDoc == null)
@@ -221,10 +207,6 @@ namespace EddyLib
                 _m.Faces.ConvertNonPlanarQuadsToTriangles(RhinoDoc.ActiveDoc.ModelAbsoluteTolerance, RhinoDoc.ActiveDoc.ModelAngleToleranceRadians, 0);
             }
 
-            // Sometimes Octrees are not written robustly
-
-            //int fixCount = 0;
-            //_m.Faces.RemoveZeroAreaFaces(ref fixCount);
             _m.Faces.CullDegenerateFaces();
 
             for (int i = 0; i < _m.Faces.Count; ++i)
@@ -284,8 +266,6 @@ namespace EddyLib
                     sw.WriteLine();
                 }
             }
-
-            sw.Close();
         }
 
         public static void MeshProc(List<RSurface> rsurfs, string _fname)
@@ -309,7 +289,7 @@ namespace EddyLib
                 }
             }
 
-            System.IO.StreamWriter sw = new System.IO.StreamWriter(_fname);
+            using var sw = new System.IO.StreamWriter(_fname, false, System.Text.Encoding.UTF8, 65536);
             sw.WriteLine("# Grasshopper Eddy3D " + EddyLib.EddyVersion.ProductVersion);
             sw.WriteLine("");
             sw.WriteLine(_matLib.ToString());
@@ -321,10 +301,6 @@ namespace EddyLib
             {
                 Mesh _m = s.LowPoly.DuplicateMesh();
 
-                //_m.Faces.ConvertQuadsToTriangles();
-
-                //_m.Faces.ExtractDuplicateFaces();
-
                 // Need this for unit testing
                 if (RhinoDoc.ActiveDoc == null)
                 {
@@ -335,10 +311,6 @@ namespace EddyLib
                     _m.Faces.ConvertNonPlanarQuadsToTriangles(RhinoDoc.ActiveDoc.ModelAbsoluteTolerance, RhinoDoc.ActiveDoc.ModelAngleToleranceRadians, 0);
                 }
 
-                // Sometimes Octrees are not written robustly
-
-                //int fixCount = 0;
-                //_m.Faces.RemoveZeroAreaFaces(ref fixCount);
                 _m.Faces.CullDegenerateFaces();
 
                 for (int i = 0; i < _m.Faces.Count; ++i)
@@ -400,7 +372,6 @@ namespace EddyLib
                     polyCnt++;
                 }
             }
-            sw.Close();
         }
 
         public static void writePTS(string pts_path, List<Point3d> pts, List<Vector3d> pts_norm)
@@ -485,14 +456,15 @@ namespace EddyLib
             double[][] values = new double[stop - start][];
             string[] lines = System.IO.File.ReadAllLines(fileName);
 
-            for (int h = 0; h < stop; h++)
+            for (int h = start; h < stop; h++)
             {
-                if (h >= start)
-                {
-                    string[] hourData = lines[h].Split(' ').Skip(4).ToArray();
-                    double[] hourDataDouble = Array.ConvertAll<string, double>(hourData, Double.Parse);
-                    values[h - start] = hourDataDouble;
-                }
+                string[] parts = lines[h].Split(' ');
+                int dataStart = 4;
+                int dataLen = parts.Length - dataStart;
+                double[] hourDataDouble = new double[dataLen];
+                for (int k = 0; k < dataLen; k++)
+                    hourDataDouble[k] = double.Parse(parts[k + dataStart]);
+                values[h - start] = hourDataDouble;
             }
             return values;
         }
@@ -501,16 +473,18 @@ namespace EddyLib
         {
             // [x][] time
             // [][x] points
-            //string[] illLines = System.IO.File.ReadAllLines(illFileName);
-            //return illLines.Select(l => Array.ConvertAll<string, double>(l.Split(new[] { ' ' }).Skip(4).ToArray(), Double.Parse)).ToArray();
 
             string[] lines = System.IO.File.ReadAllLines(illFileName);
             double[][] values = new double[lines.Length][];
 
             for (int h = 0; h < lines.Length; h++)
             {
-                string[] hourData = lines[h].Split(' ').Skip(4).ToArray();
-                double[] hourDataDouble = Array.ConvertAll<string, double>(hourData, Double.Parse);
+                string[] parts = lines[h].Split(' ');
+                int dataStart = 4;
+                int dataLen = parts.Length - dataStart;
+                double[] hourDataDouble = new double[dataLen];
+                for (int k = 0; k < dataLen; k++)
+                    hourDataDouble[k] = double.Parse(parts[k + dataStart]);
                 values[h] = hourDataDouble;
             }
             return values;
@@ -520,16 +494,18 @@ namespace EddyLib
         {
             // [x][] time
             // [][x] points
-            //string[] illLines = System.IO.File.ReadAllLines(illFileName);
-            //return illLines.Select(l => Array.ConvertAll<string, double>(l.Split(new[] { ' ' }).Skip(4).ToArray(), Double.Parse)).ToArray();
 
             string[] lines = System.IO.File.ReadAllLines(illFileName);
             double[][] values = new double[lines.Length][];
 
             for (int h = 0; h < lines.Length; h++)
             {
-                string[] hourData = lines[h].Split(' ').Skip(4).ToArray();
-                double[] hourDataDouble = Array.ConvertAll<string, double>(hourData, Double.Parse);
+                string[] parts = lines[h].Split(' ');
+                int dataStart = 4;
+                int dataLen = parts.Length - dataStart;
+                double[] hourDataDouble = new double[dataLen];
+                for (int k = 0; k < dataLen; k++)
+                    hourDataDouble[k] = double.Parse(parts[k + dataStart]);
                 values[h] = hourDataDouble;
             }
 
@@ -542,38 +518,19 @@ namespace EddyLib
 
             float[,] data;
 
-            int iDim;
-            int jDim;
-
-            //reading from the file
-            // 1.
             using (BinaryReader b = new BinaryReader(
                 File.Open(filename, FileMode.Open)))
             {
-                // 2. Position and length variables.
-                int pos = 0;
-
-                // 2A. Use BaseStream.
-                int length = (int)b.BaseStream.Length;
-
-                iDim = b.ReadInt32();
-                jDim = b.ReadInt32();
+                int iDim = b.ReadInt32();
+                int jDim = b.ReadInt32();
                 data = new float[iDim, jDim];
-                pos += sizeof(int);
-                pos += sizeof(int);
 
-                int i = 0;
-                int j = 0;
-                while (pos < length)
-                {
-                    float v = b.ReadSingle();
-                    data[i, j] = (v);
-
-                    pos += sizeof(float);
-
-                    j++;
-                    if (j == jDim) { j = 0; i++; }
-                }
+                int totalFloats = iDim * jDim;
+                byte[] buffer = b.ReadBytes(totalFloats * sizeof(float));
+                float[] flat = new float[totalFloats];
+                Buffer.BlockCopy(buffer, 0, flat, 0, buffer.Length);
+                for (int idx = 0; idx < totalFloats; idx++)
+                    data[idx / jDim, idx % jDim] = flat[idx];
             }
 
             return data;
@@ -585,38 +542,19 @@ namespace EddyLib
 
             double[,] data;
 
-            int iDim;
-            int jDim;
-
-            //reading from the file
-            // 1.
             using (BinaryReader b = new BinaryReader(
                 File.Open(filename, FileMode.Open)))
             {
-                // 2. Position and length variables.
-                int pos = 0;
-
-                // 2A. Use BaseStream.
-                int length = (int)b.BaseStream.Length;
-
-                iDim = b.ReadInt32();
-                jDim = b.ReadInt32();
+                int iDim = b.ReadInt32();
+                int jDim = b.ReadInt32();
                 data = new double[iDim, jDim];
-                pos += sizeof(int);
-                pos += sizeof(int);
 
-                int i = 0;
-                int j = 0;
-                while (pos < length)
-                {
-                    float v = b.ReadSingle();
-                    data[i, j] = (v);
-
-                    pos += sizeof(float);
-
-                    j++;
-                    if (j == jDim) { j = 0; i++; }
-                }
+                int totalFloats = iDim * jDim;
+                byte[] buffer = b.ReadBytes(totalFloats * sizeof(float));
+                float[] flat = new float[totalFloats];
+                Buffer.BlockCopy(buffer, 0, flat, 0, buffer.Length);
+                for (int idx = 0; idx < totalFloats; idx++)
+                    data[idx / jDim, idx % jDim] = flat[idx];
             }
 
             return data;
@@ -624,39 +562,19 @@ namespace EddyLib
 
         public static double[] loadBin1D(string filename)
         {
-            // [i, time j] points
-
             double[] data;
 
-            int iDim;
-
-            //reading from the file
-            // 1.
             using (BinaryReader b = new BinaryReader(
                 File.Open(filename, FileMode.Open)))
             {
-                // 2. Position and length variables.
-                int pos = 0;
-
-                // 2A. Use BaseStream.
-                int length = (int)b.BaseStream.Length;
-
-                iDim = b.ReadInt32();
-
+                int iDim = b.ReadInt32();
                 data = new double[iDim];
-                pos += sizeof(int);
 
-                int i = 0;
-
-                while (pos < length)
-                {
-                    float v = b.ReadSingle();
-                    data[i] = (v);
-
-                    pos += sizeof(float);
-
-                    i++;
-                }
+                byte[] buffer = b.ReadBytes(iDim * sizeof(float));
+                float[] flat = new float[iDim];
+                Buffer.BlockCopy(buffer, 0, flat, 0, buffer.Length);
+                for (int i = 0; i < iDim; i++)
+                    data[i] = flat[i];
             }
 
             return data;
@@ -668,43 +586,22 @@ namespace EddyLib
 
             float[][] data;
 
-            int iDim;
-            int jDim;
-
-            //reading from the file
-            // 1.
             using (BinaryReader b = new BinaryReader(
                 File.Open(filename, FileMode.Open)))
             {
-                // 2. Position and length variables.
-                int pos = 0;
+                int iDim = b.ReadInt32();
+                int jDim = b.ReadInt32();
+                data = new float[iDim][];
 
-                // 2A. Use BaseStream.
-                int length = (int)b.BaseStream.Length;
+                int totalFloats = iDim * jDim;
+                byte[] buffer = b.ReadBytes(totalFloats * sizeof(float));
+                float[] flat = new float[totalFloats];
+                Buffer.BlockCopy(buffer, 0, flat, 0, buffer.Length);
 
-                iDim = b.ReadInt32();
-                jDim = b.ReadInt32();
-                data = new float[iDim][]; //jDim
-
-                for (int ii = 0; ii < iDim; ii++)
+                for (int i = 0; i < iDim; i++)
                 {
-                    data[ii] = new float[jDim];
-                }
-
-                pos += sizeof(int);
-                pos += sizeof(int);
-
-                int i = 0;
-                int j = 0;
-                while (pos < length)
-                {
-                    float v = b.ReadSingle();
-                    data[i][j] = (v);
-
-                    pos += sizeof(float);
-
-                    j++;
-                    if (j == jDim) { j = 0; i++; }
+                    data[i] = new float[jDim];
+                    Array.Copy(flat, i * jDim, data[i], 0, jDim);
                 }
             }
 

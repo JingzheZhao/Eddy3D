@@ -142,9 +142,21 @@ namespace EddyLib
 
                         var resultingWindSpeedforUTCI_At10 = At10Meters(resultingWindSpeedforUTCI, Probes[probe].Z);
 
-                        utci[hour, probe] = Math.Round(CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI_At10, resultingMRT), truncateBy);
+                        utci[hour, probe] = CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI_At10, resultingMRT);
                     }
                 });
+
+                // Apply rounding in a separate pass to avoid Math.Round in the hot loop
+                if (truncateBy >= 0)
+                {
+                    Parallel.For(0, numberOfProbes, probe =>
+                    {
+                        for (int hour = 0; hour < numberOfHours; hour++)
+                        {
+                            utci[hour, probe] = Math.Round(utci[hour, probe], truncateBy);
+                        }
+                    });
+                }
 
                 humcondition = CalcConditionOfPerson(utci);
                 valuesAnnualPercentage = CalcAnnualComfortableHours(humcondition);
