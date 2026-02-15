@@ -3,8 +3,8 @@
 </p>
 <p align="center"><strong>Eddy3D</strong> - Airflow and Microclimate Simulations for Rhino & Grasshopper</p>
 
-[![Build Eddy3D](https://github.com/Eddy3D-Dev/Eddy3D/actions/workflows/build.yml/badge.svg)](https://github.com/Eddy3D-Dev/Eddy3D/actions/workflows/build.yml)
-[![Templates Exist](https://github.com/Eddy3D-Dev/Eddy3D/actions/workflows/template-branch-warning.yml/badge.svg)](https://github.com/Eddy3D-Dev/Eddy3D/actions/workflows/template-branch-warning.yml)
+[![Build](https://github.com/Eddy3D-Dev/Eddy3D/actions/workflows/build.yml/badge.svg)](https://github.com/Eddy3D-Dev/Eddy3D/actions/workflows/build.yml)
+[![Templates](https://github.com/Eddy3D-Dev/Eddy3D/actions/workflows/template-branch-warning.yml/badge.svg)](https://github.com/Eddy3D-Dev/Eddy3D/actions/workflows/template-branch-warning.yml)
 [![Version](https://img.shields.io/github/v/release/Eddy3D-Dev/Eddy3D?sort=semver)](https://github.com/Eddy3D-Dev/Eddy3D/releases)
 [![Documentation](https://img.shields.io/badge/docs-eddy3d.com-blue)](https://docs.eddy3d.com)
 
