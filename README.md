@@ -28,11 +28,7 @@ cd Eddy3D
 
 </details>
 
-## Testing
 
-For xUnit test execution behavior across Windows/macOS (run/skip/fail-fast rules and required attributes), see:
-
-- [`RhinoPlugin.Test.Xunit/TEST_POLICY.md`](RhinoPlugin.Test.Xunit/TEST_POLICY.md)
 
 ## Development Setup (macOS)
 
@@ -52,3 +48,16 @@ cd Eddy3D
 ```
 
 </details>
+
+## Unit Tests & General Testing
+
+<details>
+<summary>Test policy</summary>
+
+For xUnit test execution behavior across Windows/macOS (run/skip/fail-fast rules and required attributes), see:
+
+- [`RhinoPlugin.Test.Xunit/TEST_POLICY.md`](RhinoPlugin.Test.Xunit/TEST_POLICY.md)
+
+</details>
+
+
