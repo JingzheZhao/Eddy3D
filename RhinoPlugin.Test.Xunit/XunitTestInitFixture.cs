@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Runtime.Loader;
 using Xunit;
 
 namespace RhinoPlugin.Test.Xunit
@@ -14,13 +13,11 @@ namespace RhinoPlugin.Test.Xunit
     {
         private static readonly object InitLock = new object();
         private static bool initialized;
-        private static object rhinoCore;
         private static string rhinoSystemDir;
         private static string rhinoManagedPlugInsDir;
         private static string rhinoFrameworksDir;
         private static string grasshopperPath;
-        private static bool nativeResolverConfigured;
-        private static IntPtr rhinoNativeLibraryHandle;
+        private static bool rhinoInProcessStarted;
 
         /// <summary>Whether the Rhino in-process host was successfully started.</summary>
         public static bool RhinoAvailable { get; private set; }
@@ -43,22 +40,48 @@ namespace RhinoPlugin.Test.Xunit
                 {
                     RhinoAvailable = false;
                     RhinoSkipReason = "Tests must be run as a 64-bit process.";
+                    if (TestExecutionPolicy.ShouldFailFastOnRhinoHostInitialization())
+                    {
+                        throw new InvalidOperationException(RhinoSkipReason);
+                    }
+
                     return;
                 }
 
+                var nativeHostSkipReason = TestExecutionPolicy.GetSkipReason(TestExecutionRequirement.RhinoNativeHost);
+                var rhinoInstallSkipReason = TestExecutionPolicy.GetSkipReason(TestExecutionRequirement.RhinoInstalled);
+
                 try
                 {
+                    // On macOS, tests that only require Rhino installation may still run.
+                    // If Rhino is not installed, skip before probing installation paths.
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) && rhinoInstallSkipReason != null)
+                    {
+                        RhinoAvailable = false;
+                        RhinoSkipReason = rhinoInstallSkipReason;
+                        Console.WriteLine($"[XunitTestInitFixture] Rhino install unavailable on macOS - {rhinoInstallSkipReason}");
+                        return;
+                    }
+
+                    // On non-mac platforms where native host is skipped by policy (for example Windows Server),
+                    // skip immediately without probing Rhino runtime paths.
+                    if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX) && nativeHostSkipReason != null)
+                    {
+                        RhinoAvailable = false;
+                        RhinoSkipReason = nativeHostSkipReason;
+                        Console.WriteLine($"[XunitTestInitFixture] Rhino host skipped by policy - {nativeHostSkipReason}");
+                        return;
+                    }
+
                     LocateRhinoInstall();
                     ConfigureAssemblyResolution();
 
-                    // The Rhino in-process host (LaunchInProcess P/Invoke) only works on Windows.
-                    // On macOS, the native call triggers an unrecoverable NSException crash.
-                    // We still configured assembly resolution above so RhinoCommon types can load.
-                    if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    // On macOS we configure runtime assembly resolution, but native host is intentionally skipped.
+                    if (nativeHostSkipReason != null)
                     {
                         RhinoAvailable = false;
-                        RhinoSkipReason = "Rhino in-process hosting requires Windows (RhinoLibrary.dll P/Invoke).";
-                        Console.WriteLine($"[XunitTestInitFixture] Non-Windows platform — Rhino host skipped. Assembly resolution configured.");
+                        RhinoSkipReason = nativeHostSkipReason;
+                        Console.WriteLine($"[XunitTestInitFixture] Rhino host skipped by policy - {nativeHostSkipReason}");
                         return;
                     }
 
@@ -70,7 +93,12 @@ namespace RhinoPlugin.Test.Xunit
                 {
                     RhinoAvailable = false;
                     RhinoSkipReason = $"Rhino in-process host could not be started: {ex.Message}";
-                    Console.WriteLine($"[XunitTestInitFixture] Rhino init failed (tests will skip): {ex}");
+                    Console.WriteLine($"[XunitTestInitFixture] Rhino init failed: {ex}");
+
+                    if (TestExecutionPolicy.ShouldFailFastOnRhinoHostInitialization())
+                    {
+                        throw new InvalidOperationException(RhinoSkipReason, ex);
+                    }
                 }
             }
         }
@@ -140,7 +168,7 @@ namespace RhinoPlugin.Test.Xunit
                 throw new InvalidOperationException("Rhino install not found on macOS (expected Rhino 8/WIP app in /Applications).");
             }
 
-            throw new PlatformNotSupportedException("Rhino tests currently support Windows and macOS only.");
+            throw new PlatformNotSupportedException(TestExecutionPolicy.UnsupportedPlatformReason);
         }
 
         private static void ConfigureAssemblyResolution()
@@ -214,33 +242,18 @@ namespace RhinoPlugin.Test.Xunit
         {
             try
             {
-                var rhinoCommonPath = Path.Combine(rhinoSystemDir, "RhinoCommon.dll");
-                if (!File.Exists(rhinoCommonPath))
+                var result = LaunchInProcess(0, 0);
+                if (result != 1)
                 {
-                    throw new FileNotFoundException($"RhinoCommon runtime not found at expected location: {rhinoCommonPath}");
+                    throw new InvalidOperationException($"LaunchInProcess returned unexpected result: {result}.");
                 }
 
-                // Prefer loading RhinoCommon by identity so we do not duplicate-load the same assembly.
-                var rhinoCoreType = Type.GetType("Rhino.Runtime.InProcess.RhinoCore, RhinoCommon", throwOnError: false);
-                var rhinoCommonAssembly = rhinoCoreType?.Assembly;
-                if (rhinoCommonAssembly == null)
-                {
-                    rhinoCommonAssembly = GetLoadedAssembly("RhinoCommon") ?? AssemblyLoadContext.Default.LoadFromAssemblyPath(rhinoCommonPath);
-                    rhinoCoreType = rhinoCommonAssembly.GetType("Rhino.Runtime.InProcess.RhinoCore", throwOnError: true);
-                }
-
-                ConfigureNativeResolver(rhinoCommonAssembly);
-                EnsureRhinoNativeLibraryLoaded();
-
-                var windowStyleType = rhinoCommonAssembly.GetType("Rhino.Runtime.InProcess.WindowStyle", throwOnError: true);
-                var hiddenWindowStyle = Enum.Parse(windowStyleType, "Hidden");
-                var args = new[] { "/NOSPLASH", "/NOTEMPLATE", "/SCHEMENAME=Default" };
-                rhinoCore = Activator.CreateInstance(rhinoCoreType, new object[] { args, hiddenWindowStyle });
-                Console.WriteLine("RhinoCore initialized.");
+                rhinoInProcessStarted = true;
+                Console.WriteLine("Rhino in-process host initialized.");
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException("Failed to initialize RhinoCore in-process.", ex);
+                throw new InvalidOperationException("Failed to initialize Rhino in-process host.", ex);
             }
         }
 
@@ -257,104 +270,33 @@ namespace RhinoPlugin.Test.Xunit
             return null;
         }
 
-        private static void ConfigureNativeResolver(Assembly rhinoCommonAssembly)
-        {
-            if (nativeResolverConfigured || !RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return;
-            }
-
-            if (rhinoCommonAssembly == null || string.IsNullOrWhiteSpace(rhinoFrameworksDir))
-            {
-                return;
-            }
-
-            NativeLibrary.SetDllImportResolver(rhinoCommonAssembly, (libraryName, assembly, searchPath) =>
-            {
-                if (!string.Equals(libraryName, "RhinoLibrary", StringComparison.Ordinal))
-                {
-                    return IntPtr.Zero;
-                }
-
-                var candidates = new[]
-                {
-                    Path.Combine(rhinoFrameworksDir, "RhinoLibrary.framework", "Versions", "A", "RhinoLibrary"),
-                    Path.Combine(rhinoFrameworksDir, "RhinoLibrary.framework", "RhinoLibrary")
-                };
-
-                foreach (var candidate in candidates)
-                {
-                    if (!File.Exists(candidate))
-                    {
-                        continue;
-                    }
-
-                    if (NativeLibrary.TryLoad(candidate, out var handle))
-                    {
-                        return handle;
-                    }
-                }
-
-                return IntPtr.Zero;
-            });
-
-            nativeResolverConfigured = true;
-        }
-
-        private static void EnsureRhinoNativeLibraryLoaded()
-        {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || rhinoNativeLibraryHandle != IntPtr.Zero || string.IsNullOrWhiteSpace(rhinoFrameworksDir))
-            {
-                return;
-            }
-
-            var candidates = new[]
-            {
-                Path.Combine(rhinoFrameworksDir, "RhinoLibrary.framework", "Versions", "A", "RhinoLibrary"),
-                Path.Combine(rhinoFrameworksDir, "RhinoLibrary.framework", "RhinoLibrary")
-            };
-
-            foreach (var candidate in candidates)
-            {
-                if (!File.Exists(candidate))
-                {
-                    continue;
-                }
-
-                if (NativeLibrary.TryLoad(candidate, out rhinoNativeLibraryHandle))
-                {
-                    return;
-                }
-            }
-        }
-
         public void Dispose()
         {
             lock (InitLock)
             {
-                if (rhinoCore != null)
+                if (rhinoInProcessStarted)
                 {
-                    if (rhinoCore is IDisposable d)
+                    try
                     {
-                        d.Dispose();
+                        ExitInProcess();
                     }
-                    else
+                    catch
                     {
-                        rhinoCore.GetType().GetMethod("Dispose", Type.EmptyTypes)?.Invoke(rhinoCore, null);
+                        // Best effort cleanup for unmanaged Rhino host.
                     }
 
-                    rhinoCore = null;
-                }
-
-                if (rhinoNativeLibraryHandle != IntPtr.Zero)
-                {
-                    NativeLibrary.Free(rhinoNativeLibraryHandle);
-                    rhinoNativeLibraryHandle = IntPtr.Zero;
+                    rhinoInProcessStarted = false;
                 }
 
                 initialized = false;
             }
         }
+
+        [DllImport("RhinoLibrary.dll", EntryPoint = "LaunchInProcess")]
+        private static extern int LaunchInProcess(int reserved1, int reserved2);
+
+        [DllImport("RhinoLibrary.dll", EntryPoint = "ExitInProcess")]
+        private static extern int ExitInProcess();
     }
 
     [CollectionDefinition("Rhino Collection")]

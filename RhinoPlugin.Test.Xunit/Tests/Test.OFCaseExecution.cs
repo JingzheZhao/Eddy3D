@@ -11,6 +11,7 @@ using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -122,7 +123,7 @@ namespace RhinoPlugin.Test.Xunit
             Assert.True(File.Exists(residualPlot), $"Residual plot not found: {residualPlot}");
         }
 
-        // This version opens a terminal and shows the progress
+        // Runs a batch file headless and captures output for diagnostics.
         public static (bool Success, string Log) RunBatchFileInteractive(string workingDir, string batchFileName)
         {
             var batchFilePath = Path.Combine(workingDir, batchFileName);
@@ -132,21 +133,51 @@ namespace RhinoPlugin.Test.Xunit
                 FileName = "cmd.exe",
                 Arguments = "/C \"" + batchFilePath + "\"",
                 WorkingDirectory = workingDir,
-                UseShellExecute = true,
-                CreateNoWindow = false // Show the window
-                // Do NOT redirect standard output or error!
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden
             };
 
-            var process = Process.Start(startInfo);
+            var logBuilder = new StringBuilder();
+            using var process = new Process
+            {
+                StartInfo = startInfo,
+                EnableRaisingEvents = true
+            };
+
+            process.OutputDataReceived += (_, e) =>
+            {
+                if (!string.IsNullOrEmpty(e.Data))
+                {
+                    logBuilder.AppendLine(e.Data);
+                }
+            };
+            process.ErrorDataReceived += (_, e) =>
+            {
+                if (!string.IsNullOrEmpty(e.Data))
+                {
+                    logBuilder.AppendLine("[stderr] " + e.Data);
+                }
+            };
+
+            if (!process.Start())
+            {
+                return (false, "Failed to start batch process.");
+            }
+
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
             process.WaitForExit();
 
-            // You cannot capture output when UseShellExecute = true and redirection is off
-            // But you can still check the result file
-            var success = process.ExitCode == 0
-                          && File.Exists(Path.Combine(workingDir, "postProcessing", "residuals", "0", "residuals.dat"));
+            var success = process.ExitCode == 0;
+            if (!success)
+            {
+                logBuilder.AppendLine($"[exit] {process.ExitCode}");
+            }
 
-            process.Dispose();
-            return (success, "See terminal window for output.");
+            return (success, logBuilder.ToString());
         }
 
         [NotWindowsServerTheory]
