@@ -39,6 +39,8 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             _selectedEngine = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                 ? SimEngine.BlueCFD
                 : SimEngine.Docker;
+            
+            EddyLib.Web.UpdateChecker.CheckForUpdateAsync();
         }
 
         protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
@@ -154,6 +156,13 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
         {
             // mode to select simulation environment
             Message = _selectedEngine.ToString();
+
+            if (EddyLib.Web.UpdateChecker.IsUpdateAvailable)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, 
+                    $"A new version of Eddy3D is available: {EddyLib.Web.UpdateChecker.LatestVersion}\n" +
+                    "Please visit https://github.com/Eddy3D-Dev/Eddy3D/releases to download.");
+            }
 
             // read inputs
             //------------
