@@ -64,6 +64,85 @@ namespace EddyLib
             public const string SimEtaNick = SimRemainingTimeNick;
         }
 
+        public static class FluidX3D
+        {
+            public const string Name = "FluidX3D ABL (Experimental)";
+            public const string Nick = "FluidX3D";
+            public const string Desc = "Prepare and optionally launch a minimal FluidX3D case with two box buildings and a logarithmic atmospheric boundary layer.\r\n\r\nThis workflow is experimental and currently independent from the OpenFOAM pipeline.\r\n\r\n";
+
+            public const string SourceDir = "FluidX3D Source";
+            public const string SourceDirNick = "Src";
+            public const string SourceDirDesc = "Path to a local FluidX3D source folder (contains src/setup.cpp and src/defines.hpp).";
+
+            public const string Buildings = "Building Geometry";
+            public const string BuildingsNick = "Bldg";
+            public const string BuildingsDesc = "Optional: Mesh/Brep/Surface/Extrusion geometry to export as binary STL and voxelize in FluidX3D.";
+
+            public const string WorkingDir = "Working Directory";
+            public const string WorkingDirNick = "Dir";
+            public const string WorkingDirDesc = "Case folder root. If you pass a simple name, it is created under Eddy3D Cases.";
+
+            public const string CloneUpdate = "Clone/Update Source";
+            public const string CloneUpdateNick = "Git";
+            public const string CloneUpdateDesc = "If true, automatically clone FluidX3D (if missing) and pull latest changes (if git repo exists).";
+
+            public const string MemoryMb = "VRAM Budget (MB)";
+            public const string MemoryMbNick = "MemMB";
+            public const string MemoryMbDesc = "Approximate GPU memory target for FluidX3D resolution selection.";
+
+            public const string Uref = "Reference Velocity";
+            public const string UrefNick = "Uref";
+            public const string UrefDesc = "Wind speed at zRef [m/s].";
+
+            public const string Zref = "Reference Height";
+            public const string ZrefNick = "Zref";
+            public const string ZrefDesc = "Reference height for Uref [m].";
+
+            public const string Z0 = "Roughness Length";
+            public const string Z0Nick = "z0";
+            public const string Z0Desc = "Aerodynamic roughness length [m] for log-law profile.";
+
+            public const string SimTime = "Simulation Time (s)";
+            public const string SimTimeNick = "T";
+            public const string SimTimeDesc = "Physical simulation time in seconds.";
+
+            public const string ExportEvery = "Export Every (s)";
+            public const string ExportEveryNick = "dT";
+            public const string ExportEveryDesc = "Physical export interval in seconds.";
+
+            public const string GroundZ = "Ground Elevation";
+            public const string GroundZNick = "Zgnd";
+            public const string GroundZDesc = "Ground elevation in model units (assumed meters). Domain bottom is adjusted to include geometry below this level.";
+
+            public const string MeshEdge = "Meshing Edge Length";
+            public const string MeshEdgeNick = "Edge";
+            public const string MeshEdgeDesc = "Optional max/min edge length for meshing Breps/Surfaces before STL export. 0 uses Rhino defaults.";
+
+            public const string Prepare = "Prepare";
+            public const string PrepareNick = "Prep";
+            public const string PrepareDesc = "Write/update generated FluidX3D setup and launch scripts.";
+
+            public const string Run = "Run";
+            public const string RunNick = "Run";
+            public const string RunDesc = "Launch the generated platform script in a terminal.";
+
+            public const string CaseDir = "Case Directory";
+            public const string CaseDirNick = "Case";
+            public const string CaseDirDesc = "Prepared FluidX3D working directory.";
+
+            public const string LaunchScript = "Launch Script";
+            public const string LaunchScriptNick = "Script";
+            public const string LaunchScriptDesc = "Platform launch script path (.command on macOS/Linux, .bat on Windows).";
+
+            public const string ExportDir = "Export Directory";
+            public const string ExportDirNick = "Export";
+            public const string ExportDirDesc = "FluidX3D export directory (VTK output).";
+
+            public const string Status = "Status";
+            public const string StatusNick = "Info";
+            public const string StatusDesc = "Workflow status and instructions.";
+        }
+
         public static class Simulation
         {
             public const string Name = "Simulation (Legacy)";
