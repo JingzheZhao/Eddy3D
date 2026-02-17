@@ -12,7 +12,7 @@ namespace EddyLib
 
             public const string WorkingDir = "Working directory";
             public const string WorkingDirNick = "Dir";
-            public const string WorkingDirDesc = "Folder for simulation files. Use a simple name (e.g., 'MyProject') to create under %LocalAppData%\\Eddy3D\\Cases on Windows (~/Eddy3D/Cases on macOS), or provide a full path.";
+            public const string WorkingDirDesc = "Folder for simulation files. Use a simple name (e.g., 'MyProject') to create under %USERPROFILE%\\Eddy3D\\Cases on Windows (~/Eddy3D/Cases on macOS), or provide a full path.";
 
             public const string MeshSettings = "Mesh settings";
             public const string MeshSettingsNick = "MSet";

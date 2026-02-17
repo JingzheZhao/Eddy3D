@@ -38,13 +38,27 @@ namespace EddyLib.BCs
                 rows.Add(new[]
                 {
                 windDirs[i].ToString(CultureInfo.InvariantCulture),
-                uref?[i].ToString("0.##", CultureInfo.InvariantCulture) ?? "",
-                zref != null ? zref[i].ToString("0.##", CultureInfo.InvariantCulture) : null,
-                z0  != null ? z0[i].ToString("0.##", CultureInfo.InvariantCulture)  : null,
-                zGround != null ? zGround[i].ToString("0.##", CultureInfo.InvariantCulture) : null
+                uref != null ? FormatSummaryDouble(uref[i]) : "",
+                zref != null ? FormatSummaryDouble(zref[i]) : null,
+                z0  != null ? FormatSummaryDouble(z0[i])  : null,
+                zGround != null ? FormatSummaryDouble(zGround[i]) : null
             }.Where(s => s != null).ToArray());
             }
             return rows;
+        }
+
+        private static string FormatSummaryDouble(double value)
+        {
+            var abs = Math.Abs(value);
+            if (abs == 0)
+            {
+                return "0";
+            }
+
+            // Keep common values compact but do not collapse small non-zero values to 0.
+            return abs >= 0.01
+                ? value.ToString("0.##", CultureInfo.InvariantCulture)
+                : value.ToString("0.######", CultureInfo.InvariantCulture);
         }
 
         // Core: measure strings with GH's font and add spaces until columns line up in pixels.
