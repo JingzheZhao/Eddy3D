@@ -332,6 +332,9 @@ namespace Eddy
                         status.AppendLine("Exported building STL files: " + settings.BuildingStlFiles.Count.ToString(CultureInfo.InvariantCulture));
                     }
 
+                    WriteProbeTransformMetadata(exportDir, xMin, yMin, groundZUsed, settings.ExportIntervalSeconds);
+                    status.AppendLine("Wrote probe transform metadata for Rhino coordinates.");
+
                     status.AppendLine("Prepare completed.");
                     status.AppendLine("Generated setup: " + result.SetupPath);
                     status.AppendLine("Generated defines: " + result.DefinesPath);
@@ -545,6 +548,29 @@ namespace Eddy
             DA.SetData(1, scriptPath);
             DA.SetData(2, exportDir);
             DA.SetData(3, status.Trim());
+        }
+
+        private static void WriteProbeTransformMetadata(
+            string exportDir,
+            double xMin,
+            double yMin,
+            double groundZ,
+            double exportIntervalSeconds)
+        {
+            if (string.IsNullOrWhiteSpace(exportDir))
+            {
+                return;
+            }
+
+            Directory.CreateDirectory(exportDir);
+            string transformPath = Path.Combine(exportDir, "eddy_probe_transform.txt");
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("# Eddy3D FluidX3D probe transform metadata");
+            sb.AppendLine("x_min=" + xMin.ToString("0.###########", CultureInfo.InvariantCulture));
+            sb.AppendLine("y_min=" + yMin.ToString("0.###########", CultureInfo.InvariantCulture));
+            sb.AppendLine("ground_z=" + groundZ.ToString("0.###########", CultureInfo.InvariantCulture));
+            sb.AppendLine("export_interval_seconds=" + exportIntervalSeconds.ToString("0.###########", CultureInfo.InvariantCulture));
+            File.WriteAllText(transformPath, sb.ToString());
         }
 
         private static bool TryLaunchScript(string scriptPath, out string message)

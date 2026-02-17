@@ -143,6 +143,85 @@ namespace EddyLib
             public const string StatusDesc = "Workflow status and instructions.";
         }
 
+        public static class FluidX3DProbe
+        {
+            public const string Name = "FluidX3D Probe (VTK)";
+            public const string Nick = "FxProbe";
+            public const string Desc = "Probe FluidX3D VTK exports at Rhino points with physical-time selection and optional time averaging.\r\n\r\nSupports velocity U (vector) and density rho (scalar).\r\n\r\n";
+
+            public const string ExportDir = "Export Directory";
+            public const string ExportDirNick = "Export";
+            public const string ExportDirDesc = "FluidX3D export directory containing u-*.vtk / rho-*.vtk and eddy_probe_transform.txt.";
+
+            public const string Points = "Probe Points";
+            public const string PointsNick = "Pts";
+            public const string PointsDesc = "Probe points in Rhino model coordinates (meters).";
+
+            public const string Quantity = "Quantity";
+            public const string QuantityNick = "Q";
+            public const string QuantityDesc = "Field to probe: U (velocity vector) or rho (density scalar).";
+
+            public const string TimeMode = "Time Mode";
+            public const string TimeModeNick = "Mode";
+            public const string TimeModeDesc = "0 Latest, 1 Closest physical time, 2 Average over [T0, T1].";
+
+            public const string TargetTime = "Target Time (s)";
+            public const string TargetTimeNick = "T";
+            public const string TargetTimeDesc = "Used when Time Mode = Closest physical time.";
+
+            public const string StartTime = "Start Time (s)";
+            public const string StartTimeNick = "T0";
+            public const string StartTimeDesc = "Start of averaging interval (used when Time Mode = Average over range).";
+
+            public const string EndTime = "End Time (s)";
+            public const string EndTimeNick = "T1";
+            public const string EndTimeDesc = "End of averaging interval (used when Time Mode = Average over range).";
+
+            public const string Run = "Run";
+            public const string RunNick = "Run";
+            public const string RunDesc = "Execute probing.";
+
+            public const string PointsOut = "Probe Points";
+            public const string PointsOutNick = "Pts";
+            public const string PointsOutDesc = "Echo of input probe points.";
+
+            public const string VelocityByTime = "U by Time";
+            public const string VelocityByTimeNick = "U_t";
+            public const string VelocityByTimeDesc = "DataTree of velocity vectors per sampled timestep (one branch per timestep).";
+
+            public const string DensityByTime = "rho by Time";
+            public const string DensityByTimeNick = "rho_t";
+            public const string DensityByTimeDesc = "DataTree of density values per sampled timestep (one branch per timestep).";
+
+            public const string VelocityAverage = "U Average";
+            public const string VelocityAverageNick = "Uavg";
+            public const string VelocityAverageDesc = "Time-averaged velocity vectors at probe points.";
+
+            public const string DensityAverage = "rho Average";
+            public const string DensityAverageNick = "rhoAvg";
+            public const string DensityAverageDesc = "Time-averaged density values at probe points.";
+
+            public const string SampledTimes = "Sampled Times";
+            public const string SampledTimesNick = "t_s";
+            public const string SampledTimesDesc = "Physical time of each sampled VTK file in seconds.";
+
+            public const string SampledSteps = "Sampled Steps";
+            public const string SampledStepsNick = "Step";
+            public const string SampledStepsDesc = "LBM timestep id parsed from sampled filenames.";
+
+            public const string SampledFiles = "Sampled Files";
+            public const string SampledFilesNick = "Files";
+            public const string SampledFilesDesc = "Sampled VTK file paths.";
+
+            public const string OutsideCount = "Outside Count";
+            public const string OutsideCountNick = "Out";
+            public const string OutsideCountDesc = "Number of points outside the domain (clamped to nearest cell).";
+
+            public const string Status = "Status";
+            public const string StatusNick = "Info";
+            public const string StatusDesc = "Probe execution status.";
+        }
+
         public static class Simulation
         {
             public const string Name = "Simulation (Legacy)";

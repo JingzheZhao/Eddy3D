@@ -1,213 +1,488 @@
+using EddyLib;
 using EddyLib.FluidX3D;
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace RhinoPlugin.Test.Xunit
 {
+    internal static class FluidX3DTestEnvironment
+    {
+        public static bool TryResolveSourceDirectory(out string sourceRoot, out string reason)
+        {
+            List<string> candidates = new List<string>();
+            string env = Environment.GetEnvironmentVariable("EDDY_FLUIDX3D_SOURCE");
+            if (!string.IsNullOrWhiteSpace(env))
+            {
+                candidates.Add(Path.GetFullPath(env.Trim()));
+            }
+
+            foreach (string localCandidate in EnumerateLocalRepositoryCandidates())
+            {
+                candidates.Add(localCandidate);
+            }
+
+            candidates.Add(Path.GetFullPath(FluidX3DAblWorkflow.GetDefaultSourceDirectory()));
+
+            HashSet<string> seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                string candidate = candidates[i];
+                if (!seen.Add(candidate))
+                {
+                    continue;
+                }
+
+                if (Directory.Exists(candidate) && FluidX3DAblWorkflow.IsValidSourceDirectory(candidate))
+                {
+                    sourceRoot = candidate;
+                    reason = null;
+                    return true;
+                }
+            }
+
+            sourceRoot = null;
+            reason = "FluidX3D source not found. Set EDDY_FLUIDX3D_SOURCE to a valid FluidX3D clone, "
+                + "or install it under " + FluidX3DAblWorkflow.GetDefaultSourceDirectory() + ".";
+            return false;
+        }
+
+        private static IEnumerable<string> EnumerateLocalRepositoryCandidates()
+        {
+            List<string> roots = new List<string>();
+
+            // Typical invocation root during local dotnet test.
+            string cwd = Directory.GetCurrentDirectory();
+            if (!string.IsNullOrWhiteSpace(cwd))
+            {
+                roots.Add(Path.GetFullPath(cwd));
+            }
+
+            // Fallback: test assembly output root.
+            string baseDir = AppContext.BaseDirectory;
+            if (!string.IsNullOrWhiteSpace(baseDir))
+            {
+                roots.Add(Path.GetFullPath(baseDir));
+            }
+
+            // Walk upwards and look for a solution root marker.
+            HashSet<string> seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string root in roots)
+            {
+                DirectoryInfo current = new DirectoryInfo(root);
+                while (current != null)
+                {
+                    if (!seen.Add(current.FullName))
+                    {
+                        break;
+                    }
+
+                    bool looksLikeRepoRoot =
+                        File.Exists(Path.Combine(current.FullName, "Eddy.sln"))
+                        || Directory.Exists(Path.Combine(current.FullName, ".git"));
+
+                    if (looksLikeRepoRoot)
+                    {
+                        yield return Path.Combine(current.FullName, "FluidX3D");
+                        yield return Path.Combine(current.FullName, "zen-margulis", "FluidX3D");
+                    }
+
+                    current = current.Parent;
+                }
+            }
+        }
+    }
+
     [Trait("Category", "Integration")]
     [Trait("Category", "FluidX3D")]
+    [Trait("Category", "Slow")]
     public class FluidX3DSimulationIntegrationTests
     {
+        private static readonly Regex DimensionsRegex = new Regex(
+            @"^DIMENSIONS\s+(?<nx>\d+)\s+(?<ny>\d+)\s+(?<nz>\d+)$",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
         [Fact]
-        public void FluidX3DSimulation_EndToEnd_PreparesCaseFromBuildingStlInputs()
+        public void FluidX3DSimulation_EndToEnd_RunsSolverAndProducesRealVtkOutputs()
         {
-            string tempRoot = CreateTempDir();
+            Assert.True(
+                FluidX3DTestEnvironment.TryResolveSourceDirectory(out string sourceRoot, out string reason),
+                reason);
+
+            string tempRoot = TestFixtures.CreateTestDirectory("fluidx3d-sim-gpu");
             try
             {
-                string sourceRoot = Path.Combine(tempRoot, "source");
                 string workingRoot = Path.Combine(tempRoot, "working");
-                string stagingStlDir = Path.Combine(tempRoot, "staging-stl");
-                Directory.CreateDirectory(stagingStlDir);
-                CreateStubFluidX3DSource(sourceRoot);
-
-                string stagedA = Path.Combine(stagingStlDir, "building_000.stl");
-                string stagedB = Path.Combine(stagingStlDir, "building_001.stl");
-                WriteBinaryBoxStl(stagedA, 10f, 30f, 0f, 30f, 50f, 35f);
-                WriteBinaryBoxStl(stagedB, 45f, 62f, 0f, 60f, 78f, 22f);
 
                 FluidX3DAblSettings settings = new FluidX3DAblSettings
                 {
-                    MemoryMb = 800,
+                    MemoryMb = 256,
                     Uref = 5.0,
                     Zref = 10.0,
                     Z0 = 0.1,
-                    SimSeconds = 20.0,
+                    SimSeconds = 180.0,
                     ExportIntervalSeconds = 10.0,
-                    DomainLx = 180.0,
-                    DomainLy = 220.0,
-                    DomainLz = 100.0
+                    DomainLx = 120.0,
+                    DomainLy = 120.0,
+                    DomainLz = 50.0
                 };
-                settings.BuildingStlFiles.Add("building_000.stl");
-                settings.BuildingStlFiles.Add("building_001.stl");
 
                 FluidX3DAblPrepareResult result = FluidX3DAblWorkflow.PrepareCase(sourceRoot, workingRoot, settings);
 
-                string caseStlDir = Path.Combine(result.CaseRoot, "stl");
-                Directory.CreateDirectory(caseStlDir);
-                string caseStlA = Path.Combine(caseStlDir, "building_000.stl");
-                string caseStlB = Path.Combine(caseStlDir, "building_001.stl");
-                File.Copy(stagedA, caseStlA, true);
-                File.Copy(stagedB, caseStlB, true);
-
-                Assert.True(File.Exists(result.SetupPath));
-                Assert.True(File.Exists(result.DefinesPath));
-                Assert.True(File.Exists(result.CommandScriptPath));
-                Assert.True(File.Exists(result.BatchScriptPath));
-                Assert.True(File.Exists(result.ReadmePath));
+                Assert.True(Directory.Exists(result.CaseRoot));
                 Assert.Equal(Path.Combine(result.CaseRoot, "bin", "export"), result.ExportDirectory);
 
-                string setupText = File.ReadAllText(result.SetupPath);
-                Assert.Contains("../stl/building_000.stl", setupText);
-                Assert.Contains("../stl/building_001.stl", setupText);
-                Assert.Contains("const float si_Lx = 180.0f;", setupText);
-                Assert.Contains("const float si_Ly = 220.0f;", setupText);
-                Assert.Contains("const float si_Lz = 100.0f;", setupText);
-                Assert.Contains("voxelize_mesh_on_device(building, TYPE_S | TYPE_X)", setupText);
+                string runLog = RunFluidX3DCase(result.CaseRoot);
+                Assert.False(string.IsNullOrWhiteSpace(runLog), "Expected non-empty FluidX3D run log.");
 
-                string readmeText = File.ReadAllText(result.ReadmePath);
-                Assert.Contains("- STL building count: 2", readmeText);
+                string[] uFiles = Directory.GetFiles(result.ExportDirectory, "u-*.vtk", SearchOption.TopDirectoryOnly)
+                    .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+                    .ToArray();
+                string[] rhoFiles = Directory.GetFiles(result.ExportDirectory, "rho-*.vtk", SearchOption.TopDirectoryOnly)
+                    .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+                    .ToArray();
+                string[] flagsFiles = Directory.GetFiles(result.ExportDirectory, "flags-*.vtk", SearchOption.TopDirectoryOnly)
+                    .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+                    .ToArray();
 
-                AssertValidBinaryStl(caseStlA);
-                AssertValidBinaryStl(caseStlB);
+                Assert.True(uFiles.Length >= 2, "Expected at least 2 velocity VTK files from simulation.");
+                Assert.True(rhoFiles.Length >= 1, "Expected at least 1 density VTK file from simulation.");
+                Assert.True(flagsFiles.Length >= 1, "Expected at least 1 flags VTK file from simulation.");
+
+                VtkInfo uInfo = AssertValidLegacyBinaryVtk(uFiles[uFiles.Length - 1], expectedComponents: 3);
+                VtkInfo rhoInfo = AssertValidLegacyBinaryVtk(rhoFiles[rhoFiles.Length - 1], expectedComponents: 1);
+                VtkInfo flagsInfo = AssertValidLegacyBinaryVtk(flagsFiles[flagsFiles.Length - 1], expectedComponents: 1);
+
+                // All fields should have the same grid layout in a single run.
+                Assert.Equal(uInfo.Nx, rhoInfo.Nx);
+                Assert.Equal(uInfo.Ny, rhoInfo.Ny);
+                Assert.Equal(uInfo.Nz, rhoInfo.Nz);
+                Assert.Equal(uInfo.Nx, flagsInfo.Nx);
+                Assert.Equal(uInfo.Ny, flagsInfo.Ny);
+                Assert.Equal(uInfo.Nz, flagsInfo.Nz);
+
+                // Real simulation outputs should be non-trivial in size.
+                Assert.True(uInfo.PayloadBytes > 100_000L, "Velocity payload unexpectedly small.");
+                Assert.True(rhoInfo.PayloadBytes > 30_000L, "Density payload unexpectedly small.");
+                Assert.True(flagsInfo.PayloadBytes > 30_000L, "Flags payload unexpectedly small.");
+
+                // Vector field payload should be exactly 3x scalar payload for same grid.
+                Assert.Equal(rhoInfo.PayloadBytes * 3L, uInfo.PayloadBytes);
             }
             finally
             {
-                Directory.Delete(tempRoot, true);
+                TestFixtures.CleanupTestDirectory(tempRoot);
             }
         }
 
-        private static void WriteBinaryBoxStl(
-            string stlPath,
-            float minX,
-            float minY,
-            float minZ,
-            float maxX,
-            float maxY,
-            float maxZ)
+        private static string RunFluidX3DCase(string caseRoot)
         {
-            string directory = Path.GetDirectoryName(stlPath);
-            if (!string.IsNullOrWhiteSpace(directory))
+            if (string.IsNullOrWhiteSpace(caseRoot))
             {
-                Directory.CreateDirectory(directory);
+                throw new ArgumentException("Case root is required.", nameof(caseRoot));
             }
 
-            using (BinaryWriter writer = new BinaryWriter(File.Open(stlPath, FileMode.Create, FileAccess.Write, FileShare.None)))
+            if (!Directory.Exists(caseRoot))
             {
-                byte[] header = new byte[80];
-                byte[] title = Encoding.ASCII.GetBytes("Eddy3D FluidX3D integration test STL");
-                Buffer.BlockCopy(title, 0, header, 0, Math.Min(title.Length, header.Length));
-                writer.Write(header);
-                writer.Write(12u);
+                throw new DirectoryNotFoundException("Case root not found: " + caseRoot);
+            }
 
-                var v = new (float X, float Y, float Z)[]
+            if (OperatingSystem.IsWindows())
+            {
+                return RunFluidX3DCaseWindows(caseRoot);
+            }
+
+            return RunFluidX3DCaseUnix(caseRoot);
+        }
+
+        private static string RunFluidX3DCaseUnix(string caseRoot)
+        {
+            StringBuilder log = new StringBuilder();
+            log.AppendLine(RunProcess("/bin/bash", "make.sh", caseRoot, timeoutMs: 900000));
+            return log.ToString();
+        }
+
+        private static string RunFluidX3DCaseWindows(string caseRoot)
+        {
+            string slnPath = Path.Combine(caseRoot, "FluidX3D.sln");
+            if (!File.Exists(slnPath))
+            {
+                throw new FileNotFoundException("FluidX3D solution file not found.", slnPath);
+            }
+
+            string msbuildPath = ResolveMsBuildPath(caseRoot);
+            StringBuilder log = new StringBuilder();
+            log.AppendLine(RunProcess(
+                msbuildPath,
+                "\"" + slnPath + "\" /m /p:Configuration=Release /p:Platform=x64",
+                caseRoot,
+                timeoutMs: 900000));
+
+            string[] exeCandidates = new[]
+            {
+                Path.Combine(caseRoot, "bin", "FluidX3D.exe"),
+                Path.Combine(caseRoot, "bin", "Release", "FluidX3D.exe"),
+                Path.Combine(caseRoot, "bin", "x64", "Release", "FluidX3D.exe")
+            };
+
+            string exePath = exeCandidates.FirstOrDefault(File.Exists);
+            if (string.IsNullOrWhiteSpace(exePath))
+            {
+                throw new FileNotFoundException(
+                    "FluidX3D.exe not found after build. Checked: " + string.Join(", ", exeCandidates));
+            }
+
+            log.AppendLine(RunProcess(exePath, string.Empty, caseRoot, timeoutMs: 900000));
+            return log.ToString();
+        }
+
+        private static string ResolveMsBuildPath(string workingDirectory)
+        {
+            string programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+            string vswhere = Path.Combine(programFilesX86, "Microsoft Visual Studio", "Installer", "vswhere.exe");
+            if (File.Exists(vswhere))
+            {
+                string output = RunProcess(
+                    vswhere,
+                    "-latest -products * -requires Microsoft.Component.MSBuild -find MSBuild\\**\\Bin\\MSBuild.exe",
+                    workingDirectory,
+                    timeoutMs: 60000,
+                    throwOnNonZero: false);
+
+                string firstLine = output
+                    .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
+                    .FirstOrDefault();
+
+                if (!string.IsNullOrWhiteSpace(firstLine) && File.Exists(firstLine.Trim()))
                 {
-                    (minX, minY, minZ), // 0
-                    (maxX, minY, minZ), // 1
-                    (maxX, maxY, minZ), // 2
-                    (minX, maxY, minZ), // 3
-                    (minX, minY, maxZ), // 4
-                    (maxX, minY, maxZ), // 5
-                    (maxX, maxY, maxZ), // 6
-                    (minX, maxY, maxZ)  // 7
+                    return firstLine.Trim();
+                }
+            }
+
+            return "MSBuild.exe";
+        }
+
+        private static string RunProcess(
+            string fileName,
+            string arguments,
+            string workingDirectory,
+            int timeoutMs,
+            bool throwOnNonZero = true)
+        {
+            System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = fileName,
+                Arguments = arguments,
+                WorkingDirectory = workingDirectory,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            StringBuilder log = new StringBuilder();
+            using (System.Diagnostics.Process process = new System.Diagnostics.Process { StartInfo = psi, EnableRaisingEvents = true })
+            {
+                process.OutputDataReceived += (_, e) =>
+                {
+                    if (!string.IsNullOrWhiteSpace(e.Data))
+                    {
+                        log.AppendLine(e.Data);
+                    }
+                };
+                process.ErrorDataReceived += (_, e) =>
+                {
+                    if (!string.IsNullOrWhiteSpace(e.Data))
+                    {
+                        log.AppendLine("[stderr] " + e.Data);
+                    }
                 };
 
-                WriteTriangle(writer, 0f, 0f, -1f, v[0], v[2], v[1]);
-                WriteTriangle(writer, 0f, 0f, -1f, v[0], v[3], v[2]);
-                WriteTriangle(writer, 0f, 0f, 1f, v[4], v[5], v[6]);
-                WriteTriangle(writer, 0f, 0f, 1f, v[4], v[6], v[7]);
-                WriteTriangle(writer, 0f, -1f, 0f, v[0], v[1], v[5]);
-                WriteTriangle(writer, 0f, -1f, 0f, v[0], v[5], v[4]);
-                WriteTriangle(writer, 0f, 1f, 0f, v[3], v[7], v[6]);
-                WriteTriangle(writer, 0f, 1f, 0f, v[3], v[6], v[2]);
-                WriteTriangle(writer, -1f, 0f, 0f, v[0], v[4], v[7]);
-                WriteTriangle(writer, -1f, 0f, 0f, v[0], v[7], v[3]);
-                WriteTriangle(writer, 1f, 0f, 0f, v[1], v[2], v[6]);
-                WriteTriangle(writer, 1f, 0f, 0f, v[1], v[6], v[5]);
+                if (!process.Start())
+                {
+                    throw new InvalidOperationException("Failed to start process: " + fileName);
+                }
+
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+
+                if (!process.WaitForExit(timeoutMs))
+                {
+                    try { process.Kill(entireProcessTree: true); } catch { }
+                    throw new TimeoutException(
+                        "Process timed out after " + timeoutMs.ToString(CultureInfo.InvariantCulture)
+                        + " ms: " + fileName + " " + arguments + Environment.NewLine + log.ToString());
+                }
+
+                process.WaitForExit();
+
+                if (throwOnNonZero && process.ExitCode != 0)
+                {
+                    throw new InvalidOperationException(
+                        "Process failed with exit code " + process.ExitCode.ToString(CultureInfo.InvariantCulture)
+                        + ": " + fileName + " " + arguments + Environment.NewLine + log.ToString());
+                }
             }
+
+            return log.ToString();
         }
 
-        private static void WriteTriangle(
-            BinaryWriter writer,
-            float nx,
-            float ny,
-            float nz,
-            (float X, float Y, float Z) a,
-            (float X, float Y, float Z) b,
-            (float X, float Y, float Z) c)
+        private static VtkInfo AssertValidLegacyBinaryVtk(string path, int expectedComponents)
         {
-            writer.Write(nx);
-            writer.Write(ny);
-            writer.Write(nz);
+            Assert.True(File.Exists(path), "Expected VTK file missing: " + path);
 
-            writer.Write(a.X);
-            writer.Write(a.Y);
-            writer.Write(a.Z);
-
-            writer.Write(b.X);
-            writer.Write(b.Y);
-            writer.Write(b.Z);
-
-            writer.Write(c.X);
-            writer.Write(c.Y);
-            writer.Write(c.Z);
-
-            writer.Write((ushort)0);
-        }
-
-        private static void AssertValidBinaryStl(string stlPath)
-        {
-            Assert.True(File.Exists(stlPath), "Expected STL file missing: " + stlPath);
-
-            using (FileStream fs = File.OpenRead(stlPath))
+            using (FileStream fs = File.OpenRead(path))
             {
-                Assert.True(fs.Length >= 84, "Binary STL too small: " + stlPath);
+                bool isBinary = false;
+                bool isStructuredPoints = false;
+                int nx = -1;
+                int ny = -1;
+                int nz = -1;
+                int components = 1;
+                string dataType = "float";
+                long dataOffset = -1L;
 
-                byte[] headerAndCount = new byte[84];
-                int read = fs.Read(headerAndCount, 0, headerAndCount.Length);
-                Assert.Equal(84, read);
+                while (true)
+                {
+                    string line = ReadAsciiLine(fs);
+                    Assert.False(line == null, "Unexpected EOF while reading VTK header: " + path);
 
-                uint triangleCount = BitConverter.ToUInt32(headerAndCount, 80);
-                Assert.True(triangleCount > 0, "Binary STL has no triangles: " + stlPath);
+                    string trimmed = line.Trim();
+                    if (trimmed.Length == 0)
+                    {
+                        continue;
+                    }
 
-                long expectedLength = 84L + (50L * triangleCount);
-                Assert.Equal(expectedLength, fs.Length);
+                    if (trimmed.Equals("BINARY", StringComparison.OrdinalIgnoreCase))
+                    {
+                        isBinary = true;
+                    }
+                    else if (trimmed.StartsWith("DATASET", StringComparison.OrdinalIgnoreCase))
+                    {
+                        isStructuredPoints = trimmed.IndexOf("STRUCTURED_POINTS", StringComparison.OrdinalIgnoreCase) >= 0;
+                    }
+                    else
+                    {
+                        Match dimMatch = DimensionsRegex.Match(trimmed);
+                        if (dimMatch.Success)
+                        {
+                            nx = int.Parse(dimMatch.Groups["nx"].Value, CultureInfo.InvariantCulture);
+                            ny = int.Parse(dimMatch.Groups["ny"].Value, CultureInfo.InvariantCulture);
+                            nz = int.Parse(dimMatch.Groups["nz"].Value, CultureInfo.InvariantCulture);
+                            continue;
+                        }
+
+                        if (trimmed.StartsWith("SCALARS", StringComparison.OrdinalIgnoreCase))
+                        {
+                            string[] parts = trimmed.Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+                            dataType = parts.Length >= 3 ? parts[2] : "float";
+                            components = parts.Length >= 4 ? int.Parse(parts[3], CultureInfo.InvariantCulture) : 1;
+                            continue;
+                        }
+
+                        if (trimmed.StartsWith("VECTORS", StringComparison.OrdinalIgnoreCase))
+                        {
+                            string[] parts = trimmed.Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+                            dataType = parts.Length >= 3 ? parts[2] : "float";
+                            components = 3;
+                            dataOffset = fs.Position;
+                            break;
+                        }
+
+                        if (trimmed.StartsWith("LOOKUP_TABLE", StringComparison.OrdinalIgnoreCase))
+                        {
+                            dataOffset = fs.Position;
+                            break;
+                        }
+                    }
+                }
+
+                Assert.True(isBinary, "VTK is not binary: " + path);
+                Assert.True(isStructuredPoints, "VTK is not STRUCTURED_POINTS: " + path);
+                Assert.True(nx > 0 && ny > 0 && nz > 0, "Invalid VTK dimensions in: " + path);
+                Assert.Equal(expectedComponents, components);
+
+                int bytesPerComponent = GetVtkTypeSizeBytes(dataType);
+                long expectedPayloadBytes = (long)nx * ny * nz * components * bytesPerComponent;
+                long actualPayloadBytes = fs.Length - dataOffset;
+                Assert.Equal(expectedPayloadBytes, actualPayloadBytes);
+
+                return new VtkInfo
+                {
+                    Nx = nx,
+                    Ny = ny,
+                    Nz = nz,
+                    Components = components,
+                    DataType = dataType,
+                    BytesPerComponent = bytesPerComponent,
+                    PayloadBytes = actualPayloadBytes
+                };
             }
         }
 
-        private static void CreateStubFluidX3DSource(string sourceRoot)
+        private static int GetVtkTypeSizeBytes(string vtkType)
         {
-            Directory.CreateDirectory(sourceRoot);
-            Directory.CreateDirectory(Path.Combine(sourceRoot, "src"));
-
-            File.WriteAllText(
-                Path.Combine(sourceRoot, "src", "setup.cpp"),
-                "// original setup");
-
-            File.WriteAllText(
-                Path.Combine(sourceRoot, "src", "defines.hpp"),
-@"#pragma once
-//#define FP16S
-#define BENCHMARK
-//#define FORCE_FIELD
-//#define EQUILIBRIUM_BOUNDARIES
-//#define SUBGRID
-");
-
-            File.WriteAllText(Path.Combine(sourceRoot, "make.sh"), "#!/usr/bin/env bash\n");
-            File.WriteAllText(Path.Combine(sourceRoot, "FluidX3D.sln"), "stub");
+            string key = (vtkType ?? string.Empty).Trim().ToLowerInvariant();
+            switch (key)
+            {
+                case "char":
+                case "unsigned_char":
+                case "signed_char":
+                    return 1;
+                case "short":
+                case "unsigned_short":
+                    return 2;
+                case "int":
+                case "unsigned_int":
+                case "long":
+                case "unsigned_long":
+                case "float":
+                    return 4;
+                case "double":
+                    return 8;
+                default:
+                    throw new InvalidDataException("Unsupported VTK scalar type: " + vtkType);
+            }
         }
 
-        private static string CreateTempDir()
+        private static string ReadAsciiLine(FileStream fs)
         {
-            string path = Path.Combine(
-                Path.GetTempPath(),
-                "Eddy3D-Tests",
-                "FluidX3D-Integration",
-                Guid.NewGuid().ToString("N"));
-            Directory.CreateDirectory(path);
-            return path;
+            StringBuilder sb = new StringBuilder();
+            while (true)
+            {
+                int raw = fs.ReadByte();
+                if (raw < 0)
+                {
+                    return sb.Length == 0 ? null : sb.ToString();
+                }
+
+                char ch = (char)raw;
+                if (ch == '\n')
+                {
+                    return sb.ToString();
+                }
+
+                if (ch != '\r')
+                {
+                    sb.Append(ch);
+                }
+            }
+        }
+
+        private sealed class VtkInfo
+        {
+            public int Nx;
+            public int Ny;
+            public int Nz;
+            public int Components;
+            public string DataType;
+            public int BytesPerComponent;
+            public long PayloadBytes;
         }
     }
 }
