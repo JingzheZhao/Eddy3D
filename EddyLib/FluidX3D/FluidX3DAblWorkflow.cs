@@ -548,14 +548,20 @@ if errorlevel 1 (
   exit /b 1
 )
 
-if not exist ""bin\FluidX3D.exe"" (
-  echo Build succeeded but bin\FluidX3D.exe was not found.
+set ""FLUIDX3D_EXE=""
+if exist ""bin\FluidX3D.exe"" set ""FLUIDX3D_EXE=bin\FluidX3D.exe""
+if not defined FLUIDX3D_EXE if exist ""bin\Release\FluidX3D.exe"" set ""FLUIDX3D_EXE=bin\Release\FluidX3D.exe""
+if not defined FLUIDX3D_EXE if exist ""bin\x64\Release\FluidX3D.exe"" set ""FLUIDX3D_EXE=bin\x64\Release\FluidX3D.exe""
+
+if not defined FLUIDX3D_EXE (
+  echo Build succeeded but FluidX3D.exe was not found in expected locations.
+  echo Checked: bin\FluidX3D.exe, bin\Release\FluidX3D.exe, bin\x64\Release\FluidX3D.exe
   pause
   exit /b 1
 )
 
-echo Running FluidX3D...
-""bin\FluidX3D.exe""
+echo Running FluidX3D from %FLUIDX3D_EXE%...
+""%FLUIDX3D_EXE%""
 set ""FLUIDX3D_EXIT=%ERRORLEVEL%""
 if not ""%FLUIDX3D_EXIT%""==""0"" (
   echo FluidX3D failed with exit code %FLUIDX3D_EXIT%.

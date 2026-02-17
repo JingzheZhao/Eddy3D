@@ -549,25 +549,47 @@ namespace Eddy
 
         private static bool TryLaunchScript(string scriptPath, out string message)
         {
+            if (string.IsNullOrWhiteSpace(scriptPath))
+            {
+                message = "Launch script path is empty.";
+                return false;
+            }
+
+            string fullScriptPath = Path.GetFullPath(scriptPath);
+            if (!File.Exists(fullScriptPath))
+            {
+                message = "Launch script not found: " + fullScriptPath;
+                return false;
+            }
+
             try
             {
-                string workingDirectory = Path.GetDirectoryName(scriptPath) ?? string.Empty;
+                string workingDirectory = Path.GetDirectoryName(fullScriptPath) ?? string.Empty;
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     Process.Start(new ProcessStartInfo
                     {
-                        FileName = scriptPath,
+                        FileName = "cmd.exe",
+                        Arguments = "/k \"" + fullScriptPath + "\"",
                         WorkingDirectory = workingDirectory,
                         UseShellExecute = true
                     });
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
+                    EnsureExecutableUnix(fullScriptPath);
+
+                    string makeShPath = Path.GetFullPath(Path.Combine(workingDirectory, "..", "FluidX3D", "make.sh"));
+                    if (File.Exists(makeShPath))
+                    {
+                        EnsureExecutableUnix(makeShPath);
+                    }
+
                     Process.Start(new ProcessStartInfo
                     {
                         FileName = "/usr/bin/open",
-                        Arguments = "\"" + scriptPath + "\"",
+                        Arguments = "-a Terminal \"" + fullScriptPath + "\"",
                         UseShellExecute = false,
                         CreateNoWindow = true
                     });
@@ -577,18 +599,48 @@ namespace Eddy
                     Process.Start(new ProcessStartInfo
                     {
                         FileName = "xdg-open",
-                        Arguments = "\"" + scriptPath + "\"",
+                        Arguments = "\"" + fullScriptPath + "\"",
                         UseShellExecute = true
                     });
                 }
 
-                message = "Launched: " + scriptPath;
+                message = "Launched: " + fullScriptPath;
                 return true;
             }
             catch (Exception ex)
             {
-                message = ex.Message;
+                message = "Failed to launch script: " + ex.Message;
                 return false;
+            }
+        }
+
+        private static void EnsureExecutableUnix(string filePath)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return;
+            }
+
+            using (Process process = Process.Start(new ProcessStartInfo
+            {
+                FileName = "/bin/chmod",
+                Arguments = "+x \"" + filePath + "\"",
+                UseShellExecute = false,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            }))
+            {
+                if (process == null)
+                {
+                    throw new InvalidOperationException("Failed to start chmod for " + filePath);
+                }
+
+                string stdErr = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+                if (process.ExitCode != 0)
+                {
+                    throw new InvalidOperationException("chmod failed for " + filePath + ": " + stdErr.Trim());
+                }
             }
         }
 

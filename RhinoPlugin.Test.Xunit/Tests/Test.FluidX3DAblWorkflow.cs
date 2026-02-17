@@ -1,6 +1,7 @@
 using EddyLib.FluidX3D;
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using Xunit;
 
 namespace RhinoPlugin.Test.Xunit
@@ -50,6 +51,49 @@ namespace RhinoPlugin.Test.Xunit
                 Assert.Contains("#define FORCE_FIELD", definesText);
                 Assert.Contains("#define EQUILIBRIUM_BOUNDARIES", definesText);
                 Assert.Contains("#define SUBGRID", definesText);
+            }
+            finally
+            {
+                Directory.Delete(tempRoot, true);
+            }
+        }
+
+        [Fact]
+        public void PrepareCase_WritesCrossPlatformLaunchScripts()
+        {
+            string tempRoot = CreateTempDir();
+            try
+            {
+                string sourceRoot = Path.Combine(tempRoot, "source");
+                string workingRoot = Path.Combine(tempRoot, "working");
+                CreateStubFluidX3DSource(sourceRoot);
+
+                FluidX3DAblPrepareResult result = FluidX3DAblWorkflow.PrepareCase(
+                    sourceRoot,
+                    workingRoot,
+                    new FluidX3DAblSettings());
+
+                string commandScript = File.ReadAllText(result.CommandScriptPath);
+                Assert.Contains("#!/bin/bash", commandScript);
+                Assert.Contains("cd \"$SCRIPT_DIR/../FluidX3D\" || exit 1", commandScript);
+                Assert.Contains("./make.sh", commandScript);
+
+                string batchScript = File.ReadAllText(result.BatchScriptPath);
+                Assert.Contains(@"cd /d ""%~dp0..\FluidX3D"" || exit /b 1", batchScript);
+                Assert.Contains("MSBuild", batchScript);
+                Assert.Contains("Running FluidX3D from %FLUIDX3D_EXE%", batchScript);
+                Assert.Contains(@"bin\FluidX3D.exe", batchScript);
+                Assert.Contains(@"bin\Release\FluidX3D.exe", batchScript);
+                Assert.Contains(@"bin\x64\Release\FluidX3D.exe", batchScript);
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    Assert.Equal(result.BatchScriptPath, result.LaunchScriptPath);
+                }
+                else
+                {
+                    Assert.Equal(result.CommandScriptPath, result.LaunchScriptPath);
+                }
             }
             finally
             {
