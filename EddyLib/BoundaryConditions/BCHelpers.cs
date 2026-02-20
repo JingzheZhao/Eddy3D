@@ -64,76 +64,109 @@ namespace EddyLib.BCs
         // Core: measure strings with GH's font and add spaces until columns line up in pixels.
         private static string BuildPixelAligned(string[] headers, List<string[]> rows, string epwPath)
         {
-            // Use GH's standard small UI font (same as tooltips)
-            var font = GH_FontServer.Small;
-            var gapPx = 12f; // space between columns
-            var fmt = (StringFormat)StringFormat.GenericTypographic.Clone();
-            fmt.FormatFlags |= StringFormatFlags.MeasureTrailingSpaces;
-
-            // Measure function
-            float Measure(Graphics g, string s) => g.MeasureString(s, font, int.MaxValue, fmt).Width;
-
-            // Compute max pixel width per column (header + all rows)
             var colCount = headers.Length;
-            var colWidths = new float[colCount];
+            var outSb = new StringBuilder();
 
-            using (var bmp = new Bitmap(1, 1))
-            using (var g = Graphics.FromImage(bmp))
+            try
             {
-                for (int c = 0; c < colCount; c++)
+                // Attempt to pixel-align using Grasshopper's font (fails on macOS headless)
+                var font = GH_FontServer.Small;
+                var gapPx = 12f; // space between columns
+                var fmt = (StringFormat)StringFormat.GenericTypographic.Clone();
+                fmt.FormatFlags |= StringFormatFlags.MeasureTrailingSpaces;
+
+                float Measure(Graphics g, string s) => g.MeasureString(s, font, int.MaxValue, fmt).Width;
+
+                var colWidths = new float[colCount];
+
+                using (var bmp = new Bitmap(1, 1))
+                using (var g = Graphics.FromImage(bmp))
                 {
-                    float w = Measure(g, headers[c]);
+                    for (int c = 0; c < colCount; c++)
+                    {
+                        float w = Measure(g, headers[c]);
+                        for (int r = 0; r < rows.Count; r++)
+                            w = Math.Max(w, Measure(g, rows[r][c]));
+                        colWidths[c] = (float)Math.Ceiling(w);
+                    }
+
+                    var starts = new float[colCount];
+                    float x = 0;
+                    for (int c = 0; c < colCount; c++)
+                    {
+                        starts[c] = x;
+                        x += colWidths[c] + gapPx;
+                    }
+
+                    string PadTo(string baseText, float targetX)
+                    {
+                        var sb = new StringBuilder(baseText);
+                        while (Measure(g, sb.ToString()) < targetX)
+                            sb.Append(' ');
+                        return sb.ToString();
+                    }
+
+                    outSb.AppendLine("Boundary Conditions Summary:");
+
+                    var line = headers[0];
+                    for (int c = 1; c < colCount; c++)
+                        line = PadTo(line, starts[c]) + headers[c];
+                    outSb.AppendLine(line);
+
+                    var headerWidth = Measure(g, line);
+                    outSb.AppendLine(new string('-', (int)Math.Max(8, headerWidth / 3)));
+
                     for (int r = 0; r < rows.Count; r++)
-                        w = Math.Max(w, Measure(g, rows[r][c]));
-                    colWidths[c] = (float)Math.Ceiling(w);
+                    {
+                        var row = rows[r];
+                        var rowLine = row[0];
+                        for (int c = 1; c < colCount; c++)
+                            rowLine = PadTo(rowLine, starts[c]) + row[c];
+                        outSb.AppendLine(rowLine);
+                    }
                 }
-
-                // Column start x-positions
-                var starts = new float[colCount];
-                float x = 0;
+            }
+            catch (Exception)
+            {
+                // Fallback: character-based padding for macOS / headless tests
+                outSb.Clear();
+                var colWidths = new int[colCount];
                 for (int c = 0; c < colCount; c++)
                 {
-                    starts[c] = x;
-                    x += colWidths[c] + gapPx;
+                    int w = headers[c].Length;
+                    for (int r = 0; r < rows.Count; r++)
+                        w = Math.Max(w, rows[r][c].Length);
+                    colWidths[c] = w;
                 }
 
-                // Build lines, padding with spaces until next column start is reached in pixels
-                string PadTo(string baseText, float targetX)
-                {
-                    var sb = new StringBuilder(baseText);
-                    while (Measure(g, sb.ToString()) < targetX)
-                        sb.Append(' ');
-                    return sb.ToString();
-                }
+                int gap = 3; // spaces
 
-                var outSb = new StringBuilder();
                 outSb.AppendLine("Boundary Conditions Summary:");
 
-                // Header
-                var line = headers[0];
-                for (int c = 1; c < colCount; c++)
-                    line = PadTo(line, starts[c]) + headers[c];
+                var lineSb = new StringBuilder();
+                for (int c = 0; c < colCount; c++)
+                {
+                    lineSb.Append(headers[c].PadRight(colWidths[c] + (c < colCount - 1 ? gap : 0)));
+                }
+                var line = lineSb.ToString();
                 outSb.AppendLine(line);
+                outSb.AppendLine(new string('-', line.Length));
 
-                // Separator (approximate using dashes to header width)
-                var headerWidth = Measure(g, line);
-                outSb.AppendLine(new string('-', (int)Math.Max(8, headerWidth / 3))); // 6px-ish per char
-
-                // Rows
                 for (int r = 0; r < rows.Count; r++)
                 {
-                    var row = rows[r];
-                    var rowLine = row[0];
-                    for (int c = 1; c < colCount; c++)
-                        rowLine = PadTo(rowLine, starts[c]) + row[c];
-                    outSb.AppendLine(rowLine);
+                    var rowLineSb = new StringBuilder();
+                    for (int c = 0; c < colCount; c++)
+                    {
+                        rowLineSb.Append(rows[r][c].PadRight(colWidths[c] + (c < colCount - 1 ? gap : 0)));
+                    }
+                    outSb.AppendLine(rowLineSb.ToString());
                 }
-
-                if (!string.IsNullOrEmpty(epwPath))
-                    outSb.AppendLine(epwPath);
-
-                return outSb.ToString();
             }
+
+            if (!string.IsNullOrEmpty(epwPath))
+                outSb.AppendLine(epwPath);
+
+            return outSb.ToString();
         }
 
         public static void AdjustInputList<T>(
