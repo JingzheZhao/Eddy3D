@@ -40,6 +40,12 @@ namespace Eddy.Analytics
 
             /// <summary>Gets or sets whether tracking is enabled.</summary>
             public static bool Enabled { get; set; } = true;
+
+            /// <summary>
+            /// Gets or sets whether to limit tracking exlusively to software launches to conserve 
+            /// free-tier event quota (100k/month limit). Defaults to true.
+            /// </summary>
+            public static bool LimitTrackingToStartupOnly { get; set; } = true;
         }
 
         /// <summary>
@@ -58,6 +64,13 @@ namespace Eddy.Analytics
             if (!Config.Enabled)
             {
                 if (callback != null) callback("Tracking disabled");
+                return;
+            }
+
+            // High volume guard: skip all non-startup events if the flag is set.
+            if (Config.LimitTrackingToStartupOnly && url != "/startup")
+            {
+                if (callback != null) callback("Event skipped (LimitTrackingToStartupOnly is true)");
                 return;
             }
 
@@ -81,6 +94,7 @@ namespace Eddy.Analytics
         /// </summary>
         public static async Task<string> TrackPageViewAsync(string url, string title)
         {
+            if (Config.LimitTrackingToStartupOnly && url != "/startup") return "Page View skipped";
             return await SendPayloadAsync(url, null, title, null);
         }
 
@@ -96,6 +110,7 @@ namespace Eddy.Analytics
             string url = "/",
             JObject additionalData = null)
         {
+            if (Config.LimitTrackingToStartupOnly && url != "/startup") return "Event skipped";
             return await SendPayloadAsync(url, eventName, eventName, additionalData);
         }
 
