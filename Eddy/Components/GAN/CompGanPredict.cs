@@ -47,6 +47,7 @@ namespace Eddy
                 GH_Strings.GanPredict.AnalysisPlaneNick,
                 GH_Strings.GanPredict.AnalysisPlaneDesc,
                 GH_ParamAccess.item);
+            pManager[1].Optional = true;
 
             pManager.AddIntegerParameter(
                 GH_Strings.GanPredict.WindDir,
@@ -110,7 +111,17 @@ namespace Eddy
             double colorSize = 100.0;
 
             if (!DA.GetData(0, ref building)) return;
-            if (!DA.GetData(1, ref analysisPlane)) return;
+            if (!DA.GetData(1, ref analysisPlane))
+            {
+                if (building != null && building.Vertices.Count > 0)
+                {
+                    var bb = building.GetBoundingBox(true);
+                    var center = bb.Center;
+                    analysisPlane = new Rectangle3d(Plane.WorldXY,
+                        new Interval(center.X - 256, center.X + 256),
+                        new Interval(center.Y - 256, center.Y + 256));
+                }
+            }
             DA.GetData(2, ref windDir);
             DA.GetData(3, ref run);
             DA.GetData(4, ref apiUrl);
