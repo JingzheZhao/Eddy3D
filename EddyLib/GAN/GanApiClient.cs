@@ -45,7 +45,7 @@ namespace EddyLib.GAN
             string apiUrl = null,
             CancellationToken cancellationToken = default)
         {
-            string url = (apiUrl ?? DefaultApiUrl).TrimEnd('/') + "/predict_binary";
+            string url = (apiUrl ?? DefaultApiUrl).TrimEnd('/') + "/predict";
 
             // 1. Convert float[] to byte[]
             byte[] rawBytes = new byte[inputArray.Length * sizeof(float)];
@@ -62,7 +62,7 @@ namespace EddyLib.GAN
                 b64Data = Convert.ToBase64String(ms.ToArray());
             }
 
-            var payload = new BinaryPredictRequest { data_b64 = b64Data };
+            var payload = new PredictRequest { data_b64 = b64Data };
             string json = JsonConvert.SerializeObject(payload);
             using var content = new StringContent(json, Encoding.UTF8, "application/json");
 
@@ -76,7 +76,7 @@ namespace EddyLib.GAN
             response.EnsureSuccessStatusCode();
 
             var responseJson = await response.Content.ReadAsStringAsync();
-            var result = JsonConvert.DeserializeObject<BinaryApiResponse>(responseJson);
+            var result = JsonConvert.DeserializeObject<PredictResponse>(responseJson);
 
             // 3. Decompress the returned wind speeds
             byte[] compWindBytes = Convert.FromBase64String(result.wind_speeds_b64);
@@ -105,45 +105,6 @@ namespace EddyLib.GAN
                 Height = result.height,
             };
         }
-
-        /// <summary>
-        /// Sends a PNG image to the GAN API and returns wind speeds + output image.
-        /// Kept for backward compatibility / testing.
-        /// </summary>
-        public static async Task<GanPredictionResult> PredictImageAsync(
-            byte[] pngBytes,
-            string apiUrl = null,
-            CancellationToken cancellationToken = default)
-        {
-            string url = (apiUrl ?? DefaultApiUrl).TrimEnd('/') + "/predict";
-
-            using var formContent = new MultipartFormDataContent();
-            using var imageContent = new ByteArrayContent(pngBytes);
-            imageContent.Headers.ContentType =
-                new System.Net.Http.Headers.MediaTypeHeaderValue("image/png");
-            formContent.Add(imageContent, "file", "input.png");
-
-            using var response = await HttpClient.PostAsync(url, formContent, cancellationToken);
-
-            if ((int)response.StatusCode == 429)
-            {
-                throw new HttpRequestException("Rate limit exceeded. Please wait and try again.");
-            }
-
-            response.EnsureSuccessStatusCode();
-
-            var responseJson = await response.Content.ReadAsStringAsync();
-            var result = JsonConvert.DeserializeObject<ApiResponse>(responseJson);
-
-            return new GanPredictionResult
-            {
-                WindSpeeds = result.wind_speeds,
-                ImageBytes = Convert.FromBase64String(result.image_base64),
-                Width = result.width,
-                Height = result.height,
-            };
-        }
-
         /// <summary>
         /// Checks if the API is reachable.
         /// </summary>
@@ -190,26 +151,12 @@ namespace EddyLib.GAN
             return false;
         }
 
-        // Internal DTOs
-        private class ArrayPredictRequest
-        {
-            public float[] data { get; set; }
-        }
-
-        private class BinaryPredictRequest
+        private class PredictRequest
         {
             public string data_b64 { get; set; }
         }
 
-        private class ApiResponse
-        {
-            public List<double> wind_speeds { get; set; }
-            public string image_base64 { get; set; }
-            public int width { get; set; }
-            public int height { get; set; }
-        }
-
-        private class BinaryApiResponse
+        private class PredictResponse
         {
             public string wind_speeds_b64 { get; set; }
             public string image_base64 { get; set; }
