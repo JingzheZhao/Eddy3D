@@ -20,6 +20,7 @@ namespace Eddy
         private string _errorMessage;
         private string _lastInputHash;
         private CancellationTokenSource _cts;
+        private bool _wasRun;
 
         public override GH_Exposure Exposure => GH_Exposure.quarternary;
 
@@ -116,13 +117,11 @@ namespace Eddy
             DA.GetData(5, ref vSize);
             DA.GetData(6, ref colorSize);
 
-            // --- Validation ---
-            if (!run)
-            {
-                Message = "Idle";
-                return;
-            }
+            // Edge detection for the run boolean (button press or toggle false->true)
+            bool runPressed = run && !_wasRun;
+            _wasRun = run;
 
+            // --- Validation ---
             if (building == null || building.Vertices.Count == 0)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Building mesh is empty.");
@@ -135,35 +134,58 @@ namespace Eddy
                 return;
             }
 
-            // --- Check if inputs changed ---
             string inputHash = $"{building.Vertices.Count}_{analysisPlane.Width:F3}_{analysisPlane.Height:F3}_{windDir}_{vSize:F3}_{colorSize:F3}";
 
-            if (_cachedResult != null && inputHash == _lastInputHash && !_isComputing)
-            {
-                // Use cached results
-                BuildOutputs(DA);
-                Message = "Done";
-                return;
-            }
-
+            // If we are currently computing, exit early but still output any previously cached result
             if (_isComputing)
             {
                 Message = "Computing...";
+                if (_cachedResult != null) BuildOutputs(DA);
                 return;
             }
 
-            // --- Error from previous run ---
-            if (_errorMessage != null && inputHash == _lastInputHash)
+            // If Run is false, we don't start any new computation. Just output cache or errors.
+            if (!run)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, _errorMessage);
-                Message = "Error";
+                if (_errorMessage != null && inputHash == _lastInputHash)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, _errorMessage);
+                    Message = "Error";
+                }
+                else if (_cachedResult != null)
+                {
+                    BuildOutputs(DA);
+                    Message = "Done";
+                }
+                else
+                {
+                    Message = "Press Run";
+                }
+                return;
+            }
+
+            // At this point, Run is True.
+            // If inputs haven't changed and we didn't just press the button/toggle,
+            // we should not re-run (this prevents auto-spam if a Toggle is left True or Button held).
+            if (!runPressed && inputHash == _lastInputHash)
+            {
+                if (_errorMessage != null)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, _errorMessage);
+                    Message = "Error";
+                }
+                else if (_cachedResult != null)
+                {
+                    BuildOutputs(DA);
+                    Message = "Done";
+                }
                 return;
             }
 
             // --- Start async computation ---
             _isComputing = true;
             _errorMessage = null;
-            _cachedResult = null;
+            // Notice we do NOT clear _cachedResult here; old results stay visible until the new computation finishes.
             _lastInputHash = inputHash;
             Message = "Generating input...";
 
