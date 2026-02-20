@@ -40,7 +40,7 @@ namespace Eddy
                 GH_Strings.GanPredict.Building,
                 GH_Strings.GanPredict.BuildingNick,
                 GH_Strings.GanPredict.BuildingDesc,
-                GH_ParamAccess.item);
+                GH_ParamAccess.list);
 
             pManager.AddRectangleParameter(
                 GH_Strings.GanPredict.AnalysisPlane,
@@ -102,7 +102,7 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             // --- Get inputs ---
-            Mesh building = null;
+            var buildings = new List<Mesh>();
             Rectangle3d analysisPlane = default;
             int windDir = 0;
             bool run = false;
@@ -110,7 +110,17 @@ namespace Eddy
             double vSize = 3.0;
             double colorSize = 100.0;
 
-            if (!DA.GetData(0, ref building)) return;
+            if (!DA.GetDataList(0, buildings)) return;
+            
+            Mesh building = new Mesh();
+            foreach (var b in buildings)
+            {
+                if (b != null)
+                {
+                    building.Append(b);
+                }
+            }
+
             if (!DA.GetData(1, ref analysisPlane))
             {
                 if (building != null && building.Vertices.Count > 0)
