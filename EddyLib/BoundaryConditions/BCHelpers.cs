@@ -69,7 +69,20 @@ namespace EddyLib.BCs
 
             try
             {
-                // Attempt to pixel-align using Grasshopper's font (fails on macOS headless)
+                // ATTEMPT 1: Pixel-perfect alignment using System.Drawing.
+                // 
+                // Why does this need a try-catch?
+                // Historically, System.Drawing.Common worked cross-platform via libgdiplus.
+                // However, starting in .NET 6, Microsoft marked it as Windows-only to reduce
+                // cross-platform rendering bugs. In .NET 7/8, code that instantiates 
+                // 'System.Drawing.Graphics', 'Bitmap', or 'Font' on macOS or Linux will 
+                // instantly throw a PlatformNotSupportedException.
+                //
+                // When running Eddy3D normally inside Rhino 8 on macOS, Rhino implements
+                // its own native GUI host, so this block often survives. However, during 
+                // headless xUnit tests in CI/CD pipelines (e.g., `dotnet test`), there is
+                // no GUI host. This block will predictably crash on Mac/Linux.
+                
                 var font = GH_FontServer.Small;
                 var gapPx = 12f; // space between columns
                 var fmt = (StringFormat)StringFormat.GenericTypographic.Clone();
@@ -128,7 +141,14 @@ namespace EddyLib.BCs
             }
             catch (Exception)
             {
-                // Fallback: character-based padding for macOS / headless tests
+                // ATTEMPT 2: Headless / Cross-Platform Fallback (macOS / Linux).
+                //
+                // If System.Drawing crashes (e.g., PlatformNotSupportedException), we clear
+                // the StringBuilder and rebuild the string using a simpler, purely character-based
+                // padding strategy (String.PadRight). The columns won't perfectly align if 
+                // the font is heavily proportional, but it ensures the software (and the test 
+                // suite) doesn't crash.
+                
                 outSb.Clear();
                 var colWidths = new int[colCount];
                 for (int c = 0; c < colCount; c++)
