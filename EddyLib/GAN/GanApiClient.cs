@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
+using System.IO;
+using System.IO.Compression;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -43,9 +45,24 @@ namespace EddyLib.GAN
             string apiUrl = null,
             CancellationToken cancellationToken = default)
         {
-            string url = (apiUrl ?? DefaultApiUrl).TrimEnd('/') + "/predict_array";
+            string url = (apiUrl ?? DefaultApiUrl).TrimEnd('/') + "/predict_binary";
 
-            var payload = new ArrayPredictRequest { data = inputArray };
+            // 1. Convert float[] to byte[]
+            byte[] rawBytes = new byte[inputArray.Length * sizeof(float)];
+            Buffer.BlockCopy(inputArray, 0, rawBytes, 0, rawBytes.Length);
+
+            // 2. Compress byte[] with GZip
+            string b64Data;
+            using (var ms = new MemoryStream())
+            {
+                using (var gzip = new GZipStream(ms, CompressionLevel.Optimal, true))
+                {
+                    gzip.Write(rawBytes, 0, rawBytes.Length);
+                }
+                b64Data = Convert.ToBase64String(ms.ToArray());
+            }
+
+            var payload = new BinaryPredictRequest { data_b64 = b64Data };
             string json = JsonConvert.SerializeObject(payload);
             using var content = new StringContent(json, Encoding.UTF8, "application/json");
 
@@ -59,11 +76,30 @@ namespace EddyLib.GAN
             response.EnsureSuccessStatusCode();
 
             var responseJson = await response.Content.ReadAsStringAsync();
-            var result = JsonConvert.DeserializeObject<ApiResponse>(responseJson);
+            var result = JsonConvert.DeserializeObject<BinaryApiResponse>(responseJson);
+
+            // 3. Decompress the returned wind speeds
+            byte[] compWindBytes = Convert.FromBase64String(result.wind_speeds_b64);
+            List<double> windSpeeds = new List<double>();
+            using (var ms = new MemoryStream(compWindBytes))
+            using (var gzip = new GZipStream(ms, CompressionMode.Decompress))
+            using (var msOut = new MemoryStream())
+            {
+                gzip.CopyTo(msOut);
+                byte[] decompressed = msOut.ToArray();
+                float[] floatArr = new float[decompressed.Length / sizeof(float)];
+                Buffer.BlockCopy(decompressed, 0, floatArr, 0, decompressed.Length);
+                
+                windSpeeds.Capacity = floatArr.Length;
+                for (int i = 0; i < floatArr.Length; i++)
+                {
+                    windSpeeds.Add(floatArr[i]);
+                }
+            }
 
             return new GanPredictionResult
             {
-                WindSpeeds = result.wind_speeds,
+                WindSpeeds = windSpeeds,
                 ImageBytes = Convert.FromBase64String(result.image_base64),
                 Width = result.width,
                 Height = result.height,
@@ -160,9 +196,22 @@ namespace EddyLib.GAN
             public float[] data { get; set; }
         }
 
+        private class BinaryPredictRequest
+        {
+            public string data_b64 { get; set; }
+        }
+
         private class ApiResponse
         {
             public List<double> wind_speeds { get; set; }
+            public string image_base64 { get; set; }
+            public int width { get; set; }
+            public int height { get; set; }
+        }
+
+        private class BinaryApiResponse
+        {
+            public string wind_speeds_b64 { get; set; }
             public string image_base64 { get; set; }
             public int width { get; set; }
             public int height { get; set; }
