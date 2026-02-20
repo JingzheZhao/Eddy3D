@@ -18,7 +18,7 @@ namespace EddyLib.GAN
             Timeout = TimeSpan.FromSeconds(120)
         };
 
-        public const string DefaultApiUrl = "https://eddy3d-gan-api.onrender.com";
+        public const string DefaultApiUrl = "https://sustainableurbansystemslab-eddy3d-gan.hf.space";
 
         /// <summary>
         /// Result returned from the GAN prediction API.
