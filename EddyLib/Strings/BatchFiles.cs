@@ -131,7 +131,6 @@ namespace EddyLib.Strings
             List<string> lst = new List<string>
             {
                 "foamDictionary system/controlDict -entry startFrom -set latestTime",
-                "decomposePar -force -latestTime",
                 "mpiexec -np " + RunSettings.CPUs + @" simpleFoam -parallel",
                 "reconstructPar -latestTime"
             };
