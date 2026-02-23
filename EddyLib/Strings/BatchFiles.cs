@@ -733,8 +733,23 @@ namespace EddyLib.Strings
             var sb = new StringBuilder();
             sb.AppendLine("@echo off");
             sb.AppendLine("setlocal");
-            sb.AppendLine("echo Updating decomposeParDict and batch files to use %NUMBER_OF_PROCESSORS% cores...");
-            sb.AppendLine("powershell -Command \"$cores = $env:NUMBER_OF_PROCESSORS; Get-ChildItem -Path '%~dp0..' -Recurse | Where-Object { $_.Name -eq 'decomposeParDict' -or $_.Extension -eq '.bat' } | ForEach-Object { (Get-Content $_.FullName) -replace 'numberOfSubdomains\\s+\\d+;', ('numberOfSubdomains ' + $cores + ';') -replace '-np\\s+\\d+', ('-np ' + $cores) | Set-Content $_.FullName }\"");
+            sb.AppendLine("for /f %%i in ('powershell -NoProfile -Command \"$c = (Get-CimInstance Win32_Processor | Measure-Object -Property NumberOfCores -Sum).Sum; if (-not $c -or [int]$c -lt 1) { $c = [int]$env:NUMBER_OF_PROCESSORS }; [int]$c\"') do set \"cores=%%i\"");
+            sb.AppendLine("if \"%cores%\"==\"\" set \"cores=%NUMBER_OF_PROCESSORS%\"");
+            sb.AppendLine("echo Updating decomposeParDict and batch files to use %cores% physical cores...");
+            sb.AppendLine("powershell -NoProfile -Command \"$cores = [int]$env:cores; Get-ChildItem -Path '%~dp0..' -Recurse | Where-Object { $_.Name -eq 'decomposeParDict' -or $_.Extension -eq '.bat' } | ForEach-Object { (Get-Content $_.FullName) -replace 'numberOfSubdomains\\s+\\d+;', ('numberOfSubdomains ' + $cores + ';') -replace '-np\\s+\\d+', ('-np ' + $cores) | Set-Content $_.FullName }\"");
+            sb.AppendLine("echo Done.");
+            sb.AppendLine("ping -n 6 127.0.0.1 >nul");
+            return sb.ToString();
+        }
+
+        public static string UpdateProcsBatch()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("@echo off");
+            sb.AppendLine("setlocal");
+            sb.AppendLine("set \"cores=%NUMBER_OF_PROCESSORS%\"");
+            sb.AppendLine("echo Updating decomposeParDict and batch files to use %cores% processors...");
+            sb.AppendLine("powershell -NoProfile -Command \"$cores = [int]$env:cores; Get-ChildItem -Path '%~dp0..' -Recurse | Where-Object { $_.Name -eq 'decomposeParDict' -or $_.Extension -eq '.bat' } | ForEach-Object { (Get-Content $_.FullName) -replace 'numberOfSubdomains\\s+\\d+;', ('numberOfSubdomains ' + $cores + ';') -replace '-np\\s+\\d+', ('-np ' + $cores) | Set-Content $_.FullName }\"");
             sb.AppendLine("echo Done.");
             sb.AppendLine("ping -n 6 127.0.0.1 >nul");
             return sb.ToString();

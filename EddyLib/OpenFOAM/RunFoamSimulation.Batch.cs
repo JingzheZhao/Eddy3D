@@ -55,6 +55,8 @@ namespace EddyLib
                 Strings.BatFiles.SymbolicLinkCreatorBatch());
             DictFileWriter.WriteBatchFile(scriptsDir, "use_all_cores.bat",
                 Strings.BatFiles.UpdateCoresBatch());
+            DictFileWriter.WriteBatchFile(scriptsDir, "use_all_procs.bat",
+                Strings.BatFiles.UpdateProcsBatch());
             DictFileWriter.WriteBatchFile(scriptsDir, "update_cores.bat",
                 Strings.BatFiles.UpdateCoresInteractiveBatch());
         }
