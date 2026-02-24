@@ -35,14 +35,6 @@ GH_Strings.Clean.Desc + EddyVersion.toString(),
         {
         }
 
-        private IGH_DocumentObject[] AllCanvasObjects()
-        {
-            var doc = OnPingDocument();
-            if (doc == null)
-                return new IGH_DocumentObject[0];
-            return doc.Objects.ToArray();
-        }
-
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
