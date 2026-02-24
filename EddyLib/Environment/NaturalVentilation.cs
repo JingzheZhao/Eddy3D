@@ -31,13 +31,6 @@ namespace EddyLib
 
             var C_D_general = 0.7;
 
-            List<double> cdList = new List<double>();
-
-            for (int i = 0; i < listOfCps.Count; i++)
-            {
-                cdList.Add(C_D_general);
-            }
-
             var listOfInputCpsPos = listOfCps.Where(x => x > 0).ToList();
             var listOfInputCpsNeg = listOfCps.Where(x => x < 0).ToList();
 
@@ -53,14 +46,39 @@ namespace EddyLib
                 AverageCpNeg = listOfInputCpsNeg.Average();
             }
 
+            double sumAreaCpNeg = 0;
+            int countCpNeg = 0;
+            double sumAreaCpPos = 0;
+            int countCpPos = 0;
+
+            int limit = Math.Min(listOfCps.Count, AreaList.Count);
+            for (int i = 0; i < limit; i++)
+            {
+                if (listOfCps[i] < 0)
+                {
+                    sumAreaCpNeg += AreaList[i];
+                    countCpNeg++;
+                }
+                else if (listOfCps[i] > 0)
+                {
+                    sumAreaCpPos += AreaList[i];
+                    countCpPos++;
+                }
+            }
+
             // returns the corresponding areas where the cps were negative
-            double AverageAreaCpNeg = AreaList.Where((x, index) => listOfCps.Select(cp => cp < 0).ToArray()[index]).ToList().Average();
+            if (countCpNeg == 0) throw new InvalidOperationException("Sequence contains no elements");
+            double AverageAreaCpNeg = sumAreaCpNeg / countCpNeg;
 
             // returns the corresponding areas where the cps were positive
-            double AverageAreaCpPos = AreaList.Where((x, index) => listOfCps.Select(cp => cp > 0).ToArray()[index]).ToList().Average();
+            if (countCpPos == 0) throw new InvalidOperationException("Sequence contains no elements");
+            double AverageAreaCpPos = sumAreaCpPos / countCpPos;
 
-            var AverageCDCPNeg = cdList.Where((x, index) => listOfCps.Select(cp => cp < 0).ToArray()[index]).Average();
-            var AverageCDCPPos = cdList.Where((x, index) => listOfCps.Select(cp => cp > 0).ToArray()[index]).Average();
+            var AverageCDCPNeg = C_D_general;
+            if (countCpNeg == 0) throw new InvalidOperationException("Sequence contains no elements");
+
+            var AverageCDCPPos = C_D_general;
+            if (countCpPos == 0) throw new InvalidOperationException("Sequence contains no elements");
 
             // Do we need to compute a weighted average first?
 
@@ -87,7 +105,22 @@ namespace EddyLib
         private static double GetvCenterNode(double Volume, double FlowRate, List<double> AreaList, List<double> listOfCps)
         {
             double vCenterNode = 0;
-            double AverageAreaCpPos = AreaList.Where((x, index) => listOfCps.Select(cp => cp > 0).ToArray()[index]).ToList().Average();
+
+            double sumAreaCpPos = 0;
+            int countCpPos = 0;
+
+            int limit = Math.Min(listOfCps.Count, AreaList.Count);
+            for (int i = 0; i < limit; i++)
+            {
+                if (listOfCps[i] > 0)
+                {
+                    sumAreaCpPos += AreaList[i];
+                    countCpPos++;
+                }
+            }
+
+            if (countCpPos == 0) throw new InvalidOperationException("Sequence contains no elements");
+            double AverageAreaCpPos = sumAreaCpPos / countCpPos;
 
             vCenterNode = FlowRate / AverageAreaCpPos;
 
