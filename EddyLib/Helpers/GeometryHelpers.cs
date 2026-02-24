@@ -83,12 +83,37 @@ namespace EddyLib
         {
             if (vertices == null || vertices.Count < 3) return 0;
 
-            // Use Rhino's AreaMassProperties for accuracy with planar polygons
-            var polyline = new Polyline(vertices);
-            if (!polyline.IsClosed) polyline.Add(polyline[0]);
-            
-            var amp = AreaMassProperties.Compute(polyline.ToNurbsCurve());
-            return amp != null ? amp.Area : 0;
+            double totalX = 0;
+            double totalY = 0;
+            double totalZ = 0;
+
+            var p0 = vertices[0];
+            for (int i = 1; i < vertices.Count - 1; i++)
+            {
+                var p1 = vertices[i];
+                var p2 = vertices[i + 1];
+
+                // Vector 1: p1 - p0
+                double v1x = p1.X - p0.X;
+                double v1y = p1.Y - p0.Y;
+                double v1z = p1.Z - p0.Z;
+
+                // Vector 2: p2 - p0
+                double v2x = p2.X - p0.X;
+                double v2y = p2.Y - p0.Y;
+                double v2z = p2.Z - p0.Z;
+
+                // Cross product: v1 x v2
+                double cx = v1y * v2z - v1z * v2y;
+                double cy = v1z * v2x - v1x * v2z;
+                double cz = v1x * v2y - v1y * v2x;
+
+                totalX += cx;
+                totalY += cy;
+                totalZ += cz;
+            }
+
+            return 0.5 * Math.Sqrt(totalX * totalX + totalY * totalY + totalZ * totalZ);
         }
     }
 

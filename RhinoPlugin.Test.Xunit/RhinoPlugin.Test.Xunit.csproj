@@ -42,33 +42,13 @@
     </PackageReference>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
+
+    <!-- Added PackageReferences for RhinoCommon and Grasshopper to ensure they are restored and available for tests -->
+    <PackageReference Include="RhinoCommon" Version="8.27.26019.16021" IncludeAssets="all" />
+    <PackageReference Include="Grasshopper" Version="8.27.26019.16021" IncludeAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="RhinoCommon">
-      <HintPath>$(NuGetPackageRoot)rhinocommon/8.27.26019.16021/lib/net7.0/RhinoCommon.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Rhino.UI">
-      <HintPath>$(NuGetPackageRoot)rhinocommon/8.27.26019.16021/lib/net7.0/Rhino.UI.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Eto">
-      <HintPath>$(NuGetPackageRoot)rhinocommon/8.27.26019.16021/lib/net7.0/Eto.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Ed.Eto">
-      <HintPath>$(NuGetPackageRoot)rhinocommon/8.27.26019.16021/lib/net7.0/Ed.Eto.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Grasshopper">
-      <HintPath>$(NuGetPackageRoot)grasshopper/8.27.26019.16021/lib/net7.0/Grasshopper.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
-    <Reference Include="GH_IO">
-      <HintPath>$(NuGetPackageRoot)grasshopper/8.27.26019.16021/lib/net7.0/GH_IO.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
     <ProjectReference Include="..\EddyLib\EddyLib.csproj" />
   </ItemGroup>
 
