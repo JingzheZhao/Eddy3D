@@ -68,9 +68,6 @@ namespace Eddy
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            //if (!DA.GetDataTree("Current Points", out DataTree<GH_Vector> OldPoints)) { return; }
-            //if (!DA.GetDataTree("Current UMag", out GH_Structure<GH_Vector> OldUMag)) { return; }
-
             if (!DA.GetDataTree("Current Points", out GH_Structure<GH_Point> OldPoints)) { return; }
             if (!DA.GetDataTree("Current UMag", out GH_Structure<GH_Number> OldUMag)) { return; }
 
