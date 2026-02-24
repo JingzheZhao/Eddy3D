@@ -107,7 +107,7 @@ namespace EddyLib
 
             public const string Mode = "Mesh Mode";
             public const string ModeNick = "Mode";
-            public const string ModeDesc = "0: No snapping (fast debug), 1: With snapping (production), 2: With layers (accurate but slow)";
+            public const string ModeDesc = "Meshing strategy:\n0: No snapping (Fast debug)\n1: With snapping (Standard production)\n2: With layers (Accurate boundary layers, slower)";
 
             public const string Preset = "Preset";
             public const string PresetNick = "Preset";
@@ -134,15 +134,15 @@ namespace EddyLib
 
             public const string Turb = "Turbulence Model";
             public const string TurbNick = "Turb";
-            public const string TurbDesc = "RANS turbulence model. k-epsilon is fast and robust for urban flows. k-omega SST is more accurate near walls.";
+            public const string TurbDesc = "RANS turbulence model selection.\n- k-epsilon: Fast & robust (Standard for urban flows)\n- RNG k-epsilon: Default, improved for swirling flows\n- k-omega SST: More accurate for wall-bounded flows";
 
             public const string Relax = "Relaxation Factors";
             public const string RelaxNick = "Relax";
-            public const string RelaxDesc = "Under-relaxation for solver stability. Robust is safer for complex geometry. Default: Optimized";
+            public const string RelaxDesc = "Under-relaxation factors control solver stability.\n- Fast: Aggressive settings (may diverge)\n- Robust: Stable settings for complex geometry\n- Optimized: Default balanced settings";
 
             public const string Schemes = "Numerical Schemes";
             public const string SchemesNick = "Schemes";
-            public const string SchemesDesc = "Discretization schemes for equations. Optimized balances accuracy and stability.";
+            public const string SchemesDesc = "Numerical discretization schemes.\n- Default: Standard OpenFOAM schemes\n- Optimized: Enhances stability for urban flows (Recommended)";
 
             public const string PotInit = "Potential Flow Init";
             public const string PotInitNick = "PotInit";
