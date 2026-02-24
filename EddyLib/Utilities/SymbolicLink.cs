@@ -26,11 +26,13 @@ namespace EddyLib
                 startInfo.UseShellExecute = false;
                 startInfo.CreateNoWindow = true;
 
-                Process symLinks = new Process();
-                symLinks.StartInfo = startInfo;
-                symLinks.EnableRaisingEvents = true;
-                symLinks.Start();
-                Thread.Sleep(500);
+                using (Process symLinks = new Process())
+                {
+                    symLinks.StartInfo = startInfo;
+                    symLinks.EnableRaisingEvents = true;
+                    symLinks.Start();
+                    symLinks.WaitForExit();
+                }
             }
             else
             {
