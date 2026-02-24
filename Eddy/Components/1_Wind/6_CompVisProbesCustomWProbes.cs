@@ -277,6 +277,11 @@ Generates visualizations of the wind field, including vector arrows and streamli
                 probeNameByUser = "test";
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, @"Please provide a unique name for this probing instance, otherwise a new instance will overwrite the results.");
             }
+            if (!Utilities.IsValidProbeName(probeNameByUser))
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"Probe name contains invalid characters. Only alphanumeric, underscore, and dash are allowed.");
+                return;
+            }
             if (Char.IsDigit((probeNameByUser).First()))
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"Please make sure name doesn't start with digit.");
