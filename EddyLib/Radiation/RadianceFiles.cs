@@ -501,19 +501,15 @@ namespace EddyLib
         {
             // [x][] time
             // [][x] points
-            //string[] illLines = System.IO.File.ReadAllLines(illFileName);
-            //return illLines.Select(l => Array.ConvertAll<string, double>(l.Split(new[] { ' ' }).Skip(4).ToArray(), Double.Parse)).ToArray();
 
-            string[] lines = System.IO.File.ReadAllLines(illFileName);
-            double[][] values = new double[lines.Length][];
-
-            for (int h = 0; h < lines.Length; h++)
+            var values = new List<double[]>();
+            foreach (string line in System.IO.File.ReadLines(illFileName))
             {
-                string[] hourData = lines[h].Split(' ').Skip(4).ToArray();
+                string[] hourData = line.Split(' ').Skip(4).ToArray();
                 double[] hourDataDouble = Array.ConvertAll<string, double>(hourData, Double.Parse);
-                values[h] = hourDataDouble;
+                values.Add(hourDataDouble);
             }
-            return values;
+            return values.ToArray();
         }
 
         public static void saveILLBin(string illFileName) // total illuminance data
