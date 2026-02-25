@@ -163,7 +163,7 @@ namespace EddyLib.FluidX3D
                         flowDirection.Y));
                 status.AppendLine("Launch script: " + prepareResult.LaunchScriptPath);
                 status.AppendLine("VTK dir: " + caseExportDirectory);
-                status.AppendLine("Engine export dir: " + prepareResult.ExportDirectory);
+                status.AppendLine("Engine export dir (launch script redirects this to case VTK): " + prepareResult.ExportDirectory);
 
                 List<int> windDirections = domain.BCond?.WindDirections;
                 if (windDirections != null && windDirections.Count > 1)

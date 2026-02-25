@@ -1,6 +1,7 @@
 ﻿using Eddy.Properties;
 using EddyLib;
 using EddyLib.OutdoorComfort;
+using EddyLib.Helpers;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
@@ -267,7 +268,7 @@ This yields a datatree of the size [8760 h x number of sensor points].", GH_Para
                 return 0;
             }
 
-            var baseDir = Utilities.Directories.FixDirectories(workingDirectory);
+            var baseDir = DirectoryHelpers.EnsureTrailingBackslash(workingDirectory);
             if (!Directory.Exists(baseDir))
             {
                 return 0;

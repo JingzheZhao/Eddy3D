@@ -1,4 +1,5 @@
-﻿using Rhino.Geometry;
+﻿using EddyLib.Helpers;
+using Rhino.Geometry;
 using System.IO;
 using System.Linq;
 
@@ -24,7 +25,7 @@ namespace EddyLib
         public MultiDirectionalVelocities(string workingDir, int[] windDirs, Vector3d[,] vectors, bool truncateDoubles, bool recalc, int truncateTo = 1)
 
         {
-            var binAnnualVelProbes = Utilities.Directories.FixDirectories(workingDir) + "MultiDirectionalVelocities.bin";
+            var binAnnualVelProbes = DirectoryHelpers.EnsureTrailingBackslash(workingDir) + "MultiDirectionalVelocities.bin";
 
             this.infValues = CheckForInfValues(vectors);
 

@@ -1,4 +1,5 @@
 using EddyLib.BCs;
+using EddyLib.Helpers;
 using EddyLib.Radiation;
 using Rhino.Geometry;
 using System;
@@ -68,7 +69,7 @@ namespace EddyLib.OutdoorComfort
 
         private string BuildTemporalCachePath(string baseWorkingDir, Weather weatherData, bool interpolate)
         {
-            string cacheDir = Utilities.Directories.FixDirectories(baseWorkingDir);
+            string cacheDir = DirectoryHelpers.EnsureTrailingBackslash(baseWorkingDir);
             string locationToken = SanitizeFileToken(weatherData?.Location);
             var baseFileName = FileName + Delimiter + locationToken + Delimiter;
             var fileSuffix = interpolate ? interpolationPref + fileNameBinExtension : fileNameBinExtension;

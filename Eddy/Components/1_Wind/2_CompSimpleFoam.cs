@@ -1,6 +1,7 @@
 using Eddy.Properties;
 using EddyLib;
 using EddyLib.FluidX3D;
+using EddyLib.Helpers;
 using EddyLib.OpenFOAM;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
@@ -226,7 +227,7 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please use an additional subfolder for Eddy3D simulations."); return;
             }
 
-            baseWorkingDirectory = Utilities.Directories.FixDirectories(baseWorkingDirectory);
+            baseWorkingDirectory = DirectoryHelpers.EnsureTrailingBackslash(baseWorkingDirectory);
 
             // meshing settings
             //-----------------

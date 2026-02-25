@@ -1,4 +1,5 @@
 using EddyLib.BCs;
+using EddyLib.Helpers;
 using EddyLib.Radiation;
 using Rhino.Geometry;
 using System;
@@ -70,7 +71,7 @@ namespace EddyLib.OutdoorComfort
 
         private string BuildSpatialCachePath(string baseWorkingDir, bool interpolate)
         {
-            string cacheDir = Utilities.Directories.FixDirectories(baseWorkingDir);
+            string cacheDir = DirectoryHelpers.EnsureTrailingBackslash(baseWorkingDir);
             string suffix = interpolate ? interpolationPref + fileNameBinExtension : fileNameBinExtension;
             return Path.Combine(cacheDir, fileName + suffix);
         }

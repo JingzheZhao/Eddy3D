@@ -1,5 +1,6 @@
 using EddyLib;
 using EddyLib.BCs;
+using EddyLib.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -53,7 +54,7 @@ namespace RhinoPlugin.Test.Xunit
                 accFeatures = 4,
                 accGround = 3
             };
-            settings.SetDirectories(Utilities.Directories.FixDirectories(caseDir));
+            settings.SetDirectories(DirectoryHelpers.EnsureTrailingBackslash(caseDir));
             return settings;
         }
 

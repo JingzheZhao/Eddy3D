@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace EddyLib
@@ -57,11 +59,18 @@ namespace EddyLib
                 return Path.Combine(CasesDir, "DefaultCase");
             }
 
-            string trimmed = dirInput.Trim();
+            string trimmed = TrimWrappingQuotes(dirInput.Trim());
+
+            // Cross-platform migration: a GH file authored on one OS may carry absolute paths from another OS.
+            // Map those foreign absolute paths back into the local Eddy3D Cases root.
+            if (TryMapForeignWorkingDirectoryToLocalCases(trimmed, out string mappedForeignPath))
+            {
+                return mappedForeignPath;
+            }
 
             // Check if this is a simple name (no path separators, no drive letter)
-            bool isSimpleName = !trimmed.Contains(Path.DirectorySeparatorChar.ToString())
-                             && !trimmed.Contains(Path.AltDirectorySeparatorChar.ToString())
+            bool isSimpleName = !ContainsAnyDirectorySeparator(trimmed)
+                             && !LooksLikeWindowsDrivePath(trimmed)
                              && !Path.IsPathRooted(trimmed);
 
             if (isSimpleName)
@@ -118,7 +127,13 @@ namespace EddyLib
             if (string.IsNullOrWhiteSpace(path)) return defaultPath;
             
             // Clean up basic formatting
-            string normalized = path.Trim().TrimEnd('\\', '/');
+            string normalized = TrimWrappingQuotes(path.Trim()).TrimEnd('\\', '/');
+
+            // Reject foreign absolute paths from another OS (common when sharing Grasshopper files).
+            if (IsForeignAbsolutePath(normalized))
+            {
+                return defaultPath;
+            }
 
             // Handle Grasshopper boolean strings ("True"/"False") from legacy template wire crossings
             if (normalized.Equals("true", StringComparison.OrdinalIgnoreCase) || 
@@ -144,6 +159,197 @@ namespace EddyLib
             }
 
             return normalized;
+        }
+
+        private static bool TryMapForeignWorkingDirectoryToLocalCases(string rawPath, out string mappedPath)
+        {
+            mappedPath = null;
+            if (!IsForeignAbsolutePath(rawPath))
+            {
+                return false;
+            }
+
+            if (TryExtractRelativeCaseSubpath(rawPath, out string relativeSubpath))
+            {
+                mappedPath = string.IsNullOrWhiteSpace(relativeSubpath)
+                    ? CasesDir
+                    : CombinePathSegments(CasesDir, SplitPathSegments(relativeSubpath));
+                return true;
+            }
+
+            string leaf = GetLastPathSegment(rawPath);
+            mappedPath = string.IsNullOrWhiteSpace(leaf)
+                ? Path.Combine(CasesDir, "DefaultCase")
+                : Path.Combine(CasesDir, leaf);
+            return true;
+        }
+
+        private static bool TryExtractRelativeCaseSubpath(string path, out string relativeSubpath)
+        {
+            relativeSubpath = string.Empty;
+            string[] segments = SplitPathSegments(path);
+            if (segments.Length == 0)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < segments.Length - 1; i++)
+            {
+                if (!segments[i].Equals("Eddy3D", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (!segments[i + 1].Equals("Cases", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                string[] relativeSegments = segments.Skip(i + 2).ToArray();
+                relativeSubpath = CombinePathSegments(string.Empty, relativeSegments);
+                return true;
+            }
+
+            return false;
+        }
+
+        private static string GetLastPathSegment(string path)
+        {
+            string[] segments = SplitPathSegments(path);
+            if (segments.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            return segments[segments.Length - 1];
+        }
+
+        private static string[] SplitPathSegments(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return Array.Empty<string>();
+            }
+
+            string normalized = TrimWrappingQuotes(path.Trim()).Replace('\\', '/');
+            return normalized
+                .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(segment => segment.Trim())
+                .Where(segment => !string.IsNullOrWhiteSpace(segment))
+                .ToArray();
+        }
+
+        private static string CombinePathSegments(string root, IEnumerable<string> segments)
+        {
+            string result = root ?? string.Empty;
+            foreach (string segment in segments ?? Enumerable.Empty<string>())
+            {
+                if (string.IsNullOrWhiteSpace(segment))
+                {
+                    continue;
+                }
+
+                result = string.IsNullOrWhiteSpace(result)
+                    ? segment
+                    : Path.Combine(result, segment);
+            }
+
+            return result;
+        }
+
+        private static bool ContainsAnyDirectorySeparator(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return false;
+            }
+
+            return value.IndexOf('/') >= 0 || value.IndexOf('\\') >= 0;
+        }
+
+        private static bool LooksLikeWindowsDrivePath(string value)
+        {
+            return !string.IsNullOrWhiteSpace(value)
+                && value.Length >= 2
+                && char.IsLetter(value[0])
+                && value[1] == ':';
+        }
+
+        private static bool LooksLikeWindowsUncPath(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            return value.StartsWith(@"\\", StringComparison.Ordinal)
+                || value.StartsWith("//", StringComparison.Ordinal);
+        }
+
+        private static bool LooksLikeWindowsAbsolutePath(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            if (LooksLikeWindowsUncPath(value))
+            {
+                return true;
+            }
+
+            if (!LooksLikeWindowsDrivePath(value))
+            {
+                return false;
+            }
+
+            return value.Length == 2
+                || value.Length == 3
+                || value[2] == '\\'
+                || value[2] == '/';
+        }
+
+        private static bool LooksLikeUnixAbsolutePath(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            return value.StartsWith("/", StringComparison.Ordinal)
+                || value.StartsWith("~/", StringComparison.Ordinal)
+                || value.Equals("~", StringComparison.Ordinal);
+        }
+
+        private static bool IsForeignAbsolutePath(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            if (IsWindows)
+            {
+                return LooksLikeUnixAbsolutePath(value) && !LooksLikeWindowsAbsolutePath(value);
+            }
+
+            return LooksLikeWindowsAbsolutePath(value);
+        }
+
+        private static string TrimWrappingQuotes(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return value ?? string.Empty;
+            }
+
+            string trimmed = value.Trim();
+            if (trimmed.Length >= 2 && trimmed.StartsWith("\"", StringComparison.Ordinal) && trimmed.EndsWith("\"", StringComparison.Ordinal))
+            {
+                return trimmed.Substring(1, trimmed.Length - 2);
+            }
+
+            return trimmed;
         }
 
         /// <summary>

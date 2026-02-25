@@ -77,8 +77,13 @@ namespace EddyLib.Helpers
                 throw new ArgumentException("Path cannot be null or empty.", nameof(path));
             }
 
-            var sep = Path.DirectorySeparatorChar.ToString();
-            return path.EndsWith(sep) ? path : path + sep;
+            string trimmed = path.Trim();
+            if (trimmed.EndsWith("/") || trimmed.EndsWith("\\"))
+            {
+                return trimmed;
+            }
+
+            return trimmed + Path.DirectorySeparatorChar;
         }
 
         /// <summary>

@@ -79,13 +79,15 @@ namespace RhinoPlugin.Test.Xunit
                 Assert.Contains("SOURCE_DIR=\"", commandScript);
                 Assert.Contains("CASE_EXPORT_DIR=\"", commandScript);
                 Assert.Contains("cd \"$SOURCE_DIR\" || exit 1", commandScript);
+                Assert.Contains("ln -s \"$CASE_EXPORT_DIR\" \"$SOURCE_EXPORT_DIR\"", commandScript);
                 Assert.Contains("./make.sh", commandScript);
-                Assert.Contains("VTK outputs mirrored to $CASE_EXPORT_DIR.", commandScript);
+                Assert.Contains("VTK outputs redirected to $CASE_EXPORT_DIR.", commandScript);
 
                 string batchScript = File.ReadAllText(result.BatchScriptPath);
                 Assert.Contains(@"set ""SOURCE_DIR=", batchScript);
                 Assert.Contains(@"set ""CASE_EXPORT_DIR=", batchScript);
                 Assert.Contains(@"cd /d ""%SOURCE_DIR%"" || exit /b 1", batchScript);
+                Assert.Contains(@"mklink /J ""%SOURCE_EXPORT_DIR%"" ""%CASE_EXPORT_DIR%""", batchScript);
                 Assert.Contains("MSBuild", batchScript);
                 Assert.Contains("robocopy", batchScript);
                 Assert.Contains("Running FluidX3D from %FLUIDX3D_EXE%", batchScript);

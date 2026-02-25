@@ -4,6 +4,7 @@ using Eddy.Analytics;
 using EddyLib;
 using EddyLib.BCs;
 using EddyLib.Docker;
+using EddyLib.Helpers;
 using EddyLib.Indoor;
 using EddyLib.Indoor.FunctionObjects;
 using EddyLib.UI;
@@ -207,7 +208,7 @@ Requires connected walls, inlets, outlets, and optional heat sources.
                 return;
             }
 
-            BaseWorkingDir = Utilities.EnsureTrailingBackslash(resolvedWorkingDir);
+            BaseWorkingDir = DirectoryHelpers.EnsureTrailingBackslash(resolvedWorkingDir);
 
             Point3d pointInsideDomain = new Point3d();
             DA.GetData(5, ref pointInsideDomain);

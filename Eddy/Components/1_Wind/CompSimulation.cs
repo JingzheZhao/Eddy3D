@@ -8,6 +8,7 @@ using System.IO;
 using System.Windows.Forms;
 using EddyLib.Indoor;
 using EddyLib.Indoor.Dicts;
+using EddyLib.Helpers;
 using System.Collections.Generic;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
@@ -123,7 +124,7 @@ namespace Eddy
             DA.GetData(GH_Strings.Common.WorkingDir, ref baseWorkingDirectory);
             baseWorkingDirectory = DefaultDirectoriesAndPaths.ResolveWorkingDirectory(baseWorkingDirectory);
             if (!Directory.Exists(baseWorkingDirectory)) { Directory.CreateDirectory(baseWorkingDirectory); }
-            baseWorkingDirectory = Utilities.Directories.FixDirectories(baseWorkingDirectory);
+            baseWorkingDirectory = DirectoryHelpers.EnsureTrailingBackslash(baseWorkingDirectory);
 
             OFMeshSettings MeshSettings = new OFMeshSettings();
             GH_ObjectWrapper gobjMeshSet = null;

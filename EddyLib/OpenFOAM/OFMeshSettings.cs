@@ -1,3 +1,4 @@
+using EddyLib.Helpers;
 using System.IO;
 
 namespace EddyLib
@@ -74,7 +75,7 @@ namespace EddyLib
                 return;
             }
 
-            baseWorkingDir = Utilities.Directories.FixDirectories(baseWorkingDirectory.Trim());
+            baseWorkingDir = DirectoryHelpers.EnsureTrailingBackslash(baseWorkingDirectory.Trim());
 
             meshWorkingDir = EnsureTrailingSeparator(Path.Combine(baseWorkingDir, "mesh"));
             meshStlDir = EnsureTrailingSeparator(Path.Combine(meshWorkingDir, "constant", "triSurface"));
@@ -94,7 +95,7 @@ namespace EddyLib
             if (string.IsNullOrEmpty(path))
                 return string.Empty;
 
-            return path.EndsWith(Path.DirectorySeparatorChar.ToString())
+            return path.EndsWith("/") || path.EndsWith("\\")
                 ? path
                 : path + Path.DirectorySeparatorChar;
         }

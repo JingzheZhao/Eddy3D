@@ -1,4 +1,5 @@
 using EddyLib;
+using EddyLib.Helpers;
 using EddyLib.OpenFOAM;
 using System;
 using System.IO;
@@ -96,6 +97,12 @@ namespace RhinoPlugin.Test.Xunit
                 // Test whitespace/empty
                 DefaultDirectoriesAndPaths.RadianceDir = " ";
                 Assert.Contains(expectedDefaultFragment, DefaultDirectoriesAndPaths.RadianceDir);
+
+                // Test foreign absolute path from another OS (should revert to default)
+                DefaultDirectoriesAndPaths.RadianceDir = isWindows
+                    ? "/Users/patrickkastner/Eddy3D/Radiance"
+                    : @"C:\Program Files\Radiance";
+                Assert.Contains(expectedDefaultFragment, DefaultDirectoriesAndPaths.RadianceDir);
             }
             finally
             {
@@ -149,6 +156,54 @@ namespace RhinoPlugin.Test.Xunit
             var resolved = DefaultDirectoriesAndPaths.ResolveWorkingDirectory("MyCase");
             var expected = Path.Combine(DefaultDirectoriesAndPaths.CasesDir, "MyCase");
             Assert.Equal(expected, resolved, ignoreCase: RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
+        }
+
+        [Fact]
+        public void ResolveWorkingDirectory_WindowsAbsolutePath_OnNonWindows_MapsIntoLocalCasesDir()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return;
+            }
+
+            var input = @"C:\Users\pkastner\AppData\Local\Eddy3D\Cases\MyCase";
+            var expected = Path.Combine(DefaultDirectoriesAndPaths.CasesDir, "MyCase");
+            var resolved = DefaultDirectoriesAndPaths.ResolveWorkingDirectory(input);
+            Assert.Equal(expected, resolved);
+        }
+
+        [Fact]
+        public void ResolveWorkingDirectory_WindowsCasesRoot_OnNonWindows_MapsToCasesRoot()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return;
+            }
+
+            var input = @"C:\Users\pkastner\AppData\Local\Eddy3D\Cases";
+            var resolved = DefaultDirectoriesAndPaths.ResolveWorkingDirectory(input);
+            Assert.Equal(DefaultDirectoriesAndPaths.CasesDir, resolved);
+        }
+
+        [Fact]
+        public void ResolveWorkingDirectory_UnixAbsolutePath_OnWindows_MapsIntoLocalCasesDir()
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return;
+            }
+
+            var input = "/Users/patrickkastner/Eddy3D/Cases/MyCase";
+            var expected = Path.Combine(DefaultDirectoriesAndPaths.CasesDir, "MyCase");
+            var resolved = DefaultDirectoriesAndPaths.ResolveWorkingDirectory(input);
+            Assert.Equal(expected, resolved, ignoreCase: true);
+        }
+
+        [Fact]
+        public void FixDirectories_AcceptsEitherTrailingSeparatorWithoutMixing()
+        {
+            Assert.Equal(@"abc\", DirectoryHelpers.EnsureTrailingBackslash(@"abc\"));
+            Assert.Equal("abc/", DirectoryHelpers.EnsureTrailingBackslash("abc/"));
         }
 
         [Fact]

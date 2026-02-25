@@ -8,29 +8,6 @@ namespace EddyLib
 {
     public static partial class Utilities
     {
-        public static string EnsureTrailingBackslash(string path)
-        {
-            if (string.IsNullOrEmpty(path))
-                throw new ArgumentException("Path cannot be null or empty.", nameof(path));
-
-            var sep = Path.DirectorySeparatorChar.ToString();
-            return path.EndsWith(sep) ? path : path + sep;
-        }
-
-        public static void CleanDirectory(string path)
-        {
-            System.IO.DirectoryInfo di = new DirectoryInfo(path);
-
-            foreach (FileInfo file in di.EnumerateFiles())
-            {
-                file.Delete();
-            }
-            foreach (DirectoryInfo dir in di.EnumerateDirectories())
-            {
-                dir.Delete(true);
-            }
-        }
-
         public static string GetFileNameWithHighestEnumerator(string folder)
         {
             var path = Directory.GetFiles(folder, "*.dat").Select(fn => new FileInfo(fn)).OrderBy(f => f.Name).Last();

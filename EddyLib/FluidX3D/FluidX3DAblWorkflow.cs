@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using EddyLib.Helpers;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -186,10 +187,10 @@ namespace EddyLib.FluidX3D
 
             StringBuilder status = new StringBuilder();
 
-            if (!Directory.Exists(fullSourceRoot) || Utilities.Directories.IsDirectoryEmpty(fullSourceRoot))
+            if (!Directory.Exists(fullSourceRoot) || DirectoryHelpers.IsEmpty(fullSourceRoot))
             {
                 Directory.CreateDirectory(fullSourceRoot);
-                if (!Utilities.Directories.IsDirectoryEmpty(fullSourceRoot))
+                if (!DirectoryHelpers.IsEmpty(fullSourceRoot))
                 {
                     throw new InvalidOperationException("Source directory exists but is not empty: " + fullSourceRoot);
                 }
@@ -629,7 +630,7 @@ namespace EddyLib.FluidX3D
             sb.AppendLine();
             sb.AppendLine("\tlbm.u.write_device_to_vtk();");
             sb.AppendLine("\tlbm.rho.write_device_to_vtk();");
-            sb.AppendLine("\tprint_info(\"Simulation complete. VTK files in bin/export/\");");
+            sb.AppendLine("\tprint_info(\"Simulation complete. VTK files in bin/export/. Eddy3D launch scripts redirect this to the case VTK folder.\");");
             sb.AppendLine("}");
             sb.AppendLine();
             sb.AppendLine("#endif // BENCHMARK");
@@ -642,36 +643,66 @@ namespace EddyLib.FluidX3D
             string caseExportEscaped = EscapeForBashDoubleQuotedString(caseExportDirectory);
             return
 @"#!/bin/bash
-SCRIPT_DIR=""$(cd ""$(dirname ""$0"")"" && pwd)""
 SOURCE_DIR=""__SOURCE_DIR__""
 SOURCE_EXPORT_DIR=""$SOURCE_DIR/bin/export""
 CASE_EXPORT_DIR=""__CASE_EXPORT_DIR__""
 cd ""$SOURCE_DIR"" || exit 1
 mkdir -p ""$CASE_EXPORT_DIR""
 
-mirror_once() {
-  if [ -d ""$SOURCE_EXPORT_DIR"" ]; then
-    cp -f ""$SOURCE_EXPORT_DIR""/*.vtk ""$CASE_EXPORT_DIR""/ 2>/dev/null || true
-    cp -f ""$SOURCE_EXPORT_DIR""/eddy_probe_transform.txt ""$CASE_EXPORT_DIR""/ 2>/dev/null || true
+redirect_exports() {
+  local export_parent
+  local existing_target
+  export_parent=""$(dirname ""$SOURCE_EXPORT_DIR"")""
+  mkdir -p ""$export_parent""
+
+  if [ -L ""$SOURCE_EXPORT_DIR"" ]; then
+    existing_target=""$(readlink ""$SOURCE_EXPORT_DIR"" 2>/dev/null || true)""
+    if [ ""$existing_target"" = ""$CASE_EXPORT_DIR"" ]; then
+      return 0
+    fi
   fi
+
+  if [ -e ""$SOURCE_EXPORT_DIR"" ] || [ -L ""$SOURCE_EXPORT_DIR"" ]; then
+    rm -rf ""$SOURCE_EXPORT_DIR"" >/dev/null 2>&1 || {
+      if [ -L ""$SOURCE_EXPORT_DIR"" ]; then
+        existing_target=""$(readlink ""$SOURCE_EXPORT_DIR"" 2>/dev/null || true)""
+        if [ ""$existing_target"" = ""$CASE_EXPORT_DIR"" ]; then
+          return 0
+        fi
+      fi
+      return 1
+    }
+  fi
+
+  ln -s ""$CASE_EXPORT_DIR"" ""$SOURCE_EXPORT_DIR"" >/dev/null 2>&1 || {
+    if [ -L ""$SOURCE_EXPORT_DIR"" ]; then
+      existing_target=""$(readlink ""$SOURCE_EXPORT_DIR"" 2>/dev/null || true)""
+      [ ""$existing_target"" = ""$CASE_EXPORT_DIR"" ] && return 0
+    fi
+    return 1
+  }
+
+  return 0
 }
 
-(
-  while true; do
-    mirror_once
-    sleep 2
-  done
-) &
-MIRROR_PID=$!
+if redirect_exports; then
+  echo ""VTK outputs redirected to $CASE_EXPORT_DIR.""
+else
+  echo ""Warning: failed to redirect $SOURCE_EXPORT_DIR to case folder.""
+  mkdir -p ""$SOURCE_EXPORT_DIR""
+fi
 
 chmod +x make.sh
 ./make.sh
 STATUS=$?
 
-kill ""$MIRROR_PID"" >/dev/null 2>&1 || true
-wait ""$MIRROR_PID"" >/dev/null 2>&1 || true
-mirror_once
-echo ""VTK outputs mirrored to $CASE_EXPORT_DIR.""
+if [ -d ""$SOURCE_EXPORT_DIR"" ] && [ ! -L ""$SOURCE_EXPORT_DIR"" ]; then
+  cp -f ""$SOURCE_EXPORT_DIR""/*.vtk ""$CASE_EXPORT_DIR""/ 2>/dev/null || true
+  cp -f ""$SOURCE_EXPORT_DIR""/eddy_probe_transform.txt ""$CASE_EXPORT_DIR""/ 2>/dev/null || true
+  echo ""VTK outputs mirrored to $CASE_EXPORT_DIR.""
+else
+  echo ""VTK outputs available in $CASE_EXPORT_DIR.""
+fi
 
 echo
 if [ $STATUS -eq 0 ]; then
@@ -696,8 +727,27 @@ exit $STATUS
 setlocal
 set ""SOURCE_DIR=__SOURCE_DIR__""
 set ""SOURCE_EXPORT_DIR=%SOURCE_DIR%\bin\export""
+set ""SOURCE_BIN_DIR=%SOURCE_DIR%\bin""
 set ""CASE_EXPORT_DIR=__CASE_EXPORT_DIR__""
 cd /d ""%SOURCE_DIR%"" || exit /b 1
+if not exist ""%CASE_EXPORT_DIR%"" mkdir ""%CASE_EXPORT_DIR%"" >nul 2>nul
+if not exist ""%SOURCE_BIN_DIR%"" mkdir ""%SOURCE_BIN_DIR%"" >nul 2>nul
+
+set ""EXPORT_REDIRECTED=0""
+if exist ""%SOURCE_EXPORT_DIR%"" (
+  rmdir /s /q ""%SOURCE_EXPORT_DIR%"" >nul 2>nul
+)
+if exist ""%SOURCE_EXPORT_DIR%"" (
+  del /f /q ""%SOURCE_EXPORT_DIR%"" >nul 2>nul
+)
+mklink /J ""%SOURCE_EXPORT_DIR%"" ""%CASE_EXPORT_DIR%"" >nul 2>nul
+if errorlevel 1 (
+  echo Warning: failed to redirect %SOURCE_EXPORT_DIR% to case folder.
+  if not exist ""%SOURCE_EXPORT_DIR%"" mkdir ""%SOURCE_EXPORT_DIR%"" >nul 2>nul
+) else (
+  set ""EXPORT_REDIRECTED=1""
+  echo VTK outputs redirected to %CASE_EXPORT_DIR%.
+)
 
 set ""VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe""
 set ""MSBUILD=""
@@ -741,27 +791,19 @@ if not defined FLUIDX3D_EXE (
   exit /b 1
 )
 
-for %%I in (""%FLUIDX3D_EXE%"") do set ""FLUIDX3D_EXE_PATH=%%~fI""
-if not exist ""%CASE_EXPORT_DIR%"" mkdir ""%CASE_EXPORT_DIR%"" >nul 2>nul
-
 echo Running FluidX3D from %FLUIDX3D_EXE%...
-where powershell >nul 2>nul
-if errorlevel 1 (
-  echo PowerShell not found. Running without live VTK mirroring.
-  ""%FLUIDX3D_EXE%""
-  set ""FLUIDX3D_EXIT=%ERRORLEVEL%""
-) else (
-  powershell -NoProfile -ExecutionPolicy Bypass -Command ""$src=$env:SOURCE_EXPORT_DIR; $dst=$env:CASE_EXPORT_DIR; $exe=$env:FLUIDX3D_EXE_PATH; $wd=$env:SOURCE_DIR; if (-not [string]::IsNullOrWhiteSpace($dst)) { New-Item -ItemType Directory -Force -Path $dst | Out-Null }; $copy = { if (Test-Path $src) { Copy-Item -Path (Join-Path $src '*.vtk') -Destination $dst -Force -ErrorAction SilentlyContinue; Copy-Item -Path (Join-Path $src 'eddy_probe_transform.txt') -Destination $dst -Force -ErrorAction SilentlyContinue } }; & $copy; $p = Start-Process -FilePath $exe -WorkingDirectory $wd -NoNewWindow -PassThru; try { while (-not $p.HasExited) { & $copy; Start-Sleep -Seconds 2; $p.Refresh() } } finally { & $copy }; if (-not $p.HasExited) { $p.WaitForExit() }; exit $p.ExitCode""
-  set ""FLUIDX3D_EXIT=%ERRORLEVEL%""
-)
+""%FLUIDX3D_EXE%""
+set ""FLUIDX3D_EXIT=%ERRORLEVEL%""
 
-if exist ""%SOURCE_EXPORT_DIR%"" (
-  robocopy ""%SOURCE_EXPORT_DIR%"" ""%CASE_EXPORT_DIR%"" *.vtk eddy_probe_transform.txt /R:1 /W:1 /NFL /NDL /NJH /NJS /NP >nul
-  set ""ROBO_EXIT=%ERRORLEVEL%""
-  if %ROBO_EXIT% GEQ 8 (
-    echo Warning: failed to mirror VTK outputs to %CASE_EXPORT_DIR%.
-  ) else (
-    echo VTK outputs mirrored to %CASE_EXPORT_DIR%.
+if not ""%EXPORT_REDIRECTED%""==""1"" (
+  if exist ""%SOURCE_EXPORT_DIR%"" (
+    robocopy ""%SOURCE_EXPORT_DIR%"" ""%CASE_EXPORT_DIR%"" *.vtk eddy_probe_transform.txt /R:1 /W:1 /NFL /NDL /NJH /NJS /NP >nul
+    set ""ROBO_EXIT=%ERRORLEVEL%""
+    if %ROBO_EXIT% GEQ 8 (
+      echo Warning: failed to mirror VTK outputs to %CASE_EXPORT_DIR%.
+    ) else (
+      echo VTK outputs mirrored to %CASE_EXPORT_DIR%.
+    )
   )
 )
 
@@ -772,6 +814,7 @@ if not ""%FLUIDX3D_EXIT%""==""0"" (
 )
 
 echo FluidX3D completed successfully.
+echo VTK outputs available in %CASE_EXPORT_DIR%.
 pause
 exit /b 0
 "
@@ -997,7 +1040,7 @@ exit /b 0
             sb.AppendLine("ParaView");
             sb.AppendLine("--------");
             sb.AppendLine("Open files in the case folder VTK directory (working-dir/FluidX3D/VTK).");
-            sb.AppendLine("Raw engine exports remain in the installed source at FluidX3D/bin/export.");
+            sb.AppendLine("Eddy3D launch scripts redirect FluidX3D/bin/export to that case VTK directory.");
             sb.AppendLine("Use a Calculator filter with expression mag(data) to visualize velocity magnitude.");
             return sb.ToString();
         }
