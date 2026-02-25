@@ -15,6 +15,10 @@ namespace Eddy
 {
     public class FluidX3DVtkProbe_Component : GH_Component
     {
+        private readonly List<Point3d> _cachedProbePoints = new List<Point3d>();
+        private bool _hasCachedProbePoints;
+        private bool _lastRunState;
+
         public override GH_Exposure Exposure => GH_Exposure.senary | GH_Exposure.obscure;
 
         public FluidX3DVtkProbe_Component()
@@ -146,7 +150,7 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             GH_ObjectWrapper resultWrapper = null;
-            List<Point3d> points = new List<Point3d>();
+            List<Point3d> pointsInput = new List<Point3d>();
             int quantityInt = 0;
             int timeModeInt = 2;
             double targetTimeSeconds = 0.0;
@@ -155,11 +159,13 @@ namespace Eddy
 
             if (!DA.GetData(0, ref resultWrapper))
             {
+                _lastRunState = false;
                 return;
             }
 
-            if (!DA.GetDataList(1, points))
+            if (!DA.GetDataList(1, pointsInput))
             {
+                _lastRunState = false;
                 return;
             }
 
@@ -170,6 +176,14 @@ namespace Eddy
             DA.GetData(6, ref run);
             double startTimeSeconds = timeWindow.T0;
             double endTimeSeconds = timeWindow.T1;
+
+            bool runJustPressed = run && !_lastRunState;
+            if (runJustPressed && pointsInput.Count > 0)
+            {
+                CacheProbePoints(pointsInput);
+            }
+
+            List<Point3d> points = GetEffectiveProbePoints(pointsInput, run);
 
             string resolvedCaseDir = string.Empty;
             TryResolveCaseDirectoryFromResult(resultWrapper?.Value, out resolvedCaseDir);
@@ -185,83 +199,83 @@ namespace Eddy
             List<string> sampledFiles = new List<string>();
             int outsideCount = 0;
 
-            if (!run)
-            {
-                Message = "Idle";
-                WriteOutputs(
-                    DA,
-                    velocityTree,
-                    rhoTree,
-                    velocityAverage,
-                    rhoAverage,
-                    sampledTimes,
-                    sampledSteps,
-                    sampledFiles,
-                    outsideCount);
-                return;
-            }
-
-            if (points.Count == 0)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "At least one probe point is required.");
-                Message = "No points";
-                WriteOutputs(
-                    DA,
-                    velocityTree,
-                    rhoTree,
-                    velocityAverage,
-                    rhoAverage,
-                    sampledTimes,
-                    sampledSteps,
-                    sampledFiles,
-                    outsideCount);
-                return;
-            }
-
-            FluidX3DVtkProbeQuantity quantity = quantityInt == 1
-                ? FluidX3DVtkProbeQuantity.DensityRho
-                : FluidX3DVtkProbeQuantity.VelocityU;
-
-            FluidX3DVtkProbeTimeMode timeMode = timeModeInt switch
-            {
-                1 => FluidX3DVtkProbeTimeMode.ClosestPhysicalTime,
-                2 => FluidX3DVtkProbeTimeMode.AverageOverRange,
-                _ => FluidX3DVtkProbeTimeMode.AverageOverRange
-            };
-
-            string probeDir = ResolveProbeDirectory(resolvedCaseDir);
-
-            if (string.IsNullOrWhiteSpace(probeDir))
-            {
-                AddRuntimeMessage(
-                    GH_RuntimeMessageLevel.Warning,
-                    "FluidX3D RES input is required.");
-                Message = "Missing dir";
-                WriteOutputs(
-                    DA,
-                    velocityTree,
-                    rhoTree,
-                    velocityAverage,
-                    rhoAverage,
-                    sampledTimes,
-                    sampledSteps,
-                    sampledFiles,
-                    outsideCount);
-                return;
-            }
-
-            Message = string.Format(
-                CultureInfo.InvariantCulture,
-                "{0} | {1}",
-                quantity == FluidX3DVtkProbeQuantity.VelocityU ? "U" : "rho",
-                timeMode == FluidX3DVtkProbeTimeMode.Latest
-                    ? "Latest"
-                    : timeMode == FluidX3DVtkProbeTimeMode.ClosestPhysicalTime
-                        ? "Closest T"
-                        : "Avg[T0,T1]");
-
             try
             {
+                if (!run)
+                {
+                    Message = "Idle";
+                    WriteOutputs(
+                        DA,
+                        velocityTree,
+                        rhoTree,
+                        velocityAverage,
+                        rhoAverage,
+                        sampledTimes,
+                        sampledSteps,
+                        sampledFiles,
+                        outsideCount);
+                    return;
+                }
+
+                if (points.Count == 0)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "At least one probe point is required.");
+                    Message = "No points";
+                    WriteOutputs(
+                        DA,
+                        velocityTree,
+                        rhoTree,
+                        velocityAverage,
+                        rhoAverage,
+                        sampledTimes,
+                        sampledSteps,
+                        sampledFiles,
+                        outsideCount);
+                    return;
+                }
+
+                FluidX3DVtkProbeQuantity quantity = quantityInt == 1
+                    ? FluidX3DVtkProbeQuantity.DensityRho
+                    : FluidX3DVtkProbeQuantity.VelocityU;
+
+                FluidX3DVtkProbeTimeMode timeMode = timeModeInt switch
+                {
+                    1 => FluidX3DVtkProbeTimeMode.ClosestPhysicalTime,
+                    2 => FluidX3DVtkProbeTimeMode.AverageOverRange,
+                    _ => FluidX3DVtkProbeTimeMode.AverageOverRange
+                };
+
+                string probeDir = ResolveProbeDirectory(resolvedCaseDir);
+
+                if (string.IsNullOrWhiteSpace(probeDir))
+                {
+                    AddRuntimeMessage(
+                        GH_RuntimeMessageLevel.Warning,
+                        "FluidX3D RES input is required.");
+                    Message = "Missing dir";
+                    WriteOutputs(
+                        DA,
+                        velocityTree,
+                        rhoTree,
+                        velocityAverage,
+                        rhoAverage,
+                        sampledTimes,
+                        sampledSteps,
+                        sampledFiles,
+                        outsideCount);
+                    return;
+                }
+
+                Message = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "{0} | {1}",
+                    quantity == FluidX3DVtkProbeQuantity.VelocityU ? "U" : "rho",
+                    timeMode == FluidX3DVtkProbeTimeMode.Latest
+                        ? "Latest"
+                        : timeMode == FluidX3DVtkProbeTimeMode.ClosestPhysicalTime
+                            ? "Closest T"
+                            : "Avg[T0,T1]");
+
                 if (!Directory.Exists(probeDir))
                 {
                     throw new DirectoryNotFoundException(
@@ -345,11 +359,14 @@ namespace Eddy
                         rhoAverage.AddRange(result.AverageScalars);
                     }
                 }
-
             }
             catch (Exception ex)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, ex.Message);
+            }
+            finally
+            {
+                _lastRunState = run;
             }
 
             WriteOutputs(
@@ -362,6 +379,23 @@ namespace Eddy
                 sampledSteps,
                 sampledFiles,
                 outsideCount);
+        }
+
+        private void CacheProbePoints(List<Point3d> points)
+        {
+            _cachedProbePoints.Clear();
+            _cachedProbePoints.AddRange(points);
+            _hasCachedProbePoints = _cachedProbePoints.Count > 0;
+        }
+
+        private List<Point3d> GetEffectiveProbePoints(List<Point3d> pointsInput, bool run)
+        {
+            if (!run || !_hasCachedProbePoints)
+            {
+                return pointsInput;
+            }
+
+            return new List<Point3d>(_cachedProbePoints);
         }
 
         private static void WriteOutputs(

@@ -201,7 +201,7 @@ namespace EddyLib.FluidX3D
 
         private static void ResetDirectoryContents(string directory)
         {
-            Directory.CreateDirectory(directory);
+            EnsureDirectoryPathExists(directory);
 
             foreach (string file in Directory.GetFiles(directory))
             {
@@ -212,6 +212,30 @@ namespace EddyLib.FluidX3D
             {
                 Directory.Delete(subDir, true);
             }
+        }
+
+        private static void EnsureDirectoryPathExists(string directory)
+        {
+            if (string.IsNullOrWhiteSpace(directory))
+            {
+                throw new ArgumentException("Directory path is required.", nameof(directory));
+            }
+
+            string full = Path.GetFullPath(directory);
+            if (File.Exists(full) && !Directory.Exists(full))
+            {
+                File.Delete(full);
+            }
+            else if (Directory.Exists(full))
+            {
+                FileAttributes attrs = File.GetAttributes(full);
+                if ((attrs & FileAttributes.ReparsePoint) != 0)
+                {
+                    Directory.Delete(full);
+                }
+            }
+
+            Directory.CreateDirectory(full);
         }
 
         private static string ResolveSourceDirectory(string sourceOverride)

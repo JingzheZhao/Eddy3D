@@ -84,8 +84,10 @@ namespace EddyLib.FluidX3D
 
             Directory.CreateDirectory(workingRoot);
 
-            // The installed source in Engines is the canonical case root.
-            string caseRoot = sourceRoot;
+            // Keep FluidX3D engine files in the case folder so each case is isolated
+            // from shared engine-state side effects.
+            string caseDirectoryRoot = Path.Combine(workingRoot, "FluidX3D");
+            string caseRoot = EnsureCaseEngineSourceDirectory(sourceRoot, caseDirectoryRoot);
 
             string setupPath = Path.Combine(caseRoot, "src", "setup.cpp");
             string definesPath = Path.Combine(caseRoot, "src", "defines.hpp");
@@ -119,7 +121,7 @@ namespace EddyLib.FluidX3D
             string scriptsDirectory = Path.Combine(workingRoot, "Scripts");
             Directory.CreateDirectory(scriptsDirectory);
 
-            string caseExportDirectory = Path.Combine(workingRoot, "FluidX3D", "VTK");
+            string caseExportDirectory = Path.Combine(caseDirectoryRoot, "VTK");
             string commandScriptPath = Path.Combine(scriptsDirectory, "run_fluidx3d.command");
             string batchScriptPath = Path.Combine(scriptsDirectory, "run_fluidx3d.bat");
             string windowsPlatformToolset = ResolveWindowsPlatformToolsetOverride(caseRoot);
@@ -375,7 +377,7 @@ namespace EddyLib.FluidX3D
 
         private static void ResetDirectoryContents(string directory)
         {
-            Directory.CreateDirectory(directory);
+            EnsureDirectoryPathExists(directory);
 
             foreach (string file in Directory.GetFiles(directory))
             {
@@ -386,6 +388,100 @@ namespace EddyLib.FluidX3D
             {
                 Directory.Delete(subDir, true);
             }
+        }
+
+        private static void EnsureDirectoryPathExists(string directory)
+        {
+            if (string.IsNullOrWhiteSpace(directory))
+            {
+                throw new ArgumentException("Directory path is required.", nameof(directory));
+            }
+
+            string full = Path.GetFullPath(directory);
+            if (File.Exists(full) && !Directory.Exists(full))
+            {
+                File.Delete(full);
+            }
+            else if (Directory.Exists(full))
+            {
+                FileAttributes attrs = File.GetAttributes(full);
+                if ((attrs & FileAttributes.ReparsePoint) != 0)
+                {
+                    Directory.Delete(full);
+                }
+            }
+
+            Directory.CreateDirectory(full);
+        }
+
+        private static string EnsureCaseEngineSourceDirectory(string sourceRoot, string caseDirectoryRoot)
+        {
+            if (string.IsNullOrWhiteSpace(sourceRoot))
+            {
+                throw new ArgumentException("Source directory is required.", nameof(sourceRoot));
+            }
+
+            if (string.IsNullOrWhiteSpace(caseDirectoryRoot))
+            {
+                throw new ArgumentException("Case directory is required.", nameof(caseDirectoryRoot));
+            }
+
+            string sourceFull = Path.GetFullPath(sourceRoot);
+            string caseRoot = Path.Combine(Path.GetFullPath(caseDirectoryRoot), "Engine");
+
+            if (IsValidSourceDirectory(caseRoot))
+            {
+                return caseRoot;
+            }
+
+            if (File.Exists(caseRoot) && !Directory.Exists(caseRoot))
+            {
+                File.Delete(caseRoot);
+            }
+            else if (Directory.Exists(caseRoot))
+            {
+                Directory.Delete(caseRoot, true);
+            }
+
+            CopyDirectoryRecursive(sourceFull, caseRoot);
+            return caseRoot;
+        }
+
+        private static void CopyDirectoryRecursive(string sourceDir, string targetDir)
+        {
+            Directory.CreateDirectory(targetDir);
+
+            foreach (string file in Directory.GetFiles(sourceDir))
+            {
+                string fileName = Path.GetFileName(file);
+                string destination = Path.Combine(targetDir, fileName);
+                File.Copy(file, destination, true);
+            }
+
+            foreach (string subDir in Directory.GetDirectories(sourceDir))
+            {
+                string name = Path.GetFileName(subDir);
+                if (ShouldSkipCaseSourceDirectory(name))
+                {
+                    continue;
+                }
+
+                string destination = Path.Combine(targetDir, name);
+                CopyDirectoryRecursive(subDir, destination);
+            }
+        }
+
+        private static bool ShouldSkipCaseSourceDirectory(string directoryName)
+        {
+            if (string.IsNullOrWhiteSpace(directoryName))
+            {
+                return false;
+            }
+
+            return directoryName.Equals(".git", StringComparison.OrdinalIgnoreCase)
+                || directoryName.Equals(".vs", StringComparison.OrdinalIgnoreCase)
+                || directoryName.Equals("bin", StringComparison.OrdinalIgnoreCase)
+                || directoryName.Equals("temp", StringComparison.OrdinalIgnoreCase);
         }
 
         private static void NormalizeHorizontalFlowDirection(

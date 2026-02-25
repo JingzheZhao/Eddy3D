@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace EddyLib
@@ -28,6 +27,9 @@ namespace EddyLib
             ? @"C:\EnergyPlusV9-4-0"
             : "/Applications/EnergyPlus-9-4-0";
         private static string _blueCfdDir = @"C:\Program Files\blueCFD-Core-2020";
+        private static readonly object AutoCasePathLock = new object();
+        private static readonly Dictionary<string, string> AutoCasePathByInput =
+            new Dictionary<string, string>(StringComparer.Ordinal);
 
         /// <summary>
         /// Base directory for installed Eddy3D engines/resources.
@@ -55,8 +57,8 @@ namespace EddyLib
         {
             if (string.IsNullOrWhiteSpace(dirInput))
             {
-                // Default case name if nothing provided
-                return Path.Combine(CasesDir, "DefaultCase");
+                // Empty input: generate an auto case path once per app session.
+                return ResolveOrCreateAutoCasePath("__EMPTY_WORKING_DIR__");
             }
 
             string trimmed = TrimWrappingQuotes(dirInput.Trim());
@@ -164,97 +166,99 @@ namespace EddyLib
         private static bool TryMapForeignWorkingDirectoryToLocalCases(string rawPath, out string mappedPath)
         {
             mappedPath = null;
-            if (!IsForeignAbsolutePath(rawPath))
+            if (!LooksLikeForeignPathArtifact(rawPath))
             {
                 return false;
             }
 
-            if (TryExtractRelativeCaseSubpath(rawPath, out string relativeSubpath))
-            {
-                mappedPath = string.IsNullOrWhiteSpace(relativeSubpath)
-                    ? CasesDir
-                    : CombinePathSegments(CasesDir, SplitPathSegments(relativeSubpath));
-                return true;
-            }
-
-            string leaf = GetLastPathSegment(rawPath);
-            mappedPath = string.IsNullOrWhiteSpace(leaf)
-                ? Path.Combine(CasesDir, "DefaultCase")
-                : Path.Combine(CasesDir, leaf);
+            // Foreign/malformed path artifacts should never become literal case names
+            // (for example, "C:\\Users\\..."), so generate a clean local case path.
+            string cacheKey = "FOREIGN::" + NormalizeCacheKey(rawPath);
+            mappedPath = ResolveOrCreateAutoCasePath(cacheKey);
             return true;
         }
 
-        private static bool TryExtractRelativeCaseSubpath(string path, out string relativeSubpath)
+        private static string ResolveOrCreateAutoCasePath(string cacheKey)
         {
-            relativeSubpath = string.Empty;
-            string[] segments = SplitPathSegments(path);
-            if (segments.Length == 0)
-            {
-                return false;
-            }
+            string normalizedKey = string.IsNullOrWhiteSpace(cacheKey)
+                ? "__EMPTY_KEY__"
+                : cacheKey.Trim();
 
-            for (int i = 0; i < segments.Length - 1; i++)
+            lock (AutoCasePathLock)
             {
-                if (!segments[i].Equals("Eddy3D", StringComparison.OrdinalIgnoreCase))
+                if (AutoCasePathByInput.TryGetValue(normalizedKey, out string existing))
                 {
-                    continue;
+                    return existing;
                 }
 
-                if (!segments[i + 1].Equals("Cases", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                string[] relativeSegments = segments.Skip(i + 2).ToArray();
-                relativeSubpath = CombinePathSegments(string.Empty, relativeSegments);
-                return true;
+                string generated = CreateUniqueAutoCasePath();
+                AutoCasePathByInput[normalizedKey] = generated;
+                return generated;
             }
-
-            return false;
         }
 
-        private static string GetLastPathSegment(string path)
+        private static string CreateUniqueAutoCasePath()
         {
-            string[] segments = SplitPathSegments(path);
-            if (segments.Length == 0)
+            string casesRoot = Path.GetFullPath(CasesDir);
+            Directory.CreateDirectory(casesRoot);
+
+            for (int attempts = 0; attempts < 128; attempts++)
+            {
+                string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss", System.Globalization.CultureInfo.InvariantCulture);
+                string randomSuffix = Guid.NewGuid().ToString("N").Substring(0, 4);
+                string candidate = Path.Combine(casesRoot, "Case_" + timestamp + "_" + randomSuffix);
+                if (!Directory.Exists(candidate))
+                {
+                    return candidate;
+                }
+            }
+
+            // Extremely unlikely collision fallback.
+            return Path.Combine(casesRoot, "Case_" + Guid.NewGuid().ToString("N"));
+        }
+
+        private static string NormalizeCacheKey(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
             {
                 return string.Empty;
             }
 
-            return segments[segments.Length - 1];
+            return TrimWrappingQuotes(value.Trim())
+                .Replace('\\', '/')
+                .Trim()
+                .ToUpperInvariant();
         }
 
-        private static string[] SplitPathSegments(string path)
+        private static bool LooksLikeForeignPathArtifact(string value)
         {
-            if (string.IsNullOrWhiteSpace(path))
+            if (string.IsNullOrWhiteSpace(value))
             {
-                return Array.Empty<string>();
+                return false;
             }
 
-            string normalized = TrimWrappingQuotes(path.Trim()).Replace('\\', '/');
-            return normalized
-                .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(segment => segment.Trim())
-                .Where(segment => !string.IsNullOrWhiteSpace(segment))
-                .ToArray();
-        }
-
-        private static string CombinePathSegments(string root, IEnumerable<string> segments)
-        {
-            string result = root ?? string.Empty;
-            foreach (string segment in segments ?? Enumerable.Empty<string>())
+            if (IsForeignAbsolutePath(value))
             {
-                if (string.IsNullOrWhiteSpace(segment))
-                {
-                    continue;
-                }
-
-                result = string.IsNullOrWhiteSpace(result)
-                    ? segment
-                    : Path.Combine(result, segment);
+                return true;
             }
 
-            return result;
+            if (IsWindows)
+            {
+                return false;
+            }
+
+            // Cross-platform GH migration artifacts on macOS:
+            // - escaped Windows paths (contain backslashes),
+            // - malformed drive forms like "C/\Users\..."
+            if (value.IndexOf('\\') >= 0)
+            {
+                return true;
+            }
+
+            return value.Length >= 3
+                && char.IsLetter(value[0])
+                && (value[1] == '/' || value[1] == '\\')
+                && (value[2] == '\\' || value[2] == '/');
         }
 
         private static bool ContainsAnyDirectorySeparator(string value)
