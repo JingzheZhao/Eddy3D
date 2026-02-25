@@ -17,12 +17,15 @@ namespace Eddy
     public class InstallEngines_Component : GH_Component
     {
         private static readonly bool IsMac = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+        private const string EngineNameOpenFoamDocker = "OpenFOAM (Docker)";
+        private const string EngineNameOpenFoamBlueCfd = "OpenFOAM (BlueCFD)";
+        private const string EngineNameFluidX3D = "FluidX3D";
 
         public InstallEngines_Component()
           : base("Install Engines", "Install",
                 IsMac
-                    ? "Downloads and installs required simulation engines (EnergyPlus v9.4.0, Radiance, Docker, & FluidX3D source)."
-                    : "Downloads and installs required simulation engines (EnergyPlus v9.4.0, Radiance, blueCFD-Core 2020-1, & FluidX3D source).",
+                    ? "Downloads and installs required simulation engines (EnergyPlus v9.4.0, Radiance, OpenFOAM (Docker), & FluidX3D source)."
+                    : "Downloads and installs required simulation engines (EnergyPlus v9.4.0, Radiance, OpenFOAM (BlueCFD), & FluidX3D source).",
               EddyVersion.Name, "0 | Utilities")
         {
         }
@@ -32,10 +35,10 @@ namespace Eddy
             pManager.AddBooleanParameter("Install EnergyPlus", "EP", "Set to True to download and launch EnergyPlus v9.4.0 installer.", GH_ParamAccess.item, false);
             pManager.AddBooleanParameter("Install Radiance", "Rad", "Set to True to download and install Radiance.", GH_ParamAccess.item, false);
             pManager.AddBooleanParameter(
-                IsMac ? "Install Docker" : "Install blueCFD",
+                IsMac ? "Install OpenFOAM (Docker)" : "Install OpenFOAM (BlueCFD)",
                 "CFD",
-                IsMac ? "Set to True to open Docker Desktop download page."
-                      : "Set to True to download and launch blueCFD-Core 2020-1 installer.",
+                IsMac ? "Set to True to open Docker Desktop download page for OpenFOAM (Docker)."
+                      : "Set to True to download and launch blueCFD-Core 2020-1 installer for OpenFOAM (BlueCFD).",
                 GH_ParamAccess.item, false);
             pManager.AddBooleanParameter(
                 "Install FluidX3D",
@@ -81,19 +84,22 @@ namespace Eddy
             {
                 DefaultDirectoriesAndPaths.CheckDocker();
                 dockerInstalled = true;
-                dockerDetails = "Docker is installed and running.";
+                dockerDetails = EngineNameOpenFoamDocker + " is installed and running.";
             }
             catch (Exception ex)
             {
                 dockerDetails = ex.Message;
-                if (IsMac) missing.Add("Docker");
+                if (IsMac)
+                {
+                    missing.Add(EngineNameOpenFoamDocker);
+                }
             }
 
             bool blueCfdInstalled = false;
             string blueCfdDetails;
             if (IsMac)
             {
-                blueCfdDetails = "BlueCFD is not supported on macOS.";
+                blueCfdDetails = EngineNameOpenFoamBlueCfd + " is not supported on macOS.";
             }
             else
             {
@@ -101,19 +107,19 @@ namespace Eddy
                 {
                     DefaultDirectoriesAndPaths.CheckBlueCfd();
                     blueCfdInstalled = true;
-                    blueCfdDetails = "blueCFD is installed.";
+                    blueCfdDetails = EngineNameOpenFoamBlueCfd + " is installed.";
                 }
                 catch (Exception ex)
                 {
                     blueCfdDetails = ex.Message;
-                    missing.Add("blueCFD");
+                    missing.Add(EngineNameOpenFoamBlueCfd);
                 }
             }
 
             bool fluidX3DInstalled = TryResolveInstalledFluidX3D(out _, out string fluidX3DDetails);
             if (!fluidX3DInstalled)
             {
-                missing.Add("FluidX3D");
+                missing.Add(EngineNameFluidX3D);
             }
 
             bool windowsFluidX3DToolchainInstalled = true;
@@ -128,6 +134,10 @@ namespace Eddy
                 }
             }
 
+            EngineInstallStatusCache.SetEngineStatus(snapshot, EngineNameOpenFoamDocker, dockerInstalled, dockerDetails);
+            EngineInstallStatusCache.SetEngineStatus(snapshot, EngineNameOpenFoamBlueCfd, blueCfdInstalled, blueCfdDetails);
+            EngineInstallStatusCache.SetEngineStatus(snapshot, EngineNameFluidX3D, fluidX3DInstalled, fluidX3DDetails);
+            // Legacy keys kept for compatibility with existing cached lookups in older versions.
             EngineInstallStatusCache.SetEngineStatus(snapshot, "Docker", dockerInstalled, dockerDetails);
             EngineInstallStatusCache.SetEngineStatus(snapshot, "BlueCFD", blueCfdInstalled, blueCfdDetails);
             EngineInstallStatusCache.SetEngineStatus(snapshot, "FluidX3D", fluidX3DInstalled, fluidX3DDetails);
@@ -322,7 +332,7 @@ namespace Eddy
             {
                 if (DockerEnvironment.IsDockerAvailable())
                 {
-                    return "Docker is already installed and running.\n";
+                    return EngineNameOpenFoamDocker + " is already installed and running.\n";
                 }
 
                 Process.Start(new ProcessStartInfo
@@ -332,11 +342,14 @@ namespace Eddy
                     UseShellExecute = true
                 });
 
-                return "Opened Docker Desktop download page. Please install Docker Desktop and start it.\n";
+                return "Opened Docker Desktop download page for " + EngineNameOpenFoamDocker + ". Please install Docker Desktop and start it.\n";
             }
             catch (Exception ex)
             {
-                return string.Format("Error: {0}\nPlease install Docker Desktop from https://www.docker.com/products/docker-desktop/\n", ex.Message);
+                return string.Format(
+                    "Error: {0}\nPlease install Docker Desktop for {1} from https://www.docker.com/products/docker-desktop/\n",
+                    ex.Message,
+                    EngineNameOpenFoamDocker);
             }
         }
 
@@ -356,16 +369,19 @@ namespace Eddy
                 if (File.Exists(tempFile))
                 {
                     Process.Start(tempFile);
-                    return string.Format("blueCFD-Core installer launched from {0}. Please complete the installation manually.\n", tempFile);
+                    return string.Format(
+                        "blueCFD-Core installer launched for {0} from {1}. Please complete the installation manually.\n",
+                        EngineNameOpenFoamBlueCfd,
+                        tempFile);
                 }
                 else
                 {
-                    return "Error: blueCFD-Core installer download failed.\n";
+                    return "Error: blueCFD-Core installer download failed for " + EngineNameOpenFoamBlueCfd + ".\n";
                 }
             }
             catch (Exception ex)
             {
-                return string.Format("Error installing blueCFD: {0}\n", ex.Message);
+                return string.Format("Error installing {0}: {1}\n", EngineNameOpenFoamBlueCfd, ex.Message);
             }
         }
 

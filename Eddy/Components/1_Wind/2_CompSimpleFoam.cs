@@ -21,6 +21,9 @@ namespace Eddy
 {
     public class SimpleFoam : GH_Component
     {
+        private const string EngineNameOpenFoamBlueCfd = "OpenFOAM (BlueCFD)";
+        private const string EngineNameOpenFoamDocker = "OpenFOAM (Docker)";
+        private const string EngineNameFluidX3D = "FluidX3D";
         private SimEngine _selectedEngine;
         private string _autoWorkingDirectory = string.Empty;
 
@@ -51,11 +54,11 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
         {
             base.AppendAdditionalComponentMenuItems(menu);
             Menu_AppendSeparator(menu);
-            Menu_AppendItem(menu, "BlueCFD", (s, e) => SetEngine(SimEngine.BlueCFD),
+            Menu_AppendItem(menu, EngineNameOpenFoamBlueCfd, (s, e) => SetEngine(SimEngine.BlueCFD),
                 RuntimeInformation.IsOSPlatform(OSPlatform.Windows), _selectedEngine == SimEngine.BlueCFD);
-            Menu_AppendItem(menu, "Docker", (s, e) => SetEngine(SimEngine.Docker),
+            Menu_AppendItem(menu, EngineNameOpenFoamDocker, (s, e) => SetEngine(SimEngine.Docker),
                 true, _selectedEngine == SimEngine.Docker);
-            Menu_AppendItem(menu, "FluidX3D", (s, e) => SetEngine(SimEngine.FluidX3D),
+            Menu_AppendItem(menu, EngineNameFluidX3D, (s, e) => SetEngine(SimEngine.FluidX3D),
                 true, _selectedEngine == SimEngine.FluidX3D);
         }
 
@@ -694,6 +697,15 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
                     engineName,
                     out _,
                     out cachedDetails);
+
+                if (!hasCachedStatus)
+                {
+                    hasCachedStatus = EngineInstallStatusCache.TryGetEngineStatus(
+                        snapshot,
+                        GetEngineLegacyCacheName(_selectedEngine),
+                        out _,
+                        out cachedDetails);
+                }
             }
 
             bool installed = CheckEngineLive(_selectedEngine, out string liveDetails);
@@ -732,6 +744,19 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             switch (engine)
             {
                 case SimEngine.Docker:
+                    return EngineNameOpenFoamDocker;
+                case SimEngine.FluidX3D:
+                    return EngineNameFluidX3D;
+                default:
+                    return EngineNameOpenFoamBlueCfd;
+            }
+        }
+
+        private static string GetEngineLegacyCacheName(SimEngine engine)
+        {
+            switch (engine)
+            {
+                case SimEngine.Docker:
                     return "Docker";
                 case SimEngine.FluidX3D:
                     return "FluidX3D";
@@ -749,14 +774,14 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
                 if (engine == SimEngine.Docker)
                 {
                     DefaultDirectoriesAndPaths.CheckDocker();
-                    details = "Docker is installed and running.";
+                    details = EngineNameOpenFoamDocker + " is installed and running.";
                     return true;
                 }
 
                 if (engine == SimEngine.BlueCFD)
                 {
                     DefaultDirectoriesAndPaths.CheckBlueCfd();
-                    details = "blueCFD is installed.";
+                    details = EngineNameOpenFoamBlueCfd + " is installed.";
                     return true;
                 }
 
