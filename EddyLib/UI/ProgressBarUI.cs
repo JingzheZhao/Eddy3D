@@ -36,10 +36,10 @@ namespace EddyLib.UI
 
             // controls
             Status = new Label();
-            StatusLog = new TextArea() { Height = 150 };
+            StatusLog = new TextArea() { Height = 150, ReadOnly = true, Font = Fonts.Monospace(9) };
 
             pbar = new ProgressBar();
-            var cancel = new Button { Text = "Cancel" };
+            var cancel = new Button { Text = "Cancel", ToolTip = "Abort the current simulation" };
             var cts = new CancellationTokenSource();
             var uiThread = SynchronizationContext.Current;
 
