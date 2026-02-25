@@ -29,16 +29,15 @@ namespace EddyLib.UI
         public ProgressDialog(Func<CancellationTokenSource, Task> task, double refreshRate = 1000)
         {
             Title = "Simulation Progress";
-            BackgroundColor = Colors.LightGrey;
             //Icon = Icon.FromResource("Properties.Resources.eddy_icon.png");
             ClientSize = new Size(450, 250);
             ShowInTaskbar = true;
 
             // controls
             Status = new Label();
-            StatusLog = new TextArea() { Height = 150, ReadOnly = true, Font = Fonts.Monospace(9) };
+            StatusLog = new TextArea() { Height = 150, ReadOnly = true, Font = Fonts.Monospace(10) };
 
-            pbar = new ProgressBar();
+            pbar = new ProgressBar { ToolTip = "Simulation Progress" };
             var cancel = new Button { Text = "Cancel", ToolTip = "Abort the current simulation" };
             var cts = new CancellationTokenSource();
             var uiThread = SynchronizationContext.Current;
@@ -46,8 +45,11 @@ namespace EddyLib.UI
             // events
             cancel.Click += (s, e) =>
             {
-                Canceled = true;
-                Close();
+                if (MessageBox.Show(this, "Are you sure you want to abort the simulation?", "Abort Simulation", MessageBoxButtons.YesNo, MessageBoxType.Question) == DialogResult.Yes)
+                {
+                    Canceled = true;
+                    Close();
+                }
             };
             Closing += (s, e) =>
             {
