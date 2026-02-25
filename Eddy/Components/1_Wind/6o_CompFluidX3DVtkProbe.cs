@@ -18,6 +18,15 @@ namespace Eddy
         private readonly List<Point3d> _cachedProbePoints = new List<Point3d>();
         private bool _hasCachedProbePoints;
         private bool _lastRunState;
+        private GH_Structure<GH_Vector> _cachedVelocityTree = new GH_Structure<GH_Vector>();
+        private GH_Structure<GH_Number> _cachedRhoTree = new GH_Structure<GH_Number>();
+        private List<Vector3d> _cachedVelocityAverage = new List<Vector3d>();
+        private List<double> _cachedRhoAverage = new List<double>();
+        private List<double> _cachedSampledTimes = new List<double>();
+        private List<double> _cachedSampledSteps = new List<double>();
+        private List<string> _cachedSampledFiles = new List<string>();
+        private int _cachedOutsideCount;
+        private bool _hasCachedOutputs;
 
         public override GH_Exposure Exposure => GH_Exposure.senary | GH_Exposure.obscure;
 
@@ -198,13 +207,14 @@ namespace Eddy
             List<double> sampledSteps = new List<double>();
             List<string> sampledFiles = new List<string>();
             int outsideCount = 0;
+            bool probeSucceeded = false;
 
             try
             {
                 if (!run)
                 {
                     Message = "Idle";
-                    WriteOutputs(
+                    WriteOutputsOrCached(
                         DA,
                         velocityTree,
                         rhoTree,
@@ -221,7 +231,7 @@ namespace Eddy
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "At least one probe point is required.");
                     Message = "No points";
-                    WriteOutputs(
+                    WriteOutputsOrCached(
                         DA,
                         velocityTree,
                         rhoTree,
@@ -253,7 +263,7 @@ namespace Eddy
                         GH_RuntimeMessageLevel.Warning,
                         "FluidX3D RES input is required.");
                     Message = "Missing dir";
-                    WriteOutputs(
+                    WriteOutputsOrCached(
                         DA,
                         velocityTree,
                         rhoTree,
@@ -359,6 +369,8 @@ namespace Eddy
                         rhoAverage.AddRange(result.AverageScalars);
                     }
                 }
+
+                probeSucceeded = true;
             }
             catch (Exception ex)
             {
@@ -367,6 +379,24 @@ namespace Eddy
             finally
             {
                 _lastRunState = run;
+            }
+
+            if (probeSucceeded)
+            {
+                CacheProbeOutputs(
+                    velocityTree,
+                    rhoTree,
+                    velocityAverage,
+                    rhoAverage,
+                    sampledTimes,
+                    sampledSteps,
+                    sampledFiles,
+                    outsideCount);
+            }
+            else if (_hasCachedOutputs)
+            {
+                WriteCachedOutputs(DA);
+                return;
             }
 
             WriteOutputs(
@@ -396,6 +426,80 @@ namespace Eddy
             }
 
             return new List<Point3d>(_cachedProbePoints);
+        }
+
+        private void CacheProbeOutputs(
+            GH_Structure<GH_Vector> velocityTree,
+            GH_Structure<GH_Number> rhoTree,
+            List<Vector3d> velocityAverage,
+            List<double> rhoAverage,
+            List<double> sampledTimes,
+            List<double> sampledSteps,
+            List<string> sampledFiles,
+            int outsideCount)
+        {
+            _cachedVelocityTree = velocityTree ?? new GH_Structure<GH_Vector>();
+            _cachedRhoTree = rhoTree ?? new GH_Structure<GH_Number>();
+            _cachedVelocityAverage = velocityAverage != null
+                ? new List<Vector3d>(velocityAverage)
+                : new List<Vector3d>();
+            _cachedRhoAverage = rhoAverage != null
+                ? new List<double>(rhoAverage)
+                : new List<double>();
+            _cachedSampledTimes = sampledTimes != null
+                ? new List<double>(sampledTimes)
+                : new List<double>();
+            _cachedSampledSteps = sampledSteps != null
+                ? new List<double>(sampledSteps)
+                : new List<double>();
+            _cachedSampledFiles = sampledFiles != null
+                ? new List<string>(sampledFiles)
+                : new List<string>();
+            _cachedOutsideCount = outsideCount;
+            _hasCachedOutputs = true;
+        }
+
+        private void WriteCachedOutputs(IGH_DataAccess DA)
+        {
+            WriteOutputs(
+                DA,
+                _cachedVelocityTree,
+                _cachedRhoTree,
+                _cachedVelocityAverage,
+                _cachedRhoAverage,
+                _cachedSampledTimes,
+                _cachedSampledSteps,
+                _cachedSampledFiles,
+                _cachedOutsideCount);
+        }
+
+        private void WriteOutputsOrCached(
+            IGH_DataAccess DA,
+            GH_Structure<GH_Vector> velocityTree,
+            GH_Structure<GH_Number> rhoTree,
+            List<Vector3d> velocityAverage,
+            List<double> rhoAverage,
+            List<double> sampledTimes,
+            List<double> sampledSteps,
+            List<string> sampledFiles,
+            int outsideCount)
+        {
+            if (_hasCachedOutputs)
+            {
+                WriteCachedOutputs(DA);
+                return;
+            }
+
+            WriteOutputs(
+                DA,
+                velocityTree,
+                rhoTree,
+                velocityAverage,
+                rhoAverage,
+                sampledTimes,
+                sampledSteps,
+                sampledFiles,
+                outsideCount);
         }
 
         private static void WriteOutputs(
@@ -464,12 +568,24 @@ namespace Eddy
             }
 
             string fullPath = Path.GetFullPath(caseDirInput.Trim());
-            if (LooksLikeProbeDirectory(fullPath))
+            foreach (string candidate in EnumerateProbeDirectoryCandidates(fullPath))
             {
-                return fullPath;
+                if (LooksLikeProbeDirectory(candidate))
+                {
+                    return candidate;
+                }
             }
 
             string caseRoot = fullPath;
+            if (new DirectoryInfo(fullPath).Name.Equals("Engine", StringComparison.OrdinalIgnoreCase))
+            {
+                string parent = Directory.GetParent(fullPath)?.FullName;
+                if (!string.IsNullOrWhiteSpace(parent))
+                {
+                    caseRoot = parent;
+                }
+            }
+
             string nestedCaseRoot = Path.Combine(fullPath, "FluidX3D");
             if (Directory.Exists(nestedCaseRoot))
             {
@@ -477,6 +593,66 @@ namespace Eddy
             }
 
             return Path.Combine(caseRoot, "VTK");
+        }
+
+        private static IEnumerable<string> EnumerateProbeDirectoryCandidates(string fullPath)
+        {
+            StringComparison comparison = StringComparison.OrdinalIgnoreCase;
+            HashSet<string> seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (string candidate in BuildProbeDirectoryCandidates(fullPath))
+            {
+                if (string.IsNullOrWhiteSpace(candidate))
+                {
+                    continue;
+                }
+
+                string normalized;
+                try
+                {
+                    normalized = Path.GetFullPath(candidate);
+                }
+                catch
+                {
+                    continue;
+                }
+
+                if (seen.Add(normalized))
+                {
+                    yield return normalized;
+                }
+            }
+
+            if (fullPath.EndsWith(Path.Combine("FluidX3D", "Engine"), comparison))
+            {
+                string root = Directory.GetParent(fullPath)?.Parent?.FullName;
+                if (!string.IsNullOrWhiteSpace(root))
+                {
+                    string vtk = Path.Combine(root, "VTK");
+                    if (seen.Add(vtk))
+                    {
+                        yield return vtk;
+                    }
+                }
+            }
+        }
+
+        private static IEnumerable<string> BuildProbeDirectoryCandidates(string fullPath)
+        {
+            yield return fullPath;
+            yield return Path.Combine(fullPath, "VTK");
+            yield return Path.Combine(fullPath, "bin", "export");
+            yield return Path.Combine(fullPath, "Engine", "bin", "export");
+            yield return Path.Combine(fullPath, "FluidX3D", "VTK");
+            yield return Path.Combine(fullPath, "FluidX3D", "bin", "export");
+            yield return Path.Combine(fullPath, "FluidX3D", "Engine", "bin", "export");
+
+            DirectoryInfo info = new DirectoryInfo(fullPath);
+            if (info.Name.Equals("Engine", StringComparison.OrdinalIgnoreCase) && info.Parent != null)
+            {
+                yield return Path.Combine(info.Parent.FullName, "VTK");
+                yield return Path.Combine(info.FullName, "bin", "export");
+            }
         }
 
         private static bool LooksLikeProbeDirectory(string path)
