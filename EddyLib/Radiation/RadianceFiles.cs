@@ -137,7 +137,7 @@ namespace EddyLib
 
         public static void MeshProc(Mesh _m, string _fname, string _mat)
         {
-            using var sw = new System.IO.StreamWriter(_fname, false, System.Text.Encoding.UTF8, 65536);
+            using var sw = new System.IO.StreamWriter(_fname, false, new System.Text.UTF8Encoding(false), 65536);
             sw.WriteLine("# Grasshopper Eddy3D " + EddyLib.EddyVersion.ProductVersion);
             sw.WriteLine("");
 
@@ -191,7 +191,7 @@ namespace EddyLib
 
         public static void MeshProc(Mesh _m, string _fname, string _mat, string _matLib)
         {
-            using var sw = new System.IO.StreamWriter(_fname, false, System.Text.Encoding.UTF8, 65536);
+            using var sw = new System.IO.StreamWriter(_fname, false, new System.Text.UTF8Encoding(false), 65536);
             sw.WriteLine("# Grasshopper Eddy3D " + EddyLib.EddyVersion.ProductVersion);
             sw.WriteLine("");
             sw.WriteLine(_matLib);
@@ -289,7 +289,7 @@ namespace EddyLib
                 }
             }
 
-            using var sw = new System.IO.StreamWriter(_fname, false, System.Text.Encoding.UTF8, 65536);
+            using var sw = new System.IO.StreamWriter(_fname, false, new System.Text.UTF8Encoding(false), 65536);
             sw.WriteLine("# Grasshopper Eddy3D " + EddyLib.EddyVersion.ProductVersion);
             sw.WriteLine("");
             sw.WriteLine(_matLib.ToString());
