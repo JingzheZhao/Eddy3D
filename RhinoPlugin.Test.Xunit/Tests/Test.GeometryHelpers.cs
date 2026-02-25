@@ -69,5 +69,18 @@ namespace RhinoPlugin.Test.Xunit.Tests
             double area = EddyLib.GeometryHelpers.CalculatePolygonArea(polygon);
             Assert.True(area > 0);
         }
+
+        [Fact]
+        public void CalculatePolygonArea_HandlesSmallPolygons()
+        {
+            // Empty
+            Assert.Equal(0, EddyLib.GeometryHelpers.CalculatePolygonArea(new List<Point3d>()), 1e-6);
+
+            // 1 point
+            Assert.Equal(0, EddyLib.GeometryHelpers.CalculatePolygonArea(new List<Point3d> { new Point3d(0, 0, 0) }), 1e-6);
+
+            // 2 points
+            Assert.Equal(0, EddyLib.GeometryHelpers.CalculatePolygonArea(new List<Point3d> { new Point3d(0, 0, 0), new Point3d(10, 0, 0) }), 1e-6);
+        }
     }
 }
