@@ -45,6 +45,9 @@ namespace EddyLib.FluidX3D
         public const string RepositoryUrl = "https://github.com/ProjectPhysX/FluidX3D.git";
         public const string CommitEnvironmentVariable = "EDDY_FLUIDX3D_COMMIT";
         public const string DefaultPinnedCommit = "62a1756b7b257918226ab2102efd3a47fd99ff2c";
+        public const string WindowsBuildToolsDownloadUrl = "https://aka.ms/vs/17/release/vs_BuildTools.exe";
+        public const string WindowsCppWorkloadId = "Microsoft.VisualStudio.Workload.VCTools";
+        public const string WindowsV142ToolsetComponentId = "Microsoft.VisualStudio.Component.VC.v142.x86.x64";
 
         public static FluidX3DAblPrepareResult PrepareCase(
             string fluidX3DSourceRoot,
@@ -166,6 +169,27 @@ namespace EddyLib.FluidX3D
             }
 
             return NormalizeCommitPrefixOrNull(DefaultPinnedCommit);
+        }
+
+        public static IReadOnlyList<string> GetInstalledWindowsPlatformToolsets()
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return Array.Empty<string>();
+            }
+
+            try
+            {
+                return DiscoverInstalledWindowsPlatformToolsets()
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .OrderByDescending(ParsePlatformToolsetVersion)
+                    .ThenByDescending(t => t, StringComparer.OrdinalIgnoreCase)
+                    .ToArray();
+            }
+            catch
+            {
+                return Array.Empty<string>();
+            }
         }
 
         public static void EnsureSourceRepository(
@@ -818,6 +842,9 @@ exit $STATUS
             string sourceRootEscaped = EscapeForBatchQuotedValue(sourceRoot);
             string caseExportEscaped = EscapeForBatchQuotedValue(caseExportDirectory);
             string safeToolset = SanitizePlatformToolsetForBatch(platformToolsetOverride);
+            string buildToolsUrlEscaped = EscapeForBatchQuotedValue(WindowsBuildToolsDownloadUrl);
+            string cppWorkloadIdEscaped = EscapeForBatchQuotedValue(WindowsCppWorkloadId);
+            string v142ComponentIdEscaped = EscapeForBatchQuotedValue(WindowsV142ToolsetComponentId);
             return
 @"@echo off
 setlocal
@@ -848,6 +875,9 @@ if errorlevel 1 (
 set ""VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe""
 set ""MSBUILD=""
 set ""PLATFORM_TOOLSET=__PLATFORM_TOOLSET__""
+set ""VS_BUILD_TOOLS_URL=__VS_BUILD_TOOLS_URL__""
+set ""VS_CPP_WORKLOAD=__VS_CPP_WORKLOAD__""
+set ""VS_V142_COMPONENT=__VS_V142_COMPONENT__""
 if exist ""%VSWHERE%"" (
   for /f ""usebackq tokens=*"" %%i in (`""%VSWHERE%"" -latest -products * -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe`) do (
     set ""MSBUILD=%%i""
@@ -871,6 +901,12 @@ echo Building FluidX3D (Release x64)...
 ""%MSBUILD%"" ""FluidX3D.sln"" %MSBUILD_ARGS%
 if errorlevel 1 (
   echo Build failed.
+  echo.
+  echo If you see MSB8020 or missing C++ targets, install Visual Studio Build Tools:
+  echo   %VS_BUILD_TOOLS_URL%
+  echo Required installer selections:
+  echo   Workload: %VS_CPP_WORKLOAD%
+  echo   Component: %VS_V142_COMPONENT%
   pause
   exit /b 1
 )
@@ -916,7 +952,10 @@ exit /b 0
 "
             .Replace("__SOURCE_DIR__", sourceRootEscaped)
             .Replace("__CASE_EXPORT_DIR__", caseExportEscaped)
-            .Replace("__PLATFORM_TOOLSET__", safeToolset);
+            .Replace("__PLATFORM_TOOLSET__", safeToolset)
+            .Replace("__VS_BUILD_TOOLS_URL__", buildToolsUrlEscaped)
+            .Replace("__VS_CPP_WORKLOAD__", cppWorkloadIdEscaped)
+            .Replace("__VS_V142_COMPONENT__", v142ComponentIdEscaped);
         }
 
         private static string ResolveWindowsPlatformToolsetOverride(string caseRoot)

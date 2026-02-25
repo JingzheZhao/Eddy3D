@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 
@@ -115,9 +116,22 @@ namespace Eddy
                 missing.Add("FluidX3D");
             }
 
+            bool windowsFluidX3DToolchainInstalled = true;
+            string windowsFluidX3DToolchainDetails = "Visual Studio build tools are not required on macOS.";
+            if (!IsMac)
+            {
+                windowsFluidX3DToolchainInstalled =
+                    TryResolveWindowsFluidX3DBuildTools(out windowsFluidX3DToolchainDetails);
+                if (!windowsFluidX3DToolchainInstalled)
+                {
+                    missing.Add("Visual Studio C++ Build Tools (FluidX3D)");
+                }
+            }
+
             EngineInstallStatusCache.SetEngineStatus(snapshot, "Docker", dockerInstalled, dockerDetails);
             EngineInstallStatusCache.SetEngineStatus(snapshot, "BlueCFD", blueCfdInstalled, blueCfdDetails);
             EngineInstallStatusCache.SetEngineStatus(snapshot, "FluidX3D", fluidX3DInstalled, fluidX3DDetails);
+            EngineInstallStatusCache.SetEngineStatus(snapshot, "VisualStudioBuildTools", windowsFluidX3DToolchainInstalled, windowsFluidX3DToolchainDetails);
             EngineInstallStatusCache.SetEngineStatus(snapshot, "WSL", false, "WSL is not used by Eddy3D.");
 
             if (!EngineInstallStatusCache.TryWrite(EngineInstallStatusCache.EddyCachePath, snapshot, out string cacheWriteError))
@@ -125,6 +139,12 @@ namespace Eddy
                 string cacheWarning = "Install-check cache could not be written: " + cacheWriteError;
                 this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, cacheWarning);
                 log += cacheWarning + "\n";
+            }
+
+            if (!IsMac && !windowsFluidX3DToolchainInstalled)
+            {
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, windowsFluidX3DToolchainDetails);
+                log += windowsFluidX3DToolchainDetails + "\n";
             }
 
             if (missing.Count > 0)
@@ -387,6 +407,33 @@ namespace Eddy
 
             details = "FluidX3D source not found. Expected at " + FluidX3DAblWorkflow.GetDefaultSourceDirectory()
                 + " (or set EDDY_FLUIDX3D_SOURCE).";
+            return false;
+        }
+
+        private static bool TryResolveWindowsFluidX3DBuildTools(out string details)
+        {
+            if (IsMac)
+            {
+                details = "Visual Studio build tools are not required on macOS.";
+                return true;
+            }
+
+            IReadOnlyList<string> installedToolsets = FluidX3DAblWorkflow.GetInstalledWindowsPlatformToolsets();
+            if (installedToolsets.Count > 0)
+            {
+                bool hasV142 = installedToolsets.Any(t => string.Equals(t, "v142", StringComparison.OrdinalIgnoreCase));
+                string installedText = string.Join(", ", installedToolsets);
+                details = hasV142
+                    ? "Visual Studio C++ build tools detected for FluidX3D. Installed platform toolsets: " + installedText + "."
+                    : "Visual Studio C++ build tools detected for FluidX3D. Installed platform toolsets: " + installedText
+                        + ". Eddy will use the newest available toolset automatically.";
+                return true;
+            }
+
+            details = "FluidX3D on Windows requires Visual Studio C++ build tools. Download: "
+                + FluidX3DAblWorkflow.WindowsBuildToolsDownloadUrl
+                + " | Workload: " + FluidX3DAblWorkflow.WindowsCppWorkloadId
+                + " | Component: " + FluidX3DAblWorkflow.WindowsV142ToolsetComponentId + ".";
             return false;
         }
 

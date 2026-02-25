@@ -89,6 +89,9 @@ namespace RhinoPlugin.Test.Xunit
                 Assert.Contains(@"cd /d ""%SOURCE_DIR%"" || exit /b 1", batchScript);
                 Assert.Contains(@"mklink /J ""%SOURCE_EXPORT_DIR%"" ""%CASE_EXPORT_DIR%""", batchScript);
                 Assert.Contains("MSBuild", batchScript);
+                Assert.Contains("MSB8020", batchScript);
+                Assert.Contains(FluidX3DAblWorkflow.WindowsBuildToolsDownloadUrl, batchScript);
+                Assert.Contains(FluidX3DAblWorkflow.WindowsV142ToolsetComponentId, batchScript);
                 Assert.Contains("robocopy", batchScript);
                 Assert.Contains("Running FluidX3D from %FLUIDX3D_EXE%", batchScript);
                 Assert.Contains(@"bin\FluidX3D.exe", batchScript);
