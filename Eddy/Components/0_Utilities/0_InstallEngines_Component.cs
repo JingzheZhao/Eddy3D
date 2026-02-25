@@ -1,8 +1,10 @@
 using Eddy.Properties;
 using EddyLib;
 using EddyLib.Docker;
+using EddyLib.FluidX3D;
 using Grasshopper.Kernel;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -17,9 +19,9 @@ namespace Eddy
 
         public InstallEngines_Component()
           : base("Install Engines", "Install",
-              IsMac
-                  ? "Downloads and installs required simulation engines (EnergyPlus v9.4.0, Radiance, & Docker)."
-                  : "Downloads and installs required simulation engines (EnergyPlus v9.4.0, Radiance, & blueCFD-Core 2020-1).",
+                IsMac
+                    ? "Downloads and installs required simulation engines (EnergyPlus v9.4.0, Radiance, Docker, & FluidX3D source)."
+                    : "Downloads and installs required simulation engines (EnergyPlus v9.4.0, Radiance, blueCFD-Core 2020-1, & FluidX3D source).",
               EddyVersion.Name, "0 | Utilities")
         {
         }
@@ -34,6 +36,11 @@ namespace Eddy
                 IsMac ? "Set to True to open Docker Desktop download page."
                       : "Set to True to download and launch blueCFD-Core 2020-1 installer.",
                 GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter(
+                "Install FluidX3D",
+                "FX3D",
+                "Set to True to clone/update FluidX3D source into the Eddy engines folder.",
+                GH_ParamAccess.item, false);
         }
 
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
@@ -46,10 +53,12 @@ namespace Eddy
             bool installEP = false;
             bool installRad = false;
             bool installCfd = false;
+            bool installFluidX3D = false;
 
             if (!DA.GetData(0, ref installEP)) return;
             if (!DA.GetData(1, ref installRad)) return;
             if (!DA.GetData(2, ref installCfd)) return;
+            if (!DA.GetData(3, ref installFluidX3D)) return;
 
             this.ClearRuntimeMessages();
 
@@ -100,8 +109,15 @@ namespace Eddy
                 }
             }
 
+            bool fluidX3DInstalled = TryResolveInstalledFluidX3D(out _, out string fluidX3DDetails);
+            if (!fluidX3DInstalled)
+            {
+                missing.Add("FluidX3D");
+            }
+
             EngineInstallStatusCache.SetEngineStatus(snapshot, "Docker", dockerInstalled, dockerDetails);
             EngineInstallStatusCache.SetEngineStatus(snapshot, "BlueCFD", blueCfdInstalled, blueCfdDetails);
+            EngineInstallStatusCache.SetEngineStatus(snapshot, "FluidX3D", fluidX3DInstalled, fluidX3DDetails);
             EngineInstallStatusCache.SetEngineStatus(snapshot, "WSL", false, "WSL is not used by Eddy3D.");
 
             if (!EngineInstallStatusCache.TryWrite(EngineInstallStatusCache.EddyCachePath, snapshot, out string cacheWriteError))
@@ -137,6 +153,11 @@ namespace Eddy
             if (installCfd)
             {
                 log += IsMac ? InstallDocker() : InstallBlueCfd();
+            }
+
+            if (installFluidX3D)
+            {
+                log += InstallFluidX3D();
             }
 
             DA.SetData(0, log);
@@ -325,6 +346,56 @@ namespace Eddy
             catch (Exception ex)
             {
                 return string.Format("Error installing blueCFD: {0}\n", ex.Message);
+            }
+        }
+
+        private static bool TryResolveInstalledFluidX3D(out string sourceRoot, out string details)
+        {
+            sourceRoot = null;
+
+            var candidates = new List<string>();
+            string fromEnv = Environment.GetEnvironmentVariable("EDDY_FLUIDX3D_SOURCE");
+            if (!string.IsNullOrWhiteSpace(fromEnv))
+            {
+                candidates.Add(Path.GetFullPath(fromEnv.Trim()));
+            }
+
+            candidates.Add(Path.GetFullPath(FluidX3DAblWorkflow.GetDefaultSourceDirectory()));
+
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string candidate in candidates)
+            {
+                if (string.IsNullOrWhiteSpace(candidate) || !seen.Add(candidate))
+                {
+                    continue;
+                }
+
+                if (Directory.Exists(candidate) && FluidX3DAblWorkflow.IsValidSourceDirectory(candidate))
+                {
+                    sourceRoot = candidate;
+                    details = "FluidX3D source found at: " + candidate;
+                    return true;
+                }
+            }
+
+            details = "FluidX3D source not found. Expected at " + FluidX3DAblWorkflow.GetDefaultSourceDirectory()
+                + " (or set EDDY_FLUIDX3D_SOURCE).";
+            return false;
+        }
+
+        private static string InstallFluidX3D()
+        {
+            string targetRoot = Path.GetFullPath(FluidX3DAblWorkflow.GetDefaultSourceDirectory());
+
+            try
+            {
+                FluidX3DAblWorkflow.EnsureSourceRepository(targetRoot, true, out string status);
+                return "FluidX3D source prepared at " + targetRoot + ".\n"
+                    + (string.IsNullOrWhiteSpace(status) ? string.Empty : status.Trim() + "\n");
+            }
+            catch (Exception ex)
+            {
+                return "Error installing FluidX3D: " + ex.Message + "\n";
             }
         }
 

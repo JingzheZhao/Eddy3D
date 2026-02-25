@@ -43,6 +43,7 @@ namespace RhinoPlugin.Test.Xunit
                 Assert.Contains("const float si_z0      = 0.1f;", setupText);
                 Assert.Contains("const uint memory = 1200u;", setupText);
                 Assert.Contains("Fallback demo buildings", setupText);
+                Assert.Contains("lbm.rho[n] = 1.0f;", setupText);
                 Assert.Contains("lbm.flags.write_device_to_vtk();", setupText);
 
                 string definesText = File.ReadAllText(result.DefinesPath);
@@ -164,6 +165,12 @@ namespace RhinoPlugin.Test.Xunit
                 Assert.Contains("../stl/building_000.stl", setupText);
                 Assert.Contains("../stl/building_001.stl", setupText);
                 Assert.Contains("voxelize_mesh_on_device(building, TYPE_S | TYPE_X)", setupText);
+                Assert.Contains("const bool isSolid = (lbm.flags[n] & TYPE_S) != 0u;", setupText);
+                int voxelizeIndex = setupText.IndexOf("voxelize_mesh_on_device(building, TYPE_S | TYPE_X)", StringComparison.Ordinal);
+                int initializeIndex = setupText.IndexOf("const bool isSolid = (lbm.flags[n] & TYPE_S) != 0u;", StringComparison.Ordinal);
+                Assert.True(
+                    voxelizeIndex >= 0 && initializeIndex > voxelizeIndex,
+                    "Velocity/boundary initialization should run after voxelization to avoid host field reset.");
             }
             finally
             {

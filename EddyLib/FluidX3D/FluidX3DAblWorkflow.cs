@@ -6,6 +6,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace EddyLib.FluidX3D
 {
@@ -124,8 +125,9 @@ namespace EddyLib.FluidX3D
 
             string commandScriptPath = Path.Combine(scriptsDirectory, "run_fluidx3d.command");
             string batchScriptPath = Path.Combine(scriptsDirectory, "run_fluidx3d.bat");
+            string windowsPlatformToolset = ResolveWindowsPlatformToolsetOverride(caseRoot);
             File.WriteAllText(commandScriptPath, BuildMacLaunchScript());
-            File.WriteAllText(batchScriptPath, BuildWindowsLaunchScript());
+            File.WriteAllText(batchScriptPath, BuildWindowsLaunchScript(windowsPlatformToolset));
             MakeExecutable(commandScriptPath);
 
             string readmePath = Path.Combine(workingRoot, "FluidX3D_Eddy_Readme.txt");
@@ -402,33 +404,7 @@ namespace EddyLib.FluidX3D
             sb.AppendLine("\tconst float u_star     = si_u_ref * kappa / log(si_z_ref / si_z0); // friction velocity");
             sb.AppendLine("\tconst float lbm_u_star = u_star * (lbm_u / si_u_ref); // scale to LBM");
             sb.AppendLine();
-            sb.AppendLine("\t// ============================================================");
-            sb.AppendLine("\t// Initialize velocity field, geometry, and boundary conditions");
-            sb.AppendLine("\t// ============================================================");
             sb.AppendLine("\tconst uint Nx = lbm.get_Nx(), Ny = lbm.get_Ny(), Nz = lbm.get_Nz();");
-            sb.AppendLine("\tparallel_for(lbm.get_N(), [&](ulong n) {");
-            sb.AppendLine("\t\tuint x = 0u, y = 0u, z = 0u;");
-            sb.AppendLine("\t\tlbm.coordinates(n, x, y, z);");
-            sb.AppendLine();
-            sb.AppendLine("\t\t// Log-law ABL velocity profile: u(z) = (u*/kappa) * ln(z/z0)");
-            sb.AppendLine("\t\tconst float z_phys = ((float)z + 0.5f); // cell-centered height in LBM units");
-            sb.AppendLine("\t\tfloat u_abl = 0.0f;");
-            sb.AppendLine("\t\tif(z_phys > lbm_z0) {");
-            sb.AppendLine("\t\t\tu_abl = (lbm_u_star / kappa) * log(z_phys / lbm_z0);");
-            sb.AppendLine("\t\t}");
-            sb.AppendLine();
-            sb.AppendLine("\t\t// Initialize velocity (wind blows in +y direction)");
-            sb.AppendLine("\t\tlbm.u.y[n] = u_abl;");
-            sb.AppendLine();
-            sb.AppendLine("\t\t// Ground plane (no-slip)");
-            sb.AppendLine("\t\tif(z == 0u) {");
-            sb.AppendLine("\t\t\tlbm.flags[n] = TYPE_S;");
-            sb.AppendLine("\t\t}");
-            sb.AppendLine("\t\telse if(x == 0u || x == Nx-1u || y == 0u || y == Ny-1u || z == Nz-1u) {");
-            sb.AppendLine("\t\t\t// Equilibrium boundaries on domain faces (inlet, outlet, sides, top)");
-            sb.AppendLine("\t\t\tlbm.flags[n] = TYPE_E;");
-            sb.AppendLine("\t\t}");
-            sb.AppendLine("\t});");
             sb.AppendLine();
 
             if (settings.BuildingStlFiles.Count > 0)
@@ -461,6 +437,48 @@ namespace EddyLib.FluidX3D
                 sb.AppendLine("\t\tif(cuboid(x, y, z, bA, sA) || cuboid(x, y, z, bB, sB)) lbm.flags[n] = TYPE_S | TYPE_X;");
                 sb.AppendLine("\t});");
             }
+            sb.AppendLine();
+            sb.AppendLine("\t// ============================================================");
+            sb.AppendLine("\t// Initialize density/velocity field and boundary conditions");
+            sb.AppendLine("\t// ============================================================");
+            sb.AppendLine("\tparallel_for(lbm.get_N(), [&](ulong n) {");
+            sb.AppendLine("\t\tuint x = 0u, y = 0u, z = 0u;");
+            sb.AppendLine("\t\tlbm.coordinates(n, x, y, z);");
+            sb.AppendLine();
+            sb.AppendLine("\t\t// Log-law ABL velocity profile: u(z) = (u*/kappa) * ln(z/z0)");
+            sb.AppendLine("\t\tconst float z_phys = ((float)z + 0.5f); // cell-centered height in LBM units");
+            sb.AppendLine("\t\tfloat u_abl = 0.0f;");
+            sb.AppendLine("\t\tif(z_phys > lbm_z0) {");
+            sb.AppendLine("\t\t\tu_abl = (lbm_u_star / kappa) * log(z_phys / lbm_z0);");
+            sb.AppendLine("\t\t}");
+            sb.AppendLine();
+            sb.AppendLine("\t\tconst bool isSolid = (lbm.flags[n] & TYPE_S) != 0u;");
+            sb.AppendLine("\t\tlbm.rho[n] = 1.0f;");
+            sb.AppendLine("\t\tlbm.u.x[n] = 0.0f;");
+            sb.AppendLine("\t\tlbm.u.z[n] = 0.0f;");
+            sb.AppendLine();
+            sb.AppendLine("\t\tif(z == 0u) {");
+            sb.AppendLine("\t\t\t// Ground plane (no-slip)");
+            sb.AppendLine("\t\t\tlbm.flags[n] = isSolid ? lbm.flags[n] : TYPE_S;");
+            sb.AppendLine("\t\t\tlbm.u.y[n] = 0.0f;");
+            sb.AppendLine("\t\t}");
+            sb.AppendLine("\t\telse if(isSolid) {");
+            sb.AppendLine("\t\t\t// Preserve voxelized solid cells (TYPE_S | TYPE_X).");
+            sb.AppendLine("\t\t\tlbm.u.y[n] = 0.0f;");
+            sb.AppendLine("\t\t}");
+            sb.AppendLine("\t\telse {");
+            sb.AppendLine("\t\t\tif(x == 0u || x == Nx-1u || y == 0u || y == Ny-1u || z == Nz-1u) {");
+            sb.AppendLine("\t\t\t\t// Equilibrium boundaries on domain faces (inlet, outlet, sides, top)");
+            sb.AppendLine("\t\t\t\tlbm.flags[n] = TYPE_E;");
+            sb.AppendLine("\t\t\t}");
+            sb.AppendLine("\t\t\telse {");
+            sb.AppendLine("\t\t\t\tlbm.flags[n] = 0u; // interior fluid");
+            sb.AppendLine("\t\t\t}");
+            sb.AppendLine();
+            sb.AppendLine("\t\t\t// Initialize velocity (wind blows in +y direction)");
+            sb.AppendLine("\t\t\tlbm.u.y[n] = u_abl;");
+            sb.AppendLine("\t\t}");
+            sb.AppendLine("\t});");
             sb.AppendLine();
             sb.AppendLine("\t// ============================================================");
             sb.AppendLine("\t// Simulation parameters");
@@ -518,8 +536,9 @@ exit $STATUS
 ";
         }
 
-        private static string BuildWindowsLaunchScript()
+        private static string BuildWindowsLaunchScript(string platformToolsetOverride)
         {
+            string safeToolset = SanitizePlatformToolsetForBatch(platformToolsetOverride);
             return
 @"@echo off
 setlocal
@@ -527,6 +546,7 @@ cd /d ""%~dp0..\FluidX3D"" || exit /b 1
 
 set ""VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe""
 set ""MSBUILD=""
+set ""PLATFORM_TOOLSET=__PLATFORM_TOOLSET__""
 if exist ""%VSWHERE%"" (
   for /f ""usebackq tokens=*"" %%i in (`""%VSWHERE%"" -latest -products * -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe`) do (
     set ""MSBUILD=%%i""
@@ -540,8 +560,14 @@ if not defined MSBUILD (
   exit /b 0
 )
 
+set ""MSBUILD_ARGS=/m /p:Configuration=Release /p:Platform=x64""
+if defined PLATFORM_TOOLSET (
+  echo Using PlatformToolset=%PLATFORM_TOOLSET%
+  set ""MSBUILD_ARGS=%MSBUILD_ARGS% /p:PlatformToolset=%PLATFORM_TOOLSET%""
+)
+
 echo Building FluidX3D (Release x64)...
-""%MSBUILD%"" ""FluidX3D.sln"" /m /p:Configuration=Release /p:Platform=x64
+""%MSBUILD%"" ""FluidX3D.sln"" %MSBUILD_ARGS%
 if errorlevel 1 (
   echo Build failed.
   pause
@@ -572,7 +598,191 @@ if not ""%FLUIDX3D_EXIT%""==""0"" (
 echo FluidX3D completed successfully.
 pause
 exit /b 0
-";
+"
+            .Replace("__PLATFORM_TOOLSET__", safeToolset);
+        }
+
+        private static string ResolveWindowsPlatformToolsetOverride(string caseRoot)
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return null;
+            }
+
+            try
+            {
+                string vcxprojPath = Path.Combine(caseRoot, "FluidX3D.vcxproj");
+                string requested = ReadRequestedPlatformToolset(vcxprojPath);
+                List<string> available = DiscoverInstalledWindowsPlatformToolsets();
+                if (available.Count == 0)
+                {
+                    return requested;
+                }
+
+                if (!string.IsNullOrWhiteSpace(requested)
+                    && available.Any(t => string.Equals(t, requested, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return requested;
+                }
+
+                return available
+                    .OrderByDescending(ParsePlatformToolsetVersion)
+                    .ThenByDescending(t => t, StringComparer.OrdinalIgnoreCase)
+                    .First();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static string ReadRequestedPlatformToolset(string vcxprojPath)
+        {
+            if (string.IsNullOrWhiteSpace(vcxprojPath) || !File.Exists(vcxprojPath))
+            {
+                return null;
+            }
+
+            string xml = File.ReadAllText(vcxprojPath);
+            Match match = Regex.Match(
+                xml,
+                "<PlatformToolset>(?<value>[^<]+)</PlatformToolset>",
+                RegexOptions.IgnoreCase);
+
+            if (!match.Success)
+            {
+                return null;
+            }
+
+            string value = match.Groups["value"].Value?.Trim();
+            return string.IsNullOrWhiteSpace(value) ? null : value;
+        }
+
+        private static List<string> DiscoverInstalledWindowsPlatformToolsets()
+        {
+            HashSet<string> toolsets = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            string installPath = TryResolveLatestVisualStudioInstallPath();
+            if (!string.IsNullOrWhiteSpace(installPath))
+            {
+                AddToolsetsFromVisualStudioInstall(installPath, toolsets);
+            }
+
+            if (toolsets.Count == 0)
+            {
+                string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+                string root = Path.Combine(programFiles, "Microsoft Visual Studio");
+                if (Directory.Exists(root))
+                {
+                    foreach (string yearDir in Directory.GetDirectories(root))
+                    {
+                        foreach (string editionDir in Directory.GetDirectories(yearDir))
+                        {
+                            AddToolsetsFromVisualStudioInstall(editionDir, toolsets);
+                        }
+                    }
+                }
+            }
+
+            return toolsets.ToList();
+        }
+
+        private static string TryResolveLatestVisualStudioInstallPath()
+        {
+            try
+            {
+                string programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+                string vswhere = Path.Combine(programFilesX86, "Microsoft Visual Studio", "Installer", "vswhere.exe");
+                if (!File.Exists(vswhere))
+                {
+                    return null;
+                }
+
+                string output = RunProcess(
+                    vswhere,
+                    "-latest -products * -property installationPath",
+                    null);
+
+                string path = output
+                    .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(line => line.Trim())
+                    .FirstOrDefault();
+
+                return !string.IsNullOrWhiteSpace(path) && Directory.Exists(path) ? path : null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static void AddToolsetsFromVisualStudioInstall(string installPath, ISet<string> destination)
+        {
+            if (destination == null || string.IsNullOrWhiteSpace(installPath) || !Directory.Exists(installPath))
+            {
+                return;
+            }
+
+            string vcRoot = Path.Combine(installPath, "MSBuild", "Microsoft", "VC");
+            if (!Directory.Exists(vcRoot))
+            {
+                return;
+            }
+
+            foreach (string vcVersionDir in Directory.GetDirectories(vcRoot, "v*"))
+            {
+                string[] platformRoots = new[]
+                {
+                    Path.Combine(vcVersionDir, "Platforms", "x64", "PlatformToolsets"),
+                    Path.Combine(vcVersionDir, "Platforms", "Win32", "PlatformToolsets")
+                };
+
+                foreach (string platformRoot in platformRoots)
+                {
+                    if (!Directory.Exists(platformRoot))
+                    {
+                        continue;
+                    }
+
+                    foreach (string toolsetDir in Directory.GetDirectories(platformRoot))
+                    {
+                        string name = Path.GetFileName(toolsetDir);
+                        if (!string.IsNullOrWhiteSpace(name) && name.StartsWith("v", StringComparison.OrdinalIgnoreCase))
+                        {
+                            destination.Add(name);
+                        }
+                    }
+                }
+            }
+        }
+
+        private static int ParsePlatformToolsetVersion(string toolset)
+        {
+            if (string.IsNullOrWhiteSpace(toolset))
+            {
+                return -1;
+            }
+
+            string digits = new string(toolset.Where(char.IsDigit).ToArray());
+            if (int.TryParse(digits, NumberStyles.Integer, CultureInfo.InvariantCulture, out int version))
+            {
+                return version;
+            }
+
+            return -1;
+        }
+
+        private static string SanitizePlatformToolsetForBatch(string toolset)
+        {
+            if (string.IsNullOrWhiteSpace(toolset))
+            {
+                return string.Empty;
+            }
+
+            string trimmed = toolset.Trim();
+            return Regex.IsMatch(trimmed, "^[A-Za-z0-9_.-]+$")
+                ? trimmed
+                : string.Empty;
         }
 
         private static string BuildReadme(FluidX3DAblSettings settings)

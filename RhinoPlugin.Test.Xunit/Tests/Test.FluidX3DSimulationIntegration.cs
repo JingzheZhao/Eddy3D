@@ -13,10 +13,13 @@ namespace RhinoPlugin.Test.Xunit
 {
     internal static class FluidX3DTestEnvironment
     {
+        public const string SourceEnvironmentVariable = "EDDY_FLUIDX3D_SOURCE";
+        public const string CommitEnvironmentVariable = "EDDY_FLUIDX3D_COMMIT";
+
         public static bool TryResolveSourceDirectory(out string sourceRoot, out string reason)
         {
             List<string> candidates = new List<string>();
-            string env = Environment.GetEnvironmentVariable("EDDY_FLUIDX3D_SOURCE");
+            string env = Environment.GetEnvironmentVariable(SourceEnvironmentVariable);
             if (!string.IsNullOrWhiteSpace(env))
             {
                 candidates.Add(Path.GetFullPath(env.Trim()));
@@ -47,7 +50,7 @@ namespace RhinoPlugin.Test.Xunit
             }
 
             sourceRoot = null;
-            reason = "FluidX3D source not found. Set EDDY_FLUIDX3D_SOURCE to a valid FluidX3D clone, "
+            reason = "FluidX3D source not found. Set " + SourceEnvironmentVariable + " to a valid FluidX3D clone, "
                 + "or install it under " + FluidX3DAblWorkflow.GetDefaultSourceDirectory() + ".";
             return false;
         }
@@ -106,6 +109,55 @@ namespace RhinoPlugin.Test.Xunit
         private static readonly Regex DimensionsRegex = new Regex(
             @"^DIMENSIONS\s+(?<nx>\d+)\s+(?<ny>\d+)\s+(?<nz>\d+)$",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        [Fact]
+        public void FluidX3DInstallation_SourceIsValid_AndMatchesPinnedCommitWhenConfigured()
+        {
+            Assert.True(
+                FluidX3DTestEnvironment.TryResolveSourceDirectory(out string sourceRoot, out string reason),
+                reason);
+
+            Assert.True(
+                FluidX3DAblWorkflow.IsValidSourceDirectory(sourceRoot),
+                "Resolved FluidX3D source directory is invalid: " + sourceRoot);
+
+            string gitMetadataPath = Path.Combine(sourceRoot, ".git");
+            Assert.True(
+                Directory.Exists(gitMetadataPath) || File.Exists(gitMetadataPath),
+                "FluidX3D source should be a git clone (.git metadata missing): " + sourceRoot);
+
+            if (OperatingSystem.IsWindows())
+            {
+                Assert.True(
+                    File.Exists(Path.Combine(sourceRoot, "FluidX3D.sln")),
+                    "Windows installation expects FluidX3D.sln in source root.");
+
+                string msbuildPath = ResolveMsBuildPath(sourceRoot);
+                EnsureWindowsCppBuildToolchainAvailable(msbuildPath, sourceRoot);
+            }
+            else
+            {
+                Assert.True(
+                    File.Exists(Path.Combine(sourceRoot, "make.sh")),
+                    "macOS/Linux installation expects make.sh in source root.");
+            }
+
+            string actualCommit = ResolveGitHeadCommit(sourceRoot);
+            Assert.Matches("^[0-9a-f]{40}$", actualCommit);
+
+            string expectedCommitRaw = Environment.GetEnvironmentVariable(FluidX3DTestEnvironment.CommitEnvironmentVariable);
+            if (string.IsNullOrWhiteSpace(expectedCommitRaw))
+            {
+                return;
+            }
+
+            string expectedCommit = NormalizePinnedCommit(expectedCommitRaw);
+            Assert.True(
+                actualCommit.StartsWith(expectedCommit, StringComparison.OrdinalIgnoreCase),
+                "FluidX3D commit mismatch. Expected prefix " + expectedCommit
+                + " from " + FluidX3DTestEnvironment.CommitEnvironmentVariable
+                + " but found " + actualCommit + " at " + sourceRoot + ".");
+        }
 
         [Fact]
         public void FluidX3DSimulation_EndToEnd_RunsSolverAndProducesRealVtkOutputs()
@@ -173,6 +225,9 @@ namespace RhinoPlugin.Test.Xunit
 
                 // Vector field payload should be exactly 3x scalar payload for same grid.
                 Assert.Equal(rhoInfo.PayloadBytes * 3L, uInfo.PayloadBytes);
+
+                // Regression guard: payload can be structurally valid yet contain only zeros.
+                AssertVelocityFieldHasNonZeroBoundarySample(uFiles[uFiles.Length - 1], uInfo);
             }
             finally
             {
@@ -216,10 +271,20 @@ namespace RhinoPlugin.Test.Xunit
             }
 
             string msbuildPath = ResolveMsBuildPath(caseRoot);
+            EnsureWindowsCppBuildToolchainAvailable(msbuildPath, caseRoot);
+            string vcxprojPath = Path.Combine(caseRoot, "FluidX3D.vcxproj");
+            string platformToolset = ResolveWindowsPlatformToolset(vcxprojPath, msbuildPath, caseRoot);
+
+            string buildArguments = "\"" + slnPath + "\" /m /p:Configuration=Release /p:Platform=x64";
+            if (!string.IsNullOrWhiteSpace(platformToolset))
+            {
+                buildArguments += " /p:PlatformToolset=" + platformToolset;
+            }
+
             StringBuilder log = new StringBuilder();
             log.AppendLine(RunProcess(
                 msbuildPath,
-                "\"" + slnPath + "\" /m /p:Configuration=Release /p:Platform=x64",
+                buildArguments,
                 caseRoot,
                 timeoutMs: 900000));
 
@@ -247,6 +312,23 @@ namespace RhinoPlugin.Test.Xunit
             string vswhere = Path.Combine(programFilesX86, "Microsoft Visual Studio", "Installer", "vswhere.exe");
             if (File.Exists(vswhere))
             {
+                // Prefer Visual Studio instances that include both MSBuild and VC++ tools.
+                string vcReadyOutput = RunProcess(
+                    vswhere,
+                    "-latest -products * -requires Microsoft.Component.MSBuild Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -find MSBuild\\**\\Bin\\MSBuild.exe",
+                    workingDirectory,
+                    timeoutMs: 60000,
+                    throwOnNonZero: false);
+
+                string vcReadyFirstLine = vcReadyOutput
+                    .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
+                    .FirstOrDefault();
+
+                if (!string.IsNullOrWhiteSpace(vcReadyFirstLine) && File.Exists(vcReadyFirstLine.Trim()))
+                {
+                    return vcReadyFirstLine.Trim();
+                }
+
                 string output = RunProcess(
                     vswhere,
                     "-latest -products * -requires Microsoft.Component.MSBuild -find MSBuild\\**\\Bin\\MSBuild.exe",
@@ -265,6 +347,227 @@ namespace RhinoPlugin.Test.Xunit
             }
 
             return "MSBuild.exe";
+        }
+
+        private static void EnsureWindowsCppBuildToolchainAvailable(string msbuildPath, string workingDirectory)
+        {
+            if (!OperatingSystem.IsWindows())
+            {
+                return;
+            }
+
+            string vcTargetsPath = Environment.GetEnvironmentVariable("VCTargetsPath");
+            if (!string.IsNullOrWhiteSpace(vcTargetsPath))
+            {
+                string envProps = Path.Combine(vcTargetsPath, "Microsoft.Cpp.Default.props");
+                if (File.Exists(envProps))
+                {
+                    return;
+                }
+            }
+
+            string msbuildExecutable = ResolveAbsoluteMsBuildPath(msbuildPath, workingDirectory);
+            string propsPath = FindCppDefaultPropsNearMsBuild(msbuildExecutable);
+            if (!string.IsNullOrWhiteSpace(propsPath))
+            {
+                return;
+            }
+
+            throw new InvalidOperationException(
+                "Windows C++ build targets are missing. FluidX3D requires Visual Studio C++ build tools "
+                + "(Desktop development with C++ / component Microsoft.VisualStudio.Component.VC.Tools.x86.x64)."
+                + Environment.NewLine
+                + "Resolved MSBuild: " + (string.IsNullOrWhiteSpace(msbuildExecutable) ? msbuildPath : msbuildExecutable));
+        }
+
+        private static string ResolveAbsoluteMsBuildPath(string msbuildPath, string workingDirectory)
+        {
+            if (string.IsNullOrWhiteSpace(msbuildPath))
+            {
+                return null;
+            }
+
+            if (Path.IsPathRooted(msbuildPath) && File.Exists(msbuildPath))
+            {
+                return msbuildPath;
+            }
+
+            string whereOutput = RunProcess(
+                "where",
+                "MSBuild.exe",
+                workingDirectory,
+                timeoutMs: 60000,
+                throwOnNonZero: false);
+
+            return whereOutput
+                .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(line => line.Trim())
+                .FirstOrDefault(File.Exists);
+        }
+
+        private static string FindCppDefaultPropsNearMsBuild(string msbuildPath)
+        {
+            if (string.IsNullOrWhiteSpace(msbuildPath) || !File.Exists(msbuildPath))
+            {
+                return null;
+            }
+
+            try
+            {
+                DirectoryInfo binDir = new FileInfo(msbuildPath).Directory;
+                DirectoryInfo currentDir = binDir?.Parent;
+                DirectoryInfo msbuildRoot = currentDir?.Parent;
+                if (msbuildRoot == null)
+                {
+                    return null;
+                }
+
+                string vcRoot = Path.Combine(msbuildRoot.FullName, "Microsoft", "VC");
+                if (!Directory.Exists(vcRoot))
+                {
+                    return null;
+                }
+
+                foreach (string versionDir in Directory.GetDirectories(vcRoot, "v*")
+                    .OrderByDescending(path => path, StringComparer.OrdinalIgnoreCase))
+                {
+                    string propsPath = Path.Combine(versionDir, "Microsoft.Cpp.Default.props");
+                    if (File.Exists(propsPath))
+                    {
+                        return propsPath;
+                    }
+                }
+
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static string ResolveWindowsPlatformToolset(string vcxprojPath, string msbuildPath, string workingDirectory)
+        {
+            if (!OperatingSystem.IsWindows())
+            {
+                return null;
+            }
+
+            string requestedToolset = ReadRequestedPlatformToolset(vcxprojPath);
+            List<string> availableToolsets = DiscoverInstalledWindowsPlatformToolsets(msbuildPath, workingDirectory);
+            if (availableToolsets.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "No Visual C++ platform toolsets found. Ensure Desktop development with C++ is installed.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(requestedToolset)
+                && availableToolsets.Any(t => string.Equals(t, requestedToolset, StringComparison.OrdinalIgnoreCase)))
+            {
+                return requestedToolset;
+            }
+
+            string fallback = availableToolsets
+                .OrderByDescending(ParseToolsetVersion)
+                .ThenByDescending(t => t, StringComparer.OrdinalIgnoreCase)
+                .First();
+
+            return fallback;
+        }
+
+        private static string ReadRequestedPlatformToolset(string vcxprojPath)
+        {
+            if (string.IsNullOrWhiteSpace(vcxprojPath) || !File.Exists(vcxprojPath))
+            {
+                return null;
+            }
+
+            try
+            {
+                string content = File.ReadAllText(vcxprojPath);
+                Match match = Regex.Match(content, "<PlatformToolset>(?<value>[^<]+)</PlatformToolset>", RegexOptions.IgnoreCase);
+                if (!match.Success)
+                {
+                    return null;
+                }
+
+                string value = match.Groups["value"].Value?.Trim();
+                return string.IsNullOrWhiteSpace(value) ? null : value;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static List<string> DiscoverInstalledWindowsPlatformToolsets(string msbuildPath, string workingDirectory)
+        {
+            List<string> toolsets = new List<string>();
+            string msbuildExecutable = ResolveAbsoluteMsBuildPath(msbuildPath, workingDirectory);
+            if (string.IsNullOrWhiteSpace(msbuildExecutable) || !File.Exists(msbuildExecutable))
+            {
+                return toolsets;
+            }
+
+            try
+            {
+                DirectoryInfo binDir = new FileInfo(msbuildExecutable).Directory;
+                DirectoryInfo currentDir = binDir?.Parent;
+                DirectoryInfo msbuildRoot = currentDir?.Parent;
+                if (msbuildRoot == null)
+                {
+                    return toolsets;
+                }
+
+                string[] platformRoots = new[]
+                {
+                    Path.Combine(msbuildRoot.FullName, "Microsoft", "VC", "v180", "Platforms", "x64", "PlatformToolsets"),
+                    Path.Combine(msbuildRoot.FullName, "Microsoft", "VC", "v170", "Platforms", "x64", "PlatformToolsets"),
+                    Path.Combine(msbuildRoot.FullName, "Microsoft", "VC", "v160", "Platforms", "x64", "PlatformToolsets"),
+                    Path.Combine(msbuildRoot.FullName, "Microsoft", "VC", "v150", "Platforms", "x64", "PlatformToolsets")
+                };
+
+                foreach (string platformRoot in platformRoots)
+                {
+                    if (!Directory.Exists(platformRoot))
+                    {
+                        continue;
+                    }
+
+                    foreach (string dir in Directory.GetDirectories(platformRoot))
+                    {
+                        string name = Path.GetFileName(dir);
+                        if (!string.IsNullOrWhiteSpace(name) && name.StartsWith("v", StringComparison.OrdinalIgnoreCase))
+                        {
+                            toolsets.Add(name);
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                return toolsets;
+            }
+
+            return toolsets
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        private static int ParseToolsetVersion(string toolset)
+        {
+            if (string.IsNullOrWhiteSpace(toolset))
+            {
+                return -1;
+            }
+
+            string digits = new string(toolset.Where(char.IsDigit).ToArray());
+            if (int.TryParse(digits, NumberStyles.Integer, CultureInfo.InvariantCulture, out int version))
+            {
+                return version;
+            }
+
+            return -1;
         }
 
         private static string RunProcess(
@@ -330,6 +633,42 @@ namespace RhinoPlugin.Test.Xunit
             }
 
             return log.ToString();
+        }
+
+        private static string ResolveGitHeadCommit(string repositoryRoot)
+        {
+            string output = RunProcess(
+                "git",
+                "rev-parse HEAD",
+                repositoryRoot,
+                timeoutMs: 60000);
+
+            string commit = output
+                .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(line => line.Trim())
+                .FirstOrDefault(line => line.Length > 0);
+
+            if (string.IsNullOrWhiteSpace(commit) || !Regex.IsMatch(commit, "^[0-9a-fA-F]{40}$"))
+            {
+                throw new InvalidDataException(
+                    "Unable to resolve FluidX3D git HEAD commit from: " + repositoryRoot
+                    + Environment.NewLine + output);
+            }
+
+            return commit.ToLowerInvariant();
+        }
+
+        private static string NormalizePinnedCommit(string commitRaw)
+        {
+            string commit = (commitRaw ?? string.Empty).Trim();
+            if (!Regex.IsMatch(commit, "^[0-9a-fA-F]{7,40}$"))
+            {
+                throw new InvalidDataException(
+                    FluidX3DTestEnvironment.CommitEnvironmentVariable
+                    + " must be a 7-40 character hexadecimal git SHA. Value: '" + commitRaw + "'.");
+            }
+
+            return commit.ToLowerInvariant();
         }
 
         private static VtkInfo AssertValidLegacyBinaryVtk(string path, int expectedComponents)
@@ -420,9 +759,54 @@ namespace RhinoPlugin.Test.Xunit
                     Components = components,
                     DataType = dataType,
                     BytesPerComponent = bytesPerComponent,
-                    PayloadBytes = actualPayloadBytes
+                    PayloadBytes = actualPayloadBytes,
+                    DataOffset = dataOffset
                 };
             }
+        }
+
+        private static void AssertVelocityFieldHasNonZeroBoundarySample(string vtkPath, VtkInfo info)
+        {
+            Assert.Equal(3, info.Components);
+            Assert.Equal(4, info.BytesPerComponent);
+            Assert.True(info.DataOffset >= 0L, "Invalid VTK payload offset: " + vtkPath);
+
+            int ix = Math.Min(Math.Max(info.Nx / 2, 0), info.Nx - 1);
+            int iy = Math.Min(Math.Max(info.Ny / 2, 0), info.Ny - 1);
+            int iz = info.Nz - 1; // top boundary is set to TYPE_E with non-zero ABL velocity
+
+            long pointIndex = ix + (long)info.Nx * (iy + (long)info.Ny * iz);
+            long baseOffset = info.DataOffset + pointIndex * info.Components * info.BytesPerComponent;
+
+            using (FileStream fs = File.OpenRead(vtkPath))
+            {
+                float ux = ReadSingleBigEndian(fs, baseOffset + 0L);
+                float uy = ReadSingleBigEndian(fs, baseOffset + 4L);
+                float uz = ReadSingleBigEndian(fs, baseOffset + 8L);
+                double magnitude = Math.Sqrt((double)ux * ux + (double)uy * uy + (double)uz * uz);
+
+                Assert.True(
+                    magnitude > 1e-6,
+                    "Velocity sample at top boundary is zero. "
+                    + "Expected non-zero inflow/outflow boundary velocity. "
+                    + "Sample=("
+                    + ux.ToString("G9", CultureInfo.InvariantCulture) + ", "
+                    + uy.ToString("G9", CultureInfo.InvariantCulture) + ", "
+                    + uz.ToString("G9", CultureInfo.InvariantCulture) + ")");
+            }
+        }
+
+        private static float ReadSingleBigEndian(FileStream fs, long offset)
+        {
+            byte[] bytes = new byte[4];
+            fs.Position = offset;
+            fs.ReadExactly(bytes, 0, bytes.Length);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(bytes);
+            }
+
+            return BitConverter.ToSingle(bytes, 0);
         }
 
         private static int GetVtkTypeSizeBytes(string vtkType)
@@ -483,6 +867,7 @@ namespace RhinoPlugin.Test.Xunit
             public string DataType;
             public int BytesPerComponent;
             public long PayloadBytes;
+            public long DataOffset;
         }
     }
 }
