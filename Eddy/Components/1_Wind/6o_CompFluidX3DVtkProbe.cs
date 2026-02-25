@@ -29,11 +29,12 @@ namespace Eddy
 
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter(
-                GH_Strings.FluidX3DProbe.ExportDir,
-                GH_Strings.FluidX3DProbe.ExportDirNick,
-                GH_Strings.FluidX3DProbe.ExportDirDesc,
+            pManager.AddGenericParameter(
+                GH_Strings.FluidX3DProbe.Result,
+                GH_Strings.FluidX3DProbe.ResultNick,
+                GH_Strings.FluidX3DProbe.ResultDesc,
                 GH_ParamAccess.item);
+            pManager[0].Optional = false;
 
             pManager.AddPointParameter(
                 GH_Strings.FluidX3DProbe.Points,
@@ -56,7 +57,7 @@ namespace Eddy
                 GH_Strings.FluidX3DProbe.TimeModeNick,
                 GH_Strings.FluidX3DProbe.TimeModeDesc,
                 GH_ParamAccess.item,
-                0);
+                2);
             Param_Integer modeParam = pManager[3] as Param_Integer;
             modeParam?.AddNamedValue("Latest", 0);
             modeParam?.AddNamedValue("Closest physical time", 1);
@@ -69,19 +70,13 @@ namespace Eddy
                 GH_ParamAccess.item,
                 0.0);
 
-            pManager.AddNumberParameter(
-                GH_Strings.FluidX3DProbe.StartTime,
-                GH_Strings.FluidX3DProbe.StartTimeNick,
-                GH_Strings.FluidX3DProbe.StartTimeDesc,
+            pManager.AddIntervalParameter(
+                GH_Strings.FluidX3DProbe.TimeWindow,
+                GH_Strings.FluidX3DProbe.TimeWindowNick,
+                GH_Strings.FluidX3DProbe.TimeWindowDesc,
                 GH_ParamAccess.item,
-                0.0);
-
-            pManager.AddNumberParameter(
-                GH_Strings.FluidX3DProbe.EndTime,
-                GH_Strings.FluidX3DProbe.EndTimeNick,
-                GH_Strings.FluidX3DProbe.EndTimeDesc,
-                GH_ParamAccess.item,
-                30.0);
+                new Interval(0.0, 30.0));
+            pManager[5].Optional = false;
 
             pManager.AddBooleanParameter(
                 GH_Strings.FluidX3DProbe.Run,
@@ -146,26 +141,19 @@ namespace Eddy
                 GH_Strings.FluidX3DProbe.OutsideCountNick,
                 GH_Strings.FluidX3DProbe.OutsideCountDesc,
                 GH_ParamAccess.item);
-
-            pManager.AddTextParameter(
-                GH_Strings.FluidX3DProbe.Status,
-                GH_Strings.FluidX3DProbe.StatusNick,
-                GH_Strings.FluidX3DProbe.StatusDesc,
-                GH_ParamAccess.item);
         }
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            string exportDir = string.Empty;
+            GH_ObjectWrapper resultWrapper = null;
             List<Point3d> points = new List<Point3d>();
             int quantityInt = 0;
-            int timeModeInt = 0;
+            int timeModeInt = 2;
             double targetTimeSeconds = 0.0;
-            double startTimeSeconds = 0.0;
-            double endTimeSeconds = 30.0;
+            Interval timeWindow = new Interval(0.0, 30.0);
             bool run = false;
 
-            if (!DA.GetData(0, ref exportDir))
+            if (!DA.GetData(0, ref resultWrapper))
             {
                 return;
             }
@@ -178,9 +166,13 @@ namespace Eddy
             DA.GetData(2, ref quantityInt);
             DA.GetData(3, ref timeModeInt);
             DA.GetData(4, ref targetTimeSeconds);
-            DA.GetData(5, ref startTimeSeconds);
-            DA.GetData(6, ref endTimeSeconds);
-            DA.GetData(7, ref run);
+            DA.GetData(5, ref timeWindow);
+            DA.GetData(6, ref run);
+            double startTimeSeconds = timeWindow.T0;
+            double endTimeSeconds = timeWindow.T1;
+
+            string resolvedCaseDir = string.Empty;
+            TryResolveCaseDirectoryFromResult(resultWrapper?.Value, out resolvedCaseDir);
 
             DA.SetDataList(0, points);
 
@@ -192,7 +184,6 @@ namespace Eddy
             List<double> sampledSteps = new List<double>();
             List<string> sampledFiles = new List<string>();
             int outsideCount = 0;
-            string status = "Set Run=true to probe FluidX3D VTK results.";
 
             if (!run)
             {
@@ -206,8 +197,7 @@ namespace Eddy
                     sampledTimes,
                     sampledSteps,
                     sampledFiles,
-                    outsideCount,
-                    status);
+                    outsideCount);
                 return;
             }
 
@@ -224,26 +214,7 @@ namespace Eddy
                     sampledTimes,
                     sampledSteps,
                     sampledFiles,
-                    outsideCount,
-                    "No probe points supplied.");
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(exportDir))
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Export directory is required.");
-                Message = "Missing dir";
-                WriteOutputs(
-                    DA,
-                    velocityTree,
-                    rhoTree,
-                    velocityAverage,
-                    rhoAverage,
-                    sampledTimes,
-                    sampledSteps,
-                    sampledFiles,
-                    outsideCount,
-                    "Export directory is empty.");
+                    outsideCount);
                 return;
             }
 
@@ -255,8 +226,29 @@ namespace Eddy
             {
                 1 => FluidX3DVtkProbeTimeMode.ClosestPhysicalTime,
                 2 => FluidX3DVtkProbeTimeMode.AverageOverRange,
-                _ => FluidX3DVtkProbeTimeMode.Latest
+                _ => FluidX3DVtkProbeTimeMode.AverageOverRange
             };
+
+            string probeDir = ResolveProbeDirectory(resolvedCaseDir);
+
+            if (string.IsNullOrWhiteSpace(probeDir))
+            {
+                AddRuntimeMessage(
+                    GH_RuntimeMessageLevel.Warning,
+                    "FluidX3D RES input is required.");
+                Message = "Missing dir";
+                WriteOutputs(
+                    DA,
+                    velocityTree,
+                    rhoTree,
+                    velocityAverage,
+                    rhoAverage,
+                    sampledTimes,
+                    sampledSteps,
+                    sampledFiles,
+                    outsideCount);
+                return;
+            }
 
             Message = string.Format(
                 CultureInfo.InvariantCulture,
@@ -270,14 +262,22 @@ namespace Eddy
 
             try
             {
-                if (!Directory.Exists(exportDir))
+                if (!Directory.Exists(probeDir))
                 {
-                    throw new DirectoryNotFoundException("Export directory not found: " + exportDir);
+                    throw new DirectoryNotFoundException(
+                        "FluidX3D output folder not found. Case directory: " + resolvedCaseDir
+                        + ". Checked: " + probeDir);
+                }
+
+                if (!ContainsFieldVtkFiles(probeDir, quantity))
+                {
+                    throw new FileNotFoundException(
+                        "No matching VTK files found for selected field in: " + probeDir);
                 }
 
                 FluidX3DVtkProbeRequest request = new FluidX3DVtkProbeRequest
                 {
-                    ExportDirectory = exportDir,
+                    ExportDirectory = probeDir,
                     Quantity = quantity,
                     TimeMode = timeMode,
                     TargetTimeSeconds = targetTimeSeconds,
@@ -301,7 +301,10 @@ namespace Eddy
 
                 sampledFiles.AddRange(result.SampledFiles);
                 outsideCount = result.OutsideDomainPointCount;
-                status = result.Status;
+                if (!string.IsNullOrWhiteSpace(result.Status))
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, result.Status);
+                }
 
                 if (quantity == FluidX3DVtkProbeQuantity.VelocityU)
                 {
@@ -343,18 +346,10 @@ namespace Eddy
                     }
                 }
 
-                if (outsideCount > 0)
-                {
-                    AddRuntimeMessage(
-                        GH_RuntimeMessageLevel.Warning,
-                        outsideCount.ToString(CultureInfo.InvariantCulture)
-                        + " probe point(s) were outside the domain and clamped.");
-                }
             }
             catch (Exception ex)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, ex.Message);
-                status = "Probe failed: " + ex.Message;
             }
 
             WriteOutputs(
@@ -366,8 +361,7 @@ namespace Eddy
                 sampledTimes,
                 sampledSteps,
                 sampledFiles,
-                outsideCount,
-                status);
+                outsideCount);
         }
 
         private static void WriteOutputs(
@@ -379,8 +373,7 @@ namespace Eddy
             List<double> sampledTimes,
             List<double> sampledSteps,
             List<string> sampledFiles,
-            int outsideCount,
-            string status)
+            int outsideCount)
         {
             DA.SetDataTree(1, velocityTree);
             DA.SetDataTree(2, rhoTree);
@@ -390,7 +383,87 @@ namespace Eddy
             DA.SetDataList(6, sampledSteps);
             DA.SetDataList(7, sampledFiles);
             DA.SetData(8, outsideCount);
-            DA.SetData(9, status ?? string.Empty);
+        }
+
+        private static bool TryResolveCaseDirectoryFromResult(object value, out string caseDir)
+        {
+            caseDir = string.Empty;
+
+            if (!(value is OFResult result))
+            {
+                return false;
+            }
+
+            string caseFromResult = result.EngineCaseDirectory ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(caseFromResult))
+            {
+                caseDir = caseFromResult;
+                return true;
+            }
+
+            string workingDir = result.WorkingDirectory ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(workingDir))
+            {
+                caseDir = workingDir;
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool ContainsFieldVtkFiles(string directory, FluidX3DVtkProbeQuantity quantity)
+        {
+            if (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory))
+            {
+                return false;
+            }
+
+            string pattern = quantity == FluidX3DVtkProbeQuantity.VelocityU ? "u-*.vtk" : "rho-*.vtk";
+            return Directory.GetFiles(directory, pattern, SearchOption.TopDirectoryOnly).Length > 0;
+        }
+
+        private static string ResolveProbeDirectory(string caseDirInput)
+        {
+            if (string.IsNullOrWhiteSpace(caseDirInput))
+            {
+                return string.Empty;
+            }
+
+            string fullPath = Path.GetFullPath(caseDirInput.Trim());
+            if (LooksLikeProbeDirectory(fullPath))
+            {
+                return fullPath;
+            }
+
+            string caseRoot = fullPath;
+            string nestedCaseRoot = Path.Combine(fullPath, "FluidX3D");
+            if (Directory.Exists(nestedCaseRoot))
+            {
+                caseRoot = nestedCaseRoot;
+            }
+
+            return Path.Combine(caseRoot, "VTK");
+        }
+
+        private static bool LooksLikeProbeDirectory(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return false;
+            }
+
+            string folderName = new DirectoryInfo(path).Name;
+            if (folderName.Equals("vtk", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (!Directory.Exists(path))
+            {
+                return false;
+            }
+
+            return Directory.GetFiles(path, "*.vtk", SearchOption.TopDirectoryOnly).Length > 0;
         }
 
         protected override System.Drawing.Bitmap Icon => Resources.Eddy_visualProbs;

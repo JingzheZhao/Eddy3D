@@ -25,12 +25,13 @@ namespace RhinoPlugin.Test.Xunit
                 candidates.Add(Path.GetFullPath(env.Trim()));
             }
 
+            // Prefer installed engine source before local repository copies.
+            candidates.Add(Path.GetFullPath(FluidX3DAblWorkflow.GetDefaultSourceDirectory()));
+
             foreach (string localCandidate in EnumerateLocalRepositoryCandidates())
             {
                 candidates.Add(localCandidate);
             }
-
-            candidates.Add(Path.GetFullPath(FluidX3DAblWorkflow.GetDefaultSourceDirectory()));
 
             HashSet<string> seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < candidates.Count; i++)
@@ -148,7 +149,7 @@ namespace RhinoPlugin.Test.Xunit
             string expectedCommitRaw = Environment.GetEnvironmentVariable(FluidX3DTestEnvironment.CommitEnvironmentVariable);
             if (string.IsNullOrWhiteSpace(expectedCommitRaw))
             {
-                return;
+                expectedCommitRaw = FluidX3DAblWorkflow.ResolvePinnedCommit();
             }
 
             string expectedCommit = NormalizePinnedCommit(expectedCommitRaw);

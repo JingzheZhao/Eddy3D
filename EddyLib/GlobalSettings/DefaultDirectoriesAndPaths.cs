@@ -12,9 +12,12 @@ namespace EddyLib
     {
         // Backing fields with default values
         private static readonly bool IsWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-        private static string _baseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Eddy3D");
-        private static readonly string WindowsCasesRootDir =
+        private static readonly string RoamingEddy3DDir =
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Eddy3D");
+        private static readonly string LocalEddy3DDir =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Eddy3D");
+        private static string _baseDir = IsWindows ? LocalEddy3DDir : RoamingEddy3DDir;
+        private static readonly string WindowsCasesRootDir = LocalEddy3DDir;
         private static readonly string _radianceDirDefault = IsWindows
             ? Path.Combine(_baseDir, "Radiance_012cb178_Windows")
             : Path.Combine(_baseDir, "Radiance_012cb178_OSX", "radiance");
@@ -25,7 +28,9 @@ namespace EddyLib
         private static string _blueCfdDir = @"C:\Program Files\blueCFD-Core-2020";
 
         /// <summary>
-        /// Base directory for Eddy3D files in AppData Roaming.
+        /// Base directory for installed Eddy3D engines/resources.
+        /// On Windows this is %LocalAppData%\Eddy3D.
+        /// On macOS this remains under the user ApplicationData location.
         /// </summary>
         public static string Eddy3DInstallDir => _baseDir;
 

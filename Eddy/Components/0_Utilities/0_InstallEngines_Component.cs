@@ -39,7 +39,7 @@ namespace Eddy
             pManager.AddBooleanParameter(
                 "Install FluidX3D",
                 "FX3D",
-                "Set to True to clone/update FluidX3D source into the Eddy engines folder.",
+                "Set to True to clone/update FluidX3D source into the Eddy engines folder and pin to EDDY_FLUIDX3D_COMMIT (or Eddy default pin).",
                 GH_ParamAccess.item, false);
         }
 
@@ -217,7 +217,7 @@ namespace Eddy
             string url = "https://github.com/LBNL-ETA/Radiance/releases/download/012cb178/Radiance_012cb178_Windows.zip";
             string zipFile = Path.Combine(Path.GetTempPath(), "Radiance_012cb178_Windows.zip");
 
-            string baseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Eddy3D");
+            string baseDir = DefaultDirectoriesAndPaths.Eddy3DInstallDir;
             string targetDir = Path.Combine(baseDir, "Radiance_012cb178_Windows");
 
             try
@@ -251,7 +251,7 @@ namespace Eddy
             string url = "https://github.com/LBNL-ETA/Radiance/releases/download/012cb178/Radiance_012cb178_OSX.zip";
             string zipFile = Path.Combine(Path.GetTempPath(), "Radiance_012cb178_OSX.zip");
 
-            string baseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Eddy3D");
+            string baseDir = DefaultDirectoriesAndPaths.Eddy3DInstallDir;
             string targetDir = Path.Combine(baseDir, "Radiance_012cb178_OSX");
 
             try
@@ -373,7 +373,14 @@ namespace Eddy
                 if (Directory.Exists(candidate) && FluidX3DAblWorkflow.IsValidSourceDirectory(candidate))
                 {
                     sourceRoot = candidate;
-                    details = "FluidX3D source found at: " + candidate;
+                    if (TryResolveGitHeadCommit(candidate, out string commit))
+                    {
+                        details = "FluidX3D source found at: " + candidate + " (HEAD " + commit + ").";
+                    }
+                    else
+                    {
+                        details = "FluidX3D source found at: " + candidate + ".";
+                    }
                     return true;
                 }
             }
@@ -386,16 +393,72 @@ namespace Eddy
         private static string InstallFluidX3D()
         {
             string targetRoot = Path.GetFullPath(FluidX3DAblWorkflow.GetDefaultSourceDirectory());
+            string pinnedCommit = FluidX3DAblWorkflow.ResolvePinnedCommit();
 
             try
             {
-                FluidX3DAblWorkflow.EnsureSourceRepository(targetRoot, true, out string status);
+                if (Directory.Exists(targetRoot)
+                    && FluidX3DAblWorkflow.IsValidSourceDirectory(targetRoot)
+                    && TryResolveGitHeadCommit(targetRoot, out string existingHead)
+                    && existingHead.StartsWith(pinnedCommit, StringComparison.OrdinalIgnoreCase))
+                {
+                    return "FluidX3D source already installed at pinned commit " + existingHead + ".\n";
+                }
+
+                FluidX3DAblWorkflow.EnsureSourceRepository(targetRoot, true, out string status, pinnedCommit);
                 return "FluidX3D source prepared at " + targetRoot + ".\n"
+                    + "Pinned commit: " + pinnedCommit + "\n"
                     + (string.IsNullOrWhiteSpace(status) ? string.Empty : status.Trim() + "\n");
             }
             catch (Exception ex)
             {
                 return "Error installing FluidX3D: " + ex.Message + "\n";
+            }
+        }
+
+        private static bool TryResolveGitHeadCommit(string repositoryRoot, out string commit)
+        {
+            commit = null;
+
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "git",
+                    Arguments = "-C \"" + repositoryRoot + "\" rev-parse HEAD",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                using (var process = Process.Start(psi))
+                {
+                    if (process == null)
+                    {
+                        return false;
+                    }
+
+                    string stdOut = process.StandardOutput.ReadToEnd();
+                    process.WaitForExit(10000);
+                    if (process.ExitCode != 0)
+                    {
+                        return false;
+                    }
+
+                    string value = (stdOut ?? string.Empty).Trim();
+                    if (string.IsNullOrWhiteSpace(value))
+                    {
+                        return false;
+                    }
+
+                    commit = value;
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
             }
         }
 

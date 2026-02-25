@@ -66,9 +66,9 @@ namespace EddyLib
 
         public static class FluidX3D
         {
-            public const string Name = "FluidX3D ABL (Experimental)";
-            public const string Nick = "FluidX3D";
-            public const string Desc = "Prepare and optionally launch a minimal FluidX3D case with two box buildings and a logarithmic atmospheric boundary layer.\r\n\r\nThis workflow is experimental and currently independent from the OpenFOAM pipeline.\r\n\r\n";
+           // public const string Name = "FluidX3D ABL (Experimental)";
+           // public const string Nick = "FluidX3D";
+          //  public const string Desc = "Deprecated standalone FluidX3D workflow.\r\n\r\nUse 'Wind Simulation' and select the FluidX3D engine from the component menu.\r\n\r\n";
 
             public const string SourceDir = "FluidX3D Source";
             public const string SourceDirNick = "Src";
@@ -143,21 +143,56 @@ namespace EddyLib
             public const string StatusDesc = "Workflow status and instructions.";
         }
 
+        public static class FluidX3DRunSettings
+        {
+            public const string Name = "FluidX3D Run Settings";
+            public const string Nick = "FxSet";
+            public const string Desc = "FluidX3D solver controls for the integrated Wind Simulation component.\r\n\r\nUse this only when engine = FluidX3D.\r\n\r\n";
+
+            public const string SourceDir = "FluidX3D Source (Optional)";
+            public const string SourceDirNick = "Src";
+            public const string SourceDirDesc = "Optional override for FluidX3D source folder. Leave empty to use EDDY_FLUIDX3D_SOURCE or the Eddy engines install path.";
+
+            public const string MemoryMb = "VRAM Budget (MB)";
+            public const string MemoryMbNick = "MemMB";
+            public const string MemoryMbDesc = "Approximate GPU memory budget used for FluidX3D resolution selection.";
+
+            public const string SimTime = "Simulation Time (s)";
+            public const string SimTimeNick = "T";
+            public const string SimTimeDesc = "Physical simulation time in seconds.";
+
+            public const string ExportEvery = "Export Every (s)";
+            public const string ExportEveryNick = "dT";
+            public const string ExportEveryDesc = "Physical export interval in seconds.";
+
+            public const string GroundZ = "Ground Elevation";
+            public const string GroundZNick = "Zgnd";
+            public const string GroundZDesc = "Ground elevation in model coordinates (m).";
+
+            public const string Output = "Run settings";
+            public const string OutputNick = "RSet";
+            public const string OutputDesc = "FluidX3D run settings object for the Wind Simulation component.";
+        }
+
         public static class FluidX3DProbe
         {
             public const string Name = "FluidX3D Probe (VTK)";
             public const string Nick = "FxProbe";
             public const string Desc = "Probe FluidX3D VTK exports at Rhino points with physical-time selection and optional time averaging.\r\n\r\nSupports velocity U (vector) and density rho (scalar).\r\n\r\n";
 
-            public const string ExportDir = "Export Directory";
-            public const string ExportDirNick = "Export";
-            public const string ExportDirDesc = "FluidX3D export directory containing u-*.vtk / rho-*.vtk and eddy_probe_transform.txt.";
+            public const string Result = "Simulation Result";
+            public const string ResultNick = "Res";
+            public const string ResultDesc = "OFResult from Wind Simulation. Probe path is resolved from this simulation result.";
+
+            public const string CaseDir = "Case Directory";
+            public const string CaseDirNick = "Case";
+            public const string CaseDirDesc = "FluidX3D case directory (contains bin/export, VTK, or vtk output folder).";
 
             public const string Points = "Probe Points";
             public const string PointsNick = "Pts";
             public const string PointsDesc = "Probe points in Rhino model coordinates (meters).";
 
-            public const string Quantity = "Quantity";
+            public const string Quantity = "Q field";
             public const string QuantityNick = "Q";
             public const string QuantityDesc = "Field to probe: U (velocity vector) or rho (density scalar).";
 
@@ -169,13 +204,9 @@ namespace EddyLib
             public const string TargetTimeNick = "T";
             public const string TargetTimeDesc = "Used when Time Mode = Closest physical time.";
 
-            public const string StartTime = "Start Time (s)";
-            public const string StartTimeNick = "T0";
-            public const string StartTimeDesc = "Start of averaging interval (used when Time Mode = Average over range).";
-
-            public const string EndTime = "End Time (s)";
-            public const string EndTimeNick = "T1";
-            public const string EndTimeDesc = "End of averaging interval (used when Time Mode = Average over range).";
+            public const string TimeWindow = "Time Interval (s)";
+            public const string TimeWindowNick = "T0/T1";
+            public const string TimeWindowDesc = "Averaging interval as Domain/Interval (Construct Domain).";
 
             public const string Run = "Run";
             public const string RunNick = "Run";

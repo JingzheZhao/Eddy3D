@@ -76,12 +76,18 @@ namespace RhinoPlugin.Test.Xunit
 
                 string commandScript = File.ReadAllText(result.CommandScriptPath);
                 Assert.Contains("#!/bin/bash", commandScript);
-                Assert.Contains("cd \"$SCRIPT_DIR/../FluidX3D\" || exit 1", commandScript);
+                Assert.Contains("SOURCE_DIR=\"", commandScript);
+                Assert.Contains("CASE_EXPORT_DIR=\"", commandScript);
+                Assert.Contains("cd \"$SOURCE_DIR\" || exit 1", commandScript);
                 Assert.Contains("./make.sh", commandScript);
+                Assert.Contains("VTK outputs mirrored to $CASE_EXPORT_DIR.", commandScript);
 
                 string batchScript = File.ReadAllText(result.BatchScriptPath);
-                Assert.Contains(@"cd /d ""%~dp0..\FluidX3D"" || exit /b 1", batchScript);
+                Assert.Contains(@"set ""SOURCE_DIR=", batchScript);
+                Assert.Contains(@"set ""CASE_EXPORT_DIR=", batchScript);
+                Assert.Contains(@"cd /d ""%SOURCE_DIR%"" || exit /b 1", batchScript);
                 Assert.Contains("MSBuild", batchScript);
+                Assert.Contains("robocopy", batchScript);
                 Assert.Contains("Running FluidX3D from %FLUIDX3D_EXE%", batchScript);
                 Assert.Contains(@"bin\FluidX3D.exe", batchScript);
                 Assert.Contains(@"bin\Release\FluidX3D.exe", batchScript);
@@ -192,6 +198,63 @@ namespace RhinoPlugin.Test.Xunit
 
                 Assert.Throws<InvalidOperationException>(() =>
                     FluidX3DAblWorkflow.PrepareCase(sourceRoot, nestedWorkingRoot, settings));
+            }
+            finally
+            {
+                Directory.Delete(tempRoot, true);
+            }
+        }
+
+        [Fact]
+        public void PrepareCase_UsesInstalledSourceWithoutMirroringIntoWorkingDirectory()
+        {
+            string tempRoot = CreateTempDir();
+            try
+            {
+                string sourceRoot = Path.Combine(tempRoot, "source");
+                string workingRoot = Path.Combine(tempRoot, "working");
+                CreateStubFluidX3DSource(sourceRoot);
+
+                FluidX3DAblPrepareResult result = FluidX3DAblWorkflow.PrepareCase(
+                    sourceRoot,
+                    workingRoot,
+                    new FluidX3DAblSettings());
+
+                Assert.Equal(Path.GetFullPath(sourceRoot), result.CaseRoot);
+                Assert.False(Directory.Exists(Path.Combine(workingRoot, "FluidX3D")));
+                Assert.Equal(Path.Combine(sourceRoot, "bin", "export"), result.ExportDirectory);
+                Assert.True(File.Exists(result.CommandScriptPath));
+                Assert.True(File.Exists(result.BatchScriptPath));
+            }
+            finally
+            {
+                Directory.Delete(tempRoot, true);
+            }
+        }
+
+        [Fact]
+        public void PrepareCase_WritesVelocityInitializationAlongConfiguredFlowDirection()
+        {
+            string tempRoot = CreateTempDir();
+            try
+            {
+                string sourceRoot = Path.Combine(tempRoot, "source");
+                string workingRoot = Path.Combine(tempRoot, "working");
+                CreateStubFluidX3DSource(sourceRoot);
+
+                FluidX3DAblSettings settings = new FluidX3DAblSettings
+                {
+                    FlowDirectionX = 0.0,
+                    FlowDirectionY = -1.0
+                };
+
+                FluidX3DAblPrepareResult result = FluidX3DAblWorkflow.PrepareCase(sourceRoot, workingRoot, settings);
+                string setupText = File.ReadAllText(result.SetupPath);
+
+                Assert.Contains("const float flow_dir_x = 0.0f;", setupText);
+                Assert.Contains("const float flow_dir_y = -1.0f;", setupText);
+                Assert.Contains("lbm.u.x[n] = flow_dir_x * u_abl;", setupText);
+                Assert.Contains("lbm.u.y[n] = flow_dir_y * u_abl;", setupText);
             }
             finally
             {

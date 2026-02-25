@@ -16,8 +16,10 @@ namespace EddyLib.FluidX3D
         public double Uref { get; set; } = 5.0;
         public double Zref { get; set; } = 10.0;
         public double Z0 { get; set; } = 0.1;
-        public double SimSeconds { get; set; } = 30.0;
-        public double ExportIntervalSeconds { get; set; } = 10.0;
+        public double FlowDirectionX { get; set; } = 0.0;
+        public double FlowDirectionY { get; set; } = 1.0;
+        public double SimSeconds { get; set; } = 360.0;
+        public double ExportIntervalSeconds { get; set; } = 30.0;
         public double DomainLx { get; set; } = 300.0;
         public double DomainLy { get; set; } = 200.0;
         public double DomainLz { get; set; } = 100.0;
@@ -40,15 +42,8 @@ namespace EddyLib.FluidX3D
     public static class FluidX3DAblWorkflow
     {
         public const string RepositoryUrl = "https://github.com/ProjectPhysX/FluidX3D.git";
-
-        private static readonly HashSet<string> ExcludedDirectoryNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            ".git",
-            "bin",
-            "temp",
-            "obj",
-            ".vs"
-        };
+        public const string CommitEnvironmentVariable = "EDDY_FLUIDX3D_COMMIT";
+        public const string DefaultPinnedCommit = "62a1756b7b257918226ab2102efd3a47fd99ff2c";
 
         public static FluidX3DAblPrepareResult PrepareCase(
             string fluidX3DSourceRoot,
@@ -80,19 +75,16 @@ namespace EddyLib.FluidX3D
                 throw new DirectoryNotFoundException("FluidX3D source directory does not exist: " + sourceRoot);
             }
 
+            if (IsSubPath(sourceRoot, workingRoot))
+            {
+                throw new InvalidOperationException(
+                    "Working directory cannot be inside the FluidX3D source directory. Choose a different working directory.");
+            }
+
             Directory.CreateDirectory(workingRoot);
 
-            string caseRoot = Path.Combine(workingRoot, "FluidX3D");
-            if (!PathsEqual(sourceRoot, caseRoot))
-            {
-                if (IsSubPath(sourceRoot, caseRoot))
-                {
-                    throw new InvalidOperationException(
-                        "Working directory cannot be inside the FluidX3D source directory. Choose a different working directory.");
-                }
-
-                MirrorDirectory(sourceRoot, caseRoot);
-            }
+            // The installed source in Engines is the canonical case root.
+            string caseRoot = sourceRoot;
 
             string setupPath = Path.Combine(caseRoot, "src", "setup.cpp");
             string definesPath = Path.Combine(caseRoot, "src", "defines.hpp");
@@ -120,14 +112,18 @@ namespace EddyLib.FluidX3D
             definesText = SetDefine(definesText, "SUBGRID", true);
             File.WriteAllText(definesPath, definesText);
 
+            string exportDirectory = Path.Combine(caseRoot, "bin", "export");
+            ResetDirectoryContents(exportDirectory);
+
             string scriptsDirectory = Path.Combine(workingRoot, "Scripts");
             Directory.CreateDirectory(scriptsDirectory);
 
+            string caseExportDirectory = Path.Combine(workingRoot, "FluidX3D", "VTK");
             string commandScriptPath = Path.Combine(scriptsDirectory, "run_fluidx3d.command");
             string batchScriptPath = Path.Combine(scriptsDirectory, "run_fluidx3d.bat");
             string windowsPlatformToolset = ResolveWindowsPlatformToolsetOverride(caseRoot);
-            File.WriteAllText(commandScriptPath, BuildMacLaunchScript());
-            File.WriteAllText(batchScriptPath, BuildWindowsLaunchScript(windowsPlatformToolset));
+            File.WriteAllText(commandScriptPath, BuildMacLaunchScript(caseRoot, caseExportDirectory));
+            File.WriteAllText(batchScriptPath, BuildWindowsLaunchScript(caseRoot, caseExportDirectory, windowsPlatformToolset));
             MakeExecutable(commandScriptPath);
 
             string readmePath = Path.Combine(workingRoot, "FluidX3D_Eddy_Readme.txt");
@@ -142,7 +138,7 @@ namespace EddyLib.FluidX3D
                 CaseRoot = caseRoot,
                 SetupPath = setupPath,
                 DefinesPath = definesPath,
-                ExportDirectory = Path.Combine(caseRoot, "bin", "export"),
+                ExportDirectory = exportDirectory,
                 ScriptsDirectory = scriptsDirectory,
                 CommandScriptPath = commandScriptPath,
                 BatchScriptPath = batchScriptPath,
@@ -156,10 +152,24 @@ namespace EddyLib.FluidX3D
             return Path.Combine(DefaultDirectoriesAndPaths.Eddy3DInstallDir, "Engines", "FluidX3D");
         }
 
+        public static string ResolvePinnedCommit()
+        {
+            string fromEnvironment = NormalizeCommitPrefixOrNull(
+                Environment.GetEnvironmentVariable(CommitEnvironmentVariable));
+
+            if (!string.IsNullOrWhiteSpace(fromEnvironment))
+            {
+                return fromEnvironment;
+            }
+
+            return NormalizeCommitPrefixOrNull(DefaultPinnedCommit);
+        }
+
         public static void EnsureSourceRepository(
             string sourceRoot,
             bool updateIfExists,
-            out string statusMessage)
+            out string statusMessage,
+            string pinnedCommit = null)
         {
             if (string.IsNullOrWhiteSpace(sourceRoot))
             {
@@ -167,11 +177,14 @@ namespace EddyLib.FluidX3D
             }
 
             string fullSourceRoot = Path.GetFullPath(sourceRoot.Trim());
+            string normalizedPinnedCommit = NormalizeCommitPrefixOrNull(pinnedCommit);
             string parent = Path.GetDirectoryName(fullSourceRoot);
             if (!string.IsNullOrWhiteSpace(parent))
             {
                 Directory.CreateDirectory(parent);
             }
+
+            StringBuilder status = new StringBuilder();
 
             if (!Directory.Exists(fullSourceRoot) || Utilities.Directories.IsDirectoryEmpty(fullSourceRoot))
             {
@@ -181,26 +194,130 @@ namespace EddyLib.FluidX3D
                     throw new InvalidOperationException("Source directory exists but is not empty: " + fullSourceRoot);
                 }
 
-                string cloneOutput = RunProcess("git", "clone --depth 1 \"" + RepositoryUrl + "\" \"" + fullSourceRoot + "\"", null);
-                statusMessage = "Cloned FluidX3D repository." + Environment.NewLine + cloneOutput.Trim();
-                return;
-            }
+                string cloneArgs = string.IsNullOrWhiteSpace(normalizedPinnedCommit)
+                    ? "clone --depth 1 \"" + RepositoryUrl + "\" \"" + fullSourceRoot + "\""
+                    : "clone \"" + RepositoryUrl + "\" \"" + fullSourceRoot + "\"";
 
-            if (!IsValidSourceDirectory(fullSourceRoot))
+                string cloneOutput = RunProcess("git", cloneArgs, null);
+                status.AppendLine("Cloned FluidX3D repository.");
+                if (!string.IsNullOrWhiteSpace(cloneOutput))
+                {
+                    status.AppendLine(cloneOutput.Trim());
+                }
+            }
+            else if (!IsValidSourceDirectory(fullSourceRoot))
             {
                 throw new InvalidOperationException(
                     "Existing source directory does not appear to be a valid FluidX3D source: " + fullSourceRoot);
             }
-
-            string gitDir = Path.Combine(fullSourceRoot, ".git");
-            if (updateIfExists && Directory.Exists(gitDir))
+            else
             {
-                string pullOutput = RunProcess("git", "-C \"" + fullSourceRoot + "\" pull --ff-only", null);
-                statusMessage = "Updated existing FluidX3D source." + Environment.NewLine + pullOutput.Trim();
-                return;
+                status.AppendLine("Using existing FluidX3D source directory.");
+
+                string gitDir = Path.Combine(fullSourceRoot, ".git");
+                bool canPullLatest = updateIfExists
+                    && Directory.Exists(gitDir)
+                    && string.IsNullOrWhiteSpace(normalizedPinnedCommit);
+
+                if (canPullLatest)
+                {
+                    string pullOutput = RunProcess("git", "-C \"" + fullSourceRoot + "\" pull --ff-only", null);
+                    status.AppendLine("Updated existing FluidX3D source.");
+                    if (!string.IsNullOrWhiteSpace(pullOutput))
+                    {
+                        status.AppendLine(pullOutput.Trim());
+                    }
+                }
             }
 
-            statusMessage = "Using existing FluidX3D source directory.";
+            if (!string.IsNullOrWhiteSpace(normalizedPinnedCommit))
+            {
+                status.AppendLine(CheckoutPinnedCommit(fullSourceRoot, normalizedPinnedCommit));
+            }
+
+            statusMessage = status.ToString().Trim();
+        }
+
+        private static string CheckoutPinnedCommit(string repositoryRoot, string commitPrefix)
+        {
+            string gitDir = Path.Combine(repositoryRoot, ".git");
+            if (!Directory.Exists(gitDir) && !File.Exists(gitDir))
+            {
+                throw new InvalidOperationException(
+                    "Pinned commit requested but repository metadata (.git) is missing: " + repositoryRoot);
+            }
+
+            string normalized = NormalizeCommitPrefixOrNull(commitPrefix);
+            if (string.IsNullOrWhiteSpace(normalized))
+            {
+                return "No pinned commit configured.";
+            }
+
+            if (TryReadGitHeadCommit(repositoryRoot, out string currentHead)
+                && currentHead.StartsWith(normalized, StringComparison.OrdinalIgnoreCase))
+            {
+                return "Pinned commit already checked out: " + currentHead + ".";
+            }
+
+            RunProcess("git", "-C \"" + repositoryRoot + "\" fetch --all --tags --prune", null);
+            string checkoutOutput = RunProcess("git", "-C \"" + repositoryRoot + "\" checkout " + normalized, null);
+
+            if (!TryReadGitHeadCommit(repositoryRoot, out string newHead)
+                || !newHead.StartsWith(normalized, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException(
+                    "Failed to checkout pinned commit " + normalized + " in " + repositoryRoot + ".");
+            }
+
+            if (string.IsNullOrWhiteSpace(checkoutOutput))
+            {
+                return "Checked out pinned commit: " + newHead + ".";
+            }
+
+            return "Checked out pinned commit: " + newHead + "." + Environment.NewLine + checkoutOutput.Trim();
+        }
+
+        private static bool TryReadGitHeadCommit(string repositoryRoot, out string commit)
+        {
+            commit = null;
+
+            try
+            {
+                string output = RunProcess("git", "-C \"" + repositoryRoot + "\" rev-parse HEAD", null);
+                string value = output
+                    .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(line => line.Trim())
+                    .FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(value) || !Regex.IsMatch(value, "^[0-9a-fA-F]{40}$"))
+                {
+                    return false;
+                }
+
+                commit = value.ToLowerInvariant();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static string NormalizeCommitPrefixOrNull(string commitRaw)
+        {
+            if (string.IsNullOrWhiteSpace(commitRaw))
+            {
+                return null;
+            }
+
+            string commit = commitRaw.Trim();
+            if (!Regex.IsMatch(commit, "^[0-9a-fA-F]{7,40}$"))
+            {
+                throw new InvalidOperationException(
+                    CommitEnvironmentVariable + " must be a 7-40 character hexadecimal SHA. Value: '" + commitRaw + "'.");
+            }
+
+            return commit.ToLowerInvariant();
         }
 
         private static void ValidateSettings(FluidX3DAblSettings settings)
@@ -255,14 +372,37 @@ namespace EddyLib.FluidX3D
             }
         }
 
-        private static bool PathsEqual(string a, string b)
+        private static void ResetDirectoryContents(string directory)
         {
-            string normalizedA = Path.GetFullPath(a).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            string normalizedB = Path.GetFullPath(b).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            StringComparison comparison = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? StringComparison.OrdinalIgnoreCase
-                : StringComparison.Ordinal;
-            return string.Equals(normalizedA, normalizedB, comparison);
+            Directory.CreateDirectory(directory);
+
+            foreach (string file in Directory.GetFiles(directory))
+            {
+                File.Delete(file);
+            }
+
+            foreach (string subDir in Directory.GetDirectories(directory))
+            {
+                Directory.Delete(subDir, true);
+            }
+        }
+
+        private static void NormalizeHorizontalFlowDirection(
+            double x,
+            double y,
+            out double normalizedX,
+            out double normalizedY)
+        {
+            double length = Math.Sqrt((x * x) + (y * y));
+            if (length <= 1.0e-12)
+            {
+                normalizedX = 0.0;
+                normalizedY = 1.0;
+                return;
+            }
+
+            normalizedX = x / length;
+            normalizedY = y / length;
         }
 
         public static bool IsValidSourceDirectory(string sourceRoot)
@@ -290,34 +430,6 @@ namespace EddyLib.FluidX3D
                 : StringComparison.Ordinal;
 
             return candidate.StartsWith(parent, comparison);
-        }
-
-        private static void MirrorDirectory(string sourceDir, string targetDir)
-        {
-            Directory.CreateDirectory(targetDir);
-
-            foreach (string filePath in Directory.GetFiles(sourceDir))
-            {
-                string fileName = Path.GetFileName(filePath);
-                if (fileName.Equals(".DS_Store", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                string targetPath = Path.Combine(targetDir, fileName);
-                File.Copy(filePath, targetPath, true);
-            }
-
-            foreach (string directoryPath in Directory.GetDirectories(sourceDir))
-            {
-                string directoryName = Path.GetFileName(directoryPath);
-                if (ExcludedDirectoryNames.Contains(directoryName))
-                {
-                    continue;
-                }
-
-                MirrorDirectory(directoryPath, Path.Combine(targetDir, directoryName));
-            }
         }
 
         private static string SetDefine(string text, string defineName, bool enabled)
@@ -357,6 +469,12 @@ namespace EddyLib.FluidX3D
 
         private static string BuildSetupFile(FluidX3DAblSettings settings)
         {
+            NormalizeHorizontalFlowDirection(
+                settings.FlowDirectionX,
+                settings.FlowDirectionY,
+                out double flowDirX,
+                out double flowDirY);
+
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("#include \"setup.hpp\"");
             sb.AppendLine();
@@ -403,6 +521,8 @@ namespace EddyLib.FluidX3D
             sb.AppendLine("\tconst float kappa      = 0.41f; // von Karman constant");
             sb.AppendLine("\tconst float u_star     = si_u_ref * kappa / log(si_z_ref / si_z0); // friction velocity");
             sb.AppendLine("\tconst float lbm_u_star = u_star * (lbm_u / si_u_ref); // scale to LBM");
+            sb.AppendLine("\tconst float flow_dir_x = " + ToCppFloatLiteral(flowDirX) + "; // horizontal ABL flow direction x");
+            sb.AppendLine("\tconst float flow_dir_y = " + ToCppFloatLiteral(flowDirY) + "; // horizontal ABL flow direction y");
             sb.AppendLine();
             sb.AppendLine("\tconst uint Nx = lbm.get_Nx(), Ny = lbm.get_Ny(), Nz = lbm.get_Nz();");
             sb.AppendLine();
@@ -455,16 +575,15 @@ namespace EddyLib.FluidX3D
             sb.AppendLine("\t\tconst bool isSolid = (lbm.flags[n] & TYPE_S) != 0u;");
             sb.AppendLine("\t\tlbm.rho[n] = 1.0f;");
             sb.AppendLine("\t\tlbm.u.x[n] = 0.0f;");
+            sb.AppendLine("\t\tlbm.u.y[n] = 0.0f;");
             sb.AppendLine("\t\tlbm.u.z[n] = 0.0f;");
             sb.AppendLine();
             sb.AppendLine("\t\tif(z == 0u) {");
             sb.AppendLine("\t\t\t// Ground plane (no-slip)");
             sb.AppendLine("\t\t\tlbm.flags[n] = isSolid ? lbm.flags[n] : TYPE_S;");
-            sb.AppendLine("\t\t\tlbm.u.y[n] = 0.0f;");
             sb.AppendLine("\t\t}");
             sb.AppendLine("\t\telse if(isSolid) {");
             sb.AppendLine("\t\t\t// Preserve voxelized solid cells (TYPE_S | TYPE_X).");
-            sb.AppendLine("\t\t\tlbm.u.y[n] = 0.0f;");
             sb.AppendLine("\t\t}");
             sb.AppendLine("\t\telse {");
             sb.AppendLine("\t\t\tif(x == 0u || x == Nx-1u || y == 0u || y == Ny-1u || z == Nz-1u) {");
@@ -475,8 +594,9 @@ namespace EddyLib.FluidX3D
             sb.AppendLine("\t\t\t\tlbm.flags[n] = 0u; // interior fluid");
             sb.AppendLine("\t\t\t}");
             sb.AppendLine();
-            sb.AppendLine("\t\t\t// Initialize velocity (wind blows in +y direction)");
-            sb.AppendLine("\t\t\tlbm.u.y[n] = u_abl;");
+            sb.AppendLine("\t\t\t// Initialize velocity along Eddy ABL flow direction.");
+            sb.AppendLine("\t\t\tlbm.u.x[n] = flow_dir_x * u_abl;");
+            sb.AppendLine("\t\t\tlbm.u.y[n] = flow_dir_y * u_abl;");
             sb.AppendLine("\t\t}");
             sb.AppendLine("\t});");
             sb.AppendLine();
@@ -516,15 +636,43 @@ namespace EddyLib.FluidX3D
             return sb.ToString();
         }
 
-        private static string BuildMacLaunchScript()
+        private static string BuildMacLaunchScript(string sourceRoot, string caseExportDirectory)
         {
+            string sourceRootEscaped = EscapeForBashDoubleQuotedString(sourceRoot);
+            string caseExportEscaped = EscapeForBashDoubleQuotedString(caseExportDirectory);
             return
 @"#!/bin/bash
 SCRIPT_DIR=""$(cd ""$(dirname ""$0"")"" && pwd)""
-cd ""$SCRIPT_DIR/../FluidX3D"" || exit 1
+SOURCE_DIR=""__SOURCE_DIR__""
+SOURCE_EXPORT_DIR=""$SOURCE_DIR/bin/export""
+CASE_EXPORT_DIR=""__CASE_EXPORT_DIR__""
+cd ""$SOURCE_DIR"" || exit 1
+mkdir -p ""$CASE_EXPORT_DIR""
+
+mirror_once() {
+  if [ -d ""$SOURCE_EXPORT_DIR"" ]; then
+    cp -f ""$SOURCE_EXPORT_DIR""/*.vtk ""$CASE_EXPORT_DIR""/ 2>/dev/null || true
+    cp -f ""$SOURCE_EXPORT_DIR""/eddy_probe_transform.txt ""$CASE_EXPORT_DIR""/ 2>/dev/null || true
+  fi
+}
+
+(
+  while true; do
+    mirror_once
+    sleep 2
+  done
+) &
+MIRROR_PID=$!
+
 chmod +x make.sh
 ./make.sh
 STATUS=$?
+
+kill ""$MIRROR_PID"" >/dev/null 2>&1 || true
+wait ""$MIRROR_PID"" >/dev/null 2>&1 || true
+mirror_once
+echo ""VTK outputs mirrored to $CASE_EXPORT_DIR.""
+
 echo
 if [ $STATUS -eq 0 ]; then
   echo ""FluidX3D completed successfully.""
@@ -533,16 +681,23 @@ else
 fi
 read -r -p ""Press Enter to close...""
 exit $STATUS
-";
+"
+            .Replace("__SOURCE_DIR__", sourceRootEscaped)
+            .Replace("__CASE_EXPORT_DIR__", caseExportEscaped);
         }
 
-        private static string BuildWindowsLaunchScript(string platformToolsetOverride)
+        private static string BuildWindowsLaunchScript(string sourceRoot, string caseExportDirectory, string platformToolsetOverride)
         {
+            string sourceRootEscaped = EscapeForBatchQuotedValue(sourceRoot);
+            string caseExportEscaped = EscapeForBatchQuotedValue(caseExportDirectory);
             string safeToolset = SanitizePlatformToolsetForBatch(platformToolsetOverride);
             return
 @"@echo off
 setlocal
-cd /d ""%~dp0..\FluidX3D"" || exit /b 1
+set ""SOURCE_DIR=__SOURCE_DIR__""
+set ""SOURCE_EXPORT_DIR=%SOURCE_DIR%\bin\export""
+set ""CASE_EXPORT_DIR=__CASE_EXPORT_DIR__""
+cd /d ""%SOURCE_DIR%"" || exit /b 1
 
 set ""VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe""
 set ""MSBUILD=""
@@ -586,9 +741,30 @@ if not defined FLUIDX3D_EXE (
   exit /b 1
 )
 
+for %%I in (""%FLUIDX3D_EXE%"") do set ""FLUIDX3D_EXE_PATH=%%~fI""
+if not exist ""%CASE_EXPORT_DIR%"" mkdir ""%CASE_EXPORT_DIR%"" >nul 2>nul
+
 echo Running FluidX3D from %FLUIDX3D_EXE%...
-""%FLUIDX3D_EXE%""
-set ""FLUIDX3D_EXIT=%ERRORLEVEL%""
+where powershell >nul 2>nul
+if errorlevel 1 (
+  echo PowerShell not found. Running without live VTK mirroring.
+  ""%FLUIDX3D_EXE%""
+  set ""FLUIDX3D_EXIT=%ERRORLEVEL%""
+) else (
+  powershell -NoProfile -ExecutionPolicy Bypass -Command ""$src=$env:SOURCE_EXPORT_DIR; $dst=$env:CASE_EXPORT_DIR; $exe=$env:FLUIDX3D_EXE_PATH; $wd=$env:SOURCE_DIR; if (-not [string]::IsNullOrWhiteSpace($dst)) { New-Item -ItemType Directory -Force -Path $dst | Out-Null }; $copy = { if (Test-Path $src) { Copy-Item -Path (Join-Path $src '*.vtk') -Destination $dst -Force -ErrorAction SilentlyContinue; Copy-Item -Path (Join-Path $src 'eddy_probe_transform.txt') -Destination $dst -Force -ErrorAction SilentlyContinue } }; & $copy; $p = Start-Process -FilePath $exe -WorkingDirectory $wd -NoNewWindow -PassThru; try { while (-not $p.HasExited) { & $copy; Start-Sleep -Seconds 2; $p.Refresh() } } finally { & $copy }; if (-not $p.HasExited) { $p.WaitForExit() }; exit $p.ExitCode""
+  set ""FLUIDX3D_EXIT=%ERRORLEVEL%""
+)
+
+if exist ""%SOURCE_EXPORT_DIR%"" (
+  robocopy ""%SOURCE_EXPORT_DIR%"" ""%CASE_EXPORT_DIR%"" *.vtk eddy_probe_transform.txt /R:1 /W:1 /NFL /NDL /NJH /NJS /NP >nul
+  set ""ROBO_EXIT=%ERRORLEVEL%""
+  if %ROBO_EXIT% GEQ 8 (
+    echo Warning: failed to mirror VTK outputs to %CASE_EXPORT_DIR%.
+  ) else (
+    echo VTK outputs mirrored to %CASE_EXPORT_DIR%.
+  )
+)
+
 if not ""%FLUIDX3D_EXIT%""==""0"" (
   echo FluidX3D failed with exit code %FLUIDX3D_EXIT%.
   pause
@@ -599,6 +775,8 @@ echo FluidX3D completed successfully.
 pause
 exit /b 0
 "
+            .Replace("__SOURCE_DIR__", sourceRootEscaped)
+            .Replace("__CASE_EXPORT_DIR__", caseExportEscaped)
             .Replace("__PLATFORM_TOOLSET__", safeToolset);
         }
 
@@ -801,6 +979,8 @@ exit /b 0
             sb.AppendLine("- Uref: " + settings.Uref.ToString(CultureInfo.InvariantCulture) + " m/s");
             sb.AppendLine("- zRef: " + settings.Zref.ToString(CultureInfo.InvariantCulture) + " m");
             sb.AppendLine("- z0: " + settings.Z0.ToString(CultureInfo.InvariantCulture) + " m");
+            sb.AppendLine("- Flow dir (x,y): (" + settings.FlowDirectionX.ToString(CultureInfo.InvariantCulture) + ", "
+                + settings.FlowDirectionY.ToString(CultureInfo.InvariantCulture) + ")");
             sb.AppendLine("- VRAM budget: " + settings.MemoryMb.ToString(CultureInfo.InvariantCulture) + " MB");
             sb.AppendLine("- Sim time: " + settings.SimSeconds.ToString(CultureInfo.InvariantCulture) + " s");
             sb.AppendLine("- Export interval: " + settings.ExportIntervalSeconds.ToString(CultureInfo.InvariantCulture) + " s");
@@ -816,7 +996,8 @@ exit /b 0
             sb.AppendLine();
             sb.AppendLine("ParaView");
             sb.AppendLine("--------");
-            sb.AppendLine("Open files in FluidX3D/bin/export (for example the latest u-*.vtk).");
+            sb.AppendLine("Open files in the case folder VTK directory (working-dir/FluidX3D/VTK).");
+            sb.AppendLine("Raw engine exports remain in the installed source at FluidX3D/bin/export.");
             sb.AppendLine("Use a Calculator filter with expression mag(data) to visualize velocity magnitude.");
             return sb.ToString();
         }
@@ -824,6 +1005,30 @@ exit /b 0
         private static string EscapeForCpp(string value)
         {
             return value.Replace("\\", "\\\\").Replace("\"", "\\\"");
+        }
+
+        private static string EscapeForBashDoubleQuotedString(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return string.Empty;
+            }
+
+            return value
+                .Replace("\\", "\\\\")
+                .Replace("\"", "\\\"")
+                .Replace("$", "\\$")
+                .Replace("`", "\\`");
+        }
+
+        private static string EscapeForBatchQuotedValue(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return string.Empty;
+            }
+
+            return value.Replace("\"", "\"\"");
         }
 
         private static string ToCppFloatLiteral(double value)

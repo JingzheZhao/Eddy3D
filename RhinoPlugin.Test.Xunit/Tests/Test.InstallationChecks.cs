@@ -104,6 +104,25 @@ namespace RhinoPlugin.Test.Xunit
         }
 
         [Fact]
+        public void Eddy3DInstallDir_UsesExpectedPlatformLocation()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                var expected = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "Eddy3D");
+                Assert.Equal(expected, DefaultDirectoriesAndPaths.Eddy3DInstallDir, ignoreCase: true);
+            }
+            else
+            {
+                var expected = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "Eddy3D");
+                Assert.Equal(expected, DefaultDirectoriesAndPaths.Eddy3DInstallDir);
+            }
+        }
+
+        [Fact]
         public void CasesDir_UsesExpectedPlatformLocation()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
