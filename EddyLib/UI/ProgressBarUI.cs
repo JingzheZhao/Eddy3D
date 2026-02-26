@@ -1,5 +1,6 @@
 ﻿using Eto.Drawing;
 using Eto.Forms;
+using System.Diagnostics;
 using System;
 using System.IO;
 using System.Text;
@@ -12,6 +13,9 @@ namespace EddyLib.UI
     {
         public Label Status;
         public TextArea StatusLog;
+        private Label TimeElapsed;
+        private Stopwatch stopwatch;
+        private UITimer timer;
 
         public bool Canceled = false;
         private ProgressBar pbar;
@@ -37,6 +41,12 @@ namespace EddyLib.UI
             Status = new Label();
             StatusLog = new TextArea() { Height = 150, ReadOnly = true, Font = Fonts.Monospace(10) };
 
+            TimeElapsed = new Label { Text = "00:00:00", VerticalAlignment = VerticalAlignment.Center, ToolTip = "Time elapsed since simulation started" };
+            stopwatch = Stopwatch.StartNew();
+            timer = new UITimer { Interval = 1.0 };
+            timer.Elapsed += (s, e) => { TimeElapsed.Text = stopwatch.Elapsed.ToString(@"hh\:mm\:ss"); };
+            timer.Start();
+
             pbar = new ProgressBar { ToolTip = "Simulation Progress" };
             var cancel = new Button { Text = "Cancel", ToolTip = "Abort the current simulation" };
             var cts = new CancellationTokenSource();
@@ -54,6 +64,7 @@ namespace EddyLib.UI
             Closing += (s, e) =>
             {
                 cts.Cancel();
+                timer.Stop();
             };
 
             // layout
@@ -66,6 +77,7 @@ namespace EddyLib.UI
             layout.Add(new Spinner { Height = 20, Enabled = true }, false, false);
             layout.Add(new Drawable { Width = 5 }, false, false);
             layout.Add(Status, true, false);
+            layout.Add(TimeElapsed, false, false);
             layout.EndHorizontal();
             layout.EndVertical();
             layout.BeginVertical();
