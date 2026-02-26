@@ -22,9 +22,8 @@ namespace EddyLib.OpenFOAM
 
             try
             {
-                var lines = ReadAllLinesShared(logPath);
-                var segment = GetMostRecentRun(lines);
-                AnalyzeSimulation(segment, status, options ?? new OpenFOAMLogParseOptions());
+                var lines = ReadLastRunLines(logPath);
+                AnalyzeSimulation(lines, status, options ?? new OpenFOAMLogParseOptions());
             }
             catch (Exception ex)
             {
@@ -46,9 +45,8 @@ namespace EddyLib.OpenFOAM
 
             try
             {
-                var lines = ReadAllLinesShared(logPath);
-                var segment = GetMostRecentRun(lines);
-                AnalyzeMeshing(segment, status, options ?? new OpenFOAMLogParseOptions());
+                var lines = ReadLastRunLines(logPath);
+                AnalyzeMeshing(lines, status, options ?? new OpenFOAMLogParseOptions());
             }
             catch (Exception ex)
             {
@@ -208,36 +206,28 @@ namespace EddyLib.OpenFOAM
             }
         }
 
-        private static string[] ReadAllLinesShared(string path)
+        /// <summary>
+        /// Reads the log file and extracts lines for the most recent run only.
+        /// This is memory-optimized to avoid loading the entire file content at once.
+        /// </summary>
+        private static List<string> ReadLastRunLines(string path)
         {
+            var lines = new List<string>();
             using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             using (var reader = new StreamReader(stream))
             {
-                var text = reader.ReadToEnd();
-                text = text.Replace("\r\n", "\n").Replace("\r", "\n");
-                return text.Split('\n');
-            }
-        }
-
-        private static IReadOnlyList<string> GetMostRecentRun(string[] lines)
-        {
-            if (lines == null || lines.Length == 0)
-                return Array.Empty<string>();
-
-            int startIndex = 0;
-            for (int i = lines.Length - 1; i >= 0; i--)
-            {
-                if (lines[i]?.IndexOf("Create time", StringComparison.OrdinalIgnoreCase) >= 0)
+                string line;
+                while ((line = reader.ReadLine()) != null)
                 {
-                    startIndex = i;
-                    break;
+                    // "Create time" marks the start of a new run (or restart)
+                    if (line.IndexOf("Create time", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        lines.Clear();
+                    }
+                    lines.Add(line);
                 }
             }
-
-            if (startIndex <= 0)
-                return lines;
-
-            return lines.Skip(startIndex).ToArray();
+            return lines;
         }
 
         private static bool IsEndLine(string line) =>
