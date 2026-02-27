@@ -19,11 +19,15 @@ namespace EddyLib.OpenFOAM
                 return status;
 
             status.HasLog = true;
+            options = options ?? new OpenFOAMLogParseOptions();
 
             try
             {
-                var lines = ReadLastRunLines(logPath);
-                AnalyzeSimulation(lines, status, options ?? new OpenFOAMLogParseOptions());
+                using (var stream = new FileStream(logPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var reader = new StreamReader(stream))
+                {
+                    ParseSimulationStream(reader, status, options);
+                }
             }
             catch (Exception ex)
             {
@@ -34,30 +38,7 @@ namespace EddyLib.OpenFOAM
             return status;
         }
 
-        public static OpenFOAMLogStatus ParseMeshingLog(string logPath, OpenFOAMLogParseOptions options = null)
-        {
-            var status = new OpenFOAMLogStatus { LogPath = logPath };
-
-            if (string.IsNullOrWhiteSpace(logPath) || !File.Exists(logPath))
-                return status;
-
-            status.HasLog = true;
-
-            try
-            {
-                var lines = ReadLastRunLines(logPath);
-                AnalyzeMeshing(lines, status, options ?? new OpenFOAMLogParseOptions());
-            }
-            catch (Exception ex)
-            {
-                status.HasError = true;
-                status.ErrorMessage = ex.Message;
-            }
-
-            return status;
-        }
-
-        private static void AnalyzeSimulation(IReadOnlyList<string> lines, OpenFOAMLogStatus status, OpenFOAMLogParseOptions options)
+        private static void ParseSimulationStream(StreamReader reader, OpenFOAMLogStatus status, OpenFOAMLogParseOptions options)
         {
             bool hasError = false;
             bool finished = false;
@@ -67,28 +48,40 @@ namespace EddyLib.OpenFOAM
 
             var records = new List<(double Time, double Exec)>();
 
-            foreach (var raw in lines)
+            string rawLine;
+            while ((rawLine = reader.ReadLine()) != null)
             {
-                var line = raw?.Trim();
-                if (string.IsNullOrEmpty(line))
+                var lineSpan = rawLine.AsSpan().Trim();
+                if (lineSpan.IsEmpty)
                     continue;
 
-                lastNonEmpty = line;
+                lastNonEmpty = rawLine.Trim();
 
-                if (IsErrorLine(line))
+                // Reset state on new run
+                if (lineSpan.IndexOf("Create time".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    hasError = false;
+                    finished = false;
+                    currentTime = null;
+                    executionTime = null;
+                    status.ErrorMessage = null;
+                    records.Clear();
+                }
+
+                if (IsErrorLine(lineSpan))
                 {
                     hasError = true;
                     if (string.IsNullOrWhiteSpace(status.ErrorMessage))
-                        status.ErrorMessage = line;
+                        status.ErrorMessage = lastNonEmpty;
                 }
 
-                if (IsEndLine(line))
+                if (IsEndLine(lineSpan))
                     finished = true;
 
-                if (TryParseTimeLine(line, out var timeVal))
+                if (TryParseTimeLine(lineSpan, out var timeVal))
                     currentTime = timeVal;
 
-                if (TryParseExecutionTime(line, out var execVal))
+                if (TryParseExecutionTime(lineSpan, out var execVal))
                 {
                     executionTime = execVal;
                     if (currentTime.HasValue)
@@ -120,7 +113,34 @@ namespace EddyLib.OpenFOAM
             }
         }
 
-        private static void AnalyzeMeshing(IReadOnlyList<string> lines, OpenFOAMLogStatus status, OpenFOAMLogParseOptions options)
+        public static OpenFOAMLogStatus ParseMeshingLog(string logPath, OpenFOAMLogParseOptions options = null)
+        {
+            var status = new OpenFOAMLogStatus { LogPath = logPath };
+
+            if (string.IsNullOrWhiteSpace(logPath) || !File.Exists(logPath))
+                return status;
+
+            status.HasLog = true;
+            options = options ?? new OpenFOAMLogParseOptions();
+
+            try
+            {
+                using (var stream = new FileStream(logPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var reader = new StreamReader(stream))
+                {
+                    ParseMeshingStream(reader, status, options);
+                }
+            }
+            catch (Exception ex)
+            {
+                status.HasError = true;
+                status.ErrorMessage = ex.Message;
+            }
+
+            return status;
+        }
+
+        private static void ParseMeshingStream(StreamReader reader, OpenFOAMLogStatus status, OpenFOAMLogParseOptions options)
         {
             bool hasError = false;
             bool finished = false;
@@ -132,36 +152,50 @@ namespace EddyLib.OpenFOAM
             double currentMorphDuration = 0;
             var morphDurations = new List<double>();
 
-            foreach (var raw in lines)
+            string rawLine;
+            while ((rawLine = reader.ReadLine()) != null)
             {
-                var line = raw?.Trim();
-                if (string.IsNullOrEmpty(line))
+                var lineSpan = rawLine.AsSpan().Trim();
+                if (lineSpan.IsEmpty)
                     continue;
 
-                lastNonEmpty = line;
+                lastNonEmpty = rawLine.Trim();
 
-                if (IsErrorLine(line))
+                // Reset state on new run
+                if (lineSpan.IndexOf("Create time".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    hasError = false;
+                    finished = false;
+                    status.ErrorMessage = null;
+                    phase = null;
+                    currentMorphIteration = null;
+                    totalMorphIterations = null;
+                    currentMorphDuration = 0;
+                    morphDurations.Clear();
+                }
+
+                if (IsErrorLine(lineSpan))
                 {
                     hasError = true;
                     if (string.IsNullOrWhiteSpace(status.ErrorMessage))
-                        status.ErrorMessage = line;
+                        status.ErrorMessage = lastNonEmpty;
                 }
 
-                if (line.StartsWith("Finished meshing", StringComparison.OrdinalIgnoreCase))
+                if (lineSpan.StartsWith("Finished meshing".AsSpan(), StringComparison.OrdinalIgnoreCase))
                     finished = true;
 
-                if (IsEndLine(line))
+                if (IsEndLine(lineSpan))
                     finished = true;
 
-                if (line.IndexOf("Morphing phase", StringComparison.OrdinalIgnoreCase) >= 0)
+                if (lineSpan.IndexOf("Morphing phase".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
                     phase = "Morphing";
-                else if (line.IndexOf("Refinement phase", StringComparison.OrdinalIgnoreCase) >= 0)
+                else if (lineSpan.IndexOf("Refinement phase".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
                     phase = "Refinement";
 
-                if (TryParseMorphIterationsTotal(line, out var totalMorph))
+                if (TryParseMorphIterationsTotal(lineSpan, out var totalMorph))
                     totalMorphIterations = totalMorph;
 
-                if (TryParseMorphIteration(line, out var morphIter))
+                if (TryParseMorphIteration(lineSpan, out var morphIter))
                 {
                     if (currentMorphIteration.HasValue && currentMorphDuration > 0)
                         morphDurations.Add(currentMorphDuration);
@@ -173,9 +207,9 @@ namespace EddyLib.OpenFOAM
 
                 if (currentMorphIteration.HasValue)
                 {
-                    if (TryParseDurationLine(line, "Calculated surface displacement in", out var seconds) ||
-                        TryParseDurationLine(line, "Displacement smoothed in", out seconds) ||
-                        TryParseDurationLine(line, "Moved mesh in", out seconds))
+                    if (TryParseDurationLine(lineSpan, "Calculated surface displacement in", out var seconds) ||
+                        TryParseDurationLine(lineSpan, "Displacement smoothed in", out seconds) ||
+                        TryParseDurationLine(lineSpan, "Moved mesh in", out seconds))
                     {
                         currentMorphDuration += seconds;
                     }
@@ -206,48 +240,24 @@ namespace EddyLib.OpenFOAM
             }
         }
 
-        /// <summary>
-        /// Reads the log file and extracts lines for the most recent run only.
-        /// This is memory-optimized to avoid loading the entire file content at once.
-        /// </summary>
-        private static List<string> ReadLastRunLines(string path)
-        {
-            var lines = new List<string>();
-            using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            using (var reader = new StreamReader(stream))
-            {
-                string line;
-                while ((line = reader.ReadLine()) != null)
-                {
-                    // "Create time" marks the start of a new run (or restart)
-                    if (line.IndexOf("Create time", StringComparison.OrdinalIgnoreCase) >= 0)
-                    {
-                        lines.Clear();
-                    }
-                    lines.Add(line);
-                }
-            }
-            return lines;
-        }
-
-        private static bool IsEndLine(string line) =>
+        private static bool IsEndLine(ReadOnlySpan<char> line) =>
             line.Equals("End", StringComparison.OrdinalIgnoreCase);
 
-        private static bool IsErrorLine(string line)
+        private static bool IsErrorLine(ReadOnlySpan<char> line)
         {
-            if (line.IndexOf("FOAM FATAL", StringComparison.OrdinalIgnoreCase) >= 0)
+            if (line.IndexOf("FOAM FATAL".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
                 return true;
 
             if (line.StartsWith("Aborting", StringComparison.OrdinalIgnoreCase))
                 return true;
 
-            if (line.IndexOf("Segmentation fault", StringComparison.OrdinalIgnoreCase) >= 0)
+            if (line.IndexOf("Segmentation fault".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
                 return true;
 
             return false;
         }
 
-        private static bool TryParseTimeLine(string line, out double time)
+        private static bool TryParseTimeLine(ReadOnlySpan<char> line, out double time)
         {
             time = 0;
             if (!line.StartsWith("Time", StringComparison.OrdinalIgnoreCase))
@@ -256,62 +266,83 @@ namespace EddyLib.OpenFOAM
             return TryParseAfterEquals(line, out time);
         }
 
-        private static bool TryParseExecutionTime(string line, out double execTime)
+        private static bool TryParseExecutionTime(ReadOnlySpan<char> line, out double execTime)
         {
             execTime = 0;
-            if (line.IndexOf("ExecutionTime", StringComparison.OrdinalIgnoreCase) < 0)
+            if (line.IndexOf("ExecutionTime".AsSpan(), StringComparison.OrdinalIgnoreCase) < 0)
                 return false;
 
             return TryParseAfterEquals(line, out execTime);
         }
 
-        private static bool TryParseMorphIterationsTotal(string line, out int total)
+        private static bool TryParseMorphIterationsTotal(ReadOnlySpan<char> line, out int total)
         {
             total = 0;
             const string marker = "Snapping to features in";
-            int idx = line.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+            int idx = line.IndexOf(marker.AsSpan(), StringComparison.OrdinalIgnoreCase);
             if (idx < 0)
                 return false;
 
-            var tail = line.Substring(idx + marker.Length).Trim();
-            var token = tail.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
-            return int.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out total);
+            var tail = line.Slice(idx + marker.Length).Trim();
+            return TryParseFirstIntegerToken(tail, out total);
         }
 
-        private static bool TryParseMorphIteration(string line, out int iteration)
+        private static bool TryParseMorphIteration(ReadOnlySpan<char> line, out int iteration)
         {
             iteration = 0;
             const string marker = "Morph iteration";
-            if (line.IndexOf(marker, StringComparison.OrdinalIgnoreCase) < 0)
+            int idx = line.IndexOf(marker.AsSpan(), StringComparison.OrdinalIgnoreCase);
+            if (idx < 0)
                 return false;
 
-            var tail = line.Substring(line.IndexOf(marker, StringComparison.OrdinalIgnoreCase) + marker.Length).Trim();
-            var token = tail.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
-            return int.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out iteration);
+            var tail = line.Slice(idx + marker.Length).Trim();
+            return TryParseFirstIntegerToken(tail, out iteration);
         }
 
-        private static bool TryParseDurationLine(string line, string marker, out double seconds)
+        private static bool TryParseDurationLine(ReadOnlySpan<char> line, string marker, out double seconds)
         {
             seconds = 0;
-            if (line.IndexOf(marker, StringComparison.OrdinalIgnoreCase) < 0)
+            if (line.IndexOf(marker.AsSpan(), StringComparison.OrdinalIgnoreCase) < 0)
                 return false;
 
             return TryParseAfterEquals(line, out seconds);
         }
 
-        private static bool TryParseAfterEquals(string line, out double value)
+        private static bool TryParseAfterEquals(ReadOnlySpan<char> line, out double value)
         {
             value = 0;
             var idx = line.IndexOf('=');
             if (idx < 0 || idx + 1 >= line.Length)
                 return false;
 
-            var tail = line.Substring(idx + 1).Trim();
-            var token = tail.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
-            if (string.IsNullOrWhiteSpace(token))
-                return false;
+            var tail = line.Slice(idx + 1).Trim();
+            return TryParseFirstDoubleToken(tail, out value);
+        }
 
+        private static bool TryParseFirstDoubleToken(ReadOnlySpan<char> span, out double value)
+        {
+            value = 0;
+            var token = GetFirstToken(span);
+            if (token.IsEmpty) return false;
             return double.TryParse(token, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+        }
+
+        private static bool TryParseFirstIntegerToken(ReadOnlySpan<char> span, out int value)
+        {
+            value = 0;
+            var token = GetFirstToken(span);
+            if (token.IsEmpty) return false;
+            return int.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out value);
+        }
+
+        private static ReadOnlySpan<char> GetFirstToken(ReadOnlySpan<char> span)
+        {
+            int end = 0;
+            while (end < span.Length && !char.IsWhiteSpace(span[end]))
+            {
+                end++;
+            }
+            return span.Slice(0, end);
         }
 
         private static double? RollingAverageDuration(List<(double Time, double Exec)> records, int window)
