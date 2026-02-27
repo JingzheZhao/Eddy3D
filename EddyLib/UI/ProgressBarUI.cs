@@ -49,6 +49,7 @@ namespace EddyLib.UI
 
             pbar = new ProgressBar { ToolTip = "Simulation Progress" };
             var cancel = new Button { Text = "Cancel", ToolTip = "Abort the current simulation" };
+            var copyLog = new Button { Text = "Copy Log", ToolTip = "Copy the simulation log to clipboard" };
             var cts = new CancellationTokenSource();
             var uiThread = SynchronizationContext.Current;
 
@@ -59,6 +60,18 @@ namespace EddyLib.UI
                 {
                     Canceled = true;
                     Close();
+                }
+            };
+            copyLog.Click += (s, e) =>
+            {
+                try
+                {
+                    Clipboard.Instance.Text = StatusLog.Text;
+                    MessageBox.Show(this, "Log copied to clipboard.", "Success", MessageBoxButtons.OK, MessageBoxType.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(this, $"Failed to copy log: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxType.Error);
                 }
             };
             Closing += (s, e) =>
@@ -86,7 +99,11 @@ namespace EddyLib.UI
 
             layout.BeginVertical();
             layout.Add(null, true, true);
-            layout.Add(cancel, true, false);
+            layout.BeginHorizontal();
+            layout.Add(null, true, false);
+            layout.Add(copyLog, false, false);
+            layout.Add(cancel, false, false);
+            layout.EndHorizontal();
             layout.EndVertical();
             Content = layout;
 
