@@ -449,23 +449,49 @@ namespace EddyLib
         /// <param name="fileName">File name.</param>
         /// <param name="start">Start.</param>
         /// <param name="stop">Stop.</param>
+        private static double[] ParseILLLine(ReadOnlySpan<char> span)
+        {
+            const int dataStart = 4;
+            int currentTokenIndex = 0;
+            var values = new List<double>();
+
+            int spaceIndex;
+            while ((spaceIndex = span.IndexOf(' ')) != -1)
+            {
+                if (spaceIndex > 0)
+                {
+                    if (currentTokenIndex >= dataStart)
+                    {
+                        values.Add(double.Parse(span.Slice(0, spaceIndex), CultureInfo.InvariantCulture));
+                    }
+                    currentTokenIndex++;
+                }
+                span = span.Slice(spaceIndex + 1);
+            }
+
+            if (span.Length > 0)
+            {
+                if (currentTokenIndex >= dataStart)
+                {
+                    values.Add(double.Parse(span, CultureInfo.InvariantCulture));
+                }
+            }
+
+            return values.ToArray();
+        }
+
         public static double[][] loadILL(string fileName, int start, int stop)
         {
             // [x][] time [][x] points
 
             double[][] values = new double[stop - start][];
-            string[] lines = System.IO.File.ReadAllLines(fileName);
+            int index = 0;
 
-            for (int h = start; h < stop; h++)
+            foreach (string line in System.IO.File.ReadLines(fileName).Skip(start).Take(stop - start))
             {
-                string[] parts = lines[h].Split(' ');
-                int dataStart = 4;
-                int dataLen = parts.Length - dataStart;
-                double[] hourDataDouble = new double[dataLen];
-                for (int k = 0; k < dataLen; k++)
-                    hourDataDouble[k] = double.Parse(parts[k + dataStart]);
-                values[h - start] = hourDataDouble;
+                values[index++] = ParseILLLine(line.AsSpan());
             }
+
             return values;
         }
 
@@ -477,13 +503,7 @@ namespace EddyLib
             var values = new List<double[]>();
             foreach (string line in System.IO.File.ReadLines(illFileName))
             {
-                string[] parts = line.Split(' ');
-                int dataStart = 4;
-                int dataLen = parts.Length - dataStart;
-                double[] hourDataDouble = new double[dataLen];
-                for (int k = 0; k < dataLen; k++)
-                    hourDataDouble[k] = double.Parse(parts[k + dataStart]);
-                values.Add(hourDataDouble);
+                values.Add(ParseILLLine(line.AsSpan()));
             }
             return values.ToArray();
         }
@@ -493,19 +513,12 @@ namespace EddyLib
             // [x][] time
             // [][x] points
 
-            string[] lines = System.IO.File.ReadAllLines(illFileName);
-            double[][] values = new double[lines.Length][];
-
-            for (int h = 0; h < lines.Length; h++)
+            var valuesList = new List<double[]>();
+            foreach (string line in System.IO.File.ReadLines(illFileName))
             {
-                string[] parts = lines[h].Split(' ');
-                int dataStart = 4;
-                int dataLen = parts.Length - dataStart;
-                double[] hourDataDouble = new double[dataLen];
-                for (int k = 0; k < dataLen; k++)
-                    hourDataDouble[k] = double.Parse(parts[k + dataStart]);
-                values[h] = hourDataDouble;
+                valuesList.Add(ParseILLLine(line.AsSpan()));
             }
+            double[][] values = valuesList.ToArray();
 
             writeBin(illFileName + ".bin", values);
         }
@@ -1009,20 +1022,46 @@ namespace EddyLib
             bw.Close();
         }
 
+        private static double[] ParseDCLine(ReadOnlySpan<char> span)
+        {
+            var values = new List<double>();
+
+            // Trim
+            span = span.Trim();
+
+            int tabIndex;
+            while ((tabIndex = span.IndexOf('\t')) != -1)
+            {
+                if (tabIndex > 0)
+                {
+                    values.Add(double.Parse(span.Slice(0, tabIndex), CultureInfo.InvariantCulture));
+                }
+                span = span.Slice(tabIndex + 1);
+            }
+
+            if (span.Length > 0)
+            {
+                values.Add(double.Parse(span, CultureInfo.InvariantCulture));
+            }
+
+            return values.ToArray();
+        }
+
         public static double[][] loadDC(string file) // total illuminance data
         {
             // [x][] lines [][x] coeffs
 
-            string[] lines = System.IO.File.ReadAllLines(file).Where(x => !x.Trim().StartsWith("#")).ToArray();
-            double[][] values = new double[lines.Length][];
+            var valuesList = new List<double[]>();
 
-            for (int h = 0; h < lines.Length; h++)
+            foreach (string line in System.IO.File.ReadLines(file))
             {
-                string[] data = lines[h].Trim().Split('\t').ToArray();
-                double[] dataDouble = Array.ConvertAll<string, double>(data, Double.Parse);
-                values[h] = dataDouble;
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                if (line.TrimStart().StartsWith("#")) continue;
+
+                valuesList.Add(ParseDCLine(line.AsSpan()));
             }
-            return values;
+
+            return valuesList.ToArray();
         }
 
         public static void writeDC(string file, double[][] dif, double[][] dir) // total illuminance data
