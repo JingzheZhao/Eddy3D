@@ -49,6 +49,7 @@ namespace EddyLib.UI
 
             pbar = new ProgressBar { ToolTip = "Simulation Progress" };
             var cancel = new Button { Text = "Cancel", ToolTip = "Abort the current simulation" };
+            AbortButton = cancel;
             var copyLog = new Button { Text = "Copy Log", ToolTip = "Copy the simulation log to clipboard" };
             var cts = new CancellationTokenSource();
             var uiThread = SynchronizationContext.Current;
