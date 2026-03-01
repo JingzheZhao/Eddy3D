@@ -28,15 +28,16 @@ namespace Urbano.Simulation
         public ProgressDialog(Func<CancellationTokenSource, Task> task, double refreshRate = 1000)
         {
             Title = "Simulation Progress";
-            BackgroundColor = Colors.Gray;
+            //BackgroundColor = Colors.Gray; // Removed to respect system theme
             //Icon = Icon.FromResource("Properties.Resources.urbano_icon.png");
             ClientSize = new Size(400, 200);
             ShowInTaskbar = true;
 
             // controls
             Status = new Label();
-            pbar = new ProgressBar();
-            var cancel = new Button { Text = "Cancel" };
+            pbar = new ProgressBar { ToolTip = "Simulation Progress" };
+            var cancel = new Button { Text = "Cancel", ToolTip = "Abort the current simulation" };
+            AbortButton = cancel; // Add Escape key support
             var cts = new CancellationTokenSource();
             var uiThread = SynchronizationContext.Current;
 
