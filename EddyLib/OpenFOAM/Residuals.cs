@@ -33,24 +33,25 @@ namespace EddyLib
             var iterations = new List<double>();
             var fieldNames = new List<string>();
             var values = new List<List<double>>();
+            var rowValues = new List<double>(); // reuse buffer
 
             foreach (var rawLine in File.ReadLines(filePath))
             {
-                var line = rawLine.Trim();
-                if (line.Length == 0)
+                ReadOnlySpan<char> span = rawLine.AsSpan().Trim();
+                if (span.Length == 0)
                 {
                     continue;
                 }
 
-                if (line.StartsWith("#"))
+                if (span[0] == '#')
                 {
                     if (fieldNames.Count == 0)
                     {
-                        var header = line.TrimStart('#').Trim();
-                        var headerFields = SplitFields(header);
-                        if (headerFields.Length > 1)
+                        var header = span.Slice(1).Trim();
+                        var headerFields = SplitFieldsSpan(header);
+                        if (headerFields.Count > 1)
                         {
-                            for (int i = 1; i < headerFields.Length; i++)
+                            for (int i = 1; i < headerFields.Count; i++)
                             {
                                 fieldNames.Add(headerFields[i]);
                             }
@@ -59,18 +60,35 @@ namespace EddyLib
                     continue;
                 }
 
-                var parts = SplitFields(line);
-                if (parts.Length < 2)
+                // Optimization: avoid string.Split to reduce GC allocations on O(N) lines parsing.
+                // Collect parsed values temporarily to ensure the row is complete (>= 2 columns)
+                // before appending to the main lists, preserving original parallel array sync and exceptions.
+                int start = 0;
+                rowValues.Clear(); // reuse buffer
+                for (int i = 0; i <= span.Length; i++)
+                {
+                    if (i == span.Length || span[i] == ' ' || span[i] == '\t')
+                    {
+                        if (i > start)
+                        {
+                            var token = span.Slice(start, i - start);
+                            rowValues.Add(double.Parse(token, NumberStyles.Float, CultureInfo.InvariantCulture));
+                        }
+                        start = i + 1;
+                    }
+                }
+
+                if (rowValues.Count < 2)
                 {
                     continue;
                 }
 
-                EnsureValueLists(values, parts.Length - 1);
-                iterations.Add(ParseDouble(parts[0]));
+                EnsureValueLists(values, rowValues.Count - 1);
+                iterations.Add(rowValues[0]);
 
-                for (int i = 1; i < parts.Length; i++)
+                for (int i = 1; i < rowValues.Count; i++)
                 {
-                    values[i - 1].Add(ParseDouble(parts[i]));
+                    values[i - 1].Add(rowValues[i]);
                 }
             }
 
@@ -85,9 +103,22 @@ namespace EddyLib
             return new ResidualsData(iterations, fieldNames, values);
         }
 
-        private static string[] SplitFields(string line)
+        private static List<string> SplitFieldsSpan(ReadOnlySpan<char> span)
         {
-            return line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+            var results = new List<string>();
+            int start = 0;
+            for (int i = 0; i <= span.Length; i++)
+            {
+                if (i == span.Length || span[i] == ' ' || span[i] == '\t')
+                {
+                    if (i > start)
+                    {
+                        results.Add(span.Slice(start, i - start).ToString());
+                    }
+                    start = i + 1;
+                }
+            }
+            return results;
         }
 
         private static void EnsureValueLists(List<List<double>> values, int count)
@@ -96,11 +127,6 @@ namespace EddyLib
             {
                 values.Add(new List<double>());
             }
-        }
-
-        private static double ParseDouble(string value)
-        {
-            return double.Parse(value, CultureInfo.InvariantCulture);
         }
     }
 }
