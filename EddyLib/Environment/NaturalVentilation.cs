@@ -31,19 +31,35 @@ namespace EddyLib
 
             var C_D_general = 0.7;
 
-            var listOfInputCpsPos = listOfCps.Where(x => x > 0).ToList();
-            var listOfInputCpsNeg = listOfCps.Where(x => x < 0).ToList();
+            double sumCpPos = 0;
+            int countCpPosVals = 0;
+            double sumCpNeg = 0;
+            int countCpNegVals = 0;
+
+            foreach (var cp in listOfCps)
+            {
+                if (cp > 0)
+                {
+                    sumCpPos += cp;
+                    countCpPosVals++;
+                }
+                else if (cp < 0)
+                {
+                    sumCpNeg += cp;
+                    countCpNegVals++;
+                }
+            }
 
             double AverageCpPos = 0;
-            if (listOfInputCpsPos.Count > 0)
+            if (countCpPosVals > 0)
             {
-                AverageCpPos = listOfInputCpsPos.Average();
+                AverageCpPos = sumCpPos / countCpPosVals;
             }
 
             double AverageCpNeg = 0;
-            if (listOfInputCpsNeg.Count > 0)
+            if (countCpNegVals > 0)
             {
-                AverageCpNeg = listOfInputCpsNeg.Average();
+                AverageCpNeg = sumCpNeg / countCpNegVals;
             }
 
             double sumAreaCpNeg = 0;
