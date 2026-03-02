@@ -101,13 +101,27 @@ namespace Urbano.Simulation
         protected override void OnPaint(PaintEventArgs e)
         {
             var rect = new RectangleF(Size);
+            var fullRect = rect;
             e.Graphics.FillRectangle(new SolidBrush(backColor), rect);
             float w = Progress > 1 ? 1 : Progress;
+            if (w < 0) w = 0;
+
             if (w > 0)
             {
                 rect.Width *= w;
                 e.Graphics.FillRectangle(new SolidBrush(fillColor), rect);
             }
+
+            // Draw percentage text
+            string text = $"{(int)(w * 100)}%";
+            var font = SystemFonts.Label();
+            var textSize = e.Graphics.MeasureString(font, text);
+            var textLocation = new PointF(
+                fullRect.X + (fullRect.Width - textSize.Width) / 2,
+                fullRect.Y + (fullRect.Height - textSize.Height) / 2
+            );
+            e.Graphics.DrawText(font, Colors.Black, textLocation + new SizeF(1, 1), text);
+            e.Graphics.DrawText(font, Colors.White, textLocation, text);
         }
     }
 
