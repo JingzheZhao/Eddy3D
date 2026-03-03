@@ -68,7 +68,11 @@ namespace EddyLib.UI
                 try
                 {
                     Clipboard.Instance.Text = StatusLog.Text;
-                    MessageBox.Show(this, "Log copied to clipboard.", "Success", MessageBoxButtons.OK, MessageBoxType.Information);
+                    copyLog.Text = "Copied!";
+                    Task.Delay(2000).ContinueWith((t) =>
+                    {
+                        if (uiThread != null) uiThread.Post((object state) => { copyLog.Text = "Copy Log"; }, null);
+                    });
                 }
                 catch (Exception ex)
                 {
