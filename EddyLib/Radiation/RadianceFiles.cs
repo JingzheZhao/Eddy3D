@@ -452,32 +452,45 @@ namespace EddyLib
         private static double[] ParseILLLine(ReadOnlySpan<char> span)
         {
             const int dataStart = 4;
-            int currentTokenIndex = 0;
-            var values = new List<double>();
 
+            // First pass: count total valid tokens
+            int tokenCount = 0;
             int spaceIndex;
+            var tempSpan = span;
+
+            while ((spaceIndex = tempSpan.IndexOf(' ')) != -1)
+            {
+                if (spaceIndex > 0) tokenCount++;
+                tempSpan = tempSpan.Slice(spaceIndex + 1);
+            }
+            if (tempSpan.Length > 0) tokenCount++;
+
+            int resultSize = Math.Max(0, tokenCount - dataStart);
+            if (resultSize == 0) return Array.Empty<double>();
+
+            var results = new double[resultSize];
+            int currentTokenIndex = 0;
+            int resultIndex = 0;
+
             while ((spaceIndex = span.IndexOf(' ')) != -1)
             {
                 if (spaceIndex > 0)
                 {
                     if (currentTokenIndex >= dataStart)
                     {
-                        values.Add(double.Parse(span.Slice(0, spaceIndex), CultureInfo.InvariantCulture));
+                        results[resultIndex++] = double.Parse(span.Slice(0, spaceIndex), CultureInfo.InvariantCulture);
                     }
                     currentTokenIndex++;
                 }
                 span = span.Slice(spaceIndex + 1);
             }
 
-            if (span.Length > 0)
+            if (span.Length > 0 && currentTokenIndex >= dataStart)
             {
-                if (currentTokenIndex >= dataStart)
-                {
-                    values.Add(double.Parse(span, CultureInfo.InvariantCulture));
-                }
+                results[resultIndex] = double.Parse(span, CultureInfo.InvariantCulture);
             }
 
-            return values.ToArray();
+            return results;
         }
 
         public static double[][] loadILL(string fileName, int start, int stop)

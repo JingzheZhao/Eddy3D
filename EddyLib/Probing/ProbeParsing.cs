@@ -17,19 +17,45 @@ namespace EddyLib
             if (string.IsNullOrEmpty(lastLine))
                 return new GH_Number[pointCount];
 
-            var parts = lastLine.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-
+            var span = lastLine.AsSpan();
             var results = new GH_Number[pointCount];
-            for (int i = 0; i < pointCount; i++)
+            int valIdx = 0;
+
+            // Skip initial spaces if any
+            while (span.Length > 0 && span[0] == ' ')
             {
-                // parts[0] is time, so data starts at index 1
-                if (i + 1 < parts.Length)
+                span = span.Slice(1);
+            }
+
+            // Find the end of the time token (first space)
+            int idx = span.IndexOf(' ');
+            if (idx != -1)
+            {
+                span = span.Slice(idx + 1);
+            }
+            else
+            {
+                return results; // No data after time
+            }
+
+            while ((idx = span.IndexOf(' ')) != -1 && valIdx < pointCount)
+            {
+                if (idx > 0)
                 {
-                    var temp = double.Parse(parts[i + 1]);
+                    var temp = double.Parse(span.Slice(0, idx), System.Globalization.CultureInfo.InvariantCulture);
                     var target = new GH_Number(0);
                     GH_Convert.ToGHNumber(temp, GH_Conversion.Both, ref target);
-                    results[i] = target;
+                    results[valIdx++] = target;
                 }
+                span = span.Slice(idx + 1);
+            }
+
+            if (span.Length > 0 && valIdx < pointCount)
+            {
+                var temp = double.Parse(span, System.Globalization.CultureInfo.InvariantCulture);
+                var target = new GH_Number(0);
+                GH_Convert.ToGHNumber(temp, GH_Conversion.Both, ref target);
+                results[valIdx] = target;
             }
 
             return results;
@@ -41,21 +67,51 @@ namespace EddyLib
             if (string.IsNullOrEmpty(lastLine))
                 return new GH_Vector[pointCount];
 
-            // Optimized parsing: split by space, '(', and ')' directly.
-            // This avoids regex allocation and intermediate string creation.
-            var parts = lastLine.Split(new[] { ' ', '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
-
+            var span = lastLine.AsSpan();
             var results = new GH_Vector[pointCount];
-            int counter = 1; // Start at 1 to skip Time
+            int maxVals = pointCount * 3;
+            var values = new double[maxVals];
+            int valIdx = 0;
+
+            // Skip initial spaces if any
+            while (span.Length > 0 && span[0] == ' ')
+            {
+                span = span.Slice(1);
+            }
+
+            // Find the end of the time token (first space)
+            int idx = span.IndexOf(' ');
+            if (idx != -1)
+            {
+                span = span.Slice(idx + 1);
+            }
+            else
+            {
+                return results; // No data after time
+            }
+
+            while ((idx = span.IndexOfAny(' ', '(', ')')) != -1 && valIdx < maxVals)
+            {
+                if (idx > 0)
+                {
+                    values[valIdx++] = double.Parse(span.Slice(0, idx), System.Globalization.CultureInfo.InvariantCulture);
+                }
+                span = span.Slice(idx + 1);
+            }
+
+            if (span.Length > 0 && valIdx < maxVals)
+            {
+                values[valIdx++] = double.Parse(span, System.Globalization.CultureInfo.InvariantCulture);
+            }
+
             for (int i = 0; i < pointCount; i++)
             {
-                if (counter + 2 < parts.Length)
+                if (i * 3 + 2 < valIdx)
                 {
-                    var temp = new Vector3d(double.Parse(parts[counter]), double.Parse(parts[counter + 1]), double.Parse(parts[counter + 2]));
+                    var temp = new Vector3d(values[i * 3], values[i * 3 + 1], values[i * 3 + 2]);
                     var target = new GH_Vector();
                     GH_Convert.ToGHVector(temp, GH_Conversion.Both, ref target);
                     results[i] = target;
-                    counter += 3;
                 }
             }
 
