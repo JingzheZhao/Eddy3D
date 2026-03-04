@@ -376,22 +376,24 @@ namespace EddyLib
 
         public static void writePTS(string pts_path, List<Point3d> pts, List<Vector3d> pts_norm)
         {
-            StringBuilder sb = new StringBuilder();
+            // Bolt: Replaced StringBuilder with StreamWriter to stream directly to disk,
+            // preventing LOH allocations and OOM exceptions on large datasets.
+            using var sw = new StreamWriter(pts_path);
             for (int k = 0; k < pts.Count; k++)
             {
-                sb.AppendLine(FormatPointAndNormal(pts[k], pts_norm[k]));
+                sw.WriteLine(FormatPointAndNormal(pts[k], pts_norm[k]));
             }
-            File.WriteAllText(pts_path, sb.ToString());
         }
 
         public static void writePTS(string pts_path, List<Point3d> pts)
         {
-            StringBuilder sb = new StringBuilder();
+            // Bolt: Replaced StringBuilder with StreamWriter to stream directly to disk,
+            // preventing LOH allocations and OOM exceptions on large datasets.
+            using var sw = new StreamWriter(pts_path);
             for (int k = 0; k < pts.Count; k++)
             {
-                sb.AppendLine(FormatPointAndNormal(pts[k], Vector3d.ZAxis));
+                sw.WriteLine(FormatPointAndNormal(pts[k], Vector3d.ZAxis));
             }
-            File.WriteAllText(pts_path, sb.ToString());
         }
 
         public static double[][] readPTS(string pts_path)
@@ -1080,67 +1082,70 @@ namespace EddyLib
         public static void writeDC(string file, double[][] dif, double[][] dir) // total illuminance data
         {
             // [x][] lines [][x] coeffs
-            var sb = new StringBuilder();
+            // Bolt: Replaced StringBuilder with StreamWriter to stream directly to disk,
+            // preventing LOH allocations and OOM exceptions on large datasets.
+            using var sw = new StreamWriter(file);
 
             for (int h = 0; h < dif.Length; h++)
             {
                 for (int c = 0; c < dif[h].Length; c++)
                 {
-                    sb.Append(dif[h][c].ToString());
-                    sb.Append('\t');
+                    sw.Write(dif[h][c].ToString());
+                    sw.Write('\t');
                 }
                 for (int c = 0; c < dir[h].Length; c++)
                 {
-                    sb.Append(dir[h][c].ToString());
-                    sb.Append('\t');
+                    sw.Write(dir[h][c].ToString());
+                    sw.Write('\t');
                 }
-                sb.AppendLine("");
+                sw.WriteLine("");
             }
-            File.WriteAllText(file, sb.ToString());
         }
 
         public static void writeDC_DIF(string file, double[][] dif, double[][] dir) // total illuminance data
         {
             // [x][] lines [][x] coeffs
-            var sb = new StringBuilder();
+            // Bolt: Replaced StringBuilder with StreamWriter to stream directly to disk,
+            // preventing LOH allocations and OOM exceptions on large datasets.
+            using var sw = new StreamWriter(file);
 
             for (int h = 0; h < dif.Length; h++)
             {
                 for (int c = 0; c < dif[h].Length; c++)
                 {
-                    sb.Append(dif[h][c].ToString());
-                    sb.Append('\t');
+                    sw.Write(dif[h][c].ToString());
+                    sw.Write('\t');
                 }
                 for (int c = 0; c < dir[h].Length; c++)
                 {
-                    sb.Append("0");
-                    sb.Append('\t');
+                    sw.Write("0");
+                    sw.Write('\t');
                 }
-                sb.AppendLine("");
+                sw.WriteLine("");
             }
-            File.WriteAllText(file, sb.ToString());
         }
 
         public static void writeDC_DIR(string file, double[][] dif, double[][] dir) // total illuminance data
         {
             // [x][] lines [][x] coeffs
-            var sb = new StringBuilder();
+            // Bolt: Replaced StringBuilder with StreamWriter to stream directly to disk,
+            // preventing LOH allocations and OOM exceptions on large datasets.
+            using var sw = new StreamWriter(file);
 
             for (int h = 0; h < dif.Length; h++)
             {
                 for (int c = 0; c < dif[h].Length; c++)
                 {
-                    sb.Append("0");
-                    sb.Append('\t');
+                    sw.Write("0");
+                    sw.Write('\t');
                 }
                 for (int c = 0; c < dir[h].Length; c++)
                 {
-                    sb.Append(dir[h][c].ToString());
-                    sb.Append('\t');
+                    sw.Write(dir[h][c].ToString());
+                    sw.Write('\t');
                 }
-                sb.AppendLine("");
+                sw.WriteLine("");
             }
-            File.WriteAllText(file, sb.ToString());
         }
     }
 }
