@@ -45,8 +45,11 @@ namespace Urbano.Simulation
             // events
             cancel.Click += (s, e) =>
             {
-                Canceled = true;
-                Close();
+                if (MessageBox.Show(this, "Are you sure you want to abort the simulation?", "Abort Simulation", MessageBoxButtons.YesNo, MessageBoxType.Question) == DialogResult.Yes)
+                {
+                    Canceled = true;
+                    Close();
+                }
             };
             Closing += (s, e) =>
             {
