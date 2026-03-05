@@ -9,3 +9,7 @@
 ## 2024-05-15 - [Inline feedback for clipboard operations]
 **Learning:** Using a blocking `MessageBox` to confirm a successful clipboard copy action disrupts the user's flow and forces an unnecessary interaction.
 **Action:** Replace success dialogs for minor actions (like "Copy Log") with inline visual feedback. Temporarily change the button text (e.g., to "Copied!") and use `Task.Delay` with `SynchronizationContext.Post` to revert it after a short delay (e.g., 2 seconds).
+
+## 2024-05-15 - [Add tooltips to UI controls]
+**Learning:** Providing context for status indicators and spinners helps users understand background processes without cluttering the UI.
+**Action:** When enhancing UX in Eto.Forms, ensure UI elements (including Buttons, ProgressBars, Labels, TextAreas, and Spinners) include descriptive `ToolTip` properties upon instantiation to improve accessibility and provide user guidance.

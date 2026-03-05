@@ -38,8 +38,8 @@ namespace EddyLib.UI
             ShowInTaskbar = true;
 
             // controls
-            Status = new Label();
-            StatusLog = new TextArea() { Height = 150, ReadOnly = true, Font = Fonts.Monospace(10) };
+            Status = new Label() { ToolTip = "Current simulation status" };
+            StatusLog = new TextArea() { Height = 150, ReadOnly = true, Font = Fonts.Monospace(10), ToolTip = "Detailed simulation log output" };
 
             TimeElapsed = new Label { Text = "00:00:00", VerticalAlignment = VerticalAlignment.Center, ToolTip = "Time elapsed since simulation started" };
             stopwatch = Stopwatch.StartNew();
@@ -92,7 +92,7 @@ namespace EddyLib.UI
             layout.EndVertical();
             layout.BeginVertical();
             layout.BeginHorizontal();
-            layout.Add(new Spinner { Height = 20, Enabled = true }, false, false);
+            layout.Add(new Spinner { Height = 20, Enabled = true, ToolTip = "Simulation is running" }, false, false);
             layout.Add(new Drawable { Width = 5 }, false, false);
             layout.Add(Status, true, false);
             layout.Add(TimeElapsed, false, false);
