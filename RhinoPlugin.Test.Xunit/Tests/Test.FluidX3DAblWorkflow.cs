@@ -91,7 +91,12 @@ namespace RhinoPlugin.Test.Xunit
                 Assert.Contains("MSBuild", batchScript);
                 Assert.Contains("MSB8020", batchScript);
                 Assert.Contains(FluidX3DAblWorkflow.WindowsBuildToolsDownloadUrl, batchScript);
+                Assert.Contains(FluidX3DAblWorkflow.GetWindowsBuildToolsInstallerArguments(), batchScript);
                 Assert.Contains(FluidX3DAblWorkflow.WindowsV142ToolsetComponentId, batchScript);
+                Assert.Contains(@"set ""VS_BUILD_TOOLS_BOOTSTRAPPER=%TEMP%\Eddy3D-vs_BuildTools.exe""", batchScript);
+                Assert.Contains("Downloading Visual Studio Build Tools bootstrapper", batchScript);
+                Assert.Contains("Invoke-WebRequest", batchScript);
+                Assert.Contains("Launching Visual Studio Build Tools installer", batchScript);
                 Assert.Contains("robocopy", batchScript);
                 Assert.Contains("Running FluidX3D from %FLUIDX3D_EXE%", batchScript);
                 Assert.Contains(@"bin\FluidX3D.exe", batchScript);
@@ -106,6 +111,41 @@ namespace RhinoPlugin.Test.Xunit
                 {
                     Assert.Equal(result.CommandScriptPath, result.LaunchScriptPath);
                 }
+            }
+            finally
+            {
+                Directory.Delete(tempRoot, true);
+            }
+        }
+
+        [Fact]
+        public void PrepareCase_NormalizesBuildScriptsForMacAndWindowsWarningSuppression()
+        {
+            string tempRoot = CreateTempDir();
+            try
+            {
+                string sourceRoot = Path.Combine(tempRoot, "source");
+                string workingRoot = Path.Combine(tempRoot, "working");
+                CreateStubFluidX3DSource(sourceRoot);
+
+                FluidX3DAblPrepareResult result = FluidX3DAblWorkflow.PrepareCase(
+                    sourceRoot,
+                    workingRoot,
+                    new FluidX3DAblSettings());
+
+                string makeScript = File.ReadAllText(Path.Combine(result.CaseRoot, "make.sh"));
+                Assert.Contains("detect_cpu_cores()", makeScript);
+                Assert.Contains("sysctl -n hw.logicalcpu", makeScript);
+                Assert.Contains("${CPU_CORES}", makeScript);
+                Assert.Contains("-Wno-deprecated-declarations", makeScript);
+
+                string makefile = File.ReadAllText(Path.Combine(result.CaseRoot, "Makefile"));
+                Assert.Contains("hw.logicalcpu", makefile);
+                Assert.Contains("macOS: CFLAGS += -Wno-deprecated-declarations", makefile);
+
+                string vcxproj = File.ReadAllText(Path.Combine(result.CaseRoot, "FluidX3D.vcxproj"));
+                Assert.Contains("4996", vcxproj);
+                Assert.Contains("DisableSpecificWarnings", vcxproj);
             }
             finally
             {
@@ -286,7 +326,35 @@ namespace RhinoPlugin.Test.Xunit
 //#define SUBGRID
 ");
 
-            File.WriteAllText(Path.Combine(sourceRoot, "make.sh"), "#!/usr/bin/env bash\n");
+            File.WriteAllText(
+                Path.Combine(sourceRoot, "make.sh"),
+@"#!/usr/bin/env bash
+echo_and_execute() { echo ""$@""; ""$@""; }
+if command -v make &>/dev/null; then
+	echo -e ""\033[92mInfo\033[0m: Compiling with ""$(nproc)"" CPU cores.""
+	make ${target} -j$(nproc)
+else
+	case ""${target}"" in
+		macOS    ) echo_and_execute g++ src/*.cpp -o bin/FluidX3D -std=c++17 -pthread -O -Wno-comment -I./src/OpenCL/include -framework OpenCL ;;
+	esac
+fi
+");
+            File.WriteAllText(
+                Path.Combine(sourceRoot, "Makefile"),
+@"MAKEFLAGS = -j$(nproc)
+CC = g++
+CFLAGS = -std=c++17 -pthread -O -Wno-comment
+");
+            File.WriteAllText(
+                Path.Combine(sourceRoot, "FluidX3D.vcxproj"),
+@"<Project>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <DisableSpecificWarnings>26451;6386;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+  </ItemDefinitionGroup>
+</Project>
+");
             File.WriteAllText(Path.Combine(sourceRoot, "FluidX3D.sln"), "stub");
         }
 

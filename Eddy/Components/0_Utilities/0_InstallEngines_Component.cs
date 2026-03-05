@@ -11,6 +11,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Eddy
 {
@@ -43,7 +44,9 @@ namespace Eddy
             pManager.AddBooleanParameter(
                 "Install FluidX3D",
                 "FX3D",
-                "Set to True to clone/update FluidX3D source into the Eddy engines folder and pin to EDDY_FLUIDX3D_COMMIT (or Eddy default pin).",
+                IsMac
+                    ? "Set to True to clone/update FluidX3D source into the Eddy engines folder and pin to EDDY_FLUIDX3D_COMMIT (or Eddy default pin)."
+                    : "Set to True to clone/update FluidX3D source into the Eddy engines folder, pin to EDDY_FLUIDX3D_COMMIT (or Eddy default pin), and launch the Visual Studio C++ Build Tools bootstrapper if required.",
                 GH_ParamAccess.item, false);
         }
 
@@ -457,6 +460,12 @@ namespace Eddy
         {
             string targetRoot = Path.GetFullPath(FluidX3DAblWorkflow.GetDefaultSourceDirectory());
             string pinnedCommit = FluidX3DAblWorkflow.ResolvePinnedCommit();
+            StringBuilder log = new StringBuilder();
+
+            if (!IsMac && !TryResolveWindowsFluidX3DBuildTools(out _))
+            {
+                log.Append(InstallWindowsFluidX3DBuildTools());
+            }
 
             try
             {
@@ -465,17 +474,72 @@ namespace Eddy
                     && TryResolveGitHeadCommit(targetRoot, out string existingHead)
                     && existingHead.StartsWith(pinnedCommit, StringComparison.OrdinalIgnoreCase))
                 {
-                    return "FluidX3D source already installed at pinned commit " + existingHead + ".\n";
+                    log.Append("FluidX3D source already installed at pinned commit " + existingHead + ".\n");
+                    return log.ToString();
                 }
 
                 FluidX3DAblWorkflow.EnsureSourceRepository(targetRoot, true, out string status, pinnedCommit);
-                return "FluidX3D source prepared at " + targetRoot + ".\n"
-                    + "Pinned commit: " + pinnedCommit + "\n"
-                    + (string.IsNullOrWhiteSpace(status) ? string.Empty : status.Trim() + "\n");
+                log.Append("FluidX3D source prepared at " + targetRoot + ".\n");
+                log.Append("Pinned commit: " + pinnedCommit + "\n");
+                if (!string.IsNullOrWhiteSpace(status))
+                {
+                    log.Append(status.Trim()).Append("\n");
+                }
+
+                return log.ToString();
             }
             catch (Exception ex)
             {
-                return "Error installing FluidX3D: " + ex.Message + "\n";
+                log.Append("Error installing FluidX3D: " + ex.Message + "\n");
+                return log.ToString();
+            }
+        }
+
+        private static string InstallWindowsFluidX3DBuildTools()
+        {
+            if (IsMac)
+            {
+                return "Visual Studio build tools are not required on macOS.\n";
+            }
+
+            if (TryResolveWindowsFluidX3DBuildTools(out string details))
+            {
+                return details + "\n";
+            }
+
+            string bootstrapperPath = Path.Combine(
+                Path.GetTempPath(),
+                FluidX3DAblWorkflow.WindowsBuildToolsBootstrapperFileName);
+            string installerArguments = FluidX3DAblWorkflow.GetWindowsBuildToolsInstallerArguments();
+
+            try
+            {
+                using (var client = new WebClient())
+                {
+                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                    client.DownloadFile(FluidX3DAblWorkflow.WindowsBuildToolsDownloadUrl, bootstrapperPath);
+                }
+
+                if (!File.Exists(bootstrapperPath))
+                {
+                    return "Error: Visual Studio Build Tools bootstrapper download failed.\n";
+                }
+
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = bootstrapperPath,
+                    Arguments = installerArguments,
+                    UseShellExecute = true,
+                    Verb = "runas"
+                });
+
+                return "Visual Studio Build Tools installer launched from " + bootstrapperPath + ".\n"
+                    + "Arguments: " + installerArguments + "\n"
+                    + "Finish the installation, then rerun Install FluidX3D.\n";
+            }
+            catch (Exception ex)
+            {
+                return "Error installing Visual Studio C++ Build Tools for FluidX3D: " + ex.Message + "\n";
             }
         }
 

@@ -46,8 +46,9 @@ namespace EddyLib.FluidX3D
         public const string CommitEnvironmentVariable = "EDDY_FLUIDX3D_COMMIT";
         public const string DefaultPinnedCommit = "62a1756b7b257918226ab2102efd3a47fd99ff2c";
         public const string WindowsBuildToolsDownloadUrl = "https://aka.ms/vs/17/release/vs_BuildTools.exe";
+        public const string WindowsBuildToolsBootstrapperFileName = "Eddy3D-vs_BuildTools.exe";
         public const string WindowsCppWorkloadId = "Microsoft.VisualStudio.Workload.VCTools";
-        public const string WindowsV142ToolsetComponentId = "Microsoft.VisualStudio.Component.VC.v142.x86.x64";
+        public const string WindowsV142ToolsetComponentId = "Microsoft.VisualStudio.ComponentGroup.VC.Tools.142.x86.x64";
 
         public static FluidX3DAblPrepareResult PrepareCase(
             string fluidX3DSourceRoot,
@@ -91,6 +92,7 @@ namespace EddyLib.FluidX3D
             // from shared engine-state side effects.
             string caseDirectoryRoot = Path.Combine(workingRoot, "FluidX3D");
             string caseRoot = EnsureCaseEngineSourceDirectory(sourceRoot, caseDirectoryRoot);
+            NormalizeBuildScripts(caseRoot);
 
             string setupPath = Path.Combine(caseRoot, "src", "setup.cpp");
             string definesPath = Path.Combine(caseRoot, "src", "defines.hpp");
@@ -190,6 +192,12 @@ namespace EddyLib.FluidX3D
             {
                 return Array.Empty<string>();
             }
+        }
+
+        public static string GetWindowsBuildToolsInstallerArguments()
+        {
+            return "--wait --passive --norestart --add " + WindowsCppWorkloadId
+                + " --add " + WindowsV142ToolsetComponentId;
         }
 
         public static void EnsureSourceRepository(
@@ -492,6 +500,140 @@ namespace EddyLib.FluidX3D
 
                 string destination = Path.Combine(targetDir, name);
                 CopyDirectoryRecursive(subDir, destination);
+            }
+        }
+
+        private static void NormalizeBuildScripts(string caseRoot)
+        {
+            if (string.IsNullOrWhiteSpace(caseRoot) || !Directory.Exists(caseRoot))
+            {
+                return;
+            }
+
+            NormalizeMakeScript(Path.Combine(caseRoot, "make.sh"));
+            NormalizeMakefile(Path.Combine(caseRoot, "Makefile"));
+            NormalizeWindowsProject(Path.Combine(caseRoot, "FluidX3D.vcxproj"));
+        }
+
+        private static void NormalizeMakeScript(string makeScriptPath)
+        {
+            if (string.IsNullOrWhiteSpace(makeScriptPath) || !File.Exists(makeScriptPath))
+            {
+                return;
+            }
+
+            string original = File.ReadAllText(makeScriptPath);
+            string updated = original;
+
+            const string echoAndExecuteLine = "echo_and_execute() { echo \"$@\"; \"$@\"; }";
+            const string cpuDetectionBlock =
+@"echo_and_execute() { echo ""$@""; ""$@""; }
+detect_cpu_cores() {
+	if command -v nproc >/dev/null 2>&1; then
+		nproc
+	elif command -v sysctl >/dev/null 2>&1; then
+		sysctl -n hw.logicalcpu 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1
+	else
+		echo 1
+	fi
+}
+CPU_CORES=""$(detect_cpu_cores)""";
+
+            if (updated.Contains(echoAndExecuteLine) && !updated.Contains("detect_cpu_cores()", StringComparison.Ordinal))
+            {
+                updated = updated.Replace(echoAndExecuteLine, cpuDetectionBlock);
+            }
+
+            if (updated.Contains("CPU_CORES=\"$(detect_cpu_cores)\"", StringComparison.Ordinal))
+            {
+                updated = updated.Replace("$(nproc)", "${CPU_CORES}");
+            }
+
+            if (!updated.Contains("-Wno-deprecated-declarations", StringComparison.Ordinal))
+            {
+                updated = updated.Replace(
+                    "macOS    ) echo_and_execute g++ src/*.cpp -o bin/FluidX3D -std=c++17 -pthread -O -Wno-comment -I./src/OpenCL/include -framework OpenCL",
+                    "macOS    ) echo_and_execute g++ src/*.cpp -o bin/FluidX3D -std=c++17 -pthread -O -Wno-comment -Wno-deprecated-declarations -I./src/OpenCL/include -framework OpenCL");
+            }
+
+            if (!string.Equals(updated, original, StringComparison.Ordinal))
+            {
+                File.WriteAllText(makeScriptPath, updated);
+            }
+        }
+
+        private static void NormalizeMakefile(string makefilePath)
+        {
+            if (string.IsNullOrWhiteSpace(makefilePath) || !File.Exists(makefilePath))
+            {
+                return;
+            }
+
+            string original = File.ReadAllText(makefilePath);
+            string updated = original;
+
+            if (updated.Contains("MAKEFLAGS = -j$(nproc)", StringComparison.Ordinal))
+            {
+                updated = updated.Replace(
+                    "MAKEFLAGS = -j$(nproc)",
+                    "MAKEFLAGS = -j$(shell sh -c 'command -v nproc >/dev/null 2>&1 && nproc || sysctl -n hw.logicalcpu 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1')");
+            }
+
+            if (!updated.Contains("macOS: CFLAGS += -Wno-deprecated-declarations", StringComparison.Ordinal))
+            {
+                updated = updated.Replace(
+                    "CFLAGS = -std=c++17 -pthread -O -Wno-comment",
+                    "CFLAGS = -std=c++17 -pthread -O -Wno-comment\nmacOS: CFLAGS += -Wno-deprecated-declarations");
+            }
+
+            if (!string.Equals(updated, original, StringComparison.Ordinal))
+            {
+                File.WriteAllText(makefilePath, updated);
+            }
+        }
+
+        private static void NormalizeWindowsProject(string projectPath)
+        {
+            if (string.IsNullOrWhiteSpace(projectPath) || !File.Exists(projectPath))
+            {
+                return;
+            }
+
+            string original = File.ReadAllText(projectPath);
+            string updated = original;
+
+            updated = Regex.Replace(
+                updated,
+                "<DisableSpecificWarnings>(?<value>[^<]*)</DisableSpecificWarnings>",
+                match =>
+                {
+                    string value = match.Groups["value"].Value;
+                    if (Regex.IsMatch(value, @"(^|;)4996($|;)", RegexOptions.CultureInvariant))
+                    {
+                        return match.Value;
+                    }
+
+                    string normalized = string.IsNullOrWhiteSpace(value)
+                        ? "4996"
+                        : value.Trim();
+
+                    if (normalized.StartsWith("%(", StringComparison.Ordinal))
+                    {
+                        normalized = "4996;" + normalized;
+                    }
+                    else
+                    {
+                        normalized = normalized.TrimEnd(';');
+                        normalized = normalized + ";4996";
+                    }
+
+                    return "<DisableSpecificWarnings>" + normalized + "</DisableSpecificWarnings>";
+                },
+                RegexOptions.CultureInvariant);
+
+            if (!string.Equals(updated, original, StringComparison.Ordinal))
+            {
+                File.WriteAllText(projectPath, updated);
             }
         }
 
@@ -843,6 +985,8 @@ exit $STATUS
             string caseExportEscaped = EscapeForBatchQuotedValue(caseExportDirectory);
             string safeToolset = SanitizePlatformToolsetForBatch(platformToolsetOverride);
             string buildToolsUrlEscaped = EscapeForBatchQuotedValue(WindowsBuildToolsDownloadUrl);
+            string buildToolsBootstrapperEscaped = EscapeForBatchQuotedValue(WindowsBuildToolsBootstrapperFileName);
+            string buildToolsArgsEscaped = EscapeForBatchQuotedValue(GetWindowsBuildToolsInstallerArguments());
             string cppWorkloadIdEscaped = EscapeForBatchQuotedValue(WindowsCppWorkloadId);
             string v142ComponentIdEscaped = EscapeForBatchQuotedValue(WindowsV142ToolsetComponentId);
             return
@@ -876,6 +1020,8 @@ set ""VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
 set ""MSBUILD=""
 set ""PLATFORM_TOOLSET=__PLATFORM_TOOLSET__""
 set ""VS_BUILD_TOOLS_URL=__VS_BUILD_TOOLS_URL__""
+set ""VS_BUILD_TOOLS_BOOTSTRAPPER=%TEMP%\__VS_BUILD_TOOLS_BOOTSTRAPPER__""
+set ""VS_BUILD_TOOLS_ARGS=__VS_BUILD_TOOLS_ARGS__""
 set ""VS_CPP_WORKLOAD=__VS_CPP_WORKLOAD__""
 set ""VS_V142_COMPONENT=__VS_V142_COMPONENT__""
 if exist ""%VSWHERE%"" (
@@ -886,6 +1032,32 @@ if exist ""%VSWHERE%"" (
 
 if not defined MSBUILD (
   echo Could not find MSBuild automatically.
+  echo Downloading Visual Studio Build Tools bootstrapper...
+  powershell -NoProfile -ExecutionPolicy Bypass -Command ""[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri '%VS_BUILD_TOOLS_URL%' -OutFile '%VS_BUILD_TOOLS_BOOTSTRAPPER%'""
+  if errorlevel 1 (
+    echo Failed to download Visual Studio Build Tools bootstrapper.
+    echo Manual download: %VS_BUILD_TOOLS_URL%
+    pause
+    exit /b 1
+  )
+  echo Launching Visual Studio Build Tools installer...
+  echo   %VS_BUILD_TOOLS_BOOTSTRAPPER% %VS_BUILD_TOOLS_ARGS%
+  ""%VS_BUILD_TOOLS_BOOTSTRAPPER%"" %VS_BUILD_TOOLS_ARGS%
+  set ""VS_INSTALL_EXIT=%ERRORLEVEL%""
+  if not ""%VS_INSTALL_EXIT%""==""0"" if not ""%VS_INSTALL_EXIT%""==""3010"" (
+    echo Visual Studio Build Tools installer failed with exit code %VS_INSTALL_EXIT%.
+    pause
+    exit /b %VS_INSTALL_EXIT%
+  )
+  if exist ""%VSWHERE%"" (
+    for /f ""usebackq tokens=*"" %%i in (`""%VSWHERE%"" -latest -products * -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe`) do (
+      set ""MSBUILD=%%i""
+    )
+  )
+)
+
+if not defined MSBUILD (
+  echo Could not find MSBuild after Visual Studio Build Tools installation.
   echo Opening FluidX3D.sln. Build Release^|x64 and run Local Windows Debugger.
   start """" ""FluidX3D.sln""
   exit /b 0
@@ -954,6 +1126,8 @@ exit /b 0
             .Replace("__CASE_EXPORT_DIR__", caseExportEscaped)
             .Replace("__PLATFORM_TOOLSET__", safeToolset)
             .Replace("__VS_BUILD_TOOLS_URL__", buildToolsUrlEscaped)
+            .Replace("__VS_BUILD_TOOLS_BOOTSTRAPPER__", buildToolsBootstrapperEscaped)
+            .Replace("__VS_BUILD_TOOLS_ARGS__", buildToolsArgsEscaped)
             .Replace("__VS_CPP_WORKLOAD__", cppWorkloadIdEscaped)
             .Replace("__VS_V142_COMPONENT__", v142ComponentIdEscaped);
         }
