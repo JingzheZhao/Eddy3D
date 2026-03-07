@@ -34,7 +34,7 @@ namespace Urbano.Simulation
             ShowInTaskbar = true;
 
             // controls
-            Status = new Label();
+            Status = new Label() { ToolTip = "Current simulation status" };
             pbar = new ProgressBar { ToolTip = "Simulation Progress" };
             var cancel = new Button { Text = "Cancel", ToolTip = "Abort the current simulation" };
             AbortButton = cancel; // Add Escape key support
@@ -63,7 +63,7 @@ namespace Urbano.Simulation
             layout.EndVertical();
             layout.BeginVertical();
             layout.BeginHorizontal();
-            layout.Add(new Spinner { Height = 20, Enabled = true }, false, false);
+            layout.Add(new Spinner { Height = 20, Enabled = true, ToolTip = "Simulation is running" }, false, false);
             layout.Add(new Drawable { Width = 5 }, false, false);
             layout.Add(Status, true, false);
             layout.EndHorizontal();
