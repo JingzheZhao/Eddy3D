@@ -18,6 +18,7 @@ namespace EddyLib.UI
         private UITimer timer;
 
         public bool Canceled = false;
+        private bool isFinished = false;
         private ProgressBar pbar;
 
         public float Progress
@@ -81,8 +82,18 @@ namespace EddyLib.UI
             };
             Closing += (s, e) =>
             {
-                cts.Cancel();
-                timer.Stop();
+                if (!isFinished && !Canceled)
+                {
+                    if (MessageBox.Show(this, "Are you sure you want to abort the simulation?", "Abort Simulation", MessageBoxButtons.YesNo, MessageBoxType.Question) == DialogResult.No)
+                    {
+                        e.Cancel = true;
+                        return;
+                    }
+                    Canceled = true;
+                }
+
+                if (!e.Cancel) cts.Cancel();
+                if (!e.Cancel) timer.Stop();
             };
 
             // layout
@@ -121,6 +132,7 @@ namespace EddyLib.UI
             // when finished, close dialog
             run.ContinueWith((r) =>
             {
+                isFinished = true;
                 if (uiThread != null) uiThread.Send((object state) => { Close(); }, null);
             });
         }

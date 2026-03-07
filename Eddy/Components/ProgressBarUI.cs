@@ -14,6 +14,7 @@ namespace Urbano.Simulation
     {
         public Label Status;
         public bool Canceled = false;
+        private bool isFinished = false;
         private ProgressBar pbar;
         public float Progress
         {
@@ -53,7 +54,16 @@ namespace Urbano.Simulation
             };
             Closing += (s, e) =>
             {
-                cts.Cancel();
+                if (!isFinished && !Canceled)
+                {
+                    if (MessageBox.Show(this, "Are you sure you want to abort the simulation?", "Abort Simulation", MessageBoxButtons.YesNo, MessageBoxType.Question) == DialogResult.No)
+                    {
+                        e.Cancel = true;
+                        return;
+                    }
+                    Canceled = true;
+                }
+                if (!e.Cancel) cts.Cancel();
             };
 
             // layout
@@ -83,6 +93,7 @@ namespace Urbano.Simulation
             // when finished, close dialog
             run.ContinueWith((r) =>
             {
+                isFinished = true;
                 if (uiThread != null) uiThread.Send((object state) => { Close(); }, null);
             });
         }
