@@ -12,3 +12,9 @@
 ## 2024-05-24 - [Avoid String Concatenation in Tight File I/O Loops]
 **Learning:** String concatenation inside nested loops in `EddyLib/Utilities/CsvHelpers.cs` causes O(N^2) memory allocations and unnecessary garbage collection overhead when writing large CSV files, significantly degrading performance.
 **Action:** Always stream outputs directly using `StreamWriter.Write()` and `StreamWriter.WriteLine()` instead of accumulating row data into intermediate strings. This completely avoids large memory allocations and improves file writing speed.
+## 2026-03-07 - Prevent O(N) array allocation overhead
+**Learning:** In highly parallel multi-dimensional operations like 's , pre-allocating large 2D arrays () to act as a hit-map, followed by expensive  column extraction simply to sum up totals, creates a significant GC bottleneck and large memory allocation footprint.
+**Action:** Avoid allocating massive 2D structures purely for counting. Instead, track counts with a local primitive variable directly within the parallel execution scope and directly push the computed result back to the final flattened 1D array.
+## 2024-05-19 - Prevent O(N) array allocation overhead
+**Learning:** In highly parallel multi-dimensional operations like `UTCI.Equation.cs`'s `CalcAnnualComfortableHours`, pre-allocating large 2D arrays (`[HoursPerYear, numberOfProbes]`) to act as a hit-map, followed by expensive `.GetColumn()` column extraction simply to sum up totals, creates a significant GC bottleneck and large memory allocation footprint.
+**Action:** Avoid allocating massive 2D structures purely for counting. Instead, track counts with a local primitive variable directly within the parallel execution scope and directly push the computed result back to the final flattened 1D array.

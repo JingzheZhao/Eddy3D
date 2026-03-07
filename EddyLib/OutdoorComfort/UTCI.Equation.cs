@@ -180,28 +180,24 @@ namespace EddyLib
 
         private static double[] CalcAnnualComfortableHours(int[,] ValuesCondition)
         {
+            // Bolt: Optimized memory allocation by removing the temporary O(N*M) 2D array and
+            // calculating the sum inline for each probe, which eliminates the O(N) column extraction
+            // and array summing overhead.
             int numberOfProbes = ValuesCondition.GetLength(1);
-            var ValuesAnnualPercentageTemp = new double[HoursPerYear, numberOfProbes];
             var ValuesAnnualPercentage = new double[numberOfProbes];
 
             Parallel.For(0, numberOfProbes, probe =>
             {
+                int comfortableHours = 0;
                 for (int hour = 0; hour < HoursPerYear; hour++)
                 {
                     if (ValuesCondition[hour, probe] == 0)
                     {
-                        ValuesAnnualPercentageTemp[hour, probe] += 1;
+                        comfortableHours++;
                     }
                 }
+                ValuesAnnualPercentage[probe] = (double)comfortableHours / HoursPerYear;
             });
-
-            for (int probe = 0; probe < numberOfProbes; probe++)
-            {
-                // Returns column of matrix aka all annual values per point
-                var column = ArrayHelper.CustomArray<double>.GetColumn(ValuesAnnualPercentageTemp, probe);
-
-                ValuesAnnualPercentage[probe] = column.Sum() / HoursPerYear;
-            }
 
             return ValuesAnnualPercentage;
         }
