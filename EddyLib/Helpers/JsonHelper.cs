@@ -48,7 +48,7 @@ namespace EddyLib.Helpers
         public static bool TryDeserialize<T>(string json, out T result)
         {
             result = default;
-            
+
             try
             {
                 result = Deserialize<T>(json);

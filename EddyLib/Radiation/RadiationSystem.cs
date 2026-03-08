@@ -71,18 +71,18 @@ namespace EddyLib.Radiation
             var env = GetRadianceEnvironment();
 
             // 1. Convert EPW to WEA
-            if (!RunCommand("epw2wea", 
-                new[] { Weather.epwFilePath, Path.Combine(radout, $"{weaname}.wea") }, 
+            if (!RunCommand("epw2wea",
+                new[] { Weather.epwFilePath, Path.Combine(radout, $"{weaname}.wea") },
                 raddir, env, ct, ref stepCnt, steps, "Convert Epw to Wea")) return false;
 
             // 4. Generate SkyVector Coarse (r1)
             string weaFile = Path.Combine(radout, $"{weaname}.wea");
             string smxOut = Path.Combine(radout, $"{weaname}.smx");
-            
+
             // gendaymtx -m 1 -O1 ... > smxOut
-            if (!RunCommandRedirect("gendaymtx", 
-                new[] { "-m", "1", "-O1", weaFile }, 
-                BaseWorkingDir, env, ct, ref stepCnt, steps, "Generate r1 SkyVector", 
+            if (!RunCommandRedirect("gendaymtx",
+                new[] { "-m", "1", "-O1", weaFile },
+                BaseWorkingDir, env, ct, ref stepCnt, steps, "Generate r1 SkyVector",
                 redirectOutput: smxOut)) return false;
 
             // 12. Generate SkyVector Fine (r4 / skysubdivdirect) - Started early in original logic?
@@ -109,7 +109,7 @@ namespace EddyLib.Radiation
             string mtxOut = Path.Combine(radout, $"dc_{SkySubdivision.r1}.mtx");
             string skyGlowRad = Path.Combine(raddir, $"skyglow{SkySubdivision.r1}.rad");
             string sensorsPts = Path.Combine(raddir, "sensors.pts");
-            
+
             // rfluxmtx -I+ ... < sensors.pts > mtxOut
             if (!RunCommandRedirect("rfluxmtx",
                 new[] { "-I+", "-y", sensorCnt.ToString(), "-lw", "0.0001", "-ab", "3", "-ad", "2000", "-n", (Environment.ProcessorCount - 1).ToString(), "-", skyGlowRad, "-i", sceneOct },
@@ -139,50 +139,50 @@ namespace EddyLib.Radiation
             string annualRdCd = Path.Combine(BaseWorkingDir, annualR_dcd_ill_out);
 
             // rfluxmtx for direct
-             if (!RunCommandRedirect("rfluxmtx",
-                new[] { "-I+", "-y", sensorCnt.ToString(), "-lw", "0.0001", "-ab", "1", "-ad", "2000", "-n", (Environment.ProcessorCount - 1).ToString(), "-", skyGlowRad, "-i", blackSceneOct },
-                BaseWorkingDir, env, ct, ref stepCnt, steps, "Direct DC Matrix",
-                redirectInput: sensorsPts, redirectOutput: dcdMtxOut)) return false;
+            if (!RunCommandRedirect("rfluxmtx",
+               new[] { "-I+", "-y", sensorCnt.ToString(), "-lw", "0.0001", "-ab", "1", "-ad", "2000", "-n", (Environment.ProcessorCount - 1).ToString(), "-", skyGlowRad, "-i", blackSceneOct },
+               BaseWorkingDir, env, ct, ref stepCnt, steps, "Direct DC Matrix",
+               redirectInput: sensorsPts, redirectOutput: dcdMtxOut)) return false;
 
             // gendaymtx for direct
             // gendaymtx -m 1 -O1 -d ... > dSmxOut
-             if (!RunCommandRedirect("gendaymtx",
-                new[] { "-m", "1", "-O1", "-d", weaFile },
-                BaseWorkingDir, env, ct, ref stepCnt, steps, "Generate Direct SkyVector",
-                redirectOutput: dSmxOut)) return false;
+            if (!RunCommandRedirect("gendaymtx",
+               new[] { "-m", "1", "-O1", "-d", weaFile },
+               BaseWorkingDir, env, ct, ref stepCnt, steps, "Generate Direct SkyVector",
+               redirectOutput: dSmxOut)) return false;
 
-             // dctimestep | rmtxop > annualRdCd
-             if (!RunPipeline(
-                ("dctimestep", new[] { dcdMtxOut, dSmxOut }),
-                ("rmtxop", new[] { "-fa", "-t", "-c", "0.265", "0.670", "0.065", "-" }),
-                annualRdCd, BaseWorkingDir, env, ct, ref stepCnt, steps, "Create Illum Direct DC")) return false;
+            // dctimestep | rmtxop > annualRdCd
+            if (!RunPipeline(
+               ("dctimestep", new[] { dcdMtxOut, dSmxOut }),
+               ("rmtxop", new[] { "-fa", "-t", "-c", "0.265", "0.670", "0.065", "-" }),
+               annualRdCd, BaseWorkingDir, env, ct, ref stepCnt, steps, "Create Illum Direct DC")) return false;
 
             // 9. DDS - Sun Coefficients
             string sunsOut = Path.Combine(radout, "suns.rad");
-            
+
             // Must create suns.rad with header first
             File.WriteAllText(sunsOut, "void light solar 0 0 3 1e6 1e6 1e6\n");
-            
+
             // cnt ... | rcalc ... >> sunsOut
             // cnt 144...
             int cntNum = 144 * skySubDivDirect * skySubDivDirect + 1;
             string reinsrc = Path.Combine(DefaultDirectoriesAndPaths.RadianceLibDir, "reinsrc.cal");
-            
+
             // Using shell for complex pipe append >> ? Or just Command.PipeTo
             // cnt | rcalc
             using (var stream = new FileStream(sunsOut, FileMode.Append, FileAccess.Write))
             {
                 var cmdCnt = Command.Run(Path.Combine(DefaultDirectoriesAndPaths.RadianceBinDir, "cnt"), new[] { cntNum.ToString() }, options => options.WorkingDirectory(BaseWorkingDir));
-                var cmdRcalc = Command.Run(Path.Combine(DefaultDirectoriesAndPaths.RadianceBinDir, "rcalc"), 
-                    new[] { "-e", "MF:4", "-f", reinsrc, "-e", "Rbin=recno", "-o", "solar source sun 0 0 4 ${Dx} ${Dy} ${Dz} 0.533" }, 
+                var cmdRcalc = Command.Run(Path.Combine(DefaultDirectoriesAndPaths.RadianceBinDir, "rcalc"),
+                    new[] { "-e", "MF:4", "-f", reinsrc, "-e", "Rbin=recno", "-o", "solar source sun 0 0 4 ${Dx} ${Dy} ${Dz} 0.533" },
                     options => options.WorkingDirectory(BaseWorkingDir));
 
                 var pipe = cmdCnt.PipeTo(cmdRcalc);
                 var res = pipe.RedirectTo(stream).Result; // Append via stream
-                
+
                 if (!res.Success)
                 {
-                    LogError("SunCoeff Pipeline", res.StandardError); 
+                    LogError("SunCoeff Pipeline", res.StandardError);
                     return false;
                 }
             }
@@ -198,7 +198,7 @@ namespace EddyLib.Radiation
             // 11. Calculate Illum Sun Coeffs
             string cddMtxOut = Path.Combine(radout, "cdsDDS.mtx");
             string reinhartCal = Path.Combine(DefaultDirectoriesAndPaths.RadianceLibDir, "reinhart.cal");
-            
+
             // rcontrib ... < sensors.pts > cddMtxOut
             if (!RunCommandRedirect("rcontrib",
                 new[] { "-I+", "-ab", "1", "-y", sensorCnt.ToString(), "-n", "16", "-ad", "256", "-lw", "1.0e-3", "-dc", "1", "-dt", "0", "-dj", "0", "-faf", "-e", $"MF:{skySubDivDirect}", "-f", reinhartCal, "-b", "rbin", "-bn", "Nrbins", "-m", "solar", blackSunsOct },
@@ -227,28 +227,28 @@ namespace EddyLib.Radiation
         {
             Console.WriteLine("Writing geometry files...");
             RadianceFiles.MeshProc(RSurfaces, Path.Combine(BaseWorkingDir, "Rad", "scene.rad"));
-            
+
             string radMatBlack = "\nvoid plastic Black\n0\n0\n5 0 0 0 0 0\n";
             RadianceFiles.MeshProc(UnifiedMeshHighPolyNoSky, Path.Combine(BaseWorkingDir, "Rad", "sceneBlack.rad"), "Black", radMatBlack);
 
             RadianceFiles.writePTS(
-                Path.Combine(BaseWorkingDir, "Rad", "sensors.pts"), 
-                Probes.Select(x => x.Point.Value).ToList(), 
+                Path.Combine(BaseWorkingDir, "Rad", "sensors.pts"),
+                Probes.Select(x => x.Point.Value).ToList(),
                 Probes.Select(x => x.Normal.Value).ToList());
         }
 
         private Dictionary<string, string> GetRadianceEnvironment()
         {
-             
-             // Using DefaultDirectoriesAndPaths
-             string radbin = DefaultDirectoriesAndPaths.RadianceBinDir; 
-             string radlib = DefaultDirectoriesAndPaths.RadianceLibDir;
 
-             var env = new Dictionary<string, string>();
-             string path = Environment.GetEnvironmentVariable("PATH") ?? "";
-             env["PATH"] = $".;{radlib};{radbin};{path}";
-             env["RAYPATH"] = $".;{radlib};{radbin};" + (Environment.GetEnvironmentVariable("RAYPATH") ?? "");
-             return env;
+            // Using DefaultDirectoriesAndPaths
+            string radbin = DefaultDirectoriesAndPaths.RadianceBinDir;
+            string radlib = DefaultDirectoriesAndPaths.RadianceLibDir;
+
+            var env = new Dictionary<string, string>();
+            string path = Environment.GetEnvironmentVariable("PATH") ?? "";
+            env["PATH"] = $".;{radlib};{radbin};{path}";
+            env["RAYPATH"] = $".;{radlib};{radbin};" + (Environment.GetEnvironmentVariable("RAYPATH") ?? "");
+            return env;
         }
 
         private bool RunCommand(string command, string[] args, string workingDir, Dictionary<string, string> env, CancellationToken ct, ref int stepCnt, int steps, string desc)
@@ -262,9 +262,10 @@ namespace EddyLib.Radiation
             string exePath = Path.Combine(DefaultDirectoriesAndPaths.RadianceBinDir, command + ".exe");
             if (!File.Exists(exePath)) exePath = command; // Fallback or global
 
-            var cmd = Command.Run(exePath, args, options => {
+            var cmd = Command.Run(exePath, args, options =>
+            {
                 options.WorkingDirectory(workingDir).CancellationToken(ct);
-                foreach(var kvp in env) options.EnvironmentVariable(kvp.Key, kvp.Value);
+                foreach (var kvp in env) options.EnvironmentVariable(kvp.Key, kvp.Value);
             });
 
             if (redirectInput != null) cmd.RedirectFrom(new FileInfo(redirectInput));
@@ -288,10 +289,11 @@ namespace EddyLib.Radiation
             string workingDir, Dictionary<string, string> env, CancellationToken ct, ref int stepCnt, int steps, string desc)
         {
             Console.WriteLine($"{desc}...");
-            
-            Action<Shell.Options> opts = o => {
+
+            Action<Shell.Options> opts = o =>
+            {
                 o.WorkingDirectory(workingDir).CancellationToken(ct);
-                foreach(var kvp in env) o.EnvironmentVariable(kvp.Key, kvp.Value);
+                foreach (var kvp in env) o.EnvironmentVariable(kvp.Key, kvp.Value);
             };
 
             string exe1 = Path.Combine(DefaultDirectoriesAndPaths.RadianceBinDir, stage1.cmd + ".exe");
@@ -299,7 +301,7 @@ namespace EddyLib.Radiation
 
             var c1 = Command.Run(exe1, stage1.args, opts);
             var c2 = Command.Run(exe2, stage2.args, opts);
-            
+
             var pipe = c1.PipeTo(c2);
             var res = pipe.RedirectTo(new FileInfo(outputFile)).Result;
 
@@ -315,7 +317,7 @@ namespace EddyLib.Radiation
         public void LoadDDSData(bool run, CancellationToken ct, int steps, ref int stepCnt)
         {
             Console.WriteLine("Compute dMRT");
-            
+
             // Load paths using helper fields
             var totalIll = LoadDDSIll(Path.Combine(BaseWorkingDir, annualR_total_ill_out));
             var dirIll = LoadDDSIll(Path.Combine(BaseWorkingDir, annualR_dir_ill_out));
@@ -345,10 +347,10 @@ namespace EddyLib.Radiation
             Console.WriteLine("Computing radiation and dMRT (Simple RayCast)...");
 
             SolarGeometry sg = new SolarGeometry();
-            
+
             // USE NEW HELPER METHOD
             Vector3d[] sunPositions = sg.GetMonthlyRepresentativeSunVectors(Weather.SolarElevation, Weather.SolarAzi);
-            
+
             Console.WriteLine("Raycasting...");
 
             Parallel.For(0, Probes.Count, i =>
@@ -358,7 +360,7 @@ namespace EddyLib.Radiation
                 probe.DirRad = new float[8760];
 
                 double[] dotproduct = new double[sunPositions.Length];
-                
+
                 // Precompute visibility for 288 sun positions
                 for (int h = 0; h < sunPositions.Length; h++)
                 {
@@ -367,15 +369,15 @@ namespace EddyLib.Radiation
                     var ray = new Ray3d(probe.Point.Value, sunPositions[h]);
                     // Offset ray origin slightly? Original code didn't. ThermalSystem did.
                     // Original code: new Ray3d(Probes[i].Point.Value, sunPositions[h])
-                    
+
                     var dt = Rhino.Geometry.Intersect.Intersection.MeshRay(UnifiedMeshHighPolyNoSky, ray);
 
                     // Original logic correct check
-                    if (dt < 0) 
+                    if (dt < 0)
                     {
                         // Visible
                         dotproduct[h] = probe.Normal.Value * sunPositions[h];
-                         if (dotproduct[h] < 0) dotproduct[h] = 0; // Backface check
+                        if (dotproduct[h] < 0) dotproduct[h] = 0; // Backface check
                     }
                     else
                     {
@@ -400,11 +402,11 @@ namespace EddyLib.Radiation
             });
 
             Console.WriteLine("Compute dMRT...");
-            for(int i=0; i<Probes.Count; i++)
+            for (int i = 0; i < Probes.Count; i++)
             {
-                 Probes[i].SolarGain_dMRT = SolarGain.ComputeStanding(Weather, Probes[i].TotalRad, Probes[i].DirRad);
+                Probes[i].SolarGain_dMRT = SolarGain.ComputeStanding(Weather, Probes[i].TotalRad, Probes[i].DirRad);
             }
-            
+
             ReportProgress(ref stepCnt, steps);
             Console.WriteLine("Solar gain finished");
         }
@@ -423,7 +425,7 @@ namespace EddyLib.Radiation
         private static float[][] LoadDDSIll(string illFileName)
         {
             if (!File.Exists(illFileName)) return new float[0][]; // Safety handle
-            
+
             string[] illLines = File.ReadAllLines(illFileName);
             int skip = 0;
             for (int i = 0; i < illLines.Length; i++)
@@ -432,11 +434,12 @@ namespace EddyLib.Radiation
             }
 
             var data = new float[illLines.Length - skip][];
-            Parallel.For(skip, illLines.Length, i => {
+            Parallel.For(skip, illLines.Length, i =>
+            {
                 var parts = illLines[i].Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
                 data[i - skip] = parts.Select(s => float.Parse(s, CultureInfo.InvariantCulture)).ToArray();
             });
-            
+
             return data;
         }
 

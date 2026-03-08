@@ -67,7 +67,7 @@ namespace EddyLib.Radiation
                 {
                     this.resultPrecalculated = false;
                     this.wrongNumberOfProbes = true;
-                    throw e;
+                    throw;
                 }
             }
             else

@@ -32,7 +32,7 @@ namespace RhinoPlugin.Test.Xunit
         // ─────────────────────────────────────────────────────────────────────
         public const string GrasshopperDllName = "Grasshopper.dll";
         public const string GrasshopperPluginPath = @"Plug-ins\Grasshopper";
-        
+
         /// <summary>
         /// Rhino version folder names to check for Grasshopper installation.
         /// </summary>

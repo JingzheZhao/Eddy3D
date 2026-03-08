@@ -94,10 +94,10 @@ namespace RhinoPlugin.Test.Xunit
         [Fact]
         public void TryDeserialize_MalformedJson_ReturnsFalse()
         {
-             // Although it starts with { and ends with }, the content is invalid
-             var json = "{ invalid: json }";
-             var success = JsonHelper.TryDeserialize<TestObject>(json, out var obj);
-             Assert.False(success);
+            // Although it starts with { and ends with }, the content is invalid
+            var json = "{ invalid: json }";
+            var success = JsonHelper.TryDeserialize<TestObject>(json, out var obj);
+            Assert.False(success);
         }
     }
 }

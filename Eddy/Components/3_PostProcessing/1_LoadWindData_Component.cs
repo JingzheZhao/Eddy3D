@@ -18,12 +18,12 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
         public LoadWProbeData_Component()
-          : base("Load Wind Results", "LoadWind", 
+          : base("Load Wind Results", "LoadWind",
 @"Wind Results Loader
 
 Import raw results from a completed wind simulation for further analysis and visualization.
 
-" + EddyVersion.toString(), 
+" + EddyVersion.toString(),
               EddyVersion.Name, "3 | PostProcessing")
         {
         }
@@ -34,13 +34,13 @@ Import raw results from a completed wind simulation for further analysis and vis
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddTextParameter(
-                "File Path", "Path", 
-                "Path to .wind.eddy result file from Wind Simulation.", 
+                "File Path", "Path",
+                "Path to .wind.eddy result file from Wind Simulation.",
                 GH_ParamAccess.item);
 
             pManager.AddBooleanParameter(
-                "Load", "Load!", 
-                "Set True to load data from disk into memory.", 
+                "Load", "Load!",
+                "Set True to load data from disk into memory.",
                 GH_ParamAccess.item, false);
         }
 

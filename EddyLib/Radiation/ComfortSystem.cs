@@ -42,7 +42,7 @@ namespace EddyLib.Radiation
         /// <summary>
         /// Creates a comfort analysis system.
         /// </summary>
-        public ComfortSystem(string baseWorkingDir, Weather weather, List<RProbe> probes, 
+        public ComfortSystem(string baseWorkingDir, Weather weather, List<RProbe> probes,
                             List<RPolygon> polys, string cfdPath, double windScalingFactor)
         {
             BaseWorkingDir = baseWorkingDir;
@@ -93,7 +93,7 @@ namespace EddyLib.Radiation
             // Compute temporal wind factors
             var windSystem = new WindSystem(Weather, resultProto_CFD.Probes[0].WindDirections);
             Console.WriteLine("Computing Temporal Wind Factors...");
-            
+
             foreach (var p in resultProto_CFD.Probes)
             {
                 p.WindFactorsTemporal = WindFactorsTemporal.CalcWindFactorsTemporalSP(Weather, p, windSystem, true);

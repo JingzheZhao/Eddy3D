@@ -9,7 +9,7 @@ namespace EddyLib.Indoor.BatchFiles
         {
             this.BatchLocation = IndoorDom.WorkingDir;
             this.BatchName = "delete_processor_folders.bat";
-            
+
             // Navigate up one level from Scripts folder
             this.Header = "@echo off\ncd /d \"%~dp0..\"";
 

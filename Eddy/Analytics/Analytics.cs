@@ -139,7 +139,7 @@ namespace Eddy.Analytics
                 string eddyVersion = GetEddyVersion();
                 string deviceType = GetDeviceType();
                 string screenSize = GetScreenSize();
-                
+
                 // Fetch network org once per session (cached)
                 await EnsureNetworkOrgCachedAsync();
 
@@ -152,7 +152,7 @@ namespace Eddy.Analytics
                     { "profile_eddy_version", eddyVersion },
                     { "profile_device_type", deviceType }
                 };
-                
+
                 // Add network_org if available (shows university/company)
                 if (!string.IsNullOrWhiteSpace(_cachedNetworkOrg))
                 {
@@ -191,7 +191,7 @@ namespace Eddy.Analytics
                         { "type", "identify" },
                         { "payload", identifyPayloadData }
                     };
-                    
+
                     var identifyRequest = new HttpRequestMessage(HttpMethod.Post, Config.Endpoint);
                     identifyRequest.Content = new StringContent(identifyPayload.ToString(), Encoding.UTF8, "application/json");
                     identifyRequest.Headers.UserAgent.ParseAdd(GetUserAgent(deviceType, eddyVersion));
@@ -259,9 +259,9 @@ namespace Eddy.Analytics
                 request.Headers.UserAgent.ParseAdd(GetUserAgent(deviceType, eddyVersion));
 
                 var response = await HttpClient.SendAsync(request);
-                
-                return response.IsSuccessStatusCode 
-                    ? $"Success: {(eventName ?? "Page View")} tracked" 
+
+                return response.IsSuccessStatusCode
+                    ? $"Success: {(eventName ?? "Page View")} tracked"
                     : $"Failed: {response.StatusCode}";
             }
             catch (Exception ex)
@@ -298,7 +298,7 @@ namespace Eddy.Analytics
                 }
 
                 string result = await TrackEventAsync("/outdoor/software-launch", "/startup", data);
-                
+
                 if (callback != null) callback(result);
             });
         }

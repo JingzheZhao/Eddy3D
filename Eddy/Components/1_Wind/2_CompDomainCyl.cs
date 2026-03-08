@@ -29,7 +29,7 @@ namespace Eddy
         /// </summary>
 
         public BlockMesh()
-          : base("Cylindrical Domain", "DomCyl", 
+          : base("Cylindrical Domain", "DomCyl",
 @"Cylindrical Simulation Domain
 
 Defines a cylindrical computational domain. Recommended for multi-directional wind analysis as it allows for changing wind directions without re-meshing.
@@ -45,57 +45,57 @@ Defines a cylindrical computational domain. Recommended for multi-directional wi
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGeometryParameter(
-                "Buildings", "Bldg", 
-                "Building geometry (Breps or Meshes). These create wall boundary conditions in the CFD mesh.", 
+                "Buildings", "Bldg",
+                "Building geometry (Breps or Meshes). These create wall boundary conditions in the CFD mesh.",
                 GH_ParamAccess.list);
 
             pManager.AddGeometryParameter(
-                "Terrain", "Terr", 
-                "Optional: Ground surface geometry. Must extend beyond domain bounds. If omitted, a flat ground is assumed.", 
+                "Terrain", "Terr",
+                "Optional: Ground surface geometry. Must extend beyond domain bounds. If omitted, a flat ground is assumed.",
                 GH_ParamAccess.list);
             pManager[1].Optional = true;
 
             pManager.AddGenericParameter(
-                "Trees", "Tree", 
-                "Optional: Tree/vegetation objects from Tree component. Creates porous zones for wind resistance.", 
+                "Trees", "Tree",
+                "Optional: Tree/vegetation objects from Tree component. Creates porous zones for wind resistance.",
                 GH_ParamAccess.list);
             pManager[2].Optional = true;
 
             pManager.AddGenericParameter(
-                "Boundary Condition", "BC", 
-                "Wind inlet conditions from ABL Flow or Uniform Flow component. Can include multiple wind directions.", 
+                "Boundary Condition", "BC",
+                "Wind inlet conditions from ABL Flow or Uniform Flow component. Can include multiple wind directions.",
                 GH_ParamAccess.item);
             pManager[3].Optional = true;
 
             pManager.AddNumberParameter(
-                "Cell Size", "Cell", 
-                "Base mesh cell size. Units: meters. Smaller = more accurate but slower. Typical: 5-20m. Default: 20m", 
+                "Cell Size", "Cell",
+                "Base mesh cell size. Units: meters. Smaller = more accurate but slower. Typical: 5-20m. Default: 20m",
                 GH_ParamAccess.item, 20);
             pManager[4].Optional = true;
 
             pManager.AddNumberParameter(
-                "Inner Size", "Inner", 
-                "Size of the inner rectangular region. Units: meters. Should contain all buildings.", 
+                "Inner Size", "Inner",
+                "Size of the inner rectangular region. Units: meters. Should contain all buildings.",
                 GH_ParamAccess.item);
 
             pManager.AddNumberParameter(
-                "Outer Radius", "Outer", 
-                "Radius of the outer cylindrical boundary. Units: meters. Recommend: 5-6x tallest building height.", 
+                "Outer Radius", "Outer",
+                "Radius of the outer cylindrical boundary. Units: meters. Recommend: 5-6x tallest building height.",
                 GH_ParamAccess.item);
 
             pManager.AddNumberParameter(
-                "Height", "Hgt", 
-                "Domain height. Units: meters. Recommend: 5-6x tallest building height.", 
+                "Height", "Hgt",
+                "Domain height. Units: meters. Recommend: 5-6x tallest building height.",
                 GH_ParamAccess.item);
 
             pManager.AddNumberParameter(
-                "Radial Multiplier", "RadMult", 
-                "Controls radial mesh grading. Higher = more cells near center. Default: 2", 
+                "Radial Multiplier", "RadMult",
+                "Controls radial mesh grading. Higher = more cells near center. Default: 2",
                 GH_ParamAccess.item, 2.0);
 
             pManager.AddIntegerParameter(
-                "X Divisions", "DivX", 
-                "Additional mesh refinement in X direction. Only visible after meshing. Default: 1", 
+                "X Divisions", "DivX",
+                "Additional mesh refinement in X direction. Only visible after meshing. Default: 1",
                 GH_ParamAccess.item, 1);
 
             pManager[5].Optional = true;

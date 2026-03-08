@@ -185,47 +185,47 @@ boundary
 
         public static string SnappyHexMeshDict(OFMeshSettings MeshSettings, OFBaseDomain dom)
         {
-                string refinementGeometry = "";
+            string refinementGeometry = "";
 
-                string Cylinder = @"refinementCylinder{
+            string Cylinder = @"refinementCylinder{
 type searchableCylinder;
 point1 (" + Utilities.FormatPV(dom.RefinementCylinder.Center).Replace(',', ' ') + @");
 point2 (" + Utilities.FormatPV(dom.RefinementCylinder.Center + Vector3d.ZAxis * dom.RefinementCylinder.Height2).ToString().Replace(',', ' ') + @");
 radius " + Utilities.FormatDouble(dom.RefinementCylinder.CircleAt(0.5).Radius) + @";
 }";
 
-                string Box = @"refinementBox{
+            string Box = @"refinementBox{
           type searchableBox;
           min (" + Utilities.FormatDouble(dom.BBox.X.Min) + " " + Utilities.FormatDouble(dom.BBox.Y.Min) + " " + Utilities.FormatDouble(dom.BBox.Z.Min) + @");
           max (" + Utilities.FormatDouble(dom.BBox.X.Max) + " " + Utilities.FormatDouble(dom.BBox.Y.Max) + " " + Utilities.FormatDouble(dom.BBox.Z.Max) + @");
 }";
-                refinementGeometry = Box;
+            refinementGeometry = Box;
 
-                bool useGpt53CodexPreset = MeshSettings.preset == MeshPreset.GPT53Codex;
-                bool enableSnap = useGpt53CodexPreset
-                    || MeshSettings.snappySetting == SnappySnapSettings.BlocksSnapping
-                    || MeshSettings.snappySetting == SnappySnapSettings.BlocksSnappingLayers;
-                bool enableLayers = !useGpt53CodexPreset
-                    && MeshSettings.snappySetting == SnappySnapSettings.BlocksSnappingLayers;
-                bool includeFeatureExtraction = useGpt53CodexPreset
-                    || MeshSettings.snappySetting != SnappySnapSettings.Blocks;
+            bool useGpt53CodexPreset = MeshSettings.preset == MeshPreset.GPT53Codex;
+            bool enableSnap = useGpt53CodexPreset
+                || MeshSettings.snappySetting == SnappySnapSettings.BlocksSnapping
+                || MeshSettings.snappySetting == SnappySnapSettings.BlocksSnappingLayers;
+            bool enableLayers = !useGpt53CodexPreset
+                && MeshSettings.snappySetting == SnappySnapSettings.BlocksSnappingLayers;
+            bool includeFeatureExtraction = useGpt53CodexPreset
+                || MeshSettings.snappySetting != SnappySnapSettings.Blocks;
 
-                int nCellsBetweenLevels = useGpt53CodexPreset
-                    ? Math.Max(5, MeshSettings.nCellsBetweenLevels)
-                    : MeshSettings.nCellsBetweenLevels;
+            int nCellsBetweenLevels = useGpt53CodexPreset
+                ? Math.Max(5, MeshSettings.nCellsBetweenLevels)
+                : MeshSettings.nCellsBetweenLevels;
 
-                int snapSmoothPatch = useGpt53CodexPreset ? 5 : 3;
-                string snapTolerance = useGpt53CodexPreset ? "2.0" : "4.0";
-                int snapSolveIter = useGpt53CodexPreset ? 50 : 30;
-                int snapRelaxIter = useGpt53CodexPreset ? 8 : 5;
-                int snapFeatureIter = useGpt53CodexPreset ? 15 : 10;
+            int snapSmoothPatch = useGpt53CodexPreset ? 5 : 3;
+            string snapTolerance = useGpt53CodexPreset ? "2.0" : "4.0";
+            int snapSolveIter = useGpt53CodexPreset ? 50 : 30;
+            int snapRelaxIter = useGpt53CodexPreset ? 8 : 5;
+            int snapFeatureIter = useGpt53CodexPreset ? 15 : 10;
 
-                string maxConcave = useGpt53CodexPreset ? "70" : "80";
-                string minFaceWeight = useGpt53CodexPreset ? "0.08" : "0.05";
-                string minVolRatio = useGpt53CodexPreset ? "0.02" : "0.01";
+            string maxConcave = useGpt53CodexPreset ? "70" : "80";
+            string minFaceWeight = useGpt53CodexPreset ? "0.08" : "0.05";
+            string minVolRatio = useGpt53CodexPreset ? "0.02" : "0.01";
 
-                StringBuilder sb = new StringBuilder();
-                sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
+            StringBuilder sb = new StringBuilder();
+            sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
 |  \\    /   O peration     | Version:  2.3.0                                 |
@@ -243,9 +243,9 @@ FoamFile
 }
 
     castellatedMesh true;");
-                sb.AppendLine("snap "); if (enableSnap) { sb.Append("true;"); } else { sb.Append("false;"); }
-                sb.AppendLine("addLayers "); if (enableLayers) { sb.Append("true;"); } else { sb.Append("false;"); }
-                sb.AppendLine(@"geometry
+            sb.AppendLine("snap "); if (enableSnap) { sb.Append("true;"); } else { sb.Append("false;"); }
+            sb.AppendLine("addLayers "); if (enableLayers) { sb.Append("true;"); } else { sb.Append("false;"); }
+            sb.AppendLine(@"geometry
     {
         building.stl
         {
@@ -259,18 +259,18 @@ FoamFile
             name ground;
         }");
 
-                if (!dom.HasTerrain)
-                {
-                    sb.Append(@"
+            if (!dom.HasTerrain)
+            {
+                sb.Append(@"
         ground_perim.stl
         {
             type triSurfaceMesh;
             name ground_perim;
         }");
-                }
+            }
 
-                //if (dom.terrainMesh.Faces.Count == 0) { sb.Append(ground_perim); }
-                sb.Append(@"
+            //if (dom.terrainMesh.Faces.Count == 0) { sb.Append(ground_perim); }
+            sb.Append(@"
         " + refinementGeometry + @"
     }
 
@@ -278,14 +278,14 @@ FoamFile
     {
         features
         (");
-                if (includeFeatureExtraction)
-                {
-                    sb.Append(@"
+            if (includeFeatureExtraction)
+            {
+                sb.Append(@"
             {file ""building.eMesh""; levels ((0.3 " + (MeshSettings.accFeatures) + @")) ;}
             {file ""ground.eMesh""; levels ((0.3 " + (MeshSettings.accFeatures) + @")) ;}");
-                }
+            }
 
-                sb.Append(@"
+            sb.Append(@"
         );
         refinementSurfaces
         {
@@ -306,9 +306,9 @@ FoamFile
                     type wall;
                 }
             }");
-                if (!dom.HasTerrain)
-                {
-                    sb.Append(@"ground_perim
+            if (!dom.HasTerrain)
+            {
+                sb.Append(@"ground_perim
             {
                 level (" + (MeshSettings.accGround) + @" " + (MeshSettings.accGround) + @");
                 patchInfo
@@ -316,8 +316,8 @@ FoamFile
                     type wall;
                 }
             }");
-                }
-                sb.Append(@"}
+            }
+            sb.Append(@"}
 refinementRegions
         {
 refinementBox {mode inside; levels ((" + MeshSettings.accBoxRefinement + @" " + MeshSettings.accBoxRefinement + @"));}
@@ -362,14 +362,14 @@ snapControls
                 nSurfaceLayers " + MeshSettings.nLayers + @";
             }
 ");
-                if (!dom.HasTerrain)
-                {
-                    sb.Append(@"ground_perim
+            if (!dom.HasTerrain)
+            {
+                sb.Append(@"ground_perim
             {
                 nSurfaceLayers " + MeshSettings.nLayers + @";
             }");
-                }
-                sb.Append(@"
+            }
+            sb.Append(@"
         }
 
     relativeSizes   true;
@@ -456,7 +456,7 @@ debug 0;
 mergeTolerance 1E-6;
 
 ");
-                return sb.ToString();
+            return sb.ToString();
         }
 
     }

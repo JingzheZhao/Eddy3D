@@ -297,7 +297,7 @@ namespace RhinoPlugin.Test.Xunit
             Assert.Equal(5, catStronglyWindy.Cat);
         }
 
-  
+
 
 
         [RhinoRequiredTheory]

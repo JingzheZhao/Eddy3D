@@ -164,14 +164,20 @@ namespace EddyLib.OutdoorComfort
 
         private static int FindNextLowerIndex(int[] list, int compareTo)
         {
-            if (compareTo <= list.Min())
+            // Bolt optimization: Replaced O(N) LINQ with O(N) single-pass loop avoiding array allocations
+            int max = list[0];
+            int maxIdx = 0;
+            int best = int.MinValue;
+            int bestIdx = -1;
+
+            for (int i = 0; i < list.Length; i++)
             {
-                // Wrap around to highest direction
-                return Array.IndexOf(list, list.Max());
+                int val = list[i];
+                if (val > max) { max = val; maxIdx = i; }
+                if (val < compareTo && val > best) { best = val; bestIdx = i; }
             }
 
-            var smaller = list.Where(x => x < compareTo).ToArray();
-            return Array.IndexOf(list, smaller.Max());
+            return bestIdx != -1 ? bestIdx : maxIdx;
         }
 
         /// <summary>
@@ -184,14 +190,20 @@ namespace EddyLib.OutdoorComfort
 
         private static int FindNextHigherIndex(int[] list, int compareTo)
         {
-            if (compareTo >= list.Max())
+            // Bolt optimization: Replaced O(N) LINQ with O(N) single-pass loop avoiding array allocations
+            int min = list[0];
+            int minIdx = 0;
+            int best = int.MaxValue;
+            int bestIdx = -1;
+
+            for (int i = 0; i < list.Length; i++)
             {
-                // Wrap around to lowest direction
-                return Array.IndexOf(list, list.Min());
+                int val = list[i];
+                if (val < min) { min = val; minIdx = i; }
+                if (val > compareTo && val < best) { best = val; bestIdx = i; }
             }
 
-            var larger = list.Where(x => x > compareTo).ToArray();
-            return Array.IndexOf(list, larger.Min());
+            return bestIdx != -1 ? bestIdx : minIdx;
         }
 
         #endregion

@@ -460,7 +460,7 @@ namespace RhinoPlugin.Test.Xunit
             return Path.GetDirectoryName(DefaultDirectoriesAndPaths.RadianceBinDir);
         }
 
-        
+
 
         [NotWindowsServerFact]
         [Trait("Category", "Execution")]
@@ -587,7 +587,7 @@ namespace RhinoPlugin.Test.Xunit
             double extrCold = 0, vryStrngCold = 0, strngCold = 0, mdrtCold = 0, slgtCold = 0;
             double noStress = 0, slgtHeat = 0, mdrtHeat = 0, strngHeat = 0, vryStrngHeat = 0, extrHeat = 0;
 
-            EddyLib.UTCI.Binning(vals, 
+            EddyLib.UTCI.Binning(vals,
                 ref extrCold, ref vryStrngCold, ref strngCold, ref mdrtCold, ref slgtCold,
                 ref noStress, ref slgtHeat, ref mdrtHeat, ref strngHeat, ref vryStrngHeat, ref extrHeat);
 
@@ -627,7 +627,7 @@ FORMAT=ascii
 
             // Act - Parse using reflection since LoadDDSIll is private
             var radiationSystemType = typeof(EddyLib.Radiation.RadiationSystem);
-            var loadDDSIllMethod = radiationSystemType.GetMethod("LoadDDSIll", 
+            var loadDDSIllMethod = radiationSystemType.GetMethod("LoadDDSIll",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
 
             Assert.NotNull(loadDDSIllMethod);

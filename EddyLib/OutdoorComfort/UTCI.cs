@@ -58,7 +58,7 @@ namespace EddyLib
             if (!recalc && File.Exists(binPath))
             {
                 var cached = RadianceFiles.loadBinD(binPath);
-                
+
                 if (cached.GetLength(1) == probes.Length)
                 {
                     // Cache valid - use it
@@ -69,7 +69,7 @@ namespace EddyLib
                     resultPrecalculated = true;
                     return;
                 }
-                
+
                 // Cache has wrong probe count
                 wrongNumberOfProbes = true;
                 resultPrecalculated = false;
@@ -84,7 +84,7 @@ namespace EddyLib
 
             // Preserve legacy rounding behavior for UTCI time series outputs.
             var result = CalcUTCI(probes, weather, wf, mrt, 1);
-            
+
             ValuesUTCI = result.Item1;
             ValuesCondition = result.Item2;
             ValuesAnnualPercentage = result.Item3;
@@ -241,9 +241,9 @@ namespace EddyLib
                 .ToDictionary(g => g.Key, g => g.Count());
 
             int total = Vals.Count;
-            double GetPct(int category) => 
-                counts.TryGetValue(category, out int count) 
-                    ? Math.Round((double)count / total, 3) 
+            double GetPct(int category) =>
+                counts.TryGetValue(category, out int count)
+                    ? Math.Round((double)count / total, 3)
                     : 0.0;
 
             ExtrCold = GetPct(-5);

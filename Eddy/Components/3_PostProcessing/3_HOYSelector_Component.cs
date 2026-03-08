@@ -18,7 +18,7 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
         public HOYSelector_Component()
-          : base("Analysis Period", "ABins", 
+          : base("Analysis Period", "ABins",
 @"Analysis Period
 
 Defines a specific time period for analysis (e.g., Summer from 9am-5pm). Outputs a list of hours (HOY) to filter simulation results for seasonal or daily studies.

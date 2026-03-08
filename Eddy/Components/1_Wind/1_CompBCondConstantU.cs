@@ -24,7 +24,7 @@ namespace Eddy
         /// be created.
         /// </summary>
         public BCondConstU()
-          : base("Uniform Flow", "UniFlow", 
+          : base("Uniform Flow", "UniFlow",
 @"Uniform Wind Inlet
 
 Sets a constant wind speed across the entire inlet. Useful for wind tunnel calibration or simplified flow studies.
@@ -42,23 +42,23 @@ Sets a constant wind speed across the entire inlet. Useful for wind tunnel calib
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddIntegerParameter(
-                "Wind Directions", "Dir", 
-                "Wind directions to simulate. Units: degrees (0-359). 0° = North, 90° = East.", 
+                "Wind Directions", "Dir",
+                "Wind directions to simulate. Units: degrees (0-359). 0° = North, 90° = East.",
                 GH_ParamAccess.list);
 
             pManager.AddNumberParameter(
-                "Velocity", "Vel", 
-                "Uniform wind speed (constant at all heights). Units: m/s. Default: 5 m/s", 
+                "Velocity", "Vel",
+                "Uniform wind speed (constant at all heights). Units: m/s. Default: 5 m/s",
                 GH_ParamAccess.list);
 
             pManager.AddNumberParameter(
-                "Surface Roughness", "Z0", 
-                "Aerodynamic roughness for turbulence calculation. Units: m. Default: 1m", 
+                "Surface Roughness", "Z0",
+                "Aerodynamic roughness for turbulence calculation. Units: m. Default: 1m",
                 GH_ParamAccess.list);
 
             pManager.AddTextParameter(
-                "Weather File", "EPW", 
-                "Optional: Path to EnergyPlus weather file (.epw) for climate data.", 
+                "Weather File", "EPW",
+                "Optional: Path to EnergyPlus weather file (.epw) for climate data.",
                 GH_ParamAccess.item, "");
 
             pManager[0].Optional = true;

@@ -22,7 +22,7 @@ namespace Eddy
         /// </summary>
         public STLExporter_Component()
           : base(
-              "STL Exporter", 
+              "STL Exporter",
               "STLExport",
               @"Export geometry to STL format for OpenFOAM or other CFD tools.
 
@@ -30,7 +30,7 @@ Supports meshes and Breps (auto-meshed). Select between binary or ASCII
 output and single or multiple file export.
 
 " + EddyVersion.toString(),
-              EddyVersion.Name, 
+              EddyVersion.Name,
               "1 | Wind")
         {
         }
@@ -41,18 +41,18 @@ output and single or multiple file export.
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGeometryParameter(
-                "Geometry", "Geo", 
-                "Meshes or Breps to export.", 
+                "Geometry", "Geo",
+                "Meshes or Breps to export.",
                 GH_ParamAccess.list);
 
             pManager.AddTextParameter(
-                "File Path", "File", 
-                "Destination file path (.stl).", 
+                "File Path", "File",
+                "Destination file path (.stl).",
                 GH_ParamAccess.item);
 
             pManager.AddIntegerParameter(
-                "Mode", "Mode", 
-                "Export mode: 0=Binary, 1=ASCII, 2=Binary (Multi-file), 3=ASCII (Multi-file)", 
+                "Mode", "Mode",
+                "Export mode: 0=Binary, 1=ASCII, 2=Binary (Multi-file), 3=ASCII (Multi-file)",
                 GH_ParamAccess.item, 0);
 
             if (pManager[2] is Param_Integer param)
@@ -64,8 +64,8 @@ output and single or multiple file export.
             }
 
             pManager.AddNumberParameter(
-                "Edge Length", "Edge", 
-                "Optional: Maximum edge length for auto-meshing Breps. Units: meters.", 
+                "Edge Length", "Edge",
+                "Optional: Maximum edge length for auto-meshing Breps. Units: meters.",
                 GH_ParamAccess.item, 0);
             pManager[3].Optional = true;
         }

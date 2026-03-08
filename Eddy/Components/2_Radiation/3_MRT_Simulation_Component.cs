@@ -28,7 +28,7 @@ namespace Eddy
         /// Initializes a new instance of the WorkerWithProgBarComponent class.
         /// </summary>
         public MRT_Simulation_Component()
-          : base("MRT Simulation", "MRT", 
+          : base("MRT Simulation", "MRT",
 @"Mean Radiant Temperature (MRT) Solver
 
 Calculates MRT, a key metric for thermal comfort, using ray-tracing and view factors.
@@ -37,7 +37,7 @@ Combines:
 - Diffuse Sky Radiation
 - Longwave Surface Emissions
 
-" + EddyVersion.toString(), 
+" + EddyVersion.toString(),
               EddyVersion.Name, "2 | Radiation")
         {
             Analytics.Analytics.TrackComponentView("MRTSimulation");
@@ -49,48 +49,48 @@ Combines:
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddTextParameter(
-                "Working Directory", "Dir", 
-                "Folder for simulation files. Default: My_MRT_Project", 
+                "Working Directory", "Dir",
+                "Folder for simulation files. Default: My_MRT_Project",
                 GH_ParamAccess.item, @"My_MRT_Project");
 
             pManager.AddTextParameter(
-                "Weather File", "EPW", 
-                "Path to EnergyPlus weather file (.epw) for climate data.", 
+                "Weather File", "EPW",
+                "Path to EnergyPlus weather file (.epw) for climate data.",
                 GH_ParamAccess.item);
 
             pManager.AddGenericParameter(
-                "Surfaces", "Srf", 
-                "Radiation surfaces from Building/Ground/Tree Surface components.", 
+                "Surfaces", "Srf",
+                "Radiation surfaces from Building/Ground/Tree Surface components.",
                 GH_ParamAccess.tree);
 
             pManager.AddGenericParameter(
-                "Sensors", "Sen", 
-                "Analysis locations as Mesh or RProbe objects.", 
+                "Sensors", "Sen",
+                "Analysis locations as Mesh or RProbe objects.",
                 GH_ParamAccess.tree);
 
             pManager.AddTextParameter(
-                "Settings", "Set", 
-                "Optional: Simulation settings (Radiance parameters, timestep).", 
+                "Settings", "Set",
+                "Optional: Simulation settings (Radiance parameters, timestep).",
                 GH_ParamAccess.item, "");
             pManager[4].Optional = true;
 
             pManager.AddTextParameter(
-                "CFD Result", "CFD", 
-                "Optional: Path to .wind.eddy file for wind-coupled MRT analysis.", 
+                "CFD Result", "CFD",
+                "Optional: Path to .wind.eddy file for wind-coupled MRT analysis.",
                 GH_ParamAccess.item, "");
             pManager[5].Optional = true;
 
             pManager.AddBooleanParameter("Run", "Run", "Run the calculation", GH_ParamAccess.item, false);
 
             pManager.AddTextParameter(
-                "Radiance Folder", "RadFolder", 
-                @"Optional: Custom Radiance installation folder. Default: " + DefaultDirectoriesAndPaths.RadianceDir, 
+                "Radiance Folder", "RadFolder",
+                @"Optional: Custom Radiance installation folder. Default: " + DefaultDirectoriesAndPaths.RadianceDir,
                 GH_ParamAccess.item, "");
             pManager[7].Optional = true;
 
             pManager.AddTextParameter(
-                "EnergyPlus Folder", "EPFolder", 
-                @"Optional: Custom EnergyPlus installation folder. Default: " + DefaultDirectoriesAndPaths.EnergyPlusDir, 
+                "EnergyPlus Folder", "EPFolder",
+                @"Optional: Custom EnergyPlus installation folder. Default: " + DefaultDirectoriesAndPaths.EnergyPlusDir,
                 GH_ParamAccess.item, "");
             pManager[8].Optional = true;
         }

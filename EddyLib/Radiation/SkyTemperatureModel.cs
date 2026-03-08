@@ -56,12 +56,12 @@ namespace EddyLib.Radiation
         /// Creates sky temperature model from weather data.
         /// </summary>
         public SkyTemperatureModel(
-            double[] dewPointTemp, 
-            double[] dryBulbTemp, 
-            double[] opaqueSkyCover, 
-            double[] relativeHumidity, 
-            bool run, 
-            CalculationType calculationType, 
+            double[] dewPointTemp,
+            double[] dryBulbTemp,
+            double[] opaqueSkyCover,
+            double[] relativeHumidity,
+            bool run,
+            CalculationType calculationType,
             double[] horizontalIR_EPW = null)
         {
             if (!run) return;
@@ -90,10 +90,10 @@ namespace EddyLib.Radiation
                         : calculationType;
 
                     Emissivity[h] = CalculateEmissivity(
-                        opaqueSkyCover[h], 
-                        dryBulbTemp[h], 
-                        dewPointTemp[h], 
-                        relativeHumidity[h], 
+                        opaqueSkyCover[h],
+                        dryBulbTemp[h],
+                        dewPointTemp[h],
+                        relativeHumidity[h],
                         effectiveType);
 
                     Temperature[h] = CalculateSkyTemp(dryBulbTemp[h], Emissivity[h]);
@@ -150,10 +150,10 @@ namespace EddyLib.Radiation
         /// Based on EnergyPlus WeatherManager.cc Line 3353.
         /// </summary>
         private double CalculateEmissivity(
-            double skyCover, 
-            double dryBulbC, 
-            double dewPointC, 
-            double relHumidity, 
+            double skyCover,
+            double dryBulbC,
+            double dewPointC,
+            double relHumidity,
             CalculationType type)
         {
             double emissivity = type switch

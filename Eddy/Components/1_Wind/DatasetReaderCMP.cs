@@ -47,7 +47,7 @@ namespace Eddy
         {
             string path = string.Empty;
             bool run = false;
-            
+
             DA.GetData(1, ref run);
             if (!run)
             {
@@ -92,7 +92,7 @@ namespace Eddy
                         // Handle potential naming variations
                         if (h.Equals("X_coords", StringComparison.OrdinalIgnoreCase)) h = "X";
                         if (h.Equals("Y_coords", StringComparison.OrdinalIgnoreCase)) h = "Y";
-                        
+
                         if (outputs.ContainsKey(h))
                         {
                             colMap[i] = h;
@@ -105,14 +105,14 @@ namespace Eddy
                         if (string.IsNullOrWhiteSpace(line)) continue;
 
                         string[] values = line.Split(',');
-                        
+
                         // To ensure all outputs have the same length, we iterate over all possible keys
                         foreach (var key in outputs.Keys.ToList())
                         {
                             // Find if this key is in our column map
                             var mapEntry = colMap.FirstOrDefault(x => x.Value == key);
                             bool found = false;
-                            
+
                             if (mapEntry.Value != null && mapEntry.Key < values.Length)
                             {
                                 if (double.TryParse(values[mapEntry.Key], out double val))
@@ -171,7 +171,7 @@ namespace Eddy
                         cellSize = Math.Min(minDx, minDy);
                     else if (minDx < double.MaxValue) cellSize = minDx;
                     else if (minDy < double.MaxValue) cellSize = minDy;
-                    
+
                     // 2. Generate Boxes
                     for (int i = 0; i < xList.Count; i++)
                     {

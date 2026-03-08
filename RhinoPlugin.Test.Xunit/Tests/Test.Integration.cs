@@ -27,7 +27,7 @@ namespace RhinoPlugin.Test.Xunit
 
             // Create Geometry
             // Two adjacent squares, 10x10m
-            
+
             // Concrete Surface (Left)
             var concreteBrep = Brep.CreateFromCornerPoints(
                 new Point3d(0, 0, 0),
@@ -70,11 +70,11 @@ namespace RhinoPlugin.Test.Xunit
                 SoilLayerName = "Soil",
                 Roughness = RoughnessOfCollectorEnum.Rough,
                 // Soil properties
-                ConductivityOfDrySoil = 1.0, 
+                ConductivityOfDrySoil = 1.0,
                 DensityOfDrySoil = 1200,
                 SpecificHeatOfDrySoil = 1200,
-                ThermalAbsorptance = 0.95, 
-                SolarAbsorptance = 0.85,  
+                ThermalAbsorptance = 0.95,
+                SolarAbsorptance = 0.85,
                 VisibleAbsorptance = 0.85,
                 SaturationVolumetricMoistureContentOfTheSoilLayer = 0.45,
                 ResidualVolumetricMoistureContentOfTheSoilLayer = 0.05,
@@ -132,16 +132,16 @@ namespace RhinoPlugin.Test.Xunit
             // 3. Assert
             // We expect Grass surface temperature to be generally lower than Concrete (evapotranspiration)
             // Or MRT above Grass to be lower.
-            
+
             // Check Surface Temperatures directly from ThermalSystem results?
             // The simulation stores results in Probes.
             // But Probes store MRT and Radiation.
             // Surface Temperature matches are not directly on Probes unless we look at the RSurfaces/Polygons?
             // However, MRT includes surface temp influence.
-            
+
             // Let's check MRT at noon in Summer (e.g., July 1st -> Hr ~ 4344)
             int summerNoon = 4344; // Approx
-            
+
             float mrtConcrete = mrtSystem.Probes[0].LongWave_MRT[summerNoon] + mrtSystem.Probes[0].SolarGain_dMRT[summerNoon];
             float mrtGrass = mrtSystem.Probes[1].LongWave_MRT[summerNoon] + mrtSystem.Probes[1].SolarGain_dMRT[summerNoon];
 

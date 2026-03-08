@@ -19,10 +19,10 @@ namespace Eddy
         /// </summary>
         public MeshSettings_Component()
           : base(
-              GH_Strings.MeshSettings.Name, 
-              GH_Strings.MeshSettings.Nick, 
+              GH_Strings.MeshSettings.Name,
+              GH_Strings.MeshSettings.Nick,
               GH_Strings.MeshSettings.Desc + EddyVersion.toString(),
-              EddyVersion.Name, 
+              EddyVersion.Name,
               "1 | Wind")
         {
         }
@@ -33,43 +33,43 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddIntegerParameter(
-                GH_Strings.MeshSettings.BldMin, GH_Strings.MeshSettings.BldMinNick, 
-                GH_Strings.MeshSettings.BldMinDesc, 
+                GH_Strings.MeshSettings.BldMin, GH_Strings.MeshSettings.BldMinNick,
+                GH_Strings.MeshSettings.BldMinDesc,
                 GH_ParamAccess.item, 2);
 
             pManager.AddIntegerParameter(
-                GH_Strings.MeshSettings.BldMax, GH_Strings.MeshSettings.BldMaxNick, 
-                GH_Strings.MeshSettings.BldMaxDesc, 
+                GH_Strings.MeshSettings.BldMax, GH_Strings.MeshSettings.BldMaxNick,
+                GH_Strings.MeshSettings.BldMaxDesc,
                 GH_ParamAccess.item, 3);
 
             pManager.AddIntegerParameter(
-                GH_Strings.MeshSettings.Feature, GH_Strings.MeshSettings.FeatureNick, 
-                GH_Strings.MeshSettings.FeatureDesc, 
+                GH_Strings.MeshSettings.Feature, GH_Strings.MeshSettings.FeatureNick,
+                GH_Strings.MeshSettings.FeatureDesc,
                 GH_ParamAccess.item, 2);
 
             pManager.AddIntegerParameter(
-                GH_Strings.MeshSettings.BBox, GH_Strings.MeshSettings.BBoxNick, 
-                GH_Strings.MeshSettings.BBoxDesc, 
+                GH_Strings.MeshSettings.BBox, GH_Strings.MeshSettings.BBoxNick,
+                GH_Strings.MeshSettings.BBoxDesc,
                 GH_ParamAccess.item, 0);
 
             pManager.AddIntegerParameter(
-                GH_Strings.MeshSettings.Ground, GH_Strings.MeshSettings.GroundNick, 
-                GH_Strings.MeshSettings.GroundDesc, 
+                GH_Strings.MeshSettings.Ground, GH_Strings.MeshSettings.GroundNick,
+                GH_Strings.MeshSettings.GroundDesc,
                 GH_ParamAccess.item, 2);
 
             pManager.AddIntegerParameter(
-                GH_Strings.MeshSettings.Layers, GH_Strings.MeshSettings.LayersNick, 
-                GH_Strings.MeshSettings.LayersDesc, 
+                GH_Strings.MeshSettings.Layers, GH_Strings.MeshSettings.LayersNick,
+                GH_Strings.MeshSettings.LayersDesc,
                 GH_ParamAccess.item, 4);
 
             pManager.AddIntegerParameter(
-                GH_Strings.MeshSettings.Cells, GH_Strings.MeshSettings.CellsNick, 
-                GH_Strings.MeshSettings.CellsDesc, 
+                GH_Strings.MeshSettings.Cells, GH_Strings.MeshSettings.CellsNick,
+                GH_Strings.MeshSettings.CellsDesc,
                 GH_ParamAccess.item, 5);
 
             pManager.AddIntegerParameter(
-                GH_Strings.MeshSettings.Mode, GH_Strings.MeshSettings.ModeNick, 
-                GH_Strings.MeshSettings.ModeDesc, 
+                GH_Strings.MeshSettings.Mode, GH_Strings.MeshSettings.ModeNick,
+                GH_Strings.MeshSettings.ModeDesc,
                 GH_ParamAccess.item, 1);
             if (pManager[7] is Param_Integer param1)
             {

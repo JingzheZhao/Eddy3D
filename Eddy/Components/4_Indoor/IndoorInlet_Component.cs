@@ -16,14 +16,14 @@ namespace Eddy.Components.Indoor
         /// </summary>
         public IndoorInlet_Component()
           : base(
-              "Indoor Inlet", 
+              "Indoor Inlet",
               "Inlet",
               @"Ventilation Inlet
 
 Defines where air enters the room, such as diffusers, windows, or doors.
 
 " + EddyVersion.toString(),
-              EddyVersion.Name, 
+              EddyVersion.Name,
               "9 | Indoor")
         {
             Analytics.Analytics.TrackComponentView("IndoorInlet");

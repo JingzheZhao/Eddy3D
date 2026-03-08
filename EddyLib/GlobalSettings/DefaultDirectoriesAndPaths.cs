@@ -109,19 +109,19 @@ namespace EddyLib
         private static string NormalizeEnginePath(string path, string defaultPath)
         {
             if (string.IsNullOrWhiteSpace(path)) return defaultPath;
-            
+
             // Clean up basic formatting
             string normalized = path.Trim().TrimEnd('\\', '/');
 
             // Handle Grasshopper boolean strings ("True"/"False") from legacy template wire crossings
-            if (normalized.Equals("true", StringComparison.OrdinalIgnoreCase) || 
+            if (normalized.Equals("true", StringComparison.OrdinalIgnoreCase) ||
                 normalized.Equals("false", StringComparison.OrdinalIgnoreCase))
             {
                 return defaultPath;
             }
 
             // If user accidentally pointed to the bin folder, go up one level
-            if (normalized.EndsWith(@"\bin", StringComparison.OrdinalIgnoreCase) || 
+            if (normalized.EndsWith(@"\bin", StringComparison.OrdinalIgnoreCase) ||
                 normalized.EndsWith(@"/bin", StringComparison.OrdinalIgnoreCase) ||
                 normalized.Equals("bin", StringComparison.OrdinalIgnoreCase))
             {

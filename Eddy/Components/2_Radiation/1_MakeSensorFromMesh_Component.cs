@@ -15,12 +15,12 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the MakeRadiationSensor_Component class.
         /// </summary>
         public MakeRadiationSensorFromMesh_Component()
-          : base("Mesh Sensor", "MeshSen", 
+          : base("Mesh Sensor", "MeshSen",
 @"Mesh Sensor Grid
 
 Converts a mesh surface into a grid of sensors for MRT analysis. Each mesh face serves as a measurement point for radiation and thermal comfort.
 
-" + EddyVersion.toString(), 
+" + EddyVersion.toString(),
               EddyVersion.Name, "2 | Radiation")
         {
             Analytics.Analytics.TrackComponentView("MRTMeshSensor");

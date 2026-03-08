@@ -132,7 +132,7 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the ThermalSystem_Component class.
         /// </summary>
         public InspectPolygon_Component()
-          : base("Surface Result Inspector", "InPoly", 
+          : base("Surface Result Inspector", "InPoly",
 @"Surface Result Inspector
 
 Visualizes simulation results on surface polygons (e.g., building facades, ground). Displays metrics like Surface Temperature or Radiation exposure.

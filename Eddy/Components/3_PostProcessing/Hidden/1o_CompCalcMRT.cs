@@ -189,7 +189,7 @@ Please make sure Radiance is installed at: ""C:\Program Files\Radiance"".
                 }
                 catch (Exception e)
                 {
-                    throw e;
+                    throw;
                 }
             }
             else if (run == false)
@@ -200,7 +200,7 @@ Please make sure Radiance is installed at: ""C:\Program Files\Radiance"".
                 }
                 catch (Exception e)
                 {
-                    throw e;
+                    throw;
                 }
             }
 
@@ -236,7 +236,7 @@ Please make sure Radiance is installed at: ""C:\Program Files\Radiance"".
             }
             catch (Exception e)
             {
-                throw e;
+                throw;
             }
         }
 

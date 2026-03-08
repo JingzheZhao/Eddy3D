@@ -36,7 +36,7 @@ namespace EddyLib
                 {
                     brep = extrusion.ToBrep();
                 }
-                
+
                 if (brep != null)
                 {
                     var meshes = Mesh.CreateFromBrep(brep, mp);

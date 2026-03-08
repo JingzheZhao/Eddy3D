@@ -21,13 +21,13 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the MakeRadiationMesh_Component class.
         /// </summary>
         public MakeVegetationSurface_Component()
-          : base("Vegetation Surface", "VegSrf", 
+          : base("Vegetation Surface", "VegSrf",
 @"Create grass/lawn surfaces for MRT simulation.
 
 Models low vegetation with evapotranspiration cooling.
 Surface temperatures are typically lower than paved surfaces.
 
-" + EddyVersion.toString(), 
+" + EddyVersion.toString(),
               EddyVersion.Name, "2 | Radiation")
         {
             Analytics.Analytics.TrackComponentView("MRTVegetationSurface");

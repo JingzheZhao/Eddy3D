@@ -313,7 +313,8 @@ namespace EddyLib.Radiation
                 fp_table[10] = new double[] { 0.21, 0.18, 0.14, 0.12, 0.12, 0.12, 0.12 };
                 fp_table[11] = new double[] { 0.21, 0.17, 0.13, 0.11, 0.11, 0.12, 0.12 };
                 fp_table[12] = new double[] { 0.21, 0.17, 0.12, 0.11, 0.11, 0.11, 0.12 };
-            };
+            }
+            ;
 
             if (posture == Posture.supine)
             {

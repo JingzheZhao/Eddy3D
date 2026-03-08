@@ -119,7 +119,7 @@ namespace EddyLib
         /// <summary>
         /// Checks if a mesh face should be skipped due to small area.
         /// </summary>
-        private static bool ShouldSkipFace(Mesh mesh, int faceIndex) => 
+        private static bool ShouldSkipFace(Mesh mesh, int faceIndex) =>
             Utilities.MeshFaceArea(faceIndex, mesh) < GetModelTolerance();
 
         /// <summary>

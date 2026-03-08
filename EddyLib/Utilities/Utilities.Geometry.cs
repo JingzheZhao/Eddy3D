@@ -78,13 +78,13 @@ namespace EddyLib
             Vector3d c = new Vector3d(vc.X - p.X, vc.Y - p.Y, vc.Z - p.Z);
 
             double la = a.Length, lb = b.Length, lc = c.Length;
-            
+
             // Denominator: |a||b||c| + (a·b)|c| + (b·c)|a| + (c·a)|b|
             double bottom = (la * lb * lc) + (a * b) * lc + (b * c) * la + (c * a) * lb;
-            
+
             // Numerator: scalar triple product a·(b×c)
-            double top = a.X * (b.Y * c.Z - c.Y * b.Z) 
-                       - a.Y * (b.X * c.Z - c.X * b.Z) 
+            double top = a.X * (b.Y * c.Z - c.Y * b.Z)
+                       - a.Y * (b.X * c.Z - c.X * b.Z)
                        + a.Z * (b.X * c.Y - c.X * b.Y);
 
             return 2.0 * Math.Atan2(top, bottom);

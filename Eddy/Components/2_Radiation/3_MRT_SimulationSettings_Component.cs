@@ -18,7 +18,7 @@ namespace Eddy.Components._2_Radiation
         /// Initializes a new instance of the _2_SurfaceMaterialSettings_Component class.
         /// </summary>
         public SimulationSettings_Component()
-          : base("Settings", "Set", 
+          : base("Settings", "Set",
 @"Radiation Settings
 
 Configures accuracy and detail for the MRT simulation, including solar ray-tracing quality and reflections.

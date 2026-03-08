@@ -41,13 +41,13 @@ GH_Strings.Clean.Desc + EddyVersion.toString(),
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter(
-                GH_Strings.Clean.ResDir, GH_Strings.Clean.ResDirNick, 
-                GH_Strings.Clean.ResDirDesc, 
+                GH_Strings.Clean.ResDir, GH_Strings.Clean.ResDirNick,
+                GH_Strings.Clean.ResDirDesc,
                 GH_ParamAccess.item);
 
             pManager.AddIntegerParameter(
-                GH_Strings.Clean.Mode, GH_Strings.Clean.ModeNick, 
-                GH_Strings.Clean.ModeDesc, 
+                GH_Strings.Clean.Mode, GH_Strings.Clean.ModeNick,
+                GH_Strings.Clean.ModeDesc,
                 GH_ParamAccess.item, 0);
             Param_Integer param = pManager[1] as Param_Integer;
             param.AddNamedValue("Mesh Directory", 0);
@@ -55,8 +55,8 @@ GH_Strings.Clean.Desc + EddyVersion.toString(),
             param.AddNamedValue("Both", 2);
 
             pManager.AddBooleanParameter(
-                GH_Strings.Clean.Run, GH_Strings.Clean.RunNick, 
-                "Set True to delete directories. CAUTION: Cannot be undone.", 
+                GH_Strings.Clean.Run, GH_Strings.Clean.RunNick,
+                "Set True to delete directories. CAUTION: Cannot be undone.",
                 GH_ParamAccess.item, false);
         }
 

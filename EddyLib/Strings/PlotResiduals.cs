@@ -13,7 +13,7 @@ namespace EddyLib.Strings
         public static string GenerateGnuplotScript(string residualsPath, string outputPngPath)
         {
             var sb = new StringBuilder();
-            
+
             // Gnuplot script for PNG output
             sb.AppendLine("# Gnuplot script for OpenFOAM residuals");
             sb.AppendLine("set terminal pngcairo size 1920,1080 enhanced font 'Arial,14'");
@@ -34,7 +34,7 @@ namespace EddyLib.Strings
             sb.AppendLine("set datafile separator whitespace");
             sb.AppendLine("set datafile commentschars \"#\"");
             sb.AppendLine();
-            
+
             // Read field names from the file if it exists
             string[] fieldNames = new string[] { "p", "U", "k", "epsilon", "omega", "nut" };
             if (File.Exists(residualsPath))
@@ -59,17 +59,17 @@ namespace EddyLib.Strings
                     // Use default field names if reading fails
                 }
             }
-            
+
             sb.AppendLine("# Plot the data");
             sb.Append($"plot 'postProcessing/residuals/0/residuals.dat' using 1:2 with linespoints title '{fieldNames[0]}' lw 2 pt 7 ps 0.5");
-            
+
             for (int i = 1; i < Math.Min(fieldNames.Length, 6); i++)
             {
                 sb.AppendLine(", \\");
                 sb.Append($"     '' using 1:{i + 2} with linespoints title '{fieldNames[i]}' lw 2 pt 7 ps 0.5");
             }
             sb.AppendLine();
-            
+
             return sb.ToString();
         }
 
@@ -81,7 +81,7 @@ namespace EddyLib.Strings
             var residualsPath = Path.Combine(caseDir, windDir.ToString(), "postProcessing", "residuals", "0", "residuals.dat");
             var outputPng = Path.Combine(caseDir, windDir.ToString(), "residuals.png");
             var gnuplotScript = Path.Combine(caseDir, windDir.ToString(), "plot_residuals.plt");
-            
+
             var sb = new StringBuilder();
             sb.AppendLine();
             sb.AppendLine("REM Plot residuals");
@@ -96,7 +96,7 @@ namespace EddyLib.Strings
             sb.AppendLine($") else (");
             sb.AppendLine($"    echo Warning: residuals.dat not found, skipping plot generation");
             sb.AppendLine($")");
-            
+
             return sb.ToString();
         }
     }

@@ -35,7 +35,7 @@ namespace Eddy
         }
 
         public SelectTemplate_Component()
-              : base(EddyLib.GH_Strings.Templates.Name, EddyLib.GH_Strings.Templates.Nick, 
+              : base(EddyLib.GH_Strings.Templates.Name, EddyLib.GH_Strings.Templates.Nick,
               EddyLib.GH_Strings.Templates.Desc + "\n\n" + EddyVersion.toString(),
               EddyVersion.Name, "0 | Utilities")
         {
@@ -46,9 +46,9 @@ namespace Eddy
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddTextParameter(
-                EddyLib.GH_Strings.Templates.InputName, 
-                EddyLib.GH_Strings.Templates.InputNick, 
-                EddyLib.GH_Strings.Templates.InputDesc, 
+                EddyLib.GH_Strings.Templates.InputName,
+                EddyLib.GH_Strings.Templates.InputNick,
+                EddyLib.GH_Strings.Templates.InputDesc,
                 GH_ParamAccess.list);
             pManager[0].Optional = true;
         }
@@ -56,9 +56,9 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddTextParameter(
-                EddyLib.GH_Strings.Templates.OutputName, 
-                EddyLib.GH_Strings.Templates.OutputNick, 
-                EddyLib.GH_Strings.Templates.OutputDesc, 
+                EddyLib.GH_Strings.Templates.OutputName,
+                EddyLib.GH_Strings.Templates.OutputNick,
+                EddyLib.GH_Strings.Templates.OutputDesc,
                 GH_ParamAccess.list);
         }
 
@@ -105,25 +105,25 @@ namespace Eddy
                 {
                     // It's a GitHub URL
                     var externalDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Eddy3D\Templates\External", ghInfo.Owner, ghInfo.Repo, ghInfo.Branch ?? "HEAD");
-                    
+
                     if (!Directory.Exists(externalDir) || Directory.GetFiles(externalDir, "*.gh*", SearchOption.AllDirectories).Length == 0)
                     {
                         if (!externalFetchStates.ContainsKey(input) || !externalFetchStates[input])
                         {
-                             FetchExternalGithubFilesAsync(input, ghInfo);
+                            FetchExternalGithubFilesAsync(input, ghInfo);
                         }
                     }
 
                     if (Directory.Exists(externalDir))
                     {
-                         // Filter files based on path if provided in URL (e.g. /tree/main/SubDir)
-                         var files = Directory.GetFiles(externalDir, "*.gh*", SearchOption.AllDirectories);
-                         foreach(var f in files)
-                         {
-                             // If URL has a subpath, filter by it
-                             if (!string.IsNullOrEmpty(ghInfo.Path) && !f.Replace("\\", "/").Contains(ghInfo.Path)) continue;
-                             allFiles.Add(f);
-                         }
+                        // Filter files based on path if provided in URL (e.g. /tree/main/SubDir)
+                        var files = Directory.GetFiles(externalDir, "*.gh*", SearchOption.AllDirectories);
+                        foreach (var f in files)
+                        {
+                            // If URL has a subpath, filter by it
+                            if (!string.IsNullOrEmpty(ghInfo.Path) && !f.Replace("\\", "/").Contains(ghInfo.Path)) continue;
+                            allFiles.Add(f);
+                        }
                     }
                 }
                 else if (Directory.Exists(input))
@@ -141,8 +141,8 @@ namespace Eddy
             DA.SetDataList(0, allFiles);
         }
 
-    // --- Helper Structures & Methods ---
-    
+        // --- Helper Structures & Methods ---
+
         private Dictionary<string, bool> externalFetchStates = new Dictionary<string, bool>();
 
         private struct GitHubInfo
@@ -156,7 +156,7 @@ namespace Eddy
         private bool IsGitHubUrl(string url, out GitHubInfo info)
         {
             info = new GitHubInfo();
-            if (string.IsNullOrEmpty(url) || !url.StartsWith("https://github.com/", StringComparison.OrdinalIgnoreCase)) 
+            if (string.IsNullOrEmpty(url) || !url.StartsWith("https://github.com/", StringComparison.OrdinalIgnoreCase))
                 return false;
 
             var parts = url.Substring("https://github.com/".Length).Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
@@ -164,7 +164,7 @@ namespace Eddy
 
             info.Owner = parts[0];
             info.Repo = parts[1];
-            
+
             if (parts.Length >= 4 && parts[2] == "tree")
             {
                 info.Branch = parts[3];
@@ -175,7 +175,7 @@ namespace Eddy
             }
             else
             {
-                 info.Branch = "HEAD"; 
+                info.Branch = "HEAD";
             }
 
             return true;
@@ -192,7 +192,7 @@ namespace Eddy
                 {
                     var files = await lister.ListFilesAsync(info.Owner, info.Repo, info.Branch);
                     var validFiles = files.Where(f => f.EndsWith(".ghx", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".gh", StringComparison.OrdinalIgnoreCase));
-                    
+
                     var targetDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Eddy3D\Templates\External", info.Owner, info.Repo, info.Branch);
                     if (!Directory.Exists(targetDir)) Directory.CreateDirectory(targetDir);
 
@@ -216,7 +216,7 @@ namespace Eddy
             }
             catch (Exception ex)
             {
-                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, $"Failed to fetch external templates from {inputUrl}: {ex.Message}");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, $"Failed to fetch external templates from {inputUrl}: {ex.Message}");
             }
             finally
             {
@@ -280,7 +280,7 @@ namespace Eddy
                 {
                     var latestSha = await lister.GetLatestCommitShaAsync(RepoOwner, RepoName, RepoBranch);
                     var files = await lister.ListFilesAsync(RepoOwner, RepoName, RepoBranch);
-                    
+
                     cache.Files = files.Where(f => f.EndsWith(".ghx", StringComparison.OrdinalIgnoreCase)).ToList();
                     cache.LastSyncedSha = latestSha;
 

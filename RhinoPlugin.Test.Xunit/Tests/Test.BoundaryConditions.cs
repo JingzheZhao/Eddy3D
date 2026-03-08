@@ -59,19 +59,19 @@ namespace RhinoPlugin.Test.Xunit
             switch (domainKind)
             {
                 case DomainKind.Box:
-                {
-                    var domBox = new OFBoxDomain(Setup.SetUpBuildingMesh(), new Mesh(), bcColl, 20);
-                    RunBlockMesh.RunBox(domBox, meshSettings, runSettings, caseDir);
-                    RunSnappyAndFoam(domBox, meshSettings, runSettings, caseDir);
-                    break;
-                }
+                    {
+                        var domBox = new OFBoxDomain(Setup.SetUpBuildingMesh(), new Mesh(), bcColl, 20);
+                        RunBlockMesh.RunBox(domBox, meshSettings, runSettings, caseDir);
+                        RunSnappyAndFoam(domBox, meshSettings, runSettings, caseDir);
+                        break;
+                    }
                 case DomainKind.Cyl:
-                {
-                    var domCyl = new OFCylDomain(Setup.SetUpBuildingMesh(), new Mesh(), bcColl, 20);
-                    RunBlockMesh.RunCyl(domCyl, meshSettings, runSettings, caseDir);
-                    RunSnappyAndFoam(domCyl, meshSettings, runSettings, caseDir);
-                    break;
-                }
+                    {
+                        var domCyl = new OFCylDomain(Setup.SetUpBuildingMesh(), new Mesh(), bcColl, 20);
+                        RunBlockMesh.RunCyl(domCyl, meshSettings, runSettings, caseDir);
+                        RunSnappyAndFoam(domCyl, meshSettings, runSettings, caseDir);
+                        break;
+                    }
                 default:
                     throw new ArgumentOutOfRangeException(nameof(domainKind), domainKind, "Unknown domain kind.");
             }

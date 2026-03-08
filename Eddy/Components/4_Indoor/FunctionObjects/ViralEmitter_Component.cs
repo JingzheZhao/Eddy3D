@@ -16,12 +16,12 @@ namespace Eddy.Components.Indoor
         /// Initializes a new instance of the Emitter class.
         /// </summary>
         public ViralEmitter_Component()
-          : base("Viral Emitter", "Viral", 
+          : base("Viral Emitter", "Viral",
 @"Pathogen Source
 
 Simulates the release of airborne pathogens (e.g., viruses) from a specific location to analyze infection risk and dispersion patterns.
 
-" + EddyVersion.toString(), 
+" + EddyVersion.toString(),
               EddyVersion.Name, "9 | Indoor")
         {
             Analytics.Analytics.TrackComponentView("IndoorViralEmitter");

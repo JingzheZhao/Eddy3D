@@ -68,7 +68,7 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompVisProbesCustomWProbes()
-          : base("WProbes", "WProbes", 
+          : base("WProbes", "WProbes",
 @"Wind Field Visualizer
 
 Generates visualizations of the wind field, including vector arrows and streamlines, to understand flow patterns and identify problematic high-wind or stagnant zones.

@@ -82,7 +82,7 @@ namespace EddyLib.BCs
                 // its own native GUI host, so this block often survives. However, during 
                 // headless xUnit tests in CI/CD pipelines (e.g., `dotnet test`), there is
                 // no GUI host. This block will predictably crash on Mac/Linux.
-                
+
                 var font = GH_FontServer.Small;
                 var gapPx = 12f; // space between columns
                 var fmt = (StringFormat)StringFormat.GenericTypographic.Clone();
@@ -148,7 +148,7 @@ namespace EddyLib.BCs
                 // padding strategy (String.PadRight). The columns won't perfectly align if 
                 // the font is heavily proportional, but it ensures the software (and the test 
                 // suite) doesn't crash.
-                
+
                 outSb.Clear();
                 var colWidths = new int[colCount];
                 for (int c = 0; c < colCount; c++)

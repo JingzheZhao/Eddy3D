@@ -79,9 +79,9 @@ namespace RhinoPlugin.Test.Xunit.Tests
             // 4. Identify request
             var identifyResult = await SendIdentifyAsync(
                 visitorId, deviceType, screenSize, userAgent, networkOrg, networkOrgName);
-            
+
             _output.WriteLine($"[4/5] Identify (session): {identifyResult.msg}");
-            
+
             // If we hit a rate limit (429), we shouldn't fail the test suite, 
             // as this is an external API restriction beyond our control.
             if (identifyResult.statusCode == 429)
@@ -100,9 +100,9 @@ namespace RhinoPlugin.Test.Xunit.Tests
                 deviceType, screenSize, userAgent,
                 networkOrg, networkOrgName,
                 additionalData: new JObject { { "test_run", true }, { "os", OsLabel }, { "os_description", RuntimeInformation.OSDescription } });
-            
+
             _output.WriteLine($"[5/5] Event /outdoor/software-launch: {eventResult.msg}");
-            
+
             if (eventResult.statusCode == 429)
             {
                 _output.WriteLine("⚠️ Rate limit (429) hit on Umami API for Event.");

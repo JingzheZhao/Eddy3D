@@ -22,12 +22,12 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the MakeRadiationMesh_Component class.
         /// </summary>
         public MakeBuildingSurface_Component()
-          : base("Building Surface", "BldgSrf", 
+          : base("Building Surface", "BldgSrf",
 @"Building Material
 
 Assigns thermal and optical properties to building geometries. Affects how buildings reflect sunlight and emit heat.
 
-" + EddyVersion.toString(), 
+" + EddyVersion.toString(),
               EddyVersion.Name, "2 | Radiation")
         {
             Analytics.Analytics.TrackComponentView("MRTBuildingSurface");
@@ -39,24 +39,24 @@ Assigns thermal and optical properties to building geometries. Affects how build
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddBrepParameter(
-                "Geometry", "Geo", 
-                "Building facade geometry (Breps). Will be meshed into analysis patches.", 
+                "Geometry", "Geo",
+                "Building facade geometry (Breps). Will be meshed into analysis patches.",
                 GH_ParamAccess.list);
 
             pManager.AddNumberParameter(
-                "Patch Size", "Patch", 
-                "Size of analysis mesh patches. Units: meters. Smaller = more accurate but slower. Default: 3m", 
+                "Patch Size", "Patch",
+                "Size of analysis mesh patches. Units: meters. Smaller = more accurate but slower. Default: 3m",
                 GH_ParamAccess.item, 3);
 
             pManager.AddGenericParameter(
-                "Settings", "Set", 
-                "Optional: Material and property settings from Surface Settings component.", 
+                "Settings", "Set",
+                "Optional: Material and property settings from Surface Settings component.",
                 GH_ParamAccess.item);
             pManager[2].Optional = true;
 
             pManager.AddIntegerParameter(
-                "Temp Source", "Src", 
-                "Surface temperature data source for MRT calculation.", 
+                "Temp Source", "Src",
+                "Surface temperature data source for MRT calculation.",
                 GH_ParamAccess.item, 1);
             var types = Enum.GetNames(typeof(SimulationType));
             Param_Integer param = pManager[3] as Param_Integer;
@@ -66,8 +66,8 @@ Assigns thermal and optical properties to building geometries. Affects how build
             }
 
             pManager.AddNumberParameter(
-                "Temperature", "Temp", 
-                "Optional: User-defined surface temperatures. Units: °C", 
+                "Temperature", "Temp",
+                "Optional: User-defined surface temperatures. Units: °C",
                 GH_ParamAccess.list);
             pManager[4].Optional = true;
         }

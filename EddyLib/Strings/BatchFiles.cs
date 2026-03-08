@@ -769,7 +769,7 @@ namespace EddyLib.Strings
             sb.AppendLine("ping -n 6 127.0.0.1 >nul");
             return sb.ToString();
         }
-            public static string DeleteProcessorFolders()
+        public static string DeleteProcessorFolders()
         {
             var sb = new StringBuilder();
             sb.AppendLine("@echo off");

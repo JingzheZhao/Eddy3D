@@ -73,7 +73,7 @@ namespace EddyLib
         /// <summary>
         /// Parses ABL conditions from a case folder.
         /// </summary>
-        public static void ParseABLConditionsFromCaseFolder(string ablConditionsFilePath, 
+        public static void ParseABLConditionsFromCaseFolder(string ablConditionsFilePath,
             out double URef, out double z0, out double zref)
         {
             URef = 0.0;

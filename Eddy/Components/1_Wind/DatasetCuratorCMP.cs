@@ -157,7 +157,7 @@ namespace Eddy
                         Curve[] overlaps;
                         Point3d[] intersectionPts;
                         bool hit = Rhino.Geometry.Intersect.Intersection.CurveBrep(verticalLine.ToNurbsCurve(), brep, 1e-6, out overlaps, out intersectionPts);
-                        
+
                         if (hit && intersectionPts != null)
                         {
                             foreach (var pt in intersectionPts)
@@ -190,15 +190,15 @@ namespace Eddy
                         // Ray intersection for Mesh - Shoot from sky down to find roof
                         var verticalRay = new Ray3d(new Point3d(point.X, point.Y, 1000), -Vector3d.ZAxis);
                         double t = Rhino.Geometry.Intersect.Intersection.MeshRay(mesh, verticalRay);
-                        
+
                         if (t >= 0.0)
                         {
-                             // Ray start is 1000. Direction is down (-1). 
-                             // Point = Start + t * Dir
-                             // Z = 1000 + t * (-1) = 1000 - t
-                             double hitZ = 1000.0 - t;
-                             if (hitZ > heightHere)
-                                 heightHere = hitZ;
+                            // Ray start is 1000. Direction is down (-1).
+                            // Point = Start + t * Dir
+                            // Z = 1000 + t * (-1) = 1000 - t
+                            double hitZ = 1000.0 - t;
+                            if (hitZ > heightHere)
+                                heightHere = hitZ;
                         }
                     }
                 }
@@ -319,24 +319,24 @@ namespace Eddy
 
                 // 1. RTree Height Search
                 var searchBox = new BoundingBox(pt.X - 1e-6, pt.Y - 1e-6, -1e10, pt.X + 1e-6, pt.Y + 1e-6, 1e10);
-                
+
                 loc_rtree.Search(searchBox, (sender, args) =>
                 {
                     int geomIndex = args.Id;
                     var geomTuple = loc_resolvedGeometry[geomIndex];
                     string kind = geomTuple.Item1;
-                    
+
                     if (kind == "brep")
                     {
                         Brep brep = (Brep)geomTuple.Item2;
-                        BoundingBox bbox = brep.GetBoundingBox(true); 
+                        BoundingBox bbox = brep.GetBoundingBox(true);
                         if (pt.X >= bbox.Min.X && pt.X <= bbox.Max.X && pt.Y >= bbox.Min.Y && pt.Y <= bbox.Max.Y)
                         {
                             var verticalLine = new Line(new Point3d(pt.X, pt.Y, -1000), new Point3d(pt.X, pt.Y, 1000));
                             Curve[] overlaps;
                             Point3d[] intersectionPts;
                             bool hit = Rhino.Geometry.Intersect.Intersection.CurveBrep(verticalLine.ToNurbsCurve(), brep, 1e-6, out overlaps, out intersectionPts);
-                            
+
                             if (hit && intersectionPts != null)
                             {
                                 foreach (var p in intersectionPts)
@@ -350,7 +350,7 @@ namespace Eddy
                     {
                         Mesh mesh = (Mesh)geomTuple.Item2;
                         BoundingBox bbox = mesh.GetBoundingBox(true);
-                         if (pt.X >= bbox.Min.X && pt.X <= bbox.Max.X && pt.Y >= bbox.Min.Y && pt.Y <= bbox.Max.Y)
+                        if (pt.X >= bbox.Min.X && pt.X <= bbox.Max.X && pt.Y >= bbox.Min.Y && pt.Y <= bbox.Max.Y)
                         {
                             var verticalRay = new Ray3d(new Point3d(pt.X, pt.Y, 1000), -Vector3d.ZAxis);
                             double tVal = Rhino.Geometry.Intersect.Intersection.MeshRay(mesh, verticalRay);
@@ -366,37 +366,37 @@ namespace Eddy
                 // 2. SDF Calculation
                 foreach (var geomTuple in loc_resolvedGeometry)
                 {
-                     string kind = geomTuple.Item1;
-                     GeometryBase geom = (GeometryBase)geomTuple.Item2;
-                     
-                     if (kind == "brep")
-                     {
-                         Brep brep = (Brep)geom;
-                         if (minDist > 0 && brep.IsPointInside(pt, 1e-6, true)) inside = true;
-                         
-                         BoundingBox bbox = brep.GetBoundingBox(true);
-                         double boxDist = bbox.ClosestPoint(pt).DistanceTo(pt);
-                         if (boxDist < minDist)
-                         {
-                             Point3d cp = brep.ClosestPoint(pt);
-                             double d = cp.DistanceTo(pt);
-                             if (d < minDist) minDist = d;
-                         }
-                     }
-                     else if (kind == "mesh")
-                     {
-                         Mesh mesh = (Mesh)geom;
-                         if (minDist > 0 && mesh.IsPointInside(pt, 1e-6, true)) inside = true;
-                         
-                         BoundingBox bbox = mesh.GetBoundingBox(true);
-                         double boxDist = bbox.ClosestPoint(pt).DistanceTo(pt);
-                         if (boxDist < minDist)
-                         {
-                             Point3d cp = mesh.ClosestPoint(pt);
-                             double d = cp.DistanceTo(pt);
-                             if (d < minDist) minDist = d;
-                         }
-                     }
+                    string kind = geomTuple.Item1;
+                    GeometryBase geom = (GeometryBase)geomTuple.Item2;
+
+                    if (kind == "brep")
+                    {
+                        Brep brep = (Brep)geom;
+                        if (minDist > 0 && brep.IsPointInside(pt, 1e-6, true)) inside = true;
+
+                        BoundingBox bbox = brep.GetBoundingBox(true);
+                        double boxDist = bbox.ClosestPoint(pt).DistanceTo(pt);
+                        if (boxDist < minDist)
+                        {
+                            Point3d cp = brep.ClosestPoint(pt);
+                            double d = cp.DistanceTo(pt);
+                            if (d < minDist) minDist = d;
+                        }
+                    }
+                    else if (kind == "mesh")
+                    {
+                        Mesh mesh = (Mesh)geom;
+                        if (minDist > 0 && mesh.IsPointInside(pt, 1e-6, true)) inside = true;
+
+                        BoundingBox bbox = mesh.GetBoundingBox(true);
+                        double boxDist = bbox.ClosestPoint(pt).DistanceTo(pt);
+                        if (boxDist < minDist)
+                        {
+                            Point3d cp = mesh.ClosestPoint(pt);
+                            double d = cp.DistanceTo(pt);
+                            if (d < minDist) minDist = d;
+                        }
+                    }
                 }
 
                 if (minDist == double.MaxValue) minDist = 0.0;
@@ -414,7 +414,7 @@ namespace Eddy
                     double ratio = Math.Log(mount) / denom;
                     uAtZ = loc_uRef * ratio;
                 }
-                
+
                 double uAtZRounded = SafeRound(uAtZ, 2);
                 if (loc_uRefProvided && loc_uRef != 0.0 && !double.IsNaN(uAtZRounded))
                     uAtZArr[i] = SafeRound(uAtZRounded / loc_uRef, 2);
@@ -541,7 +541,7 @@ namespace Eddy
                 var utf8NoBom = new UTF8Encoding(false);
 
                 string scriptPath = Path.Combine(scriptsDir, "add_mag_u.py");
-                if (!File.Exists(scriptPath)) 
+                if (!File.Exists(scriptPath))
                 {
                     File.WriteAllText(scriptPath, MagUScriptContent, utf8NoBom);
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, $"Created script at: {scriptPath}");
@@ -549,7 +549,7 @@ namespace Eddy
             }
             catch (Exception ex)
             {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, $"Failed to create Scripts folder/file: {ex.Message}");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, $"Failed to create Scripts folder/file: {ex.Message}");
             }
         }
 

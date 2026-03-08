@@ -16,12 +16,12 @@ namespace Eddy.Components.Indoor
         /// Initializes a new instance of the Emitter class.
         /// </summary>
         public CO2Emitter_Component()
-          : base("CO2 Emitter", "CO2", 
+          : base("CO2 Emitter", "CO2",
 @"CO2 Source
 
 Simulates carbon dioxide generation, typically from occupants. Use this to assess ventilation effectiveness and air quality.
 
-" + EddyVersion.toString(), 
+" + EddyVersion.toString(),
               EddyVersion.Name, "9 | Indoor")
         {
             Analytics.Analytics.TrackComponentView("IndoorCO2Emitter");

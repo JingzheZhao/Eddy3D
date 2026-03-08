@@ -27,9 +27,12 @@ namespace EddyLib.Indoor.Dicts
 
             this.GeometrySubDict = new Dictionary<string, dynamic>();
 
-            foreach (IndoorBC i in inlet) { this.GeometrySubDict.Add(i.Id + ".stl", GetGeometryDict(i)); };
-            foreach (IndoorBC i in outlet) { this.GeometrySubDict.Add(i.Id + ".stl", GetGeometryDict(i)); };
-            foreach (IndoorBC i in wall) { this.GeometrySubDict.Add(i.Id + ".stl", GetGeometryDict(i)); };
+            foreach (IndoorBC i in inlet) { this.GeometrySubDict.Add(i.Id + ".stl", GetGeometryDict(i)); }
+            ;
+            foreach (IndoorBC i in outlet) { this.GeometrySubDict.Add(i.Id + ".stl", GetGeometryDict(i)); }
+            ;
+            foreach (IndoorBC i in wall) { this.GeometrySubDict.Add(i.Id + ".stl", GetGeometryDict(i)); }
+            ;
 
             this.GeometryDict = new Dictionary<string, dynamic>();
             GeometryDict.Add("geometry", GeometrySubDict);

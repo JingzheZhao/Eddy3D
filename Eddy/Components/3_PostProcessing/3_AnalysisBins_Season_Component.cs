@@ -17,13 +17,13 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
         public AnalysisBins_Season_Component()
-         : base("Season Filter", "Season", 
+         : base("Season Filter", "Season",
 @"Filter analysis results by meteorological season.
 
 Winter: Dec-Feb, Spring: Mar-May, Summer: Jun-Aug, Fall: Sep-Nov.
 Use to calculate seasonal comfort or radiation metrics.
 
-" + EddyVersion.toString(), 
+" + EddyVersion.toString(),
              EddyVersion.Name, "3 | PostProcessing")
         {
         }
