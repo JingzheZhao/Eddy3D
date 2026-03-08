@@ -141,8 +141,8 @@ namespace EddyLib.UI
     public class ProgressBar : Drawable
     {
         public float Progress; // 0-1
-        private Color backColor = Colors.Gray;
-        private Color fillColor = Colors.Blue;
+        private Color backColor = SystemColors.Control;
+        private Color fillColor = SystemColors.Highlight;
 
         public ProgressBar()
         {

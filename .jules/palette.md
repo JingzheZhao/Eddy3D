@@ -13,3 +13,7 @@
 ## 2024-05-15 - [Add tooltips to UI controls]
 **Learning:** Providing context for status indicators and spinners helps users understand background processes without cluttering the UI.
 **Action:** When enhancing UX in Eto.Forms, ensure UI elements (including Buttons, ProgressBars, Labels, TextAreas, and Spinners) include descriptive `ToolTip` properties upon instantiation to improve accessibility and provide user guidance.
+
+## 2024-05-15 - [Use SystemColors for UI Controls]
+**Learning:** Hardcoding colors like `Colors.Gray` or `Colors.Blue` in custom Eto.Forms controls can clash with the user's system theme (e.g., light vs dark mode, or custom accent colors), resulting in poor contrast or inconsistent UI styling.
+**Action:** Always prefer `SystemColors` (like `SystemColors.Control`, `SystemColors.Highlight`, `SystemColors.ControlBackground`) over static colors when building custom drawable UI controls. This ensures they naturally integrate with the OS theme.
