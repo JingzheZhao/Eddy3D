@@ -30,3 +30,4 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion(EddyVersion.ProductVersion)]
 [assembly: AssemblyFileVersion(EddyVersion.ProductVersion)]
 [assembly: InternalsVisibleTo("Eddy")]
+[assembly: InternalsVisibleTo("RhinoPlugin.Test.Xunit")]

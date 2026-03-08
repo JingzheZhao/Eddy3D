@@ -319,7 +319,7 @@ namespace EddyLib
 
             public const string ResultMesh = "Result Mesh";
             public const string ResultMeshNick = "Mesh";
-            public const string ResultMeshDesc = "Coloured mesh showing predicted wind speed distribution.";
+            public const string ResultMeshDesc = "Coloured mesh showing predicted wind speed distribution, previewed on a horizontal plane at z = 2.0 m.";
         }
     }
 }
