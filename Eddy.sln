@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eddy", "Eddy\Eddy.csproj", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RhinoPlugin.Test.Xunit", "RhinoPlugin.Test.Xunit\RhinoPlugin.Test.Xunit.csproj", "{B47B9A4C-B0F0-41F5-8CA5-E7D499A04780}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TemplateSync.Cli", "TemplateSync.Cli\TemplateSync.Cli.csproj", "{7FF49E6C-B90B-44D8-9A73-3DD062A90A0D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{B47B9A4C-B0F0-41F5-8CA5-E7D499A04780}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B47B9A4C-B0F0-41F5-8CA5-E7D499A04780}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B47B9A4C-B0F0-41F5-8CA5-E7D499A04780}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FF49E6C-B90B-44D8-9A73-3DD062A90A0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FF49E6C-B90B-44D8-9A73-3DD062A90A0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FF49E6C-B90B-44D8-9A73-3DD062A90A0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FF49E6C-B90B-44D8-9A73-3DD062A90A0D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
