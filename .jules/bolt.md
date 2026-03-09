@@ -22,3 +22,7 @@
 ## 2024-05-31 - Avoid LINQ Where, Min, Max in tight loops
 **Learning:** Using LINQ operators such as `.Where(x => x < val).ToArray()`, `.Min()`, and `.Max()` repeatedly inside inner loops (like processing 8760 hours of annual weather data) causes extreme execution times due to continuous $O(N)$ large allocations and multiple array passes.
 **Action:** When finding extremes or conditionally filtering values inside heavily executed blocks, replace LINQ chains with single-pass `for` loops tracking primitive states (e.g. `min`, `max`, `best`) directly, avoiding temporary array allocations altogether. This simple change reduces execution time by over 95%.
+
+## 2024-05-18 - Prevent O(N) array allocations in Parallel.For loops for wind comfort processing
+**Learning:** In tight parallel processing loops like the annual wind comfort calculations (`WindComfort` and `WindComfortWeibull`), explicitly extracting a 1D slice or "column" from a large 2D array into a new `double[]` causes thousands of large temporary allocations (`double[8760]`). This stresses the Garbage Collector and degrades multi-threaded performance.
+**Action:** Instead of allocating temporary arrays with helper methods like `ExtractColumn`, refactor the downstream metric processing methods to accept the original 2D array alongside an index variable (e.g., `probeIndex`). This allows iterating over the column data in-place (`temporalVelocityMatrix[i, probeIndex]`), achieving zero-allocation processing.

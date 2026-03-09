@@ -36,30 +36,15 @@ namespace EddyLib.OutdoorComfort
 
             Parallel.For(0, sensorCount, probe =>
             {
-                // column is all hours of the year
-                double[] column = ExtractColumn(wft.ValuesTemporalAtProbingHeight, probe);
-
                 // Move to 10m according to Blocken
-                // column = column.Select(x => EddyLib.BCs.BoundaryCondition.ScaleABL(x, 1.75, ws.BCond.z0, 10)).ToArray();
+                // (Optional scale step omitted for performance/design)
 
-                var threshold = WindComfortMetricsCounting.CalcComfortCountBins(column, TID);
+                var threshold = WindComfortMetricsCounting.CalcComfortCountBins(wft.ValuesTemporalAtProbingHeight, probe, TID);
                 this.ThresholdInfo[probe] = threshold;
                 this.ValsPedWindCmftCat[probe] = threshold.Cat;
                 this.ValsPedWindCmftClassStringified[probe] = threshold.Class;
                 this.ValsPedWindCmftClassLetter[probe] = threshold.ClassLetter;
             });
-        }
-
-        private static double[] ExtractColumn(double[,] matrix, int columnIndex)
-        {
-            int rowCount = matrix.GetLength(0);
-            var column = new double[rowCount];
-            for (int row = 0; row < rowCount; row++)
-            {
-                column[row] = matrix[row, columnIndex];
-            }
-
-            return column;
         }
     }
 }

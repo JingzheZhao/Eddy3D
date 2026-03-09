@@ -7,16 +7,17 @@ namespace EddyLib.OutdoorComfort
     {
         private const int HoursPerYear = 8760;
 
-        private static bool CheckExceedance(double[] annualVelocity, CmftThresholdInfo THI)
+        private static bool CheckExceedance(double[,] temporalVelocityMatrix, int probeIndex, CmftThresholdInfo THI)
         {
             double threshold = THI.TimeThres * HoursPerYear;
             int exceedanceCount = 0;
+            int rowCount = temporalVelocityMatrix.GetLength(0);
 
             if (THI.Operator == CompOperator.G)
             {
-                for (int i = 0; i < annualVelocity.Length; i++)
+                for (int i = 0; i < rowCount; i++)
                 {
-                    if (annualVelocity[i] > THI.UThres)
+                    if (temporalVelocityMatrix[i, probeIndex] > THI.UThres)
                     {
                         exceedanceCount++;
                         if (exceedanceCount > threshold)
@@ -30,9 +31,9 @@ namespace EddyLib.OutdoorComfort
             }
             else if (THI.Operator == CompOperator.GOE)
             {
-                for (int i = 0; i < annualVelocity.Length; i++)
+                for (int i = 0; i < rowCount; i++)
                 {
-                    if (annualVelocity[i] > THI.UThres)
+                    if (temporalVelocityMatrix[i, probeIndex] > THI.UThres)
                     {
                         exceedanceCount++;
                         if (exceedanceCount >= threshold)
@@ -46,9 +47,9 @@ namespace EddyLib.OutdoorComfort
             }
             else
             {
-                for (int i = 0; i < annualVelocity.Length; i++)
+                for (int i = 0; i < rowCount; i++)
                 {
-                    if (annualVelocity[i] > THI.UThres)
+                    if (temporalVelocityMatrix[i, probeIndex] > THI.UThres)
                     {
                         exceedanceCount++;
                         if (exceedanceCount >= threshold)
@@ -62,14 +63,14 @@ namespace EddyLib.OutdoorComfort
             }
         }
 
-        public static CmftThresholdInfo CalcComfortCountBins(double[] annualVelocity, Dictionary<int, CmftThresholdInfo> CTID)
+        public static CmftThresholdInfo CalcComfortCountBins(double[,] temporalVelocityMatrix, int probeIndex, Dictionary<int, CmftThresholdInfo> CTID)
         {
             // If we can't make an estimate, let's return the best case scenario --> no wind, sitting is possible
             CmftThresholdInfo pedestrianComfort = CTID[1];
 
             foreach (CmftThresholdInfo TH in CTID.Values)
             {
-                bool Exceedance = CheckExceedance(annualVelocity, TH);
+                bool Exceedance = CheckExceedance(temporalVelocityMatrix, probeIndex, TH);
                 if (Exceedance)
                 {
                     pedestrianComfort = TH;

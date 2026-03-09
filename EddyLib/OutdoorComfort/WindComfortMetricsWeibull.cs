@@ -97,7 +97,7 @@ namespace EddyLib.OutdoorComfort
         }
 
         public static CmftThresholdInfo CalcExceedance(
-       double[] temporalVelocityArray,
+       double[,] temporalVelocityMatrix, int probeIndex,
        Dictionary<int, CmftThresholdInfo> CTID)
         {
             if (CTID == null || CTID.Count == 0)
@@ -107,14 +107,16 @@ namespace EddyLib.OutdoorComfort
             // Heuristic: sitting has the lowest threshold (smallest UThres).
             var bestCase = CTID.Values.OrderBy(t => t.UThres).First();
 
-            if (temporalVelocityArray == null || temporalVelocityArray.Length == 0)
+            if (temporalVelocityMatrix == null || temporalVelocityMatrix.GetLength(0) == 0)
                 return bestCase;
+
+            int rowCount = temporalVelocityMatrix.GetLength(0);
 
             // Filter invalid values; Weibull needs strictly positive samples.
             int validCount = 0;
-            for (int i = 0; i < temporalVelocityArray.Length; i++)
+            for (int i = 0; i < rowCount; i++)
             {
-                double value = temporalVelocityArray[i];
+                double value = temporalVelocityMatrix[i, probeIndex];
                 if (!double.IsNaN(value) && !double.IsInfinity(value) && value > 0.0)
                 {
                     validCount++;
@@ -126,9 +128,9 @@ namespace EddyLib.OutdoorComfort
 
             var arrToProcess = new double[validCount];
             int validIndex = 0;
-            for (int i = 0; i < temporalVelocityArray.Length; i++)
+            for (int i = 0; i < rowCount; i++)
             {
-                double value = temporalVelocityArray[i];
+                double value = temporalVelocityMatrix[i, probeIndex];
                 if (!double.IsNaN(value) && !double.IsInfinity(value) && value > 0.0)
                 {
                     arrToProcess[validIndex] = value;
