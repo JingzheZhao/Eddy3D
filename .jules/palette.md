@@ -17,3 +17,7 @@
 ## 2024-05-15 - [Use SystemColors for UI Controls]
 **Learning:** Hardcoding colors like `Colors.Gray` or `Colors.Blue` in custom Eto.Forms controls can clash with the user's system theme (e.g., light vs dark mode, or custom accent colors), resulting in poor contrast or inconsistent UI styling.
 **Action:** Always prefer `SystemColors` (like `SystemColors.Control`, `SystemColors.Highlight`, `SystemColors.ControlBackground`) over static colors when building custom drawable UI controls. This ensures they naturally integrate with the OS theme.
+
+## 2024-05-15 - [Add Enter key support to dialogs]
+**Learning:** In Eto.Forms dialogs, you can map the Enter key to a default action by setting the `DefaultButton` property.
+**Action:** When building custom dialogs with Eto.Forms, assign the `DefaultButton` property to improve accessibility via keyboard shortcuts.

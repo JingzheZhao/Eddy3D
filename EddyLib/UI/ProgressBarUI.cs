@@ -52,6 +52,7 @@ namespace EddyLib.UI
             var cancel = new Button { Text = "Cancel", ToolTip = "Abort the current simulation" };
             AbortButton = cancel;
             var copyLog = new Button { Text = "Copy Log", ToolTip = "Copy the simulation log to clipboard" };
+            DefaultButton = copyLog; // Map the Enter key to the Copy Log action when focused
             var cts = new CancellationTokenSource();
             var uiThread = SynchronizationContext.Current;
 
