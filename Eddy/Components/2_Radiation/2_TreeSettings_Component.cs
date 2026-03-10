@@ -27,7 +27,6 @@ Default uses standard deciduous tree reflectance.
 " + EddyVersion.toString(),
               EddyVersion.Name, "2 | Radiation")
         {
-            Analytics.Analytics.TrackComponentView("MRTTreeSettings");
         }
 
         /// <summary>

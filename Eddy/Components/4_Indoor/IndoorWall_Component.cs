@@ -26,7 +26,6 @@ Defines a solid boundary for indoor simulations, such as walls, floors, or ceili
               EddyVersion.Name,
               "9 | Indoor")
         {
-            Analytics.Analytics.TrackComponentView("IndoorWall");
         }
 
         /// <summary>

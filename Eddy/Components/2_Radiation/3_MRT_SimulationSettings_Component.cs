@@ -25,7 +25,6 @@ Configures accuracy and detail for the MRT simulation, including solar ray-traci
 
 " + EddyVersion.toString(), EddyVersion.Name, "2 | Radiation")
         {
-            Analytics.Analytics.TrackComponentView("MRTSimulationSettings");
         }
 
         /// <summary>

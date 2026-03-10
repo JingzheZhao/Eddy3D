@@ -30,7 +30,6 @@ Assigns thermal and optical properties to building geometries. Affects how build
 " + EddyVersion.toString(),
               EddyVersion.Name, "2 | Radiation")
         {
-            Analytics.Analytics.TrackComponentView("MRTBuildingSurface");
         }
 
         /// <summary>

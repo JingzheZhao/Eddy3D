@@ -24,7 +24,6 @@ Simulates the release of airborne pathogens (e.g., viruses) from a specific loca
 " + EddyVersion.toString(),
               EddyVersion.Name, "9 | Indoor")
         {
-            Analytics.Analytics.TrackComponentView("IndoorViralEmitter");
         }
 
         /// <summary>

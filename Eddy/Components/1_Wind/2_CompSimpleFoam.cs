@@ -309,6 +309,13 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             DA.GetData(GH_Strings.Common.RunSimulation, ref runSimulation);
             DA.GetData(GH_Strings.Common.RunMeshing, ref runMeshing);
 
+            if ((runMeshing || runSimulation) && canRun)
+            {
+                Analytics.Analytics.TrackSimulationRun(
+                    "outdoor",
+                    Analytics.Analytics.GetAnalyticsEngine(_selectedEngine));
+            }
+
             if (_selectedEngine == SimEngine.Docker)
             {
                 // Docker: launch scripts (.command on macOS, .bat on Windows)

@@ -23,7 +23,6 @@ Creates a volume that resists airflow, simulating obstacles like furniture, equi
 " + EddyVersion.toString(),
               EddyVersion.Name, "9 | Indoor")
         {
-            Analytics.Analytics.TrackComponentView("IndoorMomentumSink");
         }
 
         /// <summary>

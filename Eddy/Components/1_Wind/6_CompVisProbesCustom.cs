@@ -77,7 +77,6 @@ Samples the wind field at specific locations. Use this to query wind speed and p
 " + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")
         {
-            Analytics.Analytics.TrackComponentView("ProbeSimulation");
         }
 
         /// <summary>
@@ -416,7 +415,9 @@ Samples the wind field at specific locations. Use this to query wind speed and p
 
                     if (run == true && canRun == true)
                     {
-                        Analytics.Analytics.TrackProbeCase(listOfPoints.Count);
+                        Analytics.Analytics.TrackSimulationRun(
+                            "probing",
+                            Analytics.Analytics.GetAnalyticsEngine(RES.RunSettings.simEngine));
                         if (RES.RunSettings.simEngine == SimEngine.Docker)
                         {
                             RunDockerProbing(dockerProbeCmds, RES.WorkingDirectory);
@@ -501,7 +502,9 @@ Samples the wind field at specific locations. Use this to query wind speed and p
 
                     if (run == true && canRun == true)
                     {
-                        Analytics.Analytics.TrackProbeCase(listOfPoints.Count);
+                        Analytics.Analytics.TrackSimulationRun(
+                            "probing",
+                            Analytics.Analytics.GetAnalyticsEngine(RES.RunSettings.simEngine));
                         if (RES.RunSettings.simEngine == SimEngine.Docker)
                         {
                             var dockerCmds = new List<string>

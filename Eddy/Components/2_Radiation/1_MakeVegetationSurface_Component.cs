@@ -30,7 +30,6 @@ Surface temperatures are typically lower than paved surfaces.
 " + EddyVersion.toString(),
               EddyVersion.Name, "2 | Radiation")
         {
-            Analytics.Analytics.TrackComponentView("MRTVegetationSurface");
         }
 
         /// <summary>

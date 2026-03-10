@@ -23,7 +23,6 @@ Creates a volume that actively pushes air in a specific direction. Use this to m
 " + EddyVersion.toString(),
               EddyVersion.Name, "9 | Indoor")
         {
-            Analytics.Analytics.TrackComponentView("IndoorMomentumSource");
         }
 
         /// <summary>

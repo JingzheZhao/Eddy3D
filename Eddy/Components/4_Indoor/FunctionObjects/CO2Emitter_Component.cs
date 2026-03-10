@@ -24,7 +24,6 @@ Simulates carbon dioxide generation, typically from occupants. Use this to asses
 " + EddyVersion.toString(),
               EddyVersion.Name, "9 | Indoor")
         {
-            Analytics.Analytics.TrackComponentView("IndoorCO2Emitter");
         }
 
         /// <summary>

@@ -40,7 +40,6 @@ Combines:
 " + EddyVersion.toString(),
               EddyVersion.Name, "2 | Radiation")
         {
-            Analytics.Analytics.TrackComponentView("MRTSimulation");
         }
 
         /// <summary>
@@ -282,7 +281,9 @@ Combines:
 
             if (RUN)
             {
-                Analytics.Analytics.TrackMrtSimulateCase("MRT", !String.IsNullOrWhiteSpace(CFDResultPath));
+                Analytics.Analytics.TrackSimulationRun(
+                    "mrt",
+                    Analytics.Analytics.InferEngineFromPath(CFDResultPath, "native"));
 
                 if (HidePopUp)
                 {

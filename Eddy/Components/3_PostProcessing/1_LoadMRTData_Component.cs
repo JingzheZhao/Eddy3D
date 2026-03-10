@@ -28,7 +28,6 @@ Import calculated Mean Radiant Temperature (MRT) data for thermal comfort analys
 " + EddyVersion.toString(),
               EddyVersion.Name, "3 | PostProcessing")
         {
-            Analytics.Analytics.TrackComponentView("LoadMRTResults");
         }
 
         /// <summary>

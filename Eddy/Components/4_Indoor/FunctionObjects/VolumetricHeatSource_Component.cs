@@ -24,7 +24,6 @@ Models a heat-generating object within the indoor space, such as equipment, elec
 " + EddyVersion.toString(),
               EddyVersion.Name, "9 | Indoor")
         {
-            Analytics.Analytics.TrackComponentView("IndoorHeatSource");
         }
 
         /// <summary>

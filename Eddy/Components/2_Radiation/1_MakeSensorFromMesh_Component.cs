@@ -23,7 +23,6 @@ Converts a mesh surface into a grid of sensors for MRT analysis. Each mesh face 
 " + EddyVersion.toString(),
               EddyVersion.Name, "2 | Radiation")
         {
-            Analytics.Analytics.TrackComponentView("MRTMeshSensor");
         }
 
         /// <summary>

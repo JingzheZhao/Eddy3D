@@ -26,7 +26,6 @@ Defines where air exhausts from the room, such as return grilles or open windows
               EddyVersion.Name,
               "9 | Indoor")
         {
-            Analytics.Analytics.TrackComponentView("IndoorOutlet");
         }
 
         /// <summary>

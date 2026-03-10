@@ -26,7 +26,6 @@ Defines where air enters the room, such as diffusers, windows, or doors.
               EddyVersion.Name,
               "9 | Indoor")
         {
-            Analytics.Analytics.TrackComponentView("IndoorInlet");
         }
 
         /// <summary>

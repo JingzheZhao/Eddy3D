@@ -30,7 +30,6 @@ Defines properties for ground surfaces like asphalt, concrete, or soil. Critical
 " + EddyVersion.toString(),
               EddyVersion.Name, "2 | Radiation")
         {
-            Analytics.Analytics.TrackComponentView("MRTGroundSurface");
         }
 
         /// <summary>

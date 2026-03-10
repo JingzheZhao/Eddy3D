@@ -26,7 +26,6 @@ Defines thermal and optical properties for building or ground surfaces (e.g., co
 " + EddyVersion.toString(),
               EddyVersion.Name, "2 | Radiation")
         {
-            Analytics.Analytics.TrackComponentView("MRTSurfaceSettings");
         }
 
         /// <summary>

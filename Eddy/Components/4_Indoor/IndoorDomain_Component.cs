@@ -49,7 +49,6 @@ Requires connected walls, inlets, outlets, and optional heat sources.
             _selectedEngine = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                 ? SimEngine.BlueCFD
                 : SimEngine.Docker;
-            Analytics.Analytics.TrackComponentView("IndoorSimulation");
         }
 
         protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
@@ -296,15 +295,9 @@ Requires connected walls, inlets, outlets, and optional heat sources.
 
             if ((runMeshing || runSimulation) && canRun)
             {
-                string analyticsMode = _selectedEngine == SimEngine.Docker ? "Docker" : "BlueCFD";
-                if (runMeshing)
-                {
-                    Analytics.Analytics.TrackIndoorMeshCase(analyticsMode);
-                }
-                if (runSimulation)
-                {
-                    Analytics.Analytics.TrackIndoorSimulateCase(analyticsMode);
-                }
+                Analytics.Analytics.TrackSimulationRun(
+                    "indoor",
+                    Analytics.Analytics.GetAnalyticsEngine(_selectedEngine));
 
                 if (_selectedEngine == SimEngine.Docker)
                 {
