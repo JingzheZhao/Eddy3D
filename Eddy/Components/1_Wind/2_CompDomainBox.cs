@@ -252,12 +252,11 @@ Defines a box-shaped computational domain for the wind simulation. Best suited f
             buildingGeometry.UserDictionary.Set("type", "Building");
             terrainMeshes.UserDictionary.Set("type", "Ground");
 
-            // Check if lowest point in Domain is z_low < 0, then we cannot use a ABL
+            // Check if lowest point in Domain is below zGround, then we cannot use an ABL
 
             var minZDomain = buildingGeometry.GetBoundingBox(true).Min.Z;
 
-            if (minZDomain < 0 && bCond.BCs.All(item => item is ABL))
-
+            if (bCond.BCs.All(item => item is ABL))
             {
                 foreach (BC bcond in bCond.BCs)
                 {
@@ -266,7 +265,7 @@ Defines a box-shaped computational domain for the wind simulation. Best suited f
 
                     if (minZDomain < zg)
                     {
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "If your simulation domain extends below z = 0, you cannot use an ABL Boundary Condition. Please use the Constant U Boundary Condition or adjust zGround accordingly."); return;
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your building geometry extends below zGround (" + zg + "). Please use the Constant U Boundary Condition or adjust zGround accordingly."); return;
                     }
                 }
             }

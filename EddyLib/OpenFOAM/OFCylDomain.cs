@@ -72,11 +72,15 @@ namespace EddyLib
             // Step 2: Set up terrain if present
             InitializeTerrain(terrainMesh);
 
-            // Step 3: Compute domain dimensions
-            ComputeDomainDimensions(sizeHeight, sizeOuterCirc, sizeInnerRect, coreBlockSize, radialMultiplier);
+            // Building height relative to ground, not absolute Z
+            this.MaxHeightBuilding = BBox.Z.Max - CenterGround.Z;
 
-            // Step 4: Calculate frontage areas for all wind directions
+            // Step 3: Calculate frontage areas for all wind directions
+            // (must run before ComputeDomainDimensions which uses MaxFrontageBuildingArea)
             ComputeFrontageAreas(BuildingGeometry);
+
+            // Step 4: Compute domain dimensions
+            ComputeDomainDimensions(sizeHeight, sizeOuterCirc, sizeInnerRect, coreBlockSize, radialMultiplier);
 
             // Step 5: Create mesh and initialize boundary conditions
             MakeCircMeshPlane(CenterGround, sizeInnerR, divsRadial, radius, height, (int)coreBlockSize);
@@ -94,7 +98,6 @@ namespace EddyLib
         private void InitializeBoundingBox(Mesh buildingGeometry)
         {
             this.BBox = BuildBoundingBox(buildingGeometry, Plane.WorldXY);
-            this.MaxHeightBuilding = BBox.Z.Max;
             this.height = BBox.Z.Max - BBox.Z.Min;
         }
 
@@ -491,7 +494,7 @@ namespace EddyLib
         private void SetPointsOnCircle(Point3d center, double circleRadius, Polyline nakedEdges)
         {
             List<Point3d> pointsOnCircle = new List<Point3d>();
-            Point3d newCenter = new Point3d(center.X, center.Y, 0);
+            Point3d newCenter = new Point3d(center.X, center.Y, center.Z);
             Circle c = new Circle(newCenter, circleRadius);
 
             // -1 would avoid duplicates but other methods (PerimeterRing) depend on having one
