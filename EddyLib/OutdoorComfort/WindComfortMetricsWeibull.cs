@@ -103,9 +103,18 @@ namespace EddyLib.OutdoorComfort
             if (CTID == null || CTID.Count == 0)
                 throw new ArgumentException("CTID must contain at least one threshold.", nameof(CTID));
 
-            // Best-case scenario: "no wind, sitting is possible"
-            // Heuristic: sitting has the lowest threshold (smallest UThres).
-            var bestCase = CTID.Values.OrderBy(t => t.UThres).First();
+            // Bolt optimization: Replace LINQ OrderBy/First with a simple iterative minimum
+            // to avoid array and enumerator allocations inside the Parallel.For loop.
+            CmftThresholdInfo bestCase = default;
+            double minUThres = double.MaxValue;
+            foreach (var t in CTID.Values)
+            {
+                if (t.UThres < minUThres)
+                {
+                    minUThres = t.UThres;
+                    bestCase = t;
+                }
+            }
 
             if (temporalVelocityMatrix == null || temporalVelocityMatrix.GetLength(0) == 0)
                 return bestCase;
@@ -154,8 +163,14 @@ namespace EddyLib.OutdoorComfort
                 return bestCase;
             }
 
+            // Bolt optimization: Replace LINQ OrderByDescending with a sort array
+            // Since CTID only holds a few values (e.g., 5-7), sort an array of them efficiently.
+            var thresholds = new CmftThresholdInfo[CTID.Count];
+            CTID.Values.CopyTo(thresholds, 0);
+            Array.Sort(thresholds, (a, b) => b.UThres.CompareTo(a.UThres));
+
             // Start from highest threshold and bin down
-            foreach (var TI in CTID.Values.OrderByDescending(t => t.UThres))
+            foreach (var TI in thresholds)
             {
                 // Treat all wind directions with equal weight (per your ref).
                 double exceedanceProbability = Prob_Exceedance(1.0, TI.UThres, kappa, lambda); // P( U > U_thres )
