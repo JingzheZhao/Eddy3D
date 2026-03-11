@@ -21,3 +21,7 @@
 ## 2024-05-15 - [Add Enter key support to dialogs]
 **Learning:** In Eto.Forms dialogs, you can map the Enter key to a default action by setting the `DefaultButton` property.
 **Action:** When building custom dialogs with Eto.Forms, assign the `DefaultButton` property to improve accessibility via keyboard shortcuts.
+
+## 2024-05-15 - [Add visual hover feedback to Grasshopper component buttons]
+**Learning:** Grasshopper component buttons (e.g., custom attributes) often lack visual affordance on hover, leaving users uncertain if the region is interactive.
+**Action:** When designing custom `GH_ComponentAttributes` that include interactive regions like buttons, override `RespondToMouseMove` to dynamically change the cursor to `GH_Hand` (`Grasshopper.Instances.CursorServer.AttachCursor(sender, "GH_Hand")`) when hovering over the clickable bounds.
