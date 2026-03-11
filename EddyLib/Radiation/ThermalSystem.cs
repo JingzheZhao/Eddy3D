@@ -371,10 +371,17 @@ namespace EddyLib.Radiation
             var sunPositions = PrecomputeSunPositions();
             var sg = new SolarGeometry();
 
+            int[] hourToSunIdx = new int[8760];
+            for (int h = 0; h < 8760; h++)
+            {
+                sg.HourOfYear_To_MDH(h, out int month, out int day, out int hour);
+                hourToSunIdx[h] = (month * 24) + hour;
+            }
+
             Parallel.ForEach(vegPolys, p =>
             {
                 bool[] inDirSunlight = RayTraceSunlight(p, sunPositions);
-                ApplyTemperatureReduction(p, inDirSunlight, sunPositions, MaxShadowTempDelta, sg);
+                ApplyTemperatureReduction(p, inDirSunlight, sunPositions, MaxShadowTempDelta, hourToSunIdx);
             });
         }
 
@@ -408,12 +415,11 @@ namespace EddyLib.Radiation
             return inDirSunlight;
         }
 
-        private void ApplyTemperatureReduction(RPolygon p, bool[] inDirSunlight, Vector3d[] sunPositions, double maxDelta, SolarGeometry sg)
+        private void ApplyTemperatureReduction(RPolygon p, bool[] inDirSunlight, Vector3d[] sunPositions, double maxDelta, int[] hourToSunIdx)
         {
             for (int h = 0; h < 8760; h++)
             {
-                sg.HourOfYear_To_MDH(h, out int month, out int day, out int hour);
-                int sunIdx = (month * 24) + hour;
+                int sunIdx = hourToSunIdx[h];
                 double dnr = Weather.DirectNormalRadiation[h];
 
                 if (dnr > 50 && sunPositions[sunIdx] != Vector3d.Zero)

@@ -353,6 +353,13 @@ namespace EddyLib.Radiation
 
             Console.WriteLine("Raycasting...");
 
+            int[] hourToSunIdx = new int[8760];
+            for (int h = 0; h < 8760; h++)
+            {
+                sg.HourOfYear_To_MDH(h, out int month, out int day, out int hour);
+                hourToSunIdx[h] = (month * 24) + hour;
+            }
+
             Parallel.For(0, Probes.Count, i =>
             {
                 var probe = Probes[i];
@@ -389,8 +396,7 @@ namespace EddyLib.Radiation
                 // Map 288 positions to 8760 hours
                 for (int h = 0; h < 8760; h++)
                 {
-                    sg.HourOfYear_To_MDH(h, out int month, out int day, out int hour);
-                    var scale = dotproduct[(month * 24) + hour]; // Uses same index logic
+                    var scale = dotproduct[hourToSunIdx[h]]; // Uses same index logic
 
                     float rad = (float)(Weather.DirectNormalRadiation[h] * scale);
                     float diff = (float)(Weather.DiffuseHorizontalRadiation[h] * probe.VFtoMaterial["Sky"]);
