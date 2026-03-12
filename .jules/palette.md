@@ -25,3 +25,6 @@
 ## 2024-05-15 - [Add visual hover feedback to Grasshopper component buttons]
 **Learning:** Grasshopper component buttons (e.g., custom attributes) often lack visual affordance on hover, leaving users uncertain if the region is interactive.
 **Action:** When designing custom `GH_ComponentAttributes` that include interactive regions like buttons, override `RespondToMouseMove` to dynamically change the cursor to `GH_Hand` (`Grasshopper.Instances.CursorServer.AttachCursor(sender, "GH_Hand")`) when hovering over the clickable bounds.
+## 2024-06-25 - Improve Cursor Feedback with Reflection
+**Learning:** In .NET 8 cross-platform Grasshopper plugins (like Eddy), adding UI visual feedback (e.g. changing the cursor to a hand on hover via `RespondToMouseMove`) requires reflection to access `Grasshopper.Instances.CursorServer.AttachCursor` due to System.Windows.Forms dependency issues. Looking up the MethodInfo via reflection on every mouse movement pixel is highly inefficient and unidiomatic for a high-frequency event loop.
+**Action:** Always extract the reflected `MethodInfo` into a cached static field within the ComponentAttributes constructor to avoid unnecessary GC allocations and execution overhead during hover events.
