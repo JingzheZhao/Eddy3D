@@ -234,17 +234,29 @@ namespace EddyLib
         {
             if (Vals == null || Vals.Count == 0) return;
 
-            // Group values by category and count occurrences
-            var counts = Vals
-                .Select(v => (int)Math.Round(v))
-                .GroupBy(v => v)
-                .ToDictionary(g => g.Key, g => g.Count());
+            // Bolt optimization: Replace LINQ grouping with a single-pass array counting.
+            // Categories range from -5 to +5, which gives us 11 bins.
+            int[] counts = new int[11];
+            foreach (double v in Vals)
+            {
+                int category = (int)Math.Round(v);
+                int binIndex = category + 5;
+                if (binIndex >= 0 && binIndex <= 10)
+                {
+                    counts[binIndex]++;
+                }
+            }
 
             int total = Vals.Count;
-            double GetPct(int category) =>
-                counts.TryGetValue(category, out int count)
-                    ? Math.Round((double)count / total, 3)
-                    : 0.0;
+            double GetPct(int category)
+            {
+                int binIndex = category + 5;
+                if (binIndex >= 0 && binIndex <= 10)
+                {
+                    return Math.Round((double)counts[binIndex] / total, 3);
+                }
+                return 0.0;
+            }
 
             ExtrCold = GetPct(-5);
             VryStrngCold = GetPct(-4);

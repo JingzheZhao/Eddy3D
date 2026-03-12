@@ -25,3 +25,7 @@
 ## 2024-11-20 - [Avoid LINQ Sorting inside Parallel Execution]
 **Learning:** Executing LINQ `OrderBy` or `OrderByDescending` inside parallel loops dynamically generates enumerators, closures, and state machines, producing thousands of small rapid allocations that significantly impact GC thread contention.
 **Action:** In inner parallelized functions, replace LINQ sorts on dictionaries/lists with manual primitive loops (for min/max) or explicit small array copying and using `Array.Sort` with a custom comparer for sorting. This minimizes closure overhead and allocation frequency per thread, drastically improving throughput.
+
+## 2024-03-12 - [UTCI.Binning() performance improvement]
+**Learning:** In net8.0, calling `Math.Round()` combined with `.GroupBy()` and `.ToDictionary()` inside an active loop tracking counts caused massive GC overhead for multi-category processing. LINQ allocations are notoriously expensive in tight mathematical loops over large lists (like 8760-hour arrays).
+**Action:** Replace `GroupBy().ToDictionary()` mapping with a pre-allocated array map (e.g. `int[] counts`) when the bin range is known, transforming O(N) multi-pass allocation-heavy operations into strict zero-allocation single-pass loops.
