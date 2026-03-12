@@ -60,8 +60,7 @@ jobs:
           }
 
           New-Item -ItemType Directory -Path $assetDir -Force | Out-Null
-
-          Copy-Item $installer (Join-Path $assetDir "Eddy3D-$version-setup.exe") -Force
+          Copy-Item $installer (Join-Path $assetDir "Eddy3D.exe") -Force
 
           "asset_dir=$assetDir" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
@@ -95,7 +94,7 @@ jobs:
           name: Eddy3D ${{ steps.version.outputs.tag }}
           generate_release_notes: true
           files: |
-            ${{ steps.assets.outputs.asset_dir }}/Eddy3D-${{ steps.version.outputs.version }}-setup.exe
+            ${{ steps.assets.outputs.asset_dir }}/Eddy3D.exe
 
       - name: Skip Existing Release
         if: steps.tag_check.outputs.exists == 'true'
