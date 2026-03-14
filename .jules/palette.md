@@ -28,3 +28,7 @@
 ## 2024-06-25 - Improve Cursor Feedback with Reflection
 **Learning:** In .NET 8 cross-platform Grasshopper plugins (like Eddy), adding UI visual feedback (e.g. changing the cursor to a hand on hover via `RespondToMouseMove`) requires reflection to access `Grasshopper.Instances.CursorServer.AttachCursor` due to System.Windows.Forms dependency issues. Looking up the MethodInfo via reflection on every mouse movement pixel is highly inefficient and unidiomatic for a high-frequency event loop.
 **Action:** Always extract the reflected `MethodInfo` into a cached static field within the ComponentAttributes constructor to avoid unnecessary GC allocations and execution overhead during hover events.
+
+## 2025-03-14 - [Improve Empty States in Custom Grasshopper Canvas Drawings]
+**Learning:** When creating custom Grasshopper component drawings (like live charts directly on the canvas using `Eto.Drawing` or `System.Drawing`), empty states (e.g., "no data") placed in the top-left corner with default small text appear broken or like debugging artifacts.
+**Action:** When designing empty states for custom canvas drawings, always center the text horizontally and vertically using `StringFormat`, use a lighter font color (e.g., `140, 140, 140`) to indicate a placeholder, and optionally apply an italicized font (`GH_FontServer.StandardItalic`). Ensure placeholder text is capitalized for a polished look.

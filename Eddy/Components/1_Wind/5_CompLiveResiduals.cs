@@ -806,9 +806,15 @@ Use this for quick convergence monitoring without external plotting windows.
                 if (!snapshot.HasData)
                 {
                     var textRect = new RectangleF(_plotBounds.X + 6, _plotBounds.Y + 6, _plotBounds.Width - 12, _plotBounds.Height - 12);
-                    using (var brush = new SolidBrush(Color.FromArgb(90, 90, 90)))
+                    using (var brush = new SolidBrush(Color.FromArgb(140, 140, 140)))
+                    using (var format = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
                     {
-                        g.DrawString(status ?? "no data", GH_FontServer.Small, brush, textRect);
+                        string msg = string.IsNullOrWhiteSpace(status) ? "No data available" : status;
+                        if (msg.Length > 0)
+                        {
+                            msg = char.ToUpperInvariant(msg[0]) + msg.Substring(1);
+                        }
+                        g.DrawString(msg, GH_FontServer.StandardItalic, brush, textRect, format);
                     }
                     return;
                 }
