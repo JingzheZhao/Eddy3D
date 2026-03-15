@@ -29,3 +29,7 @@
 ## 2024-03-12 - [UTCI.Binning() performance improvement]
 **Learning:** In net8.0, calling `Math.Round()` combined with `.GroupBy()` and `.ToDictionary()` inside an active loop tracking counts caused massive GC overhead for multi-category processing. LINQ allocations are notoriously expensive in tight mathematical loops over large lists (like 8760-hour arrays).
 **Action:** Replace `GroupBy().ToDictionary()` mapping with a pre-allocated array map (e.g. `int[] counts`) when the bin range is known, transforming O(N) multi-pass allocation-heavy operations into strict zero-allocation single-pass loops.
+
+## 2024-11-20 - Replace Math.Pow with direct multiplication in hot loops
+**Learning:** Using `Math.Pow` or mathematical exponentiation repeatedly inside math-heavy simulation loops (like processing 8760 hours of annual weather data) creates significant overhead in C#.
+**Action:** When finding powers in hot loops, replace `Math.Pow(X, y)` with direct multiplications precalculated into local variables (`double X2 = X * X`) and avoid powers of 10 (`Math.Pow(10, -10)`) by replacing them with E-notation literal constants (`1E-10`). This simple change drastically reduces calculation overhead.

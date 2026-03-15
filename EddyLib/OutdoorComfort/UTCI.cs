@@ -208,9 +208,14 @@ namespace EddyLib
             double pa_temp = 0;
             double TaK = TaC + 273;
 
-            pa_temp = Math.Exp(2.7150305 * Math.Log(TaK) - 2.8365744 * 1000 * Math.Pow(TaK, -2) - 6.028076559 * 1000 * Math.Pow(TaK, -1)
-              + 1.954263612 * 10 - 2.737830188 / 100 * Math.Pow(TaK, 1) + 1.6261698 / 100000 * Math.Pow(TaK, 2) + 7.0229056 * Math.Pow(10, -10) * Math.Pow(TaK, 3)
-              - 1.8680009 * Math.Pow(10, -13) * Math.Pow(TaK, 4)) * 0.01 * RH / 1000;
+            // Bolt: Optimize calculation speed by substituting Math.Pow with explicit direct multiplication and literals
+            double TaK2 = TaK * TaK;
+            double TaK3 = TaK2 * TaK;
+            double TaK4 = TaK3 * TaK;
+
+            pa_temp = Math.Exp(2.7150305 * Math.Log(TaK) - 2836.5744 / TaK2 - 6028.076559 / TaK
+              + 19.54263612 - 0.02737830188 * TaK + 0.000016261698 * TaK2 + 7.0229056E-10 * TaK3
+              - 1.8680009E-13 * TaK4) * 0.00001 * RH;
 
             return pa_temp;
         }
