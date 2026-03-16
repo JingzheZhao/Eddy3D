@@ -116,11 +116,16 @@ namespace EddyLib.OutdoorComfort
             double Fd = 0.50;  // Does this account for 50 % sky and 50 % ground? if yes then this should be an input that changes with respect to the canyon
             double f = 0.00000043 * Math.Pow(SolarElev, 3) - 0.000068 * Math.Pow(SolarElev, 2) + 0.0003 * SolarElev + 0.3081; // Where does this come from?
 
-            double IR = Math.Pow((1 / Eb * (Fs * Math.Pow(TSkyKelvin, 4) * Es + Fc * Math.Pow(T_celsius_kelvin, 4) * Ec)), 0.25);
-            double DF = Math.Pow(((DiffRad * Fd + (DiffRad + DirRad * Math.Sin(SolarElev * Math.PI / 180)) * GrRef) * BodyA * 0.725 / (Eb * SBConst)), 0.25);
-            double DR = Math.Pow((DirRad * f * BodyA * 0.725 / (Eb * SBConst)), 0.25);
+            // Bolt: Optimize redundant Math.Pow calculations
+            double TSkyKelvin2 = TSkyKelvin * TSkyKelvin;
+            double T_celsius_kelvin2 = T_celsius_kelvin * T_celsius_kelvin;
 
-            double MRTKelvin = Math.Pow(Math.Pow(IR, 4) + Math.Pow(DF, 4) + Math.Pow(DR, 4), 0.25);
+            double IR_to_4th = (1 / Eb * (Fs * (TSkyKelvin2 * TSkyKelvin2) * Es + Fc * (T_celsius_kelvin2 * T_celsius_kelvin2) * Ec));
+            double DF_to_4th = ((DiffRad * Fd + (DiffRad + DirRad * Math.Sin(SolarElev * Math.PI / 180)) * GrRef) * BodyA * 0.725 / (Eb * SBConst));
+            double DR_to_4th = (DirRad * f * BodyA * 0.725 / (Eb * SBConst));
+
+            double IR = Math.Pow(IR_to_4th, 0.25);
+            double MRTKelvin = Math.Pow(IR_to_4th + DF_to_4th + DR_to_4th, 0.25);
             double MRTCelsius = MRTKelvin - 273;
 
             MRT[0] = MRTCelsius;
