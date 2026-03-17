@@ -31,7 +31,8 @@ namespace Urbano.Simulation
             Title = "Simulation Progress";
             //BackgroundColor = Colors.Gray; // Removed to respect system theme
             //Icon = Icon.FromResource("Properties.Resources.urbano_icon.png");
-            ClientSize = new Size(400, 200);
+            MinimumSize = new Size(400, 200);
+            Resizable = true;
             ShowInTaskbar = true;
 
             // controls
