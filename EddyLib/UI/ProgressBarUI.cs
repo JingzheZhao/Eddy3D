@@ -35,6 +35,7 @@ namespace EddyLib.UI
         {
             Title = "Simulation Progress";
             //Icon = Icon.FromResource("Properties.Resources.eddy_icon.png");
+            ClientSize = new Size(450, 250);
             MinimumSize = new Size(450, 250);
             Resizable = true;
             ShowInTaskbar = true;
