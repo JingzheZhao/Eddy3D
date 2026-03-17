@@ -33,3 +33,7 @@
 ## 2024-11-20 - Replace Math.Pow with direct multiplication in hot loops
 **Learning:** Using `Math.Pow` or mathematical exponentiation repeatedly inside math-heavy simulation loops (like processing 8760 hours of annual weather data) creates significant overhead in C#.
 **Action:** When finding powers in hot loops, replace `Math.Pow(X, y)` with direct multiplications precalculated into local variables (`double X2 = X * X`) and avoid powers of 10 (`Math.Pow(10, -10)`) by replacing them with E-notation literal constants (`1E-10`). This simple change drastically reduces calculation overhead.
+
+## 2024-03-16 - Math.Pow Redundancies
+**Learning:** The codebase contains redundant recursive math power operations like `Math.Pow(Math.Pow(x, 0.25), 4)` which calculate roots only to immediately raise them to the power again, causing extreme and unnecessary Math overhead.
+**Action:** When inspecting mathematical models (like UTCI, MRT, PET), check for algebraically cancellable operations (e.g. `(x^0.25)^4 = x`) and explicitly define unboxed power variables to avoid `Math.Pow` altogether.
