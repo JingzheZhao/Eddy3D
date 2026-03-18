@@ -41,6 +41,7 @@ namespace Urbano.Simulation
             pbar = new ProgressBar { ToolTip = "Simulation Progress" };
             var cancel = new Button { Text = "Cancel", ToolTip = "Abort the current simulation" };
             AbortButton = cancel; // Add Escape key support
+            DefaultButton = cancel; // Map the Enter key to the Cancel action when focused
             var cts = new CancellationTokenSource();
             var uiThread = SynchronizationContext.Current;
 
