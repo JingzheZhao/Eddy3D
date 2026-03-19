@@ -23,6 +23,7 @@ namespace Urbano.Simulation
             {
                 pbar.Progress = value;
                 pbar.Invalidate();
+                Title = $"Simulation Progress - {(int)(value * 100)}%";
             }
         }
 

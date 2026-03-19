@@ -36,3 +36,7 @@
 ## 2026-03-17 - [Make Log Dialogs Resizable]
 **Learning:** When designing `Eto.Forms` dialogs (like progress dialogs or log viewers) that contain dynamically updating data like logs, using a fixed `ClientSize` restricts users from expanding the window to read long lines or more history.
 **Action:** Ensure `Resizable = true` is set and use `MinimumSize` instead of a fixed `ClientSize` to allow users to scale the window for better readability.
+
+## 2025-06-12 - [Append numeric percentage to window title in progress dialogs]
+**Learning:** Progress bars in Eto.Forms dialogs only show progress when the window is visible. For long-running simulations, users often minimize the window or switch applications, losing visibility into the progress.
+**Action:** When implementing progress dialogs in Eto.Forms (e.g., `ProgressDialog`), dynamically append the numeric progress percentage to the window `Title` to allow users to monitor long-running tasks from the OS taskbar or window switcher even when the application is minimized.

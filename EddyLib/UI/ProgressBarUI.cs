@@ -28,6 +28,7 @@ namespace EddyLib.UI
             {
                 pbar.Progress = value;
                 pbar.Invalidate();
+                Title = $"Simulation Progress - {(int)(value * 100)}%";
             }
         }
 
