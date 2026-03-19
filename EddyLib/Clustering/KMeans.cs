@@ -282,7 +282,10 @@ namespace EddyLib
             // For each attribute calculate the squared difference between the centroid and the point
             double sum = 0;
             for (int i = 0; i < point.Length; i++)
-                sum += Math.Pow(centroid[i] - point[i], 2);
+            {
+                double diff = centroid[i] - point[i];
+                sum += diff * diff;
+            }
 
             return Math.Sqrt(sum);
 
