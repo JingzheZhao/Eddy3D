@@ -656,6 +656,52 @@ namespace RhinoPlugin.Test.Xunit
             Assert.Equal(0.3, slgtCold);    // 3/10 = 30%
         }
 
+        /// <summary>
+        /// Regression baseline for UTCI CalcUTCI polynomial.
+        /// Expected values were computed from the legacy Math.Pow implementation on the dev branch.
+        /// Any refactoring of the UTCI equation must reproduce these values within 1e-9 tolerance.
+        /// </summary>
+        [Fact]
+        public void UTCI_CalcUTCI_MatchesLegacyMathPowBaseline()
+        {
+            var cases = new[]
+            {
+                (TaC: 20.0, RH: 50.0, Wsp: 1.0, MRT: 20.0, Expected: 19.380148093259553),
+                (TaC: 22.0, RH: 40.0, Wsp: 0.5, MRT: 25.0, Expected: 22.212925694438137),
+                (TaC: 18.0, RH: 60.0, Wsp: 2.0, MRT: 18.0, Expected: 16.188539036894525),
+                (TaC: 35.0, RH: 30.0, Wsp: 1.0, MRT: 50.0, Expected: 38.34701370096742),
+                (TaC: 40.0, RH: 80.0, Wsp: 0.5, MRT: 55.0, Expected: 62.66754326664106),
+                (TaC: 30.0, RH: 70.0, Wsp: 3.0, MRT: 40.0, Expected: 32.68223605321507),
+                (TaC: 38.0, RH: 20.0, Wsp: 5.0, MRT: 60.0, Expected: 41.36734003961241),
+                (TaC: 33.0, RH: 50.0, Wsp: 2.0, MRT: 45.0, Expected: 36.20848596526606),
+                (TaC: -5.0, RH: 80.0, Wsp: 3.0, MRT: -5.0, Expected: -13.711170585778499),
+                (TaC: -15.0, RH: 50.0, Wsp: 5.0, MRT: -10.0, Expected: -32.10060687529533),
+                (TaC: 0.0, RH: 30.0, Wsp: 1.0, MRT: 0.0, Expected: -1.3365241775851404),
+                (TaC: 5.0, RH: 90.0, Wsp: 7.0, MRT: 5.0, Expected: -11.334700930783931),
+                (TaC: -10.0, RH: 20.0, Wsp: 2.0, MRT: -5.0, Expected: -14.61129068428623),
+                (TaC: 25.0, RH: 50.0, Wsp: 10.0, MRT: 30.0, Expected: 18.803142884399882),
+                (TaC: 15.0, RH: 40.0, Wsp: 15.0, MRT: 20.0, Expected: -6.091491860660974),
+                (TaC: 30.0, RH: 60.0, Wsp: 17.0, MRT: 35.0, Expected: 24.622038458380803),
+                (TaC: 20.0, RH: 50.0, Wsp: 1.0, MRT: 60.0, Expected: 31.22884304267038),
+                (TaC: 10.0, RH: 50.0, Wsp: 1.0, MRT: 50.0, Expected: 23.662373808259968),
+                (TaC: 25.0, RH: 50.0, Wsp: 2.0, MRT: 70.0, Expected: 35.5518031550996),
+                (TaC: -5.0, RH: 50.0, Wsp: 1.0, MRT: 30.0, Expected: 7.314357383521779),
+                (TaC: 0.0, RH: 95.0, Wsp: 0.5, MRT: 10.0, Expected: 5.402900682077781),
+                (TaC: 40.0, RH: 10.0, Wsp: 0.5, MRT: 40.0, Expected: 38.17783043752492),
+                (TaC: 10.0, RH: 50.0, Wsp: 0.5, MRT: 10.0, Expected: 10.617561929501276),
+                (TaC: 28.0, RH: 85.0, Wsp: 1.0, MRT: 35.0, Expected: 32.85194958301161),
+                (TaC: 15.0, RH: 30.0, Wsp: 8.0, MRT: 25.0, Expected: 4.290809042087781),
+            };
+
+            for (int i = 0; i < cases.Length; i++)
+            {
+                var c = cases[i];
+                double actual = EddyLib.UTCI.CalcUTCI(c.TaC, c.RH, c.Wsp, c.MRT);
+                Assert.True(Math.Abs(actual - c.Expected) < 1e-9,
+                    $"Case {i + 1}: UTCI mismatch (TaC={c.TaC}, RH={c.RH}, Wsp={c.Wsp}, MRT={c.MRT}). Expected {c.Expected}, got {actual}.");
+            }
+        }
+
         #endregion
 
         #region DDS File Parsing Tests
