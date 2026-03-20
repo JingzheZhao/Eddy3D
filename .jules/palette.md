@@ -25,6 +25,7 @@
 ## 2024-05-15 - [Add visual hover feedback to Grasshopper component buttons]
 **Learning:** Grasshopper component buttons (e.g., custom attributes) often lack visual affordance on hover, leaving users uncertain if the region is interactive.
 **Action:** When designing custom `GH_ComponentAttributes` that include interactive regions like buttons, override `RespondToMouseMove` to dynamically change the cursor to `GH_Hand` (`Grasshopper.Instances.CursorServer.AttachCursor(sender, "GH_Hand")`) when hovering over the clickable bounds.
+
 ## 2024-06-25 - Improve Cursor Feedback with Reflection
 **Learning:** In .NET 8 cross-platform Grasshopper plugins (like Eddy), adding UI visual feedback (e.g. changing the cursor to a hand on hover via `RespondToMouseMove`) requires reflection to access `Grasshopper.Instances.CursorServer.AttachCursor` due to System.Windows.Forms dependency issues. Looking up the MethodInfo via reflection on every mouse movement pixel is highly inefficient and unidiomatic for a high-frequency event loop.
 **Action:** Always extract the reflected `MethodInfo` into a cached static field within the ComponentAttributes constructor to avoid unnecessary GC allocations and execution overhead during hover events.
@@ -40,3 +41,11 @@
 ## 2025-06-12 - [Append numeric percentage to window title in progress dialogs]
 **Learning:** Progress bars in Eto.Forms dialogs only show progress when the window is visible. For long-running simulations, users often minimize the window or switch applications, losing visibility into the progress.
 **Action:** When implementing progress dialogs in Eto.Forms (e.g., `ProgressDialog`), dynamically append the numeric progress percentage to the window `Title` to allow users to monitor long-running tasks from the OS taskbar or window switcher even when the application is minimized.
+
+## 2025-08-01 - [Surface Keyboard Shortcuts in Tooltips]
+**Learning:** While mapping keyboard keys (like Esc and Enter) to default dialog actions (`AbortButton`, `DefaultButton`) improves accessibility, users have no visual way to discover these shortcuts.
+**Action:** When mapping UI elements to keyboard shortcuts, explicitly append the keyboard shortcut hint (e.g., "(Esc)", "(Enter)") to the element's `ToolTip` to improve discoverability.
+
+## 2025-08-01 - [Initialize Dynamic Titles]
+**Learning:** If a dialog's title dynamically updates to include a percentage (e.g., "Simulation Progress - 50%") via property setters or tick events, the initial title set in the constructor (e.g., "Simulation Progress") creates an inconsistent visual state before the first tick fires, lacking the expected numerical format.
+**Action:** When implementing progress dialogs whose Title dynamically updates with a percentage, initialize the Title string in the constructor to include " - 0%" to provide immediate visual feedback before the first progress event fires.
