@@ -19,7 +19,7 @@ namespace EddyLib.OutdoorComfort
 
             public static double emsk = 0.99;
 
-            public static double eps = Math.Pow(10, -6);
+            public static double eps = 1E-6;
 
             public static double eta = 0.0;
 
@@ -29,7 +29,7 @@ namespace EddyLib.OutdoorComfort
 
             public static double icl = 0.5;
 
-            public static double Lvap = 2.42 * Math.Pow(10.0, 6.0);
+            public static double Lvap = 2.42E6;
 
             public static int M = 80;
 
@@ -45,7 +45,7 @@ namespace EddyLib.OutdoorComfort
 
             public static int sex = 1;
 
-            public static double sigm = 5.67 * Math.Pow(10.0, -8.0);
+            public static double sigm = 5.67E-8;
 
             public static double[] T = new double[] { 38, 40, 40 };
 
@@ -151,7 +151,7 @@ namespace EddyLib.OutdoorComfort
                 }
 
                 // qmsw = 170 * sig_body * math.exp((sig_skin) / 10.7)  # [g/m2/h] is the expression from Gagge's model
-                var qmsw = 304.94 * Math.Pow(10, -3) * sig_body;
+                var qmsw = 304.94E-3 * sig_body;
 
                 // 500 g/m^2/h is the upper sweat rate limit
                 if (qmsw > 500)
@@ -209,7 +209,7 @@ namespace EddyLib.OutdoorComfort
                 // Calculation of the Burton surface increase coefficient, k = 0.31 for Hoeppe:
                 // Increase heat exchange surface depending on clothing level
                 var fcl = 1 + 0.31 * icl;
-                var facl = (173.51 * icl - 2.36 - 100.76 * icl * icl + 19.28 * Math.Pow(icl, 3.0)) / 100;
+                var facl = (173.51 * icl - 2.36 - 100.76 * icl * icl + 19.28 * (icl * icl * icl)) / 100;
                 var Aclo = Adu * facl + Adu * (fcl - 1.0);
                 var Aeffr = Adu * feff;
 
@@ -278,7 +278,7 @@ namespace EddyLib.OutdoorComfort
                 var texp = 0.47 * Ta + 21.0;
 
                 // Pulmonary flow rate
-                var dventpulm = he * 1.44 * Math.Pow(10.0, -6.0);
+                var dventpulm = he * 1.44E-6;
 
                 // Sensible heat energy loss:
                 var eres = cair * (Ta - texp) * dventpulm;
@@ -333,7 +333,7 @@ namespace EddyLib.OutdoorComfort
                 var Pvsk = 6.105 * Math.Exp((17.27 * ((double)T[1] + 273.15) - 4717.03) / (237.7 + (double)T[1]));
 
                 // Calculation of vapour transfer
-                var Lw = 16.7 * Math.Pow(10, -1);
+                var Lw = 1.67;
                 var he_diff = hc * Lw;
                 var fecl = 1 / (1 + 0.92 * hc * rcl);
                 var emax = he_diff * fecl * (Pvsk - vpa);
@@ -362,10 +362,10 @@ namespace EddyLib.OutdoorComfort
 
                 // Radiation losses
                 // For bare skin area:
-                var rbare = Aeffr * (1.0 - facl) * emsk * sigm * (Math.Pow(Tmrt + 273.15, 4.0) - Math.Pow((double)T[1] + 273.15, 4.0)) / Adu;
+                var rbare = Aeffr * (1.0 - facl) * emsk * sigm * (((Tmrt + 273.15) * (Tmrt + 273.15) * (Tmrt + 273.15) * (Tmrt + 273.15)) - (((double)T[1] + 273.15) * ((double)T[1] + 273.15) * ((double)T[1] + 273.15) * ((double)T[1] + 273.15))) / Adu;
 
                 // For dressed area:
-                var rclo = feff * Aclo * emcl * sigm * (Math.Pow(Tmrt + 273.15, 4.0) - Math.Pow((double)T[2] + 273.15, 4.0)) / Adu;
+                var rclo = feff * Aclo * emcl * sigm * (((Tmrt + 273.15) * (Tmrt + 273.15) * (Tmrt + 273.15) * (Tmrt + 273.15)) - (((double)T[2] + 273.15) * ((double)T[2] + 273.15) * ((double)T[2] + 273.15) * ((double)T[2] + 273.15))) / Adu;
                 var rsum = rclo + rbare;
 
                 // Convection losses #
