@@ -29,7 +29,7 @@ namespace Urbano.Simulation
 
         public ProgressDialog(Func<CancellationTokenSource, Task> task, double refreshRate = 1000)
         {
-            Title = "Simulation Progress";
+            Title = "Simulation Progress - 0%";
             //BackgroundColor = Colors.Gray; // Removed to respect system theme
             //Icon = Icon.FromResource("Properties.Resources.urbano_icon.png");
             ClientSize = new Size(400, 200);
@@ -40,7 +40,7 @@ namespace Urbano.Simulation
             // controls
             Status = new Label() { ToolTip = "Current simulation status" };
             pbar = new ProgressBar { ToolTip = "Simulation Progress" };
-            var cancel = new Button { Text = "Cancel", ToolTip = "Abort the current simulation" };
+            var cancel = new Button { Text = "Cancel", ToolTip = "Abort the current simulation (Esc, Enter)" };
             AbortButton = cancel; // Add Escape key support
             DefaultButton = cancel; // Map the Enter key to the Cancel action when focused
             var cts = new CancellationTokenSource();

@@ -34,7 +34,7 @@ namespace EddyLib.UI
 
         public ProgressDialog(Func<CancellationTokenSource, Task> task, double refreshRate = 1000)
         {
-            Title = "Simulation Progress";
+            Title = "Simulation Progress - 0%";
             //Icon = Icon.FromResource("Properties.Resources.eddy_icon.png");
             ClientSize = new Size(450, 250);
             MinimumSize = new Size(450, 250);
@@ -52,9 +52,9 @@ namespace EddyLib.UI
             timer.Start();
 
             pbar = new ProgressBar { ToolTip = "Simulation Progress" };
-            var cancel = new Button { Text = "Cancel", ToolTip = "Abort the current simulation" };
+            var cancel = new Button { Text = "Cancel", ToolTip = "Abort the current simulation (Esc)" };
             AbortButton = cancel;
-            var copyLog = new Button { Text = "Copy Log", ToolTip = "Copy the simulation log to clipboard" };
+            var copyLog = new Button { Text = "Copy Log", ToolTip = "Copy the simulation log to clipboard (Enter)" };
             DefaultButton = copyLog; // Map the Enter key to the Copy Log action when focused
             var cts = new CancellationTokenSource();
             var uiThread = SynchronizationContext.Current;
