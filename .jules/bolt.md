@@ -37,3 +37,7 @@
 ## 2024-03-16 - Math.Pow Redundancies
 **Learning:** The codebase contains redundant recursive math power operations like `Math.Pow(Math.Pow(x, 0.25), 4)` which calculate roots only to immediately raise them to the power again, causing extreme and unnecessary Math overhead.
 **Action:** When inspecting mathematical models (like UTCI, MRT, PET), check for algebraically cancellable operations (e.g. `(x^0.25)^4 = x`) and explicitly define unboxed power variables to avoid `Math.Pow` altogether.
+
+## 2024-11-20 - Math.Pow overhead in PET inner loop
+**Learning:** Using `Math.Pow` repeatedly with the same variables within the tight `PET` calculation loop introduces a measurable performance penalty. The original code used repetitive mathematical operations such as calculating `Math.Pow(mbody, 0.75)` and repeatedly multiplying large tuples together.
+**Action:** Precalculate `Math.Pow` variables such as fractional exponents, and precalculate repeated inner-loop sequence multiplications rather than performing identical multiplications multiple times. This can yield performance improvements with minimal structural changes.
