@@ -244,8 +244,10 @@ namespace EddyLib.OutdoorComfort
                 }
 
                 // Base metabolism for men and women in [W]
-                var metab_female = 3.19 * Math.Pow(mbody, 0.75) * (1.0 + 0.004 * (30.0 - age) + 0.018 * (ht * 100.0 / Math.Pow(mbody, 1.0 / 3.0) - 42.1));
-                var metab_male = 3.45 * Math.Pow(mbody, 0.75) * (1.0 + 0.004 * (30.0 - age) + 0.01 * (ht * 100.0 / Math.Pow(mbody, 1.0 / 3.0) - 43.4));
+                var mbody_0_75 = Math.Pow(mbody, 0.75);
+                var mbody_1_3 = Math.Pow(mbody, 1.0 / 3.0);
+                var metab_female = 3.19 * mbody_0_75 * (1.0 + 0.004 * (30.0 - age) + 0.018 * (ht * 100.0 / mbody_1_3 - 42.1));
+                var metab_male = 3.45 * mbody_0_75 * (1.0 + 0.004 * (30.0 - age) + 0.01 * (ht * 100.0 / mbody_1_3 - 43.4));
 
                 // Source term : metabolic activity
                 if (mode == true)
@@ -362,10 +364,23 @@ namespace EddyLib.OutdoorComfort
 
                 // Radiation losses
                 // For bare skin area:
-                var rbare = Aeffr * (1.0 - facl) * emsk * sigm * (((Tmrt + 273.15) * (Tmrt + 273.15) * (Tmrt + 273.15) * (Tmrt + 273.15)) - (((double)T[1] + 273.15) * ((double)T[1] + 273.15) * ((double)T[1] + 273.15) * ((double)T[1] + 273.15))) / Adu;
+                double tmrtK = Tmrt + 273.15;
+                double t1K = (double)T[1] + 273.15;
+                double t2K = (double)T[2] + 273.15;
+
+                double tmrtK2 = tmrtK * tmrtK;
+                double tmrtK4 = tmrtK2 * tmrtK2;
+
+                double t1K2 = t1K * t1K;
+                double t1K4 = t1K2 * t1K2;
+
+                double t2K2 = t2K * t2K;
+                double t2K4 = t2K2 * t2K2;
+
+                var rbare = Aeffr * (1.0 - facl) * emsk * sigm * (tmrtK4 - t1K4) / Adu;
 
                 // For dressed area:
-                var rclo = feff * Aclo * emcl * sigm * (((Tmrt + 273.15) * (Tmrt + 273.15) * (Tmrt + 273.15) * (Tmrt + 273.15)) - (((double)T[2] + 273.15) * ((double)T[2] + 273.15) * ((double)T[2] + 273.15) * ((double)T[2] + 273.15))) / Adu;
+                var rclo = feff * Aclo * emcl * sigm * (tmrtK4 - t2K4) / Adu;
                 var rsum = rclo + rbare;
 
                 // Convection losses #
