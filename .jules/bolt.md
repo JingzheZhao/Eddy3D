@@ -41,3 +41,7 @@
 ## 2024-11-20 - Math.Pow overhead in PET inner loop
 **Learning:** Using `Math.Pow` repeatedly with the same variables within the tight `PET` calculation loop introduces a measurable performance penalty. The original code used repetitive mathematical operations such as calculating `Math.Pow(mbody, 0.75)` and repeatedly multiplying large tuples together.
 **Action:** Precalculate `Math.Pow` variables such as fractional exponents, and precalculate repeated inner-loop sequence multiplications rather than performing identical multiplications multiple times. This can yield performance improvements with minimal structural changes.
+
+## 2025-03-22 - Array allocations in high-frequency root-finding loops
+**Learning:** Python-to-C# translations often carry over redundant code like allocating a new array from an existing array (e.g. `var arr = new double[3] { T[0], T[1], T[2] }` where `T` is already a `double[]`), and creating arrays for vectors that only hold 3 values where simple local variables will suffice. When nested inside non-linear root finding loops (`Broyden.FindRoot`) which itself is nested in parallel array processing, these allocate immense numbers of short-lived objects on the heap, thrashing the GC.
+**Action:** Always scan inner calculation loops for `new []` allocations and replace them with local variables (e.g., `double enbal0`, `double enbal1`, `double enbal2`) or `ref` struct patterns to bypass GC overhead in math-heavy `.cs` files.
