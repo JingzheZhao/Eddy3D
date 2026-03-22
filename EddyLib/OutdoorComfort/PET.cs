@@ -182,18 +182,6 @@ namespace EddyLib.OutdoorComfort
                 double metab;
                 double vpa;
 
-                // Conversion of T vector in an array
-                //var arr = np.ones(3, 1);
-                var arr = new double[3] { 1, 1, 1 };
-                arr[0] = T[0];
-                arr[1] = T[1];
-                arr[2] = T[2];
-                T = arr;
-
-                // required for the vectorial expression of the balance
-                //var enbal_vec = np.zeros(3, 1);
-                var enbal_vec = new double[3] { 0, 0, 0 }; ;
-
                 // Area parameters of the body:
                 var Adu = 0.203 * Math.Pow(mbody, 0.425) * Math.Pow(ht, 0.725);
                 var feff = 0.725;
@@ -286,7 +274,7 @@ namespace EddyLib.OutdoorComfort
                 var eres = cair * (Ta - texp) * dventpulm;
 
                 // Latent heat energy loss:
-                var vpexp = 6.11 * Math.Pow(10.0, 7.45 * texp / (235.0 + texp));
+                var vpexp = 6.11 * Math.Exp(2.302585092994046 * (7.45 * texp / (235.0 + texp)));
                 var erel = 0.623 * Lvap / p * (vpa - vpexp) * dventpulm;
                 var ere = eres + erel;
 
@@ -393,9 +381,9 @@ namespace EddyLib.OutdoorComfort
                 double term1 = (VasoC(T[0], T[1]).Item1 / 3600 * cb + 5.28);
                 double t1t2 = htcl * (T[1] - T[2]);
 
-                enbal_vec[0] = h + ere - (term1) * (T[0] - T[1]); // Core balance [W/m^2]
-                enbal_vec[1] = rbare + cbare + evap + (term1) * (T[0] - T[1]) - t1t2; //# Skin balance [W/m^2]
-                enbal_vec[2] = cclo + rclo + t1t2; //# Clothes balance [W/m^2]
+                double enbal0 = h + ere - (term1) * (T[0] - T[1]); // Core balance [W/m^2]
+                double enbal1 = rbare + cbare + evap + (term1) * (T[0] - T[1]) - t1t2; //# Skin balance [W/m^2]
+                double enbal2 = cclo + rclo + t1t2; //# Clothes balance [W/m^2]
                 var enbal_scal = h + ere + rsum + csum + evap;
 
                 // returning either the calculated core,skin,clo temperatures or the PET
@@ -405,9 +393,9 @@ namespace EddyLib.OutdoorComfort
                 if (mode)
                 {
                     // if we solve for the system we need to return 3 temperatures
-                    res[0] = (double)enbal_vec[0];
-                    res[1] = (double)enbal_vec[1];
-                    res[2] = (double)enbal_vec[2];
+                    res[0] = enbal0;
+                    res[1] = enbal1;
+                    res[2] = enbal2;
                     return res;
                 }
                 else
