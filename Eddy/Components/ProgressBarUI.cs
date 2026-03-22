@@ -38,7 +38,7 @@ namespace Urbano.Simulation
             ShowInTaskbar = true;
 
             // controls
-            Status = new Label() { ToolTip = "Current simulation status" };
+            Status = new Label() { Text = "Starting simulation...", ToolTip = "Current simulation status" };
             pbar = new ProgressBar { ToolTip = "Simulation Progress" };
             var cancel = new Button { Text = "Cancel", ToolTip = "Abort the current simulation (Esc, Enter)" };
             AbortButton = cancel; // Add Escape key support

@@ -42,7 +42,7 @@ namespace EddyLib.UI
             ShowInTaskbar = true;
 
             // controls
-            Status = new Label() { ToolTip = "Current simulation status" };
+            Status = new Label() { Text = "Starting simulation...", ToolTip = "Current simulation status" };
             StatusLog = new TextArea() { Height = 150, ReadOnly = true, Font = Fonts.Monospace(10), ToolTip = "Detailed simulation log output" };
 
             TimeElapsed = new Label { Text = "00:00:00", VerticalAlignment = VerticalAlignment.Center, ToolTip = "Time elapsed since simulation started" };

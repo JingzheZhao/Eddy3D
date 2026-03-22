@@ -49,3 +49,6 @@
 ## 2025-08-01 - [Initialize Dynamic Titles]
 **Learning:** If a dialog's title dynamically updates to include a percentage (e.g., "Simulation Progress - 50%") via property setters or tick events, the initial title set in the constructor (e.g., "Simulation Progress") creates an inconsistent visual state before the first tick fires, lacking the expected numerical format.
 **Action:** When implementing progress dialogs whose Title dynamically updates with a percentage, initialize the Title string in the constructor to include " - 0%" to provide immediate visual feedback before the first progress event fires.
+## 2025-08-01 - [Add Initial State to Status Labels]
+**Learning:** Instantiating UI elements like Eto.Forms `Label` components without an initial `Text` value (e.g., in a `ProgressDialog` status display) leaves the UI looking blank or unresponsive before the first progress event is received.
+**Action:** When designing dynamic status labels, always initialize them with a default empty state `Text` (e.g., "Starting simulation...") to provide immediate visual feedback.
