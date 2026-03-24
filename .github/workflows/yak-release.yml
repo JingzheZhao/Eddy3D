@@ -45,7 +45,7 @@ jobs:
             throw "Expected build output was not found in $buildDir"
           }
 
-          (Get-Content manifest.yml) -replace '(^version:\s*).+$', ('$1' + '${{ steps.version.outputs.version }}') | Set-Content manifest.yml
+          (Get-Content manifest.yml -Raw) -replace '(?m)^version:\s*.+$', 'version: ${{ steps.version.outputs.version }}' | Set-Content manifest.yml
           Copy-Item manifest.yml (Join-Path $buildDir 'manifest.yml') -Force
           Copy-Item 'Eddy/Resources/Eddy3D.png' (Join-Path $buildDir 'Eddy3D.png') -Force
 
