@@ -428,7 +428,7 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                         else
                         {
                             var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(new List<string> { command.ToString() }, RES.WorkingDirectory, RunMode.Canvas);
-                            Utilities.StartProcess.StartProcessCMDNT(cmdArg, false, true, true, true, probingComplete);
+                            Utilities.StartProcess.StartBatchScriptCMDNT(cmdArg, false, true, true, true, probingComplete);
                             return;
                         }
                     }
@@ -520,7 +520,7 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                         else
                         {
                             var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(new List<string> { command.ToString() }, RES.WorkingDirectory, RunMode.Canvas);
-                            Utilities.StartProcess.StartProcessCMDNT(cmdArg, false, true, true, true, probingComplete);
+                            Utilities.StartProcess.StartBatchScriptCMDNT(cmdArg, false, true, true, true, probingComplete);
                             return;
                         }
                     }

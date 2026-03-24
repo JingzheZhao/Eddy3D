@@ -398,7 +398,7 @@ Generates visualizations of the wind field, including vector arrows and streamli
                     else
                     {
                         var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(new List<string> { command.ToString() }, RES.WorkingDirectory, RunMode.Canvas);
-                        Utilities.StartProcess.StartProcessCMDNT(cmdArg, false, true, true, true, probingComplete);
+                        Utilities.StartProcess.StartBatchScriptCMDNT(cmdArg, false, true, true, true, probingComplete);
                         return;
                     }
                 }

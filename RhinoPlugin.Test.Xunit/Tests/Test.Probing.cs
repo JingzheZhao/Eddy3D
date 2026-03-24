@@ -368,6 +368,60 @@ namespace RhinoPlugin.Test.Xunit
             }
         }
 
+        [WindowsOnlyFact]
+        public void Probing_BatchLaunch_WorksWhenInstallAndCasePathsContainSpaces()
+        {
+            var root = TestFixtures.CreateTestDirectory("testcase-probing-batch-launch");
+            var originalHome = Environment.GetEnvironmentVariable("HOME");
+
+            try
+            {
+                var fakeHome = Path.Combine(root, "Fake Home");
+                var fakeInstallDir = Path.Combine(root, "blueCFD Install");
+                var fakeBinDir = Path.Combine(root, "Fake OpenFOAM Bin");
+                var caseDir = Path.Combine(root, "Case With Spaces");
+                var markerPath = Path.Combine(caseDir, "cwd.txt");
+
+                Directory.CreateDirectory(fakeHome);
+                Directory.CreateDirectory(fakeInstallDir);
+                Directory.CreateDirectory(fakeBinDir);
+                Directory.CreateDirectory(caseDir);
+
+                Environment.SetEnvironmentVariable("HOME", fakeHome);
+
+                File.WriteAllText(
+                    Path.Combine(fakeInstallDir, "setvars_OF8.bat"),
+                    "@echo off\r\n" +
+                    $"set \"PATH={fakeBinDir};%PATH%\"\r\n");
+
+                File.WriteAllText(
+                    Path.Combine(fakeBinDir, "reconstructParMesh.bat"),
+                    "@echo off\r\n" +
+                    $"echo %CD%>\"{markerPath}\"\r\n");
+
+                var script = EddyLib.Strings.BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(
+                    new[] { "reconstructParMesh" },
+                    caseDir,
+                    EddyLib.Strings.RunMode.Canvas,
+                    fakeInstallDir);
+
+                Utilities.StartProcess.StartBatchScriptCMDNT(
+                    script,
+                    createnowindow: true,
+                    waitforexit: true,
+                    close: true,
+                    startInNewThread: false);
+
+                Assert.True(File.Exists(markerPath), "Expected fake reconstructParMesh command to run.");
+                Assert.Equal(caseDir, File.ReadAllText(markerPath).Trim());
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("HOME", originalHome);
+                TestFixtures.CleanupTestDirectory(root);
+            }
+        }
+
         private static void WriteProbeFile(string root, string probeName, int iter, string fieldName, string content)
         {
             var dir = Path.Combine(root, "postProcessing", probeName, iter.ToString());
