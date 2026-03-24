@@ -1,0 +1,109 @@
+name: Yak Release
+
+on:
+  push:
+    branches:
+      - release
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: windows-2022
+    env:
+      YAK_TOKEN: ${{ secrets.YAK_TOKEN_PATRICK }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Read Eddy version
+        id: version
+        shell: pwsh
+        run: |
+          $content = Get-Content 'EddyLib/GlobalSettings/EddyVersion.cs' -Raw
+          $match = [regex]::Match($content, 'ProductVersion\s*=\s*"([^"]+)"')
+          if (-not $match.Success) {
+            throw 'Could not read EddyVersion.ProductVersion from EddyLib/GlobalSettings/EddyVersion.cs'
+          }
+
+          $version = $match.Groups[1].Value
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Build plugin
+        run: dotnet build Eddy/Eddy.csproj -c Release
+
+      - name: Prepare Yak package contents
+        shell: pwsh
+        run: |
+          $buildDir = 'Eddy/bin/Release/net8.0-windows'
+          if (-not (Test-Path (Join-Path $buildDir 'Eddy.gha'))) {
+            throw "Expected build output was not found in $buildDir"
+          }
+
+          (Get-Content manifest.yml) -replace '(^version:\s*).+$', ('$1' + '${{ steps.version.outputs.version }}') | Set-Content manifest.yml
+          Copy-Item manifest.yml (Join-Path $buildDir 'manifest.yml') -Force
+          Copy-Item 'Eddy/Resources/Eddy3D.png' (Join-Path $buildDir 'Eddy3D.png') -Force
+
+      - name: Download Yak CLI
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri 'https://files.mcneel.com/yak/tools/0.13.0/yak.exe' -OutFile 'yak.exe'
+
+      - name: Build Yak package
+        id: yak_package
+        shell: pwsh
+        run: |
+          $buildDir = Resolve-Path 'Eddy/bin/Release/net8.0-windows'
+          Push-Location $buildDir
+          try {
+            & "$env:GITHUB_WORKSPACE\yak.exe" build --platform win
+            if ($LASTEXITCODE -ne 0) {
+              throw "yak build failed with exit code $LASTEXITCODE"
+            }
+
+            $package = Get-ChildItem -Filter '*.yak' | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+            if (-not $package) {
+              throw 'yak build did not produce a .yak file'
+            }
+
+            "package_path=$($package.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          } finally {
+            Pop-Location
+          }
+
+      - name: Publish to Yak
+        shell: pwsh
+        run: |
+          & .\yak.exe push "${{ steps.yak_package.outputs.package_path }}"
+          if ($LASTEXITCODE -ne 0) {
+            throw "yak push failed with exit code $LASTEXITCODE"
+          }
+
+      - name: Verify Yak release
+        shell: pwsh
+        run: |
+          $packageName = 'Eddy3D'
+          $expectedVersion = '${{ steps.version.outputs.version }}'
+          $maxAttempts = 12
+          $sleepSeconds = 10
+
+          for ($i = 1; $i -le $maxAttempts; $i++) {
+            $result = & .\yak.exe search $packageName -a 2>&1
+            $resultText = $result -join "`n"
+            Write-Host $resultText
+
+            if ($resultText -match [Regex]::Escape($expectedVersion)) {
+              Write-Host "Verified on Yak: $packageName $expectedVersion"
+              exit 0
+            }
+
+            Write-Host "Attempt ${i}/${maxAttempts}: $expectedVersion not visible yet. Retrying in ${sleepSeconds} seconds..."
+            Start-Sleep -Seconds $sleepSeconds
+          }
+
+          throw "Yak verification failed: $packageName $expectedVersion was not found after $maxAttempts attempts."

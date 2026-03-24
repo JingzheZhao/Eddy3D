@@ -3,10 +3,20 @@
 </p>
 <p align="center"><strong>Eddy3D</strong> - Airflow and Microclimate Simulations for Rhino & Grasshopper</p>
 
-[![Build](https://img.shields.io/github/actions/workflow/status/Eddy3D-Dev/Eddy3D/build.yml?label=Build)](https://github.com/Eddy3D-Dev/Eddy3D/actions/workflows/build.yml)
+[![Build](https://img.shields.io/github/actions/workflow/status/Eddy3D-Dev/Eddy3D/ci-build.yml?label=Build)](https://github.com/Eddy3D-Dev/Eddy3D/actions/workflows/ci-build.yml)
 [![Templates](https://img.shields.io/github/actions/workflow/status/Eddy3D-Dev/Eddy3D/template-branch-warning.yml?label=Templates)](https://github.com/Eddy3D-Dev/Eddy3D/actions/workflows/template-branch-warning.yml)
 [![Version](https://img.shields.io/github/v/release/Eddy3D-Dev/Eddy3D?sort=semver)](https://github.com/Eddy3D-Dev/Eddy3D/releases)
 [![Documentation](https://img.shields.io/badge/docs-eddy3d.com-blue)](https://docs.eddy3d.com)
+
+## Release Branching
+
+Eddy3D uses a promotion cascade for releases:
+
+- `dev` is the active integration branch.
+- `pre-release` is used to publish installer and Yak pre-releases for validation.
+- `release` is used only for production releases.
+
+The intended flow is `dev -> pre-release -> release`. Avoid merging feature branches directly into `release`. Since Yak package versions cannot be re-published, only promote to `pre-release` when the version is intentionally ready to publish.
 
 ## Development Setup (Windows)
 

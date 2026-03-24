@@ -5,11 +5,13 @@ on:
     branches:
       - main
       - dev
+      - pre-release
       - release
   pull_request:
     branches:
       - main
       - dev
+      - pre-release
       - release
   workflow_dispatch:
 
