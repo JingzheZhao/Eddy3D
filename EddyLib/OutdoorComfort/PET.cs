@@ -309,7 +309,9 @@ namespace EddyLib.OutdoorComfort
 
                 // Calculation of the equivalent thermal resistance of body tissues
 
-                var alpha = VasoC((double)T[0], (double)T[1]).Item2;
+                // Bolt: optimize redundant VasoC calculations by caching method call
+                var vasoC_res = VasoC((double)T[0], (double)T[1]);
+                var alpha = vasoC_res.Item2;
                 var tbody = alpha * (double)T[1] + (1 - alpha) * (double)T[0];
                 var htcl = 6.28 * ht * y * di / (rcl * Math.Log(r2 / r1) * Aclo);
 
@@ -378,7 +380,7 @@ namespace EddyLib.OutdoorComfort
 
                 // Balance equations of the 3-nodes model
 
-                double term1 = (VasoC(T[0], T[1]).Item1 / 3600 * cb + 5.28);
+                double term1 = (vasoC_res.Item1 / 3600 * cb + 5.28);
                 double t1t2 = htcl * (T[1] - T[2]);
 
                 double enbal0 = h + ere - (term1) * (T[0] - T[1]); // Core balance [W/m^2]
@@ -388,21 +390,15 @@ namespace EddyLib.OutdoorComfort
 
                 // returning either the calculated core,skin,clo temperatures or the PET
 
-                var res = new double[3];
-
                 if (mode)
                 {
                     // if we solve for the system we need to return 3 temperatures
-                    res[0] = enbal0;
-                    res[1] = enbal1;
-                    res[2] = enbal2;
-                    return res;
+                    return new double[] { enbal0, enbal1, enbal2 };
                 }
                 else
                 {
                     // solving for the PET requires the scalar balance only
-                    res[0] = enbal_scal;
-                    return res;
+                    return new double[] { enbal_scal };
                 }
             }
 
