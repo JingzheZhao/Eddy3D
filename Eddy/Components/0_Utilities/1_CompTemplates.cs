@@ -436,13 +436,26 @@ namespace Eddy
 
             EventHandler ev = async (sender, e) =>
             {
+                this.Message = "Downloading...";
+                Grasshopper.Instances.ActiveCanvas?.Refresh();
+
                 var success = await EnsureTemplateDownloadedAsync(file);
                 if (success)
                 {
+                    this.Message = "Loaded!";
                     var r = true;
                     CreateTemplateFromXMLString(localPath, ref r);
                     this.ExpireSolution(true);
                 }
+                else
+                {
+                    this.Message = "Failed";
+                    Grasshopper.Instances.ActiveCanvas?.Refresh();
+                }
+
+                await Task.Delay(2000);
+                this.Message = null;
+                Grasshopper.Instances.ActiveCanvas?.Refresh();
             };
 
             return new ToolStripMenuItem(label, null, ev);

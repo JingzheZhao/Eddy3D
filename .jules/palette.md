@@ -52,3 +52,7 @@
 ## 2025-08-01 - [Add Initial State to Status Labels]
 **Learning:** Instantiating UI elements like Eto.Forms `Label` components without an initial `Text` value (e.g., in a `ProgressDialog` status display) leaves the UI looking blank or unresponsive before the first progress event is received.
 **Action:** When designing dynamic status labels, always initialize them with a default empty state `Text` (e.g., "Starting simulation...") to provide immediate visual feedback.
+
+## 2026-03-24 - [Inline async loading states in Grasshopper]
+**Learning:** For asynchronous operations triggered within Grasshopper components (e.g., downloading templates or files), avoiding blocking `MessageBox` dialogs or silent background tasks significantly improves UX. Users often wait idly without knowing an action is processing.
+**Action:** Provide inline visual feedback by updating the component's `Message` property (e.g., `this.Message = "Downloading...";`) and explicitly forcing a canvas redraw via `Grasshopper.Instances.ActiveCanvas?.Refresh();`. Clear the message gracefully after the async action completes or fails to prevent stale UI states.
