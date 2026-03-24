@@ -1,15 +1,13 @@
 name: Eddy3D
 version: $version
 authors:
-  - Patrick Kastner
+  - Patrick Kastner, Ilker Karadag, Timur Dogan
 description: >
   Grasshopper plugin for urban wind, outdoor comfort, radiation, and indoor airflow
   simulations for Rhino.
 url: https://docs.eddy3d.com/
 icon: Eddy3D.png
 keywords:
-  - grasshopper
-  - rhino
   - cfd
   - wind
   - outdoor-comfort
