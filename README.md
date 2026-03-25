@@ -6,6 +6,7 @@
 [![Build](https://img.shields.io/github/actions/workflow/status/Eddy3D-Dev/Eddy3D/ci-build.yml?label=Build)](https://github.com/Eddy3D-Dev/Eddy3D/actions/workflows/ci-build.yml)
 [![Templates](https://img.shields.io/github/actions/workflow/status/Eddy3D-Dev/Eddy3D/template-branch-warning.yml?label=Templates)](https://github.com/Eddy3D-Dev/Eddy3D/actions/workflows/template-branch-warning.yml)
 [![Version](https://img.shields.io/github/v/release/Eddy3D-Dev/Eddy3D?sort=semver)](https://github.com/Eddy3D-Dev/Eddy3D/releases)
+[![Yak](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fyak.rhino3d.com%2Fpackages%2FEddy3D&query=%24.version&suffix=%20&logo=Rhinoceros&label=Yak)](https://rhinopackages.github.io/?search=Eddy3D&sort=2&p=Eddy3D)
 [![Documentation](https://img.shields.io/badge/docs-eddy3d.com-blue)](https://docs.eddy3d.com)
 
 ## Release Branching
@@ -69,5 +70,4 @@ For xUnit test execution behavior across Windows/macOS (run/skip/fail-fast rules
 - [`RhinoPlugin.Test.Xunit/TEST_POLICY.md`](RhinoPlugin.Test.Xunit/TEST_POLICY.md)
 
 </details>
-
 
