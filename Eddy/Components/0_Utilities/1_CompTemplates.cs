@@ -186,6 +186,9 @@ namespace Eddy
             if (externalFetchStates.ContainsKey(inputUrl) && externalFetchStates[inputUrl]) return;
             externalFetchStates[inputUrl] = true;
 
+            this.Message = "Downloading...";
+            Grasshopper.Instances.ActiveCanvas?.Refresh();
+
             try
             {
                 using (var lister = new GitHubFileLister())
@@ -221,6 +224,7 @@ namespace Eddy
             finally
             {
                 externalFetchStates[inputUrl] = false;
+                this.Message = null;
                 Rhino.RhinoApp.InvokeOnUiThread((Action)delegate { this.ExpireSolution(true); });
             }
         }
