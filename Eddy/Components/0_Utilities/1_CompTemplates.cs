@@ -341,7 +341,7 @@ namespace Eddy
 
                 if (!success)
                 {
-                    MessageBox.Show("Failed to add template.");
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Failed to add template.");
                     return;
                 }
                 var docTemp = io.Document;
@@ -487,7 +487,7 @@ namespace Eddy
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Failed to download template: " + ex.Message);
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Failed to download template: " + ex.Message);
                 return false;
             }
         }

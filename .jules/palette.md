@@ -56,3 +56,7 @@
 ## 2026-03-24 - [Inline async loading states in Grasshopper]
 **Learning:** For asynchronous operations triggered within Grasshopper components (e.g., downloading templates or files), avoiding blocking `MessageBox` dialogs or silent background tasks significantly improves UX. Users often wait idly without knowing an action is processing.
 **Action:** Provide inline visual feedback by updating the component's `Message` property (e.g., `this.Message = "Downloading...";`) and explicitly forcing a canvas redraw via `Grasshopper.Instances.ActiveCanvas?.Refresh();`. Clear the message gracefully after the async action completes or fails to prevent stale UI states.
+
+## 2024-05-18 - Non-blocking Dialogs for Async Operations
+**Learning:** For asynchronous operations triggered within Grasshopper components (e.g., downloading templates or files), using a blocking `MessageBox` for errors creates a poor, frustrating UX by stealing focus and blocking the Grasshopper canvas interaction.
+**Action:** Replace blocking error dialogs with inline visual feedback. Update the component's internal state (e.g., `this.Message = "Failed";`) and surface detailed errors via the built-in `AddRuntimeMessage(GH_RuntimeMessageLevel.Error, ...)` method to provide non-disruptive, contextual feedback directly on the canvas element.
