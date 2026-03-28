@@ -809,11 +809,7 @@ Use this for quick convergence monitoring without external plotting windows.
                     using (var brush = new SolidBrush(Color.FromArgb(140, 140, 140)))
                     using (var format = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
                     {
-                        string msg = string.IsNullOrWhiteSpace(status) ? "No data available" : status;
-                        if (msg.Length > 0)
-                        {
-                            msg = char.ToUpperInvariant(msg[0]) + msg.Substring(1);
-                        }
+                        string msg = string.IsNullOrWhiteSpace(status) ? "NO DATA AVAILABLE" : status.ToUpperInvariant();
                         g.DrawString(msg, GH_FontServer.StandardItalic, brush, textRect, format);
                     }
                     return;
