@@ -60,3 +60,6 @@
 ## 2024-05-18 - Non-blocking Dialogs for Async Operations
 **Learning:** For asynchronous operations triggered within Grasshopper components (e.g., downloading templates or files), using a blocking `MessageBox` for errors creates a poor, frustrating UX by stealing focus and blocking the Grasshopper canvas interaction.
 **Action:** Replace blocking error dialogs with inline visual feedback. Update the component's internal state (e.g., `this.Message = "Failed";`) and surface detailed errors via the built-in `AddRuntimeMessage(GH_RuntimeMessageLevel.Error, ...)` method to provide non-disruptive, contextual feedback directly on the canvas element.
+## 2024-03-29 - Wrap long text in Progress Dialogs
+**Learning:** Eto.Forms `Label` components do not wrap text by default. In progress dialogs, where status messages can contain very long file paths or detailed error messages, this causes the text to be truncated or push the dialog bounds out of screen, rendering it inaccessible and hard to read.
+**Action:** When initializing `Label` components in Eto.Forms intended for dynamic or potentially lengthy text updates (like logs or status readouts), explicitly set `Wrap = WrapMode.Word` to ensure the text remains readable within the container limits.
