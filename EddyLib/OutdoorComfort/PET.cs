@@ -105,7 +105,9 @@ namespace EddyLib.OutdoorComfort
             }
 
             // Solving the 3 equation non-linear system
-            public static Tuple<double[], double> Resolution(
+            // Bolt optimization: Replace Tuple with ValueTuple to eliminate heap allocations
+            // inside this high-frequency root-finding objective function loop.
+            public static (double[], double) Resolution(
               double Ta,
               double Tmrt,
               double HR,
@@ -131,7 +133,7 @@ namespace EddyLib.OutdoorComfort
 
                 //   Tuple<double[],double> res =                    new Tuple<doubl, string, string>(1, "Steve", "Jobs");
 
-                return Tuple.Create(Tn, 1.0);
+                return (Tn, 1.0);
             }
 
             // Sweating calculation function
@@ -403,7 +405,9 @@ namespace EddyLib.OutdoorComfort
             }
 
             // Skin blood flow calculation function:
-            public static Tuple<double, double> VasoC(double tcore, double tsk)
+            // Bolt optimization: Replace Tuple with ValueTuple to eliminate heap allocations
+            // inside this method which is called repeatedly during non-linear root finding.
+            public static (double, double) VasoC(double tcore, double tsk)
             {
                 // Set value signals
                 var sig_skin = tsk_set - tsk;
@@ -431,7 +435,7 @@ namespace EddyLib.OutdoorComfort
                 // in the transient model, alpha is used to update tbody
                 //alpha = 0.04177 + 0.74518 / (qmblood + 0.585417)
                 var alpha = 0.1;
-                return Tuple.Create(qmblood, alpha);
+                return (qmblood, alpha);
             }
         }
     }
