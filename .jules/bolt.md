@@ -45,3 +45,7 @@
 ## 2025-03-22 - Array allocations in high-frequency root-finding loops
 **Learning:** Python-to-C# translations often carry over redundant code like allocating a new array from an existing array (e.g. `var arr = new double[3] { T[0], T[1], T[2] }` where `T` is already a `double[]`), and creating arrays for vectors that only hold 3 values where simple local variables will suffice. When nested inside non-linear root finding loops (`Broyden.FindRoot`) which itself is nested in parallel array processing, these allocate immense numbers of short-lived objects on the heap, thrashing the GC.
 **Action:** Always scan inner calculation loops for `new []` allocations and replace them with local variables (e.g., `double enbal0`, `double enbal1`, `double enbal2`) or `ref` struct patterns to bypass GC overhead in math-heavy `.cs` files.
+
+## 2025-05-18 - Replacing Tuples with ValueTuples inside tight loops
+**Learning:** Using `Tuple<T1, T2>` (a reference type) inside a high-frequency loop like the non-linear root finding solver `Broyden.FindRoot` forces unnecessary and massive heap allocations on every single iteration.
+**Action:** Replace `Tuple` with `ValueTuple` (e.g., `(T1, T2)`) in high-frequency methods, especially when they are called from inner loops or objective functions passed to solvers. This eliminates memory allocation overhead and reduces GC pressure. Note that this changes the method signature, but it remains source-compatible if implicit typing (`var`) is used.
