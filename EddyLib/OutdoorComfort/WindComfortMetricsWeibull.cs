@@ -122,11 +122,14 @@ namespace EddyLib.OutdoorComfort
             int rowCount = temporalVelocityMatrix.GetLength(0);
 
             // Filter invalid values; Weibull needs strictly positive samples.
+            // Bolt optimization: Replace expensive double.IsNaN() and double.IsInfinity() calls inside the tight loop.
+            // value > 0.0 implicitly filters out NaN, 0.0, and -Infinity.
+            // value < double.PositiveInfinity filters out +Infinity.
             int validCount = 0;
             for (int i = 0; i < rowCount; i++)
             {
                 double value = temporalVelocityMatrix[i, probeIndex];
-                if (!double.IsNaN(value) && !double.IsInfinity(value) && value > 0.0)
+                if (value > 0.0 && value < double.PositiveInfinity)
                 {
                     validCount++;
                 }
@@ -140,7 +143,7 @@ namespace EddyLib.OutdoorComfort
             for (int i = 0; i < rowCount; i++)
             {
                 double value = temporalVelocityMatrix[i, probeIndex];
-                if (!double.IsNaN(value) && !double.IsInfinity(value) && value > 0.0)
+                if (value > 0.0 && value < double.PositiveInfinity)
                 {
                     arrToProcess[validIndex] = value;
                     validIndex++;
