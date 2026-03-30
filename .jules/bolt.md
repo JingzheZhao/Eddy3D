@@ -49,3 +49,6 @@
 ## 2025-05-18 - Replacing Tuples with ValueTuples inside tight loops
 **Learning:** Using `Tuple<T1, T2>` (a reference type) inside a high-frequency loop like the non-linear root finding solver `Broyden.FindRoot` forces unnecessary and massive heap allocations on every single iteration.
 **Action:** Replace `Tuple` with `ValueTuple` (e.g., `(T1, T2)`) in high-frequency methods, especially when they are called from inner loops or objective functions passed to solvers. This eliminates memory allocation overhead and reduces GC pressure. Note that this changes the method signature, but it remains source-compatible if implicit typing (`var`) is used.
+## 2026-03-30 - [Optimize High-Frequency Method Calls and Array Lookups in Hot Loops]
+**Learning:** Repeatedly accessing arrays or invoking numeric inspection methods (like `double.IsNaN`) inside nested O(N*8760) simulation loops significantly degrades performance due to bounds checks, memory indirection, and method call overhead.
+**Action:** Always lift invariant array lookups out of inner loops. Replace expensive framework method calls for NaN and Infinity checks with implicit floating-point logic (e.g., `value > 0.0 && value < double.PositiveInfinity`) when filtering positive datasets in tight loops.
