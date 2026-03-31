@@ -45,10 +45,10 @@ namespace EddyLib.UI
             Status = new Label() { Text = "Starting simulation...", ToolTip = "Current simulation status", Wrap = WrapMode.Word };
             StatusLog = new TextArea() { Height = 150, ReadOnly = true, Font = Fonts.Monospace(10), ToolTip = "Detailed simulation log output" };
 
-            TimeElapsed = new Label { Text = "00:00:00", VerticalAlignment = VerticalAlignment.Center, ToolTip = "Time elapsed since simulation started" };
+            TimeElapsed = new Label { Text = "Elapsed: 00:00:00", VerticalAlignment = VerticalAlignment.Center, ToolTip = "Time elapsed since simulation started" };
             stopwatch = Stopwatch.StartNew();
             timer = new UITimer { Interval = 1.0 };
-            timer.Elapsed += (s, e) => { TimeElapsed.Text = stopwatch.Elapsed.ToString(@"hh\:mm\:ss"); };
+            timer.Elapsed += (s, e) => { TimeElapsed.Text = "Elapsed: " + stopwatch.Elapsed.ToString(@"hh\:mm\:ss"); };
             timer.Start();
 
             pbar = new ProgressBar { ToolTip = "Simulation Progress" };
