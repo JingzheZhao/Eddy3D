@@ -81,9 +81,18 @@ namespace EddyLib.OutdoorComfort
             {
                 // Definition of a function with the input variables of the PET reference situation
 
+                // Bolt optimization: Precalculate Math.Pow constants
+                var mbody_0_75 = Math.Pow(mbody, 0.75);
+                var mbody_1_3 = Math.Pow(mbody, 1.0 / 3.0);
+                var mbody_0_425 = Math.Pow(mbody, 0.425);
+                var ht_0_725 = Math.Pow(ht, 0.725);
+                var v_0_67 = Math.Pow(0.1, 0.67);
+                var v_0_513 = Math.Pow(0.1, 0.513);
+                var p_po_0_55 = Math.Pow(p / po, 0.55);
+
                 Func<double, double[]> f = Tx =>
                 {
-                    return Syst(Tstable, Tx, Tx, 50, 0.1, age, sex, ht, mbody, pos, M, 0.9, false);
+                    return Syst(Tstable, Tx, Tx, 50, 0.1, age, sex, ht, mbody, pos, M, 0.9, false, mbody_0_75, mbody_1_3, mbody_0_425, ht_0_725, v_0_67, v_0_513, p_po_0_55);
                 };
                 var Ti = Tmin;
                 var Tf = Tmax;
@@ -121,9 +130,18 @@ namespace EddyLib.OutdoorComfort
               double icl,
               double[] Tx)
             {
+                // Bolt optimization: Precalculate Math.Pow constants
+                var mbody_0_75 = Math.Pow(mbody, 0.75);
+                var mbody_1_3 = Math.Pow(mbody, 1.0 / 3.0);
+                var mbody_0_425 = Math.Pow(mbody, 0.425);
+                var ht_0_725 = Math.Pow(ht, 0.725);
+                var v_0_67 = Math.Pow(v, 0.67);
+                var v_0_513 = Math.Pow(v, 0.513);
+                var p_po_0_55 = Math.Pow(p / po, 0.55);
+
                 Func<double[], double[]> ff = Txx =>
                 {
-                    return Syst(Txx, Ta, Tmrt, HR, v, age, sex, ht, mbody, pos, M, icl, true);
+                    return Syst(Txx, Ta, Tmrt, HR, v, age, sex, ht, mbody, pos, M, icl, true, mbody_0_75, mbody_1_3, mbody_0_425, ht_0_725, v_0_67, v_0_513, p_po_0_55);
                 };
 
                 var firstGuess = new double[] { 0, 0, 0 };
@@ -177,7 +195,14 @@ namespace EddyLib.OutdoorComfort
               int pos,
               int M,
               double icl,
-              bool mode
+              bool mode,
+              double mbody_0_75,
+              double mbody_1_3,
+              double mbody_0_425,
+              double ht_0_725,
+              double v_0_67,
+              double v_0_513,
+              double p_po_0_55
               )
             {
                 double fec;
@@ -185,7 +210,7 @@ namespace EddyLib.OutdoorComfort
                 double vpa;
 
                 // Area parameters of the body:
-                var Adu = 0.203 * Math.Pow(mbody, 0.425) * Math.Pow(ht, 0.725);
+                var Adu = 0.203 * mbody_0_425 * ht_0_725;
                 var feff = 0.725;
                 if (pos == 1 || pos == 3)
                 {
@@ -219,23 +244,21 @@ namespace EddyLib.OutdoorComfort
                 var hc = 0.0;
                 if (pos == 1)
                 {
-                    hc = 2.67 + 6.5 * Math.Pow(v, 0.67);
+                    hc = 2.67 + 6.5 * v_0_67;
                 }
                 if (pos == 2)
                 {
-                    hc = 2.26 + 7.42 * Math.Pow(v, 0.67);
+                    hc = 2.26 + 7.42 * v_0_67;
                 }
                 if (pos == 3)
                 {
-                    hc = 8.6 * Math.Pow(v, 0.513);
+                    hc = 8.6 * v_0_513;
 
                     // modification of hc with the total pressure
-                    hc = hc * Math.Pow(p / po, 0.55);
+                    hc = hc * p_po_0_55;
                 }
 
                 // Base metabolism for men and women in [W]
-                var mbody_0_75 = Math.Pow(mbody, 0.75);
-                var mbody_1_3 = Math.Pow(mbody, 1.0 / 3.0);
                 var metab_female = 3.19 * mbody_0_75 * (1.0 + 0.004 * (30.0 - age) + 0.018 * (ht * 100.0 / mbody_1_3 - 42.1));
                 var metab_male = 3.45 * mbody_0_75 * (1.0 + 0.004 * (30.0 - age) + 0.01 * (ht * 100.0 / mbody_1_3 - 43.4));
 
