@@ -32,7 +32,7 @@
 
 ## 2025-03-14 - [Improve Empty States in Custom Grasshopper Canvas Drawings]
 **Learning:** When creating custom Grasshopper component drawings (like live charts directly on the canvas using `Eto.Drawing` or `System.Drawing`), empty states (e.g., "no data") placed in the top-left corner with default small text appear broken or like debugging artifacts.
-**Action:** When designing empty states for custom canvas drawings, always center the text horizontally and vertically using `StringFormat`, use a lighter font color (e.g., `140, 140, 140`) to indicate a placeholder, and optionally apply an italicized font (`GH_FontServer.StandardItalic`). Ensure placeholder text is capitalized for a polished look.
+**Action:** When designing empty states for custom canvas drawings, always center the text horizontally and vertically using `StringFormat`, use a lighter font color (e.g., `140, 140, 140`) to indicate a placeholder, and optionally apply an italicized font (`GH_FontServer.StandardItalic`). Avoid using all-caps text for these states, as it negatively impacts readability and accessibility.
 
 ## 2026-03-17 - [Make Log Dialogs Resizable]
 **Learning:** When designing `Eto.Forms` dialogs (like progress dialogs or log viewers) that contain dynamically updating data like logs, using a fixed `ClientSize` restricts users from expanding the window to read long lines or more history.
