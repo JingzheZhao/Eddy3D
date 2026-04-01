@@ -52,3 +52,6 @@
 ## 2026-03-30 - [Optimize High-Frequency Method Calls and Array Lookups in Hot Loops]
 **Learning:** Repeatedly accessing arrays or invoking numeric inspection methods (like `double.IsNaN`) inside nested O(N*8760) simulation loops significantly degrades performance due to bounds checks, memory indirection, and method call overhead.
 **Action:** Always lift invariant array lookups out of inner loops. Replace expensive framework method calls for NaN and Infinity checks with implicit floating-point logic (e.g., `value > 0.0 && value < double.PositiveInfinity`) when filtering positive datasets in tight loops.
+## 2026-04-01 - [Replace Math.Pow(x, 0.25) with Math.Sqrt(Math.Sqrt(x))]
+**Learning:** In performance-critical C# mathematical loops, `Math.Pow(x, 0.25)` relies on generic software algorithms for floating point exponentiation which can be quite slow.
+**Action:** Replace `Math.Pow(x, 0.25)` with `Math.Sqrt(Math.Sqrt(x))` to leverage fast hardware intrinsics instead of the slower, general-purpose floating-point software routines used by `Math.Pow`.

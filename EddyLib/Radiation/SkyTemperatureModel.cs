@@ -208,7 +208,7 @@ namespace EddyLib.Radiation
         /// </summary>
         private double CalculateTempFromIR(double horizontalIR)
         {
-            return Math.Pow(horizontalIR / StefanBoltzmann, 0.25) - KelvinOffset;
+            return Math.Sqrt(Math.Sqrt(horizontalIR / StefanBoltzmann)) - KelvinOffset;
         }
 
         /// <summary>
@@ -217,7 +217,7 @@ namespace EddyLib.Radiation
         private static double CalculateSkyTemp(double dryBulbC, double emissivity)
         {
             double tempK = dryBulbC + KelvinOffset;
-            return tempK * Math.Pow(emissivity, 0.25) - KelvinOffset;
+            return tempK * Math.Sqrt(Math.Sqrt(emissivity)) - KelvinOffset;
         }
 
         #endregion
