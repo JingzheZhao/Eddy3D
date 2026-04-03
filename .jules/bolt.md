@@ -55,3 +55,6 @@
 ## 2026-04-01 - [Replace Math.Pow(x, 0.25) with Math.Sqrt(Math.Sqrt(x))]
 **Learning:** In performance-critical C# mathematical loops, `Math.Pow(x, 0.25)` relies on generic software algorithms for floating point exponentiation which can be quite slow.
 **Action:** Replace `Math.Pow(x, 0.25)` with `Math.Sqrt(Math.Sqrt(x))` to leverage fast hardware intrinsics instead of the slower, general-purpose floating-point software routines used by `Math.Pow`.
+## 2025-05-18 - Avoid Math.Log inside O(N*8760) loops
+**Learning:** High-frequency 8760-hour loops inside `Parallel.For` over probes (e.g., `UTCI` calculation) were recalculating static wind profile multipliers on every iteration involving expensive `Math.Log()` calls, totaling over 17 million redundant calculations per 1000 probes.
+**Action:** When iterating over hours for a specific static probe, always hoist invariant property calculations out of the inner loop into the probe scope to eliminate massive mathematical overhead.

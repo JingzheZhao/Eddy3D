@@ -119,6 +119,9 @@ namespace EddyLib
                     var processed = System.Threading.Interlocked.Increment(ref processedProbes);
                     progress.Report((double)processed / numberOfProbes);
 
+                    // Bolt: Precalculate wind profile multiplier for this probe to avoid 8760 redundant Math.Log evaluations
+                    double windProfileMultiplier = Math.Log(10 / 0.01) / Math.Log(Probes[probe].Z / 0.01);
+
                     for (int hour = 0; hour < numberOfHours; hour++)
                     {
                         uncertaintyWindArray[hour, probe] = false;
@@ -140,7 +143,7 @@ namespace EddyLib
 
                         // lift to 10 m height as required
 
-                        var resultingWindSpeedforUTCI_At10 = At10Meters(resultingWindSpeedforUTCI, Probes[probe].Z);
+                        var resultingWindSpeedforUTCI_At10 = resultingWindSpeedforUTCI * windProfileMultiplier;
 
                         utci[hour, probe] = CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI_At10, resultingMRT);
                     }
