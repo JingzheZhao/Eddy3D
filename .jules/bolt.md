@@ -58,3 +58,7 @@
 ## 2025-05-18 - Avoid Math.Log inside O(N*8760) loops
 **Learning:** High-frequency 8760-hour loops inside `Parallel.For` over probes (e.g., `UTCI` calculation) were recalculating static wind profile multipliers on every iteration involving expensive `Math.Log()` calls, totaling over 17 million redundant calculations per 1000 probes.
 **Action:** When iterating over hours for a specific static probe, always hoist invariant property calculations out of the inner loop into the probe scope to eliminate massive mathematical overhead.
+
+## 2025-01-20 - [Optimize UTCI Calculations]
+**Learning:** In highly parallel 8760-hour computational loops (like `ComputeUTCI`), calling helper methods that allocate large temporary arrays (like `new float[8760]`) per probe causes massive GC thrashing. Moreover, invariant mathematical operations like `Math.Log` evaluated recursively across `N` probes and 8760 hours incur massive overhead despite being structurally constant across the domain block.
+**Action:** Always inline small array-returning helper methods when inside a tight inner simulation loop and compute values per hour using simple scalars. Precompute domain-invariant calculations (like standard pedestrian height profiles via `Math.Log`) outside the parallel loop. Pre-allocate read-only default arrays (e.g., fallback wind speeds) at the top of the context block instead of redundantly allocating them per component execution.
