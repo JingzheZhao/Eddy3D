@@ -810,6 +810,12 @@ Use this for quick convergence monitoring without external plotting windows.
                     using (var format = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
                     {
                         string msg = string.IsNullOrWhiteSpace(status) ? "No data available" : char.ToUpperInvariant(status[0]) + status.Substring(1).ToLowerInvariant();
+
+                        if (string.Equals(status, "missing result", StringComparison.OrdinalIgnoreCase)) msg += "\nConnect a valid simulation result.";
+                        else if (string.Equals(status, "idle", StringComparison.OrdinalIgnoreCase)) msg += "\nEnable 'Live' toggle to monitor.";
+                        else if (string.Equals(status, "residuals.dat not found", StringComparison.OrdinalIgnoreCase)) msg += "\nRun the simulation to generate residuals.";
+                        else if (string.Equals(status, "waiting for residuals", StringComparison.OrdinalIgnoreCase)) msg += "\nSimulation is preparing data...";
+
                         g.DrawString(msg, GH_FontServer.StandardItalic, brush, textRect, format);
                     }
                     return;
