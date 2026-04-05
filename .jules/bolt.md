@@ -58,3 +58,7 @@
 ## 2025-05-18 - Avoid Math.Log inside O(N*8760) loops
 **Learning:** High-frequency 8760-hour loops inside `Parallel.For` over probes (e.g., `UTCI` calculation) were recalculating static wind profile multipliers on every iteration involving expensive `Math.Log()` calls, totaling over 17 million redundant calculations per 1000 probes.
 **Action:** When iterating over hours for a specific static probe, always hoist invariant property calculations out of the inner loop into the probe scope to eliminate massive mathematical overhead.
+
+## 2024-05-18 - [Avoid LINQ Select().ToArray() in High-Frequency Loops]
+**Learning:** Using `new Type[size].Select(x => value).ToArray()` inside tight, iterative loops (like the inner loops of the K-Means algorithm) creates unnecessary `IEnumerable` enumerators, closures, and causes a second large array allocation via `.ToArray()`. This significantly increases Garbage Collection pressure and slows down iterative math functions.
+**Action:** When initializing arrays with default values inside high-frequency loops, replace LINQ `.Select().ToArray()` chains with `Array.Fill(arr, value)` on a pre-allocated array or use a simple `for` loop to avoid closure and enumerator allocations entirely.

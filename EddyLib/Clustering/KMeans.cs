@@ -214,7 +214,8 @@ namespace EddyLib
             double totalDistance = 0;
 
             // Calc the centroids
-            double[] minDistances = new double[clusterCount].Select(x => double.MaxValue).ToArray();
+            double[] minDistances = new double[clusterCount];
+            Array.Fill(minDistances, double.MaxValue);
             for (int i = 0; i < data.Length; i++)
             {
                 var clusterIdx = clustering[i]; // What cluster is data i assigned to
