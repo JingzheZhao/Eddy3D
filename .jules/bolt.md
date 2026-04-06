@@ -58,3 +58,6 @@
 ## 2025-05-18 - Avoid Math.Log inside O(N*8760) loops
 **Learning:** High-frequency 8760-hour loops inside `Parallel.For` over probes (e.g., `UTCI` calculation) were recalculating static wind profile multipliers on every iteration involving expensive `Math.Log()` calls, totaling over 17 million redundant calculations per 1000 probes.
 **Action:** When iterating over hours for a specific static probe, always hoist invariant property calculations out of the inner loop into the probe scope to eliminate massive mathematical overhead.
+## 2024-05-24 - Faster Squaring without Math.Pow
+**Learning:** `Math.Pow(x, 2)` introduces significant overhead in tight loops in C# (.NET) compared to a simple explicit multiplication (`x * x`). Given how many times `Get_fp_cylinder` can be called over 8760 hours of a year multiplied by number of probes, eliminating `Math.Pow` leads to a measurable performance increase.
+**Action:** Always replace `Math.Pow(x, 2)` with direct multiplication `x * x` for numeric types where performance is critical.
