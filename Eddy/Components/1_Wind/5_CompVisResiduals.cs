@@ -258,20 +258,23 @@ Opens the selected residual viewer and the simulation residuals folder.
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                Process.Start(new ProcessStartInfo("explorer.exe", folderPath) { UseShellExecute = true });
+                var psi = new ProcessStartInfo("explorer.exe") { UseShellExecute = false };
+                psi.ArgumentList.Add(folderPath);
+                Process.Start(psi);
                 return;
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                Process.Start(new ProcessStartInfo("open", "\"" + Path.GetFullPath(folderPath) + "\"")
-                {
-                    UseShellExecute = true
-                });
+                var psi = new ProcessStartInfo("open") { UseShellExecute = false };
+                psi.ArgumentList.Add(Path.GetFullPath(folderPath));
+                Process.Start(psi);
                 return;
             }
 
-            Process.Start(new ProcessStartInfo("xdg-open", folderPath) { UseShellExecute = true });
+            var psiLinux = new ProcessStartInfo("xdg-open") { UseShellExecute = false };
+            psiLinux.ArgumentList.Add(folderPath);
+            Process.Start(psiLinux);
         }
 
         /// <summary>
