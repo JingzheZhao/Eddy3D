@@ -1,0 +1,4 @@
+## 2024-05-18 - Secure System Explorer Invocation without Shell Evaluation
+**Vulnerability:** Command injection when opening a folder or path on user's system using `explorer.exe`, `open` or `xdg-open` due to `UseShellExecute = true` combined with unsanitized arguments.
+**Learning:** Even though opening a folder seems harmless, passing user-controlled or complex paths with shell evaluation can lead to command injection on Windows, macOS, and Linux if a path contains certain meta-characters. `UseShellExecute = true` relies on OS shell evaluation.
+**Prevention:** Use `ProcessStartInfo` with `UseShellExecute = false` and pass the path to the system explorer executable as a single entry within `ArgumentList`. This prevents shell evaluation of the path arguments.
