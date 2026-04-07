@@ -79,9 +79,13 @@ namespace EddyLib.UI
                         if (uiThread != null) uiThread.Post((object state) => { copyLog.Text = "Copy Log"; }, null);
                     });
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    MessageBox.Show(this, $"Failed to copy log: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxType.Error);
+                    copyLog.Text = "Failed!";
+                    Task.Delay(2000).ContinueWith((t) =>
+                    {
+                        if (uiThread != null) uiThread.Post((object state) => { copyLog.Text = "Copy Log"; }, null);
+                    });
                 }
             };
             Closing += (s, e) =>
