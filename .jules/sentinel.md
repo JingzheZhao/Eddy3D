@@ -2,3 +2,7 @@
 **Vulnerability:** Command injection when opening a folder or path on user's system using `explorer.exe`, `open` or `xdg-open` due to `UseShellExecute = true` combined with unsanitized arguments.
 **Learning:** Even though opening a folder seems harmless, passing user-controlled or complex paths with shell evaluation can lead to command injection on Windows, macOS, and Linux if a path contains certain meta-characters. `UseShellExecute = true` relies on OS shell evaluation.
 **Prevention:** Use `ProcessStartInfo` with `UseShellExecute = false` and pass the path to the system explorer executable as a single entry within `ArgumentList`. This prevents shell evaluation of the path arguments.
+## 2025-04-08 - Secure OS Command Invocation
+**Vulnerability:** Command injection when invoking OS-level commands (e.g., `cmd.exe`, `/bin/ln`, `/bin/rm`) due to string concatenation or interpolation of unsanitized paths in the `Arguments` property or `StandardInput`.
+**Learning:** Shell metacharacters in paths (like `;`, `&`, `|`) can execute arbitrary commands if `UseShellExecute` is `false` but the target executable is a shell (like `cmd.exe`) or if the shell itself interprets unescaped variables.
+**Prevention:** Always use `ProcessStartInfo.ArgumentList.Add()` to pass arguments. For internal shell commands (e.g. `MKLINK`, `rd`), pass `cmd.exe` as the `FileName` and add `/c`, the command, and its arguments as separate items in `ArgumentList` to bypass shell parsing vulnerabilities. Avoid passing string-formatted commands to `StandardInput`.
