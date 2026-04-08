@@ -239,11 +239,14 @@ namespace EddyLib.Radiation
             //# A = 2*1 = 2 m^2 for theta = 90°
             //# A = r^2 * PI = 3.14 m^2 for theta = 0°
             //# PI*r*2*sin(B) + 2*r*h*cos*(B)
-            double cyl_surf_area = 2 * Math.Pow(r, 2) * Math.PI + 2 * r * Math.PI * h;
+
+            // Bolt optimization: Replace Math.Pow(r, 2) with r * r for faster computation
+            double r2 = r * r;
+            double cyl_surf_area = 2 * r2 * Math.PI + 2 * r * Math.PI * h;
 
             double diameter = 2 * r;
 
-            return (Math.PI * Math.Pow(r, 2) * Math.Sin(theta) + diameter * h * Math.Cos(theta)) / cyl_surf_area;
+            return (Math.PI * r2 * Math.Sin(theta) + diameter * h * Math.Cos(theta)) / cyl_surf_area;
         }
 
         private static double Get_fp(double alt, double az, Posture posture)

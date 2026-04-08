@@ -66,3 +66,7 @@
 ## 2024-05-18 - [Avoid LINQ Select().ToArray() in High-Frequency Loops]
 **Learning:** Using `new Type[size].Select(x => value).ToArray()` inside tight, iterative loops (like the inner loops of the K-Means algorithm) creates unnecessary `IEnumerable` enumerators, closures, and causes a second large array allocation via `.ToArray()`. This significantly increases Garbage Collection pressure and slows down iterative math functions.
 **Action:** When initializing arrays with default values inside high-frequency loops, replace LINQ `.Select().ToArray()` chains with `Array.Fill(arr, value)` on a pre-allocated array or use a simple `for` loop to avoid closure and enumerator allocations entirely.
+
+## 2024-05-24 - Faster Squaring without Math.Pow
+**Learning:** `Math.Pow(x, 2)` introduces significant overhead in tight loops in C# (.NET) compared to a simple explicit multiplication (`x * x`). Given how many times `Get_fp_cylinder` can be called over 8760 hours of a year multiplied by number of probes, eliminating `Math.Pow` leads to a measurable performance increase.
+**Action:** Always replace `Math.Pow(x, 2)` with direct multiplication `x * x` for numeric types where performance is critical.
