@@ -98,7 +98,10 @@ namespace EddyLib
 
             // Do we need to compute a weighted average first?
 
-            var C_D_tot_A = ((AverageCDCPPos * AverageAreaCpPos * AverageCDCPNeg * AverageAreaCpNeg) / Math.Sqrt(Math.Pow(AverageCDCPNeg * AverageAreaCpNeg, 2) + Math.Pow(AverageCDCPPos * AverageAreaCpPos, 2)));
+            // Bolt optimization: Replace Math.Pow(x, 2) with x * x for faster computation
+            double valNeg = AverageCDCPNeg * AverageAreaCpNeg;
+            double valPos = AverageCDCPPos * AverageAreaCpPos;
+            var C_D_tot_A = ((valPos * valNeg) / Math.Sqrt((valNeg * valNeg) + (valPos * valPos)));
 
             double deltaCp = Math.Abs(AverageCpPos - AverageCpNeg);
 
