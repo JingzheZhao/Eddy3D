@@ -70,3 +70,7 @@
 ## 2024-05-24 - Faster Squaring without Math.Pow
 **Learning:** `Math.Pow(x, 2)` introduces significant overhead in tight loops in C# (.NET) compared to a simple explicit multiplication (`x * x`). Given how many times `Get_fp_cylinder` can be called over 8760 hours of a year multiplied by number of probes, eliminating `Math.Pow` leads to a measurable performance increase.
 **Action:** Always replace `Math.Pow(x, 2)` with direct multiplication `x * x` for numeric types where performance is critical.
+
+## 2024-05-31 - [Math.Pow vs Direct Multiplication for Squares]
+**Learning:** In calculations inside algorithms like `NaturalVentilation`, `Math.Pow(x, 2)` causes performance overhead compared to explicitly doing `x * x`. When doing complex equations and calculating distances, doing `Math.Pow` twice requires multiple `Math.Pow` overheads and the internal type conversions in Math.Pow implementation. Furthermore, storing the value to a local variable and performing explicit multiplication `(val * val)` skips repeated multiplication of the terms to be squared.
+**Action:** When inspecting equations (such as Natural Ventilation calculation of `C_D_tot_A`), pull repeated terms (such as `AverageCDCPNeg * AverageAreaCpNeg`) into local variables and replace `Math.Pow(..., 2)` with `(val * val)` directly, giving considerable performance bumps especially over large datasets or iterated executions.
