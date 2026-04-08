@@ -116,26 +116,52 @@ namespace EddyLib.Radiation
             int probeCount = Probes.Count;
             Console.WriteLine("Computing UTCI...");
 
+            // Bolt optimization: Precompute the wind scaling multiplier outside the Parallel.For loop
+            // to avoid repetitive 8760 * Probes.Count Math.Log evaluations.
+            double windProfileMultiplier = Math.Log(10 / 0.01) / Math.Log(PedestrianHeight / 0.01);
+
+            // Bolt optimization: Pre-allocate a shared fallback array for probes lacking explicit wind data
+            // to prevent allocating `new float[8760]` individually for each such probe.
+            float[] defaultScaledWindSpeed = new float[HoursPerYear];
+            for (int h = 0; h < HoursPerYear; h++)
+            {
+                defaultScaledWindSpeed[h] = (float)(Weather.WindSpeed[h] * WindScalingFactor);
+            }
+
             Parallel.For(0, probeCount, i =>
             {
                 var probe = Probes[i];
                 probe.UTCI = new float[HoursPerYear];
                 probe.ComfortHours = 0;
 
-                // Initialize wind speed from weather data
-                float[] windSpeed = GetProbeWindSpeed(probe);
-
-                // Initialize MRT from weather or probe data
-                double[] mrt = GetProbeMRT(probe);
+                if (probe.WindSpeed == null)
+                {
+                    probe.WindSpeed = defaultScaledWindSpeed;
+                }
 
                 // Calculate UTCI for each hour
                 for (int h = 0; h < HoursPerYear; h++)
                 {
+                    // Inline GetProbeWindSpeed
+                    float hourlyWindSpeed = (probe.WindSpeed == defaultScaledWindSpeed)
+                        ? probe.WindSpeed[h]
+                        : (float)(probe.WindSpeed[h] * windProfileMultiplier);
+
+                    // Inline GetProbeMRT
+                    double hourlyMrt = (probe.LongWave_MRT != null)
+                        ? probe.LongWave_MRT[h]
+                        : Weather.DryBulbTemp[h];
+
+                    if (probe.SolarGain_dMRT != null)
+                    {
+                        hourlyMrt += probe.SolarGain_dMRT[h];
+                    }
+
                     double utci = UTCI.CalcUTCICorrectBounds(
                         Weather.DryBulbTemp[h],
                         Weather.RelativeHumidity[h],
-                        windSpeed[h],
-                        mrt[h],
+                        hourlyWindSpeed,
+                        hourlyMrt,
                         out bool outOfBounds);
 
                     if (UTCI.CalcConditionOfPerson(utci) == 0)
@@ -168,68 +194,6 @@ namespace EddyLib.Radiation
         }
 
         #region Private Methods
-
-        /// <summary>
-        /// Gets wind speed array for a probe, using CFD data if available.
-        /// </summary>
-        private float[] GetProbeWindSpeed(RProbe probe)
-        {
-            int hours = Weather.WindSpeed.Length;
-            var windSpeed = new float[hours];
-
-            if (probe.WindSpeed != null)
-            {
-                // Use CFD data, scaled to 10m height for UTCI
-                for (int h = 0; h < hours; h++)
-                {
-                    windSpeed[h] = (float)UTCI.At10Meters(probe.WindSpeed[h], PedestrianHeight);
-                }
-            }
-            else
-            {
-                // Use weather data with scaling factor
-                for (int h = 0; h < hours; h++)
-                {
-                    windSpeed[h] = (float)(Weather.WindSpeed[h] * WindScalingFactor);
-                }
-                probe.WindSpeed = windSpeed;
-            }
-
-            return windSpeed;
-        }
-
-        /// <summary>
-        /// Gets MRT array for a probe, combining longwave and solar components.
-        /// </summary>
-        private double[] GetProbeMRT(RProbe probe)
-        {
-            int hours = Weather.DryBulbTemp.Length;
-            var mrt = new double[hours];
-
-            // Start with longwave MRT or dry bulb temperature
-            if (probe.LongWave_MRT != null)
-            {
-                for (int h = 0; h < hours; h++)
-                {
-                    mrt[h] = probe.LongWave_MRT[h];
-                }
-            }
-            else
-            {
-                Array.Copy(Weather.DryBulbTemp, mrt, hours);
-            }
-
-            // Add solar radiation component (delta MRT)
-            if (probe.SolarGain_dMRT != null)
-            {
-                for (int h = 0; h < hours; h++)
-                {
-                    mrt[h] += probe.SolarGain_dMRT[h];
-                }
-            }
-
-            return mrt;
-        }
 
         /// <summary>
         /// Reports progress to console.

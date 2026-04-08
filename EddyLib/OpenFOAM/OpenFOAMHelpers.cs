@@ -12,18 +12,47 @@ namespace EddyLib.OpenFOAM
     public static class OpenFOAMHelpers
     {
         /// <summary>
-        /// Deletes phi files for all wind directions.
+        /// Deletes solver-generated phi files from the 0/ folder of each wind-direction case.
+        /// OpenFOAM operations such as potentialFoam or decomposePar may leave a phi
+        /// (surfaceScalarField) in the initial-conditions folder. If present when the main
+        /// solver starts, it can cause field-type conflicts or stale data, so we remove it
+        /// during case setup.
         /// </summary>
-        public static void DeletePhi(OFMeshSettings meshSettings, OFBaseDomain domain)
+        /// <returns>True if all targeted files were removed (or already absent); false if any deletion failed.</returns>
+        public static bool DeletePhi(OFMeshSettings meshSettings, OFBaseDomain domain)
         {
+            if (meshSettings == null || domain?.BCond?.WindDirections == null)
+            {
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(meshSettings.baseWorkingDir))
+            {
+                return true;
+            }
+
+            bool success = true;
+
             foreach (int dir in domain.BCond.WindDirections)
             {
                 string phiPath = Path.Combine(meshSettings.baseWorkingDir, dir.ToString(), "0", "phi");
-                if (File.Exists(phiPath))
+
+                if (!File.Exists(phiPath))
+                {
+                    continue;
+                }
+
+                try
                 {
                     File.Delete(phiPath);
                 }
+                catch
+                {
+                    success = false;
+                }
             }
+
+            return success;
         }
 
         /// <summary>

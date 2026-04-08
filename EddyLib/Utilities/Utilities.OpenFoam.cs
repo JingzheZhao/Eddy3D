@@ -17,11 +17,12 @@ namespace EddyLib
         #region Delegate Methods (using OpenFOAMHelpers)
 
         /// <summary>
-        /// Deletes phi files for all wind directions.
+        /// Deletes solver-generated phi files from the 0/ folder of each wind-direction case.
         /// </summary>
-        public static void DeletePhi(OFMeshSettings meshSettings, OFBaseDomain domain)
+        /// <returns>True if all targeted files were removed (or already absent); false if any deletion failed.</returns>
+        public static bool DeletePhi(OFMeshSettings meshSettings, OFBaseDomain domain)
         {
-            OpenFOAMHelpers.DeletePhi(meshSettings, domain);
+            return OpenFOAMHelpers.DeletePhi(meshSettings, domain);
         }
 
         /// <summary>
