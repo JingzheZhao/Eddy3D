@@ -67,3 +67,7 @@
 ## 2026-03-30 - [Provide Call-to-Actions in Component Empty States]
 **Learning:** Empty states on Grasshopper canvas drawings that simply state "No data" or describe a missing state (e.g., "Idle", "Missing result") leave users guessing what to do next.
 **Action:** When designing empty states for custom canvas drawings, always supplement the status description with a clear, actionable instruction (e.g., "Enable 'Live' toggle to monitor" or "Connect a valid simulation result"). This improves the clarity of error messages and provides a helpful call-to-action.
+
+## 2024-05-15 - [Add TimeElapsed to ProgressDialog]
+**Learning:** In Eto.Forms, displaying elapsed time via a `UITimer` and `Stopwatch` provides critical context for long-running simulations, preventing users from wondering if the application has frozen.
+**Action:** When creating progress dialogs, include a "Time Elapsed: [time]" label driven by a `UITimer` to actively update users on operation duration.

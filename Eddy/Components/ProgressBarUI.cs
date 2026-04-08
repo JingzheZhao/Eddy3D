@@ -2,6 +2,7 @@
 using Eto.Forms;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,10 @@ namespace Urbano.Simulation
     public class ProgressDialog : Dialog
     {
         public Label Status;
+        private Label TimeElapsed;
+        private Stopwatch stopwatch;
+        private UITimer timer;
+
         public bool Canceled = false;
         private bool isFinished = false;
         private ProgressBar pbar;
@@ -39,6 +44,13 @@ namespace Urbano.Simulation
 
             // controls
             Status = new Label() { Text = "Starting simulation...", ToolTip = "Current simulation status", Wrap = WrapMode.Word };
+
+            TimeElapsed = new Label { Text = "Elapsed: 00:00:00", VerticalAlignment = VerticalAlignment.Center, ToolTip = "Time elapsed since simulation started" };
+            stopwatch = Stopwatch.StartNew();
+            timer = new UITimer { Interval = 1.0 };
+            timer.Elapsed += (s, e) => { TimeElapsed.Text = "Elapsed: " + stopwatch.Elapsed.ToString(@"hh\:mm\:ss"); };
+            timer.Start();
+
             pbar = new ProgressBar { ToolTip = "Simulation Progress" };
             var cancel = new Button { Text = "Cancel", ToolTip = "Abort the current simulation (Esc, Enter)" };
             AbortButton = cancel; // Add Escape key support
@@ -68,6 +80,7 @@ namespace Urbano.Simulation
                     Canceled = true;
                 }
                 if (!e.Cancel) cts.Cancel();
+                if (!e.Cancel) timer.Stop();
             };
 
             // layout
@@ -80,6 +93,7 @@ namespace Urbano.Simulation
             layout.Add(new Spinner { Height = 20, Enabled = true, ToolTip = "Simulation is running" }, false, false);
             layout.Add(new Drawable { Width = 5 }, false, false);
             layout.Add(Status, true, false);
+            layout.Add(TimeElapsed, false, false);
             layout.EndHorizontal();
             layout.EndVertical();
             layout.BeginVertical();
