@@ -16,11 +16,13 @@ namespace EddyLib
                     return;
 
                 // Windows: use cmd.exe MKLINK /J for directory junction
-                string strCmdText = "/c MKLINK /J " + "\"" + simDir + "\"" + " " + "\"" + meshDir + "\"";
-
                 ProcessStartInfo startInfo = new ProcessStartInfo();
                 startInfo.FileName = @"C:\Windows\System32\cmd.exe";
-                startInfo.Arguments = strCmdText;
+                startInfo.ArgumentList.Add("/c");
+                startInfo.ArgumentList.Add("MKLINK");
+                startInfo.ArgumentList.Add("/J");
+                startInfo.ArgumentList.Add(simDir);
+                startInfo.ArgumentList.Add(meshDir);
                 startInfo.RedirectStandardOutput = true;
                 startInfo.RedirectStandardError = true;
                 startInfo.UseShellExecute = false;
@@ -44,12 +46,14 @@ namespace EddyLib
                 var psi = new ProcessStartInfo
                 {
                     FileName = "/bin/ln",
-                    Arguments = string.Format("-sfn \"{0}\" \"{1}\"", relTarget, simDir),
                     UseShellExecute = false,
                     CreateNoWindow = true,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true
                 };
+                psi.ArgumentList.Add("-sfn");
+                psi.ArgumentList.Add(relTarget);
+                psi.ArgumentList.Add(simDir);
                 using (var process = Process.Start(psi))
                 {
                     process?.WaitForExit();
@@ -64,16 +68,16 @@ namespace EddyLib
                 // Windows: use cmd.exe rd to remove directory junction
                 Process delete = new Process();
                 delete.StartInfo.FileName = @"C:\Windows\System32\cmd.exe";
+                delete.StartInfo.ArgumentList.Add("/c");
+                delete.StartInfo.ArgumentList.Add("rd");
+                delete.StartInfo.ArgumentList.Add(simDir);
                 delete.StartInfo.UseShellExecute = false;
                 delete.StartInfo.RedirectStandardInput = true;
                 delete.StartInfo.RedirectStandardError = true;
                 delete.StartInfo.RedirectStandardOutput = true;
                 delete.StartInfo.CreateNoWindow = true;
                 delete.Start();
-                StreamWriter sw = delete.StandardInput;
-                sw.WriteLine("rd " + simDir);
-                sw.Flush();
-                sw.Close();
+                delete.WaitForExit();
             }
             else
             {
@@ -91,10 +95,11 @@ namespace EddyLib
                     var psi = new ProcessStartInfo
                     {
                         FileName = "/bin/rm",
-                        Arguments = string.Format("-rf \"{0}\"", simDir),
                         UseShellExecute = false,
                         CreateNoWindow = true
                     };
+                    psi.ArgumentList.Add("-rf");
+                    psi.ArgumentList.Add(simDir);
                     using (var process = Process.Start(psi))
                     {
                         process?.WaitForExit();
