@@ -95,11 +95,15 @@ namespace EddyLib.OpenFOAM
             {
                 try
                 {
-                    using (var p = Process.Start(new ProcessStartInfo("/bin/chmod", string.Format("+x \"{0}\"", path))
+                    var psi = new ProcessStartInfo
                     {
+                        FileName = "/bin/chmod",
                         UseShellExecute = false,
                         CreateNoWindow = true
-                    }))
+                    };
+                    psi.ArgumentList.Add("+x");
+                    psi.ArgumentList.Add(path);
+                    using (var p = Process.Start(psi))
                     {
                         p?.WaitForExit();
                     }

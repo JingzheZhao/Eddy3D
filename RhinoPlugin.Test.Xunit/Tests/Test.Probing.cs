@@ -492,11 +492,12 @@ namespace RhinoPlugin.Test.Xunit
             var startInfo = new ProcessStartInfo
             {
                 FileName = "cmd.exe",
-                Arguments = "/C \"" + batchFilePath + "\"",
                 WorkingDirectory = workingDir,
-                UseShellExecute = true,
+                UseShellExecute = false,
                 CreateNoWindow = false
             };
+            startInfo.ArgumentList.Add("/C");
+            startInfo.ArgumentList.Add(batchFilePath);
 
             using (var process = Process.Start(startInfo))
             {

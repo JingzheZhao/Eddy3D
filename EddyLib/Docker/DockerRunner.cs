@@ -226,11 +226,14 @@ echo ""Docker execution complete.""
             {
                 try
                 {
-                    var chmodPsi = new ProcessStartInfo("/bin/chmod", string.Format("+x \"{0}\"", scriptPath))
+                    var chmodPsi = new ProcessStartInfo
                     {
+                        FileName = "/bin/chmod",
                         UseShellExecute = false,
                         CreateNoWindow = true
                     };
+                    chmodPsi.ArgumentList.Add("+x");
+                    chmodPsi.ArgumentList.Add(scriptPath);
                     using (var p = Process.Start(chmodPsi))
                     {
                         p?.WaitForExit();
@@ -393,10 +396,11 @@ echo ""Docker execution complete.""
             var chmodPsi = new ProcessStartInfo
             {
                 FileName = "/bin/chmod",
-                Arguments = string.Format("+x \"{0}\"", scriptPath),
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
+            chmodPsi.ArgumentList.Add("+x");
+            chmodPsi.ArgumentList.Add(scriptPath);
             using (var chmodProcess = Process.Start(chmodPsi))
             {
                 chmodProcess?.WaitForExit();
@@ -406,12 +410,14 @@ echo ""Docker execution complete.""
             var psi = new ProcessStartInfo
             {
                 FileName = "/usr/bin/open",
-                Arguments = string.Format("-a Terminal \"{0}\"", scriptPath),
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
             };
+            psi.ArgumentList.Add("-a");
+            psi.ArgumentList.Add("Terminal");
+            psi.ArgumentList.Add(scriptPath);
 
             log.AppendLine(string.Format("{0} Opening Terminal.app...", DateTime.Now.ToString("HH:mm:ss")));
 

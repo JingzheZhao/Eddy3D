@@ -119,9 +119,10 @@ exit
                 {
                     System.Diagnostics.Process p = new System.Diagnostics.Process();
                     p.StartInfo.FileName = cmdExe;
-                    p.StartInfo.Arguments = $@"/c """"{tempBatchFile}""""";
                     p.StartInfo.UseShellExecute = false;
                     p.StartInfo.CreateNoWindow = createnowindow;
+                    p.StartInfo.ArgumentList.Add("/c");
+                    p.StartInfo.ArgumentList.Add(tempBatchFile);
 
                     try
                     {
