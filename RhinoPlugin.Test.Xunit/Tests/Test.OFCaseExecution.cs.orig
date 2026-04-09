@@ -138,8 +138,6 @@ namespace RhinoPlugin.Test.Xunit
                 CreateNoWindow = true,
                 WindowStyle = ProcessWindowStyle.Hidden
             };
-            startInfo.ArgumentList.Add("/c");
-            startInfo.ArgumentList.Add(batchFilePath);
 
             var logBuilder = new StringBuilder();
             using var process = new Process

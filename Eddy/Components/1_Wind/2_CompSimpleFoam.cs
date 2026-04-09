@@ -552,10 +552,10 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
                 var psi = new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = "/usr/bin/open",
-                    Arguments = string.Format("\"{0}\"", path),
                     UseShellExecute = false,
                     CreateNoWindow = true
                 };
+                psi.ArgumentList.Add(path);
                 using (var p = System.Diagnostics.Process.Start(psi))
                 {
                     p?.WaitForExit();
@@ -568,10 +568,10 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
                 var psi = new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = "xdg-open",
-                    Arguments = string.Format("\"{0}\"", path),
-                    UseShellExecute = true,
+                    UseShellExecute = false,
                     CreateNoWindow = true
                 };
+                psi.ArgumentList.Add(path);
                 System.Diagnostics.Process.Start(psi);
             }
             catch
@@ -583,29 +583,33 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
         private static void OpenBatchFile(string path)
         {
             var workingDir = Path.GetDirectoryName(path) ?? string.Empty;
-            var quotedPath = string.Format("\"{0}\"", path);
 
             try
             {
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                var psi = new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = "wt.exe",
-                    Arguments = "cmd /k " + quotedPath,
                     WorkingDirectory = workingDir,
                     UseShellExecute = false,
                     CreateNoWindow = false
-                });
+                };
+                psi.ArgumentList.Add("cmd");
+                psi.ArgumentList.Add("/k");
+                psi.ArgumentList.Add(path);
+                System.Diagnostics.Process.Start(psi);
             }
             catch
             {
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                var psi = new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = "cmd.exe",
-                    Arguments = "/k " + quotedPath,
                     WorkingDirectory = workingDir,
                     UseShellExecute = false,
                     CreateNoWindow = false
-                });
+                };
+                psi.ArgumentList.Add("/k");
+                psi.ArgumentList.Add(path);
+                System.Diagnostics.Process.Start(psi);
             }
         }
 
