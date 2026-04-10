@@ -253,13 +253,13 @@ namespace Eddy
 
             if (!run)
             {
-                Message = "Run is false - Idle";
+                Message = "Toggle 'Run' to start";
                 return;
             }
 
             if (points.Count == 0 || geometryList.Count == 0)
             {
-                Message = "Missing Points or Buildings";
+                Message = "Connect Points & Buildings";
                 return;
             }
 
