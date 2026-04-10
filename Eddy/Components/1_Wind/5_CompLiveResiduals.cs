@@ -103,7 +103,7 @@ Use this for quick convergence monitoring without external plotting windows.
                 _activeDirection = null;
                 _snapshot = ResidualPlotSnapshot.Empty;
                 _liveRequested = false;
-                Message = "No data";
+                Message = "Connect a result";
                 DA.SetData(0, _activeFile);
                 return;
             }
@@ -131,7 +131,7 @@ Use this for quick convergence monitoring without external plotting windows.
                 _snapshot = BuildSnapshot(logScale: true, xMaxTarget: result.RunSettings?.endTime);
             }
 
-            Message = live ? "Live" : "Idle";
+            Message = live ? "Live" : "Toggle 'Live' to monitor";
 
             if (live)
             {
