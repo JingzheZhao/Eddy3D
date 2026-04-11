@@ -11,7 +11,10 @@
       "Bash(ls:*)",
       "Bash(find:*)",
       "Bash(dotnet list:*)",
-      "Bash(dotnet package search:*)"
+      "Bash(dotnet package search:*)",
+      "Bash(python3 -c ':*)",
+      "Bash(python -c ':*)",
+      "Bash(grep -v \"^$\")"
     ]
   }
 }

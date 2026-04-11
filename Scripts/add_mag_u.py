@@ -20,11 +20,11 @@ def parse_u_file(u_file_path):
         lines = f.readlines()
         
     data_lines = []
-    
+
     for line in lines:
         line = line.strip()
         if not line: continue
-        
+
         # Parse Probe Headers
         if line.startswith('#'):
             hmatch = probe_header_pattern.search(line)
@@ -33,28 +33,36 @@ def parse_u_file(u_file_path):
                 py = float(hmatch.group(2))
                 probe_coords.append((px, py))
             continue
-        
+
         data_lines.append(line)
 
-    full_text = ' '.join(data_lines)
-    cleaned_text = full_text.replace('(', ' ').replace(')', ' ')
+    if not data_lines:
+        return None, None
+
+    # Use only the last time step; probes format: "time (u v w) (u v w) ..."
+    last_line = data_lines[-1]
+    cleaned_text = last_line.replace('(', ' ').replace(')', ' ')
     tokens = cleaned_text.split()
-    
+
+    # Skip the leading time value
+    if tokens:
+        tokens = tokens[1:]
+
     count = len(tokens) // 3
     print(f'  -> Parsed {count} vectors from U file.')
-    
-    for i in range(0, len(tokens), 3):
-        if i + 2 >= len(tokens): break
-        u = float(tokens[i])
-        v = float(tokens[i+1])
-        w = float(tokens[i+2])
+
+    for i in range(0, count * 3, 3):
         try:
-            if math.isnan(u) or math.isnan(v) or math.isnan(w) or \
-               math.isinf(u) or math.isinf(v) or math.isinf(w) or \
-               abs(u) > 1e100:
+            u = float(tokens[i])
+            v = float(tokens[i+1])
+            w = float(tokens[i+2])
+            # Check all three components for OpenFOAM's VGREAT sentinel (-1.797e308)
+            if any(math.isnan(x) or math.isinf(x) or abs(x) > 1e100 for x in (u, v, w)):
                 mag = float('nan')
             else:
                 mag = math.sqrt(u*u + v*v + w*w) / 5.0
+                if math.isnan(mag) or math.isinf(mag):
+                    mag = float('nan')
         except:
             mag = float('nan')
         magnitudes.append(mag)
