@@ -99,7 +99,8 @@ namespace EddyLib.Radiation
             Environment.SetEnvironmentVariable("PATH", "." + ps + radlib + ps + radbin + ps + daybin + ps + "$PATH");
             Environment.SetEnvironmentVariable("RAYPATH", "." + ps + radlib + ps + radbin + ps + daybin + ps + "$RAYPATH");
 
-            ProcessStartInfo psi = new ProcessStartInfo("cmd.exe", "/c oconv " + radFilePath + " > " + octFilePath);
+            ProcessStartInfo psi = new ProcessStartInfo("oconv");
+            psi.ArgumentList.Add(radFilePath);
             psi.UseShellExecute = false;
             psi.RedirectStandardOutput = true;
             psi.RedirectStandardError = true;
@@ -107,7 +108,15 @@ namespace EddyLib.Radiation
             psi.WorkingDirectory = Path.GetDirectoryName(octFilePath);
 
             Process p = Process.Start(psi);
+            var writeTask = System.Threading.Tasks.Task.Run(() =>
+            {
+                using (var fs = new FileStream(octFilePath, FileMode.Create, FileAccess.Write))
+                {
+                    p.StandardOutput.BaseStream.CopyTo(fs);
+                }
+            });
             p.WaitForExit();
+            writeTask.Wait();
             p.Close();
         }
 
