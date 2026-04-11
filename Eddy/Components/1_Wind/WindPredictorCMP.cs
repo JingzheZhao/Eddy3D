@@ -119,6 +119,9 @@ namespace Eddy
             pManager.AddBooleanParameter("GPU", "GPU",
                 "Use DirectML GPU acceleration. Falls back to CPU if unavailable. Default = true.",
                 GH_ParamAccess.item, true);
+            pManager.AddNumberParameter("Filter Margin", "filter_margin",
+                "Margin (in meters) to mask out from the outer perimeter of the prediction plane due to unstable boundary effects. Default = 0.0",
+                GH_ParamAccess.item, 0.0);
 
             pManager[0].Optional = false;
             pManager[1].Optional = false;
@@ -128,6 +131,7 @@ namespace Eddy
             pManager[5].Optional = true;
             pManager[6].Optional = true;
             pManager[7].Optional = true;
+            pManager[8].Optional = true;
         }
 
         // ──────────────────────────────────────────────
@@ -252,6 +256,7 @@ namespace Eddy
             double pedestrianLevel = 1.8;
             var windDirs = new List<double>();
             bool useGpu = true;
+            double filterMargin = 0.0;
 
             if (!DA.GetDataList(0, points)) return;
             if (!DA.GetDataList(1, geometryList)) return;
@@ -271,6 +276,7 @@ namespace Eddy
             DA.GetData(5, ref pedestrianLevel);
             DA.GetDataList(6, windDirs);
             DA.GetData(7, ref useGpu);
+            DA.GetData(8, ref filterMargin);
 
             if (windDirs.Count == 0) windDirs.Add(0.0);
 
@@ -438,6 +444,15 @@ namespace Eddy
 
                 if (ix >= 0 && ix < IMG_W && iy >= 0 && iy < IMG_H)
                 {
+                    if (filterMargin > 0.0)
+                    {
+                        if (xCoordsArr[i] < X_MIN + filterMargin || xCoordsArr[i] > X_MAX - filterMargin ||
+                            yCoordsArr[i] < Y_MIN + filterMargin || yCoordsArr[i] > Y_MAX - filterMargin)
+                        {
+                            continue;
+                        }
+                    }
+
                     validMask[i] = true;
                     idxXArr[i] = ix;
                     idxYArr[i] = iy;
