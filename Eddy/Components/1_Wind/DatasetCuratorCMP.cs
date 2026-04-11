@@ -63,7 +63,7 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddNumberParameter("SDF", "SDF",
-                "Signed distance (m) from point to nearest building surface. Positive = outside, Negative = inside.",
+                "Signed distance (m) from point to nearest building surface. Negative = outside (exterior distance), Positive = inside (penetration depth).",
                 GH_ParamAccess.list);
             pManager.AddNumberParameter("Bldg_height", "Bldg_height",
                 "Maximum building top Z (m) under the point's XY footprint. 0 if none.",
@@ -400,7 +400,7 @@ namespace Eddy
                 }
 
                 if (minDist == double.MaxValue) minDist = 0.0;
-                sdfArr[i] = SafeRound(inside ? -minDist : minDist, 2);
+                sdfArr[i] = SafeRound(inside ? minDist : -minDist, 2);
                 bldgHeightArr[i] = SafeRound(heightHere, 2);
 
                 double sensorAbs = pt.Z;
@@ -697,7 +697,7 @@ def main():
                 sdf = float(row.get('SDF', 0))
                 
                 if math.isnan(mag):
-                    if sdf < 10: row['mag_U'] = 0.0
+                    if sdf > -10: row['mag_U'] = 0.0  # inside or within 10 m of surface (exterior = negative)
                     else: row['mag_U'] = 'NaN'
                 else:
                     row['mag_U'] = mag
