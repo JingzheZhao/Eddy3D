@@ -120,8 +120,17 @@ namespace Eddy
                 "Use DirectML GPU acceleration. Falls back to CPU if unavailable. Default = true.",
                 GH_ParamAccess.item, true);
             pManager.AddNumberParameter("Filter Margin", "filter_margin",
-                "Margin (in meters) to mask out from the outer perimeter of the prediction plane due to unstable boundary effects. Default = 0.0",
-                GH_ParamAccess.item, 0.0);
+                "Margin (in meters) to mask out from the outer perimeter of the prediction plane due to unstable boundary effects. Default = 100.0",
+                GH_ParamAccess.item, 100.0);
+            pManager.AddTextParameter("Palette", "Palette",
+                "Color palette name ('jet', 'viridis', 'plasma', 'magma', 'inferno', 'turbo', 'coolwarm', 'pastel', 'gray'). Default = 'jet'",
+                GH_ParamAccess.item, "jet");
+            pManager.AddIntervalParameter("Legend Domain", "Domain",
+                "Optional custom domain [min, max] to lock the color bounds. If empty, the colors scale dynamically to the data.",
+                GH_ParamAccess.item);
+            pManager.AddBooleanParameter("Interpolate", "Interpolate",
+                "If true, generates a smooth, continuous interpolated mesh. If false, generates a pixelated blocky mesh.",
+                GH_ParamAccess.item, true);
 
             pManager[0].Optional = false;
             pManager[1].Optional = false;
@@ -132,6 +141,9 @@ namespace Eddy
             pManager[6].Optional = true;
             pManager[7].Optional = true;
             pManager[8].Optional = true;
+            pManager[9].Optional = true;
+            pManager[10].Optional = true;
+            pManager[11].Optional = true;
         }
 
         // ──────────────────────────────────────────────
@@ -140,13 +152,25 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddNumberParameter("X", "X",
-                "X coordinate (m) of each input point.",
+                "X coordinate (m) of each valid input point.",
                 GH_ParamAccess.list);
             pManager.AddNumberParameter("Y", "Y",
-                "Y coordinate (m) of each input point.",
+                "Y coordinate (m) of each valid input point.",
                 GH_ParamAccess.list);
             pManager.AddNumberParameter("Wind Speed", "W",
-                "Predicted wind speed at each input point. NaN for points outside the 504×504 grid.",
+                "Predicted wind speed at each valid input point. Points outside the domain or inside the filter margin are culled.",
+                GH_ParamAccess.list);
+            pManager.AddMeshParameter("Grid Mesh", "M",
+                "A fast-rendering contiguous coloured preview mesh of the predictions.",
+                GH_ParamAccess.item);
+            pManager.AddMeshParameter("Legend Mesh", "LM",
+                "A colored mesh strip acting as a visual legend.",
+                GH_ParamAccess.item);
+            pManager.AddGenericParameter("Legend Points", "LP",
+                "Locations for the legend text in the 3D viewport (Generic type to prevent red cross preview).",
+                GH_ParamAccess.list);
+            pManager.AddTextParameter("Legend Values", "LV",
+                "Text values corresponding to the generated legend.",
                 GH_ParamAccess.list);
         }
 
@@ -159,6 +183,7 @@ namespace Eddy
                 return _session;
 
             _session?.Dispose();
+            _session = null;
 
             var opts = new SessionOptions();
             opts.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
@@ -170,17 +195,26 @@ namespace Eddy
                 try
                 {
                     opts.AppendExecutionProvider_DML(0);  // device 0 = default GPU
+                    _session = new InferenceSession(onnxPath, opts);
                     activeProvider = "DirectML (GPU)";
                 }
-                catch
+                catch (Exception ex)
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
-                        "DirectML GPU not available — falling back to CPU.");
+                        $"DirectML GPU initialization failed ({ex.Message}) — falling back to CPU.");
+                    
+                    opts.Dispose();
+                    opts = new SessionOptions();
+                    opts.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
+                    _session = new InferenceSession(onnxPath, opts);
                     activeProvider = "CPU (GPU fallback)";
                 }
             }
+            else
+            {
+                _session = new InferenceSession(onnxPath, opts);
+            }
 
-            _session = new InferenceSession(onnxPath, opts);
             _cachedOnnxPath = onnxPath;
             _cachedUseGpu = useGpu;
 
@@ -238,9 +272,137 @@ namespace Eddy
             return value;
         }
 
+        private static List<Color> GetPalette(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return new List<Color>();
+            name = name.Trim().ToLowerInvariant();
+
+            switch (name)
+            {
+                case "viridis":
+                    return new List<Color> {
+                        Color.FromArgb(68, 1, 84),
+                        Color.FromArgb(59, 82, 139),
+                        Color.FromArgb(33, 145, 140),
+                        Color.FromArgb(94, 201, 98),
+                        Color.FromArgb(253, 231, 37)
+                    };
+                case "plasma":
+                    return new List<Color> {
+                        Color.FromArgb(13, 8, 135),
+                        Color.FromArgb(126, 3, 168),
+                        Color.FromArgb(204, 71, 120),
+                        Color.FromArgb(248, 149, 64),
+                        Color.FromArgb(240, 249, 33)
+                    };
+                case "magma":
+                    return new List<Color> {
+                        Color.FromArgb(0, 0, 4),
+                        Color.FromArgb(81, 18, 124),
+                        Color.FromArgb(182, 54, 121),
+                        Color.FromArgb(251, 136, 97),
+                        Color.FromArgb(252, 253, 191)
+                    };
+                case "inferno":
+                     return new List<Color> {
+                        Color.FromArgb(0, 0, 4),
+                        Color.FromArgb(87, 16, 110),
+                        Color.FromArgb(187, 55, 84),
+                        Color.FromArgb(249, 142, 9),
+                        Color.FromArgb(252, 255, 164)
+                    };
+                case "gray":
+                case "greys":
+                     return new List<Color> {
+                        Color.FromArgb(0, 0, 0),
+                        Color.FromArgb(255, 255, 255)
+                    };
+                case "coolwarm":
+                     return new List<Color> {
+                        Color.FromArgb(59, 76, 192),
+                        Color.FromArgb(180, 204, 233),
+                        Color.FromArgb(221, 221, 221),
+                        Color.FromArgb(244, 154, 123),
+                        Color.FromArgb(180, 4, 38)
+                    };
+                case "turbo":
+                    return new List<Color> {
+                        Color.FromArgb(48, 18, 59),
+                        Color.FromArgb(70, 107, 238),
+                        Color.FromArgb(40, 188, 235),
+                        Color.FromArgb(50, 242, 152),
+                        Color.FromArgb(164, 252, 60),
+                        Color.FromArgb(238, 207, 58),
+                        Color.FromArgb(251, 126, 33),
+                        Color.FromArgb(208, 47, 5),
+                        Color.FromArgb(122, 4, 3)
+                    };
+                case "pastel":
+                     return new List<Color> {
+                        Color.FromArgb(186, 225, 255),
+                        Color.FromArgb(186, 255, 201),
+                        Color.FromArgb(255, 255, 186),
+                        Color.FromArgb(255, 223, 186),
+                        Color.FromArgb(255, 179, 186)
+                    };
+                case "jet":
+                default:
+                    return new List<Color>();
+            }
+        }
+
         private static float SafeFloat(double v)
         {
             return (double.IsNaN(v) || double.IsInfinity(v)) ? 0f : (float)v;
+        }
+
+        private static Color GetColorFromPalette(double t, List<Color> customColors)
+        {
+            if (t < 0) t = 0;
+            if (t > 1) t = 1;
+
+            if (customColors == null || customColors.Count == 0)
+            {
+                // Default Jet
+                double hue = 240.0 * (1.0 - t);
+                return ColorFromHSV(hue, 1.0, 1.0);
+            }
+
+            if (customColors.Count == 1) return customColors[0];
+
+            double scaled = t * (customColors.Count - 1);
+            int idx = (int)Math.Floor(scaled);
+            if (idx >= customColors.Count - 1) return customColors[customColors.Count - 1];
+
+            double localT = scaled - idx;
+            Color c1 = customColors[idx];
+            Color c2 = customColors[idx + 1];
+
+            int r = (int)Math.Round(c1.R + (c2.R - c1.R) * localT);
+            int g = (int)Math.Round(c1.G + (c2.G - c1.G) * localT);
+            int b = (int)Math.Round(c1.B + (c2.B - c1.B) * localT);
+            int a = (int)Math.Round(c1.A + (c2.A - c1.A) * localT);
+
+            return Color.FromArgb(a, r, g, b);
+        }
+
+        private static Color ColorFromHSV(double hue, double saturation, double value)
+        {
+            int hi = Convert.ToInt32(Math.Floor(hue / 60)) % 6;
+            double f = hue / 60 - Math.Floor(hue / 60);
+
+            value = value * 255;
+            int v = Convert.ToInt32(value);
+            int p = Convert.ToInt32(value * (1 - saturation));
+            int q = Convert.ToInt32(value * (1 - f * saturation));
+            int t = Convert.ToInt32(value * (1 - (1 - f) * saturation));
+
+            if (hi == 0) return Color.FromArgb(255, v, t, p);
+            else if (hi == 1) return Color.FromArgb(255, q, v, p);
+            else if (hi == 2) return Color.FromArgb(255, p, v, t);
+            else if (hi == 3) return Color.FromArgb(255, p, q, v);
+            else if (hi == 4) return Color.FromArgb(255, t, p, v);
+            else return Color.FromArgb(255, v, p, q);
         }
 
         // ──────────────────────────────────────────────
@@ -256,7 +418,10 @@ namespace Eddy
             double pedestrianLevel = 1.8;
             var windDirs = new List<double>();
             bool useGpu = true;
-            double filterMargin = 0.0;
+            double filterMargin = 100.0;
+            string paletteName = "jet";
+            Interval customDomain = Interval.Unset;
+            bool interpolate = false;
 
             if (!DA.GetDataList(0, points)) return;
             if (!DA.GetDataList(1, geometryList)) return;
@@ -277,6 +442,11 @@ namespace Eddy
             DA.GetDataList(6, windDirs);
             DA.GetData(7, ref useGpu);
             DA.GetData(8, ref filterMargin);
+            DA.GetData(9, ref paletteName);
+            bool domainProvided = DA.GetData(10, ref customDomain) && customDomain.IsValid;
+            DA.GetData(11, ref interpolate);
+
+            var customColors = GetPalette(paletteName);
 
             if (windDirs.Count == 0) windDirs.Add(0.0);
 
@@ -444,15 +614,6 @@ namespace Eddy
 
                 if (ix >= 0 && ix < IMG_W && iy >= 0 && iy < IMG_H)
                 {
-                    if (filterMargin > 0.0)
-                    {
-                        if (xCoordsArr[i] < X_MIN + filterMargin || xCoordsArr[i] > X_MAX - filterMargin ||
-                            yCoordsArr[i] < Y_MIN + filterMargin || yCoordsArr[i] > Y_MAX - filterMargin)
-                        {
-                            continue;
-                        }
-                    }
-
                     validMask[i] = true;
                     idxXArr[i] = ix;
                     idxYArr[i] = iy;
@@ -520,6 +681,46 @@ namespace Eddy
                     var windField = new double[count];
                     double predMin = double.MaxValue, predMax = double.MinValue;
 
+                    // Feature statistics for dynamic filter margin shape
+                    bool isCircular = false;
+                    double centerX = 0, centerY = 0, maxRadius = 0;
+                    double minPx = 0, maxPx = 0, minPy = 0, maxPy = 0;
+
+                    if (filterMargin > 0.0 && count > 0)
+                    {
+                        minPx = xCoordsArr[0]; maxPx = xCoordsArr[0];
+                        minPy = yCoordsArr[0]; maxPy = yCoordsArr[0];
+                        for (int i = 1; i < count; i++)
+                        {
+                            if (xCoordsArr[i] < minPx) minPx = xCoordsArr[i];
+                            if (xCoordsArr[i] > maxPx) maxPx = xCoordsArr[i];
+                            if (yCoordsArr[i] < minPy) minPy = yCoordsArr[i];
+                            if (yCoordsArr[i] > maxPy) maxPy = yCoordsArr[i];
+                        }
+
+                        centerX = (minPx + maxPx) / 2.0;
+                        centerY = (minPy + maxPy) / 2.0;
+
+                        double maxRadSqr = 0;
+                        for (int i = 0; i < count; i++)
+                        {
+                            double dx = xCoordsArr[i] - centerX;
+                            double dy = yCoordsArr[i] - centerY;
+                            double r2 = dx * dx + dy * dy;
+                            if (r2 > maxRadSqr) maxRadSqr = r2;
+                        }
+                        maxRadius = Math.Sqrt(maxRadSqr);
+
+                        double halfW = (maxPx - minPx) / 2.0;
+                        double halfH = (maxPy - minPy) / 2.0;
+                        double minHalf = Math.Min(halfW, halfH);
+
+                        if (minHalf > 0 && (maxRadius / minHalf) < 1.15)
+                        {
+                            isCircular = true;
+                        }
+                    }
+
                     for (int i = 0; i < count; i++)
                     {
                         if (!validMask[i])
@@ -528,25 +729,205 @@ namespace Eddy
                             continue;
                         }
 
+                        if (filterMargin > 0.0)
+                        {
+                            if (isCircular)
+                            {
+                                double dx = xCoordsArr[i] - centerX;
+                                double dy = yCoordsArr[i] - centerY;
+                                double dist = Math.Sqrt(dx * dx + dy * dy);
+                                if (dist > maxRadius - filterMargin)
+                                {
+                                    windField[i] = double.NaN;
+                                    continue;
+                                }
+                            }
+                            else
+                            {
+                                if (xCoordsArr[i] < minPx + filterMargin || xCoordsArr[i] > maxPx - filterMargin ||
+                                    yCoordsArr[i] < minPy + filterMargin || yCoordsArr[i] > maxPy - filterMargin)
+                                {
+                                    windField[i] = double.NaN;
+                                    continue;
+                                }
+                            }
+                        }
+
                         int ix = idxXArr[i];
                         int iy = idxYArr[i];
 
                         // Clamp to non-negative (physics: wind speed ≥ 0)
+                        // The network outputs dimensionless values (normalized by training speed),
+                        // so we must multiply by the reference speed (locURef) to denormalize back to m/s
                         float raw = outputTensor[0, 0, iy, ix];
-                        double pred = Math.Max(raw, 0.0);
+                        double pred = Math.Max(raw * locURef, 0.0);
                         windField[i] = Math.Round(pred, 4);
 
                         if (pred < predMin) predMin = pred;
                         if (pred > predMax) predMax = pred;
                     }
 
-                    // ── Set outputs ──
-                    DA.SetDataList(0, xCoordsArr);
-                    DA.SetDataList(1, yCoordsArr);
-                    DA.SetDataList(2, windField);
+                    var outX = new List<double>();
+                    var outY = new List<double>();
+                    var outW = new List<double>();
 
-                    int validCount = validMask.Count(v => v);
-                    Message = $"Pts: {count} | {sw.ElapsedMilliseconds} ms";
+                    var previewMesh = new Mesh();
+                    double halfX = X_STEP / 2.0;
+                    double halfY = Y_STEP / 2.0;
+
+                    // Determine max/min for color mapping
+                    double validMin = double.MaxValue;
+                    double validMax = double.MinValue;
+                    
+                    if (domainProvided)
+                    {
+                        validMin = customDomain.Min;
+                        validMax = customDomain.Max;
+                    }
+                    else
+                    {
+                        for (int i = 0; i < count; i++)
+                        {
+                            if (!double.IsNaN(windField[i]))
+                            {
+                                if (windField[i] < validMin) validMin = windField[i];
+                                if (windField[i] > validMax) validMax = windField[i];
+                            }
+                        }
+                    }
+
+                    if (interpolate)
+                    {
+                        int[,] gridToIdx = new int[IMG_H, IMG_W];
+                        for (int iy = 0; iy < IMG_H; iy++)
+                            for (int ix = 0; ix < IMG_W; ix++)
+                                gridToIdx[iy, ix] = -1;
+
+                        for (int i = 0; i < count; i++)
+                        {
+                            if (!double.IsNaN(windField[i]))
+                            {
+                                double w = windField[i];
+                                outX.Add(xCoordsArr[i]);
+                                outY.Add(yCoordsArr[i]);
+                                outW.Add(w);
+
+                                double t = validMax > validMin ? (w - validMin) / (validMax - validMin) : 0.0;
+                                Color c = GetColorFromPalette(t, customColors);
+
+                                gridToIdx[idxYArr[i], idxXArr[i]] = previewMesh.Vertices.Count;
+                                previewMesh.Vertices.Add(points[i]);
+                                previewMesh.VertexColors.Add(c);
+                            }
+                        }
+
+                        for (int iy = 0; iy < IMG_H - 1; iy++)
+                        {
+                            for (int ix = 0; ix < IMG_W - 1; ix++)
+                            {
+                                int v00 = gridToIdx[iy, ix];
+                                int v10 = gridToIdx[iy, ix + 1];
+                                int v11 = gridToIdx[iy + 1, ix + 1];
+                                int v01 = gridToIdx[iy + 1, ix];
+
+                                if (v00 >= 0 && v10 >= 0 && v11 >= 0 && v01 >= 0)
+                                    previewMesh.Faces.AddFace(v00, v10, v11, v01);
+                                else if (v00 >= 0 && v10 >= 0 && v01 >= 0)
+                                    previewMesh.Faces.AddFace(v00, v10, v01);
+                                else if (v10 >= 0 && v11 >= 0 && v01 >= 0)
+                                    previewMesh.Faces.AddFace(v10, v11, v01);
+                                else if (v00 >= 0 && v11 >= 0 && v01 >= 0)
+                                    previewMesh.Faces.AddFace(v00, v11, v01);
+                                else if (v00 >= 0 && v10 >= 0 && v11 >= 0)
+                                    previewMesh.Faces.AddFace(v00, v10, v11);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (int i = 0; i < count; i++)
+                        {
+                            if (!double.IsNaN(windField[i]))
+                            {
+                                double w = windField[i];
+                                outX.Add(xCoordsArr[i]);
+                                outY.Add(yCoordsArr[i]);
+                                outW.Add(w);
+
+                                // Calculate local color
+                                double t = validMax > validMin ? (w - validMin) / (validMax - validMin) : 0.0;
+                                Color c = GetColorFromPalette(t, customColors);
+
+                                Point3d pt = points[i];
+                                int vc = previewMesh.Vertices.Count;
+                                
+                                previewMesh.Vertices.Add(pt.X - halfX, pt.Y - halfY, pt.Z);
+                                previewMesh.Vertices.Add(pt.X + halfX, pt.Y - halfY, pt.Z);
+                                previewMesh.Vertices.Add(pt.X + halfX, pt.Y + halfY, pt.Z);
+                                previewMesh.Vertices.Add(pt.X - halfX, pt.Y + halfY, pt.Z);
+                                
+                                previewMesh.Faces.AddFace(vc, vc + 1, vc + 2, vc + 3);
+                                
+                                previewMesh.VertexColors.Add(c);
+                                previewMesh.VertexColors.Add(c);
+                                previewMesh.VertexColors.Add(c);
+                                previewMesh.VertexColors.Add(c);
+                            }
+                        }
+                    }
+
+                    Mesh legendMesh = new Mesh();
+                    var legendPts = new List<Point3d>();
+                    var legendVals = new List<string>();
+
+                    if (validMax > validMin && count > 0)
+                    {
+                        double legWidth = Math.Max((maxPx - minPx) * 0.5, 400.0);
+                        double legHeight = Math.Max(legWidth * 0.05, 15.0);
+                        
+                        double startX = 0.0 - legWidth * 0.5;
+                        double startY = -500.0 - legHeight * 0.5;
+                        double zLevel = points[0].Z;
+
+                        int steps = 20;
+                        for (int i = 0; i <= steps; i++)
+                        {
+                            double t = (double)i / steps;
+                            double x = startX + t * legWidth;
+
+                            Color c = GetColorFromPalette(t, customColors);
+
+                            legendMesh.Vertices.Add(x, startY, zLevel);
+                            legendMesh.Vertices.Add(x, startY + legHeight, zLevel);
+                            legendMesh.VertexColors.Add(c);
+                            legendMesh.VertexColors.Add(c);
+
+                            if (i > 0)
+                            {
+                                int vc = legendMesh.Vertices.Count;
+                                legendMesh.Faces.AddFace(vc - 4, vc - 2, vc - 1, vc - 3);
+                            }
+
+                            if (i % 5 == 0)
+                            {
+                                double val = validMin + t * (validMax - validMin);
+                                legendVals.Add($"{val:F2} m/s");
+                                legendPts.Add(new Point3d(x, startY - legHeight * 1.5, zLevel));
+                            }
+                        }
+                    }
+
+                    // ── Set outputs ──
+                    DA.SetDataList(0, outX);
+                    DA.SetDataList(1, outY);
+                    DA.SetDataList(2, outW);
+                    DA.SetData(3, previewMesh);
+                    DA.SetData(4, legendMesh);
+                    DA.SetDataList(5, legendPts);
+                    DA.SetDataList(6, legendVals);
+
+                    int validCount = outW.Count;
+                    Message = $"Pts: {validCount}/{count} | {sw.ElapsedMilliseconds} ms";
 
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
                         $"Inference: {sw.ElapsedMilliseconds} ms | " +
