@@ -63,7 +63,7 @@ namespace Eddy
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddNumberParameter("SDF", "SDF",
-                "Signed distance (m) from point to nearest building surface. Negative = outside (exterior distance), Positive = inside (penetration depth).",
+                "Signed distance (m) from point to nearest building surface. Always negative: 0 at surface, more negative further away.",
                 GH_ParamAccess.list);
             pManager.AddNumberParameter("Bldg_height", "Bldg_height",
                 "Maximum building top Z (m) under the point's XY footprint. 0 if none.",
@@ -315,7 +315,6 @@ namespace Eddy
 
                 double minDist = double.MaxValue;
                 double heightHere = 0.0;
-                bool inside = false;
 
                 // 1. RTree Height Search
                 var searchBox = new BoundingBox(pt.X - 1e-6, pt.Y - 1e-6, -1e10, pt.X + 1e-6, pt.Y + 1e-6, 1e10);
@@ -372,8 +371,6 @@ namespace Eddy
                     if (kind == "brep")
                     {
                         Brep brep = (Brep)geom;
-                        if (minDist > 0 && brep.IsPointInside(pt, 1e-6, true)) inside = true;
-
                         BoundingBox bbox = brep.GetBoundingBox(true);
                         double boxDist = bbox.ClosestPoint(pt).DistanceTo(pt);
                         if (boxDist < minDist)
@@ -386,8 +383,6 @@ namespace Eddy
                     else if (kind == "mesh")
                     {
                         Mesh mesh = (Mesh)geom;
-                        if (minDist > 0 && mesh.IsPointInside(pt, 1e-6, true)) inside = true;
-
                         BoundingBox bbox = mesh.GetBoundingBox(true);
                         double boxDist = bbox.ClosestPoint(pt).DistanceTo(pt);
                         if (boxDist < minDist)
@@ -400,7 +395,7 @@ namespace Eddy
                 }
 
                 if (minDist == double.MaxValue) minDist = 0.0;
-                sdfArr[i] = SafeRound(inside ? minDist : -minDist, 2);
+                sdfArr[i] = SafeRound(-minDist, 2);
                 bldgHeightArr[i] = SafeRound(heightHere, 2);
 
                 double sensorAbs = pt.Z;
