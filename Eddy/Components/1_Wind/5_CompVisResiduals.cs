@@ -136,7 +136,7 @@ Opens the selected residual viewer and the simulation residuals folder.
 
             if (!run)
             {
-                Message = "Idle";
+                Message = "Toggle 'Run' to view";
                 _lastRunState = false;
                 return;
             }

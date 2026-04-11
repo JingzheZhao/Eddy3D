@@ -282,7 +282,7 @@ namespace Eddy
 
             if (points.Count == 0 || geometryList.Count == 0)
             {
-                Message = "Missing Points or Buildings";
+                Message = "Connect Points & Buildings";
                 return;
             }
 

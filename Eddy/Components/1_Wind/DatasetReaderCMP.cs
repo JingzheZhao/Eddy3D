@@ -51,7 +51,7 @@ namespace Eddy
             DA.GetData(1, ref run);
             if (!run)
             {
-                Message = "Run is false - Idle";
+                Message = "Toggle 'Run' to read";
                 return;
             }
 

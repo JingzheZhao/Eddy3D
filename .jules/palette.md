@@ -71,3 +71,6 @@
 ## 2024-05-15 - [Add TimeElapsed to ProgressDialog]
 **Learning:** In Eto.Forms, displaying elapsed time via a `UITimer` and `Stopwatch` provides critical context for long-running simulations, preventing users from wondering if the application has frozen.
 **Action:** When creating progress dialogs, include a "Time Elapsed: [time]" label driven by a `UITimer` to actively update users on operation duration.
+## 2024-05-24 - Canvas Empty State Actionability
+**Learning:** Using passive empty states (like "No data" or "Idle") leaves users guessing their next action and is poor UX.
+**Action:** Replace passive empty state texts in UI components with clear, actionable instructions (e.g., "Toggle 'Run' to start", "Connect a result") to guide the user workflow.
