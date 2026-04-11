@@ -612,26 +612,36 @@ def parse_u_file(u_file_path):
     magnitudes = []
     if not os.path.exists(u_file_path):
         return None
-    
+
     with open(u_file_path, 'r', encoding='utf-8') as f:
-        full_text = f.read()
-    
-    # Remove header comments and parens
-    data_text = re.sub(r'#.*', '', full_text)
-    cleaned_text = data_text.replace('(', ' ').replace(')', ' ')
-    tokens = cleaned_text.split()
-    
+        lines = f.readlines()
+
+    # Filter out comment lines, use only the last time step
+    data_lines = [l for l in lines if not l.strip().startswith('#') and l.strip()]
+    if not data_lines:
+        return None
+    last_line = data_lines[-1]
+
+    cleaned = last_line.replace('(', ' ').replace(')', ' ')
+    tokens = cleaned.split()
+
+    # Probes format: ""time (u v w) (u v w) ..."" — skip the leading time value
+    if tokens:
+        tokens = tokens[1:]
+
     count = len(tokens) // 3
     print(f'  -> Parsed {count} vectors.')
-    
-    for i in range(0, len(tokens), 3):
-        if i + 2 >= len(tokens): break
+
+    for i in range(0, count * 3, 3):
         try:
             u, v, w = float(tokens[i]), float(tokens[i+1]), float(tokens[i+2])
-            if math.isnan(u) or math.isinf(u) or abs(u) > 1e100:
+            # Check all three components for OpenFOAM's VGREAT sentinel (-1.797e308)
+            if any(math.isnan(x) or math.isinf(x) or abs(x) > 1e100 for x in (u, v, w)):
                 mag = float('nan')
             else:
                 mag = math.sqrt(u*u + v*v + w*w) / 5.0
+                if math.isnan(mag) or math.isinf(mag):
+                    mag = float('nan')
         except:
             mag = float('nan')
         magnitudes.append(mag)
@@ -688,7 +698,7 @@ def main():
                 
                 if math.isnan(mag):
                     if sdf < 10: row['mag_U'] = 0.0
-                    else: continue
+                    else: row['mag_U'] = 'NaN'
                 else:
                     row['mag_U'] = mag
                 new_rows.append(row)
