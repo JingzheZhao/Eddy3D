@@ -332,12 +332,9 @@ Generates visualizations of the wind field, including vector arrows and streamli
             //    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.ProbingFuncObjects(RES, currField));
             //}
 
-            if (!(numberOfProbes > 0) || !meshExists)
+            if (!(numberOfProbes > 0))
             {
-                if (!(numberOfProbes > 0))
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The number of probes must be greater than 0.");
-                }
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The number of probes must be greater than 0.");
                 return;
             }
 
@@ -352,17 +349,21 @@ Generates visualizations of the wind field, including vector arrows and streamli
                 {
                     // Check if mesh exists
 
+                    // Write the dicts for both Docker and BlueCFD
                     string pathToPointFile = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[i].ToString(), "constant", "polyMesh", "points");
+                    string currCase = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[i].ToString());
+                    string systemDir = Path.Combine(currCase, "system");
+                    if (!Directory.Exists(systemDir)) Directory.CreateDirectory(systemDir);
+
+                    string path = Path.Combine(systemDir, probeNameByUser);
+                    File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbesAllFields(Probes, probeNameByUser, Probing.ReformatIS(InterpolationScheme)));
+
                     if (!File.Exists(pathToPointFile))
                     {
                         base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.MeshDoesntExist(pathToPointFile));
-                        return;
+                        if (run) return;
+                        else continue;
                     }
-
-                    // If yes, write the dicts for both Docker and BlueCFD
-                    string currCase = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[i].ToString());
-                    string path = Path.Combine(currCase, "system", probeNameByUser);
-                    File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbesAllFields(Probes, probeNameByUser, Probing.ReformatIS(InterpolationScheme)));
 
                     if (RES.RunSettings.simEngine == SimEngine.Docker)
                     {

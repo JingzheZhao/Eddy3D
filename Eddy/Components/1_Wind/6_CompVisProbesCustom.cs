@@ -348,12 +348,6 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The number of probes must be greater than 0.");
                 return;
             }
-            if (!meshExists)
-            {
-                // A specific warning was already emitted above (missing/empty meshDir).
-                // Stop here to avoid duplicate mesh-missing warnings.
-                return;
-            }
             if (RES.Domain is OFCylDomain || RES.Domain is OFBoxDomain)
             {
                 try
@@ -380,7 +374,10 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                         string currCase = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[i].ToString());
 
                         // If yes, write the dicts for both Docker and BlueCFD
-                        string path = Path.Combine(currCase, "system", probeNameByUser);
+                        string systemDir = Path.Combine(currCase, "system");
+                        if (!Directory.Exists(systemDir)) Directory.CreateDirectory(systemDir);
+
+                        string path = Path.Combine(systemDir, probeNameByUser);
                         File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbes(listOfPoints, currField));
 
                         if (!File.Exists(pathToPointFile))
@@ -479,7 +476,10 @@ Samples the wind field at specific locations. Use this to query wind speed and p
 
                     string pathToPointFile = Path.Combine(RES.WorkingDirectory, "constant", "polyMesh", "points");
                     // If yes, write the dicts for both Docker and BlueCFD
-                    string path = Path.Combine(RES.WorkingDirectory, "system", probeNameByUser);
+                    string systemDir = Path.Combine(RES.WorkingDirectory, "system");
+                    if (!Directory.Exists(systemDir)) Directory.CreateDirectory(systemDir);
+
+                    string path = Path.Combine(systemDir, probeNameByUser);
                     File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbes(listOfPoints, currField));
 
                     if (!File.Exists(pathToPointFile))
