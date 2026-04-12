@@ -458,7 +458,6 @@ namespace Eddy
 
             // ── Pre-process Geometry deeply into Meshes for speed ──
             var mergedMesh = new Mesh();
-            var individualMeshes = new List<Mesh>();
 
             foreach (var geo in geometryList)
             {
@@ -473,14 +472,12 @@ namespace Eddy
                         
                         if (bm.Faces.Count > 0)
                         {
-                            individualMeshes.Add(bm);
                             mergedMesh.Append(bm);
                         }
                     }
                 }
                 else if (geo is Mesh mesh && mesh.IsValid)
                 {
-                    individualMeshes.Add(mesh);
                     mergedMesh.Append(mesh);
                 }
                 else if (geo is Surface srf)
@@ -497,7 +494,6 @@ namespace Eddy
                             
                             if (bm.Faces.Count > 0)
                             {
-                                individualMeshes.Add(bm);
                                 mergedMesh.Append(bm);
                             }
                         }
@@ -511,12 +507,6 @@ namespace Eddy
                 return;
             }
 
-            // Build an RTree for fast local inclusion checks
-            var bboxTree = new RTree();
-            for (int i = 0; i < individualMeshes.Count; i++)
-            {
-                bboxTree.Insert(individualMeshes[i].GetBoundingBox(true), i);
-            }
 
             double minZ = points.Min(p => p.Z);
 
@@ -558,19 +548,7 @@ namespace Eddy
                 Point3d cp = mergedMesh.ClosestPoint(pt);
                 double minDist = pt.DistanceTo(cp);
 
-                bool inside = false;
-                if (minDist > 0) // Only check inside if it is > 0
-                {
-                    // Search RTree to only test IsPointInside on local buildings
-                    var searchBox = new BoundingBox(pt.X - 0.1, pt.Y - 0.1, pt.Z - 0.1, pt.X + 0.1, pt.Y + 0.1, pt.Z + 0.1);
-                    bboxTree.Search(searchBox, (sender, args) =>
-                    {
-                        if (!inside && individualMeshes[args.Id].IsPointInside(pt, 1e-6, true))
-                            inside = true;
-                    });
-                }
-
-                sdfArr[i] = SafeRound(inside ? -minDist : minDist, 2);
+                sdfArr[i] = SafeRound(-minDist, 2);
                 bldgHeightArr[i] = SafeRound(heightHere, 2);
 
                 double mount = pt.Z - locMinZ + locPedestrianLevel;
