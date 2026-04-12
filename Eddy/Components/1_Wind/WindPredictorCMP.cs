@@ -86,7 +86,7 @@ namespace Eddy
         {
         }
 
-        protected override Bitmap Icon => Resources.Eddy_dataset;
+        protected override Bitmap Icon => Resources.Eddy_wind_predictor;
 
         public override Guid ComponentGuid => new Guid("{B8C9D0E1-2F3A-4B5C-6D7E-8F9A0B1C2D3E}");
 
