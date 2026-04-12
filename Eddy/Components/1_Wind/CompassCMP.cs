@@ -1,5 +1,6 @@
 using Grasshopper.Kernel;
 using Rhino.Geometry;
+using Grasshopper.Kernel.Types;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -20,121 +21,111 @@ namespace Eddy
 
         public override Guid ComponentGuid => new Guid("{C9D0E1F2-3A4B-5C6D-7E8F-9A0B1C2D3E4F}");
 
-        private Color _previewColor = Color.Black;
+        private Color _currentPreviewColor = Color.DimGray;
         private Polyline _arrow;
         private Curve _circleCurve;
-        private List<Line> _ticks = new List<Line>();
+        private double _currentRadius = 10.0;
+        private Point3d _currentCenter = Point3d.Origin;
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddIntegerParameter("Direction Index", "Idx", 
-                "Wind direction index (0=N, 1=NNE, 2=NE, 3=ENE, 4=E, 5=ESE, 6=SE, 7=SSE, 8=S, 9=SSW, 10=SW, 11=WSW, 12=W, 13=WNW, 14=NW, 15=NNW)", 
-                GH_ParamAccess.item, 0);
+            pManager.AddNumberParameter("Wind Direction", "Dir", 
+                "Wind direction in degrees (0=N, 90=E, 180=S, 270=W)", 
+                GH_ParamAccess.item, 0.0);
             pManager.AddNumberParameter("Radius", "R", "Radius of the compass circle", GH_ParamAccess.item, 10.0);
             pManager.AddPointParameter("Base Point", "P", "Center of the compass", GH_ParamAccess.item, Point3d.Origin);
             pManager.AddColourParameter("Color", "C", "Color of the compass display", GH_ParamAccess.item, Color.DimGray);
+            pManager.AddNumberParameter("Arrow Scale", "S", "Scale of the directional arrow", GH_ParamAccess.item, 1.0);
             
             pManager[0].Optional = true;
             pManager[1].Optional = true;
             pManager[2].Optional = true;
             pManager[3].Optional = true;
+            pManager[4].Optional = true;
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddCurveParameter("Circle", "Cir", "Compass circle curve", GH_ParamAccess.item);
-            pManager.AddCurveParameter("Arrow", "Arr", "Wind direction arrow (points in the direction of flow)", GH_ParamAccess.item);
             pManager.AddVectorParameter("Vector", "Vec", "Wind direction vector", GH_ParamAccess.item);
             pManager.AddTextParameter("Direction Name", "Name", "Name of the wind direction (e.g., NNE)", GH_ParamAccess.item);
         }
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            int index = 0;
+            double angleDeg = 0.0;
             double radius = 10.0;
             Point3d center = Point3d.Origin;
             Color col = Color.DimGray;
+            double scale = 1.0;
 
-            DA.GetData(0, ref index);
+            DA.GetData(0, ref angleDeg);
             DA.GetData(1, ref radius);
             DA.GetData(2, ref center);
             DA.GetData(3, ref col);
+            DA.GetData(4, ref scale);
 
-            _previewColor = col;
+            _currentPreviewColor = col;
+            _currentRadius = radius;
+            _currentCenter = center;
 
-            // Wrap index to [0, 15]
-            index = ((index % 16) + 16) % 16;
+            // Normalize angle to [0, 360)
+            double normAngle = ((angleDeg % 360.0) + 360.0) % 360.0;
+            
+            // Map to the nearest 16th for the name
+            int nameIndex = (int)Math.Round(normAngle / 22.5) % 16;
+            string[] names = { 
+                "North", "North-northeast", "Northeast", "East-northeast", 
+                "East", "East-southeast", "Southeast", "South-southeast", 
+                "South", "South-southwest", "Southwest", "West-southwest", 
+                "West", "West-northwest", "Northwest", "North-northwest" 
+            };
+            string name = names[nameIndex];
 
-            string[] names = { "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW" };
-            string name = names[index];
+            double rad = normAngle * Math.PI / 180.0;
 
-            double angleDeg = index * 22.5;
-            double rad = angleDeg * Math.PI / 180.0;
-
-            // Following Eddy3D convention: North is (0, -1)
+            // Mathematical mapping for Clockwise from North:
+            // 0 deg -> (0, -1)
+            // 90 deg -> (-1, 0)
             double vx = -Math.Sin(rad);
             double vy = -Math.Cos(rad);
             Vector3d direction = new Vector3d(vx, vy, 0);
             direction.Unitize();
 
             // ── Geometry ──
-            Circle circle = new Circle(Plane.WorldXY, center, radius);
-            _circleCurve = circle.ToNurbsCurve();
+            _circleCurve = new Circle(Plane.WorldXY, center, radius).ToNurbsCurve();
             
-            // ── Ticks ──
-            _ticks.Clear();
-            for (int i = 0; i < 16; i++)
-            {
-                double a = i * 22.5 * Math.PI / 180.0;
-                // Note: using North convention for ticks too so they align with the indexing
-                Vector3d tickDir = new Vector3d(-Math.Sin(a), -Math.Cos(a), 0);
-                
-                double len = (i % 2 == 0) ? radius * 0.15 : radius * 0.07;
-                Point3d pOut = center + tickDir * radius;
-                Point3d pIn = center + tickDir * (radius - len);
-                _ticks.Add(new Line(pOut, pIn));
-            }
+            // ── Simple Arrow (Outside pointing in) ──
+            Vector3d fromDir = -direction; 
+            Point3d tip = center + fromDir * (radius * 1.02);
+            double shaftLen = radius * 0.3 * scale;
+            Point3d start = tip + fromDir * shaftLen;
+            
+            double headSize = (radius * 0.1) * scale;
+            Vector3d side = new Vector3d(-fromDir.Y, fromDir.X, 0) * headSize;
+            Point3d p1 = tip + fromDir * headSize + side;
+            Point3d p2 = tip + fromDir * headSize - side;
 
-            // ── Flow Arrow ──
-            Point3d start = center;
-            Point3d end = center + direction * radius;
-            
-            // Create a small arrow head explicitly in XY plane
-            double headLen = radius * 0.2;
-            Vector3d rev = -direction;
-            
-            // Perpendicular vector in XY plane
-            Vector3d side = new Vector3d(-direction.Y, direction.X, 0);
-            
-            Point3d p1 = end + rev * headLen + side * (headLen * 0.5);
-            Point3d p2 = end + rev * headLen - side * (headLen * 0.5);
-            
             _arrow = new Polyline();
             _arrow.Add(start);
-            _arrow.Add(end);
+            _arrow.Add(tip);
             _arrow.Add(p1);
-            _arrow.Add(end);
+            _arrow.Add(tip);
             _arrow.Add(p2);
 
-            DA.SetData(0, _circleCurve);
-            DA.SetData(1, _arrow.ToPolylineCurve());
-            DA.SetData(2, direction);
-            DA.SetData(3, name);
+            DA.SetData(0, direction);
+            DA.SetData(1, name);
         }
 
         public override void DrawViewportWires(IGH_PreviewArgs args)
         {
-            if (_circleCurve != null)
-                args.Display.DrawCurve(_circleCurve, _previewColor, 2);
-            
-            if (_arrow != null)
-                args.Display.DrawPolyline(_arrow, _previewColor, 3);
+            if (_currentPreviewColor.A == 0) return;
 
-            if (_ticks != null)
-            {
-                foreach (Line tick in _ticks)
-                    args.Display.DrawLine(tick, _previewColor, 1);
-            }
+            // Only one circle drawn here, no outputs to duplicate it
+            if (_circleCurve != null)
+                args.Display.DrawCurve(_circleCurve, _currentPreviewColor, 2);
+
+            if (_arrow != null)
+                args.Display.DrawPolyline(_arrow, _currentPreviewColor, 2);
 
             base.DrawViewportWires(args);
         }
