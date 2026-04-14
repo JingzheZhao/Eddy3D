@@ -323,7 +323,7 @@ Works with Breps, surfaces, or meshes.
             if (!run)
             {
                 DA.SetDataList(0, new List<Point3d>());
-                DA.SetData(1, "Idle");
+                DA.SetData(1, "Toggle 'Run' to start");
                 return;
             }
 
