@@ -12,6 +12,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
+using Grasshopper;
+using Grasshopper.Kernel.Data;
+using Grasshopper.Kernel.Types;
 
 namespace Eddy
 {
@@ -35,6 +38,11 @@ namespace Eddy
         private InferenceSession _session;
         private string _cachedOnnxPath;
         private bool _cachedUseGpu;
+        // Set to true when DML fails at inference time so future runs skip DML for this model
+        private bool _dmlRuntimeFailed = false;
+
+        // Custom setting for Pix2Pix logic inversion
+        private bool _forcePix2PixOrientation = false;
 
         // ── Native library resolver (registered once) ──
         private static bool _resolverRegistered;
@@ -158,8 +166,8 @@ namespace Eddy
                 "Y coordinate (m) of each valid input point.",
                 GH_ParamAccess.list);
             pManager.AddNumberParameter("Wind Speed", "W",
-                "Predicted wind speed at each valid input point. Points outside the domain or inside the filter margin are culled.",
-                GH_ParamAccess.list);
+                "Predicted wind speed at each valid input point. Branches represent different wind directions.",
+                GH_ParamAccess.tree);
             pManager.AddMeshParameter("Grid Mesh", "M",
                 "A fast-rendering contiguous coloured preview mesh of the predictions.",
                 GH_ParamAccess.item);
@@ -179,18 +187,25 @@ namespace Eddy
         // ──────────────────────────────────────────────
         private InferenceSession GetSession(string onnxPath, bool useGpu)
         {
-            if (_session != null && _cachedOnnxPath == onnxPath && _cachedUseGpu == useGpu)
+            // If DML failed at runtime for this model, treat as CPU-only
+            bool effectiveGpu = useGpu && !_dmlRuntimeFailed;
+
+            if (_session != null && _cachedOnnxPath == onnxPath && _cachedUseGpu == effectiveGpu)
                 return _session;
 
             _session?.Dispose();
             _session = null;
+
+            // Reset DML-failed flag when a new model is loaded
+            if (_cachedOnnxPath != onnxPath)
+                _dmlRuntimeFailed = false;
 
             var opts = new SessionOptions();
             opts.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
 
             string activeProvider = "CPU";
 
-            if (useGpu)
+            if (effectiveGpu)
             {
                 try
                 {
@@ -209,16 +224,21 @@ namespace Eddy
                         cpuOpts.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
                         _session = new InferenceSession(onnxPath, cpuOpts);
                     }
-                    activeProvider = "CPU (GPU fallback)";
+                    activeProvider = "CPU (DML init failed)";
+                    effectiveGpu = false;
                 }
             }
             else
             {
                 _session = new InferenceSession(onnxPath, opts);
+                if (_dmlRuntimeFailed)
+                    activeProvider = "CPU (DML runtime fallback)";
             }
 
+            opts.Dispose();
+
             _cachedOnnxPath = onnxPath;
-            _cachedUseGpu = useGpu;
+            _cachedUseGpu = effectiveGpu;
 
             AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, $"Provider: {activeProvider}");
 
@@ -452,6 +472,11 @@ namespace Eddy
 
             if (windDirs.Count == 0) windDirs.Add(0.0);
 
+            if (windDirs.Count != 1 && windDirs.Count != 8 && windDirs.Count != 16)
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
+                    $"Wind Predictor is optimised for 1, 8, or 16 wind directions (got {windDirs.Count}). " +
+                    "Results may be less accurate for comfort analysis with other counts.");
+
             if (points.Count == 0 || geometryList.Count == 0)
             {
                 Message = "Connect Points & Buildings";
@@ -615,13 +640,62 @@ namespace Eddy
                 }
             }
 
-            // Channels 2-7: scatter point features onto grid
-            float dSin = SafeFloat(dirSin0);
-            float dCos = SafeFloat(dirCos0);
+            // Feature statistics for filter margin pre-computation
+            bool isCircular = false;
+            double centerX = 0, centerY = 0, maxRadius = 0;
+            double minPx = 0, maxPx = 0, minPy = 0, maxPy = 0;
 
+            if (filterMargin > 0.0 && count > 0)
+            {
+                minPx = xCoordsArr[0]; maxPx = xCoordsArr[0];
+                minPy = yCoordsArr[0]; maxPy = yCoordsArr[0];
+                for (int i = 1; i < count; i++)
+                {
+                    if (xCoordsArr[i] < minPx) minPx = xCoordsArr[i];
+                    if (xCoordsArr[i] > maxPx) maxPx = xCoordsArr[i];
+                    if (yCoordsArr[i] < minPy) minPy = yCoordsArr[i];
+                    if (yCoordsArr[i] > maxPy) maxPy = yCoordsArr[i];
+                }
+                centerX = (minPx + maxPx) / 2.0;
+                centerY = (minPy + maxPy) / 2.0;
+                double maxRadSqr = 0;
+                for (int i = 0; i < count; i++)
+                {
+                    double dx = xCoordsArr[i] - centerX;
+                    double dy = yCoordsArr[i] - centerY;
+                    double r2 = dx * dx + dy * dy;
+                    if (r2 > maxRadSqr) maxRadSqr = r2;
+                }
+                maxRadius = Math.Sqrt(maxRadSqr);
+                double halfW = (maxPx - minPx) / 2.0;
+                double halfH = (maxPy - minPy) / 2.0;
+                double minHalf = Math.Min(halfW, halfH);
+                if (minHalf > 0 && (maxRadius / minHalf) < 1.15) isCircular = true;
+            }
+
+
+
+            // Channels 2-5: scatter point features onto grid
             for (int i = 0; i < count; i++)
             {
                 if (!validMask[i]) continue;
+                
+                if (filterMargin > 0.0)
+                {
+                    if (isCircular)
+                    {
+                        double dx = xCoordsArr[i] - centerX;
+                        double dy = yCoordsArr[i] - centerY;
+                        if (Math.Sqrt(dx * dx + dy * dy) > maxRadius - filterMargin) 
+                        { validMask[i] = false; continue; }
+                    }
+                    else
+                    {
+                        if (xCoordsArr[i] < minPx + filterMargin || xCoordsArr[i] > maxPx - filterMargin ||
+                            yCoordsArr[i] < minPy + filterMargin || yCoordsArr[i] > maxPy - filterMargin) 
+                        { validMask[i] = false; continue; }
+                    }
+                }
 
                 int ix = idxXArr[i];
                 int iy = idxYArr[i];
@@ -630,215 +704,167 @@ namespace Eddy
                 tensor[0, 3, iy, ix] = SafeFloat(sdfArr[i]);
                 tensor[0, 4, iy, ix] = SafeFloat(bldgHeightArr[i]);
                 tensor[0, 5, iy, ix] = SafeFloat(uAtZArr[i]);
-                tensor[0, 6, iy, ix] = dSin;
-                tensor[0, 7, iy, ix] = dCos;
             }
 
             // ──────────────────────────────────────────
-            // 3. Run ONNX inference
+            // 3. Loop over directions and run ONNX inference
             // ──────────────────────────────────────────
+            var speedTree = new GH_Structure<GH_Number>();
+            var previewMesh = new Mesh();
+            var legendMesh = new Mesh();
+            var legendPts = new List<Point3d>();
+            var legendVals = new List<string>();
+            var outX = new List<double>();
+            var outY = new List<double>();
+            var outOriginalIndex = new List<int>();
+            bool coordsCollected = false;
+
             try
             {
                 var session = GetSession(onnxPath, useGpu);
-
-                // Discover the model's input name dynamically
                 string inputName = session.InputMetadata.Keys.First();
-
-                var inputs = new List<NamedOnnxValue>
-                {
-                    NamedOnnxValue.CreateFromTensor(inputName, tensor)
-                };
-
                 var sw = System.Diagnostics.Stopwatch.StartNew();
-                using (var results = session.Run(inputs))
+                
+                var inputs = new List<NamedOnnxValue> { NamedOnnxValue.CreateFromTensor(inputName, tensor) };
+
+                for (int d = 0; d < windDirs.Count; d++)
                 {
-                    sw.Stop();
-
-                    // Output shape: (1, 1, 504, 504)
-                    var outputTensor = results.First().AsTensor<float>();
-
-                    // Extract per-point predictions
-                    var windField = new double[count];
-                    double predMin = double.MaxValue, predMax = double.MinValue;
-
-                    // Feature statistics for dynamic filter margin shape
-                    bool isCircular = false;
-                    double centerX = 0, centerY = 0, maxRadius = 0;
-                    double minPx = 0, maxPx = 0, minPy = 0, maxPy = 0;
-
-                    if (filterMargin > 0.0 && count > 0)
-                    {
-                        minPx = xCoordsArr[0]; maxPx = xCoordsArr[0];
-                        minPy = yCoordsArr[0]; maxPy = yCoordsArr[0];
-                        for (int i = 1; i < count; i++)
-                        {
-                            if (xCoordsArr[i] < minPx) minPx = xCoordsArr[i];
-                            if (xCoordsArr[i] > maxPx) maxPx = xCoordsArr[i];
-                            if (yCoordsArr[i] < minPy) minPy = yCoordsArr[i];
-                            if (yCoordsArr[i] > maxPy) maxPy = yCoordsArr[i];
-                        }
-
-                        centerX = (minPx + maxPx) / 2.0;
-                        centerY = (minPy + maxPy) / 2.0;
-
-                        double maxRadSqr = 0;
-                        for (int i = 0; i < count; i++)
-                        {
-                            double dx = xCoordsArr[i] - centerX;
-                            double dy = yCoordsArr[i] - centerY;
-                            double r2 = dx * dx + dy * dy;
-                            if (r2 > maxRadSqr) maxRadSqr = r2;
-                        }
-                        maxRadius = Math.Sqrt(maxRadSqr);
-
-                        double halfW = (maxPx - minPx) / 2.0;
-                        double halfH = (maxPy - minPy) / 2.0;
-                        double minHalf = Math.Min(halfW, halfH);
-
-                        if (minHalf > 0 && (maxRadius / minHalf) < 1.15)
-                        {
-                            isCircular = true;
-                        }
-                    }
+                    double currentDir = windDirs[d];
+                    double rad = currentDir * Math.PI / 180.0;
+                    float dSin = SafeFloat(Math.Round(Clamp(-Math.Sin(rad), -1.0, 1.0), 6));
+                    float dCos = SafeFloat(Math.Round(Clamp(-Math.Cos(rad), -1.0, 1.0), 6));
 
                     for (int i = 0; i < count; i++)
                     {
-                        if (!validMask[i])
-                        {
-                            windField[i] = double.NaN;
-                            continue;
-                        }
-
-                        if (filterMargin > 0.0)
-                        {
-                            if (isCircular)
-                            {
-                                double dx = xCoordsArr[i] - centerX;
-                                double dy = yCoordsArr[i] - centerY;
-                                double dist = Math.Sqrt(dx * dx + dy * dy);
-                                if (dist > maxRadius - filterMargin)
-                                {
-                                    windField[i] = double.NaN;
-                                    continue;
-                                }
-                            }
-                            else
-                            {
-                                if (xCoordsArr[i] < minPx + filterMargin || xCoordsArr[i] > maxPx - filterMargin ||
-                                    yCoordsArr[i] < minPy + filterMargin || yCoordsArr[i] > maxPy - filterMargin)
-                                {
-                                    windField[i] = double.NaN;
-                                    continue;
-                                }
-                            }
-                        }
-
-                        int ix = idxXArr[i];
-                        int iy = idxYArr[i];
-
-                        // Clamp to non-negative (physics: wind speed ≥ 0)
-                        // The network outputs dimensionless values (normalized by training speed),
-                        // so we must multiply by the reference speed (locURef) to denormalize back to m/s
-                        float raw = outputTensor[0, 0, iy, ix];
-                        double pred = Math.Max(raw * locURef, 0.0);
-                        windField[i] = Math.Round(pred, 4);
-
-                        if (pred < predMin) predMin = pred;
-                        if (pred > predMax) predMax = pred;
+                        if (!validMask[i]) continue;
+                        tensor[0, 6, idxYArr[i], idxXArr[i]] = dSin;
+                        tensor[0, 7, idxYArr[i], idxXArr[i]] = dCos;
                     }
-
-                    var outX = new List<double>();
-                    var outY = new List<double>();
-                    var outW = new List<double>();
-
-                    var previewMesh = new Mesh();
-                    double halfX = X_STEP / 2.0;
-                    double halfY = Y_STEP / 2.0;
-
-                    // Determine max/min for color mapping
-                    double validMin = double.MaxValue;
-                    double validMax = double.MinValue;
+                        
+                    Microsoft.ML.OnnxRuntime.IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results;
+                    try
+                    {
+                        results = session.Run(inputs);
+                    }
+                    catch (Exception runEx) when (_cachedUseGpu && !_dmlRuntimeFailed)
+                    {
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
+                            $"DirectML runtime error — retrying with CPU: {runEx.Message}");
+                        _dmlRuntimeFailed = true;
+                        _session?.Dispose();
+                        _session = null;
+                        session = GetSession(onnxPath, useGpu);
+                        inputName = session.InputMetadata.Keys.First();
+                        
+                        var newTensor = NamedOnnxValue.CreateFromTensor(inputName, tensor);
+                        inputs[0] = newTensor;
+                        results = session.Run(inputs);
+                    }
                     
-                    if (domainProvided)
+                    using (results)
                     {
-                        validMin = customDomain.Min;
-                        validMax = customDomain.Max;
-                    }
-                    else
-                    {
+                        var outputTensor = results.First().AsTensor<float>();
+
+                        var path = new GH_Path(d);
+                        var branchSpeeds = new List<GH_Number>();
+                        
                         for (int i = 0; i < count; i++)
                         {
-                            if (!double.IsNaN(windField[i]))
-                            {
-                                if (windField[i] < validMin) validMin = windField[i];
-                                if (windField[i] > validMax) validMax = windField[i];
-                            }
-                        }
-                    }
+                            if (!validMask[i]) continue;
 
-                    if (interpolate)
-                    {
-                        int[,] gridToIdx = new int[IMG_H, IMG_W];
-                        for (int iy = 0; iy < IMG_H; iy++)
-                            for (int ix = 0; ix < IMG_W; ix++)
-                                gridToIdx[iy, ix] = -1;
-
-                        for (int i = 0; i < count; i++)
-                        {
-                            if (!double.IsNaN(windField[i]))
+                            if (!coordsCollected)
                             {
-                                double w = windField[i];
                                 outX.Add(xCoordsArr[i]);
                                 outY.Add(yCoordsArr[i]);
-                                outW.Add(w);
+                                outOriginalIndex.Add(i);
+                            }
 
+                            float raw = outputTensor[0, 0, idxYArr[i], idxXArr[i]];
+                            double pred = Math.Max(raw * locURef, 0.0);
+                            branchSpeeds.Add(new GH_Number(Math.Round(pred, 4)));
+                        }
+                        speedTree.AppendRange(branchSpeeds, path);
+                        coordsCollected = true;
+                    }
+                }
+                sw.Stop();
+                
+
+                    // ── Preview Mesh & Outputs ──
+                    // For the preview mesh, we use the results from the FIRST direction to avoid clutter
+                    // and keep logic manageable.
+                    
+                    if (windDirs.Count == 1)
+                    {
+                        double validMin = double.MaxValue, validMax = double.MinValue;
+                        if (domainProvided) { validMin = customDomain.Min; validMax = customDomain.Max; }
+                        else if (speedTree.PathCount > 0)
+                        {
+                            foreach (var val in speedTree.Branches[0])
+                            {
+                                if (val.Value < validMin) validMin = val.Value;
+                                if (val.Value > validMax) validMax = val.Value;
+                            }
+                        }
+
+                        if (interpolate)
+                        {
+                            int[,] gridToIdx = new int[IMG_H, IMG_W];
+                            for (int iy = 0; iy < IMG_H; iy++)
+                                for (int ix = 0; ix < IMG_W; ix++)
+                                    gridToIdx[iy, ix] = -1;
+
+                            var firstSpeeds = speedTree.Branches[0];
+                            for (int j = 0; j < outX.Count; j++)
+                            {
+                                double w = firstSpeeds[j].Value;
                                 double t = validMax > validMin ? (w - validMin) / (validMax - validMin) : 0.0;
                                 Color c = GetColorFromPalette(t, customColors);
-
-                                gridToIdx[idxYArr[i], idxXArr[i]] = previewMesh.Vertices.Count;
-                                previewMesh.Vertices.Add(points[i]);
+                                
+                                int origIdx = outOriginalIndex[j];
+                                int ix = idxXArr[origIdx];
+                                int iy = idxYArr[origIdx];
+                                
+                                gridToIdx[iy, ix] = previewMesh.Vertices.Count;
+                                previewMesh.Vertices.Add(points[origIdx]);
                                 previewMesh.VertexColors.Add(c);
                             }
-                        }
 
-                        for (int iy = 0; iy < IMG_H - 1; iy++)
-                        {
-                            for (int ix = 0; ix < IMG_W - 1; ix++)
+                            for (int iy = 0; iy < IMG_H - 1; iy++)
                             {
-                                int v00 = gridToIdx[iy, ix];
-                                int v10 = gridToIdx[iy, ix + 1];
-                                int v11 = gridToIdx[iy + 1, ix + 1];
-                                int v01 = gridToIdx[iy + 1, ix];
+                                for (int ix = 0; ix < IMG_W - 1; ix++)
+                                {
+                                    int v00 = gridToIdx[iy, ix];
+                                    int v10 = gridToIdx[iy, ix + 1];
+                                    int v11 = gridToIdx[iy + 1, ix + 1];
+                                    int v01 = gridToIdx[iy + 1, ix];
 
-                                if (v00 >= 0 && v10 >= 0 && v11 >= 0 && v01 >= 0)
-                                    previewMesh.Faces.AddFace(v00, v10, v11, v01);
-                                else if (v00 >= 0 && v10 >= 0 && v01 >= 0)
-                                    previewMesh.Faces.AddFace(v00, v10, v01);
-                                else if (v10 >= 0 && v11 >= 0 && v01 >= 0)
-                                    previewMesh.Faces.AddFace(v10, v11, v01);
-                                else if (v00 >= 0 && v11 >= 0 && v01 >= 0)
-                                    previewMesh.Faces.AddFace(v00, v11, v01);
-                                else if (v00 >= 0 && v10 >= 0 && v11 >= 0)
-                                    previewMesh.Faces.AddFace(v00, v10, v11);
+                                    if (v00 >= 0 && v10 >= 0 && v11 >= 0 && v01 >= 0)
+                                        previewMesh.Faces.AddFace(v00, v10, v11, v01);
+                                    else if (v00 >= 0 && v10 >= 0 && v01 >= 0)
+                                        previewMesh.Faces.AddFace(v00, v10, v01);
+                                    else if (v10 >= 0 && v11 >= 0 && v01 >= 0)
+                                        previewMesh.Faces.AddFace(v10, v11, v01);
+                                    else if (v00 >= 0 && v11 >= 0 && v01 >= 0)
+                                        previewMesh.Faces.AddFace(v00, v11, v01);
+                                    else if (v00 >= 0 && v10 >= 0 && v11 >= 0)
+                                        previewMesh.Faces.AddFace(v00, v10, v11);
+                                }
                             }
                         }
-                    }
-                    else
-                    {
-                        for (int i = 0; i < count; i++)
+                        else
                         {
-                            if (!double.IsNaN(windField[i]))
+                            var firstSpeeds = speedTree.Branches[0];
+                            double halfX = X_STEP / 2.0;
+                            double halfY = Y_STEP / 2.0;
+                            for (int j = 0; j < outX.Count; j++)
                             {
-                                double w = windField[i];
-                                outX.Add(xCoordsArr[i]);
-                                outY.Add(yCoordsArr[i]);
-                                outW.Add(w);
-
-                                // Calculate local color
+                                double w = firstSpeeds[j].Value;
                                 double t = validMax > validMin ? (w - validMin) / (validMax - validMin) : 0.0;
                                 Color c = GetColorFromPalette(t, customColors);
 
-                                Point3d pt = points[i];
+                                int origIdx = outOriginalIndex[j];
+                                Point3d pt = points[origIdx];
                                 int vc = previewMesh.Vertices.Count;
                                 
                                 previewMesh.Vertices.Add(pt.X - halfX, pt.Y - halfY, pt.Z);
@@ -854,66 +880,59 @@ namespace Eddy
                                 previewMesh.VertexColors.Add(c);
                             }
                         }
-                    }
 
-                    Mesh legendMesh = new Mesh();
-                    var legendPts = new List<Point3d>();
-                    var legendVals = new List<string>();
-
-                    if (validMax > validMin && count > 0)
-                    {
-                        double legWidth = Math.Max((maxPx - minPx) * 0.5, 400.0);
-                        double legHeight = Math.Max(legWidth * 0.05, 15.0);
-                        
-                        double startX = 0.0 - legWidth * 0.5;
-                        double startY = -500.0 - legHeight * 0.5;
-                        double zLevel = points[0].Z;
-
-                        int steps = 20;
-                        for (int i = 0; i <= steps; i++)
+                        if (validMax > validMin && outX.Count > 0)
                         {
-                            double t = (double)i / steps;
-                            double x = startX + t * legWidth;
+                            double legMinPx = outX.Min();
+                            double legMaxPx = outX.Max();
+                            double legWidth = Math.Max((legMaxPx - legMinPx) * 0.5, 400.0);
+                            double legHeight = Math.Max(legWidth * 0.05, 15.0);
+                            
+                            double startX = 0.0 - legWidth * 0.5;
+                            double startY = -500.0 - legHeight * 0.5;
+                            double zLevel = points[0].Z;
 
-                            Color c = GetColorFromPalette(t, customColors);
-
-                            legendMesh.Vertices.Add(x, startY, zLevel);
-                            legendMesh.Vertices.Add(x, startY + legHeight, zLevel);
-                            legendMesh.VertexColors.Add(c);
-                            legendMesh.VertexColors.Add(c);
-
-                            if (i > 0)
+                            int steps = 20;
+                            for (int i = 0; i <= steps; i++)
                             {
-                                int vc = legendMesh.Vertices.Count;
-                                legendMesh.Faces.AddFace(vc - 4, vc - 2, vc - 1, vc - 3);
-                            }
+                                double t = (double)i / steps;
+                                double x = startX + t * legWidth;
 
-                            if (i % 5 == 0)
-                            {
-                                double val = validMin + t * (validMax - validMin);
-                                legendVals.Add($"{val:F2} m/s");
-                                legendPts.Add(new Point3d(x, startY - legHeight * 1.5, zLevel));
+                                Color c = GetColorFromPalette(t, customColors);
+
+                                legendMesh.Vertices.Add(x, startY, zLevel);
+                                legendMesh.Vertices.Add(x, startY + legHeight, zLevel);
+                                legendMesh.VertexColors.Add(c);
+                                legendMesh.VertexColors.Add(c);
+
+                                if (i > 0)
+                                {
+                                    int vc = legendMesh.Vertices.Count;
+                                    legendMesh.Faces.AddFace(vc - 4, vc - 2, vc - 1, vc - 3);
+                                }
+
+                                if (i % 5 == 0)
+                                {
+                                    double val = validMin + t * (validMax - validMin);
+                                    legendVals.Add($"{val:F2} m/s");
+                                    legendPts.Add(new Point3d(x, startY - legHeight * 1.5, zLevel));
+                                }
                             }
                         }
                     }
 
-                    // ── Set outputs ──
                     DA.SetDataList(0, outX);
                     DA.SetDataList(1, outY);
-                    DA.SetDataList(2, outW);
+                    DA.SetDataTree(2, speedTree);
                     DA.SetData(3, previewMesh);
                     DA.SetData(4, legendMesh);
                     DA.SetDataList(5, legendPts);
                     DA.SetDataList(6, legendVals);
 
-                    int validCount = outW.Count;
-                    Message = $"Pts: {validCount}/{count} | {sw.ElapsedMilliseconds} ms";
+                    Message = $"Dirs: {windDirs.Count} | {sw.ElapsedMilliseconds} ms";
 
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
-                        $"Inference: {sw.ElapsedMilliseconds} ms | " +
-                        $"Wind dir: {firstDir}° | Valid: {validCount}/{count} | " +
-                        $"Pred range: [{predMin:F3}, {predMax:F3}]");
-                }
+                        $"Inference complete for {windDirs.Count} directions in {sw.ElapsedMilliseconds} ms.");
             }
             catch (Exception ex)
             {

@@ -126,8 +126,6 @@ namespace Eddy
 
             if (_arrow != null)
                 args.Display.DrawPolyline(_arrow, _currentPreviewColor, 2);
-
-            base.DrawViewportWires(args);
         }
     }
 }
