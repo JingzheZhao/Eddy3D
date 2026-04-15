@@ -41,9 +41,6 @@ namespace Eddy
         // Set to true when DML fails at inference time so future runs skip DML for this model
         private bool _dmlRuntimeFailed = false;
 
-        // Custom setting for Pix2Pix logic inversion
-        private bool _forcePix2PixOrientation = false;
-
         // ── Native library resolver (registered once) ──
         private static bool _resolverRegistered;
 
@@ -673,29 +670,10 @@ namespace Eddy
                 if (minHalf > 0 && (maxRadius / minHalf) < 1.15) isCircular = true;
             }
 
-
-
             // Channels 2-5: scatter point features onto grid
             for (int i = 0; i < count; i++)
             {
                 if (!validMask[i]) continue;
-                
-                if (filterMargin > 0.0)
-                {
-                    if (isCircular)
-                    {
-                        double dx = xCoordsArr[i] - centerX;
-                        double dy = yCoordsArr[i] - centerY;
-                        if (Math.Sqrt(dx * dx + dy * dy) > maxRadius - filterMargin) 
-                        { validMask[i] = false; continue; }
-                    }
-                    else
-                    {
-                        if (xCoordsArr[i] < minPx + filterMargin || xCoordsArr[i] > maxPx - filterMargin ||
-                            yCoordsArr[i] < minPy + filterMargin || yCoordsArr[i] > maxPy - filterMargin) 
-                        { validMask[i] = false; continue; }
-                    }
-                }
 
                 int ix = idxXArr[i];
                 int iy = idxYArr[i];
@@ -771,6 +749,25 @@ namespace Eddy
                         for (int i = 0; i < count; i++)
                         {
                             if (!validMask[i]) continue;
+
+                            // Apply filter culling strictly for output visibility
+                            bool isCulled = false;
+                            if (filterMargin > 0.0)
+                            {
+                                if (isCircular)
+                                {
+                                    double dx = xCoordsArr[i] - centerX;
+                                    double dy = yCoordsArr[i] - centerY;
+                                    if (Math.Sqrt(dx * dx + dy * dy) > maxRadius - filterMargin) isCulled = true;
+                                }
+                                else
+                                {
+                                    if (xCoordsArr[i] < minPx + filterMargin || xCoordsArr[i] > maxPx - filterMargin ||
+                                        yCoordsArr[i] < minPy + filterMargin || yCoordsArr[i] > maxPy - filterMargin) isCulled = true;
+                                }
+                            }
+
+                            if (isCulled) continue;
 
                             if (!coordsCollected)
                             {
