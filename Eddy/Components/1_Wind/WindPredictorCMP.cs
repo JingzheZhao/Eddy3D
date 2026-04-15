@@ -670,6 +670,29 @@ namespace Eddy
                 if (minHalf > 0 && (maxRadius / minHalf) < 1.15) isCircular = true;
             }
 
+            // Pre-compute visibility/culling array to avoid redundant math in the loop
+            var isCulledArr = new bool[count];
+            if (filterMargin > 0.0)
+            {
+                System.Threading.Tasks.Parallel.For(0, count, i =>
+                {
+                    if (!validMask[i]) return;
+                    bool culled = false;
+                    if (isCircular)
+                    {
+                        double dx = xCoordsArr[i] - centerX;
+                        double dy = yCoordsArr[i] - centerY;
+                        if (Math.Sqrt(dx * dx + dy * dy) > maxRadius - filterMargin) culled = true;
+                    }
+                    else
+                    {
+                        if (xCoordsArr[i] < minPx + filterMargin || xCoordsArr[i] > maxPx - filterMargin ||
+                            yCoordsArr[i] < minPy + filterMargin || yCoordsArr[i] > maxPy - filterMargin) culled = true;
+                    }
+                    isCulledArr[i] = culled;
+                });
+            }
+
             // Channels 2-5: scatter point features onto grid
             for (int i = 0; i < count; i++)
             {
@@ -746,28 +769,23 @@ namespace Eddy
                         var path = new GH_Path(d);
                         var branchSpeeds = new List<GH_Number>();
                         
-                        for (int i = 0; i < count; i++)
+                        // Extract predictions in parallel for maximum speed
+                        var rawResults = new double[count];
+                        System.Threading.Tasks.Parallel.For(0, count, i =>
                         {
-                            if (!validMask[i]) continue;
-
-                            // Apply filter culling strictly for output visibility
-                            bool isCulled = false;
-                            if (filterMargin > 0.0)
+                            if (!validMask[i] || isCulledArr[i])
                             {
-                                if (isCircular)
-                                {
-                                    double dx = xCoordsArr[i] - centerX;
-                                    double dy = yCoordsArr[i] - centerY;
-                                    if (Math.Sqrt(dx * dx + dy * dy) > maxRadius - filterMargin) isCulled = true;
-                                }
-                                else
-                                {
-                                    if (xCoordsArr[i] < minPx + filterMargin || xCoordsArr[i] > maxPx - filterMargin ||
-                                        yCoordsArr[i] < minPy + filterMargin || yCoordsArr[i] > maxPy - filterMargin) isCulled = true;
-                                }
+                                rawResults[i] = double.NaN;
+                                return;
                             }
 
-                            if (isCulled) continue;
+                            float raw = outputTensor[0, 0, idxYArr[i], idxXArr[i]];
+                            rawResults[i] = Math.Max(raw * locURef, 0.0);
+                        });
+
+                        for (int i = 0; i < count; i++)
+                        {
+                            if (double.IsNaN(rawResults[i])) continue;
 
                             if (!coordsCollected)
                             {
@@ -775,11 +793,9 @@ namespace Eddy
                                 outY.Add(yCoordsArr[i]);
                                 outOriginalIndex.Add(i);
                             }
-
-                            float raw = outputTensor[0, 0, idxYArr[i], idxXArr[i]];
-                            double pred = Math.Max(raw * locURef, 0.0);
-                            branchSpeeds.Add(new GH_Number(Math.Round(pred, 4)));
+                            branchSpeeds.Add(new GH_Number(Math.Round(rawResults[i], 4)));
                         }
+                        
                         speedTree.AppendRange(branchSpeeds, path);
                         coordsCollected = true;
                     }
