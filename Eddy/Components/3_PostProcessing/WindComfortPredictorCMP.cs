@@ -39,6 +39,7 @@ namespace Eddy
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
+            pManager.AddPointParameter("Points", "Pts", "Analysis points for mesh visualization.", GH_ParamAccess.list);
             pManager.AddNumberParameter("Wind Speeds", "W", "Predicted wind speeds (m/s) as a DataTree from WindPredictor.", GH_ParamAccess.tree);
             pManager.AddNumberParameter("Wind Directions", "Dirs", "Simulated wind directions (degrees) corresponding to the branches.", GH_ParamAccess.list);
             pManager.AddTextParameter("EPW Path", "EPW", "Path to the .epw weather file.", GH_ParamAccess.item);
@@ -50,7 +51,7 @@ namespace Eddy
             pManager.AddBooleanParameter("Run", "Run", "Run the comfort prediction calculation.", GH_ParamAccess.item, false);
 
             var types = Enum.GetNames(typeof(WindComfortHelper.PedCmftMetric));
-            Param_Integer param = pManager[6] as Param_Integer;
+            Param_Integer param = pManager[7] as Param_Integer;
             for (int i = 0; i < types.Length; i++) param.AddNamedValue(types[i], i);
         }
 
@@ -59,10 +60,15 @@ namespace Eddy
             pManager.AddNumberParameter("Comfort Rank", "Rank", "Wind comfort rank (integer).", GH_ParamAccess.list);
             pManager.AddTextParameter("Class Letter", "Letter", "Wind comfort class letter (e.g., A, B, C).", GH_ParamAccess.list);
             pManager.AddTextParameter("Class", "Class", "Wind comfort class description.", GH_ParamAccess.list);
+            pManager.AddMeshParameter("Comfort Mesh", "M", "Colored mesh representing comfort levels.", GH_ParamAccess.item);
+            pManager.AddMeshParameter("Legend Mesh", "LM", "Legend mesh for comfort categories.", GH_ParamAccess.item);
+            pManager.AddPointParameter("Legend Points", "LP", "Label points for the legend letters.", GH_ParamAccess.list);
+            pManager.AddTextParameter("Legend Letters", "LV", "Letters (A-E) for the legend.", GH_ParamAccess.list);
         }
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            var points = new List<Point3d>();
             GH_Structure<GH_Number> speedTree;
             var windDirs = new List<double>();
             string epwPath = "";
@@ -73,15 +79,16 @@ namespace Eddy
             bool interpolate = true;
             bool run = false;
 
-            if (!DA.GetDataTree(0, out speedTree)) return;
-            if (!DA.GetDataList(1, windDirs)) return;
-            if (!DA.GetData(2, ref epwPath)) return;
-            DA.GetData(3, ref zRef);
-            DA.GetData(4, ref z0);
-            DA.GetData(5, ref uRefSim);
-            DA.GetData(6, ref metricInt);
-            DA.GetData(7, ref interpolate);
-            DA.GetData(8, ref run);
+            if (!DA.GetDataList(0, points)) return;
+            if (!DA.GetDataTree(1, out speedTree)) return;
+            if (!DA.GetDataList(2, windDirs)) return;
+            if (!DA.GetData(3, ref epwPath)) return;
+            DA.GetData(4, ref zRef);
+            DA.GetData(5, ref z0);
+            DA.GetData(6, ref uRefSim);
+            DA.GetData(7, ref metricInt);
+            DA.GetData(8, ref interpolate);
+            DA.GetData(9, ref run);
 
             if (!run)
             {
@@ -252,16 +259,103 @@ namespace Eddy
 
             sw.Stop();
 
-            // 7. Cache and output
+            // 7. Visualization (Mesh & Legend)
+            var comfortMesh = new Mesh();
+            var legendMesh = new Mesh();
+            var legendPts = new List<Point3d>();
+            var legendLetters = new List<string> { "A", "B", "C", "D", "E" };
+            
+            double tileSide = 2.0; // Default tile size
+            if (points.Count > 1) 
+            {
+                // Try to estimate tile size from first two points if they are close
+                double dist = points[0].DistanceTo(points[1]);
+                if (dist > 0.01 && dist < 10.0) tileSide = dist;
+            }
+            double hSide = tileSide * 0.5;
+
+            for (int p = 0; p < numProbes; p++)
+            {
+                if (p >= points.Count) break;
+                
+                System.Drawing.Color c = GetComfortColor(letters[p]);
+                Point3d pt = points[p];
+                int vc = comfortMesh.Vertices.Count;
+                
+                comfortMesh.Vertices.Add(pt.X - hSide, pt.Y - hSide, pt.Z);
+                comfortMesh.Vertices.Add(pt.X + hSide, pt.Y - hSide, pt.Z);
+                comfortMesh.Vertices.Add(pt.X + hSide, pt.Y + hSide, pt.Z);
+                comfortMesh.Vertices.Add(pt.X - hSide, pt.Y + hSide, pt.Z);
+                
+                comfortMesh.Faces.AddFace(vc, vc + 1, vc + 2, vc + 3);
+                comfortMesh.VertexColors.Add(c);
+                comfortMesh.VertexColors.Add(c);
+                comfortMesh.VertexColors.Add(c);
+                comfortMesh.VertexColors.Add(c);
+            }
+
+            // Legend Positioning
+            if (points.Count > 0)
+            {
+                var bbox = new BoundingBox(points);
+                double legWidth = Math.Max(bbox.Max.X - bbox.Min.X, 200.0);
+                double blockW = legWidth / 5.0;
+                double legHeight = blockW * 0.15;
+                
+                double startX = bbox.Center.X - (legWidth * 0.5);
+                double startY = bbox.Min.Y - (legHeight * 5.0);
+                double zLevel = bbox.Min.Z;
+
+                for (int i = 0; i < 5; i++)
+                {
+                    string label = legendLetters[i];
+                    System.Drawing.Color c = GetComfortColor(label);
+                    double x0 = startX + i * blockW;
+                    double x1 = x0 + blockW;
+
+                    int vc = legendMesh.Vertices.Count;
+                    legendMesh.Vertices.Add(x0, startY, zLevel);
+                    legendMesh.Vertices.Add(x1, startY, zLevel);
+                    legendMesh.Vertices.Add(x1, startY + legHeight, zLevel);
+                    legendMesh.Vertices.Add(x0, startY + legHeight, zLevel);
+                    
+                    legendMesh.Faces.AddFace(vc, vc + 1, vc + 2, vc + 3);
+                    legendMesh.VertexColors.Add(c);
+                    legendMesh.VertexColors.Add(c);
+                    legendMesh.VertexColors.Add(c);
+                    legendMesh.VertexColors.Add(c);
+
+                    legendPts.Add(new Point3d(x0 + blockW * 0.5, startY - legHeight * 1.2, zLevel));
+                }
+            }
+
+            // 8. Cache and output
             _metricCache[metricInt] = (ranks, letters, classes);
 
             DA.SetDataList(0, ranks);
             DA.SetDataList(1, letters);
             DA.SetDataList(2, classes);
+            DA.SetData(3, comfortMesh);
+            DA.SetData(4, legendMesh);
+            DA.SetDataList(5, legendPts);
+            DA.SetDataList(6, legendLetters);
 
             Message = $"Metric: {metric}";
             AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
                 useCachedParams ? $"Metric checked {numProbes} probes in {sw.ElapsedMilliseconds} ms." : $"Weibull estimated {numProbes} probes in {sw.ElapsedMilliseconds} ms.");
+        }
+
+        private System.Drawing.Color GetComfortColor(string letter)
+        {
+            switch (letter)
+            {
+                case "A": return System.Drawing.Color.Blue;
+                case "B": return System.Drawing.Color.Cyan;
+                case "C": return System.Drawing.Color.Lime;
+                case "D": return System.Drawing.Color.Yellow;
+                case "E": return System.Drawing.Color.Red;
+                default: return System.Drawing.Color.Gray;
+            }
         }
     }
 }
