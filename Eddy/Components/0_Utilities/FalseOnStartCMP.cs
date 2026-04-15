@@ -1,0 +1,81 @@
+using Grasshopper.Kernel;
+using System;
+
+namespace Eddy
+{
+    public class FalseOnStartCMP : GH_Component
+    {
+        private bool _run = false;
+
+        public FalseOnStartCMP()
+          : base("Safety Toggle", "SafetyToggle",
+              "A boolean toggle that is always FALSE when a file is opened. Useful for preventing automatic execution of heavy ML models.",
+              "Eddy3D", "0 | Utilities")
+        {
+        }
+
+        public override Guid ComponentGuid => new Guid("{C8E1D2B3-A4B5-4C6D-7E8F-9A0B1C2D3E4F}");
+
+        protected override System.Drawing.Bitmap Icon => Properties.Resources.Eddy_safe_toggle;
+
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
+        {
+            // No inputs needed, primarily a manual toggle
+        }
+
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
+        {
+            pManager.AddBooleanParameter("Run", "R", "Boolean value (Always false on start).", GH_ParamAccess.item);
+        }
+
+        protected override void SolveInstance(IGH_DataAccess DA)
+        {
+            Message = _run ? "TRUE" : "FALSE";
+            DA.SetData(0, _run);
+        }
+
+        public override void CreateAttributes()
+        {
+            Attributes = new SafetyToggleAttributes(this);
+        }
+
+        public override void AppendAdditionalMenuItems(System.Windows.Forms.ToolStripDropDown menu)
+        {
+            Menu_AppendItem(menu, "TRUE", (s, e) => { _run = true; ExpireSolution(true); }, true, _run);
+            Menu_AppendItem(menu, "FALSE", (s, e) => { _run = false; ExpireSolution(true); }, true, !_run);
+        }
+
+        public void Toggle()
+        {
+            _run = !_run;
+            ExpireSolution(true);
+        }
+
+        // ── Serialization ──────────────────────────────────────────────────────────
+        // By NOT overriding Read/Write or ensuring we always read 'false', 
+        // we satisfy the "False on Start" requirement.
+        
+        public override bool Write(GH_IO.Serialization.GH_IWriter writer)
+        {
+            // We consciously do NOT write the _run state so it remains false on next load
+            return base.Write(writer);
+        }
+
+        public override bool Read(GH_IO.Serialization.GH_IReader reader)
+        {
+            _run = false; // Force false on every load
+            return base.Read(reader);
+        }
+    }
+
+    internal class SafetyToggleAttributes : Grasshopper.Kernel.Attributes.GH_ComponentAttributes
+    {
+        public SafetyToggleAttributes(FalseOnStartCMP owner) : base(owner) { }
+
+        public override Grasshopper.GUI.Canvas.GH_ObjectResponse RespondToMouseDoubleClick(Grasshopper.GUI.Canvas.GH_Canvas sender, Grasshopper.GUI.GH_CanvasMouseEvent e)
+        {
+            ((FalseOnStartCMP)Owner).Toggle();
+            return Grasshopper.GUI.Canvas.GH_ObjectResponse.Handled;
+        }
+    }
+}
