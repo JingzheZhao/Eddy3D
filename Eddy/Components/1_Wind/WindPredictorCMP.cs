@@ -202,11 +202,13 @@ namespace Eddy
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
                         $"DirectML GPU initialization failed ({ex.Message}) — falling back to CPU.");
-                    
+
                     opts.Dispose();
-                    opts = new SessionOptions();
-                    opts.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
-                    _session = new InferenceSession(onnxPath, opts);
+                    using (var cpuOpts = new SessionOptions())
+                    {
+                        cpuOpts.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
+                        _session = new InferenceSession(onnxPath, cpuOpts);
+                    }
                     activeProvider = "CPU (GPU fallback)";
                 }
             }
