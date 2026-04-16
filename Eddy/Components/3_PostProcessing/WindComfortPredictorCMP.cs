@@ -23,8 +23,8 @@ namespace Eddy
         private string _cacheKey = null;
         private double[] _weibullKappas = null;
         private double[] _weibullLambdas = null;
-        private readonly Dictionary<int, (double[] ranks, string[] letters, string[] classes, Mesh comfortMesh, Mesh legendMesh, List<Point3d> legendPts, List<string> legendLetters)>
-            _metricCache = new Dictionary<int, (double[] ranks, string[] letters, string[] classes, Mesh comfortMesh, Mesh legendMesh, List<Point3d> legendPts, List<string> legendLetters)>();
+        private readonly Dictionary<int, (double[] ranks, string[] letters, string[] classes, Mesh comfortMesh, Mesh legendMesh, List<Point3d> legendPts, List<string> legendLetters, string metricName, List<string> classExps)>
+            _metricCache = new Dictionary<int, (double[] ranks, string[] letters, string[] classes, Mesh comfortMesh, Mesh legendMesh, List<Point3d> legendPts, List<string> legendLetters, string metricName, List<string> classExps)>();
 
         public WindComfortPredictorCMP()
           : base("Wind Comfort Predictor (ML)", "WindComfortML",
@@ -41,7 +41,6 @@ namespace Eddy
         {
             pManager.AddPointParameter("Points", "Pts", "Analysis points for mesh visualization.", GH_ParamAccess.list);
             pManager.AddNumberParameter("Wind Speeds", "W", "Predicted wind speeds (m/s) as a DataTree from WindPredictor.", GH_ParamAccess.tree);
-            pManager.AddNumberParameter("Wind Directions", "Dirs", "Simulated wind directions (degrees) corresponding to the branches.", GH_ParamAccess.list);
             pManager.AddTextParameter("EPW Path", "EPW", "Path to the .epw weather file.", GH_ParamAccess.item);
             pManager.AddNumberParameter("z_ref", "z_ref", "Reference height for the simulations (m). Default = 10.0", GH_ParamAccess.item, 10.0);
             pManager.AddNumberParameter("z_0", "z_0", "Roughness length (m). Default = 1.0", GH_ParamAccess.item, 1.0);
@@ -52,9 +51,9 @@ namespace Eddy
             pManager.AddGenericParameter("Boundary Conditions", "BC", "Optional simulation metadata to automate z_ref, z_0, and U_ref_sim.", GH_ParamAccess.item);
  
             var types = Enum.GetNames(typeof(WindComfortHelper.PedCmftMetric));
-            Param_Integer param = pManager[7] as Param_Integer;
+            Param_Integer param = pManager[6] as Param_Integer;
             for (int i = 0; i < types.Length; i++) param.AddNamedValue(types[i], i);
-            pManager[10].Optional = true;
+            pManager[9].Optional = true;
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
@@ -65,7 +64,9 @@ namespace Eddy
             pManager.AddMeshParameter("Comfort Mesh", "M", "Colored mesh representing comfort levels.", GH_ParamAccess.item);
             pManager.AddMeshParameter("Legend Mesh", "LM", "Legend mesh for comfort categories.", GH_ParamAccess.item);
             pManager.AddPointParameter("Legend Points", "LP", "Label points for the legend letters.", GH_ParamAccess.list);
-            pManager.AddTextParameter("Legend Letters", "LV", "Letters (A-E) for the legend.", GH_ParamAccess.list);
+            pManager.AddTextParameter("Legend Letters", "LV", "Letters (A-S) for the legend.", GH_ParamAccess.list);
+            pManager.AddTextParameter("Metric Name", "MetricName", "The name of the currently active comfort/safety standard.", GH_ParamAccess.item);
+            pManager.AddTextParameter("Category Explanations", "Explanations", "Detailed descriptions for each class (e.g., A: Sitting Long).", GH_ParamAccess.list);
         }
 
         protected override void SolveInstance(IGH_DataAccess DA)
@@ -83,29 +84,41 @@ namespace Eddy
 
             if (!DA.GetDataList(0, points)) return;
             if (!DA.GetDataTree(1, out speedTree)) return;
-            if (!DA.GetDataList(2, windDirs)) return;
-            if (!DA.GetData(3, ref epwPath)) return;
-            DA.GetData(7, ref metricInt);
-            DA.GetData(8, ref interpolate);
-            DA.GetData(9, ref useMoM);
+            if (!DA.GetData(2, ref epwPath)) return;
+            DA.GetData(6, ref metricInt);
+            DA.GetData(7, ref interpolate);
+            DA.GetData(8, ref useMoM);
 
             // ── Automated Scenario Link ───────────────────────────────────────────
             EddyLib.BCs.ABL linkedBC = null;
-            if (DA.GetData(10, ref linkedBC) && linkedBC != null)
+            if (DA.GetData(9, ref linkedBC) && linkedBC != null)
             {
                 zRef = linkedBC.zref;
                 z0 = linkedBC.z0;
                 uRefSim = linkedBC.URef;
+                
+                if (linkedBC.SimulatedDirections != null && linkedBC.SimulatedDirections.Count > 0)
+                {
+                    windDirs = new List<double>(linkedBC.SimulatedDirections);
+                }
+
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, $"Using automated Boundary Conditions: Uref={uRefSim}, zref={zRef}, z0={z0}");
+            }
+
+            if (windDirs == null || windDirs.Count == 0)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "No wind directions provided from simulation link.");
+                return;
             }
             else
             {
-                DA.GetData(4, ref zRef);
-                DA.GetData(5, ref z0);
-                DA.GetData(6, ref uRefSim);
+                DA.GetData(3, ref zRef);
+                DA.GetData(4, ref z0);
+                DA.GetData(5, ref uRefSim);
             }
 
             if (speedTree.PathCount == 0 || windDirs.Count == 0) return;
+
             if (!System.IO.File.Exists(epwPath))
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "EPW file not found.");
@@ -132,9 +145,10 @@ namespace Eddy
                 DA.SetData(4, hit.legendMesh);
                 DA.SetDataList(5, hit.legendPts);
                 DA.SetDataList(6, hit.legendLetters);
+                DA.SetData(7, hit.metricName);
+                DA.SetDataList(8, hit.classExps);
 
-                var metricLabel = (WindComfortHelper.PedCmftMetric)metricInt;
-                Message = $"v0.7.1-Optimized\nMetric: {metricLabel} (cached)";
+                Message = $"v0.7.1-Optimized\nMetric: {hit.metricName} (cached)";
                 return;
             }
 
@@ -299,7 +313,17 @@ namespace Eddy
             comfortMesh.VertexColors.Capacity = numProbes * 4;
             var legendMesh = new Mesh();
             var legendPts = new List<Point3d>();
-            var legendLetters = new List<string> { "A", "B", "C", "D", "E" };
+            var legendLetters = letters.Distinct()
+                .OrderBy(l => l.Length > 1 ? l : " " + l) // Simple sort to put A-E before S
+                .ToList();
+            
+            // Re-sort specifically for Davenport/Lawson if needed, or just unique list
+            // Best approach: get them in order from tid
+            legendLetters = tid.Values.OrderBy(v => v.Cat).Select(v => v.ClassLetter).Distinct().ToList();
+
+            string mName = metric.ToString();
+            var explanations = tid.Values.OrderBy(v => v.Cat).Select(v => $"{v.ClassLetter}\n{v.Class}").Distinct().ToList();
+            
             
             double tileSide = 2.0; // Default tile size
             if (points.Count > 1) 
@@ -314,7 +338,7 @@ namespace Eddy
             {
                 if (p >= points.Count) break;
                 
-                System.Drawing.Color c = GetComfortColor(letters[p]);
+                System.Drawing.Color c = GetComfortColor(letters[p], metric);
                 Point3d pt = points[p];
                 
                 // Add vertices and faces sequentially for simplicity if not optimizing further,
@@ -331,7 +355,7 @@ namespace Eddy
             {
                 if (p >= points.Count) return;
                 
-                System.Drawing.Color c = GetComfortColor(letters[p]);
+                System.Drawing.Color c = GetComfortColor(letters[p], metric);
                 Point3d pt = points[p];
                 int vIdx = p * 4;
 
@@ -359,24 +383,24 @@ namespace Eddy
             Message = $"v0.7.1-Optimized\nStep 6: {t6}ms\nStep 7: {t7}ms";
 
             // Store in cache for next solve (only if specific metric outputs changed)
-            _metricCache[metricInt] = (ranks, letters, classes, comfortMesh, legendMesh, legendPts, legendLetters);
+            _metricCache[metricInt] = (ranks, letters, classes, comfortMesh, legendMesh, legendPts, legendLetters, mName, explanations);
 
             // Legend Positioning
             if (points.Count > 0)
             {
                 var bbox = new BoundingBox(points);
                 double legWidth = Math.Max(bbox.Max.X - bbox.Min.X, 200.0);
-                double blockW = legWidth / 5.0;
-                double legHeight = blockW * 0.15;
+                double legHeight = legWidth * 0.03; // Fixed height ratio to total width
+                double blockW = legWidth / (double)legendLetters.Count;
                 
                 double startX = bbox.Center.X - (legWidth * 0.5);
                 double startY = bbox.Min.Y - (legHeight * 5.0);
                 double zLevel = bbox.Min.Z;
 
-                for (int i = 0; i < 5; i++)
+                for (int i = 0; i < legendLetters.Count; i++)
                 {
                     string label = legendLetters[i];
-                    System.Drawing.Color c = GetComfortColor(label);
+                    System.Drawing.Color c = GetComfortColor(label, metric);
                     double x0 = startX + i * blockW;
                     double x1 = x0 + blockW;
 
@@ -397,8 +421,8 @@ namespace Eddy
             }
 
             // 8. Cache and output
-            _metricCache[metricInt] = (ranks, letters, classes, comfortMesh, legendMesh, legendPts, legendLetters);
-
+            _metricCache[metricInt] = (ranks, letters, classes, comfortMesh, legendMesh, legendPts, legendLetters, mName, explanations);
+ 
             DA.SetDataList(0, ranks);
             DA.SetDataList(1, letters);
             DA.SetDataList(2, classes);
@@ -406,14 +430,28 @@ namespace Eddy
             DA.SetData(4, legendMesh);
             DA.SetDataList(5, legendPts);
             DA.SetDataList(6, legendLetters);
-
+            DA.SetData(7, mName);
+            DA.SetDataList(8, explanations);
+ 
             Message = $"v0.7.1-Optimized\nStep 6: {t6}ms\nStep 7: {t7}ms";
             AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
                 useCachedParams ? $"Metric checked {numProbes} probes in {sw.ElapsedMilliseconds} ms." : $"Weibull estimated {numProbes} probes in {sw.ElapsedMilliseconds} ms.");
         }
 
-        private System.Drawing.Color GetComfortColor(string letter)
+        private System.Drawing.Color GetComfortColor(string letter, WindComfortHelper.PedCmftMetric metric)
         {
+            // Specialized override for NEN 8100 Safety (Traffic Light Colors)
+            if (metric == WindComfortHelper.PedCmftMetric.NEN8100Safety)
+            {
+                switch (letter)
+                {
+                    case "A": return System.Drawing.Color.ForestGreen;
+                    case "B": return System.Drawing.Color.Orange;
+                    case "C": return System.Drawing.Color.Firebrick;
+                    default: return System.Drawing.Color.Gray;
+                }
+            }
+
             switch (letter)
             {
                 case "A": return System.Drawing.Color.Blue;
@@ -421,6 +459,9 @@ namespace Eddy
                 case "C": return System.Drawing.Color.Lime;
                 case "D": return System.Drawing.Color.Yellow;
                 case "E": return System.Drawing.Color.Red;
+                case "S": 
+                case "S15":
+                case "S20": return System.Drawing.Color.DarkMagenta;
                 default: return System.Drawing.Color.Gray;
             }
         }

@@ -947,6 +947,7 @@ namespace Eddy
                     
                     // Output automated boundary conditions for downstream components
                     var bcMetadata = new EddyLib.BCs.ABL(0, uRef, zRef, 1.0, 0.0);
+                    bcMetadata.SimulatedDirections = new System.Collections.Generic.List<double>(windDirs);
                     DA.SetData(7, bcMetadata);
 
                     Message = $"Dirs: {windDirs.Count} | {sw.ElapsedMilliseconds} ms";

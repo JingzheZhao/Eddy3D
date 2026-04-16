@@ -362,9 +362,7 @@ namespace EddyLib.OutdoorComfort
 
             if (double.IsNaN(kappa) || double.IsNaN(lambda)) return bestCase;
 
-            var thresholds = new CmftThresholdInfo[CTID.Count];
-            CTID.Values.CopyTo(thresholds, 0);
-            Array.Sort(thresholds, (a, b) => b.UThres.CompareTo(a.UThres));
+            var thresholds = CTID.Values.OrderBy(v => v.Cat).ToArray();
 
             foreach (var TI in thresholds)
             {

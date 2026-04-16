@@ -1,4 +1,4 @@
-﻿using Rhino.Geometry;
+using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -174,7 +174,11 @@ namespace EddyLib.BCs
         public double z0;
 
         public int windDir;
-
+ 
+        public System.Collections.Generic.List<double> SimulatedDirections { get; set; } = new System.Collections.Generic.List<double>();
+ 
+        public string EPWPath { get; set; }
+ 
         public Vector3d flowDir;
 
         protected double Cmu = DefaultCmu;
