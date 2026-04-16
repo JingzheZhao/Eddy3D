@@ -23,8 +23,8 @@ namespace Eddy
         private string _cacheKey = null;
         private double[] _weibullKappas = null;
         private double[] _weibullLambdas = null;
-        private readonly Dictionary<int, (double[] ranks, string[] letters, string[] classes)>
-            _metricCache = new Dictionary<int, (double[], string[], string[])>();
+        private readonly Dictionary<int, (double[] ranks, string[] letters, string[] classes, Mesh comfortMesh, Mesh legendMesh, List<Point3d> legendPts, List<string> legendLetters)>
+            _metricCache = new Dictionary<int, (double[] ranks, string[] letters, string[] classes, Mesh comfortMesh, Mesh legendMesh, List<Point3d> legendPts, List<string> legendLetters)>();
 
         public WindComfortPredictorCMP()
           : base("Wind Comfort Predictor (ML)", "WindComfortML",
@@ -44,15 +44,17 @@ namespace Eddy
             pManager.AddNumberParameter("Wind Directions", "Dirs", "Simulated wind directions (degrees) corresponding to the branches.", GH_ParamAccess.list);
             pManager.AddTextParameter("EPW Path", "EPW", "Path to the .epw weather file.", GH_ParamAccess.item);
             pManager.AddNumberParameter("z_ref", "z_ref", "Reference height for the simulations (m). Default = 10.0", GH_ParamAccess.item, 10.0);
-            pManager.AddNumberParameter("z_0", "z_0", "Roughness length (m). Default = 0.1", GH_ParamAccess.item, 0.1);
-            pManager.AddNumberParameter("U_ref_sim", "Uref_sim", "Reference wind speed used during simulation/prediction (m/s). Default = 3.0", GH_ParamAccess.item, 3.0);
+            pManager.AddNumberParameter("z_0", "z_0", "Roughness length (m). Default = 1.0", GH_ParamAccess.item, 1.0);
+            pManager.AddNumberParameter("U_ref_sim", "Uref_sim", "Reference wind speed used during simulation/prediction (m/s). Default = 5.0", GH_ParamAccess.item, 5.0);
             pManager.AddIntegerParameter("Metric", "Metric", "Comfort metric to use.", GH_ParamAccess.item, 0);
             pManager.AddBooleanParameter("Interpolate", "Interp", "Interpolate between wind directions. Default = true", GH_ParamAccess.item, true);
-            pManager.AddBooleanParameter("Run", "Run", "Run the comfort prediction calculation.", GH_ParamAccess.item, false);
-
+            pManager.AddBooleanParameter("Fast Mode (MoM)", "Fast", "Use Method of Moments for ultra-fast Weibull estimation. Default = true", GH_ParamAccess.item, true);
+            pManager.AddGenericParameter("Boundary Conditions", "BC", "Optional simulation metadata to automate z_ref, z_0, and U_ref_sim.", GH_ParamAccess.item);
+ 
             var types = Enum.GetNames(typeof(WindComfortHelper.PedCmftMetric));
             Param_Integer param = pManager[7] as Param_Integer;
             for (int i = 0; i < types.Length; i++) param.AddNamedValue(types[i], i);
+            pManager[10].Optional = true;
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
@@ -73,27 +75,34 @@ namespace Eddy
             var windDirs = new List<double>();
             string epwPath = "";
             double zRef = 10.0;
-            double z0 = 0.1;
-            double uRefSim = 3.0;
+            double z0 = 1.0;
+            double uRefSim = 5.0;
             int metricInt = 0;
             bool interpolate = true;
-            bool run = false;
+            bool useMoM = true;
 
             if (!DA.GetDataList(0, points)) return;
             if (!DA.GetDataTree(1, out speedTree)) return;
             if (!DA.GetDataList(2, windDirs)) return;
             if (!DA.GetData(3, ref epwPath)) return;
-            DA.GetData(4, ref zRef);
-            DA.GetData(5, ref z0);
-            DA.GetData(6, ref uRefSim);
             DA.GetData(7, ref metricInt);
             DA.GetData(8, ref interpolate);
-            DA.GetData(9, ref run);
+            DA.GetData(9, ref useMoM);
 
-            if (!run)
+            // ── Automated Scenario Link ───────────────────────────────────────────
+            EddyLib.BCs.ABL linkedBC = null;
+            if (DA.GetData(10, ref linkedBC) && linkedBC != null)
             {
-                Message = "Paused";
-                return;
+                zRef = linkedBC.zref;
+                z0 = linkedBC.z0;
+                uRefSim = linkedBC.URef;
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, $"Using automated Boundary Conditions: Uref={uRefSim}, zref={zRef}, z0={z0}");
+            }
+            else
+            {
+                DA.GetData(4, ref zRef);
+                DA.GetData(5, ref z0);
+                DA.GetData(6, ref uRefSim);
             }
 
             if (speedTree.PathCount == 0 || windDirs.Count == 0) return;
@@ -111,26 +120,31 @@ namespace Eddy
             // Sample a few speed values so we don't hash 128k numbers every solve.
             double s0 = speedTree.Branches[0].Count > 0 ? speedTree.Branches[0][0].Value : 0;
             double sN = speedTree.Branches[0].Count > 0 ? speedTree.Branches[0][numProbes - 1].Value : 0;
-            string newCacheKey = $"{numProbes}|{numDirs}|{epwPath}|{zRef}|{z0}|{uRefSim}|{interpolate}|{s0:R}|{sN:R}";
-
+            string newCacheKey = $"{numProbes}|{numDirs}|{epwPath}|{zRef}|{z0}|{uRefSim}|{interpolate}|{useMoM}|{s0:R}|{sN:R}";
+ 
             // ── Instant return when only metric changed ───────────────────────────
             if (newCacheKey == _cacheKey && _metricCache.TryGetValue(metricInt, out var hit))
             {
                 DA.SetDataList(0, hit.ranks);
                 DA.SetDataList(1, hit.letters);
                 DA.SetDataList(2, hit.classes);
+                DA.SetData(3, hit.comfortMesh);
+                DA.SetData(4, hit.legendMesh);
+                DA.SetDataList(5, hit.legendPts);
+                DA.SetDataList(6, hit.legendLetters);
+
                 var metricLabel = (WindComfortHelper.PedCmftMetric)metricInt;
-                Message = $"Metric: {metricLabel} (cached)";
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
-                    $"Returned cached results for {numProbes} probes.");
+                Message = $"v0.7.1-Optimized\nMetric: {metricLabel} (cached)";
                 return;
             }
 
-            // Heavy inputs changed → clear per-metric cache
+            // Heavy inputs changed → clear per-metric cache and math buffers
             if (newCacheKey != _cacheKey)
             {
                 _cacheKey = newCacheKey;
                 _metricCache.Clear();
+                _weibullKappas = null;
+                _weibullLambdas = null;
             }
 
             // 1. Load Weather
@@ -144,21 +158,26 @@ namespace Eddy
 
             // 2. Build spatial factors [probe, dir]
             double hProbe = 1.8;
-            double refScale = BC.ScaleABL(uRefSim, zRef, z0, hProbe);
+            double logRef = Math.Log((zRef + z0) / z0);
+            double logProbe = Math.Log((hProbe + z0) / z0);
+            double ablFactor = logProbe / logRef; // Pre-calculated constant factor
+
             var spatialFactors = new double[numProbes, numDirs];
-            for (int d = 0; d < numDirs; d++)
+            Parallel.For(0, numDirs, d =>
             {
                 var branch = d < speedTree.PathCount ? speedTree.Branches[d] : null;
-                if (branch == null) continue;
-                int n = Math.Min(numProbes, branch.Count);
-                for (int p = 0; p < n; p++)
-                    spatialFactors[p, d] = branch[p].Value / refScale;
-            }
+                if (branch != null)
+                {
+                    int n = Math.Min(numProbes, branch.Count);
+                    for (int p = 0; p < n; p++)
+                        spatialFactors[p, d] = branch[p].Value / (uRefSim * ablFactor);
+                }
+            });
 
             // 3. Pre-scale EPW speeds once
             var epwScaled = new double[numHours];
             for (int h = 0; h < numHours; h++)
-                epwScaled[h] = BC.ScaleABL(weather.WindSpeed[h], zRef, z0, hProbe);
+                epwScaled[h] = weather.WindSpeed[h] * ablFactor;
 
             // 4. Pre-compute per-hour direction interpolation weights ───────────────
             // This moves WindSystem lookups (O(numDirs) each) OUT of the 128k-probe loop.
@@ -233,34 +252,51 @@ namespace Eddy
             var sw = System.Diagnostics.Stopwatch.StartNew();
 
             using (var tlBuf = new ThreadLocal<double[]>(() => new double[numHours]))
+            using (var tlWork = new ThreadLocal<double[]>(() => new double[numHours]))
             {
                 Parallel.For(0, numProbes, p =>
                 {
                     if (!useCachedParams)
                     {
                         double[] buf = tlBuf.Value;
+                        double[] work = tlWork.Value;
                         for (int h = 0; h < numHours; h++)
                         {
-                            double ratio = spatialFactors[p, hourLowIdx[h]]  * hourLowWt[h]
+                            double ratio = spatialFactors[p, hourLowIdx[h]] * hourLowWt[h]
                                          + spatialFactors[p, hourHighIdx[h]] * hourHighWt[h];
                             buf[h] = epwScaled[h] * ratio;
                         }
-                        WindComfortMetricsWeibull.GetWeibullParams(buf, out double kappa, out double lambda);
-                        _weibullKappas[p] = kappa;
-                        _weibullLambdas[p] = lambda;
+                        
+                        if (useMoM)
+                        {
+                            WindComfortMetricsWeibull.GetWeibullParamsMoM(buf, out double kappa, out double lambda);
+                            _weibullKappas[p] = kappa;
+                            _weibullLambdas[p] = lambda;
+                        }
+                        else
+                        {
+                            WindComfortMetricsWeibull.GetWeibullParams(buf, out double kappa, out double lambda, work);
+                            _weibullKappas[p] = kappa;
+                            _weibullLambdas[p] = lambda;
+                        }
                     }
 
                     var result = WindComfortMetricsWeibull.CalcExceedanceFromParams(_weibullKappas[p], _weibullLambdas[p], tid);
-                    ranks[p]   = result.Cat;
+                    ranks[p] = result.Cat;
                     letters[p] = result.ClassLetter;
                     classes[p] = result.Class;
                 });
             }
 
             sw.Stop();
+            long t6 = sw.ElapsedMilliseconds;
+            sw.Restart();
 
             // 7. Visualization (Mesh & Legend)
             var comfortMesh = new Mesh();
+            comfortMesh.Vertices.Capacity = numProbes * 4;
+            comfortMesh.Faces.Capacity = numProbes;
+            comfortMesh.VertexColors.Capacity = numProbes * 4;
             var legendMesh = new Mesh();
             var legendPts = new List<Point3d>();
             var legendLetters = new List<string> { "A", "B", "C", "D", "E" };
@@ -280,19 +316,50 @@ namespace Eddy
                 
                 System.Drawing.Color c = GetComfortColor(letters[p]);
                 Point3d pt = points[p];
-                int vc = comfortMesh.Vertices.Count;
                 
-                comfortMesh.Vertices.Add(pt.X - hSide, pt.Y - hSide, pt.Z);
-                comfortMesh.Vertices.Add(pt.X + hSide, pt.Y - hSide, pt.Z);
-                comfortMesh.Vertices.Add(pt.X + hSide, pt.Y + hSide, pt.Z);
-                comfortMesh.Vertices.Add(pt.X - hSide, pt.Y + hSide, pt.Z);
-                
-                comfortMesh.Faces.AddFace(vc, vc + 1, vc + 2, vc + 3);
-                comfortMesh.VertexColors.Add(c);
-                comfortMesh.VertexColors.Add(c);
-                comfortMesh.VertexColors.Add(c);
-                comfortMesh.VertexColors.Add(c);
+                // Add vertices and faces sequentially for simplicity if not optimizing further,
+                // but pre-calculate colors and geometry if possible.
+                // Actually, let's use the fastest Mesh approach: SetVertices/SetColors.
             }
+            
+            // Optimization: Parallel Mesh Generation
+            var verts = new Point3d[numProbes * 4];
+            var colors = new System.Drawing.Color[numProbes * 4];
+            var faces = new MeshFace[numProbes];
+
+            Parallel.For(0, numProbes, p =>
+            {
+                if (p >= points.Count) return;
+                
+                System.Drawing.Color c = GetComfortColor(letters[p]);
+                Point3d pt = points[p];
+                int vIdx = p * 4;
+
+                verts[vIdx + 0] = new Point3d(pt.X - hSide, pt.Y - hSide, pt.Z);
+                verts[vIdx + 1] = new Point3d(pt.X + hSide, pt.Y - hSide, pt.Z);
+                verts[vIdx + 2] = new Point3d(pt.X + hSide, pt.Y + hSide, pt.Z);
+                verts[vIdx + 3] = new Point3d(pt.X - hSide, pt.Y + hSide, pt.Z);
+
+                colors[vIdx + 0] = c;
+                colors[vIdx + 1] = c;
+                colors[vIdx + 2] = c;
+                colors[vIdx + 3] = c;
+
+                faces[p] = new MeshFace(vIdx, vIdx + 1, vIdx + 2, vIdx + 3);
+            });
+
+            comfortMesh.Vertices.AddVertices(verts);
+            comfortMesh.VertexColors.SetColors(colors);
+            comfortMesh.Faces.AddFaces(faces);
+            
+            sw.Stop();
+            long t7 = sw.ElapsedMilliseconds;
+
+            // Report per-step timing for performance tuning
+            Message = $"v0.7.1-Optimized\nStep 6: {t6}ms\nStep 7: {t7}ms";
+
+            // Store in cache for next solve (only if specific metric outputs changed)
+            _metricCache[metricInt] = (ranks, letters, classes, comfortMesh, legendMesh, legendPts, legendLetters);
 
             // Legend Positioning
             if (points.Count > 0)
@@ -330,7 +397,7 @@ namespace Eddy
             }
 
             // 8. Cache and output
-            _metricCache[metricInt] = (ranks, letters, classes);
+            _metricCache[metricInt] = (ranks, letters, classes, comfortMesh, legendMesh, legendPts, legendLetters);
 
             DA.SetDataList(0, ranks);
             DA.SetDataList(1, letters);
@@ -340,7 +407,7 @@ namespace Eddy
             DA.SetDataList(5, legendPts);
             DA.SetDataList(6, legendLetters);
 
-            Message = $"Metric: {metric}";
+            Message = $"v0.7.1-Optimized\nStep 6: {t6}ms\nStep 7: {t7}ms";
             AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
                 useCachedParams ? $"Metric checked {numProbes} probes in {sw.ElapsedMilliseconds} ms." : $"Weibull estimated {numProbes} probes in {sw.ElapsedMilliseconds} ms.");
         }

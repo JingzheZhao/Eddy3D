@@ -177,6 +177,9 @@ namespace Eddy
             pManager.AddTextParameter("Legend Values", "LV",
                 "Text values corresponding to the generated legend.",
                 GH_ParamAccess.list);
+            pManager.AddGenericParameter("Boundary Conditions", "BC",
+                "Automated simulation boundary conditions metadata.",
+                GH_ParamAccess.item);
         }
 
         // ──────────────────────────────────────────────
@@ -432,7 +435,7 @@ namespace Eddy
             var points = new List<Point3d>();
             var geometryList = new List<GeometryBase>();
             string onnxPath = string.Empty;
-            double uRef = 3.0;
+            double uRef = 5.0;
             double zRef = 10.0;
             double pedestrianLevel = 1.8;
             var windDirs = new List<double>();
@@ -941,6 +944,10 @@ namespace Eddy
                     DA.SetData(4, legendMesh);
                     DA.SetDataList(5, legendPts);
                     DA.SetDataList(6, legendVals);
+                    
+                    // Output automated boundary conditions for downstream components
+                    var bcMetadata = new EddyLib.BCs.ABL(0, uRef, zRef, 1.0, 0.0);
+                    DA.SetData(7, bcMetadata);
 
                     Message = $"Dirs: {windDirs.Count} | {sw.ElapsedMilliseconds} ms";
 

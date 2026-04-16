@@ -265,7 +265,7 @@ namespace EddyLib.OutdoorComfort
             return bestCase;
         }
 
-        public static void GetWeibullParams(double[] temporalVelocities, out double kappa, out double lambda)
+        public static void GetWeibullParams(double[] temporalVelocities, out double kappa, out double lambda, double[] workBuffer = null)
         {
             kappa = double.NaN;
             lambda = double.NaN;
@@ -280,26 +280,69 @@ namespace EddyLib.OutdoorComfort
 
             if (validCount == 0) return;
 
-            var arrToProcess = new double[validCount];
+            // Reuse workBuffer if provided and large enough, otherwise allocate
+            double[] arrToProcess = (workBuffer != null && workBuffer.Length >= validCount) ? workBuffer : new double[validCount];
+            
             int validIndex = 0;
             for (int i = 0; i < length; i++)
             {
                 double value = temporalVelocities[i];
                 if (value > 0.0 && value < double.PositiveInfinity)
                 {
-                    arrToProcess[validIndex] = value;
-                    validIndex++;
+                    arrToProcess[validIndex++] = value;
                 }
             }
 
             try
             {
-                var estimate = Weibull.Estimate(arrToProcess);
+                // Passing Take(validCount) to avoid processing trailing zeros/garbage in reused buffer
+                IEnumerable<double> data = (workBuffer != null) ? arrToProcess.Take(validCount) : arrToProcess;
+                var estimate = Weibull.Estimate(data);
                 if (estimate.Shape > 0.0 && estimate.Scale > 0.0 && !double.IsNaN(estimate.Shape) && !double.IsNaN(estimate.Scale))
                 {
                     kappa = estimate.Shape;
                     lambda = estimate.Scale;
                 }
+            }
+            catch { }
+        }
+
+        public static void GetWeibullParamsMoM(double[] temporalVelocities, out double kappa, out double lambda)
+        {
+            kappa = double.NaN;
+            lambda = double.NaN;
+
+            int length = temporalVelocities.Length;
+            double sum = 0;
+            double sumSq = 0;
+            int count = 0;
+
+            for (int i = 0; i < length; i++)
+            {
+                double v = temporalVelocities[i];
+                if (v > 0 && v < double.PositiveInfinity)
+                {
+                    sum += v;
+                    sumSq += v * v;
+                    count++;
+                }
+            }
+
+            if (count < 2) return;
+
+            double mean = sum / count;
+            double variance = (sumSq / count) - (mean * mean);
+            if (variance <= 0) return;
+            double stdDev = Math.Sqrt(variance);
+
+            // Justus (1978) approximation for Shape (k)
+            kappa = Math.Pow(stdDev / mean, -1.086);
+            
+            // Scale (lambda) from Mean and Gamma function
+            // lambda = mean / Gamma(1 + 1/kappa)
+            try
+            {
+                lambda = mean / MathNet.Numerics.SpecialFunctions.Gamma(1.0 + 1.0 / kappa);
             }
             catch { }
         }
