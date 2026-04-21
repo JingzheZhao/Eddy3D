@@ -30,7 +30,7 @@ namespace Eddy
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            Message = _run ? "TRUE" : "FALSE";
+            Message = _run ? "TRUE (Double-click)" : "FALSE (Double-click)";
             DA.SetData(0, _run);
         }
 
@@ -70,12 +70,41 @@ namespace Eddy
 
     internal class SafetyToggleAttributes : Grasshopper.Kernel.Attributes.GH_ComponentAttributes
     {
-        public SafetyToggleAttributes(FalseOnStartCMP owner) : base(owner) { }
+        private static System.Reflection.MethodInfo _attachCursorMethod;
+        private static bool _attachCursorMethodSearched = false;
+
+        public SafetyToggleAttributes(FalseOnStartCMP owner) : base(owner)
+        {
+            if (!_attachCursorMethodSearched)
+            {
+                var cursorServerType = Grasshopper.Instances.CursorServer.GetType();
+                _attachCursorMethod = cursorServerType.GetMethod("AttachCursor", new[] { typeof(object), typeof(string) });
+                _attachCursorMethodSearched = true;
+            }
+        }
 
         public override Grasshopper.GUI.Canvas.GH_ObjectResponse RespondToMouseDoubleClick(Grasshopper.GUI.Canvas.GH_Canvas sender, Grasshopper.GUI.GH_CanvasMouseEvent e)
         {
             ((FalseOnStartCMP)Owner).Toggle();
             return Grasshopper.GUI.Canvas.GH_ObjectResponse.Handled;
+        }
+
+        public override Grasshopper.GUI.Canvas.GH_ObjectResponse RespondToMouseMove(Grasshopper.GUI.Canvas.GH_Canvas sender, Grasshopper.GUI.GH_CanvasMouseEvent e)
+        {
+            if (Bounds.Contains(e.CanvasLocation))
+            {
+                if (_attachCursorMethod != null)
+                {
+                    _attachCursorMethod.Invoke(Grasshopper.Instances.CursorServer, new object[] { sender, "GH_Hand" });
+                }
+                else
+                {
+                    // Fallback using dynamic to bypass compilation dependency on System.Windows.Forms.Control
+                    try { ((dynamic)Grasshopper.Instances.CursorServer).AttachCursor(sender, "GH_Hand"); } catch { }
+                }
+                return Grasshopper.GUI.Canvas.GH_ObjectResponse.Handled;
+            }
+            return base.RespondToMouseMove(sender, e);
         }
     }
 }
