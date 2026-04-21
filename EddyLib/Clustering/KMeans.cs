@@ -129,7 +129,7 @@ namespace EddyLib
             // Perform the clustering
             while (hasChanges && iteration < maxIterations)
             {
-                clusterItemCount = new int[clusterCount];
+                Array.Clear(clusterItemCount, 0, clusterCount);
                 totalDistance = CalculateClusteringInformation(data, clustering, ref means, ref centroidIdx, clusterCount, ref clusterItemCount, calculateDistanceFunction);
 
                 // Debug.WriteLine("------------- Iter: " + iteration); Debug.WriteLine("Clustering:
@@ -246,14 +246,22 @@ namespace EddyLib
         {
             bool changed = false;
 
+            // Pre-resolve centroid pointers outside the N-loop
+            double[][] currentCentroids = new double[clusterCount][];
+            for (int k = 0; k < clusterCount; k++)
+            {
+                currentCentroids[k] = data[centroidIdx[k]];
+            }
+
             for (int i = 0; i < data.Length; i++)
             {
                 double minDistance = double.MaxValue;
                 int minClusterIndex = -1;
+                double[] currentData = data[i];
 
                 for (int k = 0; k < clusterCount; k++)
                 {
-                    double distance = calculateDistanceFunction(data[i], data[centroidIdx[k]]);
+                    double distance = calculateDistanceFunction(currentData, currentCentroids[k]);
                     if (distance < minDistance)
                     {
                         minDistance = distance;
