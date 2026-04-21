@@ -140,11 +140,225 @@ namespace EddyLib.OpenFOAM
             return status;
         }
 
+        public static OpenFOAMLogStatus ParseMeshingWorkflow(string meshDir, OpenFOAMLogParseOptions options = null)
+        {
+            if (string.IsNullOrWhiteSpace(meshDir) || !Directory.Exists(meshDir))
+                return new OpenFOAMLogStatus();
+
+            return ParseMeshingWorkflowLogs(
+                OpenFOAMLogLocator.FindLatestBlockMeshLog(meshDir),
+                OpenFOAMLogLocator.FindLatestSurfaceFeaturesLog(meshDir),
+                OpenFOAMLogLocator.FindLatestMeshingLog(meshDir),
+                options);
+        }
+
+        public static OpenFOAMLogStatus ParseMeshingWorkflowLogs(
+            string blockMeshLogPath,
+            string surfaceFeaturesLogPath,
+            string snappyHexMeshLogPath,
+            OpenFOAMLogParseOptions options = null)
+        {
+            options = options ?? new OpenFOAMLogParseOptions();
+
+            var blockMesh = ParseMeshingUtilityLog(blockMeshLogPath, "blockMesh");
+            var surfaceFeatures = ParseMeshingUtilityLog(surfaceFeaturesLogPath, "surfaceFeatures");
+            var snappyHexMesh = ParseMeshingLog(snappyHexMeshLogPath, options);
+
+            if (IsLogOlderThan(surfaceFeaturesLogPath, blockMeshLogPath))
+                surfaceFeatures = EmptyStep(surfaceFeaturesLogPath, "surfaceFeatures");
+
+            string latestPreSnappyLog = LatestLogPath(blockMeshLogPath, surfaceFeaturesLogPath);
+            if (IsLogOlderThan(snappyHexMeshLogPath, latestPreSnappyLog))
+                snappyHexMesh = EmptyStep(snappyHexMeshLogPath, "snappyHexMesh");
+
+            bool hasAnyLog = blockMesh.HasLog || surfaceFeatures.HasLog || snappyHexMesh.HasLog;
+            var active = snappyHexMesh.HasLog
+                ? snappyHexMesh
+                : surfaceFeatures.HasLog
+                    ? surfaceFeatures
+                    : blockMesh;
+
+            var status = new OpenFOAMLogStatus
+            {
+                LogPath = active?.LogPath,
+                HasLog = hasAnyLog,
+                HasError = blockMesh.HasError || surfaceFeatures.HasError || snappyHexMesh.HasError,
+                ErrorMessage = FirstNonEmpty(blockMesh.ErrorMessage, surfaceFeatures.ErrorMessage, snappyHexMesh.ErrorMessage),
+                IsFinished = snappyHexMesh.HasLog && snappyHexMesh.IsFinished
+                    && !blockMesh.HasError && !surfaceFeatures.HasError && !snappyHexMesh.HasError,
+                Phase = active?.Phase,
+                StepName = active?.StepName,
+                StepIndex = snappyHexMesh.HasLog ? 3 : surfaceFeatures.HasLog ? 2 : blockMesh.HasLog ? 1 : (int?)null,
+                StepCount = 3,
+                MorphIteration = snappyHexMesh.MorphIteration,
+                MorphIterationsTotal = snappyHexMesh.MorphIterationsTotal,
+                EstimatedRemaining = snappyHexMesh.EstimatedRemaining,
+                LastLogLine = active?.LastLogLine,
+                WarningCount = blockMesh.WarningCount + surfaceFeatures.WarningCount + snappyHexMesh.WarningCount,
+                LastWarningLine = LastNonEmpty(blockMesh.LastWarningLine, surfaceFeatures.LastWarningLine, snappyHexMesh.LastWarningLine),
+                BlockMeshLogPath = blockMeshLogPath,
+                SurfaceFeaturesLogPath = surfaceFeaturesLogPath,
+                SnappyHexMeshLogPath = snappyHexMeshLogPath
+            };
+
+            double blockProgress = StepProgress(blockMesh, surfaceFeatures.HasLog || snappyHexMesh.HasLog);
+            double surfaceProgress = StepProgress(surfaceFeatures, snappyHexMesh.HasLog);
+            double snappyProgress = snappyHexMesh.HasLog ? Clamp01(snappyHexMesh.Progress ?? 0.0) : 0.0;
+
+            status.Progress = Clamp01((0.15 * blockProgress) + (0.10 * surfaceProgress) + (0.75 * snappyProgress));
+
+            if (status.IsFinished)
+                status.Progress = 1.0;
+
+            return status;
+        }
+
+        private static OpenFOAMLogStatus EmptyStep(string logPath, string stepName)
+        {
+            return new OpenFOAMLogStatus
+            {
+                LogPath = logPath,
+                StepName = stepName,
+                Phase = stepName
+            };
+        }
+
+        private static OpenFOAMLogStatus ParseMeshingUtilityLog(string logPath, string stepName)
+        {
+            var status = new OpenFOAMLogStatus
+            {
+                LogPath = logPath,
+                StepName = stepName,
+                Phase = stepName
+            };
+
+            if (string.IsNullOrWhiteSpace(logPath) || !File.Exists(logPath))
+                return status;
+
+            status.HasLog = true;
+            bool hasError = false;
+            bool finished = false;
+            int warningCount = 0;
+            string lastWarning = null;
+            string lastNonEmpty = null;
+            double progress = 0.2;
+
+            try
+            {
+                using (var stream = new FileStream(logPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var reader = new StreamReader(stream))
+                {
+                    string rawLine;
+                    while ((rawLine = reader.ReadLine()) != null)
+                    {
+                        var lineSpan = rawLine.AsSpan().Trim();
+                        if (lineSpan.IsEmpty)
+                            continue;
+
+                        lastNonEmpty = rawLine.Trim();
+
+                        if (lineSpan.IndexOf("Create time".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            hasError = false;
+                            finished = false;
+                            status.ErrorMessage = null;
+                            warningCount = 0;
+                            lastWarning = null;
+                            progress = 0.2;
+                        }
+
+                        if (IsWarningLine(lineSpan))
+                        {
+                            warningCount++;
+                            lastWarning = lastNonEmpty;
+                        }
+
+                        if (IsErrorLine(lineSpan))
+                        {
+                            hasError = true;
+                            if (string.IsNullOrWhiteSpace(status.ErrorMessage))
+                                status.ErrorMessage = lastNonEmpty;
+                        }
+
+                        if (lineSpan.IndexOf("Writing".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                            progress = Math.Max(progress, 0.8);
+
+                        if (IsEndLine(lineSpan))
+                        {
+                            finished = true;
+                            progress = 1.0;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                hasError = true;
+                status.ErrorMessage = ex.Message;
+            }
+
+            status.HasError = hasError;
+            status.IsFinished = finished && !hasError;
+            status.LastLogLine = lastNonEmpty;
+            status.WarningCount = warningCount;
+            status.LastWarningLine = lastWarning;
+            status.Progress = Clamp01(progress);
+            return status;
+        }
+
+        private static bool IsLogOlderThan(string candidatePath, string newerPath)
+        {
+            if (!TryGetWriteTimeUtc(candidatePath, out var candidateTime))
+                return false;
+
+            if (!TryGetWriteTimeUtc(newerPath, out var newerTime))
+                return false;
+
+            return candidateTime < newerTime;
+        }
+
+        private static string LatestLogPath(params string[] paths)
+        {
+            string latestPath = null;
+            DateTime latestTime = DateTime.MinValue;
+
+            if (paths == null)
+                return null;
+
+            foreach (var path in paths)
+            {
+                if (!TryGetWriteTimeUtc(path, out var time))
+                    continue;
+
+                if (time >= latestTime)
+                {
+                    latestTime = time;
+                    latestPath = path;
+                }
+            }
+
+            return latestPath;
+        }
+
+        private static bool TryGetWriteTimeUtc(string path, out DateTime writeTimeUtc)
+        {
+            writeTimeUtc = default;
+
+            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+                return false;
+
+            writeTimeUtc = File.GetLastWriteTimeUtc(path);
+            return true;
+        }
+
         private static void ParseMeshingStream(StreamReader reader, OpenFOAMLogStatus status, OpenFOAMLogParseOptions options)
         {
             bool hasError = false;
             bool finished = false;
             string lastNonEmpty = null;
+            int warningCount = 0;
+            string lastWarning = null;
+            double progress = 0.02;
 
             string phase = null;
             int? currentMorphIteration = null;
@@ -171,7 +385,16 @@ namespace EddyLib.OpenFOAM
                     currentMorphIteration = null;
                     totalMorphIterations = null;
                     currentMorphDuration = 0;
+                    warningCount = 0;
+                    lastWarning = null;
+                    progress = 0.02;
                     morphDurations.Clear();
+                }
+
+                if (IsWarningLine(lineSpan))
+                {
+                    warningCount++;
+                    lastWarning = lastNonEmpty;
                 }
 
                 if (IsErrorLine(lineSpan))
@@ -182,15 +405,43 @@ namespace EddyLib.OpenFOAM
                 }
 
                 if (lineSpan.StartsWith("Finished meshing".AsSpan(), StringComparison.OrdinalIgnoreCase))
+                {
                     finished = true;
+                    progress = 1.0;
+                }
 
                 if (IsEndLine(lineSpan))
+                {
                     finished = true;
+                    progress = 1.0;
+                }
+
+                if (lineSpan.IndexOf("Read mesh".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                    progress = Math.Max(progress, 0.06);
 
                 if (lineSpan.IndexOf("Morphing phase".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                {
                     phase = "Morphing";
+                    progress = Math.Max(progress, 0.58);
+                }
                 else if (lineSpan.IndexOf("Refinement phase".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                {
                     phase = "Refinement";
+                    progress = Math.Max(progress, 0.12);
+                }
+
+                if (lineSpan.IndexOf("Feature refinement iteration".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                    progress = Math.Max(progress, 0.16);
+                else if (lineSpan.IndexOf("Surface refinement iteration".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                    progress = Math.Max(progress, 0.27);
+                else if (lineSpan.IndexOf("Shell refinement iteration".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                    progress = Math.Max(progress, 0.39);
+                else if (lineSpan.IndexOf("Splitting mesh at surface intersections".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                    progress = Math.Max(progress, 0.50);
+                else if (lineSpan.IndexOf("Repatching faces".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                    progress = Math.Max(progress, 0.93);
+                else if (lineSpan.IndexOf("Checking final mesh".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                    progress = Math.Max(progress, 0.96);
 
                 if (TryParseMorphIterationsTotal(lineSpan, out var totalMorph))
                     totalMorphIterations = totalMorph;
@@ -203,6 +454,16 @@ namespace EddyLib.OpenFOAM
                     currentMorphIteration = morphIter;
                     currentMorphDuration = 0;
                     phase = "Morphing";
+
+                    if (totalMorphIterations.HasValue && totalMorphIterations.Value > 0)
+                    {
+                        double fraction = Math.Min(1.0, Math.Max(0.0, (morphIter + 1.0) / totalMorphIterations.Value));
+                        progress = Math.Max(progress, 0.60 + (0.30 * fraction));
+                    }
+                    else
+                    {
+                        progress = Math.Max(progress, 0.60);
+                    }
                 }
 
                 if (currentMorphIteration.HasValue)
@@ -223,8 +484,14 @@ namespace EddyLib.OpenFOAM
             status.HasError = hasError;
             status.IsFinished = finished && !hasError;
             status.Phase = phase;
+            status.StepName = "snappyHexMesh";
+            status.StepIndex = 3;
+            status.StepCount = 3;
             status.MorphIteration = currentMorphIteration;
             status.MorphIterationsTotal = totalMorphIterations;
+            status.WarningCount = warningCount;
+            status.LastWarningLine = lastWarning;
+            status.Progress = Clamp01(progress);
 
             if (!status.IsFinished
                 && string.Equals(phase, "Morphing", StringComparison.OrdinalIgnoreCase)
@@ -243,6 +510,17 @@ namespace EddyLib.OpenFOAM
         private static bool IsEndLine(ReadOnlySpan<char> line) =>
             line.Equals("End", StringComparison.OrdinalIgnoreCase);
 
+        private static bool IsWarningLine(ReadOnlySpan<char> line)
+        {
+            if (line.IndexOf("FOAM Warning".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                return true;
+
+            if (line.StartsWith("Warning".AsSpan(), StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            return false;
+        }
+
         private static bool IsErrorLine(ReadOnlySpan<char> line)
         {
             if (line.IndexOf("FOAM FATAL".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
@@ -255,6 +533,62 @@ namespace EddyLib.OpenFOAM
                 return true;
 
             return false;
+        }
+
+        private static string FirstNonEmpty(params string[] values)
+        {
+            if (values == null)
+                return null;
+
+            foreach (var value in values)
+            {
+                if (!string.IsNullOrWhiteSpace(value))
+                    return value;
+            }
+
+            return null;
+        }
+
+        private static string LastNonEmpty(params string[] values)
+        {
+            if (values == null)
+                return null;
+
+            for (int i = values.Length - 1; i >= 0; i--)
+            {
+                if (!string.IsNullOrWhiteSpace(values[i]))
+                    return values[i];
+            }
+
+            return null;
+        }
+
+        private static double StepProgress(OpenFOAMLogStatus step, bool inferFinished)
+        {
+            if (step == null)
+                return inferFinished ? 1.0 : 0.0;
+
+            if (!step.HasLog)
+                return inferFinished ? 1.0 : 0.0;
+
+            if (step.IsFinished)
+                return 1.0;
+
+            return Clamp01(step.Progress ?? 0.0);
+        }
+
+        private static double Clamp01(double value)
+        {
+            if (double.IsNaN(value) || double.IsInfinity(value))
+                return 0.0;
+
+            if (value < 0.0)
+                return 0.0;
+
+            if (value > 1.0)
+                return 1.0;
+
+            return value;
         }
 
         private static bool TryParseTimeLine(ReadOnlySpan<char> line, out double time)

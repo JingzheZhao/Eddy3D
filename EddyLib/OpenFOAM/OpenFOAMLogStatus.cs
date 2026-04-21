@@ -15,6 +15,9 @@ namespace EddyLib.OpenFOAM
         public string ErrorMessage { get; internal set; }
 
         public string Phase { get; internal set; }
+        public string StepName { get; internal set; }
+        public int? StepIndex { get; internal set; }
+        public int? StepCount { get; internal set; }
 
         public double? CurrentIteration { get; internal set; }
         public double? TotalIterations { get; internal set; }
@@ -22,8 +25,16 @@ namespace EddyLib.OpenFOAM
         public int? MorphIteration { get; internal set; }
         public int? MorphIterationsTotal { get; internal set; }
 
+        public double? Progress { get; internal set; }
+        public int WarningCount { get; internal set; }
+        public string LastWarningLine { get; internal set; }
+
         public TimeSpan? EstimatedRemaining { get; internal set; }
         public double? ExecutionTimeSeconds { get; internal set; }
         public string LastLogLine { get; internal set; }
+
+        public string BlockMeshLogPath { get; internal set; }
+        public string SurfaceFeaturesLogPath { get; internal set; }
+        public string SnappyHexMeshLogPath { get; internal set; }
     }
 }

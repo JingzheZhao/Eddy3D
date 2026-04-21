@@ -13,6 +13,8 @@ namespace EddyLib
     public static partial class RunFoamSimulation
     {
         private const string MeshLogFileName = "snappyHexMesh.log";
+        private const string BlockMeshLogFileName = "blockMesh.log";
+        private const string SurfaceFeaturesLogFileName = "surfaceFeatures.log";
         private const string SimulationLogFileName = "simpleFoam.log";
 
         #region Batch Files
@@ -67,8 +69,8 @@ namespace EddyLib
             var meshCmds = new List<string> { "cd mesh" };
             if (runSettings.CPUs > 1)
             {
-                meshCmds.Add("blockMesh");
-                meshCmds.Add("surfaceFeatures");
+                meshCmds.Add(WithDockerLog("blockMesh", BlockMeshLogFileName));
+                meshCmds.Add(WithDockerLog("surfaceFeatures", SurfaceFeaturesLogFileName));
                 meshCmds.Add("decomposePar -force");
                 meshCmds.Add(WithDockerLog(
                     string.Format("mpiexec -np {0} snappyHexMesh -overwrite -parallel", runSettings.CPUs),
@@ -78,8 +80,8 @@ namespace EddyLib
             }
             else
             {
-                meshCmds.Add("blockMesh");
-                meshCmds.Add("surfaceFeatures");
+                meshCmds.Add(WithDockerLog("blockMesh", BlockMeshLogFileName));
+                meshCmds.Add(WithDockerLog("surfaceFeatures", SurfaceFeaturesLogFileName));
                 meshCmds.Add(WithDockerLog("snappyHexMesh -overwrite", MeshLogFileName));
                 meshCmds.Add("renumberMesh -overwrite");
             }

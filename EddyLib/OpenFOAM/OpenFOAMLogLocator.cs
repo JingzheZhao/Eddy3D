@@ -16,11 +16,23 @@ namespace EddyLib.OpenFOAM
         public static IReadOnlyList<string> MeshingCandidates { get; } =
             new[] { "snappyHexMesh.log", "log.snappyHexMesh" };
 
+        public static IReadOnlyList<string> BlockMeshCandidates { get; } =
+            new[] { "blockMesh.log", "log.blockMesh" };
+
+        public static IReadOnlyList<string> SurfaceFeaturesCandidates { get; } =
+            new[] { "surfaceFeatures.log", "log.surfaceFeatures" };
+
         public static string FindLatestSimulationLog(string caseDir) =>
             FindLatestExisting(caseDir, SimulationCandidates, IsSimulationLogName);
 
         public static string FindLatestMeshingLog(string meshDir) =>
             FindLatestExisting(meshDir, MeshingCandidates, IsMeshingLogName);
+
+        public static string FindLatestBlockMeshLog(string meshDir) =>
+            FindLatestExisting(meshDir, BlockMeshCandidates, IsBlockMeshLogName);
+
+        public static string FindLatestSurfaceFeaturesLog(string meshDir) =>
+            FindLatestExisting(meshDir, SurfaceFeaturesCandidates, IsSurfaceFeaturesLogName);
 
         private static string FindLatestExisting(
             string dir,
@@ -82,6 +94,24 @@ namespace EddyLib.OpenFOAM
                 return false;
 
             return fileName.IndexOf("snappyHexMesh", StringComparison.OrdinalIgnoreCase) >= 0
+                   && IsLikelyLogFileName(fileName);
+        }
+
+        private static bool IsBlockMeshLogName(string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+                return false;
+
+            return fileName.IndexOf("blockMesh", StringComparison.OrdinalIgnoreCase) >= 0
+                   && IsLikelyLogFileName(fileName);
+        }
+
+        private static bool IsSurfaceFeaturesLogName(string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+                return false;
+
+            return fileName.IndexOf("surfaceFeatures", StringComparison.OrdinalIgnoreCase) >= 0
                    && IsLikelyLogFileName(fileName);
         }
 
