@@ -75,6 +75,12 @@
 **Learning:** In calculations inside algorithms like `NaturalVentilation`, `Math.Pow(x, 2)` causes performance overhead compared to explicitly doing `x * x`. When doing complex equations and calculating distances, doing `Math.Pow` twice requires multiple `Math.Pow` overheads and the internal type conversions in Math.Pow implementation. Furthermore, storing the value to a local variable and performing explicit multiplication `(val * val)` skips repeated multiplication of the terms to be squared.
 **Action:** When inspecting equations (such as Natural Ventilation calculation of `C_D_tot_A`), pull repeated terms (such as `AverageCDCPNeg * AverageAreaCpNeg`) into local variables and replace `Math.Pow(..., 2)` with `(val * val)` directly, giving considerable performance bumps especially over large datasets or iterated executions.
 
+<<<<<<< bolt/interpolate-umag-closest-point-opt-12479949240368985006
+## 2025-05-18 - [Avoid Math.Pow and O(N^2) Array.IndexOf in LINQ distance sorting]
+**Learning:** In closest point searches, using Math.Pow combined with Array.IndexOf inside a LINQ Select/OrderBy chain creates immense overhead. Math.Pow is extremely slow compared to direct multiplication (x * x), and calling Array.IndexOf on the original array for every sorted item results in an O(N * M) complexity, dominating the execution time.
+**Action:** Replace Math.Pow with explicit multiplication, and project the original array index using LINQ Select((item, index) => ...) into a tuple or KeyValuePair before sorting. This transforms the lookup from O(M) to O(1), resulting in substantial performance improvements.
+=======
 ## 2026-04-21 - Replace ToHashSet().ToList() with Distinct().ToList()
 **Learning:** In .NET 8, replacing the redundant LINQ pattern `.ToHashSet().ToList()` with `.Distinct().ToList()` significantly improves performance (approx. 2x faster for small collections) by avoiding the overhead of creating and populating an explicit intermediate `HashSet<T>` object. Benchmarks confirm this optimization provides faster execution for both small (10) and large (1000) datasets while maintaining similar memory usage.
 **Action:** Use `.Distinct().ToList()` instead of `.ToHashSet().ToList()` to avoid the overhead of creating and populating an explicit intermediate `HashSet<T>` object.
+>>>>>>> dev
