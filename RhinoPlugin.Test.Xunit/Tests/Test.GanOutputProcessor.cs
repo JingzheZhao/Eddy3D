@@ -22,5 +22,15 @@ namespace RhinoPlugin.Test.Xunit
             Assert.All(quad, vertex =>
                 Assert.Equal(GanOutputProcessor.PreviewHeightMeters, vertex.Z, 6));
         }
+
+        [Fact]
+        public void TurboColormap_UsesExpectedOutputScale()
+        {
+            var low = TurboColormap.GetColor(0.0);
+            var high = TurboColormap.GetColor(1.0);
+
+            Assert.True(low.B > low.R, "Low wind speeds should use the blue/purple end of Turbo.");
+            Assert.True(high.R > high.B, "High wind speeds should use the red end of Turbo.");
+        }
     }
 }

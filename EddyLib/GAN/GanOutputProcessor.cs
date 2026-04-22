@@ -46,8 +46,15 @@ namespace EddyLib.GAN
                 pixelSize,
                 windDirection,
                 rotationCenter,
-                (col, row) => InfernoColormap.GetColor(
-                    windSpeeds[row * OutputWidth + col] / MaxWindSpeed));
+                (col, row) => TurboColormap.GetColor(
+                    ToTurboScale(windSpeeds[row * OutputWidth + col])));
+        }
+
+        private static double ToTurboScale(double windSpeed)
+        {
+            // The API maps Turbo index i to i * (15 / 256). Invert that
+            // quantisation so wind-only mesh colours match the former image output.
+            return windSpeed * 256.0 / (MaxWindSpeed * 255.0);
         }
 
         internal static Mesh CreateResultMeshFromPixels(
