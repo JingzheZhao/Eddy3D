@@ -70,6 +70,21 @@ namespace Eddy
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            try
+            {
+                SolveInstanceCore(DA);
+            }
+            catch (TypeLoadException ex)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
+                    "Could not load FluidX3D types. This usually means an outdated EddyLib.dll "
+                    + "is installed. Please update Eddy3D or reinstall the plugin.\n"
+                    + "Details: " + ex.Message);
+            }
+        }
+
+        private void SolveInstanceCore(IGH_DataAccess DA)
+        {
             string sourceDir = string.Empty;
             int memoryMb = 1000;
             double simSeconds = 360.0;

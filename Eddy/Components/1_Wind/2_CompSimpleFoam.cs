@@ -562,6 +562,19 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
         private static FluidX3DRunSettings BuildFluidX3DRunSettings(
             GH_ObjectWrapper runSettingsWrapper)
         {
+            try
+            {
+                return BuildFluidX3DRunSettingsCore(runSettingsWrapper);
+            }
+            catch (TypeLoadException)
+            {
+                return null;
+            }
+        }
+
+        private static FluidX3DRunSettings BuildFluidX3DRunSettingsCore(
+            GH_ObjectWrapper runSettingsWrapper)
+        {
             if (runSettingsWrapper?.Value is FluidX3DRunSettings fluidSettings)
             {
                 return fluidSettings;
@@ -579,7 +592,43 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             bool runMeshing,
             bool runSimulation)
         {
+            try
+            {
+                RunFluidX3DSimulationCore(
+                    DA, domain, runSettingsWrapper,
+                    baseWorkingDirectory, meshSettings,
+                    runMeshing, runSimulation);
+            }
+            catch (TypeLoadException ex)
+            {
+                string message =
+                    "Could not load FluidX3D types. This usually means an outdated "
+                    + "EddyLib.dll is installed (e.g. from a previous Eddy3D package). "
+                    + "Please close Rhino, update or reinstall Eddy3D, then reopen Rhino.\n"
+                    + "Details: " + ex.Message;
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, message);
+                OFRunSettings fallback = new OFRunSettings();
+                fallback.simEngine = SimEngine.FluidX3D;
+                SetSkippedOutputs(DA, domain, baseWorkingDirectory, meshSettings, fallback, message);
+            }
+        }
+
+        private void RunFluidX3DSimulationCore(
+            IGH_DataAccess DA,
+            OFBaseDomain domain,
+            GH_ObjectWrapper runSettingsWrapper,
+            string baseWorkingDirectory,
+            OFMeshSettings meshSettings,
+            bool runMeshing,
+            bool runSimulation)
+        {
             FluidX3DRunSettings fluidRunSettings = BuildFluidX3DRunSettings(runSettingsWrapper);
+
+            if (fluidRunSettings == null)
+            {
+                throw new TypeLoadException(
+                    "EddyLib.FluidX3D.FluidX3DRunSettings could not be loaded.");
+            }
 
             if (runSettingsWrapper?.Value is OFRunSettings)
             {
