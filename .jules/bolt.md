@@ -84,3 +84,7 @@
 **Learning:** In .NET 8, replacing the redundant LINQ pattern `.ToHashSet().ToList()` with `.Distinct().ToList()` significantly improves performance (approx. 2x faster for small collections) by avoiding the overhead of creating and populating an explicit intermediate `HashSet<T>` object. Benchmarks confirm this optimization provides faster execution for both small (10) and large (1000) datasets while maintaining similar memory usage.
 **Action:** Use `.Distinct().ToList()` instead of `.ToHashSet().ToList()` to avoid the overhead of creating and populating an explicit intermediate `HashSet<T>` object.
 >>>>>>> dev
+
+## 2025-05-18 - Hoist array allocations out of tight loops in iterative machine learning algorithms
+**Learning:** In highly iterative machine learning loops (such as the KMeans clustering inner loop), allocating new local arrays (like `new double[clusterCount]` and `new double[clusterCount][]`) on every iteration incurs an immense amount of Garbage Collection (GC) pressure. This degrades throughput considerably, especially given the `while` loop runs to convergence (potentially hundreds of iterations).
+**Action:** Always pre-allocate shared workspace arrays outside the main iteration loop. Refactor helper methods (like `CalculateClusteringInformation` and `AssignClustering` in KMeans) to accept these pre-allocated arrays as `ref` or standard parameters. Reuse them by clearing/resetting via `Array.Fill()` or resetting specific indexes, avoiding dynamic object instantiation.
