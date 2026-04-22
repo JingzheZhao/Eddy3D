@@ -7,6 +7,7 @@ namespace EddyLib.GAN
 {
     public enum GanColorMap
     {
+        Viridis,
         Turbo,
         Inferno
     }
@@ -34,7 +35,7 @@ namespace EddyLib.GAN
             double pixelSize,
             int windDirection,
             Point3d rotationCenter,
-            GanColorMap colorMap = GanColorMap.Turbo)
+            GanColorMap colorMap = GanColorMap.Viridis)
         {
             int expected = OutputWidth * OutputHeight;
             if (windSpeeds == null)
@@ -62,11 +63,14 @@ namespace EddyLib.GAN
         {
             switch (colorMap)
             {
+                case GanColorMap.Viridis:
+                    return ViridisColormap.GetColor(ToUnitScale(windSpeed));
                 case GanColorMap.Inferno:
                     return InfernoColormap.GetColor(ToUnitScale(windSpeed));
                 case GanColorMap.Turbo:
-                default:
                     return TurboColormap.GetColor(ToTurboScale(windSpeed));
+                default:
+                    return ViridisColormap.GetColor(ToUnitScale(windSpeed));
             }
         }
 

@@ -88,7 +88,7 @@ namespace Eddy
                 GH_Strings.GanPredict.ColorMapNick,
                 GH_Strings.GanPredict.ColorMapDesc,
                 GH_ParamAccess.item,
-                GanColorMap.Turbo.ToString());
+                GanColorMap.Viridis.ToString());
             pManager[7].Optional = true;
         }
 
@@ -117,7 +117,7 @@ namespace Eddy
             string apiUrl = GanApiClient.DefaultApiUrl;
             double vSize = 3.0;
             double colorSize = 100.0;
-            string colorMapInput = GanColorMap.Turbo.ToString();
+            string colorMapInput = GanColorMap.Viridis.ToString();
 
             if (!DA.GetDataList(0, buildings)) return;
             
@@ -169,7 +169,7 @@ namespace Eddy
             {
                 AddRuntimeMessage(
                     GH_RuntimeMessageLevel.Error,
-                    $"Unsupported color map '{colorMapInput}'. Use Turbo or Inferno.");
+                    $"Unsupported color map '{colorMapInput}'. Use Viridis, Turbo, or Inferno.");
                 return;
             }
 
@@ -316,7 +316,7 @@ namespace Eddy
 
         private static bool TryParseColorMap(string input, out GanColorMap colorMap)
         {
-            string value = string.IsNullOrWhiteSpace(input) ? GanColorMap.Turbo.ToString() : input.Trim();
+            string value = string.IsNullOrWhiteSpace(input) ? GanColorMap.Viridis.ToString() : input.Trim();
             return Enum.TryParse(value, ignoreCase: true, out colorMap);
         }
 

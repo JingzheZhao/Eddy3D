@@ -36,9 +36,12 @@ namespace RhinoPlugin.Test.Xunit
         [Fact]
         public void GetColor_UsesSelectedColorMap()
         {
+            var viridis = GanOutputProcessor.GetColor(0.0, GanColorMap.Viridis);
             var turbo = GanOutputProcessor.GetColor(0.0, GanColorMap.Turbo);
             var inferno = GanOutputProcessor.GetColor(0.0, GanColorMap.Inferno);
 
+            Assert.NotEqual(viridis, turbo);
+            Assert.NotEqual(viridis, inferno);
             Assert.NotEqual(turbo, inferno);
         }
     }

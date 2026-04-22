@@ -504,7 +504,7 @@ namespace EddyLib
 
             public const string ColorMap = "Color Map";
             public const string ColorMapNick = "CMap";
-            public const string ColorMapDesc = "Result mesh color map. Supported values: Turbo, Inferno.";
+            public const string ColorMapDesc = "Result mesh color map. Supported values: Viridis, Turbo, Inferno.";
 
             public const string WindSpeed = "Wind Speed";
             public const string WindSpeedNick = "UMag";
