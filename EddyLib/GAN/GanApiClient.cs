@@ -78,23 +78,24 @@ namespace EddyLib.GAN
             var responseJson = await response.Content.ReadAsStringAsync();
             var result = JsonConvert.DeserializeObject<PredictResponse>(responseJson);
 
-            // 3. Decompress the returned wind speeds
-            byte[] compWindBytes = Convert.FromBase64String(result.wind_speeds_b64);
-            List<double> windSpeeds = new List<double>();
-            using (var ms = new MemoryStream(compWindBytes))
-            using (var gzip = new GZipStream(ms, CompressionMode.Decompress))
-            using (var msOut = new MemoryStream())
+            // 3. Decode wind speeds — server may return either:
+            //    (a) wind_speeds_b64: base64(gzip(float32[])) — compressed format
+            //    (b) wind_speeds: List<double>               — legacy uncompressed format
+            List<double> windSpeeds;
+            if (result.wind_speeds_b64 != null)
             {
-                gzip.CopyTo(msOut);
-                byte[] decompressed = msOut.ToArray();
-                float[] floatArr = new float[decompressed.Length / sizeof(float)];
-                Buffer.BlockCopy(decompressed, 0, floatArr, 0, decompressed.Length);
-                
-                windSpeeds.Capacity = floatArr.Length;
-                for (int i = 0; i < floatArr.Length; i++)
-                {
-                    windSpeeds.Add(floatArr[i]);
-                }
+                byte[] compWindBytes = Convert.FromBase64String(result.wind_speeds_b64);
+                windSpeeds = DecompressFloatsFromGzip(compWindBytes);
+            }
+            else if (result.wind_speeds != null)
+            {
+                windSpeeds = result.wind_speeds;
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    "GAN API response contained neither 'wind_speeds_b64' nor 'wind_speeds'. " +
+                    "The server may be running an incompatible version.");
             }
 
             return new GanPredictionResult
@@ -151,6 +152,38 @@ namespace EddyLib.GAN
             return false;
         }
 
+        private static List<double> DecompressFloatsFromGzip(byte[] compressed)
+        {
+            // Detect format from magic bytes before attempting decompression.
+            // GZip: 0x1F 0x8B | zlib: 0x78 xx | ZIP: 0x50 0x4B
+            if (compressed.Length < 2)
+                throw new InvalidDataException("Compressed wind speed data is too short to be valid.");
+
+            bool isGzip = compressed[0] == 0x1F && compressed[1] == 0x8B;
+            if (!isGzip)
+            {
+                byte b0 = compressed[0], b1 = compressed[1];
+                string hint = (b0 == 0x78) ? "zlib/deflate" : (b0 == 0x50 && b1 == 0x4B) ? "ZIP" : $"unknown (0x{b0:X2} 0x{b1:X2})";
+                throw new InvalidDataException(
+                    $"GAN API returned wind speeds in {hint} format instead of GZip. " +
+                    "The server and client compression formats are mismatched.");
+            }
+
+            using (var ms = new MemoryStream(compressed))
+            using (var gzip = new GZipStream(ms, CompressionMode.Decompress))
+            using (var msOut = new MemoryStream())
+            {
+                gzip.CopyTo(msOut);
+                byte[] decompressed = msOut.ToArray();
+                float[] floatArr = new float[decompressed.Length / sizeof(float)];
+                Buffer.BlockCopy(decompressed, 0, floatArr, 0, decompressed.Length);
+                var result = new List<double>(floatArr.Length);
+                for (int i = 0; i < floatArr.Length; i++)
+                    result.Add(floatArr[i]);
+                return result;
+            }
+        }
+
         private class PredictRequest
         {
             public string data_b64 { get; set; }
@@ -159,6 +192,7 @@ namespace EddyLib.GAN
         private class PredictResponse
         {
             public string wind_speeds_b64 { get; set; }
+            public List<double> wind_speeds { get; set; }
             public string image_base64 { get; set; }
             public int width { get; set; }
             public int height { get; set; }
