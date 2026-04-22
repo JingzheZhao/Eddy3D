@@ -321,132 +321,83 @@ namespace EddyLib.Radiation
 
         public static void RunRayCastMat(string octree_path, string pts_path, string output_path)
         {
-            //// add environmental variables
-            //string radbin = platform.RadBinDir;
-            //string radlib = Path.Combine(platform.RadDir, "lib");
-            //string daybin = platform.DaysimBinDir;
-            //char ps = ';';
-            //Environment.SetEnvironmentVariable("PATH", "." + ps + radlib + ps + radbin + ps + daybin + ps + "$PATH");
-            //Environment.SetEnvironmentVariable("RAYPATH", "." + ps + radlib + ps + radbin + ps + daybin + ps + "$RAYPATH");
-
-            ProcessStartInfo psi = new ProcessStartInfo("cmd.exe", "/c rtrace -oM -h -ab 0 \"" + octree_path + "\" < \"" + pts_path + "\" > \"" + output_path + "\"");
-            psi.UseShellExecute = false;
-            psi.RedirectStandardOutput = true;
-            psi.RedirectStandardError = true;
-            psi.CreateNoWindow = true;
-            psi.RedirectStandardInput = true;
-            psi.WorkingDirectory = Path.GetDirectoryName(octree_path);
-
-            Process p = Process.Start(psi);
-            p.WaitForExit();
-            p.Close();
+            RunRTrace(octree_path, pts_path, output_path, "-oM", "-h", "-ab", "0");
         }
 
         public static void RunRayCastMat_Binary(string octree_path, string pts_path, string output_path)
         {
-            //// get executing platform
-            //var platform = new ExecutingPlatform();
-
-            //// add environmental variables
-            //string radbin = platform.RadBinDir;
-            //string radlib = Path.Combine(platform.RadDir, "lib");
-            //string daybin = platform.DaysimBinDir;
-            //char ps = (platform.OS == OSType.Windows) ? ';' : ':';
-            //Environment.SetEnvironmentVariable("PATH", "." + ps + radlib + ps + radbin + ps + daybin + ps + "$PATH");
-            //Environment.SetEnvironmentVariable("RAYPATH", "." + ps + radlib + ps + radbin + ps + daybin + ps + "$RAYPATH");
-
-            ProcessStartInfo psi = new ProcessStartInfo("cmd.exe", "/c rtrace -oM -ffa -h -ab 0 \"" + octree_path + "\" < \"" + pts_path + "\" > \"" + output_path + "\"");
-            psi.UseShellExecute = false;
-            psi.RedirectStandardOutput = true;
-            psi.RedirectStandardError = true;
-            psi.CreateNoWindow = true;
-            psi.RedirectStandardInput = true;
-            psi.WorkingDirectory = Path.GetDirectoryName(octree_path);
-
-            Process p = Process.Start(psi);
-            p.WaitForExit();
-            p.Close();
+            RunRTrace(octree_path, pts_path, output_path, "-oM", "-ffa", "-h", "-ab", "0");
         }
 
         public static void RunRayCastTrans(string octree_path, string pts_path, string output_path)
         {
-            //// get executing platform
-            //var platform = new ExecutingPlatform();
-            //// add environmental variables
-            //string radbin = platform.RadBinDir;
-            //string radlib = Path.Combine(platform.RadDir, "lib");
-            //string daybin = platform.DaysimBinDir;
-            //char ps = (platform.OS == OSType.Windows) ? ';' : ':';
-            //Environment.SetEnvironmentVariable("PATH", "." + ps + radlib + ps + radbin + ps + daybin + ps + "$PATH");
-            //Environment.SetEnvironmentVariable("RAYPATH", "." + ps + radlib + ps + radbin + ps + daybin + ps + "$RAYPATH");
-
-            ProcessStartInfo psi = new ProcessStartInfo("cmd.exe", "/c rtrace -ab 0 -h -lr 6 -dt 0 \"" + octree_path + "\" < \"" + pts_path + "\" > \"" + output_path + "\"");
-            psi.UseShellExecute = false;
-            psi.RedirectStandardOutput = true;
-            psi.RedirectStandardError = true;
-            psi.CreateNoWindow = true;
-            psi.RedirectStandardInput = true;
-            psi.WorkingDirectory = Path.GetDirectoryName(octree_path);
-
-            Process p = Process.Start(psi);
-            p.WaitForExit();
-            p.Close();
+            RunRTrace(octree_path, pts_path, output_path, "-ab", "0", "-h", "-lr", "6", "-dt", "0");
         }
 
         public static void RunRayCastTrans_Binary(string octree_path, string pts_path, string output_path)
         {
-            //// get executing platform
-            //var platform = new ExecutingPlatform();
-
-            //// add environmental variables
-            //string radbin = platform.RadBinDir;
-            //string radlib = Path.Combine(platform.RadDir, "lib");
-            //string daybin = platform.DaysimBinDir;
-            //char ps = (platform.OS == OSType.Windows) ? ';' : ':';
-            //Environment.SetEnvironmentVariable("PATH", "." + ps + radlib + ps + radbin + ps + daybin + ps + "$PATH");
-            //Environment.SetEnvironmentVariable("RAYPATH", "." + ps + radlib + ps + radbin + ps + daybin + ps + "$RAYPATH");
-
-            ProcessStartInfo psi = new ProcessStartInfo("cmd.exe", "/c rtrace -fff -ab 0 -h -lr 6 -dt 0 \"" + octree_path + "\" < \"" + pts_path + "\" > \"" + output_path + "\"");
-            psi.UseShellExecute = false;
-            psi.RedirectStandardOutput = true;
-            psi.RedirectStandardError = true;
-            psi.CreateNoWindow = true;
-            psi.RedirectStandardInput = true;
-            psi.WorkingDirectory = Path.GetDirectoryName(octree_path);
-
-            Process p = Process.Start(psi);
-            p.WaitForExit();
-            p.Close();
+            RunRTrace(octree_path, pts_path, output_path, "-fff", "-ab", "0", "-h", "-lr", "6", "-dt", "0");
         }
 
         public static void RunRayCastSurf(string octree_path, string pts_path, string output_path)
         {
-            //// get executing platform
-            //var platform = new ExecutingPlatform();
+            RunRTrace(octree_path, pts_path, output_path, "-os", "-h", "-ab", "1");
+        }
 
-            //// add environmental variables
-            //string radbin = platform.RadBinDir;
-            //string radlib = Path.Combine(platform.RadDir, "lib");
-            //string daybin = platform.DaysimBinDir;
-            //char ps = (platform.OS == OSType.Windows) ? ';' : ':';
-            //Environment.SetEnvironmentVariable("PATH", "." + ps + radlib + ps + radbin + ps + daybin + ps + "$PATH");
-            //Environment.SetEnvironmentVariable("RAYPATH", "." + ps + radlib + ps + radbin + ps + daybin + ps + "$RAYPATH");
+        private static void RunRTrace(string octree_path, string pts_path, string output_path, params string[] arguments)
+        {
+            ProcessStartInfo psi = new ProcessStartInfo("rtrace")
+            {
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                RedirectStandardInput = true,
+                CreateNoWindow = true,
+                WorkingDirectory = Path.GetDirectoryName(octree_path)
+            };
 
-            ProcessStartInfo psi = new ProcessStartInfo("cmd.exe", "/c rtrace -os " + "-h " + "-ab 1 " + octree_path + " < " + pts_path + " > " + output_path);
-            psi.UseShellExecute = false;
-            psi.RedirectStandardOutput = true;
-            psi.RedirectStandardError = true;
-            psi.CreateNoWindow = true;
-            psi.RedirectStandardInput = true;
-            psi.WorkingDirectory = Path.GetDirectoryName(octree_path);
+            foreach (var argument in arguments)
+            {
+                psi.ArgumentList.Add(argument);
+            }
+            psi.ArgumentList.Add(octree_path);
 
-            Process p = Process.Start(psi);
-            //if (!p.WaitForExit(2000000))
-            //{
-            //    p.Kill();
-            //}
+            using var inFs = new FileStream(pts_path, FileMode.Open, FileAccess.Read);
+            using var outFs = new FileStream(output_path, FileMode.Create, FileAccess.Write);
+
+            using Process p = Process.Start(psi);
+            if (p == null)
+            {
+                throw new InvalidOperationException("Unable to start rtrace.");
+            }
+
+            var readTask = System.Threading.Tasks.Task.Run(() =>
+            {
+                try
+                {
+                    inFs.CopyTo(p.StandardInput.BaseStream);
+                }
+                catch (IOException)
+                {
+                    // rtrace may close stdin early after reporting an error.
+                }
+                finally
+                {
+                    p.StandardInput.Close();
+                }
+            });
+            var writeTask = System.Threading.Tasks.Task.Run(() => p.StandardOutput.BaseStream.CopyTo(outFs));
+            var errorTask = p.StandardError.ReadToEndAsync();
+
             p.WaitForExit();
-            p.Close();
+            readTask.Wait();
+            writeTask.Wait();
+            string error = errorTask.GetAwaiter().GetResult();
+
+            if (p.ExitCode != 0)
+            {
+                throw new InvalidOperationException("rtrace failed with exit code " + p.ExitCode + ": " + error);
+            }
         }
     }
 }

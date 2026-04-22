@@ -6,3 +6,7 @@
 **Vulnerability:** Command injection when invoking OS-level commands (e.g., `cmd.exe`, `/bin/ln`, `/bin/rm`) due to string concatenation or interpolation of unsanitized paths in the `Arguments` property or `StandardInput`.
 **Learning:** Shell metacharacters in paths (like `;`, `&`, `|`) can execute arbitrary commands if `UseShellExecute` is `false` but the target executable is a shell (like `cmd.exe`) or if the shell itself interprets unescaped variables.
 **Prevention:** Always use `ProcessStartInfo.ArgumentList.Add()` to pass arguments. For internal shell commands (e.g. `MKLINK`, `rd`), pass `cmd.exe` as the `FileName` and add `/c`, the command, and its arguments as separate items in `ArgumentList` to bypass shell parsing vulnerabilities. Avoid passing string-formatted commands to `StandardInput`.
+## 2025-05-18 - Secure Process Invocation without Shell Redirection
+**Vulnerability:** Command injection when invoking tools that use `<` and `>` to pipe input/output in `cmd.exe /c` where file paths are user-controlled.
+**Learning:** Shell redirection operators (`<`, `>`) cannot be passed via `ArgumentList` directly to the tool, and using `cmd.exe` allows command injection if the user includes `&` in their paths.
+**Prevention:** Invoke the executable directly (e.g., `rtrace`) using `ArgumentList` for parameters, and programmatically replace shell redirection with stream copying in C# (e.g., `File.OpenRead().CopyToAsync(process.StandardInput.BaseStream)`).
