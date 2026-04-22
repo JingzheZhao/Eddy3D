@@ -64,6 +64,195 @@ namespace EddyLib
             public const string SimEtaNick = SimRemainingTimeNick;
         }
 
+        public static class FluidX3D
+        {
+           // public const string Name = "FluidX3D ABL (Experimental)";
+           // public const string Nick = "FluidX3D";
+          //  public const string Desc = "Deprecated standalone FluidX3D workflow.\r\n\r\nUse 'Wind Simulation' and select the FluidX3D engine from the component menu.\r\n\r\n";
+
+            public const string SourceDir = "FluidX3D Source";
+            public const string SourceDirNick = "Src";
+            public const string SourceDirDesc = "Path to a local FluidX3D source folder (contains src/setup.cpp and src/defines.hpp).";
+
+            public const string Buildings = "Building Geometry";
+            public const string BuildingsNick = "Bldg";
+            public const string BuildingsDesc = "Optional: Mesh/Brep/Surface/Extrusion geometry to export as binary STL and voxelize in FluidX3D.";
+
+            public const string WorkingDir = "Working Directory";
+            public const string WorkingDirNick = "Dir";
+            public const string WorkingDirDesc = "Case folder root. If you pass a simple name, it is created under Eddy3D Cases.";
+
+            public const string CloneUpdate = "Clone/Update Source";
+            public const string CloneUpdateNick = "Git";
+            public const string CloneUpdateDesc = "If true, automatically clone FluidX3D (if missing) and pull latest changes (if git repo exists).";
+
+            public const string MemoryMb = "VRAM Budget (MB)";
+            public const string MemoryMbNick = "MemMB";
+            public const string MemoryMbDesc = "Approximate GPU memory target for FluidX3D resolution selection.";
+
+            public const string Uref = "Reference Velocity";
+            public const string UrefNick = "Uref";
+            public const string UrefDesc = "Wind speed at zRef [m/s].";
+
+            public const string Zref = "Reference Height";
+            public const string ZrefNick = "Zref";
+            public const string ZrefDesc = "Reference height for Uref [m].";
+
+            public const string Z0 = "Roughness Length";
+            public const string Z0Nick = "z0";
+            public const string Z0Desc = "Aerodynamic roughness length [m] for log-law profile.";
+
+            public const string SimTime = "Simulation Time (s)";
+            public const string SimTimeNick = "T";
+            public const string SimTimeDesc = "Physical simulation time in seconds.";
+
+            public const string ExportEvery = "Export Every (s)";
+            public const string ExportEveryNick = "dT";
+            public const string ExportEveryDesc = "Physical export interval in seconds.";
+
+            public const string GroundZ = "Ground Elevation";
+            public const string GroundZNick = "Zgnd";
+            public const string GroundZDesc = "Ground elevation in model units (assumed meters). Domain bottom is adjusted to include geometry below this level.";
+
+            public const string MeshEdge = "Meshing Edge Length";
+            public const string MeshEdgeNick = "Edge";
+            public const string MeshEdgeDesc = "Optional max/min edge length for meshing Breps/Surfaces before STL export. 0 uses Rhino defaults.";
+
+            public const string Prepare = "Prepare";
+            public const string PrepareNick = "Prep";
+            public const string PrepareDesc = "Write/update generated FluidX3D setup and launch scripts.";
+
+            public const string Run = "Run";
+            public const string RunNick = "Run";
+            public const string RunDesc = "Launch the generated platform script in a terminal.";
+
+            public const string CaseDir = "Case Directory";
+            public const string CaseDirNick = "Case";
+            public const string CaseDirDesc = "Prepared FluidX3D working directory.";
+
+            public const string LaunchScript = "Launch Script";
+            public const string LaunchScriptNick = "Script";
+            public const string LaunchScriptDesc = "Platform launch script path (.command on macOS/Linux, .bat on Windows).";
+
+            public const string ExportDir = "Export Directory";
+            public const string ExportDirNick = "Export";
+            public const string ExportDirDesc = "FluidX3D export directory (VTK output).";
+
+            public const string Status = "Status";
+            public const string StatusNick = "Info";
+            public const string StatusDesc = "Workflow status and instructions.";
+        }
+
+        public static class FluidX3DRunSettings
+        {
+            public const string Name = "FluidX3D Run Settings";
+            public const string Nick = "FxSet";
+            public const string Desc = "FluidX3D solver controls for the integrated Wind Simulation component.\r\n\r\nUse this only when engine = FluidX3D.\r\n\r\n";
+
+            public const string SourceDir = "FluidX3D Source (Optional)";
+            public const string SourceDirNick = "Src";
+            public const string SourceDirDesc = "Optional override for FluidX3D source folder. Leave empty to use EDDY_FLUIDX3D_SOURCE or the Eddy engines install path.";
+
+            public const string MemoryMb = "VRAM Budget (MB)";
+            public const string MemoryMbNick = "MemMB";
+            public const string MemoryMbDesc = "Approximate GPU memory budget used for FluidX3D resolution selection.";
+
+            public const string SimTime = "Simulation Time (s)";
+            public const string SimTimeNick = "T";
+            public const string SimTimeDesc = "Physical simulation time in seconds.";
+
+            public const string ExportEvery = "Export Every (s)";
+            public const string ExportEveryNick = "dT";
+            public const string ExportEveryDesc = "Physical export interval in seconds.";
+
+            public const string GroundZ = "Ground Elevation";
+            public const string GroundZNick = "Zgnd";
+            public const string GroundZDesc = "Ground elevation in model coordinates (m).";
+
+            public const string Output = "Run settings";
+            public const string OutputNick = "RSet";
+            public const string OutputDesc = "FluidX3D run settings object for the Wind Simulation component.";
+        }
+
+        public static class FluidX3DProbe
+        {
+            public const string Name = "FluidX3D Probe (VTK)";
+            public const string Nick = "FxProbe";
+            public const string Desc = "Probe FluidX3D VTK exports at Rhino points with physical-time selection and optional time averaging.\r\n\r\nSupports velocity U (vector) and density rho (scalar).\r\n\r\n";
+
+            public const string Result = "Simulation Result";
+            public const string ResultNick = "Res";
+            public const string ResultDesc = "OFResult from Wind Simulation. Probe path is resolved from this simulation result.";
+
+            public const string CaseDir = "Case Directory";
+            public const string CaseDirNick = "Case";
+            public const string CaseDirDesc = "FluidX3D case directory (contains bin/export, VTK, or vtk output folder).";
+
+            public const string Points = "Probe Points";
+            public const string PointsNick = "Pts";
+            public const string PointsDesc = "Probe points in Rhino model coordinates (meters).";
+
+            public const string Quantity = "Q field";
+            public const string QuantityNick = "Q";
+            public const string QuantityDesc = "Field to probe: U (velocity vector) or rho (density scalar).";
+
+            public const string TimeMode = "Time Mode";
+            public const string TimeModeNick = "Mode";
+            public const string TimeModeDesc = "0 Latest, 1 Closest physical time, 2 Average over [T0, T1].";
+
+            public const string TargetTime = "Target Time (s)";
+            public const string TargetTimeNick = "T";
+            public const string TargetTimeDesc = "Used when Time Mode = Closest physical time.";
+
+            public const string TimeWindow = "Time Interval (s)";
+            public const string TimeWindowNick = "T0/T1";
+            public const string TimeWindowDesc = "Averaging interval as Domain/Interval (Construct Domain).";
+
+            public const string Run = "Run";
+            public const string RunNick = "Run";
+            public const string RunDesc = "Execute probing.";
+
+            public const string PointsOut = "Probe Points";
+            public const string PointsOutNick = "Pts";
+            public const string PointsOutDesc = "Echo of input probe points.";
+
+            public const string VelocityByTime = "U by Time";
+            public const string VelocityByTimeNick = "U_t";
+            public const string VelocityByTimeDesc = "DataTree of velocity vectors per sampled timestep (one branch per timestep).";
+
+            public const string DensityByTime = "rho by Time";
+            public const string DensityByTimeNick = "rho_t";
+            public const string DensityByTimeDesc = "DataTree of density values per sampled timestep (one branch per timestep).";
+
+            public const string VelocityAverage = "U Average";
+            public const string VelocityAverageNick = "Uavg";
+            public const string VelocityAverageDesc = "Time-averaged velocity vectors at probe points.";
+
+            public const string DensityAverage = "rho Average";
+            public const string DensityAverageNick = "rhoAvg";
+            public const string DensityAverageDesc = "Time-averaged density values at probe points.";
+
+            public const string SampledTimes = "Sampled Times";
+            public const string SampledTimesNick = "t_s";
+            public const string SampledTimesDesc = "Physical time of each sampled VTK file in seconds.";
+
+            public const string SampledSteps = "Sampled Steps";
+            public const string SampledStepsNick = "Step";
+            public const string SampledStepsDesc = "LBM timestep id parsed from sampled filenames.";
+
+            public const string SampledFiles = "Sampled Files";
+            public const string SampledFilesNick = "Files";
+            public const string SampledFilesDesc = "Sampled VTK file paths.";
+
+            public const string OutsideCount = "Outside Count";
+            public const string OutsideCountNick = "Out";
+            public const string OutsideCountDesc = "Number of points outside the domain (clamped to nearest cell).";
+
+            public const string Status = "Status";
+            public const string StatusNick = "Info";
+            public const string StatusDesc = "Probe execution status.";
+        }
+
         public static class Simulation
         {
             public const string Name = "Simulation (Legacy)";

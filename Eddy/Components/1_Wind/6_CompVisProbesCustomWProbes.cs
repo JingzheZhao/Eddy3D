@@ -1,5 +1,6 @@
 ﻿using Eddy.Properties;
 using EddyLib;
+using EddyLib.Helpers;
 using EddyLib.BCs;
 using EddyLib.Docker;
 using EddyLib.Radiation;
@@ -309,7 +310,7 @@ Generates visualizations of the wind field, including vector arrows and streamli
             }
             else
             {
-                if (Utilities.Directories.IsDirectoryEmpty(RES.MeshSettings.meshPolyMeshDir) == true)
+                if (DirectoryHelpers.IsEmpty(RES.MeshSettings.meshPolyMeshDir) == true)
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The mesh folder is still empty. Can't retrieve probes from a mesh that does not exist.");
 

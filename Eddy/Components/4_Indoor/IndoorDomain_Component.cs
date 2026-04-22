@@ -4,6 +4,7 @@ using Eddy.Analytics;
 using EddyLib;
 using EddyLib.BCs;
 using EddyLib.Docker;
+using EddyLib.Helpers;
 using EddyLib.Indoor;
 using EddyLib.Indoor.FunctionObjects;
 using EddyLib.UI;
@@ -24,6 +25,8 @@ namespace Eddy.Components.Indoor
 {
     public class IndoorDomain_Component : GH_Component
     {
+        private const string EngineNameOpenFoamBlueCfd = "OpenFOAM (BlueCFD)";
+        private const string EngineNameOpenFoamDocker = "OpenFOAM (Docker)";
         private int iterations = 1;
         private double numFuncObj = 1;
         private string BaseWorkingDir = "";
@@ -55,9 +58,9 @@ Requires connected walls, inlets, outlets, and optional heat sources.
         {
             base.AppendAdditionalComponentMenuItems(menu);
             Menu_AppendSeparator(menu);
-            Menu_AppendItem(menu, "BlueCFD", (s, e) => SetEngine(SimEngine.BlueCFD),
+            Menu_AppendItem(menu, EngineNameOpenFoamBlueCfd, (s, e) => SetEngine(SimEngine.BlueCFD),
                 RuntimeInformation.IsOSPlatform(OSPlatform.Windows), _selectedEngine == SimEngine.BlueCFD);
-            Menu_AppendItem(menu, "Docker", (s, e) => SetEngine(SimEngine.Docker),
+            Menu_AppendItem(menu, EngineNameOpenFoamDocker, (s, e) => SetEngine(SimEngine.Docker),
                 true, _selectedEngine == SimEngine.Docker);
         }
 
@@ -206,7 +209,7 @@ Requires connected walls, inlets, outlets, and optional heat sources.
                 return;
             }
 
-            BaseWorkingDir = Utilities.EnsureTrailingBackslash(resolvedWorkingDir);
+            BaseWorkingDir = DirectoryHelpers.EnsureTrailingBackslash(resolvedWorkingDir);
 
             Point3d pointInsideDomain = new Point3d();
             DA.GetData(5, ref pointInsideDomain);

@@ -24,10 +24,13 @@ namespace EddyLib
     public enum SimEngine
     {
         /// <summary>Run via Docker container.</summary>
-        Docker,
+        Docker = 0,
 
         /// <summary>Run via BlueCFD-Core installation.</summary>
-        BlueCFD
+        BlueCFD = 1,
+
+        /// <summary>Run via FluidX3D GPU solver workflow.</summary>
+        FluidX3D = 2
     }
 
     /// <summary>

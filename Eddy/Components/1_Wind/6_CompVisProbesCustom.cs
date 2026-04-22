@@ -3,6 +3,7 @@ using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
 using EddyLib;
 using EddyLib.Docker;
+using EddyLib.Helpers;
 using EddyLib.Indoor;
 using EddyLib.Strings;
 using Grasshopper.Kernel;
@@ -317,7 +318,7 @@ Samples the wind field at specific locations. Use this to query wind speed and p
             }
             else
             {
-                if (Utilities.Directories.IsDirectoryEmpty(meshDir) == true)
+                if (DirectoryHelpers.IsEmpty(meshDir) == true)
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The mesh folder " + meshDir + @" is empty. Can't retrieve probes from a mesh that does not exist.");
 

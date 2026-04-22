@@ -1,8 +1,11 @@
 using EddyLib;
 using EddyLib.BCs;
+using EddyLib.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace RhinoPlugin.Test.Xunit
 {
@@ -51,7 +54,7 @@ namespace RhinoPlugin.Test.Xunit
                 accFeatures = 4,
                 accGround = 3
             };
-            settings.SetDirectories(Utilities.Directories.FixDirectories(caseDir));
+            settings.SetDirectories(DirectoryHelpers.EnsureTrailingBackslash(caseDir));
             return settings;
         }
 
@@ -75,9 +78,24 @@ namespace RhinoPlugin.Test.Xunit
         /// </summary>
         public static string CreateTestDirectory(string prefix = "testcase")
         {
-            var path = Path.Combine(TestConstants.TestingDirectory, $"{prefix}-{Guid.NewGuid():N}");
+            string runHash = CreateRunHash(prefix);
+            string path = Path.Combine(TestConstants.TestingDirectory, $"{prefix}-{runHash}");
             Directory.CreateDirectory(path);
             return path;
+        }
+
+        private static string CreateRunHash(string prefix)
+        {
+            string seed = string.Concat(
+                prefix ?? string.Empty,
+                "|",
+                DateTime.UtcNow.Ticks.ToString(),
+                "|",
+                Guid.NewGuid().ToString("N"));
+
+            byte[] bytes = Encoding.UTF8.GetBytes(seed);
+            byte[] hash = SHA256.HashData(bytes);
+            return Convert.ToHexString(hash).Substring(0, 12).ToLowerInvariant();
         }
 
         /// <summary>

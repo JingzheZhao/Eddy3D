@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 
@@ -12,7 +13,11 @@ namespace EddyLib
     {
         // Backing fields with default values
         private static readonly bool IsWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-        private static string _baseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Eddy3D");
+        private static readonly string RoamingEddy3DDir =
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Eddy3D");
+        private static readonly string LocalEddy3DDir =
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Eddy3D");
+        private static string _baseDir = IsWindows ? LocalEddy3DDir : RoamingEddy3DDir;
         private static readonly string CasesRootDir =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Eddy3D");
         private static readonly string _radianceDirDefault = IsWindows
@@ -23,9 +28,14 @@ namespace EddyLib
             ? @"C:\EnergyPlusV9-4-0"
             : "/Applications/EnergyPlus-9-4-0";
         private static string _blueCfdDir = @"C:\Program Files\blueCFD-Core-2020";
+        private static readonly object AutoCasePathLock = new object();
+        private static readonly Dictionary<string, string> AutoCasePathByInput =
+            new Dictionary<string, string>(StringComparer.Ordinal);
 
         /// <summary>
-        /// Base directory for Eddy3D files in AppData Roaming.
+        /// Base directory for installed Eddy3D engines/resources.
+        /// On Windows this is %LocalAppData%\Eddy3D.
+        /// On macOS this remains under the user ApplicationData location.
         /// </summary>
         public static string Eddy3DInstallDir => _baseDir;
 
@@ -46,15 +56,22 @@ namespace EddyLib
         {
             if (string.IsNullOrWhiteSpace(dirInput))
             {
-                // Default case name if nothing provided
-                return Path.Combine(CasesDir, "DefaultCase");
+                // Empty input: generate an auto case path once per app session.
+                return ResolveOrCreateAutoCasePath("__EMPTY_WORKING_DIR__");
             }
 
-            string trimmed = dirInput.Trim();
+            string trimmed = TrimWrappingQuotes(dirInput.Trim());
+
+            // Cross-platform migration: a GH file authored on one OS may carry absolute paths from another OS.
+            // Map those foreign absolute paths back into the local Eddy3D Cases root.
+            if (TryMapForeignWorkingDirectoryToLocalCases(trimmed, out string mappedForeignPath))
+            {
+                return mappedForeignPath;
+            }
 
             // Check if this is a simple name (no path separators, no drive letter)
-            bool isSimpleName = !trimmed.Contains(Path.DirectorySeparatorChar.ToString())
-                             && !trimmed.Contains(Path.AltDirectorySeparatorChar.ToString())
+            bool isSimpleName = !ContainsAnyDirectorySeparator(trimmed)
+                             && !LooksLikeWindowsDrivePath(trimmed)
                              && !Path.IsPathRooted(trimmed);
 
             if (isSimpleName)
@@ -111,7 +128,13 @@ namespace EddyLib
             if (string.IsNullOrWhiteSpace(path)) return defaultPath;
 
             // Clean up basic formatting
-            string normalized = path.Trim().TrimEnd('\\', '/');
+            string normalized = TrimWrappingQuotes(path.Trim()).TrimEnd('\\', '/');
+
+            // Reject foreign absolute paths from another OS (common when sharing Grasshopper files).
+            if (IsForeignAbsolutePath(normalized))
+            {
+                return defaultPath;
+            }
 
             // Handle Grasshopper boolean strings ("True"/"False") from legacy template wire crossings
             if (normalized.Equals("true", StringComparison.OrdinalIgnoreCase) ||
@@ -137,6 +160,199 @@ namespace EddyLib
             }
 
             return normalized;
+        }
+
+        private static bool TryMapForeignWorkingDirectoryToLocalCases(string rawPath, out string mappedPath)
+        {
+            mappedPath = null;
+            if (!LooksLikeForeignPathArtifact(rawPath))
+            {
+                return false;
+            }
+
+            // Foreign/malformed path artifacts should never become literal case names
+            // (for example, "C:\\Users\\..."), so generate a clean local case path.
+            string cacheKey = "FOREIGN::" + NormalizeCacheKey(rawPath);
+            mappedPath = ResolveOrCreateAutoCasePath(cacheKey);
+            return true;
+        }
+
+        private static string ResolveOrCreateAutoCasePath(string cacheKey)
+        {
+            string normalizedKey = string.IsNullOrWhiteSpace(cacheKey)
+                ? "__EMPTY_KEY__"
+                : cacheKey.Trim();
+
+            lock (AutoCasePathLock)
+            {
+                if (AutoCasePathByInput.TryGetValue(normalizedKey, out string existing))
+                {
+                    return existing;
+                }
+
+                string generated = CreateUniqueAutoCasePath();
+                AutoCasePathByInput[normalizedKey] = generated;
+                return generated;
+            }
+        }
+
+        private static string CreateUniqueAutoCasePath()
+        {
+            string casesRoot = Path.GetFullPath(CasesDir);
+            Directory.CreateDirectory(casesRoot);
+
+            for (int attempts = 0; attempts < 128; attempts++)
+            {
+                string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss", System.Globalization.CultureInfo.InvariantCulture);
+                string randomSuffix = Guid.NewGuid().ToString("N").Substring(0, 4);
+                string candidate = Path.Combine(casesRoot, "Case_" + timestamp + "_" + randomSuffix);
+                if (!Directory.Exists(candidate))
+                {
+                    return candidate;
+                }
+            }
+
+            // Extremely unlikely collision fallback.
+            return Path.Combine(casesRoot, "Case_" + Guid.NewGuid().ToString("N"));
+        }
+
+        private static string NormalizeCacheKey(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return string.Empty;
+            }
+
+            return TrimWrappingQuotes(value.Trim())
+                .Replace('\\', '/')
+                .Trim()
+                .ToUpperInvariant();
+        }
+
+        private static bool LooksLikeForeignPathArtifact(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            if (IsForeignAbsolutePath(value))
+            {
+                return true;
+            }
+
+            if (IsWindows)
+            {
+                return false;
+            }
+
+            // Cross-platform GH migration artifacts on macOS:
+            // - escaped Windows paths (contain backslashes),
+            // - malformed drive forms like "C/\Users\..."
+            if (value.IndexOf('\\') >= 0)
+            {
+                return true;
+            }
+
+            return value.Length >= 3
+                && char.IsLetter(value[0])
+                && (value[1] == '/' || value[1] == '\\')
+                && (value[2] == '\\' || value[2] == '/');
+        }
+
+        private static bool ContainsAnyDirectorySeparator(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return false;
+            }
+
+            return value.IndexOf('/') >= 0 || value.IndexOf('\\') >= 0;
+        }
+
+        private static bool LooksLikeWindowsDrivePath(string value)
+        {
+            return !string.IsNullOrWhiteSpace(value)
+                && value.Length >= 2
+                && char.IsLetter(value[0])
+                && value[1] == ':';
+        }
+
+        private static bool LooksLikeWindowsUncPath(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            return value.StartsWith(@"\\", StringComparison.Ordinal)
+                || value.StartsWith("//", StringComparison.Ordinal);
+        }
+
+        private static bool LooksLikeWindowsAbsolutePath(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            if (LooksLikeWindowsUncPath(value))
+            {
+                return true;
+            }
+
+            if (!LooksLikeWindowsDrivePath(value))
+            {
+                return false;
+            }
+
+            return value.Length == 2
+                || value.Length == 3
+                || value[2] == '\\'
+                || value[2] == '/';
+        }
+
+        private static bool LooksLikeUnixAbsolutePath(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            return value.StartsWith("/", StringComparison.Ordinal)
+                || value.StartsWith("~/", StringComparison.Ordinal)
+                || value.Equals("~", StringComparison.Ordinal);
+        }
+
+        private static bool IsForeignAbsolutePath(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            if (IsWindows)
+            {
+                return LooksLikeUnixAbsolutePath(value) && !LooksLikeWindowsAbsolutePath(value);
+            }
+
+            return LooksLikeWindowsAbsolutePath(value);
+        }
+
+        private static string TrimWrappingQuotes(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return value ?? string.Empty;
+            }
+
+            string trimmed = value.Trim();
+            if (trimmed.Length >= 2 && trimmed.StartsWith("\"", StringComparison.Ordinal) && trimmed.EndsWith("\"", StringComparison.Ordinal))
+            {
+                return trimmed.Substring(1, trimmed.Length - 2);
+            }
+
+            return trimmed;
         }
 
         /// <summary>

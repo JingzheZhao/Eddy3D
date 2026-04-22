@@ -1,10 +1,13 @@
 using Eddy.Properties;
 using EddyLib;
+using EddyLib.FluidX3D;
+using EddyLib.Helpers;
 using EddyLib.OpenFOAM;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -18,7 +21,11 @@ namespace Eddy
 {
     public class SimpleFoam : GH_Component
     {
+        private const string EngineNameOpenFoamBlueCfd = "OpenFOAM (BlueCFD)";
+        private const string EngineNameOpenFoamDocker = "OpenFOAM (Docker)";
+        private const string EngineNameFluidX3D = "FluidX3D";
         private SimEngine _selectedEngine;
+        private string _autoWorkingDirectory = string.Empty;
 
         public override GH_Exposure Exposure
         {
@@ -47,10 +54,12 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
         {
             base.AppendAdditionalComponentMenuItems(menu);
             Menu_AppendSeparator(menu);
-            Menu_AppendItem(menu, "BlueCFD", (s, e) => SetEngine(SimEngine.BlueCFD),
+            Menu_AppendItem(menu, EngineNameOpenFoamBlueCfd, (s, e) => SetEngine(SimEngine.BlueCFD),
                 RuntimeInformation.IsOSPlatform(OSPlatform.Windows), _selectedEngine == SimEngine.BlueCFD);
-            Menu_AppendItem(menu, "Docker", (s, e) => SetEngine(SimEngine.Docker),
+            Menu_AppendItem(menu, EngineNameOpenFoamDocker, (s, e) => SetEngine(SimEngine.Docker),
                 true, _selectedEngine == SimEngine.Docker);
+            Menu_AppendItem(menu, EngineNameFluidX3D, (s, e) => SetEngine(SimEngine.FluidX3D),
+                true, _selectedEngine == SimEngine.FluidX3D);
         }
 
         private void SetEngine(SimEngine engine)
@@ -68,7 +77,13 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
         public override bool Read(GH_IO.Serialization.GH_IReader reader)
         {
             if (reader.ItemExists("SelectedEngine"))
-                _selectedEngine = (SimEngine)reader.GetInt32("SelectedEngine");
+            {
+                int raw = reader.GetInt32("SelectedEngine");
+                if (Enum.IsDefined(typeof(SimEngine), raw))
+                {
+                    _selectedEngine = (SimEngine)raw;
+                }
+            }
             return base.Read(reader);
         }
 
@@ -173,7 +188,10 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             OFBaseDomain DOM;
 
             GH_ObjectWrapper gobj = null;
-            if (!DA.GetData(GH_Strings.Common.Domain, ref gobj)) { }
+            if (!DA.GetData(GH_Strings.Common.Domain, ref gobj))
+            {
+                return;
+            }
 
             if ((gobj.Value is OFCylDomain))
             {
@@ -188,41 +206,15 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please provide a valid domain object"); return;
             }
 
-            // run settings
-            //-----------------
-
-            OFRunSettings RunSettings = new OFRunSettings();
             GH_ObjectWrapper gobjRunSet = null;
-            if (DA.GetData(3, ref gobjRunSet))
-            {
-                if (gobjRunSet?.Value is OFRunSettings)
-                {
-                    RunSettings = (OFRunSettings)gobjRunSet.Value;
-                }
-                else
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
-                        "Run Settings input is invalid. Using defaults.");
-                }
-            }
-
-            // Apply selected engine
-            RunSettings.simEngine = _selectedEngine;
-
-            WarnIfSelectedEngineIsUnavailable();
-
-            // Error Handling
-
-            if (!RunSettings.IdenticalMPI && RunSettings.CPUs > 1 && RunSettings.BlueCFDIsInstalled)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "To use multiple CPUs, you need to ensure to use the same msmpi.dll for both Windows and BlueCFD. This is a BlueCFD issue and will hopefully be fixed in a future version."); return;
-            }
+            DA.GetData(3, ref gobjRunSet);
 
             // working directory
             //------------------
 
             string baseWorkingDirectory = "";
             DA.GetData(GH_Strings.Common.WorkingDir, ref baseWorkingDirectory);
+            baseWorkingDirectory = ResolveAutoWorkingDirectoryWhenDirIsUnwired(baseWorkingDirectory);
 
             // Resolve simple case names to full paths under the platform-specific Eddy3D cases folder
             baseWorkingDirectory = DefaultDirectoriesAndPaths.ResolveWorkingDirectory(baseWorkingDirectory);
@@ -231,14 +223,14 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
 
             var sep = Path.DirectorySeparatorChar.ToString();
             DirectoryInfo parentDir = Directory.GetParent(baseWorkingDirectory.EndsWith(sep) ? baseWorkingDirectory : string.Concat(baseWorkingDirectory, sep));
-            var myParentDir = parentDir.Parent.FullName;
+            var myParentDir = parentDir?.Parent?.FullName ?? string.Empty;
 
             if (myParentDir == @"C:\" || myParentDir == "/")
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please use an additional subfolder for Eddy3D simulations."); return;
             }
 
-            baseWorkingDirectory = Utilities.Directories.FixDirectories(baseWorkingDirectory);
+            baseWorkingDirectory = DirectoryHelpers.EnsureTrailingBackslash(baseWorkingDirectory);
 
             // meshing settings
             //-----------------
@@ -254,6 +246,67 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
                 }
             }
             MeshSettings.SetDirectories(baseWorkingDirectory);
+
+            bool makeTrees = false;
+            bool runSimulation = false;
+            bool runMeshing = false;
+
+            DA.GetData(GH_Strings.Common.MakeTrees, ref makeTrees);
+            DA.GetData(GH_Strings.Common.RunSimulation, ref runSimulation);
+            DA.GetData(GH_Strings.Common.RunMeshing, ref runMeshing);
+
+            if (!IsEngineSupportedOnCurrentPlatform(_selectedEngine))
+            {
+                string unsupportedMessage = GetEngineDisplayName(_selectedEngine)
+                    + " is not supported on this operating system. Simulation was skipped.";
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, unsupportedMessage);
+                SetSkippedOutputs(
+                    DA,
+                    DOM,
+                    baseWorkingDirectory,
+                    MeshSettings,
+                    BuildOpenFoamRunSettings(gobjRunSet),
+                    unsupportedMessage);
+                return;
+            }
+
+            if (!TryEnsureSelectedEngineAvailable(out string engineDetails))
+            {
+                string unavailableMessage = GetEngineDisplayName(_selectedEngine)
+                    + " is selected but not installed. " + engineDetails
+                    + " Simulation was skipped.";
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, unavailableMessage);
+                SetSkippedOutputs(
+                    DA,
+                    DOM,
+                    baseWorkingDirectory,
+                    MeshSettings,
+                    BuildOpenFoamRunSettings(gobjRunSet),
+                    unavailableMessage);
+                return;
+            }
+
+            if (_selectedEngine == SimEngine.FluidX3D)
+            {
+                RunFluidX3DSimulation(
+                    DA,
+                    DOM,
+                    gobjRunSet,
+                    baseWorkingDirectory,
+                    MeshSettings,
+                    runMeshing,
+                    runSimulation);
+                canRun = true;
+                return;
+            }
+
+            OFRunSettings RunSettings = BuildOpenFoamRunSettings(gobjRunSet, warnOnInvalid: true);
+            RunSettings.simEngine = _selectedEngine;
+
+            if (!RunSettings.IdenticalMPI && RunSettings.CPUs > 1 && RunSettings.BlueCFDIsInstalled)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "To use multiple CPUs, you need to ensure to use the same msmpi.dll for both Windows and BlueCFD. This is a BlueCFD issue and will hopefully be fixed in a future version."); return;
+            }
 
             #region RUN BLOCKMESH
 
@@ -300,14 +353,6 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             #endregion RUN SIMULATION
 
             #region START PROCESSES
-
-            bool makeTrees = false;
-            bool runSimulation = false;
-            bool runMeshing = false;
-
-            DA.GetData(GH_Strings.Common.MakeTrees, ref makeTrees);
-            DA.GetData(GH_Strings.Common.RunSimulation, ref runSimulation);
-            DA.GetData(GH_Strings.Common.RunMeshing, ref runMeshing);
 
             if ((runMeshing || runSimulation) && canRun)
             {
@@ -408,53 +453,434 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             canRun = true;
         }
 
-        private void WarnIfSelectedEngineIsUnavailable()
+        private string ResolveAutoWorkingDirectoryWhenDirIsUnwired(string workingDirInput)
         {
-            string engineName = _selectedEngine == SimEngine.Docker ? "Docker" : "BlueCFD";
-            bool installed = true;
-            string details = string.Empty;
-            bool foundStatus = false;
+            bool hasDirSource = Params != null
+                && Params.Input != null
+                && Params.Input.Count > 1
+                && Params.Input[1].SourceCount > 0;
 
-            if (EngineInstallStatusCache.TryRead(EngineInstallStatusCache.EddyCachePath, out var snapshot, out _))
+            if (hasDirSource)
             {
-                foundStatus = EngineInstallStatusCache.TryGetEngineStatus(snapshot, engineName, out installed, out details);
+                _autoWorkingDirectory = string.Empty;
+                return workingDirInput;
             }
 
-            if (!foundStatus)
+            if (!ShouldAutoGenerateCaseDirectory(workingDirInput))
             {
-                installed = CheckEngineLive(engineName, out details);
+                _autoWorkingDirectory = string.Empty;
+                return workingDirInput;
             }
 
-            if (!installed)
+            if (!string.IsNullOrWhiteSpace(_autoWorkingDirectory))
             {
-                AddRuntimeMessage(
-                    GH_RuntimeMessageLevel.Warning,
-                    string.Format("{0} is selected but not installed. {1}", engineName, details));
+                return _autoWorkingDirectory;
+            }
+
+            _autoWorkingDirectory = CreateTimestampedCaseDirectoryPath();
+            return _autoWorkingDirectory;
+        }
+
+        private static bool ShouldAutoGenerateCaseDirectory(string workingDirInput)
+        {
+            if (string.IsNullOrWhiteSpace(workingDirInput))
+            {
+                return true;
+            }
+
+            string normalizedInput = NormalizePathSafe(workingDirInput);
+            string normalizedCasesRoot = NormalizePathSafe(DefaultDirectoriesAndPaths.CasesDir);
+            if (string.IsNullOrWhiteSpace(normalizedInput) || string.IsNullOrWhiteSpace(normalizedCasesRoot))
+            {
+                return false;
+            }
+
+            StringComparison comparison = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? StringComparison.OrdinalIgnoreCase
+                : StringComparison.Ordinal;
+
+            return string.Equals(normalizedInput, normalizedCasesRoot, comparison);
+        }
+
+        private static string NormalizePathSafe(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return string.Empty;
+            }
+
+            try
+            {
+                return Path.GetFullPath(path.Trim())
+                    .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            }
+            catch
+            {
+                return string.Empty;
             }
         }
 
-        private static bool CheckEngineLive(string engineName, out string details)
+        private static string CreateTimestampedCaseDirectoryPath()
+        {
+            string casesRoot = Path.GetFullPath(DefaultDirectoriesAndPaths.CasesDir);
+            Directory.CreateDirectory(casesRoot);
+
+            string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture);
+            string caseNameBase = "Case_" + timestamp;
+            string candidate = Path.Combine(casesRoot, caseNameBase);
+            int suffix = 1;
+
+            while (Directory.Exists(candidate))
+            {
+                candidate = Path.Combine(
+                    casesRoot,
+                    caseNameBase + "_" + suffix.ToString(CultureInfo.InvariantCulture));
+                suffix++;
+            }
+
+            return candidate;
+        }
+
+        private OFRunSettings BuildOpenFoamRunSettings(
+            GH_ObjectWrapper runSettingsWrapper,
+            bool warnOnInvalid = false)
+        {
+            OFRunSettings runSettings = new OFRunSettings();
+            if (runSettingsWrapper?.Value == null)
+            {
+                return runSettings;
+            }
+
+            if (runSettingsWrapper.Value is OFRunSettings provided)
+            {
+                return provided;
+            }
+
+            if (warnOnInvalid)
+            {
+                AddRuntimeMessage(
+                    GH_RuntimeMessageLevel.Warning,
+                    "Run Settings input is invalid for OpenFOAM. Using defaults.");
+            }
+
+            return runSettings;
+        }
+
+        private static FluidX3DRunSettings BuildFluidX3DRunSettings(
+            GH_ObjectWrapper runSettingsWrapper)
+        {
+            try
+            {
+                return BuildFluidX3DRunSettingsCore(runSettingsWrapper);
+            }
+            catch (TypeLoadException)
+            {
+                return null;
+            }
+        }
+
+        private static FluidX3DRunSettings BuildFluidX3DRunSettingsCore(
+            GH_ObjectWrapper runSettingsWrapper)
+        {
+            if (runSettingsWrapper?.Value is FluidX3DRunSettings fluidSettings)
+            {
+                return fluidSettings;
+            }
+
+            return new FluidX3DRunSettings();
+        }
+
+        private void RunFluidX3DSimulation(
+            IGH_DataAccess DA,
+            OFBaseDomain domain,
+            GH_ObjectWrapper runSettingsWrapper,
+            string baseWorkingDirectory,
+            OFMeshSettings meshSettings,
+            bool runMeshing,
+            bool runSimulation)
+        {
+            try
+            {
+                RunFluidX3DSimulationCore(
+                    DA, domain, runSettingsWrapper,
+                    baseWorkingDirectory, meshSettings,
+                    runMeshing, runSimulation);
+            }
+            catch (TypeLoadException ex)
+            {
+                string message =
+                    "Could not load FluidX3D types. This usually means an outdated "
+                    + "EddyLib.dll is installed (e.g. from a previous Eddy3D package). "
+                    + "Please close Rhino, update or reinstall Eddy3D, then reopen Rhino.\n"
+                    + "Details: " + ex.Message;
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, message);
+                OFRunSettings fallback = new OFRunSettings();
+                fallback.simEngine = SimEngine.FluidX3D;
+                SetSkippedOutputs(DA, domain, baseWorkingDirectory, meshSettings, fallback, message);
+            }
+        }
+
+        private void RunFluidX3DSimulationCore(
+            IGH_DataAccess DA,
+            OFBaseDomain domain,
+            GH_ObjectWrapper runSettingsWrapper,
+            string baseWorkingDirectory,
+            OFMeshSettings meshSettings,
+            bool runMeshing,
+            bool runSimulation)
+        {
+            FluidX3DRunSettings fluidRunSettings = BuildFluidX3DRunSettings(runSettingsWrapper);
+
+            if (fluidRunSettings == null)
+            {
+                throw new TypeLoadException(
+                    "EddyLib.FluidX3D.FluidX3DRunSettings could not be loaded.");
+            }
+
+            if (runSettingsWrapper?.Value is OFRunSettings)
+            {
+                AddRuntimeMessage(
+                    GH_RuntimeMessageLevel.Warning,
+                    "OpenFOAM Run Settings are not supported for FluidX3D. "
+                    + "Connect 'FluidX3D Run Settings'. Using FluidX3D defaults.");
+            }
+            else if (runSettingsWrapper?.Value != null && !(runSettingsWrapper.Value is FluidX3DRunSettings))
+            {
+                AddRuntimeMessage(
+                    GH_RuntimeMessageLevel.Warning,
+                    "Run Settings input is not a FluidX3D Run Settings object. Using FluidX3D defaults.");
+            }
+
+            bool prepareCase = runMeshing || runSimulation;
+            bool launchSolver = runSimulation;
+
+            OFRunSettings resultRunSettings = new OFRunSettings();
+            resultRunSettings.simEngine = SimEngine.FluidX3D;
+
+            try
+            {
+                FluidX3DCaseRunResult result = FluidX3DCaseRunner.Execute(
+                    domain,
+                    baseWorkingDirectory,
+                    fluidRunSettings,
+                    prepareCase,
+                    launchSolver);
+
+                OFResult res = new OFResult(domain, resultRunSettings, meshSettings, baseWorkingDirectory)
+                {
+                    EngineCaseDirectory = result.CaseRoot ?? string.Empty
+                };
+                DA.SetData(GH_Strings.Common.Result, res);
+
+                bool meshDone = result.Prepared || Directory.Exists(result.CaseRoot);
+                bool simDoneSingle = Directory.Exists(result.ExportDirectory)
+                    && Directory.GetFiles(result.ExportDirectory, "u-*.vtk", SearchOption.TopDirectoryOnly).Length > 0;
+
+                DA.SetData(GH_Strings.SimpleFoam.MeshDone, meshDone);
+                DA.SetDataList(GH_Strings.SimpleFoam.SimDone, new List<bool> { simDoneSingle });
+                DA.SetData(
+                    GH_Strings.SimpleFoam.MeshRemainingTime,
+                    prepareCase ? "Prepared" : "Set Run Meshing=true");
+                DA.SetDataList(
+                    GH_Strings.SimpleFoam.SimRemainingTime,
+                    new List<string>
+                    {
+                        runSimulation
+                            ? (result.Launched ? "Launched (monitor terminal)." : "Run failed.")
+                            : "Set Run Simulation=true"
+                    });
+
+                if (!string.IsNullOrWhiteSpace(result.Status))
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, result.Status);
+                }
+            }
+            catch (Exception ex)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, ex.Message);
+                SetSkippedOutputs(
+                    DA,
+                    domain,
+                    baseWorkingDirectory,
+                    meshSettings,
+                    resultRunSettings,
+                    ex.Message);
+            }
+        }
+
+        private void SetSkippedOutputs(
+            IGH_DataAccess DA,
+            OFBaseDomain domain,
+            string baseWorkingDirectory,
+            OFMeshSettings meshSettings,
+            OFRunSettings runSettings,
+            string reason)
+        {
+            OFRunSettings safeRunSettings = runSettings ?? new OFRunSettings();
+            safeRunSettings.simEngine = _selectedEngine;
+
+            OFMeshSettings safeMeshSettings = meshSettings ?? new OFMeshSettings();
+            if (string.IsNullOrWhiteSpace(safeMeshSettings.baseWorkingDir)
+                && !string.IsNullOrWhiteSpace(baseWorkingDirectory))
+            {
+                safeMeshSettings.SetDirectories(baseWorkingDirectory);
+            }
+
+            DA.SetData(
+                GH_Strings.Common.Result,
+                new OFResult(domain, safeRunSettings, safeMeshSettings, baseWorkingDirectory));
+
+            int statusCount = Math.Max(1, domain?.BCond?.WindDirections?.Count ?? 0);
+            DA.SetData(GH_Strings.SimpleFoam.MeshDone, false);
+            DA.SetDataList(GH_Strings.SimpleFoam.SimDone, Enumerable.Repeat(false, statusCount).ToList());
+            DA.SetData(GH_Strings.SimpleFoam.MeshRemainingTime, "Skipped");
+            DA.SetDataList(
+                GH_Strings.SimpleFoam.SimRemainingTime,
+                Enumerable.Repeat("Skipped: " + reason, statusCount).ToList());
+        }
+
+        private bool TryEnsureSelectedEngineAvailable(out string details)
+        {
+            details = string.Empty;
+            string engineName = GetEngineDisplayName(_selectedEngine);
+            string cachedDetails = string.Empty;
+            bool hasCachedStatus = false;
+
+            if (EngineInstallStatusCache.TryRead(EngineInstallStatusCache.EddyCachePath, out var snapshot, out _))
+            {
+                hasCachedStatus = EngineInstallStatusCache.TryGetEngineStatus(
+                    snapshot,
+                    engineName,
+                    out _,
+                    out cachedDetails);
+
+                if (!hasCachedStatus)
+                {
+                    hasCachedStatus = EngineInstallStatusCache.TryGetEngineStatus(
+                        snapshot,
+                        GetEngineLegacyCacheName(_selectedEngine),
+                        out _,
+                        out cachedDetails);
+                }
+            }
+
+            bool installed = CheckEngineLive(_selectedEngine, out string liveDetails);
+            if (installed)
+            {
+                details = liveDetails;
+                return true;
+            }
+
+            if (hasCachedStatus && !string.IsNullOrWhiteSpace(cachedDetails))
+            {
+                details = string.IsNullOrWhiteSpace(liveDetails)
+                    ? cachedDetails
+                    : liveDetails + " " + cachedDetails;
+            }
+            else
+            {
+                details = liveDetails;
+            }
+
+            return false;
+        }
+
+        private static bool IsEngineSupportedOnCurrentPlatform(SimEngine engine)
+        {
+            if (engine == SimEngine.BlueCFD)
+            {
+                return RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            }
+
+            return true;
+        }
+
+        private static string GetEngineDisplayName(SimEngine engine)
+        {
+            switch (engine)
+            {
+                case SimEngine.Docker:
+                    return EngineNameOpenFoamDocker;
+                case SimEngine.FluidX3D:
+                    return EngineNameFluidX3D;
+                default:
+                    return EngineNameOpenFoamBlueCfd;
+            }
+        }
+
+        private static string GetEngineLegacyCacheName(SimEngine engine)
+        {
+            switch (engine)
+            {
+                case SimEngine.Docker:
+                    return "Docker";
+                case SimEngine.FluidX3D:
+                    return "FluidX3D";
+                default:
+                    return "BlueCFD";
+            }
+        }
+
+        private static bool CheckEngineLive(SimEngine engine, out string details)
         {
             details = string.Empty;
 
             try
             {
-                if (engineName == "Docker")
+                if (engine == SimEngine.Docker)
                 {
                     DefaultDirectoriesAndPaths.CheckDocker();
-                    details = "Docker is installed and running.";
+                    details = EngineNameOpenFoamDocker + " is installed and running.";
                     return true;
                 }
 
-                DefaultDirectoriesAndPaths.CheckBlueCfd();
-                details = "blueCFD is installed.";
-                return true;
+                if (engine == SimEngine.BlueCFD)
+                {
+                    DefaultDirectoriesAndPaths.CheckBlueCfd();
+                    details = EngineNameOpenFoamBlueCfd + " is installed.";
+                    return true;
+                }
+
+                return TryResolveInstalledFluidX3D(out _, out details);
             }
             catch (Exception ex)
             {
                 details = ex.Message;
                 return false;
             }
+        }
+
+        private static bool TryResolveInstalledFluidX3D(out string sourceRoot, out string details)
+        {
+            sourceRoot = null;
+
+            var candidates = new List<string>();
+            string fromEnv = Environment.GetEnvironmentVariable("EDDY_FLUIDX3D_SOURCE");
+            if (!string.IsNullOrWhiteSpace(fromEnv))
+            {
+                candidates.Add(Path.GetFullPath(fromEnv.Trim()));
+            }
+
+            candidates.Add(Path.GetFullPath(FluidX3DAblWorkflow.GetDefaultSourceDirectory()));
+
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string candidate in candidates)
+            {
+                if (string.IsNullOrWhiteSpace(candidate) || !seen.Add(candidate))
+                {
+                    continue;
+                }
+
+                if (Directory.Exists(candidate) && FluidX3DAblWorkflow.IsValidSourceDirectory(candidate))
+                {
+                    sourceRoot = candidate;
+                    details = "FluidX3D source found at: " + candidate;
+                    return true;
+                }
+            }
+
+            details = "FluidX3D source not found. Install it via 'Install Engines' or set EDDY_FLUIDX3D_SOURCE.";
+            return false;
         }
 
         private static void ApplyQueuedSimulationRemainingTimePredictions(
