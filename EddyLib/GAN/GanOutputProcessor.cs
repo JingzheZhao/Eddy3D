@@ -1,6 +1,6 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
 using Rhino.Geometry;
 
 namespace EddyLib.GAN
@@ -12,35 +12,42 @@ namespace EddyLib.GAN
     public static class GanOutputProcessor
     {
         public const double PreviewHeightMeters = 2.0;
+        public const int OutputWidth = 512;
+        public const int OutputHeight = 512;
+        private const double MaxWindSpeed = 15.0;
 
         /// <summary>
-        /// Creates a coloured result mesh from the GAN output image.
+        /// Creates a coloured result mesh from the GAN wind-speed output.
         /// Each pixel becomes a quad face with vertex colours.
         /// The mesh is previewed on a horizontal plane at pedestrian height and
         /// rotated back to the original (pre-wind-direction) orientation.
         /// </summary>
         public static Mesh CreateResultMesh(
-            byte[] imageBytes,
-            int width,
-            int height,
+            IReadOnlyList<double> windSpeeds,
             Point3d sCorner,
             double pixelSize,
             int windDirection,
             Point3d rotationCenter)
         {
-            using (var ms = new MemoryStream(imageBytes))
-            using (var image = Image.FromStream(ms))
-            using (var outputImage = new Bitmap(image))
+            int expected = OutputWidth * OutputHeight;
+            if (windSpeeds == null)
+                throw new ArgumentNullException(nameof(windSpeeds));
+            if (windSpeeds.Count != expected)
             {
-                return CreateResultMeshFromPixels(
-                    width,
-                    height,
-                    sCorner,
-                    pixelSize,
-                    windDirection,
-                    rotationCenter,
-                    (col, row) => outputImage.GetPixel(col, row));
+                throw new ArgumentException(
+                    $"Expected {expected} wind speed values, got {windSpeeds.Count}.",
+                    nameof(windSpeeds));
             }
+
+            return CreateResultMeshFromPixels(
+                OutputWidth,
+                OutputHeight,
+                sCorner,
+                pixelSize,
+                windDirection,
+                rotationCenter,
+                (col, row) => InfernoColormap.GetColor(
+                    windSpeeds[row * OutputWidth + col] / MaxWindSpeed));
         }
 
         internal static Mesh CreateResultMeshFromPixels(

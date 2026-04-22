@@ -13,6 +13,8 @@ namespace RhinoPlugin.Test.Xunit
     public class Test_GanApi
     {
         private readonly ITestOutputHelper _output;
+        private static readonly string ApiUrl =
+            Environment.GetEnvironmentVariable("EDDY3D_GAN_API_URL") ?? GanApiClient.DefaultApiUrl;
 
         public Test_GanApi(ITestOutputHelper output)
         {
@@ -26,7 +28,7 @@ namespace RhinoPlugin.Test.Xunit
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
 
             bool healthy = await GanApiClient.CheckHealthAsync(
-                GanApiClient.DefaultApiUrl, cts.Token);
+                ApiUrl, cts.Token);
 
             _output.WriteLine($"Initial health check: {healthy}");
 
@@ -34,7 +36,7 @@ namespace RhinoPlugin.Test.Xunit
             {
                 _output.WriteLine("Server appears to be sleeping — attempting wake-up...");
                 healthy = await GanApiClient.WaitForServerAsync(
-                    GanApiClient.DefaultApiUrl,
+                    ApiUrl,
                     maxRetries: 12,
                     retryDelayMs: 5000,
                     onStatusChange: msg => _output.WriteLine(msg),
@@ -94,12 +96,12 @@ namespace RhinoPlugin.Test.Xunit
                 {
                     _output.WriteLine($"Sending prediction request (attempt {attempt}/{maxRetries})...");
                     result = await GanApiClient.PredictArrayAsync(
-                        artificialInput, GanApiClient.DefaultApiUrl, cts.Token);
+                        artificialInput, ApiUrl, cts.Token);
                     break; // Success
                 }
                 catch (HttpRequestException ex) when (ex.Message.Contains("404"))
                 {
-                    _output.WriteLine("Binary endpoint not yet deployed to remote server — skipping prediction test gracefully.");
+                    _output.WriteLine("Wind-only binary endpoint not yet deployed to remote server — skipping prediction test gracefully.");
                     return;
                 }
                 catch (HttpRequestException ex) when (
@@ -116,14 +118,9 @@ namespace RhinoPlugin.Test.Xunit
             Assert.NotNull(result.WindSpeeds);
             Assert.True(result.WindSpeeds.Count > 0,
                 "Expected at least one wind speed value.");
-            Assert.NotNull(result.ImageBytes);
-            Assert.True(result.ImageBytes.Length > 0,
-                "Expected non-empty image bytes.");
-            Assert.True(result.Width > 0, "Expected positive image width.");
-            Assert.True(result.Height > 0, "Expected positive image height.");
+            Assert.Equal(imageSize * imageSize, result.WindSpeeds.Count);
 
             _output.WriteLine($"Received {result.WindSpeeds.Count} wind speed values.");
-            _output.WriteLine($"Output image: {result.Width}x{result.Height} ({result.ImageBytes.Length} bytes).");
             _output.WriteLine($"Wind speed range: [{result.WindSpeeds.Min():F3}, {result.WindSpeeds.Max():F3}] m/s");
         }
 
@@ -133,7 +130,7 @@ namespace RhinoPlugin.Test.Xunit
         private async Task<bool> EnsureServerReady(CancellationToken ct)
         {
             bool healthy = await GanApiClient.CheckHealthAsync(
-                GanApiClient.DefaultApiUrl, ct);
+                ApiUrl, ct);
 
             if (healthy)
             {
@@ -143,7 +140,7 @@ namespace RhinoPlugin.Test.Xunit
 
             _output.WriteLine("Server is sleeping — waking up...");
             return await GanApiClient.WaitForServerAsync(
-                GanApiClient.DefaultApiUrl,
+                ApiUrl,
                 maxRetries: 12,
                 retryDelayMs: 5000,
                 onStatusChange: msg => _output.WriteLine(msg),

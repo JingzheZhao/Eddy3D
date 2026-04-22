@@ -28,13 +28,10 @@ namespace EddyLib.GAN
         public class GanPredictionResult
         {
             public List<double> WindSpeeds { get; set; }
-            public byte[] ImageBytes { get; set; }
-            public int Width { get; set; }
-            public int Height { get; set; }
         }
 
         /// <summary>
-        /// Sends a pre-normalised float array to the GAN API and returns wind speeds + output image.
+        /// Sends a pre-normalised float array to the GAN API and returns wind speeds.
         /// This bypasses image encoding, sending the raw array directly.
         /// </summary>
         /// <param name="inputArray">Flat float array of length 3*512*512, channel-first (R,G,B), values in [-1,1].</param>
@@ -45,7 +42,7 @@ namespace EddyLib.GAN
             string apiUrl = null,
             CancellationToken cancellationToken = default)
         {
-            string url = (apiUrl ?? DefaultApiUrl).TrimEnd('/') + "/predict";
+            string url = (apiUrl ?? DefaultApiUrl).TrimEnd('/') + "/predict.bin";
 
             // 1. Convert float[] to byte[]
             byte[] rawBytes = new byte[inputArray.Length * sizeof(float)];
@@ -75,24 +72,13 @@ namespace EddyLib.GAN
 
             response.EnsureSuccessStatusCode();
 
-            var responseJson = await response.Content.ReadAsStringAsync();
-            var result = JsonConvert.DeserializeObject<PredictResponse>(responseJson);
-
-            // 3. Decode wind speeds: base64(gzip(float32[]))
-            if (result.wind_speeds_b64 == null)
-                throw new InvalidOperationException(
-                    "GAN API response did not contain 'wind_speeds_b64'. " +
-                    "Ensure the server is running a current version of the Eddy3D GAN API.");
-
-            byte[] compWindBytes = Convert.FromBase64String(result.wind_speeds_b64);
+            // 3. Decode wind speeds: gzip(float32[])
+            byte[] compWindBytes = await response.Content.ReadAsByteArrayAsync(cancellationToken);
             List<double> windSpeeds = DecompressFloatsFromGzip(compWindBytes);
 
             return new GanPredictionResult
             {
-                WindSpeeds = windSpeeds,
-                ImageBytes = Convert.FromBase64String(result.image_base64),
-                Width = result.width,
-                Height = result.height,
+                WindSpeeds = windSpeeds
             };
         }
         /// <summary>
@@ -197,12 +183,5 @@ namespace EddyLib.GAN
             public string data_b64 { get; set; }
         }
 
-        private class PredictResponse
-        {
-            public string wind_speeds_b64 { get; set; }
-            public string image_base64 { get; set; }
-            public int width { get; set; }
-            public int height { get; set; }
-        }
     }
 }

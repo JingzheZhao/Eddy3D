@@ -300,11 +300,9 @@ namespace Eddy
         {
             if (_cachedResult == null || _cachedInputData == null) return;
 
-            // Build result mesh from the output image
+            // Build result mesh from the wind-speed field
             var mesh = GanOutputProcessor.CreateResultMesh(
-                _cachedResult.ImageBytes,
-                _cachedResult.Width,
-                _cachedResult.Height,
+                _cachedResult.WindSpeeds,
                 _cachedInputData.SCorner,
                 _cachedInputData.PixelSize,
                 _cachedInputData.WindDirection,
