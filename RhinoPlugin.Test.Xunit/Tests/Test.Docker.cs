@@ -133,6 +133,20 @@ namespace RhinoPlugin.Test.Xunit
         }
 
         [Fact]
+        public void DockerRunner_CommandFileContent_AutoClosesMacTerminalOnSuccess()
+        {
+            var commands = new List<string> { "blockMesh" };
+            var script = DockerRunner.BuildCommandFileContent(commands, "/tmp/test-case", "Mesh");
+
+            Assert.Contains("TERM_PROGRAM", script);
+            Assert.Contains("Apple_Terminal", script);
+            Assert.Contains("osascript", script);
+            Assert.Contains("close t", script);
+            Assert.Contains("Docker execution failed with exit code", script);
+            Assert.Contains("read -n 1", script);
+        }
+
+        [Fact]
         public void DockerBatchScriptBuilder_BatWrapper_ContainsExpectedContent()
         {
             var commands = new List<string> { "blockMesh" };

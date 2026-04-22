@@ -46,10 +46,11 @@ namespace EddyLib.Docker
                 "  -w {0} {1} \\",
                 DockerConfig.CaseMountPoint, DockerConfig.ImageName));
             sb.AppendLine(string.Format("  -c '{0}'", escapedCmd));
+            sb.AppendLine("_eddy_exit=$?");
             sb.AppendLine();
             sb.AppendLine("echo \"\"");
             sb.AppendLine("echo \"----------------------------------------\"");
-            sb.AppendLine("echo \"Docker execution complete.\"");
+            DockerRunner.AppendMacTerminalCompletion(sb);
 
             return sb.ToString();
         }

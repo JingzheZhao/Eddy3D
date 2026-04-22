@@ -206,10 +206,10 @@ echo ""----------------------------------------""
   -v ""{2}:{5}"" \
   -w {5} {1} \
   -c '{6}'
+_eddy_exit=$?
 
 echo """"
 echo ""----------------------------------------""
-echo ""Docker execution complete.""
 ",
                 DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
                 _imageName,
@@ -218,6 +218,10 @@ echo ""Docker execution complete.""
                 DockerConfig.Platform,
                 DockerConfig.CaseMountPoint,
                 fullCmd);
+
+            var scriptBuilder = new StringBuilder(scriptContent);
+            AppendMacTerminalCompletion(scriptBuilder);
+            scriptContent = scriptBuilder.ToString();
 
             File.WriteAllText(scriptPath, scriptContent);
 
@@ -349,13 +353,42 @@ echo ""Docker execution complete.""
             sb.AppendLine(string.Format("  -w {0} {1} \\",
                 DockerConfig.CaseMountPoint, DockerConfig.ImageName));
             sb.AppendLine(string.Format("  -c '{0}'", escapedChain));
+            sb.AppendLine("_eddy_exit=$?");
             sb.AppendLine();
             sb.AppendLine("echo \"\"");
             sb.AppendLine("echo \"----------------------------------------\"");
-            sb.AppendLine("echo \"Docker execution complete.\"");
-            sb.AppendLine("echo \"Press any key to close...\"");
-            sb.AppendLine("read -n 1");
+            AppendMacTerminalCompletion(sb);
             return sb.ToString();
+        }
+
+        internal static void AppendMacTerminalCompletion(StringBuilder sb)
+        {
+            sb.AppendLine("if [ \"$_eddy_exit\" -eq 0 ]; then");
+            sb.AppendLine("  echo \"Docker execution complete.\"");
+            sb.AppendLine("  if [ \"${TERM_PROGRAM:-}\" = \"Apple_Terminal\" ]; then");
+            sb.AppendLine("    _eddy_tty=\"$(tty)\"");
+            sb.AppendLine("    (");
+            sb.AppendLine("      sleep 0.2");
+            sb.AppendLine("      osascript <<APPLESCRIPT");
+            sb.AppendLine("tell application \"Terminal\"");
+            sb.AppendLine("    repeat with w in windows");
+            sb.AppendLine("        repeat with t in tabs of w");
+            sb.AppendLine("            if tty of t is \"$_eddy_tty\" then");
+            sb.AppendLine("                close t");
+            sb.AppendLine("                return");
+            sb.AppendLine("            end if");
+            sb.AppendLine("        end repeat");
+            sb.AppendLine("    end repeat");
+            sb.AppendLine("end tell");
+            sb.AppendLine("APPLESCRIPT");
+            sb.AppendLine("    ) >/dev/null 2>&1 &");
+            sb.AppendLine("  fi");
+            sb.AppendLine("else");
+            sb.AppendLine("  echo \"Docker execution failed with exit code $_eddy_exit.\"");
+            sb.AppendLine("  echo \"Press any key to close...\"");
+            sb.AppendLine("  read -n 1");
+            sb.AppendLine("fi");
+            sb.AppendLine("exit \"$_eddy_exit\"");
         }
 
         private void LaunchInteractiveMacOS(string escapedBashCmd, string hostCasePath, StringBuilder log)
@@ -376,10 +409,10 @@ echo ""----------------------------------------""
   -v ""{1}:{4}"" \
   -w {4} {0} \
   -c '{5}'
+_eddy_exit=$?
 
 echo """"
 echo ""----------------------------------------""
-echo ""Docker execution complete.""
 ",
                 _imageName,
                 hostCasePath,
@@ -387,6 +420,10 @@ echo ""Docker execution complete.""
                 DockerConfig.Platform,
                 DockerConfig.CaseMountPoint,
                 escapedBashCmd);
+
+            var scriptBuilder = new StringBuilder(scriptContent);
+            AppendMacTerminalCompletion(scriptBuilder);
+            scriptContent = scriptBuilder.ToString();
 
             File.WriteAllText(scriptPath, scriptContent);
             log.AppendLine(string.Format("{0} Created script: {1}",
