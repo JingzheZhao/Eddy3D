@@ -155,9 +155,11 @@ namespace EddyLib.GAN
         private static List<double> DecompressFloatsFromGzip(byte[] compressed)
         {
             // Detect format from magic bytes before attempting decompression.
-            // GZip: 0x1F 0x8B | zlib: 0x78 xx | ZIP: 0x50 0x4B
-            if (compressed.Length < 2)
-                throw new InvalidDataException("Compressed wind speed data is too short to be valid.");
+            // GZip: 0x1F 0x8B 0x08 (method must be DEFLATE=8) | zlib: 0x78 xx | ZIP: 0x50 0x4B
+            if (compressed.Length < 10)
+                throw new InvalidDataException(
+                    $"Compressed wind speed payload is too short ({compressed.Length} bytes) to be a valid GZip stream. " +
+                    "The response may have been truncated in transit.");
 
             bool isGzip = compressed[0] == 0x1F && compressed[1] == 0x8B;
             if (!isGzip)
@@ -169,11 +171,28 @@ namespace EddyLib.GAN
                     "The server and client compression formats are mismatched.");
             }
 
+            if (compressed[2] != 0x08)
+            {
+                throw new InvalidDataException(
+                    $"GAN API returned GZip-framed data using compression method 0x{compressed[2]:X2} (not DEFLATE). " +
+                    $"Payload size: {compressed.Length} bytes. This typically indicates transport-level corruption " +
+                    "(e.g. base64 truncation or a middle-box mangling the response).");
+            }
+
             using (var ms = new MemoryStream(compressed))
             using (var gzip = new GZipStream(ms, CompressionMode.Decompress))
             using (var msOut = new MemoryStream())
             {
-                gzip.CopyTo(msOut);
+                try
+                {
+                    gzip.CopyTo(msOut);
+                }
+                catch (InvalidDataException ex)
+                {
+                    throw new InvalidDataException(
+                        $"GZip decompression failed on a {compressed.Length}-byte payload: {ex.Message}. " +
+                        "The response body may have been truncated.", ex);
+                }
                 byte[] decompressed = msOut.ToArray();
                 float[] floatArr = new float[decompressed.Length / sizeof(float)];
                 Buffer.BlockCopy(decompressed, 0, floatArr, 0, decompressed.Length);
