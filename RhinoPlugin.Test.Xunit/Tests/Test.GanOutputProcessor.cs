@@ -32,5 +32,14 @@ namespace RhinoPlugin.Test.Xunit
             Assert.True(low.B > low.R, "Low wind speeds should use the blue/purple end of Turbo.");
             Assert.True(high.R > high.B, "High wind speeds should use the red end of Turbo.");
         }
+
+        [Fact]
+        public void GetColor_UsesSelectedColorMap()
+        {
+            var turbo = GanOutputProcessor.GetColor(0.0, GanColorMap.Turbo);
+            var inferno = GanOutputProcessor.GetColor(0.0, GanColorMap.Inferno);
+
+            Assert.NotEqual(turbo, inferno);
+        }
     }
 }

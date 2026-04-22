@@ -5,6 +5,12 @@ using Rhino.Geometry;
 
 namespace EddyLib.GAN
 {
+    public enum GanColorMap
+    {
+        Turbo,
+        Inferno
+    }
+
     /// <summary>
     /// Processes GAN API output into Rhino geometry.
     /// Ported from Prediction.SaveAsBitmap in the decompiled CFDComponent.
@@ -27,7 +33,8 @@ namespace EddyLib.GAN
             Point3d sCorner,
             double pixelSize,
             int windDirection,
-            Point3d rotationCenter)
+            Point3d rotationCenter,
+            GanColorMap colorMap = GanColorMap.Turbo)
         {
             int expected = OutputWidth * OutputHeight;
             if (windSpeeds == null)
@@ -46,11 +53,29 @@ namespace EddyLib.GAN
                 pixelSize,
                 windDirection,
                 rotationCenter,
-                (col, row) => TurboColormap.GetColor(
-                    ToTurboScale(windSpeeds[row * OutputWidth + col])));
+                (col, row) => GetColor(
+                    windSpeeds[row * OutputWidth + col],
+                    colorMap));
         }
 
-        private static double ToTurboScale(double windSpeed)
+        internal static Color GetColor(double windSpeed, GanColorMap colorMap)
+        {
+            switch (colorMap)
+            {
+                case GanColorMap.Inferno:
+                    return InfernoColormap.GetColor(ToUnitScale(windSpeed));
+                case GanColorMap.Turbo:
+                default:
+                    return TurboColormap.GetColor(ToTurboScale(windSpeed));
+            }
+        }
+
+        private static double ToUnitScale(double windSpeed)
+        {
+            return windSpeed / MaxWindSpeed;
+        }
+
+        internal static double ToTurboScale(double windSpeed)
         {
             // The API maps Turbo index i to i * (15 / 256). Invert that
             // quantisation so wind-only mesh colours match the former image output.

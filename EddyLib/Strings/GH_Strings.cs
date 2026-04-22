@@ -502,6 +502,10 @@ namespace EddyLib
             public const string ColorSizeNick = "cSize";
             public const string ColorSizeDesc = "Distance coloring scale factor for the input image.";
 
+            public const string ColorMap = "Color Map";
+            public const string ColorMapNick = "CMap";
+            public const string ColorMapDesc = "Result mesh color map. Supported values: Turbo, Inferno.";
+
             public const string WindSpeed = "Wind Speed";
             public const string WindSpeedNick = "UMag";
             public const string WindSpeedDesc = "Predicted wind speed magnitude at each pixel (m/s).";

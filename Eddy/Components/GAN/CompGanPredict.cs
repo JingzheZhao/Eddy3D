@@ -82,6 +82,14 @@ namespace Eddy
                 GH_Strings.GanPredict.ColorSizeDesc,
                 GH_ParamAccess.item, 100.0);
             pManager[6].Optional = true;
+
+            pManager.AddTextParameter(
+                GH_Strings.GanPredict.ColorMap,
+                GH_Strings.GanPredict.ColorMapNick,
+                GH_Strings.GanPredict.ColorMapDesc,
+                GH_ParamAccess.item,
+                GanColorMap.Turbo.ToString());
+            pManager[7].Optional = true;
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
@@ -109,6 +117,7 @@ namespace Eddy
             string apiUrl = GanApiClient.DefaultApiUrl;
             double vSize = 3.0;
             double colorSize = 100.0;
+            string colorMapInput = GanColorMap.Turbo.ToString();
 
             if (!DA.GetDataList(0, buildings)) return;
             
@@ -137,6 +146,7 @@ namespace Eddy
             DA.GetData(4, ref apiUrl);
             DA.GetData(5, ref vSize);
             DA.GetData(6, ref colorSize);
+            DA.GetData(7, ref colorMapInput);
 
             // Edge detection for the run boolean (button press or toggle false->true)
             bool runPressed = run && !_wasRun;
@@ -155,13 +165,21 @@ namespace Eddy
                 return;
             }
 
+            if (!TryParseColorMap(colorMapInput, out var colorMap))
+            {
+                AddRuntimeMessage(
+                    GH_RuntimeMessageLevel.Error,
+                    $"Unsupported color map '{colorMapInput}'. Use Turbo or Inferno.");
+                return;
+            }
+
             string inputHash = $"{building.Vertices.Count}_{analysisPlane.Width:F3}_{analysisPlane.Height:F3}_{windDir}_{vSize:F3}_{colorSize:F3}";
 
             // If we are currently computing, exit early but still output any previously cached result
             if (_isComputing)
             {
                 Message = "Computing...";
-                if (_cachedResult != null) BuildOutputs(DA);
+                if (_cachedResult != null) BuildOutputs(DA, colorMap);
                 return;
             }
 
@@ -175,7 +193,7 @@ namespace Eddy
                 }
                 else if (_cachedResult != null)
                 {
-                    BuildOutputs(DA);
+                    BuildOutputs(DA, colorMap);
                     Message = "Done";
                 }
                 else
@@ -197,7 +215,7 @@ namespace Eddy
                 }
                 else if (_cachedResult != null)
                 {
-                    BuildOutputs(DA);
+                    BuildOutputs(DA, colorMap);
                     Message = "Done";
                 }
                 return;
@@ -296,7 +314,13 @@ namespace Eddy
             });
         }
 
-        private void BuildOutputs(IGH_DataAccess DA)
+        private static bool TryParseColorMap(string input, out GanColorMap colorMap)
+        {
+            string value = string.IsNullOrWhiteSpace(input) ? GanColorMap.Turbo.ToString() : input.Trim();
+            return Enum.TryParse(value, ignoreCase: true, out colorMap);
+        }
+
+        private void BuildOutputs(IGH_DataAccess DA, GanColorMap colorMap)
         {
             if (_cachedResult == null || _cachedInputData == null) return;
 
@@ -306,7 +330,8 @@ namespace Eddy
                 _cachedInputData.SCorner,
                 _cachedInputData.PixelSize,
                 _cachedInputData.WindDirection,
-                _cachedInputData.Center);
+                _cachedInputData.Center,
+                colorMap);
 
             DA.SetDataList(0, _cachedResult.WindSpeeds);
             DA.SetData(1, mesh);
